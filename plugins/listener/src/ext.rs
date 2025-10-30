@@ -1,14 +1,7 @@
 use std::future::Future;
 
-use futures_util::StreamExt;
 use ractor::{call_t, concurrency, registry, Actor, ActorRef};
 use tauri_specta::Event;
-
-#[cfg(target_os = "macos")]
-use {
-    block2::StackBlock,
-    objc2_av_foundation::{AVAuthorizationStatus, AVCaptureDevice, AVMediaTypeAudio},
-};
 
 use crate::{
     actors::{SessionActor, SessionArgs, SessionMsg, SessionParams},
@@ -25,21 +18,8 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
         device_name: impl Into<String>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn check_microphone_access(
-        &self,
-    ) -> impl Future<Output = Result<PermissionStatus, crate::Error>>;
-    fn check_system_audio_access(
-        &self,
-    ) -> impl Future<Output = Result<PermissionStatus, crate::Error>>;
-    fn request_microphone_access(&self) -> impl Future<Output = Result<(), crate::Error>>;
-    fn request_system_audio_access(&self) -> impl Future<Output = Result<(), crate::Error>>;
-    fn open_microphone_access_settings(&self) -> impl Future<Output = Result<(), crate::Error>>;
-    fn open_system_audio_access_settings(&self) -> impl Future<Output = Result<(), crate::Error>>;
-
     fn get_mic_muted(&self) -> impl Future<Output = bool>;
-    fn get_speaker_muted(&self) -> impl Future<Output = bool>;
     fn set_mic_muted(&self, muted: bool) -> impl Future<Output = ()>;
-    fn set_speaker_muted(&self, muted: bool) -> impl Future<Output = ()>;
 
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
     fn stop_session(&self) -> impl Future<Output = ()>;
@@ -80,95 +60,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn check_microphone_access(&self) -> Result<PermissionStatus, crate::Error> {
-        #[cfg(target_os = "macos")]
-        {
-            let status = unsafe {
-                let media_type = AVMediaTypeAudio.unwrap();
-                AVCaptureDevice::authorizationStatusForMediaType(media_type)
-            };
-
-            tracing::info!(status = ?status, "microphone_permission_check");
-            Ok(status.into())
-        }
-
-        #[cfg(not(target_os = "macos"))]
-        {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).unwrap().stream();
-            let sample = mic_sample_stream.next().await;
-            Ok(sample.is_some())
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn check_system_audio_access(&self) -> Result<PermissionStatus, crate::Error> {
-        let status = hypr_tcc::audio_capture_permission_status();
-        tracing::info!(status = status, "system_audio_permission_check");
-        Ok(status.into())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn request_microphone_access(&self) -> Result<(), crate::Error> {
-        #[cfg(target_os = "macos")]
-        {
-            unsafe {
-                let media_type = AVMediaTypeAudio.unwrap();
-                let block = StackBlock::new(|_granted| {});
-                AVCaptureDevice::requestAccessForMediaType_completionHandler(media_type, &block);
-            }
-        }
-
-        #[cfg(not(target_os = "macos"))]
-        {
-            let mut mic_sample_stream = hypr_audio::AudioInput::from_mic(None).unwrap().stream();
-            mic_sample_stream.next().await;
-        }
-
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn request_system_audio_access(&self) -> Result<(), crate::Error> {
-        {
-            use tauri_plugin_shell::ShellExt;
-
-            let bundle_id = self.config().identifier.clone();
-            self.app_handle()
-                .shell()
-                .command("tccutil")
-                .args(["reset", "AudioCapture", &bundle_id])
-                .spawn()
-                .ok();
-        }
-
-        let stop = hypr_audio::AudioOutput::silence();
-
-        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
-        speaker_sample_stream.next().await;
-
-        let _ = stop.send(());
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn open_microphone_access_settings(&self) -> Result<(), crate::Error> {
-        std::process::Command::new("open")
-            .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")
-            .spawn()?
-            .wait()?;
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn open_system_audio_access_settings(&self) -> Result<(), crate::Error> {
-        std::process::Command::new("open")
-            .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture")
-            .spawn()?
-            .wait()?;
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all)]
     async fn get_state(&self) -> crate::fsm::State {
         if let Some(_) = registry::where_is(SessionActor::name()) {
             crate::fsm::State::RunningActive
@@ -192,32 +83,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn get_speaker_muted(&self) -> bool {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-
-            match call_t!(actor, SessionMsg::GetSpeakerMute, 100) {
-                Ok(muted) => muted,
-                Err(_) => false,
-            }
-        } else {
-            false
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
         if let Some(cell) = registry::where_is(SessionActor::name()) {
             let actor: ActorRef<SessionMsg> = cell.into();
             let _ = actor.cast(SessionMsg::SetMicMute(muted));
-        }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn set_speaker_muted(&self, muted: bool) {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-            let _ = actor.cast(SessionMsg::SetSpeakerMute(muted));
         }
     }
 
@@ -250,33 +119,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 let guard = state.lock().await;
                 SessionEvent::Inactive {}.emit(&guard.app).unwrap();
             }
-        }
-    }
-}
-
-#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
-pub enum PermissionStatus {
-    NeverRequested,
-    Denied,
-    Authorized,
-}
-
-impl From<isize> for PermissionStatus {
-    fn from(status: isize) -> Self {
-        match status {
-            hypr_tcc::GRANTED => Self::Authorized,
-            hypr_tcc::NEVER_ASKED => Self::NeverRequested,
-            _ => Self::Denied,
-        }
-    }
-}
-
-impl From<AVAuthorizationStatus> for PermissionStatus {
-    fn from(status: AVAuthorizationStatus) -> Self {
-        match status {
-            AVAuthorizationStatus::NotDetermined => Self::NeverRequested,
-            AVAuthorizationStatus::Authorized => Self::Authorized,
-            _ => Self::Denied,
         }
     }
 }

@@ -17,8 +17,6 @@ common_event_derives! {
         AudioAmplitude { mic: u16, speaker: u16 },
         #[serde(rename = "micMuted")]
         MicMuted { value: bool },
-        #[serde(rename = "speakerMuted")]
-        SpeakerMuted { value: bool },
         #[serde(rename = "streamResponse")]
         StreamResponse { response: owhisper_interface::StreamResponse },
     }

@@ -63,6 +63,7 @@ export const StoreComponent = () => {
       .setTablesSchema(SCHEMA.table)
       .setValuesSchema(SCHEMA.value)
   );
+  store.setValue("user_id", DEFAULT_USER_ID);
 
   useDidFinishTransactionListener(
     () => {
@@ -97,16 +98,7 @@ export const StoreComponent = () => {
         storeIdColumnName: "id",
       }),
     [],
-    async (persister) => {
-      await persister.load();
-
-      if (!store.getValue("user_id")) {
-        store.setValue("user_id", DEFAULT_USER_ID);
-      }
-
-      await persister.startAutoSave();
-      await persister.startAutoLoad();
-    },
+    async (persister) => await persister.startAutoPersisting(),
   );
 
   const synchronizer = useCreateSynchronizer(

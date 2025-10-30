@@ -1,0 +1,34 @@
+[package]
+name = "tauri-plugin-permissions"
+version = "0.1.0"
+authors = [ "You" ]
+description = ""
+edition = "2021"
+rust-version = "1.77.2"
+exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
+links = "tauri-plugin-permissions"
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+
+[dependencies]
+hypr-audio = { workspace = true }
+hypr-tcc = { workspace = true }
+
+tauri = { workspace = true, features = ["specta", "test"] }
+tauri-plugin-shell = { workspace = true }
+
+specta = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+serde = { workspace = true }
+thiserror = { workspace = true }
+futures-util = { workspace = true }
+
+[target."cfg(target_os = \"macos\")".dependencies]
+block2 = { workspace = true }
+objc2-av-foundation = { workspace = true }
+macos-accessibility-client = "0.0.1"

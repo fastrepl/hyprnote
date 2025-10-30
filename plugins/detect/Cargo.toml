@@ -1,0 +1,31 @@
+[package]
+name = "tauri-plugin-detect"
+version = "0.1.0"
+authors = ["You"]
+edition = "2021"
+exclude = ["/js", "/node_modules"]
+links = "tauri-plugin-detect"
+description = ""
+
+[build-dependencies]
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+specta-typescript = { workspace = true }
+
+[dependencies]
+hypr-detect = { workspace = true }
+hypr-host = { workspace = true }
+hypr-intercept = { workspace = true }
+
+tauri = { workspace = true, features = ["specta", "test"] }
+
+specta = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+serde = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
+
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+tracing = { workspace = true }

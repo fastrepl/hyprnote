@@ -24,5 +24,4 @@ objc2 = { workspace = true }
 objc2-core-foundation = { workspace = true }
 objc2-application-services = { workspace = true }
 
-macos-accessibility-client = "0.0.1"
 plist = "1.7"

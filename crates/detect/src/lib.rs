@@ -3,9 +3,15 @@ mod list;
 mod mic;
 mod utils;
 
+#[cfg(target_os = "macos")]
+mod zoom;
+
 pub use app::*;
 pub use list::*;
 pub use mic::*;
+
+#[cfg(target_os = "macos")]
+pub use zoom::*;
 
 use utils::*;
 
@@ -13,6 +19,10 @@ use utils::*;
 pub enum DetectEvent {
     MicStarted(Vec<InstalledApp>),
     MicStopped,
+    #[cfg(target_os = "macos")]
+    ZoomMuteStateChanged {
+        value: bool,
+    },
 }
 
 pub type DetectCallback = std::sync::Arc<dyn Fn(DetectEvent) + Send + Sync + 'static>;
@@ -32,47 +42,22 @@ trait Observer: Send + Sync {
 #[derive(Default)]
 pub struct Detector {
     mic_detector: MicDetector,
+    #[cfg(target_os = "macos")]
+    zoom_watcher: ZoomMuteWatcher,
 }
 
 impl Detector {
-    #[cfg(target_os = "macos")]
-    pub fn macos_check_accessibility_permission(&self) -> Result<bool, String> {
-        let is_trusted = macos_accessibility_client::accessibility::application_is_trusted();
-        Ok(is_trusted)
-    }
-
-    #[cfg(target_os = "macos")]
-    pub fn macos_request_accessibility_permission(&self) -> Result<(), String> {
-        macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
-        Ok(())
-    }
-
     pub fn start(&mut self, f: DetectCallback) {
-        self.mic_detector.start(f);
+        self.mic_detector.start(f.clone());
+
+        #[cfg(target_os = "macos")]
+        self.zoom_watcher.start(f);
     }
 
     pub fn stop(&mut self) {
         self.mic_detector.stop();
-    }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    #[ignore]
-    #[cfg(target_os = "macos")]
-    fn test_macos_check_accessibility_permission() {
-        let detector = Detector::default();
-        let is_trusted = detector.macos_check_accessibility_permission();
-        assert!(is_trusted.is_ok());
-    }
-
-    #[test]
-    #[ignore]
-    #[cfg(target_os = "macos")]
-    fn test_macos_request_accessibility_permission() {
-        macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+        #[cfg(target_os = "macos")]
+        self.zoom_watcher.stop();
     }
 }

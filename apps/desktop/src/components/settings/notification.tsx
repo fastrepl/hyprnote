@@ -1,8 +1,10 @@
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { commands as notificationCommands, type InstalledApp } from "@hypr/plugin-notification";
+import { commands as detectCommands } from "@hypr/plugin-detect";
+import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
@@ -15,7 +17,15 @@ export function SettingsNotifications() {
   const values = main.UI.useValues(main.STORE_ID);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
-  const [applications, setApplications] = useState<string[]>([]);
+
+  useEffect(() => {
+    const cleanup = () => {
+      notificationCommands.clearNotifications();
+    };
+
+    cleanup();
+    return cleanup;
+  }, []);
 
   const handleSetNotificationEvent = main.UI.useSetValueCallback(
     "notification_event",
@@ -62,33 +72,21 @@ export function SettingsNotifications() {
       handleSetNotificationDetect(value.notification_detect);
       handleSetRespectDnd(value.respect_dnd);
       handleSetIgnoredPlatforms(value.ignored_platforms);
-
-      if (value.notification_event) {
-        await notificationCommands.startEventNotification({
-          respect_do_not_disturb: value.respect_dnd,
-        });
-      } else {
-        await notificationCommands.stopEventNotification();
-      }
-
-      if (value.notification_detect) {
-        await notificationCommands.startDetectNotification({
-          respect_do_not_disturb: value.respect_dnd,
-          ignored_platforms: value.ignored_platforms,
-        });
-      } else {
-        await notificationCommands.stopDetectNotification();
-      }
     },
   });
 
-  const loadApplications = async () => {
-    if (applications.length === 0) {
-      const apps = await notificationCommands.listApplications();
-      const uniqueNames = Array.from(new Set(apps.map((app: InstalledApp) => app.name))) as string[];
-      setApplications(uniqueNames);
-    }
-  };
+  const { data: installedApps } = useQuery({
+    enabled: popoverOpen,
+    queryKey: ["installed-applications"],
+    queryFn: detectCommands.listInstalledApplications,
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+
+      return result.data.map((app) => app.name);
+    },
+  });
 
   const handleAddIgnoredApp = (appName: string) => {
     const trimmedName = appName.trim();
@@ -174,12 +172,7 @@ export function SettingsNotifications() {
                       </div>
                       <Popover
                         open={popoverOpen}
-                        onOpenChange={(open) => {
-                          setPopoverOpen(open);
-                          if (open) {
-                            loadApplications();
-                          }
-                        }}
+                        onOpenChange={setPopoverOpen}
                       >
                         <PopoverTrigger asChild>
                           <Button
@@ -220,7 +213,7 @@ export function SettingsNotifications() {
                                 )}
                             </CommandEmpty>
                             <CommandGroup className="max-h-[200px] overflow-auto">
-                              {applications
+                              {(installedApps ?? [])
                                 .filter(app => !form.getFieldValue("ignored_platforms").includes(app))
                                 .map((app) => (
                                   <CommandItem

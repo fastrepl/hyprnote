@@ -24,14 +24,12 @@ hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 hypr-language = { workspace = true }
 hypr-llm = { workspace = true }
-hypr-tcc = { workspace = true }
 hypr-vad2 = { workspace = true }
 
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }
 
 tauri-plugin-local-stt = { workspace = true }
-tauri-plugin-shell = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
@@ -60,7 +58,3 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tokio-stream = { workspace = true }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
-
-[target."cfg(target_os = \"macos\")".dependencies]
-block2 = { workspace = true }
-objc2-av-foundation = { workspace = true }

@@ -1,0 +1,10 @@
+[default]
+description = "Default permissions for the plugin"
+permissions = [
+    "allow-check-microphone-permission",
+    "allow-request-microphone-permission",
+    "allow-check-system-audio-permission",
+    "allow-request-system-audio-permission",
+    "allow-check-accessibility-permission",
+    "allow-request-accessibility-permission",
+]

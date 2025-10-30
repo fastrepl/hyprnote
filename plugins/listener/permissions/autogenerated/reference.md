@@ -7,18 +7,10 @@ Default permissions for the plugin
 - `allow-list-microphone-devices`
 - `allow-get-current-microphone-device`
 - `allow-set-microphone-device`
-- `allow-check-microphone-access`
-- `allow-check-system-audio-access`
-- `allow-request-microphone-access`
-- `allow-request-system-audio-access`
-- `allow-open-microphone-access-settings`
-- `allow-open-system-audio-access-settings`
 - `allow-start-session`
 - `allow-stop-session`
 - `allow-get-mic-muted`
 - `allow-set-mic-muted`
-- `allow-get-speaker-muted`
-- `allow-set-speaker-muted`
 - `allow-get-state`
 
 ## Permission Table
@@ -29,58 +21,6 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
-
-<tr>
-<td>
-
-`listener:allow-check-microphone-access`
-
-</td>
-<td>
-
-Enables the check_microphone_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-check-microphone-access`
-
-</td>
-<td>
-
-Denies the check_microphone_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-check-system-audio-access`
-
-</td>
-<td>
-
-Enables the check_system_audio_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-check-system-audio-access`
-
-</td>
-<td>
-
-Denies the check_system_audio_access command without any pre-configured scope.
-
-</td>
-</tr>
 
 <tr>
 <td>
@@ -130,32 +70,6 @@ Enables the get_mic_muted command without any pre-configured scope.
 <td>
 
 Denies the get_mic_muted command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-get-speaker-muted`
-
-</td>
-<td>
-
-Enables the get_speaker_muted command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-get-speaker-muted`
-
-</td>
-<td>
-
-Denies the get_speaker_muted command without any pre-configured scope.
 
 </td>
 </tr>
@@ -241,110 +155,6 @@ Denies the list_microphone_devices command without any pre-configured scope.
 <tr>
 <td>
 
-`listener:allow-open-microphone-access-settings`
-
-</td>
-<td>
-
-Enables the open_microphone_access_settings command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-open-microphone-access-settings`
-
-</td>
-<td>
-
-Denies the open_microphone_access_settings command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-open-system-audio-access-settings`
-
-</td>
-<td>
-
-Enables the open_system_audio_access_settings command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-open-system-audio-access-settings`
-
-</td>
-<td>
-
-Denies the open_system_audio_access_settings command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-request-microphone-access`
-
-</td>
-<td>
-
-Enables the request_microphone_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-request-microphone-access`
-
-</td>
-<td>
-
-Denies the request_microphone_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-request-system-audio-access`
-
-</td>
-<td>
-
-Enables the request_system_audio_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-request-system-audio-access`
-
-</td>
-<td>
-
-Denies the request_system_audio_access command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
 `listener:allow-set-mic-muted`
 
 </td>
@@ -390,32 +200,6 @@ Enables the set_microphone_device command without any pre-configured scope.
 <td>
 
 Denies the set_microphone_device command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:allow-set-speaker-muted`
-
-</td>
-<td>
-
-Enables the set_speaker_muted command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener:deny-set-speaker-muted`
-
-</td>
-<td>
-
-Denies the set_speaker_muted command without any pre-configured scope.
 
 </td>
 </tr>

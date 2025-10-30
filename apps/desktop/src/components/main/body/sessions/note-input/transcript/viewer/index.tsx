@@ -1,29 +1,51 @@
 import { cn } from "@hypr/utils";
-import { DependencyList, useLayoutEffect, useRef } from "react";
+import { DependencyList, useEffect, useLayoutEffect, useRef, useState } from "react";
+
+import { useListener } from "../../../../../../../contexts/listener";
 import { useSegments } from "./segment";
 
 export function TranscriptViewer({ sessionId }: { sessionId: string }) {
   const segments = useSegments(sessionId);
-  return <Renderer segments={segments} />;
+  return <Renderer segments={segments} sessionId={sessionId} />;
 }
 
-function Renderer({ segments }: { segments: ReturnType<typeof useSegments> }) {
-  const containerRef = useAutoScroll<HTMLDivElement>([segments]);
+function Renderer({ segments, sessionId }: { segments: ReturnType<typeof useSegments>; sessionId: string }) {
+  const { containerRef, isAtBottom, scrollToBottom } = useScrollToBottom([segments]);
+  const active = useListener((state) => state.status === "running_active" && state.sessionId === sessionId);
 
   if (segments.length === 0) {
     return null;
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={cn([
-        "space-y-8 h-full overflow-y-auto overflow-x-hidden",
-        "px-0.5 pb-32 scroll-pb-[8rem]",
-      ])}
-    >
-      {segments.map(
-        (segment, i) => <Segment key={i} segment={segment} />,
+    <div className="relative h-full">
+      <div
+        ref={containerRef}
+        className={cn([
+          "space-y-8 h-full overflow-y-auto overflow-x-hidden",
+          "px-0.5 pb-16 scroll-pb-[8rem]",
+          true ? "scrollbar-none" : "scroll-pb-[4rem]",
+        ])}
+      >
+        {segments.map(
+          (segment, i) => <Segment key={i} segment={segment} />,
+        )}
+      </div>
+
+      {(!isAtBottom && active) && (
+        <button
+          onClick={scrollToBottom}
+          className={cn([
+            "absolute bottom-3 left-1/2 -translate-x-1/2",
+            "px-4 py-2 rounded-full",
+            "shadow-lg bg-neutral-800 hover:bg-neutral-700",
+            "text-white text-xs font-light",
+            "transition-all duration-200",
+            "z-30",
+          ])}
+        >
+          Go to bottom
+        </button>
       )}
     </div>
   );
@@ -67,6 +89,37 @@ function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] 
       </div>
     </section>
   );
+}
+
+function useScrollToBottom(deps: DependencyList) {
+  const containerRef = useAutoScroll<HTMLDivElement>(deps);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) {
+      return;
+    }
+
+    const handleScroll = () => {
+      const threshold = 100;
+      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold;
+      setIsAtBottom(isNearBottom);
+    };
+
+    element.addEventListener("scroll", handleScroll);
+    return () => element.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToBottom = () => {
+    const element = containerRef.current;
+    if (!element) {
+      return;
+    }
+    element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
+  };
+
+  return { containerRef, isAtBottom, scrollToBottom };
 }
 
 function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {

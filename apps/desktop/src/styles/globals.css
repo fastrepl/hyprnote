@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap");
+@import "./scrollbar.css";
 
 @tailwind base;
 @tailwind components;
@@ -77,34 +78,6 @@ body {
 
   user-select: none;
   overscroll-behavior: none;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #e5e5e5;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #d5d5d5;
-}
-
-@layer utilities {
-  .scrollbar-none {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 @layer base {

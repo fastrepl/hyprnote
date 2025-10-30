@@ -64,7 +64,6 @@
     "misc:default",
     "os:default",
     "detect:default",
-    "http:default",
     {
       "identifier": "http:default",
       "deny": [],

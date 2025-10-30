@@ -4,6 +4,7 @@ import { app } from "@tauri-apps/api";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
+import { events as detectEvents } from "@hypr/plugin-detect";
 import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { ErrorComponent, NotFoundComponent } from "../components/control";
@@ -17,6 +18,7 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 
 function Component() {
   useNavigationEvents();
+  useDetectEvents();
 
   return (
     <AuthProvider>
@@ -60,6 +62,26 @@ const useNavigationEvents = () => {
       unlisten?.();
     };
   }, [navigate]);
+};
+
+const useDetectEvents = () => {
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    detectEvents.detectEvent.listen(({ payload }) => {
+      if (payload.type === "micStarted") {
+        console.log("Mic started", payload.apps);
+      } else if (payload.type === "micStopped") {
+        console.log("Mic stopped");
+      }
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      unlisten?.();
+    };
+  }, []);
 };
 
 export const TanStackRouterDevtools = process.env.NODE_ENV === "production"

@@ -1,4 +1,5 @@
 use tauri::Manager;
+use tauri_specta::Event;
 use tokio::sync::Mutex;
 
 mod commands;
@@ -14,8 +15,10 @@ const PLUGIN_NAME: &str = "detect";
 
 pub type SharedState = Mutex<State>;
 
-#[derive(Default)]
-pub struct State {}
+pub struct State {
+    #[allow(dead_code)]
+    detector: hypr_detect::Detector,
+}
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
@@ -38,10 +41,19 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let _app_handle = app.app_handle().clone();
-            let state = State::default();
+            let app_handle = app.app_handle().clone();
+            let mut detector = hypr_detect::Detector::default();
 
-            app.manage(state);
+            let callback = hypr_detect::new_callback(move |event| {
+                let detect_event = DetectEvent::from(event);
+                let _ = detect_event.emit(&app_handle);
+            });
+
+            detector.start(callback);
+
+            let state = State { detector };
+
+            app.manage(Mutex::new(state));
             Ok(())
         })
         .build()

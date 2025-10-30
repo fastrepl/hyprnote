@@ -343,10 +343,10 @@
           "markdownDescription": "Denies the set_quit_handler command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set_quit_handler`\n- `allow-reset_quit_handler`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-quit-handler`\n- `allow-reset-quit-handler`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set_quit_handler`\n- `allow-reset_quit_handler`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-quit-handler`\n- `allow-reset-quit-handler`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`"
         }
       ]
     }

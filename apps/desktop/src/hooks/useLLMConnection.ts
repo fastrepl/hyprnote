@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import { useAuth } from "../auth";
 import { type ProviderId, PROVIDERS } from "../components/settings/ai/llm/shared";
 import { env } from "../env";
-import * as internal from "../store/tinybase/internal";
+import * as main from "../store/tinybase/main";
 
 export const useLanguageModel = (): LanguageModel | null => {
   const connection = useLLMConnection();
@@ -84,12 +84,12 @@ const useLLMConnection = (): {
 } | null => {
   const auth = useAuth();
 
-  const { current_llm_provider, current_llm_model } = internal.UI.useValues(internal.STORE_ID);
-  const providerConfig = internal.UI.useRow(
+  const { current_llm_provider, current_llm_model } = main.UI.useValues(main.STORE_ID);
+  const providerConfig = main.UI.useRow(
     "ai_providers",
     current_llm_provider ?? "",
-    internal.STORE_ID,
-  ) as internal.AIProviderStorage | undefined;
+    main.STORE_ID,
+  ) as main.AIProviderStorage | undefined;
 
   return useMemo(() => {
     if (!current_llm_provider || !current_llm_model) {

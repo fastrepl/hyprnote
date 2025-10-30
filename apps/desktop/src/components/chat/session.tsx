@@ -6,7 +6,6 @@ import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
-import * as internal from "../../store/tinybase/internal";
 import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
 
@@ -31,7 +30,7 @@ export function ChatSession({
   const transport = useTransport();
   const store = main.UI.useStore(main.STORE_ID);
 
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
 
   const createChatMessage = main.UI.useSetRowCallback(
     "chat_messages",

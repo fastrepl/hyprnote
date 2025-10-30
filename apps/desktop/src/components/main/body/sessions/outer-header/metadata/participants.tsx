@@ -7,7 +7,6 @@ import { CheckIcon, MailIcon, MinusCircleIcon, SearchIcon, XIcon } from "lucide-
 import { useCallback, useMemo, useState } from "react";
 
 import { useQuery } from "../../../../../../hooks/useQuery";
-import * as internal from "../../../../../../store/tinybase/internal";
 import * as main from "../../../../../../store/tinybase/main";
 import { useTabs } from "../../../../../../store/zustand/tabs";
 import { getInitials } from "../../../contacts/shared";
@@ -113,7 +112,7 @@ export function MeetingParticipants({ sessionId }: { sessionId: string }) {
   const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const { openNew } = useTabs();
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
 
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);

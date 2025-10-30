@@ -7,7 +7,6 @@ import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
 
-import * as internal from "../../../store/tinybase/internal";
 import * as main from "../../../store/tinybase/main";
 import { TemplateEditor } from "./editor";
 import { useTemplateNavigation } from "./use-template-navigation";
@@ -134,7 +133,7 @@ function TemplateCard({
 }
 
 function useTemplates() {
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
   const store = main.UI.useStore(main.STORE_ID);
 
   const USER_TEMPLATE_QUERY = "user_templates";

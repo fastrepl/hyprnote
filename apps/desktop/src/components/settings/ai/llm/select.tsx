@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
 import { useAuth } from "../../../../auth";
-import * as internal from "../../../../store/tinybase/internal";
+import * as main from "../../../../store/tinybase/main";
 import {
   listAnthropicModels,
   listGenericModels,
@@ -19,19 +19,19 @@ import { PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
   const configuredProviders = useConfiguredMapping();
-  const { current_llm_model, current_llm_provider } = internal.UI.useValues(internal.STORE_ID);
+  const { current_llm_model, current_llm_provider } = main.UI.useValues(main.STORE_ID);
 
-  const handleSelectProvider = internal.UI.useSetValueCallback(
+  const handleSelectProvider = main.UI.useSetValueCallback(
     "current_llm_provider",
     (provider: string) => provider,
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
-  const handleSelectModel = internal.UI.useSetValueCallback(
+  const handleSelectModel = main.UI.useSetValueCallback(
     "current_llm_model",
     (model: string) => model,
     [],
-    internal.STORE_ID,
+    main.STORE_ID,
   );
 
   const form = useForm({
@@ -131,7 +131,7 @@ export function SelectProviderAndModel() {
 
 function useConfiguredMapping(): Record<string, null | (() => Promise<ListModelsResult>)> {
   const auth = useAuth();
-  const configuredProviders = internal.UI.useResultTable(internal.QUERIES.llmProviders, internal.STORE_ID);
+  const configuredProviders = main.UI.useResultTable(main.QUERIES.llmProviders, main.STORE_ID);
 
   const mapping = useMemo(() => {
     return Object.fromEntries(

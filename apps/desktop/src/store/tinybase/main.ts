@@ -13,16 +13,23 @@ import {
 
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
-import * as internal from "./internal";
+import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
 import { externalTableSchemaForTinybase } from "./schema-external";
+import { internalSchemaForTinybase } from "./schema-internal";
+
+export * from "./schema-external";
+export * from "./schema-internal";
 
 export const STORE_ID = "main";
 
 const SCHEMA = {
-  value: {} as const satisfies ValuesSchema,
+  value: {
+    ...internalSchemaForTinybase.value,
+  } as const satisfies ValuesSchema,
   table: {
     ...externalTableSchemaForTinybase,
+    ...internalSchemaForTinybase.table,
   } as const satisfies TablesSchema,
 };
 
@@ -51,7 +58,13 @@ export type Store = MergeableStore<Schemas>;
 export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
 
 export const StoreComponent = () => {
-  const store2 = internal.useStore();
+  const store = useCreateMergeableStore(() =>
+    createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value)
+  );
+
+  store.setValue("user_id", DEFAULT_USER_ID);
 
   useDidFinishTransactionListener(
     () => {
@@ -63,9 +76,9 @@ export const StoreComponent = () => {
         }
 
         Object.entries(rows).forEach(([rowId, cells]) => {
-          const id = internal.rowIdOfChange(tableId, rowId);
+          const id = rowIdOfChange(tableId, rowId);
 
-          store2.setRow("changes", id, {
+          store.setRow("changes", id, {
             row_id: rowId,
             table: tableId,
             deleted: !cells,
@@ -76,12 +89,6 @@ export const StoreComponent = () => {
     },
     [],
     STORE_ID,
-  );
-
-  const store = useCreateMergeableStore(() =>
-    createMergeableStore()
-      .setTablesSchema(SCHEMA.table)
-      .setValuesSchema(SCHEMA.value)
   );
 
   const localPersister = useCreatePersister(
@@ -270,8 +277,28 @@ export const StoreComponent = () => {
             select("created_at");
             where((getCell) => getCell("type") === "vocab");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.llmProviders,
+          "ai_providers",
+          ({ select, where }) => {
+            select("type");
+            select("base_url");
+            select("api_key");
+            where((getCell) => getCell("type") === "llm");
+          },
+        )
+        .setQueryDefinition(
+          QUERIES.sttProviders,
+          "ai_providers",
+          ({ select, where }) => {
+            select("type");
+            select("base_url");
+            select("api_key");
+            where((getCell) => getCell("type") === "stt");
+          },
         ),
-    [store2],
+    [],
   )!;
 
   const indexes = useCreateIndexes(store, (store) =>
@@ -358,6 +385,8 @@ export const StoreComponent = () => {
   return null;
 };
 
+export const rowIdOfChange = (table: string, row: string) => `${table}:${row}`;
+
 export const QUERIES = {
   eventsWithoutSession: "eventsWithoutSession",
   sessionsWithMaybeEvent: "sessionsWithMaybeEvent",
@@ -366,6 +395,8 @@ export const QUERIES = {
   visibleTemplates: "visibleTemplates",
   visibleFolders: "visibleFolders",
   visibleVocabs: "visibleVocabs",
+  llmProviders: "llmProviders",
+  sttProviders: "sttProviders",
 };
 
 export const METRICS = {

@@ -2,7 +2,6 @@ import { useCallback, useRef } from "react";
 
 import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
-import * as internal from "../../store/tinybase/internal";
 import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
 
@@ -19,7 +18,7 @@ export function ChatView() {
   const stableSessionId = useStableSessionId(groupId);
   const model = useLanguageModel();
 
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
 
   const createChatGroup = main.UI.useSetRowCallback(
     "chat_groups",

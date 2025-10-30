@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import * as internal from "../../../store/tinybase/internal";
+import * as main from "../../../store/tinybase/main";
 import { QUERIES, STORE_ID, UI } from "../../../store/tinybase/main";
 import { id } from "../../../utils";
 
@@ -16,7 +16,7 @@ interface CustomVocabularyViewProps {
 
 export function CustomVocabularyView({ value: _value, onChange: _onChange }: CustomVocabularyViewProps) {
   const store = UI.useStore(STORE_ID);
-  const internalStore = internal.UI.useStore(internal.STORE_ID);
+  const internalStore = main.UI.useStore(main.STORE_ID);
   const userId = internalStore?.getValue("user_id");
   const [searchValue, setSearchValue] = useState("");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);

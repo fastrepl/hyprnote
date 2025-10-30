@@ -1,12 +1,11 @@
 import { useCallback } from "react";
 import { Route as SettingsRoute } from "../../../routes/app/settings/_layout";
-import * as internal from "../../../store/tinybase/internal";
 import * as main from "../../../store/tinybase/main";
 
 export function useTemplateNavigation() {
   const search = SettingsRoute.useSearch();
   const navigate = SettingsRoute.useNavigate();
-  const { user_id } = internal.UI.useValues(internal.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
 
   const setRow = main.UI.useSetRowCallback(
     "templates",

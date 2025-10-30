@@ -2,15 +2,15 @@ import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
 import { useManager } from "tinytick/ui-react";
 
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import type { SupportedSttModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
+import { useListener } from "../../../../contexts/listener";
 import * as main from "../../../../store/tinybase/main";
 import { aiProviderSchema } from "../../../../store/tinybase/main";
 import {
@@ -289,7 +289,15 @@ function LocalModelAction({
 }
 
 function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel; displayName: string }) {
-  const { progress, isDownloaded, showProgress, handleDownload, handleCancel } = useLocalModelDownload(model);
+  const handleSelectModel = useSafeSelectModel();
+
+  const {
+    progress,
+    isDownloaded,
+    showProgress,
+    handleDownload,
+    handleCancel,
+  } = useLocalModelDownload(model, handleSelectModel);
 
   const handleOpen = () =>
     localSttCommands.modelsDir().then((result) => {
@@ -313,16 +321,16 @@ function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel
   );
 }
 
-function useLocalModelDownload(model: SupportedSttModel) {
+function useLocalModelDownload(
+  model: SupportedSttModel,
+  onDownloadComplete?: (model: SupportedSttModel) => void,
+) {
   const manager = useManager();
   const [progress, setProgress] = useState<number>(0);
   const [taskRunId, setTaskRunId] = useState<string | null>(null);
 
   const isDownloaded = useQuery(sttModelQueries.isDownloaded(model));
   const isDownloading = useQuery(sttModelQueries.isDownloading(model));
-
-  const taskRunInfo = taskRunId && manager ? manager.getTaskRunInfo(taskRunId) : null;
-  const isTaskRunning = taskRunInfo?.running ?? false;
 
   useEffect(() => {
     registerDownloadProgressCallback(model, setProgress);
@@ -335,8 +343,9 @@ function useLocalModelDownload(model: SupportedSttModel) {
     if (isDownloaded.data && taskRunId) {
       setTaskRunId(null);
       setProgress(0);
+      onDownloadComplete?.(model);
     }
-  }, [isDownloaded.data, taskRunId]);
+  }, [isDownloaded.data, taskRunId, onDownloadComplete]);
 
   useEffect(() => {
     const isNotDownloading = !isDownloading.data;
@@ -367,8 +376,7 @@ function useLocalModelDownload(model: SupportedSttModel) {
     setProgress(0);
   };
 
-  const showProgress = !isDownloaded.data && taskRunId !== null
-    && (isDownloading.data || isTaskRunning);
+  const showProgress = !isDownloaded.data && taskRunId !== null;
 
   return {
     progress,
@@ -400,4 +408,24 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
       {content.trim()}
     </Streamdown>
   );
+}
+
+function useSafeSelectModel() {
+  const handleSelectModel = main.UI.useSetValueCallback(
+    "current_stt_model",
+    (model: SupportedSttModel) => model,
+    [],
+    main.STORE_ID,
+  );
+
+  const active = useListener((state) => state.status === "running_active");
+
+  const handler = useCallback((model: SupportedSttModel) => {
+    if (active) {
+      return;
+    }
+    handleSelectModel(model);
+  }, [active, handleSelectModel]);
+
+  return handler;
 }

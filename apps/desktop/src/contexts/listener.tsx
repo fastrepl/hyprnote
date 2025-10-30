@@ -76,10 +76,12 @@ const useHandleMuteAndStop = (store: ListenerStore) => {
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
+    let cancelled = false;
+    let notificationTimerId: ReturnType<typeof setTimeout>;
 
     detectEvents.detectEvent.listen(({ payload }) => {
       if (payload.type === "micStarted") {
-        setTimeout(() => {
+        notificationTimerId = setTimeout(() => {
           notificationCommands.showNotification({
             key: payload.key,
             title: "Mic Started",
@@ -94,11 +96,21 @@ const useHandleMuteAndStop = (store: ListenerStore) => {
         setMuted(payload.value);
       }
     }).then((fn) => {
-      unlisten = fn;
+      if (cancelled) {
+        fn();
+      } else {
+        unlisten = fn;
+      }
+    }).catch((err) => {
+      console.error("Failed to setup detect event listener:", err);
     });
 
     return () => {
+      cancelled = true;
       unlisten?.();
+      if (notificationTimerId) {
+        clearTimeout(notificationTimerId);
+      }
     };
   }, [stop, setMuted]);
 };

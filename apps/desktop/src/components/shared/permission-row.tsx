@@ -92,7 +92,7 @@ export function PermissionRow({
               isAuthorized ? "bg-blue-100" : "bg-neutral-50",
             ])}
           >
-            <div className={cn(isAuthorized ? "text-blue-600" : "text-neutral-500")}>{icon}</div>
+            <div className={cn([isAuthorized ? "text-blue-600" : "text-neutral-500"])}>{icon}</div>
           </div>
         )}
         <div className="min-w-0 flex-1">

@@ -11,7 +11,6 @@ export function usePermissions() {
     queryFn: () => permissionsCommands.checkMicrophonePermission(),
     refetchInterval: 1000,
     select: (result) => {
-      console.log(result);
       if (result.status === "error") {
         throw new Error(result.error);
       }

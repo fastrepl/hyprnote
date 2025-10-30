@@ -19,6 +19,7 @@ hypr-host = { workspace = true }
 hypr-intercept = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
+tauri-plugin-windows = { workspace = true }
 
 specta = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }

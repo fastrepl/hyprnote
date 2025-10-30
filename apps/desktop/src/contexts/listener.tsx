@@ -5,6 +5,7 @@ import { useShallow } from "zustand/shallow";
 import { events as detectEvents } from "@hypr/plugin-detect";
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import * as main from "../store/tinybase/main";
 import { createListenerStore, type ListenerStore } from "../store/zustand/listener";
 
@@ -18,7 +19,7 @@ export const ListenerProvider = ({
   store: ListenerStore;
 }) => {
   useAutoStartSTT();
-  useHandleMuteAndStop(store);
+  useHandleDetectEvents(store);
 
   const storeRef = useRef<ListenerStore | null>(null);
   if (!storeRef.current) {
@@ -70,7 +71,7 @@ function useAutoStartSTT() {
   }, [currentSttProvider, currentSttModel]);
 }
 
-const useHandleMuteAndStop = (store: ListenerStore) => {
+const useHandleDetectEvents = (store: ListenerStore) => {
   const stop = useStore(store, (state) => state.stop);
   const setMuted = useStore(store, (state) => state.setMuted);
 
@@ -81,15 +82,21 @@ const useHandleMuteAndStop = (store: ListenerStore) => {
 
     detectEvents.detectEvent.listen(({ payload }) => {
       if (payload.type === "micStarted") {
-        notificationTimerId = setTimeout(() => {
-          notificationCommands.showNotification({
-            key: payload.key,
-            title: "Mic Started",
-            message: "Mic started",
-            url: null,
-            timeout: { secs: 8, nanos: 0 },
-          });
-        }, 2000);
+        getCurrentWindow().isFocused().then((isFocused) => {
+          if (isFocused) {
+            return;
+          }
+
+          notificationTimerId = setTimeout(() => {
+            notificationCommands.showNotification({
+              key: payload.key,
+              title: "Mic Started",
+              message: "Mic started",
+              url: null,
+              timeout: { secs: 8, nanos: 0 },
+            });
+          }, 2000);
+        });
       } else if (payload.type === "micStopped") {
         stop();
       } else if (payload.type === "micMuted") {

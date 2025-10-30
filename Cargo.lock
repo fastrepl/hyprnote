@@ -14476,6 +14476,7 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-windows",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",

@@ -1,4 +1,5 @@
-use tauri::Manager;
+use tauri::{EventTarget, Manager};
+use tauri_plugin_windows::WindowImpl;
 use tauri_specta::Event;
 use tokio::sync::Mutex;
 
@@ -46,7 +47,12 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             let callback = hypr_detect::new_callback(move |event| {
                 let detect_event = DetectEvent::from(event);
-                let _ = detect_event.emit(&app_handle);
+                let _ = detect_event.emit_to(
+                    &app_handle,
+                    EventTarget::AnyLabel {
+                        label: tauri_plugin_windows::AppWindow::Main.label(),
+                    },
+                );
             });
 
             detector.start(callback);

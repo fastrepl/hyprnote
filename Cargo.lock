@@ -3867,6 +3867,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-analytics",
  "tauri-plugin-auth",
+ "tauri-plugin-clipboard-manager",
  "tauri-plugin-db2",
  "tauri-plugin-deep-link",
  "tauri-plugin-detect",

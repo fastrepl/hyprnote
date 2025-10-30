@@ -4,6 +4,7 @@ import { useShallow } from "zustand/shallow";
 
 import { events as detectEvents } from "@hypr/plugin-detect";
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
+import { commands as notificationCommands } from "@hypr/plugin-notification";
 import * as main from "../store/tinybase/main";
 import { createListenerStore, type ListenerStore } from "../store/zustand/listener";
 
@@ -78,7 +79,15 @@ const useHandleMuteAndStop = (store: ListenerStore) => {
 
     detectEvents.detectEvent.listen(({ payload }) => {
       if (payload.type === "micStarted") {
-        console.log("mic_started", payload.apps);
+        setTimeout(() => {
+          notificationCommands.showNotification({
+            key: payload.key,
+            title: "Mic Started",
+            message: "Mic started",
+            url: null,
+            timeout: { secs: 8, nanos: 0 },
+          });
+        }, 2000);
       } else if (payload.type === "micStopped") {
         stop();
       } else if (payload.type === "micMuted") {

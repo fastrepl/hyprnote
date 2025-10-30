@@ -1,9 +1,10 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { commands as detectCommands } from "@hypr/plugin-detect";
+import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
@@ -16,6 +17,15 @@ export function SettingsNotifications() {
   const values = main.UI.useValues(main.STORE_ID);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
+
+  useEffect(() => {
+    const cleanup = () => {
+      notificationCommands.clearNotifications();
+    };
+
+    cleanup();
+    return cleanup;
+  }, []);
 
   const handleSetNotificationEvent = main.UI.useSetValueCallback(
     "notification_event",
@@ -62,25 +72,6 @@ export function SettingsNotifications() {
       handleSetNotificationDetect(value.notification_detect);
       handleSetRespectDnd(value.respect_dnd);
       handleSetIgnoredPlatforms(value.ignored_platforms);
-
-      // TODO
-
-      // if (value.notification_event) {
-      //   await notificationCommands.startEventNotification({
-      //     respect_do_not_disturb: value.respect_dnd,
-      //   });
-      // } else {
-      //   await notificationCommands.stopEventNotification();
-      // }
-
-      // if (value.notification_detect) {
-      //   await notificationCommands.startDetectNotification({
-      //     respect_do_not_disturb: value.respect_dnd,
-      //     ignored_platforms: value.ignored_platforms,
-      //   });
-      // } else {
-      //   await notificationCommands.stopDetectNotification();
-      // }
     },
   });
 

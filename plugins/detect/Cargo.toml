@@ -25,6 +25,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
 thiserror = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
 
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }

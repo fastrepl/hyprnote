@@ -17,7 +17,7 @@ export function useHasTranscript(sessionId: string): boolean {
 
 export function useCurrentTab(tab: Extract<Tab, { type: "sessions" }>): EditorView {
   const hasTranscript = useHasTranscript(tab.id);
-  const isListenerActive = useListener((state) => state.status === "running_active" && state.sessionId === tab.id);
+  const isListenerActive = useListener((state) => (state.status !== "inactive") && state.sessionId === tab.id);
 
   return useMemo(
     () => {

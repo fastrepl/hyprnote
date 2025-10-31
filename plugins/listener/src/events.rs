@@ -13,6 +13,8 @@ common_event_derives! {
         Inactive {},
         #[serde(rename = "running_active")]
         RunningActive {},
+        #[serde(rename = "finalizing")]
+        Finalizing {},
         #[serde(rename = "audioAmplitude")]
         AudioAmplitude { mic: u16, speaker: u16 },
         #[serde(rename = "micMuted")]

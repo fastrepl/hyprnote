@@ -11,7 +11,11 @@ export function createLocalPersister<Schemas extends OptionalSchemas>(
 ) {
   return createCustomSqlitePersister(
     store,
-    { mode: "json", ...config },
+    {
+      // https://tinybase.org/guides/synchronization/using-a-mergeablestore/
+      mode: "json",
+      ...config,
+    },
     async (sql: string, args: any[] = []): Promise<any> => {
       const r = await db2Commands.executeLocal(sql, args);
       if (r.status === "error") {
@@ -27,7 +31,7 @@ export function createLocalPersister<Schemas extends OptionalSchemas>(
     (handle: NodeJS.Timeout) => {
       clearInterval(handle);
     },
-    true ? console.log.bind(console, "[LocalPersister]") : () => {},
+    false ? console.log.bind(console, "[LocalPersister]") : () => {},
     true ? console.error.bind(console, "[LocalPersister]") : () => {},
     () => {},
     MergeableStoreOnly,

@@ -88,7 +88,7 @@ function Listening({ sessionId }: { sessionId: string }) {
     status: state.status,
     activeSessionId: state.sessionId,
   }));
-  const isListening = status === "running_active" && activeSessionId === sessionId;
+  const isListening = status !== "inactive" && activeSessionId === sessionId;
   const startListening = useStartListening(sessionId);
 
   const handleToggleListening = () => {

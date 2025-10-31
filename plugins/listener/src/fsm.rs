@@ -1,6 +1,7 @@
 #[derive(Debug, Clone)]
 pub enum State {
     RunningActive,
+    Finalizing,
     Inactive,
 }
 
@@ -12,6 +13,7 @@ impl serde::Serialize for State {
         match self {
             State::Inactive => serializer.serialize_str("inactive"),
             State::RunningActive => serializer.serialize_str("running_active"),
+            State::Finalizing => serializer.serialize_str("finalizing"),
         }
     }
 }

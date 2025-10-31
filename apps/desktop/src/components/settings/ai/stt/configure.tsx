@@ -418,7 +418,7 @@ function useSafeSelectModel() {
     main.STORE_ID,
   );
 
-  const active = useListener((state) => state.status === "running_active");
+  const active = useListener((state) => state.status !== "inactive");
 
   const handler = useCallback((model: SupportedSttModel) => {
     if (active) {

@@ -12,7 +12,7 @@ describe("Transcript Listener Slice", () => {
     test("initializes with correct default values", () => {
       const state = store.getState();
       expect(state.partialWordsByChannel).toEqual({});
-      expect(state.persistFinal).toBeUndefined();
+      expect(state.handlePersist).toBeUndefined();
     });
   });
 
@@ -20,14 +20,14 @@ describe("Transcript Listener Slice", () => {
     test("sets persist callback", () => {
       const callback = vi.fn();
       store.getState().setTranscriptPersist(callback);
-      expect(store.getState().persistFinal).toBe(callback);
+      expect(store.getState().handlePersist).toBe(callback);
     });
 
     test("can clear persist callback", () => {
       const callback = vi.fn();
       store.getState().setTranscriptPersist(callback);
       store.getState().setTranscriptPersist(undefined);
-      expect(store.getState().persistFinal).toBeUndefined();
+      expect(store.getState().handlePersist).toBeUndefined();
     });
   });
 
@@ -39,7 +39,7 @@ describe("Transcript Listener Slice", () => {
 
       const state = store.getState();
       expect(state.partialWordsByChannel).toEqual({});
-      expect(state.persistFinal).toBeUndefined();
+      expect(state.handlePersist).toBeUndefined();
     });
   });
 

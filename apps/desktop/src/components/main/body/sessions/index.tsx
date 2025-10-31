@@ -26,7 +26,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = (
 ) => {
   const title = main.UI.useCell("sessions", rowIdfromTab(tab), "title", main.STORE_ID);
   const { status, sessionId } = useListener((state) => ({ status: state.status, sessionId: state.sessionId }));
-  const isActive = status === "running_active" && sessionId === tab.id;
+  const isActive = status !== "inactive" && sessionId === tab.id;
 
   return (
     <TabItemBase

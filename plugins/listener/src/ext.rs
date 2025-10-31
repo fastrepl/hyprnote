@@ -109,16 +109,16 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn stop_session(&self) {
         if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-
-            if let Ok(_) = actor
-                .stop_and_wait(None, Some(concurrency::Duration::from_secs(3)))
-                .await
             {
                 let state = self.state::<crate::SharedState>();
                 let guard = state.lock().await;
-                SessionEvent::Inactive {}.emit(&guard.app).unwrap();
+                SessionEvent::Finalizing {}.emit(&guard.app).unwrap();
             }
+
+            let actor: ActorRef<SessionMsg> = cell.into();
+            let _ = actor
+                .stop_and_wait(None, Some(concurrency::Duration::from_secs(10)))
+                .await;
         }
     }
 }

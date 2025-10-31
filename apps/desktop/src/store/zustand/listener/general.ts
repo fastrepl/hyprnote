@@ -5,17 +5,18 @@ import type { StoreApi } from "zustand";
 import {
   commands as listenerCommands,
   events as listenerEvents,
+  type SessionEvent,
   type SessionParams,
   type StreamResponse,
 } from "@hypr/plugin-listener";
 import { fromResult } from "../../../effect";
 
-import type { PersistFinalCallback, TranscriptActions } from "./transcript";
+import type { HandlePersistCallback, TranscriptActions } from "./transcript";
 
 export type GeneralState = {
   sessionEventUnlisten?: () => void;
   loading: boolean;
-  status: "inactive" | "running_active";
+  status: Extract<SessionEvent["type"], "inactive" | "running_active" | "finalizing">;
   amplitude: { mic: number; speaker: number };
   seconds: number;
   intervalId?: NodeJS.Timeout;
@@ -26,7 +27,7 @@ export type GeneralState = {
 export type GeneralActions = {
   start: (
     params: SessionParams,
-    options?: { persistFinal?: PersistFinalCallback },
+    options?: { handlePersist?: HandlePersistCallback },
   ) => void;
   stop: () => void;
   setMuted: (value: boolean) => void;
@@ -65,8 +66,8 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
       })
     );
 
-    if (options?.persistFinal) {
-      get().setTranscriptPersist(options.persistFinal);
+    if (options?.handlePersist) {
+      get().setTranscriptPersist(options.handlePersist);
     }
 
     const handleSessionEvent = (payload: any) => {
@@ -102,16 +103,29 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
             draft.sessionId = currentState.sessionId ?? null;
           })
         );
-      } else if (payload.type === "inactive") {
+      } else if (payload.type === "finalizing") {
         set((state) =>
           mutate(state, (draft) => {
             if (draft.intervalId) {
               clearInterval(draft.intervalId);
               draft.intervalId = undefined;
             }
+            draft.status = "finalizing";
+            draft.loading = true;
+          })
+        );
+      } else if (payload.type === "inactive") {
+        const currentState = get();
+        if (currentState.sessionEventUnlisten) {
+          currentState.sessionEventUnlisten();
+        }
+
+        set((state) =>
+          mutate(state, (draft) => {
             draft.status = "inactive";
             draft.loading = false;
             draft.sessionId = null;
+            draft.sessionEventUnlisten = undefined;
           })
         );
 
@@ -152,25 +166,8 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
     });
   },
   stop: () => {
-    set((state) =>
-      mutate(state, (draft) => {
-        draft.loading = true;
-      })
-    );
-
     const program = Effect.gen(function*() {
-      const currentState = get();
-      if (currentState.sessionEventUnlisten) {
-        currentState.sessionEventUnlisten();
-      }
-
-      if (currentState.intervalId) {
-        clearInterval(currentState.intervalId);
-      }
-
       yield* stopSessionEffect();
-      set(initialState as Partial<T>);
-      get().resetTranscript();
     });
 
     Effect.runPromiseExit(program).then((exit) => {

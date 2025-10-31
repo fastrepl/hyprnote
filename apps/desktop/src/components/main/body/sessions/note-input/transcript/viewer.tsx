@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
 import { DependencyList, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
+import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../../contexts/listener";
 import * as main from "../../../../../../store/tinybase/main";
 import { buildSegments, PartialWord, Segment } from "../../../../../../utils/segment";
@@ -12,8 +12,8 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
     main.STORE_ID,
   );
 
-  const active = useListener((state) => state.status === "running_active" && state.sessionId === sessionId);
-  const partialWords = useListener((state) => state.partialWordsByChannel);
+  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+  const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
 
   const { containerRef, isAtBottom, scrollToBottom } = useScrollToBottom([transcriptIds]);
 
@@ -37,7 +37,7 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
               <RenderTranscript
                 key={transcriptId}
                 transcriptId={transcriptId}
-                partialWords={(index === transcriptIds.length - 1) ? partialWords : {}}
+                partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
               />
               {index < transcriptIds.length - 1 && <TranscriptSeparator />}
             </>
@@ -85,11 +85,11 @@ function RenderTranscript(
     partialWords,
   }: {
     transcriptId: string;
-    partialWords: Record<number, PartialWord[]>;
+    partialWords: PartialWord[];
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
-  const segments = buildSegments(finalWords, Object.values(partialWords));
+  const segments = buildSegments(finalWords, [partialWords]);
 
   if (segments.length === 0) {
     return null;
@@ -113,13 +113,9 @@ function RenderSegment({ segment }: { segment: Segment }) {
     const firstWord = segment.words[0];
     const lastWord = segment.words[segment.words.length - 1];
 
-    const [from, to] = [
-      firstWord.start_ms,
-      lastWord.end_ms,
-    ].map(formatTimestamp);
-
+    const [from, to] = [firstWord.start_ms, lastWord.end_ms].map(formatTimestamp);
     return `${from} - ${to}`;
-  }, [segment.words]);
+  }, [segment.words.length]);
 
   return (
     <section>
@@ -215,7 +211,7 @@ function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
     }
 
     const isAtTop = element.scrollTop === 0;
-    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 200;
 
     if (isAtTop || isNearBottom) {
       element.scrollTop = element.scrollHeight;

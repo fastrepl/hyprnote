@@ -77,8 +77,9 @@ impl Actor for ListenerActor {
     ) -> Result<(), ActorProcessingErr> {
         if let Some(shutdown_tx) = state.shutdown_tx.take() {
             let _ = shutdown_tx.send(());
+            let _ = (&mut state.rx_task).await;
         }
-        state.rx_task.abort();
+        // We should not call `state.rx_task.abort()` here.
         Ok(())
     }
 
@@ -182,6 +183,51 @@ async fn spawn_rx_task(
             tokio::select! {
                 _ = &mut shutdown_rx => {
                     handle.finalize_with_text(serde_json::json!({"type": "Finalize"}).to_string().into()).await;
+
+                    let finalize_timeout = tokio::time::sleep(Duration::from_secs(5));
+                    tokio::pin!(finalize_timeout);
+
+                    let mut received_from_finalize = false;
+
+                    loop {
+                        tokio::select! {
+                            _ = &mut finalize_timeout => {
+                                tracing::warn!(timeout = true, "break_timeout");
+                                break;
+                            }
+                            result = listen_stream.next() => {
+                                match result {
+                                    Some(Ok(response)) => {
+                                        let is_from_finalize = if let StreamResponse::TranscriptResponse { from_finalize, .. } = &response {
+                                            *from_finalize
+                                        } else {
+                                            false
+                                        };
+
+
+                                        if is_from_finalize {
+                                            received_from_finalize = true;
+                                        }
+
+                                        let _ = myself.send_message(ListenerMsg::StreamResponse(response));
+
+                                        if received_from_finalize {
+                                            tracing::info!(from_finalize = true, "break_from_finalize");
+                                            break;
+                                        }
+                                    }
+                                    Some(Err(e)) => {
+                                        tracing::warn!(error = ?e, "break_from_finalize");
+                                        break;
+                                    }
+                                    None => {
+                                        tracing::info!(ended = true, "break_from_finalize");
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
                     break;
                 }
                 result = tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()) => {

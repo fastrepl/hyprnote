@@ -7,22 +7,22 @@ import * as main from "../../tinybase/main";
 type PartialWord = Pick<main.Word, "text" | "start_ms" | "end_ms" | "channel">;
 type WordsByChannel = Record<number, PartialWord[]>;
 
-export type PersistFinalCallback = (words: PartialWord[]) => void;
+export type HandlePersistCallback = (words: PartialWord[]) => void;
 
 export type TranscriptState = {
   partialWordsByChannel: WordsByChannel;
-  persistFinal?: PersistFinalCallback;
+  handlePersist?: HandlePersistCallback;
 };
 
 export type TranscriptActions = {
-  setTranscriptPersist: (callback?: PersistFinalCallback) => void;
+  setTranscriptPersist: (callback?: HandlePersistCallback) => void;
   handleTranscriptResponse: (response: StreamResponse) => void;
   resetTranscript: () => void;
 };
 
 const initialState: TranscriptState = {
   partialWordsByChannel: {},
-  persistFinal: undefined,
+  handlePersist: undefined,
 };
 
 const sanitizeWords = (
@@ -80,7 +80,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
   setTranscriptPersist: (callback) => {
     set((state) =>
       mutate(state, (draft) => {
-        draft.persistFinal = callback;
+        draft.handlePersist = callback;
       })
     );
   },
@@ -96,7 +96,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
       return;
     }
 
-    const { partialWordsByChannel, persistFinal } = get();
+    const { partialWordsByChannel, handlePersist } = get();
 
     const { words } = sanitizeWords(alternative.words ?? [], channelIndex);
 
@@ -116,7 +116,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
         })
       );
 
-      persistFinal?.(words);
+      handlePersist?.(words);
       return;
     }
 
@@ -134,10 +134,17 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
     );
   },
   resetTranscript: () => {
+    const { partialWordsByChannel, handlePersist } = get();
+
+    const remainingWords = Object.values(partialWordsByChannel).flat();
+    if (remainingWords.length > 0 && handlePersist) {
+      handlePersist(remainingWords);
+    }
+
     set((state) =>
       mutate(state, (draft) => {
         draft.partialWordsByChannel = {};
-        draft.persistFinal = undefined;
+        draft.handlePersist = undefined;
       })
     );
   },

@@ -9,8 +9,9 @@ import { SoundIndicator } from "../../shared";
 export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const [ref, hovered] = useHover();
 
-  const { active, stop, amplitude, muted } = useListener((state) => ({
-    active: state.status === "running_active" && state.sessionId === sessionId,
+  const { active, finalizing, stop, amplitude, muted } = useListener((state) => ({
+    active: state.status !== "inactive" && state.sessionId === sessionId,
+    finalizing: state.status === "finalizing" && state.sessionId === sessionId,
     stop: state.stop,
     amplitude: state.amplitude,
     muted: state.muted,
@@ -25,14 +26,29 @@ export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
       ref={ref}
       size="sm"
       variant="ghost"
-      onClick={stop}
+      onClick={finalizing ? undefined : stop}
+      disabled={finalizing}
       className={cn([
-        "text-red-500 hover:text-red-600",
-        "bg-red-50 hover:bg-red-100",
+        finalizing
+          ? [
+            "text-neutral-500",
+            "bg-neutral-100",
+            "cursor-wait",
+          ]
+          : [
+            "text-red-500 hover:text-red-600",
+            "bg-red-50 hover:bg-red-100",
+          ],
         "w-[75px]",
       ])}
     >
-      {hovered
+      {finalizing
+        ? (
+          <div className="flex items-center gap-1.5">
+            <span className="animate-pulse">Finalizing...</span>
+          </div>
+        )
+        : hovered
         ? (
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 bg-red-500 rounded-none" />

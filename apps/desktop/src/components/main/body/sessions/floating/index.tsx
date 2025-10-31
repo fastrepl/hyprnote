@@ -12,7 +12,7 @@ import { PlaybackButton } from "./playback";
 
 export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { status, sessionId } = useListener((state) => ({ status: state.status, sessionId: state.sessionId }));
-  const active = status === "running_active" && sessionId === tab.id;
+  const active = status !== "inactive" && sessionId === tab.id;
   const currentTab = useCurrentTab(tab);
 
   let button: ReactNode | null = null;

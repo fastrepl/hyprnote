@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
-import type { PersistFinalCallback } from "../store/zustand/listener/transcript";
+import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
 import { id } from "../utils";
 import { useSTTConnection } from "./useSTTConnection";
 
@@ -29,7 +29,7 @@ export function useStartListening(sessionId: string) {
       started_at: startedAt,
     });
 
-    const persistFinal: PersistFinalCallback = (words) => {
+    const handlePersist: HandlePersistCallback = (words) => {
       if (words.length === 0) {
         return;
       }
@@ -59,7 +59,7 @@ export function useStartListening(sessionId: string) {
         keywords,
       },
       {
-        persistFinal,
+        handlePersist,
       },
     );
   }, [conn, store, sessionId, start, keywords]);

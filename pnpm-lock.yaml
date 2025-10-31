@@ -164,6 +164,9 @@ importers:
       '@wavesurfer/react':
         specifier: ^1.0.11
         version: 1.0.11(react@19.2.0)(wavesurfer.js@7.11.1)
+      '@xstate/react':
+        specifier: ^6.0.0
+        version: 6.0.0(@types/react@19.2.2)(react@19.2.0)(xstate@5.23.0)
       '@xstate/store':
         specifier: ^3.11.2
         version: 3.11.2(react@19.2.0)(solid-js@1.9.9)
@@ -4457,6 +4460,15 @@ packages:
     peerDependencies:
       react: ^18.2.0 || ^19.0.0
       wavesurfer.js: '>=7.7.14'
+
+  '@xstate/react@6.0.0':
+    resolution: {integrity: sha512-xXlLpFJxqLhhmecAXclBECgk+B4zYSrDTl8hTfPZBogkn82OHKbm9zJxox3Z/YXoOhAQhKFTRLMYGdlbhc6T9A==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      xstate: ^5.20.0
+    peerDependenciesMeta:
+      xstate:
+        optional: true
 
   '@xstate/store@3.11.2':
     resolution: {integrity: sha512-AleJBq1k2UMiDEslIahAQgQKjLHWJERVKbVqw+ZBnyP3GsNuz05K4RugTHGkJBF5MpcB5xwlRRFcjABRoiF7mQ==}
@@ -13554,6 +13566,16 @@ snapshots:
     dependencies:
       react: 19.2.0
       wavesurfer.js: 7.11.1
+
+  '@xstate/react@6.0.0(@types/react@19.2.2)(react@19.2.0)(xstate@5.23.0)':
+    dependencies:
+      react: 19.2.0
+      use-isomorphic-layout-effect: 1.2.1(@types/react@19.2.2)(react@19.2.0)
+      use-sync-external-store: 1.6.0(react@19.2.0)
+    optionalDependencies:
+      xstate: 5.23.0
+    transitivePeerDependencies:
+      - '@types/react'
 
   '@xstate/store@3.11.2(react@19.2.0)(solid-js@1.9.9)':
     optionalDependencies:

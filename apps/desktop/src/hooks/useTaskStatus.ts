@@ -21,7 +21,6 @@ export function useTaskStatus(
     if (prevStatus === "generating" && status === "success") {
       onSuccessRef.current?.();
     }
-
     if (prevStatus === "generating" && status === "error") {
       onErrorRef.current?.();
     }

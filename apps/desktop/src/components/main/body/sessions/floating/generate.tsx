@@ -1,4 +1,4 @@
-import { SparklesIcon } from "lucide-react";
+import { AlertCircleIcon, SparklesIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -46,15 +46,11 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
     };
   });
 
-  const { isGenerating } = useTaskStatus(rawStatus, {
+  const { isGenerating, isError } = useTaskStatus(rawStatus, {
     onSuccess: () => {
-      console.log("onSuccess", streamedText);
       if (streamedText) {
         updateEnhancedMd(streamedText);
       }
-    },
-    onError: () => {
-      console.error("Generate failed:", error?.message || "Unknown error");
     },
   });
 
@@ -62,7 +58,6 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
 
   const onRegenerate = async (templateId: string | null) => {
     if (!model) {
-      console.error("Generate failed: Language model not configured");
       return;
     }
 
@@ -76,6 +71,14 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
   if (isGenerating) {
     return null;
   }
+
+  const buttonIcon = isError ? <AlertCircleIcon className="w-4 h-4" /> : <SparklesIcon className="w-4 h-4" />;
+  const buttonText = isError ? "Retry" : "Regenerate";
+  const buttonTooltip = !model
+    ? { content: "Language model not configured", side: "top" as const }
+    : isError && error
+    ? { content: error.message, side: "top" as const }
+    : undefined;
 
   return (
     <div>
@@ -142,22 +145,18 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
 
       <div className="flex flex-col items-center">
         <FloatingButton
-          icon={<SparklesIcon className="w-4 h-4" />}
-          onMouseEnter={() => setShowTemplates(true)}
+          icon={buttonIcon}
+          onMouseEnter={() => !isError && setShowTemplates(true)}
           onMouseLeave={() => setShowTemplates(false)}
           onClick={() => {
             setShowTemplates(false);
             onRegenerate(null);
           }}
           disabled={!model}
-          tooltip={!model
-            ? {
-              content: "Language model not configured",
-              side: "top",
-            }
-            : undefined}
+          tooltip={buttonTooltip}
+          error={isError}
         >
-          <span>Regenerate</span>
+          <span>{buttonText}</span>
         </FloatingButton>
       </div>
     </div>

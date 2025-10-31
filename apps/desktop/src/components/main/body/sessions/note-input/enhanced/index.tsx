@@ -13,16 +13,15 @@ export const Enhanced = forwardRef<
 >(({ sessionId }, ref) => {
   const taskId = createTaskId(sessionId, "enhance");
 
-  const { status, error } = useAITask((state) => {
+  const { status } = useAITask((state) => {
     const taskState = getTaskState(state.tasks, taskId);
     return {
       status: taskState?.status ?? "idle",
-      error: taskState?.error,
     };
   });
 
-  if (status === "error" && error) {
-    return <pre>{error.message}</pre>;
+  if (status === "error") {
+    return null;
   }
 
   if (status === "generating") {

@@ -128,7 +128,9 @@ export const createTasksSlice = <T extends TasksState>(
       for await (const chunk of transformedStream) {
         checkAbort();
 
-        if (chunk.type === "text-delta") {
+        if (chunk.type === "error") {
+          throw chunk.error;
+        } else if (chunk.type === "text-delta") {
           fullText += chunk.text;
 
           set((state) =>
@@ -198,7 +200,7 @@ export const createTasksSlice = <T extends TasksState>(
           })
         );
       } else {
-        const error = err instanceof Error ? err : new Error(String(err));
+        const error = extractUnderlyingError(err);
         set((state) =>
           mutate(state, (draft) => {
             draft.tasks[taskId] = {
@@ -215,6 +217,39 @@ export const createTasksSlice = <T extends TasksState>(
     }
   },
 });
+
+function extractUnderlyingError(err: unknown): Error {
+  if (!(err instanceof Error)) {
+    return new Error(String(err));
+  }
+
+  if (err.name === "AI_RetryError") {
+    if ("cause" in err && err.cause instanceof Error) {
+      return err.cause;
+    }
+
+    if ("lastError" in err && err.lastError instanceof Error) {
+      return err.lastError;
+    }
+
+    if ("errors" in err && Array.isArray((err as any).errors)) {
+      const errors = (err as any).errors;
+      if (errors.length > 0 && errors[errors.length - 1] instanceof Error) {
+        return errors[errors.length - 1];
+      }
+    }
+
+    const match = err.message.match(/Last error: (.+)$/);
+    if (match) {
+      const underlyingMessage = match[1];
+      const underlyingError = new Error(underlyingMessage);
+      underlyingError.name = "AI_ProviderError";
+      return underlyingError;
+    }
+  }
+
+  return err;
+}
 
 function getAgentForTask<T extends TaskType>(
   taskType: T,

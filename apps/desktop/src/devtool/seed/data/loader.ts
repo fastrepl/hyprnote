@@ -160,10 +160,13 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
 
     if (session.transcript) {
       const transcriptId = id();
+      const baseTimestamp = Date.now() - 3 * 60 * 60 * 1000;
+
       transcripts[transcriptId] = {
         user_id: DEFAULT_USER_ID,
         session_id: sessionId,
         created_at: new Date().toISOString(),
+        started_at: baseTimestamp,
       };
 
       session.transcript.segments.forEach((segment) => {
@@ -175,6 +178,7 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
             text: word.text,
             start_ms: word.start_ms,
             end_ms: word.end_ms,
+            channel: segment.channel,
             created_at: new Date().toISOString(),
           };
         });

@@ -55,6 +55,7 @@ export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
 
 export const transcriptSchema = baseTranscriptSchema.omit({ id: true }).extend({
   created_at: z.string(),
+  started_at: z.number(),
 });
 
 export const mappingSessionParticipantSchema = baseMappingSessionParticipantSchema.omit({ id: true }).extend({
@@ -139,6 +140,7 @@ export const externalTableSchemaForTinybase = {
     user_id: { type: "string" },
     created_at: { type: "string" },
     session_id: { type: "string" },
+    started_at: { type: "number" },
   } satisfies InferTinyBaseSchema<typeof transcriptSchema>,
   words: {
     user_id: { type: "string" },

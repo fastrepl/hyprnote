@@ -44,6 +44,7 @@ const CuratedTranscriptWordSchema = z.object({
 });
 
 const CuratedTranscriptSegmentSchema = z.object({
+  channel: z.number(),
   start_ms: z.number(),
   end_ms: z.number(),
   text: z.string(),

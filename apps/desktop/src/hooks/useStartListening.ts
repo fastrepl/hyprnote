@@ -7,50 +7,45 @@ import { id } from "../utils";
 import { useSTTConnection } from "./useSTTConnection";
 
 export function useStartListening(sessionId: string) {
+  const { user_id } = main.UI.useValues(main.STORE_ID);
   const start = useListener((state) => state.start);
   const conn = useSTTConnection();
   const store = main.UI.useStore(main.STORE_ID);
   const keywords = useVocabs();
 
-  const persistFinal = useCallback<PersistFinalCallback>((words) => {
-    if (!store || words.length === 0) {
-      return;
-    }
-
-    let transcriptId: string | undefined;
-    store.forEachRow("transcripts", (rowId, _forEachCell) => {
-      if (store.getCell("transcripts", rowId, "session_id") === sessionId) {
-        transcriptId = rowId;
-      }
-    });
-
-    if (!transcriptId) {
-      transcriptId = id();
-      store.setRow("transcripts", transcriptId, {
-        session_id: sessionId,
-        user_id: "",
-        created_at: new Date().toISOString(),
-      });
-    }
-
-    words.forEach((word) => {
-      store.setRow("words", id(), {
-        transcript_id: transcriptId!,
-        text: word.text,
-        start_ms: word.start_ms,
-        end_ms: word.end_ms,
-        channel: word.channel,
-        user_id: "",
-        created_at: new Date().toISOString(),
-      });
-    });
-  }, [store, sessionId, keywords]);
-
   const startListening = useCallback(() => {
-    if (!conn) {
+    if (!conn || !store) {
       console.error("no_stt_connection");
       return;
     }
+
+    const transcriptId = id();
+    const startedAt = Date.now();
+
+    store.setRow("transcripts", transcriptId, {
+      session_id: sessionId,
+      user_id: user_id ?? "",
+      created_at: new Date().toISOString(),
+      started_at: startedAt,
+    });
+
+    const persistFinal: PersistFinalCallback = (words) => {
+      if (words.length === 0) {
+        return;
+      }
+
+      words.forEach((word) => {
+        store.setRow("words", id(), {
+          transcript_id: transcriptId,
+          text: word.text,
+          start_ms: word.start_ms,
+          end_ms: word.end_ms,
+          channel: word.channel,
+          user_id: user_id ?? "",
+          created_at: new Date().toISOString(),
+        });
+      });
+    };
 
     start(
       {
@@ -67,7 +62,7 @@ export function useStartListening(sessionId: string) {
         persistFinal,
       },
     );
-  }, [conn, persistFinal, sessionId, start]);
+  }, [conn, store, sessionId, start, keywords]);
 
   return startListening;
 }

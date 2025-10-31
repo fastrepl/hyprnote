@@ -127,6 +127,7 @@
       "transcript": {
         "segments": [
           {
+            "channel": 0,
             "start_ms": 0,
             "end_ms": 20000,
             "text": "Good morning everyone, thanks for joining the Q4 product strategy meeting. Let's dive right in.",
@@ -146,6 +147,7 @@
             ]
           },
           {
+            "channel": 0,
             "start_ms": 20000,
             "end_ms": 60000,
             "text": "Sarah, we'd love to hear about the market research you've been leading. Can you walk us through the findings from the customer survey? I think that's critical context for our discussion today.",
@@ -167,6 +169,7 @@
             ]
           },
           {
+            "channel": 1,
             "start_ms": 60000,
             "end_ms": 180000,
             "text": "Absolutely John. So we conducted surveys across 2000 customers in our target market segments. The findings are really compelling and actionable. First, integration capabilities emerged as the top priority. 78% of survey respondents explicitly said they want better integration with existing tools like Salesforce, Slack, and other enterprise platforms. Second, performance has become critical. 65% mentioned they would seriously consider switching to a competitor if we could improve our performance. That's a significant number. Third, we discovered a pricing model issue. We're currently losing deals at the enterprise level because our tier structure doesn't align well with their requirements. They want more flexibility. We need to address these three areas to stay competitive.",
@@ -217,6 +220,7 @@
             ]
           },
           {
+            "channel": 0,
             "start_ms": 180000,
             "end_ms": 232000,
             "text": "That's very insightful Sarah, thank you. Michael, from an engineering perspective, I'd like your assessment. How feasible is building out these integration capabilities? What would the realistic timeline look like and what resources would we need to allocate from the engineering team?",
@@ -240,6 +244,7 @@
             ]
           },
           {
+            "channel": 2,
             "start_ms": 232000,
             "end_ms": 368000,
             "text": "Good question John. I've been analyzing this carefully. We have two primary integration targets we should prioritize. First is Salesforce - that's the big one. We're looking at about six to seven weeks of development work for a robust integration. That would require two senior engineers and one junior engineer working full-time. Second is Slack, which is actually more straightforward from a technical standpoint. Probably about three to four weeks for that one, requiring just one senior engineer. Now, the performance improvements are trickier. We need to profile the system first, which takes about two weeks. Then based on what we find in profiling, we're looking at four to eight weeks of optimization work depending on what the bottlenecks are. Currently the biggest performance bottleneck is database queries in our reporting module. We need to rewrite some of those queries and potentially add indexing.",
@@ -303,6 +308,7 @@
             ]
           },
           {
+            "channel": 1,
             "start_ms": 368000,
             "end_ms": 472000,
             "text": "That's really helpful context Michael. So if I'm understanding correctly, we're looking at roughly fourteen to eighteen weeks of total effort across all these initiatives. That's ambitious but it does fit within our Q4 timeline if we're strategic about it. John, I think we should consider a phased approach. Phase one would be Slack integration since it has quicker wins and only requires one engineer. That's three to four weeks. Parallel to that, we can kick off the performance profiling which is two weeks. By mid-November we'd have the profiling results and can make more informed decisions about the optimization work. Then we move into phase two with Salesforce. Does that make sense?",
@@ -353,6 +359,7 @@
             ]
           },
           {
+            "channel": 0,
             "start_ms": 472000,
             "end_ms": 592000,
             "text": "I completely agree with that approach Sarah. That's exactly the kind of thinking we need. Let's lock in Slack as our phase one target. Michael, I'm going to need you to get me a detailed technical specification with architecture diagrams by November fifth. That's two weeks from now. Sarah, I need you to partner with our sales team to understand exactly what the pricing model constraints are that we're hitting at the enterprise level. What do they actually need? And I will personally coordinate with the board on resource allocation and get that formally approved by end of this week. We need to move on this quickly. Any other questions or concerns before we wrap up?",
@@ -403,6 +410,7 @@
             ]
           },
           {
+            "channel": 1,
             "start_ms": 592000,
             "end_ms": 660000,
             "text": "No, I think we're good. Michael and I will sync up tomorrow to start the technical planning. This is a solid roadmap. I'm excited about the phased approach - it gives us flexibility and reduces risk. Let's plan to reconvene next week with preliminary findings on those profiling and pricing discussions. Great work everyone.",
@@ -451,6 +459,7 @@
       "transcript": {
         "segments": [
           {
+            "channel": 0,
             "start_ms": 0,
             "end_ms": 32000,
             "text": "Thanks for taking the time to chat Emma and David. We've been impressed with what you're building at TechStart Labs. I think there's a real opportunity for strategic partnership between our companies.",
@@ -476,6 +485,7 @@
             ]
           },
           {
+            "channel": 1,
             "start_ms": 32000,
             "end_ms": 80000,
             "text": "We really appreciate that John. We've also admired Acme's strong market position and impressive customer base. What specific areas of partnership were you thinking about? Our engineering team has the capacity and I think the timing could be ideal for both of us.",
@@ -502,6 +512,7 @@
             ]
           },
           {
+            "channel": 0,
             "start_ms": 80000,
             "end_ms": 220000,
             "text": "Perfect. I was thinking we could integrate our APIs so TechStart's machine learning capabilities could augment Acme's data processing pipeline. Our customers are increasingly asking for smarter analytics and AI-driven insights. We also thought about a revenue sharing model where you'd get thirty percent on referrals from your customer base that adopt our solution. That creates a win-win where you're not just building the integration but also benefiting from the market opportunity. And eventually, we could do a joint go-to-market initiative where we position the combined offering to mid-market and enterprise companies. I think positioning our combined strengths to that market segment is really compelling.",
@@ -561,6 +572,7 @@
             ]
           },
           {
+            "channel": 1,
             "start_ms": 220000,
             "end_ms": 288000,
             "text": "That's very interesting John. David, what do you think from a technical standpoint? How quickly could we potentially have a proof of concept ready? And what kind of security considerations should we be discussing at this stage?",
@@ -587,6 +599,7 @@
             ]
           },
           {
+            "channel": 2,
             "start_ms": 288000,
             "end_ms": 420000,
             "text": "Good questions Emma. From a technical perspective, integrating with enterprise APIs usually takes three to four weeks for a solid proof of concept if we're focused and well-scoped. We'd use OAuth 2.0 for authentication since both of our systems already support that standard. For real-time data synchronization, we'd implement webhooks which is the modern approach. On security, we'd need to establish mutual TLS for server-to-server communication. That's the industry standard for secure API-to-API communication. We should definitely establish rate limits around 1000 requests per minute initially to prevent abuse and manage load. We also need to think carefully about data residency and regulatory compliance. John mentioned that your customers are primarily US-based with some presence in the EU. We can definitely work with those constraints. We have regional deployment options for both.",
@@ -654,6 +667,7 @@
             ]
           },
           {
+            "channel": 1,
             "start_ms": 420000,
             "end_ms": 552000,
             "text": "I think this is really promising John. Our customers are primarily US-based with some presence in the EU. We could definitely work with those constraints. So here's what I'd propose: let's have your legal teams review the partnership terms and structure - I estimate that's about two weeks of work. Parallel to that, David's team can start the technical proof of concept work, which you're saying is three to four weeks. Once we have both of those validated and looking good, we could launch a pilot program with select customers from both of our customer bases. If we start the legal and technical work this week, we could realistically launch the pilot within six weeks total. That timeline works really well for both organizations.",

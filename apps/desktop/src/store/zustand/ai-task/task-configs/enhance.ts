@@ -3,7 +3,7 @@ import { Experimental_Agent as Agent, generateText, type LanguageModel, stepCoun
 import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { buildSegments } from "../../../../utils/segments";
+import { buildSegments } from "../../../../utils/segment";
 import type { Store as PersistedStore } from "../../../tinybase/main";
 import { trimBeforeMarker } from "../shared/transform_impl";
 import type { TaskArgsMap, TaskConfig } from ".";
@@ -111,11 +111,14 @@ function getTemplateData(templateId: string, store: PersistedStore) {
 
 function getTranscriptSegments(sessionId: string, store: PersistedStore) {
   const transcriptIds: string[] = [];
+  const transcriptMap = new Map<string, number>();
 
   store.forEachRow("transcripts", (transcriptId, _forEachCell) => {
     const transcriptSessionId = store.getCell("transcripts", transcriptId, "session_id");
     if (transcriptSessionId === sessionId) {
       transcriptIds.push(transcriptId);
+      const startedAt = store.getCell("transcripts", transcriptId, "started_at");
+      transcriptMap.set(transcriptId, startedAt as number);
     }
   });
 
@@ -123,38 +126,50 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
     return [];
   }
 
-  const transcriptId = transcriptIds[0];
-  const wordIds: string[] = [];
+  const finalWords: any[] = [];
 
-  store.forEachRow("words", (wordId, _forEachCell) => {
-    const wordTranscriptId = store.getCell("words", wordId, "transcript_id");
-    if (wordTranscriptId === transcriptId) {
-      wordIds.push(wordId);
-    }
+  transcriptIds.forEach((transcriptId) => {
+    const transcriptStartedAt = transcriptMap.get(transcriptId) ?? 0;
+
+    store.forEachRow("words", (wordId, _forEachCell) => {
+      const wordTranscriptId = store.getCell("words", wordId, "transcript_id");
+      if (wordTranscriptId === transcriptId) {
+        const word = store.getRow("words", wordId);
+        if (word) {
+          finalWords.push({
+            ...word,
+            transcriptStartedAt,
+          });
+        }
+      }
+    });
   });
 
-  const finalWords: Record<string, any> = {};
+  const segments = buildSegments(finalWords, []);
 
-  wordIds.forEach((wordId) => {
-    const word = store.getRow("words", wordId);
-    if (word) {
-      finalWords[wordId] = word;
-    }
-  });
+  const sessionStartMs = transcriptIds.length > 0
+    ? Math.min(...Array.from(transcriptMap.values()))
+    : 0;
 
-  const segments = buildSegments(finalWords, {});
+  return segments.map((segment) => {
+    const firstWord = segment.words[0];
+    const lastWord = segment.words[segment.words.length - 1];
 
-  return segments.map((segment) => ({
-    channel: segment.channel,
-    start_ms: segment.words[0]?.start_ms ?? 0,
-    end_ms: segment.words[segment.words.length - 1]?.end_ms ?? 0,
-    text: segment.words.map((w) => w.text).join(" "),
-    words: segment.words.map((w) => ({
-      text: w.text,
-      start_ms: w.start_ms,
-      end_ms: w.end_ms,
-    })),
-  }));
+    const absoluteStartMs = (firstWord as any).transcriptStartedAt + firstWord.start_ms;
+    const absoluteEndMs = (lastWord as any).transcriptStartedAt + lastWord.end_ms;
+
+    return {
+      channel: segment.channel,
+      start_ms: absoluteStartMs - sessionStartMs,
+      end_ms: absoluteEndMs - sessionStartMs,
+      text: segment.words.map((w) => w.text).join(" "),
+      words: segment.words.map((w) => ({
+        text: w.text,
+        start_ms: (w as any).transcriptStartedAt + w.start_ms - sessionStartMs,
+        end_ms: (w as any).transcriptStartedAt + w.end_ms - sessionStartMs,
+      })),
+    };
+  }).sort((a, b) => a.start_ms - b.start_ms);
 }
 
 function getTools(model: LanguageModel) {

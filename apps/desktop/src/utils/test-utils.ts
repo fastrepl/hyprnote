@@ -1,7 +1,7 @@
 import { expect } from "vitest";
 
-import type * as main from "../../../../../../../store/tinybase/main";
-import type { MaybePartialWord } from "../../../../../../../utils/segments";
+import type * as main from "../store/tinybase/main";
+import type { MaybePartialWord } from "./segment";
 
 interface CustomMatchers<R = unknown> {
   toHaveChannels: (...channels: number[]) => R;
@@ -64,18 +64,16 @@ expect.extend({
 });
 
 export function word(
-  text: string,
-  start_ms: number,
-  end_ms: number,
-  channel: number = 0,
-): main.Word {
+  overrides: Partial<main.Word & { isFinal: boolean }> = {},
+): main.Word & { isFinal: boolean } {
   return {
-    text,
-    start_ms,
-    end_ms,
-    channel,
-    user_id: "test-user",
-    transcript_id: "test-transcript",
-    created_at: "2024-01-01",
+    text: overrides.text ?? "word",
+    start_ms: overrides.start_ms ?? 0,
+    end_ms: overrides.end_ms ?? 100,
+    channel: overrides.channel ?? 0,
+    isFinal: overrides.isFinal ?? true,
+    user_id: overrides.user_id ?? "test-user",
+    transcript_id: overrides.transcript_id ?? "test-transcript",
+    created_at: overrides.created_at ?? "2024-01-01",
   };
 }

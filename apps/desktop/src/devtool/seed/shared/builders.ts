@@ -244,10 +244,12 @@ export const buildTranscriptsForSessions = (
 
   sessionIds.forEach((sessionId) => {
     const transcriptId = id();
+    const createdAt = faker.date.recent({ days: 30 });
     transcripts[transcriptId] = {
       user_id: DEFAULT_USER_ID,
       session_id: sessionId,
-      created_at: faker.date.recent({ days: 30 }).toISOString(),
+      created_at: createdAt.toISOString(),
+      started_at: createdAt.getTime(),
     };
 
     const transcript = generateTranscript();

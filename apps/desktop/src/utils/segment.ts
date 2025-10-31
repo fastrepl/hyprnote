@@ -18,12 +18,12 @@ export type Segment = {
 };
 
 export function mergeWordsByChannel(
-  finalWords: Record<string, main.Word>,
-  partialWords: Record<number, PartialWord[]>,
+  finalWords: main.Word[],
+  partialWords: PartialWord[][],
 ): Map<number, MaybePartialWord[]> {
   const channels = new Map<number, MaybePartialWord[]>();
 
-  Object.values(finalWords).forEach((word) => {
+  finalWords.forEach((word) => {
     const channelWords = channels.get(word.channel) ?? [];
     channelWords.push({
       text: word.text,
@@ -35,7 +35,7 @@ export function mergeWordsByChannel(
     channels.set(word.channel, channelWords);
   });
 
-  Object.values(partialWords).forEach((words) => {
+  partialWords.forEach((words) => {
     words.forEach((word) => {
       const channelWords = channels.get(word.channel) ?? [];
       channelWords.push({
@@ -210,8 +210,8 @@ export function mergeSameChannelSegments(segments: Segment[]): Segment[] {
 }
 
 export function buildSegments(
-  finalWords: Record<string, main.Word>,
-  partialWords: Record<number, PartialWord[]>,
+  finalWords: main.Word[],
+  partialWords: PartialWord[][],
 ): Segment[] {
   const turns = groupIntoTurns(mergeWordsByChannel(finalWords, partialWords));
   return mergeSameChannelSegments(turns);

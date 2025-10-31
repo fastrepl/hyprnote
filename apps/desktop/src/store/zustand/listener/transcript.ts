@@ -10,55 +10,52 @@ type WordsByChannel = Record<number, PartialWord[]>;
 export type PersistFinalCallback = (words: PartialWord[]) => void;
 
 export type TranscriptState = {
-  managerOffsetMs: number;
   partialWordsByChannel: WordsByChannel;
   persistFinal?: PersistFinalCallback;
 };
 
 export type TranscriptActions = {
-  setTranscriptManagerOffset: (offsetMs: number) => void;
   setTranscriptPersist: (callback?: PersistFinalCallback) => void;
   handleTranscriptResponse: (response: StreamResponse) => void;
   resetTranscript: () => void;
 };
 
 const initialState: TranscriptState = {
-  managerOffsetMs: 0,
   partialWordsByChannel: {},
   persistFinal: undefined,
 };
 
 const sanitizeWords = (
   rawWords: Word[],
-  managerOffsetMs: number,
   channelIndex: number,
-): PartialWord[] => {
+): { words: PartialWord[] } => {
   const trimmed = rawWords.reduce<PartialWord[]>((acc, word) => {
     const text = word.word.trim();
     if (!text) {
       return acc;
     }
 
-    const start_ms = managerOffsetMs + Math.round(word.start * 1000);
-    const end_ms = managerOffsetMs + Math.round(word.end * 1000);
+    const start_ms = Math.round(word.start * 1000);
+    const end_ms = Math.round(word.end * 1000);
 
     acc.push({
       text,
       start_ms,
       end_ms,
-      channel: word.speaker ?? channelIndex,
+      channel: channelIndex,
     });
 
     return acc;
   }, []);
 
   if (!trimmed.length) {
-    return trimmed;
+    return { words: trimmed };
   }
 
   const merged: PartialWord[] = [];
 
-  for (const word of trimmed) {
+  for (let i = 0; i < trimmed.length; i++) {
+    const word = trimmed[i];
     if (merged.length > 0 && word.text.startsWith("'")) {
       const previous = merged[merged.length - 1];
       merged[merged.length - 1] = {
@@ -72,7 +69,7 @@ const sanitizeWords = (
     merged.push(word);
   }
 
-  return merged;
+  return { words: merged };
 };
 
 export const createTranscriptSlice = <T extends TranscriptState & TranscriptActions>(
@@ -80,13 +77,6 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
   get: StoreApi<T>["getState"],
 ): TranscriptState & TranscriptActions => ({
   ...initialState,
-  setTranscriptManagerOffset: (offsetMs) => {
-    set((state) =>
-      mutate(state, (draft) => {
-        draft.managerOffsetMs = offsetMs;
-      })
-    );
-  },
   setTranscriptPersist: (callback) => {
     set((state) =>
       mutate(state, (draft) => {
@@ -106,9 +96,9 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
       return;
     }
 
-    const { managerOffsetMs, partialWordsByChannel, persistFinal } = get();
+    const { partialWordsByChannel, persistFinal } = get();
 
-    const words = sanitizeWords(alternative.words ?? [], managerOffsetMs, channelIndex);
+    const { words } = sanitizeWords(alternative.words ?? [], channelIndex);
 
     if (!words.length) {
       return;
@@ -146,7 +136,6 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
   resetTranscript: () => {
     set((state) =>
       mutate(state, (draft) => {
-        draft.managerOffsetMs = 0;
         draft.partialWordsByChannel = {};
         draft.persistFinal = undefined;
       })

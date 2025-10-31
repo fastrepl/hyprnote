@@ -1,19 +1,23 @@
 import { cn } from "@hypr/utils";
-import { DependencyList, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { DependencyList, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { useListener } from "../../../../../../../contexts/listener";
-import { useSegments } from "./segment";
+import { useListener } from "../../../../../../contexts/listener";
+import * as main from "../../../../../../store/tinybase/main";
+import { buildSegments, PartialWord, Segment } from "../../../../../../utils/segment";
 
 export function TranscriptViewer({ sessionId }: { sessionId: string }) {
-  const segments = useSegments(sessionId);
-  return <Renderer segments={segments} sessionId={sessionId} />;
-}
+  const transcriptIds = main.UI.useSliceRowIds(
+    main.INDEXES.transcriptBySession,
+    sessionId,
+    main.STORE_ID,
+  );
 
-function Renderer({ segments, sessionId }: { segments: ReturnType<typeof useSegments>; sessionId: string }) {
-  const { containerRef, isAtBottom, scrollToBottom } = useScrollToBottom([segments]);
   const active = useListener((state) => state.status === "running_active" && state.sessionId === sessionId);
+  const partialWords = useListener((state) => state.partialWordsByChannel);
 
-  if (segments.length === 0) {
+  const { containerRef, isAtBottom, scrollToBottom } = useScrollToBottom([transcriptIds]);
+
+  if (transcriptIds.length === 0) {
     return null;
   }
 
@@ -27,8 +31,17 @@ function Renderer({ segments, sessionId }: { segments: ReturnType<typeof useSegm
           true ? "scrollbar-none" : "scroll-pb-[4rem]",
         ])}
       >
-        {segments.map(
-          (segment, i) => <Segment key={i} segment={segment} />,
+        {transcriptIds.map(
+          (transcriptId, index) => (
+            <>
+              <RenderTranscript
+                key={transcriptId}
+                transcriptId={transcriptId}
+                partialWords={(index === transcriptIds.length - 1) ? partialWords : {}}
+              />
+              {index < transcriptIds.length - 1 && <TranscriptSeparator />}
+            </>
+          ),
         )}
       </div>
 
@@ -51,12 +64,62 @@ function Renderer({ segments, sessionId }: { segments: ReturnType<typeof useSegm
   );
 }
 
-function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] }) {
-  const timestamp = segment.words.length > 0
-    ? `${formatTimestamp(segment.words[0].start_ms)} - ${
-      formatTimestamp(segment.words[segment.words.length - 1].end_ms)
-    }`
-    : "00:00 - 00:00";
+function TranscriptSeparator() {
+  return (
+    <div
+      className={cn([
+        "flex items-center gap-3",
+        "text-neutral-400 text-xs font-light",
+      ])}
+    >
+      <div className="flex-1 border-t border-neutral-200/40" />
+      <span>Restarted</span>
+      <div className="flex-1 border-t border-neutral-200/40" />
+    </div>
+  );
+}
+
+function RenderTranscript(
+  {
+    transcriptId,
+    partialWords,
+  }: {
+    transcriptId: string;
+    partialWords: Record<number, PartialWord[]>;
+  },
+) {
+  const finalWords = useFinalWords(transcriptId);
+  const segments = buildSegments(finalWords, Object.values(partialWords));
+
+  if (segments.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {segments.map(
+        (segment, i) => <RenderSegment key={i} segment={segment} />,
+      )}
+    </>
+  );
+}
+
+function RenderSegment({ segment }: { segment: Segment }) {
+  const timestamp = useMemo(() => {
+    if (segment.words.length === 0) {
+      return "00:00 - 00:00";
+    }
+
+    const firstWord = segment.words[0];
+    const lastWord = segment.words[segment.words.length - 1];
+
+    const [from, to] = [
+      firstWord.start_ms,
+      lastWord.end_ms,
+    ].map(formatTimestamp);
+
+    return `${from} - ${to}`;
+  }, [segment.words]);
 
   return (
     <section>
@@ -89,6 +152,26 @@ function Segment({ segment }: { segment: ReturnType<typeof useSegments>[number] 
       </div>
     </section>
   );
+}
+
+function useFinalWords(transcriptId: string) {
+  const store = main.UI.useStore(main.STORE_ID);
+  const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
+
+  return useMemo(() => {
+    if (!store) {
+      return [];
+    }
+
+    const words: main.Word[] = [];
+    wordIds?.forEach((wordId) => {
+      const word = store.getRow("words", wordId);
+      if (word) {
+        words.push(word as main.Word);
+      }
+    });
+    return words;
+  }, [store, wordIds]);
 }
 
 function useScrollToBottom(deps: DependencyList) {

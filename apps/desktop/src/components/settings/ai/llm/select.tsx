@@ -1,9 +1,12 @@
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
+import { generateText } from "ai";
 import { useMemo } from "react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
 import { useAuth } from "../../../../auth";
+import { useLanguageModel } from "../../../../hooks/useLLMConnection";
 import * as main from "../../../../store/tinybase/main";
 import {
   listAnthropicModels,
@@ -57,7 +60,10 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Model being used</h3>
+      <div className="flex flex-row items-center gap-2">
+        <h3 className="text-md font-semibold">Model being used</h3>
+        <HealthCheck />
+      </div>
       <div
         className={cn([
           "flex flex-row items-center gap-4",
@@ -192,4 +198,45 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<ListModels
   }, [configuredProviders, auth]);
 
   return mapping;
+}
+
+function HealthCheck() {
+  const model = useLanguageModel();
+
+  const text = useQuery({
+    enabled: !!model,
+    queryKey: ["model-health-check", model],
+    queryFn: () =>
+      generateText({
+        model: model!,
+        system: "If user says hi, respond with hello, without any other text.",
+        prompt: "Hi",
+      }),
+  });
+
+  const statusColor = (() => {
+    if (!model) {
+      return "bg-red-200";
+    }
+    if (text.isPending) {
+      return "bg-yellow-200";
+    }
+    if (text.isError) {
+      return "bg-red-200";
+    }
+    if (text.isSuccess) {
+      return "bg-green-200";
+    }
+    return "bg-red-200";
+  })();
+
+  return (
+    <span
+      className={cn([
+        "w-2 h-2 rounded-full",
+        statusColor,
+      ])}
+    >
+    </span>
+  );
 }

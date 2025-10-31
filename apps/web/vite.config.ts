@@ -8,9 +8,10 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 import contentCollections from "@content-collections/vite";
 import { wrapVinxiConfigWithSentry } from "@sentry/tanstackstart-react";
 
-const config = defineConfig({
+const config = defineConfig(({ mode }) => ({
   plugins: [
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    // Only use Cloudflare plugin in production to avoid CSP issues in dev
+    ...(mode === "production" ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
     contentCollections(),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
@@ -20,7 +21,7 @@ const config = defineConfig({
     tanstackStart(),
     viteReact(),
   ],
-});
+}));
 
 export default wrapVinxiConfigWithSentry(config, {
   org: process.env.VITE_SENTRY_ORG,

@@ -17,12 +17,18 @@ import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewDownloadRouteImport } from './routes/_view/download'
+import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
+import { Route as ViewProductIndexRouteImport } from './routes/_view/product/index'
+import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
+import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiSyncWriteRouteImport } from './routes/api/sync.write'
 import { Route as ApiSyncReadRouteImport } from './routes/api/sync.read'
+import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
+import { Route as ViewDocsSlugRouteImport } from './routes/_view/docs/$slug'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
 import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
@@ -68,10 +74,30 @@ const ViewDownloadRoute = ViewDownloadRouteImport.update({
   path: '/download',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewDocsRouteRoute = ViewDocsRouteRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductIndexRoute = ViewProductIndexRouteImport.update({
+  id: '/product/',
+  path: '/product/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
+  id: '/legal/',
+  path: '/legal/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDocsIndexRoute = ViewDocsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ViewDocsRouteRoute,
 } as any)
 const ViewChangelogIndexRoute = ViewChangelogIndexRouteImport.update({
   id: '/changelog/',
@@ -97,6 +123,16 @@ const ApiSyncReadRoute = ApiSyncReadRouteImport.update({
   id: '/api/sync/read',
   path: '/api/sync/read',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
+  id: '/legal/$slug',
+  path: '/legal/$slug',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDocsSlugRoute = ViewDocsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ViewDocsRouteRoute,
 } as any)
 const ViewChangelogSlugRoute = ViewChangelogSlugRouteImport.update({
   id: '/changelog/$slug',
@@ -128,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/app': typeof ViewAppRouteRouteWithChildren
+  '/docs': typeof ViewDocsRouteRouteWithChildren
   '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -138,11 +175,16 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
+  '/docs/$slug': typeof ViewDocsSlugRoute
+  '/legal/$slug': typeof ViewLegalSlugRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
+  '/docs/': typeof ViewDocsIndexRoute
+  '/legal': typeof ViewLegalIndexRoute
+  '/product': typeof ViewProductIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -157,11 +199,16 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
+  '/docs/$slug': typeof ViewDocsSlugRoute
+  '/legal/$slug': typeof ViewLegalSlugRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
+  '/docs': typeof ViewDocsIndexRoute
+  '/legal': typeof ViewLegalIndexRoute
+  '/product': typeof ViewProductIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -169,6 +216,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
+  '/_view/docs': typeof ViewDocsRouteRouteWithChildren
   '/_view/download': typeof ViewDownloadRoute
   '/_view/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -179,11 +227,16 @@ export interface FileRoutesById {
   '/_view/blog/$slug': typeof ViewBlogSlugRoute
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
+  '/_view/docs/$slug': typeof ViewDocsSlugRoute
+  '/_view/legal/$slug': typeof ViewLegalSlugRoute
   '/api/sync/read': typeof ApiSyncReadRoute
   '/api/sync/write': typeof ApiSyncWriteRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
+  '/_view/docs/': typeof ViewDocsIndexRoute
+  '/_view/legal/': typeof ViewLegalIndexRoute
+  '/_view/product/': typeof ViewProductIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +244,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cal'
     | '/app'
+    | '/docs'
     | '/download'
     | '/pricing'
     | '/webhook/nango'
@@ -201,11 +255,16 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/callback/auth'
     | '/changelog/$slug'
+    | '/docs/$slug'
+    | '/legal/$slug'
     | '/api/sync/read'
     | '/api/sync/write'
     | '/app/'
     | '/blog'
     | '/changelog'
+    | '/docs/'
+    | '/legal'
+    | '/product'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -220,17 +279,23 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/callback/auth'
     | '/changelog/$slug'
+    | '/docs/$slug'
+    | '/legal/$slug'
     | '/api/sync/read'
     | '/api/sync/write'
     | '/app'
     | '/blog'
     | '/changelog'
+    | '/docs'
+    | '/legal'
+    | '/product'
   id:
     | '__root__'
     | '/_view'
     | '/auth'
     | '/cal'
     | '/_view/app'
+    | '/_view/docs'
     | '/_view/download'
     | '/_view/pricing'
     | '/webhook/nango'
@@ -241,11 +306,16 @@ export interface FileRouteTypes {
     | '/_view/blog/$slug'
     | '/_view/callback/auth'
     | '/_view/changelog/$slug'
+    | '/_view/docs/$slug'
+    | '/_view/legal/$slug'
     | '/api/sync/read'
     | '/api/sync/write'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
+    | '/_view/docs/'
+    | '/_view/legal/'
+    | '/_view/product/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -316,12 +386,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/docs': {
+      id: '/_view/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof ViewDocsRouteRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/app': {
       id: '/_view/app'
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/': {
+      id: '/_view/product/'
+      path: '/product'
+      fullPath: '/product'
+      preLoaderRoute: typeof ViewProductIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/legal/': {
+      id: '/_view/legal/'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof ViewLegalIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/docs/': {
+      id: '/_view/docs/'
+      path: '/'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof ViewDocsIndexRouteImport
+      parentRoute: typeof ViewDocsRouteRoute
     }
     '/_view/changelog/': {
       id: '/_view/changelog/'
@@ -357,6 +455,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/sync/read'
       preLoaderRoute: typeof ApiSyncReadRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_view/legal/$slug': {
+      id: '/_view/legal/$slug'
+      path: '/legal/$slug'
+      fullPath: '/legal/$slug'
+      preLoaderRoute: typeof ViewLegalSlugRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/docs/$slug': {
+      id: '/_view/docs/$slug'
+      path: '/$slug'
+      fullPath: '/docs/$slug'
+      preLoaderRoute: typeof ViewDocsSlugRouteImport
+      parentRoute: typeof ViewDocsRouteRoute
     }
     '/_view/changelog/$slug': {
       id: '/_view/changelog/$slug'
@@ -412,28 +524,50 @@ const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(
   ViewAppRouteRouteChildren,
 )
 
+interface ViewDocsRouteRouteChildren {
+  ViewDocsSlugRoute: typeof ViewDocsSlugRoute
+  ViewDocsIndexRoute: typeof ViewDocsIndexRoute
+}
+
+const ViewDocsRouteRouteChildren: ViewDocsRouteRouteChildren = {
+  ViewDocsSlugRoute: ViewDocsSlugRoute,
+  ViewDocsIndexRoute: ViewDocsIndexRoute,
+}
+
+const ViewDocsRouteRouteWithChildren = ViewDocsRouteRoute._addFileChildren(
+  ViewDocsRouteRouteChildren,
+)
+
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
+  ViewDocsRouteRoute: typeof ViewDocsRouteRouteWithChildren
   ViewDownloadRoute: typeof ViewDownloadRoute
   ViewPricingRoute: typeof ViewPricingRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
+  ViewLegalSlugRoute: typeof ViewLegalSlugRoute
   ViewBlogIndexRoute: typeof ViewBlogIndexRoute
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
+  ViewLegalIndexRoute: typeof ViewLegalIndexRoute
+  ViewProductIndexRoute: typeof ViewProductIndexRoute
 }
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
+  ViewDocsRouteRoute: ViewDocsRouteRouteWithChildren,
   ViewDownloadRoute: ViewDownloadRoute,
   ViewPricingRoute: ViewPricingRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
+  ViewLegalSlugRoute: ViewLegalSlugRoute,
   ViewBlogIndexRoute: ViewBlogIndexRoute,
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
+  ViewLegalIndexRoute: ViewLegalIndexRoute,
+  ViewProductIndexRoute: ViewProductIndexRoute,
 }
 
 const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(

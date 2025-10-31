@@ -17,7 +17,7 @@ export function VideoModal({ playbackId, isOpen, onClose }: VideoModalProps) {
   useEffect(() => {
     if (isOpen && playerRef.current) {
       playerRef.current.play().catch(() => {
-        // Ignore autoplay errors
+        // TODO handle autoplay errors
       });
     }
   }, [isOpen]);

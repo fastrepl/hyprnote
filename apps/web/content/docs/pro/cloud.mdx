@@ -1,0 +1,31 @@
+---
+title: "Cloud"
+description: "Managed cloud service for pro users"
+---
+
+<Tip>
+  If you've [subscribed to the Pro plan](/pro/index), you automatically get
+  access to this.
+</Tip>
+
+## What are included?
+
+- `/chat/completions` LLM endpoint (✅)
+- `/mcp` MCP server with default tools (⚠️)
+- [Tell us what you want](https://hyprnote.canny.io/feature-requests)
+
+> - ✅: Implemented and Shipped
+> - ⚠️: Implemented but not Shipped
+
+## Why this is created?
+
+Although we aim to be **fully transparent & controllable,**
+
+1. The time-to-value can be too long for some users.
+2. Although someone wants controllability, it doesn't mean they want to manage everything.
+
+## Is it safe?
+
+- The server (`pro.hyprnote.com`) is [open-source](https://github.com/fastrepl/hyprnote/tree/main/apps/pro) and deployed in our K8S cluster in AWS via GitHub Actions.
+- Nothing is stored by us. If we use any third-party service, only required data are sent to it.
+  - We use `Anthropic`, `Exa`, and `Jina AI` at the moment.

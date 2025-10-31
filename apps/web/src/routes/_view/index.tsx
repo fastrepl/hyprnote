@@ -579,7 +579,7 @@ function FeaturesDesktopGrid({ onVideoExpand }: { onVideoExpand: (id: string) =>
             <h3 className="text-lg font-serif text-stone-600">Transcript</h3>
           </div>
           <p className="text-sm text-neutral-600">
-            Realtime transcript and speaker identification
+            Realtime transcript and speaker identification (coming soon)
           </p>
         </div>
       </div>
@@ -925,7 +925,7 @@ function ManifestoSection() {
 
               <div>
                 <img
-                  src="/hyprnote/signature.svg"
+                  src="/hyprnote/signature-dark.svg"
                   alt="Hyprnote Signature"
                   className="w-32 h-auto opacity-80"
                 />

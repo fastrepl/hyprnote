@@ -1,16 +1,16 @@
 import { Icon } from "@iconify-icon/react";
 import { useMediaQuery } from "@uidotdev/usehooks";
+import { useCallback } from "react";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
-import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
-import { FloatingButton } from "./shared";
-
 import * as main from "../../../../../store/tinybase/main";
 import { type Tab } from "../../../../../store/zustand/tabs";
+import { ActionableTooltipContent, FloatingButton } from "./shared";
 
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { status, loading, stop } = useListener((state) => ({
@@ -38,16 +38,12 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
   const sttConnection = useSTTConnection();
-  const llmModel = useLanguageModel();
 
   const handleClick = useStartListening(tab.id);
 
   const warnings = [];
   if (!sttConnection) {
-    warnings.push("STT (Speech-to-Text) is not configured");
-  }
-  if (!llmModel) {
-    warnings.push("LLM is not configured");
+    warnings.push("Transcription model not available.");
   }
   const warningMessage = warnings.join(". ");
 
@@ -108,6 +104,18 @@ function StartButton({
   warningMessage: string;
   onClick: () => void;
 }) {
+  const handleAction = useCallback(() => {
+    onClick();
+    windowsCommands.windowShow({ type: "settings" })
+      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
+      .then(() =>
+        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+          path: "/app/settings",
+          search: { tab: "transcription" },
+        })
+      );
+  }, [onClick]);
+
   return (
     <FloatingButton
       onClick={onClick}
@@ -115,8 +123,16 @@ function StartButton({
       disabled={disabled}
       tooltip={warningMessage
         ? {
-          content: <p>{warningMessage}</p>,
           side: "top",
+          content: (
+            <ActionableTooltipContent
+              message={warningMessage}
+              action={{
+                label: "Configure",
+                handleClick: handleAction,
+              }}
+            />
+          ),
         }
         : undefined}
     >

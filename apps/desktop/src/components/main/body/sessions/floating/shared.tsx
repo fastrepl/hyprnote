@@ -63,6 +63,33 @@ export function FloatingButton({
   );
 }
 
+export function ActionableTooltipContent({
+  message,
+  action,
+}: {
+  message: string;
+  action?: {
+    label: string;
+    handleClick: () => void;
+  };
+}) {
+  return (
+    <div className="flex flex-row items-center gap-3">
+      <p className="text-xs">{message}</p>
+      {action && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-black"
+          onClick={action.handleClick}
+        >
+          {action.label}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);

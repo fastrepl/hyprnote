@@ -1,3 +1,4 @@
+import type { LanguageModel } from "ai";
 import { AlertCircleIcon, SparklesIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -9,76 +10,17 @@ import { useTaskStatus } from "../../../../../hooks/useTaskStatus";
 import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { getTaskState } from "../../../../../store/zustand/ai-task/tasks";
-import { FloatingButton } from "./shared";
+import { ActionableTooltipContent, FloatingButton } from "./shared";
 
 export function GenerateButton({ sessionId }: { sessionId: string }) {
   const [showTemplates, setShowTemplates] = useState(false);
-  const model = useLanguageModel();
-
-  const taskId = createTaskId(sessionId, "enhance");
-
-  const handleGoToTemplates = useCallback(() => {
-    windowsCommands.windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate({ type: "settings" }, {
-          path: "/app/settings",
-          search: { tab: "templates" },
-        })
-      );
-  }, []);
-
-  const updateEnhancedMd = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (input: string) => ({ enhanced_md: input }),
-    [],
-    main.STORE_ID,
-  );
-
-  const { generate, rawStatus, streamedText, error } = useAITask((state) => {
-    const taskState = getTaskState(state.tasks, taskId);
-    return {
-      generate: state.generate,
-      rawStatus: taskState?.status ?? "idle",
-      streamedText: taskState?.streamedText ?? "",
-      error: taskState?.error,
-    };
-  });
-
-  const { isGenerating, isError } = useTaskStatus(rawStatus, {
-    onSuccess: () => {
-      if (streamedText) {
-        updateEnhancedMd(streamedText);
-      }
-    },
-  });
-
-  const templates = main.UI.useResultTable(main.QUERIES.visibleTemplates, main.STORE_ID);
-
-  const onRegenerate = async (templateId: string | null) => {
-    if (!model) {
-      return;
-    }
-
-    await generate(taskId, {
-      model,
-      taskType: "enhance",
-      args: { sessionId, templateId: templateId ?? undefined },
-    });
-  };
+  const { model, templates, isGenerating, isError, error, onRegenerate } = useGenerateButton(sessionId);
 
   if (isGenerating) {
     return null;
   }
 
-  const buttonIcon = isError ? <AlertCircleIcon className="w-4 h-4" /> : <SparklesIcon className="w-4 h-4" />;
-  const buttonText = isError ? "Retry" : "Regenerate";
-  const buttonTooltip = !model
-    ? { content: "Language model not configured", side: "top" as const }
-    : isError && error
-    ? { content: error.message, side: "top" as const }
-    : undefined;
+  const { icon, text, tooltip } = getButtonConfig(isError, model, error);
 
   return (
     <div>
@@ -145,7 +87,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
 
       <div className="flex flex-col items-center">
         <FloatingButton
-          icon={buttonIcon}
+          icon={icon}
           onMouseEnter={() => !isError && setShowTemplates(true)}
           onMouseLeave={() => setShowTemplates(false)}
           onClick={() => {
@@ -153,14 +95,105 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
             onRegenerate(null);
           }}
           disabled={!model}
-          tooltip={buttonTooltip}
+          tooltip={tooltip}
           error={isError}
         >
-          <span>{buttonText}</span>
+          <span>{text}</span>
         </FloatingButton>
       </div>
     </div>
   );
+}
+
+function useGenerateButton(sessionId: string) {
+  const model = useLanguageModel();
+  const taskId = createTaskId(sessionId, "enhance");
+
+  const updateEnhancedMd = main.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: string) => ({ enhanced_md: input }),
+    [],
+    main.STORE_ID,
+  );
+
+  const { generate, rawStatus, streamedText, error } = useAITask((state) => {
+    const taskState = getTaskState(state.tasks, taskId);
+    return {
+      generate: state.generate,
+      rawStatus: taskState?.status ?? "idle",
+      streamedText: taskState?.streamedText ?? "",
+      error: taskState?.error,
+    };
+  });
+
+  const { isGenerating, isError } = useTaskStatus(rawStatus, {
+    onSuccess: () => {
+      if (streamedText) {
+        updateEnhancedMd(streamedText);
+      }
+    },
+  });
+
+  const templates = main.UI.useResultTable(main.QUERIES.visibleTemplates, main.STORE_ID);
+
+  const onRegenerate = useCallback(async (templateId: string | null) => {
+    if (!model) {
+      return;
+    }
+
+    await generate(taskId, {
+      model,
+      taskType: "enhance",
+      args: { sessionId, templateId: templateId ?? undefined },
+    });
+  }, [model, generate, taskId, sessionId]);
+
+  return {
+    model,
+    templates,
+    isGenerating,
+    isError,
+    error,
+    onRegenerate,
+  };
+}
+
+function getButtonConfig(isError: boolean, model: LanguageModel | null, error?: Error) {
+  const icon = isError ? <AlertCircleIcon className="w-4 h-4" /> : <SparklesIcon className="w-4 h-4" />;
+  const text = isError ? "Retry" : "Regenerate";
+
+  const tooltip = !model
+    ? {
+      side: "top" as const,
+      content: (
+        <ActionableTooltipContent
+          message="Language model not available."
+          action={{
+            label: "Configure",
+            handleClick: () => {
+              console.log("Configure");
+            },
+          }}
+        />
+      ),
+    }
+    : isError && error
+    ? { content: error.message, side: "top" as const }
+    : undefined;
+
+  return { icon, text, tooltip };
+}
+
+function handleGoToTemplates() {
+  windowsCommands.windowShow({ type: "settings" })
+    .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
+    .then(() =>
+      windowsCommands.windowEmitNavigate({ type: "settings" }, {
+        path: "/app/settings",
+        search: { tab: "templates" },
+      })
+    );
 }
 
 function TemplateButton({

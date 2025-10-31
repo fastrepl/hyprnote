@@ -221,6 +221,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       if (state.value === "enhancing") {
         console.error("Auto-enhance failed:", enhanceError?.message || "Unknown error");
       }
+      updateSessionTabState(tab, { editor: "enhanced" });
       send({ type: "ENHANCE_ERROR" });
     },
   });

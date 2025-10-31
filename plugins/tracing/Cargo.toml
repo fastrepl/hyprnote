@@ -15,7 +15,7 @@ rquickjs = "0.10"
 specta-typescript = { workspace = true }
 
 [dependencies]
-tauri = { workspace = true, features = ["tray-icon", "image-png"] }
+tauri = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 sentry = { workspace = true, features = ["tracing"] }

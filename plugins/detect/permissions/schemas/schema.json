@@ -331,6 +331,18 @@
           "markdownDescription": "Denies the reset_quit_handler command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_ignored_bundle_ids command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-ignored-bundle-ids",
+          "markdownDescription": "Enables the set_ignored_bundle_ids command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_ignored_bundle_ids command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-ignored-bundle-ids",
+          "markdownDescription": "Denies the set_ignored_bundle_ids command without any pre-configured scope."
+        },
+        {
           "description": "Enables the set_quit_handler command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-quit-handler",
@@ -343,10 +355,22 @@
           "markdownDescription": "Denies the set_quit_handler command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-quit-handler`\n- `allow-reset-quit-handler`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`",
+          "description": "Enables the set_respect_do_not_disturb command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-respect-do-not-disturb",
+          "markdownDescription": "Enables the set_respect_do_not_disturb command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_respect_do_not_disturb command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-respect-do-not-disturb",
+          "markdownDescription": "Denies the set_respect_do_not_disturb command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-quit-handler`\n- `allow-reset-quit-handler`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`\n- `allow-set-ignored-bundle-ids`\n- `allow-set-respect-do-not-disturb`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-quit-handler`\n- `allow-reset-quit-handler`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-quit-handler`\n- `allow-reset-quit-handler`\n- `allow-list-installed-applications`\n- `allow-list-mic-using-applications`\n- `allow-set-ignored-bundle-ids`\n- `allow-set-respect-do-not-disturb`"
         }
       ]
     }

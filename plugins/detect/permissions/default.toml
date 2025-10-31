@@ -5,4 +5,6 @@ permissions = [
     "allow-reset-quit-handler",
     "allow-list-installed-applications",
     "allow-list-mic-using-applications",
+    "allow-set-ignored-bundle-ids",
+    "allow-set-respect-do-not-disturb",
 ]

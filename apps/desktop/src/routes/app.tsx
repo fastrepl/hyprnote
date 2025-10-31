@@ -15,6 +15,7 @@ export const Route = createFileRoute("/app")({
 function Component() {
   const { listenerStore } = Route.useLoaderData();
 
+  useDetectConfig();
   useQuitHandler();
 
   return (
@@ -37,4 +38,25 @@ function useQuitHandler() {
       detectCommands.resetQuitHandler();
     }
   }, [active]);
+}
+
+function useDetectConfig() {
+  const ignoredBundleIds = main.UI.useValue("ignored_platforms", main.STORE_ID);
+  const respectDnd = main.UI.useValue("respect_dnd", main.STORE_ID);
+
+  useEffect(() => {
+    detectCommands.setRespectDoNotDisturb(respectDnd ?? false);
+  }, [respectDnd]);
+
+  useEffect(() => {
+    let list: string[] = [];
+    try {
+      list = JSON.parse(ignoredBundleIds as string);
+    } catch (error) {
+      console.error(error);
+      list = [];
+    }
+
+    detectCommands.setIgnoredBundleIds(list);
+  }, [respectDnd]);
 }

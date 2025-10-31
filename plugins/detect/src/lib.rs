@@ -1,13 +1,14 @@
-use tauri::{EventTarget, Manager};
-use tauri_plugin_windows::WindowImpl;
-use tauri_specta::Event;
+use tauri::Manager;
 use tokio::sync::Mutex;
 
 mod commands;
+mod dnd;
 mod error;
 mod events;
 mod ext;
+mod handler;
 
+pub use dnd::*;
 pub use error::*;
 pub use events::*;
 pub use ext::*;
@@ -18,9 +19,20 @@ pub type SharedState = Mutex<State>;
 
 pub struct State {
     #[allow(dead_code)]
-    detector: hypr_detect::Detector,
+    pub(crate) detector: hypr_detect::Detector,
+    pub(crate) ignored_bundle_ids: Vec<String>,
+    pub(crate) respect_do_not_disturb: bool,
 }
 
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            detector: hypr_detect::Detector::default(),
+            ignored_bundle_ids: vec![],
+            respect_do_not_disturb: false,
+        }
+    }
+}
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
@@ -29,6 +41,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::reset_quit_handler::<tauri::Wry>,
             commands::list_installed_applications::<tauri::Wry>,
             commands::list_mic_using_applications::<tauri::Wry>,
+            commands::set_ignored_bundle_ids::<tauri::Wry>,
+            commands::set_respect_do_not_disturb::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![DetectEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
@@ -42,24 +56,14 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let app_handle = app.app_handle().clone();
-            let mut detector = hypr_detect::Detector::default();
+            let state = SharedState::default();
+            app.manage(state);
 
-            let callback = hypr_detect::new_callback(move |event| {
-                let detect_event = DetectEvent::from(event);
-                let _ = detect_event.emit_to(
-                    &app_handle,
-                    EventTarget::AnyLabel {
-                        label: tauri_plugin_windows::AppWindow::Main.label(),
-                    },
-                );
+            let app_handle = app.app_handle().clone();
+            tauri::async_runtime::spawn(async move {
+                handler::setup(&app_handle).await.unwrap();
             });
 
-            detector.start(callback);
-
-            let state = State { detector };
-
-            app.manage(Mutex::new(state));
             Ok(())
         })
         .build()

@@ -8,6 +8,8 @@ Default permissions for the plugin
 - `allow-reset-quit-handler`
 - `allow-list-installed-applications`
 - `allow-list-mic-using-applications`
+- `allow-set-ignored-bundle-ids`
+- `allow-set-respect-do-not-disturb`
 
 ## Permission Table
 
@@ -99,6 +101,32 @@ Denies the reset_quit_handler command without any pre-configured scope.
 <tr>
 <td>
 
+`detect:allow-set-ignored-bundle-ids`
+
+</td>
+<td>
+
+Enables the set_ignored_bundle_ids command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:deny-set-ignored-bundle-ids`
+
+</td>
+<td>
+
+Denies the set_ignored_bundle_ids command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `detect:allow-set-quit-handler`
 
 </td>
@@ -118,6 +146,32 @@ Enables the set_quit_handler command without any pre-configured scope.
 <td>
 
 Denies the set_quit_handler command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:allow-set-respect-do-not-disturb`
+
+</td>
+<td>
+
+Enables the set_respect_do_not_disturb command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:deny-set-respect-do-not-disturb`
+
+</td>
+<td>
+
+Denies the set_respect_do_not_disturb command without any pre-configured scope.
 
 </td>
 </tr>

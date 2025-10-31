@@ -27,6 +27,49 @@ export function SettingsNotifications() {
     return cleanup;
   }, []);
 
+  const { data: allInstalledApps } = useQuery({
+    queryKey: ["settings", "all-installed-applications"],
+    queryFn: detectCommands.listInstalledApplications,
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
+  const { data: ignoredBundleIds } = useQuery({
+    queryKey: ["settings", "ignored-bundle-ids"],
+    queryFn: detectCommands.getIgnoredBundleIds,
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
+  const { data: respectDnd } = useQuery({
+    queryKey: ["settings", "respect-do-not-disturb"],
+    queryFn: detectCommands.getRespectDoNotDisturb,
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
+  const bundleIdToName = (bundleId: string): string => {
+    const app = allInstalledApps?.find(a => a.id === bundleId);
+    return app?.name ?? bundleId;
+  };
+
+  const nameToBundleId = (name: string): string => {
+    const app = allInstalledApps?.find(a => a.name === name);
+    return app?.id ?? name;
+  };
+
   const handleSetNotificationEvent = main.UI.useSetValueCallback(
     "notification_event",
     (value: boolean) => value,
@@ -41,26 +84,12 @@ export function SettingsNotifications() {
     main.STORE_ID,
   );
 
-  const handleSetRespectDnd = main.UI.useSetValueCallback(
-    "respect_dnd",
-    (value: boolean) => value,
-    [],
-    main.STORE_ID,
-  );
-
-  const handleSetIgnoredPlatforms = main.UI.useSetValueCallback(
-    "ignored_platforms",
-    (value: string[]) => JSON.stringify(value),
-    [],
-    main.STORE_ID,
-  );
-
   const form = useForm({
     defaultValues: {
       notification_event: values.notification_event ?? false,
       notification_detect: values.notification_detect ?? false,
-      respect_dnd: values.respect_dnd ?? true,
-      ignored_platforms: (values.ignored_platforms ? JSON.parse(String(values.ignored_platforms)) : []) as string[],
+      respect_dnd: respectDnd ?? true,
+      ignored_platforms: ignoredBundleIds ?? [],
     },
     listeners: {
       onChange: async ({ formApi }) => {
@@ -70,23 +99,34 @@ export function SettingsNotifications() {
     onSubmit: async ({ value }) => {
       handleSetNotificationEvent(value.notification_event);
       handleSetNotificationDetect(value.notification_detect);
-      handleSetRespectDnd(value.respect_dnd);
-      handleSetIgnoredPlatforms(value.ignored_platforms);
-    },
-  });
 
-  const { data: installedApps } = useQuery({
-    enabled: popoverOpen,
-    queryKey: ["installed-applications"],
-    queryFn: detectCommands.listInstalledApplications,
-    select: (result) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
+      const respectDndResult = await detectCommands.setRespectDoNotDisturb(value.respect_dnd);
+      if (respectDndResult.status === "error") {
+        console.error("Failed to set respect_dnd:", respectDndResult.error);
       }
 
-      return result.data.map((app) => app.name);
+      const bundleIds = value.ignored_platforms.map(nameToBundleId);
+      const ignoredResult = await detectCommands.setIgnoredBundleIds(bundleIds);
+      if (ignoredResult.status === "error") {
+        console.error("Failed to set ignored_platforms:", ignoredResult.error);
+      }
     },
   });
+
+  useEffect(() => {
+    if (ignoredBundleIds !== undefined && allInstalledApps !== undefined) {
+      const appNames = ignoredBundleIds.map(bundleIdToName);
+      form.setFieldValue("ignored_platforms", appNames);
+    }
+  }, [ignoredBundleIds, allInstalledApps]);
+
+  useEffect(() => {
+    if (respectDnd !== undefined) {
+      form.setFieldValue("respect_dnd", respectDnd);
+    }
+  }, [respectDnd]);
+
+  const installedApps = allInstalledApps?.map(app => app.name) ?? [];
 
   const handleAddIgnoredApp = (appName: string) => {
     const trimmedName = appName.trim();
@@ -213,7 +253,7 @@ export function SettingsNotifications() {
                                 )}
                             </CommandEmpty>
                             <CommandGroup className="max-h-[200px] overflow-auto">
-                              {(installedApps ?? [])
+                              {installedApps
                                 .filter(app => !form.getFieldValue("ignored_platforms").includes(app))
                                 .map((app) => (
                                   <CommandItem

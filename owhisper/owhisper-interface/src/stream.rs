@@ -44,6 +44,37 @@ common_derives! {
         pub request_id: String,
         pub model_info: ModelInfo,
         pub model_uuid: String,
+        #[serde(default)]
+        #[specta(type = Extra)]
+        pub extra: Option<std::collections::HashMap<String, serde_json::Value>>,
+    }
+}
+
+common_derives! {
+    pub struct Extra {
+        pub started_unix_secs: u64,
+    }
+}
+
+impl Default for Extra {
+    fn default() -> Self {
+        let started_unix_secs = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        Self { started_unix_secs }
+    }
+}
+
+impl From<Extra> for std::collections::HashMap<String, serde_json::Value> {
+    fn from(extra: Extra) -> Self {
+        let mut map = std::collections::HashMap::new();
+        map.insert(
+            "started_unix_secs".to_string(),
+            serde_json::Value::Number(extra.started_unix_secs.into()),
+        );
+        map
     }
 }
 
@@ -57,6 +88,7 @@ impl Default for Metadata {
                 version: "".to_string(),
                 arch: "".to_string(),
             },
+            extra: None,
         }
     }
 }

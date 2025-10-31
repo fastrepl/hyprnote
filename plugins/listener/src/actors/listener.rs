@@ -4,7 +4,7 @@ use std::time::Duration;
 use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
-use owhisper_interface::{ControlMessage, MixedMessage};
+use owhisper_interface::{ControlMessage, Extra, MixedMessage, StreamResponse};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
@@ -176,6 +176,8 @@ async fn spawn_rx_task(
         };
         futures_util::pin_mut!(listen_stream);
 
+        let extra = Extra::default();
+
         loop {
             tokio::select! {
                 _ = &mut shutdown_rx => {
@@ -184,7 +186,11 @@ async fn spawn_rx_task(
                 }
                 result = tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()) => {
                     match result {
-                        Ok(Some(Ok(response))) => {
+                        Ok(Some(Ok(mut response))) => {
+                            if let StreamResponse::TranscriptResponse { ref mut metadata, .. } = response {
+                                metadata.extra = Some(extra.clone().into());
+                            }
+
                             let _ = myself.send_message(ListenerMsg::StreamResponse(response));
                         }
                         // Something went wrong while sending or receiving a websocket message. Should restart.

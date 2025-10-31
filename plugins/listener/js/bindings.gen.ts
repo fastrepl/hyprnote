@@ -90,7 +90,8 @@ sessionEvent: "plugin:listener:session-event"
 
 export type Alternatives = { transcript: string; words: Word[]; confidence: number; languages?: string[] }
 export type Channel = { alternatives: Alternatives[] }
-export type Metadata = { request_id: string; model_info: ModelInfo; model_uuid: string }
+export type Extra = { started_unix_secs: number }
+export type Metadata = { request_id: string; model_info: ModelInfo; model_uuid: string; extra?: Extra }
 export type ModelInfo = { name: string; version: string; arch: string }
 export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "streamResponse"; response: StreamResponse }
 export type SessionParams = { session_id: string; languages: string[]; onboarding: boolean; record_enabled: boolean; model: string; base_url: string; api_key: string; keywords: string[] }

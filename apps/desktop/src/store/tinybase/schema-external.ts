@@ -95,6 +95,7 @@ export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
   created_at: z.string(),
   speaker: z.preprocess(val => val ?? undefined, z.string().optional()),
   transcript_id: z.string(),
+  metadata: z.preprocess(val => val ?? undefined, jsonObject(z.record(z.string(), z.unknown())).optional()),
 });
 
 export type Human = z.infer<typeof humanSchema>;
@@ -116,6 +117,7 @@ export type Memory = z.infer<typeof memorySchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
+export type WordStorage = ToStorageType<typeof wordSchemaOverride>;
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
 export type MemoryStorage = ToStorageType<typeof memorySchema>;
@@ -150,7 +152,8 @@ export const externalTableSchemaForTinybase = {
     start_ms: { type: "number" },
     end_ms: { type: "number" },
     channel: { type: "number" },
-  } satisfies InferTinyBaseSchema<typeof wordSchema>,
+    metadata: { type: "string" },
+  } satisfies InferTinyBaseSchema<typeof wordSchemaOverride>,
   humans: {
     user_id: { type: "string" },
     created_at: { type: "string" },

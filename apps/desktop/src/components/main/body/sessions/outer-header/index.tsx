@@ -1,8 +1,7 @@
 import { FolderChain } from "./folder";
 import { ListenButton } from "./listen";
-import { MeetingMetadata } from "./metadata";
+import { MetadataButton } from "./metadata";
 import { OverflowButton } from "./overflow";
-import { ShareButton } from "./share";
 
 export function OuterHeader({ sessionId }: { sessionId: string }) {
   return (
@@ -12,9 +11,8 @@ export function OuterHeader({ sessionId }: { sessionId: string }) {
           <FolderChain sessionId={sessionId} />
         </div>
         <div className="ml-auto flex items-center gap-1.5 shrink-0">
-          <MeetingMetadata sessionId={sessionId} />
+          <MetadataButton sessionId={sessionId} />
           <ListenButton sessionId={sessionId} />
-          <ShareButton sessionId={sessionId} />
           <OverflowButton sessionId={sessionId} />
         </div>
       </div>

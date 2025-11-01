@@ -129,7 +129,10 @@ export function splitIntoSegments(
   return segments;
 }
 
-export function groupIntoTurns(wordsByChannel: Map<number, MaybePartialWord[]>): Segment[] {
+function createSpeakerTurns(
+  wordsByChannel: Map<number, MaybePartialWord[]>,
+  maxGapMs = 2000,
+): Segment[] {
   const allWords: MaybePartialWord[] = [];
 
   wordsByChannel.forEach((words) => {
@@ -164,17 +167,9 @@ export function groupIntoTurns(wordsByChannel: Map<number, MaybePartialWord[]>):
 
   turns.push(currentTurn);
 
-  return turns;
-}
-
-export function mergeSameChannelSegments(segments: Segment[]): Segment[] {
-  if (segments.length === 0) {
-    return [];
-  }
-
   const byChannel = new Map<number, Segment[]>();
 
-  for (const segment of segments) {
+  for (const segment of turns) {
     const channelSegments = byChannel.get(segment.channel) ?? [];
     channelSegments.push(segment);
     byChannel.set(segment.channel, channelSegments);
@@ -193,7 +188,7 @@ export function mergeSameChannelSegments(segments: Segment[]): Segment[] {
         ? next.words[0].start_ms - current.words[current.words.length - 1].end_ms
         : Infinity;
 
-      if (gap < 2000) {
+      if (gap < maxGapMs) {
         current.words.push(...next.words);
       } else {
         merged.push(current);
@@ -213,8 +208,7 @@ export function buildSegments(
   finalWords: main.Word[],
   partialWords: PartialWord[][],
 ): Segment[] {
-  const turns = groupIntoTurns(mergeWordsByChannel(finalWords, partialWords));
-  return mergeSameChannelSegments(turns);
+  return createSpeakerTurns(mergeWordsByChannel(finalWords, partialWords));
 }
 
 export interface SplitOptions {

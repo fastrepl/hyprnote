@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { Word } from "../../../store/tinybase/main";
+import type { WordStorage } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
 const selectWeighted = <T>(choices: Array<{ weight: number; value: T }>): T =>
@@ -77,7 +77,7 @@ export const generateTranscript = () => {
   const turnCount = faker.number.int({ min: 10, max: 20 });
 
   const transcriptId = id();
-  const words: Array<Word> = [];
+  const words: Array<WordStorage> = [];
   let currentTimeMs = 0;
   let currentChannel = 0;
   const createdAt = faker.date.recent({ days: 30 }).toISOString();

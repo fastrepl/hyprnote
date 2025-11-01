@@ -1,92 +1,95 @@
+import { differenceInDays, format, startOfDay } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { cn } from "@hypr/utils";
+import * as main from "../../../../../../store/tinybase/main";
 
-import { MeetingDate } from "./date";
-import { MeetingDescription } from "./description";
-import { MeetingLink } from "./link";
-import { MeetingLocation } from "./location";
-import { MeetingParticipants } from "./participants";
-import { useMeetingMetadata } from "./shared";
-
-export function MeetingMetadata({ sessionId }: { sessionId: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const meta = useMeetingMetadata(sessionId);
-
-  // Keeping this at the top is important as we do `useMeetingMetadata(V)!` in other places
-  if (!meta) {
-    return (
-      <Button disabled size="sm" variant="ghost" aria-label="No event" className="gap-1.5">
-        <CalendarIcon size={14} className="shrink-0" />
-        <span className="hidden md:inline">No event</span>
-      </Button>
-    );
-  }
-
-  const hasLocation = !!meta.location;
-  const hasMeetingLink = !!meta.meeting_link;
-  const hasDescription = !!meta.description;
+export function MetadataButton({ sessionId }: { sessionId: string }) {
+  const [open, setOpen] = useState(false);
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          className="gap-1.5 text-neutral-700 md:max-w-28"
-          size="sm"
-          variant="ghost"
-          title={meta.title}
-          aria-label={meta.title}
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <CalendarIcon size={14} className="shrink-0" />
-          <p className="hidden truncate md:block">{meta.title}</p>
-        </Button>
+        <TriggerInner sessionId={sessionId} />
       </PopoverTrigger>
-
       <PopoverContent
         align="end"
-        className={cn([
-          "flex flex-col",
-          "shadow-lg w-[340px] relative p-0 max-h-[80vh]",
-        ])}
+        className="w-[340px] shadow-lg p-0 max-h-[80vh] flex flex-col rounded-lg"
       >
-        <div className="flex flex-col gap-3 overflow-y-auto p-4">
-          <div className="font-semibold text-base">{meta.title}</div>
-
-          <div className="border-t border-neutral-200" />
-
-          {hasLocation && (
-            <>
-              <MeetingLocation sessionId={sessionId} />
-              <div className="border-t border-neutral-200" />
-            </>
-          )}
-
-          {hasMeetingLink && (
-            <>
-              <MeetingLink sessionId={sessionId} />
-              <div className="border-t border-neutral-200" />
-            </>
-          )}
-
-          <MeetingDate sessionId={sessionId} />
-
-          <div className="border-t border-neutral-200" />
-
-          <MeetingParticipants sessionId={sessionId} />
-
-          {hasDescription && (
-            <>
-              <div className="border-t border-neutral-200" />
-              <MeetingDescription sessionId={sessionId} />
-            </>
-          )}
-        </div>
+        <ContentInner sessionId={sessionId} />
       </PopoverContent>
     </Popover>
   );
+}
+
+const TriggerInner = forwardRef<HTMLButtonElement, { sessionId: string }>(({ sessionId, ...props }, ref) => {
+  const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
+
+  return (
+    <Button ref={ref} {...props} variant="ghost" size="sm" className="gap-1.5 h-8 px-1">
+      <CalendarIcon size={12} />
+      <span className="text-xs">
+        {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
+      </span>
+    </Button>
+  );
+});
+
+function ContentInner({ sessionId }: { sessionId: string }) {
+  return (
+    <div className="flex flex-col gap-4 p-4">
+      <ContentDateRow sessionId={sessionId} />
+      <ContentParticipants />
+    </div>
+  );
+}
+
+function ContentDateRow({ sessionId }: { sessionId: string }) {
+  const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="text-sm font-medium text-neutral-700">
+        {format(createdAt ? new Date(createdAt) : new Date(), "MMM d, yyyy")}
+      </div>
+    </div>
+  );
+}
+
+function ContentParticipants() {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="text-sm font-medium text-neutral-700">Participants</div>
+    </div>
+  );
+}
+
+function formatRelativeOrAbsolute(date: Date): string {
+  const now = startOfDay(new Date());
+  const targetDay = startOfDay(date);
+  const daysDiff = differenceInDays(targetDay, now);
+  const absDays = Math.abs(daysDiff);
+
+  if (daysDiff === 0) {
+    return "Today";
+  }
+  if (daysDiff === -1) {
+    return "Yesterday";
+  }
+  if (daysDiff === 1) {
+    return "Tomorrow";
+  }
+
+  if (daysDiff < 0 && absDays <= 6) {
+    return `${absDays} days ago`;
+  }
+
+  if (daysDiff < 0 && absDays <= 27) {
+    const weeks = Math.max(1, Math.round(absDays / 7));
+    return weeks === 1 ? "a week ago" : `${weeks} weeks ago`;
+  }
+
+  return format(date, "MMM d, yyyy");
 }

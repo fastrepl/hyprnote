@@ -15,7 +15,7 @@ import type {
   Tag,
   TemplateStorage,
   Transcript,
-  Word,
+  WordStorage,
 } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 import { createCalendar } from "./calendar";
@@ -237,10 +237,10 @@ export const buildTranscriptsForSessions = (
   sessionIds: string[],
 ): {
   transcripts: Record<string, Transcript>;
-  words: Record<string, Word>;
+  words: Record<string, WordStorage>;
 } => {
   const transcripts: Record<string, Transcript> = {};
-  const words: Record<string, Word> = {};
+  const words: Record<string, WordStorage> = {};
 
   sessionIds.forEach((sessionId) => {
     const transcriptId = id();

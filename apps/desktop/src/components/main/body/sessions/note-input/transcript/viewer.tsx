@@ -167,7 +167,7 @@ function RenderSegment(
           "flex items-center justify-between",
         ])}
       >
-        <span>Channel {segment.channel}</span>
+        <span>Channel {segment.key.channel}</span>
         <span className="font-mono">{timestamp}</span>
       </p>
 

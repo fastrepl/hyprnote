@@ -159,7 +159,7 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
     const absoluteEndMs = (lastWord as any).transcriptStartedAt + lastWord.end_ms;
 
     return {
-      channel: segment.channel,
+      channel: segment.key.channel,
       start_ms: absoluteStartMs - sessionStartMs,
       end_ms: absoluteEndMs - sessionStartMs,
       text: segment.words.map((w) => w.text).join(" "),

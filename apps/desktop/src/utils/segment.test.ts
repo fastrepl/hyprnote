@@ -21,14 +21,14 @@ describe("buildSegments", () => {
       ],
       expected: [
         expect.objectContaining({
-          channel: 0,
+          key: { channel: 0 },
           words: [
             expect.objectContaining({ text: "1", isFinal: true }),
             expect.objectContaining({ text: "2", isFinal: false }),
           ],
         }),
         expect.objectContaining({
-          channel: 1,
+          key: { channel: 1 },
           words: [
             expect.objectContaining({ text: "3", isFinal: false }),
             expect.objectContaining({ text: "4", isFinal: false }),
@@ -47,14 +47,14 @@ describe("buildSegments", () => {
       ],
       expected: [
         expect.objectContaining({
-          channel: 0,
+          key: { channel: 0 },
           words: [
             expect.objectContaining({ text: "1" }),
             expect.objectContaining({ text: "2" }),
           ],
         }),
         expect.objectContaining({
-          channel: 1,
+          key: { channel: 1 },
           words: [
             expect.objectContaining({ text: "3" }),
           ],
@@ -72,7 +72,7 @@ describe("buildSegments", () => {
       ],
       expected: [
         expect.objectContaining({
-          channel: 0,
+          key: { channel: 0 },
           words: [
             expect.objectContaining({ text: "1" }),
             expect.objectContaining({ text: "2" }),
@@ -91,15 +91,15 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          channel: 0,
+          key: { channel: 0 },
           words: [expect.objectContaining({ text: "first" })],
         }),
         expect.objectContaining({
-          channel: 1,
+          key: { channel: 1 },
           words: [expect.objectContaining({ text: "other" })],
         }),
         expect.objectContaining({
-          channel: 0,
+          key: { channel: 0 },
           words: [expect.objectContaining({ text: "return" })],
         }),
       ],
@@ -115,6 +115,7 @@ describe("buildSegments", () => {
       transform: (word: SegmentWord) => ({ ...word, label: word.isFinal ? "final" : "partial" }),
       expected: [
         expect.objectContaining({
+          key: { channel: 0 },
           words: [
             expect.objectContaining({ text: "final", label: "final" }),
             expect.objectContaining({ text: "partial", label: "partial" }),
@@ -131,7 +132,7 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          channel: 0,
+          key: { channel: 0 },
           words: [
             expect.objectContaining({ text: "first" }),
             expect.objectContaining({ text: "second" }),
@@ -148,9 +149,9 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       expected: [
-        expect.objectContaining({ channel: 0, words: [expect.objectContaining({ text: "a" })] }),
-        expect.objectContaining({ channel: 1, words: [expect.objectContaining({ text: "b" })] }),
-        expect.objectContaining({ channel: 2, words: [expect.objectContaining({ text: "c" })] }),
+        expect.objectContaining({ key: { channel: 0 }, words: [expect.objectContaining({ text: "a" })] }),
+        expect.objectContaining({ key: { channel: 1 }, words: [expect.objectContaining({ text: "b" })] }),
+        expect.objectContaining({ key: { channel: 2 }, words: [expect.objectContaining({ text: "c" })] }),
       ],
     },
     {
@@ -161,7 +162,7 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          channel: 0,
+          key: { channel: 0 },
           words: [expect.objectContaining({ text: "only", isFinal: true })],
         }),
       ],
@@ -178,7 +179,7 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          channel: 0,
+          key: { channel: 0 },
           words: [
             expect.objectContaining({ text: "a1" }),
             expect.objectContaining({ text: "a2" }),
@@ -186,7 +187,7 @@ describe("buildSegments", () => {
           ],
         }),
         expect.objectContaining({
-          channel: 1,
+          key: { channel: 1 },
           words: [
             expect.objectContaining({ text: "b1" }),
             expect.objectContaining({ text: "b2" }),

@@ -10,9 +10,11 @@ export type PartialWord = WordLike;
 export type SegmentWord = WordLike & { isFinal: boolean };
 
 export type Segment<TWord extends SegmentWord = SegmentWord> = {
-  channel: number;
+  key: SegmentKey;
   words: TWord[];
 };
+
+type SegmentKey = { channel: number } | { speaker_index: number; channel: number };
 
 export function buildSegments<
   TFinal extends WordLike,
@@ -91,18 +93,18 @@ function splitIntoInitialTurns<TWord extends SegmentWord>(
 
   const turns: Segment<TWord>[] = [];
   let currentTurn: Segment<TWord> = {
-    channel: sortedWords[0].channel,
+    key: { channel: sortedWords[0].channel },
     words: [sortedWords[0]],
   };
 
   for (let i = 1; i < sortedWords.length; i++) {
     const word = sortedWords[i];
 
-    if (word.channel === currentTurn.channel) {
+    if (word.channel === currentTurn.key.channel) {
       currentTurn.words.push(word);
     } else {
       turns.push(currentTurn);
-      currentTurn = { channel: word.channel, words: [word] };
+      currentTurn = { key: { channel: word.channel }, words: [word] };
     }
   }
 
@@ -116,9 +118,9 @@ function groupSegmentsByChannel<TWord extends SegmentWord>(
   const byChannel = new Map<number, Segment<TWord>[]>();
 
   for (const segment of segments) {
-    const channelSegments = byChannel.get(segment.channel) ?? [];
+    const channelSegments = byChannel.get(segment.key.channel) ?? [];
     channelSegments.push(segment);
-    byChannel.set(segment.channel, channelSegments);
+    byChannel.set(segment.key.channel, channelSegments);
   }
 
   return byChannel;
@@ -151,7 +153,7 @@ function mergeSegmentsByGap<TWord extends SegmentWord>(
   segments.sort((a, b) => getSegmentStartTime(a) - getSegmentStartTime(b));
 
   const merged: Segment<TWord>[] = [];
-  let currentMerged = { channel, words: [...segments[0].words] };
+  let currentMerged = { key: { channel }, words: [...segments[0].words] };
 
   for (let i = 1; i < segments.length; i++) {
     const nextSegment = segments[i];
@@ -161,7 +163,7 @@ function mergeSegmentsByGap<TWord extends SegmentWord>(
       currentMerged.words.push(...nextSegment.words);
     } else {
       merged.push(currentMerged);
-      currentMerged = { channel, words: [...nextSegment.words] };
+      currentMerged = { key: { channel }, words: [...nextSegment.words] };
     }
   }
 

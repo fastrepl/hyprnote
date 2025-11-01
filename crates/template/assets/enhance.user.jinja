@@ -39,7 +39,7 @@ Sections to cover:
 {% if segments and segments | length > 0 %}
 Transcript:
 {% for segment in segments %}
-[Channel {{ segment.channel }}]
+[Channel {{ segment.key.channel }}]
 {{ segment.text }}
 
 {% endfor %}

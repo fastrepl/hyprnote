@@ -2,12 +2,11 @@ import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
 import type { StreamResponse, Word } from "@hypr/plugin-listener";
-import * as main from "../../tinybase/main";
+import type { WordLike } from "../../../utils/segment";
 
-type PartialWord = Pick<main.Word, "text" | "start_ms" | "end_ms" | "channel">;
-type WordsByChannel = Record<number, PartialWord[]>;
+type WordsByChannel = Record<number, WordLike[]>;
 
-export type HandlePersistCallback = (words: PartialWord[]) => void;
+export type HandlePersistCallback = (words: WordLike[]) => void;
 
 export type TranscriptState = {
   partialWordsByChannel: WordsByChannel;
@@ -25,127 +24,118 @@ const initialState: TranscriptState = {
   handlePersist: undefined,
 };
 
-const sanitizeWords = (
-  rawWords: Word[],
-  channelIndex: number,
-): { words: PartialWord[] } => {
-  const trimmed = rawWords.reduce<PartialWord[]>((acc, word) => {
-    const text = word.word.trim();
-    if (!text) {
-      return acc;
-    }
-
-    const start_ms = Math.round(word.start * 1000);
-    const end_ms = Math.round(word.end * 1000);
-
-    acc.push({
-      text,
-      start_ms,
-      end_ms,
-      channel: channelIndex,
-    });
-
-    return acc;
-  }, []);
-
-  if (!trimmed.length) {
-    return { words: trimmed };
-  }
-
-  const merged: PartialWord[] = [];
-
-  for (let i = 0; i < trimmed.length; i++) {
-    const word = trimmed[i];
-    if (merged.length > 0 && word.text.startsWith("'")) {
-      const previous = merged[merged.length - 1];
-      merged[merged.length - 1] = {
-        ...previous,
-        text: `${previous.text}${word.text}`,
-        end_ms: word.end_ms,
-      };
-      continue;
-    }
-
-    merged.push(word);
-  }
-
-  return { words: merged };
-};
-
 export const createTranscriptSlice = <T extends TranscriptState & TranscriptActions>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
-): TranscriptState & TranscriptActions => ({
-  ...initialState,
-  setTranscriptPersist: (callback) => {
-    set((state) =>
-      mutate(state, (draft) => {
-        draft.handlePersist = callback;
-      })
-    );
-  },
-  handleTranscriptResponse: (response) => {
-    if (response.type !== "Results") {
-      return;
-    }
-
-    const channelIndex = response.channel_index[0];
-    const alternative = response.channel.alternatives[0];
-
-    if (channelIndex === undefined || !alternative) {
-      return;
-    }
-
+): TranscriptState & TranscriptActions => {
+  const handleFinalWords = (
+    channelIndex: number,
+    words: WordLike[],
+  ): void => {
     const { partialWordsByChannel, handlePersist } = get();
 
-    const { words } = sanitizeWords(alternative.words ?? [], channelIndex);
+    const remaining = (partialWordsByChannel[channelIndex] ?? [])
+      .filter((word) => word.start_ms > getLastEndMs(words));
 
-    if (!words.length) {
-      return;
-    }
+    set((state) =>
+      mutate(state, (draft) => {
+        draft.partialWordsByChannel[channelIndex] = remaining;
+      })
+    );
 
-    if (response.is_final) {
-      const lastEndMs = words[words.length - 1]?.end_ms ?? 0;
-      const remaining = (partialWordsByChannel[channelIndex] ?? []).filter(
-        (word) => word.start_ms > lastEndMs,
-      );
+    handlePersist?.(words);
+  };
 
-      set((state) =>
-        mutate(state, (draft) => {
-          draft.partialWordsByChannel[channelIndex] = remaining;
-        })
-      );
-
-      handlePersist?.(words);
-      return;
-    }
-
+  const handlePartialWords = (
+    channelIndex: number,
+    words: WordLike[],
+  ): void => {
+    const { partialWordsByChannel } = get();
     const existing = partialWordsByChannel[channelIndex] ?? [];
-    const firstStartMs = words[0]?.start_ms ?? 0;
-    const lastEndMs = words[words.length - 1]?.end_ms ?? 0;
 
-    const before = existing.filter((word) => word.end_ms <= firstStartMs);
-    const after = existing.filter((word) => word.start_ms >= lastEndMs);
+    const [
+      before,
+      after,
+    ] = [
+      existing.filter((word) => word.end_ms <= getFirstStartMs(words)),
+      existing.filter((word) => word.start_ms >= getLastEndMs(words)),
+    ];
 
     set((state) =>
       mutate(state, (draft) => {
         draft.partialWordsByChannel[channelIndex] = [...before, ...words, ...after];
       })
     );
-  },
-  resetTranscript: () => {
-    const { partialWordsByChannel, handlePersist } = get();
+  };
 
-    const remainingWords = Object.values(partialWordsByChannel).flat();
-    if (remainingWords.length > 0 && handlePersist) {
-      handlePersist(remainingWords);
-    }
+  return {
+    ...initialState,
+    setTranscriptPersist: (callback) => {
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.handlePersist = callback;
+        })
+      );
+    },
+    handleTranscriptResponse: (response) => {
+      if (response.type !== "Results") {
+        return;
+      }
 
-    set((state) =>
-      mutate(state, (draft) => {
-        draft.partialWordsByChannel = {};
-        draft.handlePersist = undefined;
-      })
-    );
-  },
-});
+      const channelIndex = response.channel_index[0];
+      const alternative = response.channel.alternatives[0];
+      if (channelIndex === undefined || !alternative) {
+        return;
+      }
+
+      const words = transformWords(alternative.words ?? [], channelIndex);
+      if (!words.length) {
+        return;
+      }
+
+      if (response.is_final) {
+        handleFinalWords(channelIndex, words);
+      } else {
+        handlePartialWords(channelIndex, words);
+      }
+    },
+    resetTranscript: () => {
+      const { partialWordsByChannel, handlePersist } = get();
+
+      const remainingWords = Object.values(partialWordsByChannel).flat();
+      if (remainingWords.length > 0) {
+        handlePersist?.(remainingWords);
+      }
+
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.partialWordsByChannel = {};
+          draft.handlePersist = undefined;
+        })
+      );
+    },
+  };
+};
+
+const getLastEndMs = (words: WordLike[]): number => words[words.length - 1]?.end_ms ?? 0;
+const getFirstStartMs = (words: WordLike[]): number => words[0]?.start_ms ?? 0;
+
+function transformWords(
+  rawWords: Word[],
+  channelIndex: number,
+): WordLike[] {
+  const result: WordLike[] = [];
+
+  for (const word of rawWords) {
+    const text = word.word;
+
+    result.push({
+      text,
+      start_ms: Math.round(word.start * 1000),
+      end_ms: Math.round(word.end * 1000),
+      channel: channelIndex,
+    });
+  }
+
+  return result;
+}

@@ -197,7 +197,6 @@ function RenderSegment(
               ])}
             >
               {word.text}
-              {" "}
             </span>
           );
         })}

@@ -14,13 +14,24 @@ import { ActionableTooltipContent, FloatingButton } from "./shared";
 
 export function GenerateButton({ sessionId }: { sessionId: string }) {
   const [showTemplates, setShowTemplates] = useState(false);
-  const { model, templates, isGenerating, isError, error, onRegenerate } = useGenerateButton(sessionId);
+  const { model, templates, isGenerating, isError, error, onRegenerate, hasContent } = useGenerateButton(sessionId);
+
+  const handleConfigureModel = useCallback(() => {
+    windowsCommands.windowShow({ type: "settings" })
+      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
+      .then(() =>
+        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+          path: "/app/settings",
+          search: { tab: "intelligence" },
+        })
+      );
+  }, []);
 
   if (isGenerating) {
     return null;
   }
 
-  const { icon, text, tooltip } = getButtonConfig(isError, model, error);
+  const { icon, text, tooltip } = getButtonConfig(isError, model, error, handleConfigureModel);
 
   return (
     <div>
@@ -97,6 +108,7 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
           disabled={!model}
           tooltip={tooltip}
           error={isError}
+          subtle={hasContent && !showTemplates}
         >
           <span>{text}</span>
         </FloatingButton>
@@ -108,6 +120,8 @@ export function GenerateButton({ sessionId }: { sessionId: string }) {
 function useGenerateButton(sessionId: string) {
   const model = useLanguageModel();
   const taskId = createTaskId(sessionId, "enhance");
+
+  const enhancedMd = main.UI.useCell("sessions", sessionId, "enhanced_md", main.STORE_ID);
 
   const updateEnhancedMd = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -149,6 +163,8 @@ function useGenerateButton(sessionId: string) {
     });
   }, [model, generate, taskId, sessionId]);
 
+  const hasContent = !!enhancedMd && enhancedMd.trim().length > 0;
+
   return {
     model,
     templates,
@@ -156,10 +172,16 @@ function useGenerateButton(sessionId: string) {
     isError,
     error,
     onRegenerate,
+    hasContent,
   };
 }
 
-function getButtonConfig(isError: boolean, model: LanguageModel | null, error?: Error) {
+function getButtonConfig(
+  isError: boolean,
+  model: LanguageModel | null,
+  error: Error | undefined,
+  handleConfigureModel: () => void,
+) {
   const icon = isError ? <AlertCircleIcon className="w-4 h-4" /> : <SparklesIcon className="w-4 h-4" />;
   const text = isError ? "Retry" : "Regenerate";
 
@@ -171,9 +193,7 @@ function getButtonConfig(isError: boolean, model: LanguageModel | null, error?: 
           message="Language model not available."
           action={{
             label: "Configure",
-            handleClick: () => {
-              console.log("Configure");
-            },
+            handleClick: handleConfigureModel,
           }}
         />
       ),

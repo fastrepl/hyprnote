@@ -22,6 +22,7 @@ import { PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
   const configuredProviders = useConfiguredMapping();
+
   const { current_llm_model, current_llm_provider } = main.UI.useValues(main.STORE_ID);
 
   const handleSelectProvider = main.UI.useSetValueCallback(
@@ -168,6 +169,8 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<ListModels
         const apiKey = String(api_key);
 
         let listModelsFunc: () => Promise<ListModelsResult>;
+
+        console.log(provider.id, baseUrl, apiKey);
 
         switch (provider.id) {
           case "openai":

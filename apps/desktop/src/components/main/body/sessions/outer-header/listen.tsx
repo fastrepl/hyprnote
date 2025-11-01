@@ -4,9 +4,64 @@ import { MicOff } from "lucide-react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
+import { useStartListening } from "../../../../../hooks/useStartListening";
+import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
 import { SoundIndicator } from "../../shared";
+import { useHasTranscript } from "../shared";
 
-export function InMeetingIndicator({ sessionId }: { sessionId: string }) {
+export function ListenButton({ sessionId }: { sessionId: string }) {
+  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+  const hasTranscript = useHasTranscript(sessionId);
+
+  if (active) {
+    return <InMeetingIndicator sessionId={sessionId} />;
+  }
+
+  if (hasTranscript) {
+    return <StartButton sessionId={sessionId} />;
+  }
+
+  return null;
+}
+
+function StartButton({ sessionId }: { sessionId: string }) {
+  const sttConnection = useSTTConnection();
+  const handleClick = useStartListening(sessionId);
+
+  const isDisabled = !sttConnection;
+
+  const icon = (
+    <div className="relative size-2">
+      <div className="absolute inset-0 rounded-full bg-red-600"></div>
+      <div
+        className={cn([
+          "absolute inset-0 rounded-full bg-red-300",
+          !isDisabled && "animate-ping",
+        ])}
+      >
+      </div>
+    </div>
+  );
+
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      onClick={handleClick}
+      disabled={isDisabled}
+      className={cn([
+        "bg-black text-white hover:bg-neutral-800",
+      ])}
+    >
+      <div className="flex items-center gap-1.5">
+        {icon}
+        <span className="text-neutral-100 hover:text-neutral-200">Start listening</span>
+      </div>
+    </Button>
+  );
+}
+
+function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const [ref, hovered] = useHover();
 
   const { active, finalizing, stop, amplitude, muted } = useListener((state) => ({

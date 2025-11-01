@@ -4,7 +4,7 @@ import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "./provider";
 
 export function Timeline() {
-  const { registerContainer, state, pause, resume, start } = useAudioPlayer();
+  const { registerContainer, state, pause, resume, start, time } = useAudioPlayer();
 
   const handleClick = () => {
     if (state === "playing") {
@@ -34,8 +34,18 @@ export function Timeline() {
             : <Play className={cn(["w-4 h-4", "text-neutral-900"])} fill="currentColor" />}
         </button>
 
+        <span className={cn(["text-xs text-neutral-600 flex-shrink-0"])}>
+          {formatTime(time.current)} / {formatTime(time.total)}
+        </span>
+
         <div ref={registerContainer} className={cn(["flex-1 min-w-0"])} style={{ minHeight: "30px", width: "100%" }} />
       </div>
     </div>
   );
+}
+
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }

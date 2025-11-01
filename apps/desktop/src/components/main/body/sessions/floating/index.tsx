@@ -1,22 +1,19 @@
 import { type ReactNode } from "react";
 
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
-
-import { useListener } from "../../../../../contexts/listener";
 import type { Tab } from "../../../../../store/zustand/tabs/schema";
-import { useCurrentTab } from "../shared";
+import { useCurrentTab, useHasTranscript } from "../shared";
 
 import { GenerateButton } from "./generate";
 import { ListenButton } from "./listen";
 
 export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
-  const { status, sessionId } = useListener((state) => ({ status: state.status, sessionId: state.sessionId }));
-  const active = status !== "inactive" && sessionId === tab.id;
   const currentTab = useCurrentTab(tab);
+  const hasTranscript = useHasTranscript(tab.id);
 
   let button: ReactNode | null = null;
 
-  if (active || currentTab === "raw") {
+  if (currentTab === "raw" && !hasTranscript) {
     button = <ListenButton tab={tab} />;
   } else if (currentTab === "enhanced") {
     button = <GenerateButton sessionId={tab.id} />;

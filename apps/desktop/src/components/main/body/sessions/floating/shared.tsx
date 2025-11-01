@@ -13,6 +13,7 @@ export function FloatingButton({
   disabled,
   tooltip,
   error,
+  subtle,
 }: {
   icon?: ReactNode;
   children: ReactNode;
@@ -21,6 +22,7 @@ export function FloatingButton({
   onMouseLeave?: () => void;
   disabled?: boolean;
   error?: boolean;
+  subtle?: boolean;
   tooltip?: {
     content: ReactNode;
     side?: ComponentProps<typeof TooltipContent>["side"];
@@ -36,6 +38,7 @@ export function FloatingButton({
         error
           ? "rounded-lg bg-red-900 hover:bg-red-800 text-white"
           : "rounded-lg disabled:opacity-100 disabled:bg-neutral-500",
+        subtle && "opacity-40 hover:opacity-100 transition-opacity",
       ])}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -88,10 +91,4 @@ export function ActionableTooltipContent({
       )}
     </div>
   );
-}
-
-export function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }

@@ -2,13 +2,13 @@ import { type ReactNode } from "react";
 
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import type { Tab } from "../../../../../store/zustand/tabs/schema";
-import { useCurrentTab, useHasTranscript } from "../shared";
+import { useCurrentNoteTab, useHasTranscript } from "../shared";
 
 import { GenerateButton } from "./generate";
 import { ListenButton } from "./listen";
 
 export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
-  const currentTab = useCurrentTab(tab);
+  const currentTab = useCurrentNoteTab(tab);
   const hasTranscript = useHasTranscript(tab.id);
 
   let button: ReactNode | null = null;

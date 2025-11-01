@@ -6,7 +6,7 @@ import { useListener } from "../../../../../contexts/listener";
 import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
-import { useCurrentTab, useHasTranscript } from "../shared";
+import { useCurrentNoteTab, useHasTranscript } from "../shared";
 import { Enhanced } from "./enhanced";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
@@ -27,7 +27,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
     editorRef.current?.editor?.commands.focus();
   };
 
-  const currentTab: EditorView = useCurrentTab(tab);
+  const currentTab: EditorView = useCurrentNoteTab(tab);
 
   return (
     <div className="flex flex-col h-full">

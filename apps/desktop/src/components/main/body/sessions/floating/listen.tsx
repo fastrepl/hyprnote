@@ -4,19 +4,17 @@ import { useCallback } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
-import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
 import * as main from "../../../../../store/tinybase/main";
 import { type Tab } from "../../../../../store/zustand/tabs";
+import { RecordingIcon, useListenButtonState } from "../shared";
 import { ActionableTooltipContent, FloatingButton } from "./shared";
 
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
-  const { status, loading, stop } = useListener((state) => ({
-    status: state.status,
+  const { shouldRender } = useListenButtonState(tab.id);
+  const { loading, stop } = useListener((state) => ({
     loading: state.loading,
-    start: state.start,
     stop: state.stop,
   }));
 
@@ -28,26 +26,19 @@ export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> 
     );
   }
 
-  if (status === "inactive") {
+  if (shouldRender) {
     return <BeforeMeeingButton tab={tab} />;
   }
+  
+  return null;
 }
 
 function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const remote = useRemoteMeeting(tab.id);
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
-  const sttConnection = useSTTConnection();
-
+  const { isDisabled, warningMessage } = useListenButtonState(tab.id);
   const handleClick = useStartListening(tab.id);
-
-  const warnings = [];
-  if (!sttConnection) {
-    warnings.push("Transcription model not available.");
-  }
-  const warningMessage = warnings.join(". ");
-
-  const isDisabled = !sttConnection;
 
   let icon: React.ReactNode;
   let text: string;
@@ -65,18 +56,7 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
     icon = <Icon icon="logos:microsoft-teams" size={20} />;
     text = isNarrow ? "Join & Listen" : "Join Teams & Start listening";
   } else {
-    icon = (
-      <div className="relative size-2">
-        <div className="absolute inset-0 rounded-full bg-red-600"></div>
-        <div
-          className={cn([
-            "absolute inset-0 rounded-full bg-red-300",
-            !isDisabled && "animate-ping",
-          ])}
-        >
-        </div>
-      </div>
-    );
+    icon = <RecordingIcon disabled={isDisabled} />;
     text = "Start listening";
   }
 

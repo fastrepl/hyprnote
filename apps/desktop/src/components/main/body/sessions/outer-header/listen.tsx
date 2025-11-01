@@ -5,15 +5,14 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
-import { useSTTConnection } from "../../../../../hooks/useSTTConnection";
 import { SoundIndicator } from "../../shared";
-import { useHasTranscript } from "../shared";
+import { RecordingIcon, useHasTranscript, useListenButtonState } from "../shared";
 
 export function ListenButton({ sessionId }: { sessionId: string }) {
-  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+  const { shouldRender } = useListenButtonState(sessionId);
   const hasTranscript = useHasTranscript(sessionId);
 
-  if (active) {
+  if (!shouldRender) {
     return <InMeetingIndicator sessionId={sessionId} />;
   }
 
@@ -25,23 +24,8 @@ export function ListenButton({ sessionId }: { sessionId: string }) {
 }
 
 function StartButton({ sessionId }: { sessionId: string }) {
-  const sttConnection = useSTTConnection();
+  const { isDisabled } = useListenButtonState(sessionId);
   const handleClick = useStartListening(sessionId);
-
-  const isDisabled = !sttConnection;
-
-  const icon = (
-    <div className="relative size-2">
-      <div className="absolute inset-0 rounded-full bg-red-600"></div>
-      <div
-        className={cn([
-          "absolute inset-0 rounded-full bg-red-300",
-          !isDisabled && "animate-ping",
-        ])}
-      >
-      </div>
-    </div>
-  );
 
   return (
     <Button
@@ -54,7 +38,7 @@ function StartButton({ sessionId }: { sessionId: string }) {
       ])}
     >
       <div className="flex items-center gap-1.5">
-        {icon}
+        <RecordingIcon disabled={isDisabled} />
         <span className="text-neutral-100 hover:text-neutral-200">Start listening</span>
       </div>
     </Button>
@@ -100,7 +84,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
       {finalizing
         ? (
           <div className="flex items-center gap-1.5">
-            <span className="animate-pulse">Finalizing...</span>
+            <span className="animate-pulse">...</span>
           </div>
         )
         : hovered

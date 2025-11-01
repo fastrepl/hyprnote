@@ -8,8 +8,9 @@ Default permissions for the plugin
 - `allow-reset-quit-handler`
 - `allow-list-installed-applications`
 - `allow-list-mic-using-applications`
-- `allow-set-ignored-bundle-ids`
 - `allow-set-respect-do-not-disturb`
+- `allow-set-ignored-bundle-ids`
+- `allow-list-default-ignored-bundle-ids`
 
 ## Permission Table
 
@@ -19,6 +20,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`detect:allow-list-default-ignored-bundle-ids`
+
+</td>
+<td>
+
+Enables the list_default_ignored_bundle_ids command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`detect:deny-list-default-ignored-bundle-ids`
+
+</td>
+<td>
+
+Denies the list_default_ignored_bundle_ids command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

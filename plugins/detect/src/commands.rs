@@ -46,6 +46,14 @@ pub(crate) async fn list_mic_using_applications<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn list_default_ignored_bundle_ids<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    Ok(crate::handler::default_ignored_bundle_ids())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn set_ignored_bundle_ids<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     bundle_ids: Vec<String>,

@@ -39,22 +39,6 @@ async listMicUsingApplications() : Promise<Result<InstalledApp[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async setIgnoredBundleIds(bundleIds: string[]) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|set_ignored_bundle_ids", { bundleIds }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getIgnoredBundleIds() : Promise<Result<string[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|get_ignored_bundle_ids") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async setRespectDoNotDisturb(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:detect|set_respect_do_not_disturb", { enabled }) };
@@ -63,9 +47,17 @@ async setRespectDoNotDisturb(enabled: boolean) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async getRespectDoNotDisturb() : Promise<Result<boolean, string>> {
+async setIgnoredBundleIds(bundleIds: string[]) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|get_respect_do_not_disturb") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|set_ignored_bundle_ids", { bundleIds }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async listDefaultIgnoredBundleIds() : Promise<Result<string[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|list_default_ignored_bundle_ids") };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

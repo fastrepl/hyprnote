@@ -3,8 +3,9 @@ const COMMANDS: &[&str] = &[
     "reset_quit_handler",
     "list_installed_applications",
     "list_mic_using_applications",
-    "set_ignored_bundle_ids",
     "set_respect_do_not_disturb",
+    "set_ignored_bundle_ids",
+    "list_default_ignored_bundle_ids",
 ];
 
 fn main() {

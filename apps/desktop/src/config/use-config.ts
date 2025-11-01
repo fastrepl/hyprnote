@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import * as main from "../store/tinybase/main";
 import { CONFIG_REGISTRY, type ConfigKey } from "./registry";
 
+type ConfigValueType<K extends ConfigKey> = (typeof CONFIG_REGISTRY)[K]["default"];
+
 function tryParseJSON<T>(value: any, fallback: T): T {
   if (typeof value !== "string") {
     return value;
@@ -13,24 +15,22 @@ function tryParseJSON<T>(value: any, fallback: T): T {
   }
 }
 
-export function useConfigValue<T>(key: ConfigKey): T {
+export function useConfigValue<K extends ConfigKey>(key: K): ConfigValueType<K> {
   const storedValue = main.UI.useValue(key, main.STORE_ID);
   const definition = CONFIG_REGISTRY[key];
 
   if (storedValue !== undefined) {
     if (key === "ignored_platforms" || key === "spoken_languages") {
-      return tryParseJSON(storedValue, definition.default);
+      return tryParseJSON(storedValue, definition.default) as ConfigValueType<K>;
     }
-    return storedValue as T;
+    return storedValue as ConfigValueType<K>;
   }
 
-  return definition.default;
+  return definition.default as ConfigValueType<K>;
 }
 
-export function useConfigValues<K extends ConfigKey>(
-  keys: readonly K[],
-): Record<K, any> {
-  const result = {} as Record<K, any>;
+export function useConfigValues<K extends ConfigKey>(keys: readonly K[]): { [P in K]: ConfigValueType<P> } {
+  const result = {} as { [P in K]: ConfigValueType<P> };
 
   for (const key of keys) {
     result[key] = useConfigValue(key);
@@ -61,9 +61,9 @@ export function useConfigSideEffects(keys?: ConfigKey[]) {
   useEffect(() => {
     for (const key of configsToWatch) {
       const definition = CONFIG_REGISTRY[key];
-      if (definition.sideEffect) {
+      if (definition && "sideEffect" in definition && definition.sideEffect) {
         const value = getConfig(key);
-        definition.sideEffect(value, getConfig);
+        (definition.sideEffect as any)(value, getConfig);
       }
     }
   }, [allValues]);

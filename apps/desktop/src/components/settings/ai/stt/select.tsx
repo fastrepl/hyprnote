@@ -164,7 +164,7 @@ function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownlo
 
 function HealthCheck() {
   const { current_stt_provider, current_stt_model } = main.UI.useValues(main.STORE_ID);
-  const parsedLanguages = useConfigValue<string[]>("spoken_languages");
+  const parsedLanguages = useConfigValue("spoken_languages");
 
   const experimental_handleServer = useCallback(() => {
     if (current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-")) {

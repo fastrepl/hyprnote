@@ -13,7 +13,7 @@ export function useStartListening(sessionId: string) {
   const conn = useSTTConnection();
   const store = main.UI.useStore(main.STORE_ID);
   const keywords = useVocabs();
-  const languages = useConfigValue<string[]>("spoken_languages");
+  const languages = useConfigValue("spoken_languages");
 
   const startListening = useCallback(() => {
     if (!conn || !store) {

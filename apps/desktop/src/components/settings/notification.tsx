@@ -24,16 +24,15 @@ export function SettingsNotifications() {
       "notification_detect",
       "respect_dnd",
       "ignored_platforms",
+      "quit_intercept",
     ] as const,
   );
 
   useEffect(() => {
-    const cleanup = () => {
+    notificationCommands.clearNotifications();
+    return () => {
       notificationCommands.clearNotifications();
     };
-
-    cleanup();
-    return cleanup;
   }, []);
 
   const { data: allInstalledApps } = useQuery({
@@ -47,14 +46,28 @@ export function SettingsNotifications() {
     },
   });
 
-  const bundleIdToName = (bundleId: string): string => {
-    const app = allInstalledApps?.find(a => a.id === bundleId);
-    return app?.name ?? bundleId;
+  const { data: defaultIgnoredBundleIds } = useQuery({
+    queryKey: ["settings", "default-ignored-bundle-ids"],
+    queryFn: detectCommands.listDefaultIgnoredBundleIds,
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
+  const bundleIdToName = (bundleId: string) => {
+    return allInstalledApps?.find(a => a.id === bundleId)?.name ?? bundleId;
   };
 
-  const nameToBundleId = (name: string): string => {
-    const app = allInstalledApps?.find(a => a.name === name);
-    return app?.id ?? name;
+  const nameToBundleId = (name: string) => {
+    return allInstalledApps?.find(a => a.name === name)?.id ?? name;
+  };
+
+  const isDefaultIgnored = (appName: string) => {
+    const bundleId = nameToBundleId(appName);
+    return defaultIgnoredBundleIds?.includes(bundleId) ?? false;
   };
 
   const handleSetNotificationEvent = main.UI.useSetValueCallback(
@@ -85,15 +98,25 @@ export function SettingsNotifications() {
     main.STORE_ID,
   );
 
+  const handleSetQuitIntercept = main.UI.useSetValueCallback(
+    "quit_intercept",
+    (value: boolean) => value,
+    [],
+    main.STORE_ID,
+  );
+
   const form = useForm({
     defaultValues: {
       notification_event: configs.notification_event,
       notification_detect: configs.notification_detect,
       respect_dnd: configs.respect_dnd,
       ignored_platforms: configs.ignored_platforms.map(bundleIdToName),
+      quit_intercept: configs.quit_intercept,
     },
     listeners: {
       onChange: async ({ formApi }) => {
+        const anyEnabled = formApi.getFieldValue("notification_event") || formApi.getFieldValue("notification_detect");
+        formApi.setFieldValue("quit_intercept", anyEnabled);
         formApi.handleSubmit();
       },
     },
@@ -101,47 +124,44 @@ export function SettingsNotifications() {
       handleSetNotificationEvent(value.notification_event);
       handleSetNotificationDetect(value.notification_detect);
       handleSetRespectDnd(value.respect_dnd);
-
-      const bundleIds = value.ignored_platforms.map(nameToBundleId);
-      handleSetIgnoredPlatforms(JSON.stringify(bundleIds));
+      handleSetIgnoredPlatforms(JSON.stringify(value.ignored_platforms.map(nameToBundleId)));
+      handleSetQuitIntercept(value.quit_intercept);
     },
   });
+
+  const anyNotificationEnabled = configs.notification_event || configs.notification_detect;
+  const ignoredPlatforms = form.getFieldValue("ignored_platforms");
 
   const installedApps = allInstalledApps?.map(app => app.name) ?? [];
 
   const handleAddIgnoredApp = (appName: string) => {
     const trimmedName = appName.trim();
-    if (trimmedName) {
-      const currentIgnored = form.getFieldValue("ignored_platforms");
-      if (!currentIgnored.includes(trimmedName)) {
-        form.setFieldValue("ignored_platforms", [...currentIgnored, trimmedName]);
-      }
-      setNewAppName("");
-      setPopoverOpen(false);
+    if (!trimmedName || ignoredPlatforms.includes(trimmedName) || isDefaultIgnored(trimmedName)) {
+      return;
     }
+
+    form.setFieldValue("ignored_platforms", [...ignoredPlatforms, trimmedName]);
+    setNewAppName("");
+    setPopoverOpen(false);
   };
 
   const handleRemoveIgnoredApp = (app: string) => {
-    const currentIgnored = form.getFieldValue("ignored_platforms");
-    form.setFieldValue("ignored_platforms", currentIgnored.filter((a: string) => a !== app));
+    form.setFieldValue("ignored_platforms", ignoredPlatforms.filter((a: string) => a !== app));
   };
 
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h2 className="font-semibold mb-4">Notifications</h2>
+        <h2 className="mb-4 font-semibold">Notifications</h2>
         <div className="space-y-6">
           <form.Field name="notification_event">
             {(field) => (
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium mb-1">Event notifications</h3>
+                  <h3 className="mb-1 text-sm font-medium">Event notifications (Not-available)</h3>
                   <p className="text-xs text-neutral-600">Get notified about upcoming calendar events</p>
                 </div>
-                <Switch
-                  checked={field.state.value}
-                  onCheckedChange={(checked) => field.handleChange(checked)}
-                />
+                <Switch checked={false} onCheckedChange={field.handleChange} disabled />
               </div>
             )}
           </form.Field>
@@ -151,57 +171,54 @@ export function SettingsNotifications() {
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium mb-1">Audio detection</h3>
+                    <h3 className="mb-1 text-sm font-medium">Microphone detection</h3>
                     <p className="text-xs text-neutral-600">
-                      Automatically detect and notify when audio/meeting starts
+                      Automatically detect when a meeting starts based on microphone activity.
                     </p>
                   </div>
-                  <Switch
-                    checked={field.state.value}
-                    onCheckedChange={(checked) => field.handleChange(checked)}
-                  />
+                  <Switch checked={field.state.value} onCheckedChange={field.handleChange} />
                 </div>
 
                 {field.state.value && (
                   <div className={cn(["ml-6 border-l-2 border-muted pl-6 pt-2"])}>
-                    <div className="space-y-1 mb-3">
+                    <div className="mb-3 space-y-1">
                       <h4 className="text-sm font-medium">Exclude apps from detection</h4>
-                      <p className="text-xs text-neutral-600">
-                        These apps will not trigger meeting detection
-                      </p>
+                      <p className="text-xs text-neutral-600">These apps will not trigger detection.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md">
-                        {form.getFieldValue("ignored_platforms").map((app: string) => (
-                          <Badge
-                            key={app}
-                            variant="secondary"
-                            className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
-                          >
-                            {app}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
-                              onClick={() => handleRemoveIgnoredApp(app)}
+                      <div className="min-h-[38px] flex-1 flex-wrap gap-2 rounded-md border p-2 flex">
+                        {ignoredPlatforms.map((app: string) => {
+                          const isDefault = isDefaultIgnored(app);
+                          return (
+                            <Badge
+                              key={app}
+                              variant="secondary"
+                              className={cn([
+                                "flex items-center gap-1 px-2 py-0.5 text-xs",
+                                isDefault ? ["bg-neutral-200 text-neutral-700"] : ["bg-muted"],
+                              ])}
+                              title={isDefault ? "default" : undefined}
                             >
-                              <X className="h-2.5 w-2.5" />
-                            </Button>
-                          </Badge>
-                        ))}
+                              {app}
+                              {isDefault && <span className="text-[10px] opacity-70">(default)</span>}
+                              {!isDefault && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="ml-0.5 h-3 w-3 p-0 hover:bg-transparent"
+                                  onClick={() => handleRemoveIgnoredApp(app)}
+                                >
+                                  <X className="h-2.5 w-2.5" />
+                                </Button>
+                              )}
+                            </Badge>
+                          );
+                        })}
                       </div>
-                      <Popover
-                        open={popoverOpen}
-                        onOpenChange={setPopoverOpen}
-                      >
+                      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                         <PopoverTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-[38px] w-[38px]"
-                          >
+                          <Button type="button" variant="outline" size="icon" className="h-[38px] w-[38px]">
                             <Plus className="h-4 w-4" />
                           </Button>
                         </PopoverTrigger>
@@ -223,27 +240,37 @@ export function SettingsNotifications() {
                               {newAppName
                                 ? (
                                   <button
-                                    className="w-full px-2 py-1.5 text-sm text-left hover:bg-accent hover:text-accent-foreground"
+                                    className="w-full px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
                                     onClick={() => handleAddIgnoredApp(newAppName)}
                                   >
                                     Add "{newAppName}"
                                   </button>
                                 )
-                                : (
-                                  "Type an app name to add"
-                                )}
+                                : "Type an app name to add"}
                             </CommandEmpty>
                             <CommandGroup className="max-h-[200px] overflow-auto">
                               {installedApps
-                                .filter(app => !form.getFieldValue("ignored_platforms").includes(app))
-                                .map((app) => (
-                                  <CommandItem
-                                    key={app}
-                                    onSelect={() => handleAddIgnoredApp(app)}
-                                  >
-                                    {app}
-                                  </CommandItem>
-                                ))}
+                                .filter(app => !ignoredPlatforms.includes(app))
+                                .map((app) => {
+                                  const isDefault = isDefaultIgnored(app);
+                                  return (
+                                    <CommandItem
+                                      key={app}
+                                      onSelect={() => !isDefault && handleAddIgnoredApp(app)}
+                                      disabled={isDefault}
+                                      className={cn([isDefault && ["opacity-50 cursor-not-allowed"]])}
+                                    >
+                                      <span className="flex items-center gap-2">
+                                        {app}
+                                        {isDefault && (
+                                          <span className="text-[10px] text-muted-foreground">
+                                            (default)
+                                          </span>
+                                        )}
+                                      </span>
+                                    </CommandItem>
+                                  );
+                                })}
                             </CommandGroup>
                           </Command>
                         </PopoverContent>
@@ -255,39 +282,46 @@ export function SettingsNotifications() {
             )}
           </form.Field>
 
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-muted"></div>
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-background px-4 text-muted-foreground font-medium">
-                Global Settings
+          <div className="space-y-6">
+            <div className="relative flex items-center pt-4 pb-2">
+              <div className="w-full border-t border-muted" />
+              <span className="absolute left-1/2 -translate-x-1/2 bg-background px-4 text-xs font-medium text-muted-foreground">
+                For enabled notifications
               </span>
             </div>
-          </div>
 
-          <form.Field name="respect_dnd">
-            {(field) => {
-              const hasAnyNotificationEnabled = form.getFieldValue("notification_event")
-                || form.getFieldValue("notification_detect");
-
-              return (
+            <form.Field name="quit_intercept">
+              {(field) => (
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium mb-1">Respect Do Not Disturb</h3>
+                    <h3 className="mb-1 text-sm font-medium">Quit intercept (Read-only)</h3>
                     <p className="text-xs text-neutral-600">
-                      Don't show notifications when Do Not Disturb is enabled on your system
+                      Prevents Hyprnote from quitting, which is required for notifications to work.
+                    </p>
+                  </div>
+                  <Switch checked={field.state.value} onCheckedChange={field.handleChange} disabled />
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="respect_dnd">
+              {(field) => (
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="mb-1 text-sm font-medium">Respect Do-Not-Disturb mode</h3>
+                    <p className="text-xs text-neutral-600">
+                      Don't show notifications when Do-Not-Disturb is enabled on your system
                     </p>
                   </div>
                   <Switch
                     checked={field.state.value}
-                    onCheckedChange={(checked) => field.handleChange(checked)}
-                    disabled={!hasAnyNotificationEnabled}
+                    onCheckedChange={field.handleChange}
+                    disabled={!anyNotificationEnabled}
                   />
                 </div>
-              );
-            }}
-          </form.Field>
+              )}
+            </form.Field>
+          </div>
         </div>
       </div>
     </div>

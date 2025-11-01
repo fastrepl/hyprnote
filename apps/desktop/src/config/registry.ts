@@ -9,6 +9,7 @@ export type ConfigKey =
   | "notification_event"
   | "respect_dnd"
   | "ignored_platforms"
+  | "quit_intercept"
   | "current_stt_provider"
   | "current_stt_model"
   | "ai_language"
@@ -24,7 +25,7 @@ interface ConfigDefinition<T = any> {
   sideEffect?: (value: T, getConfig: <K extends ConfigKey>(key: K) => any) => void | Promise<void>;
 }
 
-export const CONFIG_REGISTRY: Record<ConfigKey, ConfigDefinition> = {
+export const CONFIG_REGISTRY = {
   autostart: {
     key: "autostart",
     default: false,
@@ -40,36 +41,16 @@ export const CONFIG_REGISTRY: Record<ConfigKey, ConfigDefinition> = {
   notification_detect: {
     key: "notification_detect",
     default: true,
-    sideEffect: (value: boolean, getConfig) => {
-      const notificationEvent = getConfig("notification_event") ?? false;
-      const active = value || notificationEvent;
-
-      if (active) {
-        detectCommands.setQuitHandler();
-      } else {
-        detectCommands.resetQuitHandler();
-      }
-    },
   },
 
   notification_event: {
     key: "notification_event",
     default: true,
-    sideEffect: (value: boolean, getConfig) => {
-      const notificationDetect = getConfig("notification_detect") ?? false;
-      const active = value || notificationDetect;
-
-      if (active) {
-        detectCommands.setQuitHandler();
-      } else {
-        detectCommands.resetQuitHandler();
-      }
-    },
   },
 
   respect_dnd: {
     key: "respect_dnd",
-    default: true,
+    default: false,
     sideEffect: async (value: boolean) => {
       await detectCommands.setRespectDoNotDisturb(value);
     },
@@ -77,9 +58,21 @@ export const CONFIG_REGISTRY: Record<ConfigKey, ConfigDefinition> = {
 
   ignored_platforms: {
     key: "ignored_platforms",
-    default: [],
+    default: [] as string[],
     sideEffect: async (value: string[]) => {
       await detectCommands.setIgnoredBundleIds(value);
+    },
+  },
+
+  quit_intercept: {
+    key: "quit_intercept",
+    default: false,
+    sideEffect: async (value: boolean) => {
+      if (value) {
+        await detectCommands.setQuitHandler();
+      } else {
+        await detectCommands.resetQuitHandler();
+      }
     },
   },
 
@@ -130,7 +123,7 @@ export const CONFIG_REGISTRY: Record<ConfigKey, ConfigDefinition> = {
 
   spoken_languages: {
     key: "spoken_languages",
-    default: ["en"],
+    default: ["en"] as string[],
   },
 
   save_recordings: {
@@ -152,4 +145,4 @@ export const CONFIG_REGISTRY: Record<ConfigKey, ConfigDefinition> = {
     key: "current_llm_model",
     default: undefined,
   },
-};
+} satisfies Record<ConfigKey, ConfigDefinition>;

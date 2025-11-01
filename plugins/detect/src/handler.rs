@@ -62,7 +62,7 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
     Ok(())
 }
 
-fn default_ignored_bundle_ids() -> Vec<String> {
+pub(crate) fn default_ignored_bundle_ids() -> Vec<String> {
     let dictation_apps = [
         "com.electron.wispr-flow",
         "com.seewillow.WillowMac",

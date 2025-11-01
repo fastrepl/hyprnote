@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 
+import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
@@ -12,6 +13,7 @@ export function useStartListening(sessionId: string) {
   const conn = useSTTConnection();
   const store = main.UI.useStore(main.STORE_ID);
   const keywords = useVocabs();
+  const languages = useConfigValue<string[]>("spoken_languages");
 
   const startListening = useCallback(() => {
     if (!conn || !store) {
@@ -50,7 +52,7 @@ export function useStartListening(sessionId: string) {
     start(
       {
         session_id: sessionId,
-        languages: ["en"],
+        languages,
         onboarding: false,
         record_enabled: true,
         model: conn.model,
@@ -62,7 +64,7 @@ export function useStartListening(sessionId: string) {
         handlePersist,
       },
     );
-  }, [conn, store, sessionId, start, keywords]);
+  }, [conn, store, sessionId, start, keywords, languages]);
 
   return startListening;
 }

@@ -4,10 +4,12 @@ import { useCallback } from "react";
 
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
+import { useConfigValue } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
-import { displayModelId, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
+import { displayModelId, LANGUAGE_SUPPORT, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function SelectProviderAndModel() {
   const { current_stt_provider, current_stt_model } = main.UI.useValues(main.STORE_ID);
@@ -162,6 +164,8 @@ function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownlo
 
 function HealthCheck() {
   const { current_stt_provider, current_stt_model } = main.UI.useValues(main.STORE_ID);
+  const parsedLanguages = useConfigValue<string[]>("spoken_languages");
+
   const experimental_handleServer = useCallback(() => {
     if (current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-")) {
       localSttCommands.stopServer("external")
@@ -174,24 +178,73 @@ function HealthCheck() {
 
   const conn = useSTTConnection();
 
-  const color = (() => {
+  const languageWarnings: string[] = [];
+  if (current_stt_provider && current_stt_model) {
+    const providerLanguageSupport = LANGUAGE_SUPPORT[current_stt_provider as ProviderId] as Record<string, string[]>;
+    const supportedLanguages = providerLanguageSupport[current_stt_model];
+
+    if (supportedLanguages) {
+      const unsupportedLanguages = parsedLanguages.filter(lang => !supportedLanguages.includes(lang));
+      if (unsupportedLanguages.length > 0) {
+        languageWarnings.push(`Language(s) not supported: ${unsupportedLanguages.join(", ")}`);
+      }
+    }
+  }
+
+  const isLocalModel = current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-");
+  const hasServerIssue = isLocalModel && !conn?.baseUrl;
+
+  const { color, tooltipMessage } = (() => {
     if (!conn) {
-      return "bg-red-200";
+      return {
+        color: "bg-red-400",
+        tooltipMessage: "No STT connection. Please configure a provider and model.",
+      };
+    }
+
+    if (hasServerIssue) {
+      return {
+        color: "bg-red-400",
+        tooltipMessage: "Local server not ready. Click to restart.",
+      };
+    }
+
+    if (languageWarnings.length > 0) {
+      return {
+        color: "bg-yellow-400",
+        tooltipMessage: languageWarnings.join(" "),
+      };
     }
 
     if (conn.baseUrl) {
-      return "bg-green-200";
+      return {
+        color: "bg-green-400",
+        tooltipMessage: "STT connection ready",
+      };
     }
+
+    return {
+      color: "bg-red-400",
+      tooltipMessage: "Connection not available",
+    };
   })();
 
   return (
-    <span
-      onClick={experimental_handleServer}
-      className={cn([
-        "w-2 h-2 rounded-full",
-        color,
-      ])}
-    >
-    </span>
+    <TooltipProvider>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <span
+            onClick={experimental_handleServer}
+            className={cn([
+              "w-2 h-2 rounded-full cursor-pointer",
+              color,
+            ])}
+          />
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs">
+          <p className="text-xs">{tooltipMessage}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

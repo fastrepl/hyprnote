@@ -29,7 +29,7 @@ export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> 
   if (shouldRender) {
     return <BeforeMeeingButton tab={tab} />;
   }
-  
+
   return null;
 }
 

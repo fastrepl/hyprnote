@@ -74,6 +74,10 @@ export function AudioPlayerProvider({
       setCurrentTime(ws.getCurrentTime());
     };
 
+    const handleTimeupdate = () => {
+      setCurrentTime(ws.getCurrentTime());
+    };
+
     const handleDestroy = () => {
       setState("stopped");
     };
@@ -81,6 +85,7 @@ export function AudioPlayerProvider({
     ws.on("ready", handleReady);
     ws.on("decode", handleDecode);
     ws.on("audioprocess", handleAudioprocess);
+    ws.on("timeupdate", handleTimeupdate);
 
     // Listening to the "pause" event is problematic. Not sure why, but it is even called when I stop the player.
     ws.on("destroy", handleDestroy);

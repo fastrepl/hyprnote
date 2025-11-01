@@ -1,6 +1,7 @@
 import { DependencyList, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
+import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../contexts/listener";
 import * as main from "../../../../../../store/tinybase/main";
 import { buildSegments, PartialWord, Segment } from "../../../../../../utils/segment";
@@ -90,6 +91,7 @@ function RenderTranscript(
 ) {
   const finalWords = useFinalWords(transcriptId);
   const segments = buildSegments(finalWords, [partialWords]);
+  const offsetMs = useTranscriptOffset(transcriptId);
 
   if (segments.length === 0) {
     return null;
@@ -98,13 +100,22 @@ function RenderTranscript(
   return (
     <>
       {segments.map(
-        (segment, i) => <RenderSegment key={i} segment={segment} />,
+        (segment, i) => (
+          <RenderSegment
+            key={i}
+            segment={segment}
+            offsetMs={offsetMs}
+          />
+        ),
       )}
     </>
   );
 }
 
-function RenderSegment({ segment }: { segment: Segment }) {
+function RenderSegment({ segment, offsetMs }: { segment: Segment; offsetMs: number }) {
+  const { time } = useAudioPlayer();
+  const currentMs = time.current * 1000;
+
   const timestamp = useMemo(() => {
     if (segment.words.length === 0) {
       return "00:00 - 00:00";
@@ -134,17 +145,33 @@ function RenderSegment({ segment }: { segment: Segment }) {
       </p>
 
       <div className="mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere">
-        {segment.words.map((word, idx) => (
-          <span
-            key={`${word.start_ms}-${idx}`}
-            className={cn([
-              !word.isFinal && ["opacity-60", "italic"],
-            ])}
-          >
-            {word.text}
-            {" "}
-          </span>
-        ))}
+        {segment.words.map((word, idx) => {
+          const wordStartMs = offsetMs + word.start_ms;
+          const wordEndMs = offsetMs + word.end_ms;
+
+          const isCurrentWord = currentMs >= wordStartMs && currentMs <= wordEndMs;
+
+          const buffer = 300;
+          const distanceBefore = wordStartMs - currentMs;
+          const distanceAfter = currentMs - wordEndMs;
+          const isInBuffer = (distanceBefore <= buffer && distanceBefore > 0)
+            || (distanceAfter <= buffer && distanceAfter > 0);
+
+          return (
+            <span
+              key={`${word.start_ms}-${idx}`}
+              className={cn([
+                "px-0.5",
+                !word.isFinal && ["opacity-60", "italic"],
+                isCurrentWord && "bg-blue-200/70",
+                isInBuffer && "bg-blue-200/30",
+              ])}
+            >
+              {word.text}
+              {" "}
+            </span>
+          );
+        })}
       </div>
     </section>
   );
@@ -168,6 +195,40 @@ function useFinalWords(transcriptId: string) {
     });
     return words;
   }, [store, wordIds]);
+}
+
+function useTranscriptOffset(transcriptId: string): number {
+  const transcriptStartedAt = main.UI.useCell(
+    "transcripts",
+    transcriptId,
+    "started_at",
+    main.STORE_ID,
+  );
+
+  const sessionId = main.UI.useCell(
+    "transcripts",
+    transcriptId,
+    "session_id",
+    main.STORE_ID,
+  );
+
+  const transcriptIds = main.UI.useSliceRowIds(
+    main.INDEXES.transcriptBySession,
+    sessionId ?? "",
+    main.STORE_ID,
+  );
+
+  const firstTranscriptId = transcriptIds?.[0];
+  const firstTranscriptStartedAt = main.UI.useCell(
+    "transcripts",
+    firstTranscriptId ?? "",
+    "started_at",
+    main.STORE_ID,
+  );
+
+  return (transcriptStartedAt && firstTranscriptStartedAt)
+    ? new Date(transcriptStartedAt).getTime() - new Date(firstTranscriptStartedAt).getTime()
+    : 0;
 }
 
 function useScrollToBottom(deps: DependencyList) {

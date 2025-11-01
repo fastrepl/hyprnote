@@ -132,10 +132,12 @@ export function SelectProviderAndModel() {
 function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownloaded: boolean }>> {
   const configuredProviders = main.UI.useResultTable(main.QUERIES.sttProviders, main.STORE_ID);
 
-  const [p2, p3] = useQueries({
+  const [p2, p3, tinyEn, smallEn] = useQueries({
     queries: [
       sttModelQueries.isDownloaded("am-parakeet-v2"),
       sttModelQueries.isDownloaded("am-parakeet-v3"),
+      sttModelQueries.isDownloaded("QuantizedTinyEn"),
+      sttModelQueries.isDownloaded("QuantizedSmallEn"),
     ],
   });
 
@@ -147,6 +149,8 @@ function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownlo
           [
             { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
             { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
+            { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },
+            { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
           ],
         ];
       }
@@ -167,8 +171,14 @@ function HealthCheck() {
   const parsedLanguages = useConfigValue("spoken_languages");
 
   const experimental_handleServer = useCallback(() => {
-    if (current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-")) {
-      localSttCommands.stopServer("external")
+    if (
+      current_stt_provider === "hyprnote"
+      && (
+        current_stt_model?.startsWith("am-")
+        || current_stt_model?.startsWith("Quantized")
+      )
+    ) {
+      localSttCommands.stopServer(null)
         .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
         .then(() => localSttCommands.startServer(current_stt_model as SupportedSttModel))
         .then(console.log)

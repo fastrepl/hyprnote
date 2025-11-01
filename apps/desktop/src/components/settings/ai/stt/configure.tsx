@@ -170,9 +170,35 @@ function HyprProviderCard(
       <AccordionContent className="px-4">
         <ProviderContext providerId={providerId} />
         <div className="space-y-3">
-          <HyprProviderLocalRow model="am-parakeet-v2" displayName="Parakeet v2" />
-          <HyprProviderLocalRow model="am-parakeet-v3" displayName="Parakeet v3" />
           <HyprProviderCloudRow />
+          <HyprProviderLocalRow
+            model="am-parakeet-v2"
+            displayName="Parakeet v2"
+            description="On-device model. English only. Works best for English."
+          />
+          <HyprProviderLocalRow
+            model="am-parakeet-v3"
+            displayName="Parakeet v3"
+            description="On-device model. English and European languages."
+          />
+
+          <details className="space-y-4 pt-2">
+            <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+              Advanced
+            </summary>
+            <div className="mt-4 space-y-3">
+              <HyprProviderLocalRow
+                model="QuantizedTinyEn"
+                displayName="whisper-tiny-en-q8"
+                description="Only for experiment & development purposes."
+              />
+              <HyprProviderLocalRow
+                model="QuantizedSmallEn"
+                displayName="whisper-small-en-q8"
+                description="Only for experiment & development purposes."
+              />
+            </div>
+          </details>
         </div>
       </AccordionContent>
     </AccordionItem>
@@ -212,19 +238,6 @@ function HyprProviderCloudRow() {
         </Button>
       </div>
     </HyprProviderRow>
-  );
-}
-
-function LocalModelInfo({ displayName }: {
-  displayName: string;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-sm font-medium">{displayName}</span>
-      <span className="text-xs text-neutral-500">
-        On-device model. No audio leaves your device.
-      </span>
-    </div>
   );
 }
 
@@ -288,7 +301,15 @@ function LocalModelAction({
   );
 }
 
-function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel; displayName: string }) {
+function HyprProviderLocalRow({
+  model,
+  displayName,
+  description,
+}: {
+  model: SupportedSttModel;
+  displayName: string;
+  description: string;
+}) {
   const handleSelectModel = useSafeSelectModel();
 
   const {
@@ -308,7 +329,13 @@ function HyprProviderLocalRow({ model, displayName }: { model: SupportedSttModel
 
   return (
     <HyprProviderRow>
-      <LocalModelInfo displayName={displayName} />
+      <div className="flex flex-col gap-1">
+        <span className="text-sm font-medium">{displayName}</span>
+        <span className="text-xs text-neutral-500">
+          {description}
+        </span>
+      </div>
+
       <LocalModelAction
         isDownloaded={isDownloaded}
         showProgress={showProgress}

@@ -23,7 +23,8 @@ export const useSTTConnection = (): Connection | null => {
     main.STORE_ID,
   ) as main.AIProviderStorage | undefined;
 
-  const isLocalModel = current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-");
+  const isLocalModel = current_stt_provider === "hyprnote"
+    && (current_stt_model?.startsWith("am-") || current_stt_model?.startsWith("Quantized"));
 
   const { data: localConnection } = useQuery({
     enabled: current_stt_provider === "hyprnote",
@@ -41,13 +42,14 @@ export const useSTTConnection = (): Connection | null => {
           return null;
         }
 
-        const externalServer = servers.data.external;
+        const isInternalModel = current_stt_model.startsWith("Quantized");
+        const server = isInternalModel ? servers.data.internal : servers.data.external;
 
-        if (externalServer?.health === "ready" && externalServer.url) {
+        if (server?.health === "ready" && server.url) {
           return {
             provider: current_stt_provider!,
             model: current_stt_model,
-            baseUrl: externalServer.url,
+            baseUrl: server.url,
             apiKey: "",
           };
         }

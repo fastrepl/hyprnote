@@ -93,6 +93,12 @@ export const CONFIG_REGISTRY = {
         await new Promise((resolve) => setTimeout(resolve, 500));
         await localSttCommands.startServer(model);
       }
+
+      if (model?.startsWith("Quantized")) {
+        await localSttCommands.stopServer("internal");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await localSttCommands.startServer(model);
+      }
     },
   },
 

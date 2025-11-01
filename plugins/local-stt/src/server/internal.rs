@@ -70,7 +70,7 @@ impl Actor for InternalSTTActor {
             tokio::net::TcpListener::bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0))).await?;
 
         let server_addr = listener.local_addr()?;
-        let base_url = format!("http://{}", server_addr);
+        let base_url = format!("http://{}/v1", server_addr);
 
         let (shutdown_tx, mut shutdown_rx) = tokio::sync::watch::channel(());
 

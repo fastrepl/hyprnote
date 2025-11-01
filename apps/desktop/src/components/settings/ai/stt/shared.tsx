@@ -3,7 +3,7 @@ import { Fireworks, Groq } from "@lobehub/icons";
 import { queryOptions } from "@tanstack/react-query";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import type { AmModel, SupportedSttModel } from "@hypr/plugin-local-stt";
+import type { AmModel, SupportedSttModel, WhisperModel } from "@hypr/plugin-local-stt";
 
 export type ProviderId = typeof PROVIDERS[number]["id"];
 
@@ -30,6 +30,16 @@ export const displayModelId = (model: string) => {
     }
   }
 
+  if (model.startsWith("Quantized")) {
+    const whisper = model as WhisperModel;
+    if (whisper == "QuantizedTinyEn") {
+      return "Whisper Tiny (English)";
+    }
+    if (whisper == "QuantizedSmallEn") {
+      return "Whisper Small (English)";
+    }
+  }
+
   return model;
 };
 
@@ -40,7 +50,7 @@ export const PROVIDERS = [
     displayName: "Hyprnote",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     baseUrl: "https://api.hyprnote.com/v1",
-    models: ["am-parakeet-v2", "am-parakeet-v3"] satisfies SupportedSttModel[],
+    models: ["am-parakeet-v2", "am-parakeet-v3", "QuantizedTinyEn", "QuantizedSmallEn"] satisfies SupportedSttModel[],
   },
   {
     disabled: false,
@@ -95,6 +105,8 @@ export const PROVIDERS = [
 
 export const LANGUAGE_SUPPORT: LanguageSupportMap = {
   hyprnote: {
+    "QuantizedTinyEn": ["en"],
+    "QuantizedSmallEn": ["en"],
     "am-parakeet-v2": ["en"],
     "am-parakeet-v3": [
       "en",

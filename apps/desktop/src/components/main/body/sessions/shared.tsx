@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 
 import { cn } from "@hypr/utils";
+import { useAITask } from "../../../../contexts/ai-task";
 import { useListener } from "../../../../contexts/listener";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
+import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
 import type { Tab } from "../../../../store/zustand/tabs/schema";
 import { type EditorView } from "../../../../store/zustand/tabs/schema";
 
@@ -53,12 +55,13 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
 }
 
 export function useListenButtonState(sessionId: string) {
-  const listener = useListener((state) => ({
-    active: state.status !== "inactive" && state.sessionId === sessionId,
-  }));
+  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+
+  const taskId = createTaskId(sessionId, "enhance");
+  const generating = useAITask((state) => state.getState(taskId)?.status === "generating");
   const sttConnection = useSTTConnection();
 
-  const shouldRender = !listener.active;
+  const shouldRender = !active && !generating;
   const isDisabled = !sttConnection;
   const warningMessage = !sttConnection ? "Transcription model not available." : "";
 

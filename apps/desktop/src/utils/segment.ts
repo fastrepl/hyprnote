@@ -1,239 +1,191 @@
-import type * as main from "../store/tinybase/main";
-
-export type MaybePartialWord = Omit<
-  main.Word & { isFinal: boolean },
-  "transcript_id" | "user_id" | "created_at"
->;
-
-export type PartialWord = {
+export type WordLike = {
   text: string;
   start_ms: number;
   end_ms: number;
   channel: number;
 };
 
-export type Segment = {
+export type PartialWord = WordLike;
+
+export type SegmentWord = WordLike & { isFinal: boolean };
+
+export type Segment<TWord extends SegmentWord = SegmentWord> = {
   channel: number;
-  words: MaybePartialWord[];
+  words: TWord[];
 };
 
-export function mergeWordsByChannel(
-  finalWords: main.Word[],
-  partialWords: PartialWord[][],
-): Map<number, MaybePartialWord[]> {
-  const channels = new Map<number, MaybePartialWord[]>();
+export function buildSegments<
+  TFinal extends WordLike,
+  TPartial extends WordLike,
+  TWord extends SegmentWord = SegmentWord,
+>(
+  finalWords: readonly TFinal[],
+  partialWords: readonly TPartial[],
+  transform?: (word: SegmentWord) => TWord,
+): Segment<TWord>[] {
+  const mapWord = transform ?? ((word) => word as TWord);
+  const wordsByChannel = groupWordsByChannel(finalWords, partialWords, mapWord);
+  return createSpeakerTurns(wordsByChannel);
+}
 
-  finalWords.forEach((word) => {
-    const channelWords = channels.get(word.channel) ?? [];
-    channelWords.push({
-      text: word.text,
-      start_ms: word.start_ms,
-      end_ms: word.end_ms,
-      channel: word.channel,
-      isFinal: true,
-    });
-    channels.set(word.channel, channelWords);
-  });
+function toSegmentWord(word: WordLike, isFinal: boolean): SegmentWord {
+  return {
+    text: word.text,
+    start_ms: word.start_ms,
+    end_ms: word.end_ms,
+    channel: word.channel,
+    isFinal,
+  };
+}
 
-  partialWords.forEach((words) => {
-    words.forEach((word) => {
-      const channelWords = channels.get(word.channel) ?? [];
-      channelWords.push({
-        text: word.text,
-        start_ms: word.start_ms,
-        end_ms: word.end_ms,
-        channel: word.channel,
-        isFinal: false,
-      });
-      channels.set(word.channel, channelWords);
-    });
-  });
+function addWordToChannel<TWord extends SegmentWord>(
+  channels: Map<number, TWord[]>,
+  word: TWord,
+): void {
+  const channelWords = channels.get(word.channel) ?? [];
+  channelWords.push(word);
+  channels.set(word.channel, channelWords);
+}
 
-  channels.forEach((words, channel) => {
-    channels.set(
-      channel,
-      words.sort((a, b) => a.start_ms - b.start_ms),
-    );
-  });
+function groupWordsByChannel<
+  TFinal extends WordLike,
+  TPartial extends WordLike,
+  TWord extends SegmentWord,
+>(
+  finalWords: readonly TFinal[],
+  partialWords: readonly TPartial[],
+  mapWord: (word: SegmentWord) => TWord,
+): Map<number, TWord[]> {
+  const channels = new Map<number, TWord[]>();
+
+  for (const word of finalWords) {
+    addWordToChannel(channels, mapWord(toSegmentWord(word, true)));
+  }
+
+  for (const word of partialWords) {
+    addWordToChannel(channels, mapWord(toSegmentWord(word, false)));
+  }
+
+  for (const words of channels.values()) {
+    words.sort((a, b) => a.start_ms - b.start_ms);
+  }
 
   return channels;
 }
 
-export function splitIntoSegments(
-  words: MaybePartialWord[],
-  options: SplitOptions = {},
-): MaybePartialWord[][] {
-  const { maxWordsPerSegment = 30, minGapMs = 2000 } = options;
-
-  if (words.length === 0) {
-    return [];
-  }
-
-  if (words.length === 1) {
-    return [words];
-  }
-
-  const segments: MaybePartialWord[][] = [];
-  let currentSegment: MaybePartialWord[] = [words[0]];
-
-  for (let i = 1; i < words.length; i++) {
-    const prevWord = words[i - 1];
-    const currentWord = words[i];
-    const gap = currentWord.start_ms - prevWord.end_ms;
-
-    const shouldSplit = gap >= minGapMs
-      || (currentSegment.length >= maxWordsPerSegment
-        && (gap >= minGapMs / 2 || isSentenceEnding(prevWord.text)));
-
-    if (shouldSplit) {
-      segments.push(currentSegment);
-      currentSegment = [currentWord];
-    } else if (currentSegment.length >= maxWordsPerSegment) {
-      let bestSplitIndex = -1;
-      let bestScore = -1;
-
-      for (let j = Math.max(0, currentSegment.length - 10); j < currentSegment.length; j++) {
-        const wordAtJ = currentSegment[j];
-        const nextWord = j + 1 < currentSegment.length ? currentSegment[j + 1] : currentWord;
-        const gapAtJ = nextWord.start_ms - wordAtJ.end_ms;
-        const score = calculateSplitScore(
-          gapAtJ,
-          isSentenceEnding(wordAtJ.text),
-          { maxWordsPerSegment, minGapMs },
-        );
-
-        if (score > bestScore) {
-          bestScore = score;
-          bestSplitIndex = j;
-        }
-      }
-
-      if (bestSplitIndex >= 0 && bestScore > 0) {
-        const newSegment = currentSegment.slice(0, bestSplitIndex + 1);
-        const remaining = currentSegment.slice(bestSplitIndex + 1);
-        segments.push(newSegment);
-        currentSegment = [...remaining, currentWord];
-      } else {
-        segments.push(currentSegment);
-        currentSegment = [currentWord];
-      }
-    } else {
-      currentSegment.push(currentWord);
-    }
-  }
-
-  if (currentSegment.length > 0) {
-    segments.push(currentSegment);
-  }
-
-  return segments;
+function flattenAndSortWords<TWord extends SegmentWord>(
+  wordsByChannel: Map<number, TWord[]>,
+): TWord[] {
+  const allWords: TWord[] = [];
+  wordsByChannel.forEach((words) => allWords.push(...words));
+  allWords.sort((a, b) => a.start_ms - b.start_ms);
+  return allWords;
 }
 
-function createSpeakerTurns(
-  wordsByChannel: Map<number, MaybePartialWord[]>,
-  maxGapMs = 2000,
-): Segment[] {
-  const allWords: MaybePartialWord[] = [];
-
-  wordsByChannel.forEach((words) => {
-    allWords.push(...words);
-  });
-
-  allWords.sort((a, b) => a.start_ms - b.start_ms);
-
-  if (allWords.length === 0) {
+function splitIntoInitialTurns<TWord extends SegmentWord>(
+  sortedWords: TWord[],
+): Segment<TWord>[] {
+  if (sortedWords.length === 0) {
     return [];
   }
 
-  const turns: Segment[] = [];
-  let currentTurn: Segment = {
-    channel: allWords[0].channel,
-    words: [allWords[0]],
+  const turns: Segment<TWord>[] = [];
+  let currentTurn: Segment<TWord> = {
+    channel: sortedWords[0].channel,
+    words: [sortedWords[0]],
   };
 
-  for (let i = 1; i < allWords.length; i++) {
-    const word = allWords[i];
+  for (let i = 1; i < sortedWords.length; i++) {
+    const word = sortedWords[i];
 
     if (word.channel === currentTurn.channel) {
       currentTurn.words.push(word);
     } else {
       turns.push(currentTurn);
-      currentTurn = {
-        channel: word.channel,
-        words: [word],
-      };
+      currentTurn = { channel: word.channel, words: [word] };
     }
   }
 
   turns.push(currentTurn);
+  return turns;
+}
 
-  const byChannel = new Map<number, Segment[]>();
+function groupSegmentsByChannel<TWord extends SegmentWord>(
+  segments: Segment<TWord>[],
+): Map<number, Segment<TWord>[]> {
+  const byChannel = new Map<number, Segment<TWord>[]>();
 
-  for (const segment of turns) {
+  for (const segment of segments) {
     const channelSegments = byChannel.get(segment.channel) ?? [];
     channelSegments.push(segment);
     byChannel.set(segment.channel, channelSegments);
   }
 
-  const merged: Segment[] = [];
+  return byChannel;
+}
 
-  for (const [channel, channelSegments] of byChannel) {
-    channelSegments.sort((a, b) => (a.words[0]?.start_ms ?? 0) - (b.words[0]?.start_ms ?? 0));
+function getSegmentStartTime<TWord extends SegmentWord>(
+  segment: Segment<TWord>,
+): number {
+  return segment.words[0]?.start_ms ?? 0;
+}
 
-    let current = { channel, words: [...channelSegments[0].words] };
-
-    for (let i = 1; i < channelSegments.length; i++) {
-      const next = channelSegments[i];
-      const gap = next.words.length > 0 && current.words.length > 0
-        ? next.words[0].start_ms - current.words[current.words.length - 1].end_ms
-        : Infinity;
-
-      if (gap < maxGapMs) {
-        current.words.push(...next.words);
-      } else {
-        merged.push(current);
-        current = { channel, words: [...next.words] };
-      }
-    }
-
-    merged.push(current);
+function calculateTimingGap<TWord extends SegmentWord>(
+  firstSegment: Segment<TWord>,
+  secondSegment: Segment<TWord>,
+): number {
+  if (firstSegment.words.length === 0 || secondSegment.words.length === 0) {
+    return Infinity;
   }
 
-  merged.sort((a, b) => (a.words[0]?.start_ms ?? 0) - (b.words[0]?.start_ms ?? 0));
+  const lastWordOfFirst = firstSegment.words[firstSegment.words.length - 1];
+  const firstWordOfSecond = secondSegment.words[0];
+  return firstWordOfSecond.start_ms - lastWordOfFirst.end_ms;
+}
 
+function mergeSegmentsByGap<TWord extends SegmentWord>(
+  segments: Segment<TWord>[],
+  channel: number,
+  maxGapMs: number,
+): Segment<TWord>[] {
+  segments.sort((a, b) => getSegmentStartTime(a) - getSegmentStartTime(b));
+
+  const merged: Segment<TWord>[] = [];
+  let currentMerged = { channel, words: [...segments[0].words] };
+
+  for (let i = 1; i < segments.length; i++) {
+    const nextSegment = segments[i];
+    const gap = calculateTimingGap(currentMerged, nextSegment);
+
+    if (gap < maxGapMs) {
+      currentMerged.words.push(...nextSegment.words);
+    } else {
+      merged.push(currentMerged);
+      currentMerged = { channel, words: [...nextSegment.words] };
+    }
+  }
+
+  merged.push(currentMerged);
   return merged;
 }
 
-export function buildSegments(
-  finalWords: main.Word[],
-  partialWords: PartialWord[][],
-): Segment[] {
-  return createSpeakerTurns(mergeWordsByChannel(finalWords, partialWords));
-}
-
-export interface SplitOptions {
-  maxWordsPerSegment?: number;
-  minGapMs?: number;
-}
-
-function isSentenceEnding(text: string): boolean {
-  return /[.!?]$/.test(text.trim());
-}
-
-function calculateSplitScore(
-  gap: number,
-  isSentenceEnd: boolean,
-  options: Required<SplitOptions>,
-): number {
-  let score = 0;
-
-  if (gap >= options.minGapMs) {
-    score += gap / 1000;
+function createSpeakerTurns<TWord extends SegmentWord>(
+  wordsByChannel: Map<number, TWord[]>,
+  maxGapMs = 2000,
+): Segment<TWord>[] {
+  const sortedWords = flattenAndSortWords(wordsByChannel);
+  if (sortedWords.length === 0) {
+    return [];
   }
 
-  if (isSentenceEnd) {
-    score += 10;
+  const initialTurns = splitIntoInitialTurns(sortedWords);
+  const turnsByChannel = groupSegmentsByChannel(initialTurns);
+
+  const finalSegments: Segment<TWord>[] = [];
+  for (const [channel, channelTurns] of turnsByChannel) {
+    finalSegments.push(...mergeSegmentsByGap(channelTurns, channel, maxGapMs));
   }
 
-  return score;
+  finalSegments.sort((a, b) => getSegmentStartTime(a) - getSegmentStartTime(b));
+  return finalSegments;
 }

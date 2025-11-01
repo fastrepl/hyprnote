@@ -108,7 +108,7 @@ function RenderTranscript(
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
-  const segments = buildSegments(finalWords, [partialWords]);
+  const segments = buildSegments(finalWords, partialWords);
   const offsetMs = useTranscriptOffset(transcriptId);
 
   if (segments.length === 0) {

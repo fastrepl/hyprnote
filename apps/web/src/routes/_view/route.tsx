@@ -1,4 +1,3 @@
-import { cn } from "@hypr/utils";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_view")({
@@ -22,17 +21,9 @@ function Component() {
 }
 
 function Header() {
-  const router = useRouterState();
-  const isDocsPage = router.location.pathname.startsWith("/docs");
-
   return (
     <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
-      <div
-        className={cn(
-          "mx-auto px-4 border-x border-neutral-100",
-          isDocsPage ? "max-w-[1400px] sm:px-6 lg:px-8 py-4" : "max-w-6xl laptop:px-0 py-3",
-        )}
-      >
+      <div className="max-w-6xl mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
@@ -78,16 +69,10 @@ function Header() {
 
 function Footer() {
   const currentYear = new Date().getFullYear();
-  const router = useRouterState();
-  const isDocsPage = router.location.pathname.startsWith("/docs");
 
   return (
     <footer className="border-t border-neutral-100 bg-linear-to-b from-stone-50/30 to-stone-100">
-      <div
-        className={`${isDocsPage ? "max-w-[1400px]" : "max-w-6xl"} mx-auto px-4 ${
-          isDocsPage ? "sm:px-6 lg:px-8" : "laptop:px-0"
-        } py-12 lg:py-16 border-x border-neutral-100`}
-      >
+      <div className="max-w-6xl mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
           {/* Column 1: Brand (span 2) */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">

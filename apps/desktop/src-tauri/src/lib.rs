@@ -91,12 +91,6 @@ pub async fn main() {
                 app.create_app_menu().unwrap();
             }
 
-            {
-                use tauri_plugin_autostart::ManagerExt;
-                let autostart_manager = app.autolaunch();
-                let _ = autostart_manager.disable();
-            }
-
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 

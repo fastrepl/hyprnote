@@ -1,5 +1,6 @@
 import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
+import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import * as main from "../../../store/tinybase/main";
 import { AppSettingsView } from "./app-settings";
@@ -41,6 +42,12 @@ export function SettingsGeneral() {
     },
     onSubmit: ({ value }) => {
       setPartialValues(value);
+
+      if (value.autostart) {
+        enable();
+      } else {
+        disable();
+      }
     },
   });
 

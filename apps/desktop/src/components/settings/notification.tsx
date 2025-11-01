@@ -11,12 +11,21 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
+import { useConfigValues } from "../../config/use-config";
 import * as main from "../../store/tinybase/main";
 
 export function SettingsNotifications() {
-  const values = main.UI.useValues(main.STORE_ID);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
+
+  const configs = useConfigValues(
+    [
+      "notification_event",
+      "notification_detect",
+      "respect_dnd",
+      "ignored_platforms",
+    ] as const,
+  );
 
   useEffect(() => {
     const cleanup = () => {
@@ -30,28 +39,6 @@ export function SettingsNotifications() {
   const { data: allInstalledApps } = useQuery({
     queryKey: ["settings", "all-installed-applications"],
     queryFn: detectCommands.listInstalledApplications,
-    select: (result) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
-
-  const { data: ignoredBundleIds } = useQuery({
-    queryKey: ["settings", "ignored-bundle-ids"],
-    queryFn: detectCommands.getIgnoredBundleIds,
-    select: (result) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
-
-  const { data: respectDnd } = useQuery({
-    queryKey: ["settings", "respect-do-not-disturb"],
-    queryFn: detectCommands.getRespectDoNotDisturb,
     select: (result) => {
       if (result.status === "error") {
         throw new Error(result.error);
@@ -84,12 +71,26 @@ export function SettingsNotifications() {
     main.STORE_ID,
   );
 
+  const handleSetRespectDnd = main.UI.useSetValueCallback(
+    "respect_dnd",
+    (value: boolean) => value,
+    [],
+    main.STORE_ID,
+  );
+
+  const handleSetIgnoredPlatforms = main.UI.useSetValueCallback(
+    "ignored_platforms",
+    (value: string) => value,
+    [],
+    main.STORE_ID,
+  );
+
   const form = useForm({
     defaultValues: {
-      notification_event: values.notification_event ?? false,
-      notification_detect: values.notification_detect ?? false,
-      respect_dnd: respectDnd ?? true,
-      ignored_platforms: ignoredBundleIds ?? [],
+      notification_event: configs.notification_event,
+      notification_detect: configs.notification_detect,
+      respect_dnd: configs.respect_dnd,
+      ignored_platforms: configs.ignored_platforms.map(bundleIdToName),
     },
     listeners: {
       onChange: async ({ formApi }) => {
@@ -99,32 +100,12 @@ export function SettingsNotifications() {
     onSubmit: async ({ value }) => {
       handleSetNotificationEvent(value.notification_event);
       handleSetNotificationDetect(value.notification_detect);
-
-      const respectDndResult = await detectCommands.setRespectDoNotDisturb(value.respect_dnd);
-      if (respectDndResult.status === "error") {
-        console.error("Failed to set respect_dnd:", respectDndResult.error);
-      }
+      handleSetRespectDnd(value.respect_dnd);
 
       const bundleIds = value.ignored_platforms.map(nameToBundleId);
-      const ignoredResult = await detectCommands.setIgnoredBundleIds(bundleIds);
-      if (ignoredResult.status === "error") {
-        console.error("Failed to set ignored_platforms:", ignoredResult.error);
-      }
+      handleSetIgnoredPlatforms(JSON.stringify(bundleIds));
     },
   });
-
-  useEffect(() => {
-    if (ignoredBundleIds !== undefined && allInstalledApps !== undefined) {
-      const appNames = ignoredBundleIds.map(bundleIdToName);
-      form.setFieldValue("ignored_platforms", appNames);
-    }
-  }, [ignoredBundleIds, allInstalledApps]);
-
-  useEffect(() => {
-    if (respectDnd !== undefined) {
-      form.setFieldValue("respect_dnd", respectDnd);
-    }
-  }, [respectDnd]);
 
   const installedApps = allInstalledApps?.map(app => app.name) ?? [];
 
@@ -142,7 +123,7 @@ export function SettingsNotifications() {
 
   const handleRemoveIgnoredApp = (app: string) => {
     const currentIgnored = form.getFieldValue("ignored_platforms");
-    form.setFieldValue("ignored_platforms", currentIgnored.filter(a => a !== app));
+    form.setFieldValue("ignored_platforms", currentIgnored.filter((a: string) => a !== app));
   };
 
   return (
@@ -191,7 +172,7 @@ export function SettingsNotifications() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 flex flex-wrap gap-2 min-h-[38px] p-2 border rounded-md">
-                        {form.getFieldValue("ignored_platforms").map((app) => (
+                        {form.getFieldValue("ignored_platforms").map((app: string) => (
                           <Badge
                             key={app}
                             variant="secondary"

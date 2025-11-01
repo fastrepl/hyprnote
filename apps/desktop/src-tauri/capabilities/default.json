@@ -65,6 +65,7 @@
     "os:default",
     "detect:default",
     "permissions:default",
+    "autostart:default",
     {
       "identifier": "http:default",
       "deny": [],

@@ -3,10 +3,8 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { events as detectEvents } from "@hypr/plugin-detect";
-import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import * as main from "../store/tinybase/main";
 import { createListenerStore, type ListenerStore } from "../store/zustand/listener";
 
 const ListenerContext = createContext<ListenerStore | null>(null);
@@ -18,7 +16,6 @@ export const ListenerProvider = ({
   children: React.ReactNode;
   store: ListenerStore;
 }) => {
-  useAutoStartSTT();
   useHandleDetectEvents(store);
 
   const storeRef = useRef<ListenerStore | null>(null);
@@ -48,28 +45,6 @@ export const useListener = <T,>(
 
   return useStore(store, useShallow(selector));
 };
-
-function useAutoStartSTT() {
-  const currentSttProvider = main.UI.useValue("current_stt_provider", main.STORE_ID);
-  const currentSttModel = main.UI.useValue("current_stt_model", main.STORE_ID);
-
-  useEffect(() => {
-    if (currentSttProvider !== "hyprnote") {
-      localSttCommands.stopServer("external");
-      return;
-    }
-
-    const model = currentSttModel as SupportedSttModel | undefined;
-    if (model && model.startsWith("am-")) {
-      localSttCommands
-        .stopServer("external")
-        .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
-        .then(() => localSttCommands.startServer(model))
-        .then(console.log)
-        .catch(console.error);
-    }
-  }, [currentSttProvider, currentSttModel]);
-}
 
 const useHandleDetectEvents = (store: ListenerStore) => {
   const stop = useStore(store, (state) => state.stop);

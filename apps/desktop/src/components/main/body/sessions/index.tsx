@@ -44,6 +44,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = (
 };
 
 export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+  const listenerStatus = useListener((state) => state.status);
   const { data: audioUrl } = useQuery({
     queryKey: ["session", tab.id, "audio-url"],
     queryFn: () => miscCommands.audioPath(tab.id),
@@ -58,7 +59,9 @@ export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }
   return (
     <AudioPlayer.Provider url={audioUrl ?? ""}>
       <StandardTabWrapper
-        afterBorder={tab.state.editor === "transcript" && audioUrl && <AudioPlayer.Timeline />}
+        afterBorder={tab.state.editor === "transcript" && audioUrl && listenerStatus === "inactive" && (
+          <AudioPlayer.Timeline />
+        )}
         floatingButton={<FloatingActionButton tab={tab} />}
       >
         <div className="flex flex-col h-full p-2">

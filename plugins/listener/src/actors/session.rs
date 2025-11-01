@@ -9,8 +9,8 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     actors::{
-        ListenerActor, ListenerArgs, ListenerMsg, ListenerState, ProcArgs, ProcMsg, ProcessorActor,
-        RecArgs, RecMsg, RecorderActor, SourceActor, SourceArgs, SourceMsg,
+        ListenerActor, ListenerArgs, ListenerMsg, ProcArgs, ProcMsg, ProcessorActor, RecArgs,
+        RecMsg, RecorderActor, SourceActor, SourceArgs, SourceMsg,
     },
     SessionEvent,
 };
@@ -142,31 +142,25 @@ impl Actor for SessionActor {
         &self,
         myself: ActorRef<Self::Msg>,
         event: SupervisionEvent,
-        state: &mut Self::State,
+        _state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match event {
             SupervisionEvent::ActorStarted(actor) => {
                 tracing::info!("{:?}_actor_started", actor.get_name());
             }
-            SupervisionEvent::ActorTerminated(actor, maybe_state, _) => {
+            SupervisionEvent::ActorTerminated(actor, _maybe_state, exit_reason) => {
                 let actor_name = actor
                     .get_name()
                     .map(|n| n.to_string())
                     .unwrap_or_else(|| "unknown".to_string());
 
-                if actor_name == ListenerActor::name() {
-                    let last_state: Option<ListenerState> =
-                        maybe_state.and_then(|mut s| s.take().ok());
+                tracing::error!(
+                    actor = %actor_name,
+                    reason = ?exit_reason,
+                    "child_actor_terminated_stopping_session"
+                );
 
-                    Self::start_listener(
-                        myself.get_cell(),
-                        state,
-                        last_state.map(|s| ListenerArgs { ..s.args }),
-                    )
-                    .await?;
-                } else {
-                    let _ = myself.stop_and_wait(None, None).await;
-                }
+                myself.stop(None);
             }
             SupervisionEvent::ActorFailed(_, _) => {}
             _ => {}

@@ -4,18 +4,20 @@ import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "./provider";
 
 export function Timeline() {
-  const { registerContainer, state, pause, resume } = useAudioPlayer();
+  const { registerContainer, state, pause, resume, start } = useAudioPlayer();
 
   const handleClick = () => {
     if (state === "playing") {
       pause();
     } else if (state === "paused") {
       resume();
+    } else if (state === "stopped") {
+      start();
     }
   };
 
   return (
-    <div className={cn(["w-full", "bg-neutral-50 rounded-lg", state === "stopped" && "hidden"])}>
+    <div className={cn(["w-full", "bg-neutral-50 rounded-lg"])}>
       <div className={cn(["flex items-center gap-2.5", "px-4 py-2", "w-full max-w-full"])}>
         <button
           onClick={handleClick}

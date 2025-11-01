@@ -8,7 +8,6 @@ import { useCurrentTab } from "../shared";
 
 import { GenerateButton } from "./generate";
 import { ListenButton } from "./listen";
-import { PlaybackButton } from "./playback";
 
 export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { status, sessionId } = useListener((state) => ({ status: state.status, sessionId: state.sessionId }));
@@ -21,8 +20,6 @@ export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessi
     button = <ListenButton tab={tab} />;
   } else if (currentTab === "enhanced") {
     button = <GenerateButton sessionId={tab.id} />;
-  } else if (currentTab === "transcript") {
-    button = <PlaybackButton sessionId={tab.id} />;
   }
 
   if (!button) {

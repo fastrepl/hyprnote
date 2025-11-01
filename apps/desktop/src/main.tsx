@@ -9,6 +9,7 @@ import { Provider as TinyBaseProvider, useStores } from "tinybase/ui-react";
 import { createManager } from "tinytick";
 import { Provider as TinyTickProvider, useCreateManager } from "tinytick/ui-react";
 
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { TaskManager } from "./components/task-manager";
 import { type Store, STORE_ID, StoreComponent } from "./store/tinybase/main";
 
@@ -64,12 +65,14 @@ function AppWithTiny() {
     return createManager().start();
   });
 
+  const isMainWindow = getCurrentWebviewWindowLabel() === "main";
+
   return (
     <QueryClientProvider client={queryClient}>
       <TinyTickProvider manager={manager}>
         <TinyBaseProvider>
           <App />
-          <StoreComponent />
+          <StoreComponent persist={isMainWindow} />
           <TaskManager />
         </TinyBaseProvider>
       </TinyTickProvider>

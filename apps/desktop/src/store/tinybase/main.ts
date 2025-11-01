@@ -57,7 +57,7 @@ export const UI = _UI as _UI.WithSchemas<Schemas>;
 export type Store = MergeableStore<Schemas>;
 export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
 
-export const StoreComponent = () => {
+export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const store = useCreateMergeableStore(() =>
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
@@ -92,13 +92,20 @@ export const StoreComponent = () => {
 
   const localPersister = useCreatePersister(
     store,
-    (store) =>
-      createLocalPersister<Schemas>(store as Store, {
+    async (store) => {
+      if (!persist) {
+        return undefined;
+      }
+
+      const persister = createLocalPersister<Schemas>(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
-      }),
+      });
+
+      await persister.startAutoPersisting();
+      return persister;
+    },
     [],
-    async (persister) => await persister.startAutoPersisting(),
   );
 
   const synchronizer = useCreateSynchronizer(
@@ -377,7 +384,7 @@ export const StoreComponent = () => {
   useProvideQueries(STORE_ID, queries!);
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
-  useProvidePersister(STORE_ID, localPersister);
+  useProvidePersister(STORE_ID, persist ? localPersister : undefined);
   useProvideSynchronizer(STORE_ID, synchronizer);
 
   return null;

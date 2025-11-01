@@ -1,0 +1,67 @@
+---
+title: "AI Autonomy"
+description: "Control how much autonomy AI can have when enhancing your meeting notes"
+---
+
+## Why does this exist?
+
+During Hyprnote's development, we received valuable feedback from users about AI behavior during note enhancement. Many users expressed concern that the AI would frequently override or significantly alter their original content. While preferences vary among users, a substantial number wanted their original notes to remain largely intact, with AI serving as an enhancement tool rather than a replacement, treating their raw notes as the primary source of truth.
+
+This feedback led us to recognize the need for user control over AI behavior. We developed the AI Autonomy controller to give users precise control over how independently the AI operates when enhancing their notes.
+
+## How to control AI Autonomy
+
+<Note>
+  AI Autonomy control is currently available only for custom endpoint LLMs, not
+  local LLMs. This limitation exists because local models currently lack the
+  sophistication to reliably follow complex autonomy instructions.
+</Note>
+
+Setting up AI Autonomy is straightforward. Navigate to the Settings modal's AI tab and select LLM (Custom). If you haven't already configured your custom endpoint LLM, you'll need to do so before accessing the AI Autonomy controller.
+
+Below the custom endpoint configuration box, you will see the autonomy selector.
+
+![Finder Contact Pn](/images/ai-autonomy-configure.png)
+
+Choose from four distinct autonomy levels, each designed for different use cases:
+
+- Conservative: Minimal AI autonomy. Closely follows your original content and structure while making only essential improvements to clarity and organization.
+- Balanced: Moderate AI autonomy. Makes independent decisions about structure and phrasing while respecting your core message and intended tone.
+- Autonomous: High AI autonomy. Takes initiative in restructuring and expanding content, making independent decisions about organization and presentation.
+- Full Autonomy: Maximum AI autonomy. Independently transforms and enhances content with complete freedom in structure, language, and presentation while preserving key information.
+
+The following examples demonstrate how each autonomy mode produces distinctly different results from the same raw input.
+
+Here's the original raw note used for all examples:
+
+![Finder Contact Pn](/images/ai-autonomy-raw-note.png)
+
+Conservative mode output:
+
+![Finder Contact Pn](/images/ai-autonomy-conservative.png)
+
+Balanced mode output:
+
+![Finder Contact Pn](/images/ai-autonomy-balanced.png)
+
+Autonomous mode output:
+
+![Finder Contact Pn](/images/ai-autonomy-autonomous.png)
+
+Full Autonomy mode output:
+
+![Finder Contact Pn](/images/ai-autonomy-full.png)
+
+### Raw note headers and AI autonomy
+
+Comparing the raw note with the Conservative mode output reveals that the main headers (h1) remain identical. This intentional design choice reflects our underlying approach to
+autonomy levels.
+
+Users who select conservative mode typically want their original structure and section organization preserved in the enhanced output.
+
+For optimal results with Conservative or Balanced modes, we recommend structuring your raw notes with clear h1 headers. This practice ensures your preferred organization is maintained in the AI-enhanced version.
+
+## What's next?
+
+- Enhanced precision in mode instruction compliance
+- Additional customization options for fine-tuned control

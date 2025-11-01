@@ -1,0 +1,69 @@
+---
+title: "Templates "
+description: "You can use either custom or built-in templates to generate meeting summaries that follow a specific format or structure. "
+---
+
+## How to use a template
+
+There are three different ways to use a template to regenerate your meeting summary.
+
+### Option 1: Set a default template
+
+Visit the Templates tab inside the Settings modal. There, you can select any template to be your default. Once set, this template will be automatically applied to all your meetings.
+
+![Finder Contact Pn](/images/template-default.png)
+
+### Option 2: Select a template when finishing recording
+
+When you finish a recording, click Advanced Options in the dropdown. You’ll be able to select a template for that specific meeting. This selection will not affect other meetings. If you previously set a default template, it will still remain as the default for future recordings.
+
+![Finder Contact Pn](/images/template-after-recording.png)
+
+### Option 3: Select a template when re-generating your summary
+
+If your meeting has already been completed and an AI summary was generated, but you’d like to view the content in a different format, simply hover over the Re-enhance button. You’ll see several template options. Click the one you want, and the AI will regenerate the summary using that template.
+
+![Finder Contact Pn](/images/template-regenerate.png)
+
+## How to make a template
+
+You can create your own template with advanced configurations. To start, click the + button next to Your Templates in the Templates tab. This will take you to the custom template editing page.
+
+![Finder Contact Pn](/images/make-template-example.png)
+
+Here, you can enter:
+
+- System Instructions: A custom instruction for the AI to follow.
+- Sections: The structure or format you'd like the summary to follow.
+
+<Tip>
+  Pro-Tip : The more specific your descriptions and instructions are, the better
+  the AI will be at tailoring the notes to your needs.
+</Tip>
+
+### System instruction
+
+If you're familiar with AI, you may have heard of **"system prompts."** System instructions serve a similar purpose. This is where you can tell the AI, "When generating a summary using this template, follow these specific rules."
+
+For example, for a User Interview template, your system instruction could be:
+
+> It is really important to make a summary with actual details and stuff the user said. For every bullet point you write, attach the user's actual quote as a reference next to it.
+
+This will generate a clear summary with precise references and supporting evidence.
+
+![Finder Contact Pn](/images/system-instruction-user-interview.png)
+
+You can even go further. Say you want the summary to be output in JSON format to connect it directly to a webhook or external API. You could write a system instruction like this:
+
+> Generate the summary in JSON format with fields: meetingTitle, participants, keyPoints, and actionItems. Do not include anything else in your summary.
+
+This gives you a structured, developer-friendly summary ready for integration.
+
+![Finder Contact Pn](/images/system-instruction-json.png)
+
+In Short, system instructions give you more control over how AI generates your meeting notes. The clearer and more direct your instructions are, the more tailored and useful the output will be.
+
+### What's next?
+
+- Add examples to custom templates
+- Mored advanced configurations

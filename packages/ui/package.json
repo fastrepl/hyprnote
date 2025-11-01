@@ -10,7 +10,8 @@
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
     "./hooks/*": "./src/hooks/*.tsx",
-    "./contexts/*": "./src/contexts/*.tsx"
+    "./contexts/*": "./src/contexts/*.tsx",
+    "./docs": "./src/docs/index.tsx"
   },
   "scripts": {
     "build": "tailwindcss -i ./src/styles/globals.css -o ./dist/globals.css --minify"

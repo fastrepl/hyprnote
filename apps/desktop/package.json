@@ -72,7 +72,7 @@
     "dompurify": "^3.3.0",
     "effect": "^3.18.4",
     "json5": "^2.2.3",
-    "lucide-react": "^0.544.0",
+    "lucide-react": "^0.545.0",
     "motion": "^11.18.2",
     "mutative": "^1.3.0",
     "re-resizable": "^6.11.2",

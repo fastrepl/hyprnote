@@ -57,7 +57,13 @@ pub async fn audio_delete<R: tauri::Runtime>(
     ["audio.wav", "audio.ogg"]
         .iter()
         .map(|format| session_dir.join(format))
-        .try_for_each(|path| std::fs::remove_file(path).map_err(|e| e.to_string()))?;
+        .try_for_each(|path| {
+            if std::fs::exists(&path).unwrap_or(false) {
+                std::fs::remove_file(path).map_err(|e| e.to_string())
+            } else {
+                Ok(())
+            }
+        })?;
     Ok(())
 }
 

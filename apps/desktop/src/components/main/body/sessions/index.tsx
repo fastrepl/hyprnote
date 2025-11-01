@@ -46,22 +46,24 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = (
 export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const listenerStatus = useListener((state) => state.status);
   const { data: audioUrl } = useQuery({
-    queryKey: ["session", tab.id, "audio-url"],
+    queryKey: ["audio", tab.id, "url"],
     queryFn: () => miscCommands.audioPath(tab.id),
     select: (result) => {
-      if (result.status === "ok") {
-        return convertFileSrc(result.data);
+      if (result.status === "error") {
+        console.error(result.error);
+        return null;
       }
-      return null;
+      return convertFileSrc(result.data);
     },
   });
+
+  const showTimeline = tab.state.editor === "transcript"
+    && audioUrl && listenerStatus === "inactive";
 
   return (
     <AudioPlayer.Provider url={audioUrl ?? ""}>
       <StandardTabWrapper
-        afterBorder={tab.state.editor === "transcript" && audioUrl && listenerStatus === "inactive" && (
-          <AudioPlayer.Timeline />
-        )}
+        afterBorder={showTimeline && <AudioPlayer.Timeline />}
         floatingButton={<FloatingActionButton tab={tab} />}
       >
         <div className="flex flex-col h-full p-2">

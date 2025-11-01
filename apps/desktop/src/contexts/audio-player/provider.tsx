@@ -12,6 +12,7 @@ interface AudioPlayerContextValue {
   pause: () => void;
   resume: () => void;
   stop: () => void;
+  seek: (sec: number) => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);
@@ -126,6 +127,12 @@ export function AudioPlayerProvider({
     }
   }, [wavesurfer]);
 
+  const seek = useCallback((timeInSeconds: number) => {
+    if (wavesurfer) {
+      wavesurfer.setTime(timeInSeconds);
+    }
+  }, [wavesurfer]);
+
   return (
     <AudioPlayerContext.Provider
       value={{
@@ -137,6 +144,7 @@ export function AudioPlayerProvider({
         pause,
         resume,
         stop,
+        seek,
       }}
     >
       {children}

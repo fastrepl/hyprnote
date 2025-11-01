@@ -87,7 +87,6 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     enhanceTaskId,
     sessionId,
     updateSessionTabState,
-    tab,
   ]);
 
   useEffect(() => {

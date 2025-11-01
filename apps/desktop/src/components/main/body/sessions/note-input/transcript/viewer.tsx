@@ -1,4 +1,4 @@
-import { DependencyList, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { DependencyList, Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
@@ -34,14 +34,14 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
       >
         {transcriptIds.map(
           (transcriptId, index) => (
-            <>
+            <Fragment key={transcriptId}>
               <RenderTranscript
-                key={transcriptId}
                 transcriptId={transcriptId}
                 partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
+                active={active}
               />
               {index < transcriptIds.length - 1 && <TranscriptSeparator />}
-            </>
+            </Fragment>
           ),
         )}
       </div>
@@ -84,9 +84,11 @@ function RenderTranscript(
   {
     transcriptId,
     partialWords,
+    active,
   }: {
     transcriptId: string;
     partialWords: PartialWord[];
+    active: boolean;
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
@@ -105,6 +107,7 @@ function RenderTranscript(
             key={i}
             segment={segment}
             offsetMs={offsetMs}
+            active={active}
           />
         ),
       )}
@@ -112,8 +115,8 @@ function RenderTranscript(
   );
 }
 
-function RenderSegment({ segment, offsetMs }: { segment: Segment; offsetMs: number }) {
-  const { time } = useAudioPlayer();
+function RenderSegment({ segment, offsetMs, active }: { segment: Segment; offsetMs: number; active: boolean }) {
+  const { time, seek } = useAudioPlayer();
   const currentMs = time.current * 1000;
 
   const timestamp = useMemo(() => {
@@ -149,19 +152,21 @@ function RenderSegment({ segment, offsetMs }: { segment: Segment; offsetMs: numb
           const wordStartMs = offsetMs + word.start_ms;
           const wordEndMs = offsetMs + word.end_ms;
 
-          const isCurrentWord = currentMs >= wordStartMs && currentMs <= wordEndMs;
+          const isCurrentWord = !active && currentMs >= wordStartMs && currentMs <= wordEndMs;
 
           const buffer = 300;
           const distanceBefore = wordStartMs - currentMs;
           const distanceAfter = currentMs - wordEndMs;
-          const isInBuffer = (distanceBefore <= buffer && distanceBefore > 0)
-            || (distanceAfter <= buffer && distanceAfter > 0);
+          const isInBuffer = !active && ((distanceBefore <= buffer && distanceBefore > 0)
+            || (distanceAfter <= buffer && distanceAfter > 0));
 
           return (
             <span
               key={`${word.start_ms}-${idx}`}
+              onClick={() => seek((offsetMs + word.start_ms) / 1000)}
               className={cn([
-                "px-0.5",
+                "cursor-pointer",
+                (!isCurrentWord && !isInBuffer) && "hover:bg-neutral-200/60",
                 !word.isFinal && ["opacity-60", "italic"],
                 isCurrentWord && "bg-blue-200/70",
                 isInBuffer && "bg-blue-200/30",

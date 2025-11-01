@@ -1,4 +1,14 @@
-import { FileTextIcon, FolderIcon, Link2Icon, MicIcon, MicOffIcon, MoreHorizontalIcon, TrashIcon } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  FileTextIcon,
+  FolderIcon,
+  Link2Icon,
+  Loader2Icon,
+  MicIcon,
+  MicOffIcon,
+  MoreHorizontalIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
@@ -12,6 +22,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
+import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as main from "../../../../../store/tinybase/main";
@@ -19,6 +30,16 @@ import { SearchableFolderSubmenuContent } from "./shared/folder";
 
 export function OverflowButton({ sessionId }: { sessionId: string }) {
   const [open, setOpen] = useState(false);
+  const audioExists = useQuery({
+    queryKey: ["audio", sessionId, "exist"],
+    queryFn: () => miscCommands.audioExist(sessionId),
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -35,7 +56,7 @@ export function OverflowButton({ sessionId }: { sessionId: string }) {
         <Listening sessionId={sessionId} />
         <DropdownMenuSeparator />
         <DeleteNote sessionId={sessionId} />
-        <DeleteRecording sessionId={sessionId} />
+        {audioExists.data && <DeleteRecording sessionId={sessionId} />}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -131,17 +152,46 @@ function DeleteNote({ sessionId }: { sessionId: string }) {
 }
 
 function DeleteRecording({ sessionId }: { sessionId: string }) {
-  const handleDeleteRecording = useCallback(() => {
-    miscCommands.audioDelete(sessionId);
-  }, [sessionId]);
+  const queryClient = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: async () => {
+      await Promise.all([
+        new Promise((resolve) => setTimeout(resolve, 300)),
+        miscCommands.audioDelete(sessionId).then((result) => {
+          if (result.status === "error") {
+            throw new Error(result.error);
+          }
+
+          return result.data;
+        }),
+      ]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.length >= 2
+          && query.queryKey[0] === "audio"
+          && query.queryKey[1] === sessionId,
+      });
+    },
+  });
 
   return (
     <DropdownMenuItem
-      onClick={handleDeleteRecording}
-      className="text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
+      onClick={(e) => {
+        e.preventDefault();
+        mutate();
+      }}
+      disabled={isPending}
+      className={cn([
+        "cursor-pointer",
+        isError
+          ? "text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+          : "text-red-600 hover:bg-red-50 hover:text-red-700",
+      ])}
     >
-      <TrashIcon />
-      <span>Delete only recording</span>
+      {isPending ? <Loader2Icon className="animate-spin" /> : <TrashIcon />}
+      <span>{isPending ? "Deleting..." : isError ? "Failed to delete" : "Delete only recording"}</span>
     </DropdownMenuItem>
   );
 }

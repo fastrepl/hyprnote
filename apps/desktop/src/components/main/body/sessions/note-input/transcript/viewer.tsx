@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { DependencyList, Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../contexts/listener";
@@ -15,6 +17,17 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
 
   const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
   const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
+
+  const audioExists = useQuery({
+    queryKey: ["audio", sessionId, "exist"],
+    queryFn: () => miscCommands.audioExist(sessionId),
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
 
   const { containerRef, isAtBottom, scrollToBottom } = useScrollToBottom([transcriptIds]);
 
@@ -39,6 +52,7 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
                 transcriptId={transcriptId}
                 partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
                 active={active}
+                audioExists={audioExists.data ?? false}
               />
               {index < transcriptIds.length - 1 && <TranscriptSeparator />}
             </Fragment>
@@ -85,10 +99,12 @@ function RenderTranscript(
     transcriptId,
     partialWords,
     active,
+    audioExists,
   }: {
     transcriptId: string;
     partialWords: PartialWord[];
     active: boolean;
+    audioExists: boolean;
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
@@ -108,6 +124,7 @@ function RenderTranscript(
             segment={segment}
             offsetMs={offsetMs}
             active={active}
+            audioExists={audioExists}
           />
         ),
       )}
@@ -115,7 +132,14 @@ function RenderTranscript(
   );
 }
 
-function RenderSegment({ segment, offsetMs, active }: { segment: Segment; offsetMs: number; active: boolean }) {
+function RenderSegment(
+  { segment, offsetMs, active, audioExists }: {
+    segment: Segment;
+    offsetMs: number;
+    active: boolean;
+    audioExists: boolean;
+  },
+) {
   const { time, seek } = useAudioPlayer();
   const currentMs = time.current * 1000;
 
@@ -152,24 +176,24 @@ function RenderSegment({ segment, offsetMs, active }: { segment: Segment; offset
           const wordStartMs = offsetMs + word.start_ms;
           const wordEndMs = offsetMs + word.end_ms;
 
-          const isCurrentWord = !active && currentMs >= wordStartMs && currentMs <= wordEndMs;
-
-          const buffer = 300;
-          const distanceBefore = wordStartMs - currentMs;
-          const distanceAfter = currentMs - wordEndMs;
-          const isInBuffer = !active && ((distanceBefore <= buffer && distanceBefore > 0)
-            || (distanceAfter <= buffer && distanceAfter > 0));
+          const highlightState = getWordHighlightState({
+            active,
+            audioExists,
+            currentMs,
+            wordStartMs,
+            wordEndMs,
+          });
 
           return (
             <span
               key={`${word.start_ms}-${idx}`}
-              onClick={() => seek((offsetMs + word.start_ms) / 1000)}
+              onClick={audioExists ? () => seek((offsetMs + word.start_ms) / 1000) : undefined}
               className={cn([
-                "cursor-pointer",
-                (!isCurrentWord && !isInBuffer) && "hover:bg-neutral-200/60",
+                audioExists && "cursor-pointer",
+                audioExists && highlightState === "none" && "hover:bg-neutral-200/60",
                 !word.isFinal && ["opacity-60", "italic"],
-                isCurrentWord && "bg-blue-200/70",
-                isInBuffer && "bg-blue-200/30",
+                highlightState === "current" && "bg-blue-200/70",
+                highlightState === "buffer" && "bg-blue-200/30",
               ])}
             >
               {word.text}
@@ -298,4 +322,37 @@ function formatTimestamp(ms: number): string {
   }
 
   return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function getWordHighlightState(
+  {
+    active,
+    audioExists,
+    currentMs,
+    wordStartMs,
+    wordEndMs,
+  }: {
+    active: boolean;
+    audioExists: boolean;
+    currentMs: number;
+    wordStartMs: number;
+    wordEndMs: number;
+  },
+): "current" | "buffer" | "none" {
+  if (active || !audioExists) {
+    return "none";
+  }
+
+  const isCurrentWord = currentMs >= wordStartMs && currentMs <= wordEndMs;
+  if (isCurrentWord) {
+    return "current";
+  }
+
+  const buffer = 300;
+  const distanceBefore = wordStartMs - currentMs;
+  const distanceAfter = currentMs - wordEndMs;
+  const isInBuffer = (distanceBefore <= buffer && distanceBefore > 0)
+    || (distanceAfter <= buffer && distanceAfter > 0);
+
+  return isInBuffer ? "buffer" : "none";
 }

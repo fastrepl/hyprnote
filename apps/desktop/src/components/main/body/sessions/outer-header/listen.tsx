@@ -35,12 +35,13 @@ function StartButton({ sessionId }: { sessionId: string }) {
       disabled={isDisabled}
       className={cn([
         "bg-black text-white hover:bg-neutral-800",
+        "gap-1.5",
       ])}
+      title="Start listening"
+      aria-label="Start listening"
     >
-      <div className="flex items-center gap-1.5">
-        <RecordingIcon disabled={isDisabled} />
-        <span className="text-neutral-100 hover:text-neutral-200">Start listening</span>
-      </div>
+      <RecordingIcon disabled={isDisabled} />
+      <span className="hidden md:inline text-neutral-100 hover:text-neutral-200">Start listening</span>
     </Button>
   );
 }
@@ -80,6 +81,8 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
           ],
         "w-[75px]",
       ])}
+      title={finalizing ? "Finalizing" : "Stop listening"}
+      aria-label={finalizing ? "Finalizing" : "Stop listening"}
     >
       {finalizing
         ? (

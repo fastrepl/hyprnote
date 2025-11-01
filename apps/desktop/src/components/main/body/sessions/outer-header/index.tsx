@@ -6,14 +6,17 @@ import { ShareButton } from "./share";
 
 export function OuterHeader({ sessionId }: { sessionId: string }) {
   return (
-    <div className="flex items-center justify-between">
-      <FolderChain sessionId={sessionId} />
-
-      <div className="flex items-center">
-        <MeetingMetadata sessionId={sessionId} />
-        <ListenButton sessionId={sessionId} />
-        <ShareButton sessionId={sessionId} />
-        <OverflowButton sessionId={sessionId} />
+    <div className="w-full overflow-x-auto">
+      <div className="flex items-center gap-2 min-w-fit pr-1">
+        <div className="hidden md:block">
+          <FolderChain sessionId={sessionId} />
+        </div>
+        <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          <MeetingMetadata sessionId={sessionId} />
+          <ListenButton sessionId={sessionId} />
+          <ShareButton sessionId={sessionId} />
+          <OverflowButton sessionId={sessionId} />
+        </div>
       </div>
     </div>
   );

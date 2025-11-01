@@ -1,11 +1,11 @@
+import { CircleMinus, SearchIcon, Share2 } from "lucide-react";
+import { useState } from "react";
+
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Separator } from "@hypr/ui/components/ui/separator";
-
-import { CircleMinus, SearchIcon } from "lucide-react";
-import { useState } from "react";
 import { getInitials } from "../../contacts/shared";
 
 interface Person {
@@ -70,8 +70,15 @@ export function ShareButton(_: { sessionId: string }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="sm" variant="ghost">
-          Share
+        <Button
+          size="sm"
+          variant="ghost"
+          className="gap-1.5"
+          aria-label="Share"
+          title="Share"
+        >
+          <Share2 className="size-4" />
+          <span className="hidden md:inline">Share</span>
         </Button>
       </PopoverTrigger>
 

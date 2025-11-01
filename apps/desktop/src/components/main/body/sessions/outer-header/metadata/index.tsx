@@ -1,9 +1,9 @@
+import { CalendarIcon } from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
-
-import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
 
 import { MeetingDate } from "./date";
 import { MeetingDescription } from "./description";
@@ -19,9 +19,9 @@ export function MeetingMetadata({ sessionId }: { sessionId: string }) {
   // Keeping this at the top is important as we do `useMeetingMetadata(V)!` in other places
   if (!meta) {
     return (
-      <Button disabled size="sm" variant="ghost">
+      <Button disabled size="sm" variant="ghost" aria-label="No event" className="gap-1.5">
         <CalendarIcon size={14} className="shrink-0" />
-        <span>No event</span>
+        <span className="hidden md:inline">No event</span>
       </Button>
     );
   }
@@ -34,15 +34,16 @@ export function MeetingMetadata({ sessionId }: { sessionId: string }) {
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
-          className="max-w-28 text-neutral-700"
+          className="gap-1.5 text-neutral-700 md:max-w-28"
           size="sm"
           variant="ghost"
           title={meta.title}
+          aria-label={meta.title}
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
         >
           <CalendarIcon size={14} className="shrink-0" />
-          <p className="truncate">{meta.title}</p>
+          <p className="hidden truncate md:block">{meta.title}</p>
         </Button>
       </PopoverTrigger>
 

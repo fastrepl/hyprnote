@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/discord")({
+export const Route = createFileRoute("/github")({
   beforeLoad: () => {
     throw redirect({
-      href: "https://discord.gg/CX8gTH2tj9",
+      href: "https://github.com/fastrepl/hyprnote",
     });
   },
 });

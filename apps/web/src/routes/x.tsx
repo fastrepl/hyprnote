@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/x")({
+export const Route = createFileRoute("/x")({
   beforeLoad: () => {
     throw redirect({
       href: "https://x.com/tryhyprnote",

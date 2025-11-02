@@ -11,6 +11,8 @@ export function useStartListening(sessionId: string) {
   const { user_id } = main.UI.useValues(main.STORE_ID);
   const store = main.UI.useStore(main.STORE_ID);
 
+  const record_enabled = useConfigValue("save_recordings");
+
   const start = useListener((state) => state.start);
   const conn = useSTTConnection();
 
@@ -90,7 +92,7 @@ export function useStartListening(sessionId: string) {
         session_id: sessionId,
         languages,
         onboarding: false,
-        record_enabled: true,
+        record_enabled,
         model: conn.model,
         base_url: conn.baseUrl,
         api_key: conn.apiKey,

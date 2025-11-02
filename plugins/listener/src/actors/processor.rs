@@ -109,7 +109,9 @@ async fn process_ready(st: &mut ProcState) {
                 .collect();
 
             let actor: ActorRef<RecMsg> = cell.into();
-            actor.cast(RecMsg::Audio(mixed)).ok();
+            if let Err(e) = actor.cast(RecMsg::Audio(mixed)) {
+                tracing::error!(error = ?e, "failed_to_send_audio_to_recorder");
+            }
         }
 
         if let Some(cell) = registry::where_is(ListenerActor::name()) {

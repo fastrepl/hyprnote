@@ -295,7 +295,7 @@ impl SessionActor {
             let _ = actor
                 .stop_and_wait(
                     Some("restart".to_string()),
-                    Some(concurrency::Duration::from_secs(3)),
+                    Some(concurrency::Duration::from_secs(6)),
                 )
                 .await;
         }

@@ -2,9 +2,12 @@ use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::num::{NonZeroU32, NonZeroU8};
 use std::path::PathBuf;
+use std::time::Instant;
 
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use vorbis_rs::{VorbisBitrateManagementStrategy, VorbisDecoder, VorbisEncoderBuilder};
+
+const FLUSH_INTERVAL: std::time::Duration = std::time::Duration::from_millis(1000);
 
 pub enum RecMsg {
     Audio(Vec<f32>),
@@ -19,6 +22,7 @@ pub struct RecState {
     writer: Option<hound::WavWriter<BufWriter<File>>>,
     wav_path: PathBuf,
     ogg_path: PathBuf,
+    last_flush: Instant,
 }
 
 pub struct RecorderActor;
@@ -128,6 +132,7 @@ impl Actor for RecorderActor {
             writer: Some(writer),
             wav_path,
             ogg_path,
+            last_flush: Instant::now(),
         })
     }
 
@@ -143,6 +148,11 @@ impl Actor for RecorderActor {
                     for s in v {
                         writer.write_sample(s)?;
                     }
+
+                    if st.last_flush.elapsed() >= FLUSH_INTERVAL {
+                        writer.flush()?;
+                        st.last_flush = Instant::now();
+                    }
                 }
             }
         }
@@ -155,13 +165,25 @@ impl Actor for RecorderActor {
         _myself: ActorRef<Self::Msg>,
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        if let Some(writer) = st.writer.take() {
+        if let Some(mut writer) = st.writer.take() {
+            writer.flush()?;
             writer.finalize()?;
         }
 
         if st.wav_path.exists() {
-            Self::wav_to_ogg(&st.wav_path, &st.ogg_path).await?;
-            std::fs::remove_file(&st.wav_path)?;
+            let temp_ogg_path = st.ogg_path.with_extension("ogg.tmp");
+
+            match Self::wav_to_ogg(&st.wav_path, &temp_ogg_path).await {
+                Ok(_) => {
+                    std::fs::rename(&temp_ogg_path, &st.ogg_path)?;
+                    std::fs::remove_file(&st.wav_path)?;
+                }
+                Err(e) => {
+                    tracing::error!(error = ?e, "wav_to_ogg_failed_keeping_wav");
+                    let _ = std::fs::remove_file(&temp_ogg_path);
+                    return Err(e);
+                }
+            }
         }
 
         Ok(())

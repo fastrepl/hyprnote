@@ -52,10 +52,7 @@ export function SocialCard({
   const config = platformConfig[platform];
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
       className={cn(
         "block border border-neutral-100 bg-white p-6 transition-all duration-200 text-left hover:bg-neutral-50",
         className,
@@ -70,12 +67,20 @@ export function SocialCard({
             </p>
             {config.subtitle && <p className="text-sm text-neutral-600">{config.subtitle}</p>}
           </div>
-          <svg className={cn("size-5 shrink-0", config.iconColor)} fill="currentColor" viewBox="0 0 24 24">
-            <path d={config.iconPath} />
-          </svg>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-70 transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <svg className={cn("size-5 shrink-0", config.iconColor)} fill="currentColor" viewBox="0 0 24 24">
+              <path d={config.iconPath} />
+            </svg>
+          </a>
         </div>
         <p className="text-neutral-700 leading-relaxed line-clamp-4 md:line-clamp-15 overflow-hidden">{body}</p>
       </div>
-    </a>
+    </div>
   );
 }

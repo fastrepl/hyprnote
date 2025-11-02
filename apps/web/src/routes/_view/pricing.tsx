@@ -1,7 +1,7 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_view/pricing")({
   component: Component,
@@ -217,10 +217,8 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 
         {plan.price
           ? (
-            <a
-              href="/join-waitlist"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/join-waitlist"
               className={cn(
                 [
                   "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
@@ -229,13 +227,11 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
               )}
             >
               Join Waitlist
-            </a>
+            </Link>
           )
           : (
-            <a
-              href="/join-waitlist"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/join-waitlist"
               className={cn(
                 [
                   "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
@@ -244,7 +240,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
               )}
             >
               Download for Free
-            </a>
+            </Link>
           )}
       </div>
     </div>
@@ -339,14 +335,12 @@ function CTASection() {
           Download Hyprnote for free and upgrade when you need cloud features
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="/join-waitlist"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/join-waitlist"
             className="px-8 h-10 flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
             Download for Free
-          </a>
+          </Link>
           <a
             href="https://github.com/fastrepl/hyprnote"
             target="_blank"

@@ -96,14 +96,12 @@ function Header() {
             </Link>
 
             <nav className="hidden sm:flex items-center gap-2">
-              <a
-                href="/join-waitlist"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/join-waitlist"
                 className="px-4 h-8 flex items-center text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
               >
                 Get started
-              </a>
+              </Link>
               {platformCTA.action === "download"
                 ? (
                   <Link
@@ -188,14 +186,12 @@ function Header() {
                 </div>
 
                 <div className="pt-6 border-t border-neutral-100 space-y-3">
-                  <a
-                    href="/join-waitlist"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    to="/join-waitlist"
                     className="block w-full px-4 py-3 text-center text-sm text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
                   >
                     Get started
-                  </a>
+                  </Link>
                   {platformCTA.action === "download"
                     ? (
                       <Link
@@ -243,14 +239,12 @@ function Footer() {
             </p>
             <p className="text-sm text-neutral-600 mb-3">
               Are you in back-to-back meetings?{" "}
-              <a
-                href="/join-waitlist"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/join-waitlist"
                 className="text-neutral-600 hover:text-stone-600 transition-colors underline"
               >
                 Get started
-              </a>
+              </Link>
             </p>
             <p className="text-sm text-neutral-500">
               <Link

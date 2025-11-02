@@ -110,7 +110,7 @@ export const generateTranscript = () => {
           created_at: createdAt,
           transcript_id: transcriptId,
           channel: currentChannel,
-          text,
+          text: ` ${text}`,
           start_ms,
           end_ms,
         });

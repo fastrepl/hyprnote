@@ -3,11 +3,11 @@ import { DependencyList, Fragment, useEffect, useLayoutEffect, useMemo, useRef, 
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { cn } from "@hypr/utils";
-import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
-import { useListener } from "../../../../../../contexts/listener";
-import * as main from "../../../../../../store/tinybase/main";
-import { buildSegments, PartialWord, Segment, SpeakerHint } from "../../../../../../utils/segment";
-import { parseProviderSpeakerIndex } from "../../../../../../utils/speaker-hints";
+import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
+import { useListener } from "../../../../../../../contexts/listener";
+import * as main from "../../../../../../../store/tinybase/main";
+import { buildSegments, PartialWord, Segment, SpeakerHint } from "../../../../../../../utils/segment";
+import { parseProviderSpeakerIndex } from "../../../../../../../utils/speaker-hints";
 import { SegmentHeader } from "./segment-header";
 
 export function TranscriptViewer({ sessionId }: { sessionId: string }) {

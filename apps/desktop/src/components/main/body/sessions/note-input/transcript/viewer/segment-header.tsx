@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { cn } from "@hypr/utils";
-import type { Segment } from "../../../../../../utils/segment";
+import type { Segment } from "../../../../../../../utils/segment";
 
 type SegmentHeaderProps = {
   segmentKey: Segment["key"];

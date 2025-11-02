@@ -2,27 +2,27 @@
 on:
   workflow_dispatch:
     inputs:
-      experimental_airgapped:
-        type: boolean
-        required: false
-        default: false
-        description: experimental_airgapped
-  release:
-    types:
-      - published
+      release_channel:
+        type: choice
+        required: true
+        default: staging
+        description: Release channel
+        options:
+          - stable
+          - nightly
+          - staging
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
-  RELEASE_CHANNEL: ${{ (github.event_name == 'release' && github.event.release.tag_name != '') && 'nightly' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && 'stable' || 'staging' }}
-  TAURI_CONF_PATH: ${{ (github.event_name == 'release' && github.event.release.tag_name != '') && './src-tauri/tauri.conf.nightly.json' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.staging.json' }}
+  RELEASE_CHANNEL: ${{ github.event.inputs.release_channel }}
+  TAURI_CONF_PATH: ${{ github.event.inputs.release_channel == 'stable' && './src-tauri/tauri.conf.stable.json' || github.event.inputs.release_channel == 'nightly' && './src-tauri/tauri.conf.nightly.json' || './src-tauri/tauri.conf.staging.json' }}
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
   build:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_')) }}
     permissions:
       contents: write
     strategy:
@@ -40,18 +40,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-      - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
-        run: |
-          VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
-
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            TAG_NAME="${{ github.event.release.tag_name }}"
-            echo "Version: $VERSION, Tag name: $TAG_NAME"
-            if [[ ! "$TAG_NAME" == *"$VERSION"* ]]; then
-              exit 1
-            fi
-          fi
-        shell: bash
       - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
         uses: ./.github/actions/cn_release
         with:
@@ -82,20 +70,9 @@ jobs:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
-      - if: ${{ github.event.inputs.experimental_airgapped }}
-        run: |
-          aws s3 cp s3://hyprnote-cache2/v0/resources/stt/nvidia_parakeet-v3_494MB.tar apps/desktop/src-tauri/resources/stt/nvidia_parakeet-v3_494MB.tar \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-          aws s3 cp s3://hyprnote-cache2/v0/resources/ttt/hypr-llm.gguf apps/desktop/src-tauri/resources/ttt/hypr-llm.gguf \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
       - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
         run: |
-          aws s3 cp s3://hyprnote-cache2/v0/binaries/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
+          aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -162,7 +139,7 @@ jobs:
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
           retention-days: 3
   publish:
-    if: ${{ ((github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_'))) }}
+    if: ${{ github.event.inputs.release_channel != 'staging' }}
     needs: build
     runs-on: ubuntu-24.04
     steps:

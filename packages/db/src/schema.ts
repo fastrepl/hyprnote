@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { AnyPgColumn, integer, json, pgPolicy, pgSchema, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { authenticatedRole, serviceRole } from "drizzle-orm/supabase";
 import { createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 const equalsAuthUid = (column: AnyPgColumn) => sql`${column} = auth.uid()`;
 
@@ -138,6 +139,19 @@ export const words = pgTable(
   (table) => createPolicies(TABLE_WORDS, table.user_id),
 ).enableRLS();
 
+export const TABLE_SPEAKER_HINTS = "speaker_hints";
+export const speakerHints = pgTable(
+  TABLE_SPEAKER_HINTS,
+  {
+    ...SHARED,
+    transcript_id: uuid("transcript_id").notNull().references(() => transcripts.id, { onDelete: "cascade" }),
+    word_id: uuid("word_id").notNull().references(() => words.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    value: json("value").notNull(),
+  },
+  (table) => createPolicies(TABLE_SPEAKER_HINTS, table.user_id),
+).enableRLS();
+
 export const TABLE_EVENTS = "events";
 export const events = pgTable(
   TABLE_EVENTS,
@@ -254,6 +268,7 @@ export const calendarSchema = createSelectSchema(calendars);
 export const sessionSchema = createSelectSchema(sessions);
 export const transcriptSchema = createSelectSchema(transcripts);
 export const wordSchema = createSelectSchema(words);
+export const speakerHintSchema = createSelectSchema(speakerHints);
 export const mappingSessionParticipantSchema = createSelectSchema(mappingSessionParticipant);
 export const tagSchema = createSelectSchema(tags);
 export const mappingTagSessionSchema = createSelectSchema(mappingTagSession);
@@ -261,3 +276,11 @@ export const templateSchema = createSelectSchema(templates);
 export const chatGroupSchema = createSelectSchema(chatGroups);
 export const chatMessageSchema = createSelectSchema(chatMessages);
 export const memorySchema = createSelectSchema(memories);
+
+export const providerSpeakerIndexSchema = z.object({
+  speaker_index: z.number(),
+  provider: z.string().optional(),
+  channel: z.number().optional(),
+});
+
+export type ProviderSpeakerIndexHint = z.infer<typeof providerSpeakerIndexSchema>;

@@ -1,7 +1,8 @@
 import { generateText, type LanguageModel, smoothStream, streamText } from "ai";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { buildSegments } from "../../../../utils/segment";
+import { buildSegments, type SpeakerHint } from "../../../../utils/segment";
+import { parseProviderSpeakerIndex } from "../../../../utils/speaker-hints";
 import type { Store as PersistedStore } from "../../../tinybase/main";
 import { trimBeforeMarker } from "../shared/transform_impl";
 import type { TaskArgsMap, TaskConfig } from ".";
@@ -124,6 +125,8 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
   }
 
   const finalWords: any[] = [];
+  const wordIdToIndex = new Map<string, number>();
+  const speakerHints: SpeakerHint[] = [];
 
   transcriptIds.forEach((transcriptId) => {
     const transcriptStartedAt = transcriptMap.get(transcriptId) ?? 0;
@@ -133,6 +136,7 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
       if (wordTranscriptId === transcriptId) {
         const word = store.getRow("words", wordId);
         if (word) {
+          wordIdToIndex.set(wordId, finalWords.length);
           finalWords.push({
             ...word,
             transcriptStartedAt,
@@ -142,7 +146,31 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
     });
   });
 
-  const segments = buildSegments(finalWords, []);
+  store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
+    const type = store.getCell("speaker_hints", hintId, "type");
+    if (type !== "provider_speaker_index") {
+      return;
+    }
+
+    const wordId = store.getCell("speaker_hints", hintId, "word_id");
+    if (typeof wordId !== "string") {
+      return;
+    }
+
+    const value = store.getCell("speaker_hints", hintId, "value");
+    const parsed = parseProviderSpeakerIndex(value);
+    if (parsed) {
+      const wordIndex = wordIdToIndex.get(wordId);
+      if (typeof wordIndex === "number") {
+        speakerHints.push({
+          wordIndex,
+          speakerIndex: parsed.speaker_index,
+        });
+      }
+    }
+  });
+
+  const segments = buildSegments(finalWords, [], speakerHints);
 
   const sessionStartMs = transcriptIds.length > 0
     ? Math.min(...Array.from(transcriptMap.values()))

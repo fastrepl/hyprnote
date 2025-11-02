@@ -6,7 +6,9 @@ import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../contexts/listener";
 import * as main from "../../../../../../store/tinybase/main";
-import { buildSegments, PartialWord, Segment } from "../../../../../../utils/segment";
+import { buildSegments, PartialWord, Segment, SpeakerHint } from "../../../../../../utils/segment";
+import { parseProviderSpeakerIndex } from "../../../../../../utils/speaker-hints";
+import { SegmentHeader } from "./segment-header";
 
 export function TranscriptViewer({ sessionId }: { sessionId: string }) {
   const transcriptIds = main.UI.useSliceRowIds(
@@ -17,6 +19,7 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
 
   const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
   const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
+  const partialHints = useListener((state) => state.partialHints);
 
   const audioExists = useQuery({
     queryKey: ["audio", sessionId, "exist"],
@@ -51,6 +54,7 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
               <RenderTranscript
                 transcriptId={transcriptId}
                 partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
+                partialHints={(index === transcriptIds.length - 1) ? partialHints : []}
                 active={active}
                 audioExists={audioExists.data ?? false}
               />
@@ -98,17 +102,30 @@ function RenderTranscript(
   {
     transcriptId,
     partialWords,
+    partialHints,
     active,
     audioExists,
   }: {
     transcriptId: string;
     partialWords: PartialWord[];
+    partialHints: SpeakerHint[];
     active: boolean;
     audioExists: boolean;
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
-  const segments = buildSegments(finalWords, partialWords);
+  const finalSpeakerHints = useFinalSpeakerHints(transcriptId);
+
+  const allSpeakerHints = useMemo(() => {
+    const finalWordsCount = finalWords.length;
+    const adjustedPartialHints = partialHints.map((hint) => ({
+      ...hint,
+      wordIndex: finalWordsCount + hint.wordIndex,
+    }));
+    return [...finalSpeakerHints, ...adjustedPartialHints];
+  }, [finalWords.length, finalSpeakerHints, partialHints]);
+
+  const segments = buildSegments(finalWords, partialWords, allSpeakerHints);
   const offsetMs = useTranscriptOffset(transcriptId);
 
   if (segments.length === 0) {
@@ -157,19 +174,7 @@ function RenderSegment(
 
   return (
     <section>
-      <p
-        className={cn([
-          "sticky top-0 z-20",
-          "-mx-3 px-3 py-1",
-          "bg-background",
-          "border-b border-neutral-200",
-          "text-neutral-500 text-xs font-light",
-          "flex items-center justify-between",
-        ])}
-      >
-        <span>Channel {segment.key.channel}</span>
-        <span className="font-mono">{timestamp}</span>
-      </p>
+      <SegmentHeader segmentKey={segment.key} timestamp={timestamp} />
 
       <div className="mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere">
         {segment.words.map((word, idx) => {
@@ -205,7 +210,7 @@ function RenderSegment(
   );
 }
 
-function useFinalWords(transcriptId: string) {
+function useFinalWords(transcriptId: string): main.Word[] {
   const store = main.UI.useStore(main.STORE_ID);
   const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
 
@@ -223,6 +228,44 @@ function useFinalWords(transcriptId: string) {
     });
     return words;
   }, [store, wordIds]);
+}
+
+function useFinalSpeakerHints(transcriptId: string): SpeakerHint[] {
+  const store = main.UI.useStore(main.STORE_ID);
+  const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
+  const speakerHintIds = main.UI.useSliceRowIds(main.INDEXES.speakerHintsByTranscript, transcriptId, main.STORE_ID);
+
+  return useMemo(() => {
+    if (!store || !wordIds) {
+      return [];
+    }
+
+    const wordIdToIndex = new Map<string, number>();
+    wordIds.forEach((wordId, index) => {
+      wordIdToIndex.set(wordId, index);
+    });
+
+    const hints: SpeakerHint[] = [];
+    speakerHintIds?.forEach((hintId) => {
+      const hint = store.getRow("speaker_hints", hintId) as main.SpeakerHintStorage | undefined;
+      if (!hint || hint.type !== "provider_speaker_index") {
+        return;
+      }
+
+      const parsed = parseProviderSpeakerIndex(hint.value);
+      if (parsed && typeof hint.word_id === "string") {
+        const wordIndex = wordIdToIndex.get(hint.word_id);
+        if (typeof wordIndex === "number") {
+          hints.push({
+            wordIndex,
+            speakerIndex: parsed.speaker_index,
+          });
+        }
+      }
+    });
+
+    return hints;
+  }, [store, wordIds, speakerHintIds]);
 }
 
 function useTranscriptOffset(transcriptId: string): number {

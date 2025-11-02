@@ -1,15 +1,16 @@
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
-import type { StreamResponse, Word } from "@hypr/plugin-listener";
-import type { WordLike } from "../../../utils/segment";
+import type { Alternatives, StreamResponse } from "@hypr/plugin-listener";
+import type { SpeakerHint, WordLike } from "../../../utils/segment";
 
 type WordsByChannel = Record<number, WordLike[]>;
 
-export type HandlePersistCallback = (words: WordLike[]) => void;
+export type HandlePersistCallback = (words: WordLike[], hints: SpeakerHint[]) => void;
 
 export type TranscriptState = {
   partialWordsByChannel: WordsByChannel;
+  partialHints: SpeakerHint[];
   handlePersist?: HandlePersistCallback;
 };
 
@@ -21,6 +22,7 @@ export type TranscriptActions = {
 
 const initialState: TranscriptState = {
   partialWordsByChannel: {},
+  partialHints: [],
   handlePersist: undefined,
 };
 
@@ -31,39 +33,65 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
   const handleFinalWords = (
     channelIndex: number,
     words: WordLike[],
+    hints: SpeakerHint[],
   ): void => {
-    const { partialWordsByChannel, handlePersist } = get();
+    const { partialWordsByChannel, partialHints, handlePersist } = get();
 
+    const lastEndMs = getLastEndMs(words);
     const remaining = (partialWordsByChannel[channelIndex] ?? [])
-      .filter((word) => word.start_ms > getLastEndMs(words));
+      .filter((word) => word.start_ms > lastEndMs);
+
+    const remainingHints = partialHints.filter((hint) => {
+      const partialWords = partialWordsByChannel[channelIndex] ?? [];
+      const word = partialWords[hint.wordIndex];
+      return word && word.start_ms > lastEndMs;
+    });
 
     set((state) =>
       mutate(state, (draft) => {
         draft.partialWordsByChannel[channelIndex] = remaining;
+        draft.partialHints = remainingHints;
       })
     );
 
-    handlePersist?.(words);
+    handlePersist?.(words, hints);
   };
 
   const handlePartialWords = (
     channelIndex: number,
     words: WordLike[],
+    hints: SpeakerHint[],
   ): void => {
-    const { partialWordsByChannel } = get();
+    const { partialWordsByChannel, partialHints } = get();
     const existing = partialWordsByChannel[channelIndex] ?? [];
+
+    const firstStartMs = getFirstStartMs(words);
+    const lastEndMs = getLastEndMs(words);
 
     const [
       before,
       after,
     ] = [
-      existing.filter((word) => word.end_ms <= getFirstStartMs(words)),
-      existing.filter((word) => word.start_ms >= getLastEndMs(words)),
+      existing.filter((word) => word.end_ms <= firstStartMs),
+      existing.filter((word) => word.start_ms >= lastEndMs),
     ];
+
+    const newWords = [...before, ...words, ...after];
+
+    const hintsWithAdjustedIndices = hints.map((hint) => ({
+      ...hint,
+      wordIndex: before.length + hint.wordIndex,
+    }));
+
+    const filteredOldHints = partialHints.filter((hint) => {
+      const word = existing[hint.wordIndex];
+      return word && (word.end_ms <= firstStartMs || word.start_ms >= lastEndMs);
+    });
 
     set((state) =>
       mutate(state, (draft) => {
-        draft.partialWordsByChannel[channelIndex] = [...before, ...words, ...after];
+        draft.partialWordsByChannel[channelIndex] = newWords;
+        draft.partialHints = [...filteredOldHints, ...hintsWithAdjustedIndices];
       })
     );
   };
@@ -88,28 +116,29 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
         return;
       }
 
-      const words = transformWords(alternative.words ?? [], channelIndex);
+      const [words, hints] = transformWords(alternative, channelIndex);
       if (!words.length) {
         return;
       }
 
       if (response.is_final) {
-        handleFinalWords(channelIndex, words);
+        handleFinalWords(channelIndex, words, hints);
       } else {
-        handlePartialWords(channelIndex, words);
+        handlePartialWords(channelIndex, words, hints);
       }
     },
     resetTranscript: () => {
-      const { partialWordsByChannel, handlePersist } = get();
+      const { partialWordsByChannel, partialHints, handlePersist } = get();
 
       const remainingWords = Object.values(partialWordsByChannel).flat();
       if (remainingWords.length > 0) {
-        handlePersist?.(remainingWords);
+        handlePersist?.(remainingWords, partialHints);
       }
 
       set((state) =>
         mutate(state, (draft) => {
           draft.partialWordsByChannel = {};
+          draft.partialHints = [];
           draft.handlePersist = undefined;
         })
       );
@@ -121,20 +150,64 @@ const getLastEndMs = (words: WordLike[]): number => words[words.length - 1]?.end
 const getFirstStartMs = (words: WordLike[]): number => words[0]?.start_ms ?? 0;
 
 function transformWords(
-  rawWords: Word[],
+  alternative: Alternatives,
   channelIndex: number,
-): WordLike[] {
-  const result: WordLike[] = [];
+): [WordLike[], SpeakerHint[]] {
+  const words: WordLike[] = [];
+  const hints: SpeakerHint[] = [];
 
-  for (const word of rawWords) {
-    const text = word.word;
+  const textsWithSpacing = fixSpacingForWords(
+    (alternative.words ?? []).map((w) => w.punctuated_word ?? w.word),
+    alternative.transcript,
+  );
 
-    result.push({
+  for (let i = 0; i < alternative.words.length; i++) {
+    const word = alternative.words?.[i];
+    if (!word) {
+      continue;
+    }
+
+    const text = textsWithSpacing[i];
+
+    words.push({
       text,
       start_ms: Math.round(word.start * 1000),
       end_ms: Math.round(word.end * 1000),
       channel: channelIndex,
     });
+
+    if (typeof word.speaker === "number") {
+      hints.push({
+        wordIndex: i,
+        speakerIndex: word.speaker,
+      });
+    }
+  }
+
+  return [words, hints];
+}
+
+export function fixSpacingForWords(words: string[], transcript: string): string[] {
+  const result: string[] = [];
+  let pos = 0;
+
+  for (const [i, word] of words.entries()) {
+    const trimmed = word.trim();
+
+    if (!trimmed) {
+      result.push(word);
+      continue;
+    }
+
+    const foundAt = transcript.indexOf(trimmed, pos);
+    if (foundAt === -1) {
+      result.push(word);
+      continue;
+    }
+
+    const prefix = i === 0 ? " " : transcript.slice(pos, foundAt);
+    result.push(prefix + trimmed);
+    pos = foundAt + trimmed.length;
   }
 
   return result;

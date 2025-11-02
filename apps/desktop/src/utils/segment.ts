@@ -11,10 +11,22 @@ export type PartialWord = WordLike;
 
 export type SegmentWord = WordLike & { isFinal: boolean };
 
-export type SpeakerHint = {
+export type SpeakerHintData =
+  | { type: "provider_speaker_index"; speaker_index: number; provider?: string; channel?: number }
+  | { type: "user_correction"; human_id: string }
+  | { type: "confidence"; score: number };
+
+export type RuntimeSpeakerHint = {
   wordIndex: number;
-  speakerIndex: number;
+  data: SpeakerHintData;
 };
+
+export function getSpeakerIndex(hint: RuntimeSpeakerHint): number | undefined {
+  if (hint.data.type === "provider_speaker_index") {
+    return hint.data.speaker_index;
+  }
+  return undefined;
+}
 
 export type Segment<TWord extends SegmentWord = SegmentWord> = {
   key: SegmentKey;
@@ -34,7 +46,7 @@ export function buildSegments<
 >(
   finalWords: readonly TFinal[],
   partialWords: readonly TPartial[],
-  speakerHints: readonly SpeakerHint[] = [],
+  speakerHints: readonly RuntimeSpeakerHint[] = [],
 ): Segment[] {
   const allWords: SegmentWord[] = [
     ...finalWords.map((word) => ({
@@ -58,7 +70,7 @@ export function buildSegments<
 
 function createSpeakerTurns<TWord extends SegmentWord>(
   words: TWord[],
-  speakerHints: readonly SpeakerHint[],
+  speakerHints: readonly RuntimeSpeakerHint[],
 ): Segment<TWord>[] {
   const MAX_GAP_MS = 2000;
 
@@ -68,7 +80,10 @@ function createSpeakerTurns<TWord extends SegmentWord>(
 
   const speakerByIndex = new Map<number, number>();
   speakerHints.forEach((hint) => {
-    speakerByIndex.set(hint.wordIndex, hint.speakerIndex);
+    const speakerIndex = getSpeakerIndex(hint);
+    if (speakerIndex !== undefined) {
+      speakerByIndex.set(hint.wordIndex, speakerIndex);
+    }
   });
 
   const segments: Segment<TWord>[] = [];

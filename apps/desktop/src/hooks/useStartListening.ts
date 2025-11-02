@@ -59,6 +59,10 @@ export function useStartListening(sessionId: string) {
 
       if (conn.provider === "deepgram") {
         hints.forEach((hint) => {
+          if (hint.data.type !== "provider_speaker_index") {
+            return;
+          }
+
           const wordId = wordIds[hint.wordIndex];
           const word = words[hint.wordIndex];
           if (!wordId || !word) {
@@ -70,9 +74,9 @@ export function useStartListening(sessionId: string) {
             word_id: wordId,
             type: "provider_speaker_index",
             value: JSON.stringify({
-              provider: conn.provider,
-              channel: word.channel,
-              speaker_index: hint.speakerIndex,
+              provider: hint.data.provider ?? conn.provider,
+              channel: hint.data.channel ?? word.channel,
+              speaker_index: hint.data.speaker_index,
             }),
             user_id: user_id ?? "",
             created_at: new Date().toISOString(),

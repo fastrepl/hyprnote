@@ -1,8 +1,8 @@
 import { generateText, type LanguageModel, smoothStream, streamText } from "ai";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { buildSegments, type SpeakerHint } from "../../../../utils/segment";
-import { parseProviderSpeakerIndex } from "../../../../utils/speaker-hints";
+import { buildSegments, type RuntimeSpeakerHint } from "../../../../utils/segment";
+import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as PersistedStore } from "../../../tinybase/main";
 import { trimBeforeMarker } from "../shared/transform_impl";
 import type { TaskArgsMap, TaskConfig } from ".";
@@ -126,7 +126,7 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
 
   const finalWords: any[] = [];
   const wordIdToIndex = new Map<string, number>();
-  const speakerHints: SpeakerHint[] = [];
+  const storageHints: any[] = [];
 
   transcriptIds.forEach((transcriptId) => {
     const transcriptStartedAt = transcriptMap.get(transcriptId) ?? 0;
@@ -147,29 +147,13 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
   });
 
   store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
-    const type = store.getCell("speaker_hints", hintId, "type");
-    if (type !== "provider_speaker_index") {
-      return;
-    }
-
-    const wordId = store.getCell("speaker_hints", hintId, "word_id");
-    if (typeof wordId !== "string") {
-      return;
-    }
-
-    const value = store.getCell("speaker_hints", hintId, "value");
-    const parsed = parseProviderSpeakerIndex(value);
-    if (parsed) {
-      const wordIndex = wordIdToIndex.get(wordId);
-      if (typeof wordIndex === "number") {
-        speakerHints.push({
-          wordIndex,
-          speakerIndex: parsed.speaker_index,
-        });
-      }
+    const hint = store.getRow("speaker_hints", hintId);
+    if (hint) {
+      storageHints.push(hint);
     }
   });
 
+  const speakerHints: RuntimeSpeakerHint[] = convertStorageHintsToRuntime(storageHints, wordIdToIndex);
   const segments = buildSegments(finalWords, [], speakerHints);
 
   const sessionStartMs = transcriptIds.length > 0

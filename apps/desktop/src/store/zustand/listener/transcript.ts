@@ -2,15 +2,15 @@ import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
 import type { Alternatives, StreamResponse } from "@hypr/plugin-listener";
-import type { SpeakerHint, WordLike } from "../../../utils/segment";
+import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 
 type WordsByChannel = Record<number, WordLike[]>;
 
-export type HandlePersistCallback = (words: WordLike[], hints: SpeakerHint[]) => void;
+export type HandlePersistCallback = (words: WordLike[], hints: RuntimeSpeakerHint[]) => void;
 
 export type TranscriptState = {
   partialWordsByChannel: WordsByChannel;
-  partialHints: SpeakerHint[];
+  partialHints: RuntimeSpeakerHint[];
   handlePersist?: HandlePersistCallback;
 };
 
@@ -33,7 +33,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
   const handleFinalWords = (
     channelIndex: number,
     words: WordLike[],
-    hints: SpeakerHint[],
+    hints: RuntimeSpeakerHint[],
   ): void => {
     const { partialWordsByChannel, partialHints, handlePersist } = get();
 
@@ -60,7 +60,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
   const handlePartialWords = (
     channelIndex: number,
     words: WordLike[],
-    hints: SpeakerHint[],
+    hints: RuntimeSpeakerHint[],
   ): void => {
     const { partialWordsByChannel, partialHints } = get();
     const existing = partialWordsByChannel[channelIndex] ?? [];
@@ -152,9 +152,9 @@ const getFirstStartMs = (words: WordLike[]): number => words[0]?.start_ms ?? 0;
 function transformWords(
   alternative: Alternatives,
   channelIndex: number,
-): [WordLike[], SpeakerHint[]] {
+): [WordLike[], RuntimeSpeakerHint[]] {
   const words: WordLike[] = [];
-  const hints: SpeakerHint[] = [];
+  const hints: RuntimeSpeakerHint[] = [];
 
   const textsWithSpacing = fixSpacingForWords(
     (alternative.words ?? []).map((w) => w.punctuated_word ?? w.word),
@@ -179,7 +179,10 @@ function transformWords(
     if (typeof word.speaker === "number") {
       hints.push({
         wordIndex: i,
-        speakerIndex: word.speaker,
+        data: {
+          type: "provider_speaker_index",
+          speaker_index: word.speaker,
+        },
       });
     }
   }

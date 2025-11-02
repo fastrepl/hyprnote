@@ -166,9 +166,9 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, speakerIndex: 0 },
-        { wordIndex: 1, speakerIndex: 1 },
-        { wordIndex: 2, speakerIndex: 0 },
+        { wordIndex: 0, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
+        { wordIndex: 1, data: { type: "provider_speaker_index" as const, speaker_index: 1 } },
+        { wordIndex: 2, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
       ],
       expected: [
         expect.objectContaining({

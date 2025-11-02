@@ -4,8 +4,14 @@ import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../../contexts/listener";
 import * as main from "../../../../../../../store/tinybase/main";
-import { buildSegments, PartialWord, Segment, SegmentWord, SpeakerHint } from "../../../../../../../utils/segment";
-import { parseProviderSpeakerIndex } from "../../../../../../../utils/speaker-hints";
+import {
+  buildSegments,
+  PartialWord,
+  RuntimeSpeakerHint,
+  Segment,
+  SegmentWord,
+} from "../../../../../../../utils/segment";
+import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
 import { SegmentHeader } from "./segment-header";
 
 export function TranscriptViewer({ sessionId }: { sessionId: string }) {
@@ -91,7 +97,7 @@ function RenderTranscript(
   }: {
     transcriptId: string;
     partialWords: PartialWord[];
-    partialHints: SpeakerHint[];
+    partialHints: RuntimeSpeakerHint[];
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
@@ -176,7 +182,7 @@ function RenderSegment(
               onClick={() => seekAndPlay(word)}
               className={cn([
                 audioExists && "cursor-pointer",
-                audioExists && highlightState === "none" && "hover:bg-neutral-200/60",
+                audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
                 !word.isFinal && ["opacity-60", "italic"],
                 highlightState === "current" && "bg-blue-200/70",
                 highlightState === "buffer" && "bg-blue-200/30",
@@ -211,7 +217,7 @@ function useFinalWords(transcriptId: string): main.Word[] {
   }, [store, wordIds]);
 }
 
-function useFinalSpeakerHints(transcriptId: string): SpeakerHint[] {
+function useFinalSpeakerHints(transcriptId: string): RuntimeSpeakerHint[] {
   const store = main.UI.useStore(main.STORE_ID);
   const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
   const speakerHintIds = main.UI.useSliceRowIds(main.INDEXES.speakerHintsByTranscript, transcriptId, main.STORE_ID);
@@ -226,26 +232,15 @@ function useFinalSpeakerHints(transcriptId: string): SpeakerHint[] {
       wordIdToIndex.set(wordId, index);
     });
 
-    const hints: SpeakerHint[] = [];
+    const storageHints: main.SpeakerHintStorage[] = [];
     speakerHintIds?.forEach((hintId) => {
       const hint = store.getRow("speaker_hints", hintId) as main.SpeakerHintStorage | undefined;
-      if (!hint || hint.type !== "provider_speaker_index") {
-        return;
-      }
-
-      const parsed = parseProviderSpeakerIndex(hint.value);
-      if (parsed && typeof hint.word_id === "string") {
-        const wordIndex = wordIdToIndex.get(hint.word_id);
-        if (typeof wordIndex === "number") {
-          hints.push({
-            wordIndex,
-            speakerIndex: parsed.speaker_index,
-          });
-        }
+      if (hint) {
+        storageHints.push(hint);
       }
     });
 
-    return hints;
+    return convertStorageHintsToRuntime(storageHints, wordIdToIndex);
   }, [store, wordIds, speakerHintIds]);
 }
 

@@ -160,21 +160,9 @@ function RenderSegment(
   const { time, seek } = useAudioPlayer();
   const currentMs = time.current * 1000;
 
-  const timestamp = useMemo(() => {
-    if (segment.words.length === 0) {
-      return "00:00 - 00:00";
-    }
-
-    const firstWord = segment.words[0];
-    const lastWord = segment.words[segment.words.length - 1];
-
-    const [from, to] = [firstWord.start_ms, lastWord.end_ms].map(formatTimestamp);
-    return `${from} - ${to}`;
-  }, [segment.words.length]);
-
   return (
     <section>
-      <SegmentHeader segmentKey={segment.key} timestamp={timestamp} />
+      <SegmentHeader segment={segment} />
 
       <div className="mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere">
         {segment.words.map((word, idx) => {
@@ -343,7 +331,7 @@ function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
     }
 
     const isAtTop = element.scrollTop === 0;
-    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 200;
+    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 400;
 
     if (isAtTop || isNearBottom) {
       element.scrollTop = element.scrollHeight;
@@ -351,19 +339,6 @@ function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
   }, deps);
 
   return ref;
-}
-
-function formatTimestamp(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  }
-
-  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
 function getWordHighlightState(

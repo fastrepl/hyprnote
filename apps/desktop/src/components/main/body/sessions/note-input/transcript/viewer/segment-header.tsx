@@ -1,15 +1,36 @@
-import { useMemo } from "react";
+import chroma from "chroma-js";
+import { useCallback, useMemo } from "react";
 
 import { cn } from "@hypr/utils";
 import type { Segment } from "../../../../../../../utils/segment";
 
-type SegmentHeaderProps = {
-  segmentKey: Segment["key"];
-  timestamp: string;
-};
+export function SegmentHeader({ segment }: { segment: Segment }) {
+  const formatTimestamp = useCallback((ms: number): string => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
 
-export function SegmentHeader({ segmentKey, timestamp }: SegmentHeaderProps) {
-  const colors = useSegmentColors(segmentKey);
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    }
+
+    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  }, []);
+
+  const timestamp = useMemo(() => {
+    if (segment.words.length === 0) {
+      return "00:00 - 00:00";
+    }
+
+    const firstWord = segment.words[0];
+    const lastWord = segment.words[segment.words.length - 1];
+
+    const [from, to] = [firstWord.start_ms, lastWord.end_ms].map(formatTimestamp);
+    return `${from} - ${to}`;
+  }, [segment.words.length, formatTimestamp]);
+
+  const colors = useSegmentColors(segment.key);
 
   return (
     <p
@@ -22,73 +43,30 @@ export function SegmentHeader({ segmentKey, timestamp }: SegmentHeaderProps) {
         "flex items-center justify-between",
       ])}
     >
-      <span className="flex items-center gap-2">
-        <span className={colors.channelColor}>{colors.channelLabel}</span>
-        {colors.speakerLabel && (
-          <>
-            <span className="text-neutral-400">•</span>
-            <span className={colors.speakerColor}>{colors.speakerLabel}</span>
-          </>
-        )}
-      </span>
+      <span style={{ color: colors.color }}>{colors.label}</span>
       <span className="font-mono text-neutral-500">{timestamp}</span>
     </p>
   );
 }
 
 function useSegmentColors(key: Segment["key"]) {
-  return useMemo(() => getSegmentColors(key), [key]);
-}
+  return useMemo(() => {
+    const speakerIndex = key._tag === "ChannelSpeaker" ? key.speakerIndex : 0;
 
-type ColorTheme = {
-  base: string;
-  speakers: readonly string[];
-};
+    const channelPalettes = [
+      [10, 25, 0, 340, 15, 350],
+      [285, 305, 270, 295, 315, 280],
+    ];
 
-const CHANNEL_THEMES: readonly ColorTheme[] = [
-  {
-    base: "text-blue-600",
-    speakers: ["text-blue-700", "text-blue-500", "text-sky-600", "text-indigo-600", "text-cyan-600"],
-  },
-  {
-    base: "text-purple-600",
-    speakers: ["text-purple-700", "text-purple-500", "text-violet-600", "text-fuchsia-600", "text-pink-600"],
-  },
-  {
-    base: "text-emerald-600",
-    speakers: ["text-emerald-700", "text-emerald-500", "text-teal-600", "text-green-600", "text-lime-600"],
-  },
-  {
-    base: "text-amber-600",
-    speakers: ["text-amber-700", "text-amber-500", "text-orange-600", "text-yellow-600", "text-rose-600"],
-  },
-] as const;
+    const hues = channelPalettes[key.channel % 2];
+    const hue = hues[speakerIndex % hues.length];
 
-function getSegmentColors(key: Segment["key"]): {
-  channelColor: string;
-  speakerColor: string;
-  channelLabel: string;
-  speakerLabel: string | null;
-} {
-  const theme = CHANNEL_THEMES[key.channel % CHANNEL_THEMES.length];
-  const channelLabel = `Channel ${key.channel}`;
-
-  if (key._tag === "ChannelSpeaker") {
-    const speakerColor = theme.speakers[key.speakerIndex % theme.speakers.length];
-    const speakerLabel = `Speaker ${key.speakerIndex + 1}`;
+    const light = 0.55;
+    const chromaVal = 0.15;
 
     return {
-      channelColor: theme.base,
-      speakerColor,
-      channelLabel,
-      speakerLabel,
+      color: chroma.oklch(light, chromaVal, hue).hex(),
+      label: key._tag === "ChannelSpeaker" ? `Speaker ${key.speakerIndex + 1}` : `Speaker ${key.channel}`,
     };
-  }
-
-  return {
-    channelColor: theme.base,
-    speakerColor: "",
-    channelLabel,
-    speakerLabel: null,
-  };
+  }, [key]);
 }

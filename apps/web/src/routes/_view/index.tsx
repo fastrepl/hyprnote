@@ -1,8 +1,9 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { allArticles } from "content-collections";
+import { useEffect, useRef, useState } from "react";
 
 import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
@@ -41,7 +42,8 @@ const mainFeatures = [
     icon: "mdi:window-restore",
     title: "Floating Panel",
     description: "Compact notepad with transcript, summary, and chat during meetings",
-    videoType: "player" as const,
+    videoType: "image" as const,
+    comingSoon: true,
   },
   {
     icon: "mdi:calendar-check-outline",
@@ -60,12 +62,6 @@ const detailsFeatures = [
     comingSoon: false,
   },
   {
-    icon: "mdi:upload-outline",
-    title: "Upload Audio",
-    description: "Import audio files or transcripts to convert into notes",
-    comingSoon: false,
-  },
-  {
     icon: "mdi:account-multiple-outline",
     title: "Contacts",
     description: "Organize and manage your contacts with ease",
@@ -76,6 +72,12 @@ const detailsFeatures = [
     title: "Calendar",
     description: "Stay on top of your schedule with integrated calendar",
     comingSoon: false,
+  },
+  {
+    icon: "mdi:upload-outline",
+    title: "Upload Audio",
+    description: "Import audio files or transcripts to convert into notes",
+    comingSoon: true,
   },
   {
     icon: "mdi:bookshelf",
@@ -95,6 +97,7 @@ function Component() {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const detailsScrollRef = useRef<HTMLDivElement>(null);
   const featuresScrollRef = useRef<HTMLDivElement>(null);
+  const heroInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToDetail = (index: number) => {
     setSelectedDetail(index);
@@ -118,7 +121,11 @@ function Component() {
     <main className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen">
       <div className="max-w-6xl mx-auto border-x border-neutral-100">
         <YCombinatorBanner />
-        <HeroSection onVideoExpand={setExpandedVideo} />
+        <HeroSection
+          onVideoExpand={setExpandedVideo}
+          heroInputRef={heroInputRef}
+        />
+        <CoolStuffSection />
         <TestimonialsSection />
         <FeaturesIntroSection />
         <MainFeaturesSection
@@ -137,7 +144,8 @@ function Component() {
         />
         <GitHubOpenSource />
         <ManifestoSection />
-        <CTASection />
+        <BlogSection />
+        <CTASection heroInputRef={heroInputRef} />
       </div>
       <VideoModal
         playbackId={expandedVideo || ""}
@@ -177,7 +185,44 @@ function YCombinatorBanner() {
   );
 }
 
-function HeroSection({ onVideoExpand }: { onVideoExpand: (id: string) => void }) {
+function HeroSection({
+  onVideoExpand,
+  heroInputRef,
+}: {
+  onVideoExpand: (id: string) => void;
+  heroInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const platform = usePlatform();
+  const heroCTA = getHeroCTA(platform);
+  const heroContext = useHeroContext();
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [shake, setShake] = useState(false);
+
+  useEffect(() => {
+    if (heroContext && heroInputRef.current) {
+      heroContext.setOnTrigger(() => {
+        if (heroInputRef.current) {
+          heroInputRef.current.focus();
+          setShake(true);
+          setTimeout(() => setShake(false), 500);
+        }
+      });
+    }
+  }, [heroContext, heroInputRef]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    window.open(`https://tally.so/r/mJaRDY?email=${encodeURIComponent(email)}`, "_blank");
+    setIsSubmitting(false);
+  };
+
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <div className="flex flex-col items-center text-center">
@@ -192,19 +237,62 @@ function HeroSection({ onVideoExpand }: { onVideoExpand: (id: string) => void })
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <JoinWaitlistButton />
-            <p className="text-neutral-500">
-              Free and{" "}
-              <a
-                className="decoration-dotted underline hover:text-stone-600 transition-all"
-                href="https://github.com/fastrepl/hyprnote"
-                target="_blank"
-              >
-                open source
-              </a>
-            </p>
-          </div>
+          {heroCTA.showInput
+            ? (
+              // Windows, Linux, Mobile: Show email input with button inside
+              <form onSubmit={handleSubmit} className="w-full max-w-md">
+                <div
+                  className={cn(
+                    "relative flex items-center border-2 rounded-full overflow-hidden transition-all duration-200",
+                    shake && "animate-shake border-stone-600",
+                    !shake && "border-neutral-200 focus-within:border-stone-500",
+                  )}
+                >
+                  <input
+                    ref={heroInputRef}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={heroCTA.inputPlaceholder}
+                    className="flex-1 px-6 py-4 text-base outline-none bg-white"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="absolute right-1 px-6 py-3 text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50"
+                  >
+                    {heroCTA.buttonLabel}
+                  </button>
+                </div>
+                <p className="text-neutral-500 mt-4">
+                  Free and{" "}
+                  <a
+                    className="decoration-dotted underline hover:text-stone-600 transition-all"
+                    href="https://github.com/fastrepl/hyprnote"
+                    target="_blank"
+                  >
+                    open source
+                  </a>
+                </p>
+              </form>
+            )
+            : (
+              // Mac: Show download button
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
+                <JoinWaitlistButton />
+                <p className="text-neutral-500">
+                  Free and{" "}
+                  <a
+                    className="decoration-dotted underline hover:text-stone-600 transition-all"
+                    href="https://github.com/fastrepl/hyprnote"
+                    target="_blank"
+                  >
+                    open source
+                  </a>
+                </p>
+              </div>
+            )}
         </section>
 
         <div className="relative aspect-video w-full max-w-4xl border-t border-neutral-100 md:hidden overflow-hidden">
@@ -456,6 +544,63 @@ function FeaturesIntroSection() {
   );
 }
 
+function CoolStuffSection() {
+  return (
+    <section className="border-t border-neutral-100">
+      <div className="border-b border-neutral-100 bg-neutral-50 h-4" />
+      <div className="text-center border-b border-neutral-100">
+        <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
+          What makes Hyprnote different
+        </p>
+      </div>
+
+      <div className="hidden md:grid md:grid-cols-2">
+        <div className="p-8 border-r border-neutral-100 flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-3">
+            <Icon icon="mdi:robot-off-outline" className="text-3xl text-stone-600" />
+            <h3 className="text-2xl font-serif text-stone-600">No bots</h3>
+          </div>
+          <p className="text-base text-neutral-600 leading-relaxed">
+            Hyprnote is a desktop app that listens to sounds coming in & out of your computer. No need for a bot to join
+            your meetings.
+          </p>
+        </div>
+        <div className="p-8 flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-3">
+            <Icon icon="mdi:wifi-off" className="text-3xl text-stone-600" />
+            <h3 className="text-2xl font-serif text-stone-600">Work offline</h3>
+          </div>
+          <p className="text-base text-neutral-600 leading-relaxed">
+            Hyprnote is local-first, which means you can take meeting notes without any blockers.
+          </p>
+        </div>
+      </div>
+
+      <div className="md:hidden">
+        <div className="p-6 border-b border-neutral-100">
+          <div className="flex items-center gap-3 mb-3">
+            <Icon icon="mdi:robot-off-outline" className="text-2xl text-stone-600" />
+            <h3 className="text-xl font-serif text-stone-600">No bots</h3>
+          </div>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            Hyprnote is a desktop app that listens to sounds coming in & out of your computer. No need for a bot to join
+            your meetings.
+          </p>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <Icon icon="mdi:wifi-off" className="text-2xl text-stone-600" />
+            <h3 className="text-xl font-serif text-stone-600">Work offline</h3>
+          </div>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            Hyprnote is local-first, which means you can take meeting notes without any blockers.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function MainFeaturesSection({
   featuresScrollRef,
   selectedFeature,
@@ -531,7 +676,7 @@ function FeaturesMobileCarousel({
                     )}
                 </div>
                 <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-between gap-2 mb-2">
                     <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
@@ -628,16 +773,17 @@ function FeaturesDesktopGrid({ onVideoExpand }: { onVideoExpand: (id: string) =>
 
       <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
         <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-          <VideoPlayer
-            playbackId={MUX_PLAYBACK_ID}
-            onLearnMore={() => window.location.href = "#"}
-            onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
-          />
+          <img src="/static.gif" alt="Floating Panel feature" className="w-full h-full object-cover" />
         </div>
         <div className="p-6 flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Icon icon="mdi:window-restore" className="text-2xl text-stone-600" />
-            <h3 className="text-lg font-serif text-stone-600">Floating Panel</h3>
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-3">
+              <Icon icon="mdi:window-restore" className="text-2xl text-stone-600" />
+              <h3 className="text-lg font-serif text-stone-600">Floating Panel</h3>
+            </div>
+            <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+              Coming Soon
+            </span>
           </div>
           <p className="text-sm text-neutral-600">
             Compact notepad with transcript, summary, and chat during meetings
@@ -650,9 +796,11 @@ function FeaturesDesktopGrid({ onVideoExpand }: { onVideoExpand: (id: string) =>
           <img src="/static.gif" alt="Daily Note feature" className="w-full h-full object-cover" />
         </div>
         <div className="p-6 flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Icon icon="mdi:calendar-check-outline" className="text-2xl text-stone-600" />
-            <h3 className="text-lg font-serif text-stone-600">Daily Note</h3>
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-3">
+              <Icon icon="mdi:calendar-check-outline" className="text-2xl text-stone-600" />
+              <h3 className="text-lg font-serif text-stone-600">Daily Note</h3>
+            </div>
             <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
               Coming Soon
             </span>
@@ -742,14 +890,24 @@ function DetailsMobileCarousel({
             <div key={index} className="w-full shrink-0 snap-center px-4">
               <div className="border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
                 <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-                  <VideoPlayer
-                    playbackId={MUX_PLAYBACK_ID}
-                    onLearnMore={() => window.location.href = "#"}
-                    onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
-                  />
+                  {feature.comingSoon
+                    ? (
+                      <img
+                        src="/static.gif"
+                        alt={`${feature.title} feature`}
+                        className="w-full h-full object-cover"
+                      />
+                    )
+                    : (
+                      <VideoPlayer
+                        playbackId={MUX_PLAYBACK_ID}
+                        onLearnMore={() => window.location.href = "#"}
+                        onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
+                      />
+                    )}
                 </div>
                 <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-between gap-2 mb-2">
                     <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
@@ -810,7 +968,7 @@ function DetailsTabletView({
                 )}
               >
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center justify-between gap-2 mb-1">
                     <h3 className="text-base font-serif font-medium text-stone-600">{feature.title}</h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
@@ -827,11 +985,21 @@ function DetailsTabletView({
 
         <div className="pt-4 pb-4">
           <div className="border border-neutral-100 rounded-sm overflow-hidden aspect-video">
-            <VideoPlayer
-              playbackId={MUX_PLAYBACK_ID}
-              onLearnMore={() => window.location.href = "#"}
-              onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
-            />
+            {detailsFeatures[selectedDetail].comingSoon
+              ? (
+                <img
+                  src="/static.gif"
+                  alt={`${detailsFeatures[selectedDetail].title} feature`}
+                  className="w-full h-full object-cover"
+                />
+              )
+              : (
+                <VideoPlayer
+                  playbackId={MUX_PLAYBACK_ID}
+                  onLearnMore={() => window.location.href = "#"}
+                  onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
+                />
+              )}
           </div>
         </div>
       </div>
@@ -852,19 +1020,19 @@ function DetailsDesktopView({ onVideoExpand }: { onVideoExpand: (id: string) => 
               "hover:bg-neutral-50",
             )}
           >
-            <div className="flex items-start gap-3">
-              <Icon icon={feature.icon} className="text-2xl text-stone-600 mt-0.5" />
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-base font-serif font-medium text-stone-600">{feature.title}</h3>
-                  {feature.comingSoon && (
-                    <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
-                      Coming Soon
-                    </span>
-                  )}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <Icon icon={feature.icon} className="text-2xl text-stone-600 mt-0.5" />
+                <div>
+                  <h3 className="text-base font-serif font-medium text-stone-600 mb-1">{feature.title}</h3>
+                  <p className="text-sm text-neutral-600">{feature.description}</p>
                 </div>
-                <p className="text-sm text-neutral-600">{feature.description}</p>
               </div>
+              {feature.comingSoon && (
+                <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full whitespace-nowrap">
+                  Coming Soon
+                </span>
+              )}
             </div>
           </div>
         ))}
@@ -883,7 +1051,7 @@ function DetailsDesktopView({ onVideoExpand }: { onVideoExpand: (id: string) => 
 
 function ManifestoSection() {
   return (
-    <section className="py-16 border-t border-neutral-100 px-4 laptop:px-0">
+    <section className="py-16 border-t border-neutral-100 px-4 laptop:px-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-[size:24px_24px] bg-[position:12px_12px,12px_12px]">
       <div className="max-w-4xl mx-auto">
         <div
           className="border border-neutral-200 p-4"
@@ -898,7 +1066,7 @@ function ManifestoSection() {
             <div className="space-y-4 text-neutral-700 leading-relaxed">
               <p>
                 We believe in the power of notetaking, not notetakers. Meetings should be moments of presence, not
-                passive attendance. If you are not adding value, your time is better spent elsewhere for you and your
+                passive attendance. If you are not added value, your time is better spent elsewhere for you and your
                 team.
               </p>
               <p>
@@ -943,10 +1111,136 @@ function ManifestoSection() {
   );
 }
 
-function CTASection() {
+function BlogSection() {
+  const sortedArticles = [...allArticles]
+    .sort((a, b) => {
+      const aDate = a.updated || a.created;
+      const bDate = b.updated || b.created;
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    })
+    .slice(0, 3); // Show only 3 latest articles
+
+  if (sortedArticles.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="border-t border-neutral-100 px-4 laptop:px-0">
+      <div className="border-b border-neutral-100 bg-neutral-50 h-4 mb-16" />
+      <div className="text-center mb-12">
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">Latest from our blog</h2>
+        <p className="text-neutral-600 max-w-lg mx-auto">
+          Insights, updates, and stories from the Hyprnote team
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {sortedArticles.map((article) => {
+          const displayDate = article.updated || article.created;
+          return (
+            <Link
+              key={article._meta.filePath}
+              to="/blog/$slug"
+              params={{ slug: article.slug }}
+              className="group block h-full"
+            >
+              <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
+                {article.coverImage && (
+                  <div className="aspect-video overflow-hidden border-b border-neutral-100 bg-stone-50">
+                    <img
+                      src={article.coverImage}
+                      alt={article.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+
+                <div className="p-6 flex flex-col flex-1">
+                  <h3 className="text-xl font-serif text-stone-600 mb-2 group-hover:text-stone-800 transition-colors line-clamp-2">
+                    {article.title}
+                  </h3>
+
+                  <p className="text-sm text-neutral-600 leading-relaxed mb-4 line-clamp-3 flex-1">
+                    {article.summary}
+                  </p>
+
+                  <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
+                    <time dateTime={displayDate} className="text-xs text-neutral-500">
+                      {new Date(displayDate).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </time>
+
+                    <span className="text-xs text-neutral-500 group-hover:text-stone-600 transition-colors font-medium">
+                      Read →
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="text-center mt-8">
+        <Link
+          to="/blog"
+          className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium transition-colors"
+        >
+          View all articles
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+            className="h-4 w-4"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </Link>
+      </div>
+
+      <div className="border-t border-neutral-100 bg-neutral-50 h-4 mt-16" />
+    </section>
+  );
+}
+
+function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputElement | null> }) {
+  const platform = usePlatform();
+  const platformCTA = getPlatformCTA(platform);
+
+  // Get the appropriate button label based on platform
+  const getButtonLabel = () => {
+    if (platform === "mobile") {
+      return "Get reminder";
+    }
+    return platformCTA.label;
+  };
+
+  const handleCTAClick = () => {
+    if (platformCTA.action === "waitlist") {
+      // Scroll to hero input and focus
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => {
+        if (heroInputRef.current) {
+          heroInputRef.current.focus();
+          // Trigger shake animation
+          heroInputRef.current.parentElement?.classList.add("animate-shake", "border-stone-600");
+          setTimeout(() => {
+            heroInputRef.current?.parentElement?.classList.remove("animate-shake", "border-stone-600");
+          }, 500);
+        }
+      }, 500);
+    }
+  };
+
   return (
     <section className="py-16 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
-      <div className="flex flex-col gap-6 items-center">
+      <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <img
             src="/hyprnote/icon.png"
@@ -955,14 +1249,42 @@ function CTASection() {
           />
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif">
-          Where conversations stay yours
+          Where conversations<br className="sm:hidden" /> stay yours
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
           Start using Hyprnote today and bring clarity to your back-to-back meetings
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <DownloadButton />
-          <GithubStars />
+          {platformCTA.action === "download" ? <DownloadButton /> : (
+            <button
+              onClick={handleCTAClick}
+              className={cn([
+                "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+                "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+                "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                "transition-all",
+              ])}
+            >
+              {getButtonLabel()}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+            </button>
+          )}
+          <div className="hidden sm:block">
+            <GithubStars />
+          </div>
         </div>
       </div>
     </section>

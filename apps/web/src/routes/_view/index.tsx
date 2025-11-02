@@ -13,8 +13,10 @@ import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
 import { VideoPlayer } from "@/components/video-player";
 import { VideoThumbnail } from "@/components/video-thumbnail";
+import { getHeroCTA, getPlatformCTA, usePlatform } from "@/hooks/use-platform";
+import { useHeroContext } from "./route";
 
-const MUX_PLAYBACK_ID = "SGv6JaZsKqF50102xk6no2ybUqqSyngeWO401ic8qJdZR4";
+const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 
 const mainFeatures = [
   {

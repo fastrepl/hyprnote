@@ -8,7 +8,7 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig(() => ({
   plugins: [
-    netlify(),
+    netlify({ dev: { images: { enabled: true } } }),
     contentCollections(),
     viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),

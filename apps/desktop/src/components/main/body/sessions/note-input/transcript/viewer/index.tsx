@@ -1,7 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { DependencyList, Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
 import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../../contexts/listener";
@@ -20,17 +18,6 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
   const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
   const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
   const partialHints = useListener((state) => state.partialHints);
-
-  const audioExists = useQuery({
-    queryKey: ["audio", sessionId, "exist"],
-    queryFn: () => miscCommands.audioExist(sessionId),
-    select: (result) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
 
   const { containerRef, isAtBottom, scrollToBottom } = useScrollToBottom([transcriptIds]);
 
@@ -56,7 +43,6 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
                 partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
                 partialHints={(index === transcriptIds.length - 1) ? partialHints : []}
                 active={active}
-                audioExists={audioExists.data ?? false}
               />
               {index < transcriptIds.length - 1 && <TranscriptSeparator />}
             </Fragment>
@@ -104,13 +90,11 @@ function RenderTranscript(
     partialWords,
     partialHints,
     active,
-    audioExists,
   }: {
     transcriptId: string;
     partialWords: PartialWord[];
     partialHints: SpeakerHint[];
     active: boolean;
-    audioExists: boolean;
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
@@ -141,7 +125,6 @@ function RenderTranscript(
             segment={segment}
             offsetMs={offsetMs}
             active={active}
-            audioExists={audioExists}
           />
         ),
       )}
@@ -150,14 +133,17 @@ function RenderTranscript(
 }
 
 function RenderSegment(
-  { segment, offsetMs, active, audioExists }: {
+  {
+    segment,
+    offsetMs,
+    active,
+  }: {
     segment: Segment;
     offsetMs: number;
     active: boolean;
-    audioExists: boolean;
   },
 ) {
-  const { time, seek } = useAudioPlayer();
+  const { time, seek, audioExists } = useAudioPlayer();
   const currentMs = time.current * 1000;
 
   return (

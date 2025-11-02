@@ -132,6 +132,8 @@ fn init_environment() -> minijinja::Environment<'static> {
 
     {
         env.add_filter("transcript", filters::transcript);
+        env.add_filter("url", filters::url);
+
         env.add_test("todo", testers::todo("dynamic"));
     }
 

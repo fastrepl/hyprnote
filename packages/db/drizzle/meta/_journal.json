@@ -8,6 +8,13 @@
       "when": 1761390726907,
       "tag": "0000_tan_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1762065600000,
+      "tag": "0001_speaker_hints",
+      "breakpoints": true
     }
   ]
 }

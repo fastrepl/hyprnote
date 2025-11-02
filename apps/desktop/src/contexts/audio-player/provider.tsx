@@ -1,5 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
+
+import { commands as miscCommands } from "@hypr/plugin-misc";
 
 type AudioPlayerState = "playing" | "paused" | "stopped";
 
@@ -13,6 +16,7 @@ interface AudioPlayerContextValue {
   resume: () => void;
   stop: () => void;
   seek: (sec: number) => void;
+  audioExists: boolean;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);
@@ -26,9 +30,11 @@ export function useAudioPlayer() {
 }
 
 export function AudioPlayerProvider({
+  sessionId,
   url,
   children,
 }: {
+  sessionId: string;
   url: string;
   children: ReactNode;
 }) {
@@ -37,6 +43,17 @@ export function AudioPlayerProvider({
   const [state, setState] = useState<AudioPlayerState>("stopped");
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+
+  const audioExists = useQuery({
+    queryKey: ["audio", sessionId, "exist"],
+    queryFn: () => miscCommands.audioExist(sessionId),
+    select: (result) => {
+      if (result.status === "error") {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
 
   const registerContainer = useCallback((el: HTMLDivElement | null) => {
     setContainer((prev) => (prev === el ? prev : el));
@@ -145,6 +162,7 @@ export function AudioPlayerProvider({
         resume,
         stop,
         seek,
+        audioExists: audioExists.data ?? false,
       }}
     >
       {children}

@@ -13,6 +13,7 @@ import {
   memorySchema as baseMemorySchema,
   organizationSchema as baseOrganizationSchema,
   sessionSchema as baseSessionSchema,
+  speakerHintSchema as baseSpeakerHintSchema,
   tagSchema as baseTagSchema,
   templateSchema as baseTemplateSchema,
   transcriptSchema as baseTranscriptSchema,
@@ -98,6 +99,14 @@ export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
   metadata: z.preprocess(val => val ?? undefined, jsonObject(z.record(z.string(), z.unknown())).optional()),
 });
 
+export const speakerHintSchemaOverride = baseSpeakerHintSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  transcript_id: z.string(),
+  word_id: z.string(),
+  type: z.string(),
+  value: jsonObject(z.record(z.string(), z.unknown())),
+});
+
 export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
 export type Calendar = z.infer<typeof calendarSchema>;
@@ -106,6 +115,7 @@ export type Folder = z.infer<typeof folderSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type Transcript = z.infer<typeof transcriptSchema>;
 export type Word = z.infer<typeof wordSchemaOverride>;
+export type SpeakerHint = z.infer<typeof speakerHintSchemaOverride>;
 export type mappingSessionParticipant = z.infer<typeof mappingSessionParticipantSchema>;
 export type Tag = z.infer<typeof tagSchema>;
 export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
@@ -118,6 +128,7 @@ export type Memory = z.infer<typeof memorySchema>;
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
 export type WordStorage = ToStorageType<typeof wordSchemaOverride>;
+export type SpeakerHintStorage = ToStorageType<typeof speakerHintSchemaOverride>;
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
 export type MemoryStorage = ToStorageType<typeof memorySchema>;
@@ -154,6 +165,14 @@ export const externalTableSchemaForTinybase = {
     channel: { type: "number" },
     metadata: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof wordSchemaOverride>,
+  speaker_hints: {
+    user_id: { type: "string" },
+    created_at: { type: "string" },
+    transcript_id: { type: "string" },
+    word_id: { type: "string" },
+    type: { type: "string" },
+    value: { type: "string" },
+  } satisfies InferTinyBaseSchema<typeof speakerHintSchemaOverride>,
   humans: {
     user_id: { type: "string" },
     created_at: { type: "string" },

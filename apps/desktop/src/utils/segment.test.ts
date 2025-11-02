@@ -158,6 +158,34 @@ describe("buildSegments", () => {
       ],
     },
     {
+      name: "splits segments by speaker within same channel",
+      finalWords: [
+        { text: "hi", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "hello", start_ms: 150, end_ms: 250, channel: 0 },
+        { text: "again", start_ms: 300, end_ms: 400, channel: 0 },
+      ],
+      partialWords: [],
+      speakerHints: [
+        { wordIndex: 0, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
+        { wordIndex: 1, data: { type: "provider_speaker_index" as const, speaker_index: 1 } },
+        { wordIndex: 2, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
+      ],
+      expected: [
+        expect.objectContaining({
+          key: SegmentKey.ChannelSpeaker({ channel: 0, speakerIndex: 0 }),
+          words: [expect.objectContaining({ text: "hi" })],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.ChannelSpeaker({ channel: 0, speakerIndex: 1 }),
+          words: [expect.objectContaining({ text: "hello" })],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.ChannelSpeaker({ channel: 0, speakerIndex: 0 }),
+          words: [expect.objectContaining({ text: "again" })],
+        }),
+      ],
+    },
+    {
       name: "merges multiple short interruptions within gap threshold",
       finalWords: [
         { text: "a1", start_ms: 0, end_ms: 100, channel: 0 },
@@ -187,8 +215,8 @@ describe("buildSegments", () => {
     },
   ];
 
-  test.each(testCases)("$name", ({ finalWords, partialWords, expected }) => {
-    const segments = buildSegments(finalWords, partialWords);
+  test.each(testCases)("$name", ({ finalWords, partialWords, speakerHints, expected }) => {
+    const segments = buildSegments(finalWords, partialWords, speakerHints);
     expect(segments).toEqual(expected);
   });
 });

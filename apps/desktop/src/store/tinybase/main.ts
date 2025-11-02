@@ -158,6 +158,18 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           "transcript_id",
         )
         .setRelationshipDefinition(
+          RELATIONSHIPS.speakerHintToTranscript,
+          "speaker_hints",
+          "transcripts",
+          "transcript_id",
+        )
+        .setRelationshipDefinition(
+          RELATIONSHIPS.speakerHintToWord,
+          "speaker_hints",
+          "words",
+          "word_id",
+        )
+        .setRelationshipDefinition(
           RELATIONSHIPS.sessionParticipantToHuman,
           "mapping_session_participant",
           "humans",
@@ -315,6 +327,8 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       .setIndexDefinition(INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
       .setIndexDefinition(INDEXES.transcriptBySession, "transcripts", "session_id", "created_at")
       .setIndexDefinition(INDEXES.wordsByTranscript, "words", "transcript_id", "start_ms")
+      .setIndexDefinition(INDEXES.speakerHintsByTranscript, "speaker_hints", "transcript_id", "created_at")
+      .setIndexDefinition(INDEXES.speakerHintsByWord, "speaker_hints", "word_id")
       .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
       .setIndexDefinition(
         INDEXES.eventsByDate,
@@ -416,6 +430,8 @@ export const INDEXES = {
   sessionsByFolder: "sessionsByFolder",
   transcriptBySession: "transcriptBySession",
   wordsByTranscript: "wordsByTranscript",
+  speakerHintsByTranscript: "speakerHintsByTranscript",
+  speakerHintsByWord: "speakerHintsByWord",
   eventsByCalendar: "eventsByCalendar",
   eventsByDate: "eventsByDate",
   sessionByDateWithoutEvent: "sessionByDateWithoutEvent",
@@ -434,6 +450,8 @@ export const RELATIONSHIPS = {
   folderToParentFolder: "folderToParentFolder",
   transcriptToSession: "transcriptToSession",
   wordToTranscript: "wordToTranscript",
+  speakerHintToTranscript: "speakerHintToTranscript",
+  speakerHintToWord: "speakerHintToWord",
   sessionParticipantToHuman: "sessionParticipantToHuman",
   sessionParticipantToSession: "sessionParticipantToSession",
   eventToCalendar: "eventToCalendar",

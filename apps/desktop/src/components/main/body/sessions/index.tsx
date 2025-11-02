@@ -61,7 +61,7 @@ export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }
     && audioUrl && listenerStatus === "inactive";
 
   return (
-    <AudioPlayer.Provider url={audioUrl ?? ""}>
+    <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
       <StandardTabWrapper
         afterBorder={showTimeline && <AudioPlayer.Timeline />}
         floatingButton={<FloatingActionButton tab={tab} />}

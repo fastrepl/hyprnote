@@ -179,6 +179,9 @@ importers:
       ai:
         specifier: ^5.0.82
         version: 5.0.82(zod@4.1.12)
+      chroma-js:
+        specifier: ^3.1.2
+        version: 3.1.2
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -249,6 +252,9 @@ importers:
       '@tauri-apps/cli':
         specifier: ^2.9.2
         version: 2.9.2
+      '@types/chroma-js':
+        specifier: ^3.1.2
+        version: 3.1.2
       '@types/json5':
         specifier: ^2.2.0
         version: 2.2.0
@@ -5034,6 +5040,9 @@ packages:
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
+
+  '@types/chroma-js@3.1.2':
+    resolution: {integrity: sha512-YBTQqArPN8A0niHXCwrO1z5x++a+6l0mLBykncUpr23oIPW7L4h39s6gokdK/bDrPmSh8+TjMmrhBPnyiaWPmQ==}
 
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
@@ -17252,6 +17261,8 @@ snapshots:
     dependencies:
       '@types/deep-eql': 4.0.2
       assertion-error: 2.0.1
+
+  '@types/chroma-js@3.1.2': {}
 
   '@types/connect@3.4.38':
     dependencies:

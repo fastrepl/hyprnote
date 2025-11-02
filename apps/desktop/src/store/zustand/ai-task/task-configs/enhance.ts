@@ -1,7 +1,8 @@
 import { generateText, type LanguageModel, smoothStream, streamText } from "ai";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { buildSegments } from "../../../../utils/segment";
+import { buildSegments, type RuntimeSpeakerHint } from "../../../../utils/segment";
+import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as PersistedStore } from "../../../tinybase/main";
 import { trimBeforeMarker } from "../shared/transform_impl";
 import type { TaskArgsMap, TaskConfig } from ".";
@@ -124,6 +125,8 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
   }
 
   const finalWords: any[] = [];
+  const wordIdToIndex = new Map<string, number>();
+  const storageHints: any[] = [];
 
   transcriptIds.forEach((transcriptId) => {
     const transcriptStartedAt = transcriptMap.get(transcriptId) ?? 0;
@@ -133,6 +136,7 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
       if (wordTranscriptId === transcriptId) {
         const word = store.getRow("words", wordId);
         if (word) {
+          wordIdToIndex.set(wordId, finalWords.length);
           finalWords.push({
             ...word,
             transcriptStartedAt,
@@ -142,7 +146,15 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
     });
   });
 
-  const segments = buildSegments(finalWords, []);
+  store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
+    const hint = store.getRow("speaker_hints", hintId);
+    if (hint) {
+      storageHints.push(hint);
+    }
+  });
+
+  const speakerHints: RuntimeSpeakerHint[] = convertStorageHintsToRuntime(storageHints, wordIdToIndex);
+  const segments = buildSegments(finalWords, [], speakerHints);
 
   const sessionStartMs = transcriptIds.length > 0
     ? Math.min(...Array.from(transcriptMap.values()))

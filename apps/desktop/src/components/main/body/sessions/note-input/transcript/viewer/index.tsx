@@ -1,12 +1,18 @@
-import { useQuery } from "@tanstack/react-query";
-import { DependencyList, Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { DependencyList, Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
 import { cn } from "@hypr/utils";
-import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
-import { useListener } from "../../../../../../contexts/listener";
-import * as main from "../../../../../../store/tinybase/main";
-import { buildSegments, PartialWord, Segment } from "../../../../../../utils/segment";
+import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
+import { useListener } from "../../../../../../../contexts/listener";
+import * as main from "../../../../../../../store/tinybase/main";
+import {
+  buildSegments,
+  PartialWord,
+  RuntimeSpeakerHint,
+  Segment,
+  SegmentWord,
+} from "../../../../../../../utils/segment";
+import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
+import { SegmentHeader } from "./segment-header";
 
 export function TranscriptViewer({ sessionId }: { sessionId: string }) {
   const transcriptIds = main.UI.useSliceRowIds(
@@ -17,17 +23,7 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
 
   const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
   const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
-
-  const audioExists = useQuery({
-    queryKey: ["audio", sessionId, "exist"],
-    queryFn: () => miscCommands.audioExist(sessionId),
-    select: (result) => {
-      if (result.status === "error") {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
+  const partialHints = useListener((state) => state.partialHints);
 
   const { containerRef, isAtBottom, scrollToBottom } = useScrollToBottom([transcriptIds]);
 
@@ -51,8 +47,7 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
               <RenderTranscript
                 transcriptId={transcriptId}
                 partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
-                active={active}
-                audioExists={audioExists.data ?? false}
+                partialHints={(index === transcriptIds.length - 1) ? partialHints : []}
               />
               {index < transcriptIds.length - 1 && <TranscriptSeparator />}
             </Fragment>
@@ -98,17 +93,26 @@ function RenderTranscript(
   {
     transcriptId,
     partialWords,
-    active,
-    audioExists,
+    partialHints,
   }: {
     transcriptId: string;
     partialWords: PartialWord[];
-    active: boolean;
-    audioExists: boolean;
+    partialHints: RuntimeSpeakerHint[];
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
-  const segments = buildSegments(finalWords, partialWords);
+  const finalSpeakerHints = useFinalSpeakerHints(transcriptId);
+
+  const allSpeakerHints = useMemo(() => {
+    const finalWordsCount = finalWords.length;
+    const adjustedPartialHints = partialHints.map((hint) => ({
+      ...hint,
+      wordIndex: finalWordsCount + hint.wordIndex,
+    }));
+    return [...finalSpeakerHints, ...adjustedPartialHints];
+  }, [finalWords.length, finalSpeakerHints, partialHints]);
+
+  const segments = buildSegments(finalWords, partialWords, allSpeakerHints);
   const offsetMs = useTranscriptOffset(transcriptId);
 
   if (segments.length === 0) {
@@ -123,8 +127,7 @@ function RenderTranscript(
             key={i}
             segment={segment}
             offsetMs={offsetMs}
-            active={active}
-            audioExists={audioExists}
+            transcriptId={transcriptId}
           />
         ),
       )}
@@ -133,43 +136,32 @@ function RenderTranscript(
 }
 
 function RenderSegment(
-  { segment, offsetMs, active, audioExists }: {
+  {
+    segment,
+    offsetMs,
+    transcriptId,
+  }: {
     segment: Segment;
     offsetMs: number;
-    active: boolean;
-    audioExists: boolean;
+    transcriptId: string;
   },
 ) {
-  const { time, seek } = useAudioPlayer();
+  const { time, seek, start, audioExists } = useAudioPlayer();
   const currentMs = time.current * 1000;
 
-  const timestamp = useMemo(() => {
-    if (segment.words.length === 0) {
-      return "00:00 - 00:00";
+  const sessionId = main.UI.useCell("transcripts", transcriptId, "session_id", main.STORE_ID);
+  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+
+  const seekAndPlay = useCallback((word: SegmentWord) => {
+    if (audioExists) {
+      seek((offsetMs + word.start_ms) / 1000);
+      start();
     }
-
-    const firstWord = segment.words[0];
-    const lastWord = segment.words[segment.words.length - 1];
-
-    const [from, to] = [firstWord.start_ms, lastWord.end_ms].map(formatTimestamp);
-    return `${from} - ${to}`;
-  }, [segment.words.length]);
+  }, [audioExists, offsetMs, seek]);
 
   return (
     <section>
-      <p
-        className={cn([
-          "sticky top-0 z-20",
-          "-mx-3 px-3 py-1",
-          "bg-background",
-          "border-b border-neutral-200",
-          "text-neutral-500 text-xs font-light",
-          "flex items-center justify-between",
-        ])}
-      >
-        <span>Channel {segment.key.channel}</span>
-        <span className="font-mono">{timestamp}</span>
-      </p>
+      <SegmentHeader segment={segment} />
 
       <div className="mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere">
         {segment.words.map((word, idx) => {
@@ -187,10 +179,10 @@ function RenderSegment(
           return (
             <span
               key={`${word.start_ms}-${idx}`}
-              onClick={audioExists ? () => seek((offsetMs + word.start_ms) / 1000) : undefined}
+              onClick={() => seekAndPlay(word)}
               className={cn([
                 audioExists && "cursor-pointer",
-                audioExists && highlightState === "none" && "hover:bg-neutral-200/60",
+                audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
                 !word.isFinal && ["opacity-60", "italic"],
                 highlightState === "current" && "bg-blue-200/70",
                 highlightState === "buffer" && "bg-blue-200/30",
@@ -205,7 +197,7 @@ function RenderSegment(
   );
 }
 
-function useFinalWords(transcriptId: string) {
+function useFinalWords(transcriptId: string): main.Word[] {
   const store = main.UI.useStore(main.STORE_ID);
   const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
 
@@ -223,6 +215,33 @@ function useFinalWords(transcriptId: string) {
     });
     return words;
   }, [store, wordIds]);
+}
+
+function useFinalSpeakerHints(transcriptId: string): RuntimeSpeakerHint[] {
+  const store = main.UI.useStore(main.STORE_ID);
+  const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
+  const speakerHintIds = main.UI.useSliceRowIds(main.INDEXES.speakerHintsByTranscript, transcriptId, main.STORE_ID);
+
+  return useMemo(() => {
+    if (!store || !wordIds) {
+      return [];
+    }
+
+    const wordIdToIndex = new Map<string, number>();
+    wordIds.forEach((wordId, index) => {
+      wordIdToIndex.set(wordId, index);
+    });
+
+    const storageHints: main.SpeakerHintStorage[] = [];
+    speakerHintIds?.forEach((hintId) => {
+      const hint = store.getRow("speaker_hints", hintId) as main.SpeakerHintStorage | undefined;
+      if (hint) {
+        storageHints.push(hint);
+      }
+    });
+
+    return convertStorageHintsToRuntime(storageHints, wordIdToIndex);
+  }, [store, wordIds, speakerHintIds]);
 }
 
 function useTranscriptOffset(transcriptId: string): number {
@@ -300,7 +319,7 @@ function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
     }
 
     const isAtTop = element.scrollTop === 0;
-    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 200;
+    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 400;
 
     if (isAtTop || isNearBottom) {
       element.scrollTop = element.scrollHeight;
@@ -308,19 +327,6 @@ function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
   }, deps);
 
   return ref;
-}
-
-function formatTimestamp(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  }
-
-  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
 function getWordHighlightState(

@@ -128,6 +128,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         }
                     }
                     HyprMenuItem::TrayQuit => {
+                        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
                         app.exit(0);
                     }
                     HyprMenuItem::AppInfo => {

@@ -15035,6 +15035,7 @@ dependencies = [
 name = "tauri-plugin-tray"
 version = "0.1.0"
 dependencies = [
+ "host",
  "serde_json",
  "specta",
  "specta-typescript",

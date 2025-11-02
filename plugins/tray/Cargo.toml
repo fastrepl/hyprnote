@@ -14,6 +14,8 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
+hypr-host = { workspace = true }
+
 tauri = { workspace = true, features = ["tray-icon", "image-png"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 

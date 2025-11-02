@@ -1,6 +1,6 @@
+import { TemplateEditor as CodeMirrorEditor } from "@hypr/codemirror/template";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
-import { Textarea } from "@hypr/ui/components/ui/textarea";
 import { cn } from "@hypr/utils";
 
 import { GripVertical as HandleIcon, Plus, X } from "lucide-react";
@@ -112,8 +112,8 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
   );
 
   const handleChangeDescription = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onChange({ ...item, description: e.target.value });
+    (value: string) => {
+      onChange({ ...item, description: value });
     },
     [item, onChange],
   );
@@ -158,15 +158,12 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
           />
         </div>
 
-        <div>
-          <Textarea
-            disabled={disabled}
+        <div className="min-h-[100px] border rounded-md">
+          <CodeMirrorEditor
             value={item.description}
             onChange={handleChangeDescription}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder="Describe the content and purpose of this section"
-            className="min-h-[30px] resize-none border-0 bg-transparent p-0 text-sm text-muted-foreground shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+            placeholder="Template content with Jinja2: {{ variable }}, {% if condition %}"
+            readOnly={disabled}
           />
         </div>
       </div>

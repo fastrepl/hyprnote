@@ -1,0 +1,30 @@
+{
+  "name": "@hypr/codemirror",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./template": "./src/template/index.tsx"
+  },
+  "peerDependencies": {
+    "react": "^19.2",
+    "react-dom": "^19.2"
+  },
+  "dependencies": {
+    "@codemirror/lang-jinja": "^6.0.0",
+    "@codemirror/language": "^6.10.6",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/view": "^6.36.1",
+    "@lezer/highlight": "^1.2.1",
+    "@uiw/react-codemirror": "^4.23.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.13",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

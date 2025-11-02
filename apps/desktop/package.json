@@ -36,6 +36,7 @@
     "@hypr/plugin-permissions": "workspace:*",
     "@hypr/plugin-template": "workspace:*",
     "@hypr/plugin-windows": "workspace:*",
+    "@hypr/codemirror": "workspace:^",
     "@hypr/tiptap": "workspace:^",
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",

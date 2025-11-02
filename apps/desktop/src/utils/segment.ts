@@ -1,3 +1,5 @@
+import { Data, HashMap, Option } from "effect";
+
 export type WordLike = {
   text: string;
   start_ms: number;
@@ -14,7 +16,11 @@ export type Segment<TWord extends SegmentWord = SegmentWord> = {
   words: TWord[];
 };
 
-type SegmentKey = { channel: number } | { speaker_index: number; channel: number };
+export type SegmentKey = Data.TaggedEnum<{
+  Channel: { channel: number };
+}>;
+
+export const SegmentKey = Data.taggedEnum<SegmentKey>();
 
 export function buildSegments<
   TFinal extends WordLike,
@@ -38,41 +44,41 @@ export function buildSegments<
       channel: word.channel,
       isFinal: false,
     })),
-  ];
+  ].sort((a, b) => a.start_ms - b.start_ms);
 
   return createSpeakerTurns(allWords);
 }
 
-function createSpeakerTurns<TWord extends SegmentWord>(
-  words: TWord[],
-  maxGapMs = 2000,
-): Segment<TWord>[] {
+function createSpeakerTurns<TWord extends SegmentWord>(words: TWord[]): Segment<TWord>[] {
+  const MAX_GAP_MS = 2000;
+
   if (words.length === 0) {
     return [];
   }
 
-  const sortedWords = [...words].sort((a, b) => a.start_ms - b.start_ms);
   const segments: Segment<TWord>[] = [];
-  const currentByChannel = new Map<number, Segment<TWord>>();
+  let currentActiveSegment = HashMap.empty<SegmentKey, Segment<TWord>>();
 
-  for (const word of sortedWords) {
-    const current = currentByChannel.get(word.channel);
+  for (const word of words) {
+    const key = SegmentKey.Channel({ channel: word.channel });
+    const currentOption = HashMap.get(currentActiveSegment, key);
 
-    if (!current) {
-      const newSegment = { key: { channel: word.channel }, words: [word] };
-      currentByChannel.set(word.channel, newSegment);
+    if (Option.isNone(currentOption)) {
+      const newSegment = { key, words: [word] };
+      currentActiveSegment = HashMap.set(currentActiveSegment, key, newSegment);
       segments.push(newSegment);
       continue;
     }
 
+    const current = currentOption.value;
     const lastWord = current.words[current.words.length - 1];
     const gap = word.start_ms - lastWord.end_ms;
 
-    if (gap <= maxGapMs) {
+    if (gap <= MAX_GAP_MS) {
       current.words.push(word);
     } else {
-      const newSegment = { key: { channel: word.channel }, words: [word] };
-      currentByChannel.set(word.channel, newSegment);
+      const newSegment = { key, words: [word] };
+      currentActiveSegment = HashMap.set(currentActiveSegment, key, newSegment);
       segments.push(newSegment);
     }
   }

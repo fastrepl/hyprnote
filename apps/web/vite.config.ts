@@ -12,7 +12,21 @@ const config = defineConfig(() => ({
     contentCollections(),
     viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+        autoStaticPathsDiscovery: true,
+        filter: ({ path }) => {
+          return path.startsWith("/blog")
+            || path.startsWith("/docs")
+            || path.startsWith("/changelog")
+            || path.startsWith("/legal")
+            || path.startsWith("/product")
+            || path.startsWith("/pricing");
+        },
+      },
+    }),
     viteReact(),
   ],
 }));

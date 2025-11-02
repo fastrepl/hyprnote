@@ -12,7 +12,6 @@ function Component() {
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
         <header className="mb-16 text-center">
           <div className="inline-flex items-center justify-center size-16 rounded-full bg-stone-50 border border-neutral-100 mb-6">
             <Icon icon="mdi:update" className="text-3xl text-stone-600" />
@@ -25,7 +24,6 @@ function Component() {
           </p>
         </header>
 
-        {/* Timeline */}
         {sortedChangelogs.length === 0
           ? (
             <div className="text-center py-16">
@@ -37,7 +35,6 @@ function Component() {
           )
           : (
             <div className="relative">
-              {/* Timeline line */}
               <div className="absolute left-8 top-0 bottom-0 w-px bg-neutral-200 hidden sm:block" />
 
               <div className="space-y-12">
@@ -64,7 +61,6 @@ function ChangelogCard({ changelog, isFirst }: { changelog: Changelog; isFirst: 
       className="group block"
     >
       <article className="relative sm:pl-16">
-        {/* Timeline dot */}
         <div className="absolute left-0 top-2 hidden sm:flex items-center justify-center">
           <div className="size-16 rounded-full bg-white border-2 border-neutral-200 group-hover:border-stone-400 transition-colors flex items-center justify-center">
             <Icon
@@ -74,7 +70,6 @@ function ChangelogCard({ changelog, isFirst }: { changelog: Changelog; isFirst: 
           </div>
         </div>
 
-        {/* Content */}
         <div className="border border-neutral-100 rounded-sm bg-white hover:shadow-lg hover:border-neutral-200 transition-all duration-300 p-8">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>

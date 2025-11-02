@@ -60,7 +60,6 @@ function LeftSidebar() {
   return (
     <aside className="hidden lg:block lg:col-span-3">
       <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto space-y-6 px-4 py-6">
-        {/* Sections Navigation */}
         <nav className="space-y-4">
           {docsBySection.map((section) => (
             <div key={section.title}>

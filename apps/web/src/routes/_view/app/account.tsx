@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { signOutFn } from "@/functions/auth";
 import { createPortalSession } from "@/functions/billing";
+import { useAnalytics } from "@/hooks/use-posthog";
 import { useMutation } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_view/app/account")({
@@ -34,6 +35,8 @@ function Component() {
           </section>
 
           <AccountSettingsCard />
+
+          <ProWaitlistCard userEmail={user?.email} />
 
           <IntegrationsSettingsCard />
 
@@ -174,7 +177,8 @@ function AccountSettingsCard() {
 }
 
 function IntegrationsSettingsCard() {
-  const [connectedApps] = useState(0); // TODO: Get actual count from API
+  // TODO: Get actual count from API
+  const [connectedApps] = useState(0);
 
   return (
     <div className="border border-neutral-100 rounded-sm">
@@ -195,6 +199,101 @@ function IntegrationsSettingsCard() {
         >
           See all
         </Link>
+      </div>
+    </div>
+  );
+}
+
+function ProWaitlistCard({ userEmail }: { userEmail?: string }) {
+  const { track } = useAnalytics();
+  const [email, setEmail] = useState(userEmail || "");
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      return;
+    }
+
+    setStatus("sending");
+    setErrorMessage("");
+
+    try {
+      track("pro_waitlist_joined", {
+        timestamp: new Date().toISOString(),
+        email: email,
+        source: "account_page",
+      });
+
+      const response = await fetch("/api/add-contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          userGroup: "Lead",
+          platform: "Web",
+          source: "ACCOUNT_PAGE",
+          intent: "Pro Waitlist",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to join waitlist");
+      }
+
+      setStatus("success");
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.",
+      );
+    }
+  };
+
+  return (
+    <div className="border border-neutral-100 rounded-sm">
+      <div className="p-4">
+        <h3 className="font-serif text-lg font-semibold mb-2">Join Pro Waitlist</h3>
+        <p className="text-sm text-neutral-600 mb-4">
+          Get notified when Pro features are available, including cloud services, templates, chat, and more.
+        </p>
+
+        {status === "success"
+          ? (
+            <div className="p-4 bg-green-50 border border-green-200 rounded-sm">
+              <p className="text-sm text-green-700">
+                Thanks for joining the waitlist! We'll notify you when Pro is ready.
+              </p>
+            </div>
+          )
+          : (
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="w-full px-4 py-2 text-sm border border-neutral-200 rounded-sm focus:outline-none focus:border-stone-500 transition-colors"
+                required
+                disabled={status === "sending"}
+              />
+              {status === "error" && <p className="text-sm text-red-600">{errorMessage}</p>}
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {status === "sending" ? "Joining..." : "Join Waitlist"}
+              </button>
+            </form>
+          )}
       </div>
     </div>
   );

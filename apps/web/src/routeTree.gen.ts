@@ -15,9 +15,15 @@ import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
+import { Route as ApiAddContactRouteImport } from './routes/api/add-contact'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewDownloadRouteImport } from './routes/_view/download'
+import { Route as ViewXRouteRouteImport } from './routes/_view/x/route'
+import { Route as ViewLinkedinRouteRouteImport } from './routes/_view/linkedin/route'
+import { Route as ViewJoinWaitlistRouteRouteImport } from './routes/_view/join-waitlist/route'
+import { Route as ViewGithubRouteRouteImport } from './routes/_view/github/route'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
+import { Route as ViewDiscordRouteRouteImport } from './routes/_view/discord/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewProductIndexRouteImport } from './routes/_view/product/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
@@ -64,6 +70,11 @@ const WebhookNangoRoute = WebhookNangoRouteImport.update({
   path: '/webhook/nango',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAddContactRoute = ApiAddContactRouteImport.update({
+  id: '/api/add-contact',
+  path: '/api/add-contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewPricingRoute = ViewPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -74,9 +85,34 @@ const ViewDownloadRoute = ViewDownloadRouteImport.update({
   path: '/download',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewXRouteRoute = ViewXRouteRouteImport.update({
+  id: '/x',
+  path: '/x',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewLinkedinRouteRoute = ViewLinkedinRouteRouteImport.update({
+  id: '/linkedin',
+  path: '/linkedin',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewJoinWaitlistRouteRoute = ViewJoinWaitlistRouteRouteImport.update({
+  id: '/join-waitlist',
+  path: '/join-waitlist',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewGithubRouteRoute = ViewGithubRouteRouteImport.update({
+  id: '/github',
+  path: '/github',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewDocsRouteRoute = ViewDocsRouteRouteImport.update({
   id: '/docs',
   path: '/docs',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDiscordRouteRoute = ViewDiscordRouteRouteImport.update({
+  id: '/discord',
+  path: '/discord',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
@@ -164,9 +200,15 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/app': typeof ViewAppRouteRouteWithChildren
+  '/discord': typeof ViewDiscordRouteRoute
   '/docs': typeof ViewDocsRouteRouteWithChildren
+  '/github': typeof ViewGithubRouteRoute
+  '/join-waitlist': typeof ViewJoinWaitlistRouteRoute
+  '/linkedin': typeof ViewLinkedinRouteRoute
+  '/x': typeof ViewXRouteRoute
   '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
+  '/api/add-contact': typeof ApiAddContactRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
@@ -189,8 +231,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
+  '/discord': typeof ViewDiscordRouteRoute
+  '/github': typeof ViewGithubRouteRoute
+  '/join-waitlist': typeof ViewJoinWaitlistRouteRoute
+  '/linkedin': typeof ViewLinkedinRouteRoute
+  '/x': typeof ViewXRouteRoute
   '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
+  '/api/add-contact': typeof ApiAddContactRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
@@ -216,9 +264,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
+  '/_view/discord': typeof ViewDiscordRouteRoute
   '/_view/docs': typeof ViewDocsRouteRouteWithChildren
+  '/_view/github': typeof ViewGithubRouteRoute
+  '/_view/join-waitlist': typeof ViewJoinWaitlistRouteRoute
+  '/_view/linkedin': typeof ViewLinkedinRouteRoute
+  '/_view/x': typeof ViewXRouteRoute
   '/_view/download': typeof ViewDownloadRoute
   '/_view/pricing': typeof ViewPricingRoute
+  '/api/add-contact': typeof ApiAddContactRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/_view/': typeof ViewIndexRoute
@@ -244,9 +298,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cal'
     | '/app'
+    | '/discord'
     | '/docs'
+    | '/github'
+    | '/join-waitlist'
+    | '/linkedin'
+    | '/x'
     | '/download'
     | '/pricing'
+    | '/api/add-contact'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/'
@@ -269,8 +329,14 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/cal'
+    | '/discord'
+    | '/github'
+    | '/join-waitlist'
+    | '/linkedin'
+    | '/x'
     | '/download'
     | '/pricing'
+    | '/api/add-contact'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/'
@@ -295,9 +361,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cal'
     | '/_view/app'
+    | '/_view/discord'
     | '/_view/docs'
+    | '/_view/github'
+    | '/_view/join-waitlist'
+    | '/_view/linkedin'
+    | '/_view/x'
     | '/_view/download'
     | '/_view/pricing'
+    | '/api/add-contact'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/_view/'
@@ -322,6 +394,7 @@ export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CalRoute: typeof CalRoute
+  ApiAddContactRoute: typeof ApiAddContactRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
   ApiSyncReadRoute: typeof ApiSyncReadRoute
@@ -372,6 +445,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WebhookNangoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/add-contact': {
+      id: '/api/add-contact'
+      path: '/api/add-contact'
+      fullPath: '/api/add-contact'
+      preLoaderRoute: typeof ApiAddContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_view/pricing': {
       id: '/_view/pricing'
       path: '/pricing'
@@ -386,11 +466,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/x': {
+      id: '/_view/x'
+      path: '/x'
+      fullPath: '/x'
+      preLoaderRoute: typeof ViewXRouteRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/linkedin': {
+      id: '/_view/linkedin'
+      path: '/linkedin'
+      fullPath: '/linkedin'
+      preLoaderRoute: typeof ViewLinkedinRouteRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/join-waitlist': {
+      id: '/_view/join-waitlist'
+      path: '/join-waitlist'
+      fullPath: '/join-waitlist'
+      preLoaderRoute: typeof ViewJoinWaitlistRouteRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/github': {
+      id: '/_view/github'
+      path: '/github'
+      fullPath: '/github'
+      preLoaderRoute: typeof ViewGithubRouteRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/docs': {
       id: '/_view/docs'
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof ViewDocsRouteRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/discord': {
+      id: '/_view/discord'
+      path: '/discord'
+      fullPath: '/discord'
+      preLoaderRoute: typeof ViewDiscordRouteRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/app': {
@@ -540,7 +655,12 @@ const ViewDocsRouteRouteWithChildren = ViewDocsRouteRoute._addFileChildren(
 
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
+  ViewDiscordRouteRoute: typeof ViewDiscordRouteRoute
   ViewDocsRouteRoute: typeof ViewDocsRouteRouteWithChildren
+  ViewGithubRouteRoute: typeof ViewGithubRouteRoute
+  ViewJoinWaitlistRouteRoute: typeof ViewJoinWaitlistRouteRoute
+  ViewLinkedinRouteRoute: typeof ViewLinkedinRouteRoute
+  ViewXRouteRoute: typeof ViewXRouteRoute
   ViewDownloadRoute: typeof ViewDownloadRoute
   ViewPricingRoute: typeof ViewPricingRoute
   ViewIndexRoute: typeof ViewIndexRoute
@@ -556,7 +676,12 @@ interface ViewRouteRouteChildren {
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
+  ViewDiscordRouteRoute: ViewDiscordRouteRoute,
   ViewDocsRouteRoute: ViewDocsRouteRouteWithChildren,
+  ViewGithubRouteRoute: ViewGithubRouteRoute,
+  ViewJoinWaitlistRouteRoute: ViewJoinWaitlistRouteRoute,
+  ViewLinkedinRouteRoute: ViewLinkedinRouteRoute,
+  ViewXRouteRoute: ViewXRouteRoute,
   ViewDownloadRoute: ViewDownloadRoute,
   ViewPricingRoute: ViewPricingRoute,
   ViewIndexRoute: ViewIndexRoute,
@@ -578,6 +703,7 @@ const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CalRoute: CalRoute,
+  ApiAddContactRoute: ApiAddContactRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
   ApiSyncReadRoute: ApiSyncReadRoute,

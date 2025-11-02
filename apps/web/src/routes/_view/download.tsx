@@ -9,23 +9,27 @@ export const Route = createFileRoute("/_view/download")({
 
 function Component() {
   return (
-    <div className="bg-linear-to-b from-white via-blue-50/20 to-white min-h-screen">
+    <div
+      className="bg-linear-to-b from-white via-blue-50/20 to-white min-h-screen"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
       <div
         className={cn([
           "flex items-center justify-center gap-2 text-center",
-          "bg-stone-50/70 border-b border-stone-100",
-          "py-3 px-4",
+          "bg-stone-50 border-b border-stone-100",
           "font-serif text-sm text-stone-700",
         ])}
       >
-        <Icon icon="mdi:information-outline" className="text-base" />
-        <span>
-          Mac (Apple Silicon) features on-device speech-to-text. Other platforms coming soon without on-device
-          processing.
-        </span>
+        <div className="py-3 px-4 mx-auto max-w-6xl border-x border-neutral-100 w-full">
+          <Icon icon="mdi:information-outline" className="text-base" />
+          <span>
+            Mac (Apple Silicon) features on-device speech-to-text. Other platforms coming soon without on-device
+            processing.
+          </span>
+        </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 bg-white border-x border-neutral-100">
         <section className="py-16">
           <div className="space-y-6 max-w-2xl mx-auto text-center mb-16">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">

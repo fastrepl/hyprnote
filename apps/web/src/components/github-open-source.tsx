@@ -141,7 +141,10 @@ export function GitHubOpenSource() {
 
   return (
     <section className="border-t border-neutral-100">
-      <div className="border-b border-neutral-100 bg-neutral-50 h-4" />
+      <div
+        className="border-b border-neutral-100 bg-neutral-50 h-4"
+        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
+      />
       <div className="px-4 py-8">
         <div className="lg:hidden max-w-4xl mx-auto">
           <OpenSourceButton showStars={true} starCount={STARS_COUNT} />
@@ -277,7 +280,10 @@ export function GitHubOpenSource() {
           </div>
         </div>
       </div>
-      <div className="border-t border-neutral-100 bg-neutral-50 h-4" />
+      <div
+        className="border-t border-neutral-100 bg-neutral-50 h-4"
+        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
+      />
     </section>
   );
 }

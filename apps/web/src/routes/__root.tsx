@@ -25,6 +25,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     links: [
       { rel: "stylesheet", href: appCss },
     ],
+    scripts: [
+      {
+        src: "https://static.zdassets.com/ekr/snippet.js?key=15949e47-ed5a-4e52-846e-200dd0b8f4b9",
+        defer: true,
+      },
+    ],
   }),
   shellComponent: RootDocument,
   notFoundComponent: NotFoundDocument,

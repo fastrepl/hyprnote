@@ -54,8 +54,10 @@ export function SocialCard({
   return (
     <div
       className={cn(
-        "block border border-neutral-100 bg-white p-6 transition-all duration-200 text-left hover:bg-neutral-50",
-        className,
+        [
+          "block border border-neutral-100 bg-white p-6 transition-all duration-200 text-left hover:bg-neutral-50",
+          className,
+        ],
       )}
     >
       <div className="space-y-4 text-left">

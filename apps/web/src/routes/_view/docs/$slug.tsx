@@ -210,10 +210,12 @@ function RightSidebar({
                 key={item.id}
                 href={`#${item.id}`}
                 className={cn(
-                  "block text-sm py-1 transition-colors border-l-2",
-                  item.level === 3 && "pl-4",
-                  item.level === 2 && "pl-2",
-                  "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
+                  [
+                    "block text-sm py-1 transition-colors border-l-2",
+                    item.level === 3 && "pl-4",
+                    item.level === 2 && "pl-2",
+                    "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
+                  ],
                 )}
               >
                 {item.text}

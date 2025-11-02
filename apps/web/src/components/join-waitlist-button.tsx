@@ -3,7 +3,7 @@ import { cn } from "@hypr/utils";
 export function JoinWaitlistButton() {
   return (
     <a
-      href="https://tally.so/r/mJaRDY"
+      href="/join-waitlist"
       target="_blank"
       rel="noopener noreferrer"
       className={cn([

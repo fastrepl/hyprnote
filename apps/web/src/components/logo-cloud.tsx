@@ -46,7 +46,7 @@ export function LogoCloud() {
       />
 
       <LogoCard
-        className="border-r border-b border-neutral-100"
+        className="md:border-r border-b border-neutral-100"
         logo={{
           src: "/icons/meta.svg",
           alt: "Meta Logo",

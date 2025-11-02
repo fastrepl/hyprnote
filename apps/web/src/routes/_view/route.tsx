@@ -8,7 +8,6 @@ export const Route = createFileRoute("/_view")({
   loader: async ({ context }) => ({ user: context.user }),
 });
 
-// Context to share hero input trigger across components
 interface HeroContextType {
   onTrigger: (() => void) | null;
   setOnTrigger: (callback: () => void) => void;
@@ -46,15 +45,14 @@ function Header() {
 
   const handleCTAClick = (e: React.MouseEvent) => {
     if (platformCTA.action === "download") {
-      // Let the Link handle navigation
       return;
     }
-    // For waitlist action, trigger hero input
+
     e.preventDefault();
     if (heroContext?.onTrigger) {
       heroContext.onTrigger();
     }
-    // Scroll to hero section
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -63,7 +61,6 @@ function Header() {
       <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
         <div className="max-w-6xl mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4">
           <div className="flex items-center justify-between">
-            {/* Desktop: Logo + Nav Links */}
             <div className="hidden sm:flex items-center gap-4">
               <Link
                 to="/"
@@ -91,7 +88,6 @@ function Header() {
               </Link>
             </div>
 
-            {/* Mobile: Logo only */}
             <Link
               to="/"
               className="sm:hidden font-semibold text-2xl font-serif hover:scale-105 transition-transform"
@@ -99,10 +95,9 @@ function Header() {
               <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
             </Link>
 
-            {/* Desktop: CTA Buttons */}
             <nav className="hidden sm:flex items-center gap-2">
               <a
-                href="https://tally.so/r/mJaRDY"
+                href="/join-waitlist"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 h-8 flex items-center text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
@@ -128,7 +123,6 @@ function Header() {
                 )}
             </nav>
 
-            {/* Mobile: CTA + More Button */}
             <div className="sm:hidden flex items-center gap-1">
               {platformCTA.action === "download"
                 ? (
@@ -159,16 +153,13 @@ function Header() {
         </div>
       </header>
 
-      {/* Mobile Menu Sheet */}
       {isMenuOpen && (
         <>
-          {/* Backdrop - excludes header area */}
           <div
             className="fixed top-[65px] left-0 right-0 bottom-0 bg-black/20 z-40 sm:hidden animate-in fade-in duration-200"
             onClick={() => setIsMenuOpen(false)}
           />
 
-          {/* Sheet - expands from top */}
           <div className="fixed top-[65px] left-0 right-0 bg-white border-b border-neutral-100 shadow-lg z-50 sm:hidden animate-in slide-in-from-top duration-300">
             <nav className="max-w-6xl mx-auto px-4 py-6">
               <div className="space-y-6">
@@ -198,7 +189,7 @@ function Header() {
 
                 <div className="pt-6 border-t border-neutral-100 space-y-3">
                   <a
-                    href="https://tally.so/r/mJaRDY"
+                    href="/join-waitlist"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full px-4 py-3 text-center text-sm text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
@@ -243,7 +234,6 @@ function Footer() {
     <footer className="border-t border-neutral-100 bg-linear-to-b from-stone-50/30 to-stone-100">
       <div className="max-w-6xl mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
-          {/* Column 1: Brand (span 2) */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <Link to="/" className="inline-block mb-4">
               <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
@@ -254,7 +244,7 @@ function Footer() {
             <p className="text-sm text-neutral-600 mb-3">
               Are you in back-to-back meetings?{" "}
               <a
-                href="https://tally.so/r/mJaRDY"
+                href="/join-waitlist"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-neutral-600 hover:text-stone-600 transition-colors underline"
@@ -281,15 +271,12 @@ function Footer() {
             </p>
           </div>
 
-          {/* Column 2: Product */}
           <div className="col-span-1 lg:border-l lg:border-neutral-100 lg:pl-12">
             <h3 className="text-sm font-semibold text-neutral-900 mb-4">Product</h3>
             <ul className="space-y-3">
               <li>
                 <a
-                  href="https://tally.so/r/mJaRDY"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/download"
                   className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                 >
                   Download
@@ -300,11 +287,13 @@ function Footer() {
                   Releases
                 </Link>
               </li>
-              <li>
-                <Link to="/docs" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+              {
+                /*<li>
+                <Link to="/roadmap" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
                   Roadmap
                 </Link>
-              </li>
+              </li>*/
+              }
               <li>
                 <Link to="/docs" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
                   Docs
@@ -323,20 +312,19 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Resources */}
           <div className="col-span-1 lg:border-l lg:border-neutral-100 lg:pl-12">
             <h3 className="text-sm font-semibold text-neutral-900 mb-4">Resources</h3>
             <ul className="space-y-3">
-              <li>
-                <Link to="/docs" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+              {
+                /*<li>
+                <Link to="/docs/faq" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
                   FAQ
                 </Link>
-              </li>
+              </li>*/
+              }
               <li>
                 <a
-                  href="https://discord.gg/hyprnote"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="mailto:support@hyprnote.com"
                   className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                 >
                   Support
@@ -360,7 +348,6 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Company */}
           <div className="col-span-1 lg:border-l lg:border-neutral-100 lg:pl-12">
             <h3 className="text-sm font-semibold text-neutral-900 mb-4">Company</h3>
             <ul className="space-y-3">
@@ -369,21 +356,20 @@ function Footer() {
                   Blog
                 </Link>
               </li>
-              <li>
-                <a
-                  href="https://cal.com/team/hyprnote/welcome"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
+              {
+                /*<li>
+                <Link to="/about" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
                   About
-                </a>
-              </li>
-              <li>
-                <Link to="/docs" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                </Link>
+              </li>*/
+              }
+              {
+                /*<li>
+                <Link to="/team" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
                   Team
                 </Link>
-              </li>
+              </li>*/
+              }
               <li>
                 <Link
                   to="/legal/$slug"
@@ -405,13 +391,12 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Column 5: Social */}
           <div className="col-span-1 lg:border-l lg:border-neutral-100 lg:pl-12">
             <h3 className="text-sm font-semibold text-neutral-900 mb-4">Social</h3>
             <ul className="space-y-3">
               <li>
                 <a
-                  href="https://twitter.com/hyprnote"
+                  href="/x"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
@@ -421,22 +406,12 @@ function Footer() {
               </li>
               <li>
                 <a
-                  href="https://discord.gg/hyprnote"
+                  href="/discord"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                 >
                   Discord
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/fastrepl/hyprnote"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  GitHub
                 </a>
               </li>
             </ul>

@@ -8,5 +8,5 @@ NODE_VERSION = "22"
 [images]
 # https://docs.netlify.com/build/image-cdn/overview/#remote-path
 remote_images = [
-  "https://hyprnote.com/**/*.*",
+  "https://hyprnote\\.com/.*",
 ]

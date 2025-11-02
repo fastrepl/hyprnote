@@ -1,33 +1,20 @@
+import contentCollections from "@content-collections/vite";
+import netlify from "@netlify/vite-plugin-tanstack-start";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 
-import { cloudflare } from "@cloudflare/vite-plugin";
-import contentCollections from "@content-collections/vite";
-import { wrapVinxiConfigWithSentry } from "@sentry/tanstackstart-react";
-
-const config = defineConfig(({ mode }) => ({
+const config = defineConfig(() => ({
   plugins: [
-    // Only use Cloudflare plugin in production to avoid CSP issues in dev
-    ...(mode === "production" ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
+    netlify(),
     contentCollections(),
-    // this is the plugin that enables path aliases
-    viteTsConfigPaths({
-      projects: ["./tsconfig.json"],
-    }),
+    viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),
     tanstackStart(),
     viteReact(),
   ],
 }));
 
-export default wrapVinxiConfigWithSentry(config, {
-  org: process.env.VITE_SENTRY_ORG,
-  project: process.env.VITE_SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  // Only print logs for uploading source maps in CI
-  // Set to `true` to suppress logs
-  silent: !process.env.CI,
-});
+export default config;

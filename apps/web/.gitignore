@@ -8,5 +8,5 @@ dist-ssr
 .tanstack
 .output
 .vinxi
-.wrangler
 .content-collections
+.netlify

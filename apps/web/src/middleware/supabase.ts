@@ -1,10 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
 import { createMiddleware } from "@tanstack/react-start";
 
-import { env } from "@/env";
+import { getSupabaseServerClient } from "@/functions/supabase";
 
 export const supabaseClientMiddleware = createMiddleware().server(async ({ next }) => {
-  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY);
+  const supabase = getSupabaseServerClient();
   return next({ context: { supabase } });
 });
 

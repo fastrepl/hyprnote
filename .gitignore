@@ -15,3 +15,6 @@ restate-data
 internal
 .turbo
 CLAUDE.md
+
+# Local Netlify folder
+.netlify

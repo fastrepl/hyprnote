@@ -1,0 +1,6 @@
+[build]
+command = "pnpm -F @hypr/web build"
+publish = "dist/client"
+
+[build.environment]
+NODE_VERSION = "22"

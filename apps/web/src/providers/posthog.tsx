@@ -1,10 +1,12 @@
-import { PostHogProvider as PostHogReactProvider } from "@posthog/react";
 import posthog from "posthog-js";
 import { useEffect } from "react";
 
+import { PostHogProvider as PostHogReactProvider } from "@posthog/react";
+import { env } from "../env";
+
 if (typeof window !== "undefined") {
-  const apiKey = import.meta.env.VITE_POSTHOG_API_KEY;
-  const apiHost = import.meta.env.VITE_POSTHOG_HOST || "https://us.i.posthog.com";
+  const apiKey = env.VITE_POSTHOG_API_KEY;
+  const apiHost = env.VITE_POSTHOG_HOST;
 
   if (apiKey) {
     posthog.init(apiKey, {

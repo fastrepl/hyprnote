@@ -256,6 +256,7 @@ function ValuePropsGrid() {
 function TestimonialsSection() {
   return (
     <section className="border-t border-neutral-100">
+      <div className="border-b border-neutral-100 bg-neutral-50 h-4" />
       <div className="text-center">
         <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
           Loved by professionals at
@@ -437,6 +438,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
 function FeaturesIntroSection() {
   return (
     <section>
+      <div className="border-b border-neutral-100 bg-neutral-50 h-4" />
       <div className="text-center py-16">
         <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
           <img
@@ -679,6 +681,7 @@ function DetailsSection({
 }) {
   return (
     <div className="border-t border-neutral-100">
+      <div className="border-b border-neutral-100 bg-neutral-50 h-4" />
       <DetailsSectionHeader />
       <DetailsMobileCarousel
         detailsScrollRef={detailsScrollRef}

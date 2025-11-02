@@ -2,6 +2,7 @@ import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
+import { useConfigValues } from "../../../config/use-config";
 import * as main from "../../../store/tinybase/main";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
@@ -9,8 +10,16 @@ import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 
 export function SettingsGeneral() {
-  const _value = main.UI.useValues(main.STORE_ID);
-  const value = main.generalSchema.parse(_value);
+  const value = useConfigValues(
+    [
+      "autostart",
+      "notification_detect",
+      "save_recordings",
+      "telemetry_consent",
+      "ai_language",
+      "spoken_languages",
+    ] as const,
+  );
 
   const setPartialValues = main.UI.useSetPartialValuesCallback(
     (row: Partial<main.General>) => ({
@@ -24,12 +33,12 @@ export function SettingsGeneral() {
 
   const form = useForm({
     defaultValues: {
-      autostart: value.autostart ?? false,
-      notification_detect: value.notification_detect ?? false,
-      save_recordings: value.save_recordings ?? false,
-      telemetry_consent: value.telemetry_consent ?? false,
-      ai_language: value.ai_language ?? "English",
-      spoken_languages: value.spoken_languages ?? [],
+      autostart: value.autostart,
+      notification_detect: value.notification_detect,
+      save_recordings: value.save_recordings,
+      telemetry_consent: value.telemetry_consent,
+      ai_language: value.ai_language,
+      spoken_languages: value.spoken_languages,
     },
     listeners: {
       onChange: ({ formApi }) => {

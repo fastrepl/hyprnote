@@ -6,13 +6,15 @@ import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plug
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
-import { useConfigValue } from "../../../../config/use-config";
+import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
 import { displayModelId, LANGUAGE_SUPPORT, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function SelectProviderAndModel() {
-  const { current_stt_provider, current_stt_model } = main.UI.useValues(main.STORE_ID);
+  const { current_stt_provider, current_stt_model } = useConfigValues(
+    ["current_stt_provider", "current_stt_model"] as const,
+  );
   const configuredProviders = useConfiguredMapping();
 
   const handleSelectProvider = main.UI.useSetValueCallback(
@@ -167,15 +169,20 @@ function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownlo
 }
 
 function HealthCheck() {
-  const { current_stt_provider, current_stt_model } = main.UI.useValues(main.STORE_ID);
-  const parsedLanguages = useConfigValue("spoken_languages");
+  const configs = useConfigValues(
+    ["current_stt_provider", "current_stt_model", "spoken_languages"] as const,
+  );
+  const current_stt_provider = configs.current_stt_provider as string | undefined;
+  const current_stt_model = configs.current_stt_model as string | undefined;
+  const parsedLanguages = configs.spoken_languages as string[];
 
   const experimental_handleServer = useCallback(() => {
     if (
       current_stt_provider === "hyprnote"
+      && current_stt_model
       && (
-        current_stt_model?.startsWith("am-")
-        || current_stt_model?.startsWith("Quantized")
+        current_stt_model.startsWith("am-")
+        || current_stt_model.startsWith("Quantized")
       )
     ) {
       localSttCommands.stopServer(null)
@@ -201,7 +208,7 @@ function HealthCheck() {
     }
   }
 
-  const isLocalModel = current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-");
+  const isLocalModel = current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-") === true;
   const hasServerIssue = isLocalModel && !conn?.baseUrl;
 
   const { color, tooltipMessage } = (() => {

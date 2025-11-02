@@ -4,7 +4,6 @@ import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import type { Tab } from "../../../../../store/zustand/tabs/schema";
 import { useCurrentNoteTab, useHasTranscript } from "../shared";
 
-import { GenerateButton } from "./generate";
 import { ListenButton } from "./listen";
 
 export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
@@ -15,8 +14,6 @@ export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessi
 
   if (currentTab === "raw" && !hasTranscript) {
     button = <ListenButton tab={tab} />;
-  } else if (currentTab === "enhanced") {
-    button = <GenerateButton sessionId={tab.id} />;
   }
 
   if (!button) {

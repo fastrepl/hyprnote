@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
 import { useAuth } from "../../../../auth";
+import { useConfigValues } from "../../../../config/use-config";
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
 import * as main from "../../../../store/tinybase/main";
 import {
@@ -23,7 +24,9 @@ import { PROVIDERS } from "./shared";
 export function SelectProviderAndModel() {
   const configuredProviders = useConfiguredMapping();
 
-  const { current_llm_model, current_llm_provider } = main.UI.useValues(main.STORE_ID);
+  const { current_llm_model, current_llm_provider } = useConfigValues(
+    ["current_llm_model", "current_llm_provider"] as const,
+  );
 
   const handleSelectProvider = main.UI.useSetValueCallback(
     "current_llm_provider",

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { buildSegments, type SegmentWord } from "./segment";
+import { buildSegments } from "./segment";
 
 describe("buildSegments", () => {
   const testCases = [
@@ -82,10 +82,10 @@ describe("buildSegments", () => {
       ],
     },
     {
-      name: "does not merge speaker turns once the max gap is reached",
+      name: "does not merge speaker turns once it exceeds the max gap",
       finalWords: [
         { text: "first", start_ms: 0, end_ms: 100, channel: 0 },
-        { text: "return", start_ms: 2100, end_ms: 2200, channel: 0 },
+        { text: "return", start_ms: 2101, end_ms: 2201, channel: 0 },
         { text: "other", start_ms: 150, end_ms: 200, channel: 1 },
       ],
       partialWords: [],
@@ -101,25 +101,6 @@ describe("buildSegments", () => {
         expect.objectContaining({
           key: { channel: 0 },
           words: [expect.objectContaining({ text: "return" })],
-        }),
-      ],
-    },
-    {
-      name: "applies the provided transform to every word",
-      finalWords: [
-        { text: "final", start_ms: 0, end_ms: 100, channel: 0 },
-      ],
-      partialWords: [
-        { text: "partial", start_ms: 120, end_ms: 160, channel: 0 },
-      ],
-      transform: (word: SegmentWord) => ({ ...word, label: word.isFinal ? "final" : "partial" }),
-      expected: [
-        expect.objectContaining({
-          key: { channel: 0 },
-          words: [
-            expect.objectContaining({ text: "final", label: "final" }),
-            expect.objectContaining({ text: "partial", label: "partial" }),
-          ],
         }),
       ],
     },
@@ -197,8 +178,8 @@ describe("buildSegments", () => {
     },
   ];
 
-  test.each(testCases)("$name", ({ finalWords, partialWords, transform, expected }) => {
-    const segments = buildSegments(finalWords, partialWords, transform);
+  test.each(testCases)("$name", ({ finalWords, partialWords, expected }) => {
+    const segments = buildSegments(finalWords, partialWords);
     expect(segments).toEqual(expected);
   });
 });

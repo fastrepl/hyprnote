@@ -60,10 +60,7 @@ function CollapsedSearch({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className={cn([
         "flex items-center justify-center h-full w-10",
-        "rounded-lg bg-neutral-100 border border-transparent",
-        "hover:bg-neutral-200 transition-colors",
       ])}
-      aria-label="Open search"
     >
       {showLoading
         ? <Loader2Icon className="h-4 w-4 text-neutral-400 animate-spin" />

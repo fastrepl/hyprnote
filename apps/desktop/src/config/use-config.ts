@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+
+import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
 import { CONFIG_REGISTRY, type ConfigKey } from "./registry";
 
@@ -40,6 +42,7 @@ export function useConfigValues<K extends ConfigKey>(keys: readonly K[]): { [P i
 }
 
 export function useConfigSideEffects(keys?: ConfigKey[]) {
+  const active = useListener((state) => state.status === "running_active");
   const configsToWatch = keys ?? (Object.keys(CONFIG_REGISTRY) as ConfigKey[]);
 
   const allValues = main.UI.useValues(main.STORE_ID);
@@ -59,6 +62,11 @@ export function useConfigSideEffects(keys?: ConfigKey[]) {
   };
 
   useEffect(() => {
+    // TODO: hack to avoid restarting server while in meeting.
+    if (active) {
+      return;
+    }
+
     for (const key of configsToWatch) {
       const definition = CONFIG_REGISTRY[key];
       if (definition && "sideEffect" in definition && definition.sideEffect) {
@@ -66,5 +74,5 @@ export function useConfigSideEffects(keys?: ConfigKey[]) {
         (definition.sideEffect as any)(value, getConfig);
       }
     }
-  }, [allValues]);
+  }, [allValues, active]);
 }

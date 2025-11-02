@@ -13,11 +13,16 @@ export const Route = createFileRoute("/app")({
 function Component() {
   const { listenerStore } = Route.useLoaderData();
 
-  useConfigSideEffects();
-
   return (
     <ListenerProvider store={listenerStore}>
       <Outlet />
+      <SideEffects />
     </ListenerProvider>
   );
+}
+
+function SideEffects() {
+  useConfigSideEffects();
+
+  return null;
 }

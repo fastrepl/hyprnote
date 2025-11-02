@@ -1,69 +1,238 @@
+import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
+import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createContext, useContext, useState } from "react";
 
 export const Route = createFileRoute("/_view")({
   component: Component,
   loader: async ({ context }) => ({ user: context.user }),
 });
 
+// Context to share hero input trigger across components
+interface HeroContextType {
+  onTrigger: (() => void) | null;
+  setOnTrigger: (callback: () => void) => void;
+}
+
+const HeroContext = createContext<HeroContextType | null>(null);
+
+export function useHeroContext() {
+  return useContext(HeroContext);
+}
+
 function Component() {
   const router = useRouterState();
   const isDocsPage = router.location.pathname.startsWith("/docs");
+  const [onTrigger, setOnTrigger] = useState<(() => void) | null>(null);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      {!isDocsPage && <Footer />}
-    </div>
+    <HeroContext.Provider value={{ onTrigger, setOnTrigger: (callback) => setOnTrigger(() => callback) }}>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        {!isDocsPage && <Footer />}
+      </div>
+    </HeroContext.Provider>
   );
 }
 
 function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const platform = usePlatform();
+  const heroContext = useHeroContext();
+  const platformCTA = getPlatformCTA(platform);
+
+  const handleCTAClick = (e: React.MouseEvent) => {
+    if (platformCTA.action === "download") {
+      // Let the Link handle navigation
+      return;
+    }
+    // For waitlist action, trigger hero input
+    e.preventDefault();
+    if (heroContext?.onTrigger) {
+      heroContext.onTrigger();
+    }
+    // Scroll to hero section
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
-      <div className="max-w-6xl mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+    <>
+      <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
+        <div className="max-w-6xl mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4">
+          <div className="flex items-center justify-between">
+            {/* Desktop: Logo + Nav Links */}
+            <div className="hidden sm:flex items-center gap-4">
+              <Link
+                to="/"
+                className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
+              >
+                <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+              </Link>
+              <Link
+                to="/docs"
+                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+              >
+                Docs
+              </Link>
+              <Link
+                to="/blog"
+                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+              >
+                Blog
+              </Link>
+              <Link
+                to="/pricing"
+                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+              >
+                Pricing
+              </Link>
+            </div>
+
+            {/* Mobile: Logo only */}
             <Link
               to="/"
-              className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
+              className="sm:hidden font-semibold text-2xl font-serif hover:scale-105 transition-transform"
             >
               <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
             </Link>
-            <Link
-              to="/docs"
-              className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
-            >
-              Docs
-            </Link>
-            <Link
-              to="/blog"
-              className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
-            >
-              Blog
-            </Link>
-            <Link
-              to="/pricing"
-              className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
-            >
-              Pricing
-            </Link>
+
+            {/* Desktop: CTA Buttons */}
+            <nav className="hidden sm:flex items-center gap-2">
+              <a
+                href="https://tally.so/r/mJaRDY"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 h-8 flex items-center text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+              >
+                Get started
+              </a>
+              {platformCTA.action === "download"
+                ? (
+                  <Link
+                    to="/download"
+                    className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+                  >
+                    {platformCTA.label}
+                  </Link>
+                )
+                : (
+                  <button
+                    onClick={handleCTAClick}
+                    className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+                  >
+                    {platformCTA.label}
+                  </button>
+                )}
+            </nav>
+
+            {/* Mobile: CTA + More Button */}
+            <div className="sm:hidden flex items-center gap-1">
+              {platformCTA.action === "download"
+                ? (
+                  <Link
+                    to="/download"
+                    className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
+                  >
+                    {platformCTA.label}
+                  </Link>
+                )
+                : (
+                  <button
+                    onClick={handleCTAClick}
+                    className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
+                  >
+                    {platform === "mobile" ? "Remind me" : platformCTA.label}
+                  </button>
+                )}
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                className="px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
+                aria-label="Open menu"
+              >
+                <Icon icon="mdi:menu" className="text-lg text-neutral-600" />
+              </button>
+            </div>
           </div>
-          <nav className="flex items-center gap-4">
-            <a
-              href="https://tally.so/r/mJaRDY"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-            >
-              Join waitlist
-            </a>
-          </nav>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile Menu Sheet */}
+      {isMenuOpen && (
+        <>
+          {/* Backdrop - excludes header area */}
+          <div
+            className="fixed top-[65px] left-0 right-0 bottom-0 bg-black/20 z-40 sm:hidden animate-in fade-in duration-200"
+            onClick={() => setIsMenuOpen(false)}
+          />
+
+          {/* Sheet - expands from top */}
+          <div className="fixed top-[65px] left-0 right-0 bg-white border-b border-neutral-100 shadow-lg z-50 sm:hidden animate-in slide-in-from-top duration-300">
+            <nav className="max-w-6xl mx-auto px-4 py-6">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <Link
+                    to="/docs"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
+                  >
+                    Docs
+                  </Link>
+                  <Link
+                    to="/blog"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
+                  >
+                    Blog
+                  </Link>
+                  <Link
+                    to="/pricing"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block text-base text-neutral-700 hover:text-neutral-900 transition-colors"
+                  >
+                    Pricing
+                  </Link>
+                </div>
+
+                <div className="pt-6 border-t border-neutral-100 space-y-3">
+                  <a
+                    href="https://tally.so/r/mJaRDY"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full px-4 py-3 text-center text-sm text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
+                  >
+                    Get started
+                  </a>
+                  {platformCTA.action === "download"
+                    ? (
+                      <Link
+                        to="/download"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
+                      >
+                        {platformCTA.label}
+                      </Link>
+                    )
+                    : (
+                      <button
+                        onClick={(e) => {
+                          setIsMenuOpen(false);
+                          handleCTAClick(e);
+                        }}
+                        className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
+                      >
+                        {platform === "mobile" ? "Get reminder" : platformCTA.label}
+                      </button>
+                    )}
+                </div>
+              </div>
+            </nav>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 

@@ -1,4 +1,4 @@
-import { CheckCircle2Icon, Loader2Icon } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
@@ -91,27 +91,23 @@ function Status({ taskId }: { taskId: TaskId<"enhance"> }) {
     );
   }
 
+  if (step.type === "analyzing") {
+    return (
+      <div className="flex items-center gap-2">
+        <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
+        <span className="text-xs text-neutral-50">
+          Analyzing structure...
+        </span>
+      </div>
+    );
+  }
+
   if (step.type === "generating") {
     return (
       <div className="flex items-center gap-2">
         <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
         <span className="text-xs text-neutral-50">
           Generating
-        </span>
-      </div>
-    );
-  }
-
-  const icon = step.type === "tool-call"
-    ? <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
-    : <CheckCircle2Icon className="w-4 h-4 text-neutral-50" />;
-
-  if (step.toolName === "analyzeStructure") {
-    return (
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-xs text-neutral-50">
-          Analyzing structure...
         </span>
       </div>
     );

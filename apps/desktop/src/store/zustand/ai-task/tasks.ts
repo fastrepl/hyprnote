@@ -2,10 +2,9 @@ import type { LanguageModel } from "ai";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
-import type { ToolRegistry } from "../../../contexts/tool-registry/core";
 import type { Store as PersistedStore } from "../../tinybase/main";
 import { applyTransforms } from "./shared/transform_infra";
-import { TASK_CONFIGS, type TaskArgsMap, type TaskId, type TaskType, type ToolNamesByTask } from "./task-configs";
+import { TASK_CONFIGS, type TaskArgsMap, type TaskId, type TaskType } from "./task-configs";
 
 export type TasksState = {
   tasks: Record<string, TaskState>;
@@ -25,14 +24,10 @@ export type TasksActions = {
   getState: <T extends TaskType>(taskId: TaskId<T>) => TaskState<T> | undefined;
 };
 
-export type TaskStepInfo<T extends TaskType = TaskType> =
-  | { type: "generating" }
-  | (ToolNamesByTask[T] extends never ? never
-    : {
-      type: "tool-call" | "tool-result";
-      toolName: ToolNamesByTask[T];
-      taskType: T;
-    });
+export type TaskStepInfo<T extends TaskType = TaskType> = T extends "enhance"
+  ? { type: "analyzing" } | { type: "generating" }
+  : T extends "title" ? { type: "generating" }
+  : { type: "generating" };
 
 export type TaskStatus = "idle" | "generating" | "success" | "error";
 
@@ -63,7 +58,7 @@ const initialState: TasksState = {
 export const createTasksSlice = <T extends TasksState>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
-  deps: { toolRegistry: ToolRegistry; persistedStore: PersistedStore },
+  deps: { persistedStore: PersistedStore },
 ): TasksState & TasksActions => ({
   ...initialState,
   getState: <Task extends TaskType>(taskId: TaskId<Task>): TaskState<Task> | undefined => {
@@ -87,28 +82,25 @@ export const createTasksSlice = <T extends TasksState>(
   ) => {
     const abortController = new AbortController();
     const taskConfig = TASK_CONFIGS[config.taskType];
-    const [system, prompt] = await Promise.all([
-      taskConfig.getSystem(config.args, deps.persistedStore),
-      taskConfig.getPrompt(config.args, deps.persistedStore),
-    ]);
-
-    set((state) =>
-      mutate(state, (draft) => {
-        draft.tasks[taskId] = {
-          taskType: config.taskType,
-          status: "generating",
-          streamedText: "",
-          error: undefined,
-          abortController,
-          currentStep: undefined,
-        };
-      })
-    );
 
     try {
-      const agent = getAgentForTask(config.taskType, config.model, config.args, deps);
-      const result = agent.stream({ prompt, system });
+      const [system, prompt] = await Promise.all([
+        taskConfig.getSystem(config.args, deps.persistedStore),
+        taskConfig.getPrompt(config.args, deps.persistedStore),
+      ]);
 
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.tasks[taskId] = {
+            taskType: config.taskType,
+            status: "generating",
+            streamedText: "",
+            error: undefined,
+            abortController,
+            currentStep: undefined,
+          };
+        })
+      );
       let fullText = "";
 
       const checkAbort = () => {
@@ -119,9 +111,28 @@ export const createTasksSlice = <T extends TasksState>(
         }
       };
 
+      const onProgress = (step: TaskStepInfo<Task>) => {
+        set((state) =>
+          mutate(state, (draft) => {
+            const currentState = draft.tasks[taskId];
+            if (currentState?.taskType === config.taskType) {
+              (currentState as any).currentStep = step;
+            }
+          })
+        );
+      };
+
+      const workflowStream = taskConfig.executeWorkflow({
+        model: config.model,
+        args: config.args,
+        system,
+        prompt,
+        onProgress,
+        signal: abortController.signal,
+      });
+
       const transforms = taskConfig.transforms ?? [];
-      const transformedStream = applyTransforms(result.fullStream, transforms, {
-        tools: result.toolCalls,
+      const transformedStream = applyTransforms(workflowStream, transforms, {
         stopStream: () => abortController.abort(),
       });
 
@@ -138,33 +149,6 @@ export const createTasksSlice = <T extends TasksState>(
               const currentState = draft.tasks[taskId];
               if (currentState) {
                 currentState.streamedText = fullText;
-                currentState.currentStep = { type: "generating" };
-              }
-            })
-          );
-        } else if (chunk.type === "tool-call") {
-          set((state) =>
-            mutate(state, (draft) => {
-              const currentState = draft.tasks[taskId];
-              if (currentState?.taskType === config.taskType) {
-                (currentState as any).currentStep = {
-                  type: "tool-call",
-                  toolName: chunk.toolName as ToolNamesByTask[typeof config.taskType],
-                  taskType: config.taskType,
-                };
-              }
-            })
-          );
-        } else if (chunk.type === "tool-result") {
-          set((state) =>
-            mutate(state, (draft) => {
-              const currentState = draft.tasks[taskId];
-              if (currentState?.taskType === config.taskType) {
-                (currentState as any).currentStep = {
-                  type: "tool-result",
-                  toolName: chunk.toolName as ToolNamesByTask[typeof config.taskType],
-                  taskType: config.taskType,
-                };
               }
             })
           );
@@ -249,18 +233,4 @@ function extractUnderlyingError(err: unknown): Error {
   }
 
   return err;
-}
-
-function getAgentForTask<T extends TaskType>(
-  taskType: T,
-  model: LanguageModel,
-  args: TaskArgsMap[T],
-  deps: {
-    toolRegistry: ToolRegistry;
-    persistedStore: PersistedStore;
-  },
-) {
-  const taskConfig = TASK_CONFIGS[taskType];
-  const scopedTools = deps.toolRegistry.getTools("enhancing");
-  return taskConfig.getAgent(model, args, scopedTools);
 }

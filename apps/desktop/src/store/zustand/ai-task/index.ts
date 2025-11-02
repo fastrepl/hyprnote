@@ -1,6 +1,5 @@
 import { createStore } from "zustand";
 
-import type { ToolRegistry } from "../../../contexts/tool-registry/core";
 import type { Store as PersistedStore } from "../../tinybase/main";
 import { createTasksSlice, type TasksActions, type TasksState } from "./tasks";
 
@@ -11,13 +10,11 @@ type Store = State & Actions;
 export type AITaskStore = ReturnType<typeof createAITaskStore>;
 
 export const createAITaskStore = ({
-  toolRegistry,
   persistedStore,
 }: {
-  toolRegistry: ToolRegistry;
   persistedStore: PersistedStore;
 }) => {
   return createStore<Store>((set, get) => ({
-    ...createTasksSlice(set, get, { toolRegistry, persistedStore }),
+    ...createTasksSlice(set, get, { persistedStore }),
   }));
 };

@@ -1,4 +1,4 @@
-import { Experimental_Agent as Agent, type LanguageModel, Tool } from "ai";
+import { type LanguageModel, streamText } from "ai";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
 import type { Store as PersistedStore } from "../../../tinybase/main";
@@ -7,8 +7,7 @@ import type { TaskArgsMap, TaskConfig } from ".";
 export const title: TaskConfig<"title"> = {
   getSystem,
   getPrompt,
-  getTools: () => ({}) as const,
-  getAgent: (model, _args, tools = {}) => getAgent(model, tools),
+  executeWorkflow,
   transforms: [],
 };
 
@@ -34,12 +33,24 @@ async function getPrompt(args: TaskArgsMap["title"], store: PersistedStore) {
   throw new Error(result.error);
 }
 
-function getAgent(model: LanguageModel, _tools: Record<string, Tool> = {}) {
-  return new Agent({
+async function* executeWorkflow(params: {
+  model: LanguageModel;
+  args: TaskArgsMap["title"];
+  system: string;
+  prompt: string;
+  onProgress: (step: any) => void;
+  signal: AbortSignal;
+}) {
+  const { model, system, prompt, onProgress, signal } = params;
+
+  onProgress({ type: "generating" });
+
+  const result = streamText({
     model,
-    tools: {},
-    prepareStep: async () => {
-      return { toolChoice: "none" };
-    },
+    system,
+    prompt,
+    abortSignal: signal,
   });
+
+  yield* result.fullStream;
 }

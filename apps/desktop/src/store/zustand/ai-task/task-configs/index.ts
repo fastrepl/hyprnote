@@ -1,17 +1,12 @@
-import type { Experimental_Agent as Agent, LanguageModel, Tool } from "ai";
+import type { LanguageModel, TextStreamPart } from "ai";
 
 import type { Store as PersistedStore } from "../../../tinybase/main";
 import { StreamTransform } from "../shared/transform_infra";
-import { chat } from "./chat";
+import type { TaskStepInfo } from "../tasks";
 import { enhance } from "./enhance";
 import { title } from "./title";
 
-export type AgentType = "chat";
 export type TaskType = "enhance" | "title";
-
-export interface AgentArgsMap {
-  chat: Record<string, never>;
-}
 
 export interface TaskArgsMap {
   enhance: { sessionId: string; templateId?: string };
@@ -27,36 +22,25 @@ export function createTaskId<T extends TaskType>(
   return `${entityId}-${taskType}` as TaskId<T>;
 }
 
-export interface AgentConfig<T extends AgentType = AgentType> {
-  getAgent: (model: LanguageModel, args: AgentArgsMap[T], tools?: Record<string, Tool>) => Agent<any, any, any>;
-}
-
 export interface TaskConfig<T extends TaskType = TaskType> {
-  getAgent: (model: LanguageModel, args: TaskArgsMap[T], tools?: Record<string, Tool>) => Agent<any, any, any>;
+  executeWorkflow: (params: {
+    model: LanguageModel;
+    args: TaskArgsMap[T];
+    system: string;
+    prompt: string;
+    onProgress: (step: TaskStepInfo<T>) => void;
+    signal: AbortSignal;
+  }) => AsyncIterable<TextStreamPart<any>>;
   getPrompt: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
   getSystem: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
-  getTools?: (model: LanguageModel) => Record<string, Tool>;
   transforms?: StreamTransform[];
 }
-
-type AgentConfigMap = {
-  [K in AgentType]: AgentConfig<K>;
-};
 
 type TaskConfigMap = {
   [K in TaskType]: TaskConfig<K>;
 };
 
-export const AGENT_CONFIGS: AgentConfigMap = {
-  chat,
-};
-
 export const TASK_CONFIGS: TaskConfigMap = {
   enhance,
   title,
-};
-
-export type ToolNamesByTask = {
-  enhance: "analyzeStructure";
-  title: never;
 };

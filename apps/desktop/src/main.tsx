@@ -39,7 +39,7 @@ function App() {
     if (!store) {
       return null;
     }
-    return createAITaskStore({ toolRegistry, persistedStore: store });
+    return createAITaskStore({ persistedStore: store });
   }, [store]);
 
   if (!store || !aiTaskStore) {

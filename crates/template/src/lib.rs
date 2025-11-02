@@ -1,5 +1,8 @@
 use std::sync::OnceLock;
 
+mod filters;
+mod testers;
+
 mod error;
 pub use error::*;
 
@@ -125,6 +128,11 @@ fn init_environment() -> minijinja::Environment<'static> {
             POSTPROCESS_TRANSCRIPT_USER_TPL,
         )
         .unwrap();
+    }
+
+    {
+        env.add_filter("transcript", filters::transcript);
+        env.add_test("todo", testers::todo("dynamic"));
     }
 
     env

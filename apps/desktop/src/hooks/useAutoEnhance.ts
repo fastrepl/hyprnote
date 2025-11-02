@@ -9,6 +9,7 @@ import { getTaskState } from "../store/zustand/ai-task/tasks";
 import { useTabs } from "../store/zustand/tabs";
 import type { Tab } from "../store/zustand/tabs/schema";
 import { useLanguageModel } from "./useLLMConnection";
+import { useTaskStatus } from "./useTaskStatus";
 
 export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const sessionId = tab.id;
@@ -63,64 +64,53 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     };
   });
 
-  const isEnhancingRef = useRef(false);
+  const startEnhanceRef = useRef<(() => void) | null>(null);
+  const startTitleRef = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    const listenerJustStopped = prevListenerStatus === "running_active" && listenerStatus !== "running_active";
-
-    if (listenerJustStopped && hasTranscript && model && !isEnhancingRef.current) {
-      isEnhancingRef.current = true;
+  startEnhanceRef.current = () => {
+    if (hasTranscript && model && enhanceStatus === "idle") {
       updateSessionTabState(tab, { editor: "enhanced" });
-
       void generate(enhanceTaskId, {
         model,
         taskType: "enhance",
         args: { sessionId },
       });
     }
-  }, [
-    listenerStatus,
-    prevListenerStatus,
-    hasTranscript,
-    model,
-    generate,
-    enhanceTaskId,
-    sessionId,
-    updateSessionTabState,
-  ]);
+  };
+
+  startTitleRef.current = () => {
+    if (!title && model && titleStatus === "idle") {
+      void generate(titleTaskId, {
+        model,
+        taskType: "title",
+        args: { sessionId },
+      });
+    }
+  };
 
   useEffect(() => {
-    if (enhanceStatus === "success" && isEnhancingRef.current) {
+    const listenerJustStopped = prevListenerStatus === "running_active"
+      && listenerStatus !== "running_active";
+
+    if (listenerJustStopped) {
+      startEnhanceRef.current?.();
+    }
+  }, [listenerStatus, prevListenerStatus]);
+
+  useTaskStatus(enhanceStatus, {
+    onSuccess: () => {
       if (enhanceText) {
         updateEnhancedMd(enhanceText);
       }
+      startTitleRef.current?.();
+    },
+  });
 
-      if (!title && model) {
-        void generate(titleTaskId, {
-          model,
-          taskType: "title",
-          args: { sessionId },
-        });
-      } else {
-        isEnhancingRef.current = false;
-      }
-    }
-
-    if (enhanceStatus === "error") {
-      isEnhancingRef.current = false;
-    }
-  }, [enhanceStatus, enhanceText, updateEnhancedMd, title, model, generate, titleTaskId, sessionId]);
-
-  useEffect(() => {
-    if (titleStatus === "success" && isEnhancingRef.current) {
+  useTaskStatus(titleStatus, {
+    onSuccess: () => {
       if (titleText) {
         updateTitle(titleText);
       }
-      isEnhancingRef.current = false;
-    }
-
-    if (titleStatus === "error") {
-      isEnhancingRef.current = false;
-    }
-  }, [titleStatus, titleText, updateTitle]);
+    },
+  });
 }

@@ -36,14 +36,4 @@ Sections to cover:
 
 {% endif %}
 
-{% if segments and segments | length > 0 %}
-Transcript:
-{% for segment in segments %}
-[Channel {{ segment.key.channel }}]
-{{ segment.text }}
-
-{% endfor %}
-{% elif content %}
-Raw meeting content:
-{{ content }}
-{% endif %}
+{{ segments | transcript }}

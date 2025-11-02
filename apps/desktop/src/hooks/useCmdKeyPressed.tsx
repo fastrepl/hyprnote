@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
 
-/**
- * Hook to track whether the CMD (Meta) key is currently pressed
- * @returns boolean indicating if CMD key is pressed
- */
 export function useCmdKeyPressed(): boolean {
   const [isCmdPressed, setIsCmdPressed] = useState(false);
 
@@ -20,7 +16,6 @@ export function useCmdKeyPressed(): boolean {
       }
     };
 
-    // Handle blur event to reset state when window loses focus
     const handleBlur = () => {
       setIsCmdPressed(false);
     };

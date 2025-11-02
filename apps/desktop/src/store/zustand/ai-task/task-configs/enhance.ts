@@ -1,6 +1,4 @@
-import { smoothStream } from "ai";
-import { Experimental_Agent as Agent, generateText, type LanguageModel, stepCountIs, Tool, tool } from "ai";
-import { z } from "zod";
+import { generateText, type LanguageModel, smoothStream, streamText } from "ai";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { buildSegments } from "../../../../utils/segment";
@@ -11,8 +9,7 @@ import type { TaskArgsMap, TaskConfig } from ".";
 export const enhance: TaskConfig<"enhance"> = {
   getSystem,
   getPrompt,
-  getTools,
-  getAgent: (model, args, tools = {}) => getAgent(model, args, tools),
+  executeWorkflow,
   transforms: [trimBeforeMarker("#"), smoothStream({ delayInMs: 350, chunking: "line" })],
 };
 
@@ -172,57 +169,39 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
   }).sort((a, b) => a.start_ms - b.start_ms);
 }
 
-function getTools(model: LanguageModel) {
-  return {
-    analyzeStructure: createAnalyzeStructureTool(model),
-  } as const;
-}
+async function* executeWorkflow(params: {
+  model: LanguageModel;
+  args: TaskArgsMap["enhance"];
+  system: string;
+  prompt: string;
+  onProgress: (step: any) => void;
+  signal: AbortSignal;
+}) {
+  const { model, args, system, prompt, onProgress, signal } = params;
 
-function getAgent(model: LanguageModel, args: TaskArgsMap["enhance"], extraTools: Record<string, Tool> = {}) {
-  const tools = { ...getTools(model), ...extraTools };
+  if (!args.templateId) {
+    onProgress({ type: "analyzing" });
 
-  return new Agent({
-    model,
-    stopWhen: stepCountIs(10),
-    tools,
-    prepareStep: async ({ stepNumber }) => {
-      if (stepNumber === 0 && !args.templateId) {
-        return { toolChoice: { type: "tool", toolName: "analyzeStructure" } };
-      }
-      if (stepNumber > 0) {
-        return { toolChoice: "none" };
-      }
-    },
-  });
-}
-
-function createAnalyzeStructureTool(model: LanguageModel) {
-  return tool({
-    description: "Analyze raw meeting content to identify key themes, topics, and overall structure",
-    inputSchema: z.object({
-      max_num_sections: z
-        .number()
-        .describe(
-          "Maximum number of sections to generate. Based on the content, decide the number of sections to generate.",
-        ),
-    }),
-    execute: async ({ max_num_sections }, { messages }) => {
-      const lastMessage = messages[messages.length - 1];
-      const input = typeof lastMessage.content === "string"
-        ? lastMessage.content
-        : lastMessage.content.map((part) => part.type === "text" ? part.text : "").join("\n");
-
-      const { content: output } = await generateText({
-        model,
-        prompt: `Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 
+    await generateText({
+      model,
+      prompt: `Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 
 The sections should cover the main themes and topics discussed.
-Generate around ${max_num_sections} sections based on the content depth.
+Generate around 5-7 sections based on the content depth.
 Give me in bullet points.
 
-Content: ${input}`,
-      });
+Content: ${prompt}`,
+      abortSignal: signal,
+    });
+  }
 
-      return output;
-    },
+  onProgress({ type: "generating" });
+
+  const result = streamText({
+    model,
+    system,
+    prompt,
+    abortSignal: signal,
   });
+
+  yield* result.fullStream;
 }

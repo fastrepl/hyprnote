@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { signOutFn } from "@/functions/auth";
 import { createPortalSession } from "@/functions/billing";
+import { addContact } from "@/functions/loops";
 import { useAnalytics } from "@/hooks/use-posthog";
 import { useMutation } from "@tanstack/react-query";
 
@@ -226,25 +227,15 @@ function ProWaitlistCard({ userEmail }: { userEmail?: string }) {
         source: "account_page",
       });
 
-      const response = await fetch("/api/add-contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      await addContact({
+        data: {
           email,
           userGroup: "Lead",
           platform: "Web",
           source: "ACCOUNT_PAGE",
           intent: "Pro Waitlist",
-        }),
+        },
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to join waitlist");
-      }
 
       setStatus("success");
     } catch (error) {

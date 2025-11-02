@@ -20,7 +20,6 @@ import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
-import { Route as ApiAddContactRouteImport } from './routes/api/add-contact'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewDownloadRouteImport } from './routes/_view/download'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
@@ -93,11 +92,6 @@ const WebhookStripeRoute = WebhookStripeRouteImport.update({
 const WebhookNangoRoute = WebhookNangoRouteImport.update({
   id: '/webhook/nango',
   path: '/webhook/nango',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAddContactRoute = ApiAddContactRouteImport.update({
-  id: '/api/add-contact',
-  path: '/api/add-contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ViewPricingRoute = ViewPricingRouteImport.update({
@@ -208,7 +202,6 @@ export interface FileRoutesByFullPath {
   '/docs': typeof ViewDocsRouteRouteWithChildren
   '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
-  '/api/add-contact': typeof ApiAddContactRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
@@ -238,7 +231,6 @@ export interface FileRoutesByTo {
   '/x': typeof XRoute
   '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
-  '/api/add-contact': typeof ApiAddContactRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
@@ -272,7 +264,6 @@ export interface FileRoutesById {
   '/_view/docs': typeof ViewDocsRouteRouteWithChildren
   '/_view/download': typeof ViewDownloadRoute
   '/_view/pricing': typeof ViewPricingRoute
-  '/api/add-contact': typeof ApiAddContactRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/_view/': typeof ViewIndexRoute
@@ -306,7 +297,6 @@ export interface FileRouteTypes {
     | '/docs'
     | '/download'
     | '/pricing'
-    | '/api/add-contact'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/'
@@ -336,7 +326,6 @@ export interface FileRouteTypes {
     | '/x'
     | '/download'
     | '/pricing'
-    | '/api/add-contact'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/'
@@ -369,7 +358,6 @@ export interface FileRouteTypes {
     | '/_view/docs'
     | '/_view/download'
     | '/_view/pricing'
-    | '/api/add-contact'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/_view/'
@@ -399,7 +387,6 @@ export interface RootRouteChildren {
   JoinWaitlistRoute: typeof JoinWaitlistRoute
   LinkedinRoute: typeof LinkedinRoute
   XRoute: typeof XRoute
-  ApiAddContactRoute: typeof ApiAddContactRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
   ApiSyncReadRoute: typeof ApiSyncReadRoute
@@ -483,13 +470,6 @@ declare module '@tanstack/react-router' {
       path: '/webhook/nango'
       fullPath: '/webhook/nango'
       preLoaderRoute: typeof WebhookNangoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/add-contact': {
-      id: '/api/add-contact'
-      path: '/api/add-contact'
-      fullPath: '/api/add-contact'
-      preLoaderRoute: typeof ApiAddContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_view/pricing': {
@@ -703,7 +683,6 @@ const rootRouteChildren: RootRouteChildren = {
   JoinWaitlistRoute: JoinWaitlistRoute,
   LinkedinRoute: LinkedinRoute,
   XRoute: XRoute,
-  ApiAddContactRoute: ApiAddContactRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
   ApiSyncReadRoute: ApiSyncReadRoute,

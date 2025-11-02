@@ -3,7 +3,7 @@ import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
@@ -12,6 +12,7 @@ import { LogoCloud } from "@/components/logo-cloud";
 import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
 import { VideoThumbnail } from "@/components/video-thumbnail";
+import { addContact } from "@/functions/loops";
 import { getHeroCTA, getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { useAnalytics } from "@/hooks/use-posthog";
 import { useHeroContext } from "./route";
@@ -199,17 +200,19 @@ function HeroSection({
   const [errorMessage, setErrorMessage] = useState("");
   const [shake, setShake] = useState(false);
 
-  useEffect(() => {
-    if (heroContext && heroInputRef.current) {
-      heroContext.setOnTrigger(() => {
-        if (heroInputRef.current) {
-          heroInputRef.current.focus();
-          setShake(true);
-          setTimeout(() => setShake(false), 500);
-        }
-      });
+  const handleTrigger = useCallback(() => {
+    if (heroInputRef.current) {
+      heroInputRef.current.focus();
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
     }
-  }, [heroContext, heroInputRef]);
+  }, []);
+
+  useEffect(() => {
+    if (heroContext) {
+      heroContext.setOnTrigger(handleTrigger);
+    }
+  }, [heroContext, handleTrigger]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,25 +233,15 @@ function HeroSection({
         email: email,
       });
 
-      const response = await fetch("/api/add-contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      await addContact({
+        data: {
           email,
           userGroup: "Lead",
           platform: platform === "mobile" ? "Mobile" : platform.charAt(0).toUpperCase() + platform.slice(1),
           source: "LANDING_PAGE",
           intent: intent,
-        }),
+        },
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to submit");
-      }
 
       setStatus("success");
       setEmail("");

@@ -17,6 +17,9 @@ thiserror = { workspace = true }
 minijinja = { workspace = true, features = ["loader", "preserve_order", "json"] }
 minijinja-contrib = { workspace = true, features = ["pycompat"] }
 
+htmd = "0.3.2"
+reqwest = { workspace = true, features = ["blocking"] }
+
 [dev-dependencies]
 hypr-data = { workspace = true }
 insta = { workspace = true }

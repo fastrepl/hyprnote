@@ -1,10 +1,10 @@
-import { DependencyList, Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { DependencyList, Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../../contexts/listener";
 import * as main from "../../../../../../../store/tinybase/main";
-import { buildSegments, PartialWord, Segment, SpeakerHint } from "../../../../../../../utils/segment";
+import { buildSegments, PartialWord, Segment, SegmentWord, SpeakerHint } from "../../../../../../../utils/segment";
 import { parseProviderSpeakerIndex } from "../../../../../../../utils/speaker-hints";
 import { SegmentHeader } from "./segment-header";
 
@@ -42,7 +42,6 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
                 transcriptId={transcriptId}
                 partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
                 partialHints={(index === transcriptIds.length - 1) ? partialHints : []}
-                active={active}
               />
               {index < transcriptIds.length - 1 && <TranscriptSeparator />}
             </Fragment>
@@ -89,12 +88,10 @@ function RenderTranscript(
     transcriptId,
     partialWords,
     partialHints,
-    active,
   }: {
     transcriptId: string;
     partialWords: PartialWord[];
     partialHints: SpeakerHint[];
-    active: boolean;
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
@@ -124,7 +121,7 @@ function RenderTranscript(
             key={i}
             segment={segment}
             offsetMs={offsetMs}
-            active={active}
+            transcriptId={transcriptId}
           />
         ),
       )}
@@ -136,15 +133,25 @@ function RenderSegment(
   {
     segment,
     offsetMs,
-    active,
+    transcriptId,
   }: {
     segment: Segment;
     offsetMs: number;
-    active: boolean;
+    transcriptId: string;
   },
 ) {
-  const { time, seek, audioExists } = useAudioPlayer();
+  const { time, seek, start, audioExists } = useAudioPlayer();
   const currentMs = time.current * 1000;
+
+  const sessionId = main.UI.useCell("transcripts", transcriptId, "session_id", main.STORE_ID);
+  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+
+  const seekAndPlay = useCallback((word: SegmentWord) => {
+    if (audioExists) {
+      seek((offsetMs + word.start_ms) / 1000);
+      start();
+    }
+  }, [audioExists, offsetMs, seek]);
 
   return (
     <section>
@@ -166,7 +173,7 @@ function RenderSegment(
           return (
             <span
               key={`${word.start_ms}-${idx}`}
-              onClick={audioExists ? () => seek((offsetMs + word.start_ms) / 1000) : undefined}
+              onClick={() => seekAndPlay(word)}
               className={cn([
                 audioExists && "cursor-pointer",
                 audioExists && highlightState === "none" && "hover:bg-neutral-200/60",

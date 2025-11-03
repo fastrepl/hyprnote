@@ -6,7 +6,6 @@
   "exports": {
     "./editor": "./src/editor/index.tsx",
     "./renderer": "./src/renderer/index.tsx",
-    "./transcript": "./src/transcript/index.tsx",
     "./shared": "./src/shared/index.ts",
     "./styles.css": "./styles.css"
   },

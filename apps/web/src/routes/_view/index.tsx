@@ -1,3 +1,4 @@
+import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
@@ -10,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
+import { Image } from "@/components/image";
 import { LogoCloud } from "@/components/logo-cloud";
 import { SlashSeparator } from "@/components/slash-separator";
 import { SocialCard } from "@/components/social-card";
@@ -27,19 +29,19 @@ const mainFeatures = [
     icon: "mdi:text-box-outline",
     title: "Transcript",
     description: "Realtime transcript and speaker identification",
-    image: "/hyprnote/transcript.jpg",
+    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/transcript.jpg",
   },
   {
     icon: "mdi:file-document-outline",
     title: "Summary",
     description: "Create customized summaries with templates for various formats",
-    image: "/hyprnote/summary.jpg",
+    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/summary.jpg",
   },
   {
     icon: "mdi:chat-outline",
     title: "Chat",
     description: "Get context-aware answers in realtime, even from past meetings",
-    image: "/hyprnote/chat.jpg",
+    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/chat.jpg",
   },
   {
     icon: "mdi:window-restore",
@@ -60,19 +62,19 @@ const detailsFeatures = [
     icon: "mdi:text-box-edit-outline",
     title: "Notion-like Editor",
     description: "Full markdown support with distraction-free writing",
-    image: "/hyprnote/editor.jpg",
+    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/editor.jpg",
   },
   {
     icon: "mdi:account-multiple-outline",
     title: "Contacts",
     description: "Organize and manage your contacts with ease",
-    image: "/hyprnote/contacts.jpg",
+    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/contacts.jpg",
   },
   {
     icon: "mdi:calendar-outline",
     title: "Calendar",
     description: "Stay on top of your schedule with integrated calendar",
-    image: "/hyprnote/calendar.jpg",
+    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/calendar.jpg",
   },
   {
     icon: "mdi:upload-outline",
@@ -129,6 +131,8 @@ function Component() {
           onVideoExpand={setExpandedVideo}
           heroInputRef={heroInputRef}
         />
+        <SlashSeparator />
+        <HowItWorksSection />
         <SlashSeparator />
         <CoolStuffSection />
         <SlashSeparator />
@@ -406,7 +410,7 @@ function ValuePropsGrid() {
 
 function TestimonialsSection() {
   return (
-    <section className="border-t border-neutral-100">
+    <section>
       <div className="text-center">
         <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
           Loved by professionals at
@@ -494,7 +498,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         username="tomyang11_"
         body="I love the flexibility that @tryhyprnote gives me to integrate personal notes with AI summaries. I can quickly jot down important points during the meeting without getting distracted, then trust that the AI will capture them in full detail for review afterwards."
         url="https://twitter.com/tomyang11_/status/1956395933538902092"
-        className="border-x-0 border-t-0"
+        className="border-x-0 border-t-0 border-b-0"
       />
     </div>
   );
@@ -522,7 +526,7 @@ Thank you for your dedication and for building a tool that not only saves time, 
 
 Cheers!"
           url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
-          className="w-full h-full border-l-0 border-r-0"
+          className="w-full h-full border-l-0 border-r-0 border-b-0"
         />
       </div>
 
@@ -556,7 +560,7 @@ Been using it for daily tasks, even simple note-taking is GREAT because I can re
 
 Mad respect to the team. This is how you build in 2025. 🚀"
           url="https://www.linkedin.com/posts/flaviews_guys-at-hyprnote-yc-s25-are-wild-had-activity-7360606765530386434-Klj-"
-          className="w-full h-full border-r-0"
+          className="w-full h-full border-r-0 border-b-0"
         />
       </div>
 
@@ -578,7 +582,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
           username="tomyang11_"
           body="I love the flexibility that @tryhyprnote gives me to integrate personal notes with AI summaries. I can quickly jot down important points during the meeting without getting distracted, then trust that the AI will capture them in full detail for review afterwards."
           url="https://twitter.com/tomyang11_/status/1956395933538902092"
-          className="w-full h-full overflow-hidden border-r-0"
+          className="w-full h-full overflow-hidden border-r-0 border-b-0"
         />
       </div>
     </div>
@@ -607,7 +611,7 @@ function FeaturesIntroSection() {
 
 function CoolStuffSection() {
   return (
-    <section className="border-t border-neutral-100">
+    <section>
       <div className="text-center border-b border-neutral-100">
         <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
           What makes Hyprnote different
@@ -626,8 +630,8 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
-            <img
-              src="/hyprnote/no-bots.png"
+            <Image
+              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-bots.png"
               alt="No bots interface"
               className="w-full h-full object-contain"
             />
@@ -644,8 +648,8 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
-            <img
-              src="/hyprnote/no-wifi.png"
+            <Image
+              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
               alt="No internet interface"
               className="w-full h-full object-contain"
             />
@@ -665,7 +669,7 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="overflow-hidden">
-            <img
+            <Image
               src="/hyprnote/no-bots.png"
               alt="No bots interface"
               className="w-full h-auto object-contain"
@@ -683,11 +687,381 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="overflow-hidden">
-            <img
+            <Image
               src="/hyprnote/no-wifi.png"
               alt="No internet interface"
               className="w-full h-auto object-contain"
             />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HowItWorksSection() {
+  const [typedText1, setTypedText1] = useState("");
+  const [typedText2, setTypedText2] = useState("");
+  const [enhancedLines, setEnhancedLines] = useState(0);
+
+  const text1 = "metrisc w/ john";
+  const text2 = "stakehlder mtg";
+
+  useEffect(() => {
+    const runAnimation = () => {
+      setTypedText1("");
+      setTypedText2("");
+      setEnhancedLines(0);
+
+      let currentIndex1 = 0;
+      setTimeout(() => {
+        const interval1 = setInterval(() => {
+          if (currentIndex1 < text1.length) {
+            setTypedText1(text1.slice(0, currentIndex1 + 1));
+            currentIndex1++;
+          } else {
+            clearInterval(interval1);
+
+            let currentIndex2 = 0;
+            const interval2 = setInterval(() => {
+              if (currentIndex2 < text2.length) {
+                setTypedText2(text2.slice(0, currentIndex2 + 1));
+                currentIndex2++;
+              } else {
+                clearInterval(interval2);
+
+                setTimeout(() => {
+                  setEnhancedLines(1);
+                  setTimeout(() => {
+                    setEnhancedLines(2);
+                    setTimeout(() => {
+                      setEnhancedLines(3);
+                      setTimeout(() => {
+                        setEnhancedLines(4);
+                        setTimeout(() => {
+                          setEnhancedLines(5);
+                          setTimeout(() => {
+                            setEnhancedLines(6);
+                            setTimeout(() => runAnimation(), 3000);
+                          }, 800);
+                        }, 800);
+                      }, 800);
+                    }, 800);
+                  }, 800);
+                }, 500);
+              }
+            }, 50);
+          }
+        }, 50);
+      }, 500);
+    };
+
+    runAnimation();
+  }, []);
+
+  return (
+    <section>
+      <div className="text-center border-b border-neutral-100">
+        <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
+          How it works
+        </p>
+      </div>
+      <div className="hidden sm:grid sm:grid-cols-2">
+        <div className="border-r border-neutral-100 flex flex-col overflow-clip">
+          <div className="p-8 flex flex-col gap-4">
+            <p className="text-lg font-serif text-neutral-600 leading-relaxed">
+              <span className="font-semibold">While you take notes,</span>{" "}
+              Hyprnote listens and keeps track of everything that happens during the meeting.
+            </p>
+          </div>
+          <div className="flex-1 flex items-center justify-center px-8 pb-0 bg-stone-50/30">
+            <div className="w-full max-w-lg bg-white rounded-t-xl shadow-lg border border-neutral-200 border-b-0 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200 bg-neutral-50">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                </div>
+                <div className="ml-auto">
+                  <DancingSticks amplitude={1} size="default" height={12} color="#a3a3a3" />
+                </div>
+              </div>
+              {/* Content area */}
+              <div className="p-6 space-y-3 text-sm min-h-[300px]">
+                <div className="text-neutral-700">ui update - moble</div>
+                <div className="text-neutral-700">api</div>
+                <div className="text-neutral-700 mt-4">new dash - urgnet</div>
+                <div className="text-neutral-700">a/b tst next wk</div>
+                <div className="text-neutral-700 mt-4">
+                  {typedText1}
+                  {typedText1 && typedText1.length < text1.length && <span className="animate-pulse">|</span>}
+                </div>
+                <div className="text-neutral-700">
+                  {typedText2}
+                  {typedText2 && typedText2.length < text2.length && <span className="animate-pulse">|</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col overflow-clip">
+          <div className="p-8 flex flex-col gap-4">
+            <p className="text-lg font-serif text-neutral-600 leading-relaxed">
+              <span className="font-semibold">After the meeting is over,</span>{" "}
+              Hyprnote combines your notes with transcripts to create a perfect summary
+            </p>
+          </div>
+          <div className="flex-1 flex items-start justify-center px-8 pb-0 bg-stone-50/30">
+            <div className="w-full max-w-lg bg-white rounded-t-xl shadow-lg border border-neutral-200 border-b-0 overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200 bg-neutral-50">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                </div>
+              </div>
+              {/* Content area */}
+              <div className="p-6 space-y-4 min-h-[300px] max-h-[300px] overflow-hidden">
+                <div className="space-y-2">
+                  <h4
+                    className={cn(
+                      "font-semibold text-stone-700 transition-opacity duration-500",
+                      enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                    )}
+                  >
+                    Mobile UI Update and API Adjustments
+                  </h4>
+                  <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Sarah presented the new mobile UI update, which includes a streamlined navigation bar and improved
+                      button placements for better accessibility.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
+                      fetching personalized user data more efficiently.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      The UI update will be implemented in phases, starting with core navigation improvements. Ben will
+                      ensure API modifications are completed before development begins.
+                    </li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h4
+                    className={cn(
+                      "font-semibold text-stone-700 transition-opacity duration-500",
+                      enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                    )}
+                  >
+                    New Dashboard – Urgent Priority
+                  </h4>
+                  <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Alice emphasized that the new analytics dashboard must be prioritized due to increasing
+                      stakeholder demand.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      The new dashboard will feature real-time user engagement metrics and a customizable reporting
+                      system.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Ben mentioned that backend infrastructure needs optimization to handle real-time data processing.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Mark stressed that the dashboard launch should align with marketing efforts to maximize user
+                      adoption.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Development will start immediately, and a basic prototype must be ready for stakeholder review
+                      next week.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="sm:hidden">
+        <div className="border-b border-neutral-100">
+          <div className="p-6">
+            <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
+              <span className="font-semibold">While you take notes,</span>{" "}
+              Hyprnote listens and keeps track of everything that happens during the meeting.
+            </p>
+          </div>
+          <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
+            <div className="bg-white rounded-t-lg shadow-lg border border-neutral-200 border-b-0 overflow-hidden">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-neutral-200 bg-neutral-50">
+                <div className="flex gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                </div>
+                <div className="ml-auto">
+                  <DancingSticks amplitude={1} size="default" height={10} color="#a3a3a3" />
+                </div>
+              </div>
+              <div className="p-4 space-y-2 font-mono text-xs min-h-[200px]">
+                <div className="text-neutral-700">ui update - moble</div>
+                <div className="text-neutral-700">api</div>
+                <div className="text-neutral-700 mt-3">new dash - urgnet</div>
+                <div className="text-neutral-700">a/b tst next wk</div>
+                <div className="text-neutral-700 mt-3">
+                  {typedText1}
+                  {typedText1 && typedText1.length < text1.length && <span className="animate-pulse">|</span>}
+                </div>
+                <div className="text-neutral-700">
+                  {typedText2}
+                  {typedText2 && typedText2.length < text2.length && <span className="animate-pulse">|</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="p-6">
+            <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
+              <span className="font-semibold">After the meeting is over,</span>{" "}
+              Hyprnote combines your notes with transcripts to create a perfect summary
+            </p>
+          </div>
+          <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
+            <div className="bg-white rounded-t-lg shadow-lg border border-neutral-200 border-b-0 overflow-hidden">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-neutral-200 bg-neutral-50">
+                <div className="flex gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                </div>
+              </div>
+              <div className="p-4 space-y-3 min-h-[200px] max-h-[200px] overflow-hidden">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-stone-700 text-sm">Mobile UI Update and API Adjustments</h4>
+                  <ul className="space-y-2 text-xs text-neutral-700 list-disc pl-4">
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Sarah presented the new mobile UI update, which includes a streamlined navigation bar and improved
+                      button placements for better accessibility.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
+                      fetching personalized user data more efficiently.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      The UI update will be implemented in phases, starting with core navigation improvements. Ben will
+                      ensure API modifications are completed before development begins.
+                    </li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-stone-700 text-sm">New Dashboard – Urgent Priority</h4>
+                  <ul className="space-y-2 text-xs text-neutral-700 list-disc pl-4">
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Alice emphasized that the new analytics dashboard must be prioritized due to increasing
+                      stakeholder demand.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      The new dashboard will feature real-time user engagement metrics and a customizable reporting
+                      system.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Ben mentioned that backend infrastructure needs optimization to handle real-time data processing.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Mark stressed that the dashboard launch should align with marketing efforts to maximize user
+                      adoption.
+                    </li>
+                    <li
+                      className={cn(
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      )}
+                    >
+                      Development will start immediately, and a basic prototype must be ready for stakeholder review
+                      next week.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -749,7 +1123,7 @@ function FeaturesMobileCarousel({
               <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
                 <div className="aspect-video border-b border-neutral-100 overflow-hidden">
                   {feature.image && (
-                    <img
+                    <Image
                       src={feature.image}
                       alt={`${feature.title} feature`}
                       className="w-full h-full object-contain"
@@ -795,179 +1169,75 @@ function FeaturesMobileCarousel({
 function FeaturesDesktopGrid() {
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
 
+  const gridClasses = [
+    "col-span-6 md:col-span-3 border-r border-b",
+    "col-span-6 md:col-span-3 border-b",
+    "col-span-6 md:col-span-2 border-r",
+    "col-span-6 md:col-span-2 border-r",
+    "col-span-6 md:col-span-2",
+  ];
+
   return (
     <div className="min-[800px]:grid hidden grid-cols-6">
-      <div className="col-span-6 md:col-span-3 border-r border-b border-neutral-100 overflow-hidden flex flex-col">
-        <div
-          className="aspect-video border-b border-neutral-100 overflow-hidden bg-neutral-100 relative group"
-          onMouseEnter={() => setHoveredFeature(0)}
-          onMouseLeave={() => setHoveredFeature(null)}
-        >
-          <img
-            src="/hyprnote/transcript.jpg"
-            alt="Transcript feature"
-            className="w-full h-full object-contain"
-          />
+      {mainFeatures.map((feature, index) => (
+        <div key={index} className={cn(gridClasses[index], "border-neutral-100 overflow-hidden flex flex-col")}>
           <div
-            className={cn(
-              [
-                "absolute bottom-0 left-0 right-0",
-                "transition-all duration-300 ease-out",
-                hoveredFeature === 0 ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-              ],
-            )}
+            className={cn([
+              "aspect-video border-b border-neutral-100 overflow-hidden relative group",
+              feature.image && "bg-neutral-100",
+            ])}
+            onMouseEnter={() =>
+              setHoveredFeature(index)}
+            onMouseLeave={() =>
+              setHoveredFeature(null)}
           >
-            <button
-              className={cn([
-                "w-full py-4 text-xs font-mono cursor-pointer",
-                "bg-stone-100/95 text-stone-800",
-                "hover:bg-stone-200/95 active:bg-stone-400/95",
-                "transition-all duration-150",
-                "backdrop-blur-sm",
-              ])}
-            >
-              Learn more
-            </button>
+            {feature.image
+              ? (
+                <>
+                  <Image
+                    src={feature.image}
+                    alt={`${feature.title} feature`}
+                    className="w-full h-full object-contain"
+                  />
+                  <div
+                    className={cn([
+                      "absolute bottom-0 left-0 right-0",
+                      "transition-all duration-300 ease-out",
+                      hoveredFeature === index ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+                    ])}
+                  >
+                    <button
+                      className={cn([
+                        "w-full py-4 text-xs font-mono cursor-pointer",
+                        "bg-stone-100/95 text-stone-800",
+                        "hover:bg-stone-200/95 active:bg-stone-400/95",
+                        "transition-all duration-150",
+                        "backdrop-blur-sm",
+                      ])}
+                    >
+                      Learn more
+                    </button>
+                  </div>
+                </>
+              )
+              : <img src="/static.gif" alt={`${feature.title} feature`} className="w-full h-full object-cover" />}
           </div>
-        </div>
-        <div className="p-6 flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Icon icon="mdi:text-box-outline" className="text-2xl text-stone-600" />
-            <h3 className="text-lg font-serif text-stone-600">Transcript</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            Realtime transcript and speaker identification
-          </p>
-        </div>
-      </div>
-
-      <div className="col-span-6 md:col-span-3 border-b border-neutral-100 overflow-hidden flex flex-col">
-        <div
-          className="aspect-video border-b border-neutral-100 overflow-hidden bg-neutral-100 relative group"
-          onMouseEnter={() => setHoveredFeature(1)}
-          onMouseLeave={() => setHoveredFeature(null)}
-        >
-          <img
-            src="/hyprnote/summary.jpg"
-            alt="Summary feature"
-            className="w-full h-full object-contain"
-          />
-          <div
-            className={cn(
-              [
-                "absolute bottom-0 left-0 right-0",
-                "transition-all duration-300 ease-out",
-                hoveredFeature === 1 ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-              ],
-            )}
-          >
-            <button
-              className={cn([
-                "w-full py-4 text-xs font-mono cursor-pointer",
-                "bg-stone-100/95 text-stone-800",
-                "hover:bg-stone-200/95 active:bg-stone-400/95",
-                "transition-all duration-150",
-                "backdrop-blur-sm",
-              ])}
-            >
-              Learn more
-            </button>
-          </div>
-        </div>
-        <div className="p-6 flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Icon icon="mdi:file-document-outline" className="text-2xl text-stone-600" />
-            <h3 className="text-lg font-serif text-stone-600">Summary</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            Create customized summaries with templates for various formats
-          </p>
-        </div>
-      </div>
-
-      <div className="col-span-6 md:col-span-2 border-r border-neutral-100 overflow-hidden flex flex-col">
-        <div
-          className="aspect-video border-b border-neutral-100 overflow-hidden bg-neutral-100 relative group"
-          onMouseEnter={() => setHoveredFeature(2)}
-          onMouseLeave={() => setHoveredFeature(null)}
-        >
-          <img
-            src="/hyprnote/chat.jpg"
-            alt="Chat feature"
-            className="w-full h-full object-contain"
-          />
-          <div
-            className={cn(
-              [
-                "absolute bottom-0 left-0 right-0",
-                "transition-all duration-300 ease-out",
-                hoveredFeature === 2 ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-              ],
-            )}
-          >
-            <button
-              className={cn([
-                "w-full py-4 text-xs font-mono cursor-pointer",
-                "bg-stone-100/95 text-stone-800",
-                "hover:bg-stone-200/95 active:bg-stone-400/95",
-                "transition-all duration-150",
-                "backdrop-blur-sm",
-              ])}
-            >
-              Learn more
-            </button>
-          </div>
-        </div>
-        <div className="p-6 flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Icon icon="mdi:chat-outline" className="text-2xl text-stone-600" />
-            <h3 className="text-lg font-serif text-stone-600">Chat</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            Get context-aware answers in realtime, even from past meetings
-          </p>
-        </div>
-      </div>
-
-      <div className="col-span-6 md:col-span-2 border-r border-neutral-100 overflow-hidden flex flex-col">
-        <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-          <img src="/static.gif" alt="Floating Panel feature" className="w-full h-full object-cover" />
-        </div>
-        <div className="p-6 flex-1">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-3">
-              <Icon icon="mdi:window-restore" className="text-2xl text-stone-600" />
-              <h3 className="text-lg font-serif text-stone-600">Floating Panel</h3>
+          <div className="p-6 flex-1">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-3">
+                <Icon icon={feature.icon} className="text-2xl text-stone-600" />
+                <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
+              </div>
+              {feature.comingSoon && (
+                <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                  Coming Soon
+                </span>
+              )}
             </div>
-            <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
-              Coming Soon
-            </span>
+            <p className="text-sm text-neutral-600">{feature.description}</p>
           </div>
-          <p className="text-sm text-neutral-600">
-            Compact notepad with transcript, summary, and chat during meetings
-          </p>
         </div>
-      </div>
-
-      <div className="col-span-6 md:col-span-2 overflow-hidden flex flex-col">
-        <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-          <img src="/static.gif" alt="Daily Note feature" className="w-full h-full object-cover" />
-        </div>
-        <div className="p-6 flex-1">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-3">
-              <Icon icon="mdi:calendar-check-outline" className="text-2xl text-stone-600" />
-              <h3 className="text-lg font-serif text-stone-600">Daily Note</h3>
-            </div>
-            <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
-              Coming Soon
-            </span>
-          </div>
-          <p className="text-sm text-neutral-600">
-            Track todos and navigate emails and events throughout the day
-          </p>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
@@ -984,7 +1254,7 @@ function DetailsSection({
   scrollToDetail: (index: number) => void;
 }) {
   return (
-    <div className="border-t border-neutral-100">
+    <div>
       <DetailsSectionHeader />
       <DetailsMobileCarousel
         detailsScrollRef={detailsScrollRef}
@@ -1042,7 +1312,7 @@ function DetailsMobileCarousel({
               <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
                 <div className="aspect-video border-y border-neutral-100 overflow-hidden">
                   {feature.image && (
-                    <img
+                    <Image
                       src={feature.image}
                       alt={`${feature.title} feature`}
                       className="w-full h-full object-contain"
@@ -1128,7 +1398,7 @@ function DetailsTabletView({
 
         <div className="aspect-video">
           {detailsFeatures[selectedDetail].image && (
-            <img
+            <Image
               src={detailsFeatures[selectedDetail].image}
               alt={`${detailsFeatures[selectedDetail].title} feature`}
               className="w-full h-full object-contain"
@@ -1187,7 +1457,7 @@ function DetailsDesktopView() {
       >
         {selectedFeature?.image && (
           <>
-            <img
+            <Image
               src={selectedFeature.image}
               alt={`${selectedFeature.title} feature`}
               className="w-full h-full object-contain"
@@ -1222,15 +1492,21 @@ function DetailsDesktopView() {
 
 function ManifestoSection() {
   return (
-    <section className="py-16 border-t border-neutral-100 px-4 laptop:px-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
+    <section className="py-16 px-4 laptop:px-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <div className="max-w-4xl mx-auto">
         <div
           className="border border-neutral-200 p-4"
-          style={{ backgroundImage: "url(/patterns/white_leather.png)" }}
+          style={{
+            backgroundImage:
+              "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/white-leather.png)",
+          }}
         >
           <div
             className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12"
-            style={{ backgroundImage: "url(/patterns/paper.png)" }}
+            style={{
+              backgroundImage:
+                "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/paper.png)",
+            }}
           >
             <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">Our manifesto</h2>
 
@@ -1249,15 +1525,19 @@ function ManifestoSection() {
             </div>
 
             <div className="flex gap-2 mt-12 mb-4">
-              <img
-                src="/team/john.png"
+              <Image
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png"
                 alt="John Jeong"
-                className="size-8 rounded-full object-cover border border-neutral-200"
+                width={32}
+                height={32}
+                className="rounded-full object-cover border border-neutral-200"
               />
-              <img
-                src="/team/yujong.png"
+              <Image
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png"
                 alt="Yujong Lee"
-                className="size-8 rounded-full object-cover border border-neutral-200"
+                width={32}
+                height={32}
+                className="rounded-full object-cover border border-neutral-200"
               />
             </div>
 
@@ -1268,10 +1548,13 @@ function ManifestoSection() {
               </div>
 
               <div>
-                <img
-                  src="/hyprnote/signature-dark.svg"
+                <Image
+                  src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/signature-dark.svg"
                   alt="Hyprnote Signature"
-                  className="w-32 h-auto opacity-80"
+                  width={124}
+                  height={60}
+                  layout="constrained"
+                  className="opacity-80 object-contain"
                 />
               </div>
             </div>
@@ -1404,7 +1687,7 @@ function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputE
   };
 
   return (
-    <section className="py-16 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
+    <section className="py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
       <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <img

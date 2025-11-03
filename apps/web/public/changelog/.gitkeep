@@ -1,8 +1,0 @@
-# Changelog Assets Directory
-
-Place changelog screenshots, feature images, and assets here.
-
-Example usage in MDX:
-```markdown
-![New Feature Screenshot](/changelog/v1.0.0-feature.png)
-```

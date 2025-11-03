@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useMemo } from "react";
 
 const getRandomValues = (max: number, length: number, baseLength: number) => {
   const values: number[] = [];
@@ -20,12 +21,17 @@ type EqualizerStickProps = {
 function EqualizerStick({ baseLength, amplitude, color, height, stickWidth }: EqualizerStickProps) {
   const scaledBaseLength = baseLength * Math.max(0.2, Math.max(amplitude, 0.1));
 
+  const animationHeights = useMemo(
+    () => getRandomValues(height, 6, scaledBaseLength),
+    [height, scaledBaseLength],
+  );
+
   return (
     <motion.div
       className="rounded-full"
       style={{ width: stickWidth, backgroundColor: color }}
       animate={{
-        height: getRandomValues(height, 6, scaledBaseLength),
+        height: animationHeights,
       }}
       transition={{
         duration: 1.1,

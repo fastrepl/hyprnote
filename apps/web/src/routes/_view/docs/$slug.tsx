@@ -1,4 +1,3 @@
-import { Accordion, Card, Columns, Info, Note, Step, Steps, Tip } from "@hypr/ui/docs";
 import { cn } from "@hypr/utils";
 
 import { MDXContent } from "@content-collections/mdx/react";
@@ -7,6 +6,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 
 import { CtaCard } from "@/components/cta-card";
+import { Accordion, Card, Columns, Info, Note, Step, Steps, Tip } from "@hypr/ui/docs";
 
 export const Route = createFileRoute("/_view/docs/$slug")({
   component: Component,
@@ -210,10 +210,12 @@ function RightSidebar({
                 key={item.id}
                 href={`#${item.id}`}
                 className={cn(
-                  "block text-sm py-1 transition-colors border-l-2",
-                  item.level === 3 && "pl-4",
-                  item.level === 2 && "pl-2",
-                  "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
+                  [
+                    "block text-sm py-1 transition-colors border-l-2",
+                    item.level === 3 && "pl-4",
+                    item.level === 2 && "pl-2",
+                    "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
+                  ],
                 )}
               >
                 {item.text}

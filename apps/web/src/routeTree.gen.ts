@@ -9,6 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as XRouteImport } from './routes/x'
+import { Route as LinkedinRouteImport } from './routes/linkedin'
+import { Route as JoinWaitlistRouteImport } from './routes/join-waitlist'
+import { Route as GithubRouteImport } from './routes/github'
+import { Route as DiscordRouteImport } from './routes/discord'
 import { Route as CalRouteImport } from './routes/cal'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
@@ -25,8 +30,6 @@ import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
-import { Route as ApiSyncWriteRouteImport } from './routes/api/sync.write'
-import { Route as ApiSyncReadRouteImport } from './routes/api/sync.read'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDocsSlugRouteImport } from './routes/_view/docs/$slug'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
@@ -35,6 +38,31 @@ import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 
+const XRoute = XRouteImport.update({
+  id: '/x',
+  path: '/x',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LinkedinRoute = LinkedinRouteImport.update({
+  id: '/linkedin',
+  path: '/linkedin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinWaitlistRoute = JoinWaitlistRouteImport.update({
+  id: '/join-waitlist',
+  path: '/join-waitlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GithubRoute = GithubRouteImport.update({
+  id: '/github',
+  path: '/github',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiscordRoute = DiscordRouteImport.update({
+  id: '/discord',
+  path: '/discord',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CalRoute = CalRouteImport.update({
   id: '/cal',
   path: '/cal',
@@ -114,16 +142,6 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
-const ApiSyncWriteRoute = ApiSyncWriteRouteImport.update({
-  id: '/api/sync/write',
-  path: '/api/sync/write',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSyncReadRoute = ApiSyncReadRouteImport.update({
-  id: '/api/sync/read',
-  path: '/api/sync/read',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   id: '/legal/$slug',
   path: '/legal/$slug',
@@ -163,6 +181,11 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
+  '/discord': typeof DiscordRoute
+  '/github': typeof GithubRoute
+  '/join-waitlist': typeof JoinWaitlistRoute
+  '/linkedin': typeof LinkedinRoute
+  '/x': typeof XRoute
   '/app': typeof ViewAppRouteRouteWithChildren
   '/docs': typeof ViewDocsRouteRouteWithChildren
   '/download': typeof ViewDownloadRoute
@@ -177,8 +200,6 @@ export interface FileRoutesByFullPath {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
-  '/api/sync/read': typeof ApiSyncReadRoute
-  '/api/sync/write': typeof ApiSyncWriteRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -189,6 +210,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
+  '/discord': typeof DiscordRoute
+  '/github': typeof GithubRoute
+  '/join-waitlist': typeof JoinWaitlistRoute
+  '/linkedin': typeof LinkedinRoute
+  '/x': typeof XRoute
   '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -201,8 +227,6 @@ export interface FileRoutesByTo {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
-  '/api/sync/read': typeof ApiSyncReadRoute
-  '/api/sync/write': typeof ApiSyncWriteRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -215,6 +239,11 @@ export interface FileRoutesById {
   '/_view': typeof ViewRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
+  '/discord': typeof DiscordRoute
+  '/github': typeof GithubRoute
+  '/join-waitlist': typeof JoinWaitlistRoute
+  '/linkedin': typeof LinkedinRoute
+  '/x': typeof XRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
   '/_view/docs': typeof ViewDocsRouteRouteWithChildren
   '/_view/download': typeof ViewDownloadRoute
@@ -229,8 +258,6 @@ export interface FileRoutesById {
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/docs/$slug': typeof ViewDocsSlugRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
-  '/api/sync/read': typeof ApiSyncReadRoute
-  '/api/sync/write': typeof ApiSyncWriteRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
@@ -243,6 +270,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/auth'
     | '/cal'
+    | '/discord'
+    | '/github'
+    | '/join-waitlist'
+    | '/linkedin'
+    | '/x'
     | '/app'
     | '/docs'
     | '/download'
@@ -257,8 +289,6 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/docs/$slug'
     | '/legal/$slug'
-    | '/api/sync/read'
-    | '/api/sync/write'
     | '/app/'
     | '/blog'
     | '/changelog'
@@ -269,6 +299,11 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/cal'
+    | '/discord'
+    | '/github'
+    | '/join-waitlist'
+    | '/linkedin'
+    | '/x'
     | '/download'
     | '/pricing'
     | '/webhook/nango'
@@ -281,8 +316,6 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/docs/$slug'
     | '/legal/$slug'
-    | '/api/sync/read'
-    | '/api/sync/write'
     | '/app'
     | '/blog'
     | '/changelog'
@@ -294,6 +327,11 @@ export interface FileRouteTypes {
     | '/_view'
     | '/auth'
     | '/cal'
+    | '/discord'
+    | '/github'
+    | '/join-waitlist'
+    | '/linkedin'
+    | '/x'
     | '/_view/app'
     | '/_view/docs'
     | '/_view/download'
@@ -308,8 +346,6 @@ export interface FileRouteTypes {
     | '/_view/changelog/$slug'
     | '/_view/docs/$slug'
     | '/_view/legal/$slug'
-    | '/api/sync/read'
-    | '/api/sync/write'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
@@ -322,14 +358,52 @@ export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CalRoute: typeof CalRoute
+  DiscordRoute: typeof DiscordRoute
+  GithubRoute: typeof GithubRoute
+  JoinWaitlistRoute: typeof JoinWaitlistRoute
+  LinkedinRoute: typeof LinkedinRoute
+  XRoute: typeof XRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
-  ApiSyncReadRoute: typeof ApiSyncReadRoute
-  ApiSyncWriteRoute: typeof ApiSyncWriteRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/x': {
+      id: '/x'
+      path: '/x'
+      fullPath: '/x'
+      preLoaderRoute: typeof XRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/linkedin': {
+      id: '/linkedin'
+      path: '/linkedin'
+      fullPath: '/linkedin'
+      preLoaderRoute: typeof LinkedinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join-waitlist': {
+      id: '/join-waitlist'
+      path: '/join-waitlist'
+      fullPath: '/join-waitlist'
+      preLoaderRoute: typeof JoinWaitlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/github': {
+      id: '/github'
+      path: '/github'
+      fullPath: '/github'
+      preLoaderRoute: typeof GithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/discord': {
+      id: '/discord'
+      path: '/discord'
+      fullPath: '/discord'
+      preLoaderRoute: typeof DiscordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cal': {
       id: '/cal'
       path: '/cal'
@@ -441,20 +515,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
-    }
-    '/api/sync/write': {
-      id: '/api/sync/write'
-      path: '/api/sync/write'
-      fullPath: '/api/sync/write'
-      preLoaderRoute: typeof ApiSyncWriteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/sync/read': {
-      id: '/api/sync/read'
-      path: '/api/sync/read'
-      fullPath: '/api/sync/read'
-      preLoaderRoute: typeof ApiSyncReadRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_view/legal/$slug': {
       id: '/_view/legal/$slug'
@@ -578,10 +638,13 @@ const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CalRoute: CalRoute,
+  DiscordRoute: DiscordRoute,
+  GithubRoute: GithubRoute,
+  JoinWaitlistRoute: JoinWaitlistRoute,
+  LinkedinRoute: LinkedinRoute,
+  XRoute: XRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
-  ApiSyncReadRoute: ApiSyncReadRoute,
-  ApiSyncWriteRoute: ApiSyncWriteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

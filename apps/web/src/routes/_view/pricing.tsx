@@ -1,7 +1,7 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_view/pricing")({
   component: Component,
@@ -83,8 +83,11 @@ const infoCards = [
 
 function Component() {
   return (
-    <main className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen">
-      <div className="max-w-6xl mx-auto border-x border-neutral-100">
+    <main
+      className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
+      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection />
         <PricingCardsSection />
         <InfoCardsSection />
@@ -124,10 +127,12 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
   return (
     <div
       className={cn(
-        "border rounded-sm overflow-hidden flex flex-col transition-transform",
-        plan.popular
-          ? "border-stone-600 shadow-lg relative scale-105"
-          : "border-neutral-100",
+        [
+          "border rounded-sm overflow-hidden flex flex-col transition-transform",
+          plan.popular
+            ? "border-stone-600 shadow-lg relative scale-105"
+            : "border-neutral-100",
+        ],
       )}
     >
       {plan.popular && (
@@ -168,24 +173,28 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                   ? "mdi:minus-circle"
                   : "mdi:close-circle"}
                 className={cn(
-                  "text-lg mt-0.5 shrink-0",
-                  feature.included === true
-                    ? "text-green-700"
-                    : feature.included === "partial"
-                    ? "text-yellow-600"
-                    : "text-neutral-300",
+                  [
+                    "text-lg mt-0.5 shrink-0",
+                    feature.included === true
+                      ? "text-green-700"
+                      : feature.included === "partial"
+                      ? "text-yellow-600"
+                      : "text-neutral-300",
+                  ],
                 )}
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "text-sm",
-                      feature.included === true
-                        ? "text-neutral-900"
-                        : feature.included === "partial"
-                        ? "text-neutral-700"
-                        : "text-neutral-400",
+                      [
+                        "text-sm",
+                        feature.included === true
+                          ? "text-neutral-900"
+                          : feature.included === "partial"
+                          ? "text-neutral-700"
+                          : "text-neutral-400",
+                      ],
                     )}
                   >
                     {feature.label}
@@ -206,16 +215,33 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
           ))}
         </div>
 
-        <button
-          className={cn(
-            "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
-            plan.popular
-              ? "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]"
-              : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+        {plan.price
+          ? (
+            <Link
+              to="/join-waitlist"
+              className={cn(
+                [
+                  "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
+                  "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                ],
+              )}
+            >
+              Join Waitlist
+            </Link>
+          )
+          : (
+            <Link
+              to="/join-waitlist"
+              className={cn(
+                [
+                  "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
+                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+                ],
+              )}
+            >
+              Join Waitlist
+            </Link>
           )}
-        >
-          {plan.price ? "Get Started" : "Download for Free"}
-        </button>
       </div>
     </div>
   );
@@ -309,14 +335,14 @@ function CTASection() {
           Download Hyprnote for free and upgrade when you need cloud features
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="https://tally.so/r/mJaRDY"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/join-waitlist"
             className="px-8 h-10 flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+            title="Join the waitlist to be notified when Hyprnote Pro is available"
+            aria-label="Join the waitlist"
           >
-            Download for Free
-          </a>
+            Join Waitlist
+          </Link>
           <a
             href="https://github.com/fastrepl/hyprnote"
             target="_blank"

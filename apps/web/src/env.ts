@@ -13,6 +13,8 @@ export const env = createEnv({
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
     STRIPE_MONTHLY_PRICE_ID: z.string().min(1),
     STRIPE_YEARLY_PRICE_ID: z.string().min(1),
+
+    LOOPS_KEY: z.string().min(1),
   },
 
   clientPrefix: "VITE_",
@@ -21,6 +23,8 @@ export const env = createEnv({
     VITE_SUPABASE_URL: z.string().min(1),
     VITE_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
     VITE_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
+    VITE_POSTHOG_API_KEY: z.string().min(1),
+    VITE_POSTHOG_HOST: z.string().default("https://us.i.posthog.com"),
   },
 
   runtimeEnv: { ...process.env, ...import.meta.env },

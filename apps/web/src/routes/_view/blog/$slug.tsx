@@ -139,10 +139,12 @@ function TableOfContents({
                 key={item.id}
                 href={`#${item.id}`}
                 className={cn(
-                  "block text-sm py-1 transition-colors border-l-2",
-                  item.level === 3 && "pl-4",
-                  item.level === 2 && "pl-2",
-                  "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
+                  [
+                    "block text-sm py-1 transition-colors border-l-2",
+                    item.level === 3 && "pl-4",
+                    item.level === 2 && "pl-2",
+                    "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
+                  ],
                 )}
               >
                 {item.text}
@@ -215,8 +217,10 @@ function CoverImage({
         src={article.coverImage}
         alt={article.title}
         className={cn(
-          "w-full aspect-video object-cover rounded-none sm:rounded-sm border-y sm:border border-neutral-200 transition-opacity duration-300",
-          coverImageLoaded ? "opacity-100" : "opacity-0",
+          [
+            "w-full aspect-video object-cover rounded-none sm:rounded-sm border-y sm:border border-neutral-200 transition-opacity duration-300",
+            coverImageLoaded ? "opacity-100" : "opacity-0",
+          ],
         )}
         onLoad={onLoad}
         onError={onError}

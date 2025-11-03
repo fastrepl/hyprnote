@@ -1,51 +1,55 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { allArticles } from "content-collections";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
-import { JoinWaitlistButton } from "@/components/join-waitlist-button";
 import { LogoCloud } from "@/components/logo-cloud";
 import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
-import { VideoPlayer } from "@/components/video-player";
 import { VideoThumbnail } from "@/components/video-thumbnail";
+import { addContact } from "@/functions/loops";
+import { getHeroCTA, getPlatformCTA, usePlatform } from "@/hooks/use-platform";
+import { useAnalytics } from "@/hooks/use-posthog";
+import { useHeroContext } from "./route";
 
-const MUX_PLAYBACK_ID = "SGv6JaZsKqF50102xk6no2ybUqqSyngeWO401ic8qJdZR4";
+const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 
 const mainFeatures = [
   {
     icon: "mdi:text-box-outline",
     title: "Transcript",
     description: "Realtime transcript and speaker identification",
-    videoType: "player" as const,
+    image: "/hyprnote/transcript.jpg",
   },
   {
     icon: "mdi:file-document-outline",
     title: "Summary",
     description: "Create customized summaries with templates for various formats",
-    videoType: "player" as const,
+    image: "/hyprnote/summary.jpg",
   },
   {
     icon: "mdi:chat-outline",
     title: "Chat",
     description: "Get context-aware answers in realtime, even from past meetings",
-    videoType: "player" as const,
+    image: "/hyprnote/chat.jpg",
   },
   {
     icon: "mdi:window-restore",
     title: "Floating Panel",
     description: "Compact notepad with transcript, summary, and chat during meetings",
-    videoType: "player" as const,
+    comingSoon: true,
   },
   {
     icon: "mdi:calendar-check-outline",
     title: "Daily Note",
     description: "Track todos and navigate emails and events throughout the day",
-    videoType: "image" as const,
     comingSoon: true,
   },
 ];
@@ -55,25 +59,25 @@ const detailsFeatures = [
     icon: "mdi:text-box-edit-outline",
     title: "Notion-like Editor",
     description: "Full markdown support with distraction-free writing",
-    comingSoon: false,
-  },
-  {
-    icon: "mdi:upload-outline",
-    title: "Upload Audio",
-    description: "Import audio files or transcripts to convert into notes",
-    comingSoon: false,
+    image: "/hyprnote/editor.jpg",
   },
   {
     icon: "mdi:account-multiple-outline",
     title: "Contacts",
     description: "Organize and manage your contacts with ease",
-    comingSoon: false,
+    image: "/hyprnote/contacts.jpg",
   },
   {
     icon: "mdi:calendar-outline",
     title: "Calendar",
     description: "Stay on top of your schedule with integrated calendar",
-    comingSoon: false,
+    image: "/hyprnote/calendar.jpg",
+  },
+  {
+    icon: "mdi:upload-outline",
+    title: "Upload Audio",
+    description: "Import audio files or transcripts to convert into notes",
+    comingSoon: true,
   },
   {
     icon: "mdi:bookshelf",
@@ -93,6 +97,7 @@ function Component() {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const detailsScrollRef = useRef<HTMLDivElement>(null);
   const featuresScrollRef = useRef<HTMLDivElement>(null);
+  const heroInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToDetail = (index: number) => {
     setSelectedDetail(index);
@@ -113,10 +118,17 @@ function Component() {
   };
 
   return (
-    <main className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen">
-      <div className="max-w-6xl mx-auto border-x border-neutral-100">
+    <main
+      className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
+      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <YCombinatorBanner />
-        <HeroSection onVideoExpand={setExpandedVideo} />
+        <HeroSection
+          onVideoExpand={setExpandedVideo}
+          heroInputRef={heroInputRef}
+        />
+        <CoolStuffSection />
         <TestimonialsSection />
         <FeaturesIntroSection />
         <MainFeaturesSection
@@ -124,18 +136,17 @@ function Component() {
           selectedFeature={selectedFeature}
           setSelectedFeature={setSelectedFeature}
           scrollToFeature={scrollToFeature}
-          onVideoExpand={setExpandedVideo}
         />
         <DetailsSection
           detailsScrollRef={detailsScrollRef}
           selectedDetail={selectedDetail}
           setSelectedDetail={setSelectedDetail}
           scrollToDetail={scrollToDetail}
-          onVideoExpand={setExpandedVideo}
         />
         <GitHubOpenSource />
         <ManifestoSection />
-        <CTASection />
+        <BlogSection />
+        <CTASection heroInputRef={heroInputRef} />
       </div>
       <VideoModal
         playbackId={expandedVideo || ""}
@@ -175,7 +186,66 @@ function YCombinatorBanner() {
   );
 }
 
-function HeroSection({ onVideoExpand }: { onVideoExpand: (id: string) => void }) {
+function HeroSection({
+  onVideoExpand,
+  heroInputRef,
+}: {
+  onVideoExpand: (id: string) => void;
+  heroInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const platform = usePlatform();
+  const heroCTA = getHeroCTA(platform);
+  const heroContext = useHeroContext();
+  const { track } = useAnalytics();
+  const [shake, setShake] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: async (email: string) => {
+      const intent = platform === "mobile" ? "Reminder" : "Waitlist";
+      const eventName = platform === "mobile" ? "reminder_requested" : "os_waitlist_joined";
+
+      track(eventName, {
+        platform: platform,
+        timestamp: new Date().toISOString(),
+        email: email,
+      });
+
+      await addContact({
+        data: {
+          email,
+          userGroup: "Lead",
+          platform: platform === "mobile" ? "Mobile" : platform.charAt(0).toUpperCase() + platform.slice(1),
+          source: "LANDING_PAGE",
+          intent: intent,
+        },
+      });
+    },
+  });
+
+  const form = useForm({
+    defaultValues: {
+      email: "",
+    },
+    onSubmit: async ({ value }) => {
+      await mutation.mutateAsync(value.email);
+      form.reset();
+    },
+  });
+
+  const handleTrigger = useCallback(() => {
+    if (heroInputRef.current) {
+      heroInputRef.current.focus();
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (heroContext) {
+      heroContext.setOnTrigger(handleTrigger);
+    }
+  }, [heroContext, handleTrigger]);
+
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <div className="flex flex-col items-center text-center">
@@ -190,19 +260,93 @@ function HeroSection({ onVideoExpand }: { onVideoExpand: (id: string) => void })
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <JoinWaitlistButton />
-            <p className="text-neutral-500">
-              Free and{" "}
-              <a
-                className="decoration-dotted underline hover:text-stone-600 transition-all"
-                href="https://github.com/fastrepl/hyprnote"
-                target="_blank"
+          {heroCTA.showInput
+            ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  form.handleSubmit();
+                }}
+                className="w-full max-w-md"
               >
-                open source
-              </a>
-            </p>
-          </div>
+                <form.Field
+                  name="email"
+                  validators={{
+                    onChange: ({ value }) => {
+                      if (!value) {
+                        return "Email is required";
+                      }
+                      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                        return "Please enter a valid email";
+                      }
+                      return undefined;
+                    },
+                  }}
+                >
+                  {(field) => (
+                    <>
+                      <div
+                        className={cn([
+                          "relative flex items-center border-2 rounded-full overflow-hidden transition-all duration-200",
+                          shake && "animate-shake border-stone-600",
+                          !shake && mutation.isError && "border-red-500",
+                          !shake && mutation.isSuccess && "border-green-500",
+                          !shake && !mutation.isError && !mutation.isSuccess
+                          && "border-neutral-200 focus-within:border-stone-500",
+                        ])}
+                      >
+                        <input
+                          ref={heroInputRef}
+                          type="email"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          placeholder={heroCTA.inputPlaceholder}
+                          className="flex-1 px-6 py-4 text-base outline-none bg-white"
+                          disabled={mutation.isPending || mutation.isSuccess}
+                        />
+                        <button
+                          type="submit"
+                          disabled={mutation.isPending || mutation.isSuccess}
+                          className="absolute right-1 px-6 py-3 text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50"
+                        >
+                          {mutation.isPending
+                            ? "Sending..."
+                            : mutation.isSuccess
+                            ? "Sent!"
+                            : heroCTA.buttonLabel}
+                        </button>
+                      </div>
+                      {mutation.isSuccess && (
+                        <p className="text-green-600 mt-4 text-sm">
+                          Thanks! We'll be in touch soon.
+                        </p>
+                      )}
+                      {mutation.isError && (
+                        <p className="text-red-600 mt-4 text-sm">
+                          {mutation.error instanceof Error
+                            ? mutation.error.message
+                            : "Something went wrong. Please try again."}
+                        </p>
+                      )}
+                      {!mutation.isSuccess && !mutation.isError && (
+                        <p className="text-neutral-500 mt-4 text-sm">
+                          {heroCTA.subtext}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </form.Field>
+              </form>
+            )
+            : (
+              <div className="flex flex-col gap-4 items-center">
+                <DownloadButton />
+                <p className="text-neutral-500 text-sm">
+                  {heroCTA.subtext}
+                </p>
+              </div>
+            )}
         </section>
 
         <div className="relative aspect-video w-full max-w-4xl border-t border-neutral-100 md:hidden overflow-hidden">
@@ -254,6 +398,10 @@ function ValuePropsGrid() {
 function TestimonialsSection() {
   return (
     <section className="border-t border-neutral-100">
+      <div
+        className="border-b border-neutral-100 bg-neutral-50 h-4"
+        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
+      />
       <div className="text-center">
         <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
           Loved by professionals at
@@ -291,7 +439,7 @@ Thank you for your dedication and for building a tool that not only saves time, 
 
 Cheers!"
         url="https://www.reddit.com/r/macapps/comments/1lo24b9/comment/n15dr0t/"
-        className="border-x-0"
+        className="border-x-0 border-t-0"
       />
 
       <SocialCard
@@ -323,7 +471,7 @@ Been using it for daily tasks, even simple note-taking is GREAT because I can re
 
 Mad respect to the team. This is how you build in 2025. 🚀"
         url="https://www.linkedin.com/posts/flaviews_guys-at-hyprnote-yc-s25-are-wild-had-activity-7360606765530386434-Klj-"
-        className="border-x-0"
+        className="border-x-0 border-t-0"
       />
 
       <SocialCard
@@ -332,7 +480,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         username="yoran_beisher"
         body="Been using Hypernote for a while now, truly one of the best AI apps I've used all year. Like they said, the best thing since sliced bread"
         url="https://x.com/yoran_beisher/status/1953147865486012611"
-        className="border-x-0"
+        className="border-x-0 border-t-0"
       />
 
       <SocialCard
@@ -341,7 +489,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
         username="tomyang11_"
         body="I love the flexibility that @tryhyprnote gives me to integrate personal notes with AI summaries. I can quickly jot down important points during the meeting without getting distracted, then trust that the AI will capture them in full detail for review afterwards."
         url="https://twitter.com/tomyang11_/status/1956395933538902092"
-        className="border-x-0"
+        className="border-x-0 border-t-0"
       />
     </div>
   );
@@ -435,7 +583,11 @@ Mad respect to the team. This is how you build in 2025. 🚀"
 function FeaturesIntroSection() {
   return (
     <section>
-      <div className="text-center py-16">
+      <div
+        className="border-b border-neutral-100 bg-neutral-50 h-4"
+        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
+      />
+      <div className="text-center py-16 px-4">
         <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
           <img
             src="/hyprnote/icon.png"
@@ -443,10 +595,104 @@ function FeaturesIntroSection() {
             className="size-24 rounded-3xl border border-neutral-100"
           />
         </div>
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">Hyprnote works like charm</h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">Works like charm</h2>
         <p className="text-neutral-600 max-w-lg mx-auto">
           {"Super simple and easy to use with its clean interface. And it's getting better with every update — every single week."}
         </p>
+      </div>
+    </section>
+  );
+}
+
+function CoolStuffSection() {
+  return (
+    <section className="border-t border-neutral-100">
+      <div
+        className="border-b border-neutral-100 bg-neutral-50 h-4"
+        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
+      />
+      <div className="text-center border-b border-neutral-100">
+        <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
+          What makes Hyprnote different
+        </p>
+      </div>
+
+      <div className="hidden sm:grid sm:grid-cols-2">
+        <div className="border-r border-neutral-100 flex flex-col">
+          <div className="p-8 flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <Icon icon="mdi:robot-off-outline" className="text-3xl text-stone-600" />
+              <h3 className="text-2xl font-serif text-stone-600">No bots</h3>
+            </div>
+            <p className="text-base text-neutral-600 leading-relaxed">
+              No intrusive bots joining your meetings.
+            </p>
+          </div>
+          <div className="flex-1 flex items-center justify-center overflow-hidden">
+            <img
+              src="/hyprnote/no-bots.png"
+              alt="No bots interface"
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <div className="p-8 flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <Icon icon="mdi:wifi-off" className="text-3xl text-stone-600" />
+              <h3 className="text-2xl font-serif text-stone-600">No internet</h3>
+            </div>
+            <p className="text-base text-neutral-600 leading-relaxed">
+              Hyprnote is local-first. Take notes anywhere.
+            </p>
+          </div>
+          <div className="flex-1 flex items-center justify-center overflow-hidden">
+            <img
+              src="/hyprnote/no-wifi.png"
+              alt="No internet interface"
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="sm:hidden">
+        <div className="border-b border-neutral-100">
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <Icon icon="mdi:robot-off-outline" className="text-2xl text-stone-600" />
+              <h3 className="text-xl font-serif text-stone-600">No bots</h3>
+            </div>
+            <p className="text-sm text-neutral-600 leading-relaxed mb-4">
+              No intrusive bots joining your meetings.
+            </p>
+          </div>
+          <div className="overflow-hidden">
+            <img
+              src="/hyprnote/no-bots.png"
+              alt="No bots interface"
+              className="w-full h-auto object-contain"
+            />
+          </div>
+        </div>
+        <div>
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <Icon icon="mdi:wifi-off" className="text-2xl text-stone-600" />
+              <h3 className="text-xl font-serif text-stone-600">No internet</h3>
+            </div>
+            <p className="text-sm text-neutral-600 leading-relaxed mb-4">
+              Hyprnote is local-first. Take notes anywhere.
+            </p>
+          </div>
+          <div className="overflow-hidden">
+            <img
+              src="/hyprnote/no-wifi.png"
+              alt="No internet interface"
+              className="w-full h-auto object-contain"
+            />
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -457,13 +703,11 @@ function MainFeaturesSection({
   selectedFeature,
   setSelectedFeature,
   scrollToFeature,
-  onVideoExpand,
 }: {
   featuresScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedFeature: number;
   setSelectedFeature: (index: number) => void;
   scrollToFeature: (index: number) => void;
-  onVideoExpand: (id: string) => void;
 }) {
   return (
     <>
@@ -472,9 +716,8 @@ function MainFeaturesSection({
         selectedFeature={selectedFeature}
         setSelectedFeature={setSelectedFeature}
         scrollToFeature={scrollToFeature}
-        onVideoExpand={onVideoExpand}
       />
-      <FeaturesDesktopGrid onVideoExpand={onVideoExpand} />
+      <FeaturesDesktopGrid />
     </>
   );
 }
@@ -484,19 +727,17 @@ function FeaturesMobileCarousel({
   selectedFeature,
   setSelectedFeature,
   scrollToFeature,
-  onVideoExpand,
 }: {
   featuresScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedFeature: number;
   setSelectedFeature: (index: number) => void;
   scrollToFeature: (index: number) => void;
-  onVideoExpand: (id: string) => void;
 }) {
   return (
-    <div className="max-[800px]:block hidden px-4">
+    <div className="max-[800px]:block hidden">
       <div
         ref={featuresScrollRef}
-        className="overflow-x-auto snap-x snap-mandatory scrollbar-hide scrollbar-none -mx-4"
+        className="overflow-x-auto scrollbar-none snap-x snap-mandatory scrollbar-none"
         onScroll={(e) => {
           const container = e.currentTarget;
           const scrollLeft = container.scrollLeft;
@@ -507,27 +748,19 @@ function FeaturesMobileCarousel({
       >
         <div className="flex">
           {mainFeatures.map((feature, index) => (
-            <div key={index} className="w-full shrink-0 snap-center px-4">
-              <div className="border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+            <div key={index} className="w-full shrink-0 snap-center">
+              <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
                 <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-                  {feature.videoType === "player"
-                    ? (
-                      <VideoPlayer
-                        playbackId={MUX_PLAYBACK_ID}
-                        onLearnMore={() => window.location.href = "#"}
-                        onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
-                      />
-                    )
-                    : (
-                      <img
-                        src="/static.gif"
-                        alt={`${feature.title} feature`}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
+                  {feature.image && (
+                    <img
+                      src={feature.image}
+                      alt={`${feature.title} feature`}
+                      className="w-full h-full object-contain"
+                    />
+                  )}
                 </div>
                 <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-between gap-2 mb-2">
                     <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
@@ -562,16 +795,43 @@ function FeaturesMobileCarousel({
   );
 }
 
-function FeaturesDesktopGrid({ onVideoExpand }: { onVideoExpand: (id: string) => void }) {
+function FeaturesDesktopGrid() {
+  const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
+
   return (
-    <div className="min-[800px]:grid hidden grid-cols-6 gap-4 px-4 laptop:px-0 pb-4">
-      <div className="col-span-6 md:col-span-3 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
-        <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-          <VideoPlayer
-            playbackId={MUX_PLAYBACK_ID}
-            onLearnMore={() => window.location.href = "#"}
-            onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
+    <div className="min-[800px]:grid hidden grid-cols-6">
+      <div className="col-span-6 md:col-span-3 border-r border-b border-neutral-100 overflow-hidden flex flex-col">
+        <div
+          className="aspect-video border-b border-neutral-100 overflow-hidden bg-neutral-100 relative group"
+          onMouseEnter={() => setHoveredFeature(0)}
+          onMouseLeave={() => setHoveredFeature(null)}
+        >
+          <img
+            src="/hyprnote/transcript.jpg"
+            alt="Transcript feature"
+            className="w-full h-full object-contain"
           />
+          <div
+            className={cn(
+              [
+                "absolute bottom-0 left-0 right-0",
+                "transition-all duration-300 ease-out",
+                hoveredFeature === 0 ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+              ],
+            )}
+          >
+            <button
+              className={cn([
+                "w-full py-4 text-xs font-mono cursor-pointer",
+                "bg-stone-100/95 text-stone-800",
+                "hover:bg-stone-200/95 active:bg-stone-400/95",
+                "transition-all duration-150",
+                "backdrop-blur-sm",
+              ])}
+            >
+              Learn more
+            </button>
+          </div>
         </div>
         <div className="p-6 flex-1">
           <div className="flex items-center gap-3 mb-2">
@@ -579,18 +839,43 @@ function FeaturesDesktopGrid({ onVideoExpand }: { onVideoExpand: (id: string) =>
             <h3 className="text-lg font-serif text-stone-600">Transcript</h3>
           </div>
           <p className="text-sm text-neutral-600">
-            Realtime transcript and speaker identification (coming soon)
+            Realtime transcript and speaker identification
           </p>
         </div>
       </div>
 
-      <div className="col-span-6 md:col-span-3 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
-        <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-          <VideoPlayer
-            playbackId={MUX_PLAYBACK_ID}
-            onLearnMore={() => window.location.href = "#"}
-            onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
+      <div className="col-span-6 md:col-span-3 border-b border-neutral-100 overflow-hidden flex flex-col">
+        <div
+          className="aspect-video border-b border-neutral-100 overflow-hidden bg-neutral-100 relative group"
+          onMouseEnter={() => setHoveredFeature(1)}
+          onMouseLeave={() => setHoveredFeature(null)}
+        >
+          <img
+            src="/hyprnote/summary.jpg"
+            alt="Summary feature"
+            className="w-full h-full object-contain"
           />
+          <div
+            className={cn(
+              [
+                "absolute bottom-0 left-0 right-0",
+                "transition-all duration-300 ease-out",
+                hoveredFeature === 1 ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+              ],
+            )}
+          >
+            <button
+              className={cn([
+                "w-full py-4 text-xs font-mono cursor-pointer",
+                "bg-stone-100/95 text-stone-800",
+                "hover:bg-stone-200/95 active:bg-stone-400/95",
+                "transition-all duration-150",
+                "backdrop-blur-sm",
+              ])}
+            >
+              Learn more
+            </button>
+          </div>
         </div>
         <div className="p-6 flex-1">
           <div className="flex items-center gap-3 mb-2">
@@ -603,13 +888,38 @@ function FeaturesDesktopGrid({ onVideoExpand }: { onVideoExpand: (id: string) =>
         </div>
       </div>
 
-      <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
-        <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-          <VideoPlayer
-            playbackId={MUX_PLAYBACK_ID}
-            onLearnMore={() => window.location.href = "#"}
-            onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
+      <div className="col-span-6 md:col-span-2 border-r border-neutral-100 overflow-hidden flex flex-col">
+        <div
+          className="aspect-video border-b border-neutral-100 overflow-hidden bg-neutral-100 relative group"
+          onMouseEnter={() => setHoveredFeature(2)}
+          onMouseLeave={() => setHoveredFeature(null)}
+        >
+          <img
+            src="/hyprnote/chat.jpg"
+            alt="Chat feature"
+            className="w-full h-full object-contain"
           />
+          <div
+            className={cn(
+              [
+                "absolute bottom-0 left-0 right-0",
+                "transition-all duration-300 ease-out",
+                hoveredFeature === 2 ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+              ],
+            )}
+          >
+            <button
+              className={cn([
+                "w-full py-4 text-xs font-mono cursor-pointer",
+                "bg-stone-100/95 text-stone-800",
+                "hover:bg-stone-200/95 active:bg-stone-400/95",
+                "transition-all duration-150",
+                "backdrop-blur-sm",
+              ])}
+            >
+              Learn more
+            </button>
+          </div>
         </div>
         <div className="p-6 flex-1">
           <div className="flex items-center gap-3 mb-2">
@@ -622,18 +932,19 @@ function FeaturesDesktopGrid({ onVideoExpand }: { onVideoExpand: (id: string) =>
         </div>
       </div>
 
-      <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+      <div className="col-span-6 md:col-span-2 border-r border-neutral-100 overflow-hidden flex flex-col">
         <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-          <VideoPlayer
-            playbackId={MUX_PLAYBACK_ID}
-            onLearnMore={() => window.location.href = "#"}
-            onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
-          />
+          <img src="/static.gif" alt="Floating Panel feature" className="w-full h-full object-cover" />
         </div>
         <div className="p-6 flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Icon icon="mdi:window-restore" className="text-2xl text-stone-600" />
-            <h3 className="text-lg font-serif text-stone-600">Floating Panel</h3>
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-3">
+              <Icon icon="mdi:window-restore" className="text-2xl text-stone-600" />
+              <h3 className="text-lg font-serif text-stone-600">Floating Panel</h3>
+            </div>
+            <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+              Coming Soon
+            </span>
           </div>
           <p className="text-sm text-neutral-600">
             Compact notepad with transcript, summary, and chat during meetings
@@ -641,14 +952,16 @@ function FeaturesDesktopGrid({ onVideoExpand }: { onVideoExpand: (id: string) =>
         </div>
       </div>
 
-      <div className="col-span-6 md:col-span-2 border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
+      <div className="col-span-6 md:col-span-2 overflow-hidden flex flex-col">
         <div className="aspect-video border-b border-neutral-100 overflow-hidden">
           <img src="/static.gif" alt="Daily Note feature" className="w-full h-full object-cover" />
         </div>
         <div className="p-6 flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <Icon icon="mdi:calendar-check-outline" className="text-2xl text-stone-600" />
-            <h3 className="text-lg font-serif text-stone-600">Daily Note</h3>
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-3">
+              <Icon icon="mdi:calendar-check-outline" className="text-2xl text-stone-600" />
+              <h3 className="text-lg font-serif text-stone-600">Daily Note</h3>
+            </div>
             <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
               Coming Soon
             </span>
@@ -667,30 +980,30 @@ function DetailsSection({
   selectedDetail,
   setSelectedDetail,
   scrollToDetail,
-  onVideoExpand,
 }: {
   detailsScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedDetail: number;
   setSelectedDetail: (index: number) => void;
   scrollToDetail: (index: number) => void;
-  onVideoExpand: (id: string) => void;
 }) {
   return (
     <div className="border-t border-neutral-100">
+      <div
+        className="border-b border-neutral-100 bg-neutral-50 h-4"
+        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
+      />
       <DetailsSectionHeader />
       <DetailsMobileCarousel
         detailsScrollRef={detailsScrollRef}
         selectedDetail={selectedDetail}
         setSelectedDetail={setSelectedDetail}
         scrollToDetail={scrollToDetail}
-        onVideoExpand={onVideoExpand}
       />
       <DetailsTabletView
         selectedDetail={selectedDetail}
         setSelectedDetail={setSelectedDetail}
-        onVideoExpand={onVideoExpand}
       />
-      <DetailsDesktopView onVideoExpand={onVideoExpand} />
+      <DetailsDesktopView />
     </div>
   );
 }
@@ -711,19 +1024,17 @@ function DetailsMobileCarousel({
   selectedDetail,
   setSelectedDetail,
   scrollToDetail,
-  onVideoExpand,
 }: {
   detailsScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedDetail: number;
   setSelectedDetail: (index: number) => void;
   scrollToDetail: (index: number) => void;
-  onVideoExpand: (id: string) => void;
 }) {
   return (
-    <div className="max-[800px]:block hidden border-t border-neutral-100 px-4 laptop:px-0">
+    <div className="max-[800px]:block hidden">
       <div
         ref={detailsScrollRef}
-        className="overflow-x-auto scrollbar-none snap-x snap-mandatory scrollbar-hide -mx-4"
+        className="overflow-x-auto scrollbar-none snap-x snap-mandatory scrollbar-none"
         onScroll={(e) => {
           const container = e.currentTarget;
           const scrollLeft = container.scrollLeft;
@@ -734,17 +1045,19 @@ function DetailsMobileCarousel({
       >
         <div className="flex">
           {detailsFeatures.map((feature, index) => (
-            <div key={index} className="w-full shrink-0 snap-center px-4">
-              <div className="border border-neutral-100 rounded-sm overflow-hidden flex flex-col">
-                <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-                  <VideoPlayer
-                    playbackId={MUX_PLAYBACK_ID}
-                    onLearnMore={() => window.location.href = "#"}
-                    onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
-                  />
+            <div key={index} className="w-full shrink-0 snap-center">
+              <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
+                <div className="aspect-video border-y border-neutral-100 overflow-hidden">
+                  {feature.image && (
+                    <img
+                      src={feature.image}
+                      alt={`${feature.title} feature`}
+                      className="w-full h-full object-contain"
+                    />
+                  )}
                 </div>
                 <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-between gap-2 mb-2">
                     <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
@@ -782,14 +1095,12 @@ function DetailsMobileCarousel({
 function DetailsTabletView({
   selectedDetail,
   setSelectedDetail,
-  onVideoExpand,
 }: {
   selectedDetail: number;
   setSelectedDetail: (index: number) => void;
-  onVideoExpand: (id: string) => void;
 }) {
   return (
-    <div className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100 px-4 laptop:px-0">
+    <div className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100">
       <div className="flex flex-col">
         <div className="overflow-x-auto scrollbar-none border-b border-neutral-100">
           <div className="flex">
@@ -798,14 +1109,16 @@ function DetailsTabletView({
                 key={index}
                 onClick={() => setSelectedDetail(index)}
                 className={cn(
-                  "p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
-                  selectedDetail === index
-                    ? "bg-stone-50"
-                    : "hover:bg-neutral-50",
+                  [
+                    "p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
+                    selectedDetail === index
+                      ? "bg-stone-50"
+                      : "hover:bg-neutral-50",
+                  ],
                 )}
               >
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center justify-between gap-2 mb-1">
                     <h3 className="text-base font-serif font-medium text-stone-600">{feature.title}</h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
@@ -820,57 +1133,95 @@ function DetailsTabletView({
           </div>
         </div>
 
-        <div className="pt-4 pb-4">
-          <div className="border border-neutral-100 rounded-sm overflow-hidden aspect-video">
-            <VideoPlayer
-              playbackId={MUX_PLAYBACK_ID}
-              onLearnMore={() => window.location.href = "#"}
-              onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
+        <div className="aspect-video">
+          {detailsFeatures[selectedDetail].image && (
+            <img
+              src={detailsFeatures[selectedDetail].image}
+              alt={`${detailsFeatures[selectedDetail].title} feature`}
+              className="w-full h-full object-contain"
             />
-          </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function DetailsDesktopView({ onVideoExpand }: { onVideoExpand: (id: string) => void }) {
+function DetailsDesktopView() {
+  const [selectedDetail, setSelectedDetail] = useState<number>(0);
+  const [hoveredDetail, setHoveredDetail] = useState<number | null>(null);
+  const selectedFeature = selectedDetail !== null ? detailsFeatures[selectedDetail] : null;
+
   return (
     <div className="min-[1200px]:grid hidden grid-cols-2 border-t border-neutral-100">
-      <div className="border-r border-neutral-100">
-        {detailsFeatures.map((feature, index) => (
-          <div
-            key={index}
-            className={cn(
-              "p-6 cursor-pointer transition-colors",
-              index < detailsFeatures.length - 1 && "border-b border-neutral-100",
-              "hover:bg-neutral-50",
-            )}
-          >
-            <div className="flex items-start gap-3">
-              <Icon icon={feature.icon} className="text-2xl text-stone-600 mt-0.5" />
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-base font-serif font-medium text-stone-600">{feature.title}</h3>
-                  {feature.comingSoon && (
-                    <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
-                      Coming Soon
-                    </span>
-                  )}
+      <div className="border-r border-neutral-100 relative overflow-hidden" style={{ paddingBottom: "56.25%" }}>
+        <div className="absolute inset-0 overflow-y-auto">
+          {detailsFeatures.map((feature, index) => (
+            <div
+              key={index}
+              onClick={() => setSelectedDetail(index)}
+              className={cn(
+                [
+                  "p-6 cursor-pointer transition-colors",
+                  index < detailsFeatures.length - 1 && "border-b border-neutral-100",
+                  selectedDetail === index ? "bg-stone-50" : "hover:bg-neutral-50",
+                ],
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <Icon icon={feature.icon} className="text-2xl text-stone-600 mt-0.5" />
+                  <div>
+                    <h3 className="text-base font-serif font-medium text-stone-600 mb-1">{feature.title}</h3>
+                    <p className="text-sm text-neutral-600">{feature.description}</p>
+                  </div>
                 </div>
-                <p className="text-sm text-neutral-600">{feature.description}</p>
+                {feature.comingSoon && (
+                  <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full whitespace-nowrap">
+                    Coming Soon
+                  </span>
+                )}
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div className="aspect-video md:aspect-auto overflow-hidden">
-        <VideoPlayer
-          playbackId={MUX_PLAYBACK_ID}
-          onLearnMore={() => window.location.href = "#"}
-          onExpandVideo={() => onVideoExpand(MUX_PLAYBACK_ID)}
-        />
+      <div
+        className="aspect-video overflow-hidden bg-neutral-100 relative group"
+        onMouseEnter={() => setHoveredDetail(selectedDetail)}
+        onMouseLeave={() => setHoveredDetail(null)}
+      >
+        {selectedFeature?.image && (
+          <>
+            <img
+              src={selectedFeature.image}
+              alt={`${selectedFeature.title} feature`}
+              className="w-full h-full object-contain"
+            />
+            <div
+              className={cn(
+                [
+                  "absolute bottom-0 left-0 right-0",
+                  "transition-all duration-300 ease-out",
+                  hoveredDetail === selectedDetail ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+                ],
+              )}
+            >
+              <button
+                className={cn([
+                  "w-full py-4 text-xs font-mono cursor-pointer",
+                  "bg-stone-100/95 text-stone-800",
+                  "hover:bg-stone-200/95 active:bg-stone-400/95",
+                  "transition-all duration-150",
+                  "backdrop-blur-sm",
+                ])}
+              >
+                Learn more
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -878,7 +1229,7 @@ function DetailsDesktopView({ onVideoExpand }: { onVideoExpand: (id: string) => 
 
 function ManifestoSection() {
   return (
-    <section className="py-16 border-t border-neutral-100 px-4 laptop:px-0">
+    <section className="py-16 border-t border-neutral-100 px-4 laptop:px-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <div className="max-w-4xl mx-auto">
         <div
           className="border border-neutral-200 p-4"
@@ -893,7 +1244,7 @@ function ManifestoSection() {
             <div className="space-y-4 text-neutral-700 leading-relaxed">
               <p>
                 We believe in the power of notetaking, not notetakers. Meetings should be moments of presence, not
-                passive attendance. If you are not adding value, your time is better spent elsewhere for you and your
+                passive attendance. If you are not added value, your time is better spent elsewhere for you and your
                 team.
               </p>
               <p>
@@ -938,10 +1289,139 @@ function ManifestoSection() {
   );
 }
 
-function CTASection() {
+function BlogSection() {
+  const sortedArticles = [...allArticles]
+    .sort((a, b) => {
+      const aDate = a.updated || a.created;
+      const bDate = b.updated || b.created;
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    })
+    .slice(0, 3);
+
+  if (sortedArticles.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="border-t border-neutral-100">
+      <div
+        className="border-b border-neutral-100 bg-neutral-50 h-4 mb-16"
+        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
+      />
+      <div className="text-center mb-12 px-4">
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">Latest from our blog</h2>
+        <p className="text-neutral-600 max-w-lg mx-auto">
+          Insights, updates, and stories from the Hyprnote team
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3 px-4">
+        {sortedArticles.map((article) => {
+          const displayDate = article.updated || article.created;
+          return (
+            <Link
+              key={article._meta.filePath}
+              to="/blog/$slug"
+              params={{ slug: article.slug }}
+              className="group block h-full"
+            >
+              <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
+                {article.coverImage && (
+                  <div className="aspect-video overflow-hidden border-b border-neutral-100 bg-stone-50">
+                    <img
+                      src={article.coverImage}
+                      alt={article.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+
+                <div className="p-6 flex flex-col flex-1">
+                  <h3 className="text-xl font-serif text-stone-600 mb-2 group-hover:text-stone-800 transition-colors line-clamp-2">
+                    {article.title}
+                  </h3>
+
+                  <p className="text-sm text-neutral-600 leading-relaxed mb-4 line-clamp-3 flex-1">
+                    {article.summary}
+                  </p>
+
+                  <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
+                    <time dateTime={displayDate} className="text-xs text-neutral-500">
+                      {new Date(displayDate).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </time>
+
+                    <span className="text-xs text-neutral-500 group-hover:text-stone-600 transition-colors font-medium">
+                      Read →
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="text-center mt-8">
+        <Link
+          to="/blog"
+          className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium transition-colors"
+        >
+          View all articles
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+            className="h-4 w-4"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </Link>
+      </div>
+
+      <div
+        className="border-t border-neutral-100 bg-neutral-50 h-4 mt-16"
+        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
+      />
+    </section>
+  );
+}
+
+function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputElement | null> }) {
+  const platform = usePlatform();
+  const platformCTA = getPlatformCTA(platform);
+
+  const getButtonLabel = () => {
+    if (platform === "mobile") {
+      return "Get reminder";
+    }
+    return platformCTA.label;
+  };
+
+  const handleCTAClick = () => {
+    if (platformCTA.action === "waitlist") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => {
+        if (heroInputRef.current) {
+          heroInputRef.current.focus();
+          heroInputRef.current.parentElement?.classList.add("animate-shake", "border-stone-600");
+          setTimeout(() => {
+            heroInputRef.current?.parentElement?.classList.remove("animate-shake", "border-stone-600");
+          }, 500);
+        }
+      }, 500);
+    }
+  };
+
   return (
     <section className="py-16 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
-      <div className="flex flex-col gap-6 items-center">
+      <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <img
             src="/hyprnote/icon.png"
@@ -950,14 +1430,42 @@ function CTASection() {
           />
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif">
-          Where conversations stay yours
+          Where conversations<br className="sm:hidden" /> stay yours
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
           Start using Hyprnote today and bring clarity to your back-to-back meetings
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <DownloadButton />
-          <GithubStars />
+          {platformCTA.action === "download" ? <DownloadButton /> : (
+            <button
+              onClick={handleCTAClick}
+              className={cn([
+                "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+                "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+                "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                "transition-all",
+              ])}
+            >
+              {getButtonLabel()}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
+            </button>
+          )}
+          <div className="hidden sm:block">
+            <GithubStars />
+          </div>
         </div>
       </div>
     </section>

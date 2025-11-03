@@ -46,7 +46,7 @@ export function LogoCloud() {
       />
 
       <LogoCard
-        className="border-b border-neutral-100 md:border-r"
+        className="md:border-r border-b border-neutral-100"
         logo={{
           src: "/icons/meta.svg",
           alt: "Meta Logo",
@@ -62,7 +62,7 @@ export function LogoCloud() {
       />
 
       <LogoCard
-        className="relative border-b border-neutral-100 md:border-r"
+        className="border-b border-neutral-100 md:border-r"
         logo={{
           src: "/icons/richmond_american.svg",
           alt: "Richmond American Logo",
@@ -70,7 +70,7 @@ export function LogoCloud() {
       />
 
       <LogoCard
-        className="relative border-b border-neutral-100"
+        className="relative border-r border-b border-neutral-100 md:border-r-0"
         logo={{
           src: "/icons/wayfair.svg",
           alt: "Wayfair Logo",
@@ -78,7 +78,7 @@ export function LogoCloud() {
       />
 
       <LogoCard
-        className="md:border-r border-neutral-100"
+        className="border-b border-neutral-100 md:border-r md:border-b-0"
         logo={{
           src: "/icons/amazon.svg",
           alt: "Amazon Logo",
@@ -86,7 +86,7 @@ export function LogoCloud() {
       />
 
       <LogoCard
-        className="border-r border-neutral-100"
+        className="border-r border-b border-neutral-100 md:border-b-0"
         logo={{
           src: "/icons/palantir.svg",
           alt: "Palantir Logo",
@@ -94,7 +94,7 @@ export function LogoCloud() {
       />
 
       <LogoCard
-        className="border-r border-neutral-100"
+        className="border-b border-neutral-100 md:border-r md:border-b-0"
         logo={{
           src: "/icons/disney.svg",
           alt: "Disney Logo",
@@ -110,7 +110,7 @@ export function LogoCloud() {
       />
 
       <LogoCard
-        className=""
+        className="border-neutral-100"
         logo={{
           src: "/icons/bain.svg",
           alt: "Bain Logo",

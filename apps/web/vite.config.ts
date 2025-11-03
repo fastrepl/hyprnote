@@ -29,6 +29,9 @@ const config = defineConfig(() => ({
     }),
     viteReact(),
   ],
+  ssr: {
+    noExternal: ["posthog-js", "@posthog/react"],
+  },
 }));
 
 export default config;

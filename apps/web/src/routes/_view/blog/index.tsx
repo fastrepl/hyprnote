@@ -29,8 +29,11 @@ function Component() {
   const regularArticles = sortedArticles.filter((a) => !a.featured);
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white">
-      <div className="max-w-6xl mx-auto border-x border-neutral-100">
+    <div
+      className="bg-linear-to-b from-white via-stone-50/20 to-white"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
+      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white min-h-screen">
         <div className="px-4 sm:px-6 lg:px-8 py-16">
           <Header />
           <FeaturedSection articles={featuredArticles} />
@@ -222,8 +225,10 @@ function ArticleImage({
         src={src}
         alt={alt}
         className={cn(
-          "w-full h-full object-cover group-hover:scale-105 transition-all duration-500",
-          isLoaded ? "opacity-100" : "opacity-0",
+          [
+            "w-full h-full object-cover group-hover:scale-105 transition-all duration-500",
+            isLoaded ? "opacity-100" : "opacity-0",
+          ],
         )}
         onLoad={onLoad}
         onError={onError}

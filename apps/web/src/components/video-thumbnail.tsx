@@ -18,12 +18,12 @@ export function VideoThumbnail({
     <div className={cn(["relative w-full h-full overflow-hidden group cursor-pointer", className])} onClick={onPlay}>
       <MuxPlayer
         playbackId={playbackId}
+        poster="/hyprnote/poster-image.png"
         muted
         playsInline
-        className="w-full h-full object-cover pointer-events-none"
+        className="w-full h-full object-cover pointer-events-none aspect-video"
         style={{
           "--controls": "none",
-          aspectRatio: "16/9",
         } as React.CSSProperties}
       />
 

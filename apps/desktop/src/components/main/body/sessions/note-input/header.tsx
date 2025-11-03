@@ -80,32 +80,32 @@ function HeaderTabEnhanced(
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          onClick={handleTabClick}
-          className={cn([
-            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
-            isActive
-              ? ["text-neutral-900", "border-neutral-900"]
-              : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],
-          ])}
-        >
-          <span className="flex items-center gap-1">
-            <span>Summary</span>
-            {isActive && (
-              <button
+      <button
+        onClick={handleTabClick}
+        className={cn([
+          "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
+          isActive
+            ? ["text-neutral-900", "border-neutral-900"]
+            : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],
+        ])}
+      >
+        <span className="flex items-center gap-1">
+          <span>Summary</span>
+          {isActive && (
+            <PopoverTrigger asChild>
+              <span
                 onClick={handleIconClick}
                 className={cn([
-                  "p-0.5 rounded hover:bg-neutral-200 transition-colors",
+                  "p-0.5 rounded hover:bg-neutral-200 transition-colors cursor-pointer",
                   isError && "text-red-600 hover:bg-red-50",
                 ])}
               >
                 {isError ? <AlertCircleIcon size={12} /> : <RefreshCcwIcon size={12} />}
-              </button>
-            )}
-          </span>
-        </button>
-      </PopoverTrigger>
+              </span>
+            </PopoverTrigger>
+          )}
+        </span>
+      </button>
       <PopoverContent className="w-64" align="start">
         <div className="flex flex-col gap-2">
           {Object.entries(templates).length > 0

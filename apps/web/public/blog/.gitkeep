@@ -1,8 +1,0 @@
-w# Blog Assets Directory
-
-Place blog post images and assets here.
-
-Example usage in MDX:
-```markdown
-![Alt text](/blog/my-image.png)
-```

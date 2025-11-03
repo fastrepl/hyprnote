@@ -58,7 +58,7 @@ function BookingButton() {
   return (
     <div className="mb-8 flex justify-center">
       <a
-        href="https://cal.com/team/hyprnote/welcome?duration=20"
+        href="/founders"
         target="_blank"
         rel="noopener noreferrer"
       >

@@ -4,19 +4,25 @@ import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 
 export function GithubStars() {
-  const LAST_SEEN = 6400;
+  const LAST_SEEN_STARS = 6400;
+  const LAST_SEEN_FORKS = 396;
   const ORG_REPO = "fastrepl/hyprnote";
 
-  const star = useQuery({
-    queryKey: ["github-stars"],
+  const githubStats = useQuery({
+    queryKey: ["github-stats"],
     queryFn: async () => {
       const response = await fetch(`https://api.github.com/repos/${ORG_REPO}`);
       const data = await response.json();
-      return data.stargazers_count ?? LAST_SEEN;
+      return {
+        stars: data.stargazers_count ?? LAST_SEEN_STARS,
+        forks: data.forks_count ?? LAST_SEEN_FORKS,
+      };
     },
   });
 
   const render = (n: number) => n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
+
+  const starCount = githubStats.data?.stars ?? LAST_SEEN_STARS;
 
   return (
     <a href={`https://github.com/${ORG_REPO}`} target="_blank">
@@ -29,7 +35,7 @@ export function GithubStars() {
         ])}
       >
         <Icon icon="mdi:github" className="text-xl" />
-        <span className="ml-2">{star.data ? render(star.data) : render(LAST_SEEN)} stars</span>
+        <span className="ml-2">{render(starCount)} stars</span>
       </button>
     </a>
   );

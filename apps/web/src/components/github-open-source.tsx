@@ -1,6 +1,7 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
+import { useQuery } from "@tanstack/react-query";
 
 const ORG_REPO = "fastrepl/hyprnote";
 
@@ -136,15 +137,26 @@ function GridRow({
 }
 
 export function GitHubOpenSource() {
-  const STARS_COUNT = 6419;
-  const FORKS_COUNT = 396;
+  const LAST_SEEN_STARS = 6419;
+  const LAST_SEEN_FORKS = 396;
+
+  const githubStats = useQuery({
+    queryKey: ["github-stats"],
+    queryFn: async () => {
+      const response = await fetch(`https://api.github.com/repos/${ORG_REPO}`);
+      const data = await response.json();
+      return {
+        stars: data.stargazers_count ?? LAST_SEEN_STARS,
+        forks: data.forks_count ?? LAST_SEEN_FORKS,
+      };
+    },
+  });
+
+  const STARS_COUNT = githubStats.data?.stars ?? LAST_SEEN_STARS;
+  const FORKS_COUNT = githubStats.data?.forks ?? LAST_SEEN_FORKS;
 
   return (
     <section className="border-t border-neutral-100">
-      <div
-        className="border-b border-neutral-100 bg-neutral-50 h-4"
-        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
-      />
       <div className="px-4 py-8">
         <div className="lg:hidden max-w-4xl mx-auto">
           <OpenSourceButton showStars={true} starCount={STARS_COUNT} />
@@ -280,10 +292,6 @@ export function GitHubOpenSource() {
           </div>
         </div>
       </div>
-      <div
-        className="border-t border-neutral-100 bg-neutral-50 h-4"
-        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
-      />
     </section>
   );
 }

@@ -1,5 +1,11 @@
 import { DependencyList, Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../../contexts/listener";
@@ -14,7 +20,17 @@ import {
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
 import { SegmentHeader } from "./segment-header";
 
-export function TranscriptViewer({ sessionId }: { sessionId: string }) {
+type WordOperations = {
+  onDeleteWord?: (wordId: string) => void;
+};
+
+export function TranscriptContainer({
+  sessionId,
+  operations,
+}: {
+  sessionId: string;
+  operations?: WordOperations;
+}) {
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
     sessionId,
@@ -48,6 +64,7 @@ export function TranscriptViewer({ sessionId }: { sessionId: string }) {
                 transcriptId={transcriptId}
                 partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
                 partialHints={(index === transcriptIds.length - 1) ? partialHints : []}
+                operations={operations}
               />
               {index < transcriptIds.length - 1 && <TranscriptSeparator />}
             </Fragment>
@@ -94,10 +111,12 @@ function RenderTranscript(
     transcriptId,
     partialWords,
     partialHints,
+    operations,
   }: {
     transcriptId: string;
     partialWords: PartialWord[];
     partialHints: RuntimeSpeakerHint[];
+    operations?: WordOperations;
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
@@ -123,11 +142,12 @@ function RenderTranscript(
     <>
       {segments.map(
         (segment, i) => (
-          <RenderSegment
+          <SegmentRenderer
             key={i}
             segment={segment}
             offsetMs={offsetMs}
             transcriptId={transcriptId}
+            operations={operations}
           />
         ),
       )}
@@ -135,15 +155,17 @@ function RenderTranscript(
   );
 }
 
-function RenderSegment(
+export function SegmentRenderer(
   {
     segment,
     offsetMs,
     transcriptId,
+    operations,
   }: {
     segment: Segment;
     offsetMs: number;
     transcriptId: string;
+    operations?: WordOperations;
   },
 ) {
   const { time, seek, start, audioExists } = useAudioPlayer();
@@ -157,7 +179,7 @@ function RenderSegment(
       seek((offsetMs + word.start_ms) / 1000);
       start();
     }
-  }, [audioExists, offsetMs, seek]);
+  }, [audioExists, offsetMs, seek, start]);
 
   return (
     <section>
@@ -177,19 +199,14 @@ function RenderSegment(
           });
 
           return (
-            <span
-              key={`${word.start_ms}-${idx}`}
-              onClick={() => seekAndPlay(word)}
-              className={cn([
-                audioExists && "cursor-pointer",
-                audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
-                !word.isFinal && ["opacity-60", "italic"],
-                highlightState === "current" && "bg-blue-200/70",
-                highlightState === "buffer" && "bg-blue-200/30",
-              ])}
-            >
-              {word.text}
-            </span>
+            <WordSpan
+              key={word.id ?? `${word.start_ms}-${idx}`}
+              word={word}
+              highlightState={highlightState}
+              audioExists={audioExists}
+              operations={operations}
+              onSeekAndPlay={() => seekAndPlay(word)}
+            />
           );
         })}
       </div>
@@ -197,7 +214,53 @@ function RenderSegment(
   );
 }
 
-function useFinalWords(transcriptId: string): main.Word[] {
+function WordSpan({
+  word,
+  highlightState,
+  audioExists,
+  operations,
+  onSeekAndPlay,
+}: {
+  word: SegmentWord;
+  highlightState: "current" | "buffer" | "none";
+  audioExists: boolean;
+  operations?: WordOperations;
+  onSeekAndPlay: () => void;
+}) {
+  const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
+  const className = cn([
+    audioExists && "cursor-pointer",
+    audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
+    !word.isFinal && ["opacity-60", "italic"],
+    highlightState === "current" && "bg-blue-200/70",
+    highlightState === "buffer" && "bg-blue-200/30",
+  ]);
+
+  if (mode === "editor" && word.id) {
+    return (
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <span onClick={onSeekAndPlay} className={className}>
+            {word.text}
+          </span>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem onClick={() => operations?.onDeleteWord?.(word.id!)}>
+            Delete
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    );
+  }
+
+  return (
+    <span onClick={onSeekAndPlay} className={className}>
+      {word.text}
+    </span>
+  );
+}
+
+function useFinalWords(transcriptId: string): (main.Word & { id: string })[] {
   const store = main.UI.useStore(main.STORE_ID);
   const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
 
@@ -206,11 +269,11 @@ function useFinalWords(transcriptId: string): main.Word[] {
       return [];
     }
 
-    const words: main.Word[] = [];
+    const words: (main.Word & { id: string })[] = [];
     wordIds?.forEach((wordId) => {
       const word = store.getRow("words", wordId);
       if (word) {
-        words.push(word as main.Word);
+        words.push({ ...(word as main.Word), id: wordId });
       }
     });
     return words;

@@ -9,7 +9,7 @@ export type WordLike = {
 
 export type PartialWord = WordLike;
 
-export type SegmentWord = WordLike & { isFinal: boolean };
+export type SegmentWord = WordLike & { isFinal: boolean; id?: string };
 
 export type SpeakerHintData =
   | { type: "provider_speaker_index"; speaker_index: number; provider?: string; channel?: number }
@@ -55,6 +55,7 @@ export function buildSegments<
       end_ms: word.end_ms,
       channel: word.channel,
       isFinal: true,
+      ...("id" in word && word.id ? { id: word.id as string } : {}),
     })),
     ...partialWords.map((word) => ({
       text: word.text,
@@ -62,6 +63,7 @@ export function buildSegments<
       end_ms: word.end_ms,
       channel: word.channel,
       isFinal: false,
+      ...("id" in word && word.id ? { id: word.id as string } : {}),
     })),
   ].sort((a, b) => a.start_ms - b.start_ms);
 

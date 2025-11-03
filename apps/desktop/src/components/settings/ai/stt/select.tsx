@@ -102,7 +102,13 @@ export function SelectProviderAndModel() {
         <form.Field name="model">
           {(field) => {
             const providerId = field.form.getFieldValue("provider") as ProviderId;
-            const models = configuredProviders?.[providerId] ?? [];
+            const allModels = configuredProviders?.[providerId] ?? [];
+            const models = allModels.filter((model) => {
+              if (model.id.startsWith("Quantized")) {
+                return model.isDownloaded;
+              }
+              return true;
+            });
 
             return (
               <div style={{ flex: 6 }}>

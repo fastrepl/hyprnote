@@ -1,22 +1,27 @@
 # https://docs.crabnebula.dev/cloud/ci/tauri-v2-workflow/
 on:
   workflow_dispatch:
-  release:
-    types:
-      - published
+    inputs:
+      channel:
+        description: "Release channel"
+        required: true
+        type: choice
+        options:
+          - staging
+          - nightly
+          - stable
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote"
-  RELEASE_CHANNEL: ${{ (github.event_name == 'release' && github.event.release.tag_name != '') && 'nightly' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && 'stable' || 'staging' }}
-  TAURI_CONF_PATH: ${{ (github.event_name == 'release' && github.event.release.tag_name != '') && './src-tauri/tauri.conf.nightly.json' || (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.staging.json' }}
+  RELEASE_CHANNEL: ${{ inputs.channel }}
+  TAURI_CONF_PATH: ./src-tauri/tauri.conf.${{ inputs.channel }}.json
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
   build:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_')) }}
     permissions:
       contents: write
     strategy:
@@ -34,19 +39,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
-      - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
-        run: |
-          VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
-
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            TAG_NAME="${{ github.event.release.tag_name }}"
-            echo "Version: $VERSION, Tag name: $TAG_NAME"
-            if [[ ! "$TAG_NAME" == *"$VERSION"* ]]; then
-              exit 1
-            fi
-          fi
-        shell: bash
-      - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
+      - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:
           cmd: draft
@@ -84,7 +77,7 @@ jobs:
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
       - run: |
           FEATURES_FLAG=""
-          if [[ "${{ env.RELEASE_CHANNEL }}" == "staging" ]]; then
+          if [[ "${{ inputs.channel }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
           fi
           pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
@@ -112,7 +105,7 @@ jobs:
           find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
         working-directory: ./apps/desktop/src-tauri
-      - if: ${{ env.RELEASE_CHANNEL != 'staging' }}
+      - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:
           cmd: upload
@@ -121,13 +114,13 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - if: ${{ env.RELEASE_CHANNEL == 'staging' && matrix.platform == 'macos' }}
+      - if: ${{ inputs.channel == 'staging' && matrix.platform == 'macos' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-staging-${{ matrix.target }}
           path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
           retention-days: 3
-      - if: ${{ env.RELEASE_CHANNEL == 'staging' && matrix.platform == 'windows' }}
+      - if: ${{ inputs.channel == 'staging' && matrix.platform == 'windows' }}
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-staging-${{ matrix.target }}
@@ -136,7 +129,7 @@ jobs:
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
           retention-days: 3
   publish:
-    if: ${{ ((github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'desktop_'))) }}
+    if: ${{ inputs.channel != 'staging' }}
     needs: build
     runs-on: ubuntu-24.04
     steps:

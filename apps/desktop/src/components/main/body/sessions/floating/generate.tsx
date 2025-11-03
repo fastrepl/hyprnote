@@ -4,12 +4,10 @@ import { useCallback, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
-import { useAITask } from "../../../../../contexts/ai-task";
+import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
-import { useTaskStatus } from "../../../../../hooks/useTaskStatus";
 import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
-import { getTaskState } from "../../../../../store/zustand/ai-task/tasks";
 import { ActionableTooltipContent, FloatingButton } from "./shared";
 
 export function GenerateButton({ sessionId }: { sessionId: string }) {
@@ -131,20 +129,10 @@ function useGenerateButton(sessionId: string) {
     main.STORE_ID,
   );
 
-  const { generate, rawStatus, streamedText, error } = useAITask((state) => {
-    const taskState = getTaskState(state.tasks, taskId);
-    return {
-      generate: state.generate,
-      rawStatus: taskState?.status ?? "idle",
-      streamedText: taskState?.streamedText ?? "",
-      error: taskState?.error,
-    };
-  });
-
-  const { isGenerating, isError } = useTaskStatus(rawStatus, {
-    onSuccess: () => {
-      if (streamedText) {
-        updateEnhancedMd(streamedText);
+  const enhanceTask = useAITaskTask(taskId, "enhance", {
+    onSuccess: ({ text }) => {
+      if (text) {
+        updateEnhancedMd(text);
       }
     },
   });
@@ -156,21 +144,20 @@ function useGenerateButton(sessionId: string) {
       return;
     }
 
-    await generate(taskId, {
+    await enhanceTask.start({
       model,
-      taskType: "enhance",
       args: { sessionId, templateId: templateId ?? undefined },
     });
-  }, [model, generate, taskId, sessionId]);
+  }, [model, enhanceTask.start, sessionId]);
 
   const hasContent = !!enhancedMd && enhancedMd.trim().length > 0;
 
   return {
     model,
     templates,
-    isGenerating,
-    isError,
-    error,
+    isGenerating: enhanceTask.isGenerating,
+    isError: enhanceTask.isError,
+    error: enhanceTask.error,
     onRegenerate,
     hasContent,
   };

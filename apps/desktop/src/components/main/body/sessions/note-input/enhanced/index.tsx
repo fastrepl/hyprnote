@@ -1,9 +1,8 @@
 import { type TiptapEditor } from "@hypr/tiptap/editor";
 import { forwardRef } from "react";
 
-import { useAITask } from "../../../../../../contexts/ai-task";
+import { useAITaskTask } from "../../../../../../hooks/useAITaskTask";
 import { createTaskId } from "../../../../../../store/zustand/ai-task/task-configs";
-import { getTaskState } from "../../../../../../store/zustand/ai-task/tasks";
 import { EnhancedEditor } from "./editor";
 import { StreamingView } from "./streaming";
 
@@ -13,12 +12,7 @@ export const Enhanced = forwardRef<
 >(({ sessionId }, ref) => {
   const taskId = createTaskId(sessionId, "enhance");
 
-  const { status } = useAITask((state) => {
-    const taskState = getTaskState(state.tasks, taskId);
-    return {
-      status: taskState?.status ?? "idle",
-    };
-  });
+  const { status } = useAITaskTask(taskId, "enhance");
 
   if (status === "error") {
     return null;

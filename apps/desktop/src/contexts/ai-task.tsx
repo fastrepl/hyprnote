@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useMemo, useRef } from "react";
-import { useStore } from "zustand";
-import { useShallow } from "zustand/shallow";
+import { shallow } from "zustand/shallow";
+import { useStoreWithEqualityFn } from "zustand/traditional";
 
 import { type AITaskStore, createAITaskStore } from "../store/zustand/ai-task";
 import { type ToolScope, useRegisterTools } from "./tool";
 
 const AITaskContext = createContext<AITaskStore | null>(null);
+
+export type AITaskState = ReturnType<ReturnType<typeof createAITaskStore>["getState"]>;
 
 export const AITaskProvider = ({
   children,
@@ -47,9 +49,8 @@ export const AITaskProvider = ({
 };
 
 export const useAITask = <T,>(
-  selector: Parameters<
-    typeof useStore<ReturnType<typeof createAITaskStore>, T>
-  >[1],
+  selector: (state: AITaskState) => T,
+  equalityFn?: (left: T, right: T) => boolean,
 ) => {
   const store = useContext(AITaskContext);
 
@@ -59,5 +60,5 @@ export const useAITask = <T,>(
     );
   }
 
-  return useStore(store, useShallow(selector));
+  return useStoreWithEqualityFn(store, selector, equalityFn ?? shallow);
 };

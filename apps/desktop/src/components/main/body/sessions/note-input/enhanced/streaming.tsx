@@ -4,15 +4,15 @@ import { useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
 import { cn } from "@hypr/utils";
-import { useAITask } from "../../../../../../contexts/ai-task";
+import { useAITaskTask } from "../../../../../../hooks/useAITaskTask";
 import { createTaskId, type TaskId } from "../../../../../../store/zustand/ai-task/task-configs";
-import { getTaskState, type TaskStepInfo } from "../../../../../../store/zustand/ai-task/tasks";
+import { type TaskStepInfo } from "../../../../../../store/zustand/ai-task/tasks";
 
 export function StreamingView({ sessionId }: { sessionId: string }) {
   const taskId = createTaskId(sessionId, "enhance");
-  const text = useAITask((state) => getTaskState(state.tasks, taskId)?.streamedText ?? "");
+  const { streamedText } = useAITaskTask(taskId, "enhance");
 
-  const containerRef = useAutoScrollToBottom(text);
+  const containerRef = useAutoScrollToBottom(streamedText);
 
   return (
     <div ref={containerRef} className="flex flex-col pb-2 space-y-1">
@@ -23,7 +23,7 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
           "space-y-2",
         ])}
       >
-        {text}
+        {streamedText}
       </Streamdown>
 
       <motion.div
@@ -76,9 +76,8 @@ const streamdownComponents = {
 } as const;
 
 function Status({ taskId }: { taskId: TaskId<"enhance"> }) {
-  const step = useAITask((state) => getTaskState(state.tasks, taskId)?.currentStep) as
-    | TaskStepInfo<"enhance">
-    | undefined;
+  const { currentStep } = useAITaskTask(taskId, "enhance");
+  const step = currentStep as TaskStepInfo<"enhance"> | undefined;
 
   if (!step) {
     return (

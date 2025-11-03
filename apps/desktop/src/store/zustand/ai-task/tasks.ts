@@ -21,6 +21,7 @@ export type TasksActions = {
     },
   ) => Promise<void>;
   cancel: (taskId: string) => void;
+  reset: (taskId: string) => void;
   getState: <T extends TaskType>(taskId: TaskId<T>) => TaskState<T> | undefined;
 };
 
@@ -69,6 +70,23 @@ export const createTasksSlice = <T extends TasksState>(
     const state = get().tasks[taskId];
     if (state?.abortController) {
       state.abortController.abort();
+    }
+  },
+  reset: (taskId: string) => {
+    const state = get().tasks[taskId];
+    if (state) {
+      set((currentState) =>
+        mutate(currentState, (draft) => {
+          draft.tasks[taskId] = {
+            taskType: state.taskType,
+            status: "idle",
+            streamedText: "",
+            error: undefined,
+            abortController: null,
+            currentStep: undefined,
+          };
+        })
+      );
     }
   },
   generate: async <Task extends TaskType>(

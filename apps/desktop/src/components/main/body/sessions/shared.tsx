@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 
 import { cn } from "@hypr/utils";
-import { useAITask } from "../../../../contexts/ai-task";
 import { useListener } from "../../../../contexts/listener";
+import { useAITaskTask } from "../../../../hooks/useAITaskTask";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
 import { createTaskId } from "../../../../store/zustand/ai-task/task-configs";
@@ -58,7 +58,8 @@ export function useListenButtonState(sessionId: string) {
   const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
 
   const taskId = createTaskId(sessionId, "enhance");
-  const generating = useAITask((state) => state.getState(taskId)?.status === "generating");
+  const { status } = useAITaskTask(taskId, "enhance");
+  const generating = status === "generating";
   const sttConnection = useSTTConnection();
 
   const shouldRender = !active && !generating;

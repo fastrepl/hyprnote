@@ -4,13 +4,11 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 import { AlertCircleIcon, RefreshCcwIcon, SparklesIcon } from "lucide-react";
-import { useAITask } from "../../../../../contexts/ai-task";
 import { useListener } from "../../../../../contexts/listener";
+import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
-import { useTaskStatus } from "../../../../../hooks/useTaskStatus";
 import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
-import { getTaskState } from "../../../../../store/zustand/ai-task/tasks";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useHasTranscript } from "../shared";
 
@@ -243,20 +241,10 @@ function useEnhanceLogic(sessionId: string) {
     main.STORE_ID,
   );
 
-  const { generate, rawStatus, streamedText, error } = useAITask((state) => {
-    const taskState = getTaskState(state.tasks, taskId);
-    return {
-      generate: state.generate,
-      rawStatus: taskState?.status ?? "idle",
-      streamedText: taskState?.streamedText ?? "",
-      error: taskState?.error,
-    };
-  });
-
-  const { isGenerating, isError } = useTaskStatus(rawStatus, {
-    onSuccess: () => {
-      if (streamedText) {
-        updateEnhancedMd(streamedText);
+  const enhanceTask = useAITaskTask(taskId, "enhance", {
+    onSuccess: ({ text }) => {
+      if (text) {
+        updateEnhancedMd(text);
       }
     },
   });
@@ -268,21 +256,20 @@ function useEnhanceLogic(sessionId: string) {
       return;
     }
 
-    await generate(taskId, {
+    await enhanceTask.start({
       model,
-      taskType: "enhance",
       args: { sessionId, templateId: templateId ?? undefined },
     });
-  }, [model, generate, taskId, sessionId]);
+  }, [model, enhanceTask.start, sessionId]);
 
   const hasContent = !!enhancedMd && enhancedMd.trim().length > 0;
 
   return {
     model,
     templates,
-    isGenerating,
-    isError,
-    error,
+    isGenerating: enhanceTask.isGenerating,
+    isError: enhanceTask.isError,
+    error: enhanceTask.error,
     onRegenerate,
     hasContent,
   };

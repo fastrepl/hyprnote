@@ -3,6 +3,7 @@ import { useRef } from "react";
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
+import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useCurrentNoteTab } from "../shared";
@@ -18,6 +19,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
 
   const sessionId = tab.id;
   useAutoEnhance(tab);
+  useAutoTitle(tab);
 
   const handleTabChange = (view: EditorView) => {
     updateSessionTabState(tab, { editor: view });

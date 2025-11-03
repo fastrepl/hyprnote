@@ -1,6 +1,7 @@
 import { format } from "@hypr/utils";
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
+  createCheckpoints,
   createIndexes,
   createMergeableStore,
   createMetrics,
@@ -51,6 +52,8 @@ const {
   useProvideQueries,
   useDidFinishTransactionListener,
   useProvideSynchronizer,
+  useCreateCheckpoints,
+  useProvideCheckpoints,
 } = _UI as _UI.WithSchemas<Schemas>;
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
@@ -314,6 +317,26 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             select("api_key");
             where((getCell) => getCell("type") === "stt");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.sessionParticipantsWithDetails,
+          "mapping_session_participant",
+          ({ select, join }) => {
+            select("session_id");
+            select("human_id");
+            select("created_at");
+
+            join("humans", "human_id").as("human");
+            select("human", "name").as("human_name");
+            select("human", "email").as("human_email");
+            select("human", "job_title").as("human_job_title");
+            select("human", "linkedin_username").as("human_linkedin_username");
+            select("human", "org_id").as("org_id");
+            select("human", "is_user").as("human_is_user");
+
+            join("organizations", "human", "org_id").as("org");
+            select("org", "name").as("org_name");
+          },
         ),
     [],
   )!;
@@ -381,17 +404,21 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       .setIndexDefinition(INDEXES.chatMessagesByGroup, "chat_messages", "chat_group_id", "created_at"));
 
   const metrics = useCreateMetrics(store, (store) =>
-    createMetrics(store).setMetricDefinition(
-      METRICS.totalHumans,
-      "humans",
-      "sum",
-      () => 1,
-    ).setMetricDefinition(
-      METRICS.totalOrganizations,
-      "organizations",
-      "sum",
-      () => 1,
-    ));
+    createMetrics(store)
+      .setMetricDefinition(
+        METRICS.totalHumans,
+        "humans",
+        "sum",
+        () => 1,
+      )
+      .setMetricDefinition(
+        METRICS.totalOrganizations,
+        "organizations",
+        "sum",
+        () => 1,
+      ));
+
+  const checkpoints = useCreateCheckpoints(store, (store) => createCheckpoints(store));
 
   useProvideStore(STORE_ID, store);
   useProvideRelationships(STORE_ID, relationships);
@@ -400,6 +427,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   useProvideMetrics(STORE_ID, metrics!);
   useProvidePersister(STORE_ID, persist ? localPersister : undefined);
   useProvideSynchronizer(STORE_ID, synchronizer);
+  useProvideCheckpoints(STORE_ID, checkpoints!);
 
   return null;
 };
@@ -416,6 +444,7 @@ export const QUERIES = {
   visibleVocabs: "visibleVocabs",
   llmProviders: "llmProviders",
   sttProviders: "sttProviders",
+  sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
 };
 
 export const METRICS = {

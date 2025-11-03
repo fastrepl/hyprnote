@@ -5,6 +5,7 @@ import { forwardRef, useState } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import * as main from "../../../../../../store/tinybase/main";
+import { ParticipantsDisplay } from "./participants";
 
 export function MetadataButton({ sessionId }: { sessionId: string }) {
   const [open, setOpen] = useState(false);
@@ -41,7 +42,7 @@ function ContentInner({ sessionId }: { sessionId: string }) {
   return (
     <div className="flex flex-col gap-4 p-4">
       <ContentDateRow sessionId={sessionId} />
-      <ContentParticipants />
+      <ParticipantsDisplay sessionId={sessionId} />
     </div>
   );
 }
@@ -54,14 +55,6 @@ function ContentDateRow({ sessionId }: { sessionId: string }) {
       <div className="text-sm font-medium text-neutral-700">
         {format(createdAt ? new Date(createdAt) : new Date(), "MMM d, yyyy")}
       </div>
-    </div>
-  );
-}
-
-function ContentParticipants() {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="text-sm font-medium text-neutral-700">Participants</div>
     </div>
   );
 }

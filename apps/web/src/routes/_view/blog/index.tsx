@@ -26,7 +26,6 @@ function Component() {
   });
 
   const featuredArticles = sortedArticles.filter((a) => a.featured);
-  const regularArticles = sortedArticles.filter((a) => !a.featured);
 
   return (
     <div
@@ -37,10 +36,7 @@ function Component() {
         <div className="px-4 sm:px-6 lg:px-8 py-16">
           <Header />
           <FeaturedSection articles={featuredArticles} />
-          <AllArticlesSection
-            featuredArticles={featuredArticles}
-            regularArticles={regularArticles}
-          />
+          <AllArticlesSection articles={sortedArticles} />
         </div>
       </div>
     </div>
@@ -66,21 +62,15 @@ function FeaturedSection({ articles }: { articles: Article[] }) {
   return (
     <section className="mb-20">
       <SectionHeader title="Featured" />
-      <div className="grid gap-8 md:grid-cols-2">
-        {articles.slice(0, 2).map((article) => <FeaturedCard key={article._meta.filePath} article={article} />)}
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {articles.slice(0, 3).map((article) => <FeaturedCard key={article._meta.filePath} article={article} />)}
       </div>
     </section>
   );
 }
 
-function AllArticlesSection({
-  featuredArticles,
-  regularArticles,
-}: {
-  featuredArticles: Article[];
-  regularArticles: Article[];
-}) {
-  if (regularArticles.length === 0 && featuredArticles.length === 0) {
+function AllArticlesSection({ articles }: { articles: Article[] }) {
+  if (articles.length === 0) {
     return (
       <div className="text-center py-16">
         <p className="text-neutral-500">No articles yet. Check back soon!</p>
@@ -88,15 +78,11 @@ function AllArticlesSection({
     );
   }
 
-  if (regularArticles.length === 0) {
-    return null;
-  }
-
   return (
     <section>
-      <SectionHeader title="All Articles" />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {regularArticles.map((article) => <ArticleCard key={article._meta.filePath} article={article} />)}
+      <SectionHeader title="All" />
+      <div className="divide-y divide-neutral-100">
+        {articles.map((article) => <ArticleListItem key={article._meta.filePath} article={article} />)}
       </div>
     </section>
   );
@@ -153,47 +139,25 @@ function FeaturedCard({ article }: { article: Article }) {
   );
 }
 
-function ArticleCard({ article }: { article: Article }) {
-  const [coverImageError, setCoverImageError] = useState(false);
-  const [coverImageLoaded, setCoverImageLoaded] = useState(false);
-  const hasCoverImage = !coverImageError;
+function ArticleListItem({ article }: { article: Article }) {
   const displayDate = article.updated || article.created;
 
   return (
-    <Link to="/blog/$slug" params={{ slug: article.slug }} className="group block h-full">
-      <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
-        {hasCoverImage && (
-          <ArticleImage
-            src={article.coverImage}
-            alt={article.title}
-            isLoaded={coverImageLoaded}
-            onLoad={() => setCoverImageLoaded(true)}
-            onError={() => setCoverImageError(true)}
-            loading="lazy"
-          />
-        )}
-
-        <div className="p-6 flex flex-col flex-1">
-          <h3 className="text-xl font-serif text-stone-600 mb-2 group-hover:text-stone-800 transition-colors line-clamp-2">
+    <Link to="/blog/$slug" params={{ slug: article.slug }} className="group block">
+      <article className="py-4 hover:bg-stone-50/50 transition-colors duration-200">
+        <div className="flex items-center gap-3">
+          <span className="text-base font-serif text-stone-600 group-hover:text-stone-800 transition-colors">
             {article.title}
-          </h3>
-
-          <p className="text-sm text-neutral-600 leading-relaxed mb-4 line-clamp-2 flex-1">
-            {article.summary}
-          </p>
-
-          <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
-            <time dateTime={displayDate} className="text-xs text-neutral-500">
-              {new Date(displayDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })}
-            </time>
-
-            <span className="text-xs text-neutral-500 group-hover:text-stone-600 transition-colors font-medium">
-              Read →
-            </span>
-          </div>
+          </span>
+          <span className="text-sm text-neutral-500">by {article.author}</span>
+          <div className="h-px flex-1 bg-neutral-200" />
+          <time dateTime={displayDate} className="text-sm text-neutral-500 flex-shrink-0">
+            {new Date(displayDate).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </time>
         </div>
       </article>
     </Link>
@@ -220,7 +184,7 @@ function ArticleImage({
   }
 
   return (
-    <div className="aspect-video overflow-hidden border-b border-neutral-100 bg-stone-50">
+    <div className="aspect-40/21 overflow-hidden border-b border-neutral-100 bg-stone-50">
       <img
         src={src}
         alt={alt}

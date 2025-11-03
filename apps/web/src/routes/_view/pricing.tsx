@@ -3,6 +3,8 @@ import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { SlashSeparator } from "@/components/slash-separator";
+
 export const Route = createFileRoute("/_view/pricing")({
   component: Component,
 });
@@ -64,23 +66,6 @@ const pricingPlans: PricingPlan[] = [
   },
 ];
 
-const infoCards = [
-  {
-    icon: "mdi:account-check-outline",
-    title: "Speaker identification is included in all plans",
-  },
-  {
-    icon: "mdi:link-variant",
-    title: "Shareable link includes DocsSend-like controls",
-    description: "viewer tracking, expiration, revocation",
-  },
-  {
-    icon: "mdi:key-outline",
-    title: "BYOK lets you connect your own LLM",
-    description: "for full data control",
-  },
-];
-
 function Component() {
   return (
     <main
@@ -88,13 +73,35 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
+        <TeamPricingBanner />
         <HeroSection />
+        <SlashSeparator />
         <PricingCardsSection />
-        <InfoCardsSection />
+        <SlashSeparator />
         <FAQSection />
+        <SlashSeparator />
         <CTASection />
       </div>
     </main>
+  );
+}
+
+function TeamPricingBanner() {
+  return (
+    <Link to="/founders" className="group">
+      <div
+        className={cn([
+          "flex items-center justify-center gap-2 text-center",
+          "bg-stone-50/70 border-b border-stone-100",
+          "py-3 px-4",
+          "font-serif text-sm text-stone-700",
+          "hover:bg-stone-50 transition-all",
+        ])}
+      >
+        <span>Have questions about teams pricing?</span>
+        <span className="group-hover:font-medium underline">Contact us</span>
+      </div>
+    </Link>
   );
 }
 
@@ -231,7 +238,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
           )
           : (
             <Link
-              to="/join-waitlist"
+              to="/download"
               className={cn(
                 [
                   "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
@@ -239,37 +246,11 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                 ],
               )}
             >
-              Join Waitlist
+              Download for free
             </Link>
           )}
       </div>
     </div>
-  );
-}
-
-function InfoCardsSection() {
-  return (
-    <section className="py-16 px-4 laptop:px-0 border-t border-neutral-100">
-      <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {infoCards.map((card, idx) => (
-            <div
-              key={idx}
-              className="border border-neutral-100 rounded-sm p-6 hover:bg-neutral-50 transition-colors"
-            >
-              <Icon
-                icon={card.icon}
-                className="text-3xl text-stone-600 mb-3"
-              />
-              <h3 className="text-sm font-medium text-neutral-900 mb-1">
-                {card.title}
-              </h3>
-              {card.description && <p className="text-sm text-neutral-600">{card.description}</p>}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -292,7 +273,7 @@ function FAQSection() {
     },
     {
       question: "Is there a team discount?",
-      answer: "Yes! Teams on annual plans save 30%. Contact us for larger team pricing.",
+      answer: "Yes! Contact us for larger team pricing.",
     },
   ];
 
@@ -321,36 +302,26 @@ function CTASection() {
   return (
     <section className="py-16 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
       <div className="flex flex-col gap-6 items-center text-center">
-        <div className="mb-4 size-32 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
+        <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <img
             src="/hyprnote/icon.png"
             alt="Hyprnote"
-            className="size-28 rounded-3xl border border-neutral-100"
+            className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif text-stone-600">
-          Ready to get started?
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          Need a team plan?
         </h2>
-        <p className="text-lg text-neutral-600 max-w-2xl">
-          Download Hyprnote for free and upgrade when you need cloud features
+        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          Book a call to discuss custom team pricing and enterprise solutions
         </p>
-        <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="pt-6">
           <Link
-            to="/join-waitlist"
-            className="px-8 h-10 flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-            title="Join the waitlist to be notified when Hyprnote Pro is available"
-            aria-label="Join the waitlist"
+            to="/founders"
+            className="px-6 h-12 flex items-center justify-center text-base sm:text-lg bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
-            Join Waitlist
+            Book a call
           </Link>
-          <a
-            href="https://github.com/fastrepl/hyprnote"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-8 h-10 flex items-center justify-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
-          >
-            View on GitHub
-          </a>
         </div>
       </div>
     </section>

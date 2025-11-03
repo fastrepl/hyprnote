@@ -11,6 +11,7 @@ import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
 import { LogoCloud } from "@/components/logo-cloud";
+import { SlashSeparator } from "@/components/slash-separator";
 import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
 import { VideoThumbnail } from "@/components/video-thumbnail";
@@ -128,8 +129,11 @@ function Component() {
           onVideoExpand={setExpandedVideo}
           heroInputRef={heroInputRef}
         />
+        <SlashSeparator />
         <CoolStuffSection />
+        <SlashSeparator />
         <TestimonialsSection />
+        <SlashSeparator />
         <FeaturesIntroSection />
         <MainFeaturesSection
           featuresScrollRef={featuresScrollRef}
@@ -137,15 +141,20 @@ function Component() {
           setSelectedFeature={setSelectedFeature}
           scrollToFeature={scrollToFeature}
         />
+        <SlashSeparator />
         <DetailsSection
           detailsScrollRef={detailsScrollRef}
           selectedDetail={selectedDetail}
           setSelectedDetail={setSelectedDetail}
           scrollToDetail={scrollToDetail}
         />
+        <SlashSeparator />
         <GitHubOpenSource />
+        <SlashSeparator />
         <ManifestoSection />
+        <SlashSeparator />
         <BlogSection />
+        <SlashSeparator />
         <CTASection heroInputRef={heroInputRef} />
       </div>
       <VideoModal
@@ -398,10 +407,6 @@ function ValuePropsGrid() {
 function TestimonialsSection() {
   return (
     <section className="border-t border-neutral-100">
-      <div
-        className="border-b border-neutral-100 bg-neutral-50 h-4"
-        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
-      />
       <div className="text-center">
         <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
           Loved by professionals at
@@ -583,10 +588,6 @@ Mad respect to the team. This is how you build in 2025. 🚀"
 function FeaturesIntroSection() {
   return (
     <section>
-      <div
-        className="border-b border-neutral-100 bg-neutral-50 h-4"
-        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
-      />
       <div className="text-center py-16 px-4">
         <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
           <img
@@ -607,10 +608,6 @@ function FeaturesIntroSection() {
 function CoolStuffSection() {
   return (
     <section className="border-t border-neutral-100">
-      <div
-        className="border-b border-neutral-100 bg-neutral-50 h-4"
-        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
-      />
       <div className="text-center border-b border-neutral-100">
         <p className="font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
           What makes Hyprnote different
@@ -988,10 +985,6 @@ function DetailsSection({
 }) {
   return (
     <div className="border-t border-neutral-100">
-      <div
-        className="border-b border-neutral-100 bg-neutral-50 h-4"
-        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
-      />
       <DetailsSectionHeader />
       <DetailsMobileCarousel
         detailsScrollRef={detailsScrollRef}
@@ -1303,11 +1296,7 @@ function BlogSection() {
   }
 
   return (
-    <section className="border-t border-neutral-100">
-      <div
-        className="border-b border-neutral-100 bg-neutral-50 h-4 mb-16"
-        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
-      />
+    <section className="border-t border-neutral-100 py-16">
       <div className="text-center mb-12 px-4">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">Latest from our blog</h2>
         <p className="text-neutral-600 max-w-lg mx-auto">
@@ -1384,11 +1373,6 @@ function BlogSection() {
           </svg>
         </Link>
       </div>
-
-      <div
-        className="border-t border-neutral-100 bg-neutral-50 h-4 mt-16"
-        style={{ backgroundImage: "url(/patterns/slash.svg)" }}
-      />
     </section>
   );
 }

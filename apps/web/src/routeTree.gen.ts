@@ -13,6 +13,7 @@ import { Route as XRouteImport } from './routes/x'
 import { Route as LinkedinRouteImport } from './routes/linkedin'
 import { Route as JoinWaitlistRouteImport } from './routes/join-waitlist'
 import { Route as GithubRouteImport } from './routes/github'
+import { Route as FoundersRouteImport } from './routes/founders'
 import { Route as DiscordRouteImport } from './routes/discord'
 import { Route as CalRouteImport } from './routes/cal'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -56,6 +57,11 @@ const JoinWaitlistRoute = JoinWaitlistRouteImport.update({
 const GithubRoute = GithubRouteImport.update({
   id: '/github',
   path: '/github',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoundersRoute = FoundersRouteImport.update({
+  id: '/founders',
+  path: '/founders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiscordRoute = DiscordRouteImport.update({
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/discord': typeof DiscordRoute
+  '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
   '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/discord': typeof DiscordRoute
+  '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
   '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
   '/discord': typeof DiscordRoute
+  '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
   '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cal'
     | '/discord'
+    | '/founders'
     | '/github'
     | '/join-waitlist'
     | '/linkedin'
@@ -300,6 +310,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cal'
     | '/discord'
+    | '/founders'
     | '/github'
     | '/join-waitlist'
     | '/linkedin'
@@ -328,6 +339,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cal'
     | '/discord'
+    | '/founders'
     | '/github'
     | '/join-waitlist'
     | '/linkedin'
@@ -359,6 +371,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CalRoute: typeof CalRoute
   DiscordRoute: typeof DiscordRoute
+  FoundersRoute: typeof FoundersRoute
   GithubRoute: typeof GithubRoute
   JoinWaitlistRoute: typeof JoinWaitlistRoute
   LinkedinRoute: typeof LinkedinRoute
@@ -395,6 +408,13 @@ declare module '@tanstack/react-router' {
       path: '/github'
       fullPath: '/github'
       preLoaderRoute: typeof GithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/founders': {
+      id: '/founders'
+      path: '/founders'
+      fullPath: '/founders'
+      preLoaderRoute: typeof FoundersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/discord': {
@@ -639,6 +659,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CalRoute: CalRoute,
   DiscordRoute: DiscordRoute,
+  FoundersRoute: FoundersRoute,
   GithubRoute: GithubRoute,
   JoinWaitlistRoute: JoinWaitlistRoute,
   LinkedinRoute: LinkedinRoute,

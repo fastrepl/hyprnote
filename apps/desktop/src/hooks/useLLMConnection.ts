@@ -3,7 +3,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import type { LanguageModel } from "ai";
+import { extractReasoningMiddleware, type LanguageModel, wrapLanguageModel } from "ai";
 import { useMemo } from "react";
 
 import { useAuth } from "../auth";
@@ -11,7 +11,7 @@ import { type ProviderId, PROVIDERS } from "../components/settings/ai/llm/shared
 import { env } from "../env";
 import * as main from "../store/tinybase/main";
 
-export const useLanguageModel = (): LanguageModel | null => {
+export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
   const connection = useLLMConnection();
 
   return useMemo(() => {
@@ -30,7 +30,7 @@ export const useLanguageModel = (): LanguageModel | null => {
         },
       });
 
-      return hyprnoteProvider.chatModel(connection.modelId);
+      return wrapWithThinkingMiddleware(hyprnoteProvider.chatModel(connection.modelId));
     }
 
     if (connection.providerId === "anthropic") {
@@ -39,7 +39,7 @@ export const useLanguageModel = (): LanguageModel | null => {
         apiKey: connection.apiKey,
       });
 
-      return anthropicProvider(connection.modelId);
+      return wrapWithThinkingMiddleware(anthropicProvider(connection.modelId));
     }
 
     if (connection.providerId === "openrouter") {
@@ -48,7 +48,7 @@ export const useLanguageModel = (): LanguageModel | null => {
         apiKey: connection.apiKey,
       });
 
-      return openRouterProvider(connection.modelId);
+      return wrapWithThinkingMiddleware(openRouterProvider(connection.modelId));
     }
 
     if (connection.providerId === "openai") {
@@ -57,7 +57,7 @@ export const useLanguageModel = (): LanguageModel | null => {
         apiKey: connection.apiKey,
       });
 
-      return openAIProvider(connection.modelId);
+      return wrapWithThinkingMiddleware(openAIProvider(connection.modelId));
     }
 
     const config: Parameters<typeof createOpenAICompatible>[0] = {
@@ -72,7 +72,7 @@ export const useLanguageModel = (): LanguageModel | null => {
 
     const openAICompatibleProvider = createOpenAICompatible(config);
 
-    return openAICompatibleProvider.chatModel(connection.modelId);
+    return wrapWithThinkingMiddleware(openAICompatibleProvider.chatModel(connection.modelId));
   }, [connection]);
 };
 
@@ -133,4 +133,14 @@ const useLLMConnection = (): {
       apiKey,
     };
   }, [current_llm_provider, current_llm_model, providerConfig, auth]);
+};
+
+const wrapWithThinkingMiddleware = (model: Exclude<LanguageModel, string>) => {
+  return wrapLanguageModel({
+    model,
+    middleware: [
+      extractReasoningMiddleware({ tagName: "think" }),
+      extractReasoningMiddleware({ tagName: "thinking" }),
+    ],
+  });
 };

@@ -43,7 +43,7 @@
     "@tiptap/starter-kit": "^3.9.1",
     "@tiptap/suggestion": "^3.9.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.544.0",
+    "lucide-react": "^0.545.0",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-model": "^1.25.4",
     "prosemirror-state": "^1.4.4",

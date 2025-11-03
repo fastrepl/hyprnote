@@ -631,7 +631,7 @@ function CoolStuffSection() {
           <div className="flex-1 flex items-center justify-center overflow-hidden">
             <img
               src="/hyprnote/no-bots.png"
-              alt="Work offline interface"
+              alt="No bots interface"
               className="w-full h-full object-contain"
             />
           </div>
@@ -649,7 +649,7 @@ function CoolStuffSection() {
           <div className="flex-1 flex items-center justify-center overflow-hidden">
             <img
               src="/hyprnote/no-wifi.png"
-              alt="Work offline interface"
+              alt="No internet interface"
               className="w-full h-full object-contain"
             />
           </div>
@@ -688,7 +688,7 @@ function CoolStuffSection() {
           <div className="overflow-hidden">
             <img
               src="/hyprnote/no-wifi.png"
-              alt="Work offline interface"
+              alt="No internet interface"
               className="w-full h-auto object-contain"
             />
           </div>

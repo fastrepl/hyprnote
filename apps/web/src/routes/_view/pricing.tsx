@@ -239,7 +239,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                 ],
               )}
             >
-              Download for Free
+              Join Waitlist
             </Link>
           )}
       </div>
@@ -338,8 +338,10 @@ function CTASection() {
           <Link
             to="/join-waitlist"
             className="px-8 h-10 flex items-center justify-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+            title="Join the waitlist to be notified when Hyprnote Pro is available"
+            aria-label="Join the waitlist"
           >
-            Download for Free
+            Join Waitlist
           </Link>
           <a
             href="https://github.com/fastrepl/hyprnote"

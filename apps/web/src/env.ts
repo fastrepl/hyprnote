@@ -23,7 +23,7 @@ export const env = createEnv({
     VITE_SUPABASE_URL: z.string().min(1),
     VITE_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
     VITE_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
-    VITE_POSTHOG_API_KEY: z.string().optional(),
+    VITE_POSTHOG_API_KEY: z.string().min(1),
     VITE_POSTHOG_HOST: z.string().default("https://us.i.posthog.com"),
   },
 

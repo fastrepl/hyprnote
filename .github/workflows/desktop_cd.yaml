@@ -15,7 +15,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 env:
-  CN_APPLICATION: "fastrepl/hyprnote"
+  CN_APPLICATION: "fastrepl/hyprnote2"
   RELEASE_CHANNEL: ${{ inputs.channel }}
   TAURI_CONF_PATH: ./src-tauri/tauri.conf.${{ inputs.channel }}.json
   NODE_OPTIONS: "--max-old-space-size=4096"

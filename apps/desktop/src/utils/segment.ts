@@ -11,10 +11,9 @@ export type PartialWord = WordLike;
 
 export type SegmentWord = WordLike & { isFinal: boolean; id?: string };
 
-export type SpeakerHintData =
+type SpeakerHintData =
   | { type: "provider_speaker_index"; speaker_index: number; provider?: string; channel?: number }
-  | { type: "user_correction"; human_id: string }
-  | { type: "confidence"; score: number };
+  | { type: "user_speaker_assignment"; human_id: string };
 
 export type RuntimeSpeakerHint = {
   wordIndex: number;
@@ -33,12 +32,14 @@ export type Segment<TWord extends SegmentWord = SegmentWord> = {
   words: TWord[];
 };
 
-export type SegmentKey = Data.TaggedEnum<{
-  Channel: { channel: number };
-  ChannelSpeaker: { channel: number; speakerIndex: number };
-}>;
+export type SegmentKey = {
+  readonly channel: number;
+  readonly speaker_index?: number;
+};
 
-export const SegmentKey = Data.taggedEnum<SegmentKey>();
+export const SegmentKey = {
+  make: (params: { channel: number; speaker_index?: number }): SegmentKey => Data.struct(params),
+};
 
 export function buildSegments<
   TFinal extends WordLike,
@@ -102,12 +103,10 @@ function createSpeakerTurns<TWord extends SegmentWord>(
       lastSpeakerByChannel.set(word.channel, explicitSpeaker);
     }
 
-    const key = typeof speakerIndex === "number"
-      ? SegmentKey.ChannelSpeaker({ channel: word.channel, speakerIndex })
-      : SegmentKey.Channel({ channel: word.channel });
+    const key = SegmentKey.make({ channel: word.channel, speaker_index: speakerIndex });
     const currentOption = HashMap.get(currentActiveSegment, key);
 
-    if (Option.isSome(currentOption) && key._tag === "ChannelSpeaker") {
+    if (Option.isSome(currentOption) && key.speaker_index !== undefined) {
       const lastSegment = segments[segments.length - 1];
       if (!lastSegment || !Equal.equals(lastSegment.key, key)) {
         const newSegment = { key, words: [word] };

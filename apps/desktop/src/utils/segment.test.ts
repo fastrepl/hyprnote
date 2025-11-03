@@ -21,14 +21,14 @@ describe("buildSegments", () => {
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [
             expect.objectContaining({ text: "1", isFinal: true }),
             expect.objectContaining({ text: "2", isFinal: false }),
           ],
         }),
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 1 }),
+          key: SegmentKey.make({ channel: 1 }),
           words: [
             expect.objectContaining({ text: "3", isFinal: false }),
             expect.objectContaining({ text: "4", isFinal: false }),
@@ -47,14 +47,14 @@ describe("buildSegments", () => {
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [
             expect.objectContaining({ text: "1" }),
             expect.objectContaining({ text: "2" }),
           ],
         }),
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 1 }),
+          key: SegmentKey.make({ channel: 1 }),
           words: [
             expect.objectContaining({ text: "3" }),
           ],
@@ -72,7 +72,7 @@ describe("buildSegments", () => {
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [
             expect.objectContaining({ text: "1" }),
             expect.objectContaining({ text: "2" }),
@@ -91,15 +91,15 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [expect.objectContaining({ text: "first" })],
         }),
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 1 }),
+          key: SegmentKey.make({ channel: 1 }),
           words: [expect.objectContaining({ text: "other" })],
         }),
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [expect.objectContaining({ text: "return" })],
         }),
       ],
@@ -113,7 +113,7 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [
             expect.objectContaining({ text: "first" }),
             expect.objectContaining({ text: "second" }),
@@ -131,15 +131,15 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [expect.objectContaining({ text: "a" })],
         }),
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 1 }),
+          key: SegmentKey.make({ channel: 1 }),
           words: [expect.objectContaining({ text: "b" })],
         }),
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 2 }),
+          key: SegmentKey.make({ channel: 2 }),
           words: [expect.objectContaining({ text: "c" })],
         }),
       ],
@@ -152,7 +152,7 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [expect.objectContaining({ text: "only", isFinal: true })],
         }),
       ],
@@ -172,15 +172,15 @@ describe("buildSegments", () => {
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.ChannelSpeaker({ channel: 0, speakerIndex: 0 }),
+          key: SegmentKey.make({ channel: 0, speaker_index: 0 }),
           words: [expect.objectContaining({ text: "hi" })],
         }),
         expect.objectContaining({
-          key: SegmentKey.ChannelSpeaker({ channel: 0, speakerIndex: 1 }),
+          key: SegmentKey.make({ channel: 0, speaker_index: 1 }),
           words: [expect.objectContaining({ text: "hello" })],
         }),
         expect.objectContaining({
-          key: SegmentKey.ChannelSpeaker({ channel: 0, speakerIndex: 0 }),
+          key: SegmentKey.make({ channel: 0, speaker_index: 0 }),
           words: [expect.objectContaining({ text: "again" })],
         }),
       ],
@@ -197,7 +197,7 @@ describe("buildSegments", () => {
       partialWords: [],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 0 }),
+          key: SegmentKey.make({ channel: 0 }),
           words: [
             expect.objectContaining({ text: "a1" }),
             expect.objectContaining({ text: "a2" }),
@@ -205,7 +205,7 @@ describe("buildSegments", () => {
           ],
         }),
         expect.objectContaining({
-          key: SegmentKey.Channel({ channel: 1 }),
+          key: SegmentKey.make({ channel: 1 }),
           words: [
             expect.objectContaining({ text: "b1" }),
             expect.objectContaining({ text: "b2" }),

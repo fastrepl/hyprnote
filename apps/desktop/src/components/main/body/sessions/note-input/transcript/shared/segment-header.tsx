@@ -51,7 +51,7 @@ export function SegmentHeader({ segment }: { segment: Segment }) {
 
 function useSegmentColors(key: Segment["key"]) {
   return useMemo(() => {
-    const speakerIndex = key._tag === "ChannelSpeaker" ? key.speakerIndex : 0;
+    const speakerIndex = key.speaker_index ?? 0;
 
     const channelPalettes = [
       [10, 25, 0, 340, 15, 350],
@@ -66,7 +66,7 @@ function useSegmentColors(key: Segment["key"]) {
 
     return {
       color: chroma.oklch(light, chromaVal, hue).hex(),
-      label: key._tag === "ChannelSpeaker" ? `Speaker ${key.speakerIndex + 1}` : `Speaker ${key.channel}`,
+      label: key.speaker_index !== undefined ? `Speaker ${key.speaker_index + 1}` : `Speaker ${key.channel}`,
     };
   }, [key]);
 }

@@ -1,9 +1,8 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
-import { useQuery } from "@tanstack/react-query";
 
-const ORG_REPO = "fastrepl/hyprnote";
+import { GITHUB_LAST_SEEN_FORKS, GITHUB_LAST_SEEN_STARS, GITHUB_ORG_REPO, useGitHubStats } from "../queries";
 
 const CURATED_PROFILES = [
   { username: "tobi", avatar: "https://avatars.githubusercontent.com/u/347?v=4" },
@@ -89,7 +88,7 @@ function OpenSourceButton({ showStars = false, starCount }: { showStars?: boolea
         {"Hyprnote values privacy and community, so it's been transparent from day one"}
       </p>
       <a
-        href={`https://github.com/${ORG_REPO}`}
+        href={`https://github.com/${GITHUB_ORG_REPO}`}
         target="_blank"
         rel="noopener noreferrer"
         className={cn([
@@ -128,32 +127,15 @@ function Avatar({ username, avatar }: { username: string; avatar: string }) {
   );
 }
 
-function GridRow({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function GridRow({ children }: { children: React.ReactNode }) {
   return <div className="flex gap-1 items-center">{children}</div>;
 }
 
 export function GitHubOpenSource() {
-  const LAST_SEEN_STARS = 6419;
-  const LAST_SEEN_FORKS = 396;
+  const githubStats = useGitHubStats();
 
-  const githubStats = useQuery({
-    queryKey: ["github-stats"],
-    queryFn: async () => {
-      const response = await fetch(`https://api.github.com/repos/${ORG_REPO}`);
-      const data = await response.json();
-      return {
-        stars: data.stargazers_count ?? LAST_SEEN_STARS,
-        forks: data.forks_count ?? LAST_SEEN_FORKS,
-      };
-    },
-  });
-
-  const STARS_COUNT = githubStats.data?.stars ?? LAST_SEEN_STARS;
-  const FORKS_COUNT = githubStats.data?.forks ?? LAST_SEEN_FORKS;
+  const STARS_COUNT = githubStats.data?.stars ?? GITHUB_LAST_SEEN_STARS;
+  const FORKS_COUNT = githubStats.data?.forks ?? GITHUB_LAST_SEEN_FORKS;
 
   return (
     <section className="border-t border-neutral-100">

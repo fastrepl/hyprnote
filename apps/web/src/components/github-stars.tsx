@@ -1,31 +1,16 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
-import { useQuery } from "@tanstack/react-query";
+
+import { GITHUB_LAST_SEEN_STARS, GITHUB_ORG_REPO, useGitHubStats } from "../queries";
 
 export function GithubStars() {
-  const LAST_SEEN_STARS = 6400;
-  const LAST_SEEN_FORKS = 396;
-  const ORG_REPO = "fastrepl/hyprnote";
-
-  const githubStats = useQuery({
-    queryKey: ["github-stats"],
-    queryFn: async () => {
-      const response = await fetch(`https://api.github.com/repos/${ORG_REPO}`);
-      const data = await response.json();
-      return {
-        stars: data.stargazers_count ?? LAST_SEEN_STARS,
-        forks: data.forks_count ?? LAST_SEEN_FORKS,
-      };
-    },
-  });
-
+  const githubStats = useGitHubStats();
+  const starCount = githubStats.data?.stars ?? GITHUB_LAST_SEEN_STARS;
   const render = (n: number) => n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
 
-  const starCount = githubStats.data?.stars ?? LAST_SEEN_STARS;
-
   return (
-    <a href={`https://github.com/${ORG_REPO}`} target="_blank">
+    <a href={`https://github.com/${GITHUB_ORG_REPO}`} target="_blank">
       <button
         className={cn([
           "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",

@@ -65,7 +65,11 @@ function Header() {
                 to="/"
                 className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
               >
-                <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+                <img
+                  src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
+                  alt="Hyprnote"
+                  className="h-6"
+                />
               </Link>
               <Link
                 to="/docs"
@@ -91,7 +95,11 @@ function Header() {
               to="/"
               className="sm:hidden font-semibold text-2xl font-serif hover:scale-105 transition-transform"
             >
-              <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
+                alt="Hyprnote"
+                className="h-6"
+              />
             </Link>
 
             <nav className="hidden sm:flex items-center gap-2">
@@ -231,7 +239,11 @@ function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <Link to="/" className="inline-block mb-4">
-              <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
+                alt="Hyprnote"
+                className="h-6"
+              />
             </Link>
             <p className="text-sm text-neutral-500 mb-4">
               Fastrepl © {currentYear}

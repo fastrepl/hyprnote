@@ -121,11 +121,11 @@ function FeaturedCard({ article }: { article: Article }) {
           <FeaturedBadge />
 
           <h3 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-3 group-hover:text-stone-800 transition-colors line-clamp-2">
-            {article.title}
+            {article.display_title}
           </h3>
 
           <p className="text-neutral-600 leading-relaxed mb-6 line-clamp-3">
-            {article.summary}
+            {article.meta_description}
           </p>
 
           <ArticleFooter

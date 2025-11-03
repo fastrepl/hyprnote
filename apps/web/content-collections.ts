@@ -32,12 +32,13 @@ const articles = defineCollection({
   directory: "content/articles",
   include: "*.mdx",
   schema: z.object({
-    title: z.string(),
-    summary: z.string(),
+    display_title: z.string().optional(),
+    meta_title: z.string(),
+    meta_description: z.string(),
     author: z.string(),
     created: z.string(),
     updated: z.string().optional(),
-    coverImage: z.string(),
+    coverImage: z.string().optional(),
     featured: z.boolean().optional(),
   }),
   transform: async (document, context) => {
@@ -62,12 +63,16 @@ const articles = defineCollection({
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
     const author = document.author || "Hyprnote Team";
+    const title = document.display_title || document.meta_title;
+    const updated = document.updated || document.created;
 
     return {
       ...document,
       mdx,
       slug,
       author,
+      updated,
+      title,
       toc,
     };
   },

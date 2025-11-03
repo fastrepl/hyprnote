@@ -1589,7 +1589,6 @@ function BlogSection() {
 
       <div className="grid gap-4 md:grid-cols-3 px-4">
         {sortedArticles.map((article) => {
-          const displayDate = article.updated || article.created;
           return (
             <Link
               key={article._meta.filePath}
@@ -1602,7 +1601,7 @@ function BlogSection() {
                   <div className="aspect-video overflow-hidden border-b border-neutral-100 bg-stone-50">
                     <img
                       src={article.coverImage}
-                      alt={article.title}
+                      alt={article.display_title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                       loading="lazy"
                     />
@@ -1611,16 +1610,16 @@ function BlogSection() {
 
                 <div className="p-6 flex flex-col flex-1">
                   <h3 className="text-xl font-serif text-stone-600 mb-2 group-hover:text-stone-800 transition-colors line-clamp-2">
-                    {article.title}
+                    {article.display_title}
                   </h3>
 
                   <p className="text-sm text-neutral-600 leading-relaxed mb-4 line-clamp-3 flex-1">
-                    {article.summary}
+                    {article.meta_description}
                   </p>
 
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
-                    <time dateTime={displayDate} className="text-xs text-neutral-500">
-                      {new Date(displayDate).toLocaleDateString("en-US", {
+                    <time dateTime={article.updated} className="text-xs text-neutral-500">
+                      {new Date(article.updated).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",

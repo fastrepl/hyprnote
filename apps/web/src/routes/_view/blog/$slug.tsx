@@ -24,9 +24,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
           return bScore - aScore;
         }
 
-        const aDate = a.updated || a.created;
-        const bDate = b.updated || b.created;
-        return new Date(bDate).getTime() - new Date(aDate).getTime();
+        return new Date(b.updated).getTime() - new Date(a.updated).getTime();
       })
       .slice(0, 3);
 
@@ -39,16 +37,16 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     return {
       meta: [
         { title: article.title },
-        { name: "description", content: article.summary },
+        { name: "description", content: article.meta_description },
         { property: "og:title", content: article.title },
-        { property: "og:description", content: article.summary },
+        { property: "og:description", content: article.meta_description },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        { property: "og:image", content: `https://hyprnote.com${article.coverImage}` },
+        ...(article.coverImage ? [{ property: "og:image", content: article.coverImage }] : []),
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: article.title },
-        { name: "twitter:description", content: article.summary },
-        { name: "twitter:image", content: `https://hyprnote.com${article.coverImage}` },
+        { name: "twitter:description", content: article.meta_description },
+        ...(article.coverImage ? [{ name: "twitter:image", content: article.coverImage }] : []),
         ...(article.author ? [{ name: "author", content: article.author }] : []),
         { property: "article:published_time", content: article.created },
         ...(article.updated ? [{ property: "article:modified_time", content: article.updated }] : []),
@@ -75,7 +73,7 @@ function Component() {
         <div className="sm:grid sm:grid-cols-12 sm:gap-8">
           <TableOfContents toc={article.toc} />
 
-          <main className="sm:col-span-8 lg:col-span-6 py-4">
+          <main className="sm:col-span-8 lg:col-span-6 py-6">
             <CoverImage
               article={article}
               hasCoverImage={hasCoverImage}
@@ -121,7 +119,7 @@ function TableOfContents({
 }) {
   return (
     <aside className="hidden lg:block lg:col-span-3">
-      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto p-4">
+      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto px-4 py-6">
         <Link
           to="/blog"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8"
@@ -208,7 +206,7 @@ function CoverImage({
   onLoad: () => void;
   onError: () => void;
 }) {
-  if (!hasCoverImage) {
+  if (!article.coverImage || !hasCoverImage) {
     return null;
   }
 
@@ -278,7 +276,7 @@ function ArticleFooter() {
 function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
   return (
     <aside className="hidden sm:block sm:col-span-4 lg:col-span-3">
-      <div className="sticky top-[65px] space-y-8 p-4">
+      <div className="sticky top-[65px] space-y-8 px-4 py-6">
         {relatedArticles.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-4">

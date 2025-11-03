@@ -6,13 +6,13 @@ import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
 import StarterKit from "@tiptap/starter-kit";
 
-import { SearchAndReplace } from "../../transcript/extensions/search-and-replace";
 import { AIHighlight } from "../ai-highlight";
 import { StreamingAnimation } from "../animation";
 import { ClipboardTextSerializer } from "../clipboard";
 import CustomListKeymap from "../custom-list-keymap";
 import { Hashtag } from "../hashtag";
 import { Placeholder, type PlaceholderFunction } from "./placeholder";
+import { SearchAndReplace } from "./search-and-replace";
 
 export type { PlaceholderFunction };
 

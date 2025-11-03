@@ -7,7 +7,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://desktop.hyprnote.com/update/{{target}}-{{arch}}/{{current_version}}?channel=nightly"
+        "https://desktop2.hyprnote.com/update/{{target}}-{{arch}}/{{current_version}}?channel=nightly"
       ]
     }
   },

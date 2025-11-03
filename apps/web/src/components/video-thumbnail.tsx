@@ -18,7 +18,7 @@ export function VideoThumbnail({
     <div className={cn(["relative w-full h-full overflow-hidden group cursor-pointer", className])} onClick={onPlay}>
       <MuxPlayer
         playbackId={playbackId}
-        poster="/hyprnote/poster-image.png"
+        poster="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/poster-image.png"
         muted
         playsInline
         className="w-full h-full object-cover pointer-events-none aspect-video"

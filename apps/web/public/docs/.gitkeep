@@ -1,8 +1,0 @@
-# Documentation Assets Directory
-
-Place documentation images, diagrams, and assets here.
-
-Example usage in MDX:
-```markdown
-![Architecture Diagram](/docs/architecture.png)
-```

@@ -27,11 +27,17 @@ function Container({ children }: { children: React.ReactNode }) {
       <div className="max-w-2xl w-full mx-auto">
         <div
           className="border border-neutral-200 p-4 rounded-sm"
-          style={{ backgroundImage: "url(/patterns/white_leather.png)" }}
+          style={{
+            backgroundImage:
+              "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/white-leather.png)",
+          }}
         >
           <div
             className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12"
-            style={{ backgroundImage: "url(/patterns/paper.png)" }}
+            style={{
+              backgroundImage:
+                "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/paper.png)",
+            }}
           >
             {children}
           </div>

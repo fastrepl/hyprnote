@@ -138,7 +138,7 @@ export function GitHubOpenSource() {
   const FORKS_COUNT = githubStats.data?.forks ?? GITHUB_LAST_SEEN_FORKS;
 
   return (
-    <section className="border-t border-neutral-100">
+    <section>
       <div className="px-4 py-8">
         <div className="lg:hidden max-w-4xl mx-auto">
           <OpenSourceButton showStars={true} starCount={STARS_COUNT} />

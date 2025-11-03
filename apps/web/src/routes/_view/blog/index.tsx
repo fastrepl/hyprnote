@@ -151,7 +151,7 @@ function ArticleListItem({ article }: { article: Article }) {
           </span>
           <span className="text-sm text-neutral-500">by {article.author}</span>
           <div className="h-px flex-1 bg-neutral-200" />
-          <time dateTime={displayDate} className="text-sm text-neutral-500 flex-shrink-0">
+          <time dateTime={displayDate} className="text-sm text-neutral-500 shrink-0">
             {new Date(displayDate).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",

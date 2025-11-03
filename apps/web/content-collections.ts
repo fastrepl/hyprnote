@@ -1,7 +1,5 @@
 import { defineCollection, defineConfig } from "@content-collections/core";
 import { compileMDX } from "@content-collections/mdx";
-import { existsSync } from "fs";
-import { join } from "path";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
@@ -39,7 +37,7 @@ const articles = defineCollection({
     author: z.string(),
     created: z.string(),
     updated: z.string().optional(),
-    coverImage: z.string().optional(),
+    coverImage: z.string(),
     featured: z.boolean().optional(),
   }),
   transform: async (document, context) => {
@@ -63,27 +61,12 @@ const articles = defineCollection({
 
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
-    let coverImage = document.coverImage;
-    if (!coverImage) {
-      const formats = ["webp", "png", "jpg", "jpeg"];
-      const publicDir = join(process.cwd(), "public");
-
-      for (const format of formats) {
-        const imagePath = join(publicDir, "blog", slug, `cover.${format}`);
-        if (existsSync(imagePath)) {
-          coverImage = `/blog/${slug}/cover.${format}`;
-          break;
-        }
-      }
-    }
-
     const author = document.author || "Hyprnote Team";
 
     return {
       ...document,
       mdx,
       slug,
-      coverImage,
       author,
       toc,
     };

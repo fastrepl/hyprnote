@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
@@ -25,11 +25,19 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
     updateSessionTabState(tab, { editor: view });
   };
 
-  const handleContainerClick = () => {
-    editorRef.current?.editor?.commands.focus();
-  };
-
   const currentTab: EditorView = useCurrentNoteTab(tab);
+
+  useEffect(() => {
+    if (currentTab === "transcript" && editorRef.current) {
+      editorRef.current = { editor: null };
+    }
+  }, [currentTab]);
+
+  const handleContainerClick = () => {
+    if (currentTab !== "transcript") {
+      editorRef.current?.editor?.commands.focus();
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -43,7 +51,7 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
       <div
         onClick={handleContainerClick}
         className={cn([
-          "flex-1 mt-3",
+          "flex-1 mt-1",
           currentTab === "transcript" ? "overflow-hidden" : ["overflow-auto", "pb-8"],
         ])}
       >

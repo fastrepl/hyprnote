@@ -175,7 +175,7 @@ function RightSidebar({
             Questions about Hyprnote?
           </h3>
           <a
-            href="https://cal.com/team/hyprnote/welcome"
+            href="/founders"
             target="_blank"
             rel="noopener noreferrer"
             className={cn([
@@ -197,7 +197,7 @@ function MobileCTA() {
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 border-t border-neutral-200 bg-white/95 backdrop-blur-sm p-4 z-20">
       <a
-        href="https://cal.com/team/hyprnote/welcome"
+        href="/founders"
         target="_blank"
         rel="noopener noreferrer"
         className={cn([

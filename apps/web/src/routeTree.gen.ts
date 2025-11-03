@@ -30,8 +30,6 @@ import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
-import { Route as ApiSyncWriteRouteImport } from './routes/api/sync.write'
-import { Route as ApiSyncReadRouteImport } from './routes/api/sync.read'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDocsSlugRouteImport } from './routes/_view/docs/$slug'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
@@ -144,16 +142,6 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
-const ApiSyncWriteRoute = ApiSyncWriteRouteImport.update({
-  id: '/api/sync/write',
-  path: '/api/sync/write',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSyncReadRoute = ApiSyncReadRouteImport.update({
-  id: '/api/sync/read',
-  path: '/api/sync/read',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   id: '/legal/$slug',
   path: '/legal/$slug',
@@ -212,8 +200,6 @@ export interface FileRoutesByFullPath {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
-  '/api/sync/read': typeof ApiSyncReadRoute
-  '/api/sync/write': typeof ApiSyncWriteRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -241,8 +227,6 @@ export interface FileRoutesByTo {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
-  '/api/sync/read': typeof ApiSyncReadRoute
-  '/api/sync/write': typeof ApiSyncWriteRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -274,8 +258,6 @@ export interface FileRoutesById {
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/docs/$slug': typeof ViewDocsSlugRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
-  '/api/sync/read': typeof ApiSyncReadRoute
-  '/api/sync/write': typeof ApiSyncWriteRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
@@ -307,8 +289,6 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/docs/$slug'
     | '/legal/$slug'
-    | '/api/sync/read'
-    | '/api/sync/write'
     | '/app/'
     | '/blog'
     | '/changelog'
@@ -336,8 +316,6 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/docs/$slug'
     | '/legal/$slug'
-    | '/api/sync/read'
-    | '/api/sync/write'
     | '/app'
     | '/blog'
     | '/changelog'
@@ -368,8 +346,6 @@ export interface FileRouteTypes {
     | '/_view/changelog/$slug'
     | '/_view/docs/$slug'
     | '/_view/legal/$slug'
-    | '/api/sync/read'
-    | '/api/sync/write'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
@@ -389,8 +365,6 @@ export interface RootRouteChildren {
   XRoute: typeof XRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
-  ApiSyncReadRoute: typeof ApiSyncReadRoute
-  ApiSyncWriteRoute: typeof ApiSyncWriteRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -542,20 +516,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
-    '/api/sync/write': {
-      id: '/api/sync/write'
-      path: '/api/sync/write'
-      fullPath: '/api/sync/write'
-      preLoaderRoute: typeof ApiSyncWriteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/sync/read': {
-      id: '/api/sync/read'
-      path: '/api/sync/read'
-      fullPath: '/api/sync/read'
-      preLoaderRoute: typeof ApiSyncReadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_view/legal/$slug': {
       id: '/_view/legal/$slug'
       path: '/legal/$slug'
@@ -685,8 +645,6 @@ const rootRouteChildren: RootRouteChildren = {
   XRoute: XRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
-  ApiSyncReadRoute: ApiSyncReadRoute,
-  ApiSyncWriteRoute: ApiSyncWriteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

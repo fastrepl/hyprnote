@@ -1,10 +1,10 @@
-import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open as selectFile } from "@tauri-apps/plugin-dialog";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { Effect, pipe } from "effect";
 import { forwardRef, useCallback } from "react";
 
+import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import type { PlaceholderFunction } from "@hypr/tiptap/shared";
 import { cn } from "@hypr/utils";
 import * as main from "../../../../../store/tinybase/main";

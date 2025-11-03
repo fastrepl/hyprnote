@@ -205,7 +205,7 @@ export function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[
   }));
   const hasTranscript = useHasTranscript(sessionId);
 
-  if (status !== "inactive" && activeSessionId === sessionId) {
+  if (status === "running_active" && activeSessionId === sessionId) {
     return ["raw", "transcript"];
   }
 

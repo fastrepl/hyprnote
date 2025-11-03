@@ -9,4 +9,5 @@ NODE_VERSION = "22"
 # https://docs.netlify.com/build/image-cdn/overview/#remote-path
 remote_images = [
   "https://hyprnote\\.com/.*",
+  "https://ijoptyyjrfqwaqhyxkxj\\.supabase\\.co/.*",
 ]

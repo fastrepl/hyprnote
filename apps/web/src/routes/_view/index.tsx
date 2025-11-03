@@ -1,6 +1,8 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
+import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -195,35 +197,10 @@ function HeroSection({
   const heroCTA = getHeroCTA(platform);
   const heroContext = useHeroContext();
   const { track } = useAnalytics();
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
   const [shake, setShake] = useState(false);
 
-  const handleTrigger = useCallback(() => {
-    if (heroInputRef.current) {
-      heroInputRef.current.focus();
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (heroContext) {
-      heroContext.setOnTrigger(handleTrigger);
-    }
-  }, [heroContext, handleTrigger]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) {
-      return;
-    }
-
-    setStatus("sending");
-    setErrorMessage("");
-
-    try {
+  const mutation = useMutation({
+    mutationFn: async (email: string) => {
       const intent = platform === "mobile" ? "Reminder" : "Waitlist";
       const eventName = platform === "mobile" ? "reminder_requested" : "os_waitlist_joined";
 
@@ -242,18 +219,32 @@ function HeroSection({
           intent: intent,
         },
       });
+    },
+  });
 
-      setStatus("success");
-      setEmail("");
-    } catch (error) {
-      setStatus("error");
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong. Please try again.",
-      );
+  const form = useForm({
+    defaultValues: {
+      email: "",
+    },
+    onSubmit: async ({ value }) => {
+      await mutation.mutateAsync(value.email);
+      form.reset();
+    },
+  });
+
+  const handleTrigger = useCallback(() => {
+    if (heroInputRef.current) {
+      heroInputRef.current.focus();
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (heroContext) {
+      heroContext.setOnTrigger(handleTrigger);
+    }
+  }, [heroContext, handleTrigger]);
 
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
@@ -271,52 +262,81 @@ function HeroSection({
 
           {heroCTA.showInput
             ? (
-              <form onSubmit={handleSubmit} className="w-full max-w-md">
-                <div
-                  className={cn(
-                    [
-                      "relative flex items-center border-2 rounded-full overflow-hidden transition-all duration-200",
-                      shake && "animate-shake border-stone-600",
-                      !shake && status === "error" && "border-red-500",
-                      !shake && status === "success" && "border-green-500",
-                      !shake && status !== "error" && status !== "success"
-                      && "border-neutral-200 focus-within:border-stone-500",
-                    ],
-                  )}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  form.handleSubmit();
+                }}
+                className="w-full max-w-md"
+              >
+                <form.Field
+                  name="email"
+                  validators={{
+                    onChange: ({ value }) => {
+                      if (!value) {
+                        return "Email is required";
+                      }
+                      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                        return "Please enter a valid email";
+                      }
+                      return undefined;
+                    },
+                  }}
                 >
-                  <input
-                    ref={heroInputRef}
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={heroCTA.inputPlaceholder}
-                    className="flex-1 px-6 py-4 text-base outline-none bg-white"
-                    required
-                    disabled={status === "sending" || status === "success"}
-                  />
-                  <button
-                    type="submit"
-                    disabled={status === "sending" || status === "success"}
-                    className="absolute right-1 px-6 py-3 text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50"
-                  >
-                    {status === "sending" ? "Sending..." : status === "success" ? "Sent!" : heroCTA.buttonLabel}
-                  </button>
-                </div>
-                {status === "success" && (
-                  <p className="text-green-600 mt-4 text-sm">
-                    Thanks! We'll be in touch soon.
-                  </p>
-                )}
-                {status === "error" && (
-                  <p className="text-red-600 mt-4 text-sm">
-                    {errorMessage}
-                  </p>
-                )}
-                {status === "idle" && (
-                  <p className="text-neutral-500 mt-4 text-sm">
-                    {heroCTA.subtext}
-                  </p>
-                )}
+                  {(field) => (
+                    <>
+                      <div
+                        className={cn([
+                          "relative flex items-center border-2 rounded-full overflow-hidden transition-all duration-200",
+                          shake && "animate-shake border-stone-600",
+                          !shake && mutation.isError && "border-red-500",
+                          !shake && mutation.isSuccess && "border-green-500",
+                          !shake && !mutation.isError && !mutation.isSuccess
+                          && "border-neutral-200 focus-within:border-stone-500",
+                        ])}
+                      >
+                        <input
+                          ref={heroInputRef}
+                          type="email"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          placeholder={heroCTA.inputPlaceholder}
+                          className="flex-1 px-6 py-4 text-base outline-none bg-white"
+                          disabled={mutation.isPending || mutation.isSuccess}
+                        />
+                        <button
+                          type="submit"
+                          disabled={mutation.isPending || mutation.isSuccess}
+                          className="absolute right-1 px-6 py-3 text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50"
+                        >
+                          {mutation.isPending
+                            ? "Sending..."
+                            : mutation.isSuccess
+                            ? "Sent!"
+                            : heroCTA.buttonLabel}
+                        </button>
+                      </div>
+                      {mutation.isSuccess && (
+                        <p className="text-green-600 mt-4 text-sm">
+                          Thanks! We'll be in touch soon.
+                        </p>
+                      )}
+                      {mutation.isError && (
+                        <p className="text-red-600 mt-4 text-sm">
+                          {mutation.error instanceof Error
+                            ? mutation.error.message
+                            : "Something went wrong. Please try again."}
+                        </p>
+                      )}
+                      {!mutation.isSuccess && !mutation.isError && (
+                        <p className="text-neutral-500 mt-4 text-sm">
+                          {heroCTA.subtext}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </form.Field>
               </form>
             )
             : (

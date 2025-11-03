@@ -65,30 +65,31 @@ function Component() {
   const hasCoverImage = !coverImageError;
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white">
-      <div className="max-w-6xl mx-auto border-x border-neutral-100">
+    <div
+      className="bg-linear-to-b from-white via-stone-50/20 to-white"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
+      <div className="min-h-screen max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <MobileHeader />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-          <div className="sm:grid sm:grid-cols-12 sm:gap-8">
-            <TableOfContents toc={article.toc} />
+        <div className="sm:grid sm:grid-cols-12 sm:gap-8">
+          <TableOfContents toc={article.toc} />
 
-            <main className="sm:col-span-8 lg:col-span-6">
-              <ArticleHeader article={article} />
-              <CoverImage
-                article={article}
-                hasCoverImage={hasCoverImage}
-                coverImageLoaded={coverImageLoaded}
-                onLoad={() => setCoverImageLoaded(true)}
-                onError={() => setCoverImageError(true)}
-              />
-              <ArticleContent article={article} />
-              <RelatedArticlesMobile relatedArticles={relatedArticles} />
-              <ArticleFooter />
-            </main>
+          <main className="sm:col-span-8 lg:col-span-6 py-4">
+            <CoverImage
+              article={article}
+              hasCoverImage={hasCoverImage}
+              coverImageLoaded={coverImageLoaded}
+              onLoad={() => setCoverImageLoaded(true)}
+              onError={() => setCoverImageError(true)}
+            />
+            <ArticleHeader article={article} />
+            <ArticleContent article={article} />
+            <RelatedArticlesMobile relatedArticles={relatedArticles} />
+            <ArticleFooter />
+          </main>
 
-            <RightSidebar relatedArticles={relatedArticles} />
-          </div>
+          <RightSidebar relatedArticles={relatedArticles} />
         </div>
 
         <MobileCTA />
@@ -120,7 +121,7 @@ function TableOfContents({
 }) {
   return (
     <aside className="hidden lg:block lg:col-span-3">
-      <div className="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto">
+      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto p-4">
         <Link
           to="/blog"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8"
@@ -216,9 +217,11 @@ function CoverImage({
       <img
         src={article.coverImage}
         alt={article.title}
+        width={1200}
+        height={630}
         className={cn(
           [
-            "w-full aspect-video object-cover rounded-none sm:rounded-sm border-y sm:border border-neutral-200 transition-opacity duration-300",
+            "w-full aspect-40/21 object-cover rounded-none sm:rounded-sm border-y sm:border border-neutral-200 transition-opacity duration-300",
             coverImageLoaded ? "opacity-100" : "opacity-0",
           ],
         )}
@@ -275,7 +278,7 @@ function ArticleFooter() {
 function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
   return (
     <aside className="hidden sm:block sm:col-span-4 lg:col-span-3">
-      <div className="sticky top-24 space-y-8">
+      <div className="sticky top-[65px] space-y-8 p-4">
         {relatedArticles.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-4">

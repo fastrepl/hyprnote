@@ -1,8 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { env } from "../env";
+
 const inputSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   userGroup: z.string().optional(),
   locale: z.string().optional(),
   platform: z.string().optional(),
@@ -19,7 +21,7 @@ export const addContact = createServerFn({ method: "POST" })
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.LOOPS_KEY}`,
+          Authorization: `Bearer ${env.LOOPS_KEY}`,
         },
         body: JSON.stringify({
           email: data.email,

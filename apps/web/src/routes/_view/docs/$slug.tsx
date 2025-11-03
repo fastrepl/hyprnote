@@ -1,4 +1,3 @@
-import { Accordion, Card, Columns, Info, Note, Step, Steps, Tip } from "@hypr/ui/docs";
 import { cn } from "@hypr/utils";
 
 import { MDXContent } from "@content-collections/mdx/react";
@@ -7,6 +6,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 
 import { CtaCard } from "@/components/cta-card";
+import { Accordion, Card, Columns, Info, Note, Step, Steps, Tip } from "@hypr/ui/docs";
 
 export const Route = createFileRoute("/_view/docs/$slug")({
   component: Component,

@@ -38,7 +38,8 @@ export function TranscriptContainer({
     main.STORE_ID,
   );
 
-  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+  const currentActive = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+  const editable = useListener((state) => state.status === "inactive" && Object.keys(operations ?? {}).length === 0);
   const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
   const partialHints = useListener((state) => state.partialHints);
 
@@ -67,6 +68,7 @@ export function TranscriptContainer({
           (transcriptId, index) => (
             <Fragment key={transcriptId}>
               <RenderTranscript
+                editable={editable}
                 transcriptId={transcriptId}
                 partialWords={(index === transcriptIds.length - 1) ? partialWords : []}
                 partialHints={(index === transcriptIds.length - 1) ? partialHints : []}
@@ -77,13 +79,15 @@ export function TranscriptContainer({
           ),
         )}
 
-        <SelectionMenu
-          containerRef={containerRef}
-          onAction={handleSelectionAction}
-        />
+        {editable && (
+          <SelectionMenu
+            containerRef={containerRef}
+            onAction={handleSelectionAction}
+          />
+        )}
       </div>
 
-      {(!isAtBottom && active) && (
+      {(!isAtBottom && currentActive) && (
         <button
           onClick={scrollToBottom}
           className={cn([
@@ -119,11 +123,13 @@ function TranscriptSeparator() {
 
 function RenderTranscript(
   {
+    editable,
     transcriptId,
     partialWords,
     partialHints,
     operations,
   }: {
+    editable: boolean;
     transcriptId: string;
     partialWords: PartialWord[];
     partialHints: RuntimeSpeakerHint[];
@@ -155,9 +161,9 @@ function RenderTranscript(
         (segment, i) => (
           <SegmentRenderer
             key={i}
+            editable={editable}
             segment={segment}
             offsetMs={offsetMs}
-            transcriptId={transcriptId}
             operations={operations}
           />
         ),
@@ -168,22 +174,19 @@ function RenderTranscript(
 
 export function SegmentRenderer(
   {
+    editable,
     segment,
     offsetMs,
-    transcriptId,
     operations,
   }: {
+    editable: boolean;
     segment: Segment;
     offsetMs: number;
-    transcriptId: string;
     operations?: WordOperations;
   },
 ) {
   const { time, seek, start, audioExists } = useAudioPlayer();
   const currentMs = time.current * 1000;
-
-  const sessionId = main.UI.useCell("transcripts", transcriptId, "session_id", main.STORE_ID);
-  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
 
   const seekAndPlay = useCallback((word: SegmentWord) => {
     if (audioExists) {
@@ -192,8 +195,6 @@ export function SegmentRenderer(
     }
   }, [audioExists, offsetMs, seek, start]);
 
-  const isEditMode = operations && Object.keys(operations).length > 0;
-
   return (
     <section>
       <SegmentHeader segment={segment} />
@@ -201,7 +202,7 @@ export function SegmentRenderer(
       <div
         className={cn([
           "mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere",
-          isEditMode && "select-text-deep",
+          editable && "select-text-deep",
         ])}
       >
         {segment.words.map((word, idx) => {
@@ -209,7 +210,7 @@ export function SegmentRenderer(
           const wordEndMs = offsetMs + word.end_ms;
 
           const highlightState = getWordHighlightState({
-            active,
+            editable,
             audioExists,
             currentMs,
             wordStartMs,
@@ -412,20 +413,20 @@ function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
 
 function getWordHighlightState(
   {
-    active,
+    editable,
     audioExists,
     currentMs,
     wordStartMs,
     wordEndMs,
   }: {
-    active: boolean;
+    editable: boolean;
     audioExists: boolean;
     currentMs: number;
     wordStartMs: number;
     wordEndMs: number;
   },
 ): "current" | "buffer" | "none" {
-  if (active || !audioExists) {
+  if (!editable || !audioExists) {
     return "none";
   }
 

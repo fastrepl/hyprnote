@@ -337,6 +337,18 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             join("organizations", "human", "org_id").as("org");
             select("org", "name").as("org_name");
           },
+        )
+        .setQueryDefinition(
+          QUERIES.sessionRecordingTimes,
+          "transcripts",
+          ({ select, group }) => {
+            select("session_id");
+            select("started_at");
+            select("ended_at");
+
+            group("started_at", "min").as("min_started_at");
+            group("ended_at", "max").as("max_ended_at");
+          },
         ),
     [],
   )!;
@@ -445,6 +457,7 @@ export const QUERIES = {
   llmProviders: "llmProviders",
   sttProviders: "sttProviders",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
+  sessionRecordingTimes: "sessionRecordingTimes",
 };
 
 export const METRICS = {

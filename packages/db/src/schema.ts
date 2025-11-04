@@ -121,6 +121,7 @@ export const transcripts = pgTable(
     ...SHARED,
     session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
     started_at: integer("started_at").notNull(),
+    ended_at: integer("ended_at"),
   },
   (table) => createPolicies(TABLE_TRANSCRIPTS, table.user_id),
 ).enableRLS();

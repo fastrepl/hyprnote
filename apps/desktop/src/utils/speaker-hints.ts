@@ -5,24 +5,6 @@ import type { RuntimeSpeakerHint } from "./segment";
 
 export type { ProviderSpeakerIndexHint };
 
-export const parseProviderSpeakerIndex = (raw: unknown): ProviderSpeakerIndexHint | undefined => {
-  if (raw == null) {
-    return undefined;
-  }
-
-  const data = typeof raw === "string"
-    ? (() => {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return undefined;
-      }
-    })()
-    : raw;
-
-  return providerSpeakerIndexSchema.safeParse(data).data;
-};
-
 export function convertStorageHintsToRuntime(
   storageHints: SpeakerHintStorage[],
   wordIdToIndex: Map<string, number>,
@@ -52,8 +34,46 @@ export function convertStorageHintsToRuntime(
           },
         });
       }
+    } else if (hint.type === "user_speaker_assignment") {
+      const data = typeof hint.value === "string"
+        ? (() => {
+          try {
+            return JSON.parse(hint.value);
+          } catch {
+            return undefined;
+          }
+        })()
+        : hint.value;
+
+      if (data && typeof data === "object" && "human_id" in data && typeof data.human_id === "string") {
+        hints.push({
+          wordIndex,
+          data: {
+            type: "user_speaker_assignment",
+            human_id: data.human_id,
+          },
+        });
+      }
     }
   });
 
   return hints;
 }
+
+const parseProviderSpeakerIndex = (raw: unknown): ProviderSpeakerIndexHint | undefined => {
+  if (raw == null) {
+    return undefined;
+  }
+
+  const data = typeof raw === "string"
+    ? (() => {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return undefined;
+      }
+    })()
+    : raw;
+
+  return providerSpeakerIndexSchema.safeParse(data).data;
+};

@@ -1,9 +1,10 @@
 use bytes::Bytes;
-use std::time::Duration;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
+use owhisper_client::hypr_ws;
 use owhisper_interface::{ControlMessage, Extra, MixedMessage, StreamResponse};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
@@ -20,6 +21,7 @@ pub enum ListenerMsg {
     StreamEnded,
     StreamTimeout(Elapsed),
     StreamStartFailed(String),
+    ChangeMode(crate::actors::ChannelMode),
 }
 
 #[derive(Clone)]
@@ -31,6 +33,9 @@ pub struct ListenerArgs {
     pub base_url: String,
     pub api_key: String,
     pub keywords: Vec<String>,
+    pub mode: crate::actors::ChannelMode,
+    pub session_started_at: Instant,
+    pub session_started_at_unix: SystemTime,
 }
 
 pub struct ListenerState {
@@ -94,7 +99,11 @@ impl Actor for ListenerActor {
                 let _ = state.tx.try_send(MixedMessage::Audio((mic, spk)));
             }
 
-            ListenerMsg::StreamResponse(response) => {
+            ListenerMsg::StreamResponse(mut response) => {
+                if state.args.mode == crate::actors::ChannelMode::Single {
+                    response.remap_channel_index(0, 2);
+                }
+
                 SessionEvent::StreamResponse { response }.emit(&state.args.app)?;
             }
 
@@ -116,6 +125,23 @@ impl Actor for ListenerActor {
             ListenerMsg::StreamTimeout(elapsed) => {
                 tracing::info!("listen_stream_timeout: {}", elapsed);
                 myself.stop(None);
+            }
+
+            ListenerMsg::ChangeMode(new_mode) => {
+                tracing::info!(?new_mode, "listener_mode_change");
+
+                if let Some(shutdown_tx) = state.shutdown_tx.take() {
+                    let _ = shutdown_tx.send(());
+                    let _ = (&mut state.rx_task).await;
+                }
+
+                state.args.mode = new_mode;
+
+                let (tx, rx_task, shutdown_tx) =
+                    spawn_rx_task(state.args.clone(), myself.clone()).await?;
+                state.tx = tx;
+                state.rx_task = rx_task;
+                state.shutdown_tx = Some(shutdown_tx);
             }
         }
         Ok(())
@@ -152,113 +178,187 @@ async fn spawn_rx_task(
     ActorProcessingErr,
 > {
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
-    let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
 
-    let client = owhisper_client::ListenClient::builder()
-        .api_base(args.base_url)
-        .api_key(args.api_key)
-        .params(owhisper_interface::ListenParams {
-            model: Some(args.model),
-            languages: args.languages,
-            redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
-            keywords: args.keywords,
-            ..Default::default()
-        })
-        .build_dual();
+    let session_offset_secs = args.session_started_at.elapsed().as_secs_f64();
+    let started_unix_secs = args
+        .session_started_at_unix
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or(Duration::from_secs(0))
+        .as_secs();
+
+    let extra = Extra { started_unix_secs };
 
     let rx_task = tokio::spawn(async move {
-        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-        let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
-            Ok(res) => res,
-            Err(e) => {
-                let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-                return;
-            }
-        };
-        futures_util::pin_mut!(listen_stream);
+        use crate::actors::ChannelMode;
 
-        let extra = Extra::default();
+        if args.mode == ChannelMode::Single {
+            let client = owhisper_client::ListenClient::builder()
+                .api_base(args.base_url.clone())
+                .api_key(args.api_key.clone())
+                .params(owhisper_interface::ListenParams {
+                    model: Some(args.model.clone()),
+                    languages: args.languages.clone(),
+                    redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
+                    keywords: args.keywords.clone(),
+                    ..Default::default()
+                })
+                .build_single();
 
-        loop {
-            tokio::select! {
-                _ = &mut shutdown_rx => {
-                    handle.finalize_with_text(serde_json::json!({"type": "Finalize"}).to_string().into()).await;
+            let outbound = tokio_stream::StreamExt::map(
+                tokio_stream::wrappers::ReceiverStream::new(rx),
+                |msg| match msg {
+                    MixedMessage::Audio((_mic, spk)) => MixedMessage::Audio(spk),
+                    MixedMessage::Control(c) => MixedMessage::Control(c),
+                },
+            );
 
-                    let finalize_timeout = tokio::time::sleep(Duration::from_secs(5));
-                    tokio::pin!(finalize_timeout);
-
-                    let mut received_from_finalize = false;
-
-                    loop {
-                        tokio::select! {
-                            _ = &mut finalize_timeout => {
-                                tracing::warn!(timeout = true, "break_timeout");
-                                break;
-                            }
-                            result = listen_stream.next() => {
-                                match result {
-                                    Some(Ok(response)) => {
-                                        let is_from_finalize = if let StreamResponse::TranscriptResponse { from_finalize, .. } = &response {
-                                            *from_finalize
-                                        } else {
-                                            false
-                                        };
-
-
-                                        if is_from_finalize {
-                                            received_from_finalize = true;
-                                        }
-
-                                        let _ = myself.send_message(ListenerMsg::StreamResponse(response));
-
-                                        if received_from_finalize {
-                                            tracing::info!(from_finalize = true, "break_from_finalize");
-                                            break;
-                                        }
-                                    }
-                                    Some(Err(e)) => {
-                                        tracing::warn!(error = ?e, "break_from_finalize");
-                                        break;
-                                    }
-                                    None => {
-                                        tracing::info!(ended = true, "break_from_finalize");
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
+            let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
+                Ok(res) => res,
+                Err(e) => {
+                    let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+                    return;
                 }
-                result = tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()) => {
-                    match result {
-                        Ok(Some(Ok(mut response))) => {
-                            if let StreamResponse::TranscriptResponse { ref mut metadata, .. } = response {
-                                metadata.extra = Some(extra.clone().into());
-                            }
+            };
+            futures_util::pin_mut!(listen_stream);
 
-                            let _ = myself.send_message(ListenerMsg::StreamResponse(response));
-                        }
-                        // Something went wrong while sending or receiving a websocket message. Should restart.
-                        Ok(Some(Err(e))) => {
-                            let _ = myself.send_message(ListenerMsg::StreamError(format!("{:?}", e)));
-                            break;
-                        }
-                         // Stream ended gracefully. Safe to stop the whole session.
-                        Ok(None) => {
-                            let _ = myself.send_message(ListenerMsg::StreamEnded);
-                            break;
-                        }
-                        // We're not hearing back any transcript. Better to stop the whole session.
-                        Err(elapsed) => {
-                            let _ = myself.send_message(ListenerMsg::StreamTimeout(elapsed));
-                            break;
-                        }
-                    }
+            process_stream(
+                listen_stream,
+                handle,
+                myself,
+                shutdown_rx,
+                session_offset_secs,
+                extra.clone(),
+            )
+            .await;
+        } else {
+            let client = owhisper_client::ListenClient::builder()
+                .api_base(args.base_url)
+                .api_key(args.api_key)
+                .params(owhisper_interface::ListenParams {
+                    model: Some(args.model),
+                    languages: args.languages,
+                    redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
+                    keywords: args.keywords,
+                    ..Default::default()
+                })
+                .build_dual();
+
+            let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
+
+            let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
+                Ok(res) => res,
+                Err(e) => {
+                    let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+                    return;
                 }
-            }
+            };
+            futures_util::pin_mut!(listen_stream);
+
+            process_stream(
+                listen_stream,
+                handle,
+                myself,
+                shutdown_rx,
+                session_offset_secs,
+                extra.clone(),
+            )
+            .await;
         }
     });
 
     Ok((tx, rx_task, shutdown_tx))
+}
+
+async fn process_stream<S, E>(
+    mut listen_stream: std::pin::Pin<&mut S>,
+    handle: hypr_ws::client::WebSocketHandle,
+    myself: ActorRef<ListenerMsg>,
+    mut shutdown_rx: tokio::sync::oneshot::Receiver<()>,
+    offset_secs: f64,
+    extra: Extra,
+) where
+    S: futures_util::Stream<Item = Result<StreamResponse, E>>,
+    E: std::fmt::Debug,
+{
+    loop {
+        tokio::select! {
+            _ = &mut shutdown_rx => {
+                handle.finalize_with_text(serde_json::json!({"type": "Finalize"}).to_string().into()).await;
+
+                let finalize_timeout = tokio::time::sleep(Duration::from_secs(5));
+                tokio::pin!(finalize_timeout);
+
+                let mut received_from_finalize = false;
+
+                loop {
+                    tokio::select! {
+                        _ = &mut finalize_timeout => {
+                            tracing::warn!(timeout = true, "break_timeout");
+                            break;
+                        }
+                        result = listen_stream.next() => {
+                            match result {
+                                Some(Ok(mut response)) => {
+                                    let is_from_finalize = if let StreamResponse::TranscriptResponse { from_finalize, .. } = &response {
+                                        *from_finalize
+                                    } else {
+                                        false
+                                    };
+
+                                    if is_from_finalize {
+                                        received_from_finalize = true;
+                                    }
+
+                                    response.apply_offset(offset_secs);
+                                    response.set_extra(&extra);
+
+                                    let _ = myself.send_message(ListenerMsg::StreamResponse(response));
+
+                                    if received_from_finalize {
+                                        tracing::info!(from_finalize = true, "break_from_finalize");
+                                        break;
+                                    }
+                                }
+                                Some(Err(e)) => {
+                                    tracing::warn!(error = ?e, "break_from_finalize");
+                                    break;
+                                }
+                                None => {
+                                    tracing::info!(ended = true, "break_from_finalize");
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            result = tokio::time::timeout(LISTEN_STREAM_TIMEOUT, listen_stream.next()) => {
+                match result {
+                    Ok(Some(Ok(mut response))) => {
+                        response.apply_offset(offset_secs);
+                        response.set_extra(&extra);
+
+                        let _ = myself.send_message(ListenerMsg::StreamResponse(response));
+                    }
+                    // Something went wrong while sending or receiving a websocket message. Should restart.
+                    Ok(Some(Err(e))) => {
+                        let _ = myself.send_message(ListenerMsg::StreamError(format!("{:?}", e)));
+                        break;
+                    }
+                     // Stream ended gracefully. Safe to stop the whole session.
+                    Ok(None) => {
+                        let _ = myself.send_message(ListenerMsg::StreamEnded);
+                        break;
+                    }
+                    // We're not hearing back any transcript. Better to stop the whole session.
+                    Err(elapsed) => {
+                        let _ = myself.send_message(ListenerMsg::StreamTimeout(elapsed));
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }

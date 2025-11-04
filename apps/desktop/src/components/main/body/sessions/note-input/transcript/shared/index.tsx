@@ -18,19 +18,16 @@ import {
   SegmentWord,
 } from "../../../../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
+import { Operations } from "./operations";
 import { SegmentHeader } from "./segment-header";
 import { SelectionMenu } from "./selection-menu";
-
-type WordOperations = {
-  onDeleteWord?: (wordId: string) => void;
-};
 
 export function TranscriptContainer({
   sessionId,
   operations,
 }: {
   sessionId: string;
-  operations?: WordOperations;
+  operations?: Operations;
 }) {
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -115,7 +112,7 @@ function TranscriptSeparator() {
       ])}
     >
       <div className="flex-1 border-t border-neutral-200/40" />
-      <span>Restarted</span>
+      <span>~ ~ ~ ~ ~ ~ ~ ~ ~</span>
       <div className="flex-1 border-t border-neutral-200/40" />
     </div>
   );
@@ -133,7 +130,7 @@ function RenderTranscript(
     transcriptId: string;
     partialWords: PartialWord[];
     partialHints: RuntimeSpeakerHint[];
-    operations?: WordOperations;
+    operations?: Operations;
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
@@ -182,7 +179,7 @@ export function SegmentRenderer(
     editable: boolean;
     segment: Segment;
     offsetMs: number;
-    operations?: WordOperations;
+    operations?: Operations;
   },
 ) {
   const { time, seek, start, audioExists } = useAudioPlayer();
@@ -197,7 +194,7 @@ export function SegmentRenderer(
 
   return (
     <section>
-      <SegmentHeader segment={segment} />
+      <SegmentHeader segment={segment} operations={operations} />
 
       <div
         className={cn([
@@ -243,7 +240,7 @@ function WordSpan({
   word: SegmentWord;
   highlightState: "current" | "buffer" | "none";
   audioExists: boolean;
-  operations?: WordOperations;
+  operations?: Operations;
   onSeekAndPlay: () => void;
 }) {
   const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";

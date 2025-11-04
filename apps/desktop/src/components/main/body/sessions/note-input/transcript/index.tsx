@@ -1,16 +1,18 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
+import { useListener } from "../../../../../../contexts/listener";
 import * as main from "../../../../../../store/tinybase/main";
 import { TranscriptEditor } from "./editor";
 import { TranscriptViewer } from "./viewer";
 
 export function Transcript({ sessionId }: { sessionId: string }) {
+  const inactive = useListener((state) => state.status === "inactive");
   const [isEditing, setIsEditing] = useState(false);
 
   return (
     <div className="relative h-full flex flex-col">
-      <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />
+      {inactive && <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />}
 
       <div className="flex-1 overflow-hidden">
         {isEditing

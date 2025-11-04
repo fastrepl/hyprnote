@@ -1,3 +1,5 @@
+use std::time::{Instant, SystemTime};
+
 use tauri::Manager;
 use tauri_specta::Event;
 
@@ -44,6 +46,8 @@ pub struct SessionState {
     app: tauri::AppHandle,
     token: CancellationToken,
     params: SessionParams,
+    started_at_instant: Instant,
+    started_at_system: SystemTime,
 }
 
 pub struct SessionActor;
@@ -65,6 +69,8 @@ impl Actor for SessionActor {
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
         let cancellation_token = CancellationToken::new();
+        let started_at_instant = Instant::now();
+        let started_at_system = SystemTime::now();
 
         {
             use tauri_plugin_tray::TrayPluginExt;
@@ -75,6 +81,8 @@ impl Actor for SessionActor {
             app: args.app,
             token: cancellation_token,
             params: args.params,
+            started_at_instant,
+            started_at_system,
         };
 
         {
@@ -306,6 +314,22 @@ impl SessionActor {
         session_state: &SessionState,
         listener_args: Option<ListenerArgs>,
     ) -> Result<ActorRef<ListenerMsg>, ActorProcessingErr> {
+        use crate::actors::ChannelMode;
+
+        let mode = if listener_args.is_none() {
+            if let Some(cell) = registry::where_is(SourceActor::name()) {
+                let actor: ActorRef<SourceMsg> = cell.into();
+                match call_t!(actor, SourceMsg::GetMode, 500) {
+                    Ok(m) => m,
+                    Err(_) => ChannelMode::Dual,
+                }
+            } else {
+                ChannelMode::Dual
+            }
+        } else {
+            ChannelMode::Dual
+        };
+
         let (listen_ref, _) = Actor::spawn_linked(
             Some(ListenerActor::name()),
             ListenerActor,
@@ -317,6 +341,9 @@ impl SessionActor {
                 base_url: session_state.params.base_url.clone(),
                 api_key: session_state.params.api_key.clone(),
                 keywords: session_state.params.keywords.clone(),
+                mode,
+                session_started_at: session_state.started_at_instant,
+                session_started_at_unix: session_state.started_at_system,
             }),
             supervisor,
         )

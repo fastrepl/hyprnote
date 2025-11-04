@@ -1,10 +1,18 @@
-import { Data, Equal, HashMap, Option } from "effect";
+import { Data, Schema } from "effect";
+
+export enum ChannelProfile {
+  DirectMic = 0,
+  RemoteParty = 1,
+  MixedCapture = 2,
+}
+
+export const ChannelProfileSchema = Schema.Enums(ChannelProfile);
 
 export type WordLike = {
   text: string;
   start_ms: number;
   end_ms: number;
-  channel: number;
+  channel: ChannelProfile;
 };
 
 export type PartialWord = WordLike;
@@ -20,25 +28,35 @@ export type RuntimeSpeakerHint = {
   data: SpeakerHintData;
 };
 
-export function getSpeakerIndex(hint: RuntimeSpeakerHint): number | undefined {
-  if (hint.data.type === "provider_speaker_index") {
-    return hint.data.speaker_index;
-  }
-  return undefined;
-}
-
 export type Segment<TWord extends SegmentWord = SegmentWord> = {
   key: SegmentKey;
   words: TWord[];
 };
 
 export type SegmentKey = {
-  readonly channel: number;
+  readonly channel: ChannelProfile;
   readonly speaker_index?: number;
+  readonly speaker_human_id?: string;
 };
 
 export const SegmentKey = {
-  make: (params: { channel: number; speaker_index?: number }): SegmentKey => Data.struct(params),
+  make: (
+    params: { channel: ChannelProfile } & Partial<{ speaker_index: number; speaker_human_id: string }>,
+  ): SegmentKey => Data.struct(params),
+};
+
+const MAX_GAP_MS = 2000;
+
+type SpeakerIdentity = {
+  speaker_index?: number;
+  human_id?: string;
+};
+
+type SpeakerState = {
+  assignmentByWordIndex: Map<number, SpeakerIdentity>;
+  humanIdBySpeakerIndex: Map<number, string>;
+  humanIdByChannel: Map<ChannelProfile, string>;
+  lastSpeakerByChannel: Map<ChannelProfile, SpeakerIdentity>;
 };
 
 export function buildSegments<
@@ -49,92 +67,231 @@ export function buildSegments<
   partialWords: readonly TPartial[],
   speakerHints: readonly RuntimeSpeakerHint[] = [],
 ): Segment[] {
-  const allWords: SegmentWord[] = [
-    ...finalWords.map((word) => ({
-      text: word.text,
-      start_ms: word.start_ms,
-      end_ms: word.end_ms,
-      channel: word.channel,
-      isFinal: true,
-      ...("id" in word && word.id ? { id: word.id as string } : {}),
-    })),
-    ...partialWords.map((word) => ({
-      text: word.text,
-      start_ms: word.start_ms,
-      end_ms: word.end_ms,
-      channel: word.channel,
-      isFinal: false,
-      ...("id" in word && word.id ? { id: word.id as string } : {}),
-    })),
-  ].sort((a, b) => a.start_ms - b.start_ms);
-
-  return createSpeakerTurns(allWords, speakerHints);
+  const words = normalizeWords(finalWords, partialWords);
+  return segmentWords(words, speakerHints);
 }
 
-function createSpeakerTurns<TWord extends SegmentWord>(
-  words: TWord[],
+function segmentWords<TWord extends SegmentWord>(
+  words: readonly TWord[],
   speakerHints: readonly RuntimeSpeakerHint[],
 ): Segment<TWord>[] {
-  const MAX_GAP_MS = 2000;
-
   if (words.length === 0) {
     return [];
   }
 
-  const speakerByIndex = new Map<number, number>();
-  speakerHints.forEach((hint) => {
-    const speakerIndex = getSpeakerIndex(hint);
-    if (speakerIndex !== undefined) {
-      speakerByIndex.set(hint.wordIndex, speakerIndex);
-    }
+  const state = createSpeakerState(speakerHints);
+  const segments: Segment<TWord>[] = [];
+  const activeSegments = new Map<string, Segment<TWord>>();
+
+  words.forEach((word, index) => {
+    const key = resolveSegmentKey(index, word, state);
+    placeWordInSegment(word, key, segments, activeSegments);
   });
 
-  const segments: Segment<TWord>[] = [];
-  let currentActiveSegment = HashMap.empty<SegmentKey, Segment<TWord>>();
-  const lastSpeakerByChannel = new Map<number, number>();
+  return segments;
+}
 
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    const explicitSpeaker = speakerByIndex.get(i);
+function createSpeakerState(speakerHints: readonly RuntimeSpeakerHint[]): SpeakerState {
+  const assignmentByWordIndex = new Map<number, SpeakerIdentity>();
+  const humanIdBySpeakerIndex = new Map<number, string>();
+  const humanIdByChannel = new Map<ChannelProfile, string>();
+  const lastSpeakerByChannel = new Map<ChannelProfile, SpeakerIdentity>();
 
-    const speakerIndex = explicitSpeaker ?? (!word.isFinal ? lastSpeakerByChannel.get(word.channel) : undefined);
-
-    if (typeof explicitSpeaker === "number") {
-      lastSpeakerByChannel.set(word.channel, explicitSpeaker);
-    }
-
-    const key = SegmentKey.make({ channel: word.channel, speaker_index: speakerIndex });
-    const currentOption = HashMap.get(currentActiveSegment, key);
-
-    if (Option.isSome(currentOption) && key.speaker_index !== undefined) {
-      const lastSegment = segments[segments.length - 1];
-      if (!lastSegment || !Equal.equals(lastSegment.key, key)) {
-        const newSegment = { key, words: [word] };
-        currentActiveSegment = HashMap.set(currentActiveSegment, key, newSegment);
-        segments.push(newSegment);
-        continue;
-      }
-    }
-
-    if (Option.isNone(currentOption)) {
-      const newSegment = { key, words: [word] };
-      currentActiveSegment = HashMap.set(currentActiveSegment, key, newSegment);
-      segments.push(newSegment);
-      continue;
-    }
-
-    const current = currentOption.value;
-    const lastWord = current.words[current.words.length - 1];
-    const gap = word.start_ms - lastWord.end_ms;
-
-    if (gap <= MAX_GAP_MS) {
-      current.words.push(word);
+  for (const hint of speakerHints) {
+    const current = assignmentByWordIndex.get(hint.wordIndex) ?? {};
+    if (hint.data.type === "provider_speaker_index") {
+      current.speaker_index = hint.data.speaker_index;
     } else {
-      const newSegment = { key, words: [word] };
-      currentActiveSegment = HashMap.set(currentActiveSegment, key, newSegment);
-      segments.push(newSegment);
+      current.human_id = hint.data.human_id;
+    }
+    assignmentByWordIndex.set(hint.wordIndex, { ...current });
+
+    if (current.speaker_index !== undefined && current.human_id !== undefined) {
+      humanIdBySpeakerIndex.set(current.speaker_index, current.human_id);
     }
   }
 
-  return segments;
+  return {
+    assignmentByWordIndex,
+    humanIdBySpeakerIndex,
+    humanIdByChannel,
+    lastSpeakerByChannel,
+  };
+}
+
+function resolveSegmentKey<TWord extends SegmentWord>(
+  wordIndex: number,
+  word: TWord,
+  state: SpeakerState,
+): SegmentKey {
+  const assignment = state.assignmentByWordIndex.get(wordIndex);
+  const identity = resolveSpeakerIdentity(word, assignment, state);
+  rememberIdentity(word, assignment, identity, state);
+
+  const params: {
+    channel: ChannelProfile;
+    speaker_index?: number;
+    speaker_human_id?: string;
+  } = { channel: word.channel };
+
+  if (identity.speaker_index !== undefined) {
+    params.speaker_index = identity.speaker_index;
+  }
+
+  if (identity.human_id !== undefined) {
+    params.speaker_human_id = identity.human_id;
+  }
+
+  return SegmentKey.make(params);
+}
+
+function resolveSpeakerIdentity<TWord extends SegmentWord>(
+  word: TWord,
+  assignment: SpeakerIdentity | undefined,
+  state: SpeakerState,
+): SpeakerIdentity {
+  const identity: SpeakerIdentity = {
+    speaker_index: assignment?.speaker_index,
+    human_id: assignment?.human_id,
+  };
+
+  if (identity.speaker_index !== undefined && identity.human_id === undefined) {
+    identity.human_id = state.humanIdBySpeakerIndex.get(identity.speaker_index);
+  }
+
+  if (identity.human_id === undefined && word.channel === ChannelProfile.DirectMic) {
+    identity.human_id = state.humanIdByChannel.get(ChannelProfile.DirectMic);
+  }
+
+  if (!word.isFinal && (identity.speaker_index === undefined || identity.human_id === undefined)) {
+    const last = state.lastSpeakerByChannel.get(word.channel);
+    if (last) {
+      if (identity.speaker_index === undefined) {
+        identity.speaker_index = last.speaker_index;
+      }
+      if (identity.human_id === undefined) {
+        identity.human_id = last.human_id;
+      }
+    }
+  }
+
+  return identity;
+}
+
+function rememberIdentity<TWord extends SegmentWord>(
+  word: TWord,
+  assignment: SpeakerIdentity | undefined,
+  identity: SpeakerIdentity,
+  state: SpeakerState,
+): void {
+  const hasExplicitAssignment = assignment !== undefined
+    && (assignment.speaker_index !== undefined || assignment.human_id !== undefined);
+
+  if (identity.speaker_index !== undefined && identity.human_id !== undefined) {
+    state.humanIdBySpeakerIndex.set(identity.speaker_index, identity.human_id);
+  }
+
+  if (word.channel === ChannelProfile.DirectMic && identity.human_id !== undefined) {
+    state.humanIdByChannel.set(ChannelProfile.DirectMic, identity.human_id);
+  }
+
+  if (
+    !word.isFinal
+    || identity.speaker_index !== undefined
+    || hasExplicitAssignment
+  ) {
+    if (identity.speaker_index !== undefined || identity.human_id !== undefined) {
+      state.lastSpeakerByChannel.set(word.channel, { ...identity });
+    }
+  }
+}
+
+function placeWordInSegment<TWord extends SegmentWord>(
+  word: TWord,
+  key: SegmentKey,
+  segments: Segment<TWord>[],
+  activeSegments: Map<string, Segment<TWord>>,
+): void {
+  const segmentId = segmentKeyId(key);
+  const existing = activeSegments.get(segmentId);
+
+  if (existing && canExtend(existing, key, word, segments)) {
+    existing.words.push(word);
+    return;
+  }
+
+  if (word.isFinal && !hasSpeakerIdentity(key)) {
+    for (const [id, segment] of activeSegments) {
+      if (!hasSpeakerIdentity(segment.key) && segment.key.channel === key.channel) {
+        if (canExtend(segment, segment.key, word, segments)) {
+          segment.words.push(word);
+          activeSegments.set(segmentId, segment);
+          activeSegments.set(id, segment);
+          return;
+        }
+      }
+    }
+  }
+
+  const newSegment: Segment<TWord> = { key, words: [word] };
+  segments.push(newSegment);
+  activeSegments.set(segmentId, newSegment);
+}
+
+function canExtend<TWord extends SegmentWord>(
+  existingSegment: Segment<TWord>,
+  candidateKey: SegmentKey,
+  word: TWord,
+  segments: Segment<TWord>[],
+): boolean {
+  if (hasSpeakerIdentity(candidateKey)) {
+    const lastSegment = segments[segments.length - 1];
+    if (!lastSegment || !sameKey(lastSegment.key, candidateKey)) {
+      return false;
+    }
+  }
+
+  const lastWord = existingSegment.words[existingSegment.words.length - 1];
+  return word.start_ms - lastWord.end_ms <= MAX_GAP_MS;
+}
+
+function hasSpeakerIdentity(key: SegmentKey): boolean {
+  return key.speaker_index !== undefined || key.speaker_human_id !== undefined;
+}
+
+function sameKey(a: SegmentKey, b: SegmentKey): boolean {
+  return (
+    a.channel === b.channel
+    && a.speaker_index === b.speaker_index
+    && a.speaker_human_id === b.speaker_human_id
+  );
+}
+
+function segmentKeyId(key: SegmentKey): string {
+  return JSON.stringify([key.channel, key.speaker_index ?? null, key.speaker_human_id ?? null]);
+}
+
+function normalizeWords<TFinal extends WordLike, TPartial extends WordLike>(
+  finalWords: readonly TFinal[],
+  partialWords: readonly TPartial[],
+): SegmentWord[] {
+  const finalNormalized = finalWords.map((word) => ({
+    text: word.text,
+    start_ms: word.start_ms,
+    end_ms: word.end_ms,
+    channel: word.channel,
+    isFinal: true,
+    ...("id" in word && word.id ? { id: word.id as string } : {}),
+  }));
+
+  const partialNormalized = partialWords.map((word) => ({
+    text: word.text,
+    start_ms: word.start_ms,
+    end_ms: word.end_ms,
+    channel: word.channel,
+    isFinal: false,
+    ...("id" in word && word.id ? { id: word.id as string } : {}),
+  }));
+
+  return [...finalNormalized, ...partialNormalized].sort((a, b) => a.start_ms - b.start_ms);
 }

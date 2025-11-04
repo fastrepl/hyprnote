@@ -1,4 +1,5 @@
 use std::future::Future;
+use tauri::Manager;
 
 pub trait Database2PluginExt<R: tauri::Runtime> {
     fn init_local(&self) -> impl Future<Output = Result<(), crate::Error>>;
@@ -18,12 +19,24 @@ pub trait Database2PluginExt<R: tauri::Runtime> {
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
     async fn init_local(&self) -> Result<(), crate::Error> {
-        let db = hypr_db_core::DatabaseBuilder::default()
-            .memory()
-            .build()
-            .await
-            .unwrap();
+        let db = {
+            if cfg!(debug_assertions) {
+                hypr_db_core::DatabaseBuilder::default()
+                    .memory()
+                    .build()
+                    .await
+                    .unwrap()
+            } else {
+                let dir_path = self.app_handle().path().app_data_dir()?;
+                let file_path = dir_path.join("db.sqlite");
 
+                hypr_db_core::DatabaseBuilder::default()
+                    .local(file_path)
+                    .build()
+                    .await
+                    .unwrap()
+            }
+        };
         {
             let state = self.state::<crate::ManagedState>();
             let mut guard = state.lock().await;

@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
+import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import { useConfigSideEffects } from "../config/use-config";
 import { ListenerProvider } from "../contexts/listener";
 
@@ -14,10 +15,12 @@ function Component() {
   const { listenerStore } = Route.useLoaderData();
 
   return (
-    <ListenerProvider store={listenerStore}>
-      <Outlet />
-      <SideEffects />
-    </ListenerProvider>
+    <TooltipProvider>
+      <ListenerProvider store={listenerStore}>
+        <Outlet />
+        <SideEffects />
+      </ListenerProvider>
+    </TooltipProvider>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 import { useListener } from "../../../../contexts/listener";
 import { useAITaskTask } from "../../../../hooks/useAITaskTask";
@@ -71,4 +72,31 @@ export function useListenButtonState(sessionId: string) {
     isDisabled,
     warningMessage,
   };
+}
+
+export function ActionableTooltipContent({
+  message,
+  action,
+}: {
+  message: string;
+  action?: {
+    label: string;
+    handleClick: () => void;
+  };
+}) {
+  return (
+    <div className="flex flex-row items-center gap-3">
+      <p className="text-xs">{message}</p>
+      {action && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-black"
+          onClick={action.handleClick}
+        >
+          {action.label}
+        </Button>
+      )}
+    </div>
+  );
 }

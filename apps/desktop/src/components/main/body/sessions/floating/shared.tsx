@@ -1,8 +1,10 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { type ComponentProps, type ReactNode } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+export { ActionableTooltipContent } from "../shared";
 
 export function FloatingButton({
   icon,
@@ -63,32 +65,5 @@ export function FloatingButton({
         {tooltip.content}
       </TooltipContent>
     </Tooltip>
-  );
-}
-
-export function ActionableTooltipContent({
-  message,
-  action,
-}: {
-  message: string;
-  action?: {
-    label: string;
-    handleClick: () => void;
-  };
-}) {
-  return (
-    <div className="flex flex-row items-center gap-3">
-      <p className="text-xs">{message}</p>
-      {action && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-black"
-          onClick={action.handleClick}
-        >
-          {action.label}
-        </Button>
-      )}
-    </div>
   );
 }

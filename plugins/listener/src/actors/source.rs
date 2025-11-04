@@ -5,7 +5,7 @@ use futures_util::StreamExt;
 use ractor::{registry, Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 use tokio_util::sync::CancellationToken;
 
-use crate::actors::{AudioChunk, ProcMsg, ProcessorActor};
+use crate::actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, ProcMsg, ProcessorActor};
 use hypr_audio::{
     is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle,
     ResampledAsyncSource,
@@ -20,6 +20,7 @@ pub enum SourceMsg {
     GetMicMute(RpcReplyPort<bool>),
     SetMicDevice(Option<String>),
     GetMicDevice(RpcReplyPort<Option<String>>),
+    GetMode(RpcReplyPort<ChannelMode>),
 }
 
 pub struct SourceArgs {
@@ -38,6 +39,7 @@ pub struct SourceState {
     _device_monitor_handle: Option<DeviceMonitorHandle>,
     _silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
     _device_event_thread: Option<std::thread::JoinHandle<()>>,
+    current_mode: ChannelMode,
 }
 
 pub struct SourceActor;
@@ -117,6 +119,7 @@ impl Actor for SourceActor {
             _device_monitor_handle: Some(device_monitor_handle),
             _silence_stream_tx: silence_stream_tx,
             _device_event_thread: Some(device_event_thread),
+            current_mode: ChannelMode::Dual,
         };
 
         start_source_loop(&myself, &mut st).await?;
@@ -155,6 +158,11 @@ impl Actor for SourceActor {
                 }
                 start_source_loop(&myself, st).await?;
             }
+            SourceMsg::GetMode(reply) => {
+                if !reply.is_closed() {
+                    let _ = reply.send(st.current_mode);
+                }
+            }
         }
 
         Ok(())
@@ -189,12 +197,38 @@ async fn start_source_loop(
     st.stream_cancel_token = Some(stream_cancel_token.clone());
 
     #[cfg(target_os = "macos")]
-    let use_mixed = !st.onboarding && !is_using_headphone();
+    let new_mode = if !st.onboarding && !is_using_headphone() {
+        ChannelMode::Single
+    } else {
+        ChannelMode::Dual
+    };
 
     #[cfg(not(target_os = "macos"))]
-    let use_mixed = false;
+    let new_mode = ChannelMode::Dual;
 
-    tracing::info!(use_mixed = use_mixed);
+    let mode_changed = st.current_mode != new_mode;
+    st.current_mode = new_mode;
+
+    tracing::info!(?new_mode, mode_changed, "start_source_loop");
+
+    if let Some(cell) = registry::where_is(ProcessorActor::name()) {
+        let actor: ActorRef<ProcMsg> = cell.into();
+        let _ = actor.cast(ProcMsg::Reset);
+    }
+
+    if mode_changed {
+        if let Some(cell) = registry::where_is(ProcessorActor::name()) {
+            let actor: ActorRef<ProcMsg> = cell.into();
+            let _ = actor.cast(ProcMsg::SetMode(new_mode));
+        }
+
+        if let Some(cell) = registry::where_is(ListenerActor::name()) {
+            let actor: ActorRef<ListenerMsg> = cell.into();
+            let _ = actor.cast(ListenerMsg::ChangeMode(new_mode));
+        }
+    }
+
+    let use_mixed = new_mode == ChannelMode::Single;
 
     let handle = if use_mixed {
         #[cfg(target_os = "macos")]
@@ -236,23 +270,21 @@ async fn start_source_loop(
                         }
                         mic_next = mic_stream.next() => {
                             if let Some(data) = mic_next {
-                                if mic_muted.load(Ordering::Relaxed) {
-                                    let msg = ProcMsg::Mic(AudioChunk{ data: vec![0.0; data.len()] });
-                                    let _ = proc.cast(msg);
+                                let output_data = if mic_muted.load(Ordering::Relaxed) {
+                                    vec![0.0; data.len()]
                                 } else {
-                                    let msg = ProcMsg::Mixed(AudioChunk{ data });
-                                    let _ = proc.cast(msg);
-                                }
+                                    data
+                                };
+                                let msg = ProcMsg::Mic(AudioChunk { data: output_data });
+                                let _ = proc.cast(msg);
                             } else {
                                 break;
                             }
                         }
                         spk_next = spk_stream.next() => {
                             if let Some(data) = spk_next {
-                                if mic_muted.load(Ordering::Relaxed) {
-                                    let msg = ProcMsg::Speaker(AudioChunk{ data });
-                                    let _ = proc.cast(msg);
-                                }
+                                let msg = ProcMsg::Speaker(AudioChunk{ data });
+                                let _ = proc.cast(msg);
                             } else {
                                 break;
                             }

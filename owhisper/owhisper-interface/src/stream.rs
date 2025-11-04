@@ -137,6 +137,41 @@ impl StreamResponse {
             _ => None,
         }
     }
+
+    pub fn apply_offset(&mut self, offset_secs: f64) {
+        match self {
+            StreamResponse::TranscriptResponse { start, channel, .. } => {
+                *start += offset_secs;
+                for alt in &mut channel.alternatives {
+                    for word in &mut alt.words {
+                        word.start += offset_secs;
+                        word.end += offset_secs;
+                    }
+                }
+            }
+            StreamResponse::SpeechStartedResponse { timestamp, .. } => {
+                *timestamp += offset_secs;
+            }
+            StreamResponse::UtteranceEndResponse { last_word_end, .. } => {
+                *last_word_end += offset_secs;
+            }
+            _ => {}
+        }
+    }
+
+    pub fn set_extra(&mut self, extra: &Extra) {
+        if let StreamResponse::TranscriptResponse { metadata, .. } = self {
+            metadata.extra = Some(extra.clone().into());
+        }
+    }
+
+    pub fn remap_channel_index(&mut self, from: i32, to: i32) {
+        if let StreamResponse::TranscriptResponse { channel_index, .. } = self {
+            if !channel_index.is_empty() && channel_index[0] == from {
+                channel_index[0] = to;
+            }
+        }
+    }
 }
 
 #[cfg(test)]

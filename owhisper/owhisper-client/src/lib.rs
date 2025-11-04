@@ -3,6 +3,8 @@ use futures_util::Stream;
 use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
 use owhisper_interface::{ControlMessage, MixedMessage, StreamResponse};
 
+pub use hypr_ws;
+
 fn interleave_audio(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
     let mic_samples: Vec<i16> = mic
         .chunks_exact(2)

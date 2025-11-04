@@ -1,11 +1,13 @@
 import { cn } from "@hypr/utils";
 
 import { MDXContent } from "@content-collections/mdx/react";
+import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import { useState } from "react";
 
 import { CtaCard } from "@/components/cta-card";
+import { Image } from "@/components/image";
 
 export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
@@ -67,13 +69,13 @@ function Component() {
       className="bg-linear-to-b from-white via-stone-50/20 to-white"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
-      <div className="min-h-screen max-w-6xl mx-auto border-x border-neutral-100 bg-white">
+      <div className="min-h-screen max-w-[1400px] mx-auto border-x border-neutral-100 bg-white">
         <MobileHeader />
 
-        <div className="sm:grid sm:grid-cols-12 sm:gap-8">
+        <div className="flex">
           <TableOfContents toc={article.toc} />
 
-          <main className="sm:col-span-8 lg:col-span-6 py-6">
+          <main className="flex-1 min-w-0 py-6">
             <CoverImage
               article={article}
               hasCoverImage={hasCoverImage}
@@ -118,13 +120,13 @@ function TableOfContents({
   toc: Array<{ id: string; text: string; level: number }>;
 }) {
   return (
-    <aside className="hidden lg:block lg:col-span-3">
+    <aside className="hidden lg:block w-64 shrink-0">
       <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto px-4 py-6">
         <Link
           to="/blog"
-          className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8 font-serif"
         >
-          <span>←</span>
+          <Icon icon="mdi:arrow-left" className="text-base" />
           <span>Back to blog</span>
         </Link>
 
@@ -212,7 +214,7 @@ function CoverImage({
 
   return (
     <div className="mb-8 lg:mb-12 -mx-4 sm:mx-0">
-      <img
+      <Image
         src={article.coverImage}
         alt={article.title}
         width={1200}
@@ -275,7 +277,7 @@ function ArticleFooter() {
 
 function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
   return (
-    <aside className="hidden sm:block sm:col-span-4 lg:col-span-3">
+    <aside className="hidden sm:block w-80 flex-shrink-0">
       <div className="sticky top-[65px] space-y-8 px-4 py-6">
         {relatedArticles.length > 0 && (
           <div>
@@ -350,7 +352,7 @@ function RelatedArticleCard({ article, compact = false }: { article: any; compac
     <Link
       to="/blog/$slug"
       params={{ slug: article.slug }}
-      className="group block p-4 border border-neutral-100 rounded-sm hover:border-neutral-200 hover:shadow-sm transition-all bg-white"
+      className="group block p-4 border border-neutral-200 rounded-sm hover:border-neutral-200 hover:shadow-sm transition-all bg-white"
     >
       <h4 className="font-serif text-sm text-stone-600 group-hover:text-stone-800 transition-colors line-clamp-2 mb-2">
         {article.title}

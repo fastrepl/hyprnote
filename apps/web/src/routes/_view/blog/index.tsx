@@ -32,8 +32,8 @@ function Component() {
       className="bg-linear-to-b from-white via-stone-50/20 to-white"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
-      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white min-h-screen">
-        <div className="px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-[1400px] mx-auto border-x border-neutral-100 bg-white min-h-screen">
+        <div className="px-4 sm:px-6 lg:px-8 py-16 mx-auto max-w-6xl">
           <Header />
           <FeaturedSection articles={featuredArticles} />
           <AllArticlesSection articles={sortedArticles} />

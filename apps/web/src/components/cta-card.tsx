@@ -9,7 +9,8 @@ interface CtaCardProps {
 
 export function CtaCard({
   title = "Talk to the founders",
-  description = "Invest in a quick 20-minute chat to discover how Hyprnote can bring clarity to your meetings",
+  description =
+    "Drowning in back-to-back meetings? In 20 minutes, we'll show you how to take control of your notes and reclaim hours each week.",
   buttonText = "Book a call",
   buttonUrl = "/founders",
 }: CtaCardProps) {

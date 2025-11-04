@@ -121,7 +121,7 @@ function TableOfContents({
 }) {
   return (
     <aside className="hidden lg:block w-64 shrink-0">
-      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto px-4 py-6">
+      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto px-4 py-6 scrollbar-none">
         <Link
           to="/blog"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8 font-serif"
@@ -277,7 +277,7 @@ function ArticleFooter() {
 
 function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
   return (
-    <aside className="hidden sm:block w-80 flex-shrink-0">
+    <aside className="hidden sm:block w-80 shrink-0">
       <div className="sticky top-[65px] space-y-8 px-4 py-6">
         {relatedArticles.length > 0 && (
           <div>

@@ -16,7 +16,7 @@ interface Update {
   close: () => Promise<void>;
 }
 
-export const check = check_2;
+export const check = check_1;
 
 export async function check_1(): Promise<Update | null> {
   await new Promise((resolve) => setTimeout(resolve, 1000));

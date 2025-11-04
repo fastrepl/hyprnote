@@ -1,3 +1,4 @@
+import { getVersion } from "@tauri-apps/api/app";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { useSelector } from "@xstate/store/react";
@@ -8,8 +9,8 @@ export const checkForUpdate = async () => {
   updateStore.trigger.setState({ state: "checking" });
 
   try {
-    const update = await check();
-    updateStore.trigger.checkSuccess({ update });
+    const [update, currentVersion] = await Promise.all([check(), getVersion()]);
+    updateStore.trigger.checkSuccess({ update, currentVersion });
 
     if (!update) {
       setTimeout(() => {

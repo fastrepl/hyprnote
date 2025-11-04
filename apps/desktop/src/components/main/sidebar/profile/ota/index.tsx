@@ -11,6 +11,7 @@ export function UpdateChecker() {
     state,
     update,
     error,
+    currentVersion,
     downloadProgress,
     handleCheckForUpdate,
     handleStartDownload,
@@ -32,7 +33,7 @@ export function UpdateChecker() {
     return (
       <MenuItem
         icon={CheckCircle}
-        label="You're up to date"
+        label={currentVersion ? `You're up to date (v${currentVersion})` : "You're up to date"}
         onClick={() => {}}
       />
     );

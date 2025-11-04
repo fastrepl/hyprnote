@@ -47,6 +47,9 @@ importers:
       '@electric-sql/client':
         specifier: ^1.1.1
         version: 1.1.1
+      '@floating-ui/react':
+        specifier: ^0.27.16
+        version: 0.27.16(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@huggingface/languages':
         specifier: ^1.0.0
         version: 1.0.0

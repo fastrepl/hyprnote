@@ -24,6 +24,7 @@
     "@ai-sdk/openai-compatible": "^1.0.24",
     "@ai-sdk/react": "^2.0.82",
     "@electric-sql/client": "^1.1.1",
+    "@floating-ui/react": "^0.27.16",
     "@huggingface/languages": "^1.0.0",
     "@hypr/codemirror": "workspace:^",
     "@hypr/db": "workspace:*",

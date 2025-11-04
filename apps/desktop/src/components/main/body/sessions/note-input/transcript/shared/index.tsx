@@ -19,6 +19,7 @@ import {
 } from "../../../../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
 import { SegmentHeader } from "./segment-header";
+import { SelectionMenu } from "./selection-menu";
 
 type WordOperations = {
   onDeleteWord?: (wordId: string) => void;
@@ -47,14 +48,19 @@ export function TranscriptContainer({
     return null;
   }
 
+  const handleSelectionAction = (action: string, selectedText: string) => {
+    if (action === "copy") {
+      navigator.clipboard.writeText(selectedText);
+    }
+  };
+
   return (
     <div className="relative h-full">
       <div
         ref={containerRef}
         className={cn([
           "space-y-8 h-full overflow-y-auto overflow-x-hidden",
-          "px-0.5 pb-16 scroll-pb-[8rem]",
-          true ? "scrollbar-none" : "scroll-pb-[4rem]",
+          "px-0.5 pb-16 scroll-pb-[8rem] scrollbar-none",
         ])}
       >
         {transcriptIds.map(
@@ -70,6 +76,11 @@ export function TranscriptContainer({
             </Fragment>
           ),
         )}
+
+        <SelectionMenu
+          containerRef={containerRef}
+          onAction={handleSelectionAction}
+        />
       </div>
 
       {(!isAtBottom && active) && (
@@ -181,11 +192,18 @@ export function SegmentRenderer(
     }
   }, [audioExists, offsetMs, seek, start]);
 
+  const isEditMode = operations && Object.keys(operations).length > 0;
+
   return (
     <section>
       <SegmentHeader segment={segment} />
 
-      <div className="mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere">
+      <div
+        className={cn([
+          "mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere",
+          isEditMode && "select-text-deep",
+        ])}
+      >
         {segment.words.map((word, idx) => {
           const wordStartMs = offsetMs + word.start_ms;
           const wordEndMs = offsetMs + word.end_ms;

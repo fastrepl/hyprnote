@@ -188,9 +188,11 @@ function YCombinatorBanner() {
         ])}
       >
         <span className="group-hover:font-medium">Backed by</span>
-        <img
+        <Image
           src="/icons/yc_stone.svg"
           alt="Y Combinator"
+          width={16}
+          height={16}
           className="h-4 w-4 inline-block group-hover:scale-105"
         />
         <span className="group-hover:font-medium">Y Combinator</span>
@@ -594,9 +596,11 @@ function FeaturesIntroSection() {
     <section>
       <div className="text-center py-16 px-4">
         <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
-          <img
-            src="/hyprnote/icon.png"
+          <Image
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
             alt="Hyprnote"
+            width={96}
+            height={96}
             className="size-24 rounded-3xl border border-neutral-100"
           />
         </div>
@@ -1220,7 +1224,13 @@ function FeaturesDesktopGrid() {
                   </div>
                 </>
               )
-              : <img src="/static.gif" alt={`${feature.title} feature`} className="w-full h-full object-cover" />}
+              : (
+                <img
+                  src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+                  alt={`${feature.title} feature`}
+                  className="w-full h-full object-cover"
+                />
+              )}
           </div>
           <div className="p-6 flex-1">
             <div className="flex items-center justify-between gap-3 mb-2">
@@ -1311,13 +1321,21 @@ function DetailsMobileCarousel({
             <div key={index} className="w-full shrink-0 snap-center">
               <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
                 <div className="aspect-video border-y border-neutral-100 overflow-hidden">
-                  {feature.image && (
-                    <Image
-                      src={feature.image}
-                      alt={`${feature.title} feature`}
-                      className="w-full h-full object-contain"
-                    />
-                  )}
+                  {feature.image
+                    ? (
+                      <Image
+                        src={feature.image}
+                        alt={`${feature.title} feature`}
+                        className="w-full h-full object-contain"
+                      />
+                    )
+                    : (
+                      <img
+                        src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+                        alt={`${feature.title} feature`}
+                        className="w-full h-full object-contain"
+                      />
+                    )}
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -1397,13 +1415,21 @@ function DetailsTabletView({
         </div>
 
         <div className="aspect-video">
-          {detailsFeatures[selectedDetail].image && (
-            <Image
-              src={detailsFeatures[selectedDetail].image}
-              alt={`${detailsFeatures[selectedDetail].title} feature`}
-              className="w-full h-full object-contain"
-            />
-          )}
+          {detailsFeatures[selectedDetail].image
+            ? (
+              <Image
+                src={detailsFeatures[selectedDetail].image}
+                alt={`${detailsFeatures[selectedDetail].title} feature`}
+                className="w-full h-full object-contain"
+              />
+            )
+            : (
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+                alt={`${detailsFeatures[selectedDetail].title} feature`}
+                className="w-full h-full object-contain"
+              />
+            )}
         </div>
       </div>
     </div>
@@ -1455,35 +1481,45 @@ function DetailsDesktopView() {
         onMouseEnter={() => setHoveredDetail(selectedDetail)}
         onMouseLeave={() => setHoveredDetail(null)}
       >
-        {selectedFeature?.image && (
-          <>
-            <Image
-              src={selectedFeature.image}
-              alt={`${selectedFeature.title} feature`}
-              className="w-full h-full object-contain"
-            />
-            <div
-              className={cn(
-                [
-                  "absolute bottom-0 left-0 right-0",
-                  "transition-all duration-300 ease-out",
-                  hoveredDetail === selectedDetail ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-                ],
-              )}
-            >
-              <button
-                className={cn([
-                  "w-full py-4 text-xs font-mono cursor-pointer",
-                  "bg-stone-100/95 text-stone-800",
-                  "hover:bg-stone-200/95 active:bg-stone-400/95",
-                  "transition-all duration-150",
-                  "backdrop-blur-sm",
-                ])}
-              >
-                Learn more
-              </button>
-            </div>
-          </>
+        {selectedFeature && (
+          selectedFeature.image
+            ? (
+              <>
+                <Image
+                  src={selectedFeature.image}
+                  alt={`${selectedFeature.title} feature`}
+                  className="w-full h-full object-contain"
+                />
+                <div
+                  className={cn(
+                    [
+                      "absolute bottom-0 left-0 right-0",
+                      "transition-all duration-300 ease-out",
+                      hoveredDetail === selectedDetail ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+                    ],
+                  )}
+                >
+                  <button
+                    className={cn([
+                      "w-full py-4 text-xs font-mono cursor-pointer",
+                      "bg-stone-100/95 text-stone-800",
+                      "hover:bg-stone-200/95 active:bg-stone-400/95",
+                      "transition-all duration-150",
+                      "backdrop-blur-sm",
+                    ])}
+                  >
+                    Learn more
+                  </button>
+                </div>
+              </>
+            )
+            : (
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+                alt={`${selectedFeature.title} feature`}
+                className="w-full h-full object-contain"
+              />
+            )
         )}
       </div>
     </div>
@@ -1599,11 +1635,10 @@ function BlogSection() {
               <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
                 {article.coverImage && (
                   <div className="aspect-video overflow-hidden border-b border-neutral-100 bg-stone-50">
-                    <img
+                    <Image
                       src={article.coverImage}
                       alt={article.display_title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                      loading="lazy"
                     />
                   </div>
                 )}
@@ -1689,9 +1724,11 @@ function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputE
     <section className="py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
       <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
-          <img
-            src="/hyprnote/icon.png"
+          <Image
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
             alt="Hyprnote"
+            width={144}
+            height={144}
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>

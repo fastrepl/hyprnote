@@ -6,6 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { Image } from "@/components/image";
 import { doAuth } from "@/functions/auth";
 
 const validateSearch = z.object({
@@ -60,9 +61,11 @@ function Header() {
           "rounded-4xl bg-transparent",
         ])}
       >
-        <img
-          src="/hyprnote/icon.png"
+        <Image
+          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
           alt="Hyprnote"
+          width={96}
+          height={96}
           className={cn([
             "size-24",
             "rounded-3xl border border-neutral-200",

@@ -111,12 +111,13 @@ function Header() {
               </Link>
               {platformCTA.action === "download"
                 ? (
-                  <Link
-                    to="/download"
+                  <a
+                    href="/download/apple-silicon"
+                    download
                     className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
                   >
                     {platformCTA.label}
-                  </Link>
+                  </a>
                 )
                 : (
                   <button
@@ -131,12 +132,13 @@ function Header() {
             <div className="sm:hidden flex items-center gap-1">
               {platformCTA.action === "download"
                 ? (
-                  <Link
-                    to="/download"
+                  <a
+                    href="/download/apple-silicon"
+                    download
                     className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
                   >
                     {platformCTA.label}
-                  </Link>
+                  </a>
                 )
                 : (
                   <button
@@ -201,13 +203,14 @@ function Header() {
                   </Link>
                   {platformCTA.action === "download"
                     ? (
-                      <Link
-                        to="/download"
+                      <a
+                        href="/download/apple-silicon"
+                        download
                         onClick={() => setIsMenuOpen(false)}
                         className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
                       >
                         {platformCTA.label}
-                      </Link>
+                      </a>
                     )
                     : (
                       <button
@@ -281,7 +284,8 @@ function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="/download"
+                  href="/download/apple-silicon"
+                  download
                   className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                 >
                   Download

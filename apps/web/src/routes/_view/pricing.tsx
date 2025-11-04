@@ -3,6 +3,7 @@ import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
 
 export const Route = createFileRoute("/_view/pricing")({
@@ -303,9 +304,11 @@ function CTASection() {
     <section className="py-16 border-t border-neutral-100 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 laptop:px-0">
       <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
-          <img
-            src="/hyprnote/icon.png"
+          <Image
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
             alt="Hyprnote"
+            width={144}
+            height={144}
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>

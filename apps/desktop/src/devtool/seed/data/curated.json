@@ -2671,6 +2671,116 @@
           }
         ]
       }
+    },
+    {
+      "title": "Quick Check-in",
+      "raw_md": "Quick conversation between colleagues.",
+      "enhanced_md": "Quick conversation between colleagues.",
+      "folder": null,
+      "event": null,
+      "participants": [
+        "Sarah Chen",
+        "Michael Rodriguez"
+      ],
+      "tags": [],
+      "transcript": {
+        "segments": [
+          {
+            "channel": 0,
+            "start_ms": 0,
+            "end_ms": 2000,
+            "text": " How is the project going?",
+            "words": [
+              {
+                "text": " How",
+                "start_ms": 0,
+                "end_ms": 400
+              },
+              {
+                "text": " is",
+                "start_ms": 400,
+                "end_ms": 600
+              },
+              {
+                "text": " the",
+                "start_ms": 600,
+                "end_ms": 800
+              },
+              {
+                "text": " project",
+                "start_ms": 800,
+                "end_ms": 1400
+              },
+              {
+                "text": " going",
+                "start_ms": 1400,
+                "end_ms": 2000
+              }
+            ]
+          },
+          {
+            "channel": 1,
+            "start_ms": 4100,
+            "end_ms": 6100,
+            "text": " It's going really well, thanks!",
+            "words": [
+              {
+                "text": " It's",
+                "start_ms": 4100,
+                "end_ms": 4500
+              },
+              {
+                "text": " going",
+                "start_ms": 4500,
+                "end_ms": 4900
+              },
+              {
+                "text": " really",
+                "start_ms": 4900,
+                "end_ms": 5300
+              },
+              {
+                "text": " well",
+                "start_ms": 5300,
+                "end_ms": 5700
+              },
+              {
+                "text": " thanks",
+                "start_ms": 5700,
+                "end_ms": 6100
+              }
+            ]
+          },
+          {
+            "channel": 0,
+            "start_ms": 8200,
+            "end_ms": 9800,
+            "text": " That's great to hear!",
+            "words": [
+              {
+                "text": " That's",
+                "start_ms": 8200,
+                "end_ms": 8600
+              },
+              {
+                "text": " great",
+                "start_ms": 8600,
+                "end_ms": 9000
+              },
+              {
+                "text": " to",
+                "start_ms": 9000,
+                "end_ms": 9200
+              },
+              {
+                "text": " hear",
+                "start_ms": 9200,
+                "end_ms": 9800
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "chat_groups": [

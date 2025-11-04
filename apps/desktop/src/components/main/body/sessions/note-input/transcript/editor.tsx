@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import * as main from "../../../../../../store/tinybase/main";
+import { id } from "../../../../../../utils";
 import { TranscriptContainer } from "./shared";
 
 export function TranscriptEditor({ sessionId }: { sessionId: string }) {
@@ -27,10 +28,37 @@ export function TranscriptEditor({ sessionId }: { sessionId: string }) {
     checkpoints.addCheckpoint("delete_word");
   }, [store, indexes, checkpoints]);
 
+  const handleAssignSpeaker = useCallback((wordIds: string[], humanId: string) => {
+    if (!store || !checkpoints) {
+      return;
+    }
+
+    wordIds.forEach((wordId) => {
+      const word = store.getRow("words", wordId);
+      if (!word || typeof word.transcript_id !== "string") {
+        return;
+      }
+
+      const hintId = id();
+      store.setRow("speaker_hints", hintId, {
+        transcript_id: word.transcript_id,
+        word_id: wordId,
+        type: "user_speaker_assignment",
+        value: JSON.stringify({ human_id: humanId }),
+        created_at: new Date().toISOString(),
+      });
+    });
+
+    checkpoints.addCheckpoint("assign_speaker");
+  }, [store, checkpoints]);
+
   return (
     <TranscriptContainer
       sessionId={sessionId}
-      operations={{ onDeleteWord: handleDeleteWord }}
+      operations={{
+        onDeleteWord: handleDeleteWord,
+        onAssignSpeaker: handleAssignSpeaker,
+      }}
     />
   );
 }

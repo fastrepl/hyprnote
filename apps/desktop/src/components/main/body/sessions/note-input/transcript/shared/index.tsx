@@ -18,18 +18,15 @@ import {
   SegmentWord,
 } from "../../../../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
+import { Operations } from "./operations";
 import { SegmentHeader } from "./segment-header";
-
-type WordOperations = {
-  onDeleteWord?: (wordId: string) => void;
-};
 
 export function TranscriptContainer({
   sessionId,
   operations,
 }: {
   sessionId: string;
-  operations?: WordOperations;
+  operations?: Operations;
 }) {
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -100,7 +97,7 @@ function TranscriptSeparator() {
       ])}
     >
       <div className="flex-1 border-t border-neutral-200/40" />
-      <span>Restarted</span>
+      <span>~ ~ ~ ~ ~ ~ ~ ~ ~</span>
       <div className="flex-1 border-t border-neutral-200/40" />
     </div>
   );
@@ -116,7 +113,7 @@ function RenderTranscript(
     transcriptId: string;
     partialWords: PartialWord[];
     partialHints: RuntimeSpeakerHint[];
-    operations?: WordOperations;
+    operations?: Operations;
   },
 ) {
   const finalWords = useFinalWords(transcriptId);
@@ -165,7 +162,7 @@ export function SegmentRenderer(
     segment: Segment;
     offsetMs: number;
     transcriptId: string;
-    operations?: WordOperations;
+    operations?: Operations;
   },
 ) {
   const { time, seek, start, audioExists } = useAudioPlayer();
@@ -183,7 +180,7 @@ export function SegmentRenderer(
 
   return (
     <section>
-      <SegmentHeader segment={segment} />
+      <SegmentHeader segment={segment} operations={operations} />
 
       <div className="mt-1.5 text-sm leading-relaxed break-words overflow-wrap-anywhere">
         {segment.words.map((word, idx) => {
@@ -224,7 +221,7 @@ function WordSpan({
   word: SegmentWord;
   highlightState: "current" | "buffer" | "none";
   audioExists: boolean;
-  operations?: WordOperations;
+  operations?: Operations;
   onSeekAndPlay: () => void;
 }) {
   const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";

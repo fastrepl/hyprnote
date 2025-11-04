@@ -19,6 +19,11 @@ export function useHeroContext() {
   return useContext(HeroContext);
 }
 
+function getMaxWidthClass(pathname: string): string {
+  const isBlogOrDocs = pathname.startsWith("/blog") || pathname.startsWith("/docs");
+  return isBlogOrDocs ? "max-w-[1400px]" : "max-w-6xl";
+}
+
 function Component() {
   const router = useRouterState();
   const isDocsPage = router.location.pathname.startsWith("/docs");
@@ -42,6 +47,8 @@ function Header() {
   const platform = usePlatform();
   const heroContext = useHeroContext();
   const platformCTA = getPlatformCTA(platform);
+  const router = useRouterState();
+  const maxWidthClass = getMaxWidthClass(router.location.pathname);
 
   const handleCTAClick = (e: React.MouseEvent) => {
     if (platformCTA.action === "download") {
@@ -58,7 +65,7 @@ function Header() {
   return (
     <>
       <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
-        <div className="max-w-[1400px] mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4">
+        <div className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4`}>
           <div className="flex items-center justify-between">
             <div className="hidden sm:flex items-center gap-4">
               <Link
@@ -168,7 +175,7 @@ function Header() {
           />
 
           <div className="fixed top-[65px] left-0 right-0 bg-white border-b border-neutral-100 shadow-lg z-50 sm:hidden animate-in slide-in-from-top duration-300">
-            <nav className="max-w-[1400px] mx-auto px-4 py-6">
+            <nav className={`${maxWidthClass} mx-auto px-4 py-6`}>
               <div className="space-y-6">
                 <div className="space-y-4">
                   <Link
@@ -235,10 +242,12 @@ function Header() {
 
 function Footer() {
   const currentYear = new Date().getFullYear();
+  const router = useRouterState();
+  const maxWidthClass = getMaxWidthClass(router.location.pathname);
 
   return (
     <footer className="border-t border-neutral-100 bg-linear-to-b from-stone-50/30 to-stone-100">
-      <div className="max-w-[1400px] mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100">
+      <div className={`${maxWidthClass} mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100`}>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <Link to="/" className="inline-block mb-4">

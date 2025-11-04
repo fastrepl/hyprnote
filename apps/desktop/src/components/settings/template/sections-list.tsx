@@ -5,7 +5,7 @@ import { cn } from "@hypr/utils";
 
 import { GripVertical as HandleIcon, Plus, X } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { useCallback, useState, type ChangeEvent, type PointerEvent } from "react";
+import { type ChangeEvent, type PointerEvent, useCallback, useState } from "react";
 
 import * as main from "../../../store/tinybase/main";
 
@@ -35,7 +35,7 @@ function useEditableSections({
   onChange,
 }: UseEditableSectionsOptions): UseEditableSectionsResult {
   const [items, setItems] = useState<EditableSection[]>(() =>
-    initialItems.map((item) => ({ ...item, id: crypto.randomUUID() })),
+    initialItems.map((item) => ({ ...item, id: crypto.randomUUID() }))
   );
 
   const updateItems = useCallback(
@@ -55,9 +55,7 @@ function useEditableSections({
 
   const changeSection = useCallback(
     (item: EditableSection) => {
-      updateItems((prev) =>
-        prev.map((section) => (section.id === item.id ? item : section)),
-      );
+      updateItems((prev) => prev.map((section) => (section.id === item.id ? item : section)));
     },
     [updateItems],
   );

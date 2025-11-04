@@ -56,7 +56,7 @@ function StartButton({ sessionId }: { sessionId: string }) {
       aria-label="Start listening"
     >
       <RecordingIcon disabled={isDisabled} />
-      <span className="hidden md:inline text-neutral-100 hover:text-neutral-200">Start listening</span>
+      <span className="text-neutral-100 hover:text-neutral-200">Start listening</span>
     </Button>
   );
 

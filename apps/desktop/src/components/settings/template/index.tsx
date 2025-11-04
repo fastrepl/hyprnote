@@ -2,8 +2,6 @@ import { BookText, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { createQueries } from "tinybase/with-schemas";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
 
@@ -11,60 +9,38 @@ import * as main from "../../../store/tinybase/main";
 import { TemplateEditor } from "./editor";
 import { useTemplateNavigation } from "./use-template-navigation";
 
-type FilterStatus = "all" | "favorite";
-
 export function SettingsTemplates() {
   const { templateId } = useTemplateNavigation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
-  const templates = useTemplates();
-
-  const filteredTemplates = useMemo(() => {
-    let filtered = Object.entries(templates);
-
-    // TODO: Implement favorite filtering when favorite field is added
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        ([_, template]) =>
-          (template.title || "").toLowerCase().includes(query)
-          || (template.description || "").toLowerCase().includes(query),
-      );
-    }
-
-    return filtered;
-  }, [searchQuery, templates]);
 
   if (templateId) {
     return <TemplateEditor id={templateId} />;
   }
 
+  return <TemplateList />;
+}
+
+function TemplateList() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const templates = useTemplates();
+  const { goToEdit } = useTemplateNavigation();
+
+  const filteredTemplates = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return templates;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return templates.filter(
+      (template) =>
+        template.title.toLowerCase().includes(query)
+        || template.description.toLowerCase().includes(query),
+    );
+  }, [searchQuery, templates]);
+
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold cursor-default">Templates</h2>
-          <ButtonGroup>
-            <Button
-              variant={filterStatus === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterStatus("all")}
-              className="shadow-none"
-            >
-              All
-            </Button>
-            <Button
-              variant={filterStatus === "favorite" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterStatus("favorite")}
-              className="shadow-none"
-            >
-              Favorite
-            </Button>
-          </ButtonGroup>
-        </div>
+        <h2 className="font-semibold cursor-default mb-4">Templates</h2>
 
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
@@ -89,13 +65,8 @@ export function SettingsTemplates() {
               </div>
             )
             : (
-              filteredTemplates.map(([id, template]) => (
-                <TemplateCard
-                  key={id}
-                  id={id}
-                  title={template.title || "Untitled"}
-                  description={template.description || ""}
-                />
+              filteredTemplates.map((template) => (
+                <TemplateCard key={template.id} template={template} onSelect={goToEdit} />
               ))
             )}
         </div>
@@ -104,20 +75,17 @@ export function SettingsTemplates() {
   );
 }
 
-function TemplateCard({
-  id,
-  title,
-  description,
-}: {
+interface TemplateWithId {
   id: string;
   title: string;
   description: string;
-}) {
-  const { goToEdit } = useTemplateNavigation();
+  sections: main.TemplateSection[];
+}
 
+function TemplateCard({ template, onSelect }: { template: TemplateWithId; onSelect: (id: string) => void }) {
   return (
     <div
-      onClick={() => goToEdit(id)}
+      onClick={() => onSelect(template.id)}
       className={cn([
         "flex items-start gap-4",
         "cursor-pointer transition-colors",
@@ -125,14 +93,14 @@ function TemplateCard({
       ])}
     >
       <div className="flex-1">
-        <h3 className="text-sm font-medium mb-1">{title}</h3>
-        <p className="text-xs text-neutral-600">{description}</p>
+        <h3 className="text-sm font-medium mb-1">{template.title || "Untitled"}</h3>
+        <p className="text-xs text-neutral-600">{template.description}</p>
       </div>
     </div>
   );
 }
 
-function useTemplates() {
+function useTemplates(): TemplateWithId[] {
   const { user_id } = main.UI.useValues(main.STORE_ID);
   const store = main.UI.useStore(main.STORE_ID);
 
@@ -151,5 +119,13 @@ function useTemplates() {
   );
 
   const templates = main.UI.useResultTable(USER_TEMPLATE_QUERY, quries);
-  return templates as unknown as Record<string, main.Template>;
+
+  return useMemo(() => {
+    return Object.entries(templates as Record<string, any>).map(([id, template]) => ({
+      id,
+      title: template.title || "",
+      description: template.description || "",
+      sections: typeof template.sections === "string" ? JSON.parse(template.sections) : template.sections || [],
+    }));
+  }, [templates]);
 }

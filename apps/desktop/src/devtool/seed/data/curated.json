@@ -2699,15 +2699,23 @@
   "memories": [
     {
       "type": "vocab",
-      "text": "API stands for Application Programming Interface - a set of protocols for building software applications"
-    },
-    {
-      "type": "concept",
-      "text": "OAuth 2.0 is an open standard authorization protocol used for secure API authentication"
+      "text": "API"
     },
     {
       "type": "vocab",
-      "text": "Webhook is a way for applications to provide real-time data to other applications"
+      "text": "OAuth 2.0"
+    },
+    {
+      "type": "vocab",
+      "text": "Webhook"
+    },
+    {
+      "type": "vocab",
+      "text": "Salesforce"
+    },
+    {
+      "type": "vocab",
+      "text": "Slack integration"
     }
   ]
 }

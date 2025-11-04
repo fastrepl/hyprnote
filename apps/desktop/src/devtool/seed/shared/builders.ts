@@ -245,15 +245,15 @@ export const buildTranscriptsForSessions = (
   sessionIds.forEach((sessionId) => {
     const transcriptId = id();
     const createdAt = faker.date.recent({ days: 30 });
-    transcripts[transcriptId] = {
-      user_id: DEFAULT_USER_ID,
-      session_id: sessionId,
-      created_at: createdAt.toISOString(),
-      started_at: createdAt.getTime(),
-    };
+    const startedAt = createdAt.getTime();
 
     const transcript = generateTranscript();
+    let maxEndMs = 0;
+
     transcript.words.forEach((word) => {
+      if (word.end_ms !== undefined && word.end_ms > maxEndMs) {
+        maxEndMs = word.end_ms;
+      }
       const wordId = id();
       words[wordId] = {
         user_id: DEFAULT_USER_ID,
@@ -265,6 +265,14 @@ export const buildTranscriptsForSessions = (
         created_at: faker.date.recent({ days: 30 }).toISOString(),
       };
     });
+
+    transcripts[transcriptId] = {
+      user_id: DEFAULT_USER_ID,
+      session_id: sessionId,
+      created_at: createdAt.toISOString(),
+      started_at: startedAt,
+      ended_at: maxEndMs > 0 ? startedAt + maxEndMs : undefined,
+    };
   });
 
   return { transcripts, words };

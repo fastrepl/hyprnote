@@ -1,12 +1,11 @@
+import { GripVertical as HandleIcon, Plus, X } from "lucide-react";
+import { Reorder, useDragControls } from "motion/react";
+import { useCallback, useEffect, useState } from "react";
+
 import { TemplateEditor as CodeMirrorEditor } from "@hypr/codemirror/template";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
-
-import { GripVertical as HandleIcon, Plus, X } from "lucide-react";
-import { Reorder, useDragControls } from "motion/react";
-import { type ChangeEvent, type PointerEvent, useCallback, useState } from "react";
-
 import * as main from "../../../store/tinybase/main";
 
 type ReorderItem = main.TemplateSection;
@@ -37,6 +36,25 @@ function useEditableSections({
   const [items, setItems] = useState<EditableSection[]>(() =>
     initialItems.map((item) => ({ ...item, id: crypto.randomUUID() }))
   );
+
+  useEffect(() => {
+    setItems((prev) => {
+      const hasChanged = prev.length !== initialItems.length
+        || prev.some((item, idx) => {
+          const initial = initialItems[idx];
+          return !initial || item.title !== initial.title || item.description !== initial.description;
+        });
+
+      if (hasChanged) {
+        return initialItems.map((item, idx) => ({
+          ...item,
+          id: prev[idx]?.id || crypto.randomUUID(),
+        }));
+      }
+
+      return prev;
+    });
+  }, [initialItems]);
 
   const updateItems = useCallback(
     (
@@ -161,33 +179,8 @@ interface SectionItemProps {
   dragControls: DragControls;
 }
 
-export function SectionItem({ disabled, item, onChange, onDelete, dragControls }: SectionItemProps) {
+function SectionItem({ disabled, item, onChange, onDelete, dragControls }: SectionItemProps) {
   const [isFocused, setIsFocused] = useState(false);
-
-  const handleChangeTitle = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...item, title: event.target.value });
-    },
-    [item, onChange],
-  );
-
-  const handleChangeDescription = useCallback(
-    (value: string) => {
-      onChange({ ...item, description: value });
-    },
-    [item, onChange],
-  );
-
-  const handleDelete = useCallback(() => {
-    onDelete(item.id);
-  }, [item.id, onDelete]);
-
-  const handlePointerDown = useCallback(
-    (event: PointerEvent<HTMLButtonElement>) => {
-      dragControls.start(event);
-    },
-    [dragControls],
-  );
 
   return (
     <div
@@ -198,7 +191,7 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
     >
       <button
         className="absolute left-2 top-2 cursor-move opacity-0 group-hover:opacity-30 hover:opacity-60 transition-opacity"
-        onPointerDown={handlePointerDown}
+        onPointerDown={(event) => dragControls.start(event)}
         disabled={disabled}
       >
         <HandleIcon className="h-4 w-4 text-muted-foreground" />
@@ -206,29 +199,27 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
 
       <button
         className="absolute right-2 top-2 opacity-0 group-hover:opacity-30 hover:opacity-100 transition-all"
-        onClick={handleDelete}
+        onClick={() => onDelete(item.id)}
         disabled={disabled}
       >
         <X size={16} />
       </button>
 
       <div className="ml-5 mr-5 space-y-1">
-        <div>
-          <Input
-            disabled={disabled}
-            value={item.title}
-            onChange={handleChangeTitle}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder="Untitled"
-            className="border-0 bg-transparent p-0 text-lg font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
-          />
-        </div>
+        <Input
+          disabled={disabled}
+          value={item.title}
+          onChange={(e) => onChange({ ...item, title: e.target.value })}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="Untitled"
+          className="border-0 bg-transparent p-0 text-lg font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
+        />
 
         <div className="min-h-[100px] border rounded-md">
           <CodeMirrorEditor
             value={item.description}
-            onChange={handleChangeDescription}
+            onChange={(value) => onChange({ ...item, description: value })}
             placeholder="Template content with Jinja2: {{ variable }}, {% if condition %}"
             readOnly={disabled}
           />

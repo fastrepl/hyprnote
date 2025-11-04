@@ -162,11 +162,21 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
       const transcriptId = id();
       const baseTimestamp = Date.now() - 3 * 60 * 60 * 1000;
 
+      let maxEndMs = 0;
+      session.transcript.segments.forEach((segment) => {
+        segment.words.forEach((word) => {
+          if (word.end_ms > maxEndMs) {
+            maxEndMs = word.end_ms;
+          }
+        });
+      });
+
       transcripts[transcriptId] = {
         user_id: DEFAULT_USER_ID,
         session_id: sessionId,
         created_at: new Date().toISOString(),
         started_at: baseTimestamp,
+        ended_at: maxEndMs > 0 ? baseTimestamp + maxEndMs : undefined,
       };
 
       session.transcript.segments.forEach((segment) => {

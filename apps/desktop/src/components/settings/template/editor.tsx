@@ -51,23 +51,19 @@ export function TemplateEditor({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      <form.Field
-        name="title"
-        children={(field) => (
-          <div>
-            <Input
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              placeholder="Enter template title"
-              className="border-0 shadow-none text-lg font-medium px-0 focus-visible:ring-0"
-            />
-          </div>
+      <form.Field name="title">
+        {(field) => (
+          <Input
+            value={field.state.value}
+            onChange={(e) => field.handleChange(e.target.value)}
+            placeholder="Enter template title"
+            className="border-0 shadow-none text-lg font-medium px-0 focus-visible:ring-0"
+          />
         )}
-      />
+      </form.Field>
 
-      <form.Field
-        name="description"
-        children={(field) => (
+      <form.Field name="description">
+        {(field) => (
           <div className="space-y-2">
             <label className="text-sm font-medium">Description</label>
             <Textarea
@@ -78,11 +74,10 @@ export function TemplateEditor({ id }: { id: string }) {
             />
           </div>
         )}
-      />
+      </form.Field>
 
-      <form.Field
-        name="sections"
-        children={(field) => (
+      <form.Field name="sections">
+        {(field) => (
           <div className="space-y-2">
             <label className="text-sm font-medium">Sections</label>
             <SectionsList
@@ -92,7 +87,7 @@ export function TemplateEditor({ id }: { id: string }) {
             />
           </div>
         )}
-      />
+      </form.Field>
     </div>
   );
 }

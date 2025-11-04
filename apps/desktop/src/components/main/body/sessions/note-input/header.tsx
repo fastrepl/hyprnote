@@ -14,11 +14,11 @@ import { useHasTranscript } from "../shared";
 
 function HeaderTab({
   isActive,
-  onClick,
+  onClick = () => {},
   children,
 }: {
   isActive: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   children: React.ReactNode;
 }) {
   return (
@@ -37,29 +37,26 @@ function HeaderTab({
 }
 
 function HeaderTabEnhanced(
-  { isActive, onClick, sessionId }: { isActive: boolean; onClick: () => void; sessionId: string },
+  {
+    isActive,
+    onClick = () => {},
+    sessionId,
+  }: {
+    isActive: boolean;
+    onClick?: () => void;
+    sessionId: string;
+  },
 ) {
   const [open, setOpen] = useState(false);
-  const { model, templates, isGenerating, isError, onRegenerate } = useEnhanceLogic(sessionId);
+  const { templates, isGenerating, isError, onRegenerate } = useEnhanceLogic(sessionId);
 
   const handleTabClick = useCallback(() => {
     if (!isActive) {
       onClick();
+    } else {
+      setOpen(true);
     }
-  }, [isActive, onClick]);
-
-  const handleIconClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!model) {
-      handleConfigureModel();
-      return;
-    }
-    if (isError) {
-      onRegenerate(null);
-      return;
-    }
-    setOpen(!open);
-  }, [model, isError, open, onRegenerate]);
+  }, [isActive, onClick, onRegenerate, setOpen]);
 
   const handleTemplateClick = useCallback((templateId: string | null) => {
     setOpen(false);
@@ -68,7 +65,7 @@ function HeaderTabEnhanced(
 
   if (isGenerating) {
     return (
-      <HeaderTab isActive={isActive} onClick={handleTabClick}>
+      <HeaderTab isActive={isActive}>
         <span className="flex items-center gap-1">
           <span>Summary</span>
         </span>
@@ -92,7 +89,6 @@ function HeaderTabEnhanced(
           {isActive && (
             <PopoverTrigger asChild>
               <span
-                onClick={handleIconClick}
                 className={cn([
                   "p-0.5 rounded hover:bg-neutral-200 transition-colors cursor-pointer",
                   isError && "text-red-600 hover:bg-red-50",
@@ -273,17 +269,6 @@ function useEnhanceLogic(sessionId: string) {
     onRegenerate,
     hasContent,
   };
-}
-
-function handleConfigureModel() {
-  windowsCommands.windowShow({ type: "settings" })
-    .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-    .then(() =>
-      windowsCommands.windowEmitNavigate({ type: "settings" }, {
-        path: "/app/settings",
-        search: { tab: "intelligence" },
-      })
-    );
 }
 
 function handleGoToTemplates() {

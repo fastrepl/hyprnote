@@ -1,6 +1,5 @@
 import { type ReactNode } from "react";
 
-import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 import type { Tab } from "../../../../../store/zustand/tabs/schema";
 import { useCurrentNoteTab, useHasTranscript } from "../shared";
 
@@ -21,11 +20,9 @@ export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessi
   }
 
   return (
-    <TooltipProvider>
-      <FloatingButtonContainer>
-        {button}
-      </FloatingButtonContainer>
-    </TooltipProvider>
+    <FloatingButtonContainer>
+      {button}
+    </FloatingButtonContainer>
   );
 }
 

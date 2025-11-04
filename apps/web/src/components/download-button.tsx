@@ -1,12 +1,12 @@
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
-import { Link } from "@tanstack/react-router";
 
 export function DownloadButton() {
   return (
-    <Link
-      to="/download"
+    <a
+      href="/download/apple-silicon"
+      download
       className={cn([
         "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
         "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
@@ -16,6 +16,6 @@ export function DownloadButton() {
     >
       <Icon icon="mdi:apple" className="text-xl mr-2" />
       Download for Mac
-    </Link>
+    </a>
   );
 }

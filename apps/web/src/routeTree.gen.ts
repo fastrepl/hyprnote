@@ -22,16 +22,17 @@ import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
-import { Route as ViewDownloadRouteImport } from './routes/_view/download'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewProductIndexRouteImport } from './routes/_view/product/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
+import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
+import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDocsSlugRouteImport } from './routes/_view/docs/$slug'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
@@ -103,11 +104,6 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewDownloadRoute = ViewDownloadRouteImport.update({
-  id: '/download',
-  path: '/download',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewDocsRouteRoute = ViewDocsRouteRouteImport.update({
   id: '/docs',
   path: '/docs',
@@ -126,6 +122,11 @@ const ViewProductIndexRoute = ViewProductIndexRouteImport.update({
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
   id: '/legal/',
   path: '/legal/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDownloadIndexRoute = ViewDownloadIndexRouteImport.update({
+  id: '/download/',
+  path: '/download/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDocsIndexRoute = ViewDocsIndexRouteImport.update({
@@ -153,6 +154,12 @@ const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   path: '/legal/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewDownloadAppleSiliconRoute =
+  ViewDownloadAppleSiliconRouteImport.update({
+    id: '/download/apple-silicon',
+    path: '/download/apple-silicon',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
 const ViewDocsSlugRoute = ViewDocsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -195,7 +202,6 @@ export interface FileRoutesByFullPath {
   '/x': typeof XRoute
   '/app': typeof ViewAppRouteRouteWithChildren
   '/docs': typeof ViewDocsRouteRouteWithChildren
-  '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -206,11 +212,13 @@ export interface FileRoutesByFullPath {
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/docs/$slug': typeof ViewDocsSlugRoute
+  '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
   '/docs/': typeof ViewDocsIndexRoute
+  '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
   '/product': typeof ViewProductIndexRoute
 }
@@ -223,7 +231,6 @@ export interface FileRoutesByTo {
   '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
-  '/download': typeof ViewDownloadRoute
   '/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -234,11 +241,13 @@ export interface FileRoutesByTo {
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/docs/$slug': typeof ViewDocsSlugRoute
+  '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
   '/docs': typeof ViewDocsIndexRoute
+  '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
   '/product': typeof ViewProductIndexRoute
 }
@@ -255,7 +264,6 @@ export interface FileRoutesById {
   '/x': typeof XRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
   '/_view/docs': typeof ViewDocsRouteRouteWithChildren
-  '/_view/download': typeof ViewDownloadRoute
   '/_view/pricing': typeof ViewPricingRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -266,11 +274,13 @@ export interface FileRoutesById {
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/docs/$slug': typeof ViewDocsSlugRoute
+  '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
   '/_view/docs/': typeof ViewDocsIndexRoute
+  '/_view/download/': typeof ViewDownloadIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
   '/_view/product/': typeof ViewProductIndexRoute
 }
@@ -287,7 +297,6 @@ export interface FileRouteTypes {
     | '/x'
     | '/app'
     | '/docs'
-    | '/download'
     | '/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -298,11 +307,13 @@ export interface FileRouteTypes {
     | '/callback/auth'
     | '/changelog/$slug'
     | '/docs/$slug'
+    | '/download/apple-silicon'
     | '/legal/$slug'
     | '/app/'
     | '/blog'
     | '/changelog'
     | '/docs/'
+    | '/download'
     | '/legal'
     | '/product'
   fileRoutesByTo: FileRoutesByTo
@@ -315,7 +326,6 @@ export interface FileRouteTypes {
     | '/join-waitlist'
     | '/linkedin'
     | '/x'
-    | '/download'
     | '/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -326,11 +336,13 @@ export interface FileRouteTypes {
     | '/callback/auth'
     | '/changelog/$slug'
     | '/docs/$slug'
+    | '/download/apple-silicon'
     | '/legal/$slug'
     | '/app'
     | '/blog'
     | '/changelog'
     | '/docs'
+    | '/download'
     | '/legal'
     | '/product'
   id:
@@ -346,7 +358,6 @@ export interface FileRouteTypes {
     | '/x'
     | '/_view/app'
     | '/_view/docs'
-    | '/_view/download'
     | '/_view/pricing'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -357,11 +368,13 @@ export interface FileRouteTypes {
     | '/_view/callback/auth'
     | '/_view/changelog/$slug'
     | '/_view/docs/$slug'
+    | '/_view/download/apple-silicon'
     | '/_view/legal/$slug'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
     | '/_view/docs/'
+    | '/_view/download/'
     | '/_view/legal/'
     | '/_view/product/'
   fileRoutesById: FileRoutesById
@@ -473,13 +486,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewPricingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/download': {
-      id: '/_view/download'
-      path: '/download'
-      fullPath: '/download'
-      preLoaderRoute: typeof ViewDownloadRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/docs': {
       id: '/_view/docs'
       path: '/docs'
@@ -506,6 +512,13 @@ declare module '@tanstack/react-router' {
       path: '/legal'
       fullPath: '/legal'
       preLoaderRoute: typeof ViewLegalIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/download/': {
+      id: '/_view/download/'
+      path: '/download'
+      fullPath: '/download'
+      preLoaderRoute: typeof ViewDownloadIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/docs/': {
@@ -541,6 +554,13 @@ declare module '@tanstack/react-router' {
       path: '/legal/$slug'
       fullPath: '/legal/$slug'
       preLoaderRoute: typeof ViewLegalSlugRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/download/apple-silicon': {
+      id: '/_view/download/apple-silicon'
+      path: '/download/apple-silicon'
+      fullPath: '/download/apple-silicon'
+      preLoaderRoute: typeof ViewDownloadAppleSiliconRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/docs/$slug': {
@@ -621,15 +641,16 @@ const ViewDocsRouteRouteWithChildren = ViewDocsRouteRoute._addFileChildren(
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
   ViewDocsRouteRoute: typeof ViewDocsRouteRouteWithChildren
-  ViewDownloadRoute: typeof ViewDownloadRoute
   ViewPricingRoute: typeof ViewPricingRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
+  ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
   ViewLegalSlugRoute: typeof ViewLegalSlugRoute
   ViewBlogIndexRoute: typeof ViewBlogIndexRoute
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
+  ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
   ViewLegalIndexRoute: typeof ViewLegalIndexRoute
   ViewProductIndexRoute: typeof ViewProductIndexRoute
 }
@@ -637,15 +658,16 @@ interface ViewRouteRouteChildren {
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
   ViewDocsRouteRoute: ViewDocsRouteRouteWithChildren,
-  ViewDownloadRoute: ViewDownloadRoute,
   ViewPricingRoute: ViewPricingRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
+  ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
   ViewLegalSlugRoute: ViewLegalSlugRoute,
   ViewBlogIndexRoute: ViewBlogIndexRoute,
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
+  ViewDownloadIndexRoute: ViewDownloadIndexRoute,
   ViewLegalIndexRoute: ViewLegalIndexRoute,
   ViewProductIndexRoute: ViewProductIndexRoute,
 }

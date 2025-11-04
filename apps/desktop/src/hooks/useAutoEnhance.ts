@@ -55,13 +55,11 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       return;
     }
 
-    updateSessionTabState(tab, { editor: "enhanced" });
-
     void enhanceTask.start({
       model,
       args: { sessionId },
     });
-  }, [hasTranscript, model, enhanceTask.status, enhanceTask.start, updateSessionTabState, tab, sessionId]);
+  }, [hasTranscript, model, enhanceTask.status, enhanceTask.start, sessionId]);
 
   useEffect(() => {
     const listenerJustStopped = prevListenerStatus === "running_active"
@@ -71,4 +69,10 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       startEnhance();
     }
   }, [listenerStatus, prevListenerStatus, startEnhance]);
+
+  useEffect(() => {
+    if (enhanceTask.status === "generating" && tab.state.editor !== "enhanced") {
+      updateSessionTabState(tab, { editor: "enhanced" });
+    }
+  }, [enhanceTask.status, tab, updateSessionTabState]);
 }

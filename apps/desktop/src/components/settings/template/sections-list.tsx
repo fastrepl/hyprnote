@@ -5,11 +5,95 @@ import { cn } from "@hypr/utils";
 
 import { GripVertical as HandleIcon, Plus, X } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { useCallback, useState } from "react";
+import { type ChangeEvent, type PointerEvent, useCallback, useState } from "react";
 
 import * as main from "../../../store/tinybase/main";
 
 type ReorderItem = main.TemplateSection;
+
+type EditableSection = ReorderItem & { id: string };
+
+interface UseEditableSectionsOptions {
+  disabled: boolean;
+  initialItems: ReorderItem[];
+  onChange: (items: ReorderItem[]) => void;
+}
+
+interface UseEditableSectionsResult {
+  items: EditableSection[];
+  addSection: () => void;
+  changeSection: (item: EditableSection) => void;
+  deleteSection: (itemId: string) => void;
+  reorderSections: (items: EditableSection[]) => void;
+}
+
+type DragControls = ReturnType<typeof useDragControls>;
+
+function useEditableSections({
+  disabled,
+  initialItems,
+  onChange,
+}: UseEditableSectionsOptions): UseEditableSectionsResult {
+  const [items, setItems] = useState<EditableSection[]>(() =>
+    initialItems.map((item) => ({ ...item, id: crypto.randomUUID() }))
+  );
+
+  const updateItems = useCallback(
+    (
+      next:
+        | EditableSection[]
+        | ((prev: EditableSection[]) => EditableSection[]),
+    ) => {
+      setItems((prev) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        onChange(resolved);
+        return resolved;
+      });
+    },
+    [onChange],
+  );
+
+  const changeSection = useCallback(
+    (item: EditableSection) => {
+      updateItems((prev) => prev.map((section) => (section.id === item.id ? item : section)));
+    },
+    [updateItems],
+  );
+
+  const deleteSection = useCallback(
+    (itemId: string) => {
+      updateItems((prev) => prev.filter((section) => section.id !== itemId));
+    },
+    [updateItems],
+  );
+
+  const reorderSections = useCallback(
+    (next: EditableSection[]) => {
+      if (disabled) {
+        return;
+      }
+      updateItems(next);
+    },
+    [disabled, updateItems],
+  );
+
+  const addSection = useCallback(() => {
+    const newSection: EditableSection = {
+      id: crypto.randomUUID(),
+      title: "",
+      description: "",
+    };
+    updateItems((prev) => [...prev, newSection]);
+  }, [updateItems]);
+
+  return {
+    items,
+    addSection,
+    changeSection,
+    deleteSection,
+    reorderSections,
+  };
+}
 
 interface SectionsListProps {
   disabled: boolean;
@@ -23,54 +107,30 @@ export function SectionsList({
   onChange,
 }: SectionsListProps) {
   const controls = useDragControls();
-
-  const [items, setItems] = useState(
-    _items.map((item) => ({ ...item, id: crypto.randomUUID() as string })),
-  );
-
-  const handleChange = (item: ReorderItem & { id: string }) => {
-    const newItems = items.map((i) => (i.id === item.id ? item : i));
-    setItems(newItems);
-    onChange(newItems);
-  };
-
-  const handleDelete = (itemId: string) => {
-    const newItems = items.filter((item) => item.id !== itemId);
-    setItems(newItems);
-    onChange(newItems);
-  };
-
-  const handleReorder = (v: typeof items) => {
-    if (disabled) {
-      return;
-    }
-    setItems(v);
-    onChange(v);
-  };
-
-  const handleAddSection = () => {
-    const newItem = {
-      id: crypto.randomUUID(),
-      title: "",
-      description: "",
-    };
-    const newItems = [...items, newItem];
-    setItems(newItems);
-    onChange(newItems);
-  };
+  const {
+    items,
+    addSection,
+    changeSection,
+    deleteSection,
+    reorderSections,
+  } = useEditableSections({
+    disabled,
+    initialItems: _items,
+    onChange,
+  });
 
   return (
     <div className="flex flex-col space-y-3">
       <div className="bg-neutral-50 rounded-lg p-4">
-        <Reorder.Group values={items} onReorder={handleReorder}>
+        <Reorder.Group values={items} onReorder={reorderSections}>
           <div className="flex flex-col space-y-2">
             {items.map((item) => (
               <Reorder.Item key={item.id} value={item}>
                 <SectionItem
                   disabled={disabled}
                   item={item}
-                  onChange={handleChange}
-                  onDelete={handleDelete}
+                  onChange={changeSection}
+                  onDelete={deleteSection}
                   dragControls={controls}
                 />
               </Reorder.Item>
@@ -82,7 +142,7 @@ export function SectionsList({
           variant="outline"
           size="sm"
           className="mt-2 text-sm w-full"
-          onClick={handleAddSection}
+          onClick={addSection}
           disabled={disabled}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -95,18 +155,18 @@ export function SectionsList({
 
 interface SectionItemProps {
   disabled: boolean;
-  item: ReorderItem & { id: string };
-  onChange: (item: ReorderItem & { id: string }) => void;
+  item: EditableSection;
+  onChange: (item: EditableSection) => void;
   onDelete: (itemId: string) => void;
-  dragControls: any;
+  dragControls: DragControls;
 }
 
 export function SectionItem({ disabled, item, onChange, onDelete, dragControls }: SectionItemProps) {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleChangeTitle = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({ ...item, title: e.target.value });
+    (event: ChangeEvent<HTMLInputElement>) => {
+      onChange({ ...item, title: event.target.value });
     },
     [item, onChange],
   );
@@ -122,6 +182,13 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
     onDelete(item.id);
   }, [item.id, onDelete]);
 
+  const handlePointerDown = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      dragControls.start(event);
+    },
+    [dragControls],
+  );
+
   return (
     <div
       className={cn([
@@ -131,7 +198,7 @@ export function SectionItem({ disabled, item, onChange, onDelete, dragControls }
     >
       <button
         className="absolute left-2 top-2 cursor-move opacity-0 group-hover:opacity-30 hover:opacity-60 transition-opacity"
-        onPointerDown={(e) => dragControls.start(e)}
+        onPointerDown={handlePointerDown}
         disabled={disabled}
       >
         <HandleIcon className="h-4 w-4 text-muted-foreground" />

@@ -1,10 +1,11 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 
 import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
 import { id } from "../utils";
+import { useKeywords } from "./useKeywords";
 import { useSTTConnection } from "./useSTTConnection";
 
 export function useStartListening(sessionId: string) {
@@ -16,7 +17,7 @@ export function useStartListening(sessionId: string) {
   const start = useListener((state) => state.start);
   const conn = useSTTConnection();
 
-  const keywords = useVocabs();
+  const keywords = useKeywords(sessionId);
   const languages = useConfigValue("spoken_languages");
 
   const startListening = useCallback(() => {
@@ -105,10 +106,4 @@ export function useStartListening(sessionId: string) {
   }, [conn, store, sessionId, start, keywords, languages]);
 
   return startListening;
-}
-
-function useVocabs() {
-  const table = main.UI.useResultTable(main.QUERIES.visibleVocabs, main.STORE_ID);
-  const ret = useMemo(() => Object.values(table).map(({ text }) => text as string), [table]);
-  return ret;
 }

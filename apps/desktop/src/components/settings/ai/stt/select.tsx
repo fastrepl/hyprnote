@@ -4,7 +4,7 @@ import { useCallback } from "react";
 
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
@@ -253,21 +253,19 @@ function HealthCheck() {
   })();
 
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <span
-            onClick={experimental_handleServer}
-            className={cn([
-              "w-2 h-2 rounded-full cursor-pointer",
-              color,
-            ])}
-          />
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs">
-          <p className="text-xs">{tooltipMessage}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <span
+          onClick={experimental_handleServer}
+          className={cn([
+            "w-2 h-2 rounded-full cursor-pointer",
+            color,
+          ])}
+        />
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="max-w-xs">
+        <p className="text-xs">{tooltipMessage}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }

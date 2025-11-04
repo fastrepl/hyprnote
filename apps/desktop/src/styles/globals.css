@@ -82,11 +82,21 @@ body {
 
 @layer base {
   * {
-    @apply select-none;
+    user-select: none;
   }
 
   input, textarea, [contenteditable="true"] {
-    @apply select-text;
+    user-select: text;
+  }
+}
+
+@layer utilities {
+  .select-text-deep {
+    user-select: text !important;
+  }
+
+  .select-text-deep * {
+    user-select: text !important;
   }
 }
 

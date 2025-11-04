@@ -1,5 +1,5 @@
 import { CircleMinus, CornerDownLeft, Linkedin, MailIcon, SearchIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { cn } from "@hypr/utils";
@@ -14,6 +14,38 @@ function getInitials(name: string): string {
     .slice(0, 2)
     .map((part) => part[0].toUpperCase())
     .join("");
+}
+
+function createHuman(store: any, userId: string, name: string) {
+  const humanId = crypto.randomUUID();
+  store.setRow("humans", humanId, {
+    user_id: userId,
+    created_at: new Date().toISOString(),
+    name,
+    email: "",
+    org_id: "",
+    job_title: "",
+    linkedin_username: "",
+    is_user: false,
+    memo: "",
+  });
+  return humanId;
+}
+
+function linkHumanToSession(store: any, userId: string, sessionId: string, humanId: string) {
+  const mappingId = crypto.randomUUID();
+  store.setRow("mapping_session_participant", mappingId, {
+    user_id: userId,
+    created_at: new Date().toISOString(),
+    session_id: sessionId,
+    human_id: humanId,
+  });
+}
+
+function createAndLinkHuman(store: any, userId: string, sessionId: string, name: string) {
+  const humanId = createHuman(store, userId, name);
+  linkHumanToSession(store, userId, sessionId, humanId);
+  return humanId;
 }
 
 export function ParticipantsDisplay({ sessionId }: { sessionId: string }) {
@@ -260,60 +292,40 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
   const userId = main.UI.useValue("user_id", main.STORE_ID);
 
+  const normalizedQuery = searchInput.trim();
+
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, []);
 
-  const handleCreateNew = (name: string) => {
+  const handleCreateNew = useCallback((name: string) => {
     if (!store || !userId) {
       return;
     }
 
-    const humanId = crypto.randomUUID();
-    store.setRow("humans", humanId, {
-      user_id: userId,
-      created_at: new Date().toISOString(),
-      name,
-      email: "",
-      org_id: "",
-      job_title: "",
-      linkedin_username: "",
-      is_user: false,
-      memo: "",
-    });
-
-    const mappingId = crypto.randomUUID();
-    store.setRow("mapping_session_participant", mappingId, {
-      user_id: userId,
-      created_at: new Date().toISOString(),
-      session_id: sessionId,
-      human_id: humanId,
-    });
-
+    createAndLinkHuman(store, userId, sessionId, name);
     setSearchInput("");
-  };
+  }, [store, userId, sessionId]);
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const name = searchInput.trim();
-    if (name === "") {
+    if (normalizedQuery === "") {
       return;
     }
 
-    handleCreateNew(name);
+    handleCreateNew(normalizedQuery);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && selectedIndex === -1) {
       e.preventDefault();
-      const name = searchInput.trim();
-      if (name === "") {
+      if (normalizedQuery === "") {
         return;
       }
-      handleCreateNew(name);
+      handleCreateNew(normalizedQuery);
     }
   };
 
@@ -333,7 +345,7 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
             placeholder="Find person"
             className="w-full bg-transparent text-sm focus:outline-none placeholder:text-neutral-400"
           />
-          {searchInput.trim() && (
+          {normalizedQuery && (
             <button
               type="submit"
               className="text-neutral-500 hover:text-neutral-700 transition-colors flex-shrink-0"
@@ -344,7 +356,7 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
           )}
         </div>
         <ParticipantCandidates
-          query={searchInput}
+          query={normalizedQuery}
           sessionId={sessionId}
           onMutation={() => {
             setSearchInput("");
@@ -358,6 +370,86 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
       </div>
     </form>
   );
+}
+
+function useParticipantCandidateKeyboardNav({
+  query,
+  sessionId,
+  selectedIndex,
+  onSelectedIndexChange,
+  totalItems,
+  candidateCount,
+  candidates,
+  onMutation,
+  inputRef,
+  store,
+  userId,
+}: {
+  query: string;
+  sessionId: string;
+  selectedIndex: number;
+  onSelectedIndexChange: (index: number) => void;
+  totalItems: number;
+  candidateCount: number;
+  candidates: Array<{ id: string; name: string }>;
+  onMutation: () => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  store: any;
+  userId: string | undefined;
+}) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!query || totalItems === 0) {
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        onSelectedIndexChange(selectedIndex < totalItems - 1 ? selectedIndex + 1 : 0);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        onSelectedIndexChange(selectedIndex > 0 ? selectedIndex - 1 : totalItems - 1);
+      } else if (e.key === "Enter" && selectedIndex >= 0) {
+        e.preventDefault();
+        if (selectedIndex < candidateCount) {
+          const candidate = candidates[selectedIndex];
+          if (candidate && userId && store) {
+            linkHumanToSession(store, userId, sessionId, candidate.id);
+            onMutation();
+          }
+        } else {
+          if (store && userId) {
+            createAndLinkHuman(store, userId, sessionId, query);
+            onMutation();
+          }
+        }
+      } else if (e.key === "Escape") {
+        onSelectedIndexChange(-1);
+        inputRef.current?.focus();
+      }
+    };
+
+    if (inputRef.current === document.activeElement && totalItems > 0) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [
+    selectedIndex,
+    totalItems,
+    candidateCount,
+    query,
+    candidates,
+    onSelectedIndexChange,
+    onMutation,
+    inputRef,
+    sessionId,
+    store,
+    userId,
+  ]);
+
+  useEffect(() => {
+    onSelectedIndexChange(-1);
+  }, [query, onSelectedIndexChange]);
 }
 
 function ParticipantCandidates({
@@ -405,7 +497,7 @@ function ParticipantCandidates({
   }, [existingParticipantIds, queries]);
 
   const candidates = useMemo(() => {
-    if (!query.trim()) {
+    if (!query) {
       return [];
     }
 
@@ -439,134 +531,42 @@ function ParticipantCandidates({
   }, [query, allHumanIds, existingHumanIds, store]);
 
   const candidateCount = candidates.length;
-  const hasCreateOption = candidateCount === 0 && query.trim();
+  const hasCreateOption = candidateCount === 0 && query;
   const totalItems = candidateCount + (hasCreateOption ? 1 : 0);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!query.trim() || totalItems === 0) {
-        return;
-      }
-
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        onSelectedIndexChange(selectedIndex < totalItems - 1 ? selectedIndex + 1 : 0);
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        onSelectedIndexChange(selectedIndex > 0 ? selectedIndex - 1 : totalItems - 1);
-      } else if (e.key === "Enter" && selectedIndex >= 0) {
-        e.preventDefault();
-        if (selectedIndex < candidateCount) {
-          const candidate = candidates[selectedIndex];
-          if (candidate && userId && store) {
-            const mappingId = crypto.randomUUID();
-            store.setRow("mapping_session_participant", mappingId, {
-              user_id: userId,
-              created_at: new Date().toISOString(),
-              session_id: sessionId,
-              human_id: candidate.id,
-            });
-            onMutation();
-          }
-        } else {
-          if (store && userId) {
-            const humanId = crypto.randomUUID();
-            store.setRow("humans", humanId, {
-              user_id: userId,
-              created_at: new Date().toISOString(),
-              name: query.trim(),
-              email: "",
-              org_id: "",
-              job_title: "",
-              linkedin_username: "",
-              is_user: false,
-              memo: "",
-            });
-
-            const mappingId = crypto.randomUUID();
-            store.setRow("mapping_session_participant", mappingId, {
-              user_id: userId,
-              created_at: new Date().toISOString(),
-              session_id: sessionId,
-              human_id: humanId,
-            });
-            onMutation();
-          }
-        }
-      } else if (e.key === "Escape") {
-        onSelectedIndexChange(-1);
-        inputRef.current?.focus();
-      }
-    };
-
-    if (inputRef.current === document.activeElement && totalItems > 0) {
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }
-  }, [
+  useParticipantCandidateKeyboardNav({
+    query,
+    sessionId,
     selectedIndex,
+    onSelectedIndexChange,
     totalItems,
     candidateCount,
-    query,
     candidates,
-    onSelectedIndexChange,
     onMutation,
     inputRef,
-    sessionId,
     store,
     userId,
-  ]);
+  });
 
-  useEffect(() => {
-    onSelectedIndexChange(-1);
-  }, [query, onSelectedIndexChange]);
-
-  const handleCreateClick = () => {
+  const handleCreateClick = useCallback(() => {
     if (!store || !userId) {
       return;
     }
 
-    const humanId = crypto.randomUUID();
-    store.setRow("humans", humanId, {
-      user_id: userId,
-      created_at: new Date().toISOString(),
-      name: query.trim(),
-      email: "",
-      org_id: "",
-      job_title: "",
-      linkedin_username: "",
-      is_user: false,
-      memo: "",
-    });
-
-    const mappingId = crypto.randomUUID();
-    store.setRow("mapping_session_participant", mappingId, {
-      user_id: userId,
-      created_at: new Date().toISOString(),
-      session_id: sessionId,
-      human_id: humanId,
-    });
-
+    createAndLinkHuman(store, userId, sessionId, query);
     onMutation();
-  };
+  }, [store, userId, sessionId, query, onMutation]);
 
-  const handleSelectCandidate = (candidateId: string) => {
+  const handleSelectCandidate = useCallback((candidateId: string) => {
     if (!store || !userId) {
       return;
     }
 
-    const mappingId = crypto.randomUUID();
-    store.setRow("mapping_session_participant", mappingId, {
-      user_id: userId,
-      created_at: new Date().toISOString(),
-      session_id: sessionId,
-      human_id: candidateId,
-    });
-
+    linkHumanToSession(store, userId, sessionId, candidateId);
     onMutation();
-  };
+  }, [store, userId, sessionId, onMutation]);
 
-  if (!query.trim()) {
+  if (!query) {
     return null;
   }
 
@@ -601,7 +601,7 @@ function ParticipantCandidates({
           </span>
           <span className="flex items-center gap-1 font-medium text-neutral-600">
             Create
-            <span className="text-neutral-900 truncate max-w-[140px]">&quot;{query.trim()}&quot;</span>
+            <span className="text-neutral-900 truncate max-w-[140px]">&quot;{query}&quot;</span>
           </span>
         </button>
       )}

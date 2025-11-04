@@ -1,7 +1,5 @@
 import { defineCollection, defineConfig } from "@content-collections/core";
 import { compileMDX } from "@content-collections/mdx";
-import { existsSync } from "fs";
-import { join } from "path";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
@@ -34,8 +32,9 @@ const articles = defineCollection({
   directory: "content/articles",
   include: "*.mdx",
   schema: z.object({
-    title: z.string(),
-    summary: z.string(),
+    display_title: z.string().optional(),
+    meta_title: z.string(),
+    meta_description: z.string(),
     author: z.string(),
     created: z.string(),
     updated: z.string().optional(),
@@ -63,28 +62,17 @@ const articles = defineCollection({
 
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
-    let coverImage = document.coverImage;
-    if (!coverImage) {
-      const formats = ["webp", "png", "jpg", "jpeg"];
-      const publicDir = join(process.cwd(), "public");
-
-      for (const format of formats) {
-        const imagePath = join(publicDir, "blog", slug, `cover.${format}`);
-        if (existsSync(imagePath)) {
-          coverImage = `/blog/${slug}/cover.${format}`;
-          break;
-        }
-      }
-    }
-
     const author = document.author || "Hyprnote Team";
+    const title = document.display_title || document.meta_title;
+    const updated = document.updated || document.created;
 
     return {
       ...document,
       mdx,
       slug,
-      coverImage,
       author,
+      updated,
+      title,
       toc,
     };
   },

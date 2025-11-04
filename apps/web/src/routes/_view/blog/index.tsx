@@ -32,8 +32,8 @@ function Component() {
       className="bg-linear-to-b from-white via-stone-50/20 to-white"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
-      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white min-h-screen">
-        <div className="px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-[1400px] mx-auto border-x border-neutral-100 bg-white min-h-screen">
+        <div className="px-4 sm:px-6 lg:px-8 py-16 mx-auto max-w-6xl">
           <Header />
           <FeaturedSection articles={featuredArticles} />
           <AllArticlesSection articles={sortedArticles} />
@@ -121,11 +121,11 @@ function FeaturedCard({ article }: { article: Article }) {
           <FeaturedBadge />
 
           <h3 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-3 group-hover:text-stone-800 transition-colors line-clamp-2">
-            {article.title}
+            {article.display_title}
           </h3>
 
           <p className="text-neutral-600 leading-relaxed mb-6 line-clamp-3">
-            {article.summary}
+            {article.meta_description}
           </p>
 
           <ArticleFooter
@@ -151,7 +151,7 @@ function ArticleListItem({ article }: { article: Article }) {
           </span>
           <span className="text-sm text-neutral-500">by {article.author}</span>
           <div className="h-px flex-1 bg-neutral-200" />
-          <time dateTime={displayDate} className="text-sm text-neutral-500 flex-shrink-0">
+          <time dateTime={displayDate} className="text-sm text-neutral-500 shrink-0">
             {new Date(displayDate).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",

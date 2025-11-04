@@ -1,12 +1,16 @@
+import { cn } from "@hypr/utils";
+
 import { useHover } from "@uidotdev/usehooks";
 import { MicOff } from "lucide-react";
+import { useCallback } from "react";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import { SoundIndicator } from "../../shared";
-import { RecordingIcon, useHasTranscript, useListenButtonState } from "../shared";
+import { ActionableTooltipContent, RecordingIcon, useHasTranscript, useListenButtonState } from "../shared";
 
 export function ListenButton({ sessionId }: { sessionId: string }) {
   const { shouldRender } = useListenButtonState(sessionId);
@@ -24,10 +28,21 @@ export function ListenButton({ sessionId }: { sessionId: string }) {
 }
 
 function StartButton({ sessionId }: { sessionId: string }) {
-  const { isDisabled } = useListenButtonState(sessionId);
+  const { isDisabled, warningMessage } = useListenButtonState(sessionId);
   const handleClick = useStartListening(sessionId);
 
-  return (
+  const handleConfigureAction = useCallback(() => {
+    windowsCommands.windowShow({ type: "settings" })
+      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
+      .then(() =>
+        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+          path: "/app/settings",
+          search: { tab: "transcription" },
+        })
+      );
+  }, []);
+
+  const button = (
     <Button
       size="sm"
       variant="ghost"
@@ -37,12 +52,33 @@ function StartButton({ sessionId }: { sessionId: string }) {
         "bg-black text-white hover:bg-neutral-800",
         "gap-1.5",
       ])}
-      title="Start listening"
+      title={warningMessage || "Start listening"}
       aria-label="Start listening"
     >
       <RecordingIcon disabled={isDisabled} />
       <span className="hidden md:inline text-neutral-100 hover:text-neutral-200">Start listening</span>
     </Button>
+  );
+
+  if (!warningMessage) {
+    return button;
+  }
+
+  return (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <span className="inline-block">{button}</span>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        <ActionableTooltipContent
+          message={warningMessage}
+          action={{
+            label: "Configure",
+            handleClick: handleConfigureAction,
+          }}
+        />
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

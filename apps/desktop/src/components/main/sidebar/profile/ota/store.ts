@@ -15,6 +15,7 @@ type Context = {
   state: State;
   update: Update | null;
   error: string | null;
+  currentVersion: string | null;
   downloadProgress: {
     downloaded: number;
     total: number | null;
@@ -27,6 +28,7 @@ export const updateStore = createStore({
     state: "idle" as State,
     update: null,
     error: null,
+    currentVersion: null,
     downloadProgress: {
       downloaded: 0,
       total: null,
@@ -38,10 +40,11 @@ export const updateStore = createStore({
       ...context,
       state: event.state,
     }),
-    checkSuccess: (context, event: { update: Update | null }) => ({
+    checkSuccess: (context, event: { update: Update | null; currentVersion: string }) => ({
       ...context,
       update: event.update,
       error: null,
+      currentVersion: event.currentVersion,
       state: event.update ? ("available" as State) : ("noUpdate" as State),
     }),
     checkError: (context, event: { error: string }) => ({

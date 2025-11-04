@@ -30,7 +30,10 @@ export function Body() {
     <div className="flex flex-col gap-1 h-full flex-1 relative">
       <Header tabs={tabs} />
       <div className="flex-1 overflow-auto">
-        <ContentWrapper tab={currentTab} />
+        <ContentWrapper
+          key={uniqueIdfromTab(currentTab)}
+          tab={currentTab}
+        />
       </div>
     </div>
   );

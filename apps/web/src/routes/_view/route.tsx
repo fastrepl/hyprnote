@@ -58,14 +58,18 @@ function Header() {
   return (
     <>
       <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
-        <div className="max-w-6xl mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4">
+        <div className="max-w-[1400px] mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4">
           <div className="flex items-center justify-between">
             <div className="hidden sm:flex items-center gap-4">
               <Link
                 to="/"
                 className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
               >
-                <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+                <img
+                  src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
+                  alt="Hyprnote"
+                  className="h-6"
+                />
               </Link>
               <Link
                 to="/docs"
@@ -91,7 +95,11 @@ function Header() {
               to="/"
               className="sm:hidden font-semibold text-2xl font-serif hover:scale-105 transition-transform"
             >
-              <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
+                alt="Hyprnote"
+                className="h-6"
+              />
             </Link>
 
             <nav className="hidden sm:flex items-center gap-2">
@@ -103,12 +111,13 @@ function Header() {
               </Link>
               {platformCTA.action === "download"
                 ? (
-                  <Link
-                    to="/download"
+                  <a
+                    href="/download/apple-silicon"
+                    download
                     className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
                   >
                     {platformCTA.label}
-                  </Link>
+                  </a>
                 )
                 : (
                   <button
@@ -123,12 +132,13 @@ function Header() {
             <div className="sm:hidden flex items-center gap-1">
               {platformCTA.action === "download"
                 ? (
-                  <Link
-                    to="/download"
+                  <a
+                    href="/download/apple-silicon"
+                    download
                     className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
                   >
                     {platformCTA.label}
-                  </Link>
+                  </a>
                 )
                 : (
                   <button
@@ -158,7 +168,7 @@ function Header() {
           />
 
           <div className="fixed top-[65px] left-0 right-0 bg-white border-b border-neutral-100 shadow-lg z-50 sm:hidden animate-in slide-in-from-top duration-300">
-            <nav className="max-w-6xl mx-auto px-4 py-6">
+            <nav className="max-w-[1400px] mx-auto px-4 py-6">
               <div className="space-y-6">
                 <div className="space-y-4">
                   <Link
@@ -193,13 +203,14 @@ function Header() {
                   </Link>
                   {platformCTA.action === "download"
                     ? (
-                      <Link
-                        to="/download"
+                      <a
+                        href="/download/apple-silicon"
+                        download
                         onClick={() => setIsMenuOpen(false)}
                         className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
                       >
                         {platformCTA.label}
-                      </Link>
+                      </a>
                     )
                     : (
                       <button
@@ -227,11 +238,15 @@ function Footer() {
 
   return (
     <footer className="border-t border-neutral-100 bg-linear-to-b from-stone-50/30 to-stone-100">
-      <div className="max-w-6xl mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100">
+      <div className="max-w-[1400px] mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <Link to="/" className="inline-block mb-4">
-              <img src="/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
+                alt="Hyprnote"
+                className="h-6"
+              />
             </Link>
             <p className="text-sm text-neutral-500 mb-4">
               Fastrepl © {currentYear}
@@ -269,7 +284,8 @@ function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="/download"
+                  href="/download/apple-silicon"
+                  download
                   className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                 >
                   Download

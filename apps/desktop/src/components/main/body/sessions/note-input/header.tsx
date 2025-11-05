@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 import { AlertCircleIcon, RefreshCcwIcon, SparklesIcon } from "lucide-react";
 import { useListener } from "../../../../../contexts/listener";
@@ -48,7 +49,7 @@ function HeaderTabEnhanced(
   },
 ) {
   const [open, setOpen] = useState(false);
-  const { templates, isGenerating, isError, onRegenerate } = useEnhanceLogic(sessionId);
+  const { templates, isGenerating, isError, error, onRegenerate } = useEnhanceLogic(sessionId);
 
   const handleTabClick = useCallback(() => {
     if (!isActive) {
@@ -87,16 +88,25 @@ function HeaderTabEnhanced(
         <span className="flex items-center gap-1">
           <span>Summary</span>
           {isActive && (
-            <PopoverTrigger asChild>
-              <span
-                className={cn([
-                  "p-0.5 rounded hover:bg-neutral-200 transition-colors cursor-pointer",
-                  isError && "text-red-600 hover:bg-red-50",
-                ])}
-              >
-                {isError ? <AlertCircleIcon size={12} /> : <RefreshCcwIcon size={12} />}
-              </span>
-            </PopoverTrigger>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <span
+                    className={cn([
+                      "p-0.5 rounded hover:bg-neutral-200 transition-colors cursor-pointer",
+                      isError && "text-red-600 hover:bg-red-50",
+                    ])}
+                  >
+                    {isError ? <AlertCircleIcon size={12} /> : <RefreshCcwIcon size={12} />}
+                  </span>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              {isError && error && (
+                <TooltipContent side="bottom">
+                  <p className="text-xs max-w-xs">{error instanceof Error ? error.message : String(error)}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
           )}
         </span>
       </button>

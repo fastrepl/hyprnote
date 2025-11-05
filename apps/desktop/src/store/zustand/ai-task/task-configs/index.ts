@@ -46,7 +46,7 @@ export interface TaskArgsMapTransformed {
         end_ms: number;
       }>;
     }>;
-    template?: Template;
+    template?: Omit<Template, "user_id" | "created_at">;
   };
   title: {
     sessionId: string;

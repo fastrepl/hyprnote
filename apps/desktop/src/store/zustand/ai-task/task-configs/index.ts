@@ -3,8 +3,11 @@ import type { LanguageModel, TextStreamPart } from "ai";
 import type { Store as PersistedStore } from "../../../tinybase/main";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
-import { enhance } from "./enhance";
-import { title } from "./title";
+
+import { enhancePrompt } from "./enhance-prompt";
+import { enhanceWorkflow } from "./enhance-workflow";
+import { titlePrompt } from "./title-prompt";
+import { titleWorkflow } from "./title-workflow";
 
 export type TaskType = "enhance" | "title";
 
@@ -31,7 +34,7 @@ export interface TaskConfig<T extends TaskType = TaskType> {
     onProgress: (step: TaskStepInfo<T>) => void;
     signal: AbortSignal;
   }) => AsyncIterable<TextStreamPart<any>>;
-  getPrompt: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
+  getUser: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
   getSystem: (args: TaskArgsMap[T], store: PersistedStore) => Promise<string>;
   transforms?: StreamTransform[];
 }
@@ -41,6 +44,12 @@ type TaskConfigMap = {
 };
 
 export const TASK_CONFIGS: TaskConfigMap = {
-  enhance,
-  title,
+  enhance: {
+    ...enhanceWorkflow,
+    ...enhancePrompt,
+  },
+  title: {
+    ...titleWorkflow,
+    ...titlePrompt,
+  },
 };

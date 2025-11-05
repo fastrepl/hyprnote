@@ -104,7 +104,7 @@ export const createTasksSlice = <T extends TasksState>(
     try {
       const [system, prompt] = await Promise.all([
         taskConfig.getSystem(config.args, deps.persistedStore),
-        taskConfig.getPrompt(config.args, deps.persistedStore),
+        taskConfig.getUser(config.args, deps.persistedStore),
       ]);
 
       set((state) =>

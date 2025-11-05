@@ -1,31 +1,27 @@
-import { generateText, type LanguageModel, smoothStream, streamText } from "ai";
-
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { buildSegments, type RuntimeSpeakerHint } from "../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as PersistedStore } from "../../../tinybase/main";
-import { trimBeforeMarker } from "../shared/transform_impl";
 import type { TaskArgsMap, TaskConfig } from ".";
 
-export const enhance: TaskConfig<"enhance"> = {
+export const enhancePrompt: Pick<TaskConfig<"enhance">, "getUser" | "getSystem"> = {
   getSystem,
-  getPrompt,
-  executeWorkflow,
-  transforms: [trimBeforeMarker("#"), smoothStream({ delayInMs: 350, chunking: "line" })],
+  getUser,
 };
 
 async function getSystem(args: TaskArgsMap["enhance"]) {
   const result = await templateCommands.render("enhance.system", {
     hasTemplate: !!args.templateId,
   });
-  if (result.status === "ok") {
-    return result.data;
+
+  if (result.status === "error") {
+    throw new Error(result.error);
   }
-  console.error("Failed to render enhance system prompt:", result.error);
-  throw new Error(result.error);
+
+  return result.data;
 }
 
-async function getPrompt(args: TaskArgsMap["enhance"], store: PersistedStore) {
+async function getUser(args: TaskArgsMap["enhance"], store: PersistedStore) {
   const { sessionId, templateId } = args;
   const rawMd = (store.getCell("sessions", sessionId, "raw_md") as string) || "";
   const sessionData = getSessionData(sessionId, store);
@@ -41,11 +37,12 @@ async function getPrompt(args: TaskArgsMap["enhance"], store: PersistedStore) {
     template: templateData,
     segments,
   });
-  if (result.status === "ok") {
-    return result.data;
+
+  if (result.status === "error") {
+    throw new Error(result.error);
   }
-  console.error("Failed to render enhance user prompt:", result.error);
-  throw new Error(result.error);
+
+  return result.data;
 }
 
 function getSessionData(sessionId: string, store: PersistedStore) {
@@ -179,41 +176,4 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
       })),
     };
   }).sort((a, b) => a.start_ms - b.start_ms);
-}
-
-async function* executeWorkflow(params: {
-  model: LanguageModel;
-  args: TaskArgsMap["enhance"];
-  system: string;
-  prompt: string;
-  onProgress: (step: any) => void;
-  signal: AbortSignal;
-}) {
-  const { model, args, system, prompt, onProgress, signal } = params;
-
-  if (!args.templateId) {
-    onProgress({ type: "analyzing" });
-
-    await generateText({
-      model,
-      prompt: `Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 
-The sections should cover the main themes and topics discussed.
-Generate around 5-7 sections based on the content depth.
-Give me in bullet points.
-
-Content: ${prompt}`,
-      abortSignal: signal,
-    });
-  }
-
-  onProgress({ type: "generating" });
-
-  const result = streamText({
-    model,
-    system,
-    prompt,
-    abortSignal: signal,
-  });
-
-  yield* result.fullStream;
 }

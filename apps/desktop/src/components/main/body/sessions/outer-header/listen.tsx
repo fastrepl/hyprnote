@@ -49,14 +49,14 @@ function StartButton({ sessionId }: { sessionId: string }) {
       onClick={handleClick}
       disabled={isDisabled}
       className={cn([
-        "bg-black text-white hover:bg-neutral-800",
+        "bg-white text-neutral-900 hover:bg-neutral-100",
         "gap-1.5",
       ])}
       title={warningMessage || "Start listening"}
       aria-label="Start listening"
     >
-      <RecordingIcon disabled={isDisabled} />
-      <span className="text-neutral-100 hover:text-neutral-200">Start listening</span>
+      <RecordingIcon disabled={true} />
+      <span className="text-neutral-900 hover:text-neutral-800">Start listening</span>
     </Button>
   );
 

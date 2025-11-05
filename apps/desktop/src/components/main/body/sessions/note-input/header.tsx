@@ -12,6 +12,7 @@ import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useHasTranscript } from "../shared";
+import { EditingControls } from "./transcript/editing-controls";
 
 function HeaderTab({
   isActive,
@@ -163,41 +164,52 @@ export function Header(
     editorTabs,
     currentTab,
     handleTabChange,
+    isEditing,
+    setIsEditing,
+    isInactive,
   }: {
     sessionId: string;
     editorTabs: EditorView[];
     currentTab: EditorView;
     handleTabChange: (view: EditorView) => void;
+    isEditing: boolean;
+    setIsEditing: (isEditing: boolean) => void;
+    isInactive: boolean;
   },
 ) {
   if (editorTabs.length === 1 && editorTabs[0] === "raw") {
     return null;
   }
 
+  const showEditingControls = currentTab === "transcript" && isInactive;
+
   return (
-    <div className="flex gap-1">
-      {editorTabs.map((view) => {
-        if (view === "enhanced") {
+    <div className="flex justify-between items-center">
+      <div className="flex gap-1">
+        {editorTabs.map((view) => {
+          if (view === "enhanced") {
+            return (
+              <HeaderTabEnhanced
+                key={view}
+                sessionId={sessionId}
+                isActive={currentTab === view}
+                onClick={() => handleTabChange(view)}
+              />
+            );
+          }
+
           return (
-            <HeaderTabEnhanced
+            <HeaderTab
               key={view}
-              sessionId={sessionId}
               isActive={currentTab === view}
               onClick={() => handleTabChange(view)}
-            />
+            >
+              {labelForEditorView(view)}
+            </HeaderTab>
           );
-        }
-
-        return (
-          <HeaderTab
-            key={view}
-            isActive={currentTab === view}
-            onClick={() => handleTabChange(view)}
-          >
-            {labelForEditorView(view)}
-          </HeaderTab>
-        );
-      })}
+        })}
+      </div>
+      {showEditingControls && <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />}
     </div>
   );
 }

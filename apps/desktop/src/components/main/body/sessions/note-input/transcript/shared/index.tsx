@@ -36,7 +36,7 @@ export function TranscriptContainer({
   );
 
   const currentActive = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
-  const editable = useListener((state) => state.status === "inactive" && Object.keys(operations ?? {}).length === 0);
+  const editable = useListener((state) => state.status === "inactive" && Object.keys(operations ?? {}).length > 0);
   const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
   const partialHints = useListener((state) => state.partialHints);
 
@@ -58,7 +58,7 @@ export function TranscriptContainer({
         ref={containerRef}
         className={cn([
           "space-y-8 h-full overflow-y-auto overflow-x-hidden",
-          "px-2 pb-16 scroll-pb-[8rem] scrollbar-hide",
+          "pb-16 scroll-pb-[8rem] scrollbar-hide",
         ])}
       >
         {transcriptIds.map(

@@ -45,8 +45,6 @@ export const SegmentKey = {
   ): SegmentKey => Data.struct(params),
 };
 
-const MAX_GAP_MS = 2000;
-
 type SpeakerIdentity = {
   speaker_index?: number;
   human_id?: string;
@@ -66,14 +64,16 @@ export function buildSegments<
   finalWords: readonly TFinal[],
   partialWords: readonly TPartial[],
   speakerHints: readonly RuntimeSpeakerHint[] = [],
+  options?: { maxGapMs?: number },
 ): Segment[] {
   const words = normalizeWords(finalWords, partialWords);
-  return segmentWords(words, speakerHints);
+  return segmentWords(words, speakerHints, options);
 }
 
 function segmentWords<TWord extends SegmentWord>(
   words: readonly TWord[],
   speakerHints: readonly RuntimeSpeakerHint[],
+  options?: { maxGapMs?: number },
 ): Segment<TWord>[] {
   if (words.length === 0) {
     return [];
@@ -85,7 +85,7 @@ function segmentWords<TWord extends SegmentWord>(
 
   words.forEach((word, index) => {
     const key = resolveSegmentKey(index, word, state);
-    placeWordInSegment(word, key, segments, activeSegments);
+    placeWordInSegment(word, key, segments, activeSegments, options);
   });
 
   return segments;
@@ -211,11 +211,12 @@ function placeWordInSegment<TWord extends SegmentWord>(
   key: SegmentKey,
   segments: Segment<TWord>[],
   activeSegments: Map<string, Segment<TWord>>,
+  options?: { maxGapMs?: number },
 ): void {
   const segmentId = segmentKeyId(key);
   const existing = activeSegments.get(segmentId);
 
-  if (existing && canExtend(existing, key, word, segments)) {
+  if (existing && canExtend(existing, key, word, segments, options)) {
     existing.words.push(word);
     return;
   }
@@ -223,7 +224,7 @@ function placeWordInSegment<TWord extends SegmentWord>(
   if (word.isFinal && !hasSpeakerIdentity(key)) {
     for (const [id, segment] of activeSegments) {
       if (!hasSpeakerIdentity(segment.key) && segment.key.channel === key.channel) {
-        if (canExtend(segment, segment.key, word, segments)) {
+        if (canExtend(segment, segment.key, word, segments, options)) {
           segment.words.push(word);
           activeSegments.set(segmentId, segment);
           activeSegments.set(id, segment);
@@ -243,6 +244,7 @@ function canExtend<TWord extends SegmentWord>(
   candidateKey: SegmentKey,
   word: TWord,
   segments: Segment<TWord>[],
+  options?: { maxGapMs?: number },
 ): boolean {
   if (hasSpeakerIdentity(candidateKey)) {
     const lastSegment = segments[segments.length - 1];
@@ -251,8 +253,16 @@ function canExtend<TWord extends SegmentWord>(
     }
   }
 
+  if (!word.isFinal && existingSegment !== segments[segments.length - 1]) {
+    const allWordsArePartial = existingSegment.words.every((w) => !w.isFinal);
+    if (!allWordsArePartial) {
+      return false;
+    }
+  }
+
+  const maxGapMs = options?.maxGapMs ?? 2000;
   const lastWord = existingSegment.words[existingSegment.words.length - 1];
-  return word.start_ms - lastWord.end_ms <= MAX_GAP_MS;
+  return word.start_ms - lastWord.end_ms <= maxGapMs;
 }
 
 function hasSpeakerIdentity(key: SegmentKey): boolean {

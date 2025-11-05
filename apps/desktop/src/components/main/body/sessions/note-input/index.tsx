@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
+import { useListener } from "../../../../../contexts/listener";
 import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
 import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
@@ -16,6 +17,8 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const { updateSessionTabState } = useTabs();
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const inactive = useListener((state) => state.status === "inactive");
 
   const sessionId = tab.id;
   useAutoEnhance(tab);
@@ -47,19 +50,22 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
           editorTabs={editorTabs}
           currentTab={currentTab}
           handleTabChange={handleTabChange}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          isInactive={inactive}
         />
       </div>
 
       <div
         onClick={handleContainerClick}
         className={cn([
-          "flex-1 mt-1",
-          currentTab === "transcript" ? "overflow-hidden" : ["overflow-auto", "pb-8", "px-2"],
+          "flex-1 mt-2 px-3",
+          currentTab === "transcript" ? "overflow-hidden" : ["overflow-auto", "pb-6"],
         ])}
       >
         {currentTab === "enhanced" && <Enhanced ref={editorRef} sessionId={sessionId} />}
         {currentTab === "raw" && <RawEditor ref={editorRef} sessionId={sessionId} />}
-        {currentTab === "transcript" && <Transcript sessionId={sessionId} />}
+        {currentTab === "transcript" && <Transcript sessionId={sessionId} isEditing={isEditing} />}
       </div>
     </div>
   );

@@ -47,7 +47,7 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
       <div
         className={cn([
           "absolute inset-0 rounded-full bg-red-300",
-          !disabled && "animate-ping",
+          disabled ? "bg-red-600" : "animate-ping",
         ])}
       >
       </div>

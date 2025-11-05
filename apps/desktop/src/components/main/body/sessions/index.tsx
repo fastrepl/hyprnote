@@ -70,7 +70,7 @@ export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }
           <div className="px-2">
             <OuterHeader sessionId={tab.id} />
           </div>
-          <div className="mt-3 px-2 flex-shrink-0">
+          <div className="mt-2 px-3 flex-shrink-0">
             <TitleInput tab={tab} />
           </div>
           <div className="mt-2 px-2 flex-1 min-h-0">

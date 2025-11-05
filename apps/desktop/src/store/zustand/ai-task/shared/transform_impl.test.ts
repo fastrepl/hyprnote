@@ -1,7 +1,7 @@
 import type { TextStreamPart, ToolSet } from "ai";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { trimBeforeMarker } from "./transform_impl";
+import { addMarkdownSectionSeparators, trimBeforeMarker } from "./transform_impl";
 
 function convertArrayToReadableStream<T>(values: T[]): ReadableStream<T> {
   return new ReadableStream({
@@ -267,6 +267,205 @@ describe("trimBeforeMarker", () => {
         {
           "id": "1",
           "text": " actual content",
+          "type": "text-delta",
+        },
+        {
+          "id": "1",
+          "type": "text-end",
+        },
+      ]
+    `);
+  });
+});
+
+describe("addMarkdownSectionSeparators", () => {
+  let events: any[] = [];
+
+  beforeEach(() => {
+    events = [];
+  });
+
+  async function consumeStream(stream: ReadableStream<any>) {
+    const reader = stream.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      events.push(value);
+    }
+  }
+
+  it("should add <p></p> separator between markdown sections", async () => {
+    const stream = convertArrayToReadableStream<TextStreamPart<ToolSet>>([
+      { type: "text-start", id: "1" },
+      { text: "# Key Decisions\n- Item 1\n- Item 2\n\n# Market Insights\n- Data", type: "text-delta", id: "1" },
+      { type: "text-end", id: "1" },
+    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+
+    await consumeStream(stream);
+
+    expect(events).toMatchInlineSnapshot(`
+      [
+        {
+          "id": "1",
+          "type": "text-start",
+        },
+        {
+          "id": "1",
+          "text": "# Key Decisions
+      - Item 1
+      - Item 2
+
+      <p></p>
+
+      # Market Insights
+      - Data",
+          "type": "text-delta",
+        },
+        {
+          "id": "1",
+          "type": "text-end",
+        },
+      ]
+    `);
+  });
+
+  it("should handle multiple sections", async () => {
+    const stream = convertArrayToReadableStream<TextStreamPart<ToolSet>>([
+      { type: "text-start", id: "1" },
+      {
+        text: "# Section 1\nContent 1\n\n## Section 2\nContent 2\n\n# Section 3\nContent 3",
+        type: "text-delta",
+        id: "1",
+      },
+      { type: "text-end", id: "1" },
+    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+
+    await consumeStream(stream);
+
+    expect(events).toMatchInlineSnapshot(`
+      [
+        {
+          "id": "1",
+          "type": "text-start",
+        },
+        {
+          "id": "1",
+          "text": "# Section 1
+      Content 1
+
+      <p></p>
+
+      ## Section 2
+      Content 2
+
+      <p></p>
+
+      # Section 3
+      Content 3",
+          "type": "text-delta",
+        },
+        {
+          "id": "1",
+          "type": "text-end",
+        },
+      ]
+    `);
+  });
+
+  it("should not add separator when heading is at the start", async () => {
+    const stream = convertArrayToReadableStream<TextStreamPart<ToolSet>>([
+      { type: "text-start", id: "1" },
+      { text: "# First Section\nContent", type: "text-delta", id: "1" },
+      { type: "text-end", id: "1" },
+    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+
+    await consumeStream(stream);
+
+    expect(events).toMatchInlineSnapshot(`
+      [
+        {
+          "id": "1",
+          "type": "text-start",
+        },
+        {
+          "id": "1",
+          "text": "# First Section
+      Content",
+          "type": "text-delta",
+        },
+        {
+          "id": "1",
+          "type": "text-end",
+        },
+      ]
+    `);
+  });
+
+  it("should not add separator when there's only single newline before heading", async () => {
+    const stream = convertArrayToReadableStream<TextStreamPart<ToolSet>>([
+      { type: "text-start", id: "1" },
+      { text: "Content\n# Heading", type: "text-delta", id: "1" },
+      { type: "text-end", id: "1" },
+    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+
+    await consumeStream(stream);
+
+    expect(events).toMatchInlineSnapshot(`
+      [
+        {
+          "id": "1",
+          "type": "text-start",
+        },
+        {
+          "id": "1",
+          "text": "Content
+      # Heading",
+          "type": "text-delta",
+        },
+        {
+          "id": "1",
+          "type": "text-end",
+        },
+      ]
+    `);
+  });
+
+  it("should handle tool calls and pass them through", async () => {
+    const stream = convertArrayToReadableStream<TextStreamPart<ToolSet>>([
+      { type: "text-start", id: "1" },
+      { text: "# Section 1\n\n# Section 2", type: "text-delta", id: "1" },
+      {
+        type: "tool-call",
+        toolCallId: "1",
+        toolName: "test",
+        input: {},
+      },
+      { type: "text-end", id: "1" },
+    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+
+    await consumeStream(stream);
+
+    expect(events).toMatchInlineSnapshot(`
+      [
+        {
+          "input": {},
+          "toolCallId": "1",
+          "toolName": "test",
+          "type": "tool-call",
+        },
+        {
+          "id": "1",
+          "type": "text-start",
+        },
+        {
+          "id": "1",
+          "text": "# Section 1
+
+      <p></p>
+
+      # Section 2",
           "type": "text-delta",
         },
         {

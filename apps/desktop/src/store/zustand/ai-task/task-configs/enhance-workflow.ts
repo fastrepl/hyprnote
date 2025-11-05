@@ -3,13 +3,17 @@ import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
 import { type Template, TemplateSection, templateSectionSchema } from "../../../tinybase/schema-external";
-import { trimBeforeMarker } from "../shared/transform_impl";
+import { addMarkdownSectionSeparators, trimBeforeMarker } from "../shared/transform_impl";
 import { type EarlyValidatorFn, withEarlyValidationRetry } from "../shared/validate";
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
 
 export const enhanceWorkflow: Pick<TaskConfig<"enhance">, "executeWorkflow" | "transforms"> = {
   executeWorkflow,
-  transforms: [trimBeforeMarker("#"), smoothStream({ delayInMs: 350, chunking: "line" })],
+  transforms: [
+    trimBeforeMarker("#"),
+    addMarkdownSectionSeparators(),
+    smoothStream({ delayInMs: 350, chunking: "line" }),
+  ],
 };
 
 async function* executeWorkflow(params: {

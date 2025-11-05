@@ -73,6 +73,9 @@ const streamdownComponents = {
   li: (props: React.HTMLAttributes<HTMLLIElement>) => {
     return <li className="mb-1">{props.children as React.ReactNode}</li>;
   },
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => {
+    return <p className="py-2">{props.children as React.ReactNode}</p>;
+  },
 } as const;
 
 function Status({ taskId }: { taskId: TaskId<"enhance"> }) {

@@ -2,6 +2,7 @@ import "../../styles.css";
 
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
+
 import * as shared from "../shared";
 import { mentionReadonly } from "./mention-readonly";
 
@@ -32,7 +33,10 @@ const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
 
     useEffect(() => {
       if (editor) {
-        editor.commands.setContent(initialContent);
+        editor.commands.setContent(initialContent, {
+          contentType: "markdown",
+          parseOptions: { preserveWhitespace: "full" },
+        });
       }
     }, [editor, initialContent]);
 

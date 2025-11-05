@@ -59,6 +59,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       },
       onUpdate,
       shouldRerenderOnTransaction: false,
+      parseOptions: { preserveWhitespace: "full" },
       editorProps: {
         attributes: {
           class: "tiptap-normal",
@@ -110,7 +111,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
         } else if (!editor.isFocused) {
           if (initialContent) {
-            editor.commands.setContent(initialContent, { contentType: "markdown" });
+            editor.commands.setContent(initialContent, {
+              contentType: "markdown",
+              parseOptions: { preserveWhitespace: "full" },
+            });
           }
         }
       }

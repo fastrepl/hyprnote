@@ -76,12 +76,41 @@ function getTemplateData(templateId: string, store: MainStore) {
   const description = store.getCell("templates", templateId, "description") as string;
   const sectionsRaw = store.getCell("templates", templateId, "sections");
 
-  let sections: Array<{ title: string; description: string }> = [];
+  let sectionsParsed: unknown = [];
   if (typeof sectionsRaw === "string") {
-    sections = JSON.parse(sectionsRaw) as Array<{ title: string; description: string }>;
+    try {
+      sectionsParsed = JSON.parse(sectionsRaw);
+    } catch (error) {
+      console.error("Failed to parse template sections", error);
+      sectionsParsed = [];
+    }
   } else if (sectionsRaw !== undefined) {
-    sections = (sectionsRaw as unknown) as Array<{ title: string; description: string }>;
+    sectionsParsed = sectionsRaw;
   }
+
+  const sections = Array.isArray(sectionsParsed)
+    ? sectionsParsed
+      .map((section) => {
+        if (typeof section === "string") {
+          return { title: section, description: "" };
+        }
+
+        if (section && typeof section === "object") {
+          const maybeTitle = (section as any).title;
+          const maybeDescription = (section as any).description;
+
+          if (typeof maybeTitle === "string" && maybeTitle.trim().length > 0) {
+            return {
+              title: maybeTitle,
+              description: typeof maybeDescription === "string" ? maybeDescription : "",
+            };
+          }
+        }
+
+        return null;
+      })
+      .filter((section): section is { title: string; description: string } => section !== null)
+    : [];
 
   return {
     user_id,

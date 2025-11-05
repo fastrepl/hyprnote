@@ -5,10 +5,8 @@ import type { Store as PersistedStore, Template } from "../../../tinybase/main";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
 
-import { enhancePrompt } from "./enhance-prompt";
 import { enhanceTransform } from "./enhance-transform";
 import { enhanceWorkflow } from "./enhance-workflow";
-import { titlePrompt } from "./title-prompt";
 import { titleTransform } from "./title-transform";
 import { titleWorkflow } from "./title-workflow";
 
@@ -46,7 +44,7 @@ export interface TaskArgsMapTransformed {
         end_ms: number;
       }>;
     }>;
-    template?: Omit<Template, "user_id" | "created_at">;
+    template?: Pick<Template, "sections">;
   };
   title: {
     sessionId: string;
@@ -68,13 +66,9 @@ export interface TaskConfig<T extends TaskType = TaskType> {
   executeWorkflow: (params: {
     model: LanguageModel;
     args: TaskArgsMapTransformed[T];
-    system: string;
-    prompt: string;
     onProgress: (step: TaskStepInfo<T>) => void;
     signal: AbortSignal;
   }) => AsyncIterable<TextStreamPart<any>>;
-  getUser: (args: TaskArgsMapTransformed[T]) => Promise<string>;
-  getSystem: (args: TaskArgsMapTransformed[T]) => Promise<string>;
   transforms?: StreamTransform[];
 }
 
@@ -86,11 +80,9 @@ export const TASK_CONFIGS: TaskConfigMap = {
   enhance: {
     ...enhanceWorkflow,
     ...enhanceTransform,
-    ...enhancePrompt,
   },
   title: {
     ...titleWorkflow,
     ...titleTransform,
-    ...titlePrompt,
   },
 };

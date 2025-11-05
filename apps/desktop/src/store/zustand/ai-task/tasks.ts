@@ -104,11 +104,6 @@ export const createTasksSlice = <T extends TasksState>(
     try {
       const enrichedArgs = await taskConfig.transformArgs(config.args, deps.persistedStore);
 
-      const [system, prompt] = await Promise.all([
-        taskConfig.getSystem(enrichedArgs),
-        taskConfig.getUser(enrichedArgs),
-      ]);
-
       set((state) =>
         mutate(state, (draft) => {
           draft.tasks[taskId] = {
@@ -145,8 +140,6 @@ export const createTasksSlice = <T extends TasksState>(
       const workflowStream = taskConfig.executeWorkflow({
         model: config.model,
         args: enrichedArgs,
-        system,
-        prompt,
         onProgress,
         signal: abortController.signal,
       });

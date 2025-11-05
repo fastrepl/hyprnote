@@ -1,10 +1,6 @@
 import type { TextStreamPart, ToolSet } from "ai";
 
-export type EarlyValidationResult =
-  | { valid: true }
-  | { valid: false; feedback: string };
-
-export type EarlyValidatorFn = (textSoFar: string) => EarlyValidationResult;
+export type EarlyValidatorFn = (textSoFar: string) => { valid: true } | { valid: false; feedback: string };
 
 export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>(
   executeStream: (
@@ -28,6 +24,7 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
     const buffer: TextStreamPart<TOOLS>[] = [];
     let accumulatedText = "";
     let validationComplete = false;
+    let shouldRetry = false;
 
     try {
       const stream = executeStream(abortController.signal, { attempt, previousFeedback });
@@ -46,6 +43,7 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
               if (!result.valid) {
                 abortController.abort();
                 previousFeedback = result.feedback;
+                shouldRetry = true;
 
                 if (attempt < maxRetries - 1) {
                   onRetry?.(attempt + 1, result.feedback);
@@ -70,6 +68,10 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
         } else {
           yield chunk;
         }
+      }
+
+      if (shouldRetry) {
+        continue;
       }
 
       if (validationComplete || buffer.length > 0) {

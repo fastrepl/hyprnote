@@ -96,10 +96,8 @@ async function generateTemplateIfNeeded(params: {
   IMPORTANT: Start with '{', NO \`\`\`json. (I will directly parse it with JSON.parse())`,
       });
 
-      console.log(template.object);
       return template.object.sections as Array<TemplateSection>;
     } catch (error) {
-      console.error(JSON.stringify(error, null, 2));
       return undefined;
     }
   } else {
@@ -115,7 +113,7 @@ async function* generateSummary(params: {
   onProgress: (step: any) => void;
   signal: AbortSignal;
 }) {
-  const { model, args, system, prompt, onProgress } = params;
+  const { model, args, system, prompt, onProgress, signal } = params;
 
   onProgress({ type: "generating" });
 
@@ -131,13 +129,26 @@ async function* generateSummary(params: {
 IMPORTANT: Previous attempt failed. ${previousFeedback}`;
       }
 
-      const result = streamText({
-        model,
-        system,
-        prompt: enhancedPrompt,
-        abortSignal: retrySignal,
-      });
-      return result.fullStream;
+      const combinedController = new AbortController();
+
+      const abortFromOuter = () => combinedController.abort();
+      const abortFromRetry = () => combinedController.abort();
+
+      signal.addEventListener("abort", abortFromOuter);
+      retrySignal.addEventListener("abort", abortFromRetry);
+
+      try {
+        const result = streamText({
+          model,
+          system,
+          prompt: enhancedPrompt,
+          abortSignal: combinedController.signal,
+        });
+        return result.fullStream;
+      } finally {
+        signal.removeEventListener("abort", abortFromOuter);
+        retrySignal.removeEventListener("abort", abortFromRetry);
+      }
     },
     validator,
     {

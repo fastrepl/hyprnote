@@ -1,4 +1,4 @@
-import { FileIcon } from "lucide-react";
+import { ArrowUpRight, FileIcon } from "lucide-react";
 
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
@@ -75,7 +75,7 @@ function ActionItem({
       ])}
     >
       <span>{label}</span>
-      {shortcut && shortcut.length > 0 && (
+      {shortcut && shortcut.length > 0 ? (
         <KbdGroup>
           {shortcut.map((key, index) => (
             <Kbd key={index} className="bg-neutral-200">
@@ -83,6 +83,8 @@ function ActionItem({
             </Kbd>
           ))}
         </KbdGroup>
+      ) : (
+        <ArrowUpRight className="w-4 h-4 text-neutral-400" />
       )}
     </button>
   );

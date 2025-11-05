@@ -89,7 +89,7 @@ function HeroSection() {
 
 function PhilosophySection() {
   return (
-    <section className="py-16 px-4 laptop:px-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-[size:24px_24px] bg-[position:12px_12px,12px_12px]">
+    <section className="py-16 px-4 laptop:px-0 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] `bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <div className="max-w-4xl mx-auto">
         <div
           className="border border-neutral-200 p-4"

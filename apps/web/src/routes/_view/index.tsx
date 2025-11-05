@@ -1,4 +1,3 @@
-import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";

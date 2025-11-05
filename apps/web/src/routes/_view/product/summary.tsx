@@ -24,16 +24,6 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <div className="px-6 py-12 lg:py-20">
-          <nav className="mb-8">
-            <Link
-              to="/product"
-              className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-            >
-              <Icon icon="mdi:arrow-left" className="text-base" />
-              <span>Product</span>
-            </Link>
-          </nav>
-
           <header className="mb-16">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
               Intelligent summaries

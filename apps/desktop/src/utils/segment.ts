@@ -64,7 +64,7 @@ export function buildSegments<
   finalWords: readonly TFinal[],
   partialWords: readonly TPartial[],
   speakerHints: readonly RuntimeSpeakerHint[] = [],
-  options?: { maxGapMs?: number },
+  options?: { maxGapMs?: number; numSpeakers?: number },
 ): Segment[] {
   const words = normalizeWords(finalWords, partialWords);
   return segmentWords(words, speakerHints, options);
@@ -73,7 +73,7 @@ export function buildSegments<
 function segmentWords<TWord extends SegmentWord>(
   words: readonly TWord[],
   speakerHints: readonly RuntimeSpeakerHint[],
-  options?: { maxGapMs?: number },
+  options?: { maxGapMs?: number; numSpeakers?: number },
 ): Segment<TWord>[] {
   if (words.length === 0) {
     return [];

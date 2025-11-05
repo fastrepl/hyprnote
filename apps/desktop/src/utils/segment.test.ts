@@ -8,6 +8,7 @@ describe("buildSegments", () => {
       finalWords: [],
       partialWords: [],
       expected: [],
+      numSpeakers: undefined,
     },
     {
       name: "simple multi-channel example without merging",
@@ -545,15 +546,22 @@ describe("buildSegments", () => {
     },
   ];
 
-  test.each(testCases)("$name", ({ finalWords, partialWords, speakerHints, expected, maxGapMs }) => {
+  test.each(testCases)("$name", ({ finalWords, partialWords, speakerHints, expected, maxGapMs, numSpeakers }) => {
     finalWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
     partialWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
+
+    const options = maxGapMs !== undefined || numSpeakers !== undefined
+      ? {
+        ...(maxGapMs !== undefined && { maxGapMs }),
+        ...(numSpeakers !== undefined && { numSpeakers }),
+      }
+      : undefined;
 
     const segments = buildSegments(
       finalWords,
       partialWords,
       speakerHints,
-      maxGapMs !== undefined ? { maxGapMs } : undefined,
+      options,
     );
     expect(segments).toEqual(expected);
 

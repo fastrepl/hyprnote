@@ -204,6 +204,47 @@ const legal = defineCollection({
   },
 });
 
+const templates = defineCollection({
+  name: "templates",
+  directory: "content/templates",
+  include: "*.mdx",
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    sections: z.array(
+      z.object({
+        title: z.string(),
+        description: z.string().optional(),
+      }),
+    ),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      mdx,
+      slug,
+    };
+  },
+});
+
 export default defineConfig({
-  collections: [articles, changelog, docs, legal],
+  collections: [articles, changelog, docs, legal, templates],
 });

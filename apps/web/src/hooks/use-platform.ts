@@ -44,6 +44,7 @@ export function getHeroCTA(platform: Platform): {
   showInput: boolean;
   inputPlaceholder: string;
   subtext: string;
+  subtextLink?: string;
 } {
   if (platform === "mac") {
     return {
@@ -51,6 +52,7 @@ export function getHeroCTA(platform: Platform): {
       showInput: false,
       inputPlaceholder: "",
       subtext: "Free and open-source",
+      subtextLink: "/github",
     };
   } else if (platform === "mobile") {
     return {

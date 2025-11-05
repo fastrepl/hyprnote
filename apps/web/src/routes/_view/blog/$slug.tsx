@@ -72,7 +72,7 @@ function Component() {
       <div className="min-h-screen max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <MobileHeader />
 
-        <div className="flex">
+        <div className="flex gap-6">
           <TableOfContents toc={article.toc} />
 
           <main className="flex-1 min-w-0 pb-6 lg:py-6">
@@ -114,41 +114,103 @@ function MobileHeader() {
   );
 }
 
+interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+  children: TocItem[];
+}
+
+function buildTocTree(toc: Array<{ id: string; text: string; level: number }>): TocItem[] {
+  const tree: TocItem[] = [];
+  const stack: TocItem[] = [];
+
+  for (const item of toc) {
+    const node: TocItem = { ...item, children: [] };
+
+    while (stack.length > 0 && stack[stack.length - 1].level >= node.level) {
+      stack.pop();
+    }
+
+    if (stack.length === 0) {
+      tree.push(node);
+    } else {
+      stack[stack.length - 1].children.push(node);
+    }
+
+    stack.push(node);
+  }
+
+  return tree;
+}
+
+function TocNode({ item, depth = 0 }: { item: TocItem; depth?: number }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const hasChildren = item.children.length > 0;
+
+  return (
+    <div>
+      <div className="flex items-center gap-1">
+        {hasChildren && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setIsExpanded(!isExpanded);
+            }}
+            className="shrink-0 w-4 h-4 flex items-center justify-center text-neutral-400 hover:text-stone-600 transition-colors"
+            aria-label={isExpanded ? "Collapse" : "Expand"}
+          >
+            <Icon
+              icon={isExpanded ? "mdi:chevron-down" : "mdi:chevron-right"}
+              className="text-xs"
+            />
+          </button>
+        )}
+        <a
+          href={`#${item.id}`}
+          className={cn([
+            "flex-1 text-sm py-1 transition-colors block truncate",
+            "hover:text-stone-600 hover:bg-neutral-50",
+            !hasChildren && "ml-2",
+            item.level === 2 && "text-neutral-400",
+            item.level === 3 && "text-neutral-400/90",
+            item.level === 4 && "text-neutral-400/80",
+          ])}
+          style={{ paddingLeft: hasChildren ? 0 : depth > 0 ? `${depth * 0.5}rem` : 0 }}
+        >
+          {item.text}
+        </a>
+      </div>
+      {hasChildren && isExpanded && (
+        <div className="ml-2">
+          {item.children.map((child) => <TocNode key={child.id} item={child} depth={depth + 1} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TableOfContents({
   toc,
 }: {
   toc: Array<{ id: string; text: string; level: number }>;
 }) {
+  const tocTree = buildTocTree(toc);
+
   return (
     <aside className="hidden lg:block w-64 shrink-0">
-      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto px-4 py-6 scrollbar-hide">
+      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto px-2 pt-6 pb-18 scrollbar-hide">
         <Link
           to="/blog"
-          className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8 font-serif"
+          className="mx-2 inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8 font-serif"
         >
           <Icon icon="mdi:arrow-left" className="text-base" />
           <span>Back to blog</span>
         </Link>
 
-        {toc.length > 0 && (
+        {tocTree.length > 0 && (
           <nav className="space-y-1">
-            {toc.map((item) => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                className={cn(
-                  [
-                    "block text-sm py-1 transition-colors",
-                    "border-transparent hover:text-stone-600 hover:border-neutral-300 hover:bg-neutral-50",
-                    item.level === 2 && "text-neutral-400",
-                    item.level === 3 && "pl-2 text-neutral-400/90",
-                    item.level === 4 && "pl-4 text-neutral-200",
-                  ],
-                )}
-              >
-                {item.text}
-              </a>
-            ))}
+            {tocTree.map((item) => <TocNode key={item.id} item={item} />)}
           </nav>
         )}
       </div>
@@ -276,7 +338,7 @@ function ArticleFooter() {
 function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
   return (
     <aside className="hidden sm:block w-80 shrink-0">
-      <div className="sticky top-[65px] space-y-8 px-4 py-6">
+      <div className="sticky top-[65px] space-y-4 px-4 py-6">
         {relatedArticles.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-4">

@@ -1,4 +1,3 @@
-import { useRouteContext } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
@@ -9,10 +8,11 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
-import { id } from "../../../utils";
 import { ChatFloatingButton } from "../../chat";
+import { useNewNote } from "../shared";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
+import { TabContentEmpty, TabItemEmpty } from "./empty";
 import { TabContentEvent, TabItemEvent } from "./events";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
@@ -43,7 +43,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
   const { select, close, reorder, goBack, goNext, canGoBack, canGoNext, closeOthers, closeAll } = useTabs();
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
-  const handleNewNote = useNewTab();
+  const handleNewEmptyTab = useNewEmptyTab();
 
   const setTabRef = useScrollActiveTabIntoView(tabs);
   useTabsShortcuts();
@@ -129,7 +129,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
         className="flex-1 flex h-full items-center justify-between"
       >
         <Button
-          onClick={handleNewNote}
+          onClick={handleNewEmptyTab}
           variant="ghost"
           size="icon"
           className="text-neutral-500"
@@ -235,6 +235,18 @@ function TabItem(
       />
     );
   }
+  if (tab.type === "empty") {
+    return (
+      <TabItemEmpty
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -257,6 +269,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "contacts") {
     return <TabContentContact tab={tab} />;
+  }
+  if (tab.type === "empty") {
+    return <TabContentEmpty tab={tab} />;
   }
 
   return null;
@@ -326,7 +341,8 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
 
 function useTabsShortcuts() {
   const { tabs, currentTab, close, select } = useTabs();
-  const newTab = useNewTab();
+  const newNote = useNewNote({ behavior: "new" });
+  const newEmptyTab = useNewEmptyTab();
 
   useHotkeys(
     "mod+n",
@@ -334,17 +350,17 @@ function useTabsShortcuts() {
       if (currentTab) {
         close(currentTab);
       }
-      newTab();
+      newNote();
     },
     { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
-    [currentTab, close, newTab],
+    [currentTab, close, newNote],
   );
 
   useHotkeys(
     "mod+t",
-    () => newTab(),
+    () => newEmptyTab(),
     { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
-    [newTab],
+    [newEmptyTab],
   );
 
   useHotkeys(
@@ -378,22 +394,12 @@ function useTabsShortcuts() {
   return {};
 }
 
-function useNewTab() {
-  const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
+function useNewEmptyTab() {
   const { openNew } = useTabs();
 
   const handler = useCallback(() => {
-    const user_id = internalStore?.getValue("user_id");
-    const sessionId = id();
-
-    persistedStore?.setRow("sessions", sessionId, {
-      user_id,
-      created_at: new Date().toISOString(),
-      title: "",
-    });
-
-    openNew({ type: "sessions", id: sessionId });
-  }, [persistedStore, internalStore, openNew]);
+    openNew({ type: "empty" });
+  }, [openNew]);
 
   return handler;
 }

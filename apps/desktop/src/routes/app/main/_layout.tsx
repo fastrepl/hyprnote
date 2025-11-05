@@ -10,22 +10,18 @@ import { ShellProvider } from "../../../contexts/shell";
 import { useRegisterTools } from "../../../contexts/tool";
 import { ToolRegistryProvider } from "../../../contexts/tool";
 import { useTabs } from "../../../store/zustand/tabs";
-import { id } from "../../../utils";
 
 export const Route = createFileRoute("/app/main/_layout")({
   component: Component,
 });
 
 function Component() {
-  const { persistedStore, internalStore, aiTaskStore, toolRegistry } = useRouteContext({ from: "__root__" });
+  const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({ from: "__root__" });
   const { registerOnClose, registerOnEmpty, currentTab, openNew, invalidateResource } = useTabs();
 
-  const createDefaultSession = useCallback(() => {
-    const user_id = internalStore?.getValue("user_id");
-    const sessionId = id();
-    persistedStore?.setRow("sessions", sessionId, { user_id, created_at: new Date().toISOString() });
-    openNew({ id: sessionId, type: "sessions" });
-  }, [persistedStore, internalStore, openNew]);
+  const openDefaultEmptyTab = useCallback(() => {
+    openNew({ type: "empty" });
+  }, [openNew]);
 
   useEffect(() => {
     registerOnClose((tab) => {
@@ -55,13 +51,13 @@ function Component() {
 
   useEffect(() => {
     if (!currentTab) {
-      createDefaultSession();
+      openDefaultEmptyTab();
     }
-  }, [currentTab, createDefaultSession]);
+  }, [currentTab, openDefaultEmptyTab]);
 
   useEffect(() => {
-    registerOnEmpty(createDefaultSession);
-  }, [createDefaultSession, registerOnEmpty]);
+    registerOnEmpty(openDefaultEmptyTab);
+  }, [openDefaultEmptyTab, registerOnEmpty]);
 
   if (!aiTaskStore) {
     return null;

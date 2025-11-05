@@ -117,6 +117,10 @@ export const computeHistoryFlags = (
 };
 
 export const pushHistory = (history: Map<string, TabHistory>, tab: Tab): Map<string, TabHistory> => {
+  if (tab.type === "empty") {
+    return history;
+  }
+
   const newHistory = new Map(history);
   const slotId = tab.slotId;
   const existing = newHistory.get(slotId);

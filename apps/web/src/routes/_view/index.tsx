@@ -1112,7 +1112,7 @@ function FeaturesMobileCarousel({
     <div className="max-[800px]:block hidden">
       <div
         ref={featuresScrollRef}
-        className="overflow-x-auto scrollbar-none snap-x snap-mandatory scrollbar-none"
+        className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
         onScroll={(e) => {
           const container = e.currentTarget;
           const scrollLeft = container.scrollLeft;
@@ -1307,7 +1307,7 @@ function DetailsMobileCarousel({
     <div className="max-[800px]:block hidden">
       <div
         ref={detailsScrollRef}
-        className="overflow-x-auto scrollbar-none snap-x snap-mandatory scrollbar-none"
+        className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
         onScroll={(e) => {
           const container = e.currentTarget;
           const scrollLeft = container.scrollLeft;
@@ -1383,7 +1383,7 @@ function DetailsTabletView({
   return (
     <div className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100">
       <div className="flex flex-col">
-        <div className="overflow-x-auto scrollbar-none border-b border-neutral-100">
+        <div className="overflow-x-auto scrollbar-hide border-b border-neutral-100">
           <div className="flex">
             {detailsFeatures.map((feature, index) => (
               <button

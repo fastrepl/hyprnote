@@ -65,7 +65,7 @@ export function TimelineView() {
       <div
         ref={containerRef}
         className={cn([
-          "flex flex-col h-full overflow-y-auto",
+          "flex flex-col h-full overflow-y-auto scrollbar-hide",
           "bg-neutral-50 rounded-lg",
         ])}
       >

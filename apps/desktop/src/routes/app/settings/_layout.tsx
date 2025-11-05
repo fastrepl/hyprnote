@@ -71,7 +71,7 @@ function Component() {
 
       <div className="flex-1 flex flex-col gap-1 h-full w-full overflow-hidden bg-white">
         <Header />
-        <div className="flex-1 w-full overflow-y-auto scrollbar-none p-6 border border-neutral-200 rounded-lg">
+        <div className="flex-1 w-full overflow-y-auto scrollbar-hide p-6 border border-neutral-200 rounded-lg">
           <Outlet />
         </div>
       </div>

@@ -346,9 +346,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@hypr/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@hypr/ui':
         specifier: workspace:*
         version: link:../../packages/ui

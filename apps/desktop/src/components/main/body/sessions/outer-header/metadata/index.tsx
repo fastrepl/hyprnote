@@ -4,6 +4,7 @@ import { forwardRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { cn } from "@hypr/utils";
 import * as main from "../../../../../../store/tinybase/main";
 import { DateDisplay } from "./date";
 import { ParticipantsDisplay } from "./participants";
@@ -14,7 +15,7 @@ export function MetadataButton({ sessionId }: { sessionId: string }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <TriggerInner sessionId={sessionId} />
+        <TriggerInner sessionId={sessionId} open={open} />
       </PopoverTrigger>
       <PopoverContent
         align="end"
@@ -26,18 +27,26 @@ export function MetadataButton({ sessionId }: { sessionId: string }) {
   );
 }
 
-const TriggerInner = forwardRef<HTMLButtonElement, { sessionId: string }>(({ sessionId, ...props }, ref) => {
-  const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
+const TriggerInner = forwardRef<HTMLButtonElement, { sessionId: string; open?: boolean }>(
+  ({ sessionId, open, ...props }, ref) => {
+    const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
 
-  return (
-    <Button ref={ref} {...props} variant="ghost" size="sm" className="gap-1.5 h-8 px-1">
-      <CalendarIcon size={12} />
-      <span className="text-xs">
-        {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
-      </span>
-    </Button>
-  );
-});
+    return (
+      <Button
+        ref={ref}
+        {...props}
+        variant="ghost"
+        size="sm"
+        className={cn(["gap-1.5 h-8 px-1", open && "bg-neutral-100"])}
+      >
+        <CalendarIcon size={12} />
+        <span className="text-xs">
+          {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
+        </span>
+      </Button>
+    );
+  },
+);
 
 function ContentInner({ sessionId }: { sessionId: string }) {
   return (

@@ -79,7 +79,7 @@ export function SegmentHeader({
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <span style={{ color }} className="cursor-pointer px-1 py-0.5 rounded hover:bg-neutral-100">
+            <span style={{ color }} className="cursor-pointer rounded hover:bg-neutral-100">
               {label}
             </span>
           </DropdownMenuTrigger>

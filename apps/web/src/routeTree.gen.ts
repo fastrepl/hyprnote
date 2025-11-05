@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YoutubeRouteImport } from './routes/youtube'
 import { Route as XRouteImport } from './routes/x'
 import { Route as LinkedinRouteImport } from './routes/linkedin'
 import { Route as JoinWaitlistRouteImport } from './routes/join-waitlist'
@@ -22,10 +23,14 @@ import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
+import { Route as ViewTeamRouteImport } from './routes/_view/team'
+import { Route as ViewRoadmapRouteImport } from './routes/_view/roadmap'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
+import { Route as ViewFaqRouteImport } from './routes/_view/faq'
+import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
+import { Route as ViewAboutRouteImport } from './routes/_view/about'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
-import { Route as ViewProductIndexRouteImport } from './routes/_view/product/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
@@ -33,6 +38,15 @@ import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiTemplatesSlugRouteImport } from './routes/api/templates/$slug'
+import { Route as ViewProductTranscriptRouteImport } from './routes/_view/product/transcript'
+import { Route as ViewProductTemplatesRouteImport } from './routes/_view/product/templates'
+import { Route as ViewProductSummaryRouteImport } from './routes/_view/product/summary'
+import { Route as ViewProductNotetakingRouteImport } from './routes/_view/product/notetaking'
+import { Route as ViewProductLocalAiRouteImport } from './routes/_view/product/local-ai'
+import { Route as ViewProductLocalRouteImport } from './routes/_view/product/local'
+import { Route as ViewProductHybridNotetakingRouteImport } from './routes/_view/product/hybrid-notetaking'
+import { Route as ViewProductChatRouteImport } from './routes/_view/product/chat'
+import { Route as ViewProductAiNotetakingRouteImport } from './routes/_view/product/ai-notetaking'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDocsSlugRouteImport } from './routes/_view/docs/$slug'
@@ -42,6 +56,11 @@ import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 
+const YoutubeRoute = YoutubeRouteImport.update({
+  id: '/youtube',
+  path: '/youtube',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const XRoute = XRouteImport.update({
   id: '/x',
   path: '/x',
@@ -106,9 +125,34 @@ const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
   path: '/api/templates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ViewTeamRoute = ViewTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewRoadmapRoute = ViewRoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewPricingRoute = ViewPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewFaqRoute = ViewFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewEnterpriseRoute = ViewEnterpriseRouteImport.update({
+  id: '/enterprise',
+  path: '/enterprise',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewAboutRoute = ViewAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDocsRouteRoute = ViewDocsRouteRouteImport.update({
@@ -119,11 +163,6 @@ const ViewDocsRouteRoute = ViewDocsRouteRouteImport.update({
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   id: '/app',
   path: '/app',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewProductIndexRoute = ViewProductIndexRouteImport.update({
-  id: '/product/',
-  path: '/product/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
@@ -160,6 +199,52 @@ const ApiTemplatesSlugRoute = ApiTemplatesSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => ApiTemplatesRoute,
+} as any)
+const ViewProductTranscriptRoute = ViewProductTranscriptRouteImport.update({
+  id: '/product/transcript',
+  path: '/product/transcript',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductTemplatesRoute = ViewProductTemplatesRouteImport.update({
+  id: '/product/templates',
+  path: '/product/templates',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductSummaryRoute = ViewProductSummaryRouteImport.update({
+  id: '/product/summary',
+  path: '/product/summary',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductNotetakingRoute = ViewProductNotetakingRouteImport.update({
+  id: '/product/notetaking',
+  path: '/product/notetaking',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductLocalAiRoute = ViewProductLocalAiRouteImport.update({
+  id: '/product/local-ai',
+  path: '/product/local-ai',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductLocalRoute = ViewProductLocalRouteImport.update({
+  id: '/product/local',
+  path: '/product/local',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductHybridNotetakingRoute =
+  ViewProductHybridNotetakingRouteImport.update({
+    id: '/product/hybrid-notetaking',
+    path: '/product/hybrid-notetaking',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
+const ViewProductChatRoute = ViewProductChatRouteImport.update({
+  id: '/product/chat',
+  path: '/product/chat',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductAiNotetakingRoute = ViewProductAiNotetakingRouteImport.update({
+  id: '/product/ai-notetaking',
+  path: '/product/ai-notetaking',
+  getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   id: '/legal/$slug',
@@ -212,9 +297,15 @@ export interface FileRoutesByFullPath {
   '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
+  '/youtube': typeof YoutubeRoute
   '/app': typeof ViewAppRouteRouteWithChildren
   '/docs': typeof ViewDocsRouteRouteWithChildren
+  '/about': typeof ViewAboutRoute
+  '/enterprise': typeof ViewEnterpriseRoute
+  '/faq': typeof ViewFaqRoute
   '/pricing': typeof ViewPricingRoute
+  '/roadmap': typeof ViewRoadmapRoute
+  '/team': typeof ViewTeamRoute
   '/api/templates': typeof ApiTemplatesRouteWithChildren
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -227,6 +318,15 @@ export interface FileRoutesByFullPath {
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
+  '/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
+  '/product/chat': typeof ViewProductChatRoute
+  '/product/hybrid-notetaking': typeof ViewProductHybridNotetakingRoute
+  '/product/local': typeof ViewProductLocalRoute
+  '/product/local-ai': typeof ViewProductLocalAiRoute
+  '/product/notetaking': typeof ViewProductNotetakingRoute
+  '/product/summary': typeof ViewProductSummaryRoute
+  '/product/templates': typeof ViewProductTemplatesRoute
+  '/product/transcript': typeof ViewProductTranscriptRoute
   '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
@@ -234,7 +334,6 @@ export interface FileRoutesByFullPath {
   '/docs/': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
-  '/product': typeof ViewProductIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -245,7 +344,13 @@ export interface FileRoutesByTo {
   '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
+  '/youtube': typeof YoutubeRoute
+  '/about': typeof ViewAboutRoute
+  '/enterprise': typeof ViewEnterpriseRoute
+  '/faq': typeof ViewFaqRoute
   '/pricing': typeof ViewPricingRoute
+  '/roadmap': typeof ViewRoadmapRoute
+  '/team': typeof ViewTeamRoute
   '/api/templates': typeof ApiTemplatesRouteWithChildren
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -258,6 +363,15 @@ export interface FileRoutesByTo {
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
+  '/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
+  '/product/chat': typeof ViewProductChatRoute
+  '/product/hybrid-notetaking': typeof ViewProductHybridNotetakingRoute
+  '/product/local': typeof ViewProductLocalRoute
+  '/product/local-ai': typeof ViewProductLocalAiRoute
+  '/product/notetaking': typeof ViewProductNotetakingRoute
+  '/product/summary': typeof ViewProductSummaryRoute
+  '/product/templates': typeof ViewProductTemplatesRoute
+  '/product/transcript': typeof ViewProductTranscriptRoute
   '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
@@ -265,7 +379,6 @@ export interface FileRoutesByTo {
   '/docs': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
-  '/product': typeof ViewProductIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -278,9 +391,15 @@ export interface FileRoutesById {
   '/join-waitlist': typeof JoinWaitlistRoute
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
+  '/youtube': typeof YoutubeRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
   '/_view/docs': typeof ViewDocsRouteRouteWithChildren
+  '/_view/about': typeof ViewAboutRoute
+  '/_view/enterprise': typeof ViewEnterpriseRoute
+  '/_view/faq': typeof ViewFaqRoute
   '/_view/pricing': typeof ViewPricingRoute
+  '/_view/roadmap': typeof ViewRoadmapRoute
+  '/_view/team': typeof ViewTeamRoute
   '/api/templates': typeof ApiTemplatesRouteWithChildren
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -293,6 +412,15 @@ export interface FileRoutesById {
   '/_view/docs/$slug': typeof ViewDocsSlugRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
+  '/_view/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
+  '/_view/product/chat': typeof ViewProductChatRoute
+  '/_view/product/hybrid-notetaking': typeof ViewProductHybridNotetakingRoute
+  '/_view/product/local': typeof ViewProductLocalRoute
+  '/_view/product/local-ai': typeof ViewProductLocalAiRoute
+  '/_view/product/notetaking': typeof ViewProductNotetakingRoute
+  '/_view/product/summary': typeof ViewProductSummaryRoute
+  '/_view/product/templates': typeof ViewProductTemplatesRoute
+  '/_view/product/transcript': typeof ViewProductTranscriptRoute
   '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
@@ -300,7 +428,6 @@ export interface FileRoutesById {
   '/_view/docs/': typeof ViewDocsIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
-  '/_view/product/': typeof ViewProductIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -313,9 +440,15 @@ export interface FileRouteTypes {
     | '/join-waitlist'
     | '/linkedin'
     | '/x'
+    | '/youtube'
     | '/app'
     | '/docs'
+    | '/about'
+    | '/enterprise'
+    | '/faq'
     | '/pricing'
+    | '/roadmap'
+    | '/team'
     | '/api/templates'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -328,6 +461,15 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/download/apple-silicon'
     | '/legal/$slug'
+    | '/product/ai-notetaking'
+    | '/product/chat'
+    | '/product/hybrid-notetaking'
+    | '/product/local'
+    | '/product/local-ai'
+    | '/product/notetaking'
+    | '/product/summary'
+    | '/product/templates'
+    | '/product/transcript'
     | '/api/templates/$slug'
     | '/app/'
     | '/blog'
@@ -335,7 +477,6 @@ export interface FileRouteTypes {
     | '/docs/'
     | '/download'
     | '/legal'
-    | '/product'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -346,7 +487,13 @@ export interface FileRouteTypes {
     | '/join-waitlist'
     | '/linkedin'
     | '/x'
+    | '/youtube'
+    | '/about'
+    | '/enterprise'
+    | '/faq'
     | '/pricing'
+    | '/roadmap'
+    | '/team'
     | '/api/templates'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -359,6 +506,15 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/download/apple-silicon'
     | '/legal/$slug'
+    | '/product/ai-notetaking'
+    | '/product/chat'
+    | '/product/hybrid-notetaking'
+    | '/product/local'
+    | '/product/local-ai'
+    | '/product/notetaking'
+    | '/product/summary'
+    | '/product/templates'
+    | '/product/transcript'
     | '/api/templates/$slug'
     | '/app'
     | '/blog'
@@ -366,7 +522,6 @@ export interface FileRouteTypes {
     | '/docs'
     | '/download'
     | '/legal'
-    | '/product'
   id:
     | '__root__'
     | '/_view'
@@ -378,9 +533,15 @@ export interface FileRouteTypes {
     | '/join-waitlist'
     | '/linkedin'
     | '/x'
+    | '/youtube'
     | '/_view/app'
     | '/_view/docs'
+    | '/_view/about'
+    | '/_view/enterprise'
+    | '/_view/faq'
     | '/_view/pricing'
+    | '/_view/roadmap'
+    | '/_view/team'
     | '/api/templates'
     | '/webhook/nango'
     | '/webhook/stripe'
@@ -393,6 +554,15 @@ export interface FileRouteTypes {
     | '/_view/docs/$slug'
     | '/_view/download/apple-silicon'
     | '/_view/legal/$slug'
+    | '/_view/product/ai-notetaking'
+    | '/_view/product/chat'
+    | '/_view/product/hybrid-notetaking'
+    | '/_view/product/local'
+    | '/_view/product/local-ai'
+    | '/_view/product/notetaking'
+    | '/_view/product/summary'
+    | '/_view/product/templates'
+    | '/_view/product/transcript'
     | '/api/templates/$slug'
     | '/_view/app/'
     | '/_view/blog/'
@@ -400,7 +570,6 @@ export interface FileRouteTypes {
     | '/_view/docs/'
     | '/_view/download/'
     | '/_view/legal/'
-    | '/_view/product/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -413,6 +582,7 @@ export interface RootRouteChildren {
   JoinWaitlistRoute: typeof JoinWaitlistRoute
   LinkedinRoute: typeof LinkedinRoute
   XRoute: typeof XRoute
+  YoutubeRoute: typeof YoutubeRoute
   ApiTemplatesRoute: typeof ApiTemplatesRouteWithChildren
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
@@ -420,6 +590,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/youtube': {
+      id: '/youtube'
+      path: '/youtube'
+      fullPath: '/youtube'
+      preLoaderRoute: typeof YoutubeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/x': {
       id: '/x'
       path: '/x'
@@ -511,11 +688,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_view/team': {
+      id: '/_view/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof ViewTeamRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/roadmap': {
+      id: '/_view/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof ViewRoadmapRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/pricing': {
       id: '/_view/pricing'
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof ViewPricingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/faq': {
+      id: '/_view/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof ViewFaqRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/enterprise': {
+      id: '/_view/enterprise'
+      path: '/enterprise'
+      fullPath: '/enterprise'
+      preLoaderRoute: typeof ViewEnterpriseRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/about': {
+      id: '/_view/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof ViewAboutRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/docs': {
@@ -530,13 +742,6 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof ViewAppRouteRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/': {
-      id: '/_view/product/'
-      path: '/product'
-      fullPath: '/product'
-      preLoaderRoute: typeof ViewProductIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/legal/': {
@@ -587,6 +792,69 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/templates/$slug'
       preLoaderRoute: typeof ApiTemplatesSlugRouteImport
       parentRoute: typeof ApiTemplatesRoute
+    }
+    '/_view/product/transcript': {
+      id: '/_view/product/transcript'
+      path: '/product/transcript'
+      fullPath: '/product/transcript'
+      preLoaderRoute: typeof ViewProductTranscriptRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/templates': {
+      id: '/_view/product/templates'
+      path: '/product/templates'
+      fullPath: '/product/templates'
+      preLoaderRoute: typeof ViewProductTemplatesRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/summary': {
+      id: '/_view/product/summary'
+      path: '/product/summary'
+      fullPath: '/product/summary'
+      preLoaderRoute: typeof ViewProductSummaryRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/notetaking': {
+      id: '/_view/product/notetaking'
+      path: '/product/notetaking'
+      fullPath: '/product/notetaking'
+      preLoaderRoute: typeof ViewProductNotetakingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/local-ai': {
+      id: '/_view/product/local-ai'
+      path: '/product/local-ai'
+      fullPath: '/product/local-ai'
+      preLoaderRoute: typeof ViewProductLocalAiRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/local': {
+      id: '/_view/product/local'
+      path: '/product/local'
+      fullPath: '/product/local'
+      preLoaderRoute: typeof ViewProductLocalRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/hybrid-notetaking': {
+      id: '/_view/product/hybrid-notetaking'
+      path: '/product/hybrid-notetaking'
+      fullPath: '/product/hybrid-notetaking'
+      preLoaderRoute: typeof ViewProductHybridNotetakingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/chat': {
+      id: '/_view/product/chat'
+      path: '/product/chat'
+      fullPath: '/product/chat'
+      preLoaderRoute: typeof ViewProductChatRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/ai-notetaking': {
+      id: '/_view/product/ai-notetaking'
+      path: '/product/ai-notetaking'
+      fullPath: '/product/ai-notetaking'
+      preLoaderRoute: typeof ViewProductAiNotetakingRouteImport
+      parentRoute: typeof ViewRouteRoute
     }
     '/_view/legal/$slug': {
       id: '/_view/legal/$slug'
@@ -680,35 +948,61 @@ const ViewDocsRouteRouteWithChildren = ViewDocsRouteRoute._addFileChildren(
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
   ViewDocsRouteRoute: typeof ViewDocsRouteRouteWithChildren
+  ViewAboutRoute: typeof ViewAboutRoute
+  ViewEnterpriseRoute: typeof ViewEnterpriseRoute
+  ViewFaqRoute: typeof ViewFaqRoute
   ViewPricingRoute: typeof ViewPricingRoute
+  ViewRoadmapRoute: typeof ViewRoadmapRoute
+  ViewTeamRoute: typeof ViewTeamRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
   ViewLegalSlugRoute: typeof ViewLegalSlugRoute
+  ViewProductAiNotetakingRoute: typeof ViewProductAiNotetakingRoute
+  ViewProductChatRoute: typeof ViewProductChatRoute
+  ViewProductHybridNotetakingRoute: typeof ViewProductHybridNotetakingRoute
+  ViewProductLocalRoute: typeof ViewProductLocalRoute
+  ViewProductLocalAiRoute: typeof ViewProductLocalAiRoute
+  ViewProductNotetakingRoute: typeof ViewProductNotetakingRoute
+  ViewProductSummaryRoute: typeof ViewProductSummaryRoute
+  ViewProductTemplatesRoute: typeof ViewProductTemplatesRoute
+  ViewProductTranscriptRoute: typeof ViewProductTranscriptRoute
   ViewBlogIndexRoute: typeof ViewBlogIndexRoute
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
   ViewLegalIndexRoute: typeof ViewLegalIndexRoute
-  ViewProductIndexRoute: typeof ViewProductIndexRoute
 }
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
   ViewDocsRouteRoute: ViewDocsRouteRouteWithChildren,
+  ViewAboutRoute: ViewAboutRoute,
+  ViewEnterpriseRoute: ViewEnterpriseRoute,
+  ViewFaqRoute: ViewFaqRoute,
   ViewPricingRoute: ViewPricingRoute,
+  ViewRoadmapRoute: ViewRoadmapRoute,
+  ViewTeamRoute: ViewTeamRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
   ViewLegalSlugRoute: ViewLegalSlugRoute,
+  ViewProductAiNotetakingRoute: ViewProductAiNotetakingRoute,
+  ViewProductChatRoute: ViewProductChatRoute,
+  ViewProductHybridNotetakingRoute: ViewProductHybridNotetakingRoute,
+  ViewProductLocalRoute: ViewProductLocalRoute,
+  ViewProductLocalAiRoute: ViewProductLocalAiRoute,
+  ViewProductNotetakingRoute: ViewProductNotetakingRoute,
+  ViewProductSummaryRoute: ViewProductSummaryRoute,
+  ViewProductTemplatesRoute: ViewProductTemplatesRoute,
+  ViewProductTranscriptRoute: ViewProductTranscriptRoute,
   ViewBlogIndexRoute: ViewBlogIndexRoute,
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,
   ViewLegalIndexRoute: ViewLegalIndexRoute,
-  ViewProductIndexRoute: ViewProductIndexRoute,
 }
 
 const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
@@ -737,6 +1031,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinWaitlistRoute: JoinWaitlistRoute,
   LinkedinRoute: LinkedinRoute,
   XRoute: XRoute,
+  YoutubeRoute: YoutubeRoute,
   ApiTemplatesRoute: ApiTemplatesRouteWithChildren,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,

@@ -13,6 +13,7 @@ import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
 import { Image } from "@/components/image";
 import { LogoCloud } from "@/components/logo-cloud";
+import { MockWindow } from "@/components/mock-window";
 import { SlashSeparator } from "@/components/slash-separator";
 import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
@@ -345,9 +346,20 @@ function HeroSection({
                         </p>
                       )}
                       {!mutation.isSuccess && !mutation.isError && (
-                        <p className="text-neutral-500 mt-4 text-sm">
-                          {heroCTA.subtext}
-                        </p>
+                        heroCTA.subtextLink
+                          ? (
+                            <Link
+                              to={heroCTA.subtextLink}
+                              className="text-neutral-500 hover:text-neutral-700 hover:underline decoration-dotted mt-4 text-sm block transition-colors"
+                            >
+                              {heroCTA.subtext}
+                            </Link>
+                          )
+                          : (
+                            <p className="text-neutral-500 mt-4 text-sm">
+                              {heroCTA.subtext}
+                            </p>
+                          )
                       )}
                     </>
                   )}
@@ -357,9 +369,20 @@ function HeroSection({
             : (
               <div className="flex flex-col gap-4 items-center">
                 <DownloadButton />
-                <p className="text-neutral-500 text-sm">
-                  {heroCTA.subtext}
-                </p>
+                {heroCTA.subtextLink
+                  ? (
+                    <Link
+                      to={heroCTA.subtextLink}
+                      className="text-neutral-500 hover:text-neutral-700 text-sm transition-colors"
+                    >
+                      {heroCTA.subtext}
+                    </Link>
+                  )
+                  : (
+                    <p className="text-neutral-500 text-sm">
+                      {heroCTA.subtext}
+                    </p>
+                  )}
               </div>
             )}
         </section>
@@ -742,13 +765,7 @@ function HowItWorksSection() {
                       setEnhancedLines(3);
                       setTimeout(() => {
                         setEnhancedLines(4);
-                        setTimeout(() => {
-                          setEnhancedLines(5);
-                          setTimeout(() => {
-                            setEnhancedLines(6);
-                            setTimeout(() => runAnimation(), 3000);
-                          }, 800);
-                        }, 800);
+                        setTimeout(() => runAnimation(), 1000);
                       }, 800);
                     }, 800);
                   }, 800);
@@ -778,20 +795,9 @@ function HowItWorksSection() {
               Hyprnote listens and keeps track of everything that happens during the meeting.
             </p>
           </div>
-          <div className="flex-1 flex items-center justify-center px-8 pb-0 bg-stone-50/30">
-            <div className="w-full max-w-lg bg-white rounded-t-xl shadow-lg border border-neutral-200 border-b-0 overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200 bg-neutral-50">
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                </div>
-                <div className="ml-auto">
-                  <DancingSticks amplitude={1} size="default" height={12} color="#a3a3a3" />
-                </div>
-              </div>
-              {/* Content area */}
-              <div className="p-6 space-y-3 text-sm min-h-[300px]">
+          <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
+            <MockWindow showAudioIndicator>
+              <div className="p-6 h-[300px] overflow-hidden">
                 <div className="text-neutral-700">ui update - moble</div>
                 <div className="text-neutral-700">api</div>
                 <div className="text-neutral-700 mt-4">new dash - urgnet</div>
@@ -805,7 +811,7 @@ function HowItWorksSection() {
                   {typedText2 && typedText2.length < text2.length && <span className="animate-pulse">|</span>}
                 </div>
               </div>
-            </div>
+            </MockWindow>
           </div>
         </div>
 
@@ -816,27 +822,21 @@ function HowItWorksSection() {
               Hyprnote combines your notes with transcripts to create a perfect summary
             </p>
           </div>
-          <div className="flex-1 flex items-start justify-center px-8 pb-0 bg-stone-50/30">
-            <div className="w-full max-w-lg bg-white rounded-t-xl shadow-lg border border-neutral-200 border-b-0 overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200 bg-neutral-50">
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                </div>
-              </div>
-              {/* Content area */}
-              <div className="p-6 space-y-4 min-h-[300px] max-h-[300px] overflow-hidden">
+          <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
+            <MockWindow>
+              <div className="p-6 space-y-4 h-[300px] overflow-hidden">
                 <div className="space-y-2">
                   <h4
                     className={cn(
-                      "font-semibold text-stone-700 transition-opacity duration-500",
-                      enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                      [
+                        "text-lg font-semibold text-stone-700 transition-opacity duration-500",
+                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                      ],
                     )}
                   >
                     Mobile UI Update and API Adjustments
                   </h4>
-                  <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
+                  <ul className="space-y-2 text-neutral-700 list-disc pl-5">
                     <li
                       className={cn(
                         "transition-opacity duration-500",
@@ -848,8 +848,7 @@ function HowItWorksSection() {
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 2 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
@@ -857,8 +856,7 @@ function HowItWorksSection() {
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 3 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       The UI update will be implemented in phases, starting with core navigation improvements. Ben will
@@ -869,8 +867,10 @@ function HowItWorksSection() {
                 <div className="space-y-2">
                   <h4
                     className={cn(
-                      "font-semibold text-stone-700 transition-opacity duration-500",
-                      enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                      [
+                        "font-semibold text-stone-700 transition-opacity duration-500",
+                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                      ],
                     )}
                   >
                     New Dashboard – Urgent Priority
@@ -878,8 +878,7 @@ function HowItWorksSection() {
                   <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 4 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       Alice emphasized that the new analytics dashboard must be prioritized due to increasing
@@ -887,68 +886,31 @@ function HowItWorksSection() {
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 5 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       The new dashboard will feature real-time user engagement metrics and a customizable reporting
                       system.
                     </li>
-                    <li
-                      className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
-                      )}
-                    >
-                      Ben mentioned that backend infrastructure needs optimization to handle real-time data processing.
-                    </li>
-                    <li
-                      className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
-                      )}
-                    >
-                      Mark stressed that the dashboard launch should align with marketing efforts to maximize user
-                      adoption.
-                    </li>
-                    <li
-                      className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
-                      )}
-                    >
-                      Development will start immediately, and a basic prototype must be ready for stakeholder review
-                      next week.
-                    </li>
                   </ul>
                 </div>
               </div>
-            </div>
+            </MockWindow>
           </div>
         </div>
       </div>
 
       <div className="sm:hidden">
         <div className="border-b border-neutral-100">
-          <div className="p-6">
+          <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
               <span className="font-semibold">While you take notes,</span>{" "}
               Hyprnote listens and keeps track of everything that happens during the meeting.
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
-            <div className="bg-white rounded-t-lg shadow-lg border border-neutral-200 border-b-0 overflow-hidden">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-neutral-200 bg-neutral-50">
-                <div className="flex gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                </div>
-                <div className="ml-auto">
-                  <DancingSticks amplitude={1} size="default" height={10} color="#a3a3a3" />
-                </div>
-              </div>
-              <div className="p-4 space-y-2 font-mono text-xs min-h-[200px]">
+            <MockWindow variant="mobile" showAudioIndicator>
+              <div className="p-6 h-[200px] overflow-hidden">
                 <div className="text-neutral-700">ui update - moble</div>
                 <div className="text-neutral-700">api</div>
                 <div className="text-neutral-700 mt-3">new dash - urgnet</div>
@@ -962,30 +924,23 @@ function HowItWorksSection() {
                   {typedText2 && typedText2.length < text2.length && <span className="animate-pulse">|</span>}
                 </div>
               </div>
-            </div>
+            </MockWindow>
           </div>
         </div>
 
         <div>
-          <div className="p-6">
+          <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
               <span className="font-semibold">After the meeting is over,</span>{" "}
               Hyprnote combines your notes with transcripts to create a perfect summary
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
-            <div className="bg-white rounded-t-lg shadow-lg border border-neutral-200 border-b-0 overflow-hidden">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-neutral-200 bg-neutral-50">
-                <div className="flex gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                  <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                </div>
-              </div>
-              <div className="p-4 space-y-3 min-h-[200px] max-h-[200px] overflow-hidden">
+            <MockWindow variant="mobile">
+              <div className="p-6 space-y-4 h-[200px] overflow-hidden">
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-stone-700 text-sm">Mobile UI Update and API Adjustments</h4>
-                  <ul className="space-y-2 text-xs text-neutral-700 list-disc pl-4">
+                  <h4 className="text-lg font-semibold text-stone-700">Mobile UI Update and API Adjustments</h4>
+                  <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                     <li
                       className={cn(
                         "transition-opacity duration-500",
@@ -1016,8 +971,8 @@ function HowItWorksSection() {
                   </ul>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-stone-700 text-sm">New Dashboard – Urgent Priority</h4>
-                  <ul className="space-y-2 text-xs text-neutral-700 list-disc pl-4">
+                  <h4 className="text-lg font-semibold text-stone-700">New Dashboard – Urgent Priority</h4>
+                  <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                     <li
                       className={cn(
                         "transition-opacity duration-500",
@@ -1065,7 +1020,7 @@ function HowItWorksSection() {
                   </ul>
                 </div>
               </div>
-            </div>
+            </MockWindow>
           </div>
         </div>
       </div>

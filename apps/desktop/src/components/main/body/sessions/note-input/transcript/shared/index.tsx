@@ -58,7 +58,7 @@ export function TranscriptContainer({
         ref={containerRef}
         className={cn([
           "space-y-8 h-full overflow-y-auto overflow-x-hidden",
-          "px-0.5 pb-16 scroll-pb-[8rem] scrollbar-hide",
+          "px-2 pb-16 scroll-pb-[8rem] scrollbar-hide",
         ])}
       >
         {transcriptIds.map(

@@ -12,7 +12,11 @@ export function Transcript({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="relative h-full flex flex-col">
-      {inactive && <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />}
+      {inactive && (
+        <div className="px-2">
+          <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />
+        </div>
+      )}
 
       <div className="flex-1 overflow-hidden">
         {isEditing

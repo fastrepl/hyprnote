@@ -75,17 +75,17 @@ function ActionItem({
       ])}
     >
       <span>{label}</span>
-      {shortcut && shortcut.length > 0 ? (
-        <KbdGroup>
-          {shortcut.map((key, index) => (
-            <Kbd key={index} className="bg-neutral-200">
-              {key}
-            </Kbd>
-          ))}
-        </KbdGroup>
-      ) : (
-        <ArrowUpRight className="w-4 h-4 text-neutral-400" />
-      )}
+      {shortcut && shortcut.length > 0
+        ? (
+          <KbdGroup>
+            {shortcut.map((key, index) => (
+              <Kbd key={index} className="bg-neutral-200">
+                {key}
+              </Kbd>
+            ))}
+          </KbdGroup>
+        )
+        : <ArrowUpRight className="w-4 h-4 text-neutral-400" />}
     </button>
   );
 }

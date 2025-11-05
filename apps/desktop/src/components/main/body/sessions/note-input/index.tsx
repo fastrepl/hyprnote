@@ -40,19 +40,21 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <Header
-        sessionId={sessionId}
-        editorTabs={editorTabs}
-        currentTab={currentTab}
-        handleTabChange={handleTabChange}
-      />
+    <div className="flex flex-col h-full -mx-2">
+      <div className="px-2">
+        <Header
+          sessionId={sessionId}
+          editorTabs={editorTabs}
+          currentTab={currentTab}
+          handleTabChange={handleTabChange}
+        />
+      </div>
 
       <div
         onClick={handleContainerClick}
         className={cn([
           "flex-1 mt-1",
-          currentTab === "transcript" ? "overflow-hidden" : ["overflow-auto", "pb-8"],
+          currentTab === "transcript" ? "overflow-hidden" : ["overflow-auto", "pb-8", "px-2"],
         ])}
       >
         {currentTab === "enhanced" && <Enhanced ref={editorRef} sessionId={sessionId} />}

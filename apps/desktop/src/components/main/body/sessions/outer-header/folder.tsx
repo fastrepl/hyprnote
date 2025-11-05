@@ -27,9 +27,9 @@ export function FolderChain({ sessionId }: { sessionId: string }) {
   );
 
   return (
-    <Breadcrumb className="ml-1.5">
-      <BreadcrumbList className="text-neutral-700 text-xs">
-        {folderId && <FolderIcon className="w-3 h-3 mr-1" />}
+    <Breadcrumb className="ml-1.5 min-w-0">
+      <BreadcrumbList className="text-neutral-700 text-xs flex-nowrap overflow-hidden">
+        {folderId && <FolderIcon className="w-3 h-3 mr-1 shrink-0" />}
         {!folderId
           ? <RenderIfRootNotExist title={title} handleChangeTitle={handleChangeTitle} sessionId={sessionId} />
           : <RenderIfRootExist title={title} handleChangeTitle={handleChangeTitle} folderId={folderId} />}
@@ -55,19 +55,19 @@ function RenderIfRootExist(
     <>
       <FolderBreadcrumb
         folderId={folderId}
-        renderSeparator={({ index }) => (index > 0 ? <BreadcrumbSeparator /> : null)}
+        renderSeparator={({ index }) => (index > 0 ? <BreadcrumbSeparator className="shrink-0" /> : null)}
         renderCrumb={({ id, name }) => (
-          <BreadcrumbItem>
+          <BreadcrumbItem className="overflow-hidden">
             <BreadcrumbLink asChild>
-              <button onClick={() => openNew({ type: "folders", id })}>
+              <button onClick={() => openNew({ type: "folders", id })} className="truncate">
                 {name}
               </button>
             </BreadcrumbLink>
           </BreadcrumbItem>
         )}
       />
-      <BreadcrumbSeparator />
-      <BreadcrumbItem>
+      <BreadcrumbSeparator className="shrink-0" />
+      <BreadcrumbItem className="overflow-hidden">
         <BreadcrumbPage>
           <TitleInput title={title} handleChangeTitle={handleChangeTitle} />
         </BreadcrumbPage>
@@ -89,7 +89,7 @@ function RenderIfRootNotExist(
 ) {
   return (
     <>
-      <BreadcrumbItem>
+      <BreadcrumbItem className="shrink-0">
         <SearchableFolderDropdown
           sessionId={sessionId}
           trigger={
@@ -99,8 +99,8 @@ function RenderIfRootNotExist(
           }
         />
       </BreadcrumbItem>
-      <BreadcrumbSeparator />
-      <BreadcrumbItem>
+      <BreadcrumbSeparator className="shrink-0" />
+      <BreadcrumbItem className="overflow-hidden">
         <BreadcrumbPage>
           <TitleInput title={title} handleChangeTitle={handleChangeTitle} />
         </BreadcrumbPage>
@@ -114,7 +114,7 @@ function TitleInput({ title, handleChangeTitle }: { title: string; handleChangeT
     <input
       type="text"
       placeholder="Untitled"
-      className="truncate max-w-[80px] border-none bg-transparent text-neutral-700 focus:outline-none focus:underline"
+      className="truncate min-w-0 w-full border-none bg-transparent text-neutral-700 focus:outline-none focus:underline"
       value={title ?? ""}
       onChange={(e) => handleChangeTitle(e.target.value)}
     />

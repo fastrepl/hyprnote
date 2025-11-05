@@ -66,8 +66,10 @@ export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }
         afterBorder={showTimeline && <AudioPlayer.Timeline />}
         floatingButton={<FloatingActionButton tab={tab} />}
       >
-        <div className="flex flex-col h-full p-2">
-          <OuterHeader sessionId={tab.id} />
+        <div className="flex flex-col h-full">
+          <div className="px-2">
+            <OuterHeader sessionId={tab.id} />
+          </div>
           <div className="mt-3 px-2 flex-shrink-0">
             <TitleInput tab={tab} />
           </div>

@@ -102,10 +102,7 @@ export const createTasksSlice = <T extends TasksState>(
     const taskConfig = TASK_CONFIGS[config.taskType];
 
     try {
-      const [system, prompt] = await Promise.all([
-        taskConfig.getSystem(config.args, deps.persistedStore),
-        taskConfig.getPrompt(config.args, deps.persistedStore),
-      ]);
+      const enrichedArgs = await taskConfig.transformArgs(config.args, deps.persistedStore);
 
       set((state) =>
         mutate(state, (draft) => {
@@ -142,9 +139,7 @@ export const createTasksSlice = <T extends TasksState>(
 
       const workflowStream = taskConfig.executeWorkflow({
         model: config.model,
-        args: config.args,
-        system,
-        prompt,
+        args: enrichedArgs,
         onProgress,
         signal: abortController.signal,
       });

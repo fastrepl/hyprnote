@@ -1,54 +1,35 @@
-import { generateText, type LanguageModel, smoothStream, streamText } from "ai";
-
-import { commands as templateCommands } from "@hypr/plugin-template";
 import { buildSegments, type RuntimeSpeakerHint } from "../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
-import type { Store as PersistedStore } from "../../../tinybase/main";
-import { trimBeforeMarker } from "../shared/transform_impl";
-import type { TaskArgsMap, TaskConfig } from ".";
+import type { Store as MainStore } from "../../../tinybase/main";
+import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 
-export const enhance: TaskConfig<"enhance"> = {
-  getSystem,
-  getPrompt,
-  executeWorkflow,
-  transforms: [trimBeforeMarker("#"), smoothStream({ delayInMs: 350, chunking: "line" })],
+export const enhanceTransform: Pick<TaskConfig<"enhance">, "transformArgs"> = {
+  transformArgs,
 };
 
-async function getSystem(args: TaskArgsMap["enhance"]) {
-  const result = await templateCommands.render("enhance.system", {
-    hasTemplate: !!args.templateId,
-  });
-  if (result.status === "ok") {
-    return result.data;
-  }
-  console.error("Failed to render enhance system prompt:", result.error);
-  throw new Error(result.error);
-}
-
-async function getPrompt(args: TaskArgsMap["enhance"], store: PersistedStore) {
+async function transformArgs(
+  args: TaskArgsMap["enhance"],
+  store: MainStore,
+): Promise<TaskArgsMapTransformed["enhance"]> {
   const { sessionId, templateId } = args;
+
   const rawMd = (store.getCell("sessions", sessionId, "raw_md") as string) || "";
   const sessionData = getSessionData(sessionId, store);
   const participants = getParticipants(sessionId, store);
   const segments = getTranscriptSegments(sessionId, store);
+  const template = templateId ? getTemplateData(templateId, store) : undefined;
 
-  const templateData = templateId ? getTemplateData(templateId, store) : undefined;
-
-  const result = await templateCommands.render("enhance.user", {
-    content: rawMd,
-    session: sessionData,
+  return {
+    sessionId,
+    rawMd,
+    sessionData,
     participants,
-    template: templateData,
     segments,
-  });
-  if (result.status === "ok") {
-    return result.data;
-  }
-  console.error("Failed to render enhance user prompt:", result.error);
-  throw new Error(result.error);
+    template,
+  };
 }
 
-function getSessionData(sessionId: string, store: PersistedStore) {
+function getSessionData(sessionId: string, store: MainStore) {
   const rawTitle = store.getCell("sessions", sessionId, "title") as string;
   const eventId = store.getCell("sessions", sessionId, "event_id") as string;
 
@@ -69,7 +50,7 @@ function getSessionData(sessionId: string, store: PersistedStore) {
   };
 }
 
-function getParticipants(sessionId: string, store: PersistedStore) {
+function getParticipants(sessionId: string, store: MainStore) {
   const participantIds: string[] = [];
 
   store.forEachRow("mapping_session_participant", (mappingId, _forEachCell) => {
@@ -88,26 +69,59 @@ function getParticipants(sessionId: string, store: PersistedStore) {
   })).filter((p) => p.name);
 }
 
-function getTemplateData(templateId: string, store: PersistedStore) {
+function getTemplateData(templateId: string, store: MainStore) {
+  const user_id = store.getCell("templates", templateId, "user_id") as string;
+  const created_at = store.getCell("templates", templateId, "created_at") as string;
   const title = store.getCell("templates", templateId, "title") as string;
   const description = store.getCell("templates", templateId, "description") as string;
   const sectionsRaw = store.getCell("templates", templateId, "sections");
 
-  let sections: Array<{ title: string; description: string }> = [];
+  let sectionsParsed: unknown = [];
   if (typeof sectionsRaw === "string") {
-    sections = JSON.parse(sectionsRaw) as Array<{ title: string; description: string }>;
+    try {
+      sectionsParsed = JSON.parse(sectionsRaw);
+    } catch (error) {
+      console.error("Failed to parse template sections", error);
+      sectionsParsed = [];
+    }
   } else if (sectionsRaw !== undefined) {
-    sections = (sectionsRaw as unknown) as Array<{ title: string; description: string }>;
+    sectionsParsed = sectionsRaw;
   }
 
+  const sections = Array.isArray(sectionsParsed)
+    ? sectionsParsed
+      .map((section) => {
+        if (typeof section === "string") {
+          return { title: section, description: "" };
+        }
+
+        if (section && typeof section === "object") {
+          const maybeTitle = (section as any).title;
+          const maybeDescription = (section as any).description;
+
+          if (typeof maybeTitle === "string" && maybeTitle.trim().length > 0) {
+            return {
+              title: maybeTitle,
+              description: typeof maybeDescription === "string" ? maybeDescription : "",
+            };
+          }
+        }
+
+        return null;
+      })
+      .filter((section): section is { title: string; description: string } => section !== null)
+    : [];
+
   return {
+    user_id,
+    created_at,
     title,
     description,
     sections,
   };
 }
 
-function getTranscriptSegments(sessionId: string, store: PersistedStore) {
+function getTranscriptSegments(sessionId: string, store: MainStore) {
   const transcriptIds: string[] = [];
   const transcriptMap = new Map<string, number>();
 
@@ -179,41 +193,4 @@ function getTranscriptSegments(sessionId: string, store: PersistedStore) {
       })),
     };
   }).sort((a, b) => a.start_ms - b.start_ms);
-}
-
-async function* executeWorkflow(params: {
-  model: LanguageModel;
-  args: TaskArgsMap["enhance"];
-  system: string;
-  prompt: string;
-  onProgress: (step: any) => void;
-  signal: AbortSignal;
-}) {
-  const { model, args, system, prompt, onProgress, signal } = params;
-
-  if (!args.templateId) {
-    onProgress({ type: "analyzing" });
-
-    await generateText({
-      model,
-      prompt: `Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 
-The sections should cover the main themes and topics discussed.
-Generate around 5-7 sections based on the content depth.
-Give me in bullet points.
-
-Content: ${prompt}`,
-      abortSignal: signal,
-    });
-  }
-
-  onProgress({ type: "generating" });
-
-  const result = streamText({
-    model,
-    system,
-    prompt,
-    abortSignal: signal,
-  });
-
-  yield* result.fullStream;
 }

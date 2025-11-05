@@ -17,37 +17,11 @@ export const Route = createFileRoute("/app/main/_layout")({
 
 function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({ from: "__root__" });
-  const { registerOnClose, registerOnEmpty, currentTab, openNew, invalidateResource } = useTabs();
+  const { registerOnEmpty, currentTab, openNew } = useTabs();
 
   const openDefaultEmptyTab = useCallback(() => {
     openNew({ type: "empty" });
   }, [openNew]);
-
-  useEffect(() => {
-    registerOnClose((tab) => {
-      if (tab.type === "sessions" && persistedStore) {
-        const row = persistedStore.getRow("sessions", tab.id);
-        if (!row) {
-          return;
-        }
-
-        if (!row.title && !row.raw_md && !row.enhanced_md) {
-          let hasTranscript = false;
-          persistedStore.forEachRow("transcripts", (transcriptId, _forEachCell) => {
-            const sessionId = persistedStore.getCell("transcripts", transcriptId, "session_id");
-            if (sessionId === tab.id) {
-              hasTranscript = true;
-            }
-          });
-
-          if (!hasTranscript) {
-            invalidateResource("sessions", tab.id);
-            persistedStore.delRow("sessions", tab.id);
-          }
-        }
-      }
-    });
-  }, [persistedStore, registerOnClose, invalidateResource]);
 
   useEffect(() => {
     if (!currentTab) {

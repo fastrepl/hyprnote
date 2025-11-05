@@ -135,12 +135,8 @@ function RenderTranscript(
 ) {
   const finalWords = useFinalWords(transcriptId);
   const finalSpeakerHints = useFinalSpeakerHints(transcriptId);
-  const sessionId = main.UI.useCell(
-    "transcripts",
-    transcriptId,
-    "session_id",
-    main.STORE_ID,
-  ) as string | undefined;
+  const sessionId = main.UI.useCell("transcripts", transcriptId, "session_id", main.STORE_ID) as string | undefined;
+  const numSpeakers = useSessionSpeakers(sessionId);
 
   const allSpeakerHints = useMemo(() => {
     const finalWordsCount = finalWords.length;
@@ -151,7 +147,7 @@ function RenderTranscript(
     return [...finalSpeakerHints, ...adjustedPartialHints];
   }, [finalWords.length, finalSpeakerHints, partialHints]);
 
-  const segments = buildSegments(finalWords, partialWords, allSpeakerHints);
+  const segments = buildSegments(finalWords, partialWords, allSpeakerHints, { numSpeakers });
   const offsetMs = useTranscriptOffset(transcriptId);
 
   if (segments.length === 0) {
@@ -364,6 +360,20 @@ function useTranscriptOffset(transcriptId: string): number {
   return (transcriptStartedAt && firstTranscriptStartedAt)
     ? new Date(transcriptStartedAt).getTime() - new Date(firstTranscriptStartedAt).getTime()
     : 0;
+}
+
+function useSessionSpeakers(sessionId?: string) {
+  const mappingIds = main.UI.useSliceRowIds(
+    main.INDEXES.sessionParticipantsBySession,
+    sessionId ?? "",
+    main.STORE_ID,
+  ) as string[];
+
+  if (!sessionId) {
+    return undefined;
+  }
+
+  return mappingIds.length;
 }
 
 function useScrollToBottom(deps: DependencyList) {

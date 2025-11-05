@@ -1,4 +1,14 @@
-import { DependencyList, Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  DependencyList,
+  Fragment,
+  RefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   ContextMenu,
@@ -40,7 +50,9 @@ export function TranscriptContainer({
   const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
   const partialHints = useListener((state) => state.partialHints);
 
-  const { containerRef, isAtBottom, scrollToBottom } = useScrollToBottom([transcriptIds]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { isAtBottom, scrollToBottom } = useScrollDetection(containerRef);
+  useAutoScroll(containerRef, [transcriptIds, partialWords]);
 
   if (transcriptIds.length === 0) {
     return null;
@@ -376,8 +388,7 @@ function useSessionSpeakers(sessionId?: string) {
   return mappingIds.length;
 }
 
-function useScrollToBottom(deps: DependencyList) {
-  const containerRef = useAutoScroll<HTMLDivElement>(deps);
+function useScrollDetection(containerRef: RefObject<HTMLDivElement | null>) {
   const [isAtBottom, setIsAtBottom] = useState(true);
 
   useEffect(() => {
@@ -394,7 +405,7 @@ function useScrollToBottom(deps: DependencyList) {
 
     element.addEventListener("scroll", handleScroll);
     return () => element.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [containerRef]);
 
   const scrollToBottom = () => {
     const element = containerRef.current;
@@ -404,27 +415,23 @@ function useScrollToBottom(deps: DependencyList) {
     element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
   };
 
-  return { containerRef, isAtBottom, scrollToBottom };
+  return { isAtBottom, scrollToBottom };
 }
 
-function useAutoScroll<T extends HTMLElement>(deps: DependencyList) {
-  const ref = useRef<T | null>(null);
-
+function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps: DependencyList) {
   useLayoutEffect(() => {
-    const element = ref.current;
+    const element = containerRef.current;
     if (!element) {
       return;
     }
 
     const isAtTop = element.scrollTop === 0;
-    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 400;
+    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 50;
 
     if (isAtTop || isNearBottom) {
       element.scrollTop = element.scrollHeight;
     }
   }, deps);
-
-  return ref;
 }
 
 function getWordHighlightState(

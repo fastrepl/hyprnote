@@ -2,20 +2,28 @@ import chroma from "chroma-js";
 import { useCallback, useMemo } from "react";
 
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
-  ContextMenuTrigger,
-} from "@hypr/ui/components/ui/context-menu";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 import * as main from "../../../../../../../store/tinybase/main";
 import { ChannelProfile, type Segment } from "../../../../../../../utils/segment";
 import { Operations } from "./operations";
 
-export function SegmentHeader({ segment, operations }: { segment: Segment; operations?: Operations }) {
+export function SegmentHeader({
+  segment,
+  operations,
+  sessionId,
+}: {
+  segment: Segment;
+  operations?: Operations;
+  sessionId?: string;
+}) {
   const formatTimestamp = useCallback((ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -43,8 +51,7 @@ export function SegmentHeader({ segment, operations }: { segment: Segment; opera
 
   const color = useSegmentColor(segment.key);
   const label = useSpeakerLabel(segment.key);
-  const humans = main.UI.useRowIds("humans", main.STORE_ID) ?? [];
-  const store = main.UI.useStore(main.STORE_ID);
+  const participants = useSessionParticipants(sessionId);
 
   const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
   const wordIds = segment.words.filter((w) => w.id).map((w) => w.id!);
@@ -58,7 +65,47 @@ export function SegmentHeader({ segment, operations }: { segment: Segment; opera
     [wordIds, operations],
   );
 
-  const headerContent = (
+  if (mode === "editor" && wordIds.length > 0) {
+    return (
+      <p
+        className={cn([
+          "sticky top-0 z-20",
+          "-mx-3 px-3 py-1",
+          "bg-background",
+          "border-b border-neutral-200",
+          "text-xs font-light",
+          "flex items-center justify-between",
+        ])}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <span style={{ color }} className="cursor-pointer px-1 py-0.5 rounded hover:bg-neutral-100">
+              {label}
+            </span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Assign Speaker</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {participants.map((participant) => (
+                  <DropdownMenuItem
+                    key={participant.humanId}
+                    onClick={() => handleAssignSpeaker(participant.humanId)}
+                  >
+                    {participant.name || participant.humanId}
+                  </DropdownMenuItem>
+                ))}
+                {participants.length === 0 && <DropdownMenuItem disabled>No participants available</DropdownMenuItem>}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <span className="font-mono text-neutral-500">{timestamp}</span>
+      </p>
+    );
+  }
+
+  return (
     <p
       className={cn([
         "sticky top-0 z-20",
@@ -67,42 +114,12 @@ export function SegmentHeader({ segment, operations }: { segment: Segment; opera
         "border-b border-neutral-200",
         "text-xs font-light",
         "flex items-center justify-between",
-        mode === "editor" && "cursor-pointer hover:bg-neutral-50",
       ])}
     >
       <span style={{ color }}>{label}</span>
       <span className="font-mono text-neutral-500">{timestamp}</span>
     </p>
   );
-
-  if (mode === "editor" && wordIds.length > 0) {
-    return (
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          {headerContent}
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuSub>
-            <ContextMenuSubTrigger>Assign Speaker</ContextMenuSubTrigger>
-            <ContextMenuSubContent>
-              {humans.map((humanId) => {
-                const human = store?.getRow("humans", humanId);
-                const name = human?.name || humanId;
-                return (
-                  <ContextMenuItem key={humanId} onClick={() => handleAssignSpeaker(humanId)}>
-                    {name}
-                  </ContextMenuItem>
-                );
-              })}
-              {humans.length === 0 && <ContextMenuItem disabled>No speakers available</ContextMenuItem>}
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-        </ContextMenuContent>
-      </ContextMenu>
-    );
-  }
-
-  return headerContent;
 }
 
 function useSegmentColor(key: Segment["key"]) {
@@ -145,4 +162,40 @@ function useSpeakerLabel(key: Segment["key"]) {
       ? `Speaker ${key.speaker_index + 1}`
       : `Speaker ${channelLabel}`;
   }, [key, store]);
+}
+
+function useSessionParticipants(sessionId?: string) {
+  const mappingIds = main.UI.useSliceRowIds(
+    main.INDEXES.sessionParticipantsBySession,
+    sessionId ?? "",
+    main.STORE_ID,
+  ) as string[];
+
+  const queries = main.UI.useQueries(main.STORE_ID);
+
+  return useMemo(() => {
+    if (!queries || !sessionId) {
+      return [];
+    }
+
+    const participants: Array<{ humanId: string; name: string }> = [];
+
+    for (const mappingId of mappingIds) {
+      const result = queries.getResultRow(
+        main.QUERIES.sessionParticipantsWithDetails,
+        mappingId,
+      );
+
+      if (!result) {
+        continue;
+      }
+
+      const humanId = result.human_id as string;
+      const name = (result.human_name as string) || "";
+
+      participants.push({ humanId, name });
+    }
+
+    return participants;
+  }, [mappingIds, queries, sessionId]);
 }

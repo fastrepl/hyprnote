@@ -135,6 +135,12 @@ function RenderTranscript(
 ) {
   const finalWords = useFinalWords(transcriptId);
   const finalSpeakerHints = useFinalSpeakerHints(transcriptId);
+  const sessionId = main.UI.useCell(
+    "transcripts",
+    transcriptId,
+    "session_id",
+    main.STORE_ID,
+  ) as string | undefined;
 
   const allSpeakerHints = useMemo(() => {
     const finalWordsCount = finalWords.length;
@@ -162,6 +168,7 @@ function RenderTranscript(
             segment={segment}
             offsetMs={offsetMs}
             operations={operations}
+            sessionId={sessionId}
           />
         ),
       )}
@@ -175,11 +182,13 @@ export function SegmentRenderer(
     segment,
     offsetMs,
     operations,
+    sessionId,
   }: {
     editable: boolean;
     segment: Segment;
     offsetMs: number;
     operations?: Operations;
+    sessionId?: string;
   },
 ) {
   const { time, seek, start, audioExists } = useAudioPlayer();
@@ -194,7 +203,7 @@ export function SegmentRenderer(
 
   return (
     <section>
-      <SegmentHeader segment={segment} operations={operations} />
+      <SegmentHeader segment={segment} operations={operations} sessionId={sessionId} />
 
       <div
         className={cn([

@@ -88,7 +88,9 @@ function segmentWords<TWord extends SegmentWord>(
     placeWordInSegment(word, key, segments, activeSegments, options);
   });
 
-  return segments;
+  propagateDirectMicIdentities(segments, state);
+
+  return mergeAdjacentSegments(segments);
 }
 
 function createSpeakerState(speakerHints: readonly RuntimeSpeakerHint[]): SpeakerState {
@@ -191,7 +193,11 @@ function rememberIdentity<TWord extends SegmentWord>(
     state.humanIdBySpeakerIndex.set(identity.speaker_index, identity.human_id);
   }
 
-  if (word.channel === ChannelProfile.DirectMic && identity.human_id !== undefined) {
+  if (
+    word.channel === ChannelProfile.DirectMic
+    && identity.human_id !== undefined
+    && identity.speaker_index === undefined
+  ) {
     state.humanIdByChannel.set(ChannelProfile.DirectMic, identity.human_id);
   }
 
@@ -279,6 +285,73 @@ function sameKey(a: SegmentKey, b: SegmentKey): boolean {
 
 function segmentKeyId(key: SegmentKey): string {
   return JSON.stringify([key.channel, key.speaker_index ?? null, key.speaker_human_id ?? null]);
+}
+
+function propagateDirectMicIdentities<TWord extends SegmentWord>(
+  segments: Segment<TWord>[],
+  state: SpeakerState,
+): void {
+  const humanId = state.humanIdByChannel.get(ChannelProfile.DirectMic);
+  if (!humanId) {
+    return;
+  }
+
+  const keysToUpdate: SegmentKey[] = [];
+
+  segments.forEach((segment) => {
+    if (segment.key.channel !== ChannelProfile.DirectMic || segment.key.speaker_human_id !== undefined) {
+      return;
+    }
+
+    keysToUpdate.push(segment.key);
+
+    const params: {
+      channel: ChannelProfile;
+      speaker_index?: number;
+      speaker_human_id: string;
+    } = {
+      channel: ChannelProfile.DirectMic,
+      speaker_human_id: humanId,
+    };
+
+    if (segment.key.speaker_index !== undefined) {
+      params.speaker_index = segment.key.speaker_index;
+    }
+
+    segment.key = SegmentKey.make(params);
+  });
+}
+
+function mergeAdjacentSegments<TWord extends SegmentWord>(segments: Segment<TWord>[]): Segment<TWord>[] {
+  if (segments.length <= 1) {
+    return segments;
+  }
+
+  const merged: Segment<TWord>[] = [];
+
+  segments.forEach((segment) => {
+    const last = merged[merged.length - 1];
+
+    if (last && sameKey(last.key, segment.key) && canMergeSegments(last, segment)) {
+      last.words.push(...segment.words);
+      return;
+    }
+
+    merged.push(segment);
+  });
+
+  return merged;
+}
+
+function canMergeSegments<TWord extends SegmentWord>(
+  seg1: Segment<TWord>,
+  seg2: Segment<TWord>,
+): boolean {
+  if (!hasSpeakerIdentity(seg1.key) && !hasSpeakerIdentity(seg2.key)) {
+    return false;
+  }
+
+  return true;
 }
 
 function normalizeWords<TFinal extends WordLike, TPartial extends WordLike>(

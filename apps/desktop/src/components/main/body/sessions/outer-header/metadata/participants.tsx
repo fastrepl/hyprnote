@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { cn } from "@hypr/utils";
 import * as main from "../../../../../../store/tinybase/main";
+import { useTabs } from "../../../../../../store/zustand/tabs";
 
 const NO_ORGANIZATION_ID = "__NO_ORGANIZATION__";
 
@@ -60,7 +61,7 @@ export function ParticipantsDisplay({ sessionId }: { sessionId: string }) {
   if (mappingIds.length === 0) {
     return (
       <div className="flex flex-col gap-2">
-        <div className="text-sm font-medium text-neutral-700">Participants</div>
+        <div className="h-px bg-neutral-200" />
         <ParticipantAddControl sessionId={sessionId} />
       </div>
     );
@@ -68,7 +69,7 @@ export function ParticipantsDisplay({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-sm font-medium text-neutral-700">Participants</div>
+      <div className="h-px bg-neutral-200" />
       <div className="flex flex-col gap-4 max-h-[40vh] overflow-y-auto pr-1">
         {grouped.map(({ orgId, orgName, mappingIds }) => (
           <div key={orgId} className="flex flex-col gap-1.5">
@@ -171,10 +172,22 @@ function ParticipantItem({ mappingId }: { mappingId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
   const userId = main.UI.useValue("user_id", main.STORE_ID);
   const details = useParticipantDetails(mappingId);
+  const { tabs, openNew, updateContactsTabState, select } = useTabs();
 
   const handleRemove = () => {
     store?.delRow("mapping_session_participant", mappingId);
   };
+
+  const handleOpenContact = useCallback((humanId: string) => {
+    const existingContactsTab = tabs.find((tab) => tab.type === "contacts");
+
+    if (existingContactsTab) {
+      updateContactsTabState(existingContactsTab, { selectedPerson: humanId, selectedOrganization: null });
+      select(existingContactsTab);
+    } else {
+      openNew({ type: "contacts", state: { selectedPerson: humanId } });
+    }
+  }, [tabs, updateContactsTabState, select, openNew]);
 
   if (!details) {
     return null;
@@ -184,6 +197,7 @@ function ParticipantItem({ mappingId }: { mappingId: string }) {
 
   return (
     <div
+      onClick={() => handleOpenContact(humanId)}
       className={cn([
         "flex items-center justify-between gap-2 py-2 px-3",
         "hover:bg-neutral-100 cursor-pointer group transition-colors",

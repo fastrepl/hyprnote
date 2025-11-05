@@ -436,7 +436,7 @@ describe("buildSegments", () => {
       ],
     },
     {
-      name: "propagates DirectMic channel identity to all channel 0 words",
+      name: "propagates DirectMic channel identity forward",
       finalWords: [
         { text: "0", start_ms: 0, end_ms: 400, channel: 0 },
         { text: "1", start_ms: 400, end_ms: 600, channel: 0 },
@@ -456,6 +456,60 @@ describe("buildSegments", () => {
       partialWords: [],
       speakerHints: [
         { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "carol" } },
+      ],
+      expected: [
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_human_id: "carol" }),
+          words: [
+            expect.objectContaining({ text: "0", isFinal: true }),
+            expect.objectContaining({ text: "1", isFinal: true }),
+            expect.objectContaining({ text: "2", isFinal: true }),
+            expect.objectContaining({ text: "3", isFinal: true }),
+            expect.objectContaining({ text: "4", isFinal: true }),
+          ],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 1 }),
+          words: [
+            expect.objectContaining({ text: "5", isFinal: true }),
+            expect.objectContaining({ text: "6", isFinal: true }),
+            expect.objectContaining({ text: "7", isFinal: true }),
+            expect.objectContaining({ text: "8", isFinal: true }),
+            expect.objectContaining({ text: "9", isFinal: true }),
+          ],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_human_id: "carol" }),
+          words: [
+            expect.objectContaining({ text: "10", isFinal: true }),
+            expect.objectContaining({ text: "11", isFinal: true }),
+            expect.objectContaining({ text: "12", isFinal: true }),
+            expect.objectContaining({ text: "13", isFinal: true }),
+          ],
+        }),
+      ],
+    },
+    {
+      name: "propagates DirectMic channel identity backward",
+      finalWords: [
+        { text: "0", start_ms: 0, end_ms: 400, channel: 0 },
+        { text: "1", start_ms: 400, end_ms: 600, channel: 0 },
+        { text: "2", start_ms: 600, end_ms: 800, channel: 0 },
+        { text: "3", start_ms: 800, end_ms: 1400, channel: 0 },
+        { text: "4", start_ms: 1400, end_ms: 2000, channel: 0 },
+        { text: "5", start_ms: 4100, end_ms: 4500, channel: 1 },
+        { text: "6", start_ms: 4500, end_ms: 4900, channel: 1 },
+        { text: "7", start_ms: 4900, end_ms: 5300, channel: 1 },
+        { text: "8", start_ms: 5300, end_ms: 5700, channel: 1 },
+        { text: "9", start_ms: 5700, end_ms: 6100, channel: 1 },
+        { text: "10", start_ms: 8200, end_ms: 8600, channel: 0 },
+        { text: "11", start_ms: 8600, end_ms: 9000, channel: 0 },
+        { text: "12", start_ms: 9000, end_ms: 9200, channel: 0 },
+        { text: "13", start_ms: 9200, end_ms: 9800, channel: 0 },
+      ],
+      partialWords: [],
+      speakerHints: [
+        { wordIndex: 11, data: { type: "user_speaker_assignment" as const, human_id: "carol" } },
       ],
       expected: [
         expect.objectContaining({

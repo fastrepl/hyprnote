@@ -8,9 +8,9 @@
   },
   "dependencies": {
     "@cacheable/memory": "^1.0.1",
-    "@hono/mcp": "^0.1.4",
-    "@hono/node-server": "^1.19.5",
-    "@modelcontextprotocol/sdk": "^1.20.2",
+    "@hono/mcp": "^0.1.5",
+    "@hono/node-server": "^1.19.6",
+    "@modelcontextprotocol/sdk": "^1.21.0",
     "@t3-oss/env-core": "^0.13.8",
     "dotenv": "^17.2.3",
     "exa-js": "^1.10.2",

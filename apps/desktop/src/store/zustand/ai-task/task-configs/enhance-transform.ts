@@ -1,7 +1,7 @@
 import { buildSegments, type RuntimeSpeakerHint } from "../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
-import type { Store as PersistedStore } from "../../../tinybase/main";
-import type { EnrichedTaskArgsMap, TaskArgsMap, TaskConfig } from ".";
+import type { Store as MainStore } from "../../../tinybase/main";
+import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 
 export const enhanceTransform: Pick<TaskConfig<"enhance">, "transformArgs"> = {
   transformArgs,
@@ -9,8 +9,8 @@ export const enhanceTransform: Pick<TaskConfig<"enhance">, "transformArgs"> = {
 
 async function transformArgs(
   args: TaskArgsMap["enhance"],
-  store: PersistedStore,
-): Promise<EnrichedTaskArgsMap["enhance"]> {
+  store: MainStore,
+): Promise<TaskArgsMapTransformed["enhance"]> {
   const { sessionId, templateId } = args;
 
   const rawMd = (store.getCell("sessions", sessionId, "raw_md") as string) || "";
@@ -29,7 +29,7 @@ async function transformArgs(
   };
 }
 
-function getSessionData(sessionId: string, store: PersistedStore) {
+function getSessionData(sessionId: string, store: MainStore) {
   const rawTitle = store.getCell("sessions", sessionId, "title") as string;
   const eventId = store.getCell("sessions", sessionId, "event_id") as string;
 
@@ -50,7 +50,7 @@ function getSessionData(sessionId: string, store: PersistedStore) {
   };
 }
 
-function getParticipants(sessionId: string, store: PersistedStore) {
+function getParticipants(sessionId: string, store: MainStore) {
   const participantIds: string[] = [];
 
   store.forEachRow("mapping_session_participant", (mappingId, _forEachCell) => {
@@ -69,7 +69,7 @@ function getParticipants(sessionId: string, store: PersistedStore) {
   })).filter((p) => p.name);
 }
 
-function getTemplateData(templateId: string, store: PersistedStore) {
+function getTemplateData(templateId: string, store: MainStore) {
   const user_id = store.getCell("templates", templateId, "user_id") as string;
   const created_at = store.getCell("templates", templateId, "created_at") as string;
   const title = store.getCell("templates", templateId, "title") as string;
@@ -92,7 +92,7 @@ function getTemplateData(templateId: string, store: PersistedStore) {
   };
 }
 
-function getTranscriptSegments(sessionId: string, store: PersistedStore) {
+function getTranscriptSegments(sessionId: string, store: MainStore) {
   const transcriptIds: string[] = [];
   const transcriptMap = new Map<string, number>();
 

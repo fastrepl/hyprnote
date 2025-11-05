@@ -2,7 +2,7 @@ import { generateText, type LanguageModel, smoothStream, streamText } from "ai";
 
 import { trimBeforeMarker } from "../shared/transform_impl";
 import { type EarlyValidatorFn, withEarlyValidationRetry } from "../shared/validate";
-import type { EnrichedTaskArgsMap, TaskConfig } from ".";
+import type { TaskArgsMapTransformed, TaskConfig } from ".";
 
 export const enhanceWorkflow: Pick<TaskConfig<"enhance">, "executeWorkflow" | "transforms"> = {
   executeWorkflow,
@@ -11,7 +11,7 @@ export const enhanceWorkflow: Pick<TaskConfig<"enhance">, "executeWorkflow" | "t
 
 async function* executeWorkflow(params: {
   model: LanguageModel;
-  args: EnrichedTaskArgsMap["enhance"];
+  args: TaskArgsMapTransformed["enhance"];
   system: string;
   prompt: string;
   onProgress: (step: any) => void;
@@ -100,7 +100,7 @@ IMPORTANT: Previous attempt failed. ${previousFeedback}`;
 }
 
 function createValidator(
-  template?: EnrichedTaskArgsMap["enhance"]["template"],
+  template?: TaskArgsMapTransformed["enhance"]["template"],
 ): EarlyValidatorFn {
   return (textSoFar: string) => {
     const normalized = textSoFar.trim();

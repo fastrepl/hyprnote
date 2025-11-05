@@ -1,5 +1,5 @@
-import type { Store as PersistedStore } from "../../../tinybase/main";
-import type { EnrichedTaskArgsMap, TaskArgsMap, TaskConfig } from ".";
+import type { Store as MainStore } from "../../../tinybase/main";
+import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 
 export const titleTransform: Pick<TaskConfig<"title">, "transformArgs"> = {
   transformArgs,
@@ -7,13 +7,13 @@ export const titleTransform: Pick<TaskConfig<"title">, "transformArgs"> = {
 
 async function transformArgs(
   args: TaskArgsMap["title"],
-  store: PersistedStore,
-): Promise<EnrichedTaskArgsMap["title"]> {
-  const { sessionId } = args;
-  const enhancedMd = (store.getCell("sessions", sessionId, "enhanced_md") as string) || "";
+  store: MainStore,
+): Promise<TaskArgsMapTransformed["title"]> {
+  const enhancedMd = store.getCell(
+    "sessions",
+    args.sessionId,
+    "enhanced_md",
+  ) as string || "";
 
-  return {
-    sessionId,
-    enhancedMd,
-  };
+  return { ...args, enhancedMd };
 }

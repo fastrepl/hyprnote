@@ -19,7 +19,7 @@ export interface TaskArgsMap {
   title: { sessionId: string };
 }
 
-export interface EnrichedTaskArgsMap {
+export interface TaskArgsMapTransformed {
   enhance: {
     sessionId: string;
     rawMd: string;
@@ -64,17 +64,17 @@ export function createTaskId<T extends TaskType>(
 }
 
 export interface TaskConfig<T extends TaskType = TaskType> {
-  transformArgs: (args: TaskArgsMap[T], store: PersistedStore) => Promise<EnrichedTaskArgsMap[T]>;
+  transformArgs: (args: TaskArgsMap[T], store: PersistedStore) => Promise<TaskArgsMapTransformed[T]>;
   executeWorkflow: (params: {
     model: LanguageModel;
-    args: EnrichedTaskArgsMap[T];
+    args: TaskArgsMapTransformed[T];
     system: string;
     prompt: string;
     onProgress: (step: TaskStepInfo<T>) => void;
     signal: AbortSignal;
   }) => AsyncIterable<TextStreamPart<any>>;
-  getUser: (args: EnrichedTaskArgsMap[T]) => Promise<string>;
-  getSystem: (args: EnrichedTaskArgsMap[T]) => Promise<string>;
+  getUser: (args: TaskArgsMapTransformed[T]) => Promise<string>;
+  getSystem: (args: TaskArgsMapTransformed[T]) => Promise<string>;
   transforms?: StreamTransform[];
 }
 

@@ -1,6 +1,6 @@
 import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_view/team")({
   component: Component,

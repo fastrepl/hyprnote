@@ -1,4 +1,5 @@
 import { cn } from "@hypr/utils";
+
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { allTemplates } from "content-collections";

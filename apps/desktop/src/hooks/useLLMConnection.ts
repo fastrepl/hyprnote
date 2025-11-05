@@ -46,6 +46,12 @@ export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
       const openRouterProvider = createOpenRouter({
         fetch: tauriFetch,
         apiKey: connection.apiKey,
+        extraBody: {
+          provider: {
+            // https://openrouter.ai/docs/features/provider-routing#provider-sorting
+            sort: "latency",
+          },
+        },
       });
 
       return wrapWithThinkingMiddleware(openRouterProvider(connection.modelId));

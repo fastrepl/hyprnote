@@ -1,7 +1,32 @@
-import { buildSegments, type RuntimeSpeakerHint } from "../../../../utils/segment";
+import { buildSegments, type RuntimeSpeakerHint, type Segment, type WordLike } from "../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as MainStore } from "../../../tinybase/main";
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
+
+type TranscriptMeta = {
+  id: string;
+  startedAt: number;
+};
+
+type WordRow = Record<string, unknown> & {
+  text: string;
+  start_ms: number;
+  end_ms: number;
+  channel: WordLike["channel"];
+  transcript_id: string;
+  is_final?: boolean;
+  id?: string;
+};
+
+type WordWithTranscript = WordRow & { transcriptStartedAt: number };
+
+type SegmentPayload = {
+  channel: Segment["key"]["channel"];
+  start_ms: number;
+  end_ms: number;
+  text: string;
+  words: Array<{ text: string; start_ms: number; end_ms: number }>;
+};
 
 export const enhanceTransform: Pick<TaskConfig<"enhance">, "transformArgs"> = {
   transformArgs,
@@ -13,33 +38,39 @@ async function transformArgs(
 ): Promise<TaskArgsMapTransformed["enhance"]> {
   const { sessionId, templateId } = args;
 
-  const rawMd = (store.getCell("sessions", sessionId, "raw_md") as string) || "";
-  const sessionData = getSessionData(sessionId, store);
-  const participants = getParticipants(sessionId, store);
-  const segments = getTranscriptSegments(sessionId, store);
+  const sessionContext = getSessionContext(sessionId, store);
   const template = templateId ? getTemplateData(templateId, store) : undefined;
 
   return {
     sessionId,
-    rawMd,
-    sessionData,
-    participants,
-    segments,
+    rawMd: sessionContext.rawMd,
+    sessionData: sessionContext.sessionData,
+    participants: sessionContext.participants,
+    segments: sessionContext.segments,
     template,
   };
 }
 
+function getSessionContext(sessionId: string, store: MainStore) {
+  return {
+    rawMd: getStringCell(store, "sessions", sessionId, "raw_md"),
+    sessionData: getSessionData(sessionId, store),
+    participants: getParticipants(sessionId, store),
+    segments: getTranscriptSegments(sessionId, store),
+  };
+}
+
 function getSessionData(sessionId: string, store: MainStore) {
-  const rawTitle = store.getCell("sessions", sessionId, "title") as string;
-  const eventId = store.getCell("sessions", sessionId, "event_id") as string;
+  const rawTitle = getStringCell(store, "sessions", sessionId, "title");
+  const eventId = getOptionalStringCell(store, "sessions", sessionId, "event_id");
 
   if (eventId) {
     return {
-      title: store.getCell("events", eventId, "title") as string || rawTitle,
-      started_at: store.getCell("events", eventId, "started_at") as string,
-      ended_at: store.getCell("events", eventId, "ended_at") as string,
-      location: store.getCell("events", eventId, "location") as string,
-      description: store.getCell("events", eventId, "description") as string,
+      title: getStringCell(store, "events", eventId, "title") || rawTitle,
+      started_at: getStringCell(store, "events", eventId, "started_at"),
+      ended_at: getStringCell(store, "events", eventId, "ended_at"),
+      location: getStringCell(store, "events", eventId, "location"),
+      description: getStringCell(store, "events", eventId, "description"),
       is_event: true,
     };
   }
@@ -51,114 +82,193 @@ function getSessionData(sessionId: string, store: MainStore) {
 }
 
 function getParticipants(sessionId: string, store: MainStore) {
-  const participantIds: string[] = [];
+  const participants: Array<{ name: string; job_title: string }> = [];
 
   store.forEachRow("mapping_session_participant", (mappingId, _forEachCell) => {
-    const mappingSessionId = store.getCell("mapping_session_participant", mappingId, "session_id");
-    if (mappingSessionId === sessionId) {
-      const humanId = store.getCell("mapping_session_participant", mappingId, "human_id") as string;
-      if (humanId) {
-        participantIds.push(humanId);
-      }
+    const mappingSessionId = getOptionalStringCell(
+      store,
+      "mapping_session_participant",
+      mappingId,
+      "session_id",
+    );
+    if (mappingSessionId !== sessionId) {
+      return;
     }
+
+    const humanId = getOptionalStringCell(
+      store,
+      "mapping_session_participant",
+      mappingId,
+      "human_id",
+    );
+    if (!humanId) {
+      return;
+    }
+
+    const name = getStringCell(store, "humans", humanId, "name");
+    if (!name) {
+      return;
+    }
+
+    participants.push({
+      name,
+      job_title: getStringCell(store, "humans", humanId, "job_title"),
+    });
   });
 
-  return participantIds.map((humanId) => ({
-    name: store.getCell("humans", humanId, "name") as string,
-    job_title: store.getCell("humans", humanId, "job_title") as string,
-  })).filter((p) => p.name);
+  return participants;
 }
 
 function getTemplateData(templateId: string, store: MainStore) {
-  const user_id = store.getCell("templates", templateId, "user_id") as string;
-  const created_at = store.getCell("templates", templateId, "created_at") as string;
-  const title = store.getCell("templates", templateId, "title") as string;
-  const description = store.getCell("templates", templateId, "description") as string;
-  const sectionsRaw = store.getCell("templates", templateId, "sections");
-
-  let sectionsParsed: unknown = [];
-  if (typeof sectionsRaw === "string") {
-    try {
-      sectionsParsed = JSON.parse(sectionsRaw);
-    } catch (error) {
-      console.error("Failed to parse template sections", error);
-      sectionsParsed = [];
-    }
-  } else if (sectionsRaw !== undefined) {
-    sectionsParsed = sectionsRaw;
-  }
-
-  const sections = Array.isArray(sectionsParsed)
-    ? sectionsParsed
-      .map((section) => {
-        if (typeof section === "string") {
-          return { title: section, description: "" };
-        }
-
-        if (section && typeof section === "object") {
-          const maybeTitle = (section as any).title;
-          const maybeDescription = (section as any).description;
-
-          if (typeof maybeTitle === "string" && maybeTitle.trim().length > 0) {
-            return {
-              title: maybeTitle,
-              description: typeof maybeDescription === "string" ? maybeDescription : "",
-            };
-          }
-        }
-
-        return null;
-      })
-      .filter((section): section is { title: string; description: string } => section !== null)
-    : [];
-
   return {
-    user_id,
-    created_at,
-    title,
-    description,
-    sections,
+    user_id: getStringCell(store, "templates", templateId, "user_id"),
+    created_at: getStringCell(store, "templates", templateId, "created_at"),
+    title: getStringCell(store, "templates", templateId, "title"),
+    description: getStringCell(store, "templates", templateId, "description"),
+    sections: parseTemplateSections(store.getCell("templates", templateId, "sections")),
   };
 }
 
-function getTranscriptSegments(sessionId: string, store: MainStore) {
-  const transcriptIds: string[] = [];
-  const transcriptMap = new Map<string, number>();
+function parseTemplateSections(raw: unknown) {
+  let value: unknown = raw;
 
-  store.forEachRow("transcripts", (transcriptId, _forEachCell) => {
-    const transcriptSessionId = store.getCell("transcripts", transcriptId, "session_id");
-    if (transcriptSessionId === sessionId) {
-      transcriptIds.push(transcriptId);
-      const startedAt = store.getCell("transcripts", transcriptId, "started_at");
-      transcriptMap.set(transcriptId, startedAt as number);
+  if (typeof raw === "string") {
+    try {
+      value = JSON.parse(raw);
+    } catch {
+      return [];
     }
-  });
+  }
 
-  if (transcriptIds.length === 0) {
+  if (!Array.isArray(value)) {
     return [];
   }
 
-  const finalWords: any[] = [];
-  const wordIdToIndex = new Map<string, number>();
-  const storageHints: any[] = [];
-
-  transcriptIds.forEach((transcriptId) => {
-    const transcriptStartedAt = transcriptMap.get(transcriptId) ?? 0;
-
-    store.forEachRow("words", (wordId, _forEachCell) => {
-      const wordTranscriptId = store.getCell("words", wordId, "transcript_id");
-      if (wordTranscriptId === transcriptId) {
-        const word = store.getRow("words", wordId);
-        if (word) {
-          wordIdToIndex.set(wordId, finalWords.length);
-          finalWords.push({
-            ...word,
-            transcriptStartedAt,
-          });
-        }
+  return value
+    .map((section) => {
+      if (typeof section === "string") {
+        return { title: section, description: "" };
       }
+
+      if (section && typeof section === "object") {
+        const record = section as Record<string, unknown>;
+        const title = typeof record.title === "string" ? record.title.trim() : "";
+        if (!title) {
+          return null;
+        }
+
+        const description = typeof record.description === "string" ? record.description : "";
+        return { title, description };
+      }
+
+      return null;
+    })
+    .filter(
+      (section): section is { title: string; description: string } => section !== null,
+    );
+}
+
+function getTranscriptSegments(sessionId: string, store: MainStore) {
+  const transcripts = collectTranscripts(sessionId, store);
+  if (transcripts.length === 0) {
+    return [];
+  }
+
+  const wordIdToIndex = new Map<string, number>();
+  const words = collectWordsForTranscripts(store, transcripts, wordIdToIndex);
+  if (words.length === 0) {
+    return [];
+  }
+
+  const speakerHints = collectSpeakerHints(store, wordIdToIndex);
+  const segments = buildSegments(words, [], speakerHints);
+
+  const sessionStartCandidate = transcripts.reduce(
+    (min, transcript) => Math.min(min, transcript.startedAt),
+    Number.POSITIVE_INFINITY,
+  );
+  const sessionStartMs = Number.isFinite(sessionStartCandidate) ? sessionStartCandidate : 0;
+
+  const normalizedSegments = segments.reduce<SegmentPayload[]>((acc, segment) => {
+    if (segment.words.length === 0) {
+      return acc;
+    }
+
+    acc.push(toSegmentPayload(segment as any, sessionStartMs));
+    return acc;
+  }, []);
+
+  return normalizedSegments.sort((a, b) => a.start_ms - b.start_ms);
+}
+
+function collectTranscripts(sessionId: string, store: MainStore): TranscriptMeta[] {
+  const transcripts: TranscriptMeta[] = [];
+
+  store.forEachRow("transcripts", (transcriptId, _forEachCell) => {
+    const transcriptSessionId = getOptionalStringCell(
+      store,
+      "transcripts",
+      transcriptId,
+      "session_id",
+    );
+    if (transcriptSessionId !== sessionId) {
+      return;
+    }
+
+    const startedAt = getNumberCell(store, "transcripts", transcriptId, "started_at") ?? 0;
+    transcripts.push({ id: transcriptId, startedAt });
+  });
+
+  return transcripts;
+}
+
+function collectWordsForTranscripts(
+  store: MainStore,
+  transcripts: readonly TranscriptMeta[],
+  wordIdToIndex: Map<string, number>,
+): WordWithTranscript[] {
+  const transcriptStartById = new Map(
+    transcripts.map((transcript) => [transcript.id, transcript.startedAt]),
+  );
+  const words: Array<{ id: string; word: WordWithTranscript }> = [];
+
+  store.forEachRow("words", (wordId, _forEachCell) => {
+    const row = store.getRow("words", wordId);
+    if (!isWordRow(row)) {
+      return;
+    }
+
+    const transcriptStartedAt = transcriptStartById.get(row.transcript_id);
+    if (transcriptStartedAt === undefined) {
+      return;
+    }
+
+    words.push({
+      id: wordId,
+      word: {
+        ...row,
+        transcriptStartedAt,
+      },
     });
   });
+
+  words.sort((a, b) => {
+    const startA = a.word.transcriptStartedAt + a.word.start_ms;
+    const startB = b.word.transcriptStartedAt + b.word.start_ms;
+    return startA - startB;
+  });
+
+  return words.map(({ id, word }, index) => {
+    wordIdToIndex.set(id, index);
+    return word;
+  });
+}
+
+function collectSpeakerHints(
+  store: MainStore,
+  wordIdToIndex: Map<string, number>,
+): RuntimeSpeakerHint[] {
+  const storageHints: any[] = [];
 
   store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
     const hint = store.getRow("speaker_hints", hintId);
@@ -167,30 +277,73 @@ function getTranscriptSegments(sessionId: string, store: MainStore) {
     }
   });
 
-  const speakerHints: RuntimeSpeakerHint[] = convertStorageHintsToRuntime(storageHints, wordIdToIndex);
-  const segments = buildSegments(finalWords, [], speakerHints);
+  return convertStorageHintsToRuntime(storageHints, wordIdToIndex);
+}
 
-  const sessionStartMs = transcriptIds.length > 0
-    ? Math.min(...Array.from(transcriptMap.values()))
-    : 0;
+function toSegmentPayload(
+  segment: any,
+  sessionStartMs: number,
+): SegmentPayload {
+  const firstWord = segment.words[0];
+  const lastWord = segment.words[segment.words.length - 1];
 
-  return segments.map((segment) => {
-    const firstWord = segment.words[0];
-    const lastWord = segment.words[segment.words.length - 1];
+  const absoluteStartMs = firstWord.transcriptStartedAt + firstWord.start_ms;
+  const absoluteEndMs = lastWord.transcriptStartedAt + lastWord.end_ms;
 
-    const absoluteStartMs = (firstWord as any).transcriptStartedAt + firstWord.start_ms;
-    const absoluteEndMs = (lastWord as any).transcriptStartedAt + lastWord.end_ms;
+  return {
+    channel: segment.key.channel,
+    start_ms: absoluteStartMs - sessionStartMs,
+    end_ms: absoluteEndMs - sessionStartMs,
+    text: segment.words.map((word: any) => word.text).join(" "),
+    words: segment.words.map((word: any) => ({
+      text: word.text,
+      start_ms: word.transcriptStartedAt + word.start_ms - sessionStartMs,
+      end_ms: word.transcriptStartedAt + word.end_ms - sessionStartMs,
+    })),
+  };
+}
 
-    return {
-      channel: segment.key.channel,
-      start_ms: absoluteStartMs - sessionStartMs,
-      end_ms: absoluteEndMs - sessionStartMs,
-      text: segment.words.map((w) => w.text).join(" "),
-      words: segment.words.map((w) => ({
-        text: w.text,
-        start_ms: (w as any).transcriptStartedAt + w.start_ms - sessionStartMs,
-        end_ms: (w as any).transcriptStartedAt + w.end_ms - sessionStartMs,
-      })),
-    };
-  }).sort((a, b) => a.start_ms - b.start_ms);
+function isWordRow(row: unknown): row is WordRow {
+  if (!row || typeof row !== "object") {
+    return false;
+  }
+
+  const candidate = row as Record<string, unknown>;
+  return (
+    typeof candidate.text === "string"
+    && typeof candidate.start_ms === "number"
+    && typeof candidate.end_ms === "number"
+    && typeof candidate.channel === "number"
+    && typeof candidate.transcript_id === "string"
+  );
+}
+
+function getStringCell(
+  store: MainStore,
+  tableId: any,
+  rowId: string,
+  columnId: string,
+): string {
+  const value = store.getCell(tableId, rowId, columnId);
+  return typeof value === "string" ? value : "";
+}
+
+function getOptionalStringCell(
+  store: MainStore,
+  tableId: any,
+  rowId: string,
+  columnId: string,
+): string | undefined {
+  const value = store.getCell(tableId, rowId, columnId);
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function getNumberCell(
+  store: MainStore,
+  tableId: any,
+  rowId: string,
+  columnId: string,
+): number | undefined {
+  const value = store.getCell(tableId, rowId, columnId);
+  return typeof value === "number" ? value : undefined;
 }

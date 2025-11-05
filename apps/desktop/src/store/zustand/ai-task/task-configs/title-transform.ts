@@ -9,11 +9,11 @@ async function transformArgs(
   args: TaskArgsMap["title"],
   store: MainStore,
 ): Promise<TaskArgsMapTransformed["title"]> {
-  const enhancedMd = store.getCell(
-    "sessions",
-    args.sessionId,
-    "enhanced_md",
-  ) as string || "";
-
+  const enhancedMd = readEnhancedMarkdown(store, args.sessionId);
   return { ...args, enhancedMd };
+}
+
+function readEnhancedMarkdown(store: MainStore, sessionId: string): string {
+  const value = store.getCell("sessions", sessionId, "enhanced_md");
+  return typeof value === "string" ? value : "";
 }

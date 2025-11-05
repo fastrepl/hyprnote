@@ -69,13 +69,13 @@ function Component() {
       className="bg-linear-to-b from-white via-stone-50/20 to-white"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
-      <div className="min-h-screen max-w-[1400px] mx-auto border-x border-neutral-100 bg-white">
+      <div className="min-h-screen max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <MobileHeader />
 
         <div className="flex">
           <TableOfContents toc={article.toc} />
 
-          <main className="flex-1 min-w-0 py-6">
+          <main className="flex-1 min-w-0 pb-6 lg:py-6">
             <CoverImage
               article={article}
               hasCoverImage={hasCoverImage}
@@ -132,19 +132,17 @@ function TableOfContents({
 
         {toc.length > 0 && (
           <nav className="space-y-1">
-            <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3">
-              On this page
-            </p>
             {toc.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
                 className={cn(
                   [
-                    "block text-sm py-1 transition-colors border-l-2",
-                    item.level === 3 && "pl-4",
-                    item.level === 2 && "pl-2",
-                    "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
+                    "block text-sm py-1 transition-colors",
+                    "border-transparent hover:text-stone-600 hover:border-neutral-300 hover:bg-neutral-50",
+                    item.level === 2 && "text-neutral-400",
+                    item.level === 3 && "pl-2 text-neutral-400/90",
+                    item.level === 4 && "pl-4 text-neutral-200",
                   ],
                 )}
               >

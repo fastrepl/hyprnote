@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_view/docs")({
 function Component() {
   return (
     <div className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-[calc(100vh-4rem)]">
-      <div className="max-w-[1400px] mx-auto border-x border-neutral-100">
+      <div className="max-w-6xl mx-auto border-x border-neutral-100">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <LeftSidebar />
           <Outlet />

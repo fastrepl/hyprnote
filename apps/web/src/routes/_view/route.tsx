@@ -21,7 +21,7 @@ export function useHeroContext() {
 
 function getMaxWidthClass(pathname: string): string {
   const isBlogOrDocs = pathname.startsWith("/blog") || pathname.startsWith("/docs");
-  return isBlogOrDocs ? "max-w-[1400px]" : "max-w-6xl";
+  return isBlogOrDocs ? "max-w-6xl" : "max-w-6xl";
 }
 
 function Component() {

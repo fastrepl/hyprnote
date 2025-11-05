@@ -165,18 +165,88 @@ function useParticipantDetails(mappingId: string) {
     humanIsUser: result.human_is_user as boolean,
     orgId: (result.org_id as string | undefined) || undefined,
     orgName: result.org_name as string | undefined,
+    sessionId: result.session_id as string,
   };
 }
 
-function ParticipantItem({ mappingId }: { mappingId: string }) {
+function parseHumanIdFromHintValue(value: unknown): string | undefined {
+  const data = typeof value === "string"
+    ? (() => {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return undefined;
+      }
+    })()
+    : value;
+
+  if (data && typeof data === "object" && "human_id" in data) {
+    const humanId = (data as Record<string, unknown>).human_id;
+    return typeof humanId === "string" ? humanId : undefined;
+  }
+
+  return undefined;
+}
+
+function useRemoveParticipant({
+  mappingId,
+  assignedHumanId,
+  sessionId,
+}: {
+  mappingId: string;
+  assignedHumanId: string | undefined;
+  sessionId: string | undefined;
+}) {
   const store = main.UI.useStore(main.STORE_ID);
+
+  return useCallback(() => {
+    if (!store) {
+      return;
+    }
+
+    if (assignedHumanId && sessionId) {
+      const hintIdsToDelete: string[] = [];
+
+      store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
+        const hint = store.getRow("speaker_hints", hintId) as main.SpeakerHintStorage | undefined;
+        if (!hint || hint.type !== "user_speaker_assignment") {
+          return;
+        }
+
+        const transcriptId = hint.transcript_id;
+        if (typeof transcriptId !== "string") {
+          return;
+        }
+
+        const transcript = store.getRow("transcripts", transcriptId) as main.Transcript | undefined;
+        if (!transcript || transcript.session_id !== sessionId) {
+          return;
+        }
+
+        const hintHumanId = parseHumanIdFromHintValue(hint.value);
+        if (hintHumanId === assignedHumanId) {
+          hintIdsToDelete.push(hintId);
+        }
+      });
+
+      hintIdsToDelete.forEach((hintId) => {
+        store.delRow("speaker_hints", hintId);
+      });
+    }
+
+    store.delRow("mapping_session_participant", mappingId);
+  }, [store, mappingId, assignedHumanId, sessionId]);
+}
+
+function ParticipantItem({ mappingId }: { mappingId: string }) {
   const userId = main.UI.useValue("user_id", main.STORE_ID);
   const details = useParticipantDetails(mappingId);
   const { tabs, openNew, updateContactsTabState, select } = useTabs();
 
-  const handleRemove = () => {
-    store?.delRow("mapping_session_participant", mappingId);
-  };
+  const assignedHumanId = details?.humanId;
+  const sessionId = details?.sessionId;
+
+  const handleRemove = useRemoveParticipant({ mappingId, assignedHumanId, sessionId });
 
   const handleOpenContact = useCallback((humanId: string) => {
     const existingContactsTab = tabs.find((tab) => tab.type === "contacts");

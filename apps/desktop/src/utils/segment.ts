@@ -55,6 +55,7 @@ type SpeakerState = {
   humanIdBySpeakerIndex: Map<number, string>;
   humanIdByChannel: Map<ChannelProfile, string>;
   lastSpeakerByChannel: Map<ChannelProfile, SpeakerIdentity>;
+  completeChannels: Set<ChannelProfile>;
 };
 
 export function buildSegments<
@@ -79,7 +80,7 @@ function segmentWords<TWord extends SegmentWord>(
     return [];
   }
 
-  const state = createSpeakerState(speakerHints);
+  const state = createSpeakerState(speakerHints, options);
   const segments: Segment<TWord>[] = [];
   const activeSegments = new Map<string, Segment<TWord>>();
 
@@ -88,16 +89,24 @@ function segmentWords<TWord extends SegmentWord>(
     placeWordInSegment(word, key, segments, activeSegments, options);
   });
 
-  propagateDirectMicIdentities(segments, state);
+  propagateCompleteChannelIdentities(segments, state);
 
   return mergeAdjacentSegments(segments);
 }
 
-function createSpeakerState(speakerHints: readonly RuntimeSpeakerHint[]): SpeakerState {
+function createSpeakerState(
+  speakerHints: readonly RuntimeSpeakerHint[],
+  options?: { numSpeakers?: number },
+): SpeakerState {
   const assignmentByWordIndex = new Map<number, SpeakerIdentity>();
   const humanIdBySpeakerIndex = new Map<number, string>();
   const humanIdByChannel = new Map<ChannelProfile, string>();
   const lastSpeakerByChannel = new Map<ChannelProfile, SpeakerIdentity>();
+  const completeChannels = new Set<ChannelProfile>([ChannelProfile.DirectMic]);
+
+  if (options?.numSpeakers === 2) {
+    completeChannels.add(ChannelProfile.RemoteParty);
+  }
 
   for (const hint of speakerHints) {
     const current = assignmentByWordIndex.get(hint.wordIndex) ?? {};
@@ -118,6 +127,7 @@ function createSpeakerState(speakerHints: readonly RuntimeSpeakerHint[]): Speake
     humanIdBySpeakerIndex,
     humanIdByChannel,
     lastSpeakerByChannel,
+    completeChannels,
   };
 }
 
@@ -161,8 +171,11 @@ function resolveSpeakerIdentity<TWord extends SegmentWord>(
     identity.human_id = state.humanIdBySpeakerIndex.get(identity.speaker_index);
   }
 
-  if (identity.human_id === undefined && word.channel === ChannelProfile.DirectMic) {
-    identity.human_id = state.humanIdByChannel.get(ChannelProfile.DirectMic);
+  if (identity.human_id === undefined && state.completeChannels.has(word.channel)) {
+    const channelHumanId = state.humanIdByChannel.get(word.channel);
+    if (channelHumanId !== undefined) {
+      identity.human_id = channelHumanId;
+    }
   }
 
   if (!word.isFinal && (identity.speaker_index === undefined || identity.human_id === undefined)) {
@@ -194,11 +207,11 @@ function rememberIdentity<TWord extends SegmentWord>(
   }
 
   if (
-    word.channel === ChannelProfile.DirectMic
+    state.completeChannels.has(word.channel)
     && identity.human_id !== undefined
     && identity.speaker_index === undefined
   ) {
-    state.humanIdByChannel.set(ChannelProfile.DirectMic, identity.human_id);
+    state.humanIdByChannel.set(word.channel, identity.human_id);
   }
 
   if (
@@ -287,38 +300,36 @@ function segmentKeyId(key: SegmentKey): string {
   return JSON.stringify([key.channel, key.speaker_index ?? null, key.speaker_human_id ?? null]);
 }
 
-function propagateDirectMicIdentities<TWord extends SegmentWord>(
+function propagateCompleteChannelIdentities<TWord extends SegmentWord>(
   segments: Segment<TWord>[],
   state: SpeakerState,
 ): void {
-  const humanId = state.humanIdByChannel.get(ChannelProfile.DirectMic);
-  if (!humanId) {
-    return;
-  }
-
-  const keysToUpdate: SegmentKey[] = [];
-
-  segments.forEach((segment) => {
-    if (segment.key.channel !== ChannelProfile.DirectMic || segment.key.speaker_human_id !== undefined) {
+  state.completeChannels.forEach((channel) => {
+    const humanId = state.humanIdByChannel.get(channel);
+    if (!humanId) {
       return;
     }
 
-    keysToUpdate.push(segment.key);
+    segments.forEach((segment) => {
+      if (segment.key.channel !== channel || segment.key.speaker_human_id !== undefined) {
+        return;
+      }
 
-    const params: {
-      channel: ChannelProfile;
-      speaker_index?: number;
-      speaker_human_id: string;
-    } = {
-      channel: ChannelProfile.DirectMic,
-      speaker_human_id: humanId,
-    };
+      const params: {
+        channel: ChannelProfile;
+        speaker_index?: number;
+        speaker_human_id: string;
+      } = {
+        channel,
+        speaker_human_id: humanId,
+      };
 
-    if (segment.key.speaker_index !== undefined) {
-      params.speaker_index = segment.key.speaker_index;
-    }
+      if (segment.key.speaker_index !== undefined) {
+        params.speaker_index = segment.key.speaker_index;
+      }
 
-    segment.key = SegmentKey.make(params);
+      segment.key = SegmentKey.make(params);
+    });
   });
 }
 

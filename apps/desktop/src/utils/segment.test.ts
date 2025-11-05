@@ -544,6 +544,27 @@ describe("buildSegments", () => {
       ],
     },
     {
+      name: "propagates RemoteParty identity when numSpeakers is 2",
+      finalWords: [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 1 },
+        { text: "1", start_ms: 200, end_ms: 300, channel: 1 },
+      ],
+      partialWords: [],
+      speakerHints: [
+        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "remote" } },
+      ],
+      numSpeakers: 2,
+      expected: [
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 1, speaker_human_id: "remote" }),
+          words: [
+            expect.objectContaining({ text: "0", isFinal: true }),
+            expect.objectContaining({ text: "1", isFinal: true }),
+          ],
+        }),
+      ],
+    },
+    {
       name: "places partial words after interleaving speaker turns",
       finalWords: [
         { text: "0", start_ms: 0, end_ms: 100, channel: 0 },

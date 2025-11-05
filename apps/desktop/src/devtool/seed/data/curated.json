@@ -2778,6 +2778,34 @@
                 "end_ms": 9800
               }
             ]
+          },
+          {
+            "channel": 1,
+            "start_ms": 11900,
+            "end_ms": 14100,
+            "text": " What's the next milestone?",
+            "words": [
+              {
+                "text": " What's",
+                "start_ms": 11900,
+                "end_ms": 12300
+              },
+              {
+                "text": " the",
+                "start_ms": 12300,
+                "end_ms": 12500
+              },
+              {
+                "text": " next",
+                "start_ms": 12500,
+                "end_ms": 12900
+              },
+              {
+                "text": " milestone",
+                "start_ms": 12900,
+                "end_ms": 14100
+              }
+            ]
           }
         ]
       }

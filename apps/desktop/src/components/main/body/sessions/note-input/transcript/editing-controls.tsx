@@ -108,7 +108,11 @@ function useTranscriptEditing({
   const baselineIdRef = useRef<string | undefined>(undefined);
 
   const canUndo = useMemo(
-    () => isEditing && baselineIdRef.current !== undefined && currentId !== baselineIdRef.current,
+    () =>
+      isEditing
+      && !!baselineIdRef.current
+      && !!currentId
+      && currentId !== baselineIdRef.current,
     [isEditing, currentId],
   );
 

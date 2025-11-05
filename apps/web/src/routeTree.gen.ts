@@ -21,6 +21,7 @@ import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
+import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
@@ -31,6 +32,7 @@ import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
+import { Route as ApiTemplatesSlugRouteImport } from './routes/api/templates/$slug'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDocsSlugRouteImport } from './routes/_view/docs/$slug'
@@ -99,6 +101,11 @@ const WebhookNangoRoute = WebhookNangoRouteImport.update({
   path: '/webhook/nango',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
+  id: '/api/templates',
+  path: '/api/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewPricingRoute = ViewPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -148,6 +155,11 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
+} as any)
+const ApiTemplatesSlugRoute = ApiTemplatesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ApiTemplatesRoute,
 } as any)
 const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   id: '/legal/$slug',
@@ -203,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof ViewAppRouteRouteWithChildren
   '/docs': typeof ViewDocsRouteRouteWithChildren
   '/pricing': typeof ViewPricingRoute
+  '/api/templates': typeof ApiTemplatesRouteWithChildren
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
@@ -214,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
+  '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -232,6 +246,7 @@ export interface FileRoutesByTo {
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
   '/pricing': typeof ViewPricingRoute
+  '/api/templates': typeof ApiTemplatesRouteWithChildren
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
@@ -243,6 +258,7 @@ export interface FileRoutesByTo {
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
+  '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -265,6 +281,7 @@ export interface FileRoutesById {
   '/_view/app': typeof ViewAppRouteRouteWithChildren
   '/_view/docs': typeof ViewDocsRouteRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
+  '/api/templates': typeof ApiTemplatesRouteWithChildren
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/_view/': typeof ViewIndexRoute
@@ -276,6 +293,7 @@ export interface FileRoutesById {
   '/_view/docs/$slug': typeof ViewDocsSlugRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
+  '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
@@ -298,6 +316,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/docs'
     | '/pricing'
+    | '/api/templates'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/'
@@ -309,6 +328,7 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/download/apple-silicon'
     | '/legal/$slug'
+    | '/api/templates/$slug'
     | '/app/'
     | '/blog'
     | '/changelog'
@@ -327,6 +347,7 @@ export interface FileRouteTypes {
     | '/linkedin'
     | '/x'
     | '/pricing'
+    | '/api/templates'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/'
@@ -338,6 +359,7 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/download/apple-silicon'
     | '/legal/$slug'
+    | '/api/templates/$slug'
     | '/app'
     | '/blog'
     | '/changelog'
@@ -359,6 +381,7 @@ export interface FileRouteTypes {
     | '/_view/app'
     | '/_view/docs'
     | '/_view/pricing'
+    | '/api/templates'
     | '/webhook/nango'
     | '/webhook/stripe'
     | '/_view/'
@@ -370,6 +393,7 @@ export interface FileRouteTypes {
     | '/_view/docs/$slug'
     | '/_view/download/apple-silicon'
     | '/_view/legal/$slug'
+    | '/api/templates/$slug'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
@@ -389,6 +413,7 @@ export interface RootRouteChildren {
   JoinWaitlistRoute: typeof JoinWaitlistRoute
   LinkedinRoute: typeof LinkedinRoute
   XRoute: typeof XRoute
+  ApiTemplatesRoute: typeof ApiTemplatesRouteWithChildren
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
 }
@@ -479,6 +504,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WebhookNangoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/templates': {
+      id: '/api/templates'
+      path: '/api/templates'
+      fullPath: '/api/templates'
+      preLoaderRoute: typeof ApiTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_view/pricing': {
       id: '/_view/pricing'
       path: '/pricing'
@@ -548,6 +580,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
+    }
+    '/api/templates/$slug': {
+      id: '/api/templates/$slug'
+      path: '/$slug'
+      fullPath: '/api/templates/$slug'
+      preLoaderRoute: typeof ApiTemplatesSlugRouteImport
+      parentRoute: typeof ApiTemplatesRoute
     }
     '/_view/legal/$slug': {
       id: '/_view/legal/$slug'
@@ -676,6 +715,18 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
   ViewRouteRouteChildren,
 )
 
+interface ApiTemplatesRouteChildren {
+  ApiTemplatesSlugRoute: typeof ApiTemplatesSlugRoute
+}
+
+const ApiTemplatesRouteChildren: ApiTemplatesRouteChildren = {
+  ApiTemplatesSlugRoute: ApiTemplatesSlugRoute,
+}
+
+const ApiTemplatesRouteWithChildren = ApiTemplatesRoute._addFileChildren(
+  ApiTemplatesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
@@ -686,6 +737,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinWaitlistRoute: JoinWaitlistRoute,
   LinkedinRoute: LinkedinRoute,
   XRoute: XRoute,
+  ApiTemplatesRoute: ApiTemplatesRouteWithChildren,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
 }

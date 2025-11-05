@@ -63,6 +63,13 @@ pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::er
 }
 
 pub(crate) fn default_ignored_bundle_ids() -> Vec<String> {
+    let hyprnote = [
+        "com.hyprnote.dev",
+        "com.hyprnote.stable",
+        "com.hyprnote.nightly",
+        "com.hyprnote.staging",
+    ];
+
     let dictation_apps = [
         "com.electron.wispr-flow",
         "com.seewillow.WillowMac",
@@ -95,6 +102,7 @@ pub(crate) fn default_ignored_bundle_ids() -> Vec<String> {
 
     dictation_apps
         .into_iter()
+        .chain(hyprnote)
         .chain(ides)
         .chain(screen_recording)
         .chain(ai_assistants)

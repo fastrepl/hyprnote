@@ -1,7 +1,8 @@
 import { generateText, type LanguageModel, smoothStream, streamText } from "ai";
 
 import { trimBeforeMarker } from "../shared/transform_impl";
-import type { TaskArgsMap, TaskConfig } from ".";
+import { type EarlyValidatorFn, withEarlyValidationRetry } from "../shared/validate";
+import type { EnrichedTaskArgsMap, TaskConfig } from ".";
 
 export const enhanceWorkflow: Pick<TaskConfig<"enhance">, "executeWorkflow" | "transforms"> = {
   executeWorkflow,
@@ -10,7 +11,7 @@ export const enhanceWorkflow: Pick<TaskConfig<"enhance">, "executeWorkflow" | "t
 
 async function* executeWorkflow(params: {
   model: LanguageModel;
-  args: TaskArgsMap["enhance"];
+  args: EnrichedTaskArgsMap["enhance"];
   system: string;
   prompt: string;
   onProgress: (step: any) => void;
@@ -18,7 +19,7 @@ async function* executeWorkflow(params: {
 }) {
   const { model, args, system, prompt, onProgress, signal } = params;
 
-  if (!args.templateId) {
+  if (!args.template) {
     onProgress({ type: "analyzing" });
 
     await generateText({
@@ -35,12 +36,104 @@ Content: ${prompt}`,
 
   onProgress({ type: "generating" });
 
-  const result = streamText({
-    model,
-    system,
-    prompt,
-    abortSignal: signal,
-  });
+  const validator = createValidator(args.template);
 
-  yield* result.fullStream;
+  if (args.template) {
+    yield* withEarlyValidationRetry(
+      (retrySignal, { previousFeedback }) => {
+        let enhancedPrompt = prompt;
+
+        if (previousFeedback) {
+          enhancedPrompt = `${prompt}
+
+IMPORTANT: Previous attempt failed. ${previousFeedback}`;
+        }
+
+        const result = streamText({
+          model,
+          system,
+          prompt: enhancedPrompt,
+          abortSignal: retrySignal,
+        });
+        return result.fullStream;
+      },
+      validator,
+      {
+        minChar: 10,
+        maxChar: 30,
+        maxRetries: 2,
+        onRetry: (attempt, feedback) => {
+          console.log(`[Enhance] Retry ${attempt}: ${feedback}`);
+        },
+      },
+    );
+  } else {
+    yield* withEarlyValidationRetry(
+      (retrySignal, { previousFeedback }) => {
+        let enhancedPrompt = prompt;
+
+        if (previousFeedback) {
+          enhancedPrompt = `${prompt}
+
+IMPORTANT: Previous attempt failed. ${previousFeedback}`;
+        }
+
+        const result = streamText({
+          model,
+          system,
+          prompt: enhancedPrompt,
+          abortSignal: retrySignal,
+        });
+        return result.fullStream;
+      },
+      validator,
+      {
+        minChar: 10,
+        maxChar: 30,
+        maxRetries: 2,
+        onRetry: (attempt, feedback) => {
+          console.log(`[Enhance] Retry ${attempt}: ${feedback}`);
+        },
+      },
+    );
+  }
+}
+
+function createValidator(
+  template?: EnrichedTaskArgsMap["enhance"]["template"],
+): EarlyValidatorFn {
+  return (textSoFar: string) => {
+    const normalized = textSoFar.trim();
+
+    if (!template) {
+      if (!normalized.startsWith("# ")) {
+        return {
+          valid: false,
+          feedback: "Output must start with a markdown h1 heading (# Title).",
+        };
+      }
+      return { valid: true };
+    }
+
+    const firstSection = template.sections[0];
+    if (!firstSection) {
+      if (!normalized.startsWith("# ")) {
+        return {
+          valid: false,
+          feedback: "Output must start with a markdown h1 heading (# Title).",
+        };
+      }
+      return { valid: true };
+    }
+
+    const expectedStart = `# ${firstSection.title}`;
+    if (!normalized.startsWith(expectedStart)) {
+      return {
+        valid: false,
+        feedback: `Output must start with the first template section heading: "${expectedStart}"`,
+      };
+    }
+
+    return { valid: true };
+  };
 }

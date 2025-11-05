@@ -1,13 +1,12 @@
 import { commands as templateCommands } from "@hypr/plugin-template";
-import type { Store as PersistedStore } from "../../../tinybase/main";
-import type { TaskArgsMap, TaskConfig } from ".";
+import type { EnrichedTaskArgsMap, TaskConfig } from ".";
 
 export const titlePrompt: Pick<TaskConfig<"title">, "getUser" | "getSystem"> = {
   getSystem,
   getUser,
 };
 
-async function getSystem(_args: TaskArgsMap["title"]) {
+async function getSystem(_args: EnrichedTaskArgsMap["title"]) {
   const result = await templateCommands.render("title.system", {});
 
   if (result.status === "error") {
@@ -17,9 +16,8 @@ async function getSystem(_args: TaskArgsMap["title"]) {
   return result.data;
 }
 
-async function getUser(args: TaskArgsMap["title"], store: PersistedStore) {
-  const { sessionId } = args;
-  const enhancedMd = (store.getCell("sessions", sessionId, "enhanced_md") as string) || "";
+async function getUser(args: EnrichedTaskArgsMap["title"]) {
+  const { enhancedMd } = args;
 
   const result = await templateCommands.render("title.user", {
     enhanced_note: enhancedMd,

@@ -1,6 +1,6 @@
 import { Loader2Icon } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
 import { cn } from "@hypr/utils";
@@ -10,7 +10,7 @@ import { type TaskStepInfo } from "../../../../../../store/zustand/ai-task/tasks
 
 export function StreamingView({ sessionId }: { sessionId: string }) {
   const taskId = createTaskId(sessionId, "enhance");
-  const { streamedText } = useAITaskTask(taskId, "enhance");
+  const { streamedText, cancel, isGenerating } = useAITaskTask(taskId, "enhance");
 
   const containerRef = useAutoScrollToBottom(streamedText);
 
@@ -19,26 +19,12 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
       <Streamdown
         components={streamdownComponents}
         disallowedElements={["code", "pre"]}
-        className={cn([
-          "space-y-2",
-        ])}
+        className={cn(["space-y-2"])}
       >
         {streamedText}
       </Streamdown>
 
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, layout: { duration: 0.15 } }}
-        className={cn([
-          "flex items-center justify-center w-[calc(100%-24px)] gap-3",
-          "border border-neutral-200",
-          "bg-neutral-800 rounded-lg py-3",
-        ])}
-      >
-        <Status taskId={taskId} />
-      </motion.div>
+      <Status taskId={taskId} cancel={cancel} isGenerating={isGenerating} />
     </div>
   );
 }
@@ -78,42 +64,75 @@ const streamdownComponents = {
   },
 } as const;
 
-function Status({ taskId }: { taskId: TaskId<"enhance"> }) {
+function Status({
+  taskId,
+  cancel,
+  isGenerating,
+}: {
+  taskId: TaskId<"enhance">;
+  cancel: () => void;
+  isGenerating: boolean;
+}) {
   const { currentStep } = useAITaskTask(taskId, "enhance");
   const step = currentStep as TaskStepInfo<"enhance"> | undefined;
 
-  if (!step) {
-    return (
-      <div className="flex items-center gap-2">
-        <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
-        <span className="text-xs text-neutral-50">
-          Loading
-        </span>
-      </div>
-    );
+  const handleClick = useCallback((event: React.MouseEvent) => {
+    if (!isGenerating) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    cancel();
+  }, [cancel, isGenerating]);
+
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (!isGenerating) {
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      cancel();
+    }
+  }, [cancel, isGenerating]);
+
+  let statusText = "Loading";
+  if (step?.type === "analyzing") {
+    statusText = "Analyzing structure...";
+  } else if (step?.type === "generating") {
+    statusText = "Generating";
+  } else if (step?.type === "retrying") {
+    statusText = `Retrying (attempt ${step.attempt})...`;
   }
 
-  if (step.type === "analyzing") {
-    return (
-      <div className="flex items-center gap-2">
-        <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
-        <span className="text-xs text-neutral-50">
-          Analyzing structure...
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, layout: { duration: 0.15 } }}
+      className={cn([
+        "group flex items-center justify-center w-[calc(100%-24px)] gap-3",
+        "border border-neutral-200",
+        "bg-neutral-800 rounded-lg py-3",
+        isGenerating ? "cursor-pointer hover:bg-neutral-700" : "",
+      ])}
+      role={isGenerating ? "button" : undefined}
+      tabIndex={isGenerating ? 0 : undefined}
+      aria-label={isGenerating ? "Cancel enhance task" : undefined}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    >
+      <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
+      <span className="text-xs text-neutral-50 group-hover:hidden">
+        {statusText}
+      </span>
+      {isGenerating && (
+        <span className="hidden text-xs text-neutral-50 group-hover:inline">
+          Press to cancel
         </span>
-      </div>
-    );
-  }
-
-  if (step.type === "generating") {
-    return (
-      <div className="flex items-center gap-2">
-        <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
-        <span className="text-xs text-neutral-50">
-          Generating
-        </span>
-      </div>
-    );
-  }
+      )}
+    </motion.div>
+  );
 }
 
 function useAutoScrollToBottom(text: string) {

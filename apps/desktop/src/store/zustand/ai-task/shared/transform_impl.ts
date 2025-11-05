@@ -39,7 +39,7 @@ export function addMarkdownSectionSeparators<TOOLS extends ToolSet = ToolSet>():
             controller.enqueue(textStartChunk);
             hasEmittedStart = true;
           }
-          
+
           if (fullText && !hasEmittedText) {
             const transformed = fullText.replace(/\n\n(#+\s)/g, "\n\n<p></p>\n\n$1");
             controller.enqueue({
@@ -49,7 +49,7 @@ export function addMarkdownSectionSeparators<TOOLS extends ToolSet = ToolSet>():
             });
             hasEmittedText = true;
           }
-          
+
           controller.enqueue(chunk);
           return;
         }
@@ -61,7 +61,7 @@ export function addMarkdownSectionSeparators<TOOLS extends ToolSet = ToolSet>():
         if (textStartChunk && !hasEmittedStart) {
           controller.enqueue(textStartChunk);
         }
-        
+
         if (fullText && !hasEmittedText) {
           const transformed = fullText.replace(/\n\n(#+\s)/g, "\n\n<p></p>\n\n$1");
           controller.enqueue({

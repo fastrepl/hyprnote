@@ -22,7 +22,7 @@ export function EditingControls(
     handleCancel,
   } = useTranscriptEditing({ isEditing, setIsEditing });
   return (
-    <div className={cn(["flex items-center gap-2 mb-4"])}>
+    <div className={cn(["flex items-center gap-2 my-2"])}>
       {!isEditing
         ? (
           <>

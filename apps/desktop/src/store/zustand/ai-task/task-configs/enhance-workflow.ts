@@ -162,6 +162,7 @@ IMPORTANT: Previous attempt failed. ${previousFeedback}`;
       maxRetries: 2,
       onRetry: (attempt, feedback) => {
         console.log(`[Enhance] Retry ${attempt}: ${feedback}`);
+        onProgress({ type: "retrying", attempt, reason: feedback });
       },
     },
   );

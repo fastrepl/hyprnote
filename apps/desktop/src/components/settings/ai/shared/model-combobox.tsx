@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, CirclePlus, Eye, EyeOff } from "lucide-react";
+import { ChevronsUpDown, CirclePlus, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -118,12 +118,6 @@ export function ModelCombobox({
                     "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
                   ])}
                 >
-                  <Check
-                    className={cn([
-                      "mr-2 h-4 w-4 min-h-4 min-w-4",
-                      value === option ? "opacity-100" : "opacity-0",
-                    ])}
-                  />
                   <span className="truncate">{option}</span>
                 </CommandItem>
               ))}
@@ -147,12 +141,6 @@ export function ModelCombobox({
                     "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
                   ])}
                 >
-                  <Check
-                    className={cn([
-                      "mr-2 h-4 w-4 min-h-4 min-w-4",
-                      value === option ? "opacity-100" : "opacity-0",
-                    ])}
-                  />
                   <span className="truncate">{option}</span>
                 </CommandItem>
               ))}

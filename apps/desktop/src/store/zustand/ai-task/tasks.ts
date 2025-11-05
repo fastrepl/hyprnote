@@ -25,8 +25,10 @@ export type TasksActions = {
   getState: <T extends TaskType>(taskId: TaskId<T>) => TaskState<T> | undefined;
 };
 
-export type TaskStepInfo<T extends TaskType = TaskType> = T extends "enhance"
-  ? { type: "analyzing" } | { type: "generating" }
+export type TaskStepInfo<T extends TaskType = TaskType> = T extends "enhance" ?
+    | { type: "analyzing" }
+    | { type: "generating" }
+    | { type: "retrying"; attempt: number; reason: string }
   : T extends "title" ? { type: "generating" }
   : { type: "generating" };
 

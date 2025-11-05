@@ -1,10 +1,35 @@
 import { Icon } from "@iconify-icon/react";
+import { Streamdown } from "streamdown";
 
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@hypr/ui/components/ui/input-group";
+import { cn } from "@hypr/utils";
 import { type AnyFieldApi } from "@tanstack/react-form";
 import * as main from "../../../../store/tinybase/main";
 
 export * from "./model-combobox";
+
+const streamdownComponents = {
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => {
+    return <ul className="list-disc pl-6 mb-1 block relative">{props.children as React.ReactNode}</ul>;
+  },
+  ol: (props: React.HTMLAttributes<HTMLOListElement>) => {
+    return <ol className="list-decimal pl-6 mb-1 block relative">{props.children as React.ReactNode}</ol>;
+  },
+  li: (props: React.HTMLAttributes<HTMLLIElement>) => {
+    return <li className="mb-1">{props.children as React.ReactNode}</li>;
+  },
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => {
+    return <p className="mb-1">{props.children as React.ReactNode}</p>;
+  },
+} as const;
+
+export function StyledStreamdown({ children, className }: { children: string; className?: string }) {
+  return (
+    <Streamdown components={streamdownComponents} className={cn(["text-sm mt-1", className])}>
+      {children}
+    </Streamdown>
+  );
+}
 
 export function useProvider(id: string) {
   const providerRow = main.UI.useRow("ai_providers", id, main.STORE_ID);

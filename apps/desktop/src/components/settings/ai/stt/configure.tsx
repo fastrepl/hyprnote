@@ -3,7 +3,6 @@ import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useState } from "react";
-import { Streamdown } from "streamdown";
 import { useManager } from "tinytick/ui-react";
 
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
@@ -18,7 +17,7 @@ import {
   registerDownloadProgressCallback,
   unregisterDownloadProgressCallback,
 } from "../../../task-manager";
-import { FormField, useProvider } from "../shared";
+import { FormField, StyledStreamdown, useProvider } from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function ConfigureProviders() {
@@ -430,11 +429,7 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
     return null;
   }
 
-  return (
-    <Streamdown className="text-sm mt-1 mb-6">
-      {content.trim()}
-    </Streamdown>
-  );
+  return <StyledStreamdown className="mb-6">{content.trim()}</StyledStreamdown>;
 }
 
 function useSafeSelectModel() {

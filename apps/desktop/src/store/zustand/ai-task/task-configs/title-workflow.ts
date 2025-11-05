@@ -1,4 +1,5 @@
-import { type LanguageModel, streamText } from "ai";
+import { generateId, generateObject, type LanguageModel } from "ai";
+import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
@@ -21,14 +22,30 @@ async function* executeWorkflow(params: {
 
   onProgress({ type: "generating" });
 
-  const result = streamText({
-    model,
-    system,
-    prompt,
-    abortSignal: signal,
+  const schema = z.object({
+    title: z.string(),
   });
 
-  yield* result.fullStream;
+  try {
+    const { object } = await generateObject({
+      model,
+      temperature: 0,
+      schema,
+      system,
+      prompt,
+      abortSignal: signal,
+    });
+    const id = generateId();
+
+    yield {
+      type: "text-delta" as const,
+      id,
+      text: object.title,
+    };
+  } catch (error) {
+    console.error(JSON.stringify(error));
+    throw error;
+  }
 }
 
 async function getSystemPrompt(_args: TaskArgsMapTransformed["title"]) {

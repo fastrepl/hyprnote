@@ -33,17 +33,16 @@ export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
   const attemptGenerateTitle = useCallback(() => {
     const trimmedTitle = title?.trim();
     if (trimmedTitle) {
+      console.log("skip_title", "title already exists");
       return;
     }
 
     if (!model) {
+      console.log("skip_title", "no model");
       return;
     }
 
-    if (titleTask.status !== "idle") {
-      return;
-    }
-
+    console.log("generate_title", "starting task");
     void titleTask.start({
       model,
       args: { sessionId },

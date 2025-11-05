@@ -80,6 +80,7 @@ async function generateTemplateIfNeeded(params: {
     try {
       const template = await generateObject({
         model,
+        temperature: 0,
         schema,
         abortSignal: signal,
         prompt: `Analyze this meeting content and suggest appropriate section headings for a comprehensive summary. 

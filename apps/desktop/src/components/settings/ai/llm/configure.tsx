@@ -1,12 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { useEffect } from "react";
-import { Streamdown } from "streamdown";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
 import { cn } from "@hypr/utils";
 import { aiProviderSchema } from "../../../../store/tinybase/main";
 import * as main from "../../../../store/tinybase/main";
-import { FormField, useProvider } from "../shared";
+import { FormField, StyledStreamdown, useProvider } from "../shared";
 import { ProviderId, PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
@@ -181,9 +180,5 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
     return null;
   }
 
-  return (
-    <Streamdown className="text-sm mt-1">
-      {content}
-    </Streamdown>
-  );
+  return <StyledStreamdown>{content}</StyledStreamdown>;
 }

@@ -4,7 +4,7 @@ use ractor::{call_t, concurrency, registry, Actor, ActorRef};
 use tauri_specta::Event;
 
 use crate::{
-    actors::{SessionActor, SessionArgs, SessionMsg, SessionParams},
+    actors::{BatchActor, BatchArgs, SessionActor, SessionArgs, SessionMsg, SessionParams},
     SessionEvent,
 };
 
@@ -148,18 +148,37 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn run_batch(&self, params: BatchParams) -> Result<(), crate::Error> {
+        let channels = params.channels.unwrap_or(1);
+
+        let listen_params = owhisper_interface::ListenParams {
+            model: params.model.clone(),
+            channels,
+            languages: params.languages.clone(),
+            keywords: params.keywords.clone(),
+            redemption_time_ms: None,
+        };
+
         match params.provider {
+            BatchProvider::Am => {
+                let state = self.state::<crate::SharedState>();
+                let guard = state.lock().await;
+
+                let _ = Actor::spawn(
+                    Some(BatchActor::name()),
+                    BatchActor,
+                    BatchArgs {
+                        app: guard.app.clone(),
+                        file_path: params.file_path,
+                        base_url: params.base_url,
+                        api_key: params.api_key,
+                        listen_params,
+                    },
+                )
+                .await;
+
+                Ok(())
+            }
             BatchProvider::Deepgram => {
-                let channels = params.channels.unwrap_or(1);
-
-                let listen_params = owhisper_interface::ListenParams {
-                    model: params.model.clone(),
-                    channels,
-                    languages: params.languages.clone(),
-                    keywords: params.keywords.clone(),
-                    redemption_time_ms: None,
-                };
-
                 let client = owhisper_client::BatchClient::builder()
                     .api_base(params.base_url.clone())
                     .api_key(params.api_key.clone())
@@ -176,7 +195,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
                 Ok(())
             }
-            BatchProvider::Am => Err(crate::Error::UnsupportedBatchProvider),
         }
     }
 }

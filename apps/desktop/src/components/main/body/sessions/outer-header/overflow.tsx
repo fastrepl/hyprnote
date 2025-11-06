@@ -45,7 +45,7 @@ export function OverflowButton({ sessionId }: { sessionId: string }) {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button size="icon" variant="ghost">
-          <MoreHorizontalIcon />
+          <MoreHorizontalIcon size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

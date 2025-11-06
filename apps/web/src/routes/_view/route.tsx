@@ -1,4 +1,3 @@
-import { Image } from "@/components/image";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";

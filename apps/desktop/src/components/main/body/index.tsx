@@ -50,6 +50,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
 
   return (
     <div
+      data-tauri-drag-region
       className={cn([
         "w-full h-9 flex items-center",
         !leftsidebar.expanded && "pl-[72px]",

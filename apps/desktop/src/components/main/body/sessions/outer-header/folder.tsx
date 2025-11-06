@@ -9,6 +9,7 @@ import {
 
 import { FolderIcon } from "lucide-react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import * as main from "../../../../../store/tinybase/main";
 import { useTabs } from "../../../../../store/zustand/tabs";
 import { FolderBreadcrumb } from "../../shared/folder-breadcrumb";
@@ -59,9 +60,9 @@ function RenderIfRootExist(
         renderCrumb={({ id, name }) => (
           <BreadcrumbItem className="overflow-hidden">
             <BreadcrumbLink asChild>
-              <button onClick={() => openNew({ type: "folders", id })} className="truncate">
+              <Button size="sm" onClick={() => openNew({ type: "folders", id })} className="truncate">
                 {name}
-              </button>
+              </Button>
             </BreadcrumbLink>
           </BreadcrumbItem>
         )}

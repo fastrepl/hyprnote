@@ -1,5 +1,7 @@
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+use owhisper_interface::stream::StreamResponse;
+
 use super::event::TuiEventSender;
 use ratatui::widgets::{ListState, ScrollbarState};
 
@@ -56,9 +58,9 @@ impl RunState {
         self.event_sender = Some(sender);
     }
 
-    pub fn process_chunk(&mut self, chunk: owhisper_interface::StreamResponse) {
+    pub fn process_chunk(&mut self, chunk: StreamResponse) {
         let words = match chunk {
-            owhisper_interface::StreamResponse::TranscriptResponse { channel, .. } => channel
+            StreamResponse::TranscriptResponse { channel, .. } => channel
                 .alternatives
                 .first()
                 .map(|alt| {

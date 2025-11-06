@@ -21,7 +21,8 @@ use hypr_moonshine::MoonshineOnnxModel;
 use hypr_vad::VadExt;
 
 use owhisper_config::MoonshineModelSize;
-use owhisper_interface::{Alternatives, Channel, ListenParams, Metadata, StreamResponse, Word};
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
+use owhisper_interface::ListenParams;
 
 #[derive(Clone)]
 pub struct TranscribeService {

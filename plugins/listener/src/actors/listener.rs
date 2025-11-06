@@ -5,7 +5,8 @@ use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
 use owhisper_client::hypr_ws;
-use owhisper_interface::{ControlMessage, Extra, MixedMessage, StreamResponse};
+use owhisper_interface::stream::{Extra, StreamResponse};
+use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
 use tauri_specta::Event;
 
@@ -16,7 +17,7 @@ const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 
 pub enum ListenerMsg {
     Audio(Bytes, Bytes),
-    StreamResponse(owhisper_interface::StreamResponse),
+    StreamResponse(StreamResponse),
     StreamError(String),
     StreamEnded,
     StreamTimeout(Elapsed),

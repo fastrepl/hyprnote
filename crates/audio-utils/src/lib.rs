@@ -4,6 +4,10 @@ use kalosm_sound::AsyncSource;
 
 mod error;
 pub use error::*;
+mod vorbis;
+pub use vorbis::*;
+
+pub use rodio::Source;
 
 const I16_SCALE: f32 = 32768.0;
 
@@ -72,9 +76,8 @@ pub fn bytes_to_f32_samples(data: &[u8]) -> Vec<f32> {
 pub fn source_from_path(
     path: impl AsRef<std::path::Path>,
 ) -> Result<rodio::Decoder<std::io::BufReader<std::fs::File>>, crate::Error> {
-    let decoder = rodio::Decoder::new(std::io::BufReader::new(
-        std::fs::File::open(path.as_ref()).unwrap(),
-    ))?;
+    let file = std::fs::File::open(path.as_ref())?;
+    let decoder = rodio::Decoder::new(std::io::BufReader::new(file))?;
     Ok(decoder)
 }
 
@@ -127,4 +130,38 @@ where
     }
 
     Ok(output)
+}
+
+#[derive(Debug)]
+pub struct ChunkedAudio {
+    pub chunks: Vec<Bytes>,
+    pub sample_count: usize,
+}
+
+pub fn chunk_audio_file(
+    path: impl AsRef<std::path::Path>,
+    sample_rate: u32,
+    chunk_size: usize,
+) -> Result<ChunkedAudio, crate::Error> {
+    let source = source_from_path(path)?;
+    let samples = resample_audio(source, sample_rate)?;
+
+    if samples.is_empty() {
+        return Ok(ChunkedAudio {
+            chunks: Vec::new(),
+            sample_count: 0,
+        });
+    }
+
+    let chunk_size = chunk_size.max(1);
+    let sample_count = samples.len();
+    let chunks = samples
+        .chunks(chunk_size)
+        .map(|chunk| f32_to_i16_bytes(chunk.iter().copied()))
+        .collect();
+
+    Ok(ChunkedAudio {
+        chunks,
+        sample_count,
+    })
 }

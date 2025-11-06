@@ -6,4 +6,22 @@ pub enum Error {
     ResamplerConstructionError(#[from] rubato::ResamplerConstructionError),
     #[error(transparent)]
     DecoderError(#[from] rodio::decoder::DecoderError),
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Hound(#[from] hound::Error),
+    #[error(transparent)]
+    Vorbis(#[from] vorbis_rs::VorbisError),
+    #[error("vorbis channel count mismatch (expected {expected}, actual {actual})")]
+    ChannelCountMismatch { expected: u8, actual: u8 },
+    #[error("vorbis channel data length mismatch for channel {channel}")]
+    ChannelDataLengthMismatch { channel: usize },
+    #[error("unsupported channel count {count}")]
+    UnsupportedChannelCount { count: u16 },
+    #[error("invalid sample rate {0}")]
+    InvalidSampleRate(u32),
+    #[error("vorbis channel data is empty")]
+    EmptyChannelSet,
+    #[error("too many channels: {count}")]
+    TooManyChannels { count: usize },
 }

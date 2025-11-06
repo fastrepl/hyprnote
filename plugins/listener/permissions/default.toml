@@ -9,4 +9,5 @@ permissions = [
     "allow-get-mic-muted",
     "allow-set-mic-muted",
     "allow-get-state",
+    "allow-run-batch",
 ]

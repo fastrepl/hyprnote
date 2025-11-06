@@ -16,6 +16,9 @@ serde_json = { workspace = true }
 url = { workspace = true }
 
 futures-util = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+thiserror = { workspace = true }
+tokio = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]

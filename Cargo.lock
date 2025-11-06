@@ -3720,9 +3720,9 @@ dependencies = [
 
 [[package]]
 name = "deepgram"
-version = "0.6.10"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7e55d68eeaf55308feb5cb6e948d49efa8564d0536a7375d8a9e06acbb5773a"
+checksum = "49bf11c4dc8fc1e7c94fc4198f82f64536fdb9eded7b5a076d9597d8b67e1fd1"
 dependencies = [
  "anyhow",
  "bytes",
@@ -10301,8 +10301,10 @@ dependencies = [
  "futures-util",
  "language",
  "owhisper-interface",
+ "reqwest 0.12.24",
  "rodio",
  "serde_json",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
  "tracing",

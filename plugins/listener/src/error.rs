@@ -22,6 +22,8 @@ pub enum Error {
     ActorNotFound(String),
     #[error(transparent)]
     Batch(#[from] owhisper_client::BatchError),
+    #[error(transparent)]
+    SpawnError(#[from] ractor::SpawnErr),
 }
 
 impl Serialize for Error {

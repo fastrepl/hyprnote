@@ -163,30 +163,41 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 let state = self.state::<crate::SharedState>();
                 let guard = state.lock().await;
 
-                let _ = Actor::spawn(
+                match Actor::spawn(
                     Some(BatchActor::name()),
                     BatchActor,
                     BatchArgs {
                         app: guard.app.clone(),
-                        file_path: params.file_path,
-                        base_url: params.base_url,
-                        api_key: params.api_key,
+                        file_path: params.file_path.clone(),
+                        base_url: params.base_url.clone(),
+                        api_key: params.api_key.clone(),
                         listen_params,
                     },
                 )
-                .await;
-
-                Ok(())
+                .await
+                {
+                    Ok(_) => {
+                        tracing::info!("batch actor spawned successfully");
+                        Ok(())
+                    }
+                    Err(e) => {
+                        tracing::error!("batch actor spawn failed: {:?}", e);
+                        Err(e.into())
+                    }
+                }
             }
             BatchProvider::Deepgram => {
+                tracing::debug!("using direct batch client for Deepgram provider");
                 let client = owhisper_client::BatchClient::builder()
                     .api_base(params.base_url.clone())
                     .api_key(params.api_key.clone())
                     .params(listen_params)
                     .build_batch();
 
+                tracing::debug!("transcribing file: {}", params.file_path);
                 let response = client.transcribe_file(&params.file_path).await?;
 
+                tracing::info!("batch transcription completed, emitting response");
                 SessionEvent::BatchResponse {
                     response: response as _,
                 }

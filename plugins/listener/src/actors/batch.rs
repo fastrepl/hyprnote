@@ -1,21 +1,25 @@
-use bytes::Bytes;
 use std::path::PathBuf;
+use std::time::Duration;
 
-use futures_util::StreamExt;
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{batch, ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_specta::Event;
+use tokio_stream::{self as tokio_stream, StreamExt as TokioStreamExt};
 
 use crate::SessionEvent;
 
-const STREAM_CHUNK_SAMPLES: usize = 512;
+const RESAMPLED_SAMPLE_RATE_HZ: u32 = 16_000;
+const BATCH_STREAM_TIMEOUT_SECS: u64 = 10;
+const DEFAULT_CHUNK_MS: u64 = 500;
+const DEFAULT_DELAY_MS: u64 = 80;
 
 pub enum BatchMsg {
     StreamResponse(StreamResponse),
     StreamError(String),
     StreamEnded,
     StreamStartFailed(String),
+    StreamAudioDuration(f64),
 }
 
 #[derive(Clone)]
@@ -32,6 +36,38 @@ pub struct BatchState {
     pub accumulator: BatchResponseBuilder,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
+    audio_duration_secs: Option<f64>,
+    transcript_duration_secs: f64,
+}
+
+impl BatchState {
+    fn on_transcript_progress(&mut self, progress: f64) -> Result<(), ActorProcessingErr> {
+        if !progress.is_finite() || progress < 0.0 || progress <= self.transcript_duration_secs {
+            return Ok(());
+        }
+
+        self.transcript_duration_secs = progress;
+        emit_batch_progress(self)
+    }
+
+    fn on_audio_duration(&mut self, duration: f64) -> Result<(), ActorProcessingErr> {
+        let clamped = if duration.is_finite() && duration >= 0.0 {
+            duration
+        } else {
+            0.0
+        };
+
+        self.audio_duration_secs = Some(clamped);
+        if self.transcript_duration_secs > clamped {
+            self.transcript_duration_secs = clamped;
+        }
+
+        emit_batch_progress(self)
+    }
+
+    fn take_response(&mut self) -> batch::Response {
+        std::mem::replace(&mut self.accumulator, BatchResponseBuilder::new(1)).build()
+    }
 }
 
 pub struct BatchActor;
@@ -61,6 +97,8 @@ impl Actor for BatchActor {
             accumulator,
             rx_task,
             shutdown_tx: Some(shutdown_tx),
+            audio_duration_secs: None,
+            transcript_duration_secs: 0.0,
         };
 
         Ok(state)
@@ -86,34 +124,72 @@ impl Actor for BatchActor {
     ) -> Result<(), ActorProcessingErr> {
         match message {
             BatchMsg::StreamResponse(response) => {
+                tracing::info!("batch stream response received");
+                let transcript_progress = transcript_end_from_response(&response);
                 state.accumulator.ingest(response);
+
+                if let Some(progress) = transcript_progress {
+                    state.on_transcript_progress(progress)?;
+                }
+            }
+
+            BatchMsg::StreamAudioDuration(duration) => {
+                tracing::info!("batch stream audio duration seconds: {duration}");
+                state.on_audio_duration(duration)?;
             }
 
             BatchMsg::StreamStartFailed(error) => {
-                tracing::error!("batch_stream_start_failed: {}", error);
+                tracing::info!("batch_stream_start_failed: {}", error);
                 myself.stop(Some(format!("batch_stream_start_failed: {}", error)));
             }
 
             BatchMsg::StreamError(error) => {
-                tracing::error!("batch_stream_error: {}", error);
+                tracing::info!("batch_stream_error: {}", error);
                 myself.stop(None);
             }
 
             BatchMsg::StreamEnded => {
                 tracing::info!("batch_stream_ended");
 
-                let accumulator =
-                    std::mem::replace(&mut state.accumulator, BatchResponseBuilder::new(1));
-                let batch_response = accumulator.build();
+                let batch_response = state.take_response();
+
                 SessionEvent::BatchResponse {
                     response: batch_response,
                 }
                 .emit(&state.app)?;
 
+                emit_batch_progress(state)?;
+
                 myself.stop(None);
             }
         }
         Ok(())
+    }
+}
+
+#[derive(Clone, Copy)]
+struct BatchStreamConfig {
+    chunk_ms: u64,
+    delay_ms: u64,
+}
+
+impl BatchStreamConfig {
+    fn new(chunk_ms: u64, delay_ms: u64) -> Self {
+        Self {
+            chunk_ms: chunk_ms.max(1),
+            delay_ms,
+        }
+    }
+
+    fn chunk_samples(&self) -> usize {
+        let samples =
+            ((self.chunk_ms as u128).saturating_mul(RESAMPLED_SAMPLE_RATE_HZ as u128) + 999) / 1000;
+        let samples = samples.max(1);
+        samples.min(usize::MAX as u128) as usize
+    }
+
+    fn chunk_interval(&self) -> Duration {
+        Duration::from_millis(self.delay_ms)
     }
 }
 
@@ -130,27 +206,73 @@ async fn spawn_batch_task(
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
 
     let rx_task = tokio::spawn(async move {
-        let audio_chunks = match load_audio_chunks(PathBuf::from(args.file_path)).await {
-            Ok(chunks) => chunks,
-            Err(e) => {
+        tracing::info!("batch task: loading audio chunks from file");
+        let stream_config = BatchStreamConfig::new(DEFAULT_CHUNK_MS, DEFAULT_DELAY_MS);
+
+        let chunk_samples = stream_config.chunk_samples();
+        let chunk_result = tokio::task::spawn_blocking({
+            let path = PathBuf::from(&args.file_path);
+            move || {
+                hypr_audio_utils::chunk_audio_file(path, RESAMPLED_SAMPLE_RATE_HZ, chunk_samples)
+            }
+        })
+        .await;
+
+        let chunked_audio = match chunk_result {
+            Ok(Ok(data)) => {
+                tracing::info!("batch task: loaded {} audio chunks", data.chunks.len());
+                data
+            }
+            Ok(Err(e)) => {
+                tracing::error!("batch task: failed to load audio chunks: {:?}", e);
                 let _ = myself.send_message(BatchMsg::StreamStartFailed(format!("{:?}", e)));
+                return;
+            }
+            Err(join_err) => {
+                tracing::error!(
+                    "batch task: audio chunk loading task panicked: {:?}",
+                    join_err
+                );
+                let _ = myself.send_message(BatchMsg::StreamStartFailed(format!("{:?}", join_err)));
                 return;
             }
         };
 
+        let sample_count = chunked_audio.sample_count;
+        let audio_duration_secs = if sample_count == 0 {
+            0.0
+        } else {
+            sample_count as f64 / RESAMPLED_SAMPLE_RATE_HZ as f64
+        };
+        let _ = myself.send_message(BatchMsg::StreamAudioDuration(audio_duration_secs));
+
+        tracing::debug!("batch task: creating listen client");
         let client = owhisper_client::ListenClient::builder()
             .api_base(args.base_url)
             .api_key(args.api_key)
             .params(args.listen_params)
             .build_single();
 
-        let outbound = tokio_stream::iter(audio_chunks.into_iter().map(MixedMessage::Audio).chain(
-            std::iter::once(MixedMessage::Control(ControlMessage::Finalize)),
-        ));
+        let chunk_count = chunked_audio.chunks.len();
+        let chunk_interval = stream_config.chunk_interval();
 
+        let audio_stream =
+            tokio_stream::iter(chunked_audio.chunks.into_iter().map(MixedMessage::Audio));
+        let finalize_stream =
+            tokio_stream::iter(vec![MixedMessage::Control(ControlMessage::Finalize)]);
+        let outbound = TokioStreamExt::throttle(
+            TokioStreamExt::chain(audio_stream, finalize_stream),
+            chunk_interval,
+        );
+
+        tracing::info!(
+            "batch task: starting audio stream with {} chunks + finalize message",
+            chunk_count
+        );
         let (listen_stream, _handle) = match client.from_realtime_audio(Box::pin(outbound)).await {
             Ok(res) => res,
             Err(e) => {
+                tracing::error!("batch task: failed to start audio stream: {:?}", e);
                 let _ = myself.send_message(BatchMsg::StreamStartFailed(format!("{:?}", e)));
                 return;
             }
@@ -171,101 +293,121 @@ async fn process_batch_stream<S, E>(
     S: futures_util::Stream<Item = Result<StreamResponse, E>>,
     E: std::fmt::Debug,
 {
+    let mut response_count = 0;
+    let response_timeout = Duration::from_secs(BATCH_STREAM_TIMEOUT_SECS);
+
     loop {
+        tracing::debug!(
+            "batch stream: waiting for next item (received {} so far)",
+            response_count
+        );
+
         tokio::select! {
             _ = &mut shutdown_rx => {
                 tracing::info!("batch_stream_shutdown");
                 break;
             }
-            result = listen_stream.next() => {
+            result = tokio::time::timeout(
+                response_timeout,
+                futures_util::StreamExt::next(&mut listen_stream),
+            ) => {
+                tracing::debug!("batch stream: received result");
                 match result {
-                    Some(Ok(response)) => {
+                    Ok(Some(Ok(response))) => {
+                        response_count += 1;
+
+                        let is_from_finalize = matches!(
+                            &response,
+                            StreamResponse::TranscriptResponse { from_finalize, .. } if *from_finalize
+                        );
+
+                        tracing::info!(
+                            "batch stream: sending response #{}{}",
+                            response_count,
+                            if is_from_finalize { " (from_finalize)" } else { "" }
+                        );
+
                         let _ = myself.send_message(BatchMsg::StreamResponse(response));
+
+                        if is_from_finalize {
+                            let _ = myself.send_message(BatchMsg::StreamEnded);
+                            break;
+                        }
                     }
-                    Some(Err(e)) => {
+                    Ok(Some(Err(e))) => {
+                        tracing::error!("batch stream error: {:?}", e);
                         let _ = myself.send_message(BatchMsg::StreamError(format!("{:?}", e)));
                         break;
                     }
-                    None => {
+                    Ok(None) => {
+                        tracing::info!("batch stream completed (total responses: {})", response_count);
                         let _ = myself.send_message(BatchMsg::StreamEnded);
+                        break;
+                    }
+                    Err(elapsed) => {
+                        tracing::warn!(timeout = ?elapsed, responses = response_count, "batch stream response timeout");
+                        let _ = myself.send_message(BatchMsg::StreamError("timeout waiting for batch stream response".into()));
                         break;
                     }
                 }
             }
         }
     }
-}
 
-async fn load_audio_chunks(path: PathBuf) -> Result<Vec<Bytes>, std::io::Error> {
-    tokio::task::spawn_blocking(move || load_audio_chunks_sync(path))
-        .await
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
-}
-
-fn load_audio_chunks_sync(path: PathBuf) -> Result<Vec<Bytes>, std::io::Error> {
-    let source = hypr_audio_utils::source_from_path(&path)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-
-    let samples: Vec<f32> = hypr_audio_utils::resample_audio(source, 16_000)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-
-    if samples.is_empty() {
-        return Ok(Vec::new());
-    }
-
-    let mut chunks = Vec::new();
-    let mut offset = 0;
-
-    while offset < samples.len() {
-        let end = (offset + STREAM_CHUNK_SAMPLES).min(samples.len());
-        let bytes = hypr_audio_utils::f32_to_i16_bytes(samples[offset..end].iter().copied());
-        chunks.push(bytes);
-        offset = end;
-    }
-
-    Ok(chunks)
+    tracing::info!("batch stream processing loop exited");
 }
 
 pub struct BatchResponseBuilder {
     metadata: Option<serde_json::Value>,
-    channels: Vec<ChannelAccumulator>,
+    channels: Vec<Option<batch::Alternatives>>,
 }
 
 impl BatchResponseBuilder {
     fn new(channel_count: u8) -> Self {
         let count = channel_count.clamp(1, 2) as usize;
-        let channels = (0..count).map(|_| ChannelAccumulator::default()).collect();
         Self {
             metadata: None,
-            channels,
+            channels: vec![None; count],
         }
     }
 
     fn ingest(&mut self, response: StreamResponse) {
-        if let StreamResponse::TranscriptResponse {
+        let StreamResponse::TranscriptResponse {
             is_final,
             channel,
             metadata,
             channel_index,
             ..
         } = response
-        {
-            if !is_final {
-                return;
-            }
+        else {
+            return;
+        };
 
-            if self.metadata.is_none() {
-                self.metadata = serde_json::to_value(metadata).ok();
-            }
+        if !is_final {
+            return;
+        }
 
-            let target_index = channel_index
-                .iter()
-                .find_map(|idx| usize::try_from(*idx).ok())
-                .unwrap_or(0);
+        self.metadata.get_or_insert_with(|| metadata.into());
 
-            if let Some(accumulator) = self.channels.get_mut(target_index) {
-                if let Some(alternative) = channel.alternatives.into_iter().next() {
-                    accumulator.ingest(alternative);
+        let target_index = channel_index
+            .iter()
+            .find_map(|idx| usize::try_from(*idx).ok())
+            .unwrap_or(0);
+
+        if let Some(slot) = self.channels.get_mut(target_index) {
+            if let Some(alternative) = channel
+                .alternatives
+                .into_iter()
+                .next()
+                .map(batch::Alternatives::from)
+            {
+                if !alternative_has_content(&alternative) {
+                    return;
+                }
+
+                match slot {
+                    Some(existing) => merge_alternative(existing, alternative),
+                    None => *slot = Some(alternative),
                 }
             }
         }
@@ -276,7 +418,9 @@ impl BatchResponseBuilder {
         let channels = self
             .channels
             .into_iter()
-            .map(|accumulator| accumulator.into_channel())
+            .map(|alternative| batch::Channel {
+                alternatives: alternative.into_iter().collect(),
+            })
             .collect();
 
         batch::Response {
@@ -286,54 +430,60 @@ impl BatchResponseBuilder {
     }
 }
 
-#[derive(Default)]
-struct ChannelAccumulator {
-    transcript: String,
-    words: Vec<batch::Word>,
-    confidence: f64,
-    has_content: bool,
+fn alternative_has_content(alternative: &batch::Alternatives) -> bool {
+    !alternative.transcript.trim().is_empty() || !alternative.words.is_empty()
 }
 
-impl ChannelAccumulator {
-    fn ingest(&mut self, alternative: owhisper_interface::stream::Alternatives) {
-        let transcript = alternative.transcript.trim();
-        if !transcript.is_empty() {
-            if !self.transcript.is_empty() {
-                self.transcript.push(' ');
-            }
-            self.transcript.push_str(transcript);
+fn merge_alternative(target: &mut batch::Alternatives, incoming: batch::Alternatives) {
+    if !incoming.transcript.is_empty() {
+        if !target.transcript.is_empty() {
+            target.transcript.push(' ');
         }
-
-        for word in alternative.words {
-            self.words.push(batch::Word {
-                word: word.word,
-                start: word.start,
-                end: word.end,
-                confidence: word.confidence,
-                speaker: word
-                    .speaker
-                    .and_then(|speaker| (speaker >= 0).then_some(speaker as usize)),
-                punctuated_word: word.punctuated_word,
-            });
-        }
-
-        self.confidence = alternative.confidence;
-        self.has_content = self.has_content || !transcript.is_empty() || !self.words.is_empty();
+        target.transcript.push_str(&incoming.transcript);
     }
 
-    fn into_channel(self) -> batch::Channel {
-        if !self.has_content {
-            return batch::Channel {
-                alternatives: Vec::new(),
-            };
-        }
+    target.words.extend(incoming.words);
+    target.confidence = incoming.confidence;
+}
 
-        batch::Channel {
-            alternatives: vec![batch::Alternatives {
-                transcript: self.transcript,
-                confidence: self.confidence,
-                words: self.words,
-            }],
+fn emit_batch_progress(state: &BatchState) -> Result<(), ActorProcessingErr> {
+    if let Some(audio_duration) = state.audio_duration_secs {
+        let transcript_duration = state.transcript_duration_secs.clamp(0.0, audio_duration);
+
+        SessionEvent::BatchProgress {
+            audio_duration,
+            transcript_duration,
         }
+        .emit(&state.app)?;
+    }
+
+    Ok(())
+}
+
+fn transcript_end_from_response(response: &StreamResponse) -> Option<f64> {
+    let StreamResponse::TranscriptResponse {
+        start,
+        duration,
+        channel,
+        ..
+    } = response
+    else {
+        return None;
+    };
+
+    let mut end = (*start + *duration).max(0.0);
+
+    for alternative in &channel.alternatives {
+        for word in &alternative.words {
+            if word.end.is_finite() {
+                end = end.max(word.end);
+            }
+        }
+    }
+
+    if end.is_finite() {
+        Some(end)
+    } else {
+        None
     }
 }

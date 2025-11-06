@@ -26,6 +26,8 @@ common_event_derives! {
         StreamResponse { response: StreamResponse },
         #[serde(rename = "batchResponse")]
         BatchResponse { response: BatchResponse },
+        #[serde(rename = "batchProgress")]
+        BatchProgress { audio_duration: f64, transcript_duration: f64 },
     }
 }
 

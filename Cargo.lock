@@ -913,10 +913,12 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "futures-util",
+ "hound",
  "kalosm-sound",
  "rodio",
  "rubato",
  "thiserror 2.0.17",
+ "vorbis_rs",
 ]
 
 [[package]]
@@ -14771,11 +14773,13 @@ dependencies = [
 name = "tauri-plugin-misc"
 version = "0.1.0"
 dependencies = [
+ "audio-utils",
  "buffer",
  "host",
  "indoc",
  "lazy_static",
  "regex",
+ "rodio",
  "specta",
  "specta-typescript",
  "sysinfo 0.37.2",
@@ -14783,6 +14787,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-opener",
  "tauri-specta",
+ "thiserror 2.0.17",
  "vergen-gix",
 ]
 

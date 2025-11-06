@@ -1,12 +1,12 @@
-import { X } from "lucide-react";
-import { useEffect, useState } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
-
 import { cn } from "@hypr/utils";
+
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 import { type Tab } from "../../../store/zustand/tabs";
 import { InteractiveButton } from "../../interactive-button";

@@ -1,9 +1,10 @@
+import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { cn } from "@hypr/utils";
+
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
-import { cn } from "@hypr/utils";
 import { useSearch } from "../../../contexts/search/ui";
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 
@@ -79,6 +80,7 @@ function ExpandedSearch({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: ()
 
   return (
     <div
+      data-tauri-drag-region
       className={cn([
         "flex items-center h-full transition-all duration-300",
         isFocused ? "w-[250px]" : "w-[180px]",

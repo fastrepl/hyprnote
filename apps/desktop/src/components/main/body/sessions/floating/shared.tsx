@@ -36,11 +36,10 @@ export function FloatingButton({
     <Button
       size="lg"
       className={cn([
-        "w-44",
-        error
-          ? "rounded-lg bg-red-900 hover:bg-red-800 text-white"
-          : "rounded-lg disabled:opacity-100 disabled:bg-neutral-500",
-        subtle && "opacity-40 hover:opacity-100 transition-opacity",
+        "border-2 rounded-full transition-[border-color,opacity] duration-200",
+        error && "border-red-500",
+        !error && "border-neutral-200 focus-within:border-stone-500",
+        subtle && "opacity-40 hover:opacity-100",
       ])}
       onClick={onClick}
       onMouseEnter={onMouseEnter}

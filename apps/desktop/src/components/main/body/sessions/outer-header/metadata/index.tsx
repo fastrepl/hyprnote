@@ -1,10 +1,11 @@
+import { Button } from "@hypr/ui/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { cn } from "@hypr/utils";
+
 import { differenceInDays, format, startOfDay } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { forwardRef, useState } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { cn } from "@hypr/utils";
 import * as main from "../../../../../../store/tinybase/main";
 import { DateDisplay } from "./date";
 import { ParticipantsDisplay } from "./participants";
@@ -37,12 +38,10 @@ const TriggerInner = forwardRef<HTMLButtonElement, { sessionId: string; open?: b
         {...props}
         variant="ghost"
         size="sm"
-        className={cn(["gap-1.5 h-8 px-1", open && "bg-neutral-100"])}
+        className={cn([open && "bg-neutral-100"])}
       >
-        <CalendarIcon size={12} />
-        <span className="text-xs">
-          {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
-        </span>
+        <CalendarIcon />
+        {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
       </Button>
     );
   },

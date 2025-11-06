@@ -12,7 +12,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
-import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
+import { Route as AppOnboardingIndexRouteImport } from './routes/app/onboarding/index'
 import { Route as AppSettingsLayoutRouteImport } from './routes/app/settings/_layout'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
 import { Route as AppSettingsLayoutIndexRouteImport } from './routes/app/settings/_layout.index'
@@ -36,9 +36,9 @@ const AppMainRoute = AppMainRouteImport.update({
   path: '/main',
   getParentRoute: () => AppRoute,
 } as any)
-const AppOnboardingRoute = AppOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
+const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
+  id: '/onboarding/',
+  path: '/onboarding/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsLayoutRoute = AppSettingsLayoutRouteImport.update({
@@ -62,26 +62,26 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
-  '/app/onboarding': typeof AppOnboardingRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsLayoutRouteWithChildren
+  '/app/onboarding': typeof AppOnboardingIndexRoute
   '/app/main/': typeof AppMainLayoutIndexRoute
   '/app/settings/': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
-  '/app/onboarding': typeof AppOnboardingRoute
   '/app/main': typeof AppMainLayoutIndexRoute
   '/app/settings': typeof AppSettingsLayoutIndexRoute
+  '/app/onboarding': typeof AppOnboardingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteWithChildren
-  '/app/onboarding': typeof AppOnboardingRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/settings/_layout': typeof AppSettingsLayoutRouteWithChildren
+  '/app/onboarding/': typeof AppOnboardingIndexRoute
   '/app/main/_layout/': typeof AppMainLayoutIndexRoute
   '/app/settings/_layout/': typeof AppSettingsLayoutIndexRoute
 }
@@ -89,21 +89,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/app'
-    | '/app/onboarding'
     | '/app/main'
     | '/app/settings'
+    | '/app/onboarding'
     | '/app/main/'
     | '/app/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app' | '/app/onboarding' | '/app/main' | '/app/settings'
+  to: '/app' | '/app/main' | '/app/settings' | '/app/onboarding'
   id:
     | '__root__'
     | '/app'
-    | '/app/onboarding'
     | '/app/main'
     | '/app/main/_layout'
     | '/app/settings'
     | '/app/settings/_layout'
+    | '/app/onboarding/'
     | '/app/main/_layout/'
     | '/app/settings/_layout/'
   fileRoutesById: FileRoutesById
@@ -135,11 +135,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMainRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/onboarding': {
-      id: '/app/onboarding'
+    '/app/onboarding/': {
+      id: '/app/onboarding/'
       path: '/onboarding'
       fullPath: '/app/onboarding'
-      preLoaderRoute: typeof AppOnboardingRouteImport
+      preLoaderRoute: typeof AppOnboardingIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/settings/_layout': {
@@ -220,15 +220,15 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
-  AppOnboardingRoute: typeof AppOnboardingRoute
   AppMainRoute: typeof AppMainRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
+  AppOnboardingIndexRoute: typeof AppOnboardingIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppOnboardingRoute: AppOnboardingRoute,
   AppMainRoute: AppMainRouteWithChildren,
   AppSettingsRoute: AppSettingsRouteWithChildren,
+  AppOnboardingIndexRoute: AppOnboardingIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

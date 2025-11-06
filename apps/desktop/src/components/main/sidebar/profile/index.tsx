@@ -9,6 +9,7 @@ import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
+import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
 import { NotificationsMenuContent, NotificationsMenuHeader } from "./notification";
@@ -210,7 +211,6 @@ export function ProfileSection() {
 
       <div className="bg-neutral-50 rounded-lg overflow-hidden">
         <ProfileButton
-          name={auth?.session?.user?.email}
           isExpanded={isExpanded}
           onClick={() => setIsExpanded(!isExpanded)}
         />
@@ -221,16 +221,15 @@ export function ProfileSection() {
 
 function ProfileButton(
   {
-    name,
     isExpanded,
     onClick,
   }: {
-    name?: string;
     isExpanded: boolean;
     onClick: () => void;
   },
 ) {
   const auth = useAuth();
+  const name = useMyName();
 
   const profile = useQuery({
     queryKey: ["profile"],
@@ -269,7 +268,7 @@ function ProfileButton(
         />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm text-black truncate">{name ?? "Unknown"}</div>
+        <div className="text-sm text-black truncate">{name}</div>
       </div>
       <div className="flex items-center gap-1.5">
         <ChevronUpIcon
@@ -282,4 +281,10 @@ function ProfileButton(
       </div>
     </button>
   );
+}
+
+function useMyName() {
+  const userId = main.UI.useValue("user_id", main.STORE_ID);
+  const name = main.UI.useCell("humans", userId ?? "", "name", main.STORE_ID);
+  return name || "Unknown";
 }

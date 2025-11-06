@@ -66,7 +66,13 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       .setTablesSchema(SCHEMA.table)
       .setValuesSchema(SCHEMA.value)
   );
-  store.setValue("user_id", DEFAULT_USER_ID);
+
+  if (!store.hasValue("user_id")) {
+    store.setValue("user_id", DEFAULT_USER_ID);
+  }
+  if (!store.hasRow("humans", DEFAULT_USER_ID)) {
+    store.setRow("humans", DEFAULT_USER_ID, { created_at: new Date().toISOString() });
+  }
 
   useDidFinishTransactionListener(
     () => {

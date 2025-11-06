@@ -1,6 +1,6 @@
 import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
 
-import { clsx } from "clsx";
 import { PanelLeftCloseIcon } from "lucide-react";
 
 import { useSearch } from "../../../contexts/search/ui";
@@ -19,7 +19,7 @@ export function LeftSidebar() {
     <div className="h-full w-[280px] flex flex-col overflow-hidden shrink-0 gap-1">
       <header
         data-tauri-drag-region
-        className={clsx([
+        className={cn([
           "flex flex-row shrink-0",
           "flex w-full items-center justify-end h-9 py-1",
           "rounded-lg",

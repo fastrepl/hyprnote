@@ -86,7 +86,7 @@ export function ShareButton(_: { sessionId: string }) {
         <div className="flex flex-col gap-4 overflow-y-auto p-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center px-3 py-2 gap-2 rounded-md bg-neutral-50 border border-neutral-200">
-              <SearchIcon className="size-4 text-neutral-700 flex-shrink-0" />
+              <SearchIcon className="text-neutral-700 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}

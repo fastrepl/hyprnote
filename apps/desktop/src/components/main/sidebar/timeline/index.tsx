@@ -1,10 +1,10 @@
-import { clsx } from "clsx";
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
+
 import { startOfDay } from "date-fns";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
 import * as main from "../../../../store/tinybase/main";
 import {
   buildTimelineBuckets,
@@ -113,7 +113,7 @@ export function TimelineView() {
         <Button
           onClick={scrollToToday}
           size="sm"
-          className={clsx([
+          className={cn([
             "absolute left-1/2 transform -translate-x-1/2",
             "rounded-full bg-white hover:bg-neutral-50",
             "text-neutral-700 border border-neutral-200",

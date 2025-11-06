@@ -84,12 +84,10 @@ function Header() {
                 to="/"
                 className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
               >
-                <Image
+                <img
                   src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
                   alt="Hyprnote"
                   className="h-6"
-                  layout="fullWidth"
-                  background="auto"
                 />
               </Link>
               <div

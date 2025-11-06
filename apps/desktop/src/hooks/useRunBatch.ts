@@ -1,0 +1,131 @@
+import { useCallback } from "react";
+
+import type { BatchParams } from "@hypr/plugin-listener";
+
+import { useConfigValue } from "../config/use-config";
+import { useListener } from "../contexts/listener";
+import * as main from "../store/tinybase/main";
+import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
+import { id } from "../utils";
+import { useKeywords } from "./useKeywords";
+import { useSTTConnection } from "./useSTTConnection";
+
+type RunOptions = {
+  handlePersist?: HandlePersistCallback;
+  channels?: number;
+  model?: string;
+  baseUrl?: string;
+  apiKey?: string;
+  keywords?: string[];
+  languages?: string[];
+};
+
+export const useRunBatch = (sessionId: string) => {
+  const store = main.UI.useStore(main.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
+
+  const runBatch = useListener((state) => state.runBatch);
+
+  const conn = useSTTConnection();
+  const keywords = useKeywords(sessionId);
+  const languages = useConfigValue("spoken_languages") ?? [];
+
+  return useCallback(
+    async (filePath: string, options?: RunOptions) => {
+      if (!store || !conn) {
+        console.error("no_batch_connection");
+        return;
+      }
+
+      if (conn.provider !== "deepgram") {
+        console.error("unsupported_batch_provider", conn.provider);
+        return;
+      }
+
+      const transcriptId = id();
+      const createdAt = new Date().toISOString();
+
+      store.setRow("transcripts", transcriptId, {
+        session_id: sessionId,
+        user_id: user_id ?? "",
+        created_at: createdAt,
+        started_at: Date.now(),
+      });
+
+      const handlePersist: HandlePersistCallback | undefined = options?.handlePersist;
+
+      const persist = handlePersist
+        ?? ((words, hints) => {
+          if (words.length === 0) {
+            return;
+          }
+
+          const wordIds: string[] = [];
+
+          words.forEach((word) => {
+            const wordId = id();
+
+            store.setRow("words", wordId, {
+              transcript_id: transcriptId,
+              text: word.text,
+              start_ms: word.start_ms,
+              end_ms: word.end_ms,
+              channel: word.channel,
+              user_id: user_id ?? "",
+              created_at: new Date().toISOString(),
+            });
+
+            wordIds.push(wordId);
+          });
+
+          hints.forEach((hint) => {
+            if (hint.data.type !== "provider_speaker_index") {
+              return;
+            }
+
+            const wordId = wordIds[hint.wordIndex];
+            const word = words[hint.wordIndex];
+
+            if (!wordId || !word) {
+              return;
+            }
+
+            store.setRow("speaker_hints", id(), {
+              transcript_id: transcriptId,
+              word_id: wordId,
+              type: "provider_speaker_index",
+              value: JSON.stringify({
+                provider: hint.data.provider ?? conn.provider,
+                channel: hint.data.channel ?? word.channel,
+                speaker_index: hint.data.speaker_index,
+              }),
+              user_id: user_id ?? "",
+              created_at: new Date().toISOString(),
+            });
+          });
+        });
+
+      const params: BatchParams = {
+        provider: "deepgram",
+        file_path: filePath,
+        model: options?.model ?? conn.model,
+        base_url: options?.baseUrl ?? conn.baseUrl,
+        api_key: options?.apiKey ?? conn.apiKey,
+        keywords: options?.keywords ?? keywords,
+        languages: options?.languages ?? languages,
+        channels: options?.channels,
+      };
+
+      await runBatch(params, { handlePersist: persist });
+    },
+    [
+      conn,
+      keywords,
+      languages,
+      runBatch,
+      sessionId,
+      store,
+      user_id,
+    ],
+  );
+};

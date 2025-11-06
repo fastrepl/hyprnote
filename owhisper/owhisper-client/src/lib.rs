@@ -1,7 +1,13 @@
 use futures_util::Stream;
+use reqwest::StatusCode;
+use std::path::Path;
 
 use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
-use owhisper_interface::{ControlMessage, MixedMessage, StreamResponse};
+use owhisper_interface::batch::Response as BatchResponse;
+use owhisper_interface::stream::StreamResponse;
+use owhisper_interface::{ControlMessage, MixedMessage};
+use thiserror::Error;
+use tokio::fs;
 
 pub use hypr_ws;
 
@@ -51,8 +57,13 @@ impl ListenClientBuilder {
         self
     }
 
-    fn build_uri(&self, channels: u8) -> String {
-        let mut url: url::Url = self.api_base.as_ref().unwrap().parse().unwrap();
+    fn build_url(&self, channels: u8) -> url::Url {
+        let mut url: url::Url = self
+            .api_base
+            .as_ref()
+            .expect("api_base is required")
+            .parse()
+            .expect("invalid api_base");
 
         let params = owhisper_interface::ListenParams {
             channels,
@@ -132,12 +143,18 @@ impl ListenClientBuilder {
             }
         }
 
-        let host = url.host_str().unwrap();
+        url
+    }
 
-        if host.contains("127.0.0.1") || host.contains("localhost") {
-            url.set_scheme("ws").unwrap();
-        } else {
-            url.set_scheme("wss").unwrap();
+    fn build_uri(&self, channels: u8) -> String {
+        let mut url = self.build_url(channels);
+
+        if let Some(host) = url.host_str() {
+            if host.contains("127.0.0.1") || host.contains("localhost") {
+                let _ = url.set_scheme("ws");
+            } else {
+                let _ = url.set_scheme("wss");
+            }
         }
 
         url.to_string()
@@ -157,6 +174,22 @@ impl ListenClientBuilder {
         request
     }
 
+    pub fn build_batch(self) -> BatchClient {
+        let channels = self
+            .params
+            .as_ref()
+            .map(|params| params.channels)
+            .unwrap_or(1);
+
+        let url = self.build_url(channels);
+
+        BatchClient {
+            client: reqwest::Client::new(),
+            url,
+            api_key: self.api_key,
+        }
+    }
+
     pub fn build_single(self) -> ListenClient {
         let request = self.build_request(1);
         ListenClient { request }
@@ -171,6 +204,23 @@ impl ListenClientBuilder {
 #[derive(Clone)]
 pub struct ListenClient {
     request: ClientRequestBuilder,
+}
+
+#[derive(Clone)]
+pub struct BatchClient {
+    client: reqwest::Client,
+    url: url::Url,
+    api_key: Option<String>,
+}
+
+#[derive(Debug, Error)]
+pub enum BatchError {
+    #[error("failed to read audio file: {0}")]
+    Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Http(#[from] reqwest::Error),
+    #[error("unexpected response status {status}: {body}")]
+    UnexpectedStatus { status: StatusCode, body: String },
 }
 
 type ListenClientInput = MixedMessage<bytes::Bytes, ControlMessage>;
@@ -256,6 +306,43 @@ impl ListenClient {
     > {
         let ws = WebSocketClient::new(self.request.clone());
         ws.from_audio::<Self>(audio_stream).await
+    }
+}
+
+impl BatchClient {
+    pub fn builder() -> ListenClientBuilder {
+        ListenClientBuilder::default()
+    }
+
+    pub async fn transcribe_file<P: AsRef<Path>>(
+        &self,
+        file_path: P,
+    ) -> Result<BatchResponse, BatchError> {
+        let path = file_path.as_ref();
+        let data = fs::read(path).await?;
+
+        let mut request = self.client.post(self.url.clone());
+
+        if let Some(key) = &self.api_key {
+            request = request.header("Authorization", format!("Token {}", key));
+        }
+
+        let response = request
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/octet-stream")
+            .body(data)
+            .send()
+            .await?;
+
+        let status = response.status();
+        if status.is_success() {
+            Ok(response.json().await?)
+        } else {
+            Err(BatchError::UnexpectedStatus {
+                status,
+                body: response.text().await.unwrap_or_default(),
+            })
+        }
     }
 }
 

@@ -3,6 +3,8 @@ import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
 import {
+  type BatchParams,
+  type BatchResponse,
   commands as listenerCommands,
   events as listenerEvents,
   type SessionEvent,
@@ -11,6 +13,7 @@ import {
 } from "@hypr/plugin-listener";
 import { fromResult } from "../../../effect";
 
+import type { BatchActions } from "./batch";
 import type { HandlePersistCallback, TranscriptActions } from "./transcript";
 
 export type GeneralState = {
@@ -31,6 +34,10 @@ export type GeneralActions = {
   ) => void;
   stop: () => void;
   setMuted: (value: boolean) => void;
+  runBatch: (
+    params: BatchParams,
+    options?: { handlePersist?: HandlePersistCallback },
+  ) => Promise<void>;
 };
 
 const initialState: GeneralState = {
@@ -53,7 +60,7 @@ const listenToSessionEvents = (
 const startSessionEffect = (params: SessionParams) => fromResult(listenerCommands.startSession(params));
 const stopSessionEffect = () => fromResult(listenerCommands.stopSession());
 
-export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
+export const createGeneralSlice = <T extends GeneralState & TranscriptActions & BatchActions>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): GeneralState & GeneralActions => ({
@@ -133,6 +140,11 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
       } else if (payload.type === "streamResponse") {
         const response = payload.response;
         get().handleTranscriptResponse(response as unknown as StreamResponse);
+      } else if (payload.type === "batchResponse") {
+        const response = payload.response;
+        get().handleBatchResponse(
+          response as unknown as BatchResponse,
+        );
       }
     };
 
@@ -191,5 +203,62 @@ export const createGeneralSlice = <T extends GeneralState & TranscriptActions>(
         listenerCommands.setMicMuted(value);
       })
     );
+  },
+  runBatch: async (params, options) => {
+    const shouldResetPersist = Boolean(options?.handlePersist);
+
+    if (options?.handlePersist) {
+      get().setTranscriptPersist(options.handlePersist);
+    }
+
+    let unlisten: (() => void) | undefined;
+
+    const cleanup = () => {
+      if (unlisten) {
+        unlisten();
+        unlisten = undefined;
+      }
+
+      if (shouldResetPersist) {
+        get().setTranscriptPersist(undefined);
+      }
+    };
+
+    await new Promise<void>((resolve, reject) => {
+      listenerEvents.sessionEvent
+        .listen(({ payload }) => {
+          if (payload.type !== "batchResponse") {
+            return;
+          }
+
+          try {
+            get().handleBatchResponse(payload.response);
+            cleanup();
+            resolve();
+          } catch (error) {
+            cleanup();
+            reject(error);
+          }
+        })
+        .then((fn) => {
+          unlisten = fn;
+          listenerCommands
+            .runBatch(params)
+            .then((result) => {
+              if (result.status === "error") {
+                cleanup();
+                reject(result.error);
+              }
+            })
+            .catch((error) => {
+              cleanup();
+              reject(error);
+            });
+        })
+        .catch((error) => {
+          cleanup();
+          reject(error);
+        });
+    });
   },
 });

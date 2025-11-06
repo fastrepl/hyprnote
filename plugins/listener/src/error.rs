@@ -20,6 +20,10 @@ pub enum Error {
     StopSessionFailed,
     #[error("actor not found {0}")]
     ActorNotFound(String),
+    #[error(transparent)]
+    Batch(#[from] owhisper_client::BatchError),
+    #[error("unsupported batch provider")]
+    UnsupportedBatchProvider,
 }
 
 impl Serialize for Error {

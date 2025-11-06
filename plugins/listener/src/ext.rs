@@ -8,6 +8,29 @@ use crate::{
     SessionEvent,
 };
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+#[serde(rename_all = "lowercase")]
+pub enum BatchProvider {
+    Deepgram,
+    Am,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct BatchParams {
+    pub provider: BatchProvider,
+    pub file_path: String,
+    #[serde(default)]
+    pub model: Option<String>,
+    pub base_url: String,
+    pub api_key: String,
+    #[serde(default)]
+    pub languages: Vec<hypr_language::Language>,
+    #[serde(default)]
+    pub keywords: Vec<String>,
+    #[serde(default)]
+    pub channels: Option<u8>,
+}
+
 pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
     fn get_current_microphone_device(
@@ -24,6 +47,7 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
     fn stop_session(&self) -> impl Future<Output = ()>;
     fn start_session(&self, params: SessionParams) -> impl Future<Output = ()>;
+    fn run_batch(&self, params: BatchParams) -> impl Future<Output = Result<(), crate::Error>>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
@@ -119,6 +143,40 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             let _ = actor
                 .stop_and_wait(None, Some(concurrency::Duration::from_secs(10)))
                 .await;
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn run_batch(&self, params: BatchParams) -> Result<(), crate::Error> {
+        match params.provider {
+            BatchProvider::Deepgram => {
+                let channels = params.channels.unwrap_or(1);
+
+                let listen_params = owhisper_interface::ListenParams {
+                    model: params.model.clone(),
+                    channels,
+                    languages: params.languages.clone(),
+                    keywords: params.keywords.clone(),
+                    redemption_time_ms: None,
+                };
+
+                let client = owhisper_client::BatchClient::builder()
+                    .api_base(params.base_url.clone())
+                    .api_key(params.api_key.clone())
+                    .params(listen_params)
+                    .build_batch();
+
+                let response = client.transcribe_file(&params.file_path).await?;
+
+                SessionEvent::BatchResponse {
+                    response: response as _,
+                }
+                .emit(self.app_handle())
+                .map_err(|_| crate::Error::StartSessionFailed)?;
+
+                Ok(())
+            }
+            BatchProvider::Am => Err(crate::Error::UnsupportedBatchProvider),
         }
     }
 }

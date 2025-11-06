@@ -1,7 +1,7 @@
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
-import type { Alternatives, StreamResponse } from "@hypr/plugin-listener";
+import type { StreamAlternatives, StreamResponse } from "@hypr/plugin-listener";
 import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 
 type WordsByChannel = Record<number, WordLike[]>;
@@ -150,23 +150,19 @@ const getLastEndMs = (words: WordLike[]): number => words[words.length - 1]?.end
 const getFirstStartMs = (words: WordLike[]): number => words[0]?.start_ms ?? 0;
 
 function transformWords(
-  alternative: Alternatives,
+  alternative: StreamAlternatives,
   channelIndex: number,
 ): [WordLike[], RuntimeSpeakerHint[]] {
   const words: WordLike[] = [];
   const hints: RuntimeSpeakerHint[] = [];
 
   const textsWithSpacing = fixSpacingForWords(
-    (alternative.words ?? []).map((w) => w.punctuated_word ?? w.word),
+    alternative.words.map((w) => w.punctuated_word ?? w.word),
     alternative.transcript,
   );
 
   for (let i = 0; i < alternative.words.length; i++) {
-    const word = alternative.words?.[i];
-    if (!word) {
-      continue;
-    }
-
+    const word = alternative.words[i];
     const text = textsWithSpacing[i];
 
     words.push({

@@ -50,10 +50,34 @@ export function useTemplateNavigation() {
     navigate({ search: (prev) => ({ ...prev, templateId: newId }) });
   }, [user_id, setRow, navigate]);
 
+  const cloneAndEdit = useCallback(
+    (template: { title: string; description: string; sections: main.TemplateSection[] }) => {
+      if (!user_id) {
+        return;
+      }
+
+      const newId = crypto.randomUUID();
+      const now = new Date().toISOString();
+
+      setRow({
+        id: newId,
+        user_id,
+        created_at: now,
+        title: template.title,
+        description: template.description,
+        sections: template.sections.map((section) => ({ ...section })),
+      });
+
+      navigate({ search: (prev) => ({ ...prev, templateId: newId }) });
+    },
+    [navigate, setRow, user_id],
+  );
+
   return {
     templateId: search.templateId,
     goToList,
     goToEdit,
     createAndEdit,
+    cloneAndEdit,
   };
 }

@@ -105,7 +105,7 @@ describe("General Listener Slice", () => {
       };
 
       handleBatchResponseStreamed(sessionId, mockResponse, 0.5);
-      expect(store.getState().batch[sessionId]).toEqual({ percentage: 0.5 });
+      expect(store.getState().batch[sessionId]).toEqual({ percentage: 0.5, isComplete: false });
 
       clearBatchSession(sessionId);
       expect(store.getState().batch[sessionId]).toBeUndefined();

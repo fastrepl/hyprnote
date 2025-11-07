@@ -182,13 +182,16 @@ async fn spawn_rx_task(
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
 
     let session_offset_secs = args.session_started_at.elapsed().as_secs_f64();
-    let started_unix_secs = args
+    let started_unix_millis = args
         .session_started_at_unix
         .duration_since(UNIX_EPOCH)
         .unwrap_or(Duration::from_secs(0))
-        .as_secs();
+        .as_millis()
+        .min(u64::MAX as u128) as u64;
 
-    let extra = Extra { started_unix_secs };
+    let extra = Extra {
+        started_unix_millis,
+    };
 
     let rx_task = tokio::spawn(async move {
         use crate::actors::ChannelMode;

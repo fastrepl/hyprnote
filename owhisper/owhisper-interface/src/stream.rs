@@ -58,18 +58,21 @@ common_derives! {
 common_derives! {
     #[specta(rename = "StreamExtra")]
     pub struct Extra {
-        pub started_unix_secs: u64,
+        pub started_unix_millis: u64,
     }
 }
 
 impl Default for Extra {
     fn default() -> Self {
-        let started_unix_secs = std::time::SystemTime::now()
+        let started_unix_millis = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+            .unwrap_or_default()
+            .as_millis()
+            .min(u64::MAX as u128) as u64;
 
-        Self { started_unix_secs }
+        Self {
+            started_unix_millis,
+        }
     }
 }
 
@@ -77,8 +80,8 @@ impl From<Extra> for std::collections::HashMap<String, serde_json::Value> {
     fn from(extra: Extra) -> Self {
         let mut map = std::collections::HashMap::new();
         map.insert(
-            "started_unix_secs".to_string(),
-            serde_json::Value::Number(extra.started_unix_secs.into()),
+            "started_unix_millis".to_string(),
+            serde_json::Value::Number(extra.started_unix_millis.into()),
         );
         map
     }
@@ -152,6 +155,10 @@ impl StreamResponse {
                     for word in &mut alt.words {
                         word.start += offset_secs;
                         word.end += offset_secs;
+                        println!(
+                            "start: {}, end: {}, offset_secs: {}",
+                            word.start, word.end, offset_secs
+                        );
                     }
                 }
             }

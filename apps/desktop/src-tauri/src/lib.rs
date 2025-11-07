@@ -1,4 +1,9 @@
 mod commands;
+mod ext;
+mod store;
+
+use ext::*;
+use store::*;
 
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
@@ -63,6 +68,7 @@ pub async fn main() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_store2::init())
         .plugin(tauri_plugin_windows::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
@@ -108,15 +114,27 @@ pub async fn main() {
         .build(tauri::generate_context!())
         .unwrap();
 
-    if true {
+    {
         let app_handle = app.handle().clone();
-        AppWindow::Main.show(&app_handle).unwrap();
+        if app.get_onboarding_needed().unwrap_or(true) {
+            AppWindow::Main.hide(&app_handle).unwrap();
+            AppWindow::Onboarding.show(&app_handle).unwrap();
+        } else {
+            AppWindow::Onboarding.destroy(&app_handle).unwrap();
+            AppWindow::Main.show(&app_handle).unwrap();
+        }
     }
 
     app.run(|app, event| {
         #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Reopen { .. } = event {
-            AppWindow::Main.show(app).unwrap();
+            if app.get_onboarding_needed().unwrap_or(true) {
+                AppWindow::Main.hide(&app).unwrap();
+                AppWindow::Onboarding.show(&app).unwrap();
+            } else {
+                AppWindow::Onboarding.destroy(&app).unwrap();
+                AppWindow::Main.show(&app).unwrap();
+            }
         }
     });
 }
@@ -125,6 +143,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .commands(tauri_specta::collect_commands![
             commands::parse_subtitle::<tauri::Wry>,
+            commands::get_onboarding_needed::<tauri::Wry>,
+            commands::set_onboarding_needed::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

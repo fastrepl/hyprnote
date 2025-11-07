@@ -130,6 +130,7 @@ export const useRunBatch = (sessionId: string) => {
         });
 
       const params: BatchParams = {
+        session_id: sessionId,
         provider,
         file_path: filePath,
         model: options?.model ?? conn.model,

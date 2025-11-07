@@ -14,7 +14,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const model = useLanguageModel();
   const { updateSessionTabState } = useTabs();
 
-  const listenerStatus = useListener((state) => state.status);
+  const listenerStatus = useListener((state) => state.live.status);
   const prevListenerStatus = usePrevious(listenerStatus);
 
   const transcriptIds = main.UI.useSliceRowIds(

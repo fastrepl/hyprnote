@@ -28,7 +28,7 @@ import { ActionableTooltipContent, FloatingButton } from "./shared";
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { shouldRender } = useListenButtonState(tab.id);
   const { loading, stop } = useListener((state) => ({
-    loading: state.loading,
+    loading: state.live.loading,
     stop: state.stop,
   }));
 

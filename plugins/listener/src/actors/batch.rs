@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use owhisper_interface::stream::StreamResponse;
-use owhisper_interface::{batch, ControlMessage, MixedMessage};
+use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 use tauri_specta::Event;
 use tokio_stream::{self as tokio_stream, StreamExt as TokioStreamExt};
@@ -13,7 +13,7 @@ use crate::SessionEvent;
 const RESAMPLED_SAMPLE_RATE_HZ: u32 = 16_000;
 const BATCH_STREAM_TIMEOUT_SECS: u64 = 10;
 const DEFAULT_CHUNK_MS: u64 = 500;
-const DEFAULT_DELAY_MS: u64 = 100;
+const DEFAULT_DELAY_MS: u64 = 25;
 
 pub enum BatchMsg {
     StreamResponse(StreamResponse),
@@ -37,24 +37,12 @@ pub struct BatchArgs {
 
 pub struct BatchState {
     pub app: tauri::AppHandle,
-    pub accumulator: BatchResponseBuilder,
-    channel_count: u8,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
     audio_duration_secs: Option<f64>,
-    transcript_duration_secs: f64,
 }
 
 impl BatchState {
-    fn on_transcript_progress(&mut self, progress: f64) -> Result<(), ActorProcessingErr> {
-        if !progress.is_finite() || progress < 0.0 || progress <= self.transcript_duration_secs {
-            return Ok(());
-        }
-
-        self.transcript_duration_secs = progress;
-        emit_batch_progress(self)
-    }
-
     fn on_audio_duration(&mut self, duration: f64) -> Result<(), ActorProcessingErr> {
         let clamped = if duration.is_finite() && duration >= 0.0 {
             duration
@@ -63,19 +51,30 @@ impl BatchState {
         };
 
         self.audio_duration_secs = Some(clamped);
-        if self.transcript_duration_secs > clamped {
-            self.transcript_duration_secs = clamped;
-        }
-
-        emit_batch_progress(self)
+        Ok(())
     }
 
-    fn take_response(&mut self) -> batch::Response {
-        std::mem::replace(
-            &mut self.accumulator,
-            BatchResponseBuilder::new(self.channel_count),
-        )
-        .build()
+    fn emit_streamed_response(
+        &self,
+        response: StreamResponse,
+        transcript_end: f64,
+    ) -> Result<(), ActorProcessingErr> {
+        let percentage = if let Some(audio_duration) = self.audio_duration_secs {
+            if audio_duration > 0.0 {
+                (transcript_end / audio_duration).clamp(0.0, 1.0)
+            } else {
+                0.0
+            }
+        } else {
+            0.0
+        };
+
+        SessionEvent::BatchResponseStreamed {
+            response,
+            percentage,
+        }
+        .emit(&self.app)?;
+        Ok(())
     }
 
     fn emit_failure(&self, error: String) -> Result<(), ActorProcessingErr> {
@@ -102,19 +101,13 @@ impl Actor for BatchActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let channel_count = args.listen_params.channels.clamp(1, 2);
         let (rx_task, shutdown_tx) = spawn_batch_task(args.clone(), myself).await?;
-
-        let accumulator = BatchResponseBuilder::new(channel_count);
 
         let state = BatchState {
             app: args.app,
-            accumulator,
-            channel_count,
             rx_task,
             shutdown_tx: Some(shutdown_tx),
             audio_duration_secs: None,
-            transcript_duration_secs: 0.0,
         };
 
         Ok(state)
@@ -141,11 +134,17 @@ impl Actor for BatchActor {
         match message {
             BatchMsg::StreamResponse(response) => {
                 tracing::info!("batch stream response received");
-                let transcript_progress = transcript_end_from_response(&response);
-                state.accumulator.ingest(response);
 
-                if let Some(progress) = transcript_progress {
-                    state.on_transcript_progress(progress)?;
+                let is_final = matches!(
+                    &response,
+                    StreamResponse::TranscriptResponse { is_final, .. } if *is_final
+                );
+
+                if is_final {
+                    let transcript_end = transcript_end_from_response(&response);
+                    if let Some(end) = transcript_end {
+                        state.emit_streamed_response(response, end)?;
+                    }
                 }
             }
 
@@ -168,16 +167,6 @@ impl Actor for BatchActor {
 
             BatchMsg::StreamEnded => {
                 tracing::info!("batch_stream_ended");
-
-                let batch_response = state.take_response();
-
-                SessionEvent::BatchResponse {
-                    response: batch_response,
-                }
-                .emit(&state.app)?;
-
-                emit_batch_progress(state)?;
-
                 myself.stop(None);
             }
         }
@@ -390,109 +379,6 @@ async fn process_batch_stream<S, E>(
     }
 
     tracing::info!("batch stream processing loop exited");
-}
-
-pub struct BatchResponseBuilder {
-    metadata: Option<serde_json::Value>,
-    channels: Vec<Option<batch::Alternatives>>,
-}
-
-impl BatchResponseBuilder {
-    fn new(channel_count: u8) -> Self {
-        let count = channel_count.clamp(1, 2) as usize;
-        Self {
-            metadata: None,
-            channels: vec![None; count],
-        }
-    }
-
-    fn ingest(&mut self, response: StreamResponse) {
-        let StreamResponse::TranscriptResponse {
-            is_final,
-            channel,
-            metadata,
-            channel_index,
-            ..
-        } = response
-        else {
-            return;
-        };
-
-        if !is_final {
-            return;
-        }
-
-        self.metadata.get_or_insert_with(|| metadata.into());
-
-        let target_index = channel_index
-            .iter()
-            .find_map(|idx| usize::try_from(*idx).ok())
-            .unwrap_or(0);
-
-        if let Some(slot) = self.channels.get_mut(target_index) {
-            if let Some(alternative) = channel
-                .alternatives
-                .into_iter()
-                .next()
-                .map(batch::Alternatives::from)
-            {
-                if !alternative_has_content(&alternative) {
-                    return;
-                }
-
-                match slot {
-                    Some(existing) => merge_alternative(existing, alternative),
-                    None => *slot = Some(alternative),
-                }
-            }
-        }
-    }
-
-    fn build(self) -> batch::Response {
-        let metadata = self.metadata.unwrap_or_else(|| serde_json::json!({}));
-        let channels = self
-            .channels
-            .into_iter()
-            .map(|alternative| batch::Channel {
-                alternatives: alternative.into_iter().collect(),
-            })
-            .collect();
-
-        batch::Response {
-            metadata,
-            results: batch::Results { channels },
-        }
-    }
-}
-
-fn alternative_has_content(alternative: &batch::Alternatives) -> bool {
-    !alternative.transcript.trim().is_empty() || !alternative.words.is_empty()
-}
-
-fn merge_alternative(target: &mut batch::Alternatives, incoming: batch::Alternatives) {
-    if !incoming.transcript.is_empty() {
-        if !target.transcript.is_empty() {
-            target.transcript.push(' ');
-        }
-        target.transcript.push_str(&incoming.transcript);
-    }
-
-    target.words.extend(incoming.words);
-    target.confidence = incoming.confidence;
-}
-
-fn emit_batch_progress(state: &BatchState) -> Result<(), ActorProcessingErr> {
-    if let Some(audio_duration) = state.audio_duration_secs {
-        let transcript_duration = state.transcript_duration_secs.clamp(0.0, audio_duration);
-
-        SessionEvent::BatchProgress {
-            audio_duration,
-            transcript_duration,
-        }
-        .emit(&state.app)?;
-    }
-
-    Ok(())
 }
 
 fn transcript_end_from_response(response: &StreamResponse) -> Option<f64> {

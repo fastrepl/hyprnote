@@ -24,10 +24,12 @@ common_event_derives! {
         MicMuted { value: bool },
         #[serde(rename = "streamResponse")]
         StreamResponse { response: StreamResponse },
+        #[serde(rename = "batchStarted")]
+        BatchStarted { session_id: String },
         #[serde(rename = "batchResponse")]
         BatchResponse { response: BatchResponse },
         #[serde(rename = "batchProgress")]
-        BatchProgress { audio_duration: f64, transcript_duration: f64 },
+        BatchResponseStreamed { response: StreamResponse, percentage: f64 },
         #[serde(rename = "batchFailed")]
         BatchFailed { error: String },
     }

@@ -13,22 +13,23 @@ import {
 } from "@hypr/plugin-listener";
 import { fromResult } from "../../../effect";
 
-import type { BatchActions } from "./batch";
+import type { BatchActions, BatchState } from "./batch";
 import type { HandlePersistCallback, TranscriptActions } from "./transcript";
 
 type LiveSessionStatus = Extract<SessionEvent["type"], "inactive" | "running_active" | "finalizing">;
 export type SessionMode = LiveSessionStatus | "running_batch";
 
 export type GeneralState = {
-  sessionEventUnlisten?: () => void;
-  loading: boolean;
-  status: LiveSessionStatus;
-  amplitude: { mic: number; speaker: number };
-  seconds: number;
-  intervalId?: NodeJS.Timeout;
-  sessionId: string | null;
-  muted: boolean;
-  sessionModes: Record<string, SessionMode>;
+  live: {
+    sessionEventUnlisten?: () => void;
+    loading: boolean;
+    status: LiveSessionStatus;
+    amplitude: { mic: number; speaker: number };
+    seconds: number;
+    intervalId?: NodeJS.Timeout;
+    sessionId: string | null;
+    muted: boolean;
+  };
 };
 
 export type GeneralActions = {
@@ -42,20 +43,18 @@ export type GeneralActions = {
     params: BatchParams,
     options?: { handlePersist?: HandlePersistCallback; sessionId?: string },
   ) => Promise<void>;
-  setSessionMode: (sessionId: string, mode: SessionMode) => void;
   getSessionMode: (sessionId: string) => SessionMode;
-  isSessionLive: (sessionId: string) => boolean;
-  isSessionRunningBatch: (sessionId: string) => boolean;
 };
 
 const initialState: GeneralState = {
-  status: "inactive",
-  loading: false,
-  amplitude: { mic: 0, speaker: 0 },
-  seconds: 0,
-  sessionId: null,
-  muted: false,
-  sessionModes: {},
+  live: {
+    status: "inactive",
+    loading: false,
+    amplitude: { mic: 0, speaker: 0 },
+    seconds: 0,
+    sessionId: null,
+    muted: false,
+  },
 };
 
 const listenToSessionEvents = (
@@ -69,7 +68,9 @@ const listenToSessionEvents = (
 const startSessionEffect = (params: SessionParams) => fromResult(listenerCommands.startSession(params));
 const stopSessionEffect = () => fromResult(listenerCommands.stopSession());
 
-export const createGeneralSlice = <T extends GeneralState & GeneralActions & TranscriptActions & BatchActions>(
+export const createGeneralSlice = <
+  T extends GeneralState & GeneralActions & TranscriptActions & BatchActions & BatchState,
+>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): GeneralState & GeneralActions => ({
@@ -90,8 +91,8 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
 
     set((state) =>
       mutate(state, (draft) => {
-        draft.loading = true;
-        draft.sessionId = targetSessionId;
+        draft.live.loading = true;
+        draft.live.sessionId = targetSessionId;
       })
     );
 
@@ -103,7 +104,7 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
       if (payload.type === "audioAmplitude") {
         set((state) =>
           mutate(state, (draft) => {
-            draft.amplitude = {
+            draft.live.amplitude = {
               mic: payload.mic,
               speaker: payload.speaker,
             };
@@ -111,58 +112,52 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
         );
       } else if (payload.type === "running_active") {
         const currentState = get();
-        if (currentState.intervalId) {
-          clearInterval(currentState.intervalId);
+        if (currentState.live.intervalId) {
+          clearInterval(currentState.live.intervalId);
         }
 
         const intervalId = setInterval(() => {
           set((s) =>
             mutate(s, (d) => {
-              d.seconds += 1;
+              d.live.seconds += 1;
             })
           );
         }, 1000);
 
         set((state) =>
           mutate(state, (draft) => {
-            draft.status = "running_active";
-            draft.loading = false;
-            draft.seconds = 0;
-            draft.intervalId = intervalId;
-            draft.sessionId = targetSessionId;
+            draft.live.status = "running_active";
+            draft.live.loading = false;
+            draft.live.seconds = 0;
+            draft.live.intervalId = intervalId;
+            draft.live.sessionId = targetSessionId;
           })
         );
-
-        get().setSessionMode(targetSessionId, "running_active");
       } else if (payload.type === "finalizing") {
         set((state) =>
           mutate(state, (draft) => {
-            if (draft.intervalId) {
-              clearInterval(draft.intervalId);
-              draft.intervalId = undefined;
+            if (draft.live.intervalId) {
+              clearInterval(draft.live.intervalId);
+              draft.live.intervalId = undefined;
             }
-            draft.status = "finalizing";
-            draft.loading = true;
+            draft.live.status = "finalizing";
+            draft.live.loading = true;
           })
         );
-
-        get().setSessionMode(targetSessionId, "finalizing");
       } else if (payload.type === "inactive") {
         const currentState = get();
-        if (currentState.sessionEventUnlisten) {
-          currentState.sessionEventUnlisten();
+        if (currentState.live.sessionEventUnlisten) {
+          currentState.live.sessionEventUnlisten();
         }
 
         set((state) =>
           mutate(state, (draft) => {
-            draft.status = "inactive";
-            draft.loading = false;
-            draft.sessionId = null;
-            draft.sessionEventUnlisten = undefined;
+            draft.live.status = "inactive";
+            draft.live.loading = false;
+            draft.live.sessionId = null;
+            draft.live.sessionEventUnlisten = undefined;
           })
         );
-
-        get().setSessionMode(targetSessionId, "inactive");
 
         get().resetTranscript();
       } else if (payload.type === "streamResponse") {
@@ -182,20 +177,18 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
 
       set((state) =>
         mutate(state, (draft) => {
-          draft.sessionEventUnlisten = unlisten;
+          draft.live.sessionEventUnlisten = unlisten;
         })
       );
 
       yield* startSessionEffect(params);
       set((state) =>
         mutate(state, (draft) => {
-          draft.status = "running_active";
-          draft.loading = false;
-          draft.sessionId = targetSessionId;
+          draft.live.status = "running_active";
+          draft.live.loading = false;
+          draft.live.sessionId = targetSessionId;
         })
       );
-
-      get().setSessionMode(targetSessionId, "running_active");
     });
 
     Effect.runPromiseExit(program).then((exit) => {
@@ -204,21 +197,20 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
           console.error("Failed to start session:", cause);
           set((state) =>
             mutate(state, (draft) => {
-              if (draft.intervalId) {
-                clearInterval(draft.intervalId);
-                draft.intervalId = undefined;
+              if (draft.live.intervalId) {
+                clearInterval(draft.live.intervalId);
+                draft.live.intervalId = undefined;
               }
 
-              draft.sessionEventUnlisten = undefined;
-              draft.loading = false;
-              draft.status = "inactive";
-              draft.amplitude = { mic: 0, speaker: 0 };
-              draft.seconds = 0;
-              draft.sessionId = null;
-              draft.muted = initialState.muted;
+              draft.live.sessionEventUnlisten = undefined;
+              draft.live.loading = false;
+              draft.live.status = "inactive";
+              draft.live.amplitude = { mic: 0, speaker: 0 };
+              draft.live.seconds = 0;
+              draft.live.sessionId = null;
+              draft.live.muted = initialState.live.muted;
             })
           );
-          get().setSessionMode(targetSessionId, "inactive");
         },
         onSuccess: () => {},
       });
@@ -235,7 +227,7 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
           console.error("Failed to stop session:", cause);
           set((state) =>
             mutate(state, (draft) => {
-              draft.loading = false;
+              draft.live.loading = false;
             })
           );
         },
@@ -246,7 +238,7 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
   setMuted: (value) => {
     set((state) =>
       mutate(state, (draft) => {
-        draft.muted = value;
+        draft.live.muted = value;
         listenerCommands.setMicMuted(value);
       })
     );
@@ -277,7 +269,6 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
     }
 
     get().clearBatchSession(sessionId);
-    get().setSessionMode(sessionId, "running_batch");
 
     let unlisten: (() => void) | undefined;
 
@@ -292,17 +283,29 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
       }
 
       get().clearBatchSession(sessionId);
-      get().setSessionMode(sessionId, "inactive");
     };
 
     await new Promise<void>((resolve, reject) => {
       listenerEvents.sessionEvent
         .listen(({ payload }) => {
+          if (payload.type === "batchStarted") {
+            get().handleBatchStarted(payload.session_id);
+            return;
+          }
+
           if (payload.type === "batchProgress") {
-            get().handleBatchProgress(sessionId, {
-              audioDuration: payload.audio_duration,
-              transcriptDuration: payload.transcript_duration,
-            });
+            get().handleBatchResponseStreamed(
+              sessionId,
+              payload.response,
+              payload.percentage,
+            );
+
+            const batchState = get().batch[sessionId];
+            if (batchState?.isComplete) {
+              console.log("[runBatch] batch completed via streaming");
+              cleanup();
+              resolve();
+            }
             return;
           }
 
@@ -353,34 +356,21 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
         });
     });
   },
-  setSessionMode: (sessionId, mode) => {
-    if (!sessionId) {
-      return;
-    }
-
-    set((state) =>
-      mutate(state, (draft) => {
-        if (mode === "inactive") {
-          delete draft.sessionModes[sessionId];
-          return;
-        }
-
-        draft.sessionModes[sessionId] = mode;
-      })
-    );
-  },
   getSessionMode: (sessionId) => {
     if (!sessionId) {
       return "inactive";
     }
 
     const state = get();
-    if (state.sessionId === sessionId) {
-      return state.status;
+
+    if (state.live.sessionId === sessionId) {
+      return state.live.status;
     }
 
-    return state.sessionModes[sessionId] ?? "inactive";
+    if (state.batch[sessionId]) {
+      return "running_batch";
+    }
+
+    return "inactive";
   },
-  isSessionLive: (sessionId) => get().getSessionMode(sessionId) === "running_active",
-  isSessionRunningBatch: (sessionId) => get().getSessionMode(sessionId) === "running_batch",
 });

@@ -1,31 +1,48 @@
 import type { StoreApi } from "zustand";
 
-import type { BatchAlternatives, BatchResponse } from "@hypr/plugin-listener";
+import type { BatchAlternatives, BatchResponse, StreamResponse } from "@hypr/plugin-listener";
 import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 
 import type { HandlePersistCallback } from "./transcript";
 import { fixSpacingForWords } from "./transcript";
 
-export type BatchProgress = {
-  audioDuration: number;
-  transcriptDuration: number;
-};
-
 export type BatchState = {
-  batchProgressBySession: Record<string, BatchProgress | null>;
+  batch: Record<
+    string,
+    {
+      percentage: number;
+      isComplete?: boolean;
+    }
+  >;
 };
 
 export type BatchActions = {
+  handleBatchStarted: (sessionId: string) => void;
   handleBatchResponse: (sessionId: string, response: BatchResponse) => void;
-  handleBatchProgress: (sessionId: string, progress: BatchProgress) => void;
+  handleBatchResponseStreamed: (sessionId: string, response: StreamResponse, percentage: number) => void;
   clearBatchSession: (sessionId: string) => void;
 };
 
-export const createBatchSlice = <T extends BatchState & { handlePersist?: HandlePersistCallback }>(
+export const createBatchSlice = <
+  T extends BatchState & {
+    handlePersist?: HandlePersistCallback;
+    handleTranscriptResponse?: (response: StreamResponse) => void;
+  },
+>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): BatchState & BatchActions => ({
-  batchProgressBySession: {},
+  batch: {},
+
+  handleBatchStarted: (sessionId) => {
+    set((state) => ({
+      ...state,
+      batch: {
+        ...state.batch,
+        [sessionId]: { percentage: 0, isComplete: false },
+      },
+    }));
+  },
 
   handleBatchResponse: (sessionId, response) => {
     const { handlePersist } = get();
@@ -38,38 +55,44 @@ export const createBatchSlice = <T extends BatchState & { handlePersist?: Handle
     handlePersist?.(words, hints);
 
     set((state) => {
-      if (!state.batchProgressBySession[sessionId]) {
+      if (!state.batch[sessionId]) {
         return state;
       }
 
-      const { [sessionId]: _, ...rest } = state.batchProgressBySession;
+      const { [sessionId]: _, ...rest } = state.batch;
       return {
         ...state,
-        batchProgressBySession: rest,
+        batch: rest,
       };
     });
   },
 
-  handleBatchProgress: (sessionId, progress) => {
+  handleBatchResponseStreamed: (sessionId, response, percentage) => {
+    const { handleTranscriptResponse } = get();
+
+    handleTranscriptResponse?.(response);
+
+    const isComplete = response.type === "Results" && response.from_finalize;
+
     set((state) => ({
       ...state,
-      batchProgressBySession: {
-        ...state.batchProgressBySession,
-        [sessionId]: progress,
+      batch: {
+        ...state.batch,
+        [sessionId]: { percentage, isComplete: isComplete || false },
       },
     }));
   },
 
   clearBatchSession: (sessionId) => {
     set((state) => {
-      if (!(sessionId in state.batchProgressBySession)) {
+      if (!(sessionId in state.batch)) {
         return state;
       }
 
-      const { [sessionId]: _, ...rest } = state.batchProgressBySession;
+      const { [sessionId]: _, ...rest } = state.batch;
       return {
         ...state,
-        batchProgressBySession: rest,
+        batch: rest,
       };
     });
   },

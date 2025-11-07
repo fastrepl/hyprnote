@@ -18,6 +18,7 @@ pub enum BatchProvider {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct BatchParams {
+    pub session_id: String,
     pub provider: BatchProvider,
     pub file_path: String,
     #[serde(default)]
@@ -186,6 +187,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 {
                     Ok(_) => {
                         tracing::info!("batch actor spawned successfully");
+                        let state = self.state::<crate::SharedState>();
+                        let guard = state.lock().await;
+                        SessionEvent::BatchStarted {
+                            session_id: params.session_id.clone(),
+                        }
+                        .emit(&guard.app)
+                        .unwrap();
                     }
                     Err(e) => {
                         tracing::error!("batch actor spawn failed: {:?}", e);
@@ -217,6 +225,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             }
             BatchProvider::Deepgram => {
                 tracing::debug!("using direct batch client for Deepgram provider");
+
+                SessionEvent::BatchStarted {
+                    session_id: params.session_id.clone(),
+                }
+                .emit(self.app_handle())
+                .map_err(|_| crate::Error::StartSessionFailed)?;
+
                 let client = owhisper_client::BatchClient::builder()
                     .api_base(params.base_url.clone())
                     .api_key(params.api_key.clone())

@@ -12,7 +12,7 @@ import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useHasTranscript } from "../shared";
-import { EditingControls } from "./transcript/editing-controls";
+import { TranscriptionProgress } from "./transcript/progress";
 
 function HeaderTab({
   isActive,
@@ -164,24 +164,22 @@ export function Header(
     editorTabs,
     currentTab,
     handleTabChange,
-    isEditing,
-    setIsEditing,
     isInactive,
   }: {
     sessionId: string;
     editorTabs: EditorView[];
     currentTab: EditorView;
     handleTabChange: (view: EditorView) => void;
-    isEditing: boolean;
-    setIsEditing: (isEditing: boolean) => void;
     isInactive: boolean;
   },
 ) {
+  const isBatchProcessing = useListener((state) => sessionId in state.batch);
+
   if (editorTabs.length === 1 && editorTabs[0] === "raw") {
     return null;
   }
 
-  const showEditingControls = currentTab === "transcript" && isInactive;
+  const showProgress = currentTab === "transcript" && (isInactive || isBatchProcessing);
 
   return (
     <div className="flex justify-between items-center">
@@ -209,7 +207,7 @@ export function Header(
           );
         })}
       </div>
-      {showEditingControls && <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />}
+      {showProgress && <TranscriptionProgress sessionId={sessionId} />}
     </div>
   );
 }

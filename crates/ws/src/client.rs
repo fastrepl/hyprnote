@@ -117,10 +117,26 @@ impl WebSocketClient {
                     Some(msg_result) = ws_receiver.next() => {
                         match msg_result {
                             Ok(msg) => {
+                                let is_text = matches!(msg, Message::Text(_));
+                                let is_binary = matches!(msg, Message::Binary(_));
+                                let text_preview = if let Message::Text(ref t) = msg {
+                                    Some(t.to_string())
+                                } else {
+                                    None
+                                };
+
                                 match msg {
                                     Message::Text(_) | Message::Binary(_) => {
                                         if let Some(output) = T::from_message(msg) {
                                             yield Ok(output);
+                                        } else {
+                                            if is_text {
+                                                if let Some(text) = text_preview {
+                                                    tracing::warn!("ws_message_parse_failed: {}", text);
+                                                }
+                                            } else if is_binary {
+                                                tracing::warn!("ws_binary_message_parse_failed");
+                                            }
                                         }
                                     },
                                     Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => continue,

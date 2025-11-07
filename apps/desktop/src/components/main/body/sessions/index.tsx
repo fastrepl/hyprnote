@@ -44,7 +44,7 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = (
 };
 
 export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
-  const listenerStatus = useListener((state) => state.status);
+  const listenerStatus = useListener((state) => state.live.status);
   const { data: audioUrl } = useQuery({
     queryKey: ["audio", tab.id, "url"],
     queryFn: () => miscCommands.audioPath(tab.id),

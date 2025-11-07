@@ -98,13 +98,13 @@ sessionEvent: "plugin:listener:session-event"
 
 export type BatchAlternatives = { transcript: string; confidence: number; words?: BatchWord[] }
 export type BatchChannel = { alternatives: BatchAlternatives[] }
-export type BatchParams = { provider: BatchProvider; file_path: string; model?: string | null; base_url: string; api_key: string; languages?: string[]; keywords?: string[]; channels?: number | null }
+export type BatchParams = { session_id: string; provider: BatchProvider; file_path: string; model?: string | null; base_url: string; api_key: string; languages?: string[]; keywords?: string[]; channels?: number | null }
 export type BatchProvider = "deepgram" | "am"
 export type BatchResponse = { metadata: JsonValue; results: BatchResults }
 export type BatchResults = { channels: BatchChannel[] }
 export type BatchWord = { word: string; start: number; end: number; confidence: number; speaker: number | null; punctuated_word: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
-export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "finalizing" } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "streamResponse"; response: StreamResponse } | { type: "batchResponse"; response: BatchResponse } | { type: "batchProgress"; audio_duration: number; transcript_duration: number } | { type: "batchFailed"; error: string }
+export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "finalizing" } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "streamResponse"; response: StreamResponse } | { type: "batchStarted"; session_id: string } | { type: "batchResponse"; response: BatchResponse } | { type: "batchProgress"; response: StreamResponse; percentage: number } | { type: "batchFailed"; error: string }
 export type SessionParams = { session_id: string; languages: string[]; onboarding: boolean; record_enabled: boolean; model: string; base_url: string; api_key: string; keywords: string[] }
 export type StreamAlternatives = { transcript: string; words: StreamWord[]; confidence: number; languages?: string[] }
 export type StreamChannel = { alternatives: StreamAlternatives[] }

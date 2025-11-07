@@ -17,8 +17,8 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const { updateSessionTabState } = useTabs();
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const inactive = useListener((state) => state.status === "inactive");
+  const [isEditing] = useState(false);
+  const inactive = useListener((state) => state.live.status === "inactive");
 
   const sessionId = tab.id;
   useAutoEnhance(tab);
@@ -50,8 +50,6 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
           editorTabs={editorTabs}
           currentTab={currentTab}
           handleTabChange={handleTabChange}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
           isInactive={inactive}
         />
       </div>

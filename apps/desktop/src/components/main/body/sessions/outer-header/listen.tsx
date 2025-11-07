@@ -88,8 +88,8 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const { mode, stop, amplitude, muted } = useListener((state) => ({
     mode: state.getSessionMode(sessionId),
     stop: state.stop,
-    amplitude: state.amplitude,
-    muted: state.muted,
+    amplitude: state.live.amplitude,
+    muted: state.live.muted,
   }));
 
   const active = mode === "running_active" || mode === "finalizing";

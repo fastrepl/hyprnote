@@ -31,7 +31,6 @@ export function Permissions({ onNext }: PermissionsProps) {
     <OnboardingContainer
       title="Just three quick permissions before we begin"
       description="After you grant system audio access, app will restart to apply the changes"
-      action={{ kind: "next", hide: !allPermissionsGranted, onClick: () => onNext() }}
     >
       <div className="flex flex-col gap-4">
         <PermissionRow

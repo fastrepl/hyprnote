@@ -45,7 +45,7 @@ impl AppWindow {
         app.get_webview_window(&label)
     }
 
-    fn hide(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+    pub fn hide(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
         if let Some(window) = self.get(app) {
             window.hide()?;
         }
@@ -61,7 +61,7 @@ impl AppWindow {
         Ok(())
     }
 
-    fn destroy(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
+    pub fn destroy(&self, app: &AppHandle<tauri::Wry>) -> Result<(), crate::Error> {
         if let Some(window) = self.get(app) {
             window.destroy()?;
         }

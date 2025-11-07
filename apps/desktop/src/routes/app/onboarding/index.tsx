@@ -5,12 +5,12 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { Calendars } from "../../../components/onboarding/calendar";
 import { Permissions } from "../../../components/onboarding/permissions";
 import type { OnboardingNext } from "../../../components/onboarding/shared";
 import { Welcome } from "../../../components/onboarding/welcome";
+import { commands } from "../../../types/tauri.gen";
 
-const STEPS = ["welcome", "calendars", "permissions"] as const;
+const STEPS = ["welcome", "permissions"] as const;
 
 const validateSearch = z.object({
   step: z.enum(STEPS).default("welcome"),
@@ -37,14 +37,10 @@ function Component() {
     content = <Permissions onNext={onboarding.goNext} />;
   }
 
-  if (onboarding.step === "calendars") {
-    content = <Calendars local={onboarding.local} onNext={onboarding.goNext} />;
-  }
-
   return (
     <div
       data-tauri-drag-region
-      className="flex h-full items-center justify-center px-8 py-12"
+      className="flex h-full items-center justify-center px-8 pt-20 pb-12"
     >
       {content}
     </div>
@@ -69,6 +65,7 @@ function useOnboarding() {
 
   const goNext = useCallback<OnboardingNext>((params) => {
     if (!next) {
+      commands.setOnboardingNeeded(false).catch((e) => console.error(e));
       windowsCommands.windowShow({ type: "main" }).then(() => {
         windowsCommands.windowDestroy({ type: "onboarding" });
       });

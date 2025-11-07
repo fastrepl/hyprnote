@@ -1,9 +1,10 @@
+import { cn } from "@hypr/utils";
+
 import { useCallback, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/utils";
 import { AlertCircleIcon, RefreshCcwIcon, SparklesIcon } from "lucide-react";
 import { useListener } from "../../../../../contexts/listener";
 import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
@@ -12,6 +13,7 @@ import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useHasTranscript } from "../shared";
+import { EditingControls } from "./transcript/editing-controls";
 import { TranscriptionProgress } from "./transcript/progress";
 
 function HeaderTab({
@@ -165,12 +167,16 @@ export function Header(
     currentTab,
     handleTabChange,
     isInactive,
+    isEditing,
+    setIsEditing,
   }: {
     sessionId: string;
     editorTabs: EditorView[];
     currentTab: EditorView;
     handleTabChange: (view: EditorView) => void;
     isInactive: boolean;
+    isEditing: boolean;
+    setIsEditing: (isEditing: boolean) => void;
   },
 ) {
   const isBatchProcessing = useListener((state) => sessionId in state.batch);
@@ -180,34 +186,38 @@ export function Header(
   }
 
   const showProgress = currentTab === "transcript" && (isInactive || isBatchProcessing);
+  const showEditingControls = currentTab === "transcript" && isInactive && !isBatchProcessing;
 
   return (
-    <div className="flex justify-between items-center">
-      <div className="flex gap-1">
-        {editorTabs.map((view) => {
-          if (view === "enhanced") {
+    <div className="flex flex-col">
+      <div className="flex justify-between items-center">
+        <div className="flex gap-1">
+          {editorTabs.map((view) => {
+            if (view === "enhanced") {
+              return (
+                <HeaderTabEnhanced
+                  key={view}
+                  sessionId={sessionId}
+                  isActive={currentTab === view}
+                  onClick={() => handleTabChange(view)}
+                />
+              );
+            }
+
             return (
-              <HeaderTabEnhanced
+              <HeaderTab
                 key={view}
-                sessionId={sessionId}
                 isActive={currentTab === view}
                 onClick={() => handleTabChange(view)}
-              />
+              >
+                {labelForEditorView(view)}
+              </HeaderTab>
             );
-          }
-
-          return (
-            <HeaderTab
-              key={view}
-              isActive={currentTab === view}
-              onClick={() => handleTabChange(view)}
-            >
-              {labelForEditorView(view)}
-            </HeaderTab>
-          );
-        })}
+          })}
+        </div>
+        {showProgress && <TranscriptionProgress sessionId={sessionId} />}
+        {showEditingControls && <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />}
       </div>
-      {showProgress && <TranscriptionProgress sessionId={sessionId} />}
     </div>
   );
 }

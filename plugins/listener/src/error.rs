@@ -24,6 +24,8 @@ pub enum Error {
     Batch(#[from] owhisper_client::Error),
     #[error(transparent)]
     SpawnError(#[from] ractor::SpawnErr),
+    #[error("batch start failed: {0}")]
+    BatchStartFailed(String),
 }
 
 impl Serialize for Error {

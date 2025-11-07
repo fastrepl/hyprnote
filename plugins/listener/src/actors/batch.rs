@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use owhisper_interface::stream::StreamResponse;
@@ -12,7 +13,7 @@ use crate::SessionEvent;
 const RESAMPLED_SAMPLE_RATE_HZ: u32 = 16_000;
 const BATCH_STREAM_TIMEOUT_SECS: u64 = 10;
 const DEFAULT_CHUNK_MS: u64 = 500;
-const DEFAULT_DELAY_MS: u64 = 80;
+const DEFAULT_DELAY_MS: u64 = 100;
 
 pub enum BatchMsg {
     StreamResponse(StreamResponse),
@@ -22,6 +23,8 @@ pub enum BatchMsg {
     StreamAudioDuration(f64),
 }
 
+type BatchStartNotifier = Arc<Mutex<Option<tokio::sync::oneshot::Sender<Result<(), String>>>>>;
+
 #[derive(Clone)]
 pub struct BatchArgs {
     pub app: tauri::AppHandle,
@@ -29,6 +32,7 @@ pub struct BatchArgs {
     pub base_url: String,
     pub api_key: String,
     pub listen_params: owhisper_interface::ListenParams,
+    pub start_notifier: BatchStartNotifier,
 }
 
 pub struct BatchState {
@@ -72,6 +76,11 @@ impl BatchState {
             BatchResponseBuilder::new(self.channel_count),
         )
         .build()
+    }
+
+    fn emit_failure(&self, error: String) -> Result<(), ActorProcessingErr> {
+        SessionEvent::BatchFailed { error }.emit(&self.app)?;
+        Ok(())
     }
 }
 
@@ -147,11 +156,13 @@ impl Actor for BatchActor {
 
             BatchMsg::StreamStartFailed(error) => {
                 tracing::info!("batch_stream_start_failed: {}", error);
+                state.emit_failure(error.clone())?;
                 myself.stop(Some(format!("batch_stream_start_failed: {}", error)));
             }
 
             BatchMsg::StreamError(error) => {
                 tracing::info!("batch_stream_error: {}", error);
+                state.emit_failure(error.clone())?;
                 myself.stop(None);
             }
 
@@ -200,6 +211,14 @@ impl BatchStreamConfig {
     }
 }
 
+fn notify_start_result(notifier: &BatchStartNotifier, result: Result<(), String>) {
+    if let Ok(mut guard) = notifier.lock() {
+        if let Some(sender) = guard.take() {
+            let _ = sender.send(result);
+        }
+    }
+}
+
 async fn spawn_batch_task(
     args: BatchArgs,
     myself: ActorRef<BatchMsg>,
@@ -215,6 +234,7 @@ async fn spawn_batch_task(
     let rx_task = tokio::spawn(async move {
         tracing::info!("batch task: loading audio chunks from file");
         let stream_config = BatchStreamConfig::new(DEFAULT_CHUNK_MS, DEFAULT_DELAY_MS);
+        let start_notifier = args.start_notifier.clone();
 
         let chunk_samples = stream_config.chunk_samples();
         let chunk_result = tokio::task::spawn_blocking({
@@ -231,16 +251,20 @@ async fn spawn_batch_task(
                 data
             }
             Ok(Err(e)) => {
+                let error = format!("{:?}", e);
                 tracing::error!("batch task: failed to load audio chunks: {:?}", e);
-                let _ = myself.send_message(BatchMsg::StreamStartFailed(format!("{:?}", e)));
+                notify_start_result(&start_notifier, Err(error.clone()));
+                let _ = myself.send_message(BatchMsg::StreamStartFailed(error));
                 return;
             }
             Err(join_err) => {
+                let error = format!("{:?}", join_err);
                 tracing::error!(
                     "batch task: audio chunk loading task panicked: {:?}",
                     join_err
                 );
-                let _ = myself.send_message(BatchMsg::StreamStartFailed(format!("{:?}", join_err)));
+                notify_start_result(&start_notifier, Err(error.clone()));
+                let _ = myself.send_message(BatchMsg::StreamStartFailed(error));
                 return;
             }
         };
@@ -280,11 +304,14 @@ async fn spawn_batch_task(
         let (listen_stream, _handle) = match client.from_realtime_audio(Box::pin(outbound)).await {
             Ok(res) => res,
             Err(e) => {
+                let error = format!("{:?}", e);
                 tracing::error!("batch task: failed to start audio stream: {:?}", e);
-                let _ = myself.send_message(BatchMsg::StreamStartFailed(format!("{:?}", e)));
+                notify_start_result(&start_notifier, Err(error.clone()));
+                let _ = myself.send_message(BatchMsg::StreamStartFailed(error));
                 return;
             }
         };
+        notify_start_result(&start_notifier, Ok(()));
         futures_util::pin_mut!(listen_stream);
 
         process_batch_stream(listen_stream, myself, shutdown_rx).await;

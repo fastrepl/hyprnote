@@ -1,4 +1,5 @@
 use std::future::Future;
+use std::sync::{Arc, Mutex};
 
 use ractor::{call_t, concurrency, registry, Actor, ActorRef};
 use tauri_specta::Event;
@@ -160,29 +161,57 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         match params.provider {
             BatchProvider::Am => {
+                let (start_tx, start_rx) =
+                    tokio::sync::oneshot::channel::<std::result::Result<(), String>>();
+                let start_notifier = Arc::new(Mutex::new(Some(start_tx)));
+
                 let state = self.state::<crate::SharedState>();
                 let guard = state.lock().await;
+                let app = guard.app.clone();
+                drop(guard);
 
                 match Actor::spawn(
                     Some(BatchActor::name()),
                     BatchActor,
                     BatchArgs {
-                        app: guard.app.clone(),
+                        app,
                         file_path: params.file_path.clone(),
                         base_url: params.base_url.clone(),
                         api_key: params.api_key.clone(),
                         listen_params,
+                        start_notifier: start_notifier.clone(),
                     },
                 )
                 .await
                 {
                     Ok(_) => {
                         tracing::info!("batch actor spawned successfully");
-                        Ok(())
                     }
                     Err(e) => {
                         tracing::error!("batch actor spawn failed: {:?}", e);
-                        Err(e.into())
+                        if let Ok(mut notifier) = start_notifier.lock() {
+                            if let Some(tx) = notifier.take() {
+                                let _ =
+                                    tx.send(Err(format!("failed to spawn batch actor: {:?}", e)));
+                            }
+                        }
+                        return Err(e.into());
+                    }
+                }
+
+                match start_rx.await {
+                    Ok(Ok(())) => Ok(()),
+                    Ok(Err(error)) => {
+                        tracing::error!("batch actor reported start failure: {}", error);
+                        Err(crate::Error::BatchStartFailed(error))
+                    }
+                    Err(_) => {
+                        tracing::error!(
+                            "batch actor start notifier dropped before reporting result"
+                        );
+                        Err(crate::Error::BatchStartFailed(
+                            "batch stream start cancelled unexpectedly".to_string(),
+                        ))
                     }
                 }
             }

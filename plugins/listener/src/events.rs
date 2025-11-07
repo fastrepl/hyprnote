@@ -28,6 +28,8 @@ common_event_derives! {
         BatchResponse { response: BatchResponse },
         #[serde(rename = "batchProgress")]
         BatchProgress { audio_duration: f64, transcript_duration: f64 },
+        #[serde(rename = "batchFailed")]
+        BatchFailed { error: String },
     }
 }
 

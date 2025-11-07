@@ -306,6 +306,12 @@ export const createGeneralSlice = <T extends GeneralState & GeneralActions & Tra
             return;
           }
 
+          if (payload.type === "batchFailed") {
+            cleanup();
+            reject(payload.error);
+            return;
+          }
+
           if (payload.type !== "batchResponse") {
             return;
           }

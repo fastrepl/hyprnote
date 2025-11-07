@@ -434,6 +434,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         "organizations",
         "sum",
         () => 1,
+      )
+      .setMetricDefinition(
+        METRICS.totalCustomVocabs,
+        "memories",
+        "sum",
+        (getCell) => (getCell("type") === "vocab" ? 1 : 0),
       ));
 
   const checkpoints = useCreateCheckpoints(store, (store) => createCheckpoints(store));
@@ -469,6 +475,7 @@ export const QUERIES = {
 export const METRICS = {
   totalHumans: "totalHumans",
   totalOrganizations: "totalOrganizations",
+  totalCustomVocabs: "totalCustomVocabs",
 };
 
 export const INDEXES = {

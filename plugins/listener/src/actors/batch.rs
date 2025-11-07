@@ -13,7 +13,7 @@ use crate::SessionEvent;
 const RESAMPLED_SAMPLE_RATE_HZ: u32 = 16_000;
 const BATCH_STREAM_TIMEOUT_SECS: u64 = 10;
 const DEFAULT_CHUNK_MS: u64 = 500;
-const DEFAULT_DELAY_MS: u64 = 25;
+const DEFAULT_DELAY_MS: u64 = 10;
 
 pub enum BatchMsg {
     StreamResponse(StreamResponse),

@@ -302,7 +302,6 @@ export const createGeneralSlice = <
 
             const batchState = get().batch[sessionId];
             if (batchState?.isComplete) {
-              console.log("[runBatch] batch completed via streaming");
               cleanup();
               resolve();
             }
@@ -318,8 +317,6 @@ export const createGeneralSlice = <
           if (payload.type !== "batchResponse") {
             return;
           }
-
-          console.log("[runBatch] batch response", payload.response);
 
           try {
             get().handleBatchResponse(sessionId, payload.response);
@@ -338,19 +335,19 @@ export const createGeneralSlice = <
             .runBatch(params)
             .then((result) => {
               if (result.status === "error") {
-                console.error("[runBatch] command failed", result.error);
+                console.error(result.error);
                 cleanup();
                 reject(result.error);
               }
             })
             .catch((error) => {
-              console.error("[runBatch] command error", error);
+              console.error(error);
               cleanup();
               reject(error);
             });
         })
         .catch((error) => {
-          console.error("[runBatch] listener setup failed", error);
+          console.error(error);
           cleanup();
           reject(error);
         });

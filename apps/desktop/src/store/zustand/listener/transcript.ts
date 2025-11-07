@@ -145,10 +145,8 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
       }
 
       if (response.is_final) {
-        console.log("handleFinalWords called");
         handleFinalWords(channelIndex, words, hints);
       } else {
-        console.log("handlePartialWords called");
         handlePartialWords(channelIndex, words, hints);
       }
     },

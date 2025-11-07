@@ -92,9 +92,11 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
                   && placeholderContent !== null
                   && "type" in placeholderContent
                 ) {
-                  const wrappedContent = createElement(PlaceholderErrorBoundary, {
-                    children: placeholderContent as ReactElement,
-                  });
+                  const wrappedContent = createElement(
+                    PlaceholderErrorBoundary,
+                    null,
+                    placeholderContent as ReactElement,
+                  );
 
                   const decoration = Decoration.widget(
                     pos + 1,

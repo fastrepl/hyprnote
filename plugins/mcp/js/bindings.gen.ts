@@ -7,11 +7,21 @@
 
 
 export const commands = {
-async getServers() : Promise<McpServer[]> {
-    return await TAURI_INVOKE("plugin:mcp|get_servers");
+async getServers() : Promise<Result<McpServer[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:mcp|get_servers") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 },
-async setServers(servers: McpServer[]) : Promise<null> {
-    return await TAURI_INVOKE("plugin:mcp|set_servers", { servers });
+async setServers(servers: McpServer[]) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:mcp|set_servers", { servers }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

@@ -3877,6 +3877,7 @@ dependencies = [
  "serde_json",
  "specta",
  "specta-typescript",
+ "strum 0.26.3",
  "tauri",
  "tauri-build",
  "tauri-plugin-analytics",
@@ -3902,6 +3903,7 @@ dependencies = [
  "tauri-plugin-shell",
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
+ "tauri-plugin-store2",
  "tauri-plugin-template",
  "tauri-plugin-tracing",
  "tauri-plugin-tray",
@@ -14985,23 +14987,6 @@ dependencies = [
  "tracing",
  "windows-sys 0.60.2",
  "zbus",
-]
-
-[[package]]
-name = "tauri-plugin-sse"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "futures-util",
- "reqwest 0.12.24",
- "serde",
- "specta",
- "specta-typescript",
- "tauri",
- "tauri-plugin",
- "tauri-specta",
- "tokio",
- "tracing",
 ]
 
 [[package]]

@@ -43,6 +43,7 @@ tauri-plugin-sentry = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }
 tauri-plugin-store = { workspace = true }
+tauri-plugin-store2 = { workspace = true }
 tauri-plugin-template = { workspace = true }
 tauri-plugin-tracing = { workspace = true }
 tauri-plugin-tray = { workspace = true }
@@ -56,6 +57,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 sentry = { workspace = true, features = ["tracing"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
 
 aspasia = "0.2.1"

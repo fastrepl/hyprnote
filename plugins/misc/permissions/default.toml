@@ -10,4 +10,5 @@ permissions = [
     "allow-audio-path",
     "allow-audio-exist",
     "allow-audio-delete",
+    "allow-audio-import",
 ]

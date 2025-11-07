@@ -22,7 +22,8 @@ export function useHasTranscript(sessionId: string): boolean {
 
 export function useCurrentNoteTab(tab: Extract<Tab, { type: "sessions" }>): EditorView {
   const hasTranscript = useHasTranscript(tab.id);
-  const isListenerActive = useListener((state) => (state.status !== "inactive") && state.sessionId === tab.id);
+  const sessionMode = useListener((state) => state.getSessionMode(tab.id));
+  const isListenerActive = sessionMode === "running_active" || sessionMode === "finalizing";
 
   return useMemo(
     () => {
@@ -56,7 +57,9 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
 }
 
 export function useListenButtonState(sessionId: string) {
-  const active = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const active = sessionMode === "running_active" || sessionMode === "finalizing";
+  const batching = sessionMode === "running_batch";
 
   const taskId = createTaskId(sessionId, "enhance");
   const { status } = useAITaskTask(taskId, "enhance");
@@ -64,8 +67,12 @@ export function useListenButtonState(sessionId: string) {
   const sttConnection = useSTTConnection();
 
   const shouldRender = !active && !generating;
-  const isDisabled = !sttConnection;
-  const warningMessage = !sttConnection ? "Transcription model not available." : "";
+  const isDisabled = !sttConnection || batching;
+  const warningMessage = !sttConnection
+    ? "Transcription model not available."
+    : batching
+    ? "Batch transcription in progress."
+    : "";
 
   return {
     shouldRender,

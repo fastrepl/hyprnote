@@ -1,7 +1,7 @@
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
-import type { Alternatives, StreamResponse } from "@hypr/plugin-listener";
+import type { StreamAlternatives, StreamResponse } from "@hypr/plugin-listener";
 import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 
 type WordsByChannel = Record<number, WordLike[]>;
@@ -9,6 +9,7 @@ type WordsByChannel = Record<number, WordLike[]>;
 export type HandlePersistCallback = (words: WordLike[], hints: RuntimeSpeakerHint[]) => void;
 
 export type TranscriptState = {
+  finalWordsMaxEndMsByChannel: Record<number, number>;
   partialWordsByChannel: WordsByChannel;
   partialHints: RuntimeSpeakerHint[];
   handlePersist?: HandlePersistCallback;
@@ -21,6 +22,7 @@ export type TranscriptActions = {
 };
 
 const initialState: TranscriptState = {
+  finalWordsMaxEndMsByChannel: {},
   partialWordsByChannel: {},
   partialHints: [],
   handlePersist: undefined,
@@ -35,13 +37,33 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
     words: WordLike[],
     hints: RuntimeSpeakerHint[],
   ): void => {
-    const { partialWordsByChannel, partialHints, handlePersist } = get();
+    const {
+      partialWordsByChannel,
+      partialHints,
+      handlePersist,
+      finalWordsMaxEndMsByChannel,
+    } = get();
 
+    const lastPersistedEndMs = finalWordsMaxEndMsByChannel[channelIndex] ?? 0;
     const lastEndMs = getLastEndMs(words);
-    const remaining = (partialWordsByChannel[channelIndex] ?? [])
+
+    const firstNewWordIndex = words.findIndex((word) => word.end_ms > lastPersistedEndMs);
+    if (firstNewWordIndex === -1) {
+      return;
+    }
+
+    const newWords = words.slice(firstNewWordIndex);
+    const newHints = hints
+      .filter((hint) => hint.wordIndex >= firstNewWordIndex)
+      .map((hint) => ({
+        ...hint,
+        wordIndex: hint.wordIndex - firstNewWordIndex,
+      }));
+
+    const remainingPartialWords = (partialWordsByChannel[channelIndex] ?? [])
       .filter((word) => word.start_ms > lastEndMs);
 
-    const remainingHints = partialHints.filter((hint) => {
+    const remainingPartialHints = partialHints.filter((hint) => {
       const partialWords = partialWordsByChannel[channelIndex] ?? [];
       const word = partialWords[hint.wordIndex];
       return word && word.start_ms > lastEndMs;
@@ -49,12 +71,13 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
 
     set((state) =>
       mutate(state, (draft) => {
-        draft.partialWordsByChannel[channelIndex] = remaining;
-        draft.partialHints = remainingHints;
+        draft.partialWordsByChannel[channelIndex] = remainingPartialWords;
+        draft.partialHints = remainingPartialHints;
+        draft.finalWordsMaxEndMsByChannel[channelIndex] = lastEndMs;
       })
     );
 
-    handlePersist?.(words, hints);
+    handlePersist?.(newWords, newHints);
   };
 
   const handlePartialWords = (
@@ -139,6 +162,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
         mutate(state, (draft) => {
           draft.partialWordsByChannel = {};
           draft.partialHints = [];
+          draft.finalWordsMaxEndMsByChannel = {};
           draft.handlePersist = undefined;
         })
       );
@@ -150,23 +174,19 @@ const getLastEndMs = (words: WordLike[]): number => words[words.length - 1]?.end
 const getFirstStartMs = (words: WordLike[]): number => words[0]?.start_ms ?? 0;
 
 function transformWords(
-  alternative: Alternatives,
+  alternative: StreamAlternatives,
   channelIndex: number,
 ): [WordLike[], RuntimeSpeakerHint[]] {
   const words: WordLike[] = [];
   const hints: RuntimeSpeakerHint[] = [];
 
   const textsWithSpacing = fixSpacingForWords(
-    (alternative.words ?? []).map((w) => w.punctuated_word ?? w.word),
+    alternative.words.map((w) => w.punctuated_word ?? w.word),
     alternative.transcript,
   );
 
   for (let i = 0; i < alternative.words.length; i++) {
-    const word = alternative.words?.[i];
-    if (!word) {
-      continue;
-    }
-
+    const word = alternative.words[i];
     const text = textsWithSpacing[i];
 
     words.push({

@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { Component, createElement, type ReactElement } from "react";
 import ReactDOM from "react-dom/client";
 
 import { type Editor, Extension, isNodeEmpty } from "@tiptap/core";
@@ -92,12 +92,18 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
                   && placeholderContent !== null
                   && "type" in placeholderContent
                 ) {
+                  const wrappedContent = createElement(
+                    PlaceholderErrorBoundary,
+                    null,
+                    placeholderContent as ReactElement,
+                  );
+
                   const decoration = Decoration.widget(
                     pos + 1,
                     () => {
                       const existing = containers.get(pos);
                       if (existing) {
-                        scheduleReactRender(existing.root, placeholderContent as ReactElement);
+                        scheduleReactRender(existing.root, wrappedContent);
                         return existing.container;
                       }
 
@@ -107,7 +113,7 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
 
                       const root = ReactDOM.createRoot(container);
                       containers.set(pos, { container, root });
-                      scheduleReactRender(root, placeholderContent as ReactElement);
+                      scheduleReactRender(root, wrappedContent);
 
                       return container;
                     },
@@ -155,3 +161,31 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
     ];
   },
 });
+
+type PlaceholderErrorBoundaryProps = { children: ReactElement };
+type PlaceholderErrorBoundaryState = { hasError: boolean };
+
+class PlaceholderErrorBoundary extends Component<
+  PlaceholderErrorBoundaryProps,
+  PlaceholderErrorBoundaryState
+> {
+  constructor(props: PlaceholderErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): PlaceholderErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error(error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}

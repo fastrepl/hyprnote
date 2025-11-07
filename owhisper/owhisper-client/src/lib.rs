@@ -1,32 +1,16 @@
-use futures_util::Stream;
+mod batch;
+mod error;
+mod live;
 
-use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
-use owhisper_interface::{ControlMessage, MixedMessage, StreamResponse};
+use url::form_urlencoded::Serializer;
+use url::UrlQuery;
 
+pub use batch::BatchClient;
+pub use error::Error;
 pub use hypr_ws;
+pub use live::{ListenClient, ListenClientDual};
 
-fn interleave_audio(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
-    let mic_samples: Vec<i16> = mic
-        .chunks_exact(2)
-        .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]))
-        .collect();
-    let speaker_samples: Vec<i16> = speaker
-        .chunks_exact(2)
-        .map(|chunk| i16::from_le_bytes([chunk[0], chunk[1]]))
-        .collect();
-
-    let max_len = mic_samples.len().max(speaker_samples.len());
-    let mut interleaved = Vec::with_capacity(max_len * 2 * 2);
-
-    for i in 0..max_len {
-        let mic_sample = mic_samples.get(i).copied().unwrap_or(0);
-        let speaker_sample = speaker_samples.get(i).copied().unwrap_or(0);
-        interleaved.extend_from_slice(&mic_sample.to_le_bytes());
-        interleaved.extend_from_slice(&speaker_sample.to_le_bytes());
-    }
-
-    interleaved
-}
+const RESAMPLED_SAMPLE_RATE_HZ: u32 = 16_000;
 
 #[derive(Default)]
 pub struct ListenClientBuilder {
@@ -51,115 +35,143 @@ impl ListenClientBuilder {
         self
     }
 
-    fn build_uri(&self, channels: u8) -> String {
-        let mut url: url::Url = self.api_base.as_ref().unwrap().parse().unwrap();
+    fn listen_endpoint_url(&self) -> url::Url {
+        let mut url: url::Url = self
+            .api_base
+            .as_ref()
+            .expect("api_base is required")
+            .parse()
+            .expect("invalid api_base");
 
-        let params = owhisper_interface::ListenParams {
-            channels,
-            ..self.params.clone().unwrap_or_default()
-        };
-
-        {
-            let mut path = url.path().to_string();
-            if !path.ends_with('/') {
-                path.push('/');
-            }
-            path.push_str("listen");
-            url.set_path(&path);
+        let mut path = url.path().to_string();
+        if !path.ends_with('/') {
+            path.push('/');
         }
+        path.push_str("listen");
+        url.set_path(&path);
+
+        url
+    }
+
+    pub(crate) fn build_batch_url(&self) -> url::Url {
+        let params = self.params.clone().unwrap_or_default();
+        let mut url = self.listen_endpoint_url();
 
         {
             let mut query_pairs = url.query_pairs_mut();
 
-            // https://developers.deepgram.com/docs/language-detection#restricting-the-detectable-languages
-            // https://www.rfc-editor.org/info/bcp47
-            match params.languages.len() {
-                0 => {
-                    query_pairs.append_pair("detect_language", "true");
-                }
-                1 => {
-                    let code = params.languages[0].iso639().code();
-                    query_pairs.append_pair("language", code);
-                    query_pairs.append_pair("languages", code);
-                }
-                _ => {
-                    // https://developers.deepgram.com/docs/multilingual-code-switching
-                    query_pairs.append_pair("language", "multi");
+            append_language_query(&mut query_pairs, &params);
 
-                    for lang in &params.languages {
-                        let code = lang.iso639().code();
+            let model = params.model.as_deref().unwrap_or("hypr-whisper");
+            let sample_rate = RESAMPLED_SAMPLE_RATE_HZ.to_string();
 
-                        query_pairs.append_pair("languages", code);
+            query_pairs.append_pair("model", model);
+            query_pairs.append_pair("encoding", "linear16");
+            query_pairs.append_pair("sample_rate", &sample_rate);
+            query_pairs.append_pair("diarize", "true");
+            query_pairs.append_pair("multichannel", "false");
+            query_pairs.append_pair("punctuate", "true");
+            query_pairs.append_pair("smart_format", "true");
+            query_pairs.append_pair("utterances", "true");
+            query_pairs.append_pair("numerals", "true");
+            query_pairs.append_pair("filler_words", "false");
+            query_pairs.append_pair("dictation", "false");
+            query_pairs.append_pair("paragraphs", "false");
+            query_pairs.append_pair("profanity_filter", "false");
+            query_pairs.append_pair("measurements", "false");
+            query_pairs.append_pair("topics", "false");
+            query_pairs.append_pair("sentiment", "false");
+            query_pairs.append_pair("intents", "false");
+            query_pairs.append_pair("detect_entities", "false");
+            query_pairs.append_pair("mip_opt_out", "true");
 
-                        // Not supported for streaming
-                        // https://developers.deepgram.com/docs/language-detection
-                        // query_pairs.append_pair("detect_language", code);
-                    }
-                }
-            }
-
-            query_pairs
-                // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#request.query
-                .append_pair("model", params.model.as_deref().unwrap_or("hypr-whisper"))
-                .append_pair("channels", &channels.to_string())
-                .append_pair("filler_words", "false")
-                .append_pair("interim_results", "true")
-                .append_pair("mip_opt_out", "true")
-                .append_pair("sample_rate", "16000")
-                .append_pair("encoding", "linear16")
-                .append_pair("diarize", "true")
-                .append_pair("multichannel", "true")
-                .append_pair("punctuate", "true")
-                .append_pair("smart_format", "true")
-                .append_pair("vad_events", "false")
-                .append_pair("numerals", "true");
-
-            query_pairs.append_pair(
-                "redemption_time_ms",
-                &params.redemption_time_ms.unwrap_or(400).to_string(),
-            );
-
-            let use_keyterms = params
-                .model
-                .as_ref()
-                .map(|model| model.contains("nova-3"))
-                .unwrap_or(false);
-
-            let param_name = if use_keyterms { "keyterm" } else { "keywords" };
-
-            for keyword in &params.keywords {
-                query_pairs.append_pair(param_name, keyword);
-            }
+            append_keyword_query(&mut query_pairs, &params);
         }
 
-        let host = url.host_str().unwrap();
+        url
+    }
 
-        if host.contains("127.0.0.1") || host.contains("localhost") {
-            url.set_scheme("ws").unwrap();
-        } else {
-            url.set_scheme("wss").unwrap();
+    pub(crate) fn build_url(&self, channels: u8) -> url::Url {
+        let mut params = self.params.clone().unwrap_or_default();
+        params.channels = channels;
+
+        let mut url = self.listen_endpoint_url();
+
+        {
+            let mut query_pairs = url.query_pairs_mut();
+
+            append_language_query(&mut query_pairs, &params);
+
+            let model = params.model.as_deref().unwrap_or("hypr-whisper");
+            let channel_string = channels.to_string();
+            let sample_rate = RESAMPLED_SAMPLE_RATE_HZ.to_string();
+
+            query_pairs.append_pair("model", model);
+            query_pairs.append_pair("channels", &channel_string);
+            query_pairs.append_pair("filler_words", "false");
+            query_pairs.append_pair("interim_results", "true");
+            query_pairs.append_pair("mip_opt_out", "true");
+            query_pairs.append_pair("sample_rate", &sample_rate);
+            query_pairs.append_pair("encoding", "linear16");
+            query_pairs.append_pair("diarize", "true");
+            query_pairs.append_pair("multichannel", "true");
+            query_pairs.append_pair("punctuate", "true");
+            query_pairs.append_pair("smart_format", "true");
+            query_pairs.append_pair("vad_events", "false");
+            query_pairs.append_pair("numerals", "true");
+
+            let redemption_time = params.redemption_time_ms.unwrap_or(400).to_string();
+            query_pairs.append_pair("redemption_time_ms", &redemption_time);
+
+            append_keyword_query(&mut query_pairs, &params);
+        }
+
+        url
+    }
+
+    pub(crate) fn build_uri(&self, channels: u8) -> String {
+        let mut url = self.build_url(channels);
+
+        if let Some(host) = url.host_str() {
+            if host.contains("127.0.0.1") || host.contains("localhost") {
+                let _ = url.set_scheme("ws");
+            } else {
+                let _ = url.set_scheme("wss");
+            }
         }
 
         url.to_string()
     }
 
-    fn build_request(self, channels: u8) -> ClientRequestBuilder {
+    pub(crate) fn build_request(&self, channels: u8) -> hypr_ws::client::ClientRequestBuilder {
         let uri = self.build_uri(channels).parse().unwrap();
 
-        let request = match self.api_key {
-            // https://github.com/deepgram/deepgram-rust-sdk/blob/d2f2723/src/lib.rs#L114-L115
-            // https://github.com/deepgram/deepgram-rust-sdk/blob/d2f2723/src/lib.rs#L323-L324
-            Some(key) => ClientRequestBuilder::new(uri)
+        let request = match &self.api_key {
+            Some(key) => hypr_ws::client::ClientRequestBuilder::new(uri)
                 .with_header("Authorization", format!("Token {}", key)),
-            None => ClientRequestBuilder::new(uri),
+            None => hypr_ws::client::ClientRequestBuilder::new(uri),
         };
 
         request
     }
 
-    pub fn build_single(self) -> ListenClient {
-        let request = self.build_request(1);
+    pub fn build_with_channels(self, channels: u8) -> ListenClient {
+        let request = self.build_request(channels);
         ListenClient { request }
+    }
+
+    pub fn build_batch(self) -> BatchClient {
+        let url = self.build_batch_url();
+
+        BatchClient {
+            client: reqwest::Client::new(),
+            url,
+            api_key: self.api_key,
+        }
+    }
+
+    pub fn build_single(self) -> ListenClient {
+        self.build_with_channels(1)
     }
 
     pub fn build_dual(self) -> ListenClientDual {
@@ -168,110 +180,49 @@ impl ListenClientBuilder {
     }
 }
 
-#[derive(Clone)]
-pub struct ListenClient {
-    request: ClientRequestBuilder,
-}
-
-type ListenClientInput = MixedMessage<bytes::Bytes, ControlMessage>;
-type ListenClientDualInput = MixedMessage<(bytes::Bytes, bytes::Bytes), ControlMessage>;
-
-impl WebSocketIO for ListenClient {
-    type Data = ListenClientInput;
-    type Input = ListenClientInput;
-    type Output = StreamResponse;
-
-    fn to_input(data: Self::Data) -> Self::Input {
-        data
-    }
-
-    fn to_message(input: Self::Input) -> Message {
-        match input {
-            MixedMessage::Audio(data) => Message::Binary(data),
-            MixedMessage::Control(control) => {
-                Message::Text(serde_json::to_string(&control).unwrap().into())
+pub(crate) fn append_language_query<'a>(
+    query_pairs: &mut Serializer<'a, UrlQuery>,
+    params: &owhisper_interface::ListenParams,
+) {
+    match params.languages.len() {
+        0 => {
+            query_pairs.append_pair("detect_language", "true");
+        }
+        1 => {
+            if let Some(language) = params.languages.first() {
+                let code = language.iso639().code();
+                query_pairs.append_pair("language", code);
+                query_pairs.append_pair("languages", code);
+            }
+        }
+        _ => {
+            query_pairs.append_pair("language", "multi");
+            for language in &params.languages {
+                let code = language.iso639().code();
+                query_pairs.append_pair("languages", code);
             }
         }
     }
-
-    fn from_message(msg: Message) -> Option<Self::Output> {
-        match msg {
-            Message::Text(text) => serde_json::from_str::<Self::Output>(&text).ok(),
-            _ => None,
-        }
-    }
 }
 
-#[derive(Clone)]
-pub struct ListenClientDual {
-    request: ClientRequestBuilder,
-}
-
-impl WebSocketIO for ListenClientDual {
-    type Data = ListenClientDualInput;
-    type Input = ListenClientInput;
-    type Output = StreamResponse;
-
-    fn to_input(data: Self::Data) -> Self::Input {
-        match data {
-            ListenClientDualInput::Audio((mic, speaker)) => {
-                let interleaved = interleave_audio(&mic, &speaker);
-                ListenClientInput::Audio(interleaved.into())
-            }
-            ListenClientDualInput::Control(control) => ListenClientInput::Control(control),
-        }
+pub(crate) fn append_keyword_query<'a>(
+    query_pairs: &mut Serializer<'a, UrlQuery>,
+    params: &owhisper_interface::ListenParams,
+) {
+    if params.keywords.is_empty() {
+        return;
     }
 
-    fn to_message(input: Self::Input) -> Message {
-        match input {
-            ListenClientInput::Audio(data) => Message::Binary(data),
-            ListenClientInput::Control(control) => {
-                Message::Text(serde_json::to_string(&control).unwrap().into())
-            }
-        }
-    }
+    let use_keyterms = params
+        .model
+        .as_ref()
+        .map(|model| model.contains("nova-3"))
+        .unwrap_or(false);
 
-    fn from_message(msg: Message) -> Option<Self::Output> {
-        match msg {
-            Message::Text(text) => serde_json::from_str::<Self::Output>(&text).ok(),
-            _ => None,
-        }
-    }
-}
+    let param_name = if use_keyterms { "keyterm" } else { "keywords" };
 
-impl ListenClient {
-    pub fn builder() -> ListenClientBuilder {
-        ListenClientBuilder::default()
-    }
-
-    pub async fn from_realtime_audio(
-        &self,
-        audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
-    ) -> Result<
-        (
-            impl Stream<Item = Result<StreamResponse, hypr_ws::Error>>,
-            hypr_ws::client::WebSocketHandle,
-        ),
-        hypr_ws::Error,
-    > {
-        let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(audio_stream).await
-    }
-}
-
-impl ListenClientDual {
-    pub async fn from_realtime_audio(
-        &self,
-        stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    ) -> Result<
-        (
-            impl Stream<Item = Result<StreamResponse, hypr_ws::Error>>,
-            hypr_ws::client::WebSocketHandle,
-        ),
-        hypr_ws::Error,
-    > {
-        let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(stream).await
+    for keyword in &params.keywords {
+        query_pairs.append_pair(param_name, keyword);
     }
 }
 
@@ -281,9 +232,9 @@ mod tests {
 
     use futures_util::StreamExt;
     use hypr_audio_utils::AudioFormatExt;
+    use live::{ListenClientDualInput, ListenClientInput};
 
     #[tokio::test]
-    // cargo test -p owhisper-client test_client_deepgram -- --nocapture
     async fn test_client_deepgram() {
         let _ = tracing_subscriber::fmt::try_init();
 
@@ -317,7 +268,10 @@ mod tests {
         while let Some(result) = stream.next().await {
             match result {
                 Ok(response) => match response {
-                    StreamResponse::TranscriptResponse { channel, .. } => {
+                    owhisper_interface::stream::StreamResponse::TranscriptResponse {
+                        channel,
+                        ..
+                    } => {
                         println!("{:?}", channel.alternatives.first().unwrap().transcript);
                     }
                     _ => {}
@@ -328,7 +282,6 @@ mod tests {
     }
 
     #[tokio::test]
-    // cargo test -p owhisper-client test_owhisper_with_owhisper -- --nocapture
     async fn test_owhisper_with_owhisper() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
@@ -356,7 +309,6 @@ mod tests {
     }
 
     #[tokio::test]
-    // cargo test -p owhisper-client test_owhisper_with_deepgram -- --nocapture
     async fn test_owhisper_with_deepgram() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
@@ -390,7 +342,6 @@ mod tests {
     }
 
     #[tokio::test]
-    // cargo test -p owhisper-client test_client_ag -- --nocapture
     async fn test_client_ag() {
         let audio_1 = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),

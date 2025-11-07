@@ -45,8 +45,9 @@ export function TranscriptContainer({
     main.STORE_ID,
   );
 
-  const currentActive = useListener((state) => state.status !== "inactive" && state.sessionId === sessionId);
-  const editable = useListener((state) => state.status === "inactive" && Object.keys(operations ?? {}).length > 0);
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const currentActive = sessionMode === "running_active" || sessionMode === "finalizing";
+  const editable = sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
   const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
   const partialHints = useListener((state) => state.partialHints);
 

@@ -1,9 +1,10 @@
+import { cn } from "@hypr/utils";
+
 import { useCallback, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/utils";
 import { AlertCircleIcon, RefreshCcwIcon, SparklesIcon } from "lucide-react";
 import { useListener } from "../../../../../contexts/listener";
 import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
@@ -13,6 +14,7 @@ import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs"
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useHasTranscript } from "../shared";
 import { EditingControls } from "./transcript/editing-controls";
+import { TranscriptionProgress } from "./transcript/progress";
 
 function HeaderTab({
   isActive,
@@ -164,64 +166,67 @@ export function Header(
     editorTabs,
     currentTab,
     handleTabChange,
+    isInactive,
     isEditing,
     setIsEditing,
-    isInactive,
   }: {
     sessionId: string;
     editorTabs: EditorView[];
     currentTab: EditorView;
     handleTabChange: (view: EditorView) => void;
+    isInactive: boolean;
     isEditing: boolean;
     setIsEditing: (isEditing: boolean) => void;
-    isInactive: boolean;
   },
 ) {
+  const isBatchProcessing = useListener((state) => sessionId in state.batch);
+
   if (editorTabs.length === 1 && editorTabs[0] === "raw") {
     return null;
   }
 
-  const showEditingControls = currentTab === "transcript" && isInactive;
+  const showProgress = currentTab === "transcript" && (isInactive || isBatchProcessing);
+  const showEditingControls = currentTab === "transcript" && isInactive && !isBatchProcessing;
 
   return (
-    <div className="flex justify-between items-center">
-      <div className="flex gap-1">
-        {editorTabs.map((view) => {
-          if (view === "enhanced") {
+    <div className="flex flex-col">
+      <div className="flex justify-between items-center">
+        <div className="flex gap-1">
+          {editorTabs.map((view) => {
+            if (view === "enhanced") {
+              return (
+                <HeaderTabEnhanced
+                  key={view}
+                  sessionId={sessionId}
+                  isActive={currentTab === view}
+                  onClick={() => handleTabChange(view)}
+                />
+              );
+            }
+
             return (
-              <HeaderTabEnhanced
+              <HeaderTab
                 key={view}
-                sessionId={sessionId}
                 isActive={currentTab === view}
                 onClick={() => handleTabChange(view)}
-              />
+              >
+                {labelForEditorView(view)}
+              </HeaderTab>
             );
-          }
-
-          return (
-            <HeaderTab
-              key={view}
-              isActive={currentTab === view}
-              onClick={() => handleTabChange(view)}
-            >
-              {labelForEditorView(view)}
-            </HeaderTab>
-          );
-        })}
+          })}
+        </div>
+        {showProgress && <TranscriptionProgress sessionId={sessionId} />}
+        {showEditingControls && <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />}
       </div>
-      {showEditingControls && <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />}
     </div>
   );
 }
 
 export function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
-  const { status, sessionId: activeSessionId } = useListener((state) => ({
-    status: state.status,
-    sessionId: state.sessionId,
-  }));
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const hasTranscript = useHasTranscript(sessionId);
 
-  if (status === "running_active" && activeSessionId === sessionId) {
+  if (sessionMode === "running_active" || sessionMode === "running_batch") {
     return ["raw", "transcript"];
   }
 

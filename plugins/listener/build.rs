@@ -7,6 +7,7 @@ const COMMANDS: &[&str] = &[
     "start_session",
     "stop_session",
     "get_state",
+    "run_batch",
 ];
 
 fn main() {

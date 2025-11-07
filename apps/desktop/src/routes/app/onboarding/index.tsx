@@ -5,10 +5,10 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { Calendars } from "./calendar";
-import { Permissions } from "./permissions";
-import type { OnboardingNext } from "./shared";
-import { Welcome } from "./welcome";
+import { Calendars } from "../../../components/onboarding/calendar";
+import { Permissions } from "../../../components/onboarding/permissions";
+import type { OnboardingNext } from "../../../components/onboarding/shared";
+import { Welcome } from "../../../components/onboarding/welcome";
 
 const STEPS = ["welcome", "calendars", "permissions"] as const;
 

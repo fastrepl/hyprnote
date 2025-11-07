@@ -1,20 +1,34 @@
-import { Icon } from "@iconify-icon/react";
-import { useMediaQuery } from "@uidotdev/usehooks";
-import { useCallback } from "react";
+import { cn } from "@hypr/utils";
 
+import { Icon } from "@iconify-icon/react";
+import { useQueryClient } from "@tanstack/react-query";
+import { downloadDir } from "@tauri-apps/api/path";
+import { open as selectFile } from "@tauri-apps/plugin-dialog";
+import { useMediaQuery } from "@uidotdev/usehooks";
+import { Effect, pipe } from "effect";
+import { EllipsisVerticalIcon, FileTextIcon, UploadCloudIcon } from "lucide-react";
+import { useCallback, useState } from "react";
+
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useListener } from "../../../../../contexts/listener";
+import { fromResult } from "../../../../../effect";
+import { useRunBatch } from "../../../../../hooks/useRunBatch";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as main from "../../../../../store/tinybase/main";
 import { type Tab } from "../../../../../store/zustand/tabs";
+import { commands as tauriCommands } from "../../../../../types/tauri.gen";
 import { RecordingIcon, useListenButtonState } from "../shared";
 import { ActionableTooltipContent, FloatingButton } from "./shared";
 
 export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const { shouldRender } = useListenButtonState(tab.id);
   const { loading, stop } = useListener((state) => ({
-    loading: state.loading,
+    loading: state.live.loading,
     stop: state.stop,
   }));
 
@@ -61,31 +75,34 @@ function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }
   }
 
   return (
-    <StartButton
+    <ListenSplitButton
       icon={icon}
       text={text}
       disabled={isDisabled}
       warningMessage={warningMessage}
-      onClick={handleClick}
+      onPrimaryClick={handleClick}
+      sessionId={tab.id}
     />
   );
 }
 
-function StartButton({
+function ListenSplitButton({
   icon,
   text,
   disabled,
   warningMessage,
-  onClick,
+  onPrimaryClick,
+  sessionId,
 }: {
   icon: React.ReactNode;
   text: string;
   disabled: boolean;
   warningMessage: string;
-  onClick: () => void;
+  onPrimaryClick: () => void;
+  sessionId: string;
 }) {
   const handleAction = useCallback(() => {
-    onClick();
+    onPrimaryClick();
     windowsCommands.windowShow({ type: "settings" })
       .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
       .then(() =>
@@ -94,30 +111,227 @@ function StartButton({
           search: { tab: "transcription" },
         })
       );
-  }, [onClick]);
+  }, [onPrimaryClick]);
 
   return (
-    <FloatingButton
-      onClick={onClick}
-      icon={icon}
-      disabled={disabled}
-      tooltip={warningMessage
-        ? {
-          side: "top",
-          content: (
-            <ActionableTooltipContent
-              message={warningMessage}
-              action={{
-                label: "Configure",
-                handleClick: handleAction,
-              }}
-            />
-          ),
+    <div className="flex flex-col items-start gap-2">
+      <div className="relative flex items-center">
+        <FloatingButton
+          onClick={onPrimaryClick}
+          icon={icon}
+          disabled={disabled}
+          className="justify-center gap-2 pr-12"
+          tooltip={warningMessage
+            ? {
+              side: "top",
+              content: (
+                <ActionableTooltipContent
+                  message={warningMessage}
+                  action={{
+                    label: "Configure",
+                    handleClick: handleAction,
+                  }}
+                />
+              ),
+            }
+            : undefined}
+        >
+          {text}
+        </FloatingButton>
+        <OptionsMenu
+          sessionId={sessionId}
+          disabled={disabled}
+          warningMessage={warningMessage}
+          onConfigure={handleAction}
+        />
+      </div>
+    </div>
+  );
+}
+
+type FileSelection = string | string[] | null;
+
+function OptionsMenu({
+  sessionId,
+  disabled,
+  warningMessage,
+  onConfigure,
+}: {
+  sessionId: string;
+  disabled: boolean;
+  warningMessage: string;
+  onConfigure?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const runBatch = useRunBatch(sessionId);
+  const queryClient = useQueryClient();
+
+  const handleFilePath = useCallback(
+    (selection: FileSelection, kind: "audio" | "transcript") => {
+      if (!selection) {
+        return Effect.void;
+      }
+
+      const path = Array.isArray(selection) ? selection[0] : selection;
+
+      if (!path) {
+        return Effect.void;
+      }
+
+      const normalizedPath = path.toLowerCase();
+
+      if (kind === "transcript") {
+        if (!normalizedPath.endsWith(".vtt") && !normalizedPath.endsWith(".srt")) {
+          return Effect.void;
         }
-        : undefined}
+
+        return fromResult(tauriCommands.parseSubtitle(path));
+      }
+
+      if (!normalizedPath.endsWith(".wav") && !normalizedPath.endsWith(".mp3") && !normalizedPath.endsWith(".ogg")) {
+        return Effect.void;
+      }
+
+      return pipe(
+        fromResult(miscCommands.audioImport(sessionId, path)),
+        Effect.tap(() =>
+          Effect.sync(() => {
+            queryClient.invalidateQueries({ queryKey: ["audio", sessionId, "exist"] });
+            queryClient.invalidateQueries({ queryKey: ["audio", sessionId, "url"] });
+          })
+        ),
+        Effect.flatMap((importedPath) => Effect.promise(() => runBatch(importedPath, { channels: 1 }))),
+      );
+    },
+    [queryClient, runBatch, sessionId],
+  );
+
+  const selectAndHandleFile = useCallback(
+    (options: { title: string; filters: { name: string; extensions: string[] }[] }, kind: "audio" | "transcript") => {
+      if (disabled) {
+        return;
+      }
+
+      setOpen(false);
+
+      const program = pipe(
+        Effect.promise(() => downloadDir()),
+        Effect.flatMap((defaultPath) =>
+          Effect.promise(() =>
+            selectFile({
+              title: options.title,
+              multiple: false,
+              directory: false,
+              defaultPath,
+              filters: options.filters,
+            })
+          )
+        ),
+        Effect.flatMap((selection) => handleFilePath(selection, kind)),
+      );
+
+      Effect.runPromise(program);
+    },
+    [disabled, handleFilePath, setOpen],
+  );
+
+  const handleUploadAudio = useCallback(() => {
+    if (disabled) {
+      return;
+    }
+
+    selectAndHandleFile(
+      {
+        title: "Upload Audio",
+        filters: [{ name: "Audio", extensions: ["wav", "mp3", "ogg"] }],
+      },
+      "audio",
+    );
+  }, [disabled, selectAndHandleFile]);
+
+  const handleUploadTranscript = useCallback(() => {
+    if (disabled) {
+      return;
+    }
+
+    selectAndHandleFile(
+      {
+        title: "Upload Transcript",
+        filters: [{ name: "Transcript", extensions: ["vtt", "srt"] }],
+      },
+      "transcript",
+    );
+  }, [disabled, selectAndHandleFile]);
+
+  const triggerButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn([
+        "absolute right-2 top-1/2 -translate-y-1/2 z-10",
+        "h-10 w-10 rounded-full hover:bg-white/20 transition-colors",
+        "text-white/70 hover:text-white",
+        open ? "bg-white/20 text-white" : null,
+      ])}
+      disabled={disabled}
     >
-      {text}
-    </FloatingButton>
+      <EllipsisVerticalIcon className="w-5 h-5" />
+      <span className="sr-only">More options</span>
+    </Button>
+  );
+
+  if (disabled && warningMessage) {
+    return (
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <span className="inline-block">{triggerButton}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="end">
+          <ActionableTooltipContent
+            message={warningMessage}
+            action={onConfigure
+              ? {
+                label: "Configure",
+                handleClick: onConfigure,
+              }
+              : undefined}
+          />
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  if (disabled) {
+    return triggerButton;
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        {triggerButton}
+      </PopoverTrigger>
+      <PopoverContent side="top" align="end" className="w-auto p-1.5">
+        <div className="flex flex-col gap-1">
+          <Button
+            variant="ghost"
+            className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
+            onClick={handleUploadAudio}
+          >
+            <UploadCloudIcon className="w-4 h-4 flex-shrink-0" />
+            <span className="text-sm">Upload audio</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
+            onClick={handleUploadTranscript}
+            disabled
+          >
+            <FileTextIcon className="w-4 h-4 flex-shrink-0" />
+            <span className="text-sm">Upload transcript</span>
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

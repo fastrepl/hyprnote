@@ -12,6 +12,7 @@ Default permissions for the plugin
 - `allow-get-mic-muted`
 - `allow-set-mic-muted`
 - `allow-get-state`
+- `allow-run-batch`
 
 ## Permission Table
 
@@ -148,6 +149,32 @@ Enables the list_microphone_devices command without any pre-configured scope.
 <td>
 
 Denies the list_microphone_devices command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-run-batch`
+
+</td>
+<td>
+
+Enables the run_batch command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-run-batch`
+
+</td>
+<td>
+
+Denies the run_batch command without any pre-configured scope.
 
 </td>
 </tr>

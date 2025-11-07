@@ -13,6 +13,7 @@ Default permissions for the plugin
 - `allow-audio-path`
 - `allow-audio-exist`
 - `allow-audio-delete`
+- `allow-audio-import`
 
 ## Permission Table
 
@@ -71,6 +72,32 @@ Enables the audio_exist command without any pre-configured scope.
 <td>
 
 Denies the audio_exist command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:allow-audio-import`
+
+</td>
+<td>
+
+Enables the audio_import command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`misc:deny-audio-import`
+
+</td>
+<td>
+
+Denies the audio_import command without any pre-configured scope.
 
 </td>
 </tr>

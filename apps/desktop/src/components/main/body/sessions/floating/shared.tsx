@@ -16,6 +16,7 @@ export function FloatingButton({
   tooltip,
   error,
   subtle,
+  className,
 }: {
   icon?: ReactNode;
   children: ReactNode;
@@ -25,6 +26,7 @@ export function FloatingButton({
   disabled?: boolean;
   error?: boolean;
   subtle?: boolean;
+  className?: string;
   tooltip?: {
     content: ReactNode;
     side?: ComponentProps<typeof TooltipContent>["side"];
@@ -40,6 +42,7 @@ export function FloatingButton({
         error && "border-red-500",
         !error && "border-neutral-200 focus-within:border-stone-500",
         subtle && "opacity-40 hover:opacity-100",
+        className,
       ])}
       onClick={onClick}
       onMouseEnter={onMouseEnter}

@@ -2,6 +2,10 @@
 alwaysApply: true
 ---
 
+# Formatting
+
+- Format using `dprint fmt` from the root. Do not use `cargo fmt`.
+
 # Mutation
 - Never do manual state management for form/mutation. Things like setError is anti-pattern. use useForm(from tanstack-form) and useQuery/useMutation(from tanstack-query) for 99% cases.
 

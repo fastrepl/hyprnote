@@ -1,4 +1,4 @@
-use crate::{actors::SessionParams, ListenerPluginExt};
+use crate::{actors::SessionParams, BatchParams, ListenerPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -70,4 +70,13 @@ pub async fn get_state<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<crate::fsm::State, String> {
     Ok(app.get_state().await)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn run_batch<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    params: BatchParams,
+) -> Result<(), String> {
+    app.run_batch(params).await.map_err(|e| e.to_string())
 }

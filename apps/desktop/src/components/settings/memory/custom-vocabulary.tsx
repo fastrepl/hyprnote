@@ -1,10 +1,11 @@
+import { useForm } from "@tanstack/react-form";
 import { Check, MinusCircle, Pencil, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 import * as main from "../../../store/tinybase/main";
-import { QUERIES, STORE_ID, UI } from "../../../store/tinybase/main";
+import { METRICS, QUERIES, STORE_ID, UI } from "../../../store/tinybase/main";
 import { id } from "../../../utils";
 
 interface VocabItem {
@@ -58,9 +59,23 @@ function useVocabs() {
 export function CustomVocabularyView() {
   const vocabItems = useVocabs();
   const mutations = useVocabMutations();
-  const [searchValue, setSearchValue] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [searchValue, setSearchValue] = useState("");
+  const totalCustomVocabs = UI.useMetric(METRICS.totalCustomVocabs, STORE_ID) ?? 0;
+
+  const form = useForm({
+    defaultValues: {
+      search: "",
+    },
+    onSubmit: ({ value }) => {
+      const text = value.search.trim();
+      if (text) {
+        mutations.create(text);
+        form.reset();
+        setSearchValue("");
+      }
+    },
+  });
 
   const filteredItems = useMemo(() => {
     if (!searchValue.trim()) {
@@ -74,81 +89,55 @@ export function CustomVocabularyView() {
   const exactMatch = allTexts.includes(searchValue.toLowerCase());
   const showAddButton = searchValue.trim() && !exactMatch;
 
-  const handleAdd = () => {
-    const text = searchValue.trim();
-    if (text && !exactMatch) {
-      mutations.create(text);
-      setSearchValue("");
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && showAddButton) {
-      e.preventDefault();
-      handleAdd();
-    }
-  };
-
-  const startEdit = (item: VocabItem) => {
-    setEditingId(item.rowId);
-    setEditValues({ ...editValues, [item.rowId]: item.text });
-  };
-
-  const cancelEdit = (rowId: string) => {
-    setEditingId(null);
-    const { [rowId]: _, ...rest } = editValues;
-    setEditValues(rest);
-  };
-
-  const saveEdit = (rowId: string) => {
-    const newText = editValues[rowId]?.trim();
-    if (!newText) {
-      return;
-    }
-
-    const isDuplicate = vocabItems.some(
-      (item) => item.rowId !== rowId && item.text.toLowerCase() === newText.toLowerCase(),
-    );
-    if (isDuplicate) {
-      return;
-    }
-
-    mutations.update(rowId, newText);
-    setEditingId(null);
-    const { [rowId]: _, ...rest } = editValues;
-    setEditValues(rest);
-  };
-
   return (
     <div>
-      <h3 className="text-sm font-medium mb-1">Custom vocabulary</h3>
-      <p className="text-xs text-neutral-600 mb-3">
-        Add jargons or industry/company-specific terms to improve transcription accuracy
-      </p>
+      <div className="mb-3 flex items-start justify-between">
+        <div>
+          <h3 className="text-sm font-medium mb-1">Custom vocabulary</h3>
+          <p className="text-xs text-neutral-600">
+            Add jargons or industry/company-specific terms to improve transcription accuracy
+          </p>
+        </div>
+        <span className="text-xs text-neutral-500 mt-1">
+          {totalCustomVocabs} {totalCustomVocabs === 1 ? "term" : "terms"}
+        </span>
+      </div>
 
       <div className="rounded-xl border border-neutral-200 bg-white overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200">
-          <input
-            type="text"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Search or add custom vocabulary"
-            className="flex-1 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none bg-transparent"
-          />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200"
+        >
+          <form.Field name="search">
+            {(field) => (
+              <input
+                type="text"
+                value={field.state.value}
+                onChange={(e) => {
+                  field.handleChange(e.target.value);
+                  setSearchValue(e.target.value);
+                }}
+                placeholder="Search or add custom vocabulary"
+                className="flex-1 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none bg-transparent"
+              />
+            )}
+          </form.Field>
           {showAddButton && (
             <Button
-              type="button"
+              type="submit"
               variant="ghost"
               size="sm"
-              onClick={handleAdd}
               className="h-auto p-0 hover:bg-transparent text-neutral-600 hover:text-neutral-900"
             >
               <Plus className="h-4 w-4" />
               <span className="ml-1 text-sm">Add</span>
             </Button>
           )}
-        </div>
+        </form>
 
         <div className="max-h-[300px] overflow-y-auto">
           {filteredItems.length === 0
@@ -162,12 +151,11 @@ export function CustomVocabularyView() {
                 <VocabularyItem
                   key={item.rowId}
                   item={item}
+                  vocabItems={vocabItems}
                   isEditing={editingId === item.rowId}
-                  editValue={editValues[item.rowId] ?? item.text}
-                  onEditValueChange={(value) => setEditValues({ ...editValues, [item.rowId]: value })}
-                  onStartEdit={() => startEdit(item)}
-                  onCancelEdit={() => cancelEdit(item.rowId)}
-                  onSaveEdit={() => saveEdit(item.rowId)}
+                  onStartEdit={() => setEditingId(item.rowId)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onUpdate={mutations.update}
                   onRemove={() => mutations.delete(item.rowId)}
                 />
               ))
@@ -180,36 +168,60 @@ export function CustomVocabularyView() {
 
 interface VocabularyItemProps {
   item: VocabItem;
+  vocabItems: VocabItem[];
   isEditing: boolean;
-  editValue: string;
-  onEditValueChange: (value: string) => void;
   onStartEdit: () => void;
   onCancelEdit: () => void;
-  onSaveEdit: () => void;
+  onUpdate: (rowId: string, text: string) => void;
   onRemove: () => void;
 }
 
 function VocabularyItem({
   item,
+  vocabItems,
   isEditing,
-  editValue,
-  onEditValueChange,
   onStartEdit,
   onCancelEdit,
-  onSaveEdit,
+  onUpdate,
   onRemove,
 }: VocabularyItemProps) {
   const [hoveredItem, setHoveredItem] = useState(false);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onSaveEdit();
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      onCancelEdit();
-    }
-  };
+  const form = useForm({
+    defaultValues: {
+      text: item.text,
+    },
+    onSubmit: ({ value }) => {
+      const text = value.text.trim();
+      if (text && text !== item.text) {
+        onUpdate(item.rowId, text);
+        onCancelEdit();
+      }
+    },
+    validators: {
+      onChange: ({ value }) => {
+        const text = value.text.trim();
+        if (!text) {
+          return {
+            fields: {
+              text: "Vocabulary term cannot be empty",
+            },
+          };
+        }
+        const isDuplicate = vocabItems.some(
+          (v) => v.rowId !== item.rowId && v.text.toLowerCase() === text.toLowerCase(),
+        );
+        if (isDuplicate) {
+          return {
+            fields: {
+              text: "This term already exists",
+            },
+          };
+        }
+        return undefined;
+      },
+    },
+  });
 
   return (
     <div
@@ -222,39 +234,56 @@ function VocabularyItem({
     >
       {isEditing
         ? (
-          <input
-            type="text"
-            value={editValue}
-            onChange={(e) => onEditValueChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1 text-sm text-neutral-900 focus:outline-none bg-transparent"
-            autoFocus
-          />
+          <form.Field name="text">
+            {(field) => (
+              <input
+                type="text"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.handleSubmit();
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    onCancelEdit();
+                  }
+                }}
+                className="flex-1 text-sm text-neutral-900 focus:outline-none bg-transparent"
+                autoFocus
+              />
+            )}
+          </form.Field>
         )
         : <span className="text-sm text-neutral-700">{item.text}</span>}
       <div className="flex items-center gap-1">
         {isEditing
           ? (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onSaveEdit}
-                className="h-auto p-0 hover:bg-transparent"
-              >
-                <Check className="h-5 w-5 text-green-600" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onCancelEdit}
-                className="h-auto p-0 hover:bg-transparent"
-              >
-                <X className="h-5 w-5 text-neutral-500" />
-              </Button>
-            </>
+            <form.Subscribe selector={(state) => [state.canSubmit]}>
+              {([canSubmit]) => (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => form.handleSubmit()}
+                    disabled={!canSubmit}
+                    className="h-auto p-0 hover:bg-transparent disabled:opacity-50"
+                  >
+                    <Check className="h-5 w-5 text-green-600" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={onCancelEdit}
+                    className="h-auto p-0 hover:bg-transparent"
+                  >
+                    <X className="h-5 w-5 text-neutral-500" />
+                  </Button>
+                </>
+              )}
+            </form.Subscribe>
           )
           : (
             hoveredItem && (

@@ -9,26 +9,20 @@ export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessi
   const currentTab = useCurrentNoteTab(tab);
   const hasTranscript = useHasTranscript(tab.id);
 
-  let button: ReactNode | null = null;
-
-  if (currentTab === "raw" && !hasTranscript) {
-    button = <ListenButton tab={tab} />;
-  }
-
-  if (!button) {
+  if (!(currentTab === "raw" && !hasTranscript)) {
     return null;
   }
 
   return (
     <FloatingButtonContainer>
-      {button}
+      <ListenButton tab={tab} />
     </FloatingButtonContainer>
   );
 }
 
 function FloatingButtonContainer({ children }: { children: ReactNode }) {
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
       {children}
     </div>
   );

@@ -1,5 +1,6 @@
-mod stream;
-pub use stream::*;
+pub mod batch;
+
+pub mod stream;
 
 #[macro_export]
 macro_rules! common_derives {
@@ -30,8 +31,22 @@ common_derives! {
     }
 }
 
-impl From<Word> for Word2 {
-    fn from(word: Word) -> Self {
+impl From<stream::Word> for Word2 {
+    fn from(word: stream::Word) -> Self {
+        Word2 {
+            text: word.punctuated_word.unwrap_or(word.word),
+            speaker: word
+                .speaker
+                .map(|s| SpeakerIdentity::Unassigned { index: s as u8 }),
+            confidence: Some(word.confidence as f32),
+            start_ms: Some((word.start * 1000.0) as u64),
+            end_ms: Some((word.end * 1000.0) as u64),
+        }
+    }
+}
+
+impl From<batch::Word> for Word2 {
+    fn from(word: batch::Word) -> Self {
         Word2 {
             text: word.punctuated_word.unwrap_or(word.word),
             speaker: word

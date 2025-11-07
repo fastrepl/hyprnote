@@ -1,11 +1,12 @@
 use std::fs::File;
-use std::io::{BufReader, BufWriter};
-use std::num::{NonZeroU32, NonZeroU8};
+use std::io::BufWriter;
 use std::path::PathBuf;
 use std::time::Instant;
 
+use hypr_audio_utils::{
+    decode_vorbis_to_wav_file, encode_wav_to_vorbis_file, VorbisEncodeSettings,
+};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
-use vorbis_rs::{VorbisBitrateManagementStrategy, VorbisDecoder, VorbisEncoderBuilder};
 
 const FLUSH_INTERVAL: std::time::Duration = std::time::Duration::from_millis(1000);
 
@@ -31,66 +32,6 @@ impl RecorderActor {
     pub fn name() -> ActorName {
         "recorder_actor".into()
     }
-
-    async fn ogg_to_wav(ogg_path: &PathBuf, wav_path: &PathBuf) -> Result<(), ActorProcessingErr> {
-        let ogg_file = BufReader::new(File::open(ogg_path)?);
-        let mut decoder = VorbisDecoder::new(ogg_file)?;
-
-        let spec = hound::WavSpec {
-            channels: decoder.channels().get() as u16,
-            sample_rate: decoder.sampling_frequency().get(),
-            bits_per_sample: 32,
-            sample_format: hound::SampleFormat::Float,
-        };
-
-        let mut wav_writer = hound::WavWriter::create(wav_path, spec)?;
-
-        while let Some(block) = decoder.decode_audio_block()? {
-            let samples = block.samples();
-            if samples.len() > 0 {
-                for sample in samples[0] {
-                    wav_writer.write_sample(*sample)?;
-                }
-            }
-        }
-
-        wav_writer.finalize()?;
-        Ok(())
-    }
-
-    async fn wav_to_ogg(wav_path: &PathBuf, ogg_path: &PathBuf) -> Result<(), ActorProcessingErr> {
-        let wav_reader = hound::WavReader::open(wav_path)?;
-        let spec = wav_reader.spec();
-
-        let samples = wav_reader
-            .into_samples::<f32>()
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let mut ogg_buffer = Vec::new();
-        let mut encoder = VorbisEncoderBuilder::new(
-            NonZeroU32::new(spec.sample_rate).unwrap(),
-            NonZeroU8::new(spec.channels as u8).unwrap(),
-            &mut ogg_buffer,
-        )
-        .unwrap()
-        .bitrate_management_strategy(VorbisBitrateManagementStrategy::QualityVbr {
-            target_quality: 0.7,
-        })
-        .build()?;
-
-        const BLOCK_SIZE: usize = 4096;
-        let channel_data = vec![samples];
-
-        for chunk in channel_data[0].chunks(BLOCK_SIZE) {
-            encoder.encode_audio_block(&[chunk])?;
-        }
-
-        encoder.finish()?;
-
-        std::fs::write(ogg_path, ogg_buffer)?;
-
-        Ok(())
-    }
 }
 
 impl Actor for RecorderActor {
@@ -111,7 +52,7 @@ impl Actor for RecorderActor {
         let ogg_path = dir.join(format!("{}.ogg", filename_base));
 
         if ogg_path.exists() {
-            Self::ogg_to_wav(&ogg_path, &wav_path).await?;
+            decode_vorbis_to_wav_file(&ogg_path, &wav_path).map_err(into_actor_err)?;
             std::fs::remove_file(&ogg_path)?;
         }
 
@@ -173,7 +114,13 @@ impl Actor for RecorderActor {
         if st.wav_path.exists() {
             let temp_ogg_path = st.ogg_path.with_extension("ogg.tmp");
 
-            match Self::wav_to_ogg(&st.wav_path, &temp_ogg_path).await {
+            match encode_wav_to_vorbis_file(
+                &st.wav_path,
+                &temp_ogg_path,
+                VorbisEncodeSettings::default(),
+            )
+            .map_err(into_actor_err)
+            {
                 Ok(_) => {
                     std::fs::rename(&temp_ogg_path, &st.ogg_path)?;
                     std::fs::remove_file(&st.wav_path)?;
@@ -188,4 +135,8 @@ impl Actor for RecorderActor {
 
         Ok(())
     }
+}
+
+fn into_actor_err(err: hypr_audio_utils::Error) -> ActorProcessingErr {
+    Box::new(err)
 }

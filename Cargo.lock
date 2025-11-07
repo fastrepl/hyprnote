@@ -913,10 +913,12 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "futures-util",
+ "hound",
  "kalosm-sound",
  "rodio",
  "rubato",
  "thiserror 2.0.17",
+ "vorbis_rs",
 ]
 
 [[package]]
@@ -3720,9 +3722,9 @@ dependencies = [
 
 [[package]]
 name = "deepgram"
-version = "0.6.10"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7e55d68eeaf55308feb5cb6e948d49efa8564d0536a7375d8a9e06acbb5773a"
+checksum = "49bf11c4dc8fc1e7c94fc4198f82f64536fdb9eded7b5a076d9597d8b67e1fd1"
 dependencies = [
  "anyhow",
  "bytes",
@@ -10301,8 +10303,10 @@ dependencies = [
  "futures-util",
  "language",
  "owhisper-interface",
+ "reqwest 0.12.24",
  "rodio",
  "serde_json",
+ "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -14769,11 +14773,13 @@ dependencies = [
 name = "tauri-plugin-misc"
 version = "0.1.0"
 dependencies = [
+ "audio-utils",
  "buffer",
  "host",
  "indoc",
  "lazy_static",
  "regex",
+ "rodio",
  "specta",
  "specta-typescript",
  "sysinfo 0.37.2",
@@ -14781,6 +14787,7 @@ dependencies = [
  "tauri-plugin",
  "tauri-plugin-opener",
  "tauri-specta",
+ "thiserror 2.0.17",
  "vergen-gix",
 ]
 

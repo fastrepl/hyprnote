@@ -1,6 +1,10 @@
+use std::path::PathBuf;
+
 use tauri::Manager;
 use tauri_plugin_opener::OpenerExt;
 
+use crate::audio::import_audio;
+use crate::error::AudioImportError;
 use crate::MiscPluginExt;
 
 #[tauri::command]
@@ -65,6 +69,50 @@ pub async fn audio_delete<R: tauri::Runtime>(
             }
         })?;
     Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn audio_import<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    session_id: String,
+    source_path: String,
+) -> Result<String, String> {
+    audio_import_internal(&app, &session_id, &source_path)
+        .map(|final_path| final_path.to_string_lossy().to_string())
+        .map_err(|err| err.to_string())
+}
+
+fn audio_import_internal<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    session_id: &str,
+    source_path: &str,
+) -> Result<PathBuf, AudioImportError> {
+    let data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|err| AudioImportError::PathResolver(err.to_string()))?;
+    let session_dir = data_dir.join(session_id);
+
+    std::fs::create_dir_all(&session_dir)?;
+
+    let target_path = session_dir.join("audio.ogg");
+    let tmp_path = session_dir.join("audio.ogg.tmp");
+
+    if tmp_path.exists() {
+        std::fs::remove_file(&tmp_path)?;
+    }
+
+    let source = PathBuf::from(source_path);
+    match import_audio(&source, &tmp_path, &target_path) {
+        Ok(final_path) => Ok(final_path),
+        Err(error) => {
+            if tmp_path.exists() {
+                let _ = std::fs::remove_file(&tmp_path);
+            }
+            Err(error.into())
+        }
+    }
 }
 
 #[tauri::command]

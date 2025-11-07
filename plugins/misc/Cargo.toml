@@ -16,6 +16,7 @@ indoc = { workspace = true }
 specta-typescript = { workspace = true }
 
 [dependencies]
+hypr-audio-utils = { workspace = true }
 hypr-buffer = { workspace = true }
 hypr-host = { workspace = true }
 
@@ -25,5 +26,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 lazy_static = { workspace = true }
 regex = { workspace = true }
+rodio = { workspace = true, features = ["wav"] }
 specta = { workspace = true }
 sysinfo = { workspace = true }
+thiserror = { workspace = true }

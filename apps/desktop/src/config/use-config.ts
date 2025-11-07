@@ -42,7 +42,7 @@ export function useConfigValues<K extends ConfigKey>(keys: readonly K[]): { [P i
 }
 
 export function useConfigSideEffects(keys?: ConfigKey[]) {
-  const active = useListener((state) => state.status === "running_active");
+  const active = useListener((state) => state.live.status === "running_active");
   const configsToWatch = keys ?? (Object.keys(CONFIG_REGISTRY) as ConfigKey[]);
 
   const allValues = main.UI.useValues(main.STORE_ID);

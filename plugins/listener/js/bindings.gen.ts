@@ -70,6 +70,14 @@ async getState() : Promise<Result<string, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async runBatch(params: BatchParams) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|run_batch", { params }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -88,15 +96,23 @@ sessionEvent: "plugin:listener:session-event"
 
 /** user-defined types **/
 
-export type Alternatives = { transcript: string; words: Word[]; confidence: number; languages?: string[] }
-export type Channel = { alternatives: Alternatives[] }
-export type Extra = { started_unix_secs: number }
-export type Metadata = { request_id: string; model_info: ModelInfo; model_uuid: string; extra?: Extra }
-export type ModelInfo = { name: string; version: string; arch: string }
-export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "finalizing" } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "streamResponse"; response: StreamResponse }
+export type BatchAlternatives = { transcript: string; confidence: number; words?: BatchWord[] }
+export type BatchChannel = { alternatives: BatchAlternatives[] }
+export type BatchParams = { session_id: string; provider: BatchProvider; file_path: string; model?: string | null; base_url: string; api_key: string; languages?: string[]; keywords?: string[]; channels?: number | null }
+export type BatchProvider = "deepgram" | "am"
+export type BatchResponse = { metadata: JsonValue; results: BatchResults }
+export type BatchResults = { channels: BatchChannel[] }
+export type BatchWord = { word: string; start: number; end: number; confidence: number; speaker: number | null; punctuated_word: string | null }
+export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "finalizing" } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "streamResponse"; response: StreamResponse } | { type: "batchStarted"; session_id: string } | { type: "batchResponse"; response: BatchResponse } | { type: "batchProgress"; response: StreamResponse; percentage: number } | { type: "batchFailed"; error: string }
 export type SessionParams = { session_id: string; languages: string[]; onboarding: boolean; record_enabled: boolean; model: string; base_url: string; api_key: string; keywords: string[] }
-export type StreamResponse = { type: "Results"; start: number; duration: number; is_final: boolean; speech_final: boolean; from_finalize: boolean; channel: Channel; metadata: Metadata; channel_index: number[] } | { type: "Metadata"; request_id: string; created: string; duration: number; channels: number } | { type: "SpeechStarted"; channel: number[]; timestamp: number } | { type: "UtteranceEnd"; channel: number[]; last_word_end: number }
-export type Word = { word: string; start: number; end: number; confidence: number; speaker: number | null; punctuated_word: string | null; language: string | null }
+export type StreamAlternatives = { transcript: string; words: StreamWord[]; confidence: number; languages?: string[] }
+export type StreamChannel = { alternatives: StreamAlternatives[] }
+export type StreamExtra = { started_unix_secs: number }
+export type StreamMetadata = { request_id: string; model_info: StreamModelInfo; model_uuid: string; extra?: StreamExtra }
+export type StreamModelInfo = { name: string; version: string; arch: string }
+export type StreamResponse = { type: "Results"; start: number; duration: number; is_final: boolean; speech_final: boolean; from_finalize: boolean; channel: StreamChannel; metadata: StreamMetadata; channel_index: number[] } | { type: "Metadata"; request_id: string; created: string; duration: number; channels: number } | { type: "SpeechStarted"; channel: number[]; timestamp: number } | { type: "UtteranceEnd"; channel: number[]; last_word_end: number }
+export type StreamWord = { word: string; start: number; end: number; confidence: number; speaker: number | null; punctuated_word: string | null; language: string | null }
 
 /** tauri-specta globals **/
 

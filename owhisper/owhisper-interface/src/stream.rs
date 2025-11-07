@@ -4,6 +4,7 @@ use crate::common_derives;
 // https://developers.deepgram.com/reference/speech-to-text-api/listen-streaming#receive.receiveTranscription
 
 common_derives! {
+    #[specta(rename = "StreamWord")]
     pub struct Word {
         pub word: String,
         pub start: f64,
@@ -16,6 +17,7 @@ common_derives! {
 }
 
 common_derives! {
+    #[specta(rename = "StreamAlternatives")]
     pub struct Alternatives {
         pub transcript: String,
         pub words: Vec<Word>,
@@ -26,12 +28,14 @@ common_derives! {
 }
 
 common_derives! {
+    #[specta(rename = "StreamChannel")]
     pub struct Channel {
         pub alternatives: Vec<Alternatives>,
     }
 }
 
 common_derives! {
+    #[specta(rename = "StreamModelInfo")]
     pub struct ModelInfo {
         pub name: String,
         pub version: String,
@@ -40,6 +44,7 @@ common_derives! {
 }
 
 common_derives! {
+    #[specta(rename = "StreamMetadata")]
     pub struct Metadata {
         pub request_id: String,
         pub model_info: ModelInfo,
@@ -51,6 +56,7 @@ common_derives! {
 }
 
 common_derives! {
+    #[specta(rename = "StreamExtra")]
     pub struct Extra {
         pub started_unix_secs: u64,
     }

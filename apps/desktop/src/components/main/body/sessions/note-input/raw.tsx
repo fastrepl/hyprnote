@@ -1,14 +1,8 @@
-import { downloadDir } from "@tauri-apps/api/path";
-import { open as selectFile } from "@tauri-apps/plugin-dialog";
-import { useMediaQuery } from "@uidotdev/usehooks";
-import { Effect, pipe } from "effect";
-import { forwardRef, useCallback } from "react";
+import { forwardRef } from "react";
 
 import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import type { PlaceholderFunction } from "@hypr/tiptap/shared";
-import { cn } from "@hypr/utils";
 import * as main from "../../../../../store/tinybase/main";
-import { commands } from "../../../../../types/tauri.gen";
 
 export const RawEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId: string }>(
   ({ sessionId }, ref) => {
@@ -40,8 +34,6 @@ export const RawEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId
   },
 );
 
-RawEditor.displayName = "RawEditor";
-
 const Placeholder: PlaceholderFunction = ({ node, pos }) => {
   if (node.type.name === "paragraph" && pos === 0) {
     return <PlaceHolderInner />;
@@ -51,61 +43,11 @@ const Placeholder: PlaceholderFunction = ({ node, pos }) => {
 };
 
 const PlaceHolderInner = () => {
-  const handleFileSelect = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-
-    const program = pipe(
-      Effect.promise(() => downloadDir()),
-      Effect.flatMap((defaultPath) =>
-        Effect.promise(() =>
-          selectFile({
-            title: "Upload Audio or Transcript",
-            multiple: false,
-            directory: false,
-            defaultPath,
-            filters: [
-              { name: "Audio", extensions: ["wav", "mp3", "ogg"] },
-              { name: "Transcript", extensions: ["vtt", "srt"] },
-            ],
-          })
-        )
-      ),
-      Effect.flatMap((path) => {
-        if (!path) {
-          return Effect.void;
-        }
-
-        if (path.endsWith(".vtt") || path.endsWith(".srt")) {
-          return pipe(
-            Effect.promise(() => commands.parseSubtitle(path)),
-            Effect.tap((subtitle) => Effect.sync(() => console.log(subtitle))),
-          );
-        }
-
-        return Effect.void;
-      }),
-    );
-
-    Effect.runPromise(program);
-  }, []);
-
-  const isNarrow = useMediaQuery("(max-width: 768px)");
-
   return (
     <div className="flex flex-col gap-1">
       <span className="text-[#e5e5e5]">
         Take notes or press <kbd>/</kbd> for commands.
       </span>
-      <div className={cn("flex flex-row items-center gap-1", isNarrow && "hidden")}>
-        <span className="text-[#e5e5e5]">You can also upload/drop an</span>
-        <button
-          type="button"
-          className="text-neutral-400 hover:text-neutral-600 transition-colors underline decoration-dotted hover:decoration-solid"
-          onClick={handleFileSelect}
-        >
-          audio file or transcript file.
-        </button>
-      </div>
     </div>
   );
 };

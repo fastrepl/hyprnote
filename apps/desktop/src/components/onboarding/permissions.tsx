@@ -2,8 +2,8 @@ import { EyeIcon, MicIcon, Volume2Icon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 
-import { PermissionRow } from "../../../components/shared/permission-row";
-import { usePermissions } from "../../../hooks/use-permissions";
+import { usePermissions } from "../../hooks/use-permissions";
+import { PermissionRow } from "../shared/permission-row";
 import { OnboardingContainer, type OnboardingNext } from "./shared";
 
 type PermissionsProps = {

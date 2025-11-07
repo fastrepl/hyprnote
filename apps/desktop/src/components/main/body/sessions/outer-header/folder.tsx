@@ -29,7 +29,7 @@ export function FolderChain({ sessionId }: { sessionId: string }) {
 
   return (
     <Breadcrumb className="ml-1.5 min-w-0">
-      <BreadcrumbList className="text-neutral-700 text-xs flex-nowrap overflow-hidden">
+      <BreadcrumbList className="text-neutral-700 text-xs flex-nowrap overflow-hidden gap-0.5">
         {folderId && <FolderIcon className="w-3 h-3 mr-1 shrink-0" />}
         {!folderId
           ? <RenderIfRootNotExist title={title} handleChangeTitle={handleChangeTitle} sessionId={sessionId} />
@@ -60,7 +60,12 @@ function RenderIfRootExist(
         renderCrumb={({ id, name }) => (
           <BreadcrumbItem className="overflow-hidden">
             <BreadcrumbLink asChild>
-              <Button size="sm" onClick={() => openNew({ type: "folders", id })} className="truncate">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => openNew({ type: "folders", id })}
+                className="truncate px-0"
+              >
                 {name}
               </Button>
             </BreadcrumbLink>

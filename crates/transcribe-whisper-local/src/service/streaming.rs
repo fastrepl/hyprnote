@@ -19,7 +19,8 @@ use tower::Service;
 
 use hypr_vad::VadExt;
 use hypr_ws_utils::{ConnectionGuard, ConnectionManager};
-use owhisper_interface::{Alternatives, Channel, ListenParams, Metadata, StreamResponse, Word};
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
+use owhisper_interface::ListenParams;
 
 use crate::GlobalTimer;
 

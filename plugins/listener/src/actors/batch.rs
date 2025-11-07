@@ -34,6 +34,7 @@ pub struct BatchArgs {
 pub struct BatchState {
     pub app: tauri::AppHandle,
     pub accumulator: BatchResponseBuilder,
+    channel_count: u8,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
     audio_duration_secs: Option<f64>,
@@ -66,7 +67,11 @@ impl BatchState {
     }
 
     fn take_response(&mut self) -> batch::Response {
-        std::mem::replace(&mut self.accumulator, BatchResponseBuilder::new(1)).build()
+        std::mem::replace(
+            &mut self.accumulator,
+            BatchResponseBuilder::new(self.channel_count),
+        )
+        .build()
     }
 }
 
@@ -88,13 +93,15 @@ impl Actor for BatchActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        let channel_count = args.listen_params.channels.clamp(1, 2);
         let (rx_task, shutdown_tx) = spawn_batch_task(args.clone(), myself).await?;
 
-        let accumulator = BatchResponseBuilder::new(1);
+        let accumulator = BatchResponseBuilder::new(channel_count);
 
         let state = BatchState {
             app: args.app,
             accumulator,
+            channel_count,
             rx_task,
             shutdown_tx: Some(shutdown_tx),
             audio_duration_secs: None,
@@ -247,11 +254,12 @@ async fn spawn_batch_task(
         let _ = myself.send_message(BatchMsg::StreamAudioDuration(audio_duration_secs));
 
         tracing::debug!("batch task: creating listen client");
+        let channel_count = args.listen_params.channels.clamp(1, 2);
         let client = owhisper_client::ListenClient::builder()
             .api_base(args.base_url)
             .api_key(args.api_key)
-            .params(args.listen_params)
-            .build_single();
+            .params(args.listen_params.clone())
+            .build_with_channels(channel_count);
 
         let chunk_count = chunked_audio.chunks.len();
         let chunk_interval = stream_config.chunk_interval();

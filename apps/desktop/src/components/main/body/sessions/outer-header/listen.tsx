@@ -85,13 +85,15 @@ function StartButton({ sessionId }: { sessionId: string }) {
 function InMeetingIndicator({ sessionId }: { sessionId: string }) {
   const [ref, hovered] = useHover();
 
-  const { active, finalizing, stop, amplitude, muted } = useListener((state) => ({
-    active: state.status !== "inactive" && state.sessionId === sessionId,
-    finalizing: state.status === "finalizing" && state.sessionId === sessionId,
+  const { mode, stop, amplitude, muted } = useListener((state) => ({
+    mode: state.getSessionMode(sessionId),
     stop: state.stop,
     amplitude: state.amplitude,
     muted: state.muted,
   }));
+
+  const active = mode === "running_active" || mode === "finalizing";
+  const finalizing = mode === "finalizing";
 
   if (!active) {
     return null;

@@ -25,8 +25,8 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = (
   },
 ) => {
   const title = main.UI.useCell("sessions", rowIdfromTab(tab), "title", main.STORE_ID);
-  const { status, sessionId } = useListener((state) => ({ status: state.status, sessionId: state.sessionId }));
-  const isActive = status !== "inactive" && sessionId === tab.id;
+  const sessionMode = useListener((state) => state.getSessionMode(tab.id));
+  const isActive = sessionMode === "running_active" || sessionMode === "finalizing";
 
   return (
     <TabItemBase

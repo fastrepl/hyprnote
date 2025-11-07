@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { ProviderId } from "../components/settings/ai/stt/shared";
@@ -35,51 +36,56 @@ export const useSTTConnection = (): Connection | null => {
         return null;
       }
 
-      try {
-        const servers = await localSttCommands.getServers();
+      const servers = await localSttCommands.getServers();
 
-        if (servers.status !== "ok") {
-          return null;
-        }
-
-        const isInternalModel = current_stt_model.startsWith("Quantized");
-        const server = isInternalModel ? servers.data.internal : servers.data.external;
-
-        if (server?.health === "ready" && server.url) {
-          return {
-            provider: current_stt_provider!,
-            model: current_stt_model,
-            baseUrl: server.url,
-            apiKey: "",
-          };
-        }
-
-        return null;
-      } catch {
+      if (servers.status !== "ok") {
         return null;
       }
+
+      const isInternalModel = current_stt_model.startsWith("Quantized");
+      const server = isInternalModel ? servers.data.internal : servers.data.external;
+
+      if (server?.health === "ready" && server.url) {
+        return {
+          provider: current_stt_provider!,
+          model: current_stt_model,
+          baseUrl: server.url,
+          apiKey: "",
+        };
+      }
+
+      return null;
     },
   });
-
-  if (!current_stt_provider || !current_stt_model) {
-    return null;
-  }
-
-  if (isLocalModel) {
-    return localConnection ?? null;
-  }
 
   const baseUrl = providerConfig?.base_url?.trim();
   const apiKey = providerConfig?.api_key?.trim();
 
-  if (!baseUrl || !apiKey) {
-    return null;
-  }
+  return useMemo(() => {
+    if (!current_stt_provider || !current_stt_model) {
+      return null;
+    }
 
-  return {
-    provider: current_stt_provider,
-    model: current_stt_model,
+    if (isLocalModel) {
+      return localConnection ?? null;
+    }
+
+    if (!baseUrl || !apiKey) {
+      return null;
+    }
+
+    return {
+      provider: current_stt_provider,
+      model: current_stt_model,
+      baseUrl,
+      apiKey,
+    };
+  }, [
+    current_stt_provider,
+    current_stt_model,
+    isLocalModel,
+    localConnection,
     baseUrl,
     apiKey,
-  };
+  ]);
 };

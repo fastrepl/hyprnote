@@ -6,17 +6,28 @@ import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 import type { HandlePersistCallback } from "./transcript";
 import { fixSpacingForWords } from "./transcript";
 
-export type BatchState = {};
+export type BatchProgress = {
+  audioDuration: number;
+  transcriptDuration: number;
+};
+
+export type BatchState = {
+  batchProgressBySession: Record<string, BatchProgress | null>;
+};
 
 export type BatchActions = {
-  handleBatchResponse: (response: BatchResponse) => void;
+  handleBatchResponse: (sessionId: string, response: BatchResponse) => void;
+  handleBatchProgress: (sessionId: string, progress: BatchProgress) => void;
+  clearBatchSession: (sessionId: string) => void;
 };
 
 export const createBatchSlice = <T extends BatchState & { handlePersist?: HandlePersistCallback }>(
-  _set: StoreApi<T>["setState"],
+  set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): BatchState & BatchActions => ({
-  handleBatchResponse: (response) => {
+  batchProgressBySession: {},
+
+  handleBatchResponse: (sessionId, response) => {
     const { handlePersist } = get();
 
     const [words, hints] = transformBatch(response);
@@ -25,6 +36,42 @@ export const createBatchSlice = <T extends BatchState & { handlePersist?: Handle
     }
 
     handlePersist?.(words, hints);
+
+    set((state) => {
+      if (!state.batchProgressBySession[sessionId]) {
+        return state;
+      }
+
+      const { [sessionId]: _, ...rest } = state.batchProgressBySession;
+      return {
+        ...state,
+        batchProgressBySession: rest,
+      };
+    });
+  },
+
+  handleBatchProgress: (sessionId, progress) => {
+    set((state) => ({
+      ...state,
+      batchProgressBySession: {
+        ...state.batchProgressBySession,
+        [sessionId]: progress,
+      },
+    }));
+  },
+
+  clearBatchSession: (sessionId) => {
+    set((state) => {
+      if (!(sessionId in state.batchProgressBySession)) {
+        return state;
+      }
+
+      const { [sessionId]: _, ...rest } = state.batchProgressBySession;
+      return {
+        ...state,
+        batchProgressBySession: rest,
+      };
+    });
   },
 });
 
@@ -33,6 +80,7 @@ function transformBatch(
 ): [WordLike[], RuntimeSpeakerHint[]] {
   const allWords: WordLike[] = [];
   const allHints: RuntimeSpeakerHint[] = [];
+  let wordOffset = 0;
 
   response.results.channels.forEach((channel, channelIndex) => {
     const alternative = channel.alternatives[0];
@@ -46,8 +94,14 @@ function transformBatch(
       channelIndex,
     );
 
-    allHints.push(...hints);
+    hints.forEach((hint) => {
+      allHints.push({
+        ...hint,
+        wordIndex: hint.wordIndex + wordOffset,
+      });
+    });
     allWords.push(...words);
+    wordOffset += words.length;
   });
 
   return [allWords, allHints];

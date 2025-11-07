@@ -215,13 +215,10 @@ export function Header(
 }
 
 export function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
-  const { status, sessionId: activeSessionId } = useListener((state) => ({
-    status: state.status,
-    sessionId: state.sessionId,
-  }));
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const hasTranscript = useHasTranscript(sessionId);
 
-  if (status === "running_active" && activeSessionId === sessionId) {
+  if (sessionMode === "running_active" || sessionMode === "running_batch") {
     return ["raw", "transcript"];
   }
 

@@ -21,7 +21,7 @@ pub enum Error {
     #[error("actor not found {0}")]
     ActorNotFound(String),
     #[error(transparent)]
-    Batch(#[from] owhisper_client::BatchError),
+    Batch(#[from] owhisper_client::Error),
     #[error(transparent)]
     SpawnError(#[from] ractor::SpawnErr),
 }

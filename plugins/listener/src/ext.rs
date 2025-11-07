@@ -198,11 +198,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 let response = client.transcribe_file(&params.file_path).await?;
 
                 tracing::info!("batch transcription completed, emitting response");
-                SessionEvent::BatchResponse {
-                    response: response as _,
-                }
-                .emit(self.app_handle())
-                .map_err(|_| crate::Error::StartSessionFailed)?;
+
+                SessionEvent::BatchResponse { response }
+                    .emit(self.app_handle())
+                    .map_err(|_| crate::Error::StartSessionFailed)?;
 
                 Ok(())
             }

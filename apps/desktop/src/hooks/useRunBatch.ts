@@ -6,6 +6,7 @@ import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
+import { type Tab, useTabs } from "../store/zustand/tabs";
 import { id } from "../utils";
 import { useKeywords } from "./useKeywords";
 import { useSTTConnection } from "./useSTTConnection";
@@ -25,21 +26,44 @@ export const useRunBatch = (sessionId: string) => {
   const { user_id } = main.UI.useValues(main.STORE_ID);
 
   const runBatch = useListener((state) => state.runBatch);
+  const sessionTab = useTabs((state) => {
+    const found = state.tabs.find(
+      (tab): tab is Extract<Tab, { type: "sessions" }> => tab.type === "sessions" && tab.id === sessionId,
+    );
+    return found ?? null;
+  });
+  const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
 
   const conn = useSTTConnection();
   const keywords = useKeywords(sessionId);
-  const languages = useConfigValue("spoken_languages") ?? [];
+  const languages = useConfigValue("spoken_languages");
 
   return useCallback(
     async (filePath: string, options?: RunOptions) => {
-      if (!store || !conn) {
+      if (!store || !conn || !runBatch) {
         console.error("no_batch_connection");
         return;
       }
 
-      if (conn.provider !== "deepgram") {
+      const provider: BatchParams["provider"] | null = (() => {
+        if (conn.provider === "deepgram") {
+          return "deepgram";
+        }
+
+        if (conn.provider === "hyprnote" && conn.model.startsWith("am-")) {
+          return "am";
+        }
+
+        return null;
+      })();
+
+      if (!provider) {
         console.error("unsupported_batch_provider", conn.provider);
         return;
+      }
+
+      if (sessionTab) {
+        updateSessionTabState(sessionTab, { editor: "transcript" });
       }
 
       const transcriptId = id();
@@ -106,26 +130,18 @@ export const useRunBatch = (sessionId: string) => {
         });
 
       const params: BatchParams = {
-        provider: "deepgram",
+        provider,
         file_path: filePath,
         model: options?.model ?? conn.model,
         base_url: options?.baseUrl ?? conn.baseUrl,
         api_key: options?.apiKey ?? conn.apiKey,
-        keywords: options?.keywords ?? keywords,
-        languages: options?.languages ?? languages,
+        keywords: options?.keywords ?? keywords ?? [],
+        languages: options?.languages ?? languages ?? [],
         channels: options?.channels,
       };
 
-      await runBatch(params, { handlePersist: persist });
+      await runBatch(params, { handlePersist: persist, sessionId });
     },
-    [
-      conn,
-      keywords,
-      languages,
-      runBatch,
-      sessionId,
-      store,
-      user_id,
-    ],
+    [conn, keywords, languages, runBatch, sessionId, sessionTab, store, updateSessionTabState, user_id],
   );
 };

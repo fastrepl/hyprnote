@@ -17,6 +17,7 @@ describe("General Listener Slice", () => {
       expect(state.seconds).toBe(0);
       expect(state.sessionEventUnlisten).toBeUndefined();
       expect(state.intervalId).toBeUndefined();
+      expect(state.sessionModes).toEqual({});
     });
   });
 
@@ -24,6 +25,36 @@ describe("General Listener Slice", () => {
     test("amplitude state is initialized to zero", () => {
       const state = store.getState();
       expect(state.amplitude).toEqual({ mic: 0, speaker: 0 });
+    });
+  });
+
+  describe("Session Mode Helpers", () => {
+    test("getSessionMode defaults to inactive", () => {
+      const state = store.getState();
+      expect(state.getSessionMode("session-123")).toBe("inactive");
+    });
+
+    test("setSessionMode updates tracking and clears on inactive", () => {
+      const { setSessionMode, getSessionMode } = store.getState();
+
+      setSessionMode("session-456", "running_batch");
+      expect(getSessionMode("session-456")).toBe("running_batch");
+
+      setSessionMode("session-456", "inactive");
+      expect(getSessionMode("session-456")).toBe("inactive");
+    });
+  });
+
+  describe("Batch State", () => {
+    test("handleBatchProgress tracks progress per session", () => {
+      const sessionId = "session-progress";
+      const { handleBatchProgress, clearBatchSession } = store.getState();
+
+      handleBatchProgress(sessionId, { audioDuration: 10, transcriptDuration: 5 });
+      expect(store.getState().batchProgressBySession[sessionId]).toEqual({ audioDuration: 10, transcriptDuration: 5 });
+
+      clearBatchSession(sessionId);
+      expect(store.getState().batchProgressBySession[sessionId]).toBeUndefined();
     });
   });
 

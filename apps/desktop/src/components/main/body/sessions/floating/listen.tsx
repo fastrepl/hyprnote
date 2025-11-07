@@ -6,14 +6,15 @@ import { downloadDir } from "@tauri-apps/api/path";
 import { open as selectFile } from "@tauri-apps/plugin-dialog";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { Effect, pipe } from "effect";
-import { EllipsisVerticalIcon, UploadCloudIcon } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { EllipsisVerticalIcon, FileTextIcon, UploadCloudIcon } from "lucide-react";
+import { useCallback, useState } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useListener } from "../../../../../contexts/listener";
 import { fromResult } from "../../../../../effect";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";
@@ -100,7 +101,6 @@ function ListenSplitButton({
   onPrimaryClick: () => void;
   sessionId: string;
 }) {
-  const batchProgress = useListener((state) => state.batchProgress);
   const handleAction = useCallback(() => {
     onPrimaryClick();
     windowsCommands.windowShow({ type: "settings" })
@@ -112,24 +112,6 @@ function ListenSplitButton({
         })
       );
   }, [onPrimaryClick]);
-
-  const progress = useMemo<BatchProgressDisplay | null>(() => {
-    if (!batchProgress) {
-      return null;
-    }
-
-    const audio = Math.max(0, batchProgress.audioDuration ?? 0);
-    const transcript = Math.max(0, batchProgress.transcriptDuration ?? 0);
-    const clampedTranscript = audio > 0 ? Math.min(transcript, audio) : transcript;
-    const ratio = audio > 0 ? clampedTranscript / audio : null;
-    const percent = ratio !== null ? Math.round(ratio * 100) : null;
-
-    return {
-      percent,
-      currentLabel: formatSeconds(clampedTranscript),
-      totalLabel: audio > 0 ? formatSeconds(audio) : undefined,
-    };
-  }, [batchProgress]);
 
   return (
     <div className="flex flex-col items-start gap-2">
@@ -156,28 +138,36 @@ function ListenSplitButton({
         >
           {text}
         </FloatingButton>
-        <OptionsMenu sessionId={sessionId} />
+        <OptionsMenu
+          sessionId={sessionId}
+          disabled={disabled}
+          warningMessage={warningMessage}
+          onConfigure={handleAction}
+        />
       </div>
-      {progress ? <BatchProgressStatus progress={progress} /> : null}
     </div>
   );
 }
 
 type FileSelection = string | string[] | null;
 
-type BatchProgressDisplay = {
-  percent: number | null;
-  currentLabel: string;
-  totalLabel?: string;
-};
-
-function OptionsMenu({ sessionId }: { sessionId: string }) {
+function OptionsMenu({
+  sessionId,
+  disabled,
+  warningMessage,
+  onConfigure,
+}: {
+  sessionId: string;
+  disabled: boolean;
+  warningMessage: string;
+  onConfigure?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const runBatch = useRunBatch(sessionId);
   const queryClient = useQueryClient();
 
   const handleFilePath = useCallback(
-    (selection: FileSelection) => {
+    (selection: FileSelection, kind: "audio" | "transcript") => {
       if (!selection) {
         return Effect.void;
       }
@@ -188,11 +178,18 @@ function OptionsMenu({ sessionId }: { sessionId: string }) {
         return Effect.void;
       }
 
-      if (path.endsWith(".vtt") || path.endsWith(".srt")) {
-        return pipe(
-          fromResult(tauriCommands.parseSubtitle(path)),
-          Effect.tap((subtitle) => Effect.sync(() => console.log(subtitle))),
-        );
+      const normalizedPath = path.toLowerCase();
+
+      if (kind === "transcript") {
+        if (!normalizedPath.endsWith(".vtt") && !normalizedPath.endsWith(".srt")) {
+          return Effect.void;
+        }
+
+        return fromResult(tauriCommands.parseSubtitle(path));
+      }
+
+      if (!normalizedPath.endsWith(".wav") && !normalizedPath.endsWith(".mp3") && !normalizedPath.endsWith(".ogg")) {
+        return Effect.void;
       }
 
       return pipe(
@@ -209,51 +206,130 @@ function OptionsMenu({ sessionId }: { sessionId: string }) {
     [queryClient, runBatch, sessionId],
   );
 
-  const handleSelectFile = useCallback(() => {
-    const program = pipe(
-      Effect.promise(() => downloadDir()),
-      Effect.flatMap((defaultPath) =>
-        Effect.promise(() =>
-          selectFile({
-            title: "Upload Audio or Transcript",
-            multiple: false,
-            directory: false,
-            defaultPath,
-            filters: [
-              { name: "Audio", extensions: ["wav", "mp3", "ogg"] },
-              { name: "Transcript", extensions: ["vtt", "srt"] },
-            ],
-          })
-        )
-      ),
-      Effect.flatMap(handleFilePath),
-      Effect.tap(() => Effect.sync(() => setOpen(false))),
-    );
+  const selectAndHandleFile = useCallback(
+    (options: { title: string; filters: { name: string; extensions: string[] }[] }, kind: "audio" | "transcript") => {
+      if (disabled) {
+        return;
+      }
 
-    Effect.runPromise(program);
-  }, [handleFilePath]);
+      setOpen(false);
+
+      const program = pipe(
+        Effect.promise(() => downloadDir()),
+        Effect.flatMap((defaultPath) =>
+          Effect.promise(() =>
+            selectFile({
+              title: options.title,
+              multiple: false,
+              directory: false,
+              defaultPath,
+              filters: options.filters,
+            })
+          )
+        ),
+        Effect.flatMap((selection) => handleFilePath(selection, kind)),
+      );
+
+      Effect.runPromise(program);
+    },
+    [disabled, handleFilePath, setOpen],
+  );
+
+  const handleUploadAudio = useCallback(() => {
+    if (disabled) {
+      return;
+    }
+
+    selectAndHandleFile(
+      {
+        title: "Upload Audio",
+        filters: [{ name: "Audio", extensions: ["wav", "mp3", "ogg"] }],
+      },
+      "audio",
+    );
+  }, [disabled, selectAndHandleFile]);
+
+  const handleUploadTranscript = useCallback(() => {
+    if (disabled) {
+      return;
+    }
+
+    selectAndHandleFile(
+      {
+        title: "Upload Transcript",
+        filters: [{ name: "Transcript", extensions: ["vtt", "srt"] }],
+      },
+      "transcript",
+    );
+  }, [disabled, selectAndHandleFile]);
+
+  const triggerButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn([
+        "absolute right-2 top-1/2 -translate-y-1/2 z-10",
+        "h-10 w-10 rounded-full hover:bg-white/20 transition-colors",
+        "text-white/70 hover:text-white",
+        open ? "bg-white/20 text-white" : null,
+      ])}
+      disabled={disabled}
+    >
+      <EllipsisVerticalIcon className="w-5 h-5" />
+      <span className="sr-only">More options</span>
+    </Button>
+  );
+
+  if (disabled && warningMessage) {
+    return (
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <span className="inline-block">{triggerButton}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="end">
+          <ActionableTooltipContent
+            message={warningMessage}
+            action={onConfigure
+              ? {
+                label: "Configure",
+                handleClick: onConfigure,
+              }
+              : undefined}
+          />
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  if (disabled) {
+    return triggerButton;
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn([
-            "absolute right-2 top-1/2 -translate-y-1/2 z-10",
-            "h-10 w-10 rounded-full hover:bg-white/20 transition-colors",
-            "text-white/70 hover:text-white",
-          ])}
-        >
-          <EllipsisVerticalIcon className="w-5 h-5" />
-          <span className="sr-only">More options</span>
-        </Button>
+        {triggerButton}
       </PopoverTrigger>
       <PopoverContent side="top" align="end" className="w-auto p-1.5">
-        <Button variant="ghost" className="justify-start gap-2 h-9 px-3 whitespace-nowrap" onClick={handleSelectFile}>
-          <UploadCloudIcon className="w-4 h-4 flex-shrink-0" />
-          <span className="text-sm">Upload audio or transcript</span>
-        </Button>
+        <div className="flex flex-col gap-1">
+          <Button
+            variant="ghost"
+            className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
+            onClick={handleUploadAudio}
+          >
+            <UploadCloudIcon className="w-4 h-4 flex-shrink-0" />
+            <span className="text-sm">Upload audio</span>
+          </Button>
+          <Button
+            variant="ghost"
+            className="justify-start gap-2 h-9 px-3 whitespace-nowrap"
+            onClick={handleUploadTranscript}
+            disabled
+          >
+            <FileTextIcon className="w-4 h-4 flex-shrink-0" />
+            <span className="text-sm">Upload transcript</span>
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
@@ -275,34 +351,4 @@ function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
   } as RemoteMeeting | null;
 
   return remote;
-}
-
-function BatchProgressStatus({ progress }: { progress: BatchProgressDisplay }) {
-  const { percent, currentLabel, totalLabel } = progress;
-  const timing = totalLabel ? `${currentLabel} / ${totalLabel}` : currentLabel;
-
-  return (
-    <div className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-white/90 backdrop-blur">
-      <Spinner size={12} className="text-white/80" />
-      <span>
-        Processing
-        {percent !== null ? ` ${percent}%` : ""}
-        {" · "}
-        {timing}
-      </span>
-    </div>
-  );
-}
-
-function formatSeconds(seconds: number): string {
-  const total = Math.round(Math.max(0, seconds));
-  const hours = Math.floor(total / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-  const secs = total % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-
-  return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }

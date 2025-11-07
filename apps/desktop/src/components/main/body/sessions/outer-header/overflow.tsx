@@ -104,15 +104,20 @@ function ExportPDF() {
 }
 
 function Listening({ sessionId }: { sessionId: string }) {
-  const { stop, status, activeSessionId } = useListener((state) => ({
+  const { mode, stop } = useListener((state) => ({
+    mode: state.getSessionMode(sessionId),
     stop: state.stop,
-    status: state.status,
-    activeSessionId: state.sessionId,
   }));
-  const isListening = status !== "inactive" && activeSessionId === sessionId;
+  const isListening = mode === "running_active" || mode === "finalizing";
+  const isFinalizing = mode === "finalizing";
+  const isBatching = mode === "running_batch";
   const startListening = useStartListening(sessionId);
 
   const handleToggleListening = () => {
+    if (isBatching) {
+      return;
+    }
+
     if (isListening) {
       stop();
     } else {
@@ -121,9 +126,19 @@ function Listening({ sessionId }: { sessionId: string }) {
   };
 
   return (
-    <DropdownMenuItem className="cursor-pointer" onClick={handleToggleListening}>
+    <DropdownMenuItem
+      className="cursor-pointer"
+      onClick={handleToggleListening}
+      disabled={isFinalizing || isBatching}
+    >
       {isListening ? <MicOffIcon /> : <MicIcon />}
-      <span>{isListening ? "Stop listening" : "Start listening"}</span>
+      <span>
+        {isBatching
+          ? "Batch processing"
+          : isListening
+          ? "Stop listening"
+          : "Start listening"}
+      </span>
     </DropdownMenuItem>
   );
 }

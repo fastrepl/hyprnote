@@ -38,15 +38,20 @@ import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiTemplatesSlugRouteImport } from './routes/api/templates/$slug'
-import { Route as ViewProductTranscriptRouteImport } from './routes/_view/product/transcript'
-import { Route as ViewProductTemplatesRouteImport } from './routes/_view/product/templates'
-import { Route as ViewProductSummaryRouteImport } from './routes/_view/product/summary'
-import { Route as ViewProductNotetakingRouteImport } from './routes/_view/product/notetaking'
+import { Route as ViewProductWebRouteImport } from './routes/_view/product/web'
+import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
+import { Route as ViewProductOwhisperRouteImport } from './routes/_view/product/owhisper'
+import { Route as ViewProductNotepadRouteImport } from './routes/_view/product/notepad'
 import { Route as ViewProductLocalAiRouteImport } from './routes/_view/product/local-ai'
-import { Route as ViewProductLocalRouteImport } from './routes/_view/product/local'
-import { Route as ViewProductHybridNotetakingRouteImport } from './routes/_view/product/hybrid-notetaking'
-import { Route as ViewProductChatRouteImport } from './routes/_view/product/chat'
+import { Route as ViewProductFloatingPanelRouteImport } from './routes/_view/product/floating-panel'
+import { Route as ViewProductExtensibilityRouteImport } from './routes/_view/product/extensibility'
+import { Route as ViewProductDailyNoteRouteImport } from './routes/_view/product/daily-note'
+import { Route as ViewProductContactsRouteImport } from './routes/_view/product/contacts'
+import { Route as ViewProductCalendarRouteImport } from './routes/_view/product/calendar'
+import { Route as ViewProductBotRouteImport } from './routes/_view/product/bot'
+import { Route as ViewProductApiRouteImport } from './routes/_view/product/api'
 import { Route as ViewProductAiNotetakingRouteImport } from './routes/_view/product/ai-notetaking'
+import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/product/ai-assistant'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDocsSlugRouteImport } from './routes/_view/docs/$slug'
@@ -200,24 +205,24 @@ const ApiTemplatesSlugRoute = ApiTemplatesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ApiTemplatesRoute,
 } as any)
-const ViewProductTranscriptRoute = ViewProductTranscriptRouteImport.update({
-  id: '/product/transcript',
-  path: '/product/transcript',
+const ViewProductWebRoute = ViewProductWebRouteImport.update({
+  id: '/product/web',
+  path: '/product/web',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewProductTemplatesRoute = ViewProductTemplatesRouteImport.update({
-  id: '/product/templates',
-  path: '/product/templates',
+const ViewProductSelfHostingRoute = ViewProductSelfHostingRouteImport.update({
+  id: '/product/self-hosting',
+  path: '/product/self-hosting',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewProductSummaryRoute = ViewProductSummaryRouteImport.update({
-  id: '/product/summary',
-  path: '/product/summary',
+const ViewProductOwhisperRoute = ViewProductOwhisperRouteImport.update({
+  id: '/product/owhisper',
+  path: '/product/owhisper',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewProductNotetakingRoute = ViewProductNotetakingRouteImport.update({
-  id: '/product/notetaking',
-  path: '/product/notetaking',
+const ViewProductNotepadRoute = ViewProductNotepadRouteImport.update({
+  id: '/product/notepad',
+  path: '/product/notepad',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewProductLocalAiRoute = ViewProductLocalAiRouteImport.update({
@@ -225,25 +230,51 @@ const ViewProductLocalAiRoute = ViewProductLocalAiRouteImport.update({
   path: '/product/local-ai',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewProductLocalRoute = ViewProductLocalRouteImport.update({
-  id: '/product/local',
-  path: '/product/local',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewProductHybridNotetakingRoute =
-  ViewProductHybridNotetakingRouteImport.update({
-    id: '/product/hybrid-notetaking',
-    path: '/product/hybrid-notetaking',
+const ViewProductFloatingPanelRoute =
+  ViewProductFloatingPanelRouteImport.update({
+    id: '/product/floating-panel',
+    path: '/product/floating-panel',
     getParentRoute: () => ViewRouteRoute,
   } as any)
-const ViewProductChatRoute = ViewProductChatRouteImport.update({
-  id: '/product/chat',
-  path: '/product/chat',
+const ViewProductExtensibilityRoute =
+  ViewProductExtensibilityRouteImport.update({
+    id: '/product/extensibility',
+    path: '/product/extensibility',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
+const ViewProductDailyNoteRoute = ViewProductDailyNoteRouteImport.update({
+  id: '/product/daily-note',
+  path: '/product/daily-note',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductContactsRoute = ViewProductContactsRouteImport.update({
+  id: '/product/contacts',
+  path: '/product/contacts',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductCalendarRoute = ViewProductCalendarRouteImport.update({
+  id: '/product/calendar',
+  path: '/product/calendar',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductBotRoute = ViewProductBotRouteImport.update({
+  id: '/product/bot',
+  path: '/product/bot',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductApiRoute = ViewProductApiRouteImport.update({
+  id: '/product/api',
+  path: '/product/api',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewProductAiNotetakingRoute = ViewProductAiNotetakingRouteImport.update({
   id: '/product/ai-notetaking',
   path: '/product/ai-notetaking',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductAiAssistantRoute = ViewProductAiAssistantRouteImport.update({
+  id: '/product/ai-assistant',
+  path: '/product/ai-assistant',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
@@ -318,15 +349,20 @@ export interface FileRoutesByFullPath {
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
+  '/product/ai-assistant': typeof ViewProductAiAssistantRoute
   '/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
-  '/product/chat': typeof ViewProductChatRoute
-  '/product/hybrid-notetaking': typeof ViewProductHybridNotetakingRoute
-  '/product/local': typeof ViewProductLocalRoute
+  '/product/api': typeof ViewProductApiRoute
+  '/product/bot': typeof ViewProductBotRoute
+  '/product/calendar': typeof ViewProductCalendarRoute
+  '/product/contacts': typeof ViewProductContactsRoute
+  '/product/daily-note': typeof ViewProductDailyNoteRoute
+  '/product/extensibility': typeof ViewProductExtensibilityRoute
+  '/product/floating-panel': typeof ViewProductFloatingPanelRoute
   '/product/local-ai': typeof ViewProductLocalAiRoute
-  '/product/notetaking': typeof ViewProductNotetakingRoute
-  '/product/summary': typeof ViewProductSummaryRoute
-  '/product/templates': typeof ViewProductTemplatesRoute
-  '/product/transcript': typeof ViewProductTranscriptRoute
+  '/product/notepad': typeof ViewProductNotepadRoute
+  '/product/owhisper': typeof ViewProductOwhisperRoute
+  '/product/self-hosting': typeof ViewProductSelfHostingRoute
+  '/product/web': typeof ViewProductWebRoute
   '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
@@ -363,15 +399,20 @@ export interface FileRoutesByTo {
   '/docs/$slug': typeof ViewDocsSlugRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
+  '/product/ai-assistant': typeof ViewProductAiAssistantRoute
   '/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
-  '/product/chat': typeof ViewProductChatRoute
-  '/product/hybrid-notetaking': typeof ViewProductHybridNotetakingRoute
-  '/product/local': typeof ViewProductLocalRoute
+  '/product/api': typeof ViewProductApiRoute
+  '/product/bot': typeof ViewProductBotRoute
+  '/product/calendar': typeof ViewProductCalendarRoute
+  '/product/contacts': typeof ViewProductContactsRoute
+  '/product/daily-note': typeof ViewProductDailyNoteRoute
+  '/product/extensibility': typeof ViewProductExtensibilityRoute
+  '/product/floating-panel': typeof ViewProductFloatingPanelRoute
   '/product/local-ai': typeof ViewProductLocalAiRoute
-  '/product/notetaking': typeof ViewProductNotetakingRoute
-  '/product/summary': typeof ViewProductSummaryRoute
-  '/product/templates': typeof ViewProductTemplatesRoute
-  '/product/transcript': typeof ViewProductTranscriptRoute
+  '/product/notepad': typeof ViewProductNotepadRoute
+  '/product/owhisper': typeof ViewProductOwhisperRoute
+  '/product/self-hosting': typeof ViewProductSelfHostingRoute
+  '/product/web': typeof ViewProductWebRoute
   '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
@@ -412,15 +453,20 @@ export interface FileRoutesById {
   '/_view/docs/$slug': typeof ViewDocsSlugRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
+  '/_view/product/ai-assistant': typeof ViewProductAiAssistantRoute
   '/_view/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
-  '/_view/product/chat': typeof ViewProductChatRoute
-  '/_view/product/hybrid-notetaking': typeof ViewProductHybridNotetakingRoute
-  '/_view/product/local': typeof ViewProductLocalRoute
+  '/_view/product/api': typeof ViewProductApiRoute
+  '/_view/product/bot': typeof ViewProductBotRoute
+  '/_view/product/calendar': typeof ViewProductCalendarRoute
+  '/_view/product/contacts': typeof ViewProductContactsRoute
+  '/_view/product/daily-note': typeof ViewProductDailyNoteRoute
+  '/_view/product/extensibility': typeof ViewProductExtensibilityRoute
+  '/_view/product/floating-panel': typeof ViewProductFloatingPanelRoute
   '/_view/product/local-ai': typeof ViewProductLocalAiRoute
-  '/_view/product/notetaking': typeof ViewProductNotetakingRoute
-  '/_view/product/summary': typeof ViewProductSummaryRoute
-  '/_view/product/templates': typeof ViewProductTemplatesRoute
-  '/_view/product/transcript': typeof ViewProductTranscriptRoute
+  '/_view/product/notepad': typeof ViewProductNotepadRoute
+  '/_view/product/owhisper': typeof ViewProductOwhisperRoute
+  '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
+  '/_view/product/web': typeof ViewProductWebRoute
   '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
@@ -461,15 +507,20 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/download/apple-silicon'
     | '/legal/$slug'
+    | '/product/ai-assistant'
     | '/product/ai-notetaking'
-    | '/product/chat'
-    | '/product/hybrid-notetaking'
-    | '/product/local'
+    | '/product/api'
+    | '/product/bot'
+    | '/product/calendar'
+    | '/product/contacts'
+    | '/product/daily-note'
+    | '/product/extensibility'
+    | '/product/floating-panel'
     | '/product/local-ai'
-    | '/product/notetaking'
-    | '/product/summary'
-    | '/product/templates'
-    | '/product/transcript'
+    | '/product/notepad'
+    | '/product/owhisper'
+    | '/product/self-hosting'
+    | '/product/web'
     | '/api/templates/$slug'
     | '/app/'
     | '/blog'
@@ -506,15 +557,20 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/download/apple-silicon'
     | '/legal/$slug'
+    | '/product/ai-assistant'
     | '/product/ai-notetaking'
-    | '/product/chat'
-    | '/product/hybrid-notetaking'
-    | '/product/local'
+    | '/product/api'
+    | '/product/bot'
+    | '/product/calendar'
+    | '/product/contacts'
+    | '/product/daily-note'
+    | '/product/extensibility'
+    | '/product/floating-panel'
     | '/product/local-ai'
-    | '/product/notetaking'
-    | '/product/summary'
-    | '/product/templates'
-    | '/product/transcript'
+    | '/product/notepad'
+    | '/product/owhisper'
+    | '/product/self-hosting'
+    | '/product/web'
     | '/api/templates/$slug'
     | '/app'
     | '/blog'
@@ -554,15 +610,20 @@ export interface FileRouteTypes {
     | '/_view/docs/$slug'
     | '/_view/download/apple-silicon'
     | '/_view/legal/$slug'
+    | '/_view/product/ai-assistant'
     | '/_view/product/ai-notetaking'
-    | '/_view/product/chat'
-    | '/_view/product/hybrid-notetaking'
-    | '/_view/product/local'
+    | '/_view/product/api'
+    | '/_view/product/bot'
+    | '/_view/product/calendar'
+    | '/_view/product/contacts'
+    | '/_view/product/daily-note'
+    | '/_view/product/extensibility'
+    | '/_view/product/floating-panel'
     | '/_view/product/local-ai'
-    | '/_view/product/notetaking'
-    | '/_view/product/summary'
-    | '/_view/product/templates'
-    | '/_view/product/transcript'
+    | '/_view/product/notepad'
+    | '/_view/product/owhisper'
+    | '/_view/product/self-hosting'
+    | '/_view/product/web'
     | '/api/templates/$slug'
     | '/_view/app/'
     | '/_view/blog/'
@@ -793,32 +854,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTemplatesSlugRouteImport
       parentRoute: typeof ApiTemplatesRoute
     }
-    '/_view/product/transcript': {
-      id: '/_view/product/transcript'
-      path: '/product/transcript'
-      fullPath: '/product/transcript'
-      preLoaderRoute: typeof ViewProductTranscriptRouteImport
+    '/_view/product/web': {
+      id: '/_view/product/web'
+      path: '/product/web'
+      fullPath: '/product/web'
+      preLoaderRoute: typeof ViewProductWebRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/product/templates': {
-      id: '/_view/product/templates'
-      path: '/product/templates'
-      fullPath: '/product/templates'
-      preLoaderRoute: typeof ViewProductTemplatesRouteImport
+    '/_view/product/self-hosting': {
+      id: '/_view/product/self-hosting'
+      path: '/product/self-hosting'
+      fullPath: '/product/self-hosting'
+      preLoaderRoute: typeof ViewProductSelfHostingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/product/summary': {
-      id: '/_view/product/summary'
-      path: '/product/summary'
-      fullPath: '/product/summary'
-      preLoaderRoute: typeof ViewProductSummaryRouteImport
+    '/_view/product/owhisper': {
+      id: '/_view/product/owhisper'
+      path: '/product/owhisper'
+      fullPath: '/product/owhisper'
+      preLoaderRoute: typeof ViewProductOwhisperRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/product/notetaking': {
-      id: '/_view/product/notetaking'
-      path: '/product/notetaking'
-      fullPath: '/product/notetaking'
-      preLoaderRoute: typeof ViewProductNotetakingRouteImport
+    '/_view/product/notepad': {
+      id: '/_view/product/notepad'
+      path: '/product/notepad'
+      fullPath: '/product/notepad'
+      preLoaderRoute: typeof ViewProductNotepadRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/product/local-ai': {
@@ -828,25 +889,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewProductLocalAiRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/product/local': {
-      id: '/_view/product/local'
-      path: '/product/local'
-      fullPath: '/product/local'
-      preLoaderRoute: typeof ViewProductLocalRouteImport
+    '/_view/product/floating-panel': {
+      id: '/_view/product/floating-panel'
+      path: '/product/floating-panel'
+      fullPath: '/product/floating-panel'
+      preLoaderRoute: typeof ViewProductFloatingPanelRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/product/hybrid-notetaking': {
-      id: '/_view/product/hybrid-notetaking'
-      path: '/product/hybrid-notetaking'
-      fullPath: '/product/hybrid-notetaking'
-      preLoaderRoute: typeof ViewProductHybridNotetakingRouteImport
+    '/_view/product/extensibility': {
+      id: '/_view/product/extensibility'
+      path: '/product/extensibility'
+      fullPath: '/product/extensibility'
+      preLoaderRoute: typeof ViewProductExtensibilityRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/product/chat': {
-      id: '/_view/product/chat'
-      path: '/product/chat'
-      fullPath: '/product/chat'
-      preLoaderRoute: typeof ViewProductChatRouteImport
+    '/_view/product/daily-note': {
+      id: '/_view/product/daily-note'
+      path: '/product/daily-note'
+      fullPath: '/product/daily-note'
+      preLoaderRoute: typeof ViewProductDailyNoteRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/contacts': {
+      id: '/_view/product/contacts'
+      path: '/product/contacts'
+      fullPath: '/product/contacts'
+      preLoaderRoute: typeof ViewProductContactsRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/calendar': {
+      id: '/_view/product/calendar'
+      path: '/product/calendar'
+      fullPath: '/product/calendar'
+      preLoaderRoute: typeof ViewProductCalendarRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/bot': {
+      id: '/_view/product/bot'
+      path: '/product/bot'
+      fullPath: '/product/bot'
+      preLoaderRoute: typeof ViewProductBotRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/api': {
+      id: '/_view/product/api'
+      path: '/product/api'
+      fullPath: '/product/api'
+      preLoaderRoute: typeof ViewProductApiRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/product/ai-notetaking': {
@@ -854,6 +943,13 @@ declare module '@tanstack/react-router' {
       path: '/product/ai-notetaking'
       fullPath: '/product/ai-notetaking'
       preLoaderRoute: typeof ViewProductAiNotetakingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/ai-assistant': {
+      id: '/_view/product/ai-assistant'
+      path: '/product/ai-assistant'
+      fullPath: '/product/ai-assistant'
+      preLoaderRoute: typeof ViewProductAiAssistantRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/legal/$slug': {
@@ -960,15 +1056,20 @@ interface ViewRouteRouteChildren {
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
   ViewLegalSlugRoute: typeof ViewLegalSlugRoute
+  ViewProductAiAssistantRoute: typeof ViewProductAiAssistantRoute
   ViewProductAiNotetakingRoute: typeof ViewProductAiNotetakingRoute
-  ViewProductChatRoute: typeof ViewProductChatRoute
-  ViewProductHybridNotetakingRoute: typeof ViewProductHybridNotetakingRoute
-  ViewProductLocalRoute: typeof ViewProductLocalRoute
+  ViewProductApiRoute: typeof ViewProductApiRoute
+  ViewProductBotRoute: typeof ViewProductBotRoute
+  ViewProductCalendarRoute: typeof ViewProductCalendarRoute
+  ViewProductContactsRoute: typeof ViewProductContactsRoute
+  ViewProductDailyNoteRoute: typeof ViewProductDailyNoteRoute
+  ViewProductExtensibilityRoute: typeof ViewProductExtensibilityRoute
+  ViewProductFloatingPanelRoute: typeof ViewProductFloatingPanelRoute
   ViewProductLocalAiRoute: typeof ViewProductLocalAiRoute
-  ViewProductNotetakingRoute: typeof ViewProductNotetakingRoute
-  ViewProductSummaryRoute: typeof ViewProductSummaryRoute
-  ViewProductTemplatesRoute: typeof ViewProductTemplatesRoute
-  ViewProductTranscriptRoute: typeof ViewProductTranscriptRoute
+  ViewProductNotepadRoute: typeof ViewProductNotepadRoute
+  ViewProductOwhisperRoute: typeof ViewProductOwhisperRoute
+  ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
+  ViewProductWebRoute: typeof ViewProductWebRoute
   ViewBlogIndexRoute: typeof ViewBlogIndexRoute
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
@@ -990,15 +1091,20 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
   ViewLegalSlugRoute: ViewLegalSlugRoute,
+  ViewProductAiAssistantRoute: ViewProductAiAssistantRoute,
   ViewProductAiNotetakingRoute: ViewProductAiNotetakingRoute,
-  ViewProductChatRoute: ViewProductChatRoute,
-  ViewProductHybridNotetakingRoute: ViewProductHybridNotetakingRoute,
-  ViewProductLocalRoute: ViewProductLocalRoute,
+  ViewProductApiRoute: ViewProductApiRoute,
+  ViewProductBotRoute: ViewProductBotRoute,
+  ViewProductCalendarRoute: ViewProductCalendarRoute,
+  ViewProductContactsRoute: ViewProductContactsRoute,
+  ViewProductDailyNoteRoute: ViewProductDailyNoteRoute,
+  ViewProductExtensibilityRoute: ViewProductExtensibilityRoute,
+  ViewProductFloatingPanelRoute: ViewProductFloatingPanelRoute,
   ViewProductLocalAiRoute: ViewProductLocalAiRoute,
-  ViewProductNotetakingRoute: ViewProductNotetakingRoute,
-  ViewProductSummaryRoute: ViewProductSummaryRoute,
-  ViewProductTemplatesRoute: ViewProductTemplatesRoute,
-  ViewProductTranscriptRoute: ViewProductTranscriptRoute,
+  ViewProductNotepadRoute: ViewProductNotepadRoute,
+  ViewProductOwhisperRoute: ViewProductOwhisperRoute,
+  ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
+  ViewProductWebRoute: ViewProductWebRoute,
   ViewBlogIndexRoute: ViewBlogIndexRoute,
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,

@@ -42,14 +42,25 @@ function Component() {
   );
 }
 
-const productLinks = [
-  { to: "/product/notetaking", label: "Notetaking" },
+const productsList = [
+  { to: "/product/notepad", label: "Notepad" },
+  { to: "/product/bot", label: "Bot", badge: "Coming Soon" },
+  { to: "/product/web", label: "Web", badge: "Coming Soon" },
+  { to: "/product/api", label: "API", badge: "Coming Soon" },
+  { to: "/product/local-ai", label: "Local AI" },
+  { to: "/product/owhisper", label: "OWhisper" },
+  { to: "/product/self-hosting", label: "Self-Hosting", badge: "Coming Soon" },
+];
+
+const featuresList = [
   { to: "/product/ai-notetaking", label: "AI Notetaking" },
-  { to: "/product/local", label: "Local AI" },
-  { to: "/product/templates", label: "Templates" },
-  { to: "/product/transcript", label: "Transcripts" },
-  { to: "/product/summary", label: "Summaries" },
-  { to: "/product/chat", label: "Chat" },
+  { to: "/product/ai-assistant", label: "AI Assistant" },
+  { to: "/product/contacts", label: "Contacts" },
+  { to: "/product/calendar", label: "Calendar" },
+  { to: "/product/floating-panel", label: "Floating Panel", badge: "Coming Soon" },
+  { to: "/product/daily-note", label: "Daily Note", badge: "Coming Soon" },
+  { to: "/product/noteshelf", label: "Noteshelf", badge: "Coming Soon" },
+  { to: "/product/extensibility", label: "Extensibility", badge: "Coming Soon" },
 ];
 
 function Header() {
@@ -99,21 +110,47 @@ function Header() {
                   <Icon icon={isProductOpen ? "mdi:chevron-up" : "mdi:chevron-down"} className="text-base" />
                 </button>
                 {isProductOpen && (
-                  <div className="absolute top-full left-0 pt-2 w-64 z-50">
+                  <div className="absolute top-full left-0 pt-2 w-[520px] z-50">
                     <div className="bg-white border border-neutral-200 rounded-sm shadow-lg py-2">
-                      <div className="px-3 py-2">
-                        <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-                          Features
+                      <div className="px-3 py-2 grid grid-cols-2 gap-x-6">
+                        <div>
+                          <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                            Products
+                          </div>
+                          {productsList.map((link) => (
+                            <Link
+                              key={link.to}
+                              to={link.to}
+                              className="py-2 text-sm text-neutral-700 flex items-center justify-between"
+                            >
+                              <span>{link.label}</span>
+                              {link.badge && (
+                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                  {link.badge}
+                                </span>
+                              )}
+                            </Link>
+                          ))}
                         </div>
-                        {productLinks.map((link) => (
-                          <Link
-                            key={link.to}
-                            to={link.to}
-                            className="block py-2 text-sm text-neutral-700"
-                          >
-                            {link.label}
-                          </Link>
-                        ))}
+                        <div>
+                          <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                            Features
+                          </div>
+                          {featuresList.map((link) => (
+                            <Link
+                              key={link.to}
+                              to={link.to}
+                              className="py-2 text-sm text-neutral-700 flex items-center justify-between"
+                            >
+                              <span>{link.label}</span>
+                              {link.badge && (
+                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                  {link.badge}
+                                </span>
+                              )}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -234,56 +271,47 @@ function Header() {
                       <Icon icon={isProductOpen ? "mdi:chevron-up" : "mdi:chevron-down"} className="text-lg" />
                     </button>
                     {isProductOpen && (
-                      <div className="mt-3 ml-4 space-y-2 border-l-2 border-neutral-200 pl-4">
-                        <Link
-                          to="/product/notetaking"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                        >
-                          Notetaking
-                        </Link>
-                        <Link
-                          to="/product/ai-notetaking"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                        >
-                          AI Notetaking
-                        </Link>
-                        <Link
-                          to="/product/local"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                        >
-                          Local AI
-                        </Link>
-                        <Link
-                          to="/product/templates"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                        >
-                          Templates
-                        </Link>
-                        <Link
-                          to="/product/transcript"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                        >
-                          Transcripts
-                        </Link>
-                        <Link
-                          to="/product/summary"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                        >
-                          Summaries
-                        </Link>
-                        <Link
-                          to="/product/chat"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                        >
-                          Chat
-                        </Link>
+                      <div className="mt-3 ml-4 space-y-4 border-l-2 border-neutral-200 pl-4">
+                        <div>
+                          <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                            Products
+                          </div>
+                          {productsList.map((link) => (
+                            <Link
+                              key={link.to}
+                              to={link.to}
+                              onClick={() => setIsMenuOpen(false)}
+                              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors flex items-center justify-between py-1"
+                            >
+                              <span>{link.label}</span>
+                              {link.badge && (
+                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                  {link.badge}
+                                </span>
+                              )}
+                            </Link>
+                          ))}
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                            Features
+                          </div>
+                          {featuresList.map((link) => (
+                            <Link
+                              key={link.to}
+                              to={link.to}
+                              onClick={() => setIsMenuOpen(false)}
+                              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors flex items-center justify-between py-1"
+                            >
+                              <span>{link.label}</span>
+                              {link.badge && (
+                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                  {link.badge}
+                                </span>
+                              )}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -364,8 +392,8 @@ function Footer() {
   return (
     <footer className="border-t border-neutral-100 bg-linear-to-b from-stone-50/30 to-stone-100">
       <div className={`${maxWidthClass} mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100`}>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
-          <div className="col-span-2 md:col-span-3 lg:col-span-2">
+        <div className="grid md:grid-cols-2 gap-12">
+          <div>
             <Link to="/" className="inline-block mb-4">
               <img
                 src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
@@ -404,158 +432,160 @@ function Footer() {
             </p>
           </div>
 
-          <div className="col-span-1 lg:border-l lg:border-neutral-100 lg:pl-12">
-            <h3 className="text-sm font-semibold text-neutral-900 mb-4">Product</h3>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href="/download/apple-silicon"
-                  download
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  Download
-                </a>
-              </li>
-              <li>
-                <Link to="/changelog" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  Releases
-                </Link>
-              </li>
-              <li>
-                <Link to="/roadmap" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  Roadmap
-                </Link>
-              </li>
-              <li>
-                <Link to="/docs" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  Docs
-                </Link>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/fastrepl/hyprnote"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  GitHub
-                </a>
-              </li>
-            </ul>
-          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4">Product</h3>
+              <ul className="space-y-3">
+                <li>
+                  <a
+                    href="/download/apple-silicon"
+                    download
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Download
+                  </a>
+                </li>
+                <li>
+                  <Link to="/changelog" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    Releases
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/roadmap" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    Roadmap
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/docs" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    Docs
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href="https://github.com/fastrepl/hyprnote"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    GitHub
+                  </a>
+                </li>
+              </ul>
+            </div>
 
-          <div className="col-span-1 lg:border-l lg:border-neutral-100 lg:pl-12">
-            <h3 className="text-sm font-semibold text-neutral-900 mb-4">Resources</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link to="/faq" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <a
-                  href="mailto:support@hyprnote.com"
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  Support
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/fastrepl/hyprnote/discussions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  Discussions
-                </a>
-              </li>
-              <li>
-                <Link to="/pricing" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  Pricing
-                </Link>
-              </li>
-            </ul>
-          </div>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4">Resources</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link to="/faq" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    FAQ
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href="mailto:support@hyprnote.com"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Support
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://github.com/fastrepl/hyprnote/discussions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Discussions
+                  </a>
+                </li>
+                <li>
+                  <Link to="/pricing" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    Pricing
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          <div className="col-span-1 lg:border-l lg:border-neutral-100 lg:pl-12">
-            <h3 className="text-sm font-semibold text-neutral-900 mb-4">Company</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link to="/blog" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link to="/team" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  Team
-                </Link>
-              </li>
-              <li>
-                <Link to="/enterprise" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
-                  Enterprise
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/legal/$slug"
-                  params={{ slug: "privacy" }}
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/legal/$slug"
-                  params={{ slug: "terms" }}
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  Terms
-                </Link>
-              </li>
-            </ul>
-          </div>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4">Company</h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link to="/blog" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/about" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/team" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    Team
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/enterprise" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                    Enterprise
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/legal/$slug"
+                    params={{ slug: "privacy" }}
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Privacy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/legal/$slug"
+                    params={{ slug: "terms" }}
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Terms
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          <div className="col-span-1 lg:border-l lg:border-neutral-100 lg:pl-12">
-            <h3 className="text-sm font-semibold text-neutral-900 mb-4">Social</h3>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href="/x"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  Twitter
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/discord"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  Discord
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/youtube"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                >
-                  YouTube
-                </a>
-              </li>
-            </ul>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4">Social</h3>
+              <ul className="space-y-3">
+                <li>
+                  <a
+                    href="/x"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Twitter
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/discord"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Discord
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/youtube"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    YouTube
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

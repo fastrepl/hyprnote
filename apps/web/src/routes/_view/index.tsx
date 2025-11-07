@@ -656,7 +656,7 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
-            <Image
+            <img
               src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-bots.png"
               alt="No bots interface"
               className="w-full h-full object-contain"
@@ -674,7 +674,7 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
-            <Image
+            <img
               src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
               alt="No internet interface"
               className="w-full h-full object-contain"
@@ -695,7 +695,7 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="overflow-hidden">
-            <Image
+            <img
               src="/hyprnote/no-bots.png"
               alt="No bots interface"
               className="w-full h-auto object-contain"
@@ -818,7 +818,7 @@ function HowItWorksSection() {
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">
               <span className="font-semibold">After the meeting is over,</span>{" "}
-              Hyprnote combines your notes with transcripts to create a perfect summary
+              Hyprnote combines your notes with transcripts to create a perfect summary.
             </p>
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -931,7 +931,7 @@ function HowItWorksSection() {
           <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
               <span className="font-semibold">After the meeting is over,</span>{" "}
-              Hyprnote combines your notes with transcripts to create a perfect summary
+              Hyprnote combines your notes with transcripts to create a perfect summary.
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">

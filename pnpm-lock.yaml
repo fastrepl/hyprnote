@@ -865,9 +865,6 @@ importers:
       '@hypr/plugin-listener':
         specifier: workspace:^
         version: link:../../plugins/listener
-      '@hypr/plugin-sse':
-        specifier: workspace:^
-        version: link:../../plugins/sse
       '@hypr/plugin-windows':
         specifier: workspace:^
         version: link:../../plugins/windows
@@ -994,12 +991,6 @@ importers:
         version: 2.9.0
 
   plugins/sfx:
-    dependencies:
-      '@tauri-apps/api':
-        specifier: ^2.9.0
-        version: 2.9.0
-
-  plugins/sse:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.0

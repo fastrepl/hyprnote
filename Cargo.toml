@@ -120,7 +120,6 @@ tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-notification = { path = "plugins/notification" }
 tauri-plugin-permissions = { path = "plugins/permissions" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
-tauri-plugin-sse = { path = "plugins/sse" }
 tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }

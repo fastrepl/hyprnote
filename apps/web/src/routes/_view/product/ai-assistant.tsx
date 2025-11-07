@@ -3,11 +3,11 @@ import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/product/chat")({
+export const Route = createFileRoute("/_view/product/ai-assistant")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Chat with Your Notes - Hyprnote" },
+      { title: "AI Assistant - Hyprnote" },
       {
         name: "description",
         content:
@@ -26,12 +26,8 @@ function Component() {
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <div className="px-6 py-12 lg:py-20">
           <header className="mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-sm text-blue-700 mb-6">
-              <Icon icon="mdi:chat" className="text-base" />
-              <span>Coming Soon</span>
-            </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
-              Chat with your
+              AI assistant for your
               <br />
               conversations
             </h1>
@@ -117,7 +113,7 @@ function Component() {
 
           <section className="mb-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12">
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
-              How chat works
+              How your AI assistant works
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center">
@@ -191,40 +187,40 @@ function Component() {
                 Private by design
               </h3>
               <p className="text-neutral-600 max-w-2xl mx-auto">
-                Chat runs entirely on your device using local AI. Your questions, answers, and all conversation data
-                stay private on your computer.
+                Your AI assistant runs entirely on your device using local AI. Your questions, answers, and all
+                conversation data stay private on your computer.
               </p>
             </div>
           </section>
 
           <section className="bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12 text-center">
             <h2 className="text-3xl font-serif text-stone-600 mb-4">
-              Coming soon to Hyprnote
+              Start using your AI assistant
             </h2>
             <p className="text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-              Chat functionality is currently in development. Join the waitlist to be notified when it launches.
+              Get instant answers from all your meeting notes with Hyprnote's AI assistant.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/join-waitlist"
+              <a
+                href="https://hyprnote.com/download"
                 className={cn([
                   "px-8 py-3 text-base font-medium rounded-full",
                   "bg-linear-to-t from-stone-600 to-stone-500 text-white",
                   "hover:scale-105 active:scale-95 transition-transform",
                 ])}
               >
-                Join waitlist
-              </Link>
-              <a
-                href="https://hyprnote.com/download"
+                Download for free
+              </a>
+              <Link
+                to="/product/notepad"
                 className={cn([
                   "px-6 py-3 text-base font-medium rounded-full",
                   "border border-neutral-300 text-stone-600",
                   "hover:bg-white transition-colors",
                 ])}
               >
-                Download Hyprnote
-              </a>
+                Learn about Notepad
+              </Link>
             </div>
           </section>
         </div>

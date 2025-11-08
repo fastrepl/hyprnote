@@ -82,6 +82,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hotkeys-hook": "^4.6.2",
+    "react-scan": "^0.4.3",
     "stopword": "^3.1.5",
     "streamdown": "^1.4.0",
     "tinybase": "^6.7.2",

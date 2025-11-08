@@ -1,3 +1,7 @@
+// https://github.com/aidenybai/react-scan/blob/main/docs/installation/tanstack-start.md#as-a-module-import
+// react-scan must be imported before React and TanStack Start
+import { scan } from "react-scan";
+
 import { useQuery } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
 import { app } from "@tauri-apps/api";
@@ -17,6 +21,10 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 
 function Component() {
   useNavigationEvents();
+
+  useEffect(() => {
+    scan({ enabled: true });
+  }, []);
 
   return (
     <AuthProvider>

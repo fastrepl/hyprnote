@@ -211,6 +211,7 @@ const templates = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
+    category: z.string(),
     sections: z.array(
       z.object({
         title: z.string(),

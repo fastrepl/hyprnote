@@ -192,45 +192,21 @@ function Component() {
               {allTemplates.length} templates or create your own custom format for different meeting types.
             </p>
             <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="p-6 bg-white border-2 border-neutral-200 rounded-lg">
-                <h3 className="font-serif text-lg text-stone-600 mb-3">Sprint Planning</h3>
-                <ul className="space-y-2 text-sm text-neutral-600">
-                  <li>• Sprint goals</li>
-                  <li>• Backlog items</li>
-                  <li>• Capacity planning</li>
-                  <li>• Dependencies</li>
-                </ul>
-              </div>
-              <div className="p-6 bg-white border-2 border-neutral-200 rounded-lg">
-                <h3 className="font-serif text-lg text-stone-600 mb-3">Sales Call</h3>
-                <ul className="space-y-2 text-sm text-neutral-600">
-                  <li>• Company overview</li>
-                  <li>• Pain points</li>
-                  <li>• Budget & timeline</li>
-                  <li>• Next steps</li>
-                </ul>
-              </div>
-              <div className="p-6 bg-white border-2 border-neutral-200 rounded-lg">
-                <h3 className="font-serif text-lg text-stone-600 mb-3">1:1 Meeting</h3>
-                <ul className="space-y-2 text-sm text-neutral-600">
-                  <li>• Updates</li>
-                  <li>• Wins & challenges</li>
-                  <li>• Feedback</li>
-                  <li>• Action items</li>
-                </ul>
-              </div>
+              {allTemplates.slice(0, 6).map((template) => <TemplateCard key={template.slug} template={template} />)}
             </div>
-
-            {Object.entries(getTemplatesByCategory()).map(([category, templates]) => (
-              <div key={category} className="mb-12">
-                <h3 className="text-xl font-serif text-stone-600 mb-6 pb-2 border-b border-neutral-200">
-                  {category}
-                </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {templates.map((template) => <TemplateCard key={template.slug} template={template} />)}
-                </div>
-              </div>
-            ))}
+            <div className="text-center">
+              <Link
+                to="/templates"
+                className={cn([
+                  "inline-flex items-center gap-2 px-6 py-3 text-base font-medium rounded-full",
+                  "border border-neutral-300 text-stone-600",
+                  "hover:bg-stone-50 transition-colors",
+                ])}
+              >
+                Browse all {allTemplates.length} templates
+                <Icon icon="mdi:arrow-right" />
+              </Link>
+            </div>
           </section>
 
           <section className="mb-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12">
@@ -418,44 +394,6 @@ function UseCase({
       <p className="text-sm text-neutral-600">{description}</p>
     </div>
   );
-}
-
-function getTemplatesByCategory() {
-  return allTemplates.reduce((acc, template) => {
-    const category = getCategory(template.title);
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(template);
-    return acc;
-  }, {} as Record<string, typeof allTemplates>);
-}
-
-function getCategory(title: string): string {
-  if (
-    ["Sprint Planning", "Sprint Retrospective", "Daily Standup", "Technical Design Review", "Incident Postmortem"]
-      .includes(title)
-  ) {
-    return "Engineering & Development";
-  }
-  if (["Product Roadmap Review", "Customer Discovery Interview", "Brainstorming Session"].includes(title)) {
-    return "Product & Design";
-  }
-  if (["Sales Discovery Call", "Client Kickoff Meeting"].includes(title)) {
-    return "Sales & Customer Success";
-  }
-  if (
-    ["1:1 Meeting", "Performance Review", "Executive Briefing", "Board Meeting", "Project Kickoff"].includes(title)
-  ) {
-    return "Leadership & Management";
-  }
-  if (["Lecture Notes"].includes(title)) {
-    return "Learning & Research";
-  }
-  if (["Investor Pitch Meeting"].includes(title)) {
-    return "Business Development";
-  }
-  return "General";
 }
 
 function getIconForTemplate(title: string): string {

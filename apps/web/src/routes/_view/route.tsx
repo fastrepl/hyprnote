@@ -45,22 +45,15 @@ function Component() {
 const productsList = [
   { to: "/product/notepad", label: "Notepad" },
   { to: "/product/bot", label: "Bot", badge: "Coming Soon" },
-  { to: "/product/web", label: "Web", badge: "Coming Soon" },
   { to: "/product/api", label: "API", badge: "Coming Soon" },
-  { to: "/product/local-ai", label: "Local AI" },
-  { to: "/product/owhisper", label: "OWhisper" },
-  { to: "/product/self-hosting", label: "Self-Hosting", badge: "Coming Soon" },
+  { to: "/product/extensions", label: "Extensions", badge: "Coming Soon" },
 ];
 
 const featuresList = [
   { to: "/product/ai-notetaking", label: "AI Notetaking" },
   { to: "/product/ai-assistant", label: "AI Assistant" },
-  { to: "/product/contacts", label: "Contacts" },
-  { to: "/product/calendar", label: "Calendar" },
-  { to: "/product/floating-panel", label: "Floating Panel", badge: "Coming Soon" },
-  { to: "/product/daily-note", label: "Daily Note", badge: "Coming Soon" },
-  { to: "/product/noteshelf", label: "Noteshelf", badge: "Coming Soon" },
-  { to: "/product/extensibility", label: "Extensibility", badge: "Coming Soon" },
+  { to: "/product/mini-apps", label: "Mini Apps" },
+  { to: "/product/workflows", label: "Workflows", badge: "Coming Soon" },
 ];
 
 function Header() {
@@ -136,20 +129,22 @@ function Header() {
                           <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                             Features
                           </div>
-                          {featuresList.map((link) => (
-                            <Link
-                              key={link.to}
-                              to={link.to}
-                              className="py-2 text-sm text-neutral-700 flex items-center justify-between"
-                            >
-                              <span>{link.label}</span>
-                              {link.badge && (
-                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
-                                  {link.badge}
-                                </span>
-                              )}
-                            </Link>
-                          ))}
+                          <div>
+                            {featuresList.map((link) => (
+                              <Link
+                                key={link.to}
+                                to={link.to}
+                                className="py-2 text-sm text-neutral-700 flex items-center justify-between"
+                              >
+                                <span>{link.label}</span>
+                                {link.badge && (
+                                  <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                    {link.badge}
+                                  </span>
+                                )}
+                              </Link>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>

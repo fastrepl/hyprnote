@@ -154,21 +154,37 @@ const DEBUG_DATA = (() => {
   const sessionId1 = session1.id;
   const session2 = createSession();
   const sessionId2 = session2.id;
+  const session3 = createSession();
+  const sessionId3 = session3.id;
+  const session4 = createSession();
+  const sessionId4 = session4.id;
   const sessions = {
     [sessionId1]: session1.data,
     [sessionId2]: session2.data,
+    [sessionId3]: session3.data,
+    [sessionId4]: session4.data,
   };
 
-  const shortDurationMs = 3 * 60 * 1000;
-  const { transcriptId: transcriptId1, words: words1, endedAt: endedAt1 } = generateLongTranscript(shortDurationMs);
+  const thirtyMinutesMs = 30 * 60 * 1000;
+  const { transcriptId: transcriptId1, words: words1, endedAt: endedAt1 } = generateLongTranscript(thirtyMinutesMs);
+
+  const oneHourMs = 60 * 60 * 1000;
+  const { transcriptId: transcriptId2, words: words2, endedAt: endedAt2 } = generateLongTranscript(oneHourMs);
+
+  const twoHoursMs = 2 * 60 * 60 * 1000;
+  const { transcriptId: transcriptId3, words: words3, endedAt: endedAt3 } = generateLongTranscript(twoHoursMs);
 
   const fourHoursMs = 4 * 60 * 60 * 1000;
-  const { transcriptId: transcriptId2, words: words2, endedAt: endedAt2 } = generateLongTranscript(fourHoursMs);
+  const { transcriptId: transcriptId4, words: words4, endedAt: endedAt4 } = generateLongTranscript(fourHoursMs);
 
   const createdAt1 = faker.date.recent({ days: 30 });
   const startedAt1 = createdAt1.getTime();
   const createdAt2 = faker.date.recent({ days: 25 });
   const startedAt2 = createdAt2.getTime();
+  const createdAt3 = faker.date.recent({ days: 20 });
+  const startedAt3 = createdAt3.getTime();
+  const createdAt4 = faker.date.recent({ days: 15 });
+  const startedAt4 = createdAt4.getTime();
 
   const transcripts = {
     [transcriptId1]: {
@@ -185,16 +201,32 @@ const DEBUG_DATA = (() => {
       started_at: startedAt2,
       ended_at: startedAt2 + endedAt2,
     },
+    [transcriptId3]: {
+      user_id: DEFAULT_USER_ID,
+      session_id: sessionId3,
+      created_at: createdAt3.toISOString(),
+      started_at: startedAt3,
+      ended_at: startedAt3 + endedAt3,
+    },
+    [transcriptId4]: {
+      user_id: DEFAULT_USER_ID,
+      session_id: sessionId4,
+      created_at: createdAt4.toISOString(),
+      started_at: startedAt4,
+      ended_at: startedAt4 + endedAt4,
+    },
   };
 
   const wordsRecord: Record<string, WordStorage> = {};
-  [...words1, ...words2].forEach((word) => {
+  [...words1, ...words2, ...words3, ...words4].forEach((word) => {
     wordsRecord[id()] = word;
   });
 
   const mapping_session_participant = {
     ...buildSessionParticipants([sessionId1], humanIds, { min: 2, max: 2 }),
     ...buildSessionParticipants([sessionId2], humanIds, { min: 2, max: 2 }),
+    ...buildSessionParticipants([sessionId3], humanIds, { min: 2, max: 2 }),
+    ...buildSessionParticipants([sessionId4], humanIds, { min: 2, max: 2 }),
   };
 
   return {

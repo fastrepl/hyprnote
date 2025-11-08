@@ -37,7 +37,6 @@ import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
-import { Route as ApiTemplatesSlugRouteImport } from './routes/api/templates/$slug'
 import { Route as ViewProductWebRouteImport } from './routes/_view/product/web'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
 import { Route as ViewProductOwhisperRouteImport } from './routes/_view/product/owhisper'
@@ -200,11 +199,6 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
-const ApiTemplatesSlugRoute = ApiTemplatesSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => ApiTemplatesRoute,
-} as any)
 const ViewProductWebRoute = ViewProductWebRouteImport.update({
   id: '/product/web',
   path: '/product/web',
@@ -337,7 +331,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
   '/team': typeof ViewTeamRoute
-  '/api/templates': typeof ApiTemplatesRouteWithChildren
+  '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
@@ -363,7 +357,6 @@ export interface FileRoutesByFullPath {
   '/product/owhisper': typeof ViewProductOwhisperRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/web': typeof ViewProductWebRoute
-  '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -387,7 +380,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
   '/team': typeof ViewTeamRoute
-  '/api/templates': typeof ApiTemplatesRouteWithChildren
+  '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
@@ -413,7 +406,6 @@ export interface FileRoutesByTo {
   '/product/owhisper': typeof ViewProductOwhisperRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/web': typeof ViewProductWebRoute
-  '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -441,7 +433,7 @@ export interface FileRoutesById {
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/roadmap': typeof ViewRoadmapRoute
   '/_view/team': typeof ViewTeamRoute
-  '/api/templates': typeof ApiTemplatesRouteWithChildren
+  '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
   '/_view/': typeof ViewIndexRoute
@@ -467,7 +459,6 @@ export interface FileRoutesById {
   '/_view/product/owhisper': typeof ViewProductOwhisperRoute
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/_view/product/web': typeof ViewProductWebRoute
-  '/api/templates/$slug': typeof ApiTemplatesSlugRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
@@ -521,7 +512,6 @@ export interface FileRouteTypes {
     | '/product/owhisper'
     | '/product/self-hosting'
     | '/product/web'
-    | '/api/templates/$slug'
     | '/app/'
     | '/blog'
     | '/changelog'
@@ -571,7 +561,6 @@ export interface FileRouteTypes {
     | '/product/owhisper'
     | '/product/self-hosting'
     | '/product/web'
-    | '/api/templates/$slug'
     | '/app'
     | '/blog'
     | '/changelog'
@@ -624,7 +613,6 @@ export interface FileRouteTypes {
     | '/_view/product/owhisper'
     | '/_view/product/self-hosting'
     | '/_view/product/web'
-    | '/api/templates/$slug'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
@@ -644,7 +632,7 @@ export interface RootRouteChildren {
   LinkedinRoute: typeof LinkedinRoute
   XRoute: typeof XRoute
   YoutubeRoute: typeof YoutubeRoute
-  ApiTemplatesRoute: typeof ApiTemplatesRouteWithChildren
+  ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
 }
@@ -846,13 +834,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
-    }
-    '/api/templates/$slug': {
-      id: '/api/templates/$slug'
-      path: '/$slug'
-      fullPath: '/api/templates/$slug'
-      preLoaderRoute: typeof ApiTemplatesSlugRouteImport
-      parentRoute: typeof ApiTemplatesRoute
     }
     '/_view/product/web': {
       id: '/_view/product/web'
@@ -1115,18 +1096,6 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
   ViewRouteRouteChildren,
 )
 
-interface ApiTemplatesRouteChildren {
-  ApiTemplatesSlugRoute: typeof ApiTemplatesSlugRoute
-}
-
-const ApiTemplatesRouteChildren: ApiTemplatesRouteChildren = {
-  ApiTemplatesSlugRoute: ApiTemplatesSlugRoute,
-}
-
-const ApiTemplatesRouteWithChildren = ApiTemplatesRoute._addFileChildren(
-  ApiTemplatesRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
@@ -1138,7 +1107,7 @@ const rootRouteChildren: RootRouteChildren = {
   LinkedinRoute: LinkedinRoute,
   XRoute: XRoute,
   YoutubeRoute: YoutubeRoute,
-  ApiTemplatesRoute: ApiTemplatesRouteWithChildren,
+  ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
 }

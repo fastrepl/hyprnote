@@ -6,6 +6,10 @@ alwaysApply: true
 
 - Format using `dprint fmt` from the root. Do not use `cargo fmt`.
 
+# Typescript
+
+- Avoid creating a bunch of types/interfaces if they are not shared. Especially for function props. Just inline them.
+
 # Mutation
 - Never do manual state management for form/mutation. Things like setError is anti-pattern. use useForm(from tanstack-form) and useQuery/useMutation(from tanstack-query) for 99% cases.
 

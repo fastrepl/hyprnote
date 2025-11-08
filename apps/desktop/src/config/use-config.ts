@@ -22,7 +22,7 @@ export function useConfigValue<K extends ConfigKey>(key: K): ConfigValueType<K> 
   const definition = CONFIG_REGISTRY[key];
 
   if (storedValue !== undefined) {
-    if (key === "ignored_platforms" || key === "spoken_languages") {
+    if (key === "ignored_platforms" || key === "spoken_languages" || key === "dismissed_banners") {
       return tryParseJSON(storedValue, definition.default) as ConfigValueType<K>;
     }
     return storedValue as ConfigValueType<K>;
@@ -32,10 +32,23 @@ export function useConfigValue<K extends ConfigKey>(key: K): ConfigValueType<K> 
 }
 
 export function useConfigValues<K extends ConfigKey>(keys: readonly K[]): { [P in K]: ConfigValueType<P> } {
+  const allValues = main.UI.useValues(main.STORE_ID);
+
   const result = {} as { [P in K]: ConfigValueType<P> };
 
   for (const key of keys) {
-    result[key] = useConfigValue(key);
+    const storedValue = allValues[key];
+    const definition = CONFIG_REGISTRY[key];
+
+    if (storedValue !== undefined) {
+      if (key === "ignored_platforms" || key === "spoken_languages" || key === "dismissed_banners") {
+        result[key] = tryParseJSON(storedValue, definition.default) as ConfigValueType<K>;
+      } else {
+        result[key] = storedValue as ConfigValueType<K>;
+      }
+    } else {
+      result[key] = definition.default as ConfigValueType<K>;
+    }
   }
 
   return result;
@@ -52,7 +65,7 @@ export function useConfigSideEffects(keys?: ConfigKey[]) {
     const definition = CONFIG_REGISTRY[key];
 
     if (storedValue !== undefined) {
-      if (key === "ignored_platforms" || key === "spoken_languages") {
+      if (key === "ignored_platforms" || key === "spoken_languages" || key === "dismissed_banners") {
         return tryParseJSON(storedValue, definition.default);
       }
       return storedValue;

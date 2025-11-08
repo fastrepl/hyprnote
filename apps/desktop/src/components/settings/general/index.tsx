@@ -26,6 +26,7 @@ export function SettingsGeneral() {
       ...row,
       spoken_languages: row.spoken_languages ? JSON.stringify(row.spoken_languages) : undefined,
       ignored_platforms: row.ignored_platforms ? JSON.stringify(row.ignored_platforms) : undefined,
+      dismissed_banners: row.dismissed_banners ? JSON.stringify(row.dismissed_banners) : undefined,
     } satisfies Partial<main.GeneralStorage>),
     [],
     main.STORE_ID,

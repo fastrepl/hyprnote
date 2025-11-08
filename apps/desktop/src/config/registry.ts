@@ -9,6 +9,7 @@ export type ConfigKey =
   | "notification_event"
   | "respect_dnd"
   | "ignored_platforms"
+  | "dismissed_banners"
   | "quit_intercept"
   | "current_stt_provider"
   | "current_stt_model"
@@ -62,6 +63,11 @@ export const CONFIG_REGISTRY = {
     sideEffect: async (value: string[]) => {
       await detectCommands.setIgnoredBundleIds(value);
     },
+  },
+
+  dismissed_banners: {
+    key: "dismissed_banners",
+    default: [] as string[],
   },
 
   quit_intercept: {

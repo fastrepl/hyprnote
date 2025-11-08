@@ -1,11 +1,10 @@
-import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
 
-import { LogIn, LogOut, X } from "lucide-react";
+import { LogIn, LogOut } from "lucide-react";
 import { useAuth } from "../../../../auth";
 
 type AuthSectionProps = {
@@ -110,67 +109,5 @@ export function AuthSection({ isAuthenticated, onSignIn, onSignOut }: AuthSectio
         Sign in
       </Button>
     </div>
-  );
-}
-
-// @ts-expect-error: Will use this later
-function TryProBanner({
-  isDismissed,
-  onDismiss,
-  onSignIn,
-}: {
-  isDismissed: boolean;
-  onDismiss: () => void;
-  onSignIn: () => void;
-}) {
-  return (
-    <AnimatePresence mode="wait">
-      {!isDismissed && (
-        <motion.div
-          initial={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
-          animate={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
-          exit={{
-            opacity: 0,
-            height: 0,
-            y: 20,
-            transition: { duration: 0.3, ease: "easeInOut" },
-          }}
-          className={cn(["overflow-hidden", "px-1 py-2"])}
-        >
-          <div
-            className={cn([
-              "relative group overflow-hidden rounded-lg",
-              "flex flex-col gap-3",
-              "bg-white border border-neutral-200 shadow-sm p-4",
-            ])}
-          >
-            <Button
-              onClick={onDismiss}
-              size="icon"
-              variant="ghost"
-              aria-label="Dismiss banner"
-              className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-200"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-
-            <div className="flex items-center gap-4">
-              <img src="/assets/hyprnote-pro.png" alt="Hyprnote Pro" className="size-6" />
-              <h3 className="text-lg font-bold text-neutral-900">
-                Try Hyprnote Pro
-              </h3>
-            </div>
-
-            <p className="text-sm">
-              Sign up now and experience smarter meetings with a 1-week free trial of Hyprnote Pro.
-            </p>
-
-            <Button onClick={onSignIn} className="w-full">
-              Start 1 week Free Trial
-            </Button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 }

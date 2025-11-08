@@ -18,7 +18,11 @@ import { MenuItem } from "./shared";
 
 type ProfileView = "main" | "notifications";
 
-export function ProfileSection() {
+type ProfileSectionProps = {
+  onExpandChange?: (expanded: boolean) => void;
+};
+
+export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentView, setCurrentView] = useState<ProfileView>("main");
   const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
@@ -31,6 +35,10 @@ export function ProfileSection() {
   const closeMenu = useCallback(() => {
     setIsExpanded(false);
   }, []);
+
+  useEffect(() => {
+    onExpandChange?.(isExpanded);
+  }, [isExpanded, onExpandChange]);
 
   const handleSignIn = useCallback(async () => {
     await auth?.signIn();

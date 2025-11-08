@@ -1,4 +1,4 @@
-import { DependencyList, RefObject, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { DependencyList, RefObject, useEffect, useMemo, useState } from "react";
 
 import * as main from "../../../../../../../store/tinybase/main";
 import { RuntimeSpeakerHint } from "../../../../../../../utils/segment";
@@ -131,17 +131,21 @@ export function useScrollDetection(containerRef: RefObject<HTMLDivElement | null
 }
 
 export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps: DependencyList) {
-  useLayoutEffect(() => {
+  useEffect(() => {
     const element = containerRef.current;
     if (!element) {
       return;
     }
 
-    const isAtTop = element.scrollTop === 0;
-    const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 50;
+    const raf = requestAnimationFrame(() => {
+      const isAtTop = element.scrollTop === 0;
+      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 50;
 
-    if (isAtTop || isNearBottom) {
-      element.scrollTop = element.scrollHeight;
-    }
+      if (isAtTop || isNearBottom) {
+        element.scrollTop = element.scrollHeight;
+      }
+    });
+
+    return () => cancelAnimationFrame(raf);
   }, deps);
 }

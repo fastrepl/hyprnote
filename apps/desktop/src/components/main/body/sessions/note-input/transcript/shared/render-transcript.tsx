@@ -1,6 +1,6 @@
 import { cn } from "@hypr/utils";
 
-import { memo, useCallback, useLayoutEffect, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import * as main from "../../../../../../../store/tinybase/main";
@@ -90,10 +90,10 @@ const VirtualizedSegments = memo(({
   const estimatedSegmentSize = 160;
   const overscan = useMemo(() => {
     if (!scrollElement) {
-      return 12;
+      return 5;
     }
     const viewportItemCount = Math.ceil(scrollElement.clientHeight / estimatedSegmentSize);
-    return Math.max(12, viewportItemCount * 3);
+    return Math.max(5, Math.ceil(viewportItemCount * 2));
   }, [scrollElement]);
 
   const virtualizer = useVirtualizer({
@@ -112,57 +112,58 @@ const VirtualizedSegments = memo(({
     },
   });
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!scrollElement || !shouldScrollToEnd || segments.length === 0) {
       return;
     }
-    virtualizer.scrollToIndex(segments.length - 1, { align: "end" });
+    const raf = requestAnimationFrame(() => {
+      virtualizer.scrollToIndex(segments.length - 1, { align: "end", behavior: "auto" });
+    });
+    return () => cancelAnimationFrame(raf);
   }, [scrollElement, shouldScrollToEnd, segments.length, virtualizer]);
 
   const virtualItems = virtualizer.getVirtualItems();
-  const totalSize = virtualizer.getTotalSize();
-  const paddingStart = virtualItems.length > 0 ? virtualItems[0].start : 0;
-  const paddingEnd = virtualItems.length > 0
-    ? totalSize - virtualItems[virtualItems.length - 1].end
-    : 0;
-
-  const measureElement = useCallback(
-    (element: HTMLElement | null) => {
-      if (element) {
-        virtualizer.measureElement(element);
-      }
-    },
-    [virtualizer],
-  );
 
   return (
     <div
       style={{
-        paddingTop: paddingStart,
-        paddingBottom: paddingEnd,
+        height: `${virtualizer.getTotalSize()}px`,
+        width: "100%",
+        position: "relative",
       }}
     >
-      {virtualItems.map((virtualItem) => {
-        const segment = segments[virtualItem.index];
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          transform: `translateY(${virtualItems[0]?.start ?? 0}px)`,
+        }}
+      >
+        {virtualItems.map((virtualItem) => {
+          const segment = segments[virtualItem.index];
 
-        return (
-          <div
-            key={virtualItem.key}
-            ref={measureElement}
-            className={cn([
-              virtualItem.index > 0 && "pt-8",
-            ])}
-          >
-            <SegmentRenderer
-              editable={editable}
-              segment={segment}
-              offsetMs={offsetMs}
-              operations={operations}
-              sessionId={sessionId}
-            />
-          </div>
-        );
-      })}
+          return (
+            <div
+              key={virtualItem.key}
+              data-index={virtualItem.index}
+              ref={virtualizer.measureElement}
+              className={cn([
+                virtualItem.index > 0 && "pt-8",
+              ])}
+            >
+              <SegmentRenderer
+                editable={editable}
+                segment={segment}
+                offsetMs={offsetMs}
+                operations={operations}
+                sessionId={sessionId}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }, (prevProps, nextProps) => {

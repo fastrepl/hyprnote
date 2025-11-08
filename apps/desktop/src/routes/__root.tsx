@@ -31,7 +31,6 @@ function Component() {
     <AuthProvider>
       <Outlet />
       <Suspense>
-        <TinybaseInspector />
         <DevtoolWrapper />
       </Suspense>
     </AuthProvider>
@@ -78,16 +77,6 @@ export const TanStackRouterDevtools = process.env.NODE_ENV === "production"
       default: (
         props: React.ComponentProps<typeof res.TanStackRouterDevtools>,
       ) => <res.TanStackRouterDevtools {...props} />,
-    }))
-  );
-
-const TinybaseInspector = process.env.NODE_ENV === "production"
-  ? () => null
-  : lazy(() =>
-    import("tinybase/ui-react-inspector").then((res) => ({
-      default: (
-        props: React.ComponentProps<typeof res.Inspector>,
-      ) => <res.Inspector {...props} />,
     }))
   );
 

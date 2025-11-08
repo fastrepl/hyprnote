@@ -2,22 +2,39 @@ import { useQuery } from "@tanstack/react-query";
 
 import * as main from "../../../store/tinybase/main";
 import { TemplateCard } from "./shared";
+import { useTemplateNavigation } from "./utils";
 
-interface RemoteTemplatesProps {
-  query: string;
-  onClone: (template: main.Template) => void;
+export function RemoteTemplates({ query }: { query: string }) {
+  const { data: templates = [] } = useSuggestedTemplates(query);
+
+  if (templates.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      <h2 className="font-semibold cursor-default mb-4">Suggested templates</h2>
+      <TemplateList templates={templates} />
+    </div>
+  );
 }
 
-export function RemoteTemplates({ query, onClone }: RemoteTemplatesProps) {
-  const { data: templates = [] } = useSuggestedTemplates(query);
+function TemplateList({ templates }: { templates: main.Template[] }) {
+  const { cloneAndEdit } = useTemplateNavigation();
 
   return (
     <div className="space-y-4">
       {templates.map((template, index) => (
-        <SuggestedTemplateCard
+        <TemplateCard
           key={index}
-          template={template}
-          onClone={onClone}
+          title={template.title}
+          description={template.description}
+          onClick={() =>
+            cloneAndEdit({
+              title: template.title,
+              description: template.description,
+              sections: template.sections,
+            })}
         />
       ))}
     </div>
@@ -42,20 +59,4 @@ function useSuggestedTemplates(query: string) {
       return data.filter((template) => template.title.includes(query));
     },
   });
-}
-
-function SuggestedTemplateCard({
-  template,
-  onClone,
-}: {
-  template: main.Template;
-  onClone: (template: main.Template) => void;
-}) {
-  return (
-    <TemplateCard
-      title={template.title}
-      description={template.description}
-      onClick={() => onClone(template)}
-    />
-  );
 }

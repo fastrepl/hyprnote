@@ -18,18 +18,12 @@ export function SettingsTemplates() {
 
 function TemplateList() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { goToEdit, cloneAndEdit } = useTemplateNavigation();
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <div className="mb-6">
-          <TemplateSearch value={searchQuery} onChange={setSearchQuery} />
-        </div>
-        <LocalTemplates query={searchQuery} onSelect={goToEdit} />
-      </div>
-
-      <RemoteTemplates query={searchQuery} onClone={cloneAndEdit} />
+      <TemplateSearch value={searchQuery} onChange={setSearchQuery} />
+      <LocalTemplates query={searchQuery} />
+      <RemoteTemplates query={searchQuery} />
     </div>
   );
 }

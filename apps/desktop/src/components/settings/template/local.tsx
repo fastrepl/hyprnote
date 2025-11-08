@@ -4,48 +4,29 @@ import { createQueries } from "tinybase/with-schemas";
 
 import * as main from "../../../store/tinybase/main";
 import { TemplateCard } from "./shared";
-import { filterTemplatesByQuery, normalizeTemplateWithId } from "./utils";
+import { normalizeTemplateWithId, useTemplateNavigation } from "./utils";
 
-export function LocalTemplates({
-  query,
-  onSelect,
-}: {
-  query: string;
-  onSelect: (id: string) => void;
-}) {
-  const templates = useTemplates();
-
-  const trimmedQuery = query.trim();
-
-  const filteredTemplates = useMemo(
-    () => filterTemplatesByQuery(templates, trimmedQuery),
-    [templates, trimmedQuery],
-  );
-
+export function LocalTemplates({ query }: { query: string }) {
   return (
     <div>
-      <h2 className="font-semibold cursor-default mb-4">Templates</h2>
-      <UserTemplatesList templates={filteredTemplates} onSelect={onSelect} hasQuery={trimmedQuery.length > 0} />
+      <h2 className="font-semibold cursor-default mb-4">Your templates</h2>
+      <UserTemplatesList query={query} />
     </div>
   );
 }
 
-function UserTemplatesList({
-  templates,
-  onSelect,
-  hasQuery,
-}: {
-  templates: Array<main.Template & { id: string }>;
-  onSelect: (id: string) => void;
-  hasQuery: boolean;
-}) {
+function UserTemplatesList({ query }: { query: string }) {
+  const templates = useTemplates();
+
+  const { goToEdit } = useTemplateNavigation();
+
   if (templates.length === 0) {
     return (
-      <div className="text-center py-12 text-neutral-500">
+      <div className="text-center py-12 text-neutral-500 bg-neutral-50 rounded-lg p-4 border border-neutral-200">
         <BookText size={48} className="mx-auto mb-4 text-neutral-300" />
-        <p className="text-sm">{hasQuery ? "No templates found" : "No templates yet"}</p>
+        <p className="text-sm">{query.length > 0 ? "No templates found" : "No templates yet"}</p>
         <p className="text-xs text-neutral-400 mt-1">
-          {hasQuery ? "Try a different search term" : "Create a template to get started."}
+          {query.length > 0 ? "Try a different search term" : "Create a template to get started."}
         </p>
       </div>
     );
@@ -58,7 +39,7 @@ function UserTemplatesList({
           key={template.id}
           title={template.title}
           description={template.description}
-          onClick={() => onSelect(template.id)}
+          onClick={() => goToEdit(template.id)}
         />
       ))}
     </div>

@@ -254,8 +254,6 @@ function useEnhanceLogic(sessionId: string) {
   const model = useLanguageModel();
   const taskId = createTaskId(sessionId, "enhance");
 
-  const enhancedMd = main.UI.useCell("sessions", sessionId, "enhanced_md", main.STORE_ID);
-
   const updateEnhancedMd = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
@@ -285,8 +283,6 @@ function useEnhanceLogic(sessionId: string) {
     });
   }, [model, enhanceTask.start, sessionId]);
 
-  const hasContent = !!enhancedMd && enhancedMd.trim().length > 0;
-
   return {
     model,
     templates,
@@ -294,7 +290,6 @@ function useEnhanceLogic(sessionId: string) {
     isError: enhanceTask.isError,
     error: enhanceTask.error,
     onRegenerate,
-    hasContent,
   };
 }
 

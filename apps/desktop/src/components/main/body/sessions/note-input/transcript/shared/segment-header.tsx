@@ -1,3 +1,5 @@
+import { cn } from "@hypr/utils";
+
 import chroma from "chroma-js";
 import { useCallback, useMemo } from "react";
 
@@ -10,7 +12,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-import { cn } from "@hypr/utils";
 import * as main from "../../../../../../../store/tinybase/main";
 import { ChannelProfile, type Segment } from "../../../../../../../utils/segment";
 import { Operations } from "./operations";
@@ -69,9 +70,7 @@ export function SegmentHeader({
     return (
       <p
         className={cn([
-          "sticky top-0 z-20",
           "-mx-3 px-3 py-1",
-          "bg-background",
           "border-b border-neutral-200",
           "text-xs font-light",
           "flex items-center justify-between",
@@ -108,9 +107,7 @@ export function SegmentHeader({
   return (
     <p
       className={cn([
-        "sticky top-0 z-20",
         "-mx-3 px-3 py-1",
-        "bg-background",
         "border-b border-neutral-200",
         "text-xs font-light",
         "flex items-center justify-between",

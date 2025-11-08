@@ -133,7 +133,8 @@ impl ListenClientBuilder {
         let mut url = self.build_url(channels);
 
         if let Some(host) = url.host_str() {
-            if host.contains("127.0.0.1") || host.contains("localhost") {
+            if host.contains("127.0.0.1") || host.contains("localhost") || host.contains("0.0.0.0")
+            {
                 let _ = url.set_scheme("ws");
             } else {
                 let _ = url.set_scheme("wss");
@@ -232,7 +233,7 @@ mod tests {
 
     use futures_util::StreamExt;
     use hypr_audio_utils::AudioFormatExt;
-    use live::{ListenClientDualInput, ListenClientInput};
+    use live::ListenClientInput;
 
     #[tokio::test]
     async fn test_client_deepgram() {
@@ -343,31 +344,26 @@ mod tests {
 
     #[tokio::test]
     async fn test_client_ag() {
-        let audio_1 = rodio::Decoder::new(std::io::BufReader::new(
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap()
-        .to_i16_le_chunks(16000, 512);
+        .to_i16_le_chunks(16000, 16000);
 
-        let audio_2 = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 512);
-
-        let input = audio_1
-            .zip(audio_2)
-            .map(|(mic, speaker)| ListenClientDualInput::Audio((mic, speaker)));
+        let input = Box::pin(tokio_stream::StreamExt::throttle(
+            audio.map(|chunk| ListenClientInput::Audio(bytes::Bytes::from(chunk.to_vec()))),
+            std::time::Duration::from_millis(20),
+        ));
 
         let client = ListenClient::builder()
             .api_base("ws://localhost:50060/v1")
             .api_key("".to_string())
             .params(owhisper_interface::ListenParams {
-                model: Some("tiny.en".to_string()),
+                model: Some("large-v3-v20240930_626MB".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
-            .build_dual();
+            .build_single();
 
         let (stream, _) = client.from_realtime_audio(input).await.unwrap();
         futures_util::pin_mut!(stream);

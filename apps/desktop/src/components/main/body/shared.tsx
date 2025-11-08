@@ -72,9 +72,13 @@ export function TabItemBase(
         "flex items-center gap-1 cursor-pointer group relative",
         "w-48 h-full pl-2 pr-1",
         "rounded-lg border",
-        active
-          ? ["bg-red-50", "text-red-600", "border-red-300"]
-          : ["bg-neutral-50", selected ? ["text-black", "border-black"] : ["text-neutral-500", "border-transparent"]],
+        active && selected
+          ? ["bg-red-50", "text-red-600", "border-red-500"]
+          : active
+          ? ["bg-red-50", "text-red-500", "border-0"]
+          : selected
+          ? ["bg-neutral-50", "text-black", "border-black"]
+          : ["bg-neutral-50", "text-neutral-500", "border-transparent"],
       ])}
     >
       <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
@@ -99,7 +103,9 @@ export function TabItemBase(
         className={cn([
           "flex-shrink-0 transition-opacity size-6",
           active
-            ? "opacity-100 text-red-600"
+            ? selected
+              ? "opacity-100 text-red-600"
+              : "opacity-100 text-red-500"
             : selected
             ? "opacity-100 text-neutral-700"
             : "opacity-0 group-hover:opacity-100 text-neutral-500",

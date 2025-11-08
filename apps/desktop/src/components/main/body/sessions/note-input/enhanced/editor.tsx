@@ -1,19 +1,23 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 
 import { TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
+
 import * as main from "../../../../../../store/tinybase/main";
 
 export const EnhancedEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId: string }>(
   ({ sessionId }, ref) => {
-    const value = main.UI.useCell("sessions", sessionId, "enhanced_md", main.STORE_ID);
+    const store = main.UI.useStore(main.STORE_ID);
+    const [initialContent, setInitialContent] = useState<string>("");
 
-    const handleEnhancedChange = (c: string) => {
-      console.log("handleEnhancedChange", c);
-      _handleEnhancedChange(c);
-    };
+    useEffect(() => {
+      if (store) {
+        const value = store.getCell("sessions", sessionId, "enhanced_md");
+        setInitialContent((value as string) || "");
+      }
+    }, [store, sessionId]);
 
-    const _handleEnhancedChange = main.UI.useSetPartialRowCallback(
+    const handleChange = main.UI.useSetPartialRowCallback(
       "sessions",
       sessionId,
       (input: string) => ({ enhanced_md: input }),
@@ -26,8 +30,8 @@ export const EnhancedEditor = forwardRef<{ editor: TiptapEditor | null }, { sess
         <NoteEditor
           ref={ref}
           key={`session-${sessionId}-enhanced`}
-          initialContent={value}
-          handleChange={handleEnhancedChange}
+          initialContent={initialContent}
+          handleChange={handleChange}
           mentionConfig={{
             trigger: "@",
             handleSearch: async () => {

@@ -10,7 +10,7 @@ import { type TaskStepInfo } from "../../../../../../store/zustand/ai-task/tasks
 
 export function StreamingView({ sessionId }: { sessionId: string }) {
   const taskId = createTaskId(sessionId, "enhance");
-  const { streamedText, cancel, isGenerating } = useAITaskTask(taskId, "enhance");
+  const { streamedText, isGenerating } = useAITaskTask(taskId, "enhance");
 
   const containerRef = useAutoScrollToBottom(streamedText);
 
@@ -24,7 +24,7 @@ export function StreamingView({ sessionId }: { sessionId: string }) {
         {streamedText}
       </Streamdown>
 
-      <Status taskId={taskId} cancel={cancel} isGenerating={isGenerating} />
+      {isGenerating ? <Status taskId={taskId} /> : null}
     </div>
   );
 }
@@ -64,36 +64,18 @@ const streamdownComponents = {
   },
 } as const;
 
-function Status({
-  taskId,
-  cancel,
-  isGenerating,
-}: {
-  taskId: TaskId<"enhance">;
-  cancel: () => void;
-  isGenerating: boolean;
-}) {
-  const { currentStep } = useAITaskTask(taskId, "enhance");
+function Status({ taskId }: { taskId: TaskId<"enhance"> }) {
+  const { currentStep, cancel, isGenerating } = useAITaskTask(taskId, "enhance");
+  if (!isGenerating) {
+    return null;
+  }
   const step = currentStep as TaskStepInfo<"enhance"> | undefined;
 
-  const handleClick = useCallback((event: React.MouseEvent) => {
-    if (!isGenerating) {
-      return;
-    }
+  const handleClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
     cancel();
-  }, [cancel, isGenerating]);
-
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (!isGenerating) {
-      return;
-    }
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      cancel();
-    }
-  }, [cancel, isGenerating]);
+  }, [cancel]);
 
   let statusText = "Loading";
   if (step?.type === "analyzing") {
@@ -105,33 +87,28 @@ function Status({
   }
 
   return (
-    <motion.div
+    <motion.button
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, layout: { duration: 0.15 } }}
       className={cn([
         "group flex items-center justify-center w-[calc(100%-24px)] gap-3",
-        "border border-neutral-200",
-        "bg-neutral-800 rounded-lg py-3",
-        isGenerating ? "cursor-pointer hover:bg-neutral-700" : "",
+        "border border-neutral-200 bg-neutral-800 rounded-lg py-3 transition-colors",
+        "cursor-pointer hover:bg-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-100/60",
       ])}
-      role={isGenerating ? "button" : undefined}
-      tabIndex={isGenerating ? 0 : undefined}
-      aria-label={isGenerating ? "Cancel enhance task" : undefined}
+      type="button"
+      aria-label="Cancel enhance task"
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
     >
-      <Loader2Icon className="w-4 h-4 animate-spin text-neutral-50" />
-      <span className="text-xs text-neutral-50 group-hover:hidden">
+      <Loader2Icon aria-hidden="true" className="w-4 h-4 animate-spin text-neutral-50" />
+      <span className="text-xs text-neutral-50 group-hover:hidden group-focus-visible:hidden">
         {statusText}
       </span>
-      {isGenerating && (
-        <span className="hidden text-xs text-neutral-50 group-hover:inline">
-          Press to cancel
-        </span>
-      )}
-    </motion.div>
+      <span className="hidden text-xs text-neutral-50 group-hover:inline group-focus-visible:inline">
+        Press to cancel
+      </span>
+    </motion.button>
   );
 }
 

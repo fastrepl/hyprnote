@@ -3,6 +3,8 @@ import "../../styles.css";
 import { Markdown } from "@tiptap/markdown";
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
 import { forwardRef, useEffect, useRef } from "react";
+import { useDebounceCallback } from "usehooks-ts";
+import "requestidlecallback-polyfill";
 
 import * as shared from "../shared";
 import type { PlaceholderFunction } from "../shared/extensions/placeholder";
@@ -33,15 +35,19 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
   ) => {
     const previousContentRef = useRef<HTMLContent>(initialContent);
 
-    const onUpdate = ({ editor }: { editor: TiptapEditor }) => {
-      if (!editor.isInitialized) {
-        return;
-      }
+    const onUpdate = useDebounceCallback(
+      ({ editor }: { editor: TiptapEditor }) => {
+        if (!editor.isInitialized || !handleChange) {
+          return;
+        }
 
-      if (handleChange) {
-        handleChange(editor.getMarkdown());
-      }
-    };
+        requestIdleCallback(() => {
+          const content = editor.getMarkdown();
+          handleChange(content);
+        });
+      },
+      500,
+    );
 
     const editor = useEditor({
       extensions: [

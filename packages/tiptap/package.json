@@ -42,7 +42,9 @@
     "prosemirror-commands": "^1.7.1",
     "prosemirror-model": "^1.25.4",
     "prosemirror-state": "^1.4.4",
-    "turndown": "^7.2.2"
+    "requestidlecallback-polyfill": "^1.0.2",
+    "turndown": "^7.2.2",
+    "usehooks-ts": "^3.1.1"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

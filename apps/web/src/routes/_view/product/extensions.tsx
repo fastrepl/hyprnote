@@ -3,15 +3,15 @@ import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/product/extensibility")({
+export const Route = createFileRoute("/_view/product/extensions")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Integrations & API - Hyprnote" },
+      { title: "Extensions - Hyprnote" },
       {
         name: "description",
         content:
-          "Connect Hyprnote with your favorite tools and build custom integrations with our API. Integrations and developer API coming soon.",
+          "Connect Hyprnote with your favorite tools and build custom integrations with our API. Extensions coming soon.",
       },
     ],
   }),
@@ -103,89 +103,13 @@ function Component() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
               Extend Hyprnote with
               <br />
-              workflows, integrations & API
+              integrations & API
             </h1>
             <p className="text-xl lg:text-2xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
-              Automate your workflow with built-in automation, connect with your favorite tools through integrations, or
-              build custom solutions with our developer API. Coming soon.
+              Connect with your favorite tools through integrations, or build custom solutions with our developer API.
+              Coming soon.
             </p>
           </header>
-
-          <section className="mb-20">
-            <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">Workflow automation</h2>
-            <p className="text-lg text-neutral-600 mb-8 text-center max-w-3xl mx-auto">
-              Automate repetitive tasks with powerful workflows. No coding required.
-            </p>
-            <div className="grid md:grid-cols-2 gap-8 mb-8">
-              <div className="p-6 border-2 border-stone-300 rounded-lg bg-white">
-                <Icon icon="mdi:auto-fix" className="text-3xl text-stone-600 mb-4" />
-                <h3 className="text-xl font-serif text-stone-600 mb-2">Auto-process meetings</h3>
-                <p className="text-neutral-600 mb-4">
-                  Automatically transcribe, summarize, and extract action items from all your meetings without manual
-                  intervention.
-                </p>
-                <ul className="space-y-2 text-sm text-neutral-600">
-                  <li className="flex items-start gap-2">
-                    <Icon icon="mdi:check" className="text-green-600 shrink-0 mt-0.5" />
-                    <span>Trigger workflows on meeting end</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Icon icon="mdi:check" className="text-green-600 shrink-0 mt-0.5" />
-                    <span>Apply custom templates automatically</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Icon icon="mdi:check" className="text-green-600 shrink-0 mt-0.5" />
-                    <span>Tag and categorize by meeting type</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="p-6 border-2 border-stone-300 rounded-lg bg-white">
-                <Icon icon="mdi:bell-ring" className="text-3xl text-stone-600 mb-4" />
-                <h3 className="text-xl font-serif text-stone-600 mb-2">Smart notifications</h3>
-                <p className="text-neutral-600 mb-4">
-                  Get notified when important events happen in your meetings. Set up custom alerts based on keywords,
-                  speakers, or topics.
-                </p>
-                <ul className="space-y-2 text-sm text-neutral-600">
-                  <li className="flex items-start gap-2">
-                    <Icon icon="mdi:check" className="text-green-600 shrink-0 mt-0.5" />
-                    <span>Alert on specific keywords mentioned</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Icon icon="mdi:check" className="text-green-600 shrink-0 mt-0.5" />
-                    <span>Notify on action items assigned to you</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Icon icon="mdi:check" className="text-green-600 shrink-0 mt-0.5" />
-                    <span>Daily/weekly digest summaries</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-                <Icon icon="mdi:file-export" className="text-2xl text-stone-600 mb-3" />
-                <h3 className="font-medium text-stone-600 mb-2">Auto-export</h3>
-                <p className="text-sm text-neutral-600">
-                  Automatically export notes to specific folders or formats after each meeting.
-                </p>
-              </div>
-              <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-                <Icon icon="mdi:email-send" className="text-2xl text-stone-600 mb-3" />
-                <h3 className="font-medium text-stone-600 mb-2">Email summaries</h3>
-                <p className="text-sm text-neutral-600">
-                  Send meeting summaries to participants or stakeholders automatically.
-                </p>
-              </div>
-              <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-                <Icon icon="mdi:calendar-sync" className="text-2xl text-stone-600 mb-3" />
-                <h3 className="font-medium text-stone-600 mb-2">Calendar sync</h3>
-                <p className="text-sm text-neutral-600">
-                  Attach notes to calendar events and sync action items as tasks.
-                </p>
-              </div>
-            </div>
-          </section>
 
           <section className="mb-20">
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">Built-in integrations</h2>
@@ -332,7 +256,7 @@ console.log(meeting.action_items);`}</code>
               Get notified when we launch
             </h2>
             <p className="text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-              Be the first to know when integrations and API become available.
+              Be the first to know when extensions become available.
             </p>
             <a
               href="/join-waitlist"

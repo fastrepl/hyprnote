@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 
 import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import type { PlaceholderFunction } from "@hypr/tiptap/shared";
@@ -16,18 +16,23 @@ export const RawEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId
       main.STORE_ID,
     );
 
+    const mentionConfig = useMemo(
+      () => ({
+        trigger: "@",
+        handleSearch: async () => {
+          return [];
+        },
+      }),
+      [],
+    );
+
     return (
       <NoteEditor
         ref={ref}
         key={`session-${sessionId}-raw`}
         initialContent={value}
         handleChange={handleRawChange}
-        mentionConfig={{
-          trigger: "@",
-          handleSearch: async () => {
-            return [];
-          },
-        }}
+        mentionConfig={mentionConfig}
         placeholderComponent={Placeholder}
       />
     );

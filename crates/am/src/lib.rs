@@ -14,9 +14,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_client_creation() {
-        let client = Client::new("http://localhost:50060");
+        let client = Client::new("http://localhost:50060/v1");
         let status = client.status().await;
         println!("{:?}", status);
+        client
+            .init(InitRequest {
+                api_key: "".to_string(),
+                model: None,
+                model_repo: None,
+                model_folder: None,
+            })
+            .await
+            .unwrap();
         assert!(true);
     }
 }

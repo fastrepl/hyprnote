@@ -1,3 +1,5 @@
+import { cn } from "@hypr/utils";
+
 import chroma from "chroma-js";
 import { useCallback, useMemo } from "react";
 
@@ -10,7 +12,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
-import { cn } from "@hypr/utils";
 import * as main from "../../../../../../../store/tinybase/main";
 import { ChannelProfile, type Segment } from "../../../../../../../utils/segment";
 import { Operations } from "./operations";

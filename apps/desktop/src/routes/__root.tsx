@@ -8,7 +8,7 @@ import { app } from "@tauri-apps/api";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
-import { events as windowsEvents } from "@hypr/plugin-windows";
+import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
@@ -23,7 +23,8 @@ function Component() {
   useNavigationEvents();
 
   useEffect(() => {
-    scan({ enabled: true });
+    const window = getCurrentWebviewWindowLabel();
+    scan({ enabled: window === "main" });
   }, []);
 
   return (

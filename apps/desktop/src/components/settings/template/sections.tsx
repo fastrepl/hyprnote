@@ -8,63 +8,60 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
 import * as main from "../../../store/tinybase/main";
 
-type ReorderItem = main.TemplateSection;
+type SectionDraft = main.TemplateSection & { key: string };
 
-type EditableSection = ReorderItem & { id: string };
-
-interface UseEditableSectionsOptions {
-  disabled: boolean;
-  initialItems: ReorderItem[];
-  onChange: (items: ReorderItem[]) => void;
+function createDraft(section: main.TemplateSection, key?: string): SectionDraft {
+  return {
+    key: key ?? crypto.randomUUID(),
+    title: section.title,
+    description: section.description,
+  };
 }
 
-interface UseEditableSectionsResult {
-  items: EditableSection[];
-  addSection: () => void;
-  changeSection: (item: EditableSection) => void;
-  deleteSection: (itemId: string) => void;
-  reorderSections: (items: EditableSection[]) => void;
+function toSection(draft: SectionDraft): main.TemplateSection {
+  return {
+    title: draft.title,
+    description: draft.description,
+  };
 }
 
-type DragControls = ReturnType<typeof useDragControls>;
+function sameSection(draft: SectionDraft, section?: main.TemplateSection) {
+  if (!section) {
+    return false;
+  }
+
+  return draft.title === section.title && draft.description === section.description;
+}
 
 function useEditableSections({
   disabled,
   initialItems,
   onChange,
-}: UseEditableSectionsOptions): UseEditableSectionsResult {
-  const [items, setItems] = useState<EditableSection[]>(() =>
-    initialItems.map((item) => ({ ...item, id: crypto.randomUUID() }))
-  );
+}: {
+  disabled: boolean;
+  initialItems: main.TemplateSection[];
+  onChange: (items: main.TemplateSection[]) => void;
+}) {
+  const [drafts, setDrafts] = useState<SectionDraft[]>(() => initialItems.map((section) => createDraft(section)));
 
   useEffect(() => {
-    setItems((prev) => {
-      const hasChanged = prev.length !== initialItems.length
-        || prev.some((item, idx) => {
-          const initial = initialItems[idx];
-          return !initial || item.title !== initial.title || item.description !== initial.description;
-        });
+    setDrafts((prev) => {
+      const shouldUpdate = prev.length !== initialItems.length
+        || prev.some((draft, index) => !sameSection(draft, initialItems[index]));
 
-      if (hasChanged) {
-        return initialItems.map((item, idx) => ({
-          ...item,
-          id: prev[idx]?.id || crypto.randomUUID(),
-        }));
+      if (!shouldUpdate) {
+        return prev;
       }
 
-      return prev;
+      return initialItems.map((section, index) => createDraft(section, prev[index]?.key));
     });
   }, [initialItems]);
 
-  const updateItems = useCallback(
-    (
-      next:
-        | EditableSection[]
-        | ((prev: EditableSection[]) => EditableSection[]),
-    ) => {
-      setItems((prev) => {
+  const commitDrafts = useCallback(
+    (next: SectionDraft[] | ((prev: SectionDraft[]) => SectionDraft[])) => {
+      setDrafts((prev) => {
         const resolved = typeof next === "function" ? next(prev) : next;
-        onChange(resolved);
+        onChange(resolved.map((draft) => toSection(draft)));
         return resolved;
       });
     },
@@ -72,40 +69,36 @@ function useEditableSections({
   );
 
   const changeSection = useCallback(
-    (item: EditableSection) => {
-      updateItems((prev) => prev.map((section) => (section.id === item.id ? item : section)));
+    (draft: SectionDraft) => {
+      commitDrafts((prev) => prev.map((section) => (section.key === draft.key ? draft : section)));
     },
-    [updateItems],
+    [commitDrafts],
   );
 
   const deleteSection = useCallback(
-    (itemId: string) => {
-      updateItems((prev) => prev.filter((section) => section.id !== itemId));
+    (key: string) => {
+      commitDrafts((prev) => prev.filter((section) => section.key !== key));
     },
-    [updateItems],
+    [commitDrafts],
   );
 
   const reorderSections = useCallback(
-    (next: EditableSection[]) => {
+    (next: SectionDraft[]) => {
       if (disabled) {
         return;
       }
-      updateItems(next);
+
+      commitDrafts(next);
     },
-    [disabled, updateItems],
+    [commitDrafts, disabled],
   );
 
   const addSection = useCallback(() => {
-    const newSection: EditableSection = {
-      id: crypto.randomUUID(),
-      title: "",
-      description: "",
-    };
-    updateItems((prev) => [...prev, newSection]);
-  }, [updateItems]);
+    commitDrafts((prev) => [...prev, createDraft({ title: "", description: "" })]);
+  }, [commitDrafts]);
 
   return {
-    items,
+    drafts,
     addSection,
     changeSection,
     deleteSection,
@@ -113,20 +106,18 @@ function useEditableSections({
   };
 }
 
-interface SectionsListProps {
-  disabled: boolean;
-  items: ReorderItem[];
-  onChange: (items: ReorderItem[]) => void;
-}
-
 export function SectionsList({
   disabled,
   items: _items,
   onChange,
-}: SectionsListProps) {
+}: {
+  disabled: boolean;
+  items: main.TemplateSection[];
+  onChange: (items: main.TemplateSection[]) => void;
+}) {
   const controls = useDragControls();
   const {
-    items,
+    drafts,
     addSection,
     changeSection,
     deleteSection,
@@ -140,13 +131,13 @@ export function SectionsList({
   return (
     <div className="flex flex-col space-y-3">
       <div className="bg-neutral-50 rounded-lg p-4">
-        <Reorder.Group values={items} onReorder={reorderSections}>
+        <Reorder.Group values={drafts} onReorder={reorderSections}>
           <div className="flex flex-col space-y-2">
-            {items.map((item) => (
-              <Reorder.Item key={item.id} value={item}>
+            {drafts.map((draft) => (
+              <Reorder.Item key={draft.key} value={draft}>
                 <SectionItem
                   disabled={disabled}
-                  item={item}
+                  item={draft}
                   onChange={changeSection}
                   onDelete={deleteSection}
                   dragControls={controls}
@@ -171,15 +162,19 @@ export function SectionsList({
   );
 }
 
-interface SectionItemProps {
+function SectionItem({
+  disabled,
+  item,
+  onChange,
+  onDelete,
+  dragControls,
+}: {
   disabled: boolean;
-  item: EditableSection;
-  onChange: (item: EditableSection) => void;
-  onDelete: (itemId: string) => void;
-  dragControls: DragControls;
-}
-
-function SectionItem({ disabled, item, onChange, onDelete, dragControls }: SectionItemProps) {
+  item: SectionDraft;
+  onChange: (item: SectionDraft) => void;
+  onDelete: (key: string) => void;
+  dragControls: ReturnType<typeof useDragControls>;
+}) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
@@ -199,7 +194,7 @@ function SectionItem({ disabled, item, onChange, onDelete, dragControls }: Secti
 
       <button
         className="absolute right-2 top-2 opacity-0 group-hover:opacity-30 hover:opacity-100 transition-all"
-        onClick={() => onDelete(item.id)}
+        onClick={() => onDelete(item.key)}
         disabled={disabled}
       >
         <X size={16} />

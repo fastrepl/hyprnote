@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
-import { useTemplateNavigation } from "../../../components/settings/template/use-template-navigation";
+import { useTemplateNavigation } from "../../../components/settings/template/utils";
 import * as main from "../../../store/tinybase/main";
 
 const TABS = [

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ChevronsUpDown, CirclePlus, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -14,6 +14,15 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 import type { ListModelsResult } from "./list-models";
+
+const filterFunction = (value: string, search: string) => {
+  const v = value.toLocaleLowerCase();
+  const s = search.toLocaleLowerCase();
+  if (v.includes(s)) {
+    return 1;
+  }
+  return 0;
+};
 
 export function ModelCombobox({
   providerId,
@@ -41,16 +50,21 @@ export function ModelCombobox({
     retryDelay: 300,
   });
 
-  const options: string[] = fetchedResult?.models ?? [];
+  const options: string[] = useMemo(() => fetchedResult?.models ?? [], [fetchedResult]);
   const trimmedQuery = query.trim();
-  const hasExactMatch = options.some((option) => option.toLocaleLowerCase() === trimmedQuery.toLocaleLowerCase());
+  const hasExactMatch = useMemo(
+    () => options.some((option) => option.toLocaleLowerCase() === trimmedQuery.toLocaleLowerCase()),
+    [options, trimmedQuery],
+  );
   const canSelectFreeform = trimmedQuery.length > 0 && !hasExactMatch;
 
-  function handleSelect(option: string) {
+  const handleSelect = useCallback((option: string) => {
     onChange(option);
     setOpen(false);
     setQuery("");
-  }
+  }, [onChange]);
+
+  const toggleShowIgnored = useCallback(() => setShowIgnored((prev) => !prev), []);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,16 +84,7 @@ export function ModelCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]">
-        <Command
-          filter={(value, search) => {
-            const v = value.toLocaleLowerCase();
-            const s = search.toLocaleLowerCase();
-            if (v.includes(s)) {
-              return 1;
-            }
-            return 0;
-          }}
-        >
+        <Command filter={filterFunction}>
           <CommandInput
             placeholder="Search or create new"
             value={query}
@@ -180,7 +185,7 @@ export function ModelCombobox({
               </span>
               <button
                 type="button"
-                onClick={() => setShowIgnored(!showIgnored)}
+                onClick={toggleShowIgnored}
                 className="flex items-center gap-1 text-xs hover:text-foreground transition-colors"
               >
                 {showIgnored ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}

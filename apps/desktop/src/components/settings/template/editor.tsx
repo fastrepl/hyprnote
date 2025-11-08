@@ -3,19 +3,12 @@ import { useForm } from "@tanstack/react-form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 import * as main from "../../../store/tinybase/main";
-import { SectionsList } from "./sections-list";
+import { SectionsList } from "./sections";
+import { normalizeTemplatePayload } from "./utils";
 
 export function TemplateEditor({ id }: { id: string }) {
-  const _value = main.UI.useRow("templates", id, main.STORE_ID);
-  const value = _value
-    ? main.templateSchema.parse({
-      user_id: _value.user_id ?? "",
-      created_at: _value.created_at ?? new Date().toISOString(),
-      title: _value.title ?? "",
-      description: _value.description ?? "",
-      sections: typeof _value.sections === "string" ? JSON.parse(_value.sections) : _value.sections ?? [],
-    })
-    : undefined;
+  const row = main.UI.useRow("templates", id, main.STORE_ID);
+  const value = row ? normalizeTemplatePayload(row) : undefined;
 
   const handleUpdate = main.UI.useSetPartialRowCallback(
     "templates",

@@ -69,10 +69,25 @@ export const createTasksSlice = <T extends TasksState>(
     return task as TaskState<Task> | undefined;
   },
   cancel: (taskId: string) => {
-    const state = get().tasks[taskId];
-    if (state?.abortController) {
-      state.abortController.abort();
-    }
+    set((state) =>
+      mutate(state, (draft) => {
+        const task = draft.tasks[taskId];
+        if (!task) {
+          return;
+        }
+
+        task.abortController?.abort();
+
+        draft.tasks[taskId] = {
+          taskType: task.taskType,
+          status: "idle",
+          streamedText: task.streamedText,
+          error: undefined,
+          abortController: null,
+          currentStep: undefined,
+        };
+      })
+    );
   },
   reset: (taskId: string) => {
     const state = get().tasks[taskId];

@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+
 import { Route as SettingsRoute } from "../../../routes/app/settings/_layout";
 import * as main from "../../../store/tinybase/main";
 
@@ -79,5 +80,69 @@ export function useTemplateNavigation() {
     goToEdit,
     createAndEdit,
     cloneAndEdit,
+  };
+}
+
+export function normalizeTemplateWithId(id: string, template: unknown) {
+  return {
+    id,
+    ...normalizeTemplatePayload(template),
+  };
+}
+
+export function normalizeTemplatePayload(template: unknown): main.Template {
+  const record = (template && typeof template === "object" ? template : {}) as Record<string, unknown>;
+
+  const base = {
+    user_id: typeof record.user_id === "string" ? record.user_id : "",
+    created_at: typeof record.created_at === "string" ? record.created_at : "",
+    title: typeof record.title === "string" ? record.title : "",
+    description: typeof record.description === "string" ? record.description : "",
+    sections: normalizeSections(record.sections),
+  };
+
+  return main.templateSchema.parse(base);
+}
+
+export function filterTemplatesByQuery(
+  templates: Array<main.Template & { id: string }>,
+  query: string,
+): Array<main.Template & { id: string }> {
+  if (!query) {
+    return templates;
+  }
+
+  const normalizedQuery = query.toLowerCase();
+
+  return templates.filter((template) => {
+    const title = template.title?.toLowerCase() ?? "";
+    const description = template.description?.toLowerCase() ?? "";
+
+    return title.includes(normalizedQuery) || description.includes(normalizedQuery);
+  });
+}
+
+function normalizeSections(source: unknown): main.TemplateSection[] {
+  if (typeof source === "string") {
+    try {
+      return normalizeSections(JSON.parse(source));
+    } catch {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(source)) {
+    return [];
+  }
+
+  return source.map((section) => normalizeSection(section));
+}
+
+function normalizeSection(section: unknown): main.TemplateSection {
+  const record = (section && typeof section === "object" ? section : {}) as Record<string, unknown>;
+
+  return {
+    title: typeof record.title === "string" ? record.title : "",
+    description: typeof record.description === "string" ? record.description : "",
   };
 }

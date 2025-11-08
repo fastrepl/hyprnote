@@ -59,15 +59,13 @@ export function Permissions({ onNext }: PermissionsProps) {
         />
       </div>
 
-      {allPermissionsGranted && (
-        <Button onClick={() => onNext()} className="w-full">
-          Continue
-        </Button>
-      )}
+      <Button onClick={() => onNext()} className="w-full">
+        Continue
+      </Button>
 
       {!allPermissionsGranted && (
         <p className="text-center text-xs text-muted-foreground">
-          Grant all permissions to continue
+          You can grant permissions later in settings
         </p>
       )}
     </OnboardingContainer>

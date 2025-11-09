@@ -4,8 +4,15 @@ import { memo, useEffect, useMemo } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import * as main from "../../../../../../../store/tinybase/main";
-import { buildSegments, PartialWord, RuntimeSpeakerHint, Segment } from "../../../../../../../utils/segment";
-import { useFinalSpeakerHints, useFinalWords, useSessionSpeakers, useTranscriptOffset } from "./hooks";
+import { PartialWord, RuntimeSpeakerHint, Segment } from "../../../../../../../utils/segment";
+import {
+  segmentsShallowEqual,
+  useFinalSpeakerHints,
+  useFinalWords,
+  useSessionSpeakers,
+  useStableSegments,
+  useTranscriptOffset,
+} from "./hooks";
 import { Operations } from "./operations";
 import { SegmentRenderer } from "./segment-renderer";
 
@@ -43,9 +50,11 @@ export function RenderTranscript({
     return [...finalSpeakerHints, ...adjustedPartialHints];
   }, [finalWords.length, finalSpeakerHints, partialHints]);
 
-  const segments = useMemo(
-    () => buildSegments(finalWords, partialWords, allSpeakerHints, { numSpeakers }),
-    [finalWords, partialWords, allSpeakerHints, numSpeakers],
+  const segments = useStableSegments(
+    finalWords,
+    partialWords,
+    allSpeakerHints,
+    { numSpeakers },
   );
 
   const offsetMs = useTranscriptOffset(transcriptId);
@@ -175,6 +184,6 @@ const VirtualizedSegments = memo(({
     && prevProps.offsetMs === nextProps.offsetMs
     && prevProps.sessionId === nextProps.sessionId
     && prevProps.shouldScrollToEnd === nextProps.shouldScrollToEnd
-    && prevProps.segments === nextProps.segments
+    && segmentsShallowEqual(prevProps.segments, nextProps.segments)
   );
 });

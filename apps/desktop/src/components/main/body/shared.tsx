@@ -45,20 +45,22 @@ export function TabItemBase(
   const isCmdPressed = useCmdKeyPressed();
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 1) {
+    if (e.button === 1 && !active) {
       e.preventDefault();
       e.stopPropagation();
       handleCloseThis();
     }
   };
 
-  const contextMenu = (
-    <>
-      <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseOthers}>close others</ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseAll}>close all</ContextMenuItem>
-    </>
-  );
+  const contextMenu = !active
+    ? (
+      <>
+        <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
+        <ContextMenuItem onClick={handleCloseOthers}>close others</ContextMenuItem>
+        <ContextMenuItem onClick={handleCloseAll}>close all</ContextMenuItem>
+      </>
+    )
+    : undefined;
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;
 
@@ -95,26 +97,24 @@ export function TabItemBase(
         </div>
         <span className="truncate">{title}</span>
       </div>
-      <Button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleCloseThis();
-        }}
-        className={cn([
-          "flex-shrink-0 transition-opacity size-6",
-          active
-            ? selected
-              ? "opacity-100 text-red-600"
-              : "opacity-100 text-red-500"
-            : selected
-            ? "opacity-100 text-neutral-700"
-            : "opacity-0 group-hover:opacity-100 text-neutral-500",
-        ])}
-        size="icon"
-        variant="ghost"
-      >
-        <X size={14} />
-      </Button>
+      {!active && (
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCloseThis();
+          }}
+          className={cn([
+            "flex-shrink-0 transition-opacity size-6",
+            selected
+              ? "opacity-100 text-neutral-700"
+              : "opacity-0 group-hover:opacity-100 text-neutral-500",
+          ])}
+          size="icon"
+          variant="ghost"
+        >
+          <X size={14} />
+        </Button>
+      )}
       {showShortcut && (
         <div className="absolute top-[3px] right-2 pointer-events-none">
           <KbdGroup>

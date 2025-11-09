@@ -62,6 +62,14 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_config() {
+        let app_data_dir = dirs::data_dir().unwrap();
+        let config_path = app_data_dir.join("LM Studio").join("settings.json");
+        let config = std::fs::read_to_string(config_path).unwrap();
+        println!("config: {:#?}", config);
+    }
+
+    #[test]
     fn test_list_models() {
         let app_data_dir = dirs::data_dir().unwrap();
         let gguf_files = list_models(app_data_dir).unwrap();

@@ -9,15 +9,11 @@ import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
 import * as main from "../../../../store/tinybase/main";
-import {
-  listAnthropicModels,
-  listGenericModels,
-  listLMStudioModels,
-  type ListModelsResult,
-  listOllamaModels,
-  listOpenAIModels,
-  listOpenRouterModels,
-} from "../shared/list-models";
+import type { ListModelsResult } from "../shared/list-common";
+import { listLMStudioModels } from "../shared/list-lmstudio";
+import { listOllamaModels } from "../shared/list-ollama";
+import { listAnthropicModels, listGenericModels, listOpenAIModels } from "../shared/list-openai";
+import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
 import { PROVIDERS } from "./shared";
 

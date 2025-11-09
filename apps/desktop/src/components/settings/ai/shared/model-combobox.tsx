@@ -13,7 +13,7 @@ import {
 } from "@hypr/ui/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
-import type { ListModelsResult } from "./list-models";
+import type { ListModelsResult } from "./list-common";
 
 const filterFunction = (value: string, search: string) => {
   const v = value.toLocaleLowerCase();
@@ -51,12 +51,14 @@ export function ModelCombobox({
   });
 
   const options: string[] = useMemo(() => fetchedResult?.models ?? [], [fetchedResult]);
+  const ignoredOptions: string[] = useMemo(() => fetchedResult?.ignored ?? [], [fetchedResult]);
   const trimmedQuery = query.trim();
   const hasExactMatch = useMemo(
     () => options.some((option) => option.toLocaleLowerCase() === trimmedQuery.toLocaleLowerCase()),
     [options, trimmedQuery],
   );
   const canSelectFreeform = trimmedQuery.length > 0 && !hasExactMatch;
+  const hasIgnoredOptions = ignoredOptions.length > 0;
 
   const handleSelect = useCallback((option: string) => {
     onChange(option);
@@ -97,8 +99,11 @@ export function ModelCombobox({
           />
           <CommandEmpty>
             <div className="py-1.5 px-2 text-sm text-muted-foreground">
-              <p>No models available.</p>
-              <p>Type to select any value.</p>
+              {trimmedQuery.length > 0
+                ? <p>No results found.</p>
+                : hasIgnoredOptions
+                ? <p>No models ready to use.</p>
+                : <p>No models available.</p>}
             </div>
           </CommandEmpty>
 
@@ -127,7 +132,7 @@ export function ModelCombobox({
                 </CommandItem>
               ))}
 
-              {showIgnored && fetchedResult?.ignored.map((option) => (
+              {showIgnored && ignoredOptions.map((option) => (
                 <CommandItem
                   key={`ignored-${option}`}
                   tabIndex={0}
@@ -176,12 +181,12 @@ export function ModelCombobox({
             </CommandGroup>
           </CommandList>
 
-          {fetchedResult && fetchedResult.ignored.length > 0 && (
+          {hasIgnoredOptions && (
             <div className="px-2 py-1.5 text-xs text-muted-foreground border-t flex items-center justify-between">
               <span>
                 {showIgnored
-                  ? `Showing ${fetchedResult.ignored.length} more items.`
-                  : `${fetchedResult.ignored.length} items ignored.`}
+                  ? `Showing ${ignoredOptions.length} more items.`
+                  : `${ignoredOptions.length} items ignored.`}
               </span>
               <button
                 type="button"

@@ -13,9 +13,10 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
     maxChar?: number;
     maxRetries?: number;
     onRetry?: (attempt: number, feedback: string) => void;
+    onRetrySuccess?: () => void;
   } = {},
 ): AsyncIterable<TextStreamPart<TOOLS>> {
-  const { minChar = 5, maxChar = 30, maxRetries = 2, onRetry } = options;
+  const { minChar = 5, maxChar = 30, maxRetries = 2, onRetry, onRetrySuccess } = options;
 
   let previousFeedback: string | undefined;
 
@@ -57,6 +58,10 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
 
               if (trimmedLength >= maxChar) {
                 validationComplete = true;
+
+                if (attempt > 0) {
+                  onRetrySuccess?.();
+                }
 
                 for (const bufferedChunk of buffer) {
                   yield bufferedChunk;

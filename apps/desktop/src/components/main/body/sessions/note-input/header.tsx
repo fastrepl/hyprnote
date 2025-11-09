@@ -179,11 +179,11 @@ export function Header(
     setIsEditing: (isEditing: boolean) => void;
   },
 ) {
-  const isBatchProcessing = useListener((state) => sessionId in state.batch);
-
   if (editorTabs.length === 1 && editorTabs[0] === "raw") {
     return null;
   }
+
+  const isBatchProcessing = useListener((state) => sessionId in state.batch);
 
   const showProgress = currentTab === "transcript" && (isInactive || isBatchProcessing);
   const showEditingControls = currentTab === "transcript" && isInactive && !isBatchProcessing;
@@ -216,7 +216,13 @@ export function Header(
           })}
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
-        {showEditingControls && <EditingControls isEditing={isEditing} setIsEditing={setIsEditing} />}
+        {showEditingControls && (
+          <EditingControls
+            sessionId={sessionId}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+          />
+        )}
       </div>
     </div>
   );

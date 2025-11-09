@@ -54,6 +54,8 @@ common_derives! {
         pub model_repo: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub model_folder: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub custom_vocabulary: Option<Vec<String>>,
     }
 }
 

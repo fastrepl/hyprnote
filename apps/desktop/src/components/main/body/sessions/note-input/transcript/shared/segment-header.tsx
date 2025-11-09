@@ -56,6 +56,13 @@ export function SegmentHeader({
 
   const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
   const wordIds = segment.words.filter((w) => w.id).map((w) => w.id!);
+  const headerClassName = cn([
+    "sticky top-0 z-20 bg-background",
+    "-mx-3 px-3 py-1",
+    "border-b border-neutral-200",
+    "text-xs font-light",
+    "flex items-center justify-between",
+  ]);
 
   const handleAssignSpeaker = useCallback(
     (humanId: string) => {
@@ -69,12 +76,7 @@ export function SegmentHeader({
   if (mode === "editor" && wordIds.length > 0) {
     return (
       <p
-        className={cn([
-          "-mx-3 px-3 py-1",
-          "border-b border-neutral-200",
-          "text-xs font-light",
-          "flex items-center justify-between",
-        ])}
+        className={headerClassName}
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -106,12 +108,7 @@ export function SegmentHeader({
 
   return (
     <p
-      className={cn([
-        "-mx-3 px-3 py-1",
-        "border-b border-neutral-200",
-        "text-xs font-light",
-        "flex items-center justify-between",
-      ])}
+      className={headerClassName}
     >
       <span style={{ color }}>{label}</span>
       <span className="font-mono text-neutral-500">{timestamp}</span>

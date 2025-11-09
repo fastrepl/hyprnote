@@ -61,7 +61,7 @@ export const SegmentRenderer = memo(({
               highlightState={highlightState}
               audioExists={audioExists}
               operations={operations}
-              onClickWord={() => seekAndPlay(word)}
+              onClickWord={seekAndPlay}
             />
           );
         })}

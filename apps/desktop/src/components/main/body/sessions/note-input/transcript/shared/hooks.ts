@@ -148,16 +148,36 @@ export const useStableSegments: SegmentsBuilder = (
 
 function createStableSegmentKey(segment: Segment) {
   const firstWord = segment.words[0];
-  const anchor = firstWord
-    ? firstWord.id ?? `${firstWord.start_ms}-${firstWord.end_ms}-${firstWord.text}`
+  const lastWord = segment.words[segment.words.length - 1];
+
+  const firstAnchor = firstWord
+    ? firstWord.id ?? `start:${firstWord.start_ms}`
+    : "none";
+
+  const lastAnchor = lastWord
+    ? lastWord.id ?? `end:${lastWord.end_ms}`
     : "none";
 
   return [
     segment.key.channel,
     segment.key.speaker_index ?? "none",
     segment.key.speaker_human_id ?? "none",
-    anchor,
+    firstAnchor,
+    lastAnchor,
   ].join(":");
+}
+
+export function createSegmentKey(
+  segment: Segment,
+  transcriptId: string,
+  fallbackIndex: number,
+) {
+  const stableKey = createStableSegmentKey(segment);
+  if (segment.words.length === 0) {
+    return [transcriptId, stableKey, `index:${fallbackIndex}`].join("-");
+  }
+
+  return [transcriptId, stableKey].join("-");
 }
 
 function segmentsDeepEqual(a: Segment, b: Segment) {
@@ -238,21 +258,82 @@ export function useScrollDetection(containerRef: RefObject<HTMLDivElement | null
 }
 
 export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps: DependencyList) {
+  const rafRef = useRef<number | null>(null);
+  const lastHeightRef = useRef(0);
+
   useEffect(() => {
     const element = containerRef.current;
     if (!element) {
       return;
     }
 
-    const raf = requestAnimationFrame(() => {
-      const isAtTop = element.scrollTop === 0;
-      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 50;
+    lastHeightRef.current = element.scrollHeight;
 
-      if (isAtTop || isNearBottom) {
-        element.scrollTop = element.scrollHeight;
+    const isPinned = () => {
+      const distanceToBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+      return element.scrollTop === 0 || distanceToBottom < 80;
+    };
+
+    const flush = () => {
+      element.scrollTop = element.scrollHeight;
+    };
+
+    const schedule = () => {
+      if (!isPinned()) {
+        return;
       }
+
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = requestAnimationFrame(flush);
+      });
+    };
+
+    schedule();
+
+    if (typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
+      const mutationObserver = new MutationObserver(() => {
+        const nextHeight = element.scrollHeight;
+        if (nextHeight === lastHeightRef.current) {
+          return;
+        }
+        lastHeightRef.current = nextHeight;
+        schedule();
+      });
+
+      mutationObserver.observe(element, { childList: true, subtree: true, characterData: true });
+
+      return () => {
+        mutationObserver.disconnect();
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+      };
+    }
+
+    const resizeObserver = new window.ResizeObserver(() => {
+      const nextHeight = element.scrollHeight;
+      if (nextHeight === lastHeightRef.current) {
+        return;
+      }
+      lastHeightRef.current = nextHeight;
+      schedule();
     });
 
-    return () => cancelAnimationFrame(raf);
+    const targets = new Set<Element>([element]);
+    element.querySelectorAll<HTMLElement>("[data-virtual-root]").forEach((target) => targets.add(target));
+    targets.forEach((target) => resizeObserver.observe(target));
+
+    return () => {
+      resizeObserver.disconnect();
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
   }, deps);
 }

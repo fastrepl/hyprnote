@@ -5,6 +5,7 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
+import { useCallback } from "react";
 import { SegmentWord } from "../../../../../../../utils/segment";
 import { Operations } from "./operations";
 
@@ -19,7 +20,7 @@ export function WordSpan({
   highlightState: "current" | "buffer" | "none";
   audioExists: boolean;
   operations?: Operations;
-  onClickWord: () => void;
+  onClickWord: (word: SegmentWord) => void;
 }) {
   const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
   const className = cn([
@@ -30,11 +31,15 @@ export function WordSpan({
     highlightState === "buffer" && "bg-blue-200/30",
   ]);
 
+  const handleClick = useCallback(() => {
+    onClickWord(word);
+  }, [word, onClickWord]);
+
   if (mode === "editor" && word.id) {
     return (
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <span onClick={onClickWord} className={className}>
+          <span onClick={handleClick} className={className}>
             {word.text}
           </span>
         </ContextMenuTrigger>
@@ -48,7 +53,7 @@ export function WordSpan({
   }
 
   return (
-    <span onClick={onClickWord} className={className}>
+    <span onClick={handleClick} className={className}>
       {word.text}
     </span>
   );

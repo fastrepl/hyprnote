@@ -1,5 +1,5 @@
 import { Effect, pipe } from "effect";
-import { Ollama } from "ollama";
+import { Ollama } from "ollama/browser";
 
 import { DEFAULT_RESULT, type ListModelsResult, REQUEST_TIMEOUT } from "./list-common";
 

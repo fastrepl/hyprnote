@@ -128,6 +128,17 @@ jobs:
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
             apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
           retention-days: 3
+      - run: |
+          VERSION=$(grep '^version = ' apps/desktop/src-tauri/Cargo.toml | head -1 | cut -d '"' -f 2)
+          TAG_NAME="desktop_${VERSION}_${{ inputs.channel }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -d "$TAG_NAME" 2>/dev/null || true
+          git push origin ":refs/tags/$TAG_NAME" 2>/dev/null || true
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   publish:
     if: ${{ inputs.channel != 'staging' }}
     needs: build

@@ -24,7 +24,7 @@ function Component() {
 
   useEffect(() => {
     const window = getCurrentWebviewWindowLabel();
-    scan({ enabled: window === "main" });
+    scan({ enabled: window === "main", showNotificationCount: false });
   }, []);
 
   return (

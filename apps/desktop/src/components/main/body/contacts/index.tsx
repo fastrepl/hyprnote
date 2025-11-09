@@ -2,6 +2,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/c
 
 import { Contact2Icon } from "lucide-react";
 import { useCallback, useEffect } from "react";
+import { useShallow } from "zustand/shallow";
 
 import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
@@ -46,7 +47,12 @@ export function TabContentContact({ tab }: { tab: Extract<Tab, { type: "contacts
 
 function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
   const updateContactsTabState = useTabs((state) => state.updateContactsTabState);
-  const { openCurrent, invalidateResource } = useTabs();
+  const { openCurrent, invalidateResource } = useTabs(
+    useShallow((state) => ({
+      openCurrent: state.openCurrent,
+      invalidateResource: state.invalidateResource,
+    })),
+  );
 
   const { selectedOrganization, selectedPerson } = tab.state;
 

@@ -56,7 +56,7 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
 function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars" }> }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const { openCurrent } = useTabs();
+  const openCurrent = useTabs((state) => state.openCurrent);
 
   const calendarIds = main.UI.useRowIds("calendars", main.STORE_ID);
 

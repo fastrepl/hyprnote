@@ -92,7 +92,7 @@ function RenderContent({ part }: { part: Part }) {
 
 function RenderSession({ sessionId }: { sessionId: string }) {
   const session = main.UI.useRow("sessions", sessionId, main.STORE_ID);
-  const { openNew } = useTabs();
+  const openNew = useTabs((state) => state.openNew);
 
   const handleClick = useCallback(() => {
     openNew({ type: "sessions", id: sessionId });

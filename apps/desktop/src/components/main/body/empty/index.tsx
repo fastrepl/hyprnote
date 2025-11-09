@@ -40,7 +40,7 @@ export function TabContentEmpty({ tab: _tab }: { tab: Extract<Tab, { type: "empt
 
 function EmptyView() {
   const newNote = useNewNote({ behavior: "current" });
-  const { openCurrent } = useTabs();
+  const openCurrent = useTabs((state) => state.openCurrent);
   const openCalendar = useCallback(() => openCurrent({ type: "calendars", month: new Date() }), [openCurrent]);
   const openContacts = useCallback(() => openCurrent({ type: "contacts" }), [openCurrent]);
 

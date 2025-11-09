@@ -8,7 +8,7 @@ import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { getInitials } from "../../body/contacts/shared";
 
 export function SearchResultItem({ result }: { result: SearchResult }) {
-  const { openCurrent } = useTabs();
+  const openCurrent = useTabs(state => state.openCurrent);
 
   const handleClick = useCallback(() => {
     const tab = getTab(result);

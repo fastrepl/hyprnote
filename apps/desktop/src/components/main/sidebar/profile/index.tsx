@@ -27,7 +27,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   const [currentView, setCurrentView] = useState<ProfileView>("main");
   const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
   const mainViewRef = useRef<HTMLDivElement | null>(null);
-  const { openNew } = useTabs();
+  const openNew = useTabs(state => state.openNew);
   const auth = useAuth();
 
   const isAuthenticated = !!auth?.session;

@@ -1,11 +1,17 @@
 import { useRouteContext } from "@tanstack/react-router";
 import { useCallback } from "react";
+import { useShallow } from "zustand/shallow";
 import { useTabs } from "../../store/zustand/tabs";
 import { id } from "../../utils";
 
 export function useNewNote({ behavior = "new" }: { behavior?: "new" | "current" }) {
   const { persistedStore, internalStore } = useRouteContext({ from: "__root__" });
-  const { openNew, openCurrent } = useTabs();
+  const { openNew, openCurrent } = useTabs(
+    useShallow((state) => ({
+      openNew: state.openNew,
+      openCurrent: state.openCurrent,
+    })),
+  );
 
   const handler = useCallback(() => {
     const user_id = internalStore?.getValue("user_id");

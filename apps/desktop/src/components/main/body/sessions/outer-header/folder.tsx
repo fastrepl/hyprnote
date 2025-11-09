@@ -50,7 +50,7 @@ function RenderIfRootExist(
     handleChangeTitle: (title: string) => void;
   },
 ) {
-  const { openNew } = useTabs();
+  const openNew = useTabs((state) => state.openNew);
 
   return (
     <>

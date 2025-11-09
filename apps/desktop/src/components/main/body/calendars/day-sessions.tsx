@@ -7,7 +7,7 @@ import { useTabs } from "../../../../store/zustand/tabs";
 
 export function TabContentCalendarDaySessions({ sessionId }: { sessionId: string }) {
   const session = main.UI.useRow("sessions", sessionId, main.STORE_ID);
-  const { openNew } = useTabs();
+  const openNew = useTabs((state) => state.openNew);
 
   const eventId = session?.event_id ?? "";
   const event = main.UI.useRow("events", eventId, main.STORE_ID);

@@ -15,7 +15,7 @@ import { Transcript } from "./transcript";
 
 export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
-  const { updateSessionTabState } = useTabs();
+  const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const inactive = useListener((state) => state.live.status === "inactive");
   const [isEditing, setIsEditing] = useState(false);

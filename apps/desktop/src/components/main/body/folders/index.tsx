@@ -112,7 +112,7 @@ function TabContentFolderTopLevel() {
 
 function FolderCard({ folderId }: { folderId: string }) {
   const folder = main.UI.useRow("folders", folderId, main.STORE_ID);
-  const { openCurrent } = useTabs();
+  const openCurrent = useTabs((state) => state.openCurrent);
 
   const childFolderIds = main.UI.useSliceRowIds(
     main.INDEXES.foldersByParent,
@@ -200,7 +200,7 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
 }
 
 function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
-  const { openCurrent } = useTabs();
+  const openCurrent = useTabs((state) => state.openCurrent);
 
   return (
     <FolderBreadcrumb
@@ -227,7 +227,7 @@ function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
 
 function FolderSessionItem({ sessionId }: { sessionId: string }) {
   const session = main.UI.useRow("sessions", sessionId, main.STORE_ID);
-  const { openCurrent } = useTabs();
+  const openCurrent = useTabs((state) => state.openCurrent);
 
   return (
     <div

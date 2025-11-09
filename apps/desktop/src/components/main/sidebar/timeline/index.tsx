@@ -6,6 +6,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 
 import * as main from "../../../../store/tinybase/main";
+import { useTabs } from "../../../../store/zustand/tabs";
 import {
   buildTimelineBuckets,
   calculateIndicatorIndex,
@@ -20,6 +21,21 @@ import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
 export function TimelineView() {
   const buckets = useTimelineData();
   const hasToday = useMemo(() => buckets.some(bucket => bucket.label === "Today"), [buckets]);
+
+  const currentTab = useTabs((state) => state.currentTab);
+  const store = main.UI.useStore(main.STORE_ID);
+
+  const selectedSessionId = useMemo(() => {
+    return currentTab?.type === "sessions" ? currentTab.id : undefined;
+  }, [currentTab]);
+
+  const selectedEventId = useMemo(() => {
+    if (!selectedSessionId || !store) {
+      return undefined;
+    }
+    const session = store.getRow("sessions", selectedSessionId);
+    return session?.event_id ? String(session.event_id) : undefined;
+  }, [selectedSessionId, store]);
 
   const {
     containerRef,
@@ -90,16 +106,24 @@ export function TimelineView() {
                     items={bucket.items}
                     precision={bucket.precision}
                     registerIndicator={setCurrentTimeIndicatorRef}
+                    selectedSessionId={selectedSessionId}
+                    selectedEventId={selectedEventId}
                   />
                 )
                 : (
-                  bucket.items.map((item) => (
-                    <TimelineItemComponent
-                      key={`${item.type}-${item.id}`}
-                      item={item}
-                      precision={bucket.precision}
-                    />
-                  ))
+                  bucket.items.map((item) => {
+                    const selected = item.type === "session"
+                      ? item.id === selectedSessionId
+                      : item.id === selectedEventId;
+                    return (
+                      <TimelineItemComponent
+                        key={`${item.type}-${item.id}`}
+                        item={item}
+                        precision={bucket.precision}
+                        selected={selected}
+                      />
+                    );
+                  })
                 )}
             </div>
           );
@@ -135,10 +159,14 @@ function TodayBucket({
   items,
   precision,
   registerIndicator,
+  selectedSessionId,
+  selectedEventId,
 }: {
   items: TimelineItem[];
   precision: TimelinePrecision;
   registerIndicator: (node: HTMLDivElement | null) => void;
+  selectedSessionId: string | undefined;
+  selectedEventId: string | undefined;
 }) {
   const currentTimeMs = useCurrentTimeMs();
 
@@ -177,11 +205,16 @@ function TodayBucket({
         nodes.push(<CurrentTimeIndicator ref={registerIndicator} key="current-time-indicator" />);
       }
 
+      const selected = entry.item.type === "session"
+        ? entry.item.id === selectedSessionId
+        : entry.item.id === selectedEventId;
+
       nodes.push(
         <TimelineItemComponent
           key={`${entry.item.type}-${entry.item.id}`}
           item={entry.item}
           precision={precision}
+          selected={selected}
         />,
       );
     });
@@ -191,7 +224,7 @@ function TodayBucket({
     }
 
     return <>{nodes}</>;
-  }, [entries, indicatorIndex, precision, registerIndicator]);
+  }, [entries, indicatorIndex, precision, registerIndicator, selectedSessionId, selectedEventId]);
 
   return renderedEntries;
 }

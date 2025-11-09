@@ -11,7 +11,7 @@ import { useTabs } from "../../../../store/zustand/tabs";
 export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
   const event = main.UI.useRow("events", eventId, main.STORE_ID);
   const [open, setOpen] = useState(false);
-  const { openNew } = useTabs();
+  const openNew = useTabs((state) => state.openNew);
 
   const title = event?.title || "Untitled Event";
 

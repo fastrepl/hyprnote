@@ -3,6 +3,7 @@ import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "luci
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useShallow } from "zustand/shallow";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -20,7 +21,12 @@ import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 
 export function Body() {
-  const { tabs, currentTab } = useTabs();
+  const { tabs, currentTab } = useTabs(
+    useShallow((state) => ({
+      tabs: state.tabs,
+      currentTab: state.currentTab,
+    })),
+  );
 
   if (!currentTab) {
     return null;
@@ -41,7 +47,19 @@ export function Body() {
 
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
-  const { select, close, reorder, goBack, goNext, canGoBack, canGoNext, closeOthers, closeAll } = useTabs();
+  const { select, close, reorder, goBack, goNext, canGoBack, canGoNext, closeOthers, closeAll } = useTabs(
+    useShallow((state) => ({
+      select: state.select,
+      close: state.close,
+      reorder: state.reorder,
+      goBack: state.goBack,
+      goNext: state.goNext,
+      canGoBack: state.canGoBack,
+      canGoNext: state.canGoNext,
+      closeOthers: state.closeOthers,
+      closeAll: state.closeAll,
+    })),
+  );
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
 
@@ -341,7 +359,14 @@ function useScrollActiveTabIntoView(tabs: Tab[]) {
 }
 
 function useTabsShortcuts() {
-  const { tabs, currentTab, close, select } = useTabs();
+  const { tabs, currentTab, close, select } = useTabs(
+    useShallow((state) => ({
+      tabs: state.tabs,
+      currentTab: state.currentTab,
+      close: state.close,
+      select: state.select,
+    })),
+  );
   const newNote = useNewNote({ behavior: "new" });
   const newEmptyTab = useNewEmptyTab();
 
@@ -396,7 +421,7 @@ function useTabsShortcuts() {
 }
 
 function useNewEmptyTab() {
-  const { openNew } = useTabs();
+  const openNew = useTabs((state) => state.openNew);
 
   const handler = useCallback(() => {
     openNew({ type: "empty" });

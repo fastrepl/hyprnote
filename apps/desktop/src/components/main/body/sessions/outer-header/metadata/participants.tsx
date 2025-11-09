@@ -1,5 +1,6 @@
 import { CircleMinus, CornerDownLeft, Linkedin, MailIcon, SearchIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useShallow } from "zustand/shallow";
 
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { cn } from "@hypr/utils";
@@ -241,7 +242,14 @@ function useRemoveParticipant({
 function ParticipantItem({ mappingId }: { mappingId: string }) {
   const userId = main.UI.useValue("user_id", main.STORE_ID);
   const details = useParticipantDetails(mappingId);
-  const { tabs, openNew, updateContactsTabState, select } = useTabs();
+  const { tabs, openNew, updateContactsTabState, select } = useTabs(
+    useShallow((state) => ({
+      tabs: state.tabs,
+      openNew: state.openNew,
+      updateContactsTabState: state.updateContactsTabState,
+      select: state.select,
+    })),
+  );
 
   const assignedHumanId = details?.humanId;
   const sessionId = details?.sessionId;

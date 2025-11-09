@@ -11,9 +11,9 @@ use tokio_stream::{self as tokio_stream, StreamExt as TokioStreamExt};
 use crate::SessionEvent;
 
 const RESAMPLED_SAMPLE_RATE_HZ: u32 = 16_000;
-const BATCH_STREAM_TIMEOUT_SECS: u64 = 10;
+const BATCH_STREAM_TIMEOUT_SECS: u64 = 5;
 const DEFAULT_CHUNK_MS: u64 = 500;
-const DEFAULT_DELAY_MS: u64 = 10;
+const DEFAULT_DELAY_MS: u64 = 20;
 
 pub enum BatchMsg {
     StreamResponse(StreamResponse),
@@ -354,7 +354,6 @@ async fn process_batch_stream<S, E>(
                         let _ = myself.send_message(BatchMsg::StreamResponse(response));
 
                         if is_from_finalize {
-                            let _ = myself.send_message(BatchMsg::StreamEnded);
                             break;
                         }
                     }
@@ -365,7 +364,6 @@ async fn process_batch_stream<S, E>(
                     }
                     Ok(None) => {
                         tracing::info!("batch stream completed (total responses: {})", response_count);
-                        let _ = myself.send_message(BatchMsg::StreamEnded);
                         break;
                     }
                     Err(elapsed) => {
@@ -378,6 +376,7 @@ async fn process_batch_stream<S, E>(
         }
     }
 
+    let _ = myself.send_message(BatchMsg::StreamEnded);
     tracing::info!("batch stream processing loop exited");
 }
 

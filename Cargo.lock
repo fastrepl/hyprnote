@@ -321,6 +321,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "am2"
+version = "0.1.0"
+dependencies = [
+ "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+]
+
+[[package]]
 name = "analytics"
 version = "0.1.0"
 dependencies = [

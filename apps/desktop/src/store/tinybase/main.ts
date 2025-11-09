@@ -1,4 +1,6 @@
-import { format } from "@hypr/utils";
+import { listen, TauriEvent, type UnlistenFn } from "@tauri-apps/api/event";
+import { useEffect } from "react";
+import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
   createCheckpoints,
@@ -13,7 +15,8 @@ import {
 } from "tinybase/with-schemas";
 
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
-import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
+import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { format } from "@hypr/utils";
 import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
 import { externalTableSchemaForTinybase } from "./schema-external";
@@ -111,11 +114,42 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         storeIdColumnName: "id",
       });
 
-      await persister.startAutoPersisting();
+      await persister.startAutoLoad();
       return persister;
     },
-    [],
+    [persist],
   );
+
+  useEffect(() => {
+    if (!persist || !localPersister) {
+      return;
+    }
+
+    if (getCurrentWebviewWindowLabel() !== "main") {
+      return;
+    }
+
+    let unlistenClose: UnlistenFn | undefined;
+    let unlistenBlur: UnlistenFn | undefined;
+
+    const register = async () => {
+      unlistenClose = await listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async () => {
+        // We call prevent_close in the rust side
+        await localPersister.save();
+      }, { target: { kind: "WebviewWindow", label: "main" } });
+
+      unlistenBlur = await listen(TauriEvent.WINDOW_BLUR, async () => {
+        await localPersister.save();
+      }, { target: { kind: "WebviewWindow", label: "main" } });
+    };
+
+    void register();
+
+    return () => {
+      unlistenBlur?.();
+      unlistenClose?.();
+    };
+  }, [localPersister, persist]);
 
   const synchronizer = useCreateSynchronizer(
     store,

@@ -1,14 +1,10 @@
-// https://github.com/aidenybai/react-scan/blob/main/docs/installation/tanstack-start.md#as-a-module-import
-// react-scan must be imported before React and TanStack Start
-import { scan } from "react-scan";
-
 import { useQuery } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
 import { app } from "@tauri-apps/api";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
-import { events as windowsEvents, getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { events as windowsEvents } from "@hypr/plugin-windows";
 import { AuthProvider } from "../auth";
 import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
@@ -21,11 +17,6 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 
 function Component() {
   useNavigationEvents();
-
-  useEffect(() => {
-    const window = getCurrentWebviewWindowLabel();
-    scan({ enabled: window === "main", showNotificationCount: false });
-  }, []);
 
   return (
     <AuthProvider>

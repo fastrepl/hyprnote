@@ -2,7 +2,7 @@ import "../../styles.css";
 
 import { Markdown } from "@tiptap/markdown";
 import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useMemo, useRef } from "react";
 import { useDebounceCallback } from "usehooks-ts";
 import "requestidlecallback-polyfill";
 
@@ -49,24 +49,17 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       500,
     );
 
-    const editor = useEditor({
-      extensions: [
+    const extensions = useMemo(
+      () => [
         ...shared.getExtensions(placeholderComponent),
         mention(mentionConfig),
         Markdown,
       ],
-      editable,
-      contentType: "markdown",
-      content: initialContent || "",
-      onCreate: ({ editor }) => {
-        editor.view.dom.setAttribute("spellcheck", "false");
-        editor.view.dom.setAttribute("autocomplete", "off");
-        editor.view.dom.setAttribute("autocapitalize", "off");
-      },
-      onUpdate,
-      shouldRerenderOnTransaction: false,
-      parseOptions: { preserveWhitespace: "full" },
-      editorProps: {
+      [mentionConfig, placeholderComponent],
+    );
+
+    const editorProps: Parameters<typeof useEditor>[0]["editorProps"] = useMemo(
+      () => ({
         attributes: {
           class: "tiptap-normal",
         },
@@ -94,8 +87,29 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
           return false;
         },
+      }),
+      [],
+    );
+
+    const editor = useEditor(
+      {
+        extensions,
+        editable,
+        contentType: "markdown",
+        content: initialContent || "",
+        onCreate: ({ editor }) => {
+          editor.view.dom.setAttribute("spellcheck", "false");
+          editor.view.dom.setAttribute("autocomplete", "off");
+          editor.view.dom.setAttribute("autocapitalize", "off");
+        },
+        onUpdate,
+        immediatelyRender: true,
+        shouldRerenderOnTransaction: false,
+        parseOptions: { preserveWhitespace: "full" },
+        editorProps,
       },
-    });
+      [extensions],
+    );
 
     useEffect(() => {
       if (ref && typeof ref === "object") {

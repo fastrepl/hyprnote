@@ -36,6 +36,4 @@ pub fn compact_notch() {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-}
+mod tests {}

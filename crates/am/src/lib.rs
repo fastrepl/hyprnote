@@ -23,6 +23,7 @@ mod tests {
                 model: None,
                 model_repo: None,
                 model_folder: None,
+                custom_vocabulary: Some(vec![]),
             })
             .await
             .unwrap();

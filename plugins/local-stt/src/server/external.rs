@@ -57,7 +57,10 @@ impl Actor for ExternalSTTActor {
                     | Some(tauri_plugin_shell::process::CommandEvent::Stderr(bytes)) => {
                         if let Ok(text) = String::from_utf8(bytes) {
                             let text = text.trim();
-                            if !text.is_empty() && !text.contains("/v1/status") {
+                            if !text.is_empty()
+                                && !text.contains("[WebSocket]")
+                                && !text.contains("/v1/status")
+                            {
                                 tracing::info!("{}", text);
                             }
                         }

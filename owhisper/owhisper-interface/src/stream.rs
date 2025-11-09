@@ -155,10 +155,6 @@ impl StreamResponse {
                     for word in &mut alt.words {
                         word.start += offset_secs;
                         word.end += offset_secs;
-                        println!(
-                            "start: {}, end: {}, offset_secs: {}",
-                            word.start, word.end, offset_secs
-                        );
                     }
                 }
             }

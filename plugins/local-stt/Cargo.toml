@@ -27,10 +27,7 @@ hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
 hypr-language = { workspace = true, features = ["whisper"] }
 
-tauri-plugin-listener = { workspace = true }
-
 dirs = { workspace = true }
-inventory = { workspace = true }
 reqwest = { workspace = true }
 rodio = { workspace = true }
 similar = { workspace = true }

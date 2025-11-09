@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
-import * as main from "../../../store/tinybase/main";
 import { METRICS, QUERIES, STORE_ID, UI } from "../../../store/tinybase/main";
 import { id } from "../../../utils";
 
@@ -15,33 +14,53 @@ interface VocabItem {
 
 function useVocabMutations() {
   const store = UI.useStore(STORE_ID);
-  const internalStore = main.UI.useStore(main.STORE_ID);
-  const userId = internalStore?.getValue("user_id");
+  const userId = UI.useValue("user_id", STORE_ID);
+
+  const createRow = UI.useSetRowCallback(
+    "memories",
+    () => id(),
+    (text: string) => ({
+      user_id: userId!,
+      type: "vocab",
+      text,
+      created_at: new Date().toISOString(),
+    }),
+    [userId],
+    STORE_ID,
+  );
+
+  const updateRow = UI.useSetPartialRowCallback(
+    "memories",
+    ({ rowId }: { rowId: string; text: string }) => rowId,
+    ({ text }: { rowId: string; text: string }) => ({ text }),
+    [],
+    STORE_ID,
+  ) as (args: { rowId: string; text: string }) => void;
+
+  const deleteRow = UI.useDelRowCallback(
+    "memories",
+    (rowId: string) => rowId,
+    STORE_ID,
+  );
 
   return {
     create: (text: string) => {
       if (!store || !userId) {
         return;
       }
-      const newId = id();
-      store.setRow("memories", newId, {
-        user_id: userId,
-        type: "vocab",
-        text,
-        created_at: new Date().toISOString(),
-      });
+      createRow(text);
     },
     update: (rowId: string, text: string) => {
       if (!store) {
         return;
       }
-      store.setCell("memories", rowId, "text", text);
+      updateRow({ rowId, text });
     },
     delete: (rowId: string) => {
       if (!store) {
         return;
       }
-      store.delRow("memories", rowId);
+      deleteRow(rowId);
     },
   };
 }

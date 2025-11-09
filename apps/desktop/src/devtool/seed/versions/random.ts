@@ -99,7 +99,9 @@ export const randomSeed: SeedDefinition = {
   id: "random",
   label: "Random",
   run: (store: PersistedStore) => {
-    store.delTables();
-    store.setTables(RANDOM_DATA);
+    store.transaction(() => {
+      store.delTables();
+      store.setTables(RANDOM_DATA);
+    });
   },
 };

@@ -323,25 +323,20 @@ function useClearTranscript(sessionId: string) {
       }
     });
 
-    let hasChanges = false;
+    store.transaction(() => {
+      hintIds.forEach((hintId) => {
+        store.delRow("speaker_hints", hintId);
+      });
 
-    hintIds.forEach((hintId) => {
-      store.delRow("speaker_hints", hintId);
-      hasChanges = true;
+      wordIds.forEach((wordId) => {
+        store.delRow("words", wordId);
+      });
+
+      transcriptIds.forEach((transcriptId) => {
+        store.delRow("transcripts", transcriptId);
+      });
     });
 
-    wordIds.forEach((wordId) => {
-      store.delRow("words", wordId);
-      hasChanges = true;
-    });
-
-    transcriptIds.forEach((transcriptId) => {
-      store.delRow("transcripts", transcriptId);
-      hasChanges = true;
-    });
-
-    if (hasChanges) {
-      checkpoints?.addCheckpoint("redo_transcript:clear");
-    }
+    checkpoints?.addCheckpoint("redo_transcript:clear");
   }, [checkpoints, sessionId, store]);
 }

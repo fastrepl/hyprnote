@@ -252,7 +252,9 @@ export const debugSeed: SeedDefinition = {
   id: "debug",
   label: "Debug",
   run: (store: PersistedStore) => {
-    store.delTables();
-    store.setTables(DEBUG_DATA);
+    store.transaction(() => {
+      store.delTables();
+      store.setTables(DEBUG_DATA);
+    });
   },
 };

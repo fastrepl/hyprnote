@@ -5,6 +5,8 @@ export const emptySeed: SeedDefinition = {
   id: "empty",
   label: "Empty",
   run: (store: PersistedStore) => {
-    store.delTables();
+    store.transaction(() => {
+      store.delTables();
+    });
   },
 };

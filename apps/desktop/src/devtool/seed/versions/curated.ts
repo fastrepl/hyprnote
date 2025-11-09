@@ -7,9 +7,11 @@ export const curatedSeed: SeedDefinition = {
   id: "curated",
   label: "Curated",
   run: (store: PersistedStore) => {
-    store.delTables();
     const validated = CuratedDataSchema.parse(curatedData);
     const tables = loadCuratedData(validated);
-    store.setTables(tables);
+    store.transaction(() => {
+      store.delTables();
+      store.setTables(tables);
+    });
   },
 };

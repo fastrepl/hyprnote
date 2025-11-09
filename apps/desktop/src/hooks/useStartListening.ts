@@ -41,51 +41,53 @@ export function useStartListening(sessionId: string) {
         return;
       }
 
-      const wordIds: string[] = [];
+      store.transaction(() => {
+        const wordIds: string[] = [];
 
-      words.forEach((word) => {
-        const wordId = id();
-        const createdAt = new Date().toISOString();
+        words.forEach((word) => {
+          const wordId = id();
+          const createdAt = new Date().toISOString();
 
-        store.setRow("words", wordId, {
-          transcript_id: transcriptId,
-          text: word.text,
-          start_ms: word.start_ms,
-          end_ms: word.end_ms,
-          channel: word.channel,
-          user_id: user_id ?? "",
-          created_at: createdAt,
-        });
-
-        wordIds.push(wordId);
-      });
-
-      if (conn.provider === "deepgram") {
-        hints.forEach((hint) => {
-          if (hint.data.type !== "provider_speaker_index") {
-            return;
-          }
-
-          const wordId = wordIds[hint.wordIndex];
-          const word = words[hint.wordIndex];
-          if (!wordId || !word) {
-            return;
-          }
-
-          store.setRow("speaker_hints", id(), {
+          store.setRow("words", wordId, {
             transcript_id: transcriptId,
-            word_id: wordId,
-            type: "provider_speaker_index",
-            value: JSON.stringify({
-              provider: hint.data.provider ?? conn.provider,
-              channel: hint.data.channel ?? word.channel,
-              speaker_index: hint.data.speaker_index,
-            }),
+            text: word.text,
+            start_ms: word.start_ms,
+            end_ms: word.end_ms,
+            channel: word.channel,
             user_id: user_id ?? "",
-            created_at: new Date().toISOString(),
+            created_at: createdAt,
           });
+
+          wordIds.push(wordId);
         });
-      }
+
+        if (conn.provider === "deepgram") {
+          hints.forEach((hint) => {
+            if (hint.data.type !== "provider_speaker_index") {
+              return;
+            }
+
+            const wordId = wordIds[hint.wordIndex];
+            const word = words[hint.wordIndex];
+            if (!wordId || !word) {
+              return;
+            }
+
+            store.setRow("speaker_hints", id(), {
+              transcript_id: transcriptId,
+              word_id: wordId,
+              type: "provider_speaker_index",
+              value: JSON.stringify({
+                provider: hint.data.provider ?? conn.provider,
+                channel: hint.data.channel ?? word.channel,
+                speaker_index: hint.data.speaker_index,
+              }),
+              user_id: user_id ?? "",
+              created_at: new Date().toISOString(),
+            });
+          });
+        }
+      });
     };
 
     start(

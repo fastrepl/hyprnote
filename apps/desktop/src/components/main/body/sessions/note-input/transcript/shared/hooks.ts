@@ -260,6 +260,7 @@ export function useScrollDetection(containerRef: RefObject<HTMLDivElement | null
 export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps: DependencyList) {
   const rafRef = useRef<number | null>(null);
   const lastHeightRef = useRef(0);
+  const initialFlushRef = useRef(true);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -271,15 +272,15 @@ export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps:
 
     const isPinned = () => {
       const distanceToBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
-      return element.scrollTop === 0 || distanceToBottom < 80;
+      return distanceToBottom < 80;
     };
 
     const flush = () => {
       element.scrollTop = element.scrollHeight;
     };
 
-    const schedule = () => {
-      if (!isPinned()) {
+    const schedule = (force = false) => {
+      if (!force && !isPinned()) {
         return;
       }
 
@@ -292,7 +293,12 @@ export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps:
       });
     };
 
-    schedule();
+    if (initialFlushRef.current) {
+      initialFlushRef.current = false;
+      schedule(true);
+    } else {
+      schedule();
+    }
 
     if (typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
       const mutationObserver = new MutationObserver(() => {

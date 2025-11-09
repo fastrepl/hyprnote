@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 
 import { TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
@@ -25,6 +25,16 @@ export const EnhancedEditor = forwardRef<{ editor: TiptapEditor | null }, { sess
       main.STORE_ID,
     );
 
+    const mentionConfig = useMemo(
+      () => ({
+        trigger: "@",
+        handleSearch: async () => {
+          return [];
+        },
+      }),
+      [],
+    );
+
     return (
       <div className="h-full">
         <NoteEditor
@@ -32,12 +42,7 @@ export const EnhancedEditor = forwardRef<{ editor: TiptapEditor | null }, { sess
           key={`session-${sessionId}-enhanced`}
           initialContent={initialContent}
           handleChange={handleChange}
-          mentionConfig={{
-            trigger: "@",
-            handleSearch: async () => {
-              return [];
-            },
-          }}
+          mentionConfig={mentionConfig}
         />
       </div>
     );

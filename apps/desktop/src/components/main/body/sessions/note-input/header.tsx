@@ -1,6 +1,6 @@
 import { cn } from "@hypr/utils";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
@@ -77,6 +77,35 @@ function HeaderTabEnhanced(
     );
   }
 
+  const regenerateTrigger = (
+    <PopoverTrigger asChild>
+      <span
+        className={cn([
+          "group relative inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
+          isError
+            ? [
+              "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
+            ]
+            : ["hover:bg-neutral-200 focus-visible:bg-neutral-200"],
+        ])}
+      >
+        {isError && (
+          <AlertCircleIcon
+            size={12}
+            className="pointer-events-none absolute inset-0 m-auto transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
+          />
+        )}
+        <RefreshCcwIcon
+          size={12}
+          className={cn([
+            "pointer-events-none absolute inset-0 m-auto transition-opacity duration-200",
+            isError ? "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100" : "opacity-100",
+          ])}
+        />
+      </span>
+    </PopoverTrigger>
+  );
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <button
@@ -91,25 +120,20 @@ function HeaderTabEnhanced(
         <span className="flex items-center gap-1">
           <span>Summary</span>
           {isActive && (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <PopoverTrigger asChild>
-                  <span
-                    className={cn([
-                      "p-0.5 rounded hover:bg-neutral-200 transition-colors cursor-pointer",
-                      isError && "text-red-600 hover:bg-red-50",
-                    ])}
-                  >
-                    {isError ? <AlertCircleIcon size={12} /> : <RefreshCcwIcon size={12} />}
-                  </span>
-                </PopoverTrigger>
-              </TooltipTrigger>
-              {isError && error && (
-                <TooltipContent side="bottom">
-                  <p className="text-xs max-w-xs">{error instanceof Error ? error.message : String(error)}</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
+            <div className="flex items-center gap-1">
+              {isError
+                ? (
+                  <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>{regenerateTrigger}</TooltipTrigger>
+                    {error && (
+                      <TooltipContent side="bottom">
+                        <p className="text-xs max-w-xs">{error instanceof Error ? error.message : String(error)}</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                )
+                : regenerateTrigger}
+            </div>
           )}
         </span>
       </button>
@@ -259,6 +283,7 @@ function labelForEditorView(view: EditorView): string {
 function useEnhanceLogic(sessionId: string) {
   const model = useLanguageModel();
   const taskId = createTaskId(sessionId, "enhance");
+  const [missingModelError, setMissingModelError] = useState<Error | null>(null);
 
   const updateEnhancedMd = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -280,8 +305,11 @@ function useEnhanceLogic(sessionId: string) {
 
   const onRegenerate = useCallback(async (templateId: string | null) => {
     if (!model) {
+      setMissingModelError(new Error("Intelligence provider not configured."));
       return;
     }
+
+    setMissingModelError(null);
 
     await enhanceTask.start({
       model,
@@ -289,12 +317,21 @@ function useEnhanceLogic(sessionId: string) {
     });
   }, [model, enhanceTask.start, sessionId]);
 
+  useEffect(() => {
+    if (model && missingModelError) {
+      setMissingModelError(null);
+    }
+  }, [model, missingModelError]);
+
+  const error = missingModelError ?? enhanceTask.error;
+  const isError = !!missingModelError || enhanceTask.isError;
+
   return {
     model,
     templates,
     isGenerating: enhanceTask.isGenerating,
-    isError: enhanceTask.isError,
-    error: enhanceTask.error,
+    isError,
+    error,
     onRegenerate,
   };
 }

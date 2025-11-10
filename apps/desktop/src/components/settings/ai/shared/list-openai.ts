@@ -3,6 +3,7 @@ import {
   DEFAULT_RESULT,
   fetchJson,
   type ListModelsResult,
+  type ModelIgnoreReason,
   partition,
   REQUEST_TIMEOUT,
   shouldIgnoreCommonKeywords,
@@ -22,7 +23,19 @@ export async function listOpenAIModels(baseUrl: string, apiKey: string): Promise
   return pipe(
     fetchJson(`${baseUrl}/models`, { "Authorization": `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
-    Effect.map(({ data }) => partition(data, (model) => !shouldIgnoreCommonKeywords(model.id), (model) => model.id)),
+    Effect.map(({ data }) =>
+      partition(
+        data,
+        (model) => {
+          const reasons: ModelIgnoreReason[] = [];
+          if (shouldIgnoreCommonKeywords(model.id)) {
+            reasons.push("common_keyword");
+          }
+          return reasons.length > 0 ? reasons : null;
+        },
+        (model) => model.id,
+      )
+    ),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
@@ -37,7 +50,19 @@ export async function listAnthropicModels(baseUrl: string, apiKey: string): Prom
   return pipe(
     fetchJson(`${baseUrl}/models`, { "Authorization": `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
-    Effect.map(({ data }) => partition(data, (model) => !shouldIgnoreCommonKeywords(model.id), (model) => model.id)),
+    Effect.map(({ data }) =>
+      partition(
+        data,
+        (model) => {
+          const reasons: ModelIgnoreReason[] = [];
+          if (shouldIgnoreCommonKeywords(model.id)) {
+            reasons.push("common_keyword");
+          }
+          return reasons.length > 0 ? reasons : null;
+        },
+        (model) => model.id,
+      )
+    ),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
@@ -52,7 +77,19 @@ export async function listGenericModels(baseUrl: string, apiKey: string): Promis
   return pipe(
     fetchJson(`${baseUrl}/models`, { "Authorization": `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
-    Effect.map(({ data }) => partition(data, (model) => !shouldIgnoreCommonKeywords(model.id), (model) => model.id)),
+    Effect.map(({ data }) =>
+      partition(
+        data,
+        (model) => {
+          const reasons: ModelIgnoreReason[] = [];
+          if (shouldIgnoreCommonKeywords(model.id)) {
+            reasons.push("common_keyword");
+          }
+          return reasons.length > 0 ? reasons : null;
+        },
+        (model) => model.id,
+      )
+    ),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,

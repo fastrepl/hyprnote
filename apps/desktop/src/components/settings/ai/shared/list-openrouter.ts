@@ -4,6 +4,7 @@ import {
   DEFAULT_RESULT,
   fetchJson,
   type ListModelsResult,
+  type ModelIgnoreReason,
   partition,
   REQUEST_TIMEOUT,
   shouldIgnoreCommonKeywords,
@@ -37,15 +38,24 @@ export async function listOpenRouterModels(baseUrl: string, apiKey: string): Pro
     !model.supported_parameters
     || ["tools", "tool_choice"].every((parameter) => model.supported_parameters?.includes(parameter));
 
-  const shouldIncludeModel = (model: OpenRouterModel): boolean =>
-    !hasCommonIgnoreKeywords(model)
-    && supportsTextInput(model)
-    && supportsToolUse(model);
+  const getIgnoreReasons = (model: OpenRouterModel): ModelIgnoreReason[] | null => {
+    const reasons: ModelIgnoreReason[] = [];
+    if (hasCommonIgnoreKeywords(model)) {
+      reasons.push("common_keyword");
+    }
+    if (!supportsTextInput(model)) {
+      reasons.push("no_text_input");
+    }
+    if (!supportsToolUse(model)) {
+      reasons.push("no_tool");
+    }
+    return reasons.length > 0 ? reasons : null;
+  };
 
   return pipe(
     fetchJson(`${baseUrl}/models`, { "Authorization": `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenRouterModelSchema)(json)),
-    Effect.map(({ data }) => partition(data, shouldIncludeModel, (model) => model.id)),
+    Effect.map(({ data }) => partition(data, getIgnoreReasons, (model) => model.id)),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,

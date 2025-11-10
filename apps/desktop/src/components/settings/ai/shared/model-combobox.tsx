@@ -12,8 +12,9 @@ import {
   CommandList,
 } from "@hypr/ui/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
-import type { ListModelsResult } from "./list-common";
+import type { ListModelsResult, ModelIgnoreReason } from "./list-common";
 
 const filterFunction = (value: string, search: string) => {
   const v = value.toLocaleLowerCase();
@@ -22,6 +23,23 @@ const filterFunction = (value: string, search: string) => {
     return 1;
   }
   return 0;
+};
+
+const formatIgnoreReason = (reason: ModelIgnoreReason): string => {
+  switch (reason) {
+    case "common_keyword":
+      return "Contains common ignore keyword";
+    case "no_tool":
+      return "No tool support";
+    case "no_text_input":
+      return "No text input support";
+    case "no_completion":
+      return "No completion support";
+    case "not_llm":
+      return "Not an LLM type";
+    case "context_too_small":
+      return "Context length too small";
+  }
 };
 
 export function ModelCombobox({
@@ -51,7 +69,7 @@ export function ModelCombobox({
   });
 
   const options: string[] = useMemo(() => fetchedResult?.models ?? [], [fetchedResult]);
-  const ignoredOptions: string[] = useMemo(() => fetchedResult?.ignored ?? [], [fetchedResult]);
+  const ignoredOptions = useMemo(() => fetchedResult?.ignored ?? [], [fetchedResult]);
   const trimmedQuery = query.trim();
   const hasExactMatch = useMemo(
     () => options.some((option) => option.toLocaleLowerCase() === trimmedQuery.toLocaleLowerCase()),
@@ -132,28 +150,38 @@ export function ModelCombobox({
                 </CommandItem>
               ))}
 
-              {showIgnored && ignoredOptions.map((option) => (
-                <CommandItem
-                  key={`ignored-${option}`}
-                  tabIndex={0}
-                  value={option}
-                  onSelect={() => {
-                    handleSelect(option);
-                  }}
-                  onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-                    if (event.key === "Enter") {
-                      event.stopPropagation();
-                      handleSelect(option);
-                    }
-                  }}
-                  className={cn([
-                    "cursor-pointer opacity-50",
-                    "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
-                  ])}
-                >
-                  <span className="truncate">{option}</span>
-                </CommandItem>
-              ))}
+              {showIgnored
+                && ignoredOptions.map((option) => (
+                  <CommandItem
+                    key={`ignored-${option.id}`}
+                    tabIndex={0}
+                    value={option.id}
+                    onSelect={() => {
+                      handleSelect(option.id);
+                    }}
+                    onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+                      if (event.key === "Enter") {
+                        event.stopPropagation();
+                        handleSelect(option.id);
+                      }
+                    }}
+                    className={cn([
+                      "cursor-pointer opacity-50",
+                      "focus:!bg-neutral-200 hover:!bg-neutral-200 aria-selected:bg-transparent",
+                    ])}
+                  >
+                    <Tooltip delayDuration={10}>
+                      <TooltipTrigger asChild>
+                        <span className="truncate w-full">{option.id}</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="text-xs">
+                        <div className="flex flex-col gap-0.5">
+                          {option.reasons.map((reason) => <div key={reason}>• {formatIgnoreReason(reason)}</div>)}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </CommandItem>
+                ))}
 
               {canSelectFreeform && (
                 <CommandItem

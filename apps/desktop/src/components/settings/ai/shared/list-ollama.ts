@@ -1,7 +1,13 @@
 import { Effect, pipe } from "effect";
 import { Ollama } from "ollama/browser";
 
-import { DEFAULT_RESULT, type ListModelsResult, REQUEST_TIMEOUT } from "./list-common";
+import {
+  DEFAULT_RESULT,
+  type IgnoredModel,
+  type ListModelsResult,
+  type ModelIgnoreReason,
+  REQUEST_TIMEOUT,
+} from "./list-common";
 
 export async function listOllamaModels(baseUrl: string, _apiKey: string): Promise<ListModelsResult> {
   if (!baseUrl) {
@@ -73,7 +79,7 @@ const summarizeOllamaDetails = (
   details: Array<{ name: string; capabilities: string[]; isRunning: boolean }>,
 ): ListModelsResult => {
   const supported: Array<{ name: string; isRunning: boolean }> = [];
-  const ignored: string[] = [];
+  const ignored: IgnoredModel[] = [];
 
   for (const detail of details) {
     const hasCompletion = detail.capabilities.includes("completion");
@@ -82,7 +88,14 @@ const summarizeOllamaDetails = (
     if (hasCompletion && hasTools) {
       supported.push({ name: detail.name, isRunning: detail.isRunning });
     } else {
-      ignored.push(detail.name);
+      const reasons: ModelIgnoreReason[] = [];
+      if (!hasCompletion) {
+        reasons.push("no_completion");
+      }
+      if (!hasTools) {
+        reasons.push("no_tool");
+      }
+      ignored.push({ id: detail.name, reasons });
     }
   }
 

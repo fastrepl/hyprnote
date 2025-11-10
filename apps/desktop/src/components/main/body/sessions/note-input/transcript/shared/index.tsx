@@ -10,13 +10,7 @@ import { SelectionMenu } from "./selection-menu";
 
 export { SegmentRenderer } from "./segment-renderer";
 
-export function TranscriptContainer({
-  sessionId,
-  operations,
-}: {
-  sessionId: string;
-  operations?: Operations;
-}) {
+export function TranscriptContainer({ sessionId, operations }: { sessionId: string; operations?: Operations }) {
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
     sessionId,
@@ -35,6 +29,7 @@ export function TranscriptContainer({
     containerRef.current = node;
     setScrollElement(node);
   }, []);
+
   const { isAtBottom, scrollToBottom } = useScrollDetection(containerRef);
   useAutoScroll(containerRef, [transcriptIds, partialWords]);
 
@@ -52,6 +47,7 @@ export function TranscriptContainer({
     <div className="relative h-full">
       <div
         ref={handleContainerRef}
+        data-transcript-container
         className={cn([
           "space-y-8 h-full overflow-y-auto overflow-x-hidden",
           "pb-16 scroll-pb-[8rem] scrollbar-hide",

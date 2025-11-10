@@ -61,10 +61,7 @@ export function Transcript({ sessionId, isEditing }: { sessionId: string; isEdit
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
-      <TranscriptContainer
-        sessionId={sessionId}
-        operations={operations}
-      />
+      <TranscriptContainer sessionId={sessionId} operations={operations} />
     </div>
   );
 }

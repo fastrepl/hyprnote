@@ -11,6 +11,8 @@ import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 import { FloatingActionButton } from "./floating";
 import { NoteInput } from "./note-input";
+import { SearchBar } from "./note-input/transcript/search-bar";
+import { SearchProvider, useTranscriptSearch } from "./note-input/transcript/search-context";
 import { OuterHeader } from "./outer-header";
 import { TitleInput } from "./title-input";
 
@@ -58,26 +60,43 @@ export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }
   });
 
   const showTimeline = tab.state.editor === "transcript"
-    && audioUrl && listenerStatus === "inactive";
+    && Boolean(audioUrl) && listenerStatus === "inactive";
 
   return (
-    <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
-      <StandardTabWrapper
-        afterBorder={showTimeline && <AudioPlayer.Timeline />}
-        floatingButton={<FloatingActionButton tab={tab} />}
-      >
-        <div className="flex flex-col h-full">
-          <div className="px-2">
-            <OuterHeader sessionId={tab.id} />
-          </div>
-          <div className="mt-2 px-3 flex-shrink-0">
-            <TitleInput tab={tab} />
-          </div>
-          <div className="mt-2 px-2 flex-1 min-h-0">
-            <NoteInput tab={tab} />
-          </div>
+    <SearchProvider>
+      <AudioPlayer.Provider sessionId={tab.id} url={audioUrl ?? ""}>
+        <TabContentNoteInner tab={tab} showTimeline={showTimeline} />
+      </AudioPlayer.Provider>
+    </SearchProvider>
+  );
+}
+
+function TabContentNoteInner({
+  tab,
+  showTimeline,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+  showTimeline: boolean;
+}) {
+  const search = useTranscriptSearch();
+  const showSearchBar = search?.isVisible ?? false;
+
+  return (
+    <StandardTabWrapper
+      afterBorder={showTimeline && <AudioPlayer.Timeline />}
+      floatingButton={<FloatingActionButton tab={tab} />}
+    >
+      <div className="flex flex-col h-full">
+        <div className="px-2">
+          {showSearchBar ? <SearchBar /> : <OuterHeader sessionId={tab.id} />}
         </div>
-      </StandardTabWrapper>
-    </AudioPlayer.Provider>
+        <div className="mt-2 px-3 flex-shrink-0">
+          <TitleInput tab={tab} />
+        </div>
+        <div className="mt-2 px-2 flex-1 min-h-0">
+          <NoteInput tab={tab} />
+        </div>
+      </div>
+    </StandardTabWrapper>
   );
 }

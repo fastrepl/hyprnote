@@ -5,8 +5,9 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { SegmentWord } from "../../../../../../../utils/segment";
+import { useTranscriptSearch } from "../search-context";
 import { Operations } from "./operations";
 
 export function WordSpan({
@@ -23,12 +24,16 @@ export function WordSpan({
   onClickWord: (word: SegmentWord) => void;
 }) {
   const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
+  const { isMatch, isActive } = useTranscriptSearchHighlights(word);
+
   const className = cn([
     audioExists && "cursor-pointer",
     audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
     !word.isFinal && ["opacity-60", "italic"],
-    highlightState === "current" && "bg-blue-200/70",
-    highlightState === "buffer" && "bg-blue-200/30",
+    highlightState === "current" && !isMatch && "bg-blue-200/70",
+    highlightState === "buffer" && !isMatch && "bg-blue-200/30",
+    isMatch && !isActive && "bg-yellow-200/50",
+    isActive && "bg-yellow-400",
   ]);
 
   const handleClick = useCallback(() => {
@@ -39,7 +44,7 @@ export function WordSpan({
     return (
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <span onClick={handleClick} className={className}>
+          <span onClick={handleClick} className={className} data-word-id={word.id}>
             {word.text}
           </span>
         </ContextMenuTrigger>
@@ -53,8 +58,27 @@ export function WordSpan({
   }
 
   return (
-    <span onClick={handleClick} className={className}>
+    <span onClick={handleClick} className={className} data-word-id={word.id}>
       {word.text}
     </span>
   );
+}
+
+function useTranscriptSearchHighlights(word: SegmentWord) {
+  const search = useTranscriptSearch();
+  const query = search?.query ?? "";
+  const isVisible = Boolean(search?.isVisible);
+  const activeMatchId = search?.activeMatchId ?? null;
+
+  const isMatch = useMemo(() => {
+    if (!isVisible || !query || !word.text) {
+      return false;
+    }
+
+    return word.text.toLowerCase().includes(query.toLowerCase());
+  }, [isVisible, query, word.text]);
+
+  const isActive = word.id === activeMatchId;
+
+  return { isMatch, isActive };
 }

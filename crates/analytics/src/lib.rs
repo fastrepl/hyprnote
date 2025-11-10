@@ -19,12 +19,16 @@ impl AnalyticsClient {
         }
     }
 
-    pub async fn event(&self, payload: AnalyticsPayload) -> Result<(), Error> {
+    pub async fn event(
+        &self,
+        distinct_id: impl Into<String>,
+        payload: AnalyticsPayload,
+    ) -> Result<(), Error> {
         if !hypr_network::is_online().await {
             return Ok(());
         }
 
-        let mut e = posthog::Event::new(payload.event, payload.distinct_id);
+        let mut e = posthog::Event::new(payload.event, distinct_id.into());
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
         for (key, value) in payload.props {
@@ -48,12 +52,17 @@ impl AnalyticsClient {
         Ok(())
     }
 
-    pub async fn set_properties(&self, payload: PropertiesPayload) -> Result<(), Error> {
+    pub async fn set_properties(
+        &self,
+        distinct_id: impl Into<String>,
+        payload: PropertiesPayload,
+    ) -> Result<(), Error> {
         if !hypr_network::is_online().await {
             return Ok(());
         }
 
-        let mut e = posthog::Event::new("$set", &payload.distinct_id);
+        let distinct_id = distinct_id.into();
+        let mut e = posthog::Event::new("$set", &distinct_id);
         e.set_timestamp(chrono::Utc::now().naive_utc());
 
         if !payload.set.is_empty() {
@@ -104,15 +113,13 @@ impl AnalyticsClient {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct AnalyticsPayload {
-    event: String,
-    distinct_id: String,
+    pub event: String,
     #[serde(flatten)]
     pub props: HashMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct PropertiesPayload {
-    pub distinct_id: String,
     #[serde(default)]
     pub set: HashMap<String, serde_json::Value>,
     #[serde(default)]
@@ -122,26 +129,19 @@ pub struct PropertiesPayload {
 #[derive(Clone)]
 pub struct AnalyticsPayloadBuilder {
     event: Option<String>,
-    distinct_id: String,
     props: HashMap<String, serde_json::Value>,
 }
 
 impl AnalyticsPayload {
-    pub fn for_user(user_id: impl Into<String>) -> AnalyticsPayloadBuilder {
+    pub fn new(event: impl Into<String>) -> AnalyticsPayloadBuilder {
         AnalyticsPayloadBuilder {
-            event: None,
-            distinct_id: user_id.into(),
+            event: Some(event.into()),
             props: HashMap::new(),
         }
     }
 }
 
 impl AnalyticsPayloadBuilder {
-    pub fn event(mut self, name: impl Into<String>) -> Self {
-        self.event = Some(name.into());
-        self
-    }
-
     pub fn with(mut self, key: impl Into<String>, value: impl Into<serde_json::Value>) -> Self {
         self.props.insert(key.into(), value.into());
         self
@@ -154,7 +154,6 @@ impl AnalyticsPayloadBuilder {
 
         AnalyticsPayload {
             event: self.event.unwrap(),
-            distinct_id: self.distinct_id,
             props: self.props,
         }
     }
@@ -168,12 +167,11 @@ mod tests {
     #[tokio::test]
     async fn test_analytics() {
         let client = AnalyticsClient::new("");
-        let payload = AnalyticsPayload::for_user("user_id_123")
-            .event("test_event")
+        let payload = AnalyticsPayload::new("test_event")
             .with("key1", "value1")
             .with("key2", 2)
             .build();
 
-        client.event(payload).await.unwrap();
+        client.event("machine_id_123", payload).await.unwrap();
     }
 }

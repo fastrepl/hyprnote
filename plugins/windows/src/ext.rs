@@ -80,13 +80,7 @@ impl AppWindow {
             use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
             use tauri_plugin_auth::{AuthPluginExt, StoreKey};
 
-            let user_id = app
-                .get_from_store(StoreKey::UserId)?
-                .unwrap_or("UNKNOWN".into());
-
-            let e = AnalyticsPayload::for_user(user_id)
-                .event("show_main_window")
-                .build();
+            let e = AnalyticsPayload::new("show_main_window").build();
 
             let app_clone = app.clone();
             tauri::async_runtime::spawn(async move {
@@ -180,8 +174,8 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
             {
                 use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
 
-                let e = AnalyticsPayload::for_user(user_id)
-                    .event(event_name)
+                let e = AnalyticsPayload::new(event_name)
+                    .with("user_id", user_id)
                     .with("session_id", session_id)
                     .build();
 

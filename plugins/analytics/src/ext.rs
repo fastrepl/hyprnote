@@ -25,6 +25,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
         let app_identifier = self.config().identifier.clone();
         let git_hash = self.get_git_hash();
         let bundle_id = self.config().identifier.clone();
+        let machine_id = hypr_host::fingerprint();
 
         payload
             .props
@@ -38,18 +39,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
 
         payload
             .props
-            .entry("bundle_id".into())
-            .or_insert(bundle_id.into());
+            .entry("git_hash".into())
+            .or_insert(git_hash.into());
 
         payload
             .props
-            .entry("git_hash".into())
-            .or_insert(git_hash.into());
+            .entry("bundle_id".into())
+            .or_insert(bundle_id.into());
 
         if !self.is_disabled()? {
             let client = self.state::<hypr_analytics::AnalyticsClient>();
             client
-                .event(payload)
+                .event(machine_id, payload)
                 .await
                 .map_err(crate::Error::HyprAnalytics)?;
         }
@@ -76,9 +77,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
         payload: hypr_analytics::PropertiesPayload,
     ) -> Result<(), crate::Error> {
         if !self.is_disabled()? {
+            let machine_id = hypr_host::fingerprint();
             let client = self.state::<hypr_analytics::AnalyticsClient>();
             client
-                .set_properties(payload)
+                .set_properties(machine_id, payload)
                 .await
                 .map_err(crate::Error::HyprAnalytics)?;
         }

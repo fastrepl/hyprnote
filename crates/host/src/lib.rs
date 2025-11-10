@@ -1,4 +1,3 @@
-use mac_address2::get_mac_address;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use sysinfo::System;
 
@@ -11,20 +10,7 @@ pub fn long_os_version() -> String {
 }
 
 pub fn fingerprint() -> String {
-    let mac_address = get_mac_address()
-        .ok()
-        .flatten()
-        .map(|addr| addr.to_string())
-        .unwrap_or_default();
-
-    let sys_name = System::name().unwrap_or_default();
-    let sys_host_name = System::host_name().unwrap_or_default();
-    let sys_cpu_arch = System::cpu_arch();
-
-    let fingerprint = format!(
-        "{}-{}-{}-{}",
-        sys_cpu_arch, sys_name, sys_host_name, mac_address
-    );
+    let fingerprint = machine_uid::get().unwrap_or_default();
 
     let mut hasher = DefaultHasher::new();
     fingerprint.hash(&mut hasher);

@@ -1,0 +1,8 @@
+- Scope: `apps/desktop/src` folder.
+- Usage:
+    - `import { commands as analyticsCommands } from "@hypr/plugin-analytics";`.
+    - `analyticsCommands.event({ event: "SOMETHING_USING_UNDERBAR", other_props_a: "1", other_props_b: 2 })`
+    - `analyticsCommands.setProperties({ set: {} })`
+- Resources:
+    - https://posthog.com/docs/product-analytics/person-properties.md
+    - `plugins/analytics/js/bindings.gen.ts`

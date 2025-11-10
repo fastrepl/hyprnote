@@ -194,7 +194,7 @@ export const createGeneralSlice = <
     Effect.runPromiseExit(program).then((exit) => {
       Exit.match(exit, {
         onFailure: (cause) => {
-          console.error("Failed to start session:", cause);
+          console.error(JSON.stringify(cause));
           set((state) =>
             mutate(state, (draft) => {
               if (draft.live.intervalId) {

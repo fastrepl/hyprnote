@@ -9,7 +9,7 @@ import { cn } from "@hypr/utils";
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
-import { displayModelId, LANGUAGE_SUPPORT, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
+import { displayModelId, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function SelectProviderAndModel() {
   const { current_stt_provider, current_stt_model } = useConfigValues(
@@ -180,7 +180,6 @@ function HealthCheck() {
   );
   const current_stt_provider = configs.current_stt_provider as string | undefined;
   const current_stt_model = configs.current_stt_model as string | undefined;
-  const parsedLanguages = configs.spoken_languages as string[];
 
   const experimental_handleServer = useCallback(() => {
     if (
@@ -201,19 +200,6 @@ function HealthCheck() {
 
   const conn = useSTTConnection();
 
-  const languageWarnings: string[] = [];
-  if (current_stt_provider && current_stt_model) {
-    const providerLanguageSupport = LANGUAGE_SUPPORT[current_stt_provider as ProviderId] as Record<string, string[]>;
-    const supportedLanguages = providerLanguageSupport[current_stt_model];
-
-    if (supportedLanguages) {
-      const unsupportedLanguages = parsedLanguages.filter(lang => !supportedLanguages.includes(lang));
-      if (unsupportedLanguages.length > 0) {
-        languageWarnings.push(`Language(s) not supported: ${unsupportedLanguages.join(", ")}`);
-      }
-    }
-  }
-
   const isLocalModel = current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-") === true;
   const hasServerIssue = isLocalModel && !conn?.baseUrl;
 
@@ -229,13 +215,6 @@ function HealthCheck() {
       return {
         color: "bg-red-400",
         tooltipMessage: "Local server not ready. Click to restart.",
-      };
-    }
-
-    if (languageWarnings.length > 0) {
-      return {
-        color: "bg-yellow-400",
-        tooltipMessage: languageWarnings.join(" "),
       };
     }
 

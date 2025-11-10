@@ -18,7 +18,6 @@ export function useStartListening(sessionId: string) {
   const conn = useSTTConnection();
 
   const keywords = useKeywords(sessionId);
-  const languages = useConfigValue("spoken_languages");
 
   const startListening = useCallback(() => {
     if (!conn || !store) {
@@ -93,7 +92,7 @@ export function useStartListening(sessionId: string) {
     start(
       {
         session_id: sessionId,
-        languages,
+        languages: ["en"],
         onboarding: false,
         record_enabled,
         model: conn.model,
@@ -105,7 +104,7 @@ export function useStartListening(sessionId: string) {
         handlePersist,
       },
     );
-  }, [conn, store, sessionId, start, keywords, languages]);
+  }, [conn, store, sessionId, start, keywords]);
 
   return startListening;
 }

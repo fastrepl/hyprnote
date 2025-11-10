@@ -7,7 +7,6 @@ import * as main from "../../../store/tinybase/main";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
 import { Permissions } from "./permissions";
-import { SpokenLanguagesView } from "./spoken-languages";
 
 export function SettingsGeneral() {
   const value = useConfigValues(
@@ -112,15 +111,6 @@ export function SettingsGeneral() {
           <form.Field name="ai_language">
             {(field) => (
               <MainLanguageView
-                value={field.state.value}
-                onChange={(val) => field.handleChange(val)}
-                supportedLanguages={SUPPORTED_LANGUAGES}
-              />
-            )}
-          </form.Field>
-          <form.Field name="spoken_languages">
-            {(field) => (
-              <SpokenLanguagesView
                 value={field.state.value}
                 onChange={(val) => field.handleChange(val)}
                 supportedLanguages={SUPPORTED_LANGUAGES}

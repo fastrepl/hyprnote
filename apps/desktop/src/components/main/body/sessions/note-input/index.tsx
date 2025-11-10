@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
+import { useHotkeys } from "react-hotkeys-hook";
 import { useListener } from "../../../../../contexts/listener";
 import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
 import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
@@ -29,6 +30,12 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
   };
 
   const currentTab: EditorView = useCurrentNoteTab(tab);
+
+  useTabShortcuts({
+    editorTabs,
+    currentTab,
+    handleTabChange,
+  });
 
   useEffect(() => {
     if (currentTab === "transcript" && editorRef.current) {
@@ -68,5 +75,48 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
         {currentTab === "transcript" && <Transcript sessionId={sessionId} isEditing={isEditing} />}
       </div>
     </div>
+  );
+}
+
+function useTabShortcuts({
+  editorTabs,
+  currentTab,
+  handleTabChange,
+}: {
+  editorTabs: EditorView[];
+  currentTab: EditorView;
+  handleTabChange: (view: EditorView) => void;
+}) {
+  const switchToTab = useCallback((targetTab: EditorView) => {
+    if (editorTabs.includes(targetTab) && currentTab !== targetTab) {
+      handleTabChange(targetTab);
+    }
+  }, [currentTab, editorTabs, handleTabChange]);
+
+  useHotkeys(
+    "alt+s",
+    () => {
+      switchToTab("enhanced");
+    },
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    [switchToTab],
+  );
+
+  useHotkeys(
+    "alt+m",
+    () => {
+      switchToTab("raw");
+    },
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    [switchToTab],
+  );
+
+  useHotkeys(
+    "alt+t",
+    () => {
+      switchToTab("transcript");
+    },
+    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    [switchToTab],
   );
 }

@@ -3,6 +3,8 @@ import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { SlashSeparator } from "@/components/slash-separator";
+
 export const Route = createFileRoute("/_view/product/mini-apps")({
   component: Component,
   head: () => ({
@@ -107,18 +109,57 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <div className="px-6 py-12 lg:py-20">
-          <header className="mb-16 text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
-              Built-in mini apps
-              <br />
-              for everything
+        <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
+          <header className="mb-12 text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
+              Built-in mini apps for everything
             </h1>
-            <p className="text-xl lg:text-2xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-neutral-600">
               Hyprnote includes powerful mini apps for managing contacts, calendar, daily notes, and your personal
               knowledge base. Everything works together seamlessly.
             </p>
+            <div className="mt-8">
+              <a
+                href="https://hyprnote.com/download"
+                className={cn([
+                  "inline-block px-8 py-3 text-base font-medium rounded-full",
+                  "bg-linear-to-t from-stone-600 to-stone-500 text-white",
+                  "hover:scale-105 active:scale-95 transition-transform",
+                ])}
+              >
+                Download for free
+              </a>
+            </div>
           </header>
+        </div>
+
+        <SlashSeparator />
+
+        <div className="px-6 py-12 lg:py-20">
+          <section className="mb-16">
+            <div className="grid md:grid-cols-3 border-t border-neutral-100">
+              <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
+                <h3 className="font-medium mb-1 text-neutral-900 font-mono">All-in-One</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Contacts, calendar, notes, and knowledge base in one place.
+                </p>
+              </div>
+              <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
+                <h3 className="font-medium mb-1 text-neutral-900 font-mono">Auto-Connected</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Everything links automatically with your meetings and notes.
+                </p>
+              </div>
+              <div className="p-6 text-left">
+                <h3 className="font-medium mb-1 text-neutral-900 font-mono">Context-Rich</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Full conversation history and context at your fingertips.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <SlashSeparator />
 
           <section className="mb-20">
             <div className="grid md:grid-cols-2 gap-8">
@@ -156,6 +197,8 @@ function Component() {
             </div>
           </section>
 
+          <SlashSeparator />
+
           <section className="mb-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12">
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
               How they work together
@@ -190,6 +233,8 @@ function Component() {
               </div>
             </div>
           </section>
+
+          <SlashSeparator />
 
           <section className="mb-20">
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">Contacts</h2>
@@ -246,6 +291,8 @@ function Component() {
             </div>
           </section>
 
+          <SlashSeparator />
+
           <section className="mb-20">
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">Calendar</h2>
             <p className="text-lg text-neutral-600 mb-8 text-center max-w-3xl mx-auto">
@@ -290,9 +337,11 @@ function Component() {
             </div>
           </section>
 
+          <SlashSeparator />
+
           <section className="mb-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12">
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">Daily Notes</h2>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-sm text-orange-700 mb-6 mx-auto flex justify-center w-full">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-sm text-orange-700 mb-6 mx-auto justify-center w-full">
               <Icon icon="mdi:hammer-wrench" className="text-base" />
               <span>Coming Soon</span>
             </div>
@@ -317,9 +366,11 @@ function Component() {
             </div>
           </section>
 
+          <SlashSeparator />
+
           <section className="mb-20">
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">Noteshelf</h2>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-sm text-purple-700 mb-6 mx-auto flex justify-center w-full">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-sm text-purple-700 mb-6 mx-auto justify-center w-full">
               <Icon icon="mdi:hammer-wrench" className="text-base" />
               <span>Coming Soon</span>
             </div>
@@ -358,6 +409,8 @@ function Component() {
             </div>
           </section>
 
+          <SlashSeparator />
+
           <section className="mb-20">
             <div className="p-8 bg-green-50 border-2 border-green-200 rounded-lg text-center">
               <Icon icon="mdi:shield-check" className="text-4xl text-green-600 mx-auto mb-4" />
@@ -370,27 +423,57 @@ function Component() {
               </p>
             </div>
           </section>
+        </div>
 
-          <section className="bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12 text-center">
-            <h2 className="text-3xl font-serif text-stone-600 mb-4">
+        <SlashSeparator />
+
+        <section className="py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 lg:px-0">
+          <div className="flex flex-col gap-6 items-center text-center">
+            <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+                alt="Hyprnote"
+                width={144}
+                height={144}
+                className="size-36 mx-auto rounded-[40px] border border-neutral-100"
+              />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-serif">
               Get the complete experience
             </h2>
-            <p className="text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
               Download Hyprnote to start using contacts and calendar integration today. Daily notes and noteshelf coming
-              soon.
+              soon
             </p>
-            <a
-              href="https://hyprnote.com/download"
-              className={cn([
-                "inline-block px-8 py-3 text-base font-medium rounded-full",
-                "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                "hover:scale-105 active:scale-95 transition-transform",
-              ])}
-            >
-              Download for free
-            </a>
-          </section>
-        </div>
+            <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <a
+                href="https://hyprnote.com/download"
+                className={cn([
+                  "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+                  "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+                  "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                  "transition-all",
+                ])}
+              >
+                Download for free
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

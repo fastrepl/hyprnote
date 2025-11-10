@@ -30,18 +30,21 @@ const mainFeatures = [
     title: "Transcript",
     description: "Realtime transcript and speaker identification",
     image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/transcript.jpg",
+    link: "/product/ai-notetaking#transcription",
   },
   {
     icon: "mdi:file-document-outline",
     title: "Summary",
     description: "Create customized summaries with templates for various formats",
     image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/summary.jpg",
+    link: "/product/ai-notetaking#summaries",
   },
   {
     icon: "mdi:chat-outline",
     title: "Chat",
     description: "Get context-aware answers in realtime, even from past meetings",
     image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/chat.jpg",
+    link: "/product/ai-assistant",
   },
   {
     icon: "mdi:window-restore",
@@ -63,6 +66,7 @@ const detailsFeatures = [
     title: "Notion-like Editor",
     description: "Full markdown support with distraction-free writing",
     image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/editor.jpg",
+    link: "/product/ai-notetaking#editor",
   },
   {
     icon: "mdi:account-multiple-outline",
@@ -81,6 +85,7 @@ const detailsFeatures = [
     title: "Upload Audio",
     description: "Import audio files or transcripts to convert into notes",
     comingSoon: true,
+    link: "/product/ai-notetaking#upload",
   },
   {
     icon: "mdi:bookshelf",
@@ -1157,25 +1162,28 @@ function FeaturesDesktopGrid() {
                     alt={`${feature.title} feature`}
                     className="w-full h-full object-contain"
                   />
-                  <div
-                    className={cn([
-                      "absolute bottom-0 left-0 right-0",
-                      "transition-all duration-300 ease-out",
-                      hoveredFeature === index ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-                    ])}
-                  >
-                    <button
+                  {feature.link && (
+                    <div
                       className={cn([
-                        "w-full py-4 text-xs font-mono cursor-pointer",
-                        "bg-stone-100/95 text-stone-800",
-                        "hover:bg-stone-200/95 active:bg-stone-400/95",
-                        "transition-all duration-150",
-                        "backdrop-blur-sm",
+                        "absolute bottom-0 left-0 right-0",
+                        "transition-all duration-300 ease-out",
+                        hoveredFeature === index ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
                       ])}
                     >
-                      Learn more
-                    </button>
-                  </div>
+                      <Link
+                        to={feature.link}
+                        className={cn([
+                          "w-full py-4 text-xs font-mono cursor-pointer block text-center",
+                          "bg-stone-100/95 text-stone-800",
+                          "hover:bg-stone-200/95 active:bg-stone-400/95",
+                          "transition-all duration-150",
+                          "backdrop-blur-sm",
+                        ])}
+                      >
+                        Learn more
+                      </Link>
+                    </div>
+                  )}
                 </>
               )
               : (
@@ -1444,27 +1452,30 @@ function DetailsDesktopView() {
                   alt={`${selectedFeature.title} feature`}
                   className="w-full h-full object-contain"
                 />
-                <div
-                  className={cn(
-                    [
-                      "absolute bottom-0 left-0 right-0",
-                      "transition-all duration-300 ease-out",
-                      hoveredDetail === selectedDetail ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-                    ],
-                  )}
-                >
-                  <button
-                    className={cn([
-                      "w-full py-4 text-xs font-mono cursor-pointer",
-                      "bg-stone-100/95 text-stone-800",
-                      "hover:bg-stone-200/95 active:bg-stone-400/95",
-                      "transition-all duration-150",
-                      "backdrop-blur-sm",
-                    ])}
+                {selectedFeature.link && (
+                  <div
+                    className={cn(
+                      [
+                        "absolute bottom-0 left-0 right-0",
+                        "transition-all duration-300 ease-out",
+                        hoveredDetail === selectedDetail ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+                      ],
+                    )}
                   >
-                    Learn more
-                  </button>
-                </div>
+                    <Link
+                      to={selectedFeature.link}
+                      className={cn([
+                        "w-full py-4 text-xs font-mono cursor-pointer block text-center",
+                        "bg-stone-100/95 text-stone-800",
+                        "hover:bg-stone-200/95 active:bg-stone-400/95",
+                        "transition-all duration-150",
+                        "backdrop-blur-sm",
+                      ])}
+                    >
+                      Learn more
+                    </Link>
+                  </div>
+                )}
               </>
             )
             : (

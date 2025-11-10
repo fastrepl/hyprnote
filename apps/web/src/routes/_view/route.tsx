@@ -82,7 +82,7 @@ function Header() {
       <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
         <div className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4`}>
           <div className="flex items-center justify-between">
-            <div className="hidden sm:flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-5">
               <Link
                 to="/"
                 className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
@@ -114,7 +114,7 @@ function Header() {
                             <Link
                               key={link.to}
                               to={link.to}
-                              className="py-2 text-sm text-neutral-700 flex items-center justify-between"
+                              className="py-2 text-sm text-neutral-700 flex items-center justify-between hover:underline decoration-dotted"
                             >
                               <span>{link.label}</span>
                               {link.badge && (
@@ -134,7 +134,7 @@ function Header() {
                               <Link
                                 key={link.to}
                                 to={link.to}
-                                className="py-2 text-sm text-neutral-700 flex items-center justify-between"
+                                className="py-2 text-sm text-neutral-700 flex items-center justify-between hover:underline decoration-dotted"
                               >
                                 <span>{link.label}</span>
                                 {link.badge && (

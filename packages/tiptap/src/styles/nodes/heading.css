@@ -1,5 +1,6 @@
 .tiptap-normal {
-  h1 {
+  h1,
+  h2 {
     color: #374151;
     font-weight: 600;
     font-size: 1.25rem;

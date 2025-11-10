@@ -5,10 +5,6 @@ macro_rules! common_derives {
     };
 }
 
-fn is_none_or_empty<T>(opt: &Option<Vec<T>>) -> bool {
-    opt.as_ref().map_or(true, |v| v.is_empty())
-}
-
 common_derives! {
     #[serde(rename_all = "camelCase")]
     pub struct ServerStatus {
@@ -58,7 +54,7 @@ common_derives! {
         pub model_repo: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub model_folder: Option<String>,
-        #[serde(skip_serializing_if = "is_none_or_empty")]
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub custom_vocabulary: Option<Vec<String>>,
     }
 }

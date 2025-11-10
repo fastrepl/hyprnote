@@ -1,6 +1,7 @@
-use std::{collections::HashMap, future::Future, path::PathBuf};
+use std::{collections::HashMap, future::Future, path::PathBuf, time::Duration};
 
 use ractor::{call_t, registry, Actor, ActorRef};
+use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
 use tauri::{ipc::Channel, Manager, Runtime};
@@ -81,33 +82,50 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             SupportedSttModel::Whisper(_) => ServerType::Internal,
         };
 
+        let current_info = match t {
+            ServerType::Internal => internal_health().await,
+            ServerType::External => external_health().await,
+        };
+
+        if let Some(info) = current_info.as_ref() {
+            if info.model.as_ref() == Some(&model) {
+                if let Some(url) = info.url.clone() {
+                    return Ok(url);
+                }
+
+                return Err(crate::Error::ServerStartFailed(
+                    "missing_health_url".to_string(),
+                ));
+            }
+        }
+
+        if matches!(t, ServerType::Internal) && !self.is_model_downloaded(&model).await? {
+            return Err(crate::Error::ModelNotDownloaded);
+        }
+
+        let am_key = if matches!(t, ServerType::External) {
+            let state = self.state::<crate::SharedState>();
+            let key = {
+                let guard = state.lock().await;
+                guard.am_api_key.clone()
+            };
+            let key = key
+                .filter(|k| !k.is_empty())
+                .ok_or(crate::Error::AmApiKeyNotSet)?;
+            Some(key)
+        } else {
+            None
+        };
+
         let cache_dir = self.models_dir();
         let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
 
+        self.stop_server(None).await?;
+        // Need some delay
+        sleep(Duration::from_millis(300)).await;
+
         match t {
             ServerType::Internal => {
-                if let Some(info) = internal_health().await {
-                    if info.status != ServerStatus::Unreachable
-                        && info.model.as_ref() == Some(&model)
-                    {
-                        if let Some(url) = info.url {
-                            return Ok(url);
-                        }
-
-                        return Err(crate::Error::ServerStartFailed(
-                            "missing_health_url".to_string(),
-                        ));
-                    }
-
-                    self.stop_server(Some(ServerType::Internal)).await?;
-                } else if registry::where_is(internal::InternalSTTActor::name()).is_some() {
-                    self.stop_server(Some(ServerType::Internal)).await?;
-                }
-
-                if !self.is_model_downloaded(&model).await? {
-                    return Err(crate::Error::ModelNotDownloaded);
-                }
-
                 let whisper_model = match model {
                     SupportedSttModel::Whisper(m) => m,
                     _ => {
@@ -132,24 +150,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     .ok_or_else(|| crate::Error::ServerStartFailed("empty_health".to_string()))
             }
             ServerType::External => {
-                if let Some(info) = external_health().await {
-                    if info.status != ServerStatus::Unreachable
-                        && info.model.as_ref() == Some(&model)
-                    {
-                        if let Some(url) = info.url {
-                            return Ok(url);
-                        }
-
-                        return Err(crate::Error::ServerStartFailed(
-                            "missing_health_url".to_string(),
-                        ));
-                    }
-
-                    self.stop_server(Some(ServerType::External)).await?;
-                } else if registry::where_is(external::ExternalSTTActor::name()).is_some() {
-                    self.stop_server(Some(ServerType::External)).await?;
-                }
-
                 let am_model = match model {
                     SupportedSttModel::Am(m) => m,
                     _ => {
@@ -157,15 +157,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
                 };
 
-                let am_key = {
-                    let state = self.state::<crate::SharedState>();
-
-                    let key = state.lock().await.am_api_key.clone();
-                    if key.clone().is_none() || key.clone().unwrap().is_empty() {
+                let am_key = match am_key {
+                    Some(key) => key,
+                    None => {
                         return Err(crate::Error::AmApiKeyNotSet);
                     }
-
-                    key.clone().unwrap()
                 };
 
                 let cmd: tauri_plugin_shell::process::Command = {
@@ -208,8 +204,10 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 .await
                 .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;
 
-                let res = external_health().await.and_then(|info| info.url);
-                res.ok_or(crate::Error::ServerStartFailed("empty_health".to_string()))
+                external_health()
+                    .await
+                    .and_then(|info| info.url)
+                    .ok_or_else(|| crate::Error::ServerStartFailed("empty_health".to_string()))
             }
         }
     }

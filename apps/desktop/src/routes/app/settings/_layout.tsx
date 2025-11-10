@@ -9,6 +9,7 @@ import {
   CalendarDays,
   CreditCard,
   ExternalLinkIcon,
+  type LucideIcon,
   MessageCircleQuestion,
   MoreVertical,
   Plus,
@@ -30,7 +31,7 @@ import { cn } from "@hypr/utils";
 import { useTemplateNavigation } from "../../../components/settings/template/utils";
 import * as main from "../../../store/tinybase/main";
 
-const TABS = [
+const TAB_KEYS = [
   "general",
   "calendar",
   "notifications",
@@ -44,8 +45,81 @@ const TABS = [
   "billing",
 ] as const;
 
+type TabKey = (typeof TAB_KEYS)[number];
+
+const TAB_CONFIG: Record<
+  TabKey,
+  {
+    label: string;
+    icon: LucideIcon;
+    group: 1 | 2 | 3;
+    disabled?: boolean;
+  }
+> = {
+  general: {
+    label: "General",
+    icon: Settings2,
+    group: 1,
+  },
+  calendar: {
+    label: "Calendar",
+    icon: CalendarDays,
+    group: 1,
+    disabled: true,
+  },
+  notifications: {
+    label: "Notifications",
+    icon: Bell,
+    group: 1,
+  },
+  transcription: {
+    label: "Transcription",
+    icon: AudioLines,
+    group: 1,
+  },
+  intelligence: {
+    label: "Intelligence",
+    icon: Sparkles,
+    group: 1,
+  },
+  memory: {
+    label: "Memory",
+    icon: Brain,
+    group: 1,
+  },
+  templates: {
+    label: "Templates",
+    icon: BookText,
+    group: 1,
+  },
+  integrations: {
+    label: "Integrations",
+    icon: Puzzle,
+    group: 1,
+    disabled: true,
+  },
+  feedback: {
+    label: "Feedback",
+    icon: MessageCircleQuestion,
+    group: 2,
+  },
+  developers: {
+    label: "Talk to developers",
+    icon: Settings2,
+    group: 2,
+  },
+  billing: {
+    label: "Billing",
+    icon: CreditCard,
+    group: 3,
+  },
+};
+
+const getEnabledTabs = () => TAB_KEYS.filter(key => !TAB_CONFIG[key].disabled);
+const DEFAULT_TAB = (getEnabledTabs()[0] ?? TAB_KEYS[0]) as TabKey;
+
 const validateSearch = z.object({
-  tab: z.enum(TABS).default("general"),
+  tab: z.enum(TAB_KEYS).default(DEFAULT_TAB),
   templateId: z.string().optional(),
 });
 
@@ -56,10 +130,11 @@ export const Route = createFileRoute("/app/settings/_layout")({
 
 function Component() {
   const search = Route.useSearch();
+  const enabledTabs = getEnabledTabs();
 
-  const group1Tabs = TABS.filter((tab) => info(tab).group === 1);
-  const group2Tabs = TABS.filter((tab) => info(tab).group === 2);
-  const group3Tabs = TABS.filter((tab) => info(tab).group === 3);
+  const group1Tabs = enabledTabs.filter((tab) => info(tab).group === 1);
+  const group2Tabs = enabledTabs.filter((tab) => info(tab).group === 2);
+  const group3Tabs = enabledTabs.filter((tab) => info(tab).group === 3);
 
   return (
     <div className={cn(["flex h-full p-1 gap-1"])}>
@@ -86,15 +161,15 @@ function Group(
     expandHeight = false,
     includeTrafficLight = false,
   }: {
-    tabs: (typeof TABS)[number][];
-    activeTab: typeof TABS[number];
+    tabs: TabKey[];
+    activeTab: TabKey;
     expandHeight?: boolean;
     includeTrafficLight?: boolean;
   },
 ) {
   const navigate = Route.useNavigate();
 
-  const handleTabClick = async (tab: typeof TABS[number]) => {
+  const handleTabClick = async (tab: TabKey) => {
     if (tab === "feedback") {
       await openUrl("https://hyprnote.canny.io/feature-requests");
     } else if (tab === "developers") {
@@ -139,76 +214,7 @@ function Group(
   );
 }
 
-const info = (tab: typeof TABS[number]) => {
-  switch (tab) {
-    case "general":
-      return {
-        label: "General",
-        icon: Settings2,
-        group: 1,
-      };
-    case "calendar":
-      return {
-        label: "Calendar",
-        icon: CalendarDays,
-        group: 1,
-      };
-    case "transcription":
-      return {
-        label: "Transcription",
-        icon: AudioLines,
-        group: 1,
-      };
-    case "intelligence":
-      return {
-        label: "Intelligence",
-        icon: Sparkles,
-        group: 1,
-      };
-    case "memory":
-      return {
-        label: "Memory",
-        icon: Brain,
-        group: 1,
-      };
-    case "notifications":
-      return {
-        label: "Notifications",
-        icon: Bell,
-        group: 1,
-      };
-    case "integrations":
-      return {
-        label: "Integrations",
-        icon: Puzzle,
-        group: 1,
-      };
-    case "templates":
-      return {
-        label: "Templates",
-        icon: BookText,
-        group: 1,
-      };
-    case "feedback":
-      return {
-        label: "Feedback",
-        icon: MessageCircleQuestion,
-        group: 2,
-      };
-    case "developers":
-      return {
-        label: "Talk to developers",
-        icon: Settings2,
-        group: 2,
-      };
-    case "billing":
-      return {
-        label: "Billing",
-        icon: CreditCard,
-        group: 3,
-      };
-  }
-};
+const info = (tab: TabKey) => TAB_CONFIG[tab];
 
 function Header() {
   const search = Route.useSearch();

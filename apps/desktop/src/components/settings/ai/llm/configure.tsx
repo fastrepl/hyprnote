@@ -170,6 +170,8 @@ function HyprProviderCard(
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
   const content = providerId === "hyprnote"
     ? "The Hyprnote team continuously tests different models to provide the **best performance & reliability.**"
+    : providerId === "lmstudio"
+    ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config."
     : providerId === "custom"
     ? "We only support **OpenAI compatible** endpoints for now."
     : providerId === "openrouter"

@@ -62,10 +62,11 @@ function HeroSection() {
       <div className="px-6 py-12 lg:py-20">
         <header className="mb-12 text-center max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-            AI notetaking that captures everything
+            AI notetaking that<br className="hidden sm:inline" /> captures everything
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
-            Record meetings or upload audio files to get instant AI transcriptions and customizable summaries
+            Record meetings or upload audio files to get instant<br className="hidden sm:inline" />{" "}
+            AI transcriptions and customizable summaries
           </p>
           <div className="mt-8">
             <a
@@ -100,19 +101,19 @@ function EditorSection() {
           <div className="flex flex-col gap-4">
             <h2 className="text-3xl font-serif text-stone-600">Notion-like editor with markdown support</h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Write and organize your notes with a powerful, intuitive editor that supports full markdown syntax.
+              Write and organize your notes with a powerful, intuitive editor that supports full markdown syntax
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+                <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
                 <span className="text-neutral-600">Full markdown syntax support for quick formatting</span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+                <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
                 <span className="text-neutral-600">Clean, distraction-free writing experience</span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+                <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
                 <span className="text-neutral-600">Rich text editing with familiar keyboard shortcuts</span>
               </li>
             </ul>
@@ -135,15 +136,15 @@ function EditorSection() {
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
               <span className="text-neutral-600 text-sm">Full markdown syntax support for quick formatting</span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
               <span className="text-neutral-600 text-sm">Clean, distraction-free writing experience</span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
               <span className="text-neutral-600 text-sm">Rich text editing with familiar keyboard shortcuts</span>
             </li>
           </ul>
@@ -427,8 +428,8 @@ function TranscriptionSection() {
     <section id="transcription" className="border-y border-neutral-100">
       <div className="text-center py-12 px-4 lg:px-0">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">Transcription</h2>
-        <p className="text-neutral-600 max-w-2xl mx-auto">
-          From live meetings to recorded audio, Hyprnote can transcribe it all.
+        <p className="text-base text-neutral-600 max-w-2xl mx-auto">
+          From live meetings to recorded audio, Hyprnote can transcribe it all
         </p>
       </div>
 
@@ -447,7 +448,7 @@ function TranscriptionSection() {
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
                 For Apple Silicon Macs, transcription happens entirely on your device. Fast, private, and no internet
-                required.
+                required
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -465,7 +466,7 @@ function TranscriptionSection() {
                 <h3 className="text-2xl font-serif text-stone-600">Upload files</h3>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT, TXT) to get AI summaries and insights.
+                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT, TXT) to get AI summaries and insights
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden bg-neutral-100">
@@ -486,7 +487,7 @@ function TranscriptionSection() {
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
                 For Apple Silicon Macs, transcription happens entirely on your device. Fast, private, and no internet
-                required.
+                required
               </p>
             </div>
             <div className="overflow-hidden bg-neutral-100">
@@ -504,7 +505,7 @@ function TranscriptionSection() {
                 <h3 className="text-xl font-serif text-stone-600">Upload files</h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT, TXT) to get AI summaries and insights.
+                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT, TXT) to get AI summaries and insights
               </p>
             </div>
             <div className="overflow-hidden bg-neutral-100">
@@ -575,9 +576,8 @@ function SummariesSection() {
     <section id="summaries">
       <div className="text-center py-12 px-4 lg:px-0">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">AI summaries</h2>
-        <p className="text-neutral-600 max-w-3xl mx-auto">
-          Get intelligent summaries after your meeting ends. Hyprnote combines your notes with transcripts to create
-          perfect summaries.
+        <p className="text-base text-neutral-600 max-w-3xl mx-auto">
+          Hyprnote combines your notes with transcripts to create intelligent summaries after your meeting ends.
         </p>
       </div>
       <div className="border-t border-neutral-100">
@@ -813,31 +813,31 @@ function SummariesSection() {
 
 function SearchSection() {
   return (
-    <section id="search" className="bg-stone-50/30">
-      <div className="py-12 lg:py-20 px-6">
+    <section id="search" className="bg-stone-50/30 space-y-12">
+      <div className="pt-12 lg:pt-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-serif text-stone-600 mb-4">Search notes instantly by who, what, when</h2>
-          <p className="text-lg text-neutral-600 mb-8 max-w-3xl mx-auto">
-            Find any note, conversation, or meeting in seconds. Search by participant names, topics discussed, keywords,
-            or date ranges to instantly locate the information you need.
+          <p className="text-base text-neutral-600 mb-8 max-w-3xl mx-auto">
+            Find any note, conversation, or meeting in seconds by searching participant names, topics, keywords, or date
+            ranges
           </p>
           <div className="grid md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto">
             <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon icon="mdi:account-search" className="text-4xl text-blue-600 mb-3 mx-auto" />
+              <Icon icon="mdi:account-search" className="text-4xl text-stone-600 mb-3 mx-auto" />
               <h3 className="text-lg font-serif text-stone-600 mb-2">Who</h3>
               <p className="text-sm text-neutral-600">
                 Search by participant or speaker names
               </p>
             </div>
             <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon icon="mdi:text-search" className="text-4xl text-green-600 mb-3 mx-auto" />
+              <Icon icon="mdi:text-search" className="text-4xl text-stone-600 mb-3 mx-auto" />
               <h3 className="text-lg font-serif text-stone-600 mb-2">What</h3>
               <p className="text-sm text-neutral-600">
                 Find by keywords, topics, or content
               </p>
             </div>
             <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon icon="mdi:calendar-search" className="text-4xl text-purple-600 mb-3 mx-auto" />
+              <Icon icon="mdi:calendar-search" className="text-4xl text-stone-600 mb-3 mx-auto" />
               <h3 className="text-lg font-serif text-stone-600 mb-2">When</h3>
               <p className="text-sm text-neutral-600">
                 Filter by date, time, or range
@@ -846,31 +846,31 @@ function SearchSection() {
           </div>
           <ul className="space-y-3 text-left max-w-2xl mx-auto">
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
               <span className="text-neutral-600">Lightning-fast full-text search across all notes</span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
               <span className="text-neutral-600">Search within transcripts and summaries</span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
               <span className="text-neutral-600">Filter by tags, dates, and participants</span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-green-600 shrink-0 mt-0.5 text-xl" />
+              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
               <span className="text-neutral-600">Jump directly to relevant moments in recordings</span>
             </li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-neutral-100 py-8 px-6">
-        <div className="max-w-4xl mx-auto text-center">
+      <div className="pb-12 lg:pb-20 px-6">
+        <div className="max-w-2xl mx-auto p-6 border border-neutral-200 rounded-sm bg-white text-center">
           <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-3">
             Coming Soon
           </div>
           <h3 className="text-xl font-serif text-stone-600 mb-2">Advanced search view</h3>
-          <p className="text-sm text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-sm text-neutral-600">
             Build complex queries with boolean operators, date ranges, and custom filters for powerful search
             capabilities.
           </p>
@@ -888,26 +888,26 @@ function SharingSection() {
           Coming Soon
         </div>
         <h2 className="text-3xl font-serif text-stone-600 mb-4">Share notes</h2>
-        <p className="text-lg text-neutral-600 mb-12 max-w-3xl mx-auto">
+        <p className="text-base text-neutral-600 mb-12 max-w-3xl mx-auto">
           Collaborate seamlessly by sharing meeting notes, transcripts, and summaries.
         </p>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon icon="mdi:link-variant" className="text-4xl text-blue-600 mb-4" />
+            <Icon icon="mdi:link-variant" className="text-4xl text-stone-600 mb-4" />
             <h3 className="text-xl font-serif text-stone-600 mb-3">Public sharing</h3>
             <p className="text-neutral-600 leading-relaxed">
               Generate shareable links for easy distribution to anyone.
             </p>
           </div>
           <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon icon="mdi:file-export" className="text-4xl text-green-600 mb-4" />
+            <Icon icon="mdi:file-export" className="text-4xl text-stone-600 mb-4" />
             <h3 className="text-xl font-serif text-stone-600 mb-3">Export formats</h3>
             <p className="text-neutral-600 leading-relaxed">
               Export as PDF, Markdown, or plain text for maximum flexibility.
             </p>
           </div>
           <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon icon="mdi:account-group" className="text-4xl text-purple-600 mb-4" />
+            <Icon icon="mdi:account-group" className="text-4xl text-stone-600 mb-4" />
             <h3 className="text-xl font-serif text-stone-600 mb-3">Team sharing</h3>
             <p className="text-neutral-600 leading-relaxed">
               Share with team members with expiration dates, watermarks, and access controls for Enterprise.
@@ -935,7 +935,7 @@ function FloatingPanelHeader() {
         Coming Soon
       </div>
       <h2 className="text-3xl font-serif text-stone-600 mb-4">Floating panel for meetings</h2>
-      <p className="text-neutral-600 max-w-3xl mx-auto">
+      <p className="text-base text-neutral-600 max-w-3xl mx-auto">
         A compact overlay that stays on top during meetings but won't show when you share your screen.
       </p>
     </div>

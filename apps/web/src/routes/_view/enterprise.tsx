@@ -72,9 +72,6 @@ function Component() {
               <p className="text-lg sm:text-xl text-neutral-600">
                 Meeting notes your team will love, with enterprise features when you need them.
               </p>
-              <p className="text-base text-neutral-500">
-                We'll help you with your concerns
-              </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 items-center">

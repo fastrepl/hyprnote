@@ -1,7 +1,7 @@
 import { cn } from "@hypr/utils";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
@@ -18,6 +18,7 @@ export function BannerArea({
 }) {
   const auth = useAuth();
   const { dismissBanner, isDismissed } = useDismissedBanners();
+  const shouldShowBanner = useShouldShowBanner(isProfileExpanded);
 
   const isAuthenticated = !!auth?.session;
   const {
@@ -85,7 +86,7 @@ export function BannerArea({
 
   return (
     <AnimatePresence mode="wait">
-      {!isProfileExpanded && currentBanner
+      {shouldShowBanner && currentBanner
         ? (
           <motion.div
             key={currentBanner.id}
@@ -106,4 +107,20 @@ export function BannerArea({
         : null}
     </AnimatePresence>
   );
+}
+
+function useShouldShowBanner(isProfileExpanded: boolean) {
+  const BANNER_CHECK_DELAY_MS = 3000;
+
+  const [showBanner, setShowBanner] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowBanner(true);
+    }, BANNER_CHECK_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return !isProfileExpanded && showBanner;
 }

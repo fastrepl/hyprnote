@@ -78,7 +78,6 @@ impl AppWindow {
 
         if self.label() == "main" {
             use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
-            use tauri_plugin_auth::{AuthPluginExt, StoreKey};
 
             let e = AnalyticsPayload::new("show_main_window").build();
 

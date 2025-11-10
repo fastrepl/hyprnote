@@ -7,9 +7,9 @@
 
 
 export const commands = {
-async setQuitHandler() : Promise<Result<null, string>> {
+async setQuitHandler(reallyQuit: boolean) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|set_quit_handler") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|set_quit_handler", { reallyQuit }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };

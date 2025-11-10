@@ -3876,7 +3876,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "aspasia",
  "sentry",

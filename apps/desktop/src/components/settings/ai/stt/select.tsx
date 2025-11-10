@@ -3,6 +3,7 @@ import { useQueries } from "@tanstack/react-query";
 import { useCallback } from "react";
 
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
+import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
@@ -83,7 +84,7 @@ export function SelectProviderAndModel() {
                     <SelectItem
                       key={provider.id}
                       value={provider.id}
-                      disabled={provider.disabled || (configuredProviders[provider.id]?.length ?? 0) === 0}
+                      disabled={provider.disabled || !(configuredProviders[provider.id]?.configured ?? false)}
                     >
                       <div className="flex items-center gap-2">
                         {provider.icon}
@@ -102,7 +103,20 @@ export function SelectProviderAndModel() {
         <form.Field name="model">
           {(field) => {
             const providerId = field.form.getFieldValue("provider") as ProviderId;
-            const allModels = configuredProviders?.[providerId] ?? [];
+            if (providerId === "custom") {
+              return (
+                <div className="flex-[3] min-w-0">
+                  <Input
+                    value={field.state.value}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    className="text-xs"
+                    placeholder="Enter a model identifier"
+                  />
+                </div>
+              );
+            }
+
+            const allModels = configuredProviders?.[providerId]?.models ?? [];
             const models = allModels.filter((model) => {
               if (model.id.startsWith("Quantized")) {
                 return model.isDownloaded;
@@ -137,7 +151,13 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownloaded: boolean }>> {
+function useConfiguredMapping(): Record<
+  ProviderId,
+  {
+    configured: boolean;
+    models: Array<{ id: string; isDownloaded: boolean }>;
+  }
+> {
   const configuredProviders = main.UI.useResultTable(main.QUERIES.sttProviders, main.STORE_ID);
 
   const [p2, p3, tinyEn, smallEn] = useQueries({
@@ -154,24 +174,43 @@ function useConfiguredMapping(): Record<ProviderId, Array<{ id: string; isDownlo
       if (provider.id === "hyprnote") {
         return [
           provider.id,
-          [
-            { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
-            { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
-            { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },
-            { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
-          ],
+          {
+            configured: true,
+            models: [
+              { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
+              { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
+              { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },
+              { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
+            ],
+          },
         ];
       }
 
       const config = configuredProviders[provider.id] as main.AIProviderStorage | undefined;
 
       if (!config) {
-        return [provider.id, []];
+        return [provider.id, { configured: false, models: [] }];
       }
 
-      return [provider.id, provider.models.map((model) => ({ id: model, isDownloaded: true }))];
+      if (provider.id === "custom") {
+        return [provider.id, { configured: true, models: [] }];
+      }
+
+      return [
+        provider.id,
+        {
+          configured: true,
+          models: provider.models.map((model) => ({ id: model, isDownloaded: true })),
+        },
+      ];
     }),
-  ) as Record<ProviderId, Array<{ id: string; isDownloaded: boolean }>>;
+  ) as Record<
+    ProviderId,
+    {
+      configured: boolean;
+      models: Array<{ id: string; isDownloaded: boolean }>;
+    }
+  >;
 }
 
 function HealthCheck() {

@@ -5,7 +5,7 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
-import { useCallback, useMemo } from "react";
+import { Fragment, useCallback, useMemo } from "react";
 import { SegmentWord } from "../../../../../../../utils/segment";
 import { useTranscriptSearch } from "../search-context";
 import { Operations } from "./operations";
@@ -24,16 +24,29 @@ export function WordSpan({
   onClickWord: (word: SegmentWord) => void;
 }) {
   const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
-  const { isMatch, isActive } = useTranscriptSearchHighlights(word);
+  const { segments, isActive } = useTranscriptSearchHighlights(word);
+  const hasMatch = segments.some((segment) => segment.isMatch);
+
+  const content = useMemo(() => {
+    const baseKey = word.id ?? word.text ?? "word";
+
+    return segments.map((piece, index) =>
+      piece.isMatch
+        ? (
+          <span key={`${baseKey}-match-${index}`} className={isActive ? "bg-yellow-500" : "bg-yellow-200/50"}>
+            {piece.text}
+          </span>
+        )
+        : <Fragment key={`${baseKey}-text-${index}`}>{piece.text}</Fragment>
+    );
+  }, [segments, isActive, word.id, word.text]);
 
   const className = cn([
     audioExists && "cursor-pointer",
     audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
     !word.isFinal && ["opacity-60", "italic"],
-    highlightState === "current" && !isMatch && "bg-blue-200/70",
-    highlightState === "buffer" && !isMatch && "bg-blue-200/30",
-    isMatch && !isActive && "bg-yellow-200/50",
-    isActive && "bg-yellow-400",
+    highlightState === "current" && !hasMatch && "bg-blue-200/70",
+    highlightState === "buffer" && !hasMatch && "bg-blue-200/30",
   ]);
 
   const handleClick = useCallback(() => {
@@ -45,7 +58,7 @@ export function WordSpan({
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <span onClick={handleClick} className={className} data-word-id={word.id}>
-            {word.text}
+            {content}
           </span>
         </ContextMenuTrigger>
         <ContextMenuContent>
@@ -59,26 +72,60 @@ export function WordSpan({
 
   return (
     <span onClick={handleClick} className={className} data-word-id={word.id}>
-      {word.text}
+      {content}
     </span>
   );
 }
 
+type HighlightSegment = { text: string; isMatch: boolean };
+
 function useTranscriptSearchHighlights(word: SegmentWord) {
   const search = useTranscriptSearch();
-  const query = search?.query ?? "";
+  const query = search?.query?.trim() ?? "";
   const isVisible = Boolean(search?.isVisible);
   const activeMatchId = search?.activeMatchId ?? null;
 
-  const isMatch = useMemo(() => {
-    if (!isVisible || !query || !word.text) {
-      return false;
+  const segments = useMemo(() => {
+    const text = word.text ?? "";
+
+    if (!text) {
+      return [{ text: "", isMatch: false }];
     }
 
-    return word.text.toLowerCase().includes(query.toLowerCase());
+    if (!isVisible || !query) {
+      return [{ text, isMatch: false }];
+    }
+
+    return createSegments(text, query);
   }, [isVisible, query, word.text]);
 
   const isActive = word.id === activeMatchId;
 
-  return { isMatch, isActive };
+  return { segments, isActive };
+}
+
+function createSegments(text: string, query: string): HighlightSegment[] {
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const segments: HighlightSegment[] = [];
+
+  let cursor = 0;
+  let index = lowerText.indexOf(lowerQuery, cursor);
+
+  while (index !== -1) {
+    if (index > cursor) {
+      segments.push({ text: text.slice(cursor, index), isMatch: false });
+    }
+
+    const end = index + query.length;
+    segments.push({ text: text.slice(index, end), isMatch: true });
+    cursor = end;
+    index = lowerText.indexOf(lowerQuery, cursor);
+  }
+
+  if (cursor < text.length) {
+    segments.push({ text: text.slice(cursor), isMatch: false });
+  }
+
+  return segments.length ? segments : [{ text, isMatch: false }];
 }

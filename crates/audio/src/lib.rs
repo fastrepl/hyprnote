@@ -69,18 +69,7 @@ pub struct AudioInput {
 }
 
 impl AudioInput {
-    /// Get the name of the system's default input (microphone) device.
-    ///
-    /// # Returns
-    ///
-    /// A `String` with the device name, `"Unknown Microphone"` if the device exists but has no name, or `"No Microphone Available"` if there is no default input device.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let name = get_default_mic_device_name();
-    /// assert!(!name.is_empty());
-    /// ```
+    /// Get the default input device name
     pub fn get_default_mic_device_name() -> String {
         let host = cpal::default_host();
         if let Some(device) = host.default_input_device() {

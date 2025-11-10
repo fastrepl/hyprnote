@@ -16,6 +16,56 @@ pub struct MicInput {
     config: cpal::SupportedStreamConfig,
 }
 
+fn common_test_configs() -> Vec<cpal::SupportedStreamConfig> {
+    vec![
+        cpal::SupportedStreamConfig::new(
+            cpal::ChannelCount::from(2u16),
+            cpal::SampleRate(48000),
+            cpal::SupportedBufferSize::Unknown,
+            cpal::SampleFormat::F32,
+        ),
+        cpal::SupportedStreamConfig::new(
+            cpal::ChannelCount::from(2u16),
+            cpal::SampleRate(44100),
+            cpal::SupportedBufferSize::Unknown,
+            cpal::SampleFormat::F32,
+        ),
+        cpal::SupportedStreamConfig::new(
+            cpal::ChannelCount::from(2u16),
+            cpal::SampleRate(48000),
+            cpal::SupportedBufferSize::Unknown,
+            cpal::SampleFormat::I16,
+        ),
+    ]
+}
+
+fn try_validate_config(device: &cpal::Device, config: &cpal::SupportedStreamConfig) -> bool {
+    let test_result = match config.sample_format() {
+        cpal::SampleFormat::F32 => device.build_input_stream::<f32, _, _>(
+            &config.config(),
+            |_data: &[f32], _: &cpal::InputCallbackInfo| {},
+            |err| tracing::debug!("Test stream error: {}", err),
+            None,
+        ),
+        cpal::SampleFormat::I16 => device.build_input_stream::<i16, _, _>(
+            &config.config(),
+            |_data: &[i16], _: &cpal::InputCallbackInfo| {},
+            |err| tracing::debug!("Test stream error: {}", err),
+            None,
+        ),
+        other => {
+            tracing::debug!("Unsupported sample format for testing: {:?}", other);
+            return false;
+        }
+    };
+    if test_result.is_ok() {
+        if let Ok(name) = device.name() { tracing::debug!("Validated config for device: {}", name); }
+        true
+    } else {
+        false
+    }
+}
+
 impl MicInput {
     pub fn device_name(&self) -> String {
         self.device
@@ -118,60 +168,11 @@ impl MicInput {
                             tracing::debug!("Trying default host device with manual config: {}", name);
 
                             // Try common configurations that should work with PipeWire
-                            let configs_to_try = vec![
-                                // 48kHz stereo float32 - common PipeWire config
-                                cpal::SupportedStreamConfig::new(
-                                    cpal::ChannelCount::from(2u16),
-                                    cpal::SampleRate(48000),
-                                    cpal::SupportedBufferSize::Unknown,
-                                    cpal::SampleFormat::F32,
-                                ),
-                                // 44.1kHz stereo float32 - common audio config
-                                cpal::SupportedStreamConfig::new(
-                                    cpal::ChannelCount::from(2u16),
-                                    cpal::SampleRate(44100),
-                                    cpal::SupportedBufferSize::Unknown,
-                                    cpal::SampleFormat::F32,
-                                ),
-                                // 48kHz stereo int16 - alternative format
-                                cpal::SupportedStreamConfig::new(
-                                    cpal::ChannelCount::from(2u16),
-                                    cpal::SampleRate(48000),
-                                    cpal::SupportedBufferSize::Unknown,
-                                    cpal::SampleFormat::I16,
-                                ),
-                            ];
+                            let configs_to_try = common_test_configs();
 
                             for config in configs_to_try {
                                 tracing::debug!("Trying manual config: {:?}", config);
-
-                                // Try to build a test stream to validate the config
-                                let test_result = match config.sample_format() {
-                                    cpal::SampleFormat::F32 => {
-                                        default_device.build_input_stream::<f32, _, _>(
-                                            &config.config(),
-                                            |_data: &[f32], _: &cpal::InputCallbackInfo| {}, // Empty callback for testing
-                                            |err| tracing::debug!("Test stream error: {}", err),
-                                            None,
-                                        )
-                                    },
-                                    cpal::SampleFormat::I16 => {
-                                        default_device.build_input_stream::<i16, _, _>(
-                                            &config.config(),
-                                            |_data: &[i16], _: &cpal::InputCallbackInfo| {}, // Empty callback for testing
-                                            |err| tracing::debug!("Test stream error: {}", err),
-                                            None,
-                                        )
-                                    },
-                                    _ => {
-                                        tracing::debug!("Unsupported sample format for testing");
-                                        continue;
-                                    }
-                                };
-
-                                if let Ok(test_stream) = test_result {
-                                    // If we can build a stream, the config is good
-                                    drop(test_stream); // Clean up the test stream
+                                if try_validate_config(default_device, &config) {
                                     tracing::debug!("Successfully validated config for device: {}", name);
                                     return Ok(Self {
                                         host,
@@ -179,8 +180,7 @@ impl MicInput {
                                         config,
                                     });
                                 } else {
-                                    tracing::debug!("Failed to build test stream with config: {:?}", config);
-                                    tracing::debug!("Test result error: {:?}", test_result.err());
+                                    tracing::debug!("Failed to validate config: {:?}", config);
                                 }
                             }
                         }
@@ -214,60 +214,12 @@ impl MicInput {
                                     tracing::debug!("ALSADevice: {}", name);
 
                                     // Try the same configurations
-                                    let configs_to_try = vec![
-                                        // 48kHz stereo float32 - common PipeWire config
-                                        cpal::SupportedStreamConfig::new(
-                                            cpal::ChannelCount::from(2u16),
-                                            cpal::SampleRate(48000),
-                                            cpal::SupportedBufferSize::Unknown,
-                                            cpal::SampleFormat::F32,
-                                        ),
-                                        // 44.1kHz stereo float32 - common audio config
-                                        cpal::SupportedStreamConfig::new(
-                                            cpal::ChannelCount::from(2u16),
-                                            cpal::SampleRate(44100),
-                                            cpal::SupportedBufferSize::Unknown,
-                                            cpal::SampleFormat::F32,
-                                        ),
-                                        // 48kHz stereo int16 - alternative format
-                                        cpal::SupportedStreamConfig::new(
-                                            cpal::ChannelCount::from(2u16),
-                                            cpal::SampleRate(48000),
-                                            cpal::SupportedBufferSize::Unknown,
-                                            cpal::SampleFormat::I16,
-                                        ),
-                                    ];
+                                    let configs_to_try = common_test_configs();
 
                                     for config in configs_to_try {
                                         tracing::debug!("Trying ALSA manual config: {:?}", config);
 
-                                        // Try to build a test stream to validate the config
-                                        let test_result = match config.sample_format() {
-                                            cpal::SampleFormat::F32 => {
-                                                device.build_input_stream::<f32, _, _>(
-                                                    &config.config(),
-                                                    |_data: &[f32], _: &cpal::InputCallbackInfo| {}, // Empty callback for testing
-                                                    |err| tracing::debug!("Test stream error: {}", err),
-                                                    None,
-                                                )
-                                            },
-                                            cpal::SampleFormat::I16 => {
-                                                device.build_input_stream::<i16, _, _>(
-                                                    &config.config(),
-                                                    |_data: &[i16], _: &cpal::InputCallbackInfo| {}, // Empty callback for testing
-                                                    |err| tracing::debug!("Test stream error: {}", err),
-                                                    None,
-                                                )
-                                            },
-                                            _ => {
-                                                tracing::debug!("Unsupported sample format for testing");
-                                                continue;
-                                            }
-                                        };
-
-                                        if let Ok(test_stream) = test_result {
-                                            // If we can build a stream, the config is good
-                                            drop(test_stream); // Clean up the test stream
+                                        if try_validate_config(&device, &config) {
                                             tracing::debug!("Successfully validated ALSA config for device: {}", name);
                                             return Ok(Self {
                                                 host: alsa_host,
@@ -275,7 +227,7 @@ impl MicInput {
                                                 config,
                                             });
                                         } else {
-                                            tracing::debug!("Failed to build ALSA test stream with config: {:?}", config);
+                                            tracing::debug!("Failed to validate ALSA config: {:?}", config);
                                         }
                                     }
                                 }

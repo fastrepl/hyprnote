@@ -43,15 +43,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   });
 
   const startEnhance = useCallback(() => {
-    if (!hasTranscript) {
-      return;
-    }
-
-    if (!model) {
-      return;
-    }
-
-    if (enhanceTask.status !== "idle") {
+    if (!model || !hasTranscript || enhanceTask.status === "generating") {
       return;
     }
 

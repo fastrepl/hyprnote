@@ -121,7 +121,7 @@ impl Actor for ExternalSTTActor {
                 .with_delay(std::time::Duration::from_millis(500)),
         )
         .when(|e| {
-            tracing::error!("external_stt_init_failed: {:?}", e);
+            tracing::warn!("external_stt_init_failed: {:?}", e);
             true
         })
         .sleep(tokio::time::sleep)

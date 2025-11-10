@@ -368,18 +368,24 @@ function useTabsShortcuts() {
     })),
   );
   const newNote = useNewNote({ behavior: "new" });
+  const newNoteCurrent = useNewNote({ behavior: "current" });
   const newEmptyTab = useNewEmptyTab();
 
   useHotkeys(
     "mod+n",
     () => {
+      if (currentTab?.type === "empty") {
+        newNoteCurrent();
+        return;
+      }
+
       if (currentTab) {
         close(currentTab);
       }
       newNote();
     },
     { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
-    [currentTab, close, newNote],
+    [currentTab, close, newNote, newNoteCurrent],
   );
 
   useHotkeys(

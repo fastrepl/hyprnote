@@ -376,8 +376,50 @@ describe("withEarlyValidationRetry", () => {
     const results = await collectStream(stream);
 
     expect(results).toEqual(chunks);
-    expect(validator).toHaveBeenCalledTimes(2);
-    expect(validator).toHaveBeenNthCalledWith(1, "12345");
-    expect(validator).toHaveBeenNthCalledWith(2, "1234567890");
+    expect(validator).toHaveBeenCalledTimes(1);
+    expect(validator).toHaveBeenCalledWith("12345");
+  });
+
+  it("emits buffered chunks immediately after validation succeeds", async () => {
+    const chunks: TextStreamPart<ToolSet>[] = [
+      { type: "text-start", id: "1" },
+      { type: "text-delta", text: "Hello", id: "1" },
+      { type: "text-delta", text: " world", id: "1" },
+      { type: "text-end", id: "1" },
+    ];
+
+    async function* executeStream(signal: AbortSignal) {
+      for (const chunk of chunks) {
+        if (signal.aborted) {
+          return;
+        }
+        yield chunk;
+      }
+    }
+
+    const validator: EarlyValidatorFn = () => ({ valid: true });
+
+    const iterator = withEarlyValidationRetry(executeStream, validator, {
+      minChar: 5,
+      maxChar: 30,
+    })[Symbol.asyncIterator]();
+
+    const first = await iterator.next();
+    expect(first).toEqual({ done: false, value: { type: "text-start", id: "1" } });
+
+    const second = await iterator.next();
+    expect(second).toEqual({ done: false, value: { type: "text-delta", text: "Hello", id: "1" } });
+
+    const third = await iterator.next();
+    expect(third).toEqual({
+      done: false,
+      value: { type: "text-delta", text: " world", id: "1" },
+    });
+
+    const fourth = await iterator.next();
+    expect(fourth).toEqual({ done: false, value: { type: "text-end", id: "1" } });
+
+    const completion = await iterator.next();
+    expect(completion).toEqual({ done: true, value: undefined });
   });
 });

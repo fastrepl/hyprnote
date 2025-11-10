@@ -25,7 +25,15 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
     const buffer: TextStreamPart<TOOLS>[] = [];
     let accumulatedText = "";
     let validationComplete = false;
-    let shouldRetry = false;
+
+    const flushBuffer = function*() {
+      validationComplete = true;
+      if (attempt > 0) {
+        onRetrySuccess?.();
+      }
+      yield* buffer;
+      buffer.length = 0;
+    };
 
     try {
       const stream = executeStream(abortController.signal, { attempt, previousFeedback });
@@ -44,30 +52,19 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
               if (!result.valid) {
                 abortController.abort();
                 previousFeedback = result.feedback;
-                shouldRetry = true;
 
                 if (attempt < maxRetries - 1) {
                   onRetry?.(attempt + 1, result.feedback);
                   break;
-                } else {
-                  throw new Error(
-                    `Validation failed after ${maxRetries} attempts: ${result.feedback}`,
-                  );
                 }
+                throw new Error(
+                  `Validation failed after ${maxRetries} attempts: ${result.feedback}`,
+                );
               }
 
-              if (trimmedLength >= maxChar) {
-                validationComplete = true;
-
-                if (attempt > 0) {
-                  onRetrySuccess?.();
-                }
-
-                for (const bufferedChunk of buffer) {
-                  yield bufferedChunk;
-                }
-                buffer.length = 0;
-              }
+              yield* flushBuffer();
+            } else if (accumulatedText.length >= maxChar) {
+              yield* flushBuffer();
             }
           }
         } else {
@@ -75,16 +72,12 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
         }
       }
 
-      if (shouldRetry) {
+      if (abortController.signal.aborted && attempt < maxRetries - 1) {
         continue;
       }
 
-      if (validationComplete || buffer.length > 0) {
-        for (const bufferedChunk of buffer) {
-          yield bufferedChunk;
-        }
-        return;
-      }
+      yield* buffer;
+      return;
     } catch (error) {
       if (abortController.signal.aborted && attempt < maxRetries - 1) {
         continue;

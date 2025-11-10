@@ -198,6 +198,7 @@ export const createTasksSlice = <T extends TasksState>(
         })
       );
 
+      console.log("fullText", fullText);
       config.onComplete?.(fullText);
     } catch (err) {
       if (err instanceof Error && (err.name === "AbortError" || err.message === "Aborted")) {

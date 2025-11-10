@@ -447,32 +447,57 @@ describe("addMarkdownSectionSeparators", () => {
 
     await consumeStream(stream);
 
-    expect(events).toMatchInlineSnapshot(`
-      [
-        {
-          "input": {},
-          "toolCallId": "1",
-          "toolName": "test",
-          "type": "tool-call",
-        },
-        {
-          "id": "1",
-          "type": "text-start",
-        },
-        {
-          "id": "1",
-          "text": "# Section 1
+    expect(events).toEqual([
+      { type: "text-start", id: "1" },
+      {
+        type: "text-delta",
+        id: "1",
+        text: "# Section 1\n\n<p></p>\n\n# Section 2",
+      },
+      {
+        type: "tool-call",
+        toolCallId: "1",
+        toolName: "test",
+        input: {},
+      },
+      { type: "text-end", id: "1" },
+    ]);
+  });
 
-      <p></p>
+  it("streams separators without waiting for text-end", async () => {
+    let streamController!: ReadableStreamDefaultController<TextStreamPart<ToolSet>>;
 
-      # Section 2",
-          "type": "text-delta",
-        },
-        {
-          "id": "1",
-          "type": "text-end",
-        },
-      ]
-    `);
+    const source = new ReadableStream<TextStreamPart<ToolSet>>({
+      start(controller) {
+        streamController = controller;
+        controller.enqueue({ type: "text-start", id: "1" });
+        controller.enqueue({ type: "text-delta", text: "# First\n\n", id: "1" });
+      },
+    });
+
+    const reader = source
+      .pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }))
+      .getReader();
+
+    const first = await reader.read();
+    expect(first.value).toEqual({ type: "text-start", id: "1" });
+
+    const second = await reader.read();
+    expect(second.value).toEqual({ type: "text-delta", text: "# First\n\n", id: "1" });
+
+    streamController.enqueue({ type: "text-delta", text: "# Second", id: "1" });
+
+    const third = await reader.read();
+    expect(third.value).toEqual({
+      type: "text-delta",
+      text: "<p></p>\n\n# Second",
+      id: "1",
+    });
+
+    streamController.enqueue({ type: "text-end", id: "1" });
+    streamController.close();
+
+    const fourth = await reader.read();
+    expect(fourth.value).toEqual({ type: "text-end", id: "1" });
   });
 });

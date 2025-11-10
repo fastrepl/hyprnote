@@ -70,7 +70,7 @@ export function SelectProviderAndModel() {
           listeners={{ onChange: () => form.setFieldValue("model", "") }}
         >
           {(field) => (
-            <div style={{ flex: 4 }}>
+            <div className="flex-[2] min-w-0">
               <Select
                 value={field.state.value}
                 onValueChange={(value) => field.handleChange(value)}
@@ -111,7 +111,7 @@ export function SelectProviderAndModel() {
             });
 
             return (
-              <div style={{ flex: 6 }}>
+              <div className="flex-[3] min-w-0">
                 <Select
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}

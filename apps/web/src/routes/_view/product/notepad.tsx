@@ -1,6 +1,9 @@
 import { cn } from "@hypr/utils";
+
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+
+import { SlashSeparator } from "@/components/slash-separator";
 
 export const Route = createFileRoute("/_view/product/notepad")({
   component: Component,
@@ -23,18 +26,54 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <div className="px-6 py-12 lg:py-20">
-          <header className="mb-16">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
-              Your private notepad.
-              <br />
-              No bots. Local-first.
+        <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
+          <header className="mb-12 text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
+              Your private notepad. No bots. Local-first.
             </h1>
-            <p className="text-xl lg:text-2xl text-neutral-600 leading-relaxed max-w-3xl">
-              Hyprnote is a desktop notepad that records meetings without bots and processes everything locally on your
-              device. Complete privacy, no cloud uploads, and no interruptions.
+            <p className="text-lg sm:text-xl text-neutral-600">
+              Record meetings without bots and process everything locally for complete privacy
             </p>
+            <div className="mt-8">
+              <a
+                href="https://hyprnote.com/download"
+                className={cn([
+                  "inline-block px-8 py-3 text-base font-medium rounded-full",
+                  "bg-linear-to-t from-stone-600 to-stone-500 text-white",
+                  "hover:scale-105 active:scale-95 transition-transform",
+                ])}
+              >
+                Download for free
+              </a>
+            </div>
           </header>
+        </div>
+
+        <SlashSeparator />
+
+        <div className="px-6 py-12 lg:py-20">
+          <section className="mb-16">
+            <div className="grid md:grid-cols-3 border-t border-neutral-100">
+              <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
+                <h3 className="font-medium mb-1 text-neutral-900 font-mono">No Bots</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Record directly from your device without intrusive meeting bots.
+                </p>
+              </div>
+              <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
+                <h3 className="font-medium mb-1 text-neutral-900 font-mono">Local-First</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  All AI processing happens on your device, nothing sent to cloud.
+                </p>
+              </div>
+              <div className="p-6 text-left">
+                <h3 className="font-medium mb-1 text-neutral-900 font-mono">Fully Private</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  Your conversations stay yours, complete data ownership.
+                </p>
+              </div>
+            </div>
+          </section>
 
           <section className="mb-20">
             <h2 className="text-3xl font-serif text-stone-600 mb-8">Why Hyprnote Notepad</h2>
@@ -93,6 +132,8 @@ function Component() {
               </div>
             </div>
           </section>
+
+          <SlashSeparator />
 
           <section className="mb-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12">
             <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
@@ -174,6 +215,8 @@ function Component() {
             </div>
           </section>
 
+          <SlashSeparator />
+
           <section className="mb-20">
             <h2 className="text-3xl font-serif text-stone-600 mb-8">Built for privacy and compliance</h2>
             <div className="grid md:grid-cols-2 gap-8">
@@ -219,6 +262,8 @@ function Component() {
               </div>
             </div>
           </section>
+
+          <SlashSeparator />
 
           <section className="mb-20">
             <h2 className="text-3xl font-serif text-stone-600 mb-8">Perfect for sensitive meetings</h2>
@@ -268,6 +313,8 @@ function Component() {
             </div>
           </section>
 
+          <SlashSeparator />
+
           <section className="mb-20">
             <h2 className="text-3xl font-serif text-stone-600 mb-8">Powerful local AI capabilities</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -315,39 +362,67 @@ function Component() {
               </div>
             </div>
           </section>
+        </div>
 
-          <section className="bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12 text-center">
-            <h2 className="text-3xl font-serif text-stone-600 mb-4">
+        <SlashSeparator />
+
+        <section className="py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 lg:px-0">
+          <div className="flex flex-col gap-6 items-center text-center">
+            <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+                alt="Hyprnote"
+                width={144}
+                height={144}
+                className="size-36 mx-auto rounded-[40px] border border-neutral-100"
+              />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-serif">
               The privacy-first notepad
             </h2>
-            <p className="text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
               Experience professional AI notetaking without bots, cloud uploads, or privacy compromises. Your data stays
-              yours.
+              yours
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
               <a
                 href="https://hyprnote.com/download"
                 className={cn([
-                  "px-8 py-3 text-base font-medium rounded-full",
-                  "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                  "hover:scale-105 active:scale-95 transition-transform",
+                  "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+                  "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+                  "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                  "transition-all",
                 ])}
               >
                 Download for free
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
               </a>
               <Link
                 to="/product/ai-notetaking"
                 className={cn([
-                  "px-6 py-3 text-base font-medium rounded-full",
-                  "border border-neutral-300 text-stone-600",
-                  "hover:bg-stone-50 transition-colors",
+                  "px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+                  "border border-neutral-300 text-stone-600 rounded-full",
+                  "hover:bg-white transition-colors",
                 ])}
               >
                 Explore AI notetaking features
               </Link>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </div>
   );

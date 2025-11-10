@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_view/pricing")({
 interface PricingPlan {
   name: string;
   price: { monthly: number; yearly: number } | null;
+  originalPrice?: { monthly: number; yearly: number };
   description: string;
   popular?: boolean;
   features: Array<{
@@ -30,7 +31,7 @@ const pricingPlans: PricingPlan[] = [
     description: "Fully functional with your own API keys. Perfect for individuals who want complete control.",
     features: [
       { label: "Local Transcription", included: true },
-      { label: "Speaker Identification", included: true },
+      { label: "Speaker Identification", included: true, comingSoon: true },
       { label: "Bring Your Own Key (STT & LLM)", included: true },
       { label: "Basic Sharing (Copy, PDF)", included: true },
       { label: "All Data Local", included: true },
@@ -45,8 +46,12 @@ const pricingPlans: PricingPlan[] = [
   {
     name: "Pro",
     price: {
-      monthly: 35,
-      yearly: 295,
+      monthly: 8,
+      yearly: 59,
+    },
+    originalPrice: {
+      monthly: 20,
+      yearly: 169,
     },
     description: "No API keys needed. Get cloud services, advanced sharing, and team features out of the box.",
     popular: true,
@@ -89,20 +94,18 @@ function Component() {
 
 function TeamPricingBanner() {
   return (
-    <Link to="/founders" className="group">
-      <div
-        className={cn([
-          "flex items-center justify-center gap-2 text-center",
-          "bg-stone-50/70 border-b border-stone-100",
-          "py-3 px-4",
-          "font-serif text-sm text-stone-700",
-          "hover:bg-stone-50 transition-all",
-        ])}
-      >
-        <span>Have questions about teams pricing?</span>
-        <span className="group-hover:font-medium underline">Contact us</span>
-      </div>
-    </Link>
+    <div
+      className={cn([
+        "flex items-center justify-center gap-2 text-center",
+        "bg-stone-50/70 border-b border-stone-100",
+        "py-3 px-4",
+        "font-serif text-sm text-stone-700",
+      ])}
+    >
+      <span>
+        <strong>Early Bird Discount:</strong> Get 60% off as we launch our new version and help with migration
+      </span>
+    </div>
   );
 }
 
@@ -157,14 +160,24 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
           {plan.price
             ? (
               <div className="space-y-2">
-                <div>
+                <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-serif text-stone-600">
                     ${plan.price.monthly}
                   </span>
-                  <span className="text-neutral-600 ml-2">/seat/month</span>
+                  {plan.originalPrice && (
+                    <span className="text-xl text-neutral-400 line-through">
+                      ${plan.originalPrice.monthly}
+                    </span>
+                  )}
+                  <span className="text-neutral-600">/seat/month</span>
                 </div>
                 <div className="text-sm text-neutral-600">
-                  or ${plan.price.yearly}/seat/year <span className="text-green-700 font-medium">(save 30%)</span>
+                  or ${plan.price.yearly}/seat/year{" "}
+                  {plan.originalPrice && (
+                    <span className="text-neutral-400 line-through">
+                      ${plan.originalPrice.yearly}
+                    </span>
+                  )} <span className="text-green-700 font-medium">(save 65%)</span>
                 </div>
               </div>
             )

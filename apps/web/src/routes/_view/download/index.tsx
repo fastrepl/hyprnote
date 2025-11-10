@@ -16,86 +16,90 @@ function Component() {
       className="bg-linear-to-b from-white via-blue-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
-      <div
-        className={cn([
-          "flex items-center justify-center gap-2 text-center",
-          "bg-stone-50 border-b border-stone-100",
-          "font-serif text-sm text-stone-700",
-        ])}
-      >
-        <div className="py-3 px-4 mx-auto max-w-6xl border-x border-neutral-100 w-full">
-          Mac (Apple Silicon) features on-device speech-to-text. Other platforms coming soon without on-device
-          processing.
+      <div className="max-w-6xl mx-auto bg-white border-x border-neutral-100">
+        <div
+          className={cn([
+            "flex items-center justify-center gap-2 text-center",
+            "bg-stone-50/70 border-b border-stone-100",
+            "py-3 px-4",
+            "font-serif text-sm text-stone-700",
+            "hover:bg-stone-50 transition-all",
+          ])}
+        >
+          <span>
+            Mac (Apple Silicon) features on-device speech-to-text. Other platforms coming soon without on-device
+            processing.
+          </span>
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto py-12 bg-white border-x border-neutral-100">
-        <section className="py-16 px-4 sm:px-6">
-          <div className="space-y-6 max-w-2xl mx-auto text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
-              Download Hyprnote
-            </h1>
-            <p className="text-lg sm:text-xl text-neutral-600">
-              Choose your platform to get started with Hyprnote
-            </p>
-          </div>
-
-          <div className="mb-16">
-            <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
-              Desktop
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <DownloadCard
-                iconName="simple-icons:apple"
-                spec="macOS 14.2+ (Apple Silicon)"
-                downloadUrl="/download/apple-silicon"
-                available={true}
-              />
-              <DownloadCard
-                iconName="simple-icons:apple"
-                spec="macOS 14.2+ (Intel)"
-                downloadUrl="#"
-                available={false}
-              />
-              <DownloadCard
-                iconName="simple-icons:windows"
-                spec="Windows 10+"
-                downloadUrl="#"
-                available={false}
-              />
-              <DownloadCard
-                iconName="simple-icons:linux"
-                spec="Ubuntu, Debian"
-                downloadUrl="#"
-                available={false}
-              />
+        <div className="py-12">
+          <section className="py-16 px-4 sm:px-6">
+            <div className="space-y-6 max-w-2xl mx-auto text-center mb-16">
+              <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
+                Download Hyprnote
+              </h1>
+              <p className="text-lg sm:text-xl text-neutral-600">
+                Choose your platform to get started with Hyprnote
+              </p>
             </div>
-          </div>
 
-          <div>
-            <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
-              Mobile
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              <DownloadCard
-                iconName="simple-icons:ios"
-                spec="iOS 15+"
-                downloadUrl="#"
-                available={false}
-              />
-              <DownloadCard
-                iconName="simple-icons:android"
-                spec="Android 10+"
-                downloadUrl="#"
-                available={false}
-              />
+            <div className="mb-16">
+              <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
+                Desktop
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <DownloadCard
+                  iconName="simple-icons:apple"
+                  spec="macOS 14.2+ (Apple Silicon)"
+                  downloadUrl="/download/apple-silicon"
+                  available={true}
+                />
+                <DownloadCard
+                  iconName="simple-icons:apple"
+                  spec="macOS 14.2+ (Intel)"
+                  downloadUrl="#"
+                  available={false}
+                />
+                <DownloadCard
+                  iconName="simple-icons:windows"
+                  spec="Windows 10+"
+                  downloadUrl="#"
+                  available={false}
+                />
+                <DownloadCard
+                  iconName="simple-icons:linux"
+                  spec="Ubuntu, Debian"
+                  downloadUrl="#"
+                  available={false}
+                />
+              </div>
             </div>
-          </div>
-        </section>
-        <SlashSeparator />
-        <FAQSection />
-        <SlashSeparator />
-        <CTASection />
+
+            <div>
+              <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
+                Mobile
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <DownloadCard
+                  iconName="simple-icons:ios"
+                  spec="iOS 15+"
+                  downloadUrl="#"
+                  available={false}
+                />
+                <DownloadCard
+                  iconName="simple-icons:android"
+                  spec="Android 10+"
+                  downloadUrl="#"
+                  available={false}
+                />
+              </div>
+            </div>
+          </section>
+          <SlashSeparator />
+          <FAQSection />
+          <SlashSeparator />
+          <CTASection />
+        </div>
       </div>
     </div>
   );
@@ -134,7 +138,11 @@ function DownloadCard({
         : (
           <button
             disabled
-            className="w-full px-4 h-11 bg-neutral-100 text-neutral-400 rounded-full font-medium cursor-not-allowed"
+            className={cn([
+              "w-full px-4 h-11 rounded-full font-medium cursor-not-allowed",
+              "bg-linear-to-t from-stone-600 to-stone-500 text-white",
+              "opacity-50",
+            ])}
           >
             Planned
           </button>

@@ -12,69 +12,6 @@ interface VocabItem {
   rowId: string;
 }
 
-function useVocabMutations() {
-  const store = UI.useStore(STORE_ID);
-  const userId = UI.useValue("user_id", STORE_ID);
-
-  const createRow = UI.useSetRowCallback(
-    "memories",
-    () => id(),
-    (text: string) => ({
-      user_id: userId!,
-      type: "vocab",
-      text,
-      created_at: new Date().toISOString(),
-    }),
-    [userId],
-    STORE_ID,
-  );
-
-  const updateRow = UI.useSetPartialRowCallback(
-    "memories",
-    ({ rowId }: { rowId: string; text: string }) => rowId,
-    ({ text }: { rowId: string; text: string }) => ({ text }),
-    [],
-    STORE_ID,
-  ) as (args: { rowId: string; text: string }) => void;
-
-  const deleteRow = UI.useDelRowCallback(
-    "memories",
-    (rowId: string) => rowId,
-    STORE_ID,
-  );
-
-  return {
-    create: (text: string) => {
-      if (!store || !userId) {
-        return;
-      }
-      createRow(text);
-    },
-    update: (rowId: string, text: string) => {
-      if (!store) {
-        return;
-      }
-      updateRow({ rowId, text });
-    },
-    delete: (rowId: string) => {
-      if (!store) {
-        return;
-      }
-      deleteRow(rowId);
-    },
-  };
-}
-
-function useVocabs() {
-  const table = UI.useResultTable(QUERIES.visibleVocabs, STORE_ID);
-  return useMemo(() => {
-    return Object.entries(table).map(([rowId, { text }]) => ({
-      rowId,
-      text,
-    } as VocabItem));
-  }, [table]);
-}
-
 export function CustomVocabularyView() {
   const vocabItems = useVocabs();
   const mutations = useVocabMutations();
@@ -166,7 +103,7 @@ export function CustomVocabularyView() {
               </div>
             )
             : (
-              filteredItems.map((item) => (
+              filteredItems.map((item: VocabItem) => (
                 <VocabularyItem
                   key={item.rowId}
                   item={item}
@@ -331,4 +268,56 @@ function VocabularyItem({
       </div>
     </div>
   );
+}
+
+function useVocabs() {
+  const table = UI.useResultTable(QUERIES.visibleVocabs, STORE_ID);
+
+  return Object.entries(table ?? {}).map(([rowId, { text }]) => ({
+    rowId,
+    text,
+  } as VocabItem));
+}
+
+function useVocabMutations() {
+  const userId = UI.useValue("user_id", STORE_ID);
+
+  const createRow = UI.useSetRowCallback(
+    "memories",
+    () => id(),
+    (text: string) => ({
+      user_id: userId!,
+      type: "vocab",
+      text,
+      created_at: new Date().toISOString(),
+    }),
+    [userId],
+    STORE_ID,
+  );
+
+  const updateRow = UI.useSetPartialRowCallback(
+    "memories",
+    ({ rowId }: { rowId: string; text: string }) => rowId,
+    ({ text }: { rowId: string; text: string }) => ({ text }),
+    [],
+    STORE_ID,
+  ) as (args: { rowId: string; text: string }) => void;
+
+  const deleteRow = UI.useDelRowCallback(
+    "memories",
+    (rowId: string) => rowId,
+    STORE_ID,
+  );
+
+  return {
+    create: (text: string) => {
+      createRow(text);
+    },
+    update: (rowId: string, text: string) => {
+      updateRow({ rowId, text });
+    },
+    delete: (rowId: string) => {
+      deleteRow(rowId);
+    },
+  };
 }

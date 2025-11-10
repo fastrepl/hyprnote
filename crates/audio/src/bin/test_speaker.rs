@@ -1,5 +1,19 @@
 use audio::AudioInput;
 
+/// Runs a simple binary test that creates an `AudioInput` from the default speaker, obtains its stream, and prints which `AudioStream` variant was returned.
+///
+/// This program exercises creation of a speaker `AudioInput`, requests its stream, and reports whether the stream is a `RealtimeSpeaker` variant. It does not poll or consume audio samples.
+///
+/// # Examples
+///
+/// ```
+/// // Call the test binary's main to perform the creation and type check.
+/// // The example demonstrates the intended usage; output is printed to stdout.
+/// fn run() {
+///     crate::main();
+/// }
+/// run();
+/// ```
 fn main() {
     println!("Testing SpeakerInput creation...");
 

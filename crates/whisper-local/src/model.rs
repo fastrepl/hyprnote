@@ -43,6 +43,25 @@ impl WhisperBuilder {
         self
     }
 
+    /// Builds a ready-to-use `Whisper` instance by loading the configured model and initializing runtime state.
+    ///
+    /// The builder will load the model file at the configured path, attempt to initialize a `WhisperContext` (preferring GPU when available and falling back to CPU), create a `WhisperState`, and return a `Whisper` populated with configured prompts and languages.
+    ///
+    /// # Panics
+    ///
+    /// - If the configured model path is not set or the model file does not exist.
+    /// - If both GPU and CPU context initialization fail, or if creating the `WhisperState` fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let whisper = Whisper::builder()
+    ///     .model_path("models/ggml-whisper-small.bin".to_string())
+    ///     .static_prompt("System prompt".to_string())
+    ///     .build();
+    ///
+    /// // ready to call whisper.transcribe(...)
+    /// ```
     pub fn build(self) -> Whisper {
         unsafe { Self::suppress_log() };
 

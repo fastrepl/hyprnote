@@ -16,6 +16,13 @@ pub struct Detector {
 }
 
 impl Default for Detector {
+    /// Creates a new `Detector` with a default background task and no previously detected browsers.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let detector = Detector::default();
+    /// ```
     fn default() -> Self {
         Self {
             background: BackgroundTask::default(),
@@ -25,6 +32,23 @@ impl Default for Detector {
 }
 
 impl crate::Observer for Detector {
+    /// Starts a background task that detects common Linux browsers and reports newly observed ones.
+    ///
+    /// The detector samples processes every 5 seconds (using `ps aux`) and, for each browser name in
+    /// `BROWSER_NAMES`, invokes the provided callback exactly once when that browser is first observed
+    /// running. The callback is called with a message in the format `"<browser> running"`.
+    ///
+    /// # Parameters
+    ///
+    /// - `f`: Callback invoked with a single `String` message when a browser is detected.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut detector = crate::browser::linux::Detector::default();
+    /// detector.start(|msg| println!("{}", msg));
+    /// // The callback will be called asynchronously when a browser from BROWSER_NAMES is observed.
+    /// ```
     fn start(&mut self, f: crate::DetectCallback) {
         let mut detected_browsers = self.detected_browsers.clone();
 
@@ -63,6 +87,14 @@ impl crate::Observer for Detector {
         });
     }
 
+    /// Stops the detector's background task and clears the set of previously detected browsers.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut det = Detector::default();
+    /// det.stop();
+    /// ```
     fn stop(&mut self) {
         self.background.stop();
         self.detected_browsers.clear();

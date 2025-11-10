@@ -29,6 +29,19 @@ pub enum Error {
     }
 
 impl Serialize for Error {
+    /// Serializes the error as its human-readable string representation.
+    ///
+    /// The error is converted with `to_string()` and that string is serialized.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use serde_json::to_string;
+    /// // construct an example error variant
+    /// let err = crate::Error::NoneSession;
+    /// let s = to_string(&err).unwrap();
+    /// assert_eq!(s, "\"no session\"");
+    /// ```
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,

@@ -1,5 +1,17 @@
 use audio::AudioInput;
 
+/// Tests microphone access by listing available devices and attempting to create audio input.
+///
+/// Prints available microphone devices, the default device name, and then tries to create an `AudioInput`
+/// using the default device, the first enumerated device (if any), and a set of known device names,
+/// reporting success or failure to stdout.
+///
+/// # Examples
+///
+/// ```no_run
+/// // Invoke the binary entry point which performs device enumeration and connection attempts.
+/// main();
+/// ```
 fn main() {
     println!("Testing microphone access...");
 

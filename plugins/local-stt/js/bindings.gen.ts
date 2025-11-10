@@ -91,8 +91,8 @@ async listSupportedLanguages(model: SupportedSttModel) : Promise<string[]> {
 
 export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
 export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
-export type ServerHealth = "unreachable" | "loading" | "ready"
-export type ServerInfo = { url: string | null; health: ServerHealth }
+export type ServerInfo = { url: string | null; status: ServerStatus; model: SupportedSttModel | null }
+export type ServerStatus = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external"
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }
 export type SupportedSttModel = WhisperModel | AmModel

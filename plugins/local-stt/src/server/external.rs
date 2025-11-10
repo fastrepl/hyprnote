@@ -1,12 +1,14 @@
 use std::path::PathBuf;
 use tauri_plugin_shell::process::{Command, CommandChild};
 
-use super::ServerHealth;
+use super::{ServerInfo, ServerStatus};
 use backon::{ConstantBuilder, Retryable};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 
+use crate::SupportedSttModel;
+
 pub enum ExternalSTTMessage {
-    GetHealth(RpcReplyPort<(String, ServerHealth)>),
+    GetHealth(RpcReplyPort<ServerInfo>),
     ProcessTerminated(String),
 }
 
@@ -163,17 +165,23 @@ impl Actor for ExternalSTTActor {
             ExternalSTTMessage::GetHealth(reply_port) => {
                 let status = match state.client.status().await {
                     Ok(r) => match r.model_state {
-                        hypr_am::ModelState::Loading => ServerHealth::Loading,
-                        hypr_am::ModelState::Loaded => ServerHealth::Ready,
-                        _ => ServerHealth::Unreachable,
+                        hypr_am::ModelState::Loading => ServerStatus::Loading,
+                        hypr_am::ModelState::Loaded => ServerStatus::Ready,
+                        _ => ServerStatus::Unreachable,
                     },
                     Err(e) => {
                         tracing::error!("{:?}", e);
-                        ServerHealth::Unreachable
+                        ServerStatus::Unreachable
                     }
                 };
 
-                if let Err(e) = reply_port.send((state.base_url.clone(), status)) {
+                let info = ServerInfo {
+                    url: Some(state.base_url.clone()),
+                    status,
+                    model: Some(SupportedSttModel::Am(state.model.clone())),
+                };
+
+                if let Err(e) = reply_port.send(info) {
                     return Err(e.into());
                 }
 

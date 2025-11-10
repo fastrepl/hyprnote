@@ -8,11 +8,11 @@ use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 use reqwest::StatusCode;
 use tower_http::cors::{self, CorsLayer};
 
-use super::ServerHealth;
+use super::{ServerInfo, ServerStatus};
 use hypr_whisper_local_model::WhisperModel;
 
 pub enum InternalSTTMessage {
-    GetHealth(RpcReplyPort<(String, ServerHealth)>),
+    GetHealth(RpcReplyPort<ServerInfo>),
     ServerError(String),
 }
 
@@ -23,6 +23,7 @@ pub struct InternalSTTArgs {
 
 pub struct InternalSTTState {
     base_url: String,
+    model: WhisperModel,
     shutdown: tokio::sync::watch::Sender<()>,
     server_task: tokio::task::JoinHandle<()>,
 }
@@ -45,7 +46,12 @@ impl Actor for InternalSTTActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let model_path = args.model_cache_dir.join(args.model_type.file_name());
+        let InternalSTTArgs {
+            model_type,
+            model_cache_dir,
+        } = args;
+
+        let model_path = model_cache_dir.join(model_type.file_name());
 
         let whisper_service = HandleError::new(
             hypr_transcribe_whisper_local::TranscribeService::builder()
@@ -85,6 +91,7 @@ impl Actor for InternalSTTActor {
 
         Ok(InternalSTTState {
             base_url,
+            model: model_type,
             shutdown: shutdown_tx,
             server_task,
         })
@@ -108,9 +115,13 @@ impl Actor for InternalSTTActor {
     ) -> Result<(), ActorProcessingErr> {
         match message {
             InternalSTTMessage::GetHealth(reply_port) => {
-                let status = ServerHealth::Ready;
+                let info = ServerInfo {
+                    url: Some(state.base_url.clone()),
+                    status: ServerStatus::Ready,
+                    model: Some(crate::SupportedSttModel::Whisper(state.model.clone())),
+                };
 
-                if let Err(e) = reply_port.send((state.base_url.clone(), status)) {
+                if let Err(e) = reply_port.send(info) {
                     return Err(e.into());
                 }
 

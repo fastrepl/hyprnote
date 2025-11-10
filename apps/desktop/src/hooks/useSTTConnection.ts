@@ -45,7 +45,7 @@ export const useSTTConnection = (): Connection | null => {
       const isInternalModel = current_stt_model.startsWith("Quantized");
       const server = isInternalModel ? servers.data.internal : servers.data.external;
 
-      if (server?.health === "ready" && server.url) {
+      if (server?.status === "ready" && server.url) {
         return {
           provider: current_stt_provider!,
           model: current_stt_model,

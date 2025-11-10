@@ -11,7 +11,7 @@ use hypr_file::download_file_parallel_cancellable;
 
 use crate::{
     model::SupportedSttModel,
-    server::{external, internal, ServerHealth, ServerInfo, ServerType},
+    server::{external, internal, ServerInfo, ServerStatus, ServerType},
 };
 
 pub trait LocalSttPluginExt<R: Runtime> {
@@ -86,12 +86,26 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
         match t {
             ServerType::Internal => {
-                if !self.is_model_downloaded(&model).await? {
-                    return Err(crate::Error::ModelNotDownloaded);
+                if let Some(info) = internal_health().await {
+                    if info.status != ServerStatus::Unreachable
+                        && info.model.as_ref() == Some(&model)
+                    {
+                        if let Some(url) = info.url {
+                            return Ok(url);
+                        }
+
+                        return Err(crate::Error::ServerStartFailed(
+                            "missing_health_url".to_string(),
+                        ));
+                    }
+
+                    self.stop_server(Some(ServerType::Internal)).await?;
+                } else if registry::where_is(internal::InternalSTTActor::name()).is_some() {
+                    self.stop_server(Some(ServerType::Internal)).await?;
                 }
 
-                if registry::where_is(internal::InternalSTTActor::name()).is_some() {
-                    return Err(crate::Error::ServerAlreadyRunning);
+                if !self.is_model_downloaded(&model).await? {
+                    return Err(crate::Error::ModelNotDownloaded);
                 }
 
                 let whisper_model = match model {
@@ -112,12 +126,28 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 .await
                 .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;
 
-                let base_url = internal_health().await.map(|r| r.0).unwrap();
-                Ok(base_url)
+                internal_health()
+                    .await
+                    .and_then(|info| info.url)
+                    .ok_or_else(|| crate::Error::ServerStartFailed("empty_health".to_string()))
             }
             ServerType::External => {
-                if registry::where_is(external::ExternalSTTActor::name()).is_some() {
-                    return Err(crate::Error::ServerAlreadyRunning);
+                if let Some(info) = external_health().await {
+                    if info.status != ServerStatus::Unreachable
+                        && info.model.as_ref() == Some(&model)
+                    {
+                        if let Some(url) = info.url {
+                            return Ok(url);
+                        }
+
+                        return Err(crate::Error::ServerStartFailed(
+                            "missing_health_url".to_string(),
+                        ));
+                    }
+
+                    self.stop_server(Some(ServerType::External)).await?;
+                } else if registry::where_is(external::ExternalSTTActor::name()).is_some() {
+                    self.stop_server(Some(ServerType::External)).await?;
                 }
 
                 let am_model = match model {
@@ -178,7 +208,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 .await
                 .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;
 
-                let res = external_health().await.map(|v| v.0);
+                let res = external_health().await.and_then(|info| info.url);
                 res.ok_or(crate::Error::ServerStartFailed("empty_health".to_string()))
             }
         }
@@ -233,27 +263,17 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_servers(&self) -> Result<HashMap<ServerType, ServerInfo>, crate::Error> {
-        let internal_info = internal_health()
-            .await
-            .map(|(url, health)| ServerInfo {
-                url: Some(url),
-                health,
-            })
-            .unwrap_or(ServerInfo {
-                url: None,
-                health: ServerHealth::Unreachable,
-            });
+        let internal_info = internal_health().await.unwrap_or_else(|| ServerInfo {
+            url: None,
+            status: ServerStatus::Unreachable,
+            model: None,
+        });
 
-        let external_info = external_health()
-            .await
-            .map(|(url, health)| ServerInfo {
-                url: Some(url),
-                health,
-            })
-            .unwrap_or(ServerInfo {
-                url: None,
-                health: ServerHealth::Unreachable,
-            });
+        let external_info = external_health().await.unwrap_or_else(|| ServerInfo {
+            url: None,
+            status: ServerStatus::Unreachable,
+            model: None,
+        });
 
         Ok([
             (ServerType::Internal, internal_info),
@@ -392,12 +412,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 }
 
-async fn internal_health() -> Option<(String, ServerHealth)> {
+async fn internal_health() -> Option<ServerInfo> {
     match registry::where_is(internal::InternalSTTActor::name()) {
         Some(cell) => {
             let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
             match call_t!(actor, internal::InternalSTTMessage::GetHealth, 10 * 1000) {
-                Ok(r) => Some(r),
+                Ok(info) => Some(info),
                 Err(_) => None,
             }
         }
@@ -405,12 +425,12 @@ async fn internal_health() -> Option<(String, ServerHealth)> {
     }
 }
 
-async fn external_health() -> Option<(String, ServerHealth)> {
+async fn external_health() -> Option<ServerInfo> {
     match registry::where_is(external::ExternalSTTActor::name()) {
         Some(cell) => {
             let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
             match call_t!(actor, external::ExternalSTTMessage::GetHealth, 10 * 1000) {
-                Ok(r) => Some(r),
+                Ok(info) => Some(info),
                 Err(_) => None,
             }
         }

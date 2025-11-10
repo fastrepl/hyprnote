@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
 import { CONFIG_REGISTRY, type ConfigKey } from "./registry";
@@ -54,38 +52,44 @@ export function useConfigValues<K extends ConfigKey>(keys: readonly K[]): { [P i
   return result;
 }
 
-export function useConfigSideEffects(keys?: ConfigKey[]) {
-  const active = useListener((state) => state.live.status === "running_active");
-  const configsToWatch = keys ?? (Object.keys(CONFIG_REGISTRY) as ConfigKey[]);
+export function useConfigSideEffects() {
+  const configs = useValuesToWatch();
 
-  const allValues = main.UI.useValues(main.STORE_ID);
-
-  const getConfig = <K extends ConfigKey>(key: K): any => {
-    const storedValue = allValues[key];
+  for (const key of Object.keys(configs) as ConfigKey[]) {
     const definition = CONFIG_REGISTRY[key];
 
-    if (storedValue !== undefined) {
-      if (key === "ignored_platforms" || key === "spoken_languages" || key === "dismissed_banners") {
-        return tryParseJSON(storedValue, definition.default);
-      }
-      return storedValue;
-    }
+    if ("sideEffect" in definition) {
+      const getConfig = <K extends ConfigKey>(k: K): ConfigValueType<K> => {
+        const def = CONFIG_REGISTRY[k];
+        const val = configs[k];
 
-    return definition.default;
-  };
+        if (val !== undefined) {
+          if (k === "ignored_platforms" || k === "spoken_languages" || k === "dismissed_banners") {
+            return tryParseJSON(val, def.default) as ConfigValueType<K>;
+          }
+          return val as ConfigValueType<K>;
+        }
 
-  useEffect(() => {
-    // TODO: hack to avoid restarting server while in meeting.
-    if (active) {
-      return;
-    }
+        return def.default as ConfigValueType<K>;
+      };
 
-    for (const key of configsToWatch) {
-      const definition = CONFIG_REGISTRY[key];
-      if (definition && "sideEffect" in definition && definition.sideEffect) {
-        const value = getConfig(key);
-        (definition.sideEffect as any)(value, getConfig);
-      }
+      type GetConfigFn = <K extends ConfigKey>(k: K) => ConfigValueType<K>;
+      const storedValue = configs[key] !== undefined ? configs[key] : definition.default;
+      (definition.sideEffect as (value: unknown, getConfig: GetConfigFn) => void | Promise<void>)(
+        storedValue,
+        getConfig,
+      );
     }
-  }, [allValues, active]);
+  }
+}
+
+function useValuesToWatch(): Partial<Record<ConfigKey, any>> {
+  const inactive = useListener((state) => state.live.status === "inactive");
+  const keys = inactive ? Object.keys(CONFIG_REGISTRY) as ConfigKey[] : [];
+  const allValues = main.UI.useValues(main.STORE_ID);
+
+  return keys.reduce<Partial<Record<ConfigKey, any>>>((acc, key) => {
+    acc[key] = allValues[key];
+    return acc;
+  }, {});
 }

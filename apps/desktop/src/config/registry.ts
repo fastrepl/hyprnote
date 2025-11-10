@@ -20,17 +20,19 @@ export type ConfigKey =
   | "current_llm_provider"
   | "current_llm_model";
 
+type ConfigValueType<K extends ConfigKey> = (typeof CONFIG_REGISTRY)[K]["default"];
+
 interface ConfigDefinition<T = any> {
   key: ConfigKey;
   default: T;
-  sideEffect?: (value: T, getConfig: <K extends ConfigKey>(key: K) => any) => void | Promise<void>;
+  sideEffect?: (value: T, getConfig: <K extends ConfigKey>(key: K) => ConfigValueType<K>) => void | Promise<void>;
 }
 
 export const CONFIG_REGISTRY = {
   autostart: {
     key: "autostart",
     default: false,
-    sideEffect: async (value: boolean) => {
+    sideEffect: async (value: boolean, _) => {
       if (value) {
         await enable();
       } else {
@@ -52,7 +54,7 @@ export const CONFIG_REGISTRY = {
   respect_dnd: {
     key: "respect_dnd",
     default: false,
-    sideEffect: async (value: boolean) => {
+    sideEffect: async (value: boolean, _) => {
       await detectCommands.setRespectDoNotDisturb(value);
     },
   },
@@ -60,7 +62,7 @@ export const CONFIG_REGISTRY = {
   ignored_platforms: {
     key: "ignored_platforms",
     default: [] as string[],
-    sideEffect: async (value: string[]) => {
+    sideEffect: async (value: string[], _) => {
       await detectCommands.setIgnoredBundleIds(value);
     },
   },
@@ -89,20 +91,7 @@ export const CONFIG_REGISTRY = {
       const provider = getConfig("current_stt_provider");
       const model = getConfig("current_stt_model") as SupportedSttModel | undefined;
 
-      if (provider !== "hyprnote") {
-        await localSttCommands.stopServer("external");
-        return;
-      }
-
-      if (model?.startsWith("am-")) {
-        await localSttCommands.stopServer("external");
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        await localSttCommands.startServer(model);
-      }
-
-      if (model?.startsWith("Quantized")) {
-        await localSttCommands.stopServer("internal");
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      if (provider === "hyprnote" && model) {
         await localSttCommands.startServer(model);
       }
     },
@@ -115,14 +104,7 @@ export const CONFIG_REGISTRY = {
       const provider = getConfig("current_stt_provider");
       const model = getConfig("current_stt_model") as SupportedSttModel | undefined;
 
-      if (provider !== "hyprnote") {
-        await localSttCommands.stopServer("external");
-        return;
-      }
-
-      if (model?.startsWith("am-")) {
-        await localSttCommands.stopServer("external");
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      if (provider === "hyprnote" && model) {
         await localSttCommands.startServer(model);
       }
     },

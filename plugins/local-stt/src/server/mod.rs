@@ -15,7 +15,7 @@ pub enum ServerType {
     Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, specta::Type,
 )]
 #[serde(rename_all = "lowercase")]
-pub enum ServerHealth {
+pub enum ServerStatus {
     Unreachable,
     Loading,
     Ready,
@@ -24,5 +24,6 @@ pub enum ServerHealth {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct ServerInfo {
     pub url: Option<String>,
-    pub health: ServerHealth,
+    pub status: ServerStatus,
+    pub model: Option<crate::SupportedSttModel>,
 }

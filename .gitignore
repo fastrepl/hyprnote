@@ -16,4 +16,7 @@ internal
 .turbo
 
 .windsurfrules
-CLAUDE.md 
+ CLAUDE.md 
+
+# Local audio artifacts
+crates/audio/normalized_output.wav

@@ -14,7 +14,8 @@ impl SpeakerInput {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust
+    /// use audio::SpeakerInput;
     /// let input = SpeakerInput::new().unwrap();
     /// ```
     pub fn new() -> Result<Self, anyhow::Error> {
@@ -65,15 +66,10 @@ impl SpeakerStream {
 impl Stream for SpeakerStream {
     type Item = f32;
 
-    fn poll_next(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<Self::Item>> {
+    fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         match self.receiver.try_recv() {
             Ok(sample) => Poll::Ready(Some(sample)),
-            Err(mpsc::TryRecvError::Empty) => {
-                Poll::Pending
-            }
+            Err(mpsc::TryRecvError::Empty) => Poll::Pending,
             Err(mpsc::TryRecvError::Disconnected) => Poll::Ready(None),
         }
     }

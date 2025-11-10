@@ -81,44 +81,19 @@ impl WhisperBuilder {
 
         tracing::info!("Available backends: {:?}, has_gpu: {}", backends, has_gpu);
 
-        let use_gpu = has_gpu;
         let context_param = {
             let mut p = WhisperContextParameters::default();
             p.gpu_device = 0;
-            p.use_gpu = has_gpu;  // Only use GPU if available
+            p.use_gpu = has_gpu; // Only use GPU if available
             p.flash_attn = false; // crash on macos
             p.dtw_parameters.mode = whisper_rs::DtwMode::None;
             p
         };
 
-        let ctx = match WhisperContext::new_with_params(&model_path, context_param) {
-            Ok(ctx) => ctx,
-            Err(e) => {
-                tracing::warn!("Failed to initialize WhisperContext with GPU (use_gpu={}): {:?}. Falling back to CPU.", use_gpu, e);
-                // Try again with CPU only
-                let mut p = WhisperContextParameters::default();
-                p.gpu_device = 0;
-                p.use_gpu = false;
-                p.flash_attn = false;
-                p.dtw_parameters.mode = whisper_rs::DtwMode::None;
+        let ctx = WhisperContext::new_with_params(&model_path, context_param)
+            .unwrap_or_else(|e| panic!("Failed to initialize WhisperContext: {:?}", e));
 
-                match WhisperContext::new_with_params(&model_path, p) {
-                    Ok(ctx) => ctx,
-                    Err(e) => {
-                        tracing::error!("Failed to initialize WhisperContext with CPU: {:?}. Model path: {}, File exists: {}", e, model_path, std::path::Path::new(&model_path).exists());
-                        panic!("Failed to initialize WhisperContext: {:?}. Model path: {}, File exists: {}", e, model_path, std::path::Path::new(&model_path).exists());
-                    }
-                }
-            }
-        };
-
-        let state = match ctx.create_state() {
-            Ok(state) => state,
-            Err(e) => {
-                tracing::error!("Failed to create WhisperState: {:?}", e);
-                panic!("Failed to create WhisperState: {:?}", e);
-            }
-        };
+        let state = ctx.create_state().expect("Failed to create WhisperState");
 
         let token_eot = ctx.token_eot();
         let token_beg = ctx.token_beg();

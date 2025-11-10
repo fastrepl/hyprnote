@@ -5,24 +5,47 @@ import { buildSegments, type RuntimeSpeakerHint, type Segment } from "../../../.
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
 
 export function useFinalWords(transcriptId: string): (main.Word & { id: string })[] {
-  const store = main.UI.useStore(main.STORE_ID);
-  const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
+  const queryId = useWordsQuery(transcriptId);
+  const resultTable = main.UI.useResultTable(queryId, main.STORE_ID);
 
   return useMemo(() => {
-    if (!store) {
+    if (!resultTable) {
       return [];
     }
 
-    const words: (main.Word & { id: string })[] = [];
-    wordIds?.forEach((wordId) => {
-      const word = store.getRow("words", wordId);
-      if (word) {
-        words.push({ ...(word as main.Word), id: wordId });
-      }
+    return Object.entries(resultTable)
+      .map(([wordId, row]) => ({ ...(row as unknown as main.Word), id: wordId }))
+      .sort((a, b) => a.start_ms - b.start_ms);
+  }, [resultTable]);
+}
+
+function useWordsQuery(transcriptId: string) {
+  const queries = main.UI.useQueries(main.STORE_ID);
+  const queryId = useMemo(() => `wordsByTranscript:${transcriptId}`, [transcriptId]);
+
+  useEffect(() => {
+    if (!queries || !transcriptId) {
+      return;
+    }
+
+    queries.setQueryDefinition(queryId, "words", ({ select, where }) => {
+      select("text");
+      select("start_ms");
+      select("end_ms");
+      select("channel");
+      select("created_at");
+      select("transcript_id");
+      select("user_id");
+      select("metadata");
+      where((getCell) => getCell("transcript_id") === transcriptId);
     });
 
-    return words;
-  }, [store, wordIds, transcriptId]);
+    return () => {
+      queries.delQueryDefinition(queryId);
+    };
+  }, [queries, queryId, transcriptId]);
+
+  return queryId;
 }
 
 export function useFinalSpeakerHints(transcriptId: string): RuntimeSpeakerHint[] {

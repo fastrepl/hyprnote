@@ -70,13 +70,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       .setValuesSchema(SCHEMA.value)
   );
 
-  if (!store.hasValue("user_id")) {
-    store.setValue("user_id", DEFAULT_USER_ID);
-  }
-  if (!store.hasRow("humans", DEFAULT_USER_ID)) {
-    store.setRow("humans", DEFAULT_USER_ID, { created_at: new Date().toISOString() });
-  }
-
   useDidFinishTransactionListener(
     () => {
       const [changedTables, _changedValues] = store.getTransactionChanges();
@@ -112,6 +105,34 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       const persister = createLocalPersister<Schemas>(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
+      });
+
+      const initializer = async (cb: () => void) => {
+        await persister.load();
+        store.transaction(() => cb());
+        await persister.save();
+      };
+
+      void initializer(() => {
+        if (!store.hasValue("user_id")) {
+          store.setValue("user_id", DEFAULT_USER_ID);
+        }
+        if (!store.hasRow("humans", DEFAULT_USER_ID)) {
+          store.setRow("humans", DEFAULT_USER_ID, { created_at: new Date().toISOString() });
+        }
+
+        if (!store.getTableIds().includes("sessions") || store.getRowIds("sessions").length === 0) {
+          const sessionId = crypto.randomUUID();
+          const now = new Date().toISOString();
+
+          store.setRow("sessions", sessionId, {
+            user_id: DEFAULT_USER_ID,
+            created_at: now,
+            title: "Welcome to Hyprnote",
+            raw_md: "",
+            enhanced_md: "",
+          });
+        }
       });
 
       await persister.startAutoLoad();

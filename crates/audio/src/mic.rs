@@ -23,6 +23,17 @@ impl MicInput {
             .unwrap_or("Unknown Microphone".to_string())
     }
 
+    /// List available input audio device names.
+    ///
+    /// A Vec<String> containing the names of available input devices. If a device's
+    /// name cannot be retrieved, the entry will be "Unknown Microphone".
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let names = list_devices();
+    /// assert!(names.iter().all(|n| !n.is_empty()));
+    /// ```
     pub fn list_devices() -> Vec<String> {
         cpal::default_host()
             .input_devices()
@@ -31,7 +42,30 @@ impl MicInput {
             .collect()
     }
 
-    pub fn new(device_name: Option<String>) -> Result<Self, crate::Error> {
+    /// Creates a new MicInput by selecting and configuring an available input device.
+        ///
+        /// This tries to select the requested device when `device_name` is Some, otherwise it prefers
+        /// the system default input device and falls back to the first enumerated input device. If no
+        /// devices are directly usable the initializer attempts platform-specific fallbacks (for example
+        /// handling echo-cancel-source and ALSA probes) before returning an error.
+        ///
+        /// # Parameters
+        ///
+        /// - `device_name`: Optional device name to prefer; when `None` the function will use the default
+        ///   input device if valid, otherwise the first available device.
+        ///
+        /// # Returns
+        ///
+        /// `Ok(Self)` with the chosen host, device, and supported stream configuration on success,
+        /// `Err(crate::Error::NoInputDevice)` if no usable input device or configuration can be found.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// // Create a MicInput using the default device (or fallbacks).
+        /// let _ = MicInput::new(None);
+        /// ```
+        pub fn new(device_name: Option<String>) -> Result<Self, crate::Error> {
             let host = cpal::default_host();
 
             tracing::info!("Initializing microphone input...");

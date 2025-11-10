@@ -69,6 +69,18 @@ pub struct AudioInput {
 }
 
 impl AudioInput {
+    /// Get the name of the system's default input (microphone) device.
+    ///
+    /// # Returns
+    ///
+    /// A `String` with the device name, `"Unknown Microphone"` if the device exists but has no name, or `"No Microphone Available"` if there is no default input device.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let name = get_default_mic_device_name();
+    /// assert!(!name.is_empty());
+    /// ```
     pub fn get_default_mic_device_name() -> String {
         let host = cpal::default_host();
         if let Some(device) = host.default_input_device() {
@@ -78,6 +90,19 @@ impl AudioInput {
         }
     }
 
+    /// Returns a list of available input (microphone) device names.
+    ///
+    /// The returned list contains the names of enumerated input devices. It filters out the
+    /// "hypr-audio-tap" device and will append the virtual "echo-cancel-source" device if
+    /// `pactl list sources short` reports it and it is not already present.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let devices = crate::audio::list_mic_devices();
+    /// // devices is a Vec<String> of device names (may be empty)
+    /// assert!(devices.is_empty() || devices.iter().all(|s| !s.is_empty()));
+    /// ```
     pub fn list_mic_devices() -> Vec<String> {
         let host = cpal::default_host();
 
@@ -133,6 +158,20 @@ impl AudioInput {
         result
     }
 
+    /// Creates an AudioInput configured to stream from a microphone.
+    ///
+    /// If `device_name` is `Some(name)`, attempts to open the input device with that name; if `None`, uses the default input device. On success returns an `AudioInput` with `source` set to `RealtimeMic` and `mic` initialized.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `crate::Error` if microphone initialization fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let ai = AudioInput::from_mic(None).expect("failed to open default microphone");
+    /// assert!(matches!(ai.source, AudioSource::RealtimeMic));
+    /// ```
     pub fn from_mic(device_name: Option<String>) -> Result<Self, crate::Error> {
         tracing::info!("Creating AudioInput from microphone with device name: {:?}", device_name);
         let mic = MicInput::new(device_name)?;
@@ -146,6 +185,22 @@ impl AudioInput {
         })
     }
 
+    /// Creates an AudioInput configured to capture audio from the system speaker.
+    ///
+    /// The returned `AudioInput` uses `AudioSource::RealtimeSpeaker`. The `speaker` field will
+    /// contain `Some(SpeakerInput)` if speaker capture initialization succeeds, or `None` if it fails;
+    /// `mic` and `data` are always `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let input = AudioInput::from_speaker();
+    /// // `input` is configured for realtime speaker capture; speaker initialization may have failed.
+    /// match input.source {
+    ///     AudioSource::RealtimeSpeaker => {},
+    ///     _ => panic!("expected RealtimeSpeaker"),
+    /// }
+    /// ```
     pub fn from_speaker() -> Self {
         tracing::debug!("Creating AudioInput from speaker");
         let speaker = match SpeakerInput::new() {

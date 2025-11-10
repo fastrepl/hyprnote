@@ -17,6 +17,19 @@ pub struct Detector {
 }
 
 impl Default for Detector {
+    /// Creates a `Detector` with its background task initialized to the default.
+    
+    ///
+    
+    /// # Examples
+    
+    ///
+    
+    /// ```
+    
+    /// let _detector = Detector::default();
+    
+    /// ```
     fn default() -> Self {
         Self {
             background: BackgroundTask::default(),
@@ -25,6 +38,26 @@ impl Default for Detector {
 }
 
 impl crate::Observer for Detector {
+    /// Starts a background detector that periodically scans running processes and invokes `f` for each detected meeting application.
+    ///
+    /// The callback `f` will be called with the detected application's name each time the detector finds a matching process.
+    ///
+    /// # Parameters
+    ///
+    /// - `f`: Callback invoked with the detected application's name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use detect::app::linux::Detector;
+    ///
+    /// let mut detector = Detector::default();
+    /// detector.start(|app_name: String| {
+    ///     println!("Detected meeting app: {}", app_name);
+    /// });
+    /// // ...later
+    /// detector.stop();
+    /// ```
     fn start(&mut self, f: crate::DetectCallback) {
         self.background.start(|running, mut rx| async move {
             let mut interval_timer = interval(Duration::from_secs(5));
@@ -58,6 +91,15 @@ impl crate::Observer for Detector {
         });
     }
 
+    /// Stops the detector's background task.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut detector = Detector::default();
+    /// // start would normally be called before stop in real usage
+    /// detector.stop();
+    /// ```
     fn stop(&mut self) {
         self.background.stop();
     }

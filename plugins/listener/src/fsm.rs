@@ -198,6 +198,30 @@ impl Session {
         }
     }
 
+    /// Initialize and start all per-session audio and processing resources for the given session id.
+    ///
+    /// Sets up session state, mute controls, audio input/output streams, AEC and processing pipelines,
+    /// background tasks for saving and streaming audio, and the listen client integration. On success,
+    /// the session's background tasks are stored on the Session and begin running.
+    ///
+    /// # Parameters
+    ///
+    /// * `id` — The session identifier to set up resources for.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` if all required resources were initialized and background tasks were started; an error
+    /// variant of `crate::Error` if initialization failed (for example missing user id, I/O errors,
+    /// or failure to create required clients).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # async fn example(mut session: crate::Session) -> Result<(), crate::Error> {
+    /// session.setup_resources("session-123").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     #[tracing::instrument(skip_all)]
     async fn setup_resources(&mut self, id: impl Into<String>) -> Result<(), crate::Error> {
         use tauri_plugin_db::DatabasePluginExt;
@@ -643,6 +667,24 @@ async fn setup_listen_client<R: tauri::Runtime>(
         .build_dual())
 }
 
+/// Appends the provided words to the session identified by `session_id`, persists the session, and returns the updated words.
+///
+/// If the session does not exist, returns `crate::Error::NoneSession`. Failures while upserting the session are logged but do not change the returned words or cause an error.
+///
+/// # Returns
+///
+/// The session's full `words` vector after appending the given entries.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use tauri::AppHandle;
+/// # async fn demo<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<(), crate::Error> {
+/// let new_words = vec![];
+/// let updated = crate::session::update_session(app, "session-id", new_words).await?;
+/// println!("Session now has {} words", updated.len());
+/// # Ok(()) }
+/// ```
 async fn update_session<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     session_id: impl Into<String>,
@@ -681,6 +723,36 @@ pub enum StateEvent {
     state(derive(Debug, Clone, PartialEq))
 )]
 impl Session {
+    /// Handle common state-machine events shared across states.
+    ///
+    /// Processes `StateEvent::MicMuted` and `StateEvent::SpeakerMuted` by sending the mute value
+    /// to the corresponding watch channel (if present) and emitting a session event to the app.
+    /// Processes `StateEvent::MicChange` by updating the stored microphone device name and, if a
+    /// session is active, tearing down and reinitializing session resources; setup failures are
+    /// logged but do not panic. All other events are delegated to the parent state (`Super`).
+    ///
+    /// # Parameters
+    ///
+    /// - `event`: the incoming `StateEvent` to handle; recognized variants are `MicMuted`,
+    ///   `SpeakerMuted`, and `MicChange`.
+    ///
+    /// # Returns
+    ///
+    /// `Handled` when the function processes the event here; `Super` to delegate handling to the
+    /// parent state for all other events.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use tokio::runtime::Runtime;
+    /// # let rt = Runtime::new().unwrap();
+    /// # rt.block_on(async {
+    /// // `sm` is the state-machine instance; call `common` to handle a mute event.
+    /// // This example is illustrative and marked `no_run` because constructing a full state
+    /// // machine is out of scope for the snippet.
+    /// // sm.common(&StateEvent::MicMuted(true)).await;
+    /// # });
+    /// ```
     #[superstate]
     async fn common(&mut self, event: &StateEvent) -> Response<State> {
         match event {
@@ -818,6 +890,18 @@ impl Session {
         }
     }
 
+    /// Handle a state transition by emitting the matching session event and updating the session state channel.
+    ///
+    /// Logs the transition in debug builds, emits `SessionEvent::RunningActive`, `SessionEvent::RunningPaused`,
+    /// or `SessionEvent::Inactive` according to `target`, and, if present, forwards the new `target` state on
+    /// `session_state_tx`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// // Given a mutable `session: Session`, notify it of a transition:
+    /// // session.on_transition(&State::Inactive {}, &State::RunningActive {});
+    /// ```
     fn on_transition(&mut self, source: &State, target: &State) {
         #[cfg(debug_assertions)]
         tracing::info!("transitioned from `{:?}` to `{:?}`", source, target);

@@ -1,5 +1,16 @@
 use std::path::PathBuf;
 
+/// Displays the user data directory, the constructed model file path under
+/// "com.hyprnote.dev/stt/ggml-small-q8_0.bin", whether that model file exists,
+/// and the file size in bytes when it does.
+///
+/// # Examples
+///
+/// ```
+/// // Run the example program which prints the data directory, model path,
+/// // existence, and size (if present).
+/// main();
+/// ```
 fn main() {
     let model_path = dirs::data_dir()
         .unwrap()

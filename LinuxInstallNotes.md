@@ -2,15 +2,28 @@
 
 ## Recent Updates (November 2025)
 
-**🎉 MAJOR UPDATE: Speaker audio capture now fully implemented!**
+**🎉 MAJOR UPDATES: Production-ready Linux support achieved!**
 
-The Linux support has been significantly improved with comprehensive error handling and robustness enhancements:
-- **✅ Audio System**: Full speaker audio capture via PulseAudio monitor sources  
+The Linux support has reached production-ready status with two critical systems fully implemented:
+
+### ✅ Speaker Audio Capture (Fully Implemented)
+- **Full PulseAudio integration** via monitor sources for system audio capture
+- **Real-time capture** at 48kHz stereo with automatic downmixing
+- **Automatic backend detection** with graceful fallbacks
+- **Echo Cancellation** fully functional with real speaker audio
+
+### ✅ Notification System (Fully Implemented)  
+- **Desktop environment detection** for GNOME, KDE, XFCE, MATE, Cinnamon, and more
+- **Permission checking** via D-Bus (`org.freedesktop.Notifications`)
+- **Settings integration** opens the correct system notification settings panel
+- **Cross-platform API** consistent with macOS implementation
+
+### Additional Improvements:
 - **✅ Device Management**: Improved microphone detection and fallback handling  
 - **✅ Browser Detection**: More robust system integration with graceful error handling
 - **✅ Build Stability**: Heavy ML dependencies (`local-llm`, `local-stt`) are now opt-in to reduce build complexity
 
-**⚡ The primary blocker for Linux support has been resolved!** The application now has full audio capture capabilities including system audio (speaker) capture for Echo Cancellation and transcription.
+**⚡ All core features are now functional on Linux!** The application provides full audio capture, notifications, and desktop integration capabilities.
 
 ## Install
 
@@ -27,6 +40,10 @@ sudo apt install libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
 
 # for sound (required for full audio support)
 sudo apt install libasound2-dev libpulse-dev
+
+# for notifications (typically pre-installed on desktop systems)
+# Ensure D-Bus and a notification daemon are running (usually automatic on desktop environments)
+# Optional: Test with `dbus-send --session --dest=org.freedesktop.Notifications --print-reply /org/freedesktop/Notifications org.freedesktop.Notifications.GetCapabilities`
 
 # for machine learning components
 sudo apt install cmake libopenblas-dev

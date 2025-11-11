@@ -88,19 +88,22 @@ impl WhisperBuilder {
             gpu_params.use_gpu = true;
             gpu_params.flash_attn = false;
             gpu_params.dtw_parameters.mode = whisper_rs::DtwMode::None;
-            
+
             match WhisperContext::new_with_params(&model_path, gpu_params) {
                 Ok(ctx) => {
                     tracing::info!("Successfully initialized WhisperContext with GPU");
                     ctx
                 }
                 Err(gpu_err) => {
-                    tracing::warn!("GPU initialization failed: {:?}, falling back to CPU", gpu_err);
+                    tracing::warn!(
+                        "GPU initialization failed: {:?}, falling back to CPU",
+                        gpu_err
+                    );
                     let mut cpu_params = WhisperContextParameters::default();
                     cpu_params.use_gpu = false;
                     cpu_params.flash_attn = false;
                     cpu_params.dtw_parameters.mode = whisper_rs::DtwMode::None;
-                    
+
                     WhisperContext::new_with_params(&model_path, cpu_params)
                         .unwrap_or_else(|cpu_err| {
                             panic!("Failed to initialize WhisperContext with both GPU ({:?}) and CPU ({:?})", gpu_err, cpu_err)
@@ -113,7 +116,7 @@ impl WhisperBuilder {
             cpu_params.use_gpu = false;
             cpu_params.flash_attn = false;
             cpu_params.dtw_parameters.mode = whisper_rs::DtwMode::None;
-            
+
             WhisperContext::new_with_params(&model_path, cpu_params)
                 .unwrap_or_else(|e| panic!("Failed to initialize WhisperContext with CPU: {:?}", e))
         };

@@ -12,7 +12,9 @@ fn main() {
     );
 
     if let Some(device) = default_device {
-        let config = device.default_input_config().expect("failed to get default input config");
+        let config = device
+            .default_input_config()
+            .expect("failed to get default input config");
         println!("Success! Config: {:?}", config);
     } else {
         println!("No default input device available");

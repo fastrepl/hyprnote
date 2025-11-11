@@ -3,6 +3,10 @@ name = "audio"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["pulseaudio"]
+pulseaudio = ["dep:libpulse-binding", "dep:libpulse-simple-binding"]
+
 [dependencies]
 anyhow = { workspace = true }
 thiserror = { workspace = true }
@@ -25,6 +29,9 @@ kalosm-sound = { workspace = true, default-features = false }
 ringbuf = { workspace = true }
 tracing-subscriber = { workspace = true }
 
+# For PulseAudio byte conversion
+bytemuck = "1.14"
+
 [target.'cfg(target_os = "macos")'.dependencies]
 cidre = { workspace = true, features = ["av"] }
 
@@ -33,6 +40,8 @@ wasapi = "0.19.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 alsa = "0.9.1"
+libpulse-binding = { version = "2.29", optional = true }
+libpulse-simple-binding = { version = "2.29", optional = true }
 
 [dev-dependencies]
 hound = { workspace = true }

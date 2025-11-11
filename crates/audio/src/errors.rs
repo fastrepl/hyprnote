@@ -15,6 +15,9 @@ pub enum Error {
     #[error("failed to enumerate audio devices")]
     DeviceEnumerationFailed,
 
+    #[error("audio system error: {0}")]
+    AudioSystem(String),
+
     #[error("{0}")]
     Generic(String),
 }

@@ -32,14 +32,16 @@ impl UserDatabase {
                     user_id,
                     general,
                     notification,
-                    ai
-                ) VALUES (?, ?, ?, ?, ?)",
+                    ai,
+                    audio
+                ) VALUES (?, ?, ?, ?, ?, ?)",
             vec![
                 config.id.clone(),
                 config.user_id.clone(),
                 serde_json::to_string(&config.general)?,
                 serde_json::to_string(&config.notification)?,
                 serde_json::to_string(&config.ai)?,
+                serde_json::to_string(&config.audio)?,
             ],
         )
         .await?;
@@ -49,7 +51,9 @@ impl UserDatabase {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::setup_db, Config, ConfigAI, ConfigGeneral, ConfigNotification, Human};
+    use crate::{
+        tests::setup_db, Config, ConfigAI, ConfigAudio, ConfigGeneral, ConfigNotification, Human,
+    };
 
     #[tokio::test]
     async fn test_config() {
@@ -72,6 +76,7 @@ mod tests {
                 ..ConfigNotification::default()
             },
             ai: ConfigAI::default(),
+            audio: ConfigAudio::default(),
         })
         .await
         .unwrap();

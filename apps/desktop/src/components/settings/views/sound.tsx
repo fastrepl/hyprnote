@@ -1,10 +1,12 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { MicIcon, Volume2Icon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { commands as listenerCommands } from "@hypr/plugin-listener";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Label } from "@hypr/ui/components/ui/label";
+import { Slider } from "@hypr/ui/components/ui/slider";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
 import { message } from "@tauri-apps/plugin-dialog";
@@ -73,6 +75,27 @@ export default function Sound() {
   const { t } = useLingui();
 
   const [micPermissionRequested, setMicPermissionRequested] = useState(false);
+  const [micGain, setMicGain] = useState(1.5);
+
+  const audioGainsQuery = useQuery({
+    queryKey: ["audioGains"],
+    queryFn: () => listenerCommands.getAudioGains(),
+  });
+
+  useEffect(() => {
+    if (audioGainsQuery.data?.post_mic_gain) {
+      setMicGain(audioGainsQuery.data.post_mic_gain);
+    }
+  }, [audioGainsQuery.data]);
+
+  const audioGainsMutation = useMutation({
+    mutationFn: (
+      gains: { pre_mic_gain: number; post_mic_gain: number; pre_speaker_gain: number; post_speaker_gain: number },
+    ) => listenerCommands.setAudioGains(gains),
+    onError: (error) => {
+      console.error("Failed to save audio gains:", error);
+    },
+  });
 
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
@@ -141,6 +164,38 @@ export default function Sound() {
           onRequest={() => capturePermission.mutate({})}
           buttonText="Enable"
         />
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <div className="rounded-lg border p-4">
+          <Label htmlFor="mic-gain" className="text-sm font-medium">
+            <Trans>Microphone Sensitivity</Trans>
+          </Label>
+          <div className="mt-2 text-xs text-muted-foreground">
+            <Trans>Adjust the microphone input gain (default: 1.5x)</Trans>
+          </div>
+          <div className="mt-4 flex items-center gap-4">
+            <Slider
+              id="mic-gain"
+              min={0.5}
+              max={3.0}
+              step={0.1}
+              value={[micGain]}
+              onValueChange={(value) => {
+                const newValue = value[0];
+                setMicGain(newValue);
+                if (audioGainsQuery.data) {
+                  audioGainsMutation.mutate({
+                    ...audioGainsQuery.data,
+                    post_mic_gain: newValue,
+                  });
+                }
+              }}
+              className="flex-1"
+            />
+            <span className="min-w-[3rem] text-right text-sm">{micGain.toFixed(1)}x</span>
+          </div>
+        </div>
       </div>
     </div>
   );

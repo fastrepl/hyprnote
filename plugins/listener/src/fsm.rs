@@ -242,7 +242,7 @@ impl Session {
         };
         self.session_id = Some(session_id.clone());
 
-        let (record, languages, jargons, redemption_time_ms) = {
+        let (record, languages, jargons, redemption_time_ms, audio_gains) = {
             let config = self.app.db_get_config(&user_id).await?;
 
             let record = config
@@ -262,7 +262,19 @@ impl Session {
                 .as_ref()
                 .map_or_else(|| 500, |c| c.ai.redemption_time_ms.unwrap_or(500));
 
-            (record, languages, jargons, redemption_time_ms)
+            let audio_gains = config.as_ref().map_or_else(
+                || (1.0, 1.5, 0.8, 1.0),
+                |c| {
+                    (
+                        c.audio.pre_mic_gain.unwrap_or(1.0),
+                        c.audio.post_mic_gain.unwrap_or(1.5),
+                        c.audio.pre_speaker_gain.unwrap_or(0.8),
+                        c.audio.post_speaker_gain.unwrap_or(1.0),
+                    )
+                },
+            );
+
+            (record, languages, jargons, redemption_time_ms, audio_gains)
         };
 
         let session = self
@@ -357,6 +369,7 @@ impl Session {
             let save_speaker_raw_tx = channels.save_speaker_raw_tx.clone();
             let process_mic_tx = channels.process_mic_tx.clone();
             let process_speaker_tx = channels.process_speaker_tx.clone();
+            let (pre_mic_gain, post_mic_gain, pre_speaker_gain, post_speaker_gain) = audio_gains;
 
             async move {
                 let mut aec = match hypr_aec::AEC::new() {
@@ -368,18 +381,12 @@ impl Session {
                 };
                 let mut last_broadcast = Instant::now();
 
-                // TODO: AGC might be needed.
-                const PRE_MIC_GAIN: f32 = 1.0;
-                const PRE_SPEAKER_GAIN: f32 = 0.8;
-                const POST_MIC_GAIN: f32 = 1.5;
-                const POST_SPEAKER_GAIN: f32 = 1.0;
-
                 loop {
                     let (mic_chunk_raw, speaker_chunk): (Vec<f32>, Vec<f32>) =
                         match tokio::join!(mic_rx.recv_async(), speaker_rx.recv_async()) {
                             (Ok(mic), Ok(speaker)) => (
-                                mic.iter().map(|x| *x * PRE_MIC_GAIN).collect(),
-                                speaker.iter().map(|x| *x * PRE_SPEAKER_GAIN).collect(),
+                                mic.iter().map(|x| *x * pre_mic_gain).collect(),
+                                speaker.iter().map(|x| *x * pre_speaker_gain).collect(),
                             ),
                             _ => break,
                         };
@@ -401,10 +408,10 @@ impl Session {
                     }
 
                     let processed_mic: Vec<f32> =
-                        mic_chunk.iter().map(|x| x * POST_MIC_GAIN).collect();
+                        mic_chunk.iter().map(|x| x * post_mic_gain).collect();
                     let processed_speaker: Vec<f32> = speaker_chunk
                         .iter()
-                        .map(|x| x * POST_SPEAKER_GAIN)
+                        .map(|x| x * post_speaker_gain)
                         .collect();
 
                     let now = Instant::now();
@@ -437,7 +444,7 @@ impl Session {
                             .iter()
                             .zip(speaker_chunk.iter())
                             .map(|(mic, speaker)| {
-                                (mic * POST_MIC_GAIN + speaker * POST_SPEAKER_GAIN).clamp(-1.0, 1.0)
+                                (mic * post_mic_gain + speaker * post_speaker_gain).clamp(-1.0, 1.0)
                             })
                             .collect();
                         if save_mixed_tx.send_async(mixed).await.is_err() {

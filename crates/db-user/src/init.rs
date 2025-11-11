@@ -1,4 +1,4 @@
-use crate::{Config, ConfigAI, ConfigGeneral, ConfigNotification};
+use crate::{Config, ConfigAI, ConfigAudio, ConfigGeneral, ConfigNotification};
 
 use super::{
     Calendar, ChatGroup, ChatMessage, ChatMessageRole, Event, Human, Organization, Platform,
@@ -149,6 +149,7 @@ pub async fn onboarding(db: &UserDatabase, user_id: impl Into<String>) -> Result
         },
         notification: ConfigNotification::default(),
         ai: ConfigAI::default(),
+        audio: ConfigAudio::default(),
     })
     .await?;
 

@@ -29,6 +29,7 @@ pub async fn get_config(
                 general: hypr_db_user::ConfigGeneral::default(),
                 notification: hypr_db_user::ConfigNotification::default(),
                 ai: hypr_db_user::ConfigAI::default(),
+                audio: hypr_db_user::ConfigAudio::default(),
             };
             Ok(config)
         }

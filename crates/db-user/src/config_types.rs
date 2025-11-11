@@ -7,6 +7,7 @@ user_common_derives! {
         pub general: ConfigGeneral,
         pub notification: ConfigNotification,
         pub ai: ConfigAI,
+        pub audio: ConfigAudio,
     }
 }
 
@@ -25,6 +26,10 @@ impl Config {
                 .unwrap_or_default(),
             ai: row
                 .get_str(4)
+                .map(|s| serde_json::from_str(s).unwrap())
+                .unwrap_or_default(),
+            audio: row
+                .get_str(5)
                 .map(|s| serde_json::from_str(s).unwrap())
                 .unwrap_or_default(),
         })
@@ -97,6 +102,26 @@ impl Default for ConfigAI {
             api_key: None,
             ai_specificity: Some(3),
             redemption_time_ms: Some(500),
+        }
+    }
+}
+
+user_common_derives! {
+    pub struct ConfigAudio {
+        pub pre_mic_gain: Option<f32>,
+        pub post_mic_gain: Option<f32>,
+        pub pre_speaker_gain: Option<f32>,
+        pub post_speaker_gain: Option<f32>,
+    }
+}
+
+impl Default for ConfigAudio {
+    fn default() -> Self {
+        Self {
+            pre_mic_gain: Some(1.0),
+            post_mic_gain: Some(1.5),
+            pre_speaker_gain: Some(0.8),
+            post_speaker_gain: Some(1.0),
         }
     }
 }

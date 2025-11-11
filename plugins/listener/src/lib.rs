@@ -48,6 +48,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::pause_session::<tauri::Wry>,
             commands::resume_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,
+            commands::get_audio_gains::<tauri::Wry>,
+            commands::set_audio_gains::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![SessionEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)

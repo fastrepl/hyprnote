@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { events as listenerEvents, type Word } from "@hypr/plugin-listener";
+import { events as listenerEvents, type Word2 as Word } from "@hypr/plugin-listener";
 import { useOngoingSession, useSession } from "@hypr/utils/contexts";
 import { useQuery } from "@tanstack/react-query";
 

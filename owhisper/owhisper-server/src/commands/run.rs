@@ -1,6 +1,6 @@
 use futures_util::StreamExt;
 
-use crate::{Server, misc::shutdown_signal};
+use crate::{misc::shutdown_signal, Server};
 
 #[derive(clap::Parser)]
 pub struct RunArgs {
@@ -102,7 +102,7 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
 }
 
 fn print_input_devices() {
-    use tabled::settings::{Style, style::HorizontalLine, style::VerticalLine};
+    use tabled::settings::{style::HorizontalLine, style::VerticalLine, Style};
 
     let style = Style::modern()
         .horizontals([(1, HorizontalLine::inherit(Style::modern()).horizontal('═'))])

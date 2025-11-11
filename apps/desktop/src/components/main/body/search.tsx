@@ -5,6 +5,7 @@ import { useMediaQuery } from "@uidotdev/usehooks";
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import { useSearch } from "../../../contexts/search/ui";
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 
@@ -57,16 +58,16 @@ function CollapsedSearch({ onClick }: { onClick: () => void }) {
   const showLoading = isSearching || isIndexing;
 
   return (
-    <button
+    <Button
       onClick={onClick}
-      className={cn([
-        "flex items-center justify-center h-full w-10",
-      ])}
+      size="icon"
+      variant="ghost"
+      className="text-neutral-400"
     >
       {showLoading
-        ? <Loader2Icon className="h-4 w-4 text-neutral-400 animate-spin" />
-        : <SearchIcon className="h-4 w-4 text-neutral-400" />}
-    </button>
+        ? <Loader2Icon className="size-4 animate-spin" />
+        : <SearchIcon className="size-4" />}
+    </Button>
   );
 }
 
@@ -74,16 +75,20 @@ function ExpandedSearch({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: ()
   const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
   const isCmdPressed = useCmdKeyPressed();
+  const hasSpace = useMediaQuery("(min-width: 900px)");
 
   const showLoading = isSearching || isIndexing;
   const showShortcut = isCmdPressed && !query;
+
+  // On narrow screens, always show the focused width when expanded
+  const width = hasSpace ? (isFocused ? "w-[250px]" : "w-[180px]") : "w-[250px]";
 
   return (
     <div
       data-tauri-drag-region
       className={cn([
         "flex items-center h-full transition-all duration-300",
-        isFocused ? "w-[250px]" : "w-[180px]",
+        width,
       ])}
     >
       <div className="relative flex items-center w-full h-full">

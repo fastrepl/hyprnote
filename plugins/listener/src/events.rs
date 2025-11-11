@@ -40,6 +40,7 @@ impl From<(&[f32], &[f32])> for SessionEvent {
         let mic = (mic_chunk
             .iter()
             .map(|&x| x.abs())
+            .filter(|x| x.is_finite())
             .max_by(|a, b| a.partial_cmp(b).unwrap())
             .unwrap_or(0.0)
             * 100.0) as u16;
@@ -47,6 +48,7 @@ impl From<(&[f32], &[f32])> for SessionEvent {
         let speaker = (speaker_chunk
             .iter()
             .map(|&x| x.abs())
+            .filter(|x| x.is_finite())
             .max_by(|a, b| a.partial_cmp(b).unwrap())
             .unwrap_or(0.0)
             * 100.0) as u16;

@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use bytes::{BufMut, Bytes, BytesMut};
 use futures_util::{Stream, StreamExt};
 use kalosm_sound::AsyncSource;
@@ -6,10 +8,18 @@ mod error;
 pub use error::*;
 mod vorbis;
 pub use vorbis::*;
+mod stream;
+pub use stream::*;
 
 pub use rodio::Source;
 
 const I16_SCALE: f32 = 32768.0;
+
+#[derive(Debug, Clone, Copy)]
+pub struct AudioMetadata {
+    pub sample_rate: u32,
+    pub channels: u8,
+}
 
 impl<T: AsyncSource> AudioFormatExt for T {}
 
@@ -81,6 +91,40 @@ pub fn source_from_path(
     Ok(decoder)
 }
 
+fn metadata_from_source<S>(source: &S) -> Result<AudioMetadata, crate::Error>
+where
+    S: Source,
+    S::Item: rodio::Sample,
+{
+    let sample_rate = source.sample_rate();
+    if sample_rate == 0 {
+        return Err(crate::Error::InvalidSampleRate(sample_rate));
+    }
+
+    let channels_u16 = source.channels();
+    if channels_u16 == 0 {
+        return Err(crate::Error::UnsupportedChannelCount {
+            count: channels_u16,
+        });
+    }
+    let channels =
+        u8::try_from(channels_u16).map_err(|_| crate::Error::UnsupportedChannelCount {
+            count: channels_u16,
+        })?;
+
+    Ok(AudioMetadata {
+        sample_rate,
+        channels,
+    })
+}
+
+pub fn audio_file_metadata(
+    path: impl AsRef<std::path::Path>,
+) -> Result<AudioMetadata, crate::Error> {
+    let source = source_from_path(path)?;
+    metadata_from_source(&source)
+}
+
 pub fn resample_audio<S, T>(source: S, to_rate: u32) -> Result<Vec<f32>, crate::Error>
 where
     S: rodio::Source<Item = T> + Iterator<Item = T>,
@@ -136,32 +180,48 @@ where
 pub struct ChunkedAudio {
     pub chunks: Vec<Bytes>,
     pub sample_count: usize,
+    pub frame_count: usize,
+    pub metadata: AudioMetadata,
 }
 
 pub fn chunk_audio_file(
     path: impl AsRef<std::path::Path>,
-    sample_rate: u32,
-    chunk_size: usize,
+    chunk_ms: u64,
 ) -> Result<ChunkedAudio, crate::Error> {
     let source = source_from_path(path)?;
-    let samples = resample_audio(source, sample_rate)?;
+    let metadata = metadata_from_source(&source)?;
+    let samples = resample_audio(source, metadata.sample_rate)?;
 
     if samples.is_empty() {
         return Ok(ChunkedAudio {
             chunks: Vec::new(),
             sample_count: 0,
+            frame_count: 0,
+            metadata,
         });
     }
 
-    let chunk_size = chunk_size.max(1);
+    let channels = metadata.channels.max(1) as usize;
+    let frames_per_chunk = {
+        let frames = ((chunk_ms as u128).saturating_mul(metadata.sample_rate as u128) + 999) / 1000;
+        frames.max(1).min(usize::MAX as u128) as usize
+    };
+    let samples_per_chunk = frames_per_chunk
+        .saturating_mul(channels)
+        .max(1)
+        .min(usize::MAX);
+
     let sample_count = samples.len();
+    let frame_count = sample_count / channels;
     let chunks = samples
-        .chunks(chunk_size)
+        .chunks(samples_per_chunk)
         .map(|chunk| f32_to_i16_bytes(chunk.iter().copied()))
         .collect();
 
     Ok(ChunkedAudio {
         chunks,
         sample_count,
+        frame_count,
+        metadata,
     })
 }

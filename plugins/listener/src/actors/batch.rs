@@ -4,13 +4,11 @@ use std::time::Duration;
 
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
-use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SpawnErr};
 use tauri_specta::Event;
 use tokio_stream::{self as tokio_stream, StreamExt as TokioStreamExt};
 
 use crate::SessionEvent;
-
-const RESAMPLED_SAMPLE_RATE_HZ: u32 = 16_000;
 const BATCH_STREAM_TIMEOUT_SECS: u64 = 5;
 const DEFAULT_CHUNK_MS: u64 = 500;
 const DEFAULT_DELAY_MS: u64 = 20;
@@ -91,6 +89,12 @@ impl BatchActor {
     }
 }
 
+pub async fn spawn_batch_actor(args: BatchArgs) -> Result<ActorRef<BatchMsg>, SpawnErr> {
+    let (batch_ref, _) = Actor::spawn(Some(BatchActor::name()), BatchActor, args).await?;
+    Ok(batch_ref)
+}
+
+#[ractor::async_trait]
 impl Actor for BatchActor {
     type Msg = BatchMsg;
     type State = BatchState;
@@ -188,13 +192,6 @@ impl BatchStreamConfig {
         }
     }
 
-    fn chunk_samples(&self) -> usize {
-        let samples =
-            ((self.chunk_ms as u128).saturating_mul(RESAMPLED_SAMPLE_RATE_HZ as u128) + 999) / 1000;
-        let samples = samples.max(1);
-        samples.min(usize::MAX as u128) as usize
-    }
-
     fn chunk_interval(&self) -> Duration {
         Duration::from_millis(self.delay_ms)
     }
@@ -225,12 +222,10 @@ async fn spawn_batch_task(
         let stream_config = BatchStreamConfig::new(DEFAULT_CHUNK_MS, DEFAULT_DELAY_MS);
         let start_notifier = args.start_notifier.clone();
 
-        let chunk_samples = stream_config.chunk_samples();
         let chunk_result = tokio::task::spawn_blocking({
             let path = PathBuf::from(&args.file_path);
-            move || {
-                hypr_audio_utils::chunk_audio_file(path, RESAMPLED_SAMPLE_RATE_HZ, chunk_samples)
-            }
+            let chunk_ms = stream_config.chunk_ms;
+            move || hypr_audio_utils::chunk_audio_file(path, chunk_ms)
         })
         .await;
 
@@ -258,20 +253,26 @@ async fn spawn_batch_task(
             }
         };
 
-        let sample_count = chunked_audio.sample_count;
-        let audio_duration_secs = if sample_count == 0 {
+        let frame_count = chunked_audio.frame_count;
+        let metadata = chunked_audio.metadata;
+        let audio_duration_secs = if frame_count == 0 || metadata.sample_rate == 0 {
             0.0
         } else {
-            sample_count as f64 / RESAMPLED_SAMPLE_RATE_HZ as f64
+            frame_count as f64 / metadata.sample_rate as f64
         };
         let _ = myself.send_message(BatchMsg::StreamAudioDuration(audio_duration_secs));
 
         tracing::debug!("batch task: creating listen client");
-        let channel_count = args.listen_params.channels.clamp(1, 2);
+        let channel_count = metadata.channels.clamp(1, 2);
+        let listen_params = owhisper_interface::ListenParams {
+            channels: metadata.channels,
+            sample_rate: metadata.sample_rate,
+            ..args.listen_params.clone()
+        };
         let client = owhisper_client::ListenClient::builder()
             .api_base(args.base_url)
             .api_key(args.api_key)
-            .params(args.listen_params.clone())
+            .params(listen_params)
             .build_with_channels(channel_count);
 
         let chunk_count = chunked_audio.chunks.len();

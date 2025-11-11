@@ -1,3 +1,9 @@
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { Icon } from "@iconify-icon/react";
@@ -9,12 +15,6 @@ import { Effect, pipe } from "effect";
 import { EllipsisVerticalIcon, FileTextIcon, UploadCloudIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { useListener } from "../../../../../contexts/listener";
 import { fromResult } from "../../../../../effect";
 import { useRunBatch } from "../../../../../hooks/useRunBatch";

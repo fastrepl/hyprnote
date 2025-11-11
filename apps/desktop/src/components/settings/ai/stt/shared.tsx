@@ -1,9 +1,9 @@
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import type { AmModel, SupportedSttModel, WhisperModel } from "@hypr/plugin-local-stt";
+
 import { Icon } from "@iconify-icon/react";
 import { Fireworks, Groq } from "@lobehub/icons";
 import { queryOptions } from "@tanstack/react-query";
-
-import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import type { AmModel, SupportedSttModel, WhisperModel } from "@hypr/plugin-local-stt";
 
 export type ProviderId = typeof PROVIDERS[number]["id"];
 

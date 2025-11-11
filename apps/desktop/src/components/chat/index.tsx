@@ -1,6 +1,7 @@
+import { commands as windowsCommands } from "@hypr/plugin-windows";
+
 import { useCallback } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useShell } from "../../contexts/shell";
 import { useAutoCloser } from "../../hooks/useAutoCloser";
 import { InteractiveContainer } from "./interactive";

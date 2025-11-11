@@ -1,7 +1,8 @@
+import { cn } from "@hypr/utils";
+
 import type { ChatStatus } from "ai";
 import { useEffect, useRef } from "react";
 
-import { cn } from "@hypr/utils";
 import type { HyprUIMessage } from "../../../chat/types";
 import { useShell } from "../../../contexts/shell";
 import { ChatBodyEmpty } from "./empty";

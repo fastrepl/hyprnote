@@ -1,8 +1,9 @@
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
+import { cn } from "@hypr/utils";
+
 import { useForm } from "@tanstack/react-form";
 import { useEffect } from "react";
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
-import { cn } from "@hypr/utils";
 import { aiProviderSchema } from "../../../../store/tinybase/main";
 import * as main from "../../../../store/tinybase/main";
 import { FormField, StyledStreamdown, useProvider } from "../shared";

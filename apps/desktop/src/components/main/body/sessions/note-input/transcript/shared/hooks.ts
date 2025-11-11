@@ -13,9 +13,11 @@ export function useFinalWords(transcriptId: string): (main.Word & { id: string }
       return [];
     }
 
-    return Object.entries(resultTable)
+    const ret = Object.entries(resultTable)
       .map(([wordId, row]) => ({ ...(row as unknown as main.Word), id: wordId }))
       .sort((a, b) => a.start_ms - b.start_ms);
+
+    return ret;
   }, [resultTable]);
 }
 

@@ -59,12 +59,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
 
     if (listenerJustStopped) {
       startEnhance();
-    }
-  }, [listenerStatus, prevListenerStatus, startEnhance]);
-
-  useEffect(() => {
-    if (enhanceTask.status === "generating" && tab.state.editor !== "enhanced") {
       updateSessionTabState(tab, { editor: "enhanced" });
     }
-  }, [enhanceTask.status, tab, updateSessionTabState]);
+  }, [listenerStatus, prevListenerStatus, startEnhance]);
 }

@@ -121,7 +121,7 @@ function EditorSection() {
         </div>
         <div className="flex items-end justify-center px-8 pb-0 pt-8 bg-stone-50/30 overflow-hidden">
           <MockWindow>
-            <div className="p-6 h-[320px] overflow-hidden">
+            <div className="p-6 h-80 overflow-hidden">
               <AnimatedMarkdownDemo />
             </div>
           </MockWindow>

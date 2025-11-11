@@ -63,7 +63,7 @@ impl ListenClientBuilder {
             append_language_query(&mut query_pairs, &params);
 
             let model = params.model.as_deref().unwrap_or("hypr-whisper");
-            let sample_rate = RESAMPLED_SAMPLE_RATE_HZ.to_string();
+            let sample_rate = params.sample_rate.to_string();
 
             query_pairs.append_pair("model", model);
             query_pairs.append_pair("encoding", "linear16");
@@ -104,7 +104,7 @@ impl ListenClientBuilder {
 
             let model = params.model.as_deref().unwrap_or("hypr-whisper");
             let channel_string = channels.to_string();
-            let sample_rate = RESAMPLED_SAMPLE_RATE_HZ.to_string();
+            let sample_rate = params.sample_rate.to_string();
 
             query_pairs.append_pair("model", model);
             query_pairs.append_pair("channels", &channel_string);

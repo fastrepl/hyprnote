@@ -1,11 +1,14 @@
 use std::future::Future;
 use std::sync::{Arc, Mutex};
 
-use ractor::{call_t, concurrency, registry, Actor, ActorRef};
+use ractor::{call_t, concurrency, registry, ActorRef};
 use tauri_specta::Event;
 
 use crate::{
-    actors::{BatchActor, BatchArgs, SessionActor, SessionArgs, SessionMsg, SessionParams},
+    actors::{
+        spawn_batch_actor, start_session_supervisor, BatchArgs, ControllerActor, ControllerMsg,
+        SessionParams, SESSION_SUPERVISOR_NAME,
+    },
     SessionEvent,
 };
 
@@ -60,15 +63,15 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
 
-            match call_t!(actor, SessionMsg::GetMicDeviceName, 500) {
+            match call_t!(actor, ControllerMsg::GetMicDeviceName, 500) {
                 Ok(device_name) => Ok(device_name),
                 Err(_) => Ok(None),
             }
         } else {
-            Err(crate::Error::ActorNotFound(SessionActor::name()))
+            Err(crate::Error::ActorNotFound(ControllerActor::name()))
         }
     }
 
@@ -77,9 +80,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         &self,
         device_name: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-            let _ = actor.cast(SessionMsg::ChangeMicDevice(Some(device_name.into())));
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
+            let _ = actor.cast(ControllerMsg::ChangeMicDevice(Some(device_name.into())));
         }
 
         Ok(())
@@ -87,7 +90,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_state(&self) -> crate::fsm::State {
-        if let Some(_) = registry::where_is(SessionActor::name()) {
+        if let Some(_) = registry::where_is(SESSION_SUPERVISOR_NAME.to_string()) {
             crate::fsm::State::RunningActive
         } else {
             crate::fsm::State::Inactive
@@ -96,10 +99,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
 
-            match call_t!(actor, SessionMsg::GetMicMute, 100) {
+            match call_t!(actor, ControllerMsg::GetMicMute, 100) {
                 Ok(muted) => muted,
                 Err(_) => false,
             }
@@ -110,51 +113,80 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-            let _ = actor.cast(SessionMsg::SetMicMute(muted));
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
+            let _ = actor.cast(ControllerMsg::SetMicMute(muted));
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn start_session(&self, params: SessionParams) {
+        if registry::where_is(SESSION_SUPERVISOR_NAME.to_string()).is_some() {
+            return;
+        }
+
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
+        let app = guard.app.clone();
+        drop(guard);
 
-        let _ = Actor::spawn(
-            Some(SessionActor::name()),
-            SessionActor,
-            SessionArgs {
-                app: guard.app.clone(),
-                params,
-            },
-        )
-        .await;
+        if let Err(err) = start_session_supervisor(app, params).await {
+            tracing::error!(error = ?err, "failed_to_spawn_session_supervisor");
+        }
     }
 
     #[tracing::instrument(skip_all)]
     async fn stop_session(&self) {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            {
-                let state = self.state::<crate::SharedState>();
+        if let Some(cell) = registry::where_is(SESSION_SUPERVISOR_NAME.to_string()) {
+            let state = self.state::<crate::SharedState>();
+            let app_handle = {
                 let guard = state.lock().await;
-                SessionEvent::Finalizing {}.emit(&guard.app).unwrap();
-            }
+                guard.app.clone()
+            };
 
-            let actor: ActorRef<SessionMsg> = cell.into();
-            let _ = actor
+            let actor: ActorRef<ractor_supervisor::supervisor::SupervisorMsg> = cell.into();
+            tracing::info!("stop_session: requesting supervisor shutdown");
+            let stop_result = actor
                 .stop_and_wait(None, Some(concurrency::Duration::from_secs(10)))
                 .await;
+            tracing::info!(?stop_result, "stop_session: supervisor shutdown complete");
+
+            if let Err(err) = (SessionEvent::Inactive {}).emit(&app_handle) {
+                tracing::warn!(?err, "failed_to_emit_inactive_fallback");
+            } else {
+                tracing::info!("stop_session: emitted_inactive_fallback");
+            }
         }
     }
 
     #[tracing::instrument(skip_all)]
     async fn run_batch(&self, params: BatchParams) -> Result<(), crate::Error> {
-        let channels = params.channels.unwrap_or(1);
+        let metadata = tokio::task::spawn_blocking({
+            let path = params.file_path.clone();
+            move || hypr_audio_utils::audio_file_metadata(path)
+        })
+        .await
+        .map_err(|err| {
+            crate::Error::BatchStartFailed(format!("failed to join audio metadata task: {err:?}"))
+        })?
+        .map_err(|err| {
+            crate::Error::BatchStartFailed(format!("failed to read audio metadata: {err}"))
+        })?;
+
+        if let Some(requested) = params.channels {
+            if requested != metadata.channels {
+                tracing::warn!(
+                    requested,
+                    actual = metadata.channels,
+                    "batch params channel override ignored in favor of file metadata"
+                );
+            }
+        }
 
         let listen_params = owhisper_interface::ListenParams {
             model: params.model.clone(),
-            channels,
+            channels: metadata.channels,
+            sample_rate: metadata.sample_rate,
             languages: params.languages.clone(),
             keywords: params.keywords.clone(),
             redemption_time_ms: None,
@@ -171,20 +203,27 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 let app = guard.app.clone();
                 drop(guard);
 
-                match Actor::spawn(
-                    Some(BatchActor::name()),
-                    BatchActor,
-                    BatchArgs {
-                        app,
-                        file_path: params.file_path.clone(),
-                        base_url: params.base_url.clone(),
-                        api_key: params.api_key.clone(),
-                        listen_params,
-                        start_notifier: start_notifier.clone(),
-                    },
-                )
-                .await
-                {
+                if registry::where_is(SESSION_SUPERVISOR_NAME.to_string()).is_some() {
+                    let error = "live session must be stopped before running batch".to_string();
+                    tracing::error!("{}", error);
+                    if let Ok(mut notifier) = start_notifier.lock() {
+                        if let Some(tx) = notifier.take() {
+                            let _ = tx.send(Err(error.clone()));
+                        }
+                    }
+                    return Err(crate::Error::BatchStartFailed(error));
+                }
+
+                let args = BatchArgs {
+                    app,
+                    file_path: params.file_path.clone(),
+                    base_url: params.base_url.clone(),
+                    api_key: params.api_key.clone(),
+                    listen_params: listen_params.clone(),
+                    start_notifier: start_notifier.clone(),
+                };
+
+                match spawn_batch_actor(args).await {
                     Ok(_) => {
                         tracing::info!("batch actor spawned successfully");
                         let state = self.state::<crate::SharedState>();
@@ -196,11 +235,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                         .unwrap();
                     }
                     Err(e) => {
-                        tracing::error!("batch actor spawn failed: {:?}", e);
+                        tracing::error!("batch supervisor spawn failed: {:?}", e);
                         if let Ok(mut notifier) = start_notifier.lock() {
                             if let Some(tx) = notifier.take() {
-                                let _ =
-                                    tx.send(Err(format!("failed to spawn batch actor: {:?}", e)));
+                                let _ = tx
+                                    .send(Err(format!("failed to spawn batch supervisor: {e:?}")));
                             }
                         }
                         return Err(e.into());

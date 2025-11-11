@@ -22,7 +22,7 @@ pub struct State {
 
 impl State {
     pub async fn get_state(&self) -> fsm::State {
-        if let Some(_) = ractor::registry::where_is(actors::SessionActor::name()) {
+        if let Some(_) = ractor::registry::where_is(actors::SESSION_SUPERVISOR_NAME.to_string()) {
             crate::fsm::State::RunningActive
         } else {
             crate::fsm::State::Inactive

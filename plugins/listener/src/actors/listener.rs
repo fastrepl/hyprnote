@@ -4,11 +4,13 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
+use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
+use ractor_supervisor::supervisor::SupervisorMsg;
+use tauri_specta::Event;
+
 use owhisper_client::hypr_ws;
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
-use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
-use tauri_specta::Event;
 
 use crate::SessionEvent;
 
@@ -22,7 +24,6 @@ pub enum ListenerMsg {
     StreamEnded,
     StreamTimeout(Elapsed),
     StreamStartFailed(String),
-    ChangeMode(crate::actors::ChannelMode),
 }
 
 #[derive(Clone)]
@@ -35,6 +36,8 @@ pub struct ListenerArgs {
     pub api_key: String,
     pub keywords: Vec<String>,
     pub mode: crate::actors::ChannelMode,
+    pub sample_rate: u32,
+    pub supervisor: ActorRef<SupervisorMsg>,
     pub session_started_at: Instant,
     pub session_started_at_unix: SystemTime,
 }
@@ -44,6 +47,7 @@ pub struct ListenerState {
     tx: tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
+    supervisor: ActorRef<SupervisorMsg>,
 }
 
 pub struct ListenerActor;
@@ -54,6 +58,7 @@ impl ListenerActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for ListenerActor {
     type Msg = ListenerMsg;
     type State = ListenerState;
@@ -64,6 +69,12 @@ impl Actor for ListenerActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
+        tracing::info!(
+            sample_rate = args.sample_rate,
+            mode = ?args.mode,
+            "listener_actor_pre_start"
+        );
+        let supervisor = args.supervisor.clone();
         let (tx, rx_task, shutdown_tx) = spawn_rx_task(args.clone(), myself).await?;
 
         let state = ListenerState {
@@ -71,6 +82,7 @@ impl Actor for ListenerActor {
             tx,
             rx_task,
             shutdown_tx: Some(shutdown_tx),
+            supervisor,
         };
 
         Ok(state)
@@ -81,6 +93,7 @@ impl Actor for ListenerActor {
         _myself: ActorRef<Self::Msg>,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
+        tracing::info!("listener_actor_post_stop");
         if let Some(shutdown_tx) = state.shutdown_tx.take() {
             let _ = shutdown_tx.send(());
             let _ = (&mut state.rx_task).await;
@@ -105,44 +118,41 @@ impl Actor for ListenerActor {
                     response.remap_channel_index(0, 2);
                 }
 
+                if let StreamResponse::TranscriptResponse { is_final, .. } = &response {
+                    if *is_final {
+                        tracing::info!(response = ?response, "final_response");
+                    }
+                }
+
                 SessionEvent::StreamResponse { response }.emit(&state.args.app)?;
             }
 
             ListenerMsg::StreamStartFailed(error) => {
                 tracing::error!("listen_ws_connect_failed: {}", error);
+                request_rest_for_one(
+                    &state.supervisor,
+                    ListenerActor::name(),
+                    "stream_start_failed",
+                );
                 myself.stop(Some(format!("listen_ws_connect_failed: {}", error)));
             }
 
             ListenerMsg::StreamError(error) => {
                 tracing::info!("listen_stream_error: {}", error);
+                request_rest_for_one(&state.supervisor, ListenerActor::name(), "stream_error");
                 myself.stop(None);
             }
 
             ListenerMsg::StreamEnded => {
                 tracing::info!("listen_stream_ended");
+                request_rest_for_one(&state.supervisor, ListenerActor::name(), "stream_ended");
                 myself.stop(None);
             }
 
             ListenerMsg::StreamTimeout(elapsed) => {
                 tracing::info!("listen_stream_timeout: {}", elapsed);
+                request_rest_for_one(&state.supervisor, ListenerActor::name(), "stream_timeout");
                 myself.stop(None);
-            }
-
-            ListenerMsg::ChangeMode(new_mode) => {
-                tracing::info!(?new_mode, "listener_mode_change");
-
-                if let Some(shutdown_tx) = state.shutdown_tx.take() {
-                    let _ = shutdown_tx.send(());
-                    let _ = (&mut state.rx_task).await;
-                }
-
-                state.args.mode = new_mode;
-
-                let (tx, rx_task, shutdown_tx) =
-                    spawn_rx_task(state.args.clone(), myself.clone()).await?;
-                state.tx = tx;
-                state.rx_task = rx_task;
-                state.shutdown_tx = Some(shutdown_tx);
             }
         }
         Ok(())
@@ -154,16 +164,45 @@ impl Actor for ListenerActor {
         message: SupervisionEvent,
         _state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        tracing::info!("supervisor_event: {:?}", message);
+        tracing::info!("listener_actor_supervision_event: {:?}", message);
 
         match message {
             SupervisionEvent::ActorStarted(_) | SupervisionEvent::ProcessGroupChanged(_) => {}
             SupervisionEvent::ActorTerminated(_, _, _) => {}
             SupervisionEvent::ActorFailed(_cell, _) => {
+                tracing::error!("listener_actor_failed_event");
                 myself.stop(None);
             }
         }
         Ok(())
+    }
+}
+
+fn request_rest_for_one(
+    supervisor: &ActorRef<SupervisorMsg>,
+    child_id: ActorName,
+    reason: &'static str,
+) {
+    let child_id_string = child_id.to_string();
+    tracing::info!(
+        child = child_id_string,
+        reason,
+        "requesting_rest_for_one_spawn_from_listener"
+    );
+    match supervisor.cast(SupervisorMsg::RestForOneSpawn {
+        child_id: child_id_string.clone(),
+    }) {
+        Ok(_) => tracing::info!(
+            child = child_id_string,
+            reason,
+            "requested_rest_for_one_spawn_from_listener"
+        ),
+        Err(error) => tracing::warn!(
+            ?error,
+            child = child_id_string,
+            reason,
+            "failed_to_request_rest_for_one_from_listener"
+        ),
     }
 }
 
@@ -196,12 +235,15 @@ async fn spawn_rx_task(
     let rx_task = tokio::spawn(async move {
         use crate::actors::ChannelMode;
 
+        let app_handle = args.app.clone();
+
         if args.mode == ChannelMode::Single {
             let client = owhisper_client::ListenClient::builder()
                 .api_base(args.base_url.clone())
                 .api_key(args.api_key.clone())
                 .params(owhisper_interface::ListenParams {
                     model: Some(args.model.clone()),
+                    sample_rate: args.sample_rate,
                     languages: args.languages.clone(),
                     redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
                     keywords: args.keywords.clone(),
@@ -231,6 +273,7 @@ async fn spawn_rx_task(
                 handle,
                 myself,
                 shutdown_rx,
+                app_handle.clone(),
                 session_offset_secs,
                 extra.clone(),
             )
@@ -241,6 +284,7 @@ async fn spawn_rx_task(
                 .api_key(args.api_key)
                 .params(owhisper_interface::ListenParams {
                     model: Some(args.model),
+                    sample_rate: args.sample_rate,
                     languages: args.languages,
                     redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
                     keywords: args.keywords,
@@ -248,7 +292,15 @@ async fn spawn_rx_task(
                 })
                 .build_dual();
 
-            let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
+            let outbound = tokio_stream::StreamExt::map(
+                tokio_stream::wrappers::ReceiverStream::new(rx),
+                |msg| match msg {
+                    MixedMessage::Audio((mic, spk)) => {
+                        MixedMessage::Audio((spk, bytes::Bytes::from(vec![0; mic.len()])))
+                    }
+                    MixedMessage::Control(c) => MixedMessage::Control(c),
+                },
+            );
 
             let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
                 Ok(res) => res,
@@ -264,6 +316,7 @@ async fn spawn_rx_task(
                 handle,
                 myself,
                 shutdown_rx,
+                app_handle.clone(),
                 session_offset_secs,
                 extra.clone(),
             )
@@ -279,6 +332,7 @@ async fn process_stream<S, E>(
     handle: hypr_ws::client::WebSocketHandle,
     myself: ActorRef<ListenerMsg>,
     mut shutdown_rx: tokio::sync::oneshot::Receiver<()>,
+    app: tauri::AppHandle,
     offset_secs: f64,
     extra: Extra,
 ) where
@@ -289,6 +343,10 @@ async fn process_stream<S, E>(
         tokio::select! {
             _ = &mut shutdown_rx => {
                 handle.finalize_with_text(serde_json::json!({"type": "Finalize"}).to_string().into()).await;
+
+                if let Err(err) = (SessionEvent::Finalizing {}).emit(&app) {
+                    tracing::warn!(?err, "failed_to_emit_finalizing");
+                }
 
                 let finalize_timeout = tokio::time::sleep(Duration::from_secs(5));
                 tokio::pin!(finalize_timeout);

@@ -67,7 +67,7 @@ impl ListenClientBuilder {
 
             query_pairs.append_pair("model", model);
             query_pairs.append_pair("encoding", "linear16");
-            query_pairs.append_pair("sample_rate", &sample_rate);
+            // query_pairs.append_pair("sample_rate", &sample_rate);
             query_pairs.append_pair("diarize", "true");
             query_pairs.append_pair("multichannel", "false");
             query_pairs.append_pair("punctuate", "true");

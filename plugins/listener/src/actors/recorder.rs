@@ -1,17 +1,21 @@
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::PathBuf;
+use std::pin::Pin;
 use std::time::Instant;
 
+use hypr_audio::ResampledAsyncSource;
 use hypr_audio_utils::{
-    decode_vorbis_to_wav_file, encode_wav_to_vorbis_file, VorbisEncodeSettings,
+    decode_vorbis_to_wav_file, drain_stream, encode_wav_to_vorbis_file, PushSource,
+    PushSourceHandle, VorbisEncodeSettings,
 };
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef};
 
 const FLUSH_INTERVAL: std::time::Duration = std::time::Duration::from_millis(1000);
+const TARGET_SAMPLE_RATE_HZ: u32 = 16_000;
 
 pub enum RecMsg {
-    Audio(Vec<f32>),
+    Audio { samples: Vec<f32>, sample_rate: u32 },
 }
 
 pub struct RecArgs {
@@ -24,6 +28,8 @@ pub struct RecState {
     wav_path: PathBuf,
     ogg_path: PathBuf,
     last_flush: Instant,
+    resampler: ResampledAsyncSource<PushSource>,
+    input_handle: PushSourceHandle,
 }
 
 pub struct RecorderActor;
@@ -34,6 +40,7 @@ impl RecorderActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for RecorderActor {
     type Msg = RecMsg;
     type State = RecState;
@@ -58,7 +65,7 @@ impl Actor for RecorderActor {
 
         let spec = hound::WavSpec {
             channels: 1,
-            sample_rate: 16000,
+            sample_rate: TARGET_SAMPLE_RATE_HZ,
             bits_per_sample: 32,
             sample_format: hound::SampleFormat::Float,
         };
@@ -69,11 +76,16 @@ impl Actor for RecorderActor {
             hound::WavWriter::create(&wav_path, spec)?
         };
 
+        let (source, input_handle) = PushSource::new(TARGET_SAMPLE_RATE_HZ);
+        let resampler = ResampledAsyncSource::new(source, TARGET_SAMPLE_RATE_HZ);
+
         Ok(RecState {
             writer: Some(writer),
             wav_path,
             ogg_path,
             last_flush: Instant::now(),
+            resampler,
+            input_handle,
         })
     }
 
@@ -84,17 +96,11 @@ impl Actor for RecorderActor {
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match msg {
-            RecMsg::Audio(v) => {
-                if let Some(ref mut writer) = st.writer {
-                    for s in v {
-                        writer.write_sample(s)?;
-                    }
-
-                    if st.last_flush.elapsed() >= FLUSH_INTERVAL {
-                        writer.flush()?;
-                        st.last_flush = Instant::now();
-                    }
-                }
+            RecMsg::Audio {
+                samples,
+                sample_rate,
+            } => {
+                st.push_samples(samples, sample_rate)?;
             }
         }
 
@@ -106,6 +112,9 @@ impl Actor for RecorderActor {
         _myself: ActorRef<Self::Msg>,
         st: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
+        st.input_handle.close();
+        st.drain_resampler()?;
+
         if let Some(mut writer) = st.writer.take() {
             writer.flush()?;
             writer.finalize()?;
@@ -139,4 +148,39 @@ impl Actor for RecorderActor {
 
 fn into_actor_err(err: hypr_audio_utils::Error) -> ActorProcessingErr {
     Box::new(err)
+}
+
+impl RecState {
+    fn push_samples(
+        &mut self,
+        samples: Vec<f32>,
+        sample_rate: u32,
+    ) -> Result<(), ActorProcessingErr> {
+        if samples.is_empty() || sample_rate == 0 {
+            return Ok(());
+        }
+
+        self.input_handle.push(samples, sample_rate);
+        self.drain_resampler()
+    }
+
+    fn drain_resampler(&mut self) -> Result<(), ActorProcessingErr> {
+        let writer = match self.writer.as_mut() {
+            Some(writer) => writer,
+            None => return Ok(()),
+        };
+
+        let progress = drain_stream(Pin::new(&mut self.resampler), |sample| {
+            writer
+                .write_sample(sample)
+                .map_err(|err| Box::new(err) as ActorProcessingErr)
+        })?;
+
+        if progress.processed && self.last_flush.elapsed() >= FLUSH_INTERVAL {
+            writer.flush()?;
+            self.last_flush = Instant::now();
+        }
+
+        Ok(())
+    }
 }

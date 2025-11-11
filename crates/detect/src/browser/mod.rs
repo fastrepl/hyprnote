@@ -32,7 +32,7 @@ fn create_meeting_regexes() -> Vec<regex::Regex> {
         r"https://[a-z0-9.-]+\.zoom\.us/j/\d+(\?pwd=[a-zA-Z0-9.]+)?",
         r"https://app\.cal\.com/video/[a-zA-Z0-9]+",
     ];
-    
+
     patterns
         .iter()
         .filter_map(|&pattern| {

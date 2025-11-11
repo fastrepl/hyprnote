@@ -52,7 +52,7 @@ impl crate::Observer for Detector {
                                     continue;
                                 }
                             };
-                        
+
                         let stdout = match String::from_utf8(output.stdout) {
                             Ok(stdout) => stdout,
                             Err(_) => {
@@ -60,7 +60,7 @@ impl crate::Observer for Detector {
                                 continue;
                             }
                         };
-                        
+
                         for browser in &BROWSER_NAMES {
                             if stdout.contains(browser) {
                                 if let Ok(mut detected) = detected_browsers.lock() {
@@ -82,6 +82,9 @@ impl crate::Observer for Detector {
     fn stop(&mut self) {
         self.background.stop();
         // Silently handle mutex errors on cleanup
-        let _ = self.detected_browsers.lock().map(|mut detected| detected.clear());
+        let _ = self
+            .detected_browsers
+            .lock()
+            .map(|mut detected| detected.clear());
     }
 }

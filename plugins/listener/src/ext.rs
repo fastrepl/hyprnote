@@ -4,8 +4,9 @@ use std::sync::{Arc, Mutex};
 use ractor::{call_t, concurrency, registry, Actor, ActorRef};
 use tauri_specta::Event;
 
+use crate::actors::spawn_batch_actor;
 use crate::{
-    actors::{BatchActor, BatchArgs, SessionActor, SessionArgs, SessionMsg, SessionParams},
+    actors::{BatchArgs, SessionActor, SessionArgs, SessionMsg, SessionParams},
     SessionEvent,
 };
 
@@ -29,8 +30,6 @@ pub struct BatchParams {
     pub languages: Vec<hypr_language::Language>,
     #[serde(default)]
     pub keywords: Vec<String>,
-    #[serde(default)]
-    pub channels: Option<u8>,
 }
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
@@ -150,11 +149,22 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn run_batch(&self, params: BatchParams) -> Result<(), crate::Error> {
-        let channels = params.channels.unwrap_or(1);
+        let metadata = tokio::task::spawn_blocking({
+            let path = params.file_path.clone();
+            move || hypr_audio_utils::audio_file_metadata(path)
+        })
+        .await
+        .map_err(|err| {
+            crate::Error::BatchStartFailed(format!("failed to join audio metadata task: {err:?}"))
+        })?
+        .map_err(|err| {
+            crate::Error::BatchStartFailed(format!("failed to read audio metadata: {err}"))
+        })?;
 
         let listen_params = owhisper_interface::ListenParams {
             model: params.model.clone(),
-            channels,
+            channels: metadata.channels,
+            sample_rate: metadata.sample_rate,
             languages: params.languages.clone(),
             keywords: params.keywords.clone(),
             redemption_time_ms: None,
@@ -171,20 +181,16 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 let app = guard.app.clone();
                 drop(guard);
 
-                match Actor::spawn(
-                    Some(BatchActor::name()),
-                    BatchActor,
-                    BatchArgs {
-                        app,
-                        file_path: params.file_path.clone(),
-                        base_url: params.base_url.clone(),
-                        api_key: params.api_key.clone(),
-                        listen_params,
-                        start_notifier: start_notifier.clone(),
-                    },
-                )
-                .await
-                {
+                let args = BatchArgs {
+                    app,
+                    file_path: params.file_path.clone(),
+                    base_url: params.base_url.clone(),
+                    api_key: params.api_key.clone(),
+                    listen_params: listen_params.clone(),
+                    start_notifier: start_notifier.clone(),
+                };
+
+                match spawn_batch_actor(args).await {
                     Ok(_) => {
                         tracing::info!("batch actor spawned successfully");
                         let state = self.state::<crate::SharedState>();
@@ -196,11 +202,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                         .unwrap();
                     }
                     Err(e) => {
-                        tracing::error!("batch actor spawn failed: {:?}", e);
+                        tracing::error!("batch supervisor spawn failed: {:?}", e);
                         if let Ok(mut notifier) = start_notifier.lock() {
                             if let Some(tx) = notifier.take() {
-                                let _ =
-                                    tx.send(Err(format!("failed to spawn batch actor: {:?}", e)));
+                                let _ = tx
+                                    .send(Err(format!("failed to spawn batch supervisor: {e:?}")));
                             }
                         }
                         return Err(e.into());

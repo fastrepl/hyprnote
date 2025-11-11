@@ -54,6 +54,7 @@ impl ListenerActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for ListenerActor {
     type Msg = ListenerMsg;
     type State = ListenerState;

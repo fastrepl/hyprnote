@@ -7493,6 +7493,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "if_chain"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd62e6b5e86ea8eeeb8db1de02880a6abc01a397b2ebb64b5d74ac255318f5cb"
+
+[[package]]
 name = "ignore"
 version = "0.4.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11411,22 +11417,32 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "ractor"
-version = "0.15.9"
+version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9500e0be6f12a0539cb1154d654ef2e888bf8529164e54aff4a097baad5bb001"
+checksum = "1d65972a0286ef14c43c6daafbac6cf15e96496446147683b2905292c35cc178"
 dependencies = [
+ "async-trait",
  "bon 2.3.0",
  "dashmap",
  "futures",
- "js-sys",
  "once_cell",
  "strum 0.26.3",
  "tokio",
- "tokio_with_wasm",
  "tracing",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-time",
+]
+
+[[package]]
+name = "ractor-supervisor"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d90830688ebfafdc226f3c9567c40fecf4c51a7513171181102ae66e4b57c15f"
+dependencies = [
+ "futures-util",
+ "if_chain",
+ "log",
+ "ractor",
+ "thiserror 2.0.17",
+ "uuid",
 ]
 
 [[package]]
@@ -14656,6 +14672,7 @@ dependencies = [
  "owhisper-client",
  "owhisper-interface",
  "ractor",
+ "ractor-supervisor",
  "rodio",
  "serde",
  "serde_json",
@@ -15856,30 +15873,6 @@ dependencies = [
  "tokio-rustls 0.26.4",
  "tokio-util",
  "webpki-roots 0.26.11",
-]
-
-[[package]]
-name = "tokio_with_wasm"
-version = "0.8.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4dfba9b946459940fb564dcf576631074cdfb0bfe4c962acd4c31f0dca7897e6"
-dependencies = [
- "js-sys",
- "tokio",
- "tokio_with_wasm_proc",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "tokio_with_wasm_proc"
-version = "0.8.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37e04c1865c281139e5ccf633cb9f76ffdaabeebfe53b703984cf82878e2aabb"
-dependencies = [
- "quote",
- "syn 2.0.108",
 ]
 
 [[package]]

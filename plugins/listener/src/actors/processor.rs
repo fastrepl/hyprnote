@@ -55,6 +55,7 @@ impl ProcessorActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for ProcessorActor {
     type Msg = ProcMsg;
     type State = ProcState;

@@ -34,6 +34,7 @@ impl RecorderActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for RecorderActor {
     type Msg = RecMsg;
     type State = RecState;

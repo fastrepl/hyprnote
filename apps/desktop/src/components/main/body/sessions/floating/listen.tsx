@@ -200,7 +200,7 @@ function OptionsMenu({
             queryClient.invalidateQueries({ queryKey: ["audio", sessionId, "url"] });
           })
         ),
-        Effect.flatMap((importedPath) => Effect.promise(() => runBatch(importedPath, { channels: 1 }))),
+        Effect.flatMap((importedPath) => Effect.promise(() => runBatch(importedPath))),
       );
     },
     [queryClient, runBatch, sessionId],

@@ -43,6 +43,16 @@ impl SpeakerInput {
     }
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
+    pub fn sample_rate(&self) -> u32 {
+        self.inner.sample_rate()
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    pub fn sample_rate(&self) -> u32 {
+        0
+    }
+
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub fn stream(self) -> Result<SpeakerStream> {
         let inner = self.inner.stream();
         Ok(SpeakerStream { inner })

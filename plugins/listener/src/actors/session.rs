@@ -58,6 +58,7 @@ impl SessionActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for SessionActor {
     type Msg = SessionMsg;
     type State = SessionState;

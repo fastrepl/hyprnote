@@ -72,3 +72,12 @@ tasks:
     cmds:
       - chmod +x ./apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin
       - chmod +x ./apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin
+
+  db:
+    env:
+      DB: /Users/yujonglee/Library/Application Support/com.hyprnote.nightly/db.sqlite
+    cmds:
+      - |
+          sqlite3 -json "$DB" 'SELECT store FROM main LIMIT 1;' |
+          jq -r '.[0].store' |
+          jless

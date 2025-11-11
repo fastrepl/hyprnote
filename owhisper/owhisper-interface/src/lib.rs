@@ -137,6 +137,7 @@ common_derives! {
         #[serde(default)]
         pub model: Option<String>,
         pub channels: u8,
+        pub sample_rate: u32,
         // https://docs.rs/axum-extra/0.10.1/axum_extra/extract/struct.Query.html#example-1
         #[serde(default)]
         pub languages: Vec<hypr_language::Language>,
@@ -152,6 +153,7 @@ impl Default for ListenParams {
         ListenParams {
             model: None,
             channels: 1,
+            sample_rate: 16000,
             languages: vec![],
             keywords: vec![],
             redemption_time_ms: None,

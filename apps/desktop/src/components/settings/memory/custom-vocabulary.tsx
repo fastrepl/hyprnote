@@ -1,10 +1,11 @@
-import { useForm } from "@tanstack/react-form";
-import { Check, MinusCircle, Pencil, Plus, X } from "lucide-react";
-import { useMemo, useState } from "react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
-import { METRICS, QUERIES, STORE_ID, UI } from "../../../store/tinybase/main";
+
+import { useForm } from "@tanstack/react-form";
+import { Check, MinusCircle, Pencil, Plus, Search, X } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import { QUERIES, STORE_ID, UI } from "../../../store/tinybase/main";
 import { id } from "../../../utils";
 
 interface VocabItem {
@@ -17,7 +18,6 @@ export function CustomVocabularyView() {
   const mutations = useVocabMutations();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState("");
-  const totalCustomVocabs = UI.useMetric(METRICS.totalCustomVocabs, STORE_ID) ?? 0;
 
   const form = useForm({
     defaultValues: {
@@ -47,16 +47,11 @@ export function CustomVocabularyView() {
 
   return (
     <div>
-      <div className="mb-3 flex items-start justify-between">
-        <div>
-          <h3 className="text-sm font-medium mb-1">Custom vocabulary</h3>
-          <p className="text-xs text-neutral-600">
-            Add jargons or industry/company-specific terms to improve transcription accuracy
-          </p>
-        </div>
-        <span className="text-xs text-neutral-500 mt-1">
-          {totalCustomVocabs} {totalCustomVocabs === 1 ? "term" : "terms"}
-        </span>
+      <div className="mb-4">
+        <h3 className="text-sm font-medium mb-1">Custom vocabulary</h3>
+        <p className="text-xs text-neutral-600">
+          Add jargons or industry/company-specific terms to improve transcription accuracy
+        </p>
       </div>
 
       <div className="rounded-xl border border-neutral-200 bg-white overflow-hidden">
@@ -66,8 +61,9 @@ export function CustomVocabularyView() {
             e.stopPropagation();
             form.handleSubmit();
           }}
-          className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200"
+          className="flex items-center gap-2 pl-4 pr-2 h-12 border-b border-neutral-200 bg-stone-50"
         >
+          <Search className="size-4 text-neutral-400" />
           <form.Field name="search">
             {(field) => (
               <input
@@ -85,12 +81,10 @@ export function CustomVocabularyView() {
           {showAddButton && (
             <Button
               type="submit"
-              variant="ghost"
               size="sm"
-              className="h-auto p-0 hover:bg-transparent text-neutral-600 hover:text-neutral-900"
             >
-              <Plus className="h-4 w-4" />
-              <span className="ml-1 text-sm">Add</span>
+              <Plus className="size-4" />
+              Add
             </Button>
           )}
         </form>
@@ -103,18 +97,23 @@ export function CustomVocabularyView() {
               </div>
             )
             : (
-              filteredItems.map((item: VocabItem) => (
-                <VocabularyItem
-                  key={item.rowId}
-                  item={item}
-                  vocabItems={vocabItems}
-                  isEditing={editingId === item.rowId}
-                  onStartEdit={() => setEditingId(item.rowId)}
-                  onCancelEdit={() => setEditingId(null)}
-                  onUpdate={mutations.update}
-                  onRemove={() => mutations.delete(item.rowId)}
-                />
-              ))
+              filteredItems.map((item: VocabItem) => {
+                const itemIndex = vocabItems.findIndex((v) => v.rowId === item.rowId);
+                return (
+                  <VocabularyItem
+                    key={item.rowId}
+                    item={item}
+                    itemNumber={itemIndex + 1}
+                    vocabItems={vocabItems}
+                    isEditing={editingId === item.rowId}
+                    isSearching={searchValue.trim().length > 0}
+                    onStartEdit={() => setEditingId(item.rowId)}
+                    onCancelEdit={() => setEditingId(null)}
+                    onUpdate={mutations.update}
+                    onRemove={() => mutations.delete(item.rowId)}
+                  />
+                );
+              })
             )}
         </div>
       </div>
@@ -124,8 +123,10 @@ export function CustomVocabularyView() {
 
 interface VocabularyItemProps {
   item: VocabItem;
+  itemNumber: number;
   vocabItems: VocabItem[];
   isEditing: boolean;
+  isSearching: boolean;
   onStartEdit: () => void;
   onCancelEdit: () => void;
   onUpdate: (rowId: string, text: string) => void;
@@ -134,8 +135,10 @@ interface VocabularyItemProps {
 
 function VocabularyItem({
   item,
+  itemNumber,
   vocabItems,
   isEditing,
+  isSearching,
   onStartEdit,
   onCancelEdit,
   onUpdate,
@@ -188,30 +191,35 @@ function VocabularyItem({
       onMouseEnter={() => setHoveredItem(true)}
       onMouseLeave={() => setHoveredItem(false)}
     >
-      {isEditing
-        ? (
-          <form.Field name="text">
-            {(field) => (
-              <input
-                type="text"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    form.handleSubmit();
-                  } else if (e.key === "Escape") {
-                    e.preventDefault();
-                    onCancelEdit();
-                  }
-                }}
-                className="flex-1 text-sm text-neutral-900 focus:outline-none bg-transparent"
-                autoFocus
-              />
-            )}
-          </form.Field>
-        )
-        : <span className="text-sm text-neutral-700">{item.text}</span>}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <span className={cn(["text-sm text-neutral-400 w-4 flex-shrink-0 text-center", isSearching && "invisible"])}>
+          {itemNumber}
+        </span>
+        {isEditing
+          ? (
+            <form.Field name="text">
+              {(field) => (
+                <input
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      form.handleSubmit();
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      onCancelEdit();
+                    }
+                  }}
+                  className="flex-1 text-sm text-neutral-900 focus:outline-none bg-transparent"
+                  autoFocus
+                />
+              )}
+            </form.Field>
+          )
+          : <span className="text-sm text-neutral-700">{item.text}</span>}
+      </div>
       <div className="flex items-center gap-1">
         {isEditing
           ? (

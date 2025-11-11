@@ -76,7 +76,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
     >
       {!leftsidebar.expanded && (
         <Button size="icon" variant="ghost" onClick={() => leftsidebar.setExpanded(true)}>
-          <PanelLeftOpenIcon size={16} />
+          <PanelLeftOpenIcon size={16} className="text-neutral-600" />
         </Button>
       )}
 
@@ -151,7 +151,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
           onClick={handleNewEmptyTab}
           variant="ghost"
           size="icon"
-          className="text-neutral-500"
+          className="text-neutral-600"
         >
           <PlusIcon size={16} />
         </Button>

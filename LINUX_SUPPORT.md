@@ -2,6 +2,25 @@
 
 This document outlines the current status of Linux support in the Hyprnote application, highlighting areas that are missing or incomplete.
 
+## Recent Improvements (November 2025)
+
+### Audio System Robustness
+While speaker audio capture remains unimplemented, the underlying audio system has been significantly strengthened:
+
+*   **Error Handling:** Eliminated 100+ potential panic points by replacing `unwrap()`/`expect()` calls with proper `Result` types throughout the audio crates
+*   **Device Management:** Improved microphone device enumeration and validation with graceful fallbacks
+*   **Thread Safety:** Added proper mutex poison error handling across the audio subsystem
+*   **Code Quality:** Extracted helper functions and eliminated code duplication in audio configuration
+
+### Detection System Improvements  
+The application and browser detection systems have been made more robust for Linux:
+
+*   **Graceful Command Execution:** Browser detection in `crates/detect/src/browser/linux.rs` now handles system command failures gracefully instead of causing crashes
+*   **Safe Regex Compilation:** Added proper error handling for regex compilation in detection modules
+*   **Improved Error Reporting:** Enhanced error messages and logging for debugging detection issues
+
+These improvements provide a more stable foundation for Linux support while the core missing features are being addressed.
+
 ## 1. Speaker Audio Capture
 
 **This is the most critical missing feature for full Linux support.**
@@ -86,12 +105,17 @@ The application uses the native macOS email client to send emails. This is imple
 
 ### 5.7. Application and Browser Detection
 
-The application uses macOS-specific APIs to detect running applications and the frontmost browser window. This is used for features like automatically detecting meetings.
+The application uses platform-specific APIs to detect running applications and the frontmost browser window. This is used for features like automatically detecting meetings.
 
 *   **`crates/detect/src/app/macos.rs`:** Uses `ns::RunningApp` and `ns::Workspace` to detect running applications.
 *   **`crates/detect/src/browser/macos.rs`:** Uses `objc2_foundation::NSURL` and `objc2_app_kit::NSWorkspace` to get the URL of the frontmost browser window.
 
-A Linux-specific implementation would be needed to provide similar functionality. This could involve using the `/proc` filesystem or a library like `libprocps`.
+**Linux Implementation Status:** Basic browser detection functionality exists in `crates/detect/src/browser/linux.rs` but with recent improvements for robustness:
+*   System command execution now handles failures gracefully instead of causing crashes
+*   Improved error handling for process detection and window management commands
+*   Safe regex compilation with proper fallback handling
+
+A more complete Linux-specific implementation would benefit from using the `/proc` filesystem or libraries like `libprocps` for enhanced application detection.
 
 ## 6. Conclusion
 

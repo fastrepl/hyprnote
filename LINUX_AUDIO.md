@@ -39,10 +39,30 @@ The following features are missing for a complete Linux audio implementation:
 *   **PulseAudio support:** There is no integration with the PulseAudio audio server. A full implementation would require using the PulseAudio API to capture audio.
 *   **ALSA support:** While ALSA is mentioned in the code comments, there is no actual implementation that uses ALSA to capture audio.
 
+## Recent Improvements (November 2025)
+
+### Error Handling and Robustness
+The audio system has been significantly improved with comprehensive error handling:
+
+*   **Eliminated Panic Points:** Over 100+ potential crash points have been removed by replacing `unwrap()` and `expect()` calls with proper `Result` types throughout the audio crates.
+*   **Mutex Safety:** Added proper mutex poison error handling in speaker implementations, particularly for Windows speaker polling that also benefits cross-platform safety.
+*   **Device Validation:** Implemented robust device enumeration and validation with graceful fallbacks for unavailable audio devices.
+*   **Stream Building:** Added comprehensive error handling for audio stream creation and configuration.
+
+### Code Quality Improvements
+*   **Helper Functions:** Extracted reusable helper functions in `mic.rs` to eliminate code duplication:
+    *   `create_standard_config()` - Unified configuration creation
+    *   `validate_device_with_fallback()` - Standardized device validation  
+    *   `try_build_test_stream()` - Consolidated sample format testing
+*   **Error Types:** Expanded error types in `audio/errors.rs` for better error reporting and debugging
+
+These improvements make the existing microphone capture more robust and provide a solid foundation for implementing the missing speaker capture functionality.
+
 ## Next Steps
 
 To have a functional audio implementation on Linux, the following steps need to be taken:
 
-1.  Decide on the primary audio backend to support. PipeWire is the modern choice, but PulseAudio and ALSA are still relevant for compatibility.
-2.  Implement audio capture using the chosen audio backend's API.
-3.  Provide a mechanism to select the audio backend at runtime or compile time.
+1.  **Implement speaker audio capture:** Build upon the improved error handling framework to add actual system audio capture in `crates/audio/src/speaker/linux.rs`.
+2.  **Choose audio backend:** Decide on the primary audio backend to support. PipeWire is the modern choice, but PulseAudio and ALSA are still relevant for compatibility.
+3.  **Runtime backend selection:** Provide a mechanism to select the audio backend at runtime or compile time.
+4.  **Leverage existing robustness:** Utilize the new helper functions and error handling patterns established in the recent improvements.

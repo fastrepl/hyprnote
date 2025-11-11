@@ -15,9 +15,7 @@ pub async fn list_microphone_devices<R: tauri::Runtime>(
 pub async fn list_speaker_devices<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Vec<String>, String> {
-    app.list_speaker_devices()
-        .await
-        .map_err(|e| e.to_string())
+    app.list_speaker_devices().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

@@ -91,10 +91,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn set_speaker_device(
-        &self,
-        device_name: impl Into<String>,
-    ) -> Result<(), crate::Error> {
+    async fn set_speaker_device(&self, device_name: impl Into<String>) -> Result<(), crate::Error> {
         let state: tauri::State<'_, crate::SharedState> = self.state::<crate::SharedState>();
 
         {

@@ -111,7 +111,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
 
         #[cfg(not(feature = "local-llm"))]
         {
-            Err(crate::Error::UnknownError("local-llm feature disabled".into()))
+            Err(crate::Error::UnknownError(
+                "local-llm feature disabled".into(),
+            ))
         }
     }
 
@@ -240,7 +242,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
 
         #[cfg(not(feature = "local-stt"))]
         {
-            Err(crate::Error::UnknownError("local-stt feature disabled".into()))
+            Err(crate::Error::UnknownError(
+                "local-stt feature disabled".into(),
+            ))
         }
     }
 

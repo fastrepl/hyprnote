@@ -140,7 +140,9 @@ mod tests {
     #[serial]
     async fn test_macos() {
         let input = SpeakerInput::new().expect("Failed to create SpeakerInput for macOS test");
-        let mut stream = input.stream().expect("Failed to create speaker stream for macOS test");
+        let mut stream = input
+            .stream()
+            .expect("Failed to create speaker stream for macOS test");
 
         tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 

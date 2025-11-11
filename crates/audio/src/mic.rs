@@ -45,7 +45,10 @@ fn validate_against_common_configs(device: &cpal::Device) -> Option<cpal::Suppor
     try_configs_on_device(device, common_test_configs())
 }
 
-fn create_standard_config(sample_rate: u32, sample_format: cpal::SampleFormat) -> cpal::SupportedStreamConfig {
+fn create_standard_config(
+    sample_rate: u32,
+    sample_format: cpal::SampleFormat,
+) -> cpal::SupportedStreamConfig {
     cpal::SupportedStreamConfig::new(
         cpal::ChannelCount::from(2u16),
         cpal::SampleRate(sample_rate),
@@ -59,7 +62,7 @@ fn validate_device_with_fallback(device: &cpal::Device) -> Option<cpal::Supporte
     if let Some(config) = validate_against_common_configs(device) {
         return Some(config);
     }
-    
+
     // Fall back to standard F32 config
     Some(create_standard_config(48000, cpal::SampleFormat::F32))
 }
@@ -96,7 +99,9 @@ fn try_build_test_stream(device: &cpal::Device, config: &cpal::SupportedStreamCo
 }
 
 fn enumerate_input_devices(host: &cpal::Host) -> Vec<cpal::Device> {
-    host.input_devices().map(|d| d.collect()).unwrap_or_default()
+    host.input_devices()
+        .map(|d| d.collect())
+        .unwrap_or_default()
 }
 
 fn is_echo_cancel_available_with_timeout() -> Result<bool, crate::Error> {
@@ -222,8 +227,14 @@ impl MicInput {
         let input_devices = enumerate_input_devices(&host);
 
         // Handle echo-cancel-source and empty device list
-        if let Some((device, config)) = Self::handle_special_cases(&device_name, &host, &default_input_device, &input_devices)? {
-            return Ok(Self { host, device, config });
+        if let Some((device, config)) =
+            Self::handle_special_cases(&device_name, &host, &default_input_device, &input_devices)?
+        {
+            return Ok(Self {
+                host,
+                device,
+                config,
+            });
         }
 
         // Select appropriate device
@@ -232,7 +243,11 @@ impl MicInput {
         // Get configuration for selected device
         let config = Self::get_device_config(&device)?;
 
-        Ok(Self { host, device, config })
+        Ok(Self {
+            host,
+            device,
+            config,
+        })
     }
 
     /// Log audio system information for debugging
@@ -250,7 +265,7 @@ impl MicInput {
         device_name: &Option<String>,
         host: &cpal::Host,
         default_input_device: &Option<cpal::Device>,
-        input_devices: &[cpal::Device]
+        input_devices: &[cpal::Device],
     ) -> Result<Option<(cpal::Device, cpal::SupportedStreamConfig)>, crate::Error> {
         // Special handling for echo-cancel-source or when enumeration failed
         if device_name.as_ref().map(|n| n.as_str()) == Some("echo-cancel-source")
@@ -292,7 +307,7 @@ impl MicInput {
     fn select_device(
         device_name: Option<String>,
         default_input_device: &Option<cpal::Device>,
-        input_devices: &[cpal::Device]
+        input_devices: &[cpal::Device],
     ) -> Result<cpal::Device, crate::Error> {
         for (i, device) in input_devices.iter().enumerate() {
             match device.name() {
@@ -303,7 +318,7 @@ impl MicInput {
 
         let device = match device_name {
             None => Self::select_default_device(default_input_device, input_devices)?,
-            Some(name) => Self::select_named_device(name, input_devices)?
+            Some(name) => Self::select_named_device(name, input_devices)?,
         };
 
         match device.name() {
@@ -317,7 +332,7 @@ impl MicInput {
     /// Select default or first available device
     fn select_default_device(
         default_input_device: &Option<cpal::Device>,
-        input_devices: &[cpal::Device]
+        input_devices: &[cpal::Device],
     ) -> Result<cpal::Device, crate::Error> {
         // Try default device first
         let default_device_works = if let Some(ref device) = default_input_device {
@@ -332,7 +347,10 @@ impl MicInput {
                     true
                 }
                 Err(e) => {
-                    tracing::warn!("Default device not working: {:?}, falling back to first available device", e);
+                    tracing::warn!(
+                        "Default device not working: {:?}, falling back to first available device",
+                        e
+                    );
                     false
                 }
             }
@@ -345,14 +363,18 @@ impl MicInput {
             Ok(default_input_device.as_ref().unwrap().clone())
         } else {
             tracing::debug!("Using first available device");
-            input_devices.first()
+            input_devices
+                .first()
                 .ok_or(crate::Error::NoInputDevice)
                 .map(|d| d.clone())
         }
     }
 
     /// Select device by name, fallback to first available
-    fn select_named_device(name: String, input_devices: &[cpal::Device]) -> Result<cpal::Device, crate::Error> {
+    fn select_named_device(
+        name: String,
+        input_devices: &[cpal::Device],
+    ) -> Result<cpal::Device, crate::Error> {
         tracing::debug!("Looking for device with name: {}", name);
         let device = input_devices
             .iter()
@@ -371,7 +393,8 @@ impl MicInput {
                     "Requested device '{}' not found, using first available device",
                     name
                 );
-                input_devices.first()
+                input_devices
+                    .first()
                     .ok_or(crate::Error::NoInputDevice)
                     .map(|d| d.clone())
             }
@@ -379,7 +402,9 @@ impl MicInput {
     }
 
     /// Get configuration for selected device
-    fn get_device_config(device: &cpal::Device) -> Result<cpal::SupportedStreamConfig, crate::Error> {
+    fn get_device_config(
+        device: &cpal::Device,
+    ) -> Result<cpal::SupportedStreamConfig, crate::Error> {
         match device.default_input_config() {
             Ok(config) => {
                 tracing::debug!("Successfully got default input config: {:?}", config);

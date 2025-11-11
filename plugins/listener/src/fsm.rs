@@ -306,7 +306,15 @@ impl Session {
         // We need some delay here for Airpod transition.
         // But if the delay is too long, AEC will not work.
 
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(self.speaker_device_name.clone())?.stream()?;
+        // On Linux, speaker device selection is not yet implemented, always use default (None)
+        #[cfg(target_os = "linux")]
+        let speaker_device_param = None;
+
+        #[cfg(not(target_os = "linux"))]
+        let speaker_device_param = self.speaker_device_name.clone();
+
+        let speaker_sample_stream =
+            hypr_audio::AudioInput::from_speaker(speaker_device_param)?.stream()?;
         let speaker_stream = speaker_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);
@@ -736,8 +744,8 @@ pub enum StateEvent {
     Resume,
     MicMuted(bool),
     SpeakerMuted(bool),
-     MicChange(Option<String>),
-     SpeakerChange(Option<String>),
+    MicChange(Option<String>),
+    SpeakerChange(Option<String>),
 }
 
 #[state_machine(
@@ -809,13 +817,19 @@ impl Session {
             }
             StateEvent::SpeakerChange(device_name) => {
                 self.speaker_device_name = device_name.clone();
-                let _ = SessionEvent::SpeakerDeviceChanged { name: device_name.clone() }.emit(&self.app);
+                let _ = SessionEvent::SpeakerDeviceChanged {
+                    name: device_name.clone(),
+                }
+                .emit(&self.app);
 
                 if self.session_id.is_some() && self.tasks.is_some() {
                     if let Some(session_id) = self.session_id.clone() {
                         self.teardown_resources().await;
                         if let Err(e) = self.setup_resources(&session_id).await {
-                            tracing::error!("Failed to setup resources after speaker change: {:?}", e);
+                            tracing::error!(
+                                "Failed to setup resources after speaker change: {:?}",
+                                e
+                            );
                         }
                     }
                 }

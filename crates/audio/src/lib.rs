@@ -114,11 +114,17 @@ impl AudioInput {
             .input_devices()
             .map(|devices| {
                 let device_vec: Vec<cpal::Device> = devices.collect();
-                tracing::debug!("Found {} input devices in list_mic_devices", device_vec.len());
+                tracing::debug!(
+                    "Found {} input devices in list_mic_devices",
+                    device_vec.len()
+                );
                 device_vec
             })
             .map_err(|e| {
-                tracing::error!("Failed to enumerate input devices in list_mic_devices: {:?}", e);
+                tracing::error!(
+                    "Failed to enumerate input devices in list_mic_devices: {:?}",
+                    e
+                );
                 e
             })
             .unwrap_or_else(|_| Vec::new());
@@ -164,7 +170,11 @@ impl AudioInput {
         let default_name = Self::get_default_mic_device_name();
         Self::list_mic_devices()
             .into_iter()
-            .map(|name| DeviceInfo { is_default: name == default_name, name, kind: DeviceKind::Input })
+            .map(|name| DeviceInfo {
+                is_default: name == default_name,
+                name,
+                kind: DeviceKind::Input,
+            })
             .collect()
     }
 
@@ -178,7 +188,10 @@ impl AudioInput {
             .output_devices()
             .map(|devices| devices.collect())
             .unwrap_or_else(|e| {
-                tracing::error!("Failed to enumerate output devices in list_speaker_devices: {:?}", e);
+                tracing::error!(
+                    "Failed to enumerate output devices in list_speaker_devices: {:?}",
+                    e
+                );
                 Vec::new()
             });
 
@@ -195,7 +208,10 @@ impl AudioInput {
             .filter(|d| d != "hypr-audio-tap")
             .collect();
 
-        tracing::debug!("Returning {} devices from list_speaker_devices", result.len());
+        tracing::debug!(
+            "Returning {} devices from list_speaker_devices",
+            result.len()
+        );
         result
     }
 
@@ -204,17 +220,30 @@ impl AudioInput {
         let default_name = Self::get_default_speaker_device_name();
         Self::list_speaker_devices()
             .into_iter()
-            .map(|name| DeviceInfo { is_default: name == default_name, name, kind: DeviceKind::Output })
+            .map(|name| DeviceInfo {
+                is_default: name == default_name,
+                name,
+                kind: DeviceKind::Output,
+            })
             .collect()
     }
 
     /// Creates an AudioInput configured to stream from a microphone.
     pub fn from_mic(device_name: Option<String>) -> Result<Self, crate::Error> {
-        tracing::info!("Creating AudioInput from microphone with device name: {:?}", device_name);
+        tracing::info!(
+            "Creating AudioInput from microphone with device name: {:?}",
+            device_name
+        );
         let mic = MicInput::new(device_name)?;
         tracing::debug!("Successfully created MicInput");
 
-        Ok(Self { source: AudioSource::RealtimeMic, mic: Some(mic), speaker: None, speaker_device_name: None, data: None })
+        Ok(Self {
+            source: AudioSource::RealtimeMic,
+            mic: Some(mic),
+            speaker: None,
+            speaker_device_name: None,
+            data: None,
+        })
     }
 
     /// Create AudioInput from system speaker output (default device only).
@@ -222,18 +251,38 @@ impl AudioInput {
     pub fn from_speaker(device_name: Option<String>) -> Result<Self, crate::Error> {
         tracing::debug!("Creating AudioInput from speaker: {:?}", device_name);
         if device_name.is_some() {
-            return Err(crate::Error::Generic("Speaker device selection not yet implemented - use None for default".into()));
+            return Err(crate::Error::Generic(
+                "Speaker device selection not yet implemented - use None for default".into(),
+            ));
         }
         let speaker = match SpeakerInput::new() {
-            Ok(speaker) => { tracing::debug!("Successfully created SpeakerInput"); Some(speaker) }
-            Err(e) => { tracing::error!("Failed to create SpeakerInput: {}", e); None }
+            Ok(speaker) => {
+                tracing::debug!("Successfully created SpeakerInput");
+                Some(speaker)
+            }
+            Err(e) => {
+                tracing::error!("Failed to create SpeakerInput: {}", e);
+                None
+            }
         };
 
-        Ok(Self { source: AudioSource::RealtimeSpeaker, mic: None, speaker, speaker_device_name: None, data: None })
+        Ok(Self {
+            source: AudioSource::RealtimeSpeaker,
+            mic: None,
+            speaker,
+            speaker_device_name: None,
+            data: None,
+        })
     }
 
     pub fn from_recording(data: Vec<u8>) -> Self {
-        Self { source: AudioSource::Recorded, mic: None, speaker: None, speaker_device_name: None, data: Some(data) }
+        Self {
+            source: AudioSource::Recorded,
+            mic: None,
+            speaker: None,
+            speaker_device_name: None,
+            data: Some(data),
+        }
     }
 
     pub fn device_name(&self) -> String {
@@ -252,16 +301,23 @@ impl AudioInput {
             AudioSource::RealtimeMic => {
                 let mic = self.mic.as_ref().ok_or(crate::Error::StreamInitFailed)?;
                 Ok(AudioStream::RealtimeMic { mic: mic.stream() })
-            },
+            }
             AudioSource::RealtimeSpeaker => {
                 let speaker = self.speaker.take().ok_or(crate::Error::StreamInitFailed)?;
-                let speaker_stream = speaker.stream().map_err(|_| crate::Error::StreamInitFailed)?;
-                Ok(AudioStream::RealtimeSpeaker { speaker: speaker_stream })
-            },
+                let speaker_stream = speaker
+                    .stream()
+                    .map_err(|_| crate::Error::StreamInitFailed)?;
+                Ok(AudioStream::RealtimeSpeaker {
+                    speaker: speaker_stream,
+                })
+            }
             AudioSource::Recorded => {
                 let data = self.data.as_ref().ok_or(crate::Error::StreamInitFailed)?;
-                Ok(AudioStream::Recorded { data: data.clone(), position: 0 })
-            },
+                Ok(AudioStream::Recorded {
+                    data: data.clone(),
+                    position: 0,
+                })
+            }
         }
     }
 }

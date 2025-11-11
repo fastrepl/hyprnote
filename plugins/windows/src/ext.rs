@@ -267,14 +267,35 @@ impl HyprWindow {
         }
 
         if let Some(window) = self.get(app) {
+            tracing::debug!(
+                "Window {} already exists, focusing and showing",
+                self.label()
+            );
             window.set_focus()?;
             window.show()?;
             return Ok(window);
         }
 
+        tracing::debug!(
+            "Attempting to get primary monitor for window {}",
+            self.label()
+        );
         let monitor = app
             .primary_monitor()?
-            .ok_or_else(|| crate::Error::MonitorNotFound)?;
+            .or_else(|| {
+                tracing::warn!(
+                    "Primary monitor not available, trying to get any available monitor"
+                );
+                app.available_monitors()
+                    .ok()
+                    .and_then(|monitors| monitors.into_iter().next())
+            })
+            .ok_or_else(|| {
+                tracing::error!("No monitors found - cannot create window");
+                crate::Error::MonitorNotFound
+            })?;
+
+        tracing::debug!("Using monitor: {:?}", monitor.name());
 
         let window = match self {
             Self::Main => {
@@ -430,19 +451,19 @@ impl HyprWindow {
         app: &'a AppHandle<tauri::Wry>,
         url: impl Into<std::path::PathBuf>,
     ) -> WebviewWindowBuilder<'a, tauri::Wry, AppHandle<tauri::Wry>> {
-        let mut builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App(url.into()))
+        let builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App(url.into()))
             .title(self.title())
             .disable_drag_drop_handler();
 
         #[cfg(target_os = "macos")]
-        {
-            builder = builder
+        let builder = {
+            builder
                 .decorations(true)
                 .hidden_title(true)
                 .theme(Some(tauri::Theme::Light))
                 .traffic_light_position(tauri::LogicalPosition::new(12.0, 20.0))
-                .title_bar_style(tauri::TitleBarStyle::Overlay);
-        }
+                .title_bar_style(tauri::TitleBarStyle::Overlay)
+        };
 
         #[cfg(target_os = "windows")]
         {

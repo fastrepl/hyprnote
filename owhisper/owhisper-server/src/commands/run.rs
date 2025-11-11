@@ -1,6 +1,6 @@
 use futures_util::StreamExt;
 
-use crate::{misc::shutdown_signal, Server};
+use crate::{Server, misc::shutdown_signal};
 
 #[derive(clap::Parser)]
 pub struct RunArgs {
@@ -14,7 +14,6 @@ pub struct RunArgs {
 }
 
 /// Orchestrates audio transcription server with microphone input.
-pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
 pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
     if args.dry_run {
         print_input_devices();
@@ -33,11 +32,11 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
     log::info!("server_handle");
 
     let input_devices: Vec<String> = hypr_audio::MicInput::list_devices();
-        log::info!("input_devices: {:#?}", input_devices);
+    log::info!("input_devices: {:#?}", input_devices);
 
-        let input_device = hypr_audio::MicInput::new(args.device)?;
-        log::info!("input_device: {}", input_device.device_name());
-        let audio_stream = input_device.stream();
+    let input_device = hypr_audio::MicInput::new(args.device)?;
+    log::info!("input_device: {}", input_device.device_name());
+    let audio_stream = input_device.stream();
 
     let api_base = format!("ws://127.0.0.1:{}", port);
 
@@ -103,7 +102,7 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
 }
 
 fn print_input_devices() {
-    use tabled::settings::{style::HorizontalLine, style::VerticalLine, Style};
+    use tabled::settings::{Style, style::HorizontalLine, style::VerticalLine};
 
     let style = Style::modern()
         .horizontals([(1, HorizontalLine::inherit(Style::modern()).horizontal('═'))])

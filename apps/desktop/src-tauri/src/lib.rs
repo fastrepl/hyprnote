@@ -27,6 +27,37 @@ pub async fn main() {
             .init();
     }
 
+    // On Linux, ensure critical environment variables are set for PulseAudio/PipeWire
+    #[cfg(target_os = "linux")]
+    {
+        if std::env::var("XDG_RUNTIME_DIR").is_err() {
+            if let Ok(uid) = std::env::var("UID") {
+                let runtime_dir = format!("/run/user/{}", uid);
+                std::env::set_var("XDG_RUNTIME_DIR", &runtime_dir);
+                tracing::info!("Set XDG_RUNTIME_DIR to: {}", runtime_dir);
+            } else if let Ok(output) = std::process::Command::new("id").arg("-u").output() {
+                if let Ok(uid_str) = String::from_utf8(output.stdout) {
+                    let uid = uid_str.trim();
+                    let runtime_dir = format!("/run/user/{}", uid);
+                    std::env::set_var("XDG_RUNTIME_DIR", &runtime_dir);
+                    tracing::info!("Set XDG_RUNTIME_DIR to: {}", runtime_dir);
+                }
+            }
+        }
+
+        if std::env::var("DBUS_SESSION_BUS_ADDRESS").is_err() {
+            // Try to detect D-Bus session bus address
+            if let Ok(runtime_dir) = std::env::var("XDG_RUNTIME_DIR") {
+                let dbus_path = format!("{}/bus", runtime_dir);
+                if std::path::Path::new(&dbus_path).exists() {
+                    let dbus_addr = format!("unix:path={}", dbus_path);
+                    std::env::set_var("DBUS_SESSION_BUS_ADDRESS", &dbus_addr);
+                    tracing::info!("Set DBUS_SESSION_BUS_ADDRESS to: {}", dbus_addr);
+                }
+            }
+        }
+    }
+
     let sentry_client = tauri_plugin_sentry::sentry::init((
         {
             #[cfg(not(debug_assertions))]
@@ -227,14 +258,24 @@ pub async fn main() {
         .unwrap();
 
     let app_handle = app.handle().clone();
-    HyprWindow::Main.show(&app_handle).unwrap();
+    tracing::info!("Attempting to show main window");
+    if let Err(e) = HyprWindow::Main.show(&app_handle) {
+        tracing::error!("Failed to show main window: {:?}", e);
+        tracing::info!("Continuing without showing main window - you may need to open it manually");
+        tracing::info!("You can try opening the window using the system tray or keyboard shortcut");
+    } else {
+        tracing::info!("Main window shown successfully");
+    }
 
+    #[cfg(target_os = "macos")]
     app.run(|app, event| {
-        #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Reopen { .. } = event {
             HyprWindow::Main.show(app).unwrap();
         }
     });
+
+    #[cfg(not(target_os = "macos"))]
+    app.run(|_app, _event| {});
 }
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

@@ -62,6 +62,8 @@ impl Actor for ExternalSTTActor {
                             let text = text.trim();
                             if !text.is_empty()
                                 && !text.contains("[WebSocket]")
+                                && !text.contains("Sent interim text:")
+                                && !text.contains("[TranscriptionHandler]")
                                 && !text.contains("/v1/status")
                             {
                                 tracing::info!("{}", text);

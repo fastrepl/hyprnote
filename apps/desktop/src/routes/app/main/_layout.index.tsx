@@ -16,7 +16,7 @@ function Component() {
   const isChatOpen = chat.mode === "RightPanelOpen";
 
   return (
-    <div className="flex h-full overflow-hidden gap-1 pl-1 pr-0 pt-1 pb-1">
+    <div className="flex h-full overflow-hidden gap-1 p-1">
       {leftsidebar.expanded && <LeftSidebar />}
 
       <ResizablePanelGroup

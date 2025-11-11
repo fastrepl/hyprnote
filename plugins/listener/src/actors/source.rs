@@ -50,6 +50,7 @@ impl SourceActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for SourceActor {
     type Msg = SourceMsg;
     type State = SourceState;

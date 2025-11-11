@@ -8,8 +8,6 @@ mod error;
 pub use error::*;
 mod vorbis;
 pub use vorbis::*;
-mod stream;
-pub use stream::*;
 
 pub use rodio::Source;
 

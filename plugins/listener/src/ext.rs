@@ -158,6 +158,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
             languages: params.languages.clone(),
             keywords: params.keywords.clone(),
             redemption_time_ms: None,
+            sample_rate: 16000,
         };
 
         match params.provider {

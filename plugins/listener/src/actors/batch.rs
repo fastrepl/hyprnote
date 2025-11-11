@@ -262,7 +262,6 @@ async fn spawn_batch_task(
         };
         let _ = myself.send_message(BatchMsg::StreamAudioDuration(audio_duration_secs));
 
-        tracing::debug!("batch task: creating listen client");
         let channel_count = metadata.channels.clamp(1, 2);
         let listen_params = owhisper_interface::ListenParams {
             channels: metadata.channels,

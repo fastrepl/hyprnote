@@ -13,7 +13,6 @@ import { useSTTConnection } from "./useSTTConnection";
 
 type RunOptions = {
   handlePersist?: HandlePersistCallback;
-  channels?: number;
   model?: string;
   baseUrl?: string;
   apiKey?: string;
@@ -138,7 +137,6 @@ export const useRunBatch = (sessionId: string) => {
         api_key: options?.apiKey ?? conn.apiKey,
         keywords: options?.keywords ?? keywords ?? [],
         languages: options?.languages ?? languages ?? [],
-        channels: options?.channels,
       };
 
       await runBatch(params, { handlePersist: persist, sessionId });

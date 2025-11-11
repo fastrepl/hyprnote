@@ -36,6 +36,7 @@ impl InternalSTTActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for InternalSTTActor {
     type Msg = InternalSTTMessage;
     type State = InternalSTTState;

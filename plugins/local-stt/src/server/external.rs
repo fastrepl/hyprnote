@@ -37,6 +37,7 @@ impl ExternalSTTActor {
     }
 }
 
+#[ractor::async_trait]
 impl Actor for ExternalSTTActor {
     type Msg = ExternalSTTMessage;
     type State = ExternalSTTState;

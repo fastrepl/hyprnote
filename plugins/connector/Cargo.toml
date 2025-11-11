@@ -14,7 +14,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [features]
-default = ["local-llm", "local-stt"]
+default = []
 local-llm = ["dep:tauri-plugin-local-llm"]
 local-stt = ["dep:tauri-plugin-local-stt"]
 

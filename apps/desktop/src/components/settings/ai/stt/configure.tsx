@@ -264,7 +264,7 @@ function LocalModelAction({
     >
       {showProgress && (
         <div
-          className="absolute inset-0 bg-black transition-all duration-300"
+          className="absolute inset-0 bg-black/50 transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       )}
@@ -376,11 +376,11 @@ function useLocalModelDownload(
   useEffect(() => {
     const isNotDownloading = !isDownloading.data;
     const isNotDownloaded = !isDownloaded.data;
-    if (isNotDownloading && isNotDownloaded && taskRunId) {
+    if (isNotDownloading && isNotDownloaded && taskRunId && !isDownloading.isLoading) {
       setTaskRunId(null);
       setProgress(0);
     }
-  }, [isDownloading.data, isDownloaded.data, taskRunId]);
+  }, [isDownloading.data, isDownloading.isLoading, isDownloaded.data, taskRunId]);
 
   const handleDownload = () => {
     if (!manager || isDownloaded.data) {

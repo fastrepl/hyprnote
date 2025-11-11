@@ -10,8 +10,6 @@ pub use error::Error;
 pub use hypr_ws;
 pub use live::{ListenClient, ListenClientDual};
 
-const RESAMPLED_SAMPLE_RATE_HZ: u32 = 16_000;
-
 #[derive(Default)]
 pub struct ListenClientBuilder {
     api_base: Option<String>,

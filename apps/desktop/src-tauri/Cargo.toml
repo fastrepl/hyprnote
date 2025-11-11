@@ -31,7 +31,7 @@ hypr-whisper-local-model = { workspace = true }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
-tauri-plugin-connector = { workspace = true }
+tauri-plugin-connector = { workspace = true, features = ["local-llm", "local-stt"] }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-flags = { workspace = true }
 tauri-plugin-listener = { workspace = true }

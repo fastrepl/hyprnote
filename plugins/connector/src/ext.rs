@@ -90,21 +90,29 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
     }
 
     async fn get_local_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
-        use tauri_plugin_local_llm::{LocalLlmPluginExt, SharedState};
+        #[cfg(feature = "local-llm")]
+        {
+            use tauri_plugin_local_llm::{LocalLlmPluginExt, SharedState};
 
-        let api_base = if self.is_server_running().await {
-            let state = self.state::<SharedState>();
-            let guard = state.lock().await;
-            guard.api_base.clone().unwrap()
-        } else {
-            self.start_server().await?
-        };
+            let api_base = if self.is_server_running().await {
+                let state = self.state::<SharedState>();
+                let guard = state.lock().await;
+                guard.api_base.clone().unwrap()
+            } else {
+                self.start_server().await?
+            };
 
-        let conn = ConnectionLLM::HyprLocal(Connection {
-            api_base,
-            api_key: None,
-        });
-        Ok(conn)
+            let conn = ConnectionLLM::HyprLocal(Connection {
+                api_base,
+                api_key: None,
+            });
+            return Ok(conn);
+        }
+
+        #[cfg(not(feature = "local-llm"))]
+        {
+            Err(crate::Error::UnknownError("local-llm feature disabled".into()))
+        }
     }
 
     async fn get_llm_connection(&self) -> Result<ConnectionLLM, crate::Error> {
@@ -211,6 +219,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
             }
         }
 
+        #[cfg(feature = "local-stt")]
         {
             use tauri_plugin_local_stt::{LocalSttPluginExt, SharedState};
 
@@ -226,7 +235,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
                 api_base,
                 api_key: None,
             });
-            Ok(conn)
+            return Ok(conn);
+        }
+
+        #[cfg(not(feature = "local-stt"))]
+        {
+            Err(crate::Error::UnknownError("local-stt feature disabled".into()))
         }
     }
 

@@ -4,8 +4,10 @@ use serde::{ser::Serializer, Serialize};
 pub enum Error {
     #[error(transparent)]
     AuthError(#[from] tauri_plugin_auth::Error),
+    #[cfg(feature = "local-llm")]
     #[error(transparent)]
     LocalLlmError(#[from] tauri_plugin_local_llm::Error),
+    #[cfg(feature = "local-stt")]
     #[error(transparent)]
     LocalSttError(#[from] tauri_plugin_local_stt::Error),
     #[error(transparent)]

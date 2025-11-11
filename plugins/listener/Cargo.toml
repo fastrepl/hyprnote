@@ -11,13 +11,11 @@ description = ""
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
-tauri-plugin-local-stt = { workspace = true }
-
 rodio = { workspace = true, features = ["wav"] }
 serde_json = { workspace = true }
 specta-typescript = { workspace = true }
 uuid = { workspace = true }
-
+ 
 [dependencies]
 hypr-aec = { workspace = true }
 hypr-audio = { workspace = true }
@@ -32,7 +30,8 @@ owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }
 
 tauri-plugin-auth = { workspace = true }
-tauri-plugin-connector = { workspace = true }
+# Disable heavy local-llm/local-stt default features when building listener to avoid duplicate ggml symbols for specta export tests.
+tauri-plugin-connector = { path = "../connector", default-features = false, features = [], optional = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-tray = { workspace = true }
@@ -66,5 +65,7 @@ objc2 = { workspace = true }
 objc2-foundation = { workspace = true }
 
 [features]
-default = []
+default = ["connector"]
+connector = ["tauri-plugin-connector"]
 load-dynamic = ["hypr-aec/load-dynamic"]
+export-types = []

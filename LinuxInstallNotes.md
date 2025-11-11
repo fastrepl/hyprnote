@@ -2,7 +2,7 @@
 
 ## Install
 
-my (work in progress) notes about installation on linux.
+My (work in progress) notes about installation on linux.
 
 For some information see *CONTRIBUTING.md*.
 

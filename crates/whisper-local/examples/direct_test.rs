@@ -23,9 +23,12 @@ fn main() {
                 Ok(_state) => println!("State created successfully!"),
                 Err(e) => println!("Failed to create state: {:?}", e),
             }
-        },
+        }
         Err(e) => {
-            println!("Failed to initialize model with default parameters: {:?}", e);
+            println!(
+                "Failed to initialize model with default parameters: {:?}",
+                e
+            );
 
             // Try with explicit CPU settings
             let mut params = WhisperContextParameters::default();
@@ -40,7 +43,7 @@ fn main() {
                         Ok(_state) => println!("State created successfully!"),
                         Err(e) => println!("Failed to create state: {:?}", e),
                     }
-                },
+                }
                 Err(e) => {
                     println!("Failed to initialize model with CPU settings: {:?}", e);
                 }

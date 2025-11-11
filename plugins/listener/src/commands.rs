@@ -12,10 +12,30 @@ pub async fn list_microphone_devices<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_speaker_devices<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<String>, String> {
+    app.list_speaker_devices()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_current_microphone_device<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<String>, String> {
     app.get_current_microphone_device()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_current_speaker_device<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<Option<String>, String> {
+    app.get_current_speaker_device()
         .await
         .map_err(|e| e.to_string())
 }
@@ -27,6 +47,27 @@ pub async fn set_microphone_device<R: tauri::Runtime>(
     device_name: String,
 ) -> Result<(), String> {
     app.set_microphone_device(device_name)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_speaker_device<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    device_name: String,
+) -> Result<(), String> {
+    app.set_speaker_device(device_name)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_default_speaker_device<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<(), String> {
+    app.set_default_speaker_device()
         .await
         .map_err(|e| e.to_string())
 }

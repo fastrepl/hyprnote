@@ -171,6 +171,7 @@ pub struct Session {
     app: tauri::AppHandle,
     session_id: Option<String>,
     mic_device_name: Option<String>,
+    speaker_device_name: Option<String>,
     mic_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
     mic_muted_rx: Option<tokio::sync::watch::Receiver<bool>>,
     speaker_muted_tx: Option<tokio::sync::watch::Sender<bool>>,
@@ -184,10 +185,13 @@ impl Session {
     pub fn new(app: tauri::AppHandle) -> Self {
         let mic_device_name = hypr_audio::AudioInput::get_default_mic_device_name();
 
+        let speaker_device_name = hypr_audio::AudioInput::get_default_speaker_device_name();
+
         Self {
             app,
             session_id: None,
             mic_device_name: Some(mic_device_name),
+            speaker_device_name: Some(speaker_device_name),
             mic_muted_tx: None,
             mic_muted_rx: None,
             speaker_muted_tx: None,
@@ -229,13 +233,13 @@ impl Session {
         let session_id = id.into();
         let onboarding_session_id = self.app.db_onboarding_session_id().await?;
 
-                let user_id = match self.app.db_user_id().await? {
-                    Some(id) => id,
-                    None => {
-                        tracing::error!("No user ID found for session");
-                        return Err(crate::Error::MissingUserId);
-                    }
-                };
+        let user_id = match self.app.db_user_id().await? {
+            Some(id) => id,
+            None => {
+                tracing::error!("No user ID found for session");
+                return Err(crate::Error::MissingUserId);
+            }
+        };
         self.session_id = Some(session_id.clone());
 
         let (record, languages, jargons, redemption_time_ms) = {
@@ -291,7 +295,7 @@ impl Session {
 
         let mic_sample_stream = {
             let mut input = hypr_audio::AudioInput::from_mic(self.mic_device_name.clone())?;
-            input.stream()
+            input.stream()?
         };
         let mic_stream = mic_sample_stream
             .resample(SAMPLE_RATE)
@@ -302,7 +306,7 @@ impl Session {
         // We need some delay here for Airpod transition.
         // But if the delay is too long, AEC will not work.
 
-        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
+        let speaker_sample_stream = hypr_audio::AudioInput::from_speaker(self.speaker_device_name.clone())?.stream()?;
         let speaker_stream = speaker_sample_stream
             .resample(SAMPLE_RATE)
             .chunks(hypr_aec::BLOCK_SIZE);
@@ -329,9 +333,12 @@ impl Session {
         ));
 
         let app_dir = self.app.path().app_data_dir().map_err(|e| {
-                    tracing::error!("Failed to get app data directory: {:?}", e);
-                    crate::Error::IoError(std::io::Error::new(std::io::ErrorKind::Other, format!("{:?}", e)))
-                })?;
+            tracing::error!("Failed to get app data directory: {:?}", e);
+            crate::Error::IoError(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("{:?}", e),
+            ))
+        })?;
 
         tasks.spawn({
             let app = self.app.clone();
@@ -344,13 +351,13 @@ impl Session {
             let process_speaker_tx = channels.process_speaker_tx.clone();
 
             async move {
-                            let mut aec = match hypr_aec::AEC::new() {
-                                Ok(aec) => aec,
-                                Err(e) => {
-                                    tracing::error!("Failed to initialize AEC: {:?}", e);
-                                    return;
-                                }
-                            };
+                let mut aec = match hypr_aec::AEC::new() {
+                    Ok(aec) => aec,
+                    Err(e) => {
+                        tracing::error!("Failed to initialize AEC: {:?}", e);
+                        return;
+                    }
+                };
                 let mut last_broadcast = Instant::now();
 
                 // TODO: AGC might be needed.
@@ -512,17 +519,17 @@ impl Session {
             let session = session.clone();
 
             async move {
-                            let listen_stream = match listen_client
+                let listen_stream = match listen_client
                     .from_realtime_audio(mic_audio_stream, speaker_audio_stream)
                     .await
-                            {
-                                Ok(stream) => stream,
-                                Err(e) => {
-                                    tracing::error!("Failed to create listen stream: {:?}", e);
-                                    let _ = stop_tx.send(()).await;
-                                    return;
-                                }
-                            };
+                {
+                    Ok(stream) => stream,
+                    Err(e) => {
+                        tracing::error!("Failed to create listen stream: {:?}", e);
+                        let _ = stop_tx.send(()).await;
+                        return;
+                    }
+                };
 
                 futures_util::pin_mut!(listen_stream);
 
@@ -532,24 +539,23 @@ impl Session {
                             let _meta = result.meta.clone();
 
                             {
-                                                            let updated_words = match update_session(&app, &session.id, result.words)
-                                    .await
-                                                            {
-                                                                Ok(words) => words,
-                                                                Err(e) => {
-                                                                    tracing::error!("Failed to update session: {:?}", e);
-                                                                    continue;
-                                                                }
-                                                            };
+                                let updated_words =
+                                    match update_session(&app, &session.id, result.words).await {
+                                        Ok(words) => words,
+                                        Err(e) => {
+                                            tracing::error!("Failed to update session: {:?}", e);
+                                            continue;
+                                        }
+                                    };
 
                                 SessionEvent::Words {
                                     words: updated_words,
                                 }
                                 .emit(&app)
                             }
-                                                                                        .unwrap_or_else(|e| {
-                                                                                            tracing::error!("Failed to emit Words event: {:?}", e);
-                                                                                        });
+                            .unwrap_or_else(|e| {
+                                tracing::error!("Failed to emit Words event: {:?}", e);
+                            });
                         }
                         Ok(None) => {
                             tracing::info!("listen_stream_ended");
@@ -624,6 +630,14 @@ impl Session {
     pub fn get_current_mic_device(&self) -> Option<String> {
         self.mic_device_name.clone()
     }
+
+    pub fn get_available_speaker_devices() -> Vec<String> {
+        hypr_audio::AudioInput::list_speaker_devices()
+    }
+
+    pub fn get_current_speaker_device(&self) -> Option<String> {
+        self.speaker_device_name.clone()
+    }
 }
 
 async fn setup_listen_client<R: tauri::Runtime>(
@@ -633,10 +647,18 @@ async fn setup_listen_client<R: tauri::Runtime>(
     is_onboarding: bool,
     redemption_time_ms: u32,
 ) -> Result<owhisper_client::ListenClientDual, crate::Error> {
-    let api_base = {
-        use tauri_plugin_connector::{Connection, ConnectorPluginExt};
-        let conn: Connection = app.get_stt_connection().await?.into();
-        conn.api_base
+    let api_base: String = {
+        #[cfg(feature = "connector")]
+        {
+            use tauri_plugin_connector::{Connection, ConnectorPluginExt};
+            let conn: Connection = app.get_stt_connection().await?.into();
+            conn.api_base
+        }
+        #[cfg(not(feature = "connector"))]
+        {
+            // Fallback placeholder base; specta export path does not need real connector.
+            "https://api.placeholder.invalid".into()
+        }
     };
 
     let api_key = {
@@ -700,9 +722,9 @@ async fn update_session<R: tauri::Runtime>(
         .ok_or(crate::Error::NoneSession)?;
 
     session.words.extend(words);
-        if let Err(e) = app.db_upsert_session(session.clone()).await {
-            tracing::error!("Failed to upsert session: {:?}", e);
-        }
+    if let Err(e) = app.db_upsert_session(session.clone()).await {
+        tracing::error!("Failed to upsert session: {:?}", e);
+    }
 
     Ok(session.words)
 }
@@ -714,7 +736,8 @@ pub enum StateEvent {
     Resume,
     MicMuted(bool),
     SpeakerMuted(bool),
-    MicChange(Option<String>),
+     MicChange(Option<String>),
+     SpeakerChange(Option<String>),
 }
 
 #[state_machine(
@@ -776,10 +799,24 @@ impl Session {
                 if self.session_id.is_some() && self.tasks.is_some() {
                     if let Some(session_id) = self.session_id.clone() {
                         self.teardown_resources().await;
-                                                if let Err(e) = self.setup_resources(&session_id).await {
-                                                    tracing::error!("Failed to setup resources: {:?}", e);
-                                                    // Handle the error appropriately - maybe transition to inactive state
-                                                }
+                        if let Err(e) = self.setup_resources(&session_id).await {
+                            tracing::error!("Failed to setup resources: {:?}", e);
+                        }
+                    }
+                }
+
+                Handled
+            }
+            StateEvent::SpeakerChange(device_name) => {
+                self.speaker_device_name = device_name.clone();
+                let _ = SessionEvent::SpeakerDeviceChanged { name: device_name.clone() }.emit(&self.app);
+
+                if self.session_id.is_some() && self.tasks.is_some() {
+                    if let Some(session_id) = self.session_id.clone() {
+                        self.teardown_resources().await;
+                        if let Err(e) = self.setup_resources(&session_id).await {
+                            tracing::error!("Failed to setup resources after speaker change: {:?}", e);
+                        }
                     }
                 }
 

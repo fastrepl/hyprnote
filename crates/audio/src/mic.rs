@@ -6,6 +6,7 @@ use dasp::sample::ToSample;
 use futures_channel::mpsc;
 use futures_util::{Stream, StreamExt};
 use std::pin::Pin;
+use std::time::{Duration, Instant};
 
 use crate::AsyncSource;
 
@@ -18,54 +19,147 @@ pub struct MicInput {
 
 fn common_test_configs() -> Vec<cpal::SupportedStreamConfig> {
     vec![
-        cpal::SupportedStreamConfig::new(
-            cpal::ChannelCount::from(2u16),
-            cpal::SampleRate(48000),
-            cpal::SupportedBufferSize::Unknown,
-            cpal::SampleFormat::F32,
-        ),
-        cpal::SupportedStreamConfig::new(
-            cpal::ChannelCount::from(2u16),
-            cpal::SampleRate(44100),
-            cpal::SupportedBufferSize::Unknown,
-            cpal::SampleFormat::F32,
-        ),
-        cpal::SupportedStreamConfig::new(
-            cpal::ChannelCount::from(2u16),
-            cpal::SampleRate(48000),
-            cpal::SupportedBufferSize::Unknown,
-            cpal::SampleFormat::I16,
-        ),
+        create_standard_config(48000, cpal::SampleFormat::F32),
+        create_standard_config(44100, cpal::SampleFormat::F32),
+        create_standard_config(48000, cpal::SampleFormat::I16),
     ]
 }
 
 fn try_validate_config(device: &cpal::Device, config: &cpal::SupportedStreamConfig) -> bool {
+    try_build_test_stream(device, config)
+}
+
+fn try_configs_on_device(
+    device: &cpal::Device,
+    configs: Vec<cpal::SupportedStreamConfig>,
+) -> Option<cpal::SupportedStreamConfig> {
+    for config in configs.into_iter() {
+        if try_validate_config(device, &config) {
+            return Some(config);
+        }
+    }
+    None
+}
+
+fn validate_against_common_configs(device: &cpal::Device) -> Option<cpal::SupportedStreamConfig> {
+    try_configs_on_device(device, common_test_configs())
+}
+
+fn create_standard_config(sample_rate: u32, sample_format: cpal::SampleFormat) -> cpal::SupportedStreamConfig {
+    cpal::SupportedStreamConfig::new(
+        cpal::ChannelCount::from(2u16),
+        cpal::SampleRate(sample_rate),
+        cpal::SupportedBufferSize::Unknown,
+        sample_format,
+    )
+}
+
+fn validate_device_with_fallback(device: &cpal::Device) -> Option<cpal::SupportedStreamConfig> {
+    // Try common configurations first
+    if let Some(config) = validate_against_common_configs(device) {
+        return Some(config);
+    }
+    
+    // Fall back to standard F32 config
+    Some(create_standard_config(48000, cpal::SampleFormat::F32))
+}
+
+fn try_build_test_stream(device: &cpal::Device, config: &cpal::SupportedStreamConfig) -> bool {
     let test_result = match config.sample_format() {
         cpal::SampleFormat::F32 => device.build_input_stream::<f32, _, _>(
             &config.config(),
             |_data: &[f32], _: &cpal::InputCallbackInfo| {},
-            |err| tracing::debug!("Test stream error: {}", err),
+            |_err| {},
             None,
         ),
         cpal::SampleFormat::I16 => device.build_input_stream::<i16, _, _>(
             &config.config(),
             |_data: &[i16], _: &cpal::InputCallbackInfo| {},
-            |err| tracing::debug!("Test stream error: {}", err),
+            |_err| {},
             None,
         ),
-        other => {
-            tracing::debug!("Unsupported sample format for testing: {:?}", other);
-            return false;
-        }
+        cpal::SampleFormat::I8 => device.build_input_stream::<i8, _, _>(
+            &config.config(),
+            |_data: &[i8], _: &cpal::InputCallbackInfo| {},
+            |_err| {},
+            None,
+        ),
+        cpal::SampleFormat::I32 => device.build_input_stream::<i32, _, _>(
+            &config.config(),
+            |_data: &[i32], _: &cpal::InputCallbackInfo| {},
+            |_err| {},
+            None,
+        ),
+        _ => return false,
     };
-    if test_result.is_ok() {
-        if let Ok(name) = device.name() {
-            tracing::debug!("Validated config for device: {}", name);
+    test_result.is_ok()
+}
+
+fn enumerate_input_devices(host: &cpal::Host) -> Vec<cpal::Device> {
+    host.input_devices().map(|d| d.collect()).unwrap_or_default()
+}
+
+fn is_echo_cancel_available_with_timeout() -> Result<bool, crate::Error> {
+    use std::process::{Command, Stdio};
+
+    let mut child = Command::new("pactl")
+        .args(["list", "sources", "short"])
+        .stdout(Stdio::piped())
+        .spawn()
+        .map_err(|_e| crate::Error::NoInputDevice)?;
+
+    let start = Instant::now();
+    let timeout = Duration::from_secs(5);
+
+    loop {
+        match child.try_wait() {
+            Ok(Some(_status)) => {
+                let output = child
+                    .wait_with_output()
+                    .map_err(|_e| crate::Error::NoInputDevice)?;
+                let has = String::from_utf8_lossy(&output.stdout).contains("echo-cancel-source");
+                return Ok(has);
+            }
+            Ok(None) => {
+                if start.elapsed() >= timeout {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return Err(crate::Error::NoInputDevice);
+                }
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            Err(_e) => return Err(crate::Error::NoInputDevice),
         }
-        true
-    } else {
-        false
     }
+}
+
+fn try_echo_cancel_fallback(
+    _host: &cpal::Host,
+    default_input_device: &Option<cpal::Device>,
+) -> Option<(cpal::Device, cpal::SupportedStreamConfig)> {
+    if is_echo_cancel_available_with_timeout().ok()? != true {
+        return None;
+    }
+
+    if let Some(default_device) = default_input_device {
+        if let Some(config) = validate_device_with_fallback(default_device) {
+            return Some((default_device.clone(), config));
+        }
+    }
+
+    // Try ALSA fallback if no default device or validation failed
+    try_alsa_fallback().map(|(_, d, c)| (d, c))
+}
+
+fn try_alsa_fallback() -> Option<(cpal::Host, cpal::Device, cpal::SupportedStreamConfig)> {
+    let alsa_host = cpal::host_from_id(cpal::HostId::Alsa).ok()?;
+    let devices = alsa_host.input_devices().ok()?;
+    for device in devices {
+        if let Some(config) = validate_device_with_fallback(&device) {
+            return Some((alsa_host, device, config));
+        }
+    }
+    None
 }
 
 impl MicInput {
@@ -120,158 +214,50 @@ impl MicInput {
     /// ```
     pub fn new(device_name: Option<String>) -> Result<Self, crate::Error> {
         let host = cpal::default_host();
-
         tracing::info!("Initializing microphone input...");
 
         let default_input_device = host.default_input_device();
+        Self::log_audio_system_info(&host, &default_input_device);
+
+        let input_devices = enumerate_input_devices(&host);
+
+        // Handle echo-cancel-source and empty device list
+        if let Some((device, config)) = Self::handle_special_cases(&device_name, &host, &default_input_device, &input_devices)? {
+            return Ok(Self { host, device, config });
+        }
+
+        // Select appropriate device
+        let device = Self::select_device(device_name, &default_input_device, &input_devices)?;
+
+        // Get configuration for selected device
+        let config = Self::get_device_config(&device)?;
+
+        Ok(Self { host, device, config })
+    }
+
+    /// Log audio system information for debugging
+    fn log_audio_system_info(host: &cpal::Host, default_input_device: &Option<cpal::Device>) {
         tracing::debug!(
             "Default input device: {:?}",
             default_input_device.as_ref().and_then(|d| d.name().ok())
         );
-
-        // Log host information
         tracing::debug!("Available hosts: {:?}", cpal::available_hosts());
         tracing::debug!("Default host: {:?}", host.id());
+    }
 
-        let input_devices: Vec<cpal::Device> = host
-            .input_devices()
-            .map(|devices| {
-                let devices: Vec<cpal::Device> = devices.collect();
-                tracing::debug!("Found {} input devices", devices.len());
-                devices
-            })
-            .unwrap_or_else(|e| {
-                tracing::error!("Failed to enumerate input devices: {:?}", e);
-                Vec::new()
-            });
-
-        for (i, device) in input_devices.iter().enumerate() {
-            match device.name() {
-                Ok(name) => tracing::debug!("Input device {}: {}", i, name),
-                Err(e) => tracing::debug!("Input device {}: Failed to get name: {:?}", i, e),
-            }
-        }
-
-        // Special handling for echo-cancel-source
+    /// Handle special cases like echo-cancel-source and empty device lists
+    fn handle_special_cases(
+        device_name: &Option<String>,
+        host: &cpal::Host,
+        default_input_device: &Option<cpal::Device>,
+        input_devices: &[cpal::Device]
+    ) -> Result<Option<(cpal::Device, cpal::SupportedStreamConfig)>, crate::Error> {
+        // Special handling for echo-cancel-source or when enumeration failed
         if device_name.as_ref().map(|n| n.as_str()) == Some("echo-cancel-source")
             || (device_name.is_none() && input_devices.is_empty())
         {
-            // Check if echo-cancel-source is available
-            let echo_cancel_available = std::process::Command::new("pactl")
-                .args(["list", "sources", "short"])
-                .output()
-                .map(|output| {
-                    String::from_utf8_lossy(&output.stdout).contains("echo-cancel-source")
-                })
-                .unwrap_or(false);
-
-            if echo_cancel_available {
-                tracing::debug!(
-                    "Echo cancel source available in pactl: {}",
-                    echo_cancel_available
-                );
-
-                if let Some(ref default_device) = default_input_device {
-                    if let Ok(name) = default_device.name() {
-                        tracing::debug!("Trying default host device with manual config: {}", name);
-
-                        // Try common configurations that should work with PipeWire
-                        let configs_to_try = common_test_configs();
-
-                        for config in configs_to_try {
-                            tracing::debug!("Trying manual config: {:?}", config);
-                            if try_validate_config(default_device, &config) {
-                                tracing::debug!(
-                                    "Successfully validated config for device: {}",
-                                    name
-                                );
-                                return Ok(Self {
-                                    host,
-                                    device: default_device.clone(),
-                                    config,
-                                });
-                            } else {
-                                tracing::debug!("Failed to validate config: {:?}", config);
-                            }
-                        }
-                    }
-                }
-
-                // If all manual configurations failed but we know echo-cancel-source exists,
-                // return a standard configuration that should work
-                tracing::debug!("All manual configurations failed, but echo-cancel-source is available. Using standard config.");
-                if let Some(ref default_device) = default_input_device {
-                    let standard_config = cpal::SupportedStreamConfig::new(
-                        cpal::ChannelCount::from(2u16),
-                        cpal::SampleRate(48000),
-                        cpal::SupportedBufferSize::Unknown,
-                        cpal::SampleFormat::F32,
-                    );
-                    return Ok(Self {
-                        host,
-                        device: default_device.clone(),
-                        config: standard_config,
-                    });
-                }
-
-                // If the default device didn't work, try ALSA host
-                if let Ok(alsa_host) = cpal::host_from_id(cpal::HostId::Alsa) {
-                    tracing::debug!("Created ALSA host successfully");
-
-                    // Try the same approach with ALSA host
-                    if let Ok(devices) = alsa_host.input_devices() {
-                        for device in devices {
-                            if let Ok(name) = device.name() {
-                                tracing::debug!("ALSADevice: {}", name);
-
-                                // Try the same configurations
-                                let configs_to_try = common_test_configs();
-
-                                for config in configs_to_try {
-                                    tracing::debug!("Trying ALSA manual config: {:?}", config);
-
-                                    if try_validate_config(&device, &config) {
-                                        tracing::debug!(
-                                            "Successfully validated ALSA config for device: {}",
-                                            name
-                                        );
-                                        return Ok(Self {
-                                            host: alsa_host,
-                                            device,
-                                            config,
-                                        });
-                                    } else {
-                                        tracing::debug!(
-                                            "Failed to validate ALSA config: {:?}",
-                                            config
-                                        );
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        tracing::debug!("Failed to enumerate ALSA input devices");
-                    }
-                } else {
-                    tracing::debug!("Failed to create ALSA host");
-                }
-
-                // If ALSA approaches also failed but we know echo-cancel-source exists,
-                // return a standard configuration that should work
-                tracing::debug!("All ALSA configurations failed, but echo-cancel-source is available. Using standard config.");
-                if let Some(ref default_device) = default_input_device {
-                    let standard_config = cpal::SupportedStreamConfig::new(
-                        cpal::ChannelCount::from(2u16),
-                        cpal::SampleRate(48000),
-                        cpal::SupportedBufferSize::Unknown,
-                        cpal::SampleFormat::F32,
-                    );
-                    return Ok(Self {
-                        host,
-                        device: default_device.clone(),
-                        config: standard_config,
-                    });
-                }
+            if let Some((device, config)) = try_echo_cancel_fallback(host, default_input_device) {
+                return Ok(Some((device, config)));
             }
         }
 
@@ -279,17 +265,12 @@ impl MicInput {
         if input_devices.is_empty() {
             tracing::warn!("No input devices found through enumeration");
 
-            // Try to use the default device directly
             if let Some(default_device) = default_input_device {
                 tracing::debug!("Trying default device directly");
                 match default_device.default_input_config() {
                     Ok(config) => {
                         tracing::debug!("Default device works directly");
-                        return Ok(Self {
-                            host,
-                            device: default_device,
-                            config,
-                        });
+                        return Ok(Some((default_device.clone(), config)));
                     }
                     Err(e) => {
                         tracing::error!(
@@ -300,76 +281,29 @@ impl MicInput {
                 }
             }
 
-            // If that fails, try some known working ALSA device names
-            tracing::debug!("Trying known ALSA device names");
-            let known_devices = vec![
-                "default:CARD=Generic_1",
-                "plughw:CARD=Generic_1,DEV=0",
-                "hw:CARD=Generic_1,DEV=0",
-            ];
-
-            // Note: CPAL doesn't provide a way to create devices by name directly
-            // So we can't implement this workaround with the current library
-            tracing::warn!("Known ALSA device names: {:?}", known_devices);
-
             tracing::error!("No input devices available");
             return Err(crate::Error::NoInputDevice);
         }
 
+        Ok(None)
+    }
+
+    /// Select appropriate audio device based on preferences
+    fn select_device(
+        device_name: Option<String>,
+        default_input_device: &Option<cpal::Device>,
+        input_devices: &[cpal::Device]
+    ) -> Result<cpal::Device, crate::Error> {
+        for (i, device) in input_devices.iter().enumerate() {
+            match device.name() {
+                Ok(name) => tracing::debug!("Input device {}: {}", i, name),
+                Err(e) => tracing::debug!("Input device {}: Failed to get name: {:?}", i, e),
+            }
+        }
+
         let device = match device_name {
-            None => {
-                // Try default device first
-                let default_device_works = if let Some(ref device) = default_input_device {
-                    if let Ok(name) = device.name() {
-                        tracing::debug!("Trying default input device: {}", name);
-                    }
-
-                    // Try to get config for default device
-                    match device.default_input_config() {
-                        Ok(_) => {
-                            tracing::debug!("Default device is working");
-                            true
-                        }
-                        Err(e) => {
-                            tracing::warn!("Default device not working: {:?}, falling back to first available device", e);
-                            false
-                        }
-                    }
-                } else {
-                    tracing::warn!("No default input device found");
-                    false
-                };
-
-                if default_device_works {
-                    default_input_device.unwrap()
-                } else {
-                    tracing::debug!("Using first available device");
-                    input_devices[0].clone()
-                }
-            }
-            Some(name) => {
-                tracing::debug!("Looking for device with name: {}", name);
-                let device = input_devices
-                    .iter()
-                    .find(|d| d.name().unwrap_or_default() == name)
-                    .cloned();
-
-                match device {
-                    Some(device) => {
-                        if let Ok(name) = device.name() {
-                            tracing::debug!("Found requested device: {}", name);
-                        }
-                        device
-                    }
-                    None => {
-                        tracing::warn!(
-                            "Requested device '{}' not found, using first available device",
-                            name
-                        );
-                        input_devices[0].clone()
-                    }
-                }
-            }
+            None => Self::select_default_device(default_input_device, input_devices)?,
+            Some(name) => Self::select_named_device(name, input_devices)?
         };
 
         match device.name() {
@@ -377,10 +311,79 @@ impl MicInput {
             Err(e) => tracing::warn!("Selected device with unknown name: {:?}", e),
         }
 
-        let config = match device.default_input_config() {
+        Ok(device)
+    }
+
+    /// Select default or first available device
+    fn select_default_device(
+        default_input_device: &Option<cpal::Device>,
+        input_devices: &[cpal::Device]
+    ) -> Result<cpal::Device, crate::Error> {
+        // Try default device first
+        let default_device_works = if let Some(ref device) = default_input_device {
+            if let Ok(name) = device.name() {
+                tracing::debug!("Trying default input device: {}", name);
+            }
+
+            // Try to get config for default device
+            match device.default_input_config() {
+                Ok(_) => {
+                    tracing::debug!("Default device is working");
+                    true
+                }
+                Err(e) => {
+                    tracing::warn!("Default device not working: {:?}, falling back to first available device", e);
+                    false
+                }
+            }
+        } else {
+            tracing::warn!("No default input device found");
+            false
+        };
+
+        if default_device_works {
+            Ok(default_input_device.as_ref().unwrap().clone())
+        } else {
+            tracing::debug!("Using first available device");
+            input_devices.first()
+                .ok_or(crate::Error::NoInputDevice)
+                .map(|d| d.clone())
+        }
+    }
+
+    /// Select device by name, fallback to first available
+    fn select_named_device(name: String, input_devices: &[cpal::Device]) -> Result<cpal::Device, crate::Error> {
+        tracing::debug!("Looking for device with name: {}", name);
+        let device = input_devices
+            .iter()
+            .find(|d| d.name().unwrap_or_default() == name)
+            .cloned();
+
+        match device {
+            Some(device) => {
+                if let Ok(device_name) = device.name() {
+                    tracing::debug!("Found requested device: {}", device_name);
+                }
+                Ok(device)
+            }
+            None => {
+                tracing::warn!(
+                    "Requested device '{}' not found, using first available device",
+                    name
+                );
+                input_devices.first()
+                    .ok_or(crate::Error::NoInputDevice)
+                    .map(|d| d.clone())
+            }
+        }
+    }
+
+    /// Get configuration for selected device
+    fn get_device_config(device: &cpal::Device) -> Result<cpal::SupportedStreamConfig, crate::Error> {
+        match device.default_input_config() {
             Ok(config) => {
                 tracing::debug!("Successfully got default input config: {:?}", config);
-                config
+                Ok(config)
             }
             Err(e) => {
                 tracing::error!(
@@ -388,15 +391,9 @@ impl MicInput {
                     device.name().unwrap_or_default(),
                     e
                 );
-                return Err(crate::Error::NoInputDevice);
+                Err(crate::Error::NoInputDevice)
             }
-        };
-
-        Ok(Self {
-            host,
-            device,
-            config,
-        })
+        }
     }
 }
 

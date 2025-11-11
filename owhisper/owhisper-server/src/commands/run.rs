@@ -13,22 +13,7 @@ pub struct RunArgs {
     pub dry_run: bool,
 }
 
-/// Runs the server and real-time audio transcription loop according to the provided command-line arguments.
-///
-/// This starts a local server, initializes the selected microphone input, creates a ListenClient that
-/// forwards real-time audio to the server, and prints partial and final transcription results to stdout.
-/// If `args.dry_run` is true, it instead prints available input devices and returns without starting the server.
-/// The function exits the run loop when a shutdown signal is received and aborts the spawned server task before returning.
-///
-/// # Examples
-///
-/// ```
-/// use tokio::runtime::Runtime;
-/// // Construct minimal RunArgs with dry_run to avoid starting servers or audio I/O in the example.
-/// let args = RunArgs { model: "QuantizedTiny".into(), config: None, device: None, dry_run: true };
-/// let rt = Runtime::new().unwrap();
-/// rt.block_on(async { handle_run(args).await.unwrap() });
-/// ```
+/// Orchestrates audio transcription server with microphone input.
 pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
 pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
     if args.dry_run {
@@ -50,13 +35,7 @@ pub async fn handle_run(args: RunArgs) -> anyhow::Result<()> {
     let input_devices: Vec<String> = hypr_audio::MicInput::list_devices();
         log::info!("input_devices: {:#?}", input_devices);
 
-        let input_device = match hypr_audio::MicInput::new(args.device) {
-            Ok(device) => device,
-            Err(e) => {
-                log::error!("Failed to initialize microphone: {:?}", e);
-                std::process::exit(1);
-            }
-        };
+        let input_device = hypr_audio::MicInput::new(args.device)?;
         log::info!("input_device: {}", input_device.device_name());
         let audio_stream = input_device.stream();
 

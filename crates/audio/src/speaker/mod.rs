@@ -71,11 +71,11 @@ impl Stream for SpeakerStream {
     /// Poll for next audio sample
     fn poll_next(
         self: std::pin::Pin<&mut Self>,
-        _cx: &mut std::task::Context<'_>,
+        cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
         #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
         {
-            self.get_mut().inner.poll_next_unpin(_cx)
+            self.get_mut().inner.poll_next_unpin(cx)
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
@@ -139,8 +139,8 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_macos() {
-        let input = SpeakerInput::new().unwrap();
-        let mut stream = input.stream().unwrap();
+        let input = SpeakerInput::new().expect("Failed to create SpeakerInput for macOS test");
+        let mut stream = input.stream().expect("Failed to create speaker stream for macOS test");
 
         tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 

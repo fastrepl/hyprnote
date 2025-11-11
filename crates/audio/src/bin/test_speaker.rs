@@ -14,14 +14,14 @@ use audio::AudioInput;
 /// }
 /// run();
 /// ```
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Testing SpeakerInput creation...");
 
-    let mut audio_input = AudioInput::from_speaker();
+    let mut audio_input = AudioInput::from_speaker(None)?;
     println!("SpeakerInput created successfully!");
 
     // Try to create a stream
-    let stream = audio_input.stream();
+    let stream = audio_input.stream()?;
     println!("Speaker stream created successfully!");
 
     // Try to get a few samples
@@ -36,4 +36,5 @@ fn main() {
     }
 
     println!("Test completed successfully!");
+    Ok(())
 }

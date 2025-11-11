@@ -15,7 +15,6 @@ use audio::AudioInput;
 fn main() {
     println!("Testing microphone access...");
 
-    // Enable logging
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .init();
@@ -67,9 +66,12 @@ fn main() {
             println!("    Trying device: {}", device_name);
             match AudioInput::from_mic(Some(device_name.clone())) {
                 Ok(_) => {
-                    println!("    Success! Microphone input created with device: {}", device_name);
+                    println!(
+                        "    Success! Microphone input created with device: {}",
+                        device_name
+                    );
                     break;
-                },
+                }
                 Err(e) => println!("    Failed: {:?}", e),
             }
         }

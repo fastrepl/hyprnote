@@ -23,6 +23,8 @@ common_event_derives! {
         MicMuted { value: bool },
         #[serde(rename = "speakerMuted")]
         SpeakerMuted { value: bool },
+        #[serde(rename = "speakerDeviceChanged")]
+        SpeakerDeviceChanged { name: Option<String> },
     }
 }
 

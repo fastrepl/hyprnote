@@ -96,8 +96,12 @@ impl SpeakerStream {
 
                 loop {
                     {
-                        let state = waker_state.lock().unwrap();
-                        if state.shutdown {
+                        if let Ok(state) = waker_state.lock() {
+                            if state.shutdown {
+                                break;
+                            }
+                        } else {
+                            error!("Waker state mutex poisoned, stopping capture");
                             break;
                         }
                     }
@@ -119,35 +123,46 @@ impl SpeakerStream {
 
                     let mut samples = Vec::new();
                     while temp_queue.len() >= 4 {
-                        let bytes = [
-                            temp_queue.pop_front().unwrap(),
-                            temp_queue.pop_front().unwrap(),
-                            temp_queue.pop_front().unwrap(),
-                            temp_queue.pop_front().unwrap(),
-                        ];
-                        let sample = f32::from_le_bytes(bytes);
-                        samples.push(sample);
+                        if let (Some(b1), Some(b2), Some(b3), Some(b4)) = (
+                            temp_queue.pop_front(),
+                            temp_queue.pop_front(),
+                            temp_queue.pop_front(),
+                            temp_queue.pop_front(),
+                        ) {
+                            let bytes = [b1, b2, b3, b4];
+                            let sample = f32::from_le_bytes(bytes);
+                            samples.push(sample);
+                        } else {
+                            break; // Safety fallback if queue size changed during iteration
+                        }
                     }
 
                     if !samples.is_empty() {
                         {
-                            let mut queue = sample_queue.lock().unwrap();
-                            queue.extend(samples);
+                            if let Ok(mut queue) = sample_queue.lock() {
+                                queue.extend(samples);
 
-                            let len = queue.len();
-                            if len > 8192 {
-                                queue.drain(0..(len - 8192));
+                                let len = queue.len();
+                                if len > 8192 {
+                                    queue.drain(0..(len - 8192));
+                                }
+                            } else {
+                                error!("Sample queue mutex poisoned, continuing");
+                                continue;
                             }
                         }
 
                         {
-                            let mut state = waker_state.lock().unwrap();
-                            if !state.has_data {
-                                state.has_data = true;
-                                if let Some(waker) = state.waker.take() {
-                                    drop(state);
-                                    waker.wake();
+                            if let Ok(mut state) = waker_state.lock() {
+                                if !state.has_data {
+                                    state.has_data = true;
+                                    if let Some(waker) = state.waker.take() {
+                                        drop(state);
+                                        waker.wake();
+                                    }
                                 }
+                            } else {
+                                error!("Waker state mutex poisoned during notification");
                             }
                         }
                     }
@@ -166,8 +181,11 @@ impl SpeakerStream {
 impl Drop for SpeakerStream {
     fn drop(&mut self) {
         {
-            let mut state = self.waker_state.lock().unwrap();
-            state.shutdown = true;
+            if let Ok(mut state) = self.waker_state.lock() {
+                state.shutdown = true;
+            } else {
+                error!("Failed to lock waker state for shutdown");
+            }
         }
 
         if let Some(thread) = self.capture_thread.take() {
@@ -185,34 +203,50 @@ impl Stream for SpeakerStream {
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
         {
-            let state = self.waker_state.lock().unwrap();
-            if state.shutdown {
+            if let Ok(state) = self.waker_state.lock() {
+                if state.shutdown {
+                    return Poll::Ready(None);
+                }
+            } else {
+                error!("Waker state mutex poisoned in poll_next");
                 return Poll::Ready(None);
             }
         }
 
         {
-            let mut queue = self.sample_queue.lock().unwrap();
-            if let Some(sample) = queue.pop_front() {
-                return Poll::Ready(Some(sample));
-            }
-        }
-
-        {
-            let mut state = self.waker_state.lock().unwrap();
-            if state.shutdown {
+            if let Ok(mut queue) = self.sample_queue.lock() {
+                if let Some(sample) = queue.pop_front() {
+                    return Poll::Ready(Some(sample));
+                }
+            } else {
+                error!("Sample queue mutex poisoned in poll_next");
                 return Poll::Ready(None);
             }
-            state.has_data = false;
-            state.waker = Some(cx.waker().clone());
-            drop(state);
         }
 
         {
-            let mut queue = self.sample_queue.lock().unwrap();
-            match queue.pop_front() {
-                Some(sample) => Poll::Ready(Some(sample)),
-                None => Poll::Pending,
+            if let Ok(mut state) = self.waker_state.lock() {
+                if state.shutdown {
+                    return Poll::Ready(None);
+                }
+                state.has_data = false;
+                state.waker = Some(cx.waker().clone());
+                drop(state);
+            } else {
+                error!("Waker state mutex poisoned when setting waker");
+                return Poll::Ready(None);
+            }
+        }
+
+        {
+            if let Ok(mut queue) = self.sample_queue.lock() {
+                match queue.pop_front() {
+                    Some(sample) => Poll::Ready(Some(sample)),
+                    None => Poll::Pending,
+                }
+            } else {
+                error!("Sample queue mutex poisoned in final poll");
+                Poll::Ready(None)
             }
         }
     }

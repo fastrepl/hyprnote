@@ -14208,7 +14208,6 @@ dependencies = [
  "tauri-plugin-auth",
  "tauri-plugin-connector",
  "tauri-plugin-db",
- "tauri-plugin-local-stt",
  "tauri-plugin-shell",
  "tauri-plugin-tray",
  "tauri-plugin-windows",

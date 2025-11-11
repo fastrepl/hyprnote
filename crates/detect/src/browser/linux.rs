@@ -1,56 +1,33 @@
 use crate::BackgroundTask;
 use std::process::Command;
+use std::sync::{Arc, Mutex};
 use tokio::time::{interval, Duration};
 
 // Common browsers on Linux
-const BROWSER_NAMES: [&str; 4] = [
-    "firefox",
-    "chrome",
-    "chromium",
-    "brave",
-];
+const BROWSER_NAMES: [&str; 4] = ["firefox", "chrome", "chromium", "brave"];
 
 pub struct Detector {
     background: BackgroundTask,
-    detected_browsers: std::collections::HashSet<String>,
+    detected_browsers: Arc<Mutex<std::collections::HashSet<String>>>,
 }
 
 impl Default for Detector {
-    /// Creates a new `Detector` with a default background task and no previously detected browsers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let detector = Detector::default();
-    /// ```
+    /// Creates a new `Detector` with default settings.
     fn default() -> Self {
         Self {
             background: BackgroundTask::default(),
-            detected_browsers: std::collections::HashSet::new(),
+            detected_browsers: Arc::new(Mutex::new(std::collections::HashSet::new())),
         }
     }
 }
 
 impl crate::Observer for Detector {
-    /// Starts a background task that detects common Linux browsers and reports newly observed ones.
+    /// Starts browser detection that monitors for running browsers every 5 seconds.
     ///
-    /// The detector samples processes every 5 seconds (using `ps aux`) and, for each browser name in
-    /// `BROWSER_NAMES`, invokes the provided callback exactly once when that browser is first observed
-    /// running. The callback is called with a message in the format `"<browser> running"`.
-    ///
-    /// # Parameters
-    ///
-    /// - `f`: Callback invoked with a single `String` message when a browser is detected.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut detector = crate::browser::linux::Detector::default();
-    /// detector.start(|msg| println!("{}", msg));
-    /// // The callback will be called asynchronously when a browser from BROWSER_NAMES is observed.
-    /// ```
+    /// Calls the provided callback once when each browser is first detected with
+    /// a message in the format `"<browser> running"`.
     fn start(&mut self, f: crate::DetectCallback) {
-        let mut detected_browsers = self.detected_browsers.clone();
+        let detected_browsers = Arc::clone(&self.detected_browsers);
 
         self.background.start(|running, mut rx| async move {
             let mut interval_timer = interval(Duration::from_secs(5));
@@ -66,19 +43,33 @@ impl crate::Observer for Detector {
                         }
 
                         // Check for running browsers
-                        if let Ok(output) = Command::new("ps")
+                        let output = match Command::new("ps")
                             .args(["aux"])
-                            .output()
-                        {
-                            if let Ok(stdout) = String::from_utf8(output.stdout) {
-                                for browser in &BROWSER_NAMES {
-                                    if stdout.contains(browser) && !detected_browsers.contains(*browser) {
-                                        detected_browsers.insert(browser.to_string());
-                                        // For now, just report that a browser is running
-                                        // In a future implementation, we could try to extract URLs
+                            .output() {
+                                Ok(output) => output,
+                                Err(_) => {
+                                    // Silently continue if ps command fails
+                                    continue;
+                                }
+                            };
+                        
+                        let stdout = match String::from_utf8(output.stdout) {
+                            Ok(stdout) => stdout,
+                            Err(_) => {
+                                // Silently continue if output isn't valid UTF-8
+                                continue;
+                            }
+                        };
+                        
+                        for browser in &BROWSER_NAMES {
+                            if stdout.contains(browser) {
+                                if let Ok(mut detected) = detected_browsers.lock() {
+                                    if !detected.contains(*browser) {
+                                        detected.insert(browser.to_string());
                                         f(format!("{} running", browser));
                                     }
                                 }
+                                // Silently continue if mutex is poisoned
                             }
                         }
                     }
@@ -87,16 +78,10 @@ impl crate::Observer for Detector {
         });
     }
 
-    /// Stops the detector's background task and clears the set of previously detected browsers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut det = Detector::default();
-    /// det.stop();
-    /// ```
+    /// Stops the detector and clears any previously detected browsers.
     fn stop(&mut self) {
         self.background.stop();
-        self.detected_browsers.clear();
+        // Silently handle mutex errors on cleanup
+        let _ = self.detected_browsers.lock().map(|mut detected| detected.clear());
     }
 }

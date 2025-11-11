@@ -12,6 +12,7 @@ pub enum Error {
     CpalDevicesError(#[from] hypr_audio::cpal::DevicesError),
     #[error(transparent)]
     DatabaseError(#[from] tauri_plugin_db::Error),
+    #[cfg(feature = "connector")]
     #[error(transparent)]
     ConnectorError(#[from] tauri_plugin_connector::Error),
     #[error("no session")]

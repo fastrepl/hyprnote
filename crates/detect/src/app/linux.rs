@@ -4,12 +4,12 @@ use tokio::time::{interval, Duration};
 
 // Common meeting applications on Linux
 const MEETING_APP_LIST: [&str; 6] = [
-    "zoom",           // Zoom
-    "teams",          // Microsoft Teams
-    "skypeforlinux",  // Skype
-    "discord",        // Discord
-    "slack",          // Slack
-    "jitsi-meet",     // Jitsi Meet
+    "zoom",          // Zoom
+    "teams",         // Microsoft Teams
+    "skypeforlinux", // Skype
+    "discord",       // Discord
+    "slack",         // Slack
+    "jitsi-meet",    // Jitsi Meet
 ];
 
 pub struct Detector {
@@ -18,17 +18,17 @@ pub struct Detector {
 
 impl Default for Detector {
     /// Creates a `Detector` with its background task initialized to the default.
-    
+
     ///
-    
+
     /// # Examples
-    
+
     ///
-    
+
     /// ```
-    
+
     /// let _detector = Detector::default();
-    
+
     /// ```
     fn default() -> Self {
         Self {
@@ -74,12 +74,18 @@ impl crate::Observer for Detector {
 
                         // Check for running meeting applications
                         if let Ok(output) = Command::new("ps")
-                            .args(["aux"])
+                            .args(["-eo", "comm"])
                             .output()
                         {
                             if let Ok(stdout) = String::from_utf8(output.stdout) {
-                                for app in &MEETING_APP_LIST {
-                                    if stdout.contains(app) {
+                                let running_processes: std::collections::HashSet<&str> = stdout
+                                    .lines()
+                                    .skip(1) // Skip header line
+                                    .map(|line| line.trim())
+                                    .collect();
+
+                                for &app in &MEETING_APP_LIST {
+                                    if running_processes.contains(app) {
                                         f(app.to_string());
                                     }
                                 }

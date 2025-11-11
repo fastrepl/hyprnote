@@ -1,5 +1,5 @@
-use whisper_local::Whisper;
 use std::path::PathBuf;
+use whisper_local::Whisper;
 
 /// Demonstrates initializing a local Whisper model from a filesystem path and prints basic diagnostics.
 ///
@@ -12,7 +12,8 @@ use std::path::PathBuf;
 /// crate::main();
 /// ```
 fn main() {
-    let model_path = PathBuf::from("/home/benediktb/.local/share/com.hyprnote.dev/stt/ggml-small-q8_0.bin");
+    let model_path =
+        PathBuf::from("/home/benediktb/.local/share/com.hyprnote.dev/stt/ggml-small-q8_0.bin");
 
     println!("Testing model initialization...");
     println!("Model path: {:?}", model_path);

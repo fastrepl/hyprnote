@@ -65,6 +65,10 @@ impl MicInput {
             config,
         })
     }
+
+    pub fn sample_rate(&self) -> u32 {
+        self.config.sample_rate().0
+    }
 }
 
 impl MicInput {

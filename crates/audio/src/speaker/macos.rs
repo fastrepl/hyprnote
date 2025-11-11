@@ -91,6 +91,10 @@ impl SpeakerInput {
         Ok(Self { tap, agg_desc })
     }
 
+    pub fn sample_rate(&self) -> u32 {
+        self.tap.asbd().unwrap().sample_rate as u32
+    }
+
     fn start_device(
         &self,
         ctx: &mut Box<Ctx>,

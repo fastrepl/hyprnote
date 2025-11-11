@@ -7,6 +7,10 @@ impl SpeakerInput {
         Self {}
     }
 
+    pub fn sample_rate(&self) -> u32 {
+        16000
+    }
+
     pub fn stream(self) -> SpeakerStream {
         SpeakerStream::new()
     }

@@ -15,6 +15,10 @@ impl SpeakerInput {
         Ok(Self {})
     }
 
+    pub fn sample_rate(&self) -> u32 {
+        44100
+    }
+
     pub fn stream(self) -> SpeakerStream {
         let sample_queue = Arc::new(Mutex::new(VecDeque::new()));
         let waker_state = Arc::new(Mutex::new(WakerState {

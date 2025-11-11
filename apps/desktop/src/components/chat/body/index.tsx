@@ -14,12 +14,14 @@ export function ChatBody({
   error,
   onReload,
   onStop,
+  isModelConfigured = true,
 }: {
   messages: HyprUIMessage[];
   status: ChatStatus;
   error?: Error;
   onReload?: () => void;
   onStop?: () => void;
+  isModelConfigured?: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const { chat } = useShell();
@@ -34,12 +36,13 @@ export function ChatBody({
     <div
       ref={scrollRef}
       className={cn([
-        "flex-1 overflow-y-auto",
+        "flex-1 overflow-y-auto flex flex-col",
         chat.mode === "RightPanelOpen" && "border mt-1 rounded-md rounded-b-none",
       ])}
     >
+      <div className="flex-1" />
       {messages.length === 0
-        ? <ChatBodyEmpty />
+        ? <ChatBodyEmpty isModelConfigured={isModelConfigured} />
         : (
           <ChatBodyNonEmpty
             messages={messages}

@@ -89,12 +89,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn start_server(&self, model: SupportedSttModel) -> Result<String, crate::Error> {
-        let t = match &model {
+        let server_type = match &model {
             SupportedSttModel::Am(_) => ServerType::External,
             SupportedSttModel::Whisper(_) => ServerType::Internal,
         };
 
-        let current_info = match t {
+        let current_info = match server_type {
             ServerType::Internal => internal_health().await,
             ServerType::External => external_health().await,
         };
@@ -111,26 +111,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             }
         }
 
-        if matches!(t, ServerType::Internal) && !self.is_model_downloaded(&model).await? {
+        if matches!(server_type, ServerType::Internal) && !self.is_model_downloaded(&model).await? {
             return Err(crate::Error::ModelNotDownloaded);
         }
-
-        let am_key = if matches!(t, ServerType::External) {
-            let state = self.state::<crate::SharedState>();
-            let key = {
-                let guard = state.lock().await;
-                guard.am_api_key.clone()
-            };
-            let key = key
-                .filter(|k| !k.is_empty())
-                .ok_or(crate::Error::AmApiKeyNotSet)?;
-            Some(key)
-        } else {
-            None
-        };
-
-        let cache_dir = self.models_dir();
-        let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
 
         let supervisor = self.get_supervisor().await?;
 
@@ -138,99 +121,24 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             .await
             .map_err(|e| crate::Error::ServerStopFailed(e.to_string()))?;
 
-        match t {
+        match server_type {
             ServerType::Internal => {
+                let cache_dir = self.models_dir();
                 let whisper_model = match model {
                     SupportedSttModel::Whisper(m) => m,
-                    _ => {
-                        return Err(crate::Error::UnsupportedModelType);
-                    }
+                    _ => return Err(crate::Error::UnsupportedModelType),
                 };
 
-                supervisor::start_internal_stt(
-                    &supervisor,
-                    internal::InternalSTTArgs {
-                        model_cache_dir: cache_dir,
-                        model_type: whisper_model,
-                    },
-                )
-                .await
-                .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;
-
-                internal_health()
-                    .await
-                    .and_then(|info| info.url)
-                    .ok_or_else(|| crate::Error::ServerStartFailed("empty_health".to_string()))
+                start_internal_server(&supervisor, cache_dir, whisper_model).await
             }
             ServerType::External => {
+                let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
                 let am_model = match model {
                     SupportedSttModel::Am(m) => m,
-                    _ => {
-                        return Err(crate::Error::UnsupportedModelType);
-                    }
+                    _ => return Err(crate::Error::UnsupportedModelType),
                 };
 
-                let am_key = match am_key {
-                    Some(key) => key,
-                    None => {
-                        return Err(crate::Error::AmApiKeyNotSet);
-                    }
-                };
-
-                let port = port_check::free_local_port().ok_or_else(|| {
-                    crate::Error::ServerStartFailed("failed_to_find_free_port".to_string())
-                })?;
-
-                let app_handle = self.app_handle().clone();
-                let cmd_builder = {
-                    #[cfg(debug_assertions)]
-                    {
-                        let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                            .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
-                        let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(
-                            "../../apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin",
-                        );
-
-                        if !passthrough_path.exists() || !stt_path.exists() {
-                            return Err(crate::Error::AmBinaryNotFound);
-                        }
-
-                        let passthrough_path = Arc::new(passthrough_path);
-                        let stt_path = Arc::new(stt_path);
-                        external::CommandBuilder::new(move || {
-                            app_handle
-                                .shell()
-                                .command(passthrough_path.as_ref())
-                                .current_dir(dirs::home_dir().unwrap())
-                                .arg(stt_path.as_ref())
-                                .args(["serve", "--any-token", "-v", "-d"])
-                        })
-                    }
-
-                    #[cfg(not(debug_assertions))]
-                    {
-                        external::CommandBuilder::new(move || {
-                            app_handle
-                                .shell()
-                                .sidecar("stt")
-                                .expect("failed to create sidecar command")
-                                .current_dir(dirs::home_dir().unwrap())
-                                .args(["serve", "--any-token"])
-                        })
-                    }
-                };
-
-                supervisor::start_external_stt(
-                    &supervisor,
-                    external::ExternalSTTArgs::new(cmd_builder, am_key, am_model, data_dir, port),
-                )
-                .await
-                .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;
-
-                external_health()
-                    .await
-                    .and_then(|info| info.url)
-                    .ok_or_else(|| crate::Error::ServerStartFailed("empty_health".to_string()))
+                start_external_server(self, &supervisor, data_dir, am_model).await
             }
         }
     }
@@ -404,6 +312,98 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             guard.download_task.contains_key(model)
         }
     }
+}
+
+async fn start_internal_server(
+    supervisor: &supervisor::SupervisorRef,
+    cache_dir: PathBuf,
+    model: hypr_whisper_local_model::WhisperModel,
+) -> Result<String, crate::Error> {
+    supervisor::start_internal_stt(
+        supervisor,
+        internal::InternalSTTArgs {
+            model_cache_dir: cache_dir,
+            model_type: model,
+        },
+    )
+    .await
+    .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;
+
+    internal_health()
+        .await
+        .and_then(|info| info.url)
+        .ok_or_else(|| crate::Error::ServerStartFailed("empty_health".to_string()))
+}
+
+async fn start_external_server<R: Runtime, T: Manager<R>>(
+    manager: &T,
+    supervisor: &supervisor::SupervisorRef,
+    data_dir: PathBuf,
+    model: hypr_am::AmModel,
+) -> Result<String, crate::Error> {
+    let am_key = {
+        let state = manager.state::<crate::SharedState>();
+        let key = {
+            let guard = state.lock().await;
+            guard.am_api_key.clone()
+        };
+
+        key.filter(|k| !k.is_empty())
+            .ok_or(crate::Error::AmApiKeyNotSet)?
+    };
+
+    let port = port_check::free_local_port()
+        .ok_or_else(|| crate::Error::ServerStartFailed("failed_to_find_free_port".to_string()))?;
+
+    let app_handle = manager.app_handle().clone();
+    let cmd_builder = {
+        #[cfg(debug_assertions)]
+        {
+            let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../apps/desktop/src-tauri/resources/passthrough-aarch64-apple-darwin");
+            let stt_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../apps/desktop/src-tauri/resources/stt-aarch64-apple-darwin");
+
+            if !passthrough_path.exists() || !stt_path.exists() {
+                return Err(crate::Error::AmBinaryNotFound);
+            }
+
+            let passthrough_path = Arc::new(passthrough_path);
+            let stt_path = Arc::new(stt_path);
+            external::CommandBuilder::new(move || {
+                app_handle
+                    .shell()
+                    .command(passthrough_path.as_ref())
+                    .current_dir(dirs::home_dir().unwrap())
+                    .arg(stt_path.as_ref())
+                    .args(["serve", "--any-token", "-v", "-d"])
+            })
+        }
+
+        #[cfg(not(debug_assertions))]
+        {
+            external::CommandBuilder::new(move || {
+                app_handle
+                    .shell()
+                    .sidecar("stt")
+                    .expect("failed to create sidecar command")
+                    .current_dir(dirs::home_dir().unwrap())
+                    .args(["serve", "--any-token"])
+            })
+        }
+    };
+
+    supervisor::start_external_stt(
+        supervisor,
+        external::ExternalSTTArgs::new(cmd_builder, am_key, model, data_dir, port),
+    )
+    .await
+    .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;
+
+    external_health()
+        .await
+        .and_then(|info| info.url)
+        .ok_or_else(|| crate::Error::ServerStartFailed("empty_health".to_string()))
 }
 
 async fn internal_health() -> Option<ServerInfo> {

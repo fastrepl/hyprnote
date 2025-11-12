@@ -11,8 +11,6 @@ use hypr_audio::{
     ResampledAsyncSource,
 };
 
-// We previously used AEC; it has been removed.  Keep this constant to preserve chunking size.
-const AEC_BLOCK_SIZE: usize = 512;
 const SAMPLE_RATE: u32 = 16000;
 
 pub enum SourceMsg {
@@ -237,14 +235,14 @@ async fn start_source_loop(
             tokio::spawn(async move {
                 let mic_stream = {
                     let mut mic_input = AudioInput::from_mic(mic_device).unwrap();
-                    ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE)
-                        .chunks(AEC_BLOCK_SIZE)
+                    let chunk_size = chunk_size_from_sample_rate(SAMPLE_RATE);
+                    ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE).chunks(chunk_size)
                 };
                 tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
                 let spk_stream = {
                     let mut spk_input = hypr_audio::AudioInput::from_speaker();
-                    ResampledAsyncSource::new(spk_input.stream(), SAMPLE_RATE)
-                        .chunks(AEC_BLOCK_SIZE)
+                    let chunk_size = chunk_size_from_sample_rate(SAMPLE_RATE);
+                    ResampledAsyncSource::new(spk_input.stream(), SAMPLE_RATE).chunks(chunk_size)
                 };
 
                 tokio::pin!(mic_stream);
@@ -302,12 +300,14 @@ async fn start_source_loop(
         tokio::spawn(async move {
             let mic_stream = {
                 let mut mic_input = hypr_audio::AudioInput::from_mic(mic_device).unwrap();
-                ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE).chunks(AEC_BLOCK_SIZE)
+                let chunk_size = chunk_size_from_sample_rate(mic_input.sample_rate());
+                mic_input.stream().chunks(chunk_size)
             };
             tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
             let spk_stream = {
                 let mut spk_input = hypr_audio::AudioInput::from_speaker();
-                ResampledAsyncSource::new(spk_input.stream(), SAMPLE_RATE).chunks(AEC_BLOCK_SIZE)
+                let chunk_size = chunk_size_from_sample_rate(spk_input.sample_rate());
+                spk_input.stream().chunks(chunk_size)
             };
             tokio::pin!(mic_stream);
             tokio::pin!(spk_stream);
@@ -360,4 +360,20 @@ async fn start_source_loop(
 
     st.run_task = Some(handle);
     Ok(())
+}
+
+fn chunk_size_from_sample_rate(sample_rate: u32) -> usize {
+    // https://github.com/orgs/deepgram/discussions/224#discussioncomment-6234166
+    const CHUNK_MS: u32 = 120;
+
+    let samples = ((sample_rate as u64) * (CHUNK_MS as u64)) / 1000;
+    let samples = samples.max(1024).min(7168) as usize;
+
+    tracing::info!(
+        sample_rate = sample_rate,
+        samples = samples,
+        "chunk_size_from_sample_rate"
+    );
+
+    samples
 }

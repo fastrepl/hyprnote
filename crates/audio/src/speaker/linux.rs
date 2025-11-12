@@ -48,10 +48,70 @@ impl SpeakerInput {
             }
         }
 
-        // TODO: Try ALSA loopback device
-        // For now, fall back to mock
+        // Try ALSA loopback device as fallback
+        if let Ok(device) = Self::find_alsa_loopback_device() {
+            tracing::info!("Found ALSA loopback device: {}", device);
+            return Ok(AudioBackend::Alsa { device });
+        }
+
+        // Fall back to mock if nothing works
         tracing::warn!("No supported audio backend found, using mock implementation");
         Ok(AudioBackend::Mock)
+    }
+
+    fn find_alsa_loopback_device() -> Result<String, crate::Error> {
+        // Try common ALSA loopback device names
+        // Users typically set up loopback with: sudo modprobe snd-aloop
+        let possible_devices = vec![
+            "hw:Loopback,1,0", // Hardware loopback subdevice 1
+            "hw:Loopback,1",   // Hardware loopback device 1
+            "plughw:Loopback,1", // Plugin wrapper for format conversion
+            "default",         // System default (may work if configured)
+        ];
+
+        for device in possible_devices {
+            if Self::test_alsa_device(device) {
+                tracing::info!("Found working ALSA device: {}", device);
+                return Ok(device.to_string());
+            }
+        }
+
+        Err(crate::Error::AudioSystem(
+            "No ALSA loopback device found. To enable, run: sudo modprobe snd-aloop".to_string(),
+        ))
+    }
+
+    fn test_alsa_device(device: &str) -> bool {
+        use alsa::pcm::{Access, Format, HwParams, PCM};
+        use alsa::Direction;
+
+        // Try to open the device
+        let pcm = match PCM::new(device, Direction::Capture, false) {
+            Ok(p) => p,
+            Err(_) => return false,
+        };
+
+        // Try to set basic parameters
+        let hwp = match HwParams::any(&pcm) {
+            Ok(h) => h,
+            Err(_) => return false,
+        };
+
+        // Test if we can configure it for our needs
+        if hwp.set_channels(2).is_err() {
+            return false;
+        }
+        if hwp.set_rate(48000, alsa::ValueOr::Nearest).is_err() {
+            return false;
+        }
+        if hwp.set_format(Format::float()).is_err() {
+            return false;
+        }
+        if hwp.set_access(Access::RWInterleaved).is_err() {
+            return false;
+        }
+
+        true
     }
 
     #[cfg(feature = "pulseaudio")]
@@ -135,10 +195,10 @@ impl SpeakerStream {
                         tracing::error!("PulseAudio capture thread failed: {}", e);
                     }
                 }
-                AudioBackend::Alsa { device: _ } => {
-                    // TODO: Implement ALSA capture
-                    tracing::warn!("ALSA capture not yet implemented, falling back to mock");
-                    Self::mock_capture_thread(sender);
+                AudioBackend::Alsa { device } => {
+                    if let Err(e) = Self::alsa_capture_thread(sender, device) {
+                        tracing::error!("ALSA capture thread failed: {}", e);
+                    }
                 }
                 AudioBackend::Mock => {
                     Self::mock_capture_thread(sender);
@@ -210,6 +270,90 @@ impl SpeakerStream {
                 if sender.unbounded_send(mono_sample).is_err() {
                     tracing::debug!("SpeakerStream channel closed, exiting PulseAudio thread");
                     return Ok(());
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn alsa_capture_thread(
+        sender: UnboundedSender<f32>,
+        device: String,
+    ) -> Result<(), crate::Error> {
+        use alsa::pcm::{Access, Format, HwParams, PCM};
+        use alsa::Direction;
+
+        tracing::info!("Starting ALSA capture from device: {}", device);
+
+        // Open the PCM device for capture
+        let pcm = PCM::new(&device, Direction::Capture, false).map_err(|e| {
+            crate::Error::AudioSystem(format!("Failed to open ALSA device '{}': {}", device, e))
+        })?;
+
+        // Configure hardware parameters
+        let hwp = HwParams::any(&pcm).map_err(|e| {
+            crate::Error::AudioSystem(format!("Failed to get ALSA HwParams: {}", e))
+        })?;
+
+        // Set audio format to match PulseAudio: 48kHz stereo float32
+        hwp.set_channels(2).map_err(|e| {
+            crate::Error::AudioSystem(format!("Failed to set ALSA channels: {}", e))
+        })?;
+
+        hwp.set_rate(48000, alsa::ValueOr::Nearest)
+            .map_err(|e| crate::Error::AudioSystem(format!("Failed to set ALSA rate: {}", e)))?;
+
+        hwp.set_format(Format::float()).map_err(|e| {
+            crate::Error::AudioSystem(format!("Failed to set ALSA format: {}", e))
+        })?;
+
+        hwp.set_access(Access::RWInterleaved).map_err(|e| {
+            crate::Error::AudioSystem(format!("Failed to set ALSA access: {}", e))
+        })?;
+
+        pcm.hw_params(&hwp).map_err(|e| {
+            crate::Error::AudioSystem(format!("Failed to apply ALSA HwParams: {}", e))
+        })?;
+
+        // Start the PCM stream
+        pcm.start().map_err(|e| {
+            crate::Error::AudioSystem(format!("Failed to start ALSA stream: {}", e))
+        })?;
+
+        // Create IO object for reading samples
+        let io = pcm.io_f32().map_err(|e| {
+            crate::Error::AudioSystem(format!("Failed to create ALSA IO: {}", e))
+        })?;
+
+        // Buffer for reading samples (1024 frames * 2 channels)
+        let mut buffer = vec![0.0f32; 1024 * 2];
+
+        tracing::info!("ALSA capture thread started successfully");
+
+        loop {
+            // Read audio frames
+            match io.readi(&mut buffer) {
+                Ok(frames_read) => {
+                    // Process the stereo samples and convert to mono
+                    for i in 0..frames_read {
+                        let left = buffer[i * 2];
+                        let right = buffer[i * 2 + 1];
+                        let mono_sample = (left + right) / 2.0;
+
+                        if sender.unbounded_send(mono_sample).is_err() {
+                            tracing::debug!("SpeakerStream channel closed, exiting ALSA thread");
+                            return Ok(());
+                        }
+                    }
+                }
+                Err(e) => {
+                    tracing::error!("ALSA read error: {}", e);
+                    // Try to recover from errors
+                    if let Err(recover_err) = pcm.try_recover(e, false) {
+                        tracing::error!("Failed to recover ALSA stream: {}", recover_err);
+                        break;
+                    }
                 }
             }
         }

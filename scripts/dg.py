@@ -29,7 +29,7 @@ def main():
 
 
 def process_audio_file(audio_file, api_base, api_key, model="nova-3"):
-    chunk_size = 8192
+    chunk_size = 2048
 
     try:
         with wave.open(audio_file, "rb") as wav_file:
@@ -77,6 +77,7 @@ def process_audio_file(audio_file, api_base, api_key, model="nova-3"):
                 model=model,
                 encoding="linear16",
                 sample_rate=str(sample_rate),
+                channels=str(n_channels),
                 interim_results="true",
             ) as connection:
 
@@ -96,7 +97,7 @@ def process_audio_file(audio_file, api_base, api_key, model="nova-3"):
 
                 listener_thread = threading.Thread(target=run_listener, daemon=True)
                 listener_thread.start()
-                time.sleep(0.2)
+                time.sleep(0.1)
 
                 while True:
                     chunk = wav_file.readframes(frames_per_chunk)

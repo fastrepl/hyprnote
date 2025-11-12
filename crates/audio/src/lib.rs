@@ -93,6 +93,14 @@ impl AudioInput {
         name
     }
 
+    pub fn sample_rate(&self) -> u32 {
+        match &self.source {
+            AudioSource::RealtimeMic => self.mic.as_ref().unwrap().sample_rate(),
+            AudioSource::RealtimeSpeaker => self.speaker.as_ref().unwrap().sample_rate(),
+            AudioSource::Recorded => 16000,
+        }
+    }
+
     pub fn list_mic_devices() -> Vec<String> {
         let host = cpal::default_host();
 

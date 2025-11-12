@@ -20,8 +20,8 @@ mod tests {
         client
             .init(InitRequest {
                 api_key: "".to_string(),
-                model: None,
-                model_repo: None,
+                model: Some("nvidia_parakeet-v2_476MB".to_string()),
+                model_repo: Some("argmaxinc/parakeetkit-pro".to_string()),
                 model_folder: None,
                 custom_vocabulary: Some(vec![]),
             })

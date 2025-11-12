@@ -20,3 +20,6 @@ internal
 
 # Local audio artifacts
 crates/audio/normalized_output.wav
+
+# Local package builds
+pkgbuild/

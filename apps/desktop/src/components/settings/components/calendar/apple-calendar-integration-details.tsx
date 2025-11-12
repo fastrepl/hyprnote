@@ -1,14 +1,18 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { type as getOsType } from "@tauri-apps/plugin-os";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { CalendarSelector } from "./calendar-selector";
+import { ICloudCredentialsModal } from "./icloud-credentials-modal";
 
 export function AppleCalendarIntegrationDetails() {
+  const [isCredentialsModalOpen, setIsCredentialsModalOpen] = useState(false);
+  const osType = getOsType();
+  
   const calendarAccess = useQuery({
     queryKey: ["settings", "calendarAccess"],
     queryFn: () => appleCalendarCommands.calendarAccessStatus(),
@@ -22,7 +26,7 @@ export function AppleCalendarIntegrationDetails() {
   });
 
   const handleRequestCalendarAccess = useCallback(() => {
-    if (getOsType() === "macos") {
+    if (osType === "macos") {
       appleCalendarCommands
         .requestCalendarAccess()
         .then(() => {
@@ -31,11 +35,14 @@ export function AppleCalendarIntegrationDetails() {
         .catch((error) => {
           console.error(error);
         });
+    } else {
+      // On Linux, show the credentials modal
+      setIsCredentialsModalOpen(true);
     }
-  }, []);
+  }, [osType, calendarAccess]);
 
   const handleRequestContactsAccess = useCallback(() => {
-    if (getOsType() === "macos") {
+    if (osType === "macos") {
       appleCalendarCommands
         .requestContactsAccess()
         .then(() => {
@@ -44,8 +51,16 @@ export function AppleCalendarIntegrationDetails() {
         .catch((error) => {
           console.error(error);
         });
+    } else {
+      // On Linux, show the credentials modal (same as calendar)
+      setIsCredentialsModalOpen(true);
     }
-  }, []);
+  }, [osType, contactsAccess]);
+  
+  const handleCredentialsSaved = useCallback(() => {
+    calendarAccess.refetch();
+    contactsAccess.refetch();
+  }, [calendarAccess, contactsAccess]);
 
   const syncContactsMutation = useMutation({
     mutationFn: async () => {
@@ -56,6 +71,12 @@ export function AppleCalendarIntegrationDetails() {
 
   return (
     <div className="space-y-2">
+      <ICloudCredentialsModal
+        isOpen={isCredentialsModalOpen}
+        onClose={() => setIsCredentialsModalOpen(false)}
+        onSuccess={handleCredentialsSaved}
+      />
+      
       <div
         className={cn(
           "flex flex-col rounded-lg border p-4",
@@ -87,7 +108,17 @@ export function AppleCalendarIntegrationDetails() {
               onClick={handleRequestCalendarAccess}
               className="min-w-12 text-center"
             >
-              <Trans>Grant Access</Trans>
+              {osType === "macos" ? <Trans>Grant Access</Trans> : <Trans>Configure iCloud</Trans>}
+            </Button>
+          )}
+          {calendarAccess.data && osType !== "macos" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCredentialsModalOpen(true)}
+              className="min-w-12 text-center"
+            >
+              <Trans>Edit Credentials</Trans>
             </Button>
           )}
         </div>
@@ -130,7 +161,7 @@ export function AppleCalendarIntegrationDetails() {
               onClick={handleRequestContactsAccess}
               className="min-w-12 text-center"
             >
-              <Trans>Grant Access</Trans>
+              {osType === "macos" ? <Trans>Grant Access</Trans> : <Trans>Configure iCloud</Trans>}
             </Button>
           )}
         </div>

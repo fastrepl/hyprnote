@@ -52,7 +52,7 @@ export type AuthEvent = "success" | { error: string }
 export type RequestParams = { c: string; f: string; p: number }
 export type ResponseParams = { ui: string; ai: string; st: string; dt: string }
 export type StoreKey = "auth-user-id" | "auth-account-id"
-export type VaultKey = "remote-database" | "remote-server" | "twenty-api-key"
+export type VaultKey = "remote-database" | "remote-server" | "twenty-api-key" | "caldav-username" | "caldav-password" | "caldav-url" | "carddav-url"
 
 /** tauri-specta globals **/
 

@@ -33,6 +33,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::sync_calendars::<tauri::Wry>,
             commands::sync_events::<tauri::Wry>,
             commands::sync_contacts::<tauri::Wry>,
+            commands::set_caldav_credentials::<tauri::Wry>,
+            commands::get_caldav_credentials::<tauri::Wry>,
+            commands::test_caldav_connection::<tauri::Wry>,
+            commands::clear_caldav_credentials::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

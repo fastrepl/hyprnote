@@ -2,12 +2,13 @@ import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { type as getOsType } from "@tauri-apps/plugin-os";
 import { CalendarIcon, CheckCircle2Icon, UserIcon } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { Button } from "@hypr/ui/components/ui/button";
 import PushableButton from "@hypr/ui/components/ui/pushable-button";
 import { cn } from "@hypr/ui/lib/utils";
+import { ICloudCredentialsModal } from "../settings/components/calendar/icloud-credentials-modal";
 
 interface PermissionItemProps {
   icon: React.ReactNode;
@@ -80,6 +81,9 @@ interface CalendarPermissionsViewProps {
 }
 
 export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewProps) {
+  const [isCredentialsModalOpen, setIsCredentialsModalOpen] = useState(false);
+  const osType = getOsType();
+  
   const calendarAccess = useQuery({
     queryKey: ["settings", "calendarAccess"],
     queryFn: () => appleCalendarCommands.calendarAccessStatus(),
@@ -93,7 +97,7 @@ export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewP
   });
 
   const handleRequestCalendarAccess = useCallback(() => {
-    if (getOsType() === "macos") {
+    if (osType === "macos") {
       appleCalendarCommands
         .requestCalendarAccess()
         .then(() => {
@@ -102,11 +106,14 @@ export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewP
         .catch((error) => {
           console.error(error);
         });
+    } else {
+      // On Linux, show the credentials modal
+      setIsCredentialsModalOpen(true);
     }
-  }, [calendarAccess]);
+  }, [osType, calendarAccess]);
 
   const handleRequestContactsAccess = useCallback(() => {
-    if (getOsType() === "macos") {
+    if (osType === "macos") {
       appleCalendarCommands
         .requestContactsAccess()
         .then(() => {
@@ -115,11 +122,25 @@ export function CalendarPermissionsView({ onContinue }: CalendarPermissionsViewP
         .catch((error) => {
           console.error(error);
         });
+    } else {
+      // On Linux, show the credentials modal (same as calendar)
+      setIsCredentialsModalOpen(true);
     }
-  }, [contactsAccess]);
+  }, [osType, contactsAccess]);
+  
+  const handleCredentialsSaved = useCallback(() => {
+    calendarAccess.refetch();
+    contactsAccess.refetch();
+  }, [calendarAccess, contactsAccess]);
 
   return (
     <div className="flex flex-col items-center min-w-[30rem]">
+      <ICloudCredentialsModal
+        isOpen={isCredentialsModalOpen}
+        onClose={() => setIsCredentialsModalOpen(false)}
+        onSuccess={handleCredentialsSaved}
+      />
+      
       <h2 className="text-xl font-semibold mb-4">
         <Trans>Calendar & Contacts</Trans>
       </h2>

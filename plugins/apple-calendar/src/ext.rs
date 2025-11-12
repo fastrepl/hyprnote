@@ -69,14 +69,90 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
 
     #[tracing::instrument(skip_all)]
     fn calendar_access_status(&self) -> bool {
+        // Inject CalDAV credentials if available (Linux only)
+        #[cfg(not(target_os = "macos"))]
+        {
+            use tauri_plugin_auth::VaultKey;
+            if let Some(vault) = self.try_state::<tauri_plugin_auth::Vault>() {
+                if let (Ok(Some(username)), Ok(Some(password))) = (
+                    vault.get(VaultKey::CalDavUsername),
+                    vault.get(VaultKey::CalDavPassword),
+                ) {
+                    let caldav_url = vault
+                        .get(VaultKey::CalDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://caldav.icloud.com".to_string());
+                    let carddav_url = vault
+                        .get(VaultKey::CardDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://contacts.icloud.com".to_string());
+
+                    hypr_calendar_apple::set_thread_credentials(
+                        username,
+                        password,
+                        caldav_url,
+                        carddav_url,
+                    );
+                }
+            }
+        }
+
         let handle = hypr_calendar_apple::Handle::new();
-        handle.calendar_access_status()
+        let result = handle.calendar_access_status();
+
+        // Clear thread credentials
+        #[cfg(not(target_os = "macos"))]
+        {
+            hypr_calendar_apple::clear_thread_credentials();
+        }
+
+        result
     }
 
     #[tracing::instrument(skip_all)]
     fn contacts_access_status(&self) -> bool {
+        // Inject CalDAV credentials if available (Linux only)
+        #[cfg(not(target_os = "macos"))]
+        {
+            use tauri_plugin_auth::VaultKey;
+            if let Some(vault) = self.try_state::<tauri_plugin_auth::Vault>() {
+                if let (Ok(Some(username)), Ok(Some(password))) = (
+                    vault.get(VaultKey::CalDavUsername),
+                    vault.get(VaultKey::CalDavPassword),
+                ) {
+                    let caldav_url = vault
+                        .get(VaultKey::CalDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://caldav.icloud.com".to_string());
+                    let carddav_url = vault
+                        .get(VaultKey::CardDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://contacts.icloud.com".to_string());
+
+                    hypr_calendar_apple::set_thread_credentials(
+                        username,
+                        password,
+                        caldav_url,
+                        carddav_url,
+                    );
+                }
+            }
+        }
+
         let handle = hypr_calendar_apple::Handle::new();
-        handle.contacts_access_status()
+        let result = handle.contacts_access_status();
+
+        // Clear thread credentials
+        #[cfg(not(target_os = "macos"))]
+        {
+            hypr_calendar_apple::clear_thread_credentials();
+        }
+
+        result
     }
 
     #[tracing::instrument(skip_all)]
@@ -155,7 +231,45 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
             (guard.db.clone().unwrap(), guard.user_id.clone().unwrap())
         };
 
-        crate::sync::sync_calendars(db, user_id).await
+        // Inject CalDAV credentials if available (Linux only)
+        #[cfg(not(target_os = "macos"))]
+        {
+            use tauri_plugin_auth::VaultKey;
+            if let Some(vault) = self.try_state::<tauri_plugin_auth::Vault>() {
+                if let (Ok(Some(username)), Ok(Some(password))) = (
+                    vault.get(VaultKey::CalDavUsername),
+                    vault.get(VaultKey::CalDavPassword),
+                ) {
+                    let caldav_url = vault
+                        .get(VaultKey::CalDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://caldav.icloud.com".to_string());
+                    let carddav_url = vault
+                        .get(VaultKey::CardDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://contacts.icloud.com".to_string());
+
+                    hypr_calendar_apple::set_thread_credentials(
+                        username,
+                        password,
+                        caldav_url,
+                        carddav_url,
+                    );
+                }
+            }
+        }
+
+        let result = crate::sync::sync_calendars(db, user_id).await;
+
+        // Clear thread credentials after sync
+        #[cfg(not(target_os = "macos"))]
+        {
+            hypr_calendar_apple::clear_thread_credentials();
+        }
+
+        result
     }
 
     #[tracing::instrument(skip_all)]
@@ -166,7 +280,45 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
             (guard.db.clone().unwrap(), guard.user_id.clone().unwrap())
         };
 
-        crate::sync::sync_events(db, user_id).await
+        // Inject CalDAV credentials if available (Linux only)
+        #[cfg(not(target_os = "macos"))]
+        {
+            use tauri_plugin_auth::VaultKey;
+            if let Some(vault) = self.try_state::<tauri_plugin_auth::Vault>() {
+                if let (Ok(Some(username)), Ok(Some(password))) = (
+                    vault.get(VaultKey::CalDavUsername),
+                    vault.get(VaultKey::CalDavPassword),
+                ) {
+                    let caldav_url = vault
+                        .get(VaultKey::CalDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://caldav.icloud.com".to_string());
+                    let carddav_url = vault
+                        .get(VaultKey::CardDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://contacts.icloud.com".to_string());
+
+                    hypr_calendar_apple::set_thread_credentials(
+                        username,
+                        password,
+                        caldav_url,
+                        carddav_url,
+                    );
+                }
+            }
+        }
+
+        let result = crate::sync::sync_events(db, user_id).await;
+
+        // Clear thread credentials after sync
+        #[cfg(not(target_os = "macos"))]
+        {
+            hypr_calendar_apple::clear_thread_credentials();
+        }
+
+        result
     }
 
     #[tracing::instrument(skip_all)]
@@ -177,6 +329,44 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
             (guard.db.clone().unwrap(), guard.user_id.clone().unwrap())
         };
 
-        crate::sync::sync_contacts(db, user_id).await
+        // Inject CalDAV credentials if available (Linux only)
+        #[cfg(not(target_os = "macos"))]
+        {
+            use tauri_plugin_auth::VaultKey;
+            if let Some(vault) = self.try_state::<tauri_plugin_auth::Vault>() {
+                if let (Ok(Some(username)), Ok(Some(password))) = (
+                    vault.get(VaultKey::CalDavUsername),
+                    vault.get(VaultKey::CalDavPassword),
+                ) {
+                    let caldav_url = vault
+                        .get(VaultKey::CalDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://caldav.icloud.com".to_string());
+                    let carddav_url = vault
+                        .get(VaultKey::CardDavUrl)
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "https://contacts.icloud.com".to_string());
+
+                    hypr_calendar_apple::set_thread_credentials(
+                        username,
+                        password,
+                        caldav_url,
+                        carddav_url,
+                    );
+                }
+            }
+        }
+
+        let result = crate::sync::sync_contacts(db, user_id).await;
+
+        // Clear thread credentials after sync
+        #[cfg(not(target_os = "macos"))]
+        {
+            hypr_calendar_apple::clear_thread_credentials();
+        }
+
+        result
     }
 }

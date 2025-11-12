@@ -14,6 +14,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
+tauri-plugin-auth = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 

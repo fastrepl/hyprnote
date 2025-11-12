@@ -14012,6 +14012,7 @@ dependencies = [
  "specta-typescript",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-auth",
  "tauri-plugin-db",
  "tauri-plugin-shell",
  "tauri-specta",

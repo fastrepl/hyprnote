@@ -36,6 +36,18 @@ async syncEvents() : Promise<null> {
 },
 async syncContacts() : Promise<null> {
     return await TAURI_INVOKE("plugin:apple-calendar|sync_contacts");
+},
+async setCaldavCredentials(credentials: CalDavCredentials) : Promise<null> {
+    return await TAURI_INVOKE("plugin:apple-calendar|set_caldav_credentials", { credentials });
+},
+async getCaldavCredentials() : Promise<CalDavCredentials | null> {
+    return await TAURI_INVOKE("plugin:apple-calendar|get_caldav_credentials");
+},
+async testCaldavConnection() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:apple-calendar|test_caldav_connection");
+},
+async clearCaldavCredentials() : Promise<null> {
+    return await TAURI_INVOKE("plugin:apple-calendar|clear_caldav_credentials");
 }
 }
 
@@ -49,7 +61,7 @@ async syncContacts() : Promise<null> {
 
 /** user-defined types **/
 
-
+export type CalDavCredentials = { username: string; password: string; caldav_url?: string | null; carddav_url?: string | null }
 
 /** tauri-specta globals **/
 

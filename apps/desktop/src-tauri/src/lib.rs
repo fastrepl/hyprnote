@@ -58,25 +58,34 @@ pub async fn main() {
         }
     }
 
-    let sentry_client = tauri_plugin_sentry::sentry::init((
+    let sentry_dsn = {
+        #[cfg(not(debug_assertions))]
         {
-            #[cfg(not(debug_assertions))]
-            {
-                env!("SENTRY_DSN")
-            }
+            env!("SENTRY_DSN")
+        }
 
-            #[cfg(debug_assertions)]
-            {
-                option_env!("SENTRY_DSN").unwrap_or_default()
-            }
-        },
-        tauri_plugin_sentry::sentry::ClientOptions {
-            release: tauri_plugin_sentry::sentry::release_name!(),
-            traces_sample_rate: 1.0,
-            auto_session_tracking: true,
+        #[cfg(debug_assertions)]
+        {
+            option_env!("SENTRY_DSN").unwrap_or_default()
+        }
+    };
+
+    let sentry_client = if !sentry_dsn.is_empty() {
+        tauri_plugin_sentry::sentry::init((
+            sentry_dsn,
+            tauri_plugin_sentry::sentry::ClientOptions {
+                release: tauri_plugin_sentry::sentry::release_name!(),
+                traces_sample_rate: 1.0,
+                auto_session_tracking: true,
+                ..Default::default()
+            },
+        ))
+    } else {
+        tauri_plugin_sentry::sentry::init(tauri_plugin_sentry::sentry::ClientOptions {
+            dsn: None,
             ..Default::default()
-        },
-    ));
+        })
+    };
 
     let _guard = tauri_plugin_sentry::minidump::init(&sentry_client);
 

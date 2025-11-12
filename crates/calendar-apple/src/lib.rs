@@ -6,7 +6,7 @@ mod carddav_client;
 pub mod caldav;
 
 #[cfg(not(target_os = "macos"))]
-pub use caldav::CalDavHandle as Handle;
+pub use caldav::{CalDavHandle as Handle, set_thread_credentials, clear_thread_credentials};
 
 // Native macOS EventKit implementation
 #[cfg(target_os = "macos")]

@@ -6,8 +6,48 @@ use hypr_calendar_interface::{
 };
 use itertools::Itertools;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
+use std::cell::RefCell;
 
 use crate::carddav_client;
+
+thread_local! {
+    static CALDAV_CREDENTIALS: RefCell<Option<(String, String, String, String)>> = RefCell::new(None);
+}
+
+/// Set CalDAV credentials for the current thread
+/// Format: (username, password, caldav_url, carddav_url)
+pub fn set_thread_credentials(username: String, password: String, caldav_url: String, carddav_url: String) {
+    CALDAV_CREDENTIALS.with(|creds| {
+        *creds.borrow_mut() = Some((username, password, caldav_url, carddav_url));
+    });
+}
+
+/// Clear CalDAV credentials for the current thread
+pub fn clear_thread_credentials() {
+    CALDAV_CREDENTIALS.with(|creds| {
+        *creds.borrow_mut() = None;
+    });
+}
+
+/// Get CalDAV credentials from thread-local storage or environment variables
+fn get_credentials() -> (String, String, String, String) {
+    // Try thread-local storage first
+    let from_thread = CALDAV_CREDENTIALS.with(|creds| creds.borrow().clone());
+    
+    if let Some((username, password, caldav_url, carddav_url)) = from_thread {
+        return (username, password, caldav_url, carddav_url);
+    }
+    
+    // Fallback to environment variables
+    let base_url = std::env::var("CALDAV_URL")
+        .unwrap_or_else(|_| "https://caldav.icloud.com".to_string());
+    let username = std::env::var("CALDAV_USERNAME").unwrap_or_default();
+    let password = std::env::var("CALDAV_PASSWORD").unwrap_or_default();
+    let carddav_url = std::env::var("CARDDAV_URL")
+        .unwrap_or_else(|_| "https://contacts.icloud.com".to_string());
+    
+    (username, password, base_url, carddav_url)
+}
 
 pub struct CalDavHandle {
     client: reqwest::Client,
@@ -19,13 +59,9 @@ pub struct CalDavHandle {
 
 impl CalDavHandle {
     pub fn new() -> Self {
-        // On Linux, read credentials from environment variables
-        let base_url =
-            std::env::var("CALDAV_URL").unwrap_or_else(|_| "https://caldav.icloud.com".to_string());
-        let username = std::env::var("CALDAV_USERNAME").unwrap_or_default();
-        let password = std::env::var("CALDAV_PASSWORD").unwrap_or_default();
-
-        Self::with_credentials(base_url, username, password)
+        let (username, password, base_url, carddav_url) = get_credentials();
+        
+        Self::with_credentials(base_url, username, password, carddav_url)
             .expect("Failed to create CalDAV client")
     }
 
@@ -33,14 +69,14 @@ impl CalDavHandle {
         base_url: String,
         username: String,
         password: String,
+        carddav_url: String,
     ) -> Result<Self, Error> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(30))
             .build()?;
 
         let carddav = carddav_client::CardDavHandle::with_credentials(
-            std::env::var("CARDDAV_URL")
-                .unwrap_or_else(|_| "https://contacts.icloud.com".to_string()),
+            carddav_url,
             username.clone(),
             password.clone(),
         )?;

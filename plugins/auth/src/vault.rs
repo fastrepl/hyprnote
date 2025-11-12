@@ -27,6 +27,22 @@ pub enum VaultKey {
     #[serde(rename = "twenty-api-key")]
     #[specta(rename = "twenty-api-key")]
     TwentyApiKey,
+    #[strum(serialize = "caldav-username")]
+    #[serde(rename = "caldav-username")]
+    #[specta(rename = "caldav-username")]
+    CalDavUsername,
+    #[strum(serialize = "caldav-password")]
+    #[serde(rename = "caldav-password")]
+    #[specta(rename = "caldav-password")]
+    CalDavPassword,
+    #[strum(serialize = "caldav-url")]
+    #[serde(rename = "caldav-url")]
+    #[specta(rename = "caldav-url")]
+    CalDavUrl,
+    #[strum(serialize = "carddav-url")]
+    #[serde(rename = "carddav-url")]
+    #[specta(rename = "carddav-url")]
+    CardDavUrl,
 }
 
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
@@ -37,6 +53,14 @@ pub struct VaultData {
     pub remote_server: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub twenty_api_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caldav_username: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caldav_password: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caldav_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub carddav_url: Option<String>,
 }
 
 impl VaultData {
@@ -45,6 +69,10 @@ impl VaultData {
             VaultKey::RemoteDatabase => self.remote_database.clone(),
             VaultKey::RemoteServer => self.remote_server.clone(),
             VaultKey::TwentyApiKey => self.twenty_api_key.clone(),
+            VaultKey::CalDavUsername => self.caldav_username.clone(),
+            VaultKey::CalDavPassword => self.caldav_password.clone(),
+            VaultKey::CalDavUrl => self.caldav_url.clone(),
+            VaultKey::CardDavUrl => self.carddav_url.clone(),
         }
     }
 
@@ -53,6 +81,10 @@ impl VaultData {
             VaultKey::RemoteDatabase => self.remote_database = Some(value.into()),
             VaultKey::RemoteServer => self.remote_server = Some(value.into()),
             VaultKey::TwentyApiKey => self.twenty_api_key = Some(value.into()),
+            VaultKey::CalDavUsername => self.caldav_username = Some(value.into()),
+            VaultKey::CalDavPassword => self.caldav_password = Some(value.into()),
+            VaultKey::CalDavUrl => self.caldav_url = Some(value.into()),
+            VaultKey::CardDavUrl => self.carddav_url = Some(value.into()),
         }
     }
 }

@@ -9,7 +9,9 @@ use {
 };
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {
-    fn list_microphone_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+    fn list_microphone_devices(
+        &self,
+    ) -> impl Future<Output = Result<Vec<hypr_audio::DeviceInfo>, crate::Error>>;
     fn get_current_microphone_device(
         &self,
     ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
@@ -18,7 +20,9 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
         device_name: impl Into<String>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
 
-    fn list_speaker_devices(&self) -> impl Future<Output = Result<Vec<String>, crate::Error>>;
+    fn list_speaker_devices(
+        &self,
+    ) -> impl Future<Output = Result<Vec<hypr_audio::DeviceInfo>, crate::Error>>;
     fn get_current_speaker_device(
         &self,
     ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
@@ -49,13 +53,13 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
-    async fn list_microphone_devices(&self) -> Result<Vec<String>, crate::Error> {
-        Ok(hypr_audio::AudioInput::list_mic_devices())
+    async fn list_microphone_devices(&self) -> Result<Vec<hypr_audio::DeviceInfo>, crate::Error> {
+        Ok(hypr_audio::AudioInput::list_mic_devices_info())
     }
 
     #[tracing::instrument(skip_all)]
-    async fn list_speaker_devices(&self) -> Result<Vec<String>, crate::Error> {
-        Ok(hypr_audio::AudioInput::list_speaker_devices())
+    async fn list_speaker_devices(&self) -> Result<Vec<hypr_audio::DeviceInfo>, crate::Error> {
+        Ok(hypr_audio::AudioInput::list_speaker_devices_info())
     }
 
     /// Get currently selected microphone device name.

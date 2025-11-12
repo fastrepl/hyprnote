@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the calibrate_microphone command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-calibrate-microphone",
+          "markdownDescription": "Enables the calibrate_microphone command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the calibrate_microphone command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-calibrate-microphone",
+          "markdownDescription": "Denies the calibrate_microphone command without any pre-configured scope."
+        },
+        {
           "description": "Enables the check_microphone_access command without any pre-configured scope.",
           "type": "string",
           "const": "allow-check-microphone-access",
@@ -319,6 +331,18 @@
           "markdownDescription": "Denies the check_system_audio_access command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_audio_gains command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-audio-gains",
+          "markdownDescription": "Enables the get_audio_gains command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_audio_gains command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-audio-gains",
+          "markdownDescription": "Denies the get_audio_gains command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_current_microphone_device command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-current-microphone-device",
@@ -331,6 +355,18 @@
           "markdownDescription": "Denies the get_current_microphone_device command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_current_speaker_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-current-speaker-device",
+          "markdownDescription": "Enables the get_current_speaker_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_current_speaker_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-current-speaker-device",
+          "markdownDescription": "Denies the get_current_speaker_device command without any pre-configured scope."
+        },
+        {
           "description": "Enables the get_mic_muted command without any pre-configured scope.",
           "type": "string",
           "const": "allow-get-mic-muted",
@@ -341,6 +377,18 @@
           "type": "string",
           "const": "deny-get-mic-muted",
           "markdownDescription": "Denies the get_mic_muted command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_mic_test_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-mic-test-status",
+          "markdownDescription": "Enables the get_mic_test_status command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_mic_test_status command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-mic-test-status",
+          "markdownDescription": "Denies the get_mic_test_status command without any pre-configured scope."
         },
         {
           "description": "Enables the get_speaker_muted command without any pre-configured scope.",
@@ -389,6 +437,18 @@
           "type": "string",
           "const": "deny-list-microphone-devices",
           "markdownDescription": "Denies the list_microphone_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_speaker_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-speaker-devices",
+          "markdownDescription": "Enables the list_speaker_devices command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_speaker_devices command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-speaker-devices",
+          "markdownDescription": "Denies the list_speaker_devices command without any pre-configured scope."
         },
         {
           "description": "Enables the open_microphone_access_settings command without any pre-configured scope.",
@@ -463,6 +523,30 @@
           "markdownDescription": "Denies the resume_session command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_audio_gains command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-audio-gains",
+          "markdownDescription": "Enables the set_audio_gains command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_audio_gains command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-audio-gains",
+          "markdownDescription": "Denies the set_audio_gains command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_default_speaker_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-default-speaker-device",
+          "markdownDescription": "Enables the set_default_speaker_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_default_speaker_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-default-speaker-device",
+          "markdownDescription": "Denies the set_default_speaker_device command without any pre-configured scope."
+        },
+        {
           "description": "Enables the set_mic_muted command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-mic-muted",
@@ -487,6 +571,18 @@
           "markdownDescription": "Denies the set_microphone_device command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_speaker_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-speaker-device",
+          "markdownDescription": "Enables the set_speaker_device command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_speaker_device command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-speaker-device",
+          "markdownDescription": "Denies the set_speaker_device command without any pre-configured scope."
+        },
+        {
           "description": "Enables the set_speaker_muted command without any pre-configured scope.",
           "type": "string",
           "const": "allow-set-speaker-muted",
@@ -497,6 +593,18 @@
           "type": "string",
           "const": "deny-set-speaker-muted",
           "markdownDescription": "Denies the set_speaker_muted command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the start_mic_test command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-start-mic-test",
+          "markdownDescription": "Enables the start_mic_test command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the start_mic_test command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-start-mic-test",
+          "markdownDescription": "Denies the start_mic_test command without any pre-configured scope."
         },
         {
           "description": "Enables the start_session command without any pre-configured scope.",
@@ -511,6 +619,18 @@
           "markdownDescription": "Denies the start_session command without any pre-configured scope."
         },
         {
+          "description": "Enables the stop_mic_test command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-stop-mic-test",
+          "markdownDescription": "Enables the stop_mic_test command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the stop_mic_test command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-stop-mic-test",
+          "markdownDescription": "Denies the stop_mic_test command without any pre-configured scope."
+        },
+        {
           "description": "Enables the stop_session command without any pre-configured scope.",
           "type": "string",
           "const": "allow-stop-session",
@@ -523,10 +643,22 @@
           "markdownDescription": "Denies the stop_session command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-microphone-devices`\n- `allow-get-current-microphone-device`\n- `allow-set-microphone-device`\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`",
+          "description": "Enables the update_mic_test_gain command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-update-mic-test-gain",
+          "markdownDescription": "Enables the update_mic_test_gain command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the update_mic_test_gain command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-update-mic-test-gain",
+          "markdownDescription": "Denies the update_mic_test_gain command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-microphone-devices`\n- `allow-get-current-microphone-device`\n- `allow-set-microphone-device`\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`\n- `allow-start-mic-test`\n- `allow-stop-mic-test`\n- `allow-get-mic-test-status`\n- `allow-get-audio-gains`\n- `allow-set-audio-gains`\n- `allow-calibrate-microphone`\n- `allow-list-speaker-devices`\n- `allow-get-current-speaker-device`\n- `allow-set-speaker-device`\n- `allow-set-default-speaker-device`\n- `allow-update-mic-test-gain`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-microphone-devices`\n- `allow-get-current-microphone-device`\n- `allow-set-microphone-device`\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-list-microphone-devices`\n- `allow-get-current-microphone-device`\n- `allow-set-microphone-device`\n- `allow-check-microphone-access`\n- `allow-check-system-audio-access`\n- `allow-request-microphone-access`\n- `allow-request-system-audio-access`\n- `allow-open-microphone-access-settings`\n- `allow-open-system-audio-access-settings`\n- `allow-start-session`\n- `allow-stop-session`\n- `allow-pause-session`\n- `allow-resume-session`\n- `allow-get-mic-muted`\n- `allow-set-mic-muted`\n- `allow-get-speaker-muted`\n- `allow-set-speaker-muted`\n- `allow-get-state`\n- `allow-start-mic-test`\n- `allow-stop-mic-test`\n- `allow-get-mic-test-status`\n- `allow-get-audio-gains`\n- `allow-set-audio-gains`\n- `allow-calibrate-microphone`\n- `allow-list-speaker-devices`\n- `allow-get-current-speaker-device`\n- `allow-set-speaker-device`\n- `allow-set-default-speaker-device`\n- `allow-update-mic-test-gain`"
         }
       ]
     }

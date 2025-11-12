@@ -22,6 +22,17 @@ Default permissions for the plugin
 - `allow-get-speaker-muted`
 - `allow-set-speaker-muted`
 - `allow-get-state`
+- `allow-start-mic-test`
+- `allow-stop-mic-test`
+- `allow-get-mic-test-status`
+- `allow-get-audio-gains`
+- `allow-set-audio-gains`
+- `allow-calibrate-microphone`
+- `allow-list-speaker-devices`
+- `allow-get-current-speaker-device`
+- `allow-set-speaker-device`
+- `allow-set-default-speaker-device`
+- `allow-update-mic-test-gain`
 
 ## Permission Table
 
@@ -31,6 +42,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`listener:allow-calibrate-microphone`
+
+</td>
+<td>
+
+Enables the calibrate_microphone command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-calibrate-microphone`
+
+</td>
+<td>
+
+Denies the calibrate_microphone command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>
@@ -87,6 +124,32 @@ Denies the check_system_audio_access command without any pre-configured scope.
 <tr>
 <td>
 
+`listener:allow-get-audio-gains`
+
+</td>
+<td>
+
+Enables the get_audio_gains command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-get-audio-gains`
+
+</td>
+<td>
+
+Denies the get_audio_gains command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `listener:allow-get-current-microphone-device`
 
 </td>
@@ -113,6 +176,32 @@ Denies the get_current_microphone_device command without any pre-configured scop
 <tr>
 <td>
 
+`listener:allow-get-current-speaker-device`
+
+</td>
+<td>
+
+Enables the get_current_speaker_device command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-get-current-speaker-device`
+
+</td>
+<td>
+
+Denies the get_current_speaker_device command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `listener:allow-get-mic-muted`
 
 </td>
@@ -132,6 +221,32 @@ Enables the get_mic_muted command without any pre-configured scope.
 <td>
 
 Denies the get_mic_muted command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-get-mic-test-status`
+
+</td>
+<td>
+
+Enables the get_mic_test_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-get-mic-test-status`
+
+</td>
+<td>
+
+Denies the get_mic_test_status command without any pre-configured scope.
 
 </td>
 </tr>
@@ -236,6 +351,32 @@ Enables the list_microphone_devices command without any pre-configured scope.
 <td>
 
 Denies the list_microphone_devices command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-list-speaker-devices`
+
+</td>
+<td>
+
+Enables the list_speaker_devices command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-list-speaker-devices`
+
+</td>
+<td>
+
+Denies the list_speaker_devices command without any pre-configured scope.
 
 </td>
 </tr>
@@ -399,6 +540,58 @@ Denies the resume_session command without any pre-configured scope.
 <tr>
 <td>
 
+`listener:allow-set-audio-gains`
+
+</td>
+<td>
+
+Enables the set_audio_gains command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-set-audio-gains`
+
+</td>
+<td>
+
+Denies the set_audio_gains command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-set-default-speaker-device`
+
+</td>
+<td>
+
+Enables the set_default_speaker_device command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-set-default-speaker-device`
+
+</td>
+<td>
+
+Denies the set_default_speaker_device command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `listener:allow-set-mic-muted`
 
 </td>
@@ -451,6 +644,32 @@ Denies the set_microphone_device command without any pre-configured scope.
 <tr>
 <td>
 
+`listener:allow-set-speaker-device`
+
+</td>
+<td>
+
+Enables the set_speaker_device command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-set-speaker-device`
+
+</td>
+<td>
+
+Denies the set_speaker_device command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `listener:allow-set-speaker-muted`
 
 </td>
@@ -470,6 +689,32 @@ Enables the set_speaker_muted command without any pre-configured scope.
 <td>
 
 Denies the set_speaker_muted command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-start-mic-test`
+
+</td>
+<td>
+
+Enables the start_mic_test command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-start-mic-test`
+
+</td>
+<td>
+
+Denies the start_mic_test command without any pre-configured scope.
 
 </td>
 </tr>
@@ -503,6 +748,32 @@ Denies the start_session command without any pre-configured scope.
 <tr>
 <td>
 
+`listener:allow-stop-mic-test`
+
+</td>
+<td>
+
+Enables the stop_mic_test command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-stop-mic-test`
+
+</td>
+<td>
+
+Denies the stop_mic_test command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `listener:allow-stop-session`
 
 </td>
@@ -522,6 +793,32 @@ Enables the stop_session command without any pre-configured scope.
 <td>
 
 Denies the stop_session command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:allow-update-mic-test-gain`
+
+</td>
+<td>
+
+Enables the update_mic_test_gain command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener:deny-update-mic-test-gain`
+
+</td>
+<td>
+
+Denies the update_mic_test_gain command without any pre-configured scope.
 
 </td>
 </tr>

@@ -742,6 +742,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
+ "specta",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
@@ -1994,14 +1995,18 @@ name = "calendar-apple"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "block2 0.5.1",
  "calendar-interface",
  "chrono",
+ "ical",
  "itertools 0.14.0",
  "objc2 0.5.2",
  "objc2-contacts",
  "objc2-event-kit",
  "objc2-foundation 0.2.2",
+ "reqwest 0.12.22",
+ "roxmltree",
  "tokio",
 ]
 
@@ -7170,6 +7175,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ical"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b7cab7543a8b7729a19e2c04309f902861293dcdae6558dfbeb634454d279f6"
+dependencies = [
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "ico"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11778,6 +11792,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "roxmltree"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
+
+[[package]]
 name = "rsb_derive"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14237,6 +14257,7 @@ dependencies = [
  "bytes",
  "chrono",
  "codes-iso-639",
+ "cpal",
  "data",
  "db-core",
  "db-user",
@@ -14246,8 +14267,10 @@ dependencies = [
  "language",
  "objc2 0.6.1",
  "objc2-foundation 0.3.1",
+ "once_cell",
  "owhisper-client",
  "owhisper-interface",
+ "ringbuf",
  "rodio",
  "serde",
  "serde_json",

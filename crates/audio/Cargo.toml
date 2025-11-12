@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 default = ["pulseaudio"]
 pulseaudio = ["dep:libpulse-binding", "dep:libpulse-simple-binding"]
+specta-support = ["dep:specta"]
 
 [dependencies]
 anyhow = { workspace = true }
@@ -15,6 +16,7 @@ tracing = { workspace = true }
 bytes = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+specta = { workspace = true, optional = true }
 
 futures-channel = { workspace = true }
 futures-util = { workspace = true }

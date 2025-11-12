@@ -1,7 +1,9 @@
 #[macro_export]
 macro_rules! common_event_derives {
     ($item:item) => {
-        #[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+        #[derive(
+            serde::Serialize, serde::Deserialize, Clone, specta::Type, tauri_specta::Event,
+        )]
         $item
     };
 }
@@ -25,6 +27,15 @@ common_event_derives! {
         SpeakerMuted { value: bool },
         #[serde(rename = "speakerDeviceChanged")]
         SpeakerDeviceChanged { name: Option<String> },
+    }
+}
+
+common_event_derives! {
+    pub struct CalibrationProgressEvent {
+        pub current_gain: f32,
+        pub current_step: usize,
+        pub total_steps: usize,
+        pub message: String,
     }
 }
 

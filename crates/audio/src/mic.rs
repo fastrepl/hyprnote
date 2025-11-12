@@ -376,10 +376,28 @@ impl MicInput {
         input_devices: &[cpal::Device],
     ) -> Result<cpal::Device, crate::Error> {
         tracing::debug!("Looking for device with name: {}", name);
+
+        // Try to find device with exact name match first
         let device = input_devices
             .iter()
             .find(|d| d.name().unwrap_or_default() == name)
             .cloned();
+
+        // If not found, try partial matching for ALSA device names
+        let device = device.or_else(|| {
+            input_devices
+                .iter()
+                .find(|d| {
+                    if let Ok(cpal_name) = d.name() {
+                        // Try partial match (e.g., "HD-Audio Generic" in both)
+                        if cpal_name.contains("HD-Audio") && name.contains("HD-Audio") {
+                            return true;
+                        }
+                    }
+                    false
+                })
+                .cloned()
+        });
 
         match device {
             Some(device) => {

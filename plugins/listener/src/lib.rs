@@ -50,8 +50,16 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::get_state::<tauri::Wry>,
             commands::get_audio_gains::<tauri::Wry>,
             commands::set_audio_gains::<tauri::Wry>,
+            commands::start_mic_test::<tauri::Wry>,
+            commands::stop_mic_test::<tauri::Wry>,
+            commands::get_mic_test_status::<tauri::Wry>,
+            commands::update_mic_test_gain::<tauri::Wry>,
+            commands::calibrate_microphone::<tauri::Wry>,
         ])
-        .events(tauri_specta::collect_events![SessionEvent])
+        .events(tauri_specta::collect_events![
+            SessionEvent,
+            CalibrationProgressEvent
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }
 

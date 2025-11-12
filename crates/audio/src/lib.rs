@@ -15,15 +15,18 @@ use futures_util::Stream;
 pub use kalosm_sound::AsyncSource;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "specta-support", derive(specta::Type))]
 pub enum DeviceKind {
     Input,
     Output,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "specta-support", derive(specta::Type))]
 pub struct DeviceInfo {
     pub name: String,
     pub is_default: bool,
+    pub is_available: bool,
     pub kind: DeviceKind,
 }
 
@@ -105,9 +108,22 @@ impl AudioInput {
 
     /// Returns a list of available input (microphone) device names.
     ///
-    /// Filters out the "hypr-audio-tap" device and appends the virtual "echo-cancel-source" if
-    /// present. Future improvement: return structured metadata.
+    /// On Linux, uses arecord -l to get hardware device names.
+    /// On other platforms, returns CPAL device names.
+    /// Filters out the "hypr-audio-tap" device.
     pub fn list_mic_devices() -> Vec<String> {
+        #[cfg(target_os = "linux")]
+        {
+            // Try to get device names from arecord -l
+            if let Ok(devices) = Self::list_alsa_capture_devices() {
+                if !devices.is_empty() {
+                    tracing::debug!("Returning {} devices from arecord", devices.len());
+                    return devices;
+                }
+            }
+        }
+
+        // Fallback to CPAL enumeration
         let host = cpal::default_host();
 
         let devices: Vec<cpal::Device> = host
@@ -129,7 +145,7 @@ impl AudioInput {
             })
             .unwrap_or_else(|_| Vec::new());
 
-        let mut result: Vec<String> = devices
+        let result: Vec<String> = devices
             .into_iter()
             .filter_map(|d| {
                 let name = d.name();
@@ -148,41 +164,216 @@ impl AudioInput {
             })
             .collect();
 
-        // Add virtual echo-cancel device if it exists
-        if std::process::Command::new("pactl")
-            .args(["list", "sources", "short"])
-            .output()
-            .map(|output| String::from_utf8_lossy(&output.stdout).contains("echo-cancel-source"))
-            .unwrap_or(false)
-        {
-            if !result.contains(&"echo-cancel-source".to_string()) {
-                tracing::debug!("Adding virtual echo-cancel-source device");
-                result.push("echo-cancel-source".to_string());
-            }
-        }
-
         tracing::debug!("Returning {} devices from list_mic_devices", result.len());
         result
     }
 
-    /// Structured microphone device list.
+    /// Get list of ALSA capture devices (Linux only).
+    /// Parses output from `arecord -l` to get device names.
+    #[cfg(target_os = "linux")]
+    fn list_alsa_capture_devices() -> Result<Vec<String>, std::io::Error> {
+        use std::process::Command;
+
+        let output = Command::new("arecord").args(["-l"]).output()?;
+
+        if !output.status.success() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "arecord command failed",
+            ));
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let mut devices = Vec::new();
+
+        // Parse lines like: "card 1: Generic_1 [HD-Audio Generic], device 0: ALC257 Analog [ALC257 Analog]"
+        for line in stdout.lines() {
+            if line.starts_with("card ") {
+                // Extract the card name from brackets
+                if let Some(card_start) = line.find('[') {
+                    if let Some(card_end) = line[card_start..].find(']') {
+                        let card_name = &line[card_start + 1..card_start + card_end];
+
+                        // Extract device name from second set of brackets
+                        if let Some(device_start) = line[card_start + card_end..].find('[') {
+                            if let Some(device_end) =
+                                line[card_start + card_end + device_start..].find(']')
+                            {
+                                let device_name = &line[card_start + card_end + device_start + 1
+                                    ..card_start + card_end + device_start + device_end];
+                                let full_name = format!("{} {}", card_name, device_name);
+                                devices.push(full_name);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(devices)
+    }
+
+    /// Get list of ALSA playback devices (Linux only).
+    /// Parses output from `aplay -l` to get device names.
+    #[cfg(target_os = "linux")]
+    fn list_alsa_playback_devices() -> Result<Vec<String>, std::io::Error> {
+        use std::process::Command;
+
+        let output = Command::new("aplay").args(["-l"]).output()?;
+
+        if !output.status.success() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "aplay command failed",
+            ));
+        }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let mut devices = Vec::new();
+
+        // Parse lines like: "card 1: Generic_1 [HD-Audio Generic], device 0: ALC257 Analog [ALC257 Analog]"
+        for line in stdout.lines() {
+            if line.starts_with("card ") {
+                // Extract the card name from brackets
+                if let Some(card_start) = line.find('[') {
+                    if let Some(card_end) = line[card_start..].find(']') {
+                        let card_name = &line[card_start + 1..card_start + card_end];
+
+                        // Extract device name from second set of brackets
+                        if let Some(device_start) = line[card_start + card_end..].find('[') {
+                            if let Some(device_end) =
+                                line[card_start + card_end + device_start..].find(']')
+                            {
+                                let device_name = &line[card_start + card_end + device_start + 1
+                                    ..card_start + card_end + device_start + device_end];
+                                let full_name = format!("{} {}", card_name, device_name);
+                                devices.push(full_name);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(devices)
+    }
+
+    /// Structured microphone device list with availability checking.
     pub fn list_mic_devices_info() -> Vec<DeviceInfo> {
         let default_name = Self::get_default_mic_device_name();
+        let host = cpal::default_host();
+
         Self::list_mic_devices()
             .into_iter()
-            .map(|name| DeviceInfo {
-                is_default: name == default_name,
-                name,
-                kind: DeviceKind::Input,
+            .map(|name| {
+                let is_available = Self::check_mic_device_availability(&host, &name);
+                DeviceInfo {
+                    is_default: name == default_name,
+                    name,
+                    is_available,
+                    kind: DeviceKind::Input,
+                }
             })
             .collect()
     }
 
+    /// Check if a microphone device is available by attempting to open it.
+    fn check_mic_device_availability(host: &cpal::Host, device_name: &str) -> bool {
+        // Try to find the device by name in CPAL
+        let device = host.input_devices().ok().and_then(|mut devices| {
+            devices.find(|d| {
+                // On Linux with ALSA device names, try to match against CPAL device names
+                // The ALSA format is "Card Device" but CPAL shows different names
+                if let Ok(cpal_name) = d.name() {
+                    // Try exact match first
+                    if cpal_name == device_name {
+                        return true;
+                    }
+                    // Try partial match (e.g., "HD-Audio Generic" in both)
+                    if cpal_name.contains("HD-Audio") && device_name.contains("HD-Audio") {
+                        return true;
+                    }
+                }
+                false
+            })
+        });
+
+        let Some(device) = device else {
+            tracing::debug!("Device '{}' not found in CPAL enumeration", device_name);
+            // On Linux, if the device isn't found by name but we have devices from arecord,
+            // assume it's available (it will use default device)
+            #[cfg(target_os = "linux")]
+            {
+                return true;
+            }
+            #[cfg(not(target_os = "linux"))]
+            {
+                return false;
+            }
+        };
+
+        // Try to get a valid config for the device
+        if let Ok(config) = device.default_input_config() {
+            // Try to build a test stream to verify the device actually works
+            return Self::try_build_input_stream_static(&device, &config);
+        }
+
+        false
+    }
+
+    /// Helper to test if an input stream can be built (used for availability checking).
+    fn try_build_input_stream_static(
+        device: &cpal::Device,
+        config: &cpal::SupportedStreamConfig,
+    ) -> bool {
+        let test_result = match config.sample_format() {
+            cpal::SampleFormat::F32 => device.build_input_stream::<f32, _, _>(
+                &config.config(),
+                |_data: &[f32], _: &cpal::InputCallbackInfo| {},
+                |_err| {},
+                None,
+            ),
+            cpal::SampleFormat::I16 => device.build_input_stream::<i16, _, _>(
+                &config.config(),
+                |_data: &[i16], _: &cpal::InputCallbackInfo| {},
+                |_err| {},
+                None,
+            ),
+            cpal::SampleFormat::I8 => device.build_input_stream::<i8, _, _>(
+                &config.config(),
+                |_data: &[i8], _: &cpal::InputCallbackInfo| {},
+                |_err| {},
+                None,
+            ),
+            cpal::SampleFormat::I32 => device.build_input_stream::<i32, _, _>(
+                &config.config(),
+                |_data: &[i32], _: &cpal::InputCallbackInfo| {},
+                |_err| {},
+                None,
+            ),
+            _ => return false,
+        };
+        test_result.is_ok()
+    }
+
     /// Returns a list of available output (speaker) device names.
     ///
-    /// Filters out virtual or tap devices similar to input listing (currently only filters the
-    /// hypr-audio-tap if present). Future improvements: expose richer metadata.
+    /// On Linux, uses aplay -l to get hardware device names.
+    /// On other platforms, returns CPAL device names.
+    /// Filters out the "hypr-audio-tap" device.
     pub fn list_speaker_devices() -> Vec<String> {
+        #[cfg(target_os = "linux")]
+        {
+            // Try to get device names from aplay -l
+            if let Ok(devices) = Self::list_alsa_playback_devices() {
+                if !devices.is_empty() {
+                    tracing::debug!("Returning {} devices from aplay", devices.len());
+                    return devices;
+                }
+            }
+        }
+
+        // Fallback to CPAL enumeration
         let host = cpal::default_host();
         let devices: Vec<cpal::Device> = host
             .output_devices()
@@ -215,17 +406,101 @@ impl AudioInput {
         result
     }
 
-    /// Structured speaker device list.
+    /// Structured speaker device list with availability checking.
     pub fn list_speaker_devices_info() -> Vec<DeviceInfo> {
         let default_name = Self::get_default_speaker_device_name();
+        let host = cpal::default_host();
+
         Self::list_speaker_devices()
             .into_iter()
-            .map(|name| DeviceInfo {
-                is_default: name == default_name,
-                name,
-                kind: DeviceKind::Output,
+            .map(|name| {
+                let is_available = Self::check_speaker_device_availability(&host, &name);
+                DeviceInfo {
+                    is_default: name == default_name,
+                    name,
+                    is_available,
+                    kind: DeviceKind::Output,
+                }
             })
             .collect()
+    }
+
+    /// Check if a speaker device is available by attempting to open it.
+    fn check_speaker_device_availability(host: &cpal::Host, device_name: &str) -> bool {
+        // Try to find the device by name in CPAL
+        let device = host.output_devices().ok().and_then(|mut devices| {
+            devices.find(|d| {
+                // On Linux with ALSA device names, try to match against CPAL device names
+                if let Ok(cpal_name) = d.name() {
+                    // Try exact match first
+                    if cpal_name == device_name {
+                        return true;
+                    }
+                    // Try partial match (e.g., "HD-Audio Generic" in both)
+                    if cpal_name.contains("HD-Audio") && device_name.contains("HD-Audio") {
+                        return true;
+                    }
+                }
+                false
+            })
+        });
+
+        let Some(device) = device else {
+            tracing::debug!("Device '{}' not found in CPAL enumeration", device_name);
+            // On Linux, if the device isn't found by name but we have devices from aplay,
+            // assume it's available (it will use default device)
+            #[cfg(target_os = "linux")]
+            {
+                return true;
+            }
+            #[cfg(not(target_os = "linux"))]
+            {
+                return false;
+            }
+        };
+
+        // Try to get a valid config for the device
+        if let Ok(config) = device.default_output_config() {
+            // Try to build a test stream to verify the device actually works
+            return Self::try_build_output_stream(&device, &config);
+        }
+
+        false
+    }
+
+    /// Helper to test if an output stream can be built (used for availability checking).
+    fn try_build_output_stream(
+        device: &cpal::Device,
+        config: &cpal::SupportedStreamConfig,
+    ) -> bool {
+        let test_result = match config.sample_format() {
+            cpal::SampleFormat::F32 => device.build_output_stream::<f32, _, _>(
+                &config.config(),
+                |_data: &mut [f32], _: &cpal::OutputCallbackInfo| {},
+                |_err| {},
+                None,
+            ),
+            cpal::SampleFormat::I16 => device.build_output_stream::<i16, _, _>(
+                &config.config(),
+                |_data: &mut [i16], _: &cpal::OutputCallbackInfo| {},
+                |_err| {},
+                None,
+            ),
+            cpal::SampleFormat::I8 => device.build_output_stream::<i8, _, _>(
+                &config.config(),
+                |_data: &mut [i8], _: &cpal::OutputCallbackInfo| {},
+                |_err| {},
+                None,
+            ),
+            cpal::SampleFormat::I32 => device.build_output_stream::<i32, _, _>(
+                &config.config(),
+                |_data: &mut [i32], _: &cpal::OutputCallbackInfo| {},
+                |_err| {},
+                None,
+            ),
+            _ => return false,
+        };
+        test_result.is_ok()
     }
 
     /// Creates an AudioInput configured to stream from a microphone.

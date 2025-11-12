@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-default-speaker-device"
+description = "Enables the set_default_speaker_device command without any pre-configured scope."
+commands.allow = ["set_default_speaker_device"]
+
+[[permission]]
+identifier = "deny-set-default-speaker-device"
+description = "Denies the set_default_speaker_device command without any pre-configured scope."
+commands.deny = ["set_default_speaker_device"]

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-start-mic-test"
+description = "Enables the start_mic_test command without any pre-configured scope."
+commands.allow = ["start_mic_test"]
+
+[[permission]]
+identifier = "deny-start-mic-test"
+description = "Denies the start_mic_test command without any pre-configured scope."
+commands.deny = ["start_mic_test"]

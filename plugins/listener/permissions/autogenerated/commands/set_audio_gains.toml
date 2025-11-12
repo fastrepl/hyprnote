@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-set-audio-gains"
+description = "Enables the set_audio_gains command without any pre-configured scope."
+commands.allow = ["set_audio_gains"]
+
+[[permission]]
+identifier = "deny-set-audio-gains"
+description = "Denies the set_audio_gains command without any pre-configured scope."
+commands.deny = ["set_audio_gains"]

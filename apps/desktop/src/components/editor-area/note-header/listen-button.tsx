@@ -551,8 +551,8 @@ function MicrophoneSelector({
     queryFn: () => listenerCommands.getCurrentMicrophoneDevice(),
   });
 
-  const handleSelectDevice = (device: string) => {
-    listenerCommands.setMicrophoneDevice(device).then(() => {
+  const handleSelectDevice = (deviceName: string) => {
+    listenerCommands.setMicrophoneDevice(deviceName).then(() => {
       currentDeviceQuery.refetch();
     });
   };
@@ -617,23 +617,45 @@ function MicrophoneSelector({
               : (
                 <div className="space-y-1">
                   {allDevicesQuery.data?.map((device) => {
-                    const isSelected = device === currentDeviceQuery.data;
+                    const isSelected = device.name === currentDeviceQuery.data;
+                    const isAvailable = device.is_available;
                     return (
                       <Button
-                        key={device}
+                        key={device.name}
                         variant="ghost"
                         className={cn(
                           "w-full justify-start text-left h-8 px-2",
                           isSelected && "bg-neutral-100",
+                          !isAvailable && "opacity-50 cursor-not-allowed",
                         )}
                         onClick={() => {
-                          handleSelectDevice(device);
-                          setIsOpen(false);
+                          if (isAvailable) {
+                            handleSelectDevice(device.name);
+                            setIsOpen(false);
+                          }
                         }}
+                        disabled={!isAvailable}
                       >
-                        <Icon className="w-4 h-4 mr-2 flex-shrink-0 text-neutral-600" />
-                        <span className="text-sm truncate flex-1">{device}</span>
-                        {isSelected && <CheckIcon className="w-4 h-4 ml-auto flex-shrink-0 text-green-600" />}
+                        <Icon
+                          className={cn(
+                            "w-4 h-4 mr-2 flex-shrink-0",
+                            isAvailable ? "text-neutral-600" : "text-neutral-400",
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "text-sm truncate flex-1",
+                            !isAvailable && "text-neutral-400",
+                          )}
+                        >
+                          {device.name}
+                        </span>
+                        {!isAvailable && (
+                          <span className="text-xs text-neutral-400 ml-2 flex-shrink-0">(unavailable)</span>
+                        )}
+                        {isSelected && isAvailable && (
+                          <CheckIcon className="w-4 h-4 ml-auto flex-shrink-0 text-green-600" />
+                        )}
                       </Button>
                     );
                   })}

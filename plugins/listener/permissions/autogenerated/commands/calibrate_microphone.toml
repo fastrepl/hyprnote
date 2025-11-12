@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-calibrate-microphone"
+description = "Enables the calibrate_microphone command without any pre-configured scope."
+commands.allow = ["calibrate_microphone"]
+
+[[permission]]
+identifier = "deny-calibrate-microphone"
+description = "Denies the calibrate_microphone command without any pre-configured scope."
+commands.deny = ["calibrate_microphone"]

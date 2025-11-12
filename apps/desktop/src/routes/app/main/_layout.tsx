@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { buildChatTools } from "../../../chat/tools";
 import { AITaskProvider } from "../../../contexts/ai-task";
@@ -17,21 +17,22 @@ export const Route = createFileRoute("/app/main/_layout")({
 
 function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({ from: "__root__" });
-  const { registerOnEmpty, currentTab, openNew } = useTabs();
+  const { registerOnEmpty, openNew, tabs } = useTabs();
+  const hasOpenedInitialTab = useRef(false);
 
   const openDefaultEmptyTab = useCallback(() => {
     openNew({ type: "empty" });
   }, [openNew]);
 
   useEffect(() => {
-    if (!currentTab) {
+    // Use ref to prevent double-opening in React Strict Mode
+    if (tabs.length === 0 && !hasOpenedInitialTab.current) {
+      hasOpenedInitialTab.current = true;
       openDefaultEmptyTab();
     }
-  }, [currentTab, openDefaultEmptyTab]);
 
-  useEffect(() => {
     registerOnEmpty(openDefaultEmptyTab);
-  }, [openDefaultEmptyTab, registerOnEmpty]);
+  }, [tabs.length, openDefaultEmptyTab, registerOnEmpty]);
 
   if (!aiTaskStore) {
     return null;

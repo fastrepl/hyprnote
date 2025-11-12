@@ -29,6 +29,8 @@ function TemplateList({ templates }: { templates: main.Template[] }) {
           key={index}
           title={template.title}
           description={template.description}
+          category={template.category}
+          targets={template.targets}
           onClick={() =>
             cloneAndEdit({
               title: template.title,
@@ -56,7 +58,15 @@ function useSuggestedTemplates(query: string) {
         return data;
       }
 
-      return data.filter((template) => template.title.includes(query));
+      const lowerQuery = query.toLowerCase();
+
+      return data.filter((template) => {
+        const titleMatch = template.title.toLowerCase().includes(lowerQuery);
+        const categoryMatch = template.category?.toLowerCase().includes(lowerQuery);
+        const targetsMatch = template.targets?.some((target) => target.toLowerCase().includes(lowerQuery));
+
+        return titleMatch || categoryMatch || targetsMatch;
+      });
     },
   });
 }

@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{io, path::PathBuf, sync::Arc};
 use tauri_plugin_shell::process::{Command, CommandChild};
 
 use super::{ServerInfo, ServerStatus};
@@ -6,6 +6,7 @@ use backon::{ConstantBuilder, Retryable};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 
 use crate::SupportedSttModel;
+use tokio::sync::Mutex;
 
 pub enum ExternalSTTMessage {
     GetHealth(RpcReplyPort<ServerInfo>),
@@ -20,6 +21,7 @@ pub struct ExternalSTTArgs {
     pub api_key: String,
     pub model: hypr_am::AmModel,
     pub models_dir: PathBuf,
+    shared_port: Arc<Mutex<Option<u16>>>,
 }
 
 impl ExternalSTTArgs {
@@ -34,6 +36,7 @@ impl ExternalSTTArgs {
             api_key,
             model,
             models_dir,
+            shared_port: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -56,6 +59,7 @@ impl ExternalSTTArgs {
             api_key,
             model,
             models_dir,
+            shared_port: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -78,6 +82,35 @@ impl ExternalSTTActor {
     }
 }
 
+fn cleanup_state(state: &mut ExternalSTTState) {
+    let mut kill_failed = false;
+
+    if let Some(process) = state.process_handle.take() {
+        if let Err(e) = process.kill() {
+            if let tauri_plugin_shell::Error::Io(io_err) = &e {
+                match io_err.kind() {
+                    io::ErrorKind::InvalidInput | io::ErrorKind::NotFound => {}
+                    _ => {
+                        tracing::error!("failed_to_kill_process: {:?}", e);
+                        kill_failed = true;
+                    }
+                }
+            } else {
+                tracing::error!("failed_to_kill_process: {:?}", e);
+                kill_failed = true;
+            }
+        }
+    }
+
+    if kill_failed {
+        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+    }
+
+    if let Some(task) = state.task_handle.take() {
+        task.abort();
+    }
+}
+
 #[ractor::async_trait]
 impl Actor for ExternalSTTActor {
     type Msg = ExternalSTTMessage;
@@ -89,8 +122,28 @@ impl Actor for ExternalSTTActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let port = port_check::free_local_port().unwrap();
-        let cmd = (args.cmd_factory)();
+        let ExternalSTTArgs {
+            cmd_factory,
+            api_key,
+            model,
+            models_dir,
+            shared_port,
+        } = args;
+
+        let port = {
+            let mut shared_port = shared_port.lock().await;
+            if let Some(port) = *shared_port {
+                port
+            } else {
+                let port = port_check::free_local_port()
+                    .ok_or_else(|| ActorProcessingErr::from("failed_to_find_free_port"))?;
+
+                *shared_port = Some(port);
+                port
+            }
+        };
+
+        let cmd = (cmd_factory)();
         let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
         let base_url = format!("http://localhost:{}/v1", port);
         let client = hypr_am::Client::new(&base_url);
@@ -134,9 +187,9 @@ impl Actor for ExternalSTTActor {
 
         Ok(ExternalSTTState {
             base_url,
-            api_key: Some(args.api_key),
-            model: args.model,
-            models_dir: args.models_dir,
+            api_key: Some(api_key),
+            model,
+            models_dir,
             client,
             process_handle: Some(child),
             task_handle: Some(task_handle),
@@ -181,31 +234,20 @@ impl Actor for ExternalSTTActor {
         _myself: ActorRef<Self::Msg>,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
-        if let Some(process) = state.process_handle.take() {
-            if let Err(e) = process.kill() {
-                tracing::error!("failed_to_kill_process: {:?}", e);
-            }
-        }
-
-        if let Some(task) = state.task_handle.take() {
-            task.abort();
-        }
-
-        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
-
+        cleanup_state(state);
         Ok(())
     }
 
     async fn handle(
         &self,
-        myself: ActorRef<Self::Msg>,
+        _myself: ActorRef<Self::Msg>,
         message: Self::Msg,
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match message {
             ExternalSTTMessage::ProcessTerminated(e) => {
-                myself.stop(Some(e));
-                Ok(())
+                cleanup_state(state);
+                Err(io::Error::new(io::ErrorKind::Other, e).into())
             }
             ExternalSTTMessage::GetHealth(reply_port) => {
                 let status = match state.client.status().await {

@@ -66,7 +66,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 }
             };
 
-            let state = SharedState::new(tokio::sync::Mutex::new(State {
+            let state = std::sync::Arc::new(tokio::sync::Mutex::new(State {
                 am_api_key: api_key,
                 download_task: HashMap::new(),
                 stt_supervisor: None,

@@ -9,6 +9,10 @@ pub trait CalendarSource {
     fn list_events(&self, filter: EventFilter) -> impl Future<Output = Result<Vec<Event>, Error>>;
 }
 
+pub trait ContactSource {
+    fn list_contacts(&self) -> impl Future<Output = Result<Vec<Contact>, Error>>;
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Platform {
     Apple,
@@ -91,4 +95,16 @@ impl Event {
             }
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Contact {
+    pub id: String,
+    pub platform: Platform,
+    pub given_name: String,
+    pub family_name: String,
+    pub organization: Option<String>,
+    pub emails: Vec<String>,
+    pub phone_numbers: Vec<String>,
+    pub note: Option<String>,
 }

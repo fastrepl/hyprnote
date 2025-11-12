@@ -1,5 +1,8 @@
 // CalDAV client for Linux and other non-macOS platforms
 #[cfg(not(target_os = "macos"))]
+mod carddav_client;
+
+#[cfg(not(target_os = "macos"))]
 pub mod caldav;
 
 #[cfg(not(target_os = "macos"))]
@@ -14,5 +17,6 @@ pub use macos_native::Handle;
 
 // Re-export common types from the interface
 pub use hypr_calendar_interface::{
-    Calendar, CalendarSource, Error, Event, EventFilter, Participant, Platform,
+    Calendar, CalendarSource, Contact, ContactSource, Error, Event, EventFilter, Participant,
+    Platform,
 };

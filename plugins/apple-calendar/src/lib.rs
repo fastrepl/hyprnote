@@ -32,6 +32,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::request_contacts_access::<tauri::Wry>,
             commands::sync_calendars::<tauri::Wry>,
             commands::sync_events::<tauri::Wry>,
+            commands::sync_contacts::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)
 }

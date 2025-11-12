@@ -1,16 +1,20 @@
 use base64::Engine as _;
 use chrono::{DateTime, Utc};
 use hypr_calendar_interface::{
-    Calendar, CalendarSource, Error, Event, EventFilter, Participant, Platform,
+    Calendar, CalendarSource, Contact, ContactSource, Error, Event, EventFilter, Participant,
+    Platform,
 };
 use itertools::Itertools;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
+
+use crate::carddav_client;
 
 pub struct CalDavHandle {
     client: reqwest::Client,
     base_url: String,
     username: String,
     password: String,
+    carddav: carddav_client::CardDavHandle,
 }
 
 impl CalDavHandle {
@@ -34,11 +38,19 @@ impl CalDavHandle {
             .timeout(std::time::Duration::from_secs(30))
             .build()?;
 
+        let carddav = carddav_client::CardDavHandle::with_credentials(
+            std::env::var("CARDDAV_URL")
+                .unwrap_or_else(|_| "https://contacts.icloud.com".to_string()),
+            username.clone(),
+            password.clone(),
+        )?;
+
         Ok(Self {
             client,
             base_url,
             username,
             password,
+            carddav,
         })
     }
 
@@ -50,8 +62,7 @@ impl CalDavHandle {
     }
 
     pub fn contacts_access_status(&self) -> bool {
-        // CardDAV not implemented yet
-        false
+        self.carddav.contacts_access_status()
     }
 
     pub fn request_calendar_access(&mut self) {
@@ -327,6 +338,12 @@ impl CalendarSource for CalDavHandle {
             .into_iter()
             .sorted_by(|a, b| a.start_date.cmp(&b.start_date))
             .collect())
+    }
+}
+
+impl ContactSource for CalDavHandle {
+    async fn list_contacts(&self) -> Result<Vec<Contact>, Error> {
+        self.carddav.list_contacts().await
     }
 }
 

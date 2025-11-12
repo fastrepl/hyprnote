@@ -13,6 +13,7 @@ itertools = { workspace = true }
 reqwest = { workspace = true, features = ["rustls-tls"] }
 roxmltree = "0.20.0"
 tokio = { workspace = true, features = ["rt"] }
+vcard_parser = "0.2.2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 block2 = "0.5.1"

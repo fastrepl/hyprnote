@@ -2008,6 +2008,7 @@ dependencies = [
  "reqwest 0.12.22",
  "roxmltree",
  "tokio",
+ "vcard_parser",
 ]
 
 [[package]]
@@ -7958,6 +7959,12 @@ dependencies = [
  "thiserror 2.0.12",
  "whisper",
 ]
+
+[[package]]
+name = "language-tags"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4345964bb142484797b161f473a503a434de77149dd8c7427788c6e13379388"
 
 [[package]]
 name = "lazy-regex"
@@ -16416,6 +16423,18 @@ name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
+
+[[package]]
+name = "vcard_parser"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc100f699a284e97b3e1d92c0c7ab2f5b6efc39b35d63a675fa5e80dcdbd9778"
+dependencies = [
+ "language-tags",
+ "nom",
+ "time",
+ "url",
+]
 
 [[package]]
 name = "vcpkg"

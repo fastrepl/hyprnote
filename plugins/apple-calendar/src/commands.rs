@@ -57,3 +57,9 @@ pub async fn sync_calendars<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Resu
 pub async fn sync_events<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
     app.sync_events().await.map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub async fn sync_contacts<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), String> {
+    app.sync_contacts().await.map_err(|e| e.to_string())
+}

@@ -6,6 +6,8 @@ mod chat_messages_ops;
 mod chat_messages_types;
 mod config_ops;
 mod config_types;
+mod contacts_ops;
+mod contacts_types;
 mod events_ops;
 mod events_types;
 mod extensions_ops;
@@ -37,6 +39,10 @@ pub use chat_messages_types::*;
 pub use config_ops::*;
 #[allow(unused)]
 pub use config_types::*;
+#[allow(unused)]
+pub use contacts_ops::*;
+#[allow(unused)]
+pub use contacts_types::*;
 #[allow(unused)]
 pub use events_ops::*;
 #[allow(unused)]
@@ -129,7 +135,7 @@ impl std::ops::Deref for UserDatabase {
 }
 
 // Append only. Do not reorder.
-const MIGRATIONS: [&str; 22] = [
+const MIGRATIONS: [&str; 23] = [
     include_str!("./calendars_migration.sql"),
     include_str!("./configs_migration.sql"),
     include_str!("./events_migration.sql"),
@@ -152,6 +158,7 @@ const MIGRATIONS: [&str; 22] = [
     include_str!("./events_migration_1.sql"),
     include_str!("./session_participants_migration_1.sql"),
     include_str!("./configs_migration_1.sql"),
+    include_str!("./contacts_migration.sql"),
 ];
 
 pub async fn migrate(db: &UserDatabase) -> Result<(), crate::Error> {

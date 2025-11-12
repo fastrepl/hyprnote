@@ -1,7 +1,7 @@
 use chrono::Utc;
 use serde_json;
 
-use hypr_calendar_interface::{CalendarSource, EventFilter};
+use hypr_calendar_interface::{CalendarSource, ContactSource, EventFilter};
 use hypr_db_user::{
     GetSessionFilter, ListEventFilter, ListEventFilterCommon, ListEventFilterSpecific,
 };
@@ -60,6 +60,23 @@ pub async fn sync_events(
     .await?
     .execute(&db)
     .await;
+
+    Ok(())
+}
+
+pub async fn sync_contacts(
+    db: hypr_db_user::UserDatabase,
+    user_id: String,
+) -> Result<(), crate::Error> {
+    check_contacts_access().await?;
+
+    let db_contacts = db.list_contacts(&user_id).await.unwrap_or(vec![]);
+    let system_contacts = list_system_contacts().await;
+
+    _sync_contacts(user_id, db_contacts, system_contacts)
+        .await?
+        .execute(&db)
+        .await;
 
     Ok(())
 }
@@ -254,6 +271,59 @@ async fn _sync_events(
     Ok(state)
 }
 
+async fn _sync_contacts(
+    user_id: String,
+    db_contacts: Vec<hypr_db_user::Contact>,
+    system_contacts: Vec<hypr_calendar_interface::Contact>,
+) -> Result<ContactSyncState, crate::Error> {
+    let contacts_to_delete = {
+        let items = db_contacts
+            .iter()
+            .filter(|db_c| {
+                !system_contacts
+                    .iter()
+                    .any(|sys_c| sys_c.id == db_c.tracking_id)
+            })
+            .cloned()
+            .collect::<Vec<hypr_db_user::Contact>>();
+
+        tracing::info!("contacts_to_delete_len: {}", items.len());
+        items
+    };
+
+    let contacts_to_upsert = {
+        let items = system_contacts
+            .iter()
+            .map(|sys_c| {
+                let existing = db_contacts.iter().find(|db_c| db_c.tracking_id == sys_c.id);
+
+                hypr_db_user::Contact {
+                    id: existing.map_or(uuid::Uuid::new_v4().to_string(), |c| c.id.clone()),
+                    tracking_id: sys_c.id.clone(),
+                    user_id: user_id.clone(),
+                    given_name: sys_c.given_name.clone(),
+                    family_name: sys_c.family_name.clone(),
+                    organization: sys_c.organization.clone(),
+                    emails: serde_json::to_string(&sys_c.emails)
+                        .unwrap_or_else(|_| "[]".to_string()),
+                    phone_numbers: serde_json::to_string(&sys_c.phone_numbers)
+                        .unwrap_or_else(|_| "[]".to_string()),
+                    note: sys_c.note.clone(),
+                    platform: sys_c.platform.clone().into(),
+                }
+            })
+            .collect::<Vec<hypr_db_user::Contact>>();
+
+        tracing::info!("contacts_to_upsert_len: {}", items.len());
+        items
+    };
+
+    Ok(ContactSyncState {
+        to_delete: contacts_to_delete,
+        to_upsert: contacts_to_upsert,
+    })
+}
+
 fn find_potentially_rescheduled_event<'a>(
     db_event: &hypr_db_user::Event,
     system_events: &'a [&hypr_calendar_interface::Event],
@@ -291,6 +361,20 @@ async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
             .unwrap();
 
         rt.block_on(async { handle.list_calendars().await.unwrap_or_default() })
+    })
+    .await
+    .unwrap_or_default()
+}
+
+async fn list_system_contacts() -> Vec<hypr_calendar_interface::Contact> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let handle = hypr_calendar_apple::Handle::new();
+        let rt = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        rt.block_on(async { handle.list_contacts().await.unwrap_or_default() })
     })
     .await
     .unwrap_or_default()
@@ -440,10 +524,31 @@ async fn check_calendar_access() -> Result<(), crate::Error> {
     Ok(())
 }
 
+async fn check_contacts_access() -> Result<(), crate::Error> {
+    let contacts_access = tauri::async_runtime::spawn_blocking(|| {
+        let handle = hypr_calendar_apple::Handle::new();
+        handle.contacts_access_status()
+    })
+    .await
+    .unwrap_or(false);
+
+    if !contacts_access {
+        return Err(crate::Error::ContactsAccessDenied);
+    }
+
+    Ok(())
+}
+
 #[derive(Debug, Default)]
 struct CalendarSyncState {
     to_delete: Vec<hypr_db_user::Calendar>,
     to_upsert: Vec<hypr_db_user::Calendar>,
+}
+
+#[derive(Debug, Default)]
+struct ContactSyncState {
+    to_delete: Vec<hypr_db_user::Contact>,
+    to_upsert: Vec<hypr_db_user::Contact>,
 }
 
 #[derive(Debug, Default)]
@@ -464,6 +569,22 @@ impl CalendarSyncState {
         for calendar in self.to_upsert {
             if let Err(e) = db.upsert_calendar(calendar).await {
                 tracing::error!("upsert_calendar_error: {}", e);
+            }
+        }
+    }
+}
+
+impl ContactSyncState {
+    async fn execute(self, db: &hypr_db_user::UserDatabase) {
+        for contact in self.to_delete {
+            if let Err(e) = db.delete_contact(&contact.id).await {
+                tracing::error!("delete_contact_error: {}", e);
+            }
+        }
+
+        for contact in self.to_upsert {
+            if let Err(e) = db.upsert_contact(contact).await {
+                tracing::error!("upsert_contact_error: {}", e);
             }
         }
     }

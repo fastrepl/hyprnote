@@ -5,14 +5,15 @@ use objc2::msg_send;
 
 use block2::RcBlock;
 use objc2::{rc::Retained, runtime::Bool};
-use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType};
+use objc2_contacts::{CNAuthorizationStatus, CNContact, CNContactStore, CNEntityType};
 use objc2_event_kit::{
     EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore, EKParticipant,
 };
 use objc2_foundation::{NSArray, NSDate, NSError, NSString};
 
 use hypr_calendar_interface::{
-    Calendar, CalendarSource, Error, Event, EventFilter, Participant, Platform,
+    Calendar, CalendarSource, Contact, ContactSource, Error, Event, EventFilter, Participant,
+    Platform,
 };
 
 pub struct Handle {
@@ -221,6 +222,20 @@ impl CalendarSource for Handle {
             .collect();
 
         Ok(events)
+    }
+}
+
+impl ContactSource for Handle {
+    async fn list_contacts(&self) -> Result<Vec<Contact>, Error> {
+        if !self.contacts_access_granted {
+            return Err(anyhow::anyhow!("Contacts access not granted"));
+        }
+
+        // TODO: Implement actual contact fetching using CNContactStore
+        // This requires additional objc2-contacts bindings for CNContactFetchRequest
+        // For now, return an empty list as a placeholder
+        tracing::warn!("Contact fetching not yet implemented for macOS");
+        Ok(Vec::new())
     }
 }
 

@@ -33,6 +33,9 @@ async syncCalendars() : Promise<null> {
 },
 async syncEvents() : Promise<null> {
     return await TAURI_INVOKE("plugin:apple-calendar|sync_events");
+},
+async syncContacts() : Promise<null> {
+    return await TAURI_INVOKE("plugin:apple-calendar|sync_contacts");
 }
 }
 

@@ -20,6 +20,10 @@ pub enum Error {
     ServerAlreadyRunning,
     #[error("Server start failed {0}")]
     ServerStartFailed(String),
+    #[error("Server stop failed {0}")]
+    ServerStopFailed(String),
+    #[error("Supervisor not found")]
+    SupervisorNotFound,
     #[error("AM binary not found")]
     AmBinaryNotFound,
     #[error("AM API key not set")]

@@ -1,3 +1,5 @@
+use ractor::ActorRef;
+use ractor_supervisor::dynamic::DynamicSupervisorMsg;
 use std::collections::HashMap;
 use tauri::{Manager, Wry};
 use tokio_util::sync::CancellationToken;
@@ -17,10 +19,10 @@ pub use types::*;
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
 
-#[derive(Default)]
 pub struct State {
     pub am_api_key: Option<String>,
     pub download_task: HashMap<SupportedSttModel, (tokio::task::JoinHandle<()>, CancellationToken)>,
+    pub stt_supervisor: Option<ActorRef<DynamicSupervisorMsg>>,
 }
 
 const PLUGIN_NAME: &str = "local-stt";
@@ -64,10 +66,26 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 }
             };
 
-            app.manage(SharedState::new(tokio::sync::Mutex::new(State {
+            let state = SharedState::new(tokio::sync::Mutex::new(State {
                 am_api_key: api_key,
-                ..Default::default()
-            })));
+                download_task: HashMap::new(),
+                stt_supervisor: None,
+            }));
+
+            app.manage(state.clone());
+
+            tauri::async_runtime::spawn(async move {
+                match server::supervisor::spawn_stt_supervisor().await {
+                    Ok(supervisor) => {
+                        let mut guard = state.lock().await;
+                        guard.stt_supervisor = Some(supervisor);
+                        tracing::info!("stt_supervisor_spawned");
+                    }
+                    Err(e) => {
+                        tracing::error!("failed_to_spawn_stt_supervisor: {:?}", e);
+                    }
+                }
+            });
 
             Ok(())
         })

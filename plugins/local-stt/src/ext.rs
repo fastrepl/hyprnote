@@ -1,7 +1,6 @@
-use std::{collections::HashMap, future::Future, path::PathBuf, time::Duration};
+use std::{collections::HashMap, future::Future, path::PathBuf, sync::Arc};
 
-use ractor::{call_t, registry, Actor, ActorRef};
-use tokio::time::sleep;
+use ractor::{call_t, registry, ActorRef};
 use tokio_util::sync::CancellationToken;
 
 use tauri::{ipc::Channel, Manager, Runtime};
@@ -12,12 +11,16 @@ use hypr_file::download_file_parallel_cancellable;
 
 use crate::{
     model::SupportedSttModel,
-    server::{external, internal, ServerInfo, ServerStatus, ServerType},
+    server::{external, internal, supervisor, ServerInfo, ServerStatus, ServerType},
 };
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn models_dir(&self) -> PathBuf;
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
+
+    fn get_supervisor(
+        &self,
+    ) -> impl Future<Output = Result<supervisor::SupervisorRef, crate::Error>>;
 
     fn start_server(
         &self,
@@ -51,6 +54,15 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend> {
         hypr_whisper_local::list_ggml_backends()
+    }
+
+    async fn get_supervisor(&self) -> Result<supervisor::SupervisorRef, crate::Error> {
+        let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
+        guard
+            .stt_supervisor
+            .clone()
+            .ok_or(crate::Error::SupervisorNotFound)
     }
 
     async fn is_model_downloaded(&self, model: &SupportedSttModel) -> Result<bool, crate::Error> {
@@ -120,9 +132,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         let cache_dir = self.models_dir();
         let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
 
-        self.stop_server(None).await?;
-        // Need some delay
-        sleep(Duration::from_millis(300)).await;
+        let supervisor = self.get_supervisor().await?;
+
+        supervisor::stop_all_stt_servers(&supervisor)
+            .await
+            .map_err(|e| crate::Error::ServerStopFailed(e.to_string()))?;
 
         match t {
             ServerType::Internal => {
@@ -133,9 +147,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
                 };
 
-                let (_server, _) = Actor::spawn(
-                    Some(internal::InternalSTTActor::name()),
-                    internal::InternalSTTActor,
+                supervisor::start_internal_stt(
+                    &supervisor,
                     internal::InternalSTTArgs {
                         model_cache_dir: cache_dir,
                         model_type: whisper_model,
@@ -164,7 +177,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
                 };
 
-                let cmd: tauri_plugin_shell::process::Command = {
+                let app_handle = self.app_handle().clone();
+                let cmd_factory: external::CommandFactory = {
                     #[cfg(debug_assertions)]
                     {
                         let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -177,29 +191,34 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                             return Err(crate::Error::AmBinaryNotFound);
                         }
 
-                        self.shell()
-                            .command(passthrough_path)
-                            .current_dir(dirs::home_dir().unwrap())
-                            .arg(stt_path)
-                            .args(["serve", "--any-token", "-v", "-d"])
+                        let passthrough_path = Arc::new(passthrough_path);
+                        let stt_path = Arc::new(stt_path);
+                        Arc::new(move || {
+                            app_handle
+                                .shell()
+                                .command(passthrough_path.as_ref())
+                                .current_dir(dirs::home_dir().unwrap())
+                                .arg(stt_path.as_ref())
+                                .args(["serve", "--any-token", "-v", "-d"])
+                        })
                     }
 
                     #[cfg(not(debug_assertions))]
-                    self.shell()
-                        .sidecar("stt")?
-                        .current_dir(dirs::home_dir().unwrap())
-                        .args(["serve", "--any-token"])
+                    {
+                        Arc::new(move || {
+                            app_handle
+                                .shell()
+                                .sidecar("stt")
+                                .expect("failed to create sidecar command")
+                                .current_dir(dirs::home_dir().unwrap())
+                                .args(["serve", "--any-token"])
+                        })
+                    }
                 };
 
-                let (_server, _) = Actor::spawn(
-                    Some(external::ExternalSTTActor::name()),
-                    external::ExternalSTTActor,
-                    external::ExternalSTTArgs {
-                        cmd,
-                        api_key: am_key,
-                        model: am_model,
-                        models_dir: data_dir,
-                    },
+                supervisor::start_external_stt(
+                    &supervisor,
+                    external::ExternalSTTArgs::new(cmd_factory, am_key, am_model, data_dir),
                 )
                 .await
                 .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;
@@ -214,49 +233,22 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn stop_server(&self, server_type: Option<ServerType>) -> Result<bool, crate::Error> {
-        let mut stopped = false;
+        let supervisor = self.get_supervisor().await?;
+
         match server_type {
-            Some(ServerType::External) => {
-                if let Some(cell) = registry::where_is(external::ExternalSTTActor::name()) {
-                    let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
-                    if let Err(e) = actor.stop_and_wait(None, None).await {
-                        tracing::error!("stop_server: {:?}", e);
-                    } else {
-                        stopped = true;
-                    }
-                }
-            }
-            Some(ServerType::Internal) => {
-                if let Some(cell) = registry::where_is(internal::InternalSTTActor::name()) {
-                    let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
-                    if let Err(e) = actor.stop_and_wait(None, None).await {
-                        tracing::error!("stop_server: {:?}", e);
-                    } else {
-                        stopped = true;
-                    }
-                }
+            Some(t) => {
+                supervisor::stop_stt_server(&supervisor, t)
+                    .await
+                    .map_err(|e| crate::Error::ServerStopFailed(e.to_string()))?;
+                Ok(true)
             }
             None => {
-                if let Some(cell) = registry::where_is(external::ExternalSTTActor::name()) {
-                    let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
-                    if let Err(e) = actor.stop_and_wait(None, None).await {
-                        tracing::error!("stop_server: {:?}", e);
-                    } else {
-                        stopped = true;
-                    }
-                }
-                if let Some(cell) = registry::where_is(internal::InternalSTTActor::name()) {
-                    let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
-                    if let Err(e) = actor.stop_and_wait(None, None).await {
-                        tracing::error!("stop_server: {:?}", e);
-                    } else {
-                        stopped = true;
-                    }
-                }
+                supervisor::stop_all_stt_servers(&supervisor)
+                    .await
+                    .map_err(|e| crate::Error::ServerStopFailed(e.to_string()))?;
+                Ok(true)
             }
         }
-
-        Ok(stopped)
     }
 
     #[tracing::instrument(skip_all)]

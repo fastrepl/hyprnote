@@ -1,5 +1,6 @@
 pub mod external;
 pub mod internal;
+pub mod supervisor;
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, specta::Type,

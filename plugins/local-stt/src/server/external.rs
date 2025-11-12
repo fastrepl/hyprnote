@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 use tauri_plugin_shell::process::{Command, CommandChild};
 
 use super::{ServerInfo, ServerStatus};
@@ -12,11 +12,52 @@ pub enum ExternalSTTMessage {
     ProcessTerminated(String),
 }
 
+pub type CommandFactory = Arc<dyn Fn() -> Command + Send + Sync>;
+
+#[derive(Clone)]
 pub struct ExternalSTTArgs {
-    pub cmd: Command,
+    pub cmd_factory: CommandFactory,
     pub api_key: String,
     pub model: hypr_am::AmModel,
     pub models_dir: PathBuf,
+}
+
+impl ExternalSTTArgs {
+    pub fn new(
+        cmd_factory: CommandFactory,
+        api_key: String,
+        model: hypr_am::AmModel,
+        models_dir: PathBuf,
+    ) -> Self {
+        Self {
+            cmd_factory,
+            api_key,
+            model,
+            models_dir,
+        }
+    }
+
+    pub fn from_command(
+        cmd: Command,
+        api_key: String,
+        model: hypr_am::AmModel,
+        models_dir: PathBuf,
+    ) -> Self {
+        let cmd_cell = Arc::new(std::sync::Mutex::new(Some(cmd)));
+        let cmd_factory = Arc::new(move || {
+            cmd_cell
+                .lock()
+                .unwrap()
+                .take()
+                .expect("Command can only be used once - for restart support, use ExternalSTTArgs::new with a factory function")
+        });
+        Self {
+            cmd_factory,
+            api_key,
+            model,
+            models_dir,
+        }
+    }
 }
 
 pub struct ExternalSTTState {
@@ -49,7 +90,8 @@ impl Actor for ExternalSTTActor {
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
         let port = port_check::free_local_port().unwrap();
-        let (mut rx, child) = args.cmd.args(["--port", &port.to_string()]).spawn()?;
+        let cmd = (args.cmd_factory)();
+        let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
         let base_url = format!("http://localhost:{}/v1", port);
         let client = hypr_am::Client::new(&base_url);
 

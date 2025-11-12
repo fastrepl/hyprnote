@@ -16,6 +16,7 @@ pub enum InternalSTTMessage {
     ServerError(String),
 }
 
+#[derive(Clone)]
 pub struct InternalSTTArgs {
     pub model_type: WhisperModel,
     pub model_cache_dir: PathBuf,

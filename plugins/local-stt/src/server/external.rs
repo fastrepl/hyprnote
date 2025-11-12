@@ -1,65 +1,57 @@
 use std::{io, path::PathBuf, sync::Arc};
 use tauri_plugin_shell::process::{Command, CommandChild};
 
-use super::{ServerInfo, ServerStatus};
 use backon::{ConstantBuilder, Retryable};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 
+use super::{ServerInfo, ServerStatus};
 use crate::SupportedSttModel;
-use tokio::sync::Mutex;
 
 pub enum ExternalSTTMessage {
     GetHealth(RpcReplyPort<ServerInfo>),
     ProcessTerminated(String),
 }
 
-pub type CommandFactory = Arc<dyn Fn() -> Command + Send + Sync>;
+#[derive(Clone)]
+pub struct CommandBuilder {
+    factory: Arc<dyn Fn() -> Command + Send + Sync>,
+}
+
+impl CommandBuilder {
+    pub fn new(factory: impl Fn() -> Command + Send + Sync + 'static) -> Self {
+        Self {
+            factory: Arc::new(factory),
+        }
+    }
+
+    pub fn build(&self) -> Command {
+        (self.factory)()
+    }
+}
 
 #[derive(Clone)]
 pub struct ExternalSTTArgs {
-    pub cmd_factory: CommandFactory,
+    pub cmd_builder: CommandBuilder,
     pub api_key: String,
     pub model: hypr_am::AmModel,
     pub models_dir: PathBuf,
-    shared_port: Arc<Mutex<Option<u16>>>,
+    pub port: u16,
 }
 
 impl ExternalSTTArgs {
     pub fn new(
-        cmd_factory: CommandFactory,
+        cmd_builder: CommandBuilder,
         api_key: String,
         model: hypr_am::AmModel,
         models_dir: PathBuf,
+        port: u16,
     ) -> Self {
         Self {
-            cmd_factory,
+            cmd_builder,
             api_key,
             model,
             models_dir,
-            shared_port: Arc::new(Mutex::new(None)),
-        }
-    }
-
-    pub fn from_command(
-        cmd: Command,
-        api_key: String,
-        model: hypr_am::AmModel,
-        models_dir: PathBuf,
-    ) -> Self {
-        let cmd_cell = Arc::new(std::sync::Mutex::new(Some(cmd)));
-        let cmd_factory = Arc::new(move || {
-            cmd_cell
-                .lock()
-                .unwrap()
-                .take()
-                .expect("Command can only be used once - for restart support, use ExternalSTTArgs::new with a factory function")
-        });
-        Self {
-            cmd_factory,
-            api_key,
-            model,
-            models_dir,
-            shared_port: Arc::new(Mutex::new(None)),
+            port,
         }
     }
 }
@@ -123,27 +115,14 @@ impl Actor for ExternalSTTActor {
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
         let ExternalSTTArgs {
-            cmd_factory,
+            cmd_builder,
             api_key,
             model,
             models_dir,
-            shared_port,
+            port,
         } = args;
 
-        let port = {
-            let mut shared_port = shared_port.lock().await;
-            if let Some(port) = *shared_port {
-                port
-            } else {
-                let port = port_check::free_local_port()
-                    .ok_or_else(|| ActorProcessingErr::from("failed_to_find_free_port"))?;
-
-                *shared_port = Some(port);
-                port
-            }
-        };
-
-        let cmd = (cmd_factory)();
+        let cmd = cmd_builder.build();
         let (mut rx, child) = cmd.args(["--port", &port.to_string()]).spawn()?;
         let base_url = format!("http://localhost:{}/v1", port);
         let client = hypr_am::Client::new(&base_url);

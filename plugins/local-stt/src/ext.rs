@@ -177,8 +177,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     }
                 };
 
+                let port = port_check::free_local_port().ok_or_else(|| {
+                    crate::Error::ServerStartFailed("failed_to_find_free_port".to_string())
+                })?;
+
                 let app_handle = self.app_handle().clone();
-                let cmd_factory: external::CommandFactory = {
+                let cmd_builder = {
                     #[cfg(debug_assertions)]
                     {
                         let passthrough_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -193,7 +197,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                         let passthrough_path = Arc::new(passthrough_path);
                         let stt_path = Arc::new(stt_path);
-                        Arc::new(move || {
+                        external::CommandBuilder::new(move || {
                             app_handle
                                 .shell()
                                 .command(passthrough_path.as_ref())
@@ -205,7 +209,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                     #[cfg(not(debug_assertions))]
                     {
-                        Arc::new(move || {
+                        external::CommandBuilder::new(move || {
                             app_handle
                                 .shell()
                                 .sidecar("stt")
@@ -218,7 +222,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                 supervisor::start_external_stt(
                     &supervisor,
-                    external::ExternalSTTArgs::new(cmd_factory, am_key, am_model, data_dir),
+                    external::ExternalSTTArgs::new(cmd_builder, am_key, am_model, data_dir, port),
                 )
                 .await
                 .map_err(|e| crate::Error::ServerStartFailed(e.to_string()))?;

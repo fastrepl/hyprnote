@@ -12,6 +12,8 @@ export const Route = createFileRoute("/api/templates")({
           slug: template.slug,
           title: template.title,
           description: template.description,
+          category: template.category,
+          targets: template.targets,
           sections: template.sections,
         }));
 

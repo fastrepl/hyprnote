@@ -86,7 +86,8 @@ jobs:
             libxdo-dev \
             libjavascriptcoregtk-4.1-dev \
             libsoup-3.0-dev \
-            libwebkit2gtk-4.1-dev
+            libwebkit2gtk-4.1-dev \
+            libclang-dev
 
           # Install ARM64 cross-compilation tools if needed
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
@@ -334,7 +335,8 @@ jobs:
             libvulkan-dev \
             libxdo-dev \
             file \
-            wget
+            wget \
+            libclang-dev
 
           # Install ARM64 cross-compilation tools if needed
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then

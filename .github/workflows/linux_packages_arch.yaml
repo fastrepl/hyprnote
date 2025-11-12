@@ -91,7 +91,8 @@ jobs:
             openblas \
             vulkan-icd-loader \
             vulkan-headers \
-            xdotool
+            xdotool \
+            unzip
 
           # Install cross-compilation tools for ARM64 if needed
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then

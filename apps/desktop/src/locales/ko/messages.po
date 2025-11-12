@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/components/settings/views/general.tsx:362
+#: src/components/settings/views/general.tsx:388
 msgid "Type terms separated by commas (e.g., Blitz Meeting, PaC Squad)"
 msgstr ""
 
@@ -281,7 +281,7 @@ msgid "{0} calendars selected"
 msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:82
-#: src/components/settings/views/sound.tsx:64
+#: src/components/settings/views/sound.tsx:67
 msgid "{buttonText}"
 msgstr ""
 
@@ -301,6 +301,14 @@ msgstr ""
 msgid "<0>Create Note</0>"
 msgstr ""
 
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:235
+msgid "✓ Connection successful! You can now save your credentials."
+msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:239
+msgid "✗ Connection failed"
+msgstr ""
+
 #: src/components/settings/views/feedback.tsx:19
 #~ msgid "🐛 Small Bug"
 #~ msgstr ""
@@ -313,14 +321,14 @@ msgstr ""
 #~ msgid "🚨 Urgent Bug"
 #~ msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:71
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:113
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:99
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:152
 msgid "Access granted"
 msgstr ""
 
-#: src/components/welcome-modal/calendar-permissions-view.tsx:50
+#: src/components/welcome-modal/calendar-permissions-view.tsx:51
 #: src/components/welcome-modal/audio-permissions-view.tsx:58
-#: src/components/settings/views/sound.tsx:44
+#: src/components/settings/views/sound.tsx:47
 msgid "Access Granted"
 msgstr ""
 
@@ -356,13 +364,21 @@ msgstr ""
 msgid "Add participant"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:353
+#: src/components/settings/views/general.tsx:379
 msgid "Add specific terms or jargon for improved transcription accuracy"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:287
+msgid "Adjust the microphone input gain (default: 1.5x)"
 msgstr ""
 
 #: src/components/settings/views/team.tsx:142
 #: src/components/settings/views/team.tsx:229
 msgid "Admin"
+msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:186
+msgid "Advanced Settings"
 msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:159
@@ -415,8 +431,16 @@ msgstr ""
 msgid "API Key"
 msgstr ""
 
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:153
+msgid "App-Specific Password"
+msgstr ""
+
 #: src/components/settings/views/profile.tsx:168
 msgid "Apple"
+msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:139
+msgid "Apple ID"
 msgstr ""
 
 #: src/components/toolbar/buttons/delete-note-button.tsx:43
@@ -432,6 +456,10 @@ msgstr ""
 #~ msgid "Assistant:"
 #~ msgstr ""
 
+#: src/components/settings/views/sound.tsx:334
+msgid "Audio Level"
+msgstr ""
+
 #: src/components/welcome-modal/audio-permissions-view.tsx:155
 msgid "Audio Permissions"
 msgstr ""
@@ -439,6 +467,14 @@ msgstr ""
 #: src/components/editor-area/note-header/listen-button.tsx:341
 #~ msgid "Auto (Default)"
 #~ msgstr ""
+
+#: src/components/settings/views/sound.tsx:386
+msgid "Automatic Calibration"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:389
+msgid "Automatically find the best microphone gain by reading a test phrase"
+msgstr ""
 
 #: src/components/settings/views/ai.tsx:828
 msgid "Autonomy Selector"
@@ -470,15 +506,19 @@ msgstr ""
 msgid "Built-in Templates"
 msgstr ""
 
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:194
+msgid "CalDAV Server URL"
+msgstr ""
+
 #: src/routes/app.settings.tsx:70
 msgid "Calendar"
 msgstr ""
 
-#: src/components/welcome-modal/calendar-permissions-view.tsx:124
+#: src/components/welcome-modal/calendar-permissions-view.tsx:145
 msgid "Calendar & Contacts"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:67
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:95
 msgid "Calendar Access"
 msgstr ""
 
@@ -486,6 +526,15 @@ msgstr ""
 #~ msgid "Calendar connected"
 #~ msgstr ""
 
+#: src/components/settings/views/sound.tsx:426
+msgid "Calibrate Microphone"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:423
+msgid "Calibrating..."
+msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:249
 #: src/components/individualization-modal/industry-view.tsx:128
 msgid "Cancel"
 msgstr ""
@@ -493,6 +542,10 @@ msgstr ""
 #: src/components/welcome-modal/welcome-view.tsx:28
 #~ msgid "Capture every moment"
 #~ msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:206
+msgid "CardDAV Server URL"
+msgstr ""
 
 #: src/components/settings/views/profile.tsx:143
 msgid "CEO"
@@ -522,7 +575,7 @@ msgstr ""
 msgid "Choose the languages you speak for better transcription accuracy"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:187
+#: src/components/settings/views/general.tsx:213
 msgid "Choose whether to save your recordings locally."
 msgstr ""
 
@@ -558,6 +611,15 @@ msgstr ""
 msgid "Complete the configuration to continue"
 msgstr ""
 
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:111
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:164
+msgid "Configure iCloud"
+msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:127
+msgid "Configure iCloud Calendar"
+msgstr ""
+
 #: src/components/welcome-modal/custom-endpoint-view.tsx:214
 msgid "Configure Your LLM"
 msgstr ""
@@ -582,11 +644,11 @@ msgstr ""
 #~ msgid "Connect your {0} calendar to track upcoming events"
 #~ msgstr ""
 
-#: src/components/welcome-modal/calendar-permissions-view.tsx:128
+#: src/components/welcome-modal/calendar-permissions-view.tsx:149
 msgid "Connect your calendar and contacts for a better experience"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:72
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:100
 msgid "Connect your calendar and track events"
 msgstr ""
 
@@ -598,7 +660,7 @@ msgstr ""
 #~ msgid "Consent settings"
 #~ msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:109
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:148
 msgid "Contacts Access"
 msgstr ""
 
@@ -606,7 +668,7 @@ msgstr ""
 #: src/components/welcome-modal/llm-selection-view.tsx:94
 #: src/components/welcome-modal/download-progress-view.tsx:258
 #: src/components/welcome-modal/custom-endpoint-view.tsx:595
-#: src/components/welcome-modal/calendar-permissions-view.tsx:153
+#: src/components/welcome-modal/calendar-permissions-view.tsx:174
 #: src/components/welcome-modal/audio-permissions-view.tsx:189
 msgid "Continue"
 msgstr ""
@@ -664,7 +726,7 @@ msgstr ""
 msgid "Custom Endpoints"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:350
+#: src/components/settings/views/general.tsx:376
 msgid "Custom Vocabulary"
 msgstr ""
 
@@ -694,7 +756,7 @@ msgstr ""
 #~ msgid "Did you get consent from everyone in the meeting?"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:240
+#: src/components/settings/views/general.tsx:266
 msgid "Display language"
 msgstr ""
 
@@ -718,6 +780,10 @@ msgstr ""
 msgid "Duplicate"
 msgstr ""
 
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:121
+msgid "Edit Credentials"
+msgstr ""
+
 #: src/components/settings/views/feedback.tsx:91
 #~ msgid "Email (Optional)"
 #~ msgstr ""
@@ -734,7 +800,7 @@ msgstr ""
 msgid "Emoji"
 msgstr ""
 
-#: src/components/welcome-modal/calendar-permissions-view.tsx:65
+#: src/components/welcome-modal/calendar-permissions-view.tsx:66
 msgid "Enable"
 msgstr ""
 
@@ -777,6 +843,10 @@ msgstr ""
 #: src/components/settings/views/ai.tsx:498
 #~ msgid "Enter the exact model name required by your endpoint (if applicable)."
 #~ msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:130
+msgid "Enter your Apple ID and an app-specific password to sync your iCloud calendar"
+msgstr ""
 
 #: src/routes/app.settings.tsx:72
 #~ msgid "Extensions"
@@ -827,6 +897,10 @@ msgstr ""
 msgid "General"
 msgstr ""
 
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:164
+msgid "Generate an app-specific password at "
+msgstr ""
+
 #: src/components/editor-area/note-header/title-input.tsx:30
 msgid "Generating title..."
 msgstr ""
@@ -839,8 +913,8 @@ msgstr ""
 msgid "Google Gemini"
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:111
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:164
 msgid "Grant Access"
 msgstr ""
 
@@ -932,6 +1006,10 @@ msgstr ""
 #~ msgid "Language"
 #~ msgstr ""
 
+#: src/components/settings/views/general.tsx:187
+msgid "Launch Hyprnote in the background when you log in."
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:200
 #~ msgid "Learn more about our pricing plans"
 #~ msgstr ""
@@ -972,6 +1050,7 @@ msgstr ""
 msgid "Loading templates..."
 msgstr ""
 
+#: src/components/settings/views/sound.tsx:374
 #: src/components/settings/components/calendar/calendar-selector.tsx:95
 msgid "Loading..."
 msgstr ""
@@ -1006,8 +1085,16 @@ msgid "Members"
 msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:165
-#: src/components/settings/views/sound.tsx:127
+#: src/components/settings/views/sound.tsx:262
 msgid "Microphone Access"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:284
+msgid "Microphone Sensitivity"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:325
+msgid "Microphone Test"
 msgstr ""
 
 #: src/components/welcome-modal/custom-endpoint-view.tsx:315
@@ -1160,7 +1247,7 @@ msgstr ""
 msgid "Optional base folder path within your Obsidian vault."
 msgstr ""
 
-#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:114
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:153
 msgid "Optional for participant suggestions"
 msgstr ""
 
@@ -1193,7 +1280,11 @@ msgstr ""
 #~ msgid "Play video"
 #~ msgstr ""
 
-#: src/components/settings/views/general.tsx:243
+#: src/components/settings/views/sound.tsx:407
+msgid "Please read clearly:"
+msgstr ""
+
+#: src/components/settings/views/general.tsx:269
 msgid "Primary language for the interface"
 msgstr ""
 
@@ -1234,7 +1325,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:79
-#: src/components/settings/views/sound.tsx:61
+#: src/components/settings/views/sound.tsx:64
 msgid "Requesting..."
 msgstr ""
 
@@ -1243,11 +1334,11 @@ msgstr ""
 msgid "Required for meeting transcription"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:138
+#: src/components/settings/views/sound.tsx:273
 msgid "Required to transcribe other people's voice during meetings"
 msgstr ""
 
-#: src/components/settings/views/sound.tsx:128
+#: src/components/settings/views/sound.tsx:263
 msgid "Required to transcribe your voice during meetings"
 msgstr ""
 
@@ -1258,6 +1349,10 @@ msgstr ""
 #: src/components/settings/views/team.tsx:104
 #: src/components/settings/views/team.tsx:213
 msgid "Role"
+msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:276
+msgid "Save"
 msgstr ""
 
 #: src/components/settings/views/templates.tsx:193
@@ -1272,10 +1367,11 @@ msgstr ""
 msgid "Save Date"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:184
+#: src/components/settings/views/general.tsx:210
 msgid "Save recordings"
 msgstr ""
 
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:273
 #: src/components/editor-area/note-header/chips/event-chip.tsx:584
 msgid "Saving..."
 msgstr ""
@@ -1341,7 +1437,7 @@ msgstr ""
 msgid "Select how you want to process your meeting notes"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:272
+#: src/components/settings/views/general.tsx:298
 msgid "Select languages you speak for better transcription"
 msgstr ""
 
@@ -1361,7 +1457,7 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:210
+#: src/components/settings/views/general.tsx:236
 msgid "Share usage data"
 msgstr ""
 
@@ -1389,13 +1485,17 @@ msgstr ""
 msgid "Sound"
 msgstr ""
 
-#: src/components/settings/views/general.tsx:269
+#: src/components/settings/views/general.tsx:295
 msgid "Spoken languages"
 msgstr ""
 
 #: src/components/settings/views/billing.tsx:76
 #~ msgid "Start Annual Plan"
 #~ msgstr ""
+
+#: src/components/settings/views/general.tsx:184
+msgid "Start automatically at login"
+msgstr ""
 
 #: src/components/settings/views/billing.tsx:75
 #~ msgid "Start Monthly Plan"
@@ -1405,8 +1505,18 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
+#. placeholder {0}: calibrationProgress.current_step
+#. placeholder {1}: calibrationProgress.total_steps
+#: src/components/settings/views/sound.tsx:397
+msgid "Step {0} of {1}"
+msgstr ""
+
 #: src/components/editor-area/note-header/listen-button.tsx:460
 msgid "Stop"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:378
+msgid "Stop Test"
 msgstr ""
 
 #: src/components/settings/views/feedback.tsx:107
@@ -1417,12 +1527,16 @@ msgstr ""
 #~ msgid "Summarize meeting"
 #~ msgstr ""
 
+#: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:172
+msgid "Sync your contacts to enable participant suggestions"
+msgstr ""
+
 #: src/components/settings/views/billing.tsx:42
 #~ msgid "Synchronization across multiple devices"
 #~ msgstr ""
 
 #: src/components/welcome-modal/audio-permissions-view.tsx:175
-#: src/components/settings/views/sound.tsx:137
+#: src/components/settings/views/sound.tsx:272
 msgid "System Audio Access"
 msgstr ""
 
@@ -1454,6 +1568,26 @@ msgstr ""
 msgid "Templates"
 msgstr ""
 
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:263
+msgid "Test Connection"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:379
+msgid "Test Microphone"
+msgstr ""
+
+#: src/components/settings/views/sound.tsx:328
+msgid "Test your microphone by speaking and listening to the output"
+msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:231
+msgid "Testing connection..."
+msgstr ""
+
+#: src/components/settings/components/calendar/icloud-credentials-modal.tsx:260
+msgid "Testing..."
+msgstr ""
+
 #: src/components/welcome-modal/welcome-view.tsx:28
 #~ msgid "The AI Meeting Notepad"
 #~ msgstr ""
@@ -1470,7 +1604,7 @@ msgstr ""
 #~ msgid "There's a plan for everyone"
 #~ msgstr ""
 
-#: src/components/welcome-modal/calendar-permissions-view.tsx:157
+#: src/components/welcome-modal/calendar-permissions-view.tsx:178
 msgid "These permissions are optional but recommended"
 msgstr ""
 

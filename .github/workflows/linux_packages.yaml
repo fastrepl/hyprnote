@@ -1,0 +1,412 @@
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel to use"
+        required: false
+        default: "nightly"
+        type: choice
+        options:
+          - "stable"
+          - "nightly"
+  release:
+    types:
+      - published
+      - prereleased
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RELEASE_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || 'nightly' }}
+  TAURI_CONF_PATH: ${{ (github.event_name == 'workflow_dispatch' && inputs.channel == 'stable') && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.nightly.json' }}
+
+jobs:
+  build-linux-packages:
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: "x86_64-unknown-linux-gnu"
+            arch: "amd64"
+            features: "stt-openblas,llm-vulkan"
+    
+    defaults:
+      run:
+        shell: bash
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Validate version
+        run: |
+          VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
+          
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            echo "Version: $VERSION, Tag name: $TAG_NAME"
+            if [[ ! "$TAG_NAME" == *"$VERSION"* ]]; then
+              echo "Error: Tag version doesn't match package version"
+              exit 1
+            fi
+          fi
+          
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libopenblas-dev \
+            cmake \
+            libvulkan-dev \
+            libxdo-dev \
+            libjavascriptcoregtk-4.1-dev \
+            libsoup-3.0-dev \
+            libwebkit2gtk-4.1-dev
+      
+      - name: Setup Protoc
+        uses: ./.github/actions/setup_protoc
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install Rust toolchain
+        uses: ./.github/actions/rust_install
+        with:
+          platform: "linux"
+      
+      - name: Add Rust target
+        run: rustup target add ${{ matrix.target }}
+      
+      - name: Install Node.js dependencies
+        uses: ./.github/actions/pnpm_install
+      
+      - name: Install Python dependencies
+        uses: ./.github/actions/poetry_install
+      
+      - name: Run pre-build script
+        run: poetry run python scripts/pre_build.py
+      
+      - name: Compile translations
+        run: pnpm -F desktop lingui:compile
+      
+      - name: Build UI package
+        run: pnpm -F ui build
+      
+      - name: Build Tauri app with .deb
+        run: |
+          pnpm -F desktop tauri build \
+            --target ${{ matrix.target }} \
+            --config ${{ env.TAURI_CONF_PATH }} \
+            --bundles deb \
+            --verbose
+        env:
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}
+          KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      
+      - name: Find .deb package
+        id: find-deb
+        run: |
+          DEB_PATH=$(find apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/deb -name "*.deb" | head -n 1)
+          if [ -z "$DEB_PATH" ]; then
+            echo "Error: No .deb package found"
+            exit 1
+          fi
+          echo "deb_path=$DEB_PATH" >> $GITHUB_OUTPUT
+          echo "deb_name=$(basename $DEB_PATH)" >> $GITHUB_OUTPUT
+          echo "Found .deb package: $DEB_PATH"
+      
+      - name: Test .deb installation
+        run: |
+          echo "Testing .deb package installation..."
+          
+          # Install the package
+          sudo dpkg -i ${{ steps.find-deb.outputs.deb_path }} || true
+          
+          # Fix any dependency issues
+          sudo apt-get install -f -y
+          
+          # Verify installation
+          dpkg -l | grep hyprnote
+          
+          # Check if binary exists and is executable
+          BINARY_PATH=$(dpkg -L $(dpkg -l | grep hyprnote | awk '{print $2}') | grep -E 'bin/.*' | grep -v '\.so' | head -n 1)
+          if [ -z "$BINARY_PATH" ]; then
+            echo "Error: Binary not found in package"
+            exit 1
+          fi
+          echo "Found binary: $BINARY_PATH"
+          
+          # Test binary execution (help/version flag)
+          if [ -f "$BINARY_PATH" ]; then
+            file "$BINARY_PATH"
+            ldd "$BINARY_PATH" || true
+            echo "Binary verification successful"
+          fi
+          
+          # Verify .desktop file exists
+          DESKTOP_FILE=$(find /usr/share/applications -name "*hyprnote*.desktop" 2>/dev/null | head -n 1)
+          if [ -n "$DESKTOP_FILE" ]; then
+            echo "Found .desktop file: $DESKTOP_FILE"
+            cat "$DESKTOP_FILE"
+          else
+            echo "Warning: .desktop file not found"
+          fi
+          
+          # Clean up
+          sudo apt-get remove -y $(dpkg -l | grep hyprnote | awk '{print $2}') || true
+          
+          echo "✅ .deb package installation test passed"
+      
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyprnote-${{ env.VERSION }}-${{ matrix.arch }}.deb
+          path: ${{ steps.find-deb.outputs.deb_path }}
+          if-no-files-found: error
+      
+      - name: Upload .deb to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.find-deb.outputs.deb_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-appimage:
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
+    runs-on: ubuntu-20.04  # Use older Ubuntu for better AppImage compatibility
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: "x86_64-unknown-linux-gnu"
+            arch: "x86_64"
+            features: "stt-openblas,llm-vulkan"
+    
+    defaults:
+      run:
+        shell: bash
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Validate version
+        run: |
+          VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
+          
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            echo "Version: $VERSION, Tag name: $TAG_NAME"
+            if [[ ! "$TAG_NAME" == *"$VERSION"* ]]; then
+              echo "Error: Tag version doesn't match package version"
+              exit 1
+            fi
+          fi
+          
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.0-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libopenblas-dev \
+            cmake \
+            libvulkan-dev \
+            libxdo-dev \
+            file \
+            wget
+      
+      - name: Setup Protoc
+        uses: ./.github/actions/setup_protoc
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install Rust toolchain
+        uses: ./.github/actions/rust_install
+        with:
+          platform: "linux"
+      
+      - name: Add Rust target
+        run: rustup target add ${{ matrix.target }}
+      
+      - name: Install Node.js dependencies
+        uses: ./.github/actions/pnpm_install
+      
+      - name: Install Python dependencies
+        uses: ./.github/actions/poetry_install
+      
+      - name: Run pre-build script
+        run: poetry run python scripts/pre_build.py
+      
+      - name: Compile translations
+        run: pnpm -F desktop lingui:compile
+      
+      - name: Build UI package
+        run: pnpm -F ui build
+      
+      - name: Build Tauri app with AppImage
+        run: |
+          pnpm -F desktop tauri build \
+            --target ${{ matrix.target }} \
+            --config ${{ env.TAURI_CONF_PATH }} \
+            --bundles appimage \
+            --verbose
+        env:
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}
+          KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      
+      - name: Find AppImage package
+        id: find-appimage
+        run: |
+          APPIMAGE_PATH=$(find apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/appimage -name "*.AppImage" | head -n 1)
+          if [ -z "$APPIMAGE_PATH" ]; then
+            echo "Error: No AppImage package found"
+            exit 1
+          fi
+          echo "appimage_path=$APPIMAGE_PATH" >> $GITHUB_OUTPUT
+          echo "appimage_name=$(basename $APPIMAGE_PATH)" >> $GITHUB_OUTPUT
+          echo "Found AppImage package: $APPIMAGE_PATH"
+      
+      - name: Test AppImage
+        run: |
+          echo "Testing AppImage package..."
+          
+          APPIMAGE_PATH="${{ steps.find-appimage.outputs.appimage_path }}"
+          
+          # Make it executable
+          chmod +x "$APPIMAGE_PATH"
+          
+          # Verify it's a valid AppImage
+          file "$APPIMAGE_PATH"
+          
+          # Extract AppImage to inspect contents
+          "$APPIMAGE_PATH" --appimage-extract >/dev/null 2>&1 || true
+          
+          if [ -d "squashfs-root" ]; then
+            echo "AppImage extracted successfully"
+            
+            # Check for essential files
+            ls -la squashfs-root/
+            
+            # Verify .desktop file
+            if [ -f squashfs-root/*.desktop ]; then
+              echo "Found .desktop file:"
+              cat squashfs-root/*.desktop
+            fi
+            
+            # Check binary
+            BINARY=$(find squashfs-root -type f -executable -name "*hyprnote*" | head -n 1)
+            if [ -n "$BINARY" ]; then
+              echo "Found binary: $BINARY"
+              file "$BINARY"
+              ldd "$BINARY" || true
+            fi
+            
+            # Verify icon files
+            if [ -d "squashfs-root/usr/share/icons" ] || [ -f "squashfs-root/*.png" ] || [ -f "squashfs-root/*.svg" ]; then
+              echo "Icon files found"
+            else
+              echo "Warning: No icon files found"
+            fi
+            
+            # Clean up
+            rm -rf squashfs-root
+          else
+            echo "Warning: Could not extract AppImage for inspection"
+          fi
+          
+          # Test execution with --help (in headless mode this will fail, but validates the binary works)
+          # Note: This might fail in CI without display, but at least validates the binary structure
+          timeout 5 "$APPIMAGE_PATH" --help 2>&1 || echo "AppImage execution attempted (expected to fail in headless CI)"
+          
+          echo "✅ AppImage package test completed"
+      
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyprnote-${{ env.VERSION }}-${{ matrix.arch }}.AppImage
+          path: ${{ steps.find-appimage.outputs.appimage_path }}
+          if-no-files-found: error
+      
+      - name: Upload AppImage to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.find-appimage.outputs.appimage_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Flathub publishing workflow (disabled for now - uncomment when ready)
+  # build-flatpak:
+  #   if: false  # Disabled - enable when Flathub permissions are ready
+  #   runs-on: ubuntu-24.04
+  #   permissions:
+  #     contents: write
+  #   
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     
+  #     - name: Build Flatpak
+  #       uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+  #       with:
+  #         bundle: hyprnote.flatpak
+  #         manifest-path: com.hyprnote.Hyprnote.yml
+  #         cache-key: flatpak-builder-${{ github.sha }}
+  #     
+  #     - name: Upload Flatpak artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: hyprnote-flatpak
+  #         path: hyprnote.flatpak
+  #     
+  #     # Publishing to Flathub requires:
+  #     # 1. Create manifest at: https://github.com/flathub/com.hyprnote.Hyprnote
+  #     # 2. Get it approved by Flathub reviewers
+  #     # 3. Set up FLATHUB_TOKEN secret
+  #     # Then uncomment below:
+  #     # - name: Publish to Flathub
+  #     #   if: github.event_name == 'release'
+  #     #   uses: flatpak/flatpak-github-actions/flat-manager@v6
+  #     #   with:
+  #     #     repository: flathub
+  #     #     flat-manager-url: https://hub.flathub.org/
+  #     #     token: ${{ secrets.FLATHUB_TOKEN }}

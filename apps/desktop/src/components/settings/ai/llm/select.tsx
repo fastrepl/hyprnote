@@ -1,10 +1,12 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/utils";
+
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { generateText } from "ai";
 import { useMemo } from "react";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { cn } from "@hypr/utils";
 import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
@@ -60,76 +62,94 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-row items-center gap-2">
-        <h3 className="text-md font-semibold">Model being used</h3>
-        <HealthCheck />
-      </div>
+      <h3 className="text-md font-semibold">Model being used</h3>
       <div
         className={cn([
-          "flex flex-row items-center gap-4",
-          "p-4 rounded-md border border-neutral-500 bg-neutral-50",
-          (!!current_llm_provider && !!current_llm_model) ? "border-solid" : "border-dashed border-red-400",
+          "flex flex-col gap-4",
+          "p-4 rounded-lg border border-neutral-200",
+          (!!current_llm_provider && !!current_llm_model) ? "bg-neutral-50" : "bg-red-50",
         ])}
       >
-        <form.Field
-          name="provider"
-          listeners={{ onChange: () => form.setFieldValue("model", "") }}
-        >
-          {(field) => (
-            <div className="flex-[2] min-w-0">
-              <Select
-                value={field.state.value}
-                onValueChange={(value) => field.handleChange(value)}
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Select a provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROVIDERS.map((provider) => (
-                    <SelectItem
-                      key={provider.id}
-                      value={provider.id}
-                      disabled={!configuredProviders[provider.id]}
-                    >
-                      <div className="flex items-center gap-2">
-                        {provider.icon}
-                        <span>{provider.displayName}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </form.Field>
-
-        <span className="text-neutral-500">/</span>
-
-        <form.Field name="model">
-          {(field) => {
-            const providerId = form.getFieldValue("provider");
-            const maybeListModels = configuredProviders[providerId];
-
-            const listModels = () => {
-              if (!maybeListModels) {
-                return { models: [], ignored: [] };
-              }
-              return maybeListModels();
-            };
-
-            return (
-              <div className="flex-[3] min-w-0">
-                <ModelCombobox
-                  providerId={providerId}
+        <div className="flex flex-row items-center gap-4">
+          <form.Field
+            name="provider"
+            listeners={{
+              onChange: ({ value }) => {
+                form.setFieldValue("model", "");
+                const providerId = value as string;
+                const listModelsFunc = configuredProviders[providerId];
+                if (listModelsFunc) {
+                  listModelsFunc()
+                    .then((result) => {
+                      if (form.getFieldValue("provider") !== providerId) {
+                        return;
+                      }
+                      if (result.models.length > 0) {
+                        form.setFieldValue("model", result.models[0]);
+                      }
+                    })
+                    .catch(console.error);
+                }
+              },
+            }}
+          >
+            {(field) => (
+              <div className="flex-[2] min-w-0" data-llm-provider-selector>
+                <Select
                   value={field.state.value}
-                  onChange={(value) => field.handleChange(value)}
-                  disabled={!maybeListModels}
-                  listModels={listModels}
-                />
+                  onValueChange={(value) => field.handleChange(value)}
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Select a provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROVIDERS.map((provider) => (
+                      <SelectItem
+                        key={provider.id}
+                        value={provider.id}
+                        disabled={!configuredProviders[provider.id]}
+                      >
+                        <div className="flex items-center gap-2">
+                          {provider.icon}
+                          <span>{provider.displayName}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            );
-          }}
-        </form.Field>
+            )}
+          </form.Field>
+
+          <span className="text-neutral-500">/</span>
+
+          <form.Field name="model">
+            {(field) => {
+              const providerId = form.getFieldValue("provider");
+              const maybeListModels = configuredProviders[providerId];
+
+              const listModels = () => {
+                if (!maybeListModels) {
+                  return { models: [], ignored: [] };
+                }
+                return maybeListModels();
+              };
+
+              return (
+                <div className="flex-[3] min-w-0">
+                  <ModelCombobox
+                    providerId={providerId}
+                    value={field.state.value}
+                    onChange={(value) => field.handleChange(value)}
+                    disabled={!maybeListModels}
+                    listModels={listModels}
+                  />
+                </div>
+              );
+            }}
+          </form.Field>
+        </div>
+        {current_llm_provider && current_llm_model && <HealthCheck />}
       </div>
     </div>
   );
@@ -216,29 +236,67 @@ function HealthCheck() {
       }),
   });
 
-  const statusColor = (() => {
+  const { status, message, textColor } = (() => {
     if (!model) {
-      return "bg-red-200";
+      return {
+        status: "No model configured",
+        message: "Please configure a provider and model",
+        textColor: "text-red-600",
+      };
     }
+
     if (text.isPending) {
-      return "bg-yellow-200";
+      return {
+        status: "Checking connection",
+        message: "Testing model connection",
+        textColor: "text-yellow-600",
+      };
     }
+
     if (text.isError) {
-      return "bg-red-200";
+      return {
+        status: "Connection failed",
+        message: text.error?.message || "Unable to connect to the model",
+        textColor: "text-red-600",
+      };
     }
+
     if (text.isSuccess) {
-      return "bg-green-200";
+      return {
+        status: "Connected!",
+        message: "Model is ready to use",
+        textColor: "text-green-600",
+      };
     }
-    return "bg-red-200";
+
+    return {
+      status: "Unknown status",
+      message: "Connection status unknown",
+      textColor: "text-red-600",
+    };
   })();
 
+  const isLoading = text.isPending;
+
   return (
-    <span
-      className={cn([
-        "w-2 h-2 rounded-full",
-        statusColor,
-      ])}
-    >
-    </span>
+    <div className="flex items-center justify-between gap-2 h-7">
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <span className={cn(["text-xs font-medium", textColor])}>
+            {status}
+            {isLoading && (
+              <span className="inline-block ml-0.5">
+                <span className="animate-pulse">.</span>
+                <span className="animate-pulse" style={{ animationDelay: "0.2s" }}>.</span>
+                <span className="animate-pulse" style={{ animationDelay: "0.4s" }}>.</span>
+              </span>
+            )}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs">
+          <p className="text-xs">{message}</p>
+        </TooltipContent>
+      </Tooltip>
+    </div>
   );
 }

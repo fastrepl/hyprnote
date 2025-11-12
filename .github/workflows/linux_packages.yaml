@@ -1,3 +1,5 @@
+name: Linux Packages (Debian/AppImage)
+
 on:
   workflow_dispatch:
     inputs:
@@ -40,19 +42,19 @@ jobs:
             arch: "arm64"
             features: "stt-openblas,llm-vulkan"
             runner: "ubuntu-24.04"
-    
+
     defaults:
       run:
         shell: bash
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Validate version
         run: |
           VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
-          
+
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG_NAME="${{ github.event.release.tag_name }}"
             echo "Version: $VERSION, Tag name: $TAG_NAME"
@@ -61,13 +63,13 @@ jobs:
               exit 1
             fi
           fi
-          
+
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-      
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          
+
           # Install base build dependencies
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev \
@@ -85,18 +87,18 @@ jobs:
             libjavascriptcoregtk-4.1-dev \
             libsoup-3.0-dev \
             libwebkit2gtk-4.1-dev
-          
+
           # Install ARM64 cross-compilation tools if needed
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
             sudo apt-get install -y \
               gcc-aarch64-linux-gnu \
               g++-aarch64-linux-gnu \
               binutils-aarch64-linux-gnu
-            
+
             # Add ARM64 architecture for dependencies
             sudo dpkg --add-architecture arm64
             sudo apt-get update
-            
+
             # Install ARM64 development libraries
             sudo apt-get install -y \
               libwebkit2gtk-4.1-dev:arm64 \
@@ -105,7 +107,7 @@ jobs:
               libasound2-dev:arm64 \
               libpulse-dev:arm64 \
               libopenblas-dev:arm64 || true
-            
+
             # Set cross-compilation environment
             echo "PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig" >> $GITHUB_ENV
             echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
@@ -113,35 +115,35 @@ jobs:
             echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
             echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
           fi
-      
+
       - name: Setup Protoc
         uses: ./.github/actions/setup_protoc
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Install Rust toolchain
         uses: ./.github/actions/rust_install
         with:
           platform: "linux"
-      
+
       - name: Add Rust target
         run: rustup target add ${{ matrix.target }}
-      
+
       - name: Install Node.js dependencies
         uses: ./.github/actions/pnpm_install
-      
+
       - name: Install Python dependencies
         uses: ./.github/actions/poetry_install
-      
+
       - name: Run pre-build script
         run: poetry run python scripts/pre_build.py
-      
+
       - name: Compile translations
         run: pnpm -F desktop lingui:compile
-      
+
       - name: Build UI package
         run: pnpm -F ui build
-      
+
       - name: Build Tauri app with .deb
         run: |
           pnpm -F desktop tauri build \
@@ -158,7 +160,7 @@ jobs:
           KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      
+
       - name: Find .deb package
         id: find-deb
         run: |
@@ -170,21 +172,21 @@ jobs:
           echo "deb_path=$DEB_PATH" >> $GITHUB_OUTPUT
           echo "deb_name=$(basename $DEB_PATH)" >> $GITHUB_OUTPUT
           echo "Found .deb package: $DEB_PATH"
-      
+
       - name: Test .deb installation
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           echo "Testing .deb package installation..."
-          
+
           # Install the package
           sudo dpkg -i ${{ steps.find-deb.outputs.deb_path }} || true
-          
+
           # Fix any dependency issues
           sudo apt-get install -f -y
-          
+
           # Verify installation
           dpkg -l | grep hyprnote
-          
+
           # Check if binary exists and is executable
           BINARY_PATH=$(dpkg -L $(dpkg -l | grep hyprnote | awk '{print $2}') | grep -E 'bin/.*' | grep -v '\.so' | head -n 1)
           if [ -z "$BINARY_PATH" ]; then
@@ -192,14 +194,14 @@ jobs:
             exit 1
           fi
           echo "Found binary: $BINARY_PATH"
-          
+
           # Test binary execution (help/version flag)
           if [ -f "$BINARY_PATH" ]; then
             file "$BINARY_PATH"
             ldd "$BINARY_PATH" || true
             echo "Binary verification successful"
           fi
-          
+
           # Verify .desktop file exists
           DESKTOP_FILE=$(find /usr/share/applications -name "*hyprnote*.desktop" 2>/dev/null | head -n 1)
           if [ -n "$DESKTOP_FILE" ]; then
@@ -208,27 +210,27 @@ jobs:
           else
             echo "Warning: .desktop file not found"
           fi
-          
+
           # Clean up
           sudo apt-get remove -y $(dpkg -l | grep hyprnote | awk '{print $2}') || true
-          
+
           echo "✅ .deb package installation test passed"
-      
+
       - name: Verify .deb package (cross-compiled ARM64)
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           echo "Verifying ARM64 .deb package structure..."
-          
+
           # Extract package contents without installing
           dpkg-deb -c ${{ steps.find-deb.outputs.deb_path }}
-          
+
           # Verify package metadata
           dpkg-deb -I ${{ steps.find-deb.outputs.deb_path }}
-          
+
           # Extract to temporary directory for inspection
           mkdir -p /tmp/deb-test
           dpkg-deb -x ${{ steps.find-deb.outputs.deb_path }} /tmp/deb-test
-          
+
           # Find and verify binary architecture
           BINARY=$(find /tmp/deb-test -type f -name "*hyprnote*" -executable | head -n 1)
           if [ -n "$BINARY" ]; then
@@ -244,26 +246,26 @@ jobs:
             echo "❌ No binary found in package"
             exit 1
           fi
-          
+
           # Verify .desktop file
           DESKTOP_FILE=$(find /tmp/deb-test -name "*.desktop" | head -n 1)
           if [ -n "$DESKTOP_FILE" ]; then
             echo "Found .desktop file: $DESKTOP_FILE"
             cat "$DESKTOP_FILE"
           fi
-          
+
           # Clean up
           rm -rf /tmp/deb-test
-          
+
           echo "✅ ARM64 .deb package verification passed"
-      
+
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-${{ env.VERSION }}-${{ matrix.arch }}.deb
           path: ${{ steps.find-deb.outputs.deb_path }}
           if-no-files-found: error
-      
+
       - name: Upload .deb to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v1
@@ -289,19 +291,19 @@ jobs:
             arch: "aarch64"
             features: "stt-openblas,llm-vulkan"
             runner: "ubuntu-20.04"
-    
+
     defaults:
       run:
         shell: bash
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Validate version
         run: |
           VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
-          
+
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG_NAME="${{ github.event.release.tag_name }}"
             echo "Version: $VERSION, Tag name: $TAG_NAME"
@@ -310,13 +312,13 @@ jobs:
               exit 1
             fi
           fi
-          
+
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-      
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          
+
           # Install base build dependencies
           sudo apt-get install -y \
             libwebkit2gtk-4.0-dev \
@@ -333,18 +335,18 @@ jobs:
             libxdo-dev \
             file \
             wget
-          
+
           # Install ARM64 cross-compilation tools if needed
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
             sudo apt-get install -y \
               gcc-aarch64-linux-gnu \
               g++-aarch64-linux-gnu \
               binutils-aarch64-linux-gnu
-            
+
             # Add ARM64 architecture for dependencies
             sudo dpkg --add-architecture arm64
             sudo apt-get update
-            
+
             # Install ARM64 development libraries
             sudo apt-get install -y \
               libwebkit2gtk-4.0-dev:arm64 \
@@ -353,7 +355,7 @@ jobs:
               libasound2-dev:arm64 \
               libpulse-dev:arm64 \
               libopenblas-dev:arm64 || true
-            
+
             # Set cross-compilation environment
             echo "PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig" >> $GITHUB_ENV
             echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
@@ -361,35 +363,35 @@ jobs:
             echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
             echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
           fi
-      
+
       - name: Setup Protoc
         uses: ./.github/actions/setup_protoc
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Install Rust toolchain
         uses: ./.github/actions/rust_install
         with:
           platform: "linux"
-      
+
       - name: Add Rust target
         run: rustup target add ${{ matrix.target }}
-      
+
       - name: Install Node.js dependencies
         uses: ./.github/actions/pnpm_install
-      
+
       - name: Install Python dependencies
         uses: ./.github/actions/poetry_install
-      
+
       - name: Run pre-build script
         run: poetry run python scripts/pre_build.py
-      
+
       - name: Compile translations
         run: pnpm -F desktop lingui:compile
-      
+
       - name: Build UI package
         run: pnpm -F ui build
-      
+
       - name: Build Tauri app with AppImage
         run: |
           pnpm -F desktop tauri build \
@@ -406,7 +408,7 @@ jobs:
           KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      
+
       - name: Find AppImage package
         id: find-appimage
         run: |
@@ -418,35 +420,35 @@ jobs:
           echo "appimage_path=$APPIMAGE_PATH" >> $GITHUB_OUTPUT
           echo "appimage_name=$(basename $APPIMAGE_PATH)" >> $GITHUB_OUTPUT
           echo "Found AppImage package: $APPIMAGE_PATH"
-      
+
       - name: Test AppImage
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           echo "Testing AppImage package..."
-          
+
           APPIMAGE_PATH="${{ steps.find-appimage.outputs.appimage_path }}"
-          
+
           # Make it executable
           chmod +x "$APPIMAGE_PATH"
-          
+
           # Verify it's a valid AppImage
           file "$APPIMAGE_PATH"
-          
+
           # Extract AppImage to inspect contents
           "$APPIMAGE_PATH" --appimage-extract >/dev/null 2>&1 || true
-          
+
           if [ -d "squashfs-root" ]; then
             echo "AppImage extracted successfully"
-            
+
             # Check for essential files
             ls -la squashfs-root/
-            
+
             # Verify .desktop file
             if [ -f squashfs-root/*.desktop ]; then
               echo "Found .desktop file:"
               cat squashfs-root/*.desktop
             fi
-            
+
             # Check binary
             BINARY=$(find squashfs-root -type f -executable -name "*hyprnote*" | head -n 1)
             if [ -n "$BINARY" ]; then
@@ -454,39 +456,39 @@ jobs:
               file "$BINARY"
               ldd "$BINARY" || true
             fi
-            
+
             # Verify icon files
             if [ -d "squashfs-root/usr/share/icons" ] || [ -f "squashfs-root/*.png" ] || [ -f "squashfs-root/*.svg" ]; then
               echo "Icon files found"
             else
               echo "Warning: No icon files found"
             fi
-            
+
             # Clean up
             rm -rf squashfs-root
           else
             echo "Warning: Could not extract AppImage for inspection"
           fi
-          
+
           # Test execution with --help (in headless mode this will fail, but validates the binary works)
           # Note: This might fail in CI without display, but at least validates the binary structure
           timeout 5 "$APPIMAGE_PATH" --help 2>&1 || echo "AppImage execution attempted (expected to fail in headless CI)"
-          
+
           echo "✅ AppImage package test completed"
-      
+
       - name: Verify AppImage (cross-compiled ARM64)
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           echo "Verifying ARM64 AppImage package..."
-          
+
           APPIMAGE_PATH="${{ steps.find-appimage.outputs.appimage_path }}"
-          
+
           # Make it executable
           chmod +x "$APPIMAGE_PATH"
-          
+
           # Verify file type
           file "$APPIMAGE_PATH"
-          
+
           # Extract AppImage to inspect contents (use --appimage-extract if possible)
           "$APPIMAGE_PATH" --appimage-extract >/dev/null 2>&1 || {
             echo "Could not extract with built-in tool, trying manual extraction..."
@@ -494,13 +496,13 @@ jobs:
             # Skip to squashfs offset and extract (advanced, may not work)
             echo "Manual extraction not implemented for cross-platform AppImage"
           }
-          
+
           if [ -d "squashfs-root" ]; then
             echo "AppImage extracted successfully"
-            
+
             # Check for essential files
             ls -la squashfs-root/
-            
+
             # Find and verify binary architecture
             BINARY=$(find squashfs-root -type f -executable -name "*hyprnote*" | head -n 1)
             if [ -n "$BINARY" ]; then
@@ -516,13 +518,13 @@ jobs:
               echo "❌ No binary found in AppImage"
               exit 1
             fi
-            
+
             # Verify .desktop file
             if [ -f squashfs-root/*.desktop ]; then
               echo "Found .desktop file:"
               cat squashfs-root/*.desktop
             fi
-            
+
             # Clean up
             rm -rf squashfs-root
           else
@@ -530,16 +532,16 @@ jobs:
             echo "This is expected for cross-compiled ARM64 AppImages on x86_64 runners"
             echo "Basic file verification completed"
           fi
-          
+
           echo "✅ ARM64 AppImage verification completed"
-      
+
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-${{ env.VERSION }}-${{ matrix.arch }}.AppImage
           path: ${{ steps.find-appimage.outputs.appimage_path }}
           if-no-files-found: error
-      
+
       - name: Upload AppImage to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v1
@@ -554,24 +556,24 @@ jobs:
   #   runs-on: ubuntu-24.04
   #   permissions:
   #     contents: write
-  #   
+  #
   #   steps:
   #     - name: Checkout repository
   #       uses: actions/checkout@v4
-  #     
+  #
   #     - name: Build Flatpak
   #       uses: flatpak/flatpak-github-actions/flatpak-builder@v6
   #       with:
   #         bundle: hyprnote.flatpak
   #         manifest-path: com.hyprnote.Hyprnote.yml
   #         cache-key: flatpak-builder-${{ github.sha }}
-  #     
+  #
   #     - name: Upload Flatpak artifact
   #       uses: actions/upload-artifact@v4
   #       with:
   #         name: hyprnote-flatpak
   #         path: hyprnote.flatpak
-  #     
+  #
   #     # Publishing to Flathub requires:
   #     # 1. Create manifest at: https://github.com/flathub/com.hyprnote.Hyprnote
   #     # 2. Get it approved by Flathub reviewers

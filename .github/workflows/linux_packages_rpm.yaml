@@ -44,22 +44,22 @@ jobs:
             features: "stt-openblas,llm-vulkan"
             runner: "ubuntu-24.04"
             fedora_version: "40"
-    
+
     container:
       image: fedora:${{ matrix.fedora_version }}
-    
+
     defaults:
       run:
         shell: bash
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Validate version
         run: |
           VERSION=$(grep -oP '"version"\s*:\s*"\K[^"]+' ./apps/desktop/src-tauri/tauri.conf.json)
-          
+
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG_NAME="${{ github.event.release.tag_name }}"
             echo "Version: $VERSION, Tag name: $TAG_NAME"
@@ -68,9 +68,9 @@ jobs:
               exit 1
             fi
           fi
-          
+
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-      
+
       - name: Install system dependencies
         run: |
           dnf install -y \
@@ -96,7 +96,7 @@ jobs:
             perl \
             rpm-build \
             rpmdevtools
-          
+
           # Install cross-compilation tools for ARM64 if needed
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
             dnf install -y \
@@ -104,51 +104,51 @@ jobs:
               gcc-c++-aarch64-linux-gnu \
               binutils-aarch64-linux-gnu
           fi
-      
+
       - name: Setup Protoc
         uses: ./.github/actions/setup_protoc
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Install Rust toolchain
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
           source "$HOME/.cargo/env"
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      
+
       - name: Add Rust target
         run: |
           source "$HOME/.cargo/env"
           rustup target add ${{ matrix.target }}
-      
+
       - name: Install Node.js
         run: |
           curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
           dnf install -y nodejs
-      
+
       - name: Install pnpm
         run: npm install -g pnpm
-      
+
       - name: Install Node.js dependencies
         run: pnpm install
-      
+
       - name: Install Python dependencies
         run: |
           dnf install -y python3 python3-pip
           pip3 install poetry
           poetry install
-      
+
       - name: Run pre-build script
         run: |
           source "$HOME/.cargo/env"
           poetry run python scripts/pre_build.py
-      
+
       - name: Compile translations
         run: pnpm -F desktop lingui:compile
-      
+
       - name: Build UI package
         run: pnpm -F ui build
-      
+
       - name: Set cross-compilation environment for ARM64
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
@@ -156,7 +156,7 @@ jobs:
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
-      
+
       - name: Build Tauri app with RPM
         run: |
           source "$HOME/.cargo/env"
@@ -174,7 +174,7 @@ jobs:
           KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-      
+
       - name: Find RPM package
         id: find-rpm
         run: |
@@ -186,18 +186,18 @@ jobs:
           echo "rpm_path=$RPM_PATH" >> $GITHUB_OUTPUT
           echo "rpm_name=$(basename $RPM_PATH)" >> $GITHUB_OUTPUT
           echo "Found RPM package: $RPM_PATH"
-      
+
       - name: Test RPM installation
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           echo "Testing RPM package installation..."
-          
+
           # Install the package
           dnf install -y ${{ steps.find-rpm.outputs.rpm_path }}
-          
+
           # Verify installation
           rpm -qa | grep hyprnote
-          
+
           # Check if binary exists and is executable
           BINARY_PATH=$(rpm -ql hyprnote | grep -E 'bin/.*' | grep -v '\.so' | head -n 1)
           if [ -z "$BINARY_PATH" ]; then
@@ -205,14 +205,14 @@ jobs:
             exit 1
           fi
           echo "Found binary: $BINARY_PATH"
-          
+
           # Test binary
           if [ -f "$BINARY_PATH" ]; then
             file "$BINARY_PATH"
             ldd "$BINARY_PATH" || true
             echo "Binary verification successful"
           fi
-          
+
           # Verify .desktop file exists
           DESKTOP_FILE=$(find /usr/share/applications -name "*hyprnote*.desktop" 2>/dev/null | head -n 1)
           if [ -n "$DESKTOP_FILE" ]; then
@@ -221,28 +221,28 @@ jobs:
           else
             echo "Warning: .desktop file not found"
           fi
-          
+
           # Clean up
           dnf remove -y hyprnote || true
-          
+
           echo "✅ RPM package installation test passed"
-      
+
       - name: Verify RPM package (cross-compiled ARM64)
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           echo "Verifying ARM64 RPM package structure..."
-          
+
           # Display RPM info
           rpm -qip ${{ steps.find-rpm.outputs.rpm_path }}
-          
+
           # List package contents
           rpm -qlp ${{ steps.find-rpm.outputs.rpm_path }}
-          
+
           # Extract RPM to inspect
           mkdir -p /tmp/rpm-test
           cd /tmp/rpm-test
           rpm2cpio ${{ steps.find-rpm.outputs.rpm_path }} | cpio -idmv
-          
+
           # Find and verify binary architecture
           BINARY=$(find /tmp/rpm-test -type f -name "*hyprnote*" -executable 2>/dev/null | head -n 1)
           if [ -n "$BINARY" ]; then
@@ -259,27 +259,27 @@ jobs:
             echo "❌ No binary found in package"
             exit 1
           fi
-          
+
           # Verify .desktop file
           DESKTOP_FILE=$(find /tmp/rpm-test -name "*.desktop" | head -n 1)
           if [ -n "$DESKTOP_FILE" ]; then
             echo "Found .desktop file: $DESKTOP_FILE"
             cat "$DESKTOP_FILE"
           fi
-          
+
           # Clean up
           cd /
           rm -rf /tmp/rpm-test
-          
+
           echo "✅ ARM64 RPM package verification passed"
-      
+
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
           name: hyprnote-${{ env.VERSION }}-${{ matrix.arch }}.rpm
           path: ${{ steps.find-rpm.outputs.rpm_path }}
           if-no-files-found: error
-      
+
       - name: Upload RPM to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v1

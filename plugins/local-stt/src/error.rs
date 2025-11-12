@@ -10,14 +10,8 @@ pub enum Error {
     HyprFileError(#[from] hypr_file::Error),
     #[error(transparent)]
     ShellError(#[from] tauri_plugin_shell::Error),
-    #[error(transparent)]
-    TauriError(#[from] tauri::Error),
-    #[error(transparent)]
-    IoError(#[from] std::io::Error),
     #[error("Model not downloaded")]
     ModelNotDownloaded,
-    #[error("Server already running")]
-    ServerAlreadyRunning,
     #[error("Server start failed {0}")]
     ServerStartFailed(String),
     #[error("Server stop failed {0}")]

@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 /// Example program — prints data directory and model info.
 fn main() {
     let model_path = dirs::data_dir()

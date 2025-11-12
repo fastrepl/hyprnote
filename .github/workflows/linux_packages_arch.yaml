@@ -1,0 +1,372 @@
+name: Arch Linux Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel to use"
+        required: false
+        default: "nightly"
+        type: choice
+        options:
+          - "stable"
+          - "nightly"
+  release:
+    types:
+      - published
+      - prereleased
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RELEASE_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || 'nightly' }}
+  TAURI_CONF_PATH: ${{ (github.event_name == 'workflow_dispatch' && inputs.channel == 'stable') && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.nightly.json' }}
+
+jobs:
+  build-arch-package:
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: "x86_64-unknown-linux-gnu"
+            arch: "x86_64"
+            features: "stt-openblas,llm-vulkan"
+          - target: "aarch64-unknown-linux-gnu"
+            arch: "aarch64"
+            features: "stt-openblas,llm-vulkan"
+    
+    container:
+      image: archlinux:latest
+    
+    defaults:
+      run:
+        shell: bash
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Validate version
+        run: |
+          VERSION=$(grep -oP '"version"\s*:\s*"\K[^"]+' ./apps/desktop/src-tauri/tauri.conf.json)
+          
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG_NAME="${{ github.event.release.tag_name }}"
+            echo "Version: $VERSION, Tag name: $TAG_NAME"
+            if [[ ! "$TAG_NAME" == *"$VERSION"* ]]; then
+              echo "Error: Tag version doesn't match package version"
+              exit 1
+            fi
+          fi
+          
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      
+      - name: Install system dependencies
+        run: |
+          # Update package database and keyring
+          pacman -Syu --noconfirm
+          
+          # Install base development tools
+          pacman -S --noconfirm \
+            base-devel \
+            git \
+            wget \
+            curl \
+            file \
+            cmake \
+            pkgconf \
+            openssl \
+            gtk3 \
+            webkit2gtk-4.1 \
+            libappindicator-gtk3 \
+            librsvg \
+            alsa-lib \
+            libpulse \
+            openblas \
+            vulkan-icd-loader \
+            vulkan-headers \
+            xdotool
+          
+          # Install cross-compilation tools for ARM64 if needed
+          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
+            pacman -S --noconfirm \
+              aarch64-linux-gnu-gcc \
+              aarch64-linux-gnu-binutils || true
+          fi
+      
+      - name: Setup Protoc
+        uses: ./.github/actions/setup_protoc
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install Rust toolchain
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+          source "$HOME/.cargo/env"
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      
+      - name: Add Rust target
+        run: |
+          source "$HOME/.cargo/env"
+          rustup target add ${{ matrix.target }}
+      
+      - name: Install Node.js and pnpm
+        run: |
+          pacman -S --noconfirm nodejs npm
+          npm install -g pnpm
+      
+      - name: Install Node.js dependencies
+        run: pnpm install
+      
+      - name: Install Python and Poetry
+        run: |
+          pacman -S --noconfirm python python-pip
+          pip install poetry
+          poetry install
+      
+      - name: Run pre-build script
+        run: |
+          source "$HOME/.cargo/env"
+          poetry run python scripts/pre_build.py
+      
+      - name: Compile translations
+        run: pnpm -F desktop lingui:compile
+      
+      - name: Build UI package
+        run: pnpm -F ui build
+      
+      - name: Set cross-compilation environment for ARM64
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
+      
+      - name: Create PKGBUILD
+        run: |
+          source "$HOME/.cargo/env"
+          
+          mkdir -p /tmp/pkgbuild
+          cd /tmp/pkgbuild
+          
+          # Get the project root
+          PROJECT_ROOT="${GITHUB_WORKSPACE}"
+          
+          cat > PKGBUILD << 'EOF'
+          # Maintainer: Hyprnote Team
+          pkgname=hyprnote
+          pkgver=${{ env.VERSION }}
+          pkgrel=1
+          pkgdesc="AI-powered note-taking and transcription application"
+          arch=('${{ matrix.arch }}')
+          url="https://github.com/different-ai/hyprnote"
+          license=('custom')
+          depends=(
+            'webkit2gtk-4.1'
+            'gtk3'
+            'libappindicator-gtk3'
+            'librsvg'
+            'openssl'
+            'alsa-lib'
+            'libpulse'
+            'openblas'
+            'vulkan-icd-loader'
+            'xdotool'
+          )
+          makedepends=(
+            'rust'
+            'cargo'
+            'nodejs'
+            'npm'
+            'python'
+            'cmake'
+            'git'
+          )
+          source=()
+          sha256sums=()
+          
+          build() {
+            cd "$PROJECT_ROOT"
+            
+            # Build using Tauri
+            pnpm -F desktop tauri build \
+              --target ${{ matrix.target }} \
+              --config ${{ env.TAURI_CONF_PATH }} \
+              --bundles none \
+              --verbose
+          }
+          
+          package() {
+            cd "$PROJECT_ROOT"
+            
+            # Find the binary
+            BINARY=$(find apps/desktop/src-tauri/target/${{ matrix.target }}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
+            
+            if [ -z "$BINARY" ]; then
+              echo "Error: Binary not found"
+              exit 1
+            fi
+            
+            # Install binary
+            install -Dm755 "$BINARY" "${pkgdir}/usr/bin/hyprnote"
+            
+            # Install .desktop file if exists
+            DESKTOP_FILE=$(find apps/desktop/src-tauri -name "*.desktop" | head -n 1)
+            if [ -n "$DESKTOP_FILE" ]; then
+              install -Dm644 "$DESKTOP_FILE" "${pkgdir}/usr/share/applications/hyprnote.desktop"
+            fi
+            
+            # Install icons if they exist
+            for size in 32 128 256; do
+              ICON=$(find apps/desktop/public -name "${size}x${size}.png" -o -name "icon_${size}x${size}.png" | head -n 1)
+              if [ -n "$ICON" ]; then
+                install -Dm644 "$ICON" "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps/hyprnote.png"
+              fi
+            done
+            
+            # Install license
+            if [ -f LICENSE ]; then
+              install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+            fi
+          }
+          EOF
+          
+          echo "PKGBUILD created:"
+          cat PKGBUILD
+      
+      - name: Build package with makepkg
+        run: |
+          source "$HOME/.cargo/env"
+          cd /tmp/pkgbuild
+          
+          # Create a non-root user for makepkg (makepkg refuses to run as root)
+          useradd -m builder
+          chown -R builder:builder /tmp/pkgbuild
+          chown -R builder:builder "${GITHUB_WORKSPACE}"
+          
+          # Allow builder to run commands without password
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          
+          # Build as builder user
+          su - builder -c "cd /tmp/pkgbuild && makepkg --noconfirm"
+        env:
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}
+          KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      
+      - name: Find package file
+        id: find-pkg
+        run: |
+          PKG_PATH=$(find /tmp/pkgbuild -name "*.pkg.tar.zst" | head -n 1)
+          if [ -z "$PKG_PATH" ]; then
+            echo "Error: No package file found"
+            exit 1
+          fi
+          echo "pkg_path=$PKG_PATH" >> $GITHUB_OUTPUT
+          echo "pkg_name=$(basename $PKG_PATH)" >> $GITHUB_OUTPUT
+          echo "Found package: $PKG_PATH"
+      
+      - name: Test package installation
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          echo "Testing Arch package installation..."
+          
+          # Install the package
+          pacman -U --noconfirm ${{ steps.find-pkg.outputs.pkg_path }}
+          
+          # Verify installation
+          pacman -Q hyprnote
+          
+          # Check if binary exists and is executable
+          if [ -f /usr/bin/hyprnote ]; then
+            echo "Found binary: /usr/bin/hyprnote"
+            file /usr/bin/hyprnote
+            ldd /usr/bin/hyprnote || true
+            echo "Binary verification successful"
+          else
+            echo "Error: Binary not found"
+            exit 1
+          fi
+          
+          # Verify .desktop file
+          DESKTOP_FILE=$(find /usr/share/applications -name "*hyprnote*.desktop" 2>/dev/null | head -n 1)
+          if [ -n "$DESKTOP_FILE" ]; then
+            echo "Found .desktop file: $DESKTOP_FILE"
+            cat "$DESKTOP_FILE"
+          else
+            echo "Warning: .desktop file not found"
+          fi
+          
+          # Clean up
+          pacman -R --noconfirm hyprnote || true
+          
+          echo "✅ Arch package installation test passed"
+      
+      - name: Verify package (cross-compiled ARM64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          echo "Verifying ARM64 Arch package structure..."
+          
+          # Extract package
+          mkdir -p /tmp/pkg-test
+          cd /tmp/pkg-test
+          tar -xf ${{ steps.find-pkg.outputs.pkg_path }}
+          
+          # List contents
+          ls -la
+          
+          # Find and verify binary architecture
+          if [ -f usr/bin/hyprnote ]; then
+            echo "Found binary: usr/bin/hyprnote"
+            file usr/bin/hyprnote | grep -i "aarch64\|ARM"
+            if [ $? -eq 0 ]; then
+              echo "✅ Binary is correctly compiled for ARM64"
+            else
+              echo "❌ Binary architecture mismatch"
+              file usr/bin/hyprnote
+              exit 1
+            fi
+          else
+            echo "❌ No binary found in package"
+            exit 1
+          fi
+          
+          # Verify .desktop file
+          DESKTOP_FILE=$(find usr/share/applications -name "*.desktop" 2>/dev/null | head -n 1)
+          if [ -n "$DESKTOP_FILE" ]; then
+            echo "Found .desktop file: $DESKTOP_FILE"
+            cat "$DESKTOP_FILE"
+          fi
+          
+          # Clean up
+          cd /
+          rm -rf /tmp/pkg-test
+          
+          echo "✅ ARM64 Arch package verification passed"
+      
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyprnote-${{ env.VERSION }}-${{ matrix.arch }}.pkg.tar.zst
+          path: ${{ steps.find-pkg.outputs.pkg_path }}
+          if-no-files-found: error
+      
+      - name: Upload package to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.find-pkg.outputs.pkg_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

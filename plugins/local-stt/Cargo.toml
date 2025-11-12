@@ -70,11 +70,13 @@ tower-http = { workspace = true, features = ["cors", "trace"] }
 
 backon = { workspace = true }
 futures-util = { workspace = true }
-ractor = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true, features = ["rt", "macros"] }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
+
+ractor = { workspace = true }
+ractor-supervisor = { workspace = true }
 
 port-killer = "0.1.0"
 port_check = "0.3.0"

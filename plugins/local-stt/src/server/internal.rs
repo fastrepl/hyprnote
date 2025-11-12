@@ -16,6 +16,7 @@ pub enum InternalSTTMessage {
     ServerError(String),
 }
 
+#[derive(Clone)]
 pub struct InternalSTTArgs {
     pub model_type: WhisperModel,
     pub model_cache_dir: PathBuf,
@@ -115,6 +116,7 @@ impl Actor for InternalSTTActor {
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match message {
+            InternalSTTMessage::ServerError(e) => Err(e.into()),
             InternalSTTMessage::GetHealth(reply_port) => {
                 let info = ServerInfo {
                     url: Some(state.base_url.clone()),
@@ -128,7 +130,6 @@ impl Actor for InternalSTTActor {
 
                 Ok(())
             }
-            InternalSTTMessage::ServerError(e) => Err(e.into()),
         }
     }
 }

@@ -14754,6 +14754,7 @@ dependencies = [
  "port-killer",
  "port_check",
  "ractor",
+ "ractor-supervisor",
  "reqwest 0.12.24",
  "rodio",
  "serde",

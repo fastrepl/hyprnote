@@ -10,3 +10,4 @@ CREATE TABLE IF NOT EXISTS contacts (
   phone_numbers TEXT NOT NULL,
   note TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts(user_id);

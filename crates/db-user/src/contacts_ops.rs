@@ -28,11 +28,10 @@ impl UserDatabase {
                 "SELECT * FROM contacts WHERE user_id = ?",
                 vec![user_id.as_ref()],
             )
-            .await
-            .unwrap();
+            .await?;
 
         let mut items = Vec::new();
-        while let Some(row) = rows.next().await.unwrap() {
+        while let Some(row) = rows.next().await? {
             let item: Contact = libsql::de::from_row(&row)?;
             items.push(item);
         }

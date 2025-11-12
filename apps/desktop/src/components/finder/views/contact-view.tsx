@@ -1,8 +1,9 @@
 import { RiCornerDownLeftLine } from "@remixicon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CircleMinus, FileText, Pencil, Plus, SearchIcon, TrashIcon, User } from "lucide-react";
+import { Building2, CircleMinus, FileText, Pencil, Plus, RefreshCw, SearchIcon, TrashIcon, User } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
+import { commands as appleCalendarCommands } from "@hypr/plugin-apple-calendar";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { type Human, type Organization } from "@hypr/plugin-db";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -170,6 +171,17 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
     },
   });
 
+  const syncContactsMutation = useMutation({
+    mutationFn: async () => {
+      const result = await appleCalendarCommands.syncContacts();
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-people"] });
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+    },
+  });
+
   const handleDeletePerson = async (personId: string) => {
     const userConfirmed = await confirm(
       "Are you sure you want to delete this contact? This action cannot be undone.",
@@ -276,6 +288,19 @@ export function ContactView({ userId, initialPersonId, initialOrgId }: ContactVi
                 </SelectItem>
               </SelectContent>
             </Select>
+            <button
+              onClick={() => syncContactsMutation.mutate()}
+              disabled={syncContactsMutation.isPending}
+              className="p-0.5 rounded hover:bg-neutral-100 transition-colors disabled:opacity-50"
+              title="Sync contacts"
+            >
+              <RefreshCw
+                className={cn(
+                  "h-3 w-3 text-neutral-500",
+                  syncContactsMutation.isPending && "animate-spin",
+                )}
+              />
+            </button>
             <button
               onClick={() => {
                 const newPersonId = crypto.randomUUID();

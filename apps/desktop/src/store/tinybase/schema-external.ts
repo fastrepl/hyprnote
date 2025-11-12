@@ -79,6 +79,8 @@ export const templateSectionSchema = z.object({
 
 export const templateSchema = baseTemplateSchema.omit({ id: true }).extend({
   created_at: z.string(),
+  category: z.preprocess(val => val ?? undefined, z.string().optional()),
+  targets: z.preprocess(val => val ?? undefined, jsonObject(z.array(z.string())).optional()),
   sections: jsonObject(z.array(templateSectionSchema)),
 });
 

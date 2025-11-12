@@ -212,12 +212,6 @@ pub async fn main() {
                 app.create_app_menu().unwrap();
             }
 
-            {
-                use tauri_plugin_autostart::ManagerExt;
-                let autostart_manager = app.autolaunch();
-                let _ = autostart_manager.disable();
-            }
-
             let app_clone = app.clone();
             tokio::spawn(async move {
                 if let Err(e) = app_clone.setup_db_for_local().await {

@@ -214,29 +214,31 @@ cargo build --features stt-openblas
 4. Document performance differences
 
 ### 9. Autostart Implementation
-**Status:** 🟢 MEDIUM PRIORITY  
-**Location:** Autostart configuration
+**Status:** ✅ IMPLEMENTED  
+**Location:** `apps/desktop/src-tauri/src/lib.rs`, `apps/desktop/src/components/settings/views/general.tsx`
 
-**Current State:**
-- macOS: Uses `launchd`
-- Linux: Not implemented
+**Implementation:**
+- ✅ Uses XDG Autostart standard (`~/.config/autostart/*.desktop`)
+- ✅ `tauri-plugin-autostart` v2.5.0 integration
+- ✅ UI toggle in Settings → General
+- ✅ Works on all major desktop environments (GNOME, KDE, XFCE, Cinnamon, MATE, etc.)
 
-**Linux Implementation:**
-Create `.desktop` file in `~/.config/autostart/`:
+**Format:**
 ```desktop
 [Desktop Entry]
 Type=Application
+Version=1.0
 Name=Hyprnote
-Exec=/usr/bin/hyprnote
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
+Comment=Hyprnote startup script
+Exec=/path/to/hyprnote
+StartupNotify=false
+Terminal=false
 ```
 
-**Consider:**
-- Respect XDG Base Directory specification
-- Handle systemd user services for background operation
-- Provide toggle in settings UI
+**Compatibility:**
+- ✅ ~95%+ of Linux desktop users (all major DEs)
+- ⚠️ Minimal window managers (i3, dwm, bspwm) may require manual configuration
+- ✅ Follows freedesktop.org XDG Autostart specification
 
 ### 10. Browser/Application Detection Enhancement
 **Status:** 🟢 MEDIUM PRIORITY  

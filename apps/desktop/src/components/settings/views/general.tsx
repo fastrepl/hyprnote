@@ -176,6 +176,32 @@ export default function General() {
         <form className="space-y-8">
           <FormField
             control={form.control}
+            name="autostart"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <div>
+                  <FormLabel>
+                    <Trans>Start automatically at login</Trans>
+                  </FormLabel>
+                  <FormDescription>
+                    <Trans>
+                      Launch Hyprnote in the background when you log in.
+                    </Trans>
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    color="gray"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="saveRecordings"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between">

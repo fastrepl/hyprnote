@@ -219,6 +219,8 @@ export const templates = pgTable(
     ...SHARED,
     title: text("title").notNull(),
     description: text("description").notNull(),
+    category: text("category"),
+    targets: json("targets"),
     sections: json("sections").notNull(),
   },
   (table) => createPolicies(TABLE_TEMPLATES, table.user_id),

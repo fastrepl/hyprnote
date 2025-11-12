@@ -212,6 +212,7 @@ const templates = defineCollection({
     title: z.string(),
     description: z.string(),
     category: z.string(),
+    targets: z.array(z.string()),
     sections: z.array(
       z.object({
         title: z.string(),

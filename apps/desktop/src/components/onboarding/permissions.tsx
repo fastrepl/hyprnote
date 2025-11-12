@@ -6,6 +6,47 @@ import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 import { usePermissions } from "../../hooks/use-permissions";
 import { OnboardingContainer, type OnboardingNext } from "./shared";
 
+type PermissionBlockProps = {
+  name: string;
+  status: string | undefined;
+  description: { authorized: string; unauthorized: string };
+  isPending: boolean;
+  onAction: () => void;
+};
+
+function PermissionBlock({ name, status, description, isPending, onAction }: PermissionBlockProps) {
+  const isAuthorized = status === "authorized";
+
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2">
+        <div
+          className={cn([
+            "flex items-center gap-2",
+            !isAuthorized ? "text-red-500" : "text-neutral-900",
+          ])}
+        >
+          {!isAuthorized && <AlertCircleIcon className="size-4" />}
+          <span className="text-base font-medium">{name}</span>
+        </div>
+        <p className="text-sm text-neutral-500">
+          {isAuthorized ? description.authorized : description.unauthorized}
+        </p>
+      </div>
+      <Button
+        variant={isAuthorized ? "outline" : "default"}
+        size="icon"
+        onClick={onAction}
+        disabled={isPending || isAuthorized}
+        className={cn(["size-8", isAuthorized && "bg-stone-100 text-stone-800"])}
+        aria-label={isAuthorized ? `${name} permission granted` : `Request ${name.toLowerCase()} permission`}
+      >
+        {isAuthorized ? <CheckIcon className="size-5" /> : <ArrowRightIcon className="size-5" />}
+      </Button>
+    </div>
+  );
+}
+
 type PermissionsProps = {
   onNext: OnboardingNext;
 };
@@ -30,99 +71,29 @@ export function Permissions({ onNext }: PermissionsProps) {
   return (
     <OnboardingContainer title="Quick permissions before we begin">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div className="gap-2">
-            <div
-              className={cn([
-                "flex items-center gap-2",
-                micPermissionStatus.data !== "authorized" ? "text-red-500" : "text-neutral-900",
-              ])}
-            >
-              {micPermissionStatus.data !== "authorized" && <AlertCircleIcon className="size-4" />}
-              <span className="text-base font-medium">Microphone</span>
-            </div>
-            <p className="text-sm text-neutral-500">
-              {micPermissionStatus.data === "authorized" ? "Good to go :)" : "To capture your voice"}
-            </p>
-          </div>
-          <Button
-            variant={micPermissionStatus.data === "authorized" ? "outline" : "default"}
-            size="icon"
-            onClick={handleMicPermissionAction}
-            disabled={micPermission.isPending || micPermissionStatus.data === "authorized"}
-            className={cn(["size-8", micPermissionStatus.data === "authorized" && "bg-stone-100 text-stone-800"])}
-          >
-            {micPermissionStatus.data === "authorized"
-              ? <CheckIcon className="size-5" />
-              : <ArrowRightIcon className="size-5" />}
-          </Button>
-        </div>
+        <PermissionBlock
+          name="Microphone"
+          status={micPermissionStatus.data}
+          description={{ authorized: "Good to go :)", unauthorized: "To capture your voice" }}
+          isPending={micPermission.isPending}
+          onAction={handleMicPermissionAction}
+        />
 
-        <div className="flex items-center justify-between">
-          <div className="gap-2">
-            <div
-              className={cn([
-                "flex items-center gap-2",
-                systemAudioPermissionStatus.data !== "authorized" ? "text-red-500" : "text-neutral-900",
-              ])}
-            >
-              {systemAudioPermissionStatus.data !== "authorized" && <AlertCircleIcon className="size-4" />}
-              <span className="text-base font-medium">System audio</span>
-            </div>
-            <p className="text-sm text-neutral-500">
-              {systemAudioPermissionStatus.data === "authorized"
-                ? "Good to go :)"
-                : "To capture what other people are saying"}
-            </p>
-          </div>
-          <Button
-            variant={systemAudioPermissionStatus.data === "authorized" ? "outline" : "default"}
-            size="icon"
-            onClick={handleSystemAudioPermissionAction}
-            disabled={systemAudioPermission.isPending || systemAudioPermissionStatus.data === "authorized"}
-            className={cn([
-              "size-8",
-              systemAudioPermissionStatus.data === "authorized" && "bg-stone-100 text-stone-800",
-            ])}
-          >
-            {systemAudioPermissionStatus.data === "authorized"
-              ? <CheckIcon className="size-5" />
-              : <ArrowRightIcon className="size-5" />}
-          </Button>
-        </div>
+        <PermissionBlock
+          name="System audio"
+          status={systemAudioPermissionStatus.data}
+          description={{ authorized: "Good to go :)", unauthorized: "To capture what other people are saying" }}
+          isPending={systemAudioPermission.isPending}
+          onAction={handleSystemAudioPermissionAction}
+        />
 
-        <div className="flex items-center justify-between">
-          <div className="gap-2">
-            <div
-              className={cn([
-                "flex items-center gap-2",
-                accessibilityPermissionStatus.data !== "authorized" ? "text-red-500" : "text-neutral-900",
-              ])}
-            >
-              {accessibilityPermissionStatus.data !== "authorized" && <AlertCircleIcon className="size-4" />}
-              <span className="text-base font-medium">Accessibility</span>
-            </div>
-            <p className="text-sm text-neutral-500">
-              {accessibilityPermissionStatus.data === "authorized"
-                ? "Good to go :)"
-                : "To sync mic inputs & mute from meetings"}
-            </p>
-          </div>
-          <Button
-            variant={accessibilityPermissionStatus.data === "authorized" ? "outline" : "default"}
-            size="icon"
-            onClick={handleAccessibilityPermissionAction}
-            disabled={accessibilityPermission.isPending || accessibilityPermissionStatus.data === "authorized"}
-            className={cn([
-              "size-8",
-              accessibilityPermissionStatus.data === "authorized" && "bg-stone-100 text-stone-800",
-            ])}
-          >
-            {accessibilityPermissionStatus.data === "authorized"
-              ? <CheckIcon className="size-5" />
-              : <ArrowRightIcon className="size-5" />}
-          </Button>
-        </div>
+        <PermissionBlock
+          name="Accessibility"
+          status={accessibilityPermissionStatus.data}
+          description={{ authorized: "Good to go :)", unauthorized: "To sync mic inputs & mute from meetings" }}
+          isPending={accessibilityPermission.isPending}
+          onAction={handleAccessibilityPermissionAction}
+        />
       </div>
 
       <Button onClick={() => onNext()} className="w-full" disabled={!allPermissionsGranted}>

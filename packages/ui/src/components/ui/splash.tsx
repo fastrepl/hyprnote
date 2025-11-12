@@ -96,7 +96,7 @@ export const SplashLoader: React.FC<SplashLoaderProps> = ({
   }, [progress]);
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn(["relative", className])}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width={size}
@@ -142,7 +142,7 @@ export const SplashScreen: React.FC<SplashLoaderProps> = ({
   strokeWidth,
 }) => {
   return (
-    <div className={cn("flex items-center justify-center", className)}>
+    <div className={cn(["flex items-center justify-center", className])}>
       <SplashLoader
         repeatCount={repeatCount}
         size={size}

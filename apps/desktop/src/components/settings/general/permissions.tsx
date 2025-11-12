@@ -24,9 +24,9 @@ function PermissionRow({
   const isDenied = status === "denied";
 
   const displayMessage = isAuthorized
-    ? "Good to go :)"
+    ? "Permission granted"
     : isDenied
-    ? "You should toggle in the Settings manually"
+    ? "Please enable this permission in System Settings"
     : description;
 
   const buttonText = isAuthorized
@@ -38,7 +38,7 @@ function PermissionRow({
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
-        <div className={cn("flex items-center gap-2 mb-1", !isAuthorized && "text-red-500")}>
+        <div className={cn(["flex items-center gap-2 mb-1", !isAuthorized && "text-red-500"])}>
           {!isAuthorized && <AlertCircleIcon className="size-4" />}
           <h3 className="text-sm font-medium">
             {title}

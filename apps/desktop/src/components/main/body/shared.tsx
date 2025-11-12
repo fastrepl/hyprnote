@@ -112,34 +112,24 @@ export function TabItemBase(
                 isHovered ? "opacity-100" : "opacity-0",
               )}
             >
-              {active
-                ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCloseThis();
-                    }}
-                    className="flex items-center justify-center text-red-600 hover:text-red-700"
-                  >
-                    <span className="w-3 h-3 bg-red-600 hover:bg-red-700 rounded-none transition-colors" />
-                  </button>
-                )
-                : (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCloseThis();
-                    }}
-                    className={cn(
-                      "flex items-center justify-center transition-colors",
-                      selected
-                        ? "text-neutral-700 hover:text-neutral-900"
-                        : "text-neutral-500 hover:text-neutral-700",
-                    )}
-                  >
-                    <X size={16} />
-                  </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseThis();
+                }}
+                className={cn(
+                  [
+                    "flex items-center justify-center transition-colors",
+                    active
+                      ? "text-red-600 hover:text-red-700"
+                      : selected
+                      ? "text-neutral-700 hover:text-neutral-900"
+                      : "text-neutral-500 hover:text-neutral-700",
+                  ],
                 )}
+              >
+                <X size={16} />
+              </button>
             </div>
           </div>
           <span className="truncate">{title}</span>

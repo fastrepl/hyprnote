@@ -52,9 +52,7 @@ export function BottomSheet({
             role="dialog"
             aria-modal="true"
             className={cn(
-              "fixed bottom-0 left-0 right-0 z-50",
-              "rounded-t-lg shadow-lg border-t overflow-clip",
-              className,
+              ["fixed bottom-0 left-0 right-0 z-50", "rounded-t-lg shadow-lg border-t overflow-clip", className],
             )}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -83,7 +81,7 @@ export function BottomSheetContent({
   className,
 }: BottomSheetContentProps) {
   return (
-    <div className={cn("p-4", className)}>
+    <div className={cn(["p-4", className])}>
       {children}
     </div>
   );
@@ -103,7 +101,7 @@ export function BottomSheetTrigger({
   return (
     <div
       onClick={onClick}
-      className={cn("cursor-pointer", className)}
+      className={cn(["cursor-pointer", className])}
     >
       {children}
     </div>

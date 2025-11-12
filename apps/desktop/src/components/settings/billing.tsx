@@ -24,7 +24,7 @@ export function SettingsBilling() {
           {PLANS.map((plan, index) => (
             <div
               key={plan.id}
-              className={cn(index === 0 && "border-r border-neutral-200")}
+              className={cn([index === 0 && "border-r border-neutral-200"])}
             >
               <BillingPlanCard
                 plan={plan}

@@ -76,7 +76,7 @@ export function SocialCard({
             className="hover:opacity-70 transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
-            <svg className={cn("size-5 shrink-0", config.iconColor)} fill="currentColor" viewBox="0 0 24 24">
+            <svg className={cn(["size-5 shrink-0", config.iconColor])} fill="currentColor" viewBox="0 0 24 24">
               <path d={config.iconPath} />
             </svg>
           </a>

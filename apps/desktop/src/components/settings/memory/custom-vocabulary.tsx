@@ -41,6 +41,10 @@ export function CustomVocabularyView() {
     return vocabItems.filter((item) => item.text.toLowerCase().includes(query));
   }, [vocabItems, searchValue]);
 
+  const itemIndexMap = useMemo(() => {
+    return new Map(vocabItems.map((item, index) => [item.rowId, index + 1]));
+  }, [vocabItems]);
+
   const allTexts = vocabItems.map((item) => item.text.toLowerCase());
   const exactMatch = allTexts.includes(searchValue.toLowerCase());
   const showAddButton = searchValue.trim() && !exactMatch;
@@ -97,13 +101,12 @@ export function CustomVocabularyView() {
               </div>
             )
             : (
-              filteredItems.map((item: VocabItem) => {
-                const itemIndex = vocabItems.findIndex((v) => v.rowId === item.rowId);
+              filteredItems.map((item) => {
                 return (
                   <VocabularyItem
                     key={item.rowId}
                     item={item}
-                    itemNumber={itemIndex + 1}
+                    itemNumber={itemIndexMap.get(item.rowId)!}
                     vocabItems={vocabItems}
                     isEditing={editingId === item.rowId}
                     isSearching={searchValue.trim().length > 0}

@@ -63,7 +63,7 @@ function useSuggestedTemplates(query: string) {
       return data.filter((template) => {
         const titleMatch = template.title.toLowerCase().includes(lowerQuery);
         const categoryMatch = template.category?.toLowerCase().includes(lowerQuery);
-        const targetsMatch = template.targets?.some((target) => target.toLowerCase().includes(lowerQuery));
+        const targetsMatch = template.targets?.some((target) => target?.toLowerCase().includes(lowerQuery));
 
         return titleMatch || categoryMatch || targetsMatch;
       });

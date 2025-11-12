@@ -330,7 +330,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (line.type === "heading") {
       const text = line.text.replace("# ", "");
       return (
-        <h1 key={key} className={cn("font-bold text-stone-700", mobile ? "text-xl" : "text-2xl")}>
+        <h1 key={key} className={cn(["font-bold text-stone-700", mobile ? "text-xl" : "text-2xl"])}>
           {text}
         </h1>
       );
@@ -339,7 +339,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (line.type === "bullet") {
       const text = line.text.replace("- ", "");
       return (
-        <ul key={key} className={cn("list-disc pl-5 text-neutral-700", mobile ? "text-sm" : "text-base")}>
+        <ul key={key} className={cn(["list-disc pl-5 text-neutral-700", mobile ? "text-sm" : "text-base"])}>
           <li>{text}</li>
         </ul>
       );
@@ -348,7 +348,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (line.type === "bold") {
       const parts = line.text.split(/(\*\*.*?\*\*)/g);
       return (
-        <p key={key} className={cn("text-neutral-700", mobile ? "text-sm" : "text-base")}>
+        <p key={key} className={cn(["text-neutral-700", mobile ? "text-sm" : "text-base"])}>
           {parts.map((part, i) => {
             if (part.startsWith("**") && part.endsWith("**")) {
               return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
@@ -372,7 +372,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "heading" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "# "
       return (
-        <h1 className={cn("font-bold text-stone-700", isMobile ? "text-xl" : "text-2xl")}>
+        <h1 className={cn(["font-bold text-stone-700", isMobile ? "text-xl" : "text-2xl"])}>
           {displayText}
           <span className="animate-pulse">|</span>
         </h1>
@@ -382,7 +382,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "bullet" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "- "
       return (
-        <ul className={cn("list-disc pl-5 text-neutral-700", isMobile ? "text-sm" : "text-base")}>
+        <ul className={cn(["list-disc pl-5 text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
           <li>
             {displayText}
             <span className="animate-pulse">|</span>
@@ -394,7 +394,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "bold" && isTransformed) {
       const parts = typingText.split(/(\*\*.*?\*\*)/g);
       return (
-        <p className={cn("text-neutral-700", isMobile ? "text-sm" : "text-base")}>
+        <p className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
           {parts.map((part, i) => {
             if (part.startsWith("**") && part.endsWith("**")) {
               return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
@@ -408,7 +408,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
     // Show raw text before transformation
     return (
-      <div className={cn("text-neutral-700", isMobile ? "text-sm" : "text-base")}>
+      <div className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
         {typingText}
         <span className="animate-pulse">|</span>
       </div>
@@ -416,7 +416,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
   };
 
   return (
-    <div className={cn("space-y-3", isMobile && "space-y-2")}>
+    <div className={cn(["space-y-3", isMobile && "space-y-2"])}>
       {completedLines}
       {currentLineIndex < lines.length && renderCurrentLine()}
     </div>
@@ -622,8 +622,10 @@ function SummariesSection() {
                   <div className="space-y-2">
                     <h4
                       className={cn(
-                        "text-lg font-semibold text-stone-700 transition-opacity duration-500",
-                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                        [
+                          "text-lg font-semibold text-stone-700 transition-opacity duration-500",
+                          enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                        ],
                       )}
                     >
                       Mobile UI Update and API Adjustments
@@ -631,8 +633,7 @@ function SummariesSection() {
                     <ul className="space-y-2 text-neutral-700 list-disc pl-5">
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 1 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         Sarah presented the new mobile UI update, which includes a streamlined navigation bar and
@@ -640,8 +641,7 @@ function SummariesSection() {
                       </li>
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 2 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
@@ -649,8 +649,7 @@ function SummariesSection() {
                       </li>
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 3 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         The UI update will be implemented in phases, starting with core navigation improvements. Ben
@@ -661,8 +660,10 @@ function SummariesSection() {
                   <div className="space-y-2">
                     <h4
                       className={cn(
-                        "font-semibold text-stone-700 transition-opacity duration-500",
-                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                        [
+                          "font-semibold text-stone-700 transition-opacity duration-500",
+                          enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                        ],
                       )}
                     >
                       New Dashboard – Urgent Priority
@@ -670,8 +671,7 @@ function SummariesSection() {
                     <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 4 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         Alice emphasized that the new analytics dashboard must be prioritized due to increasing
@@ -679,8 +679,7 @@ function SummariesSection() {
                       </li>
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 5 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         The new dashboard will feature real-time user engagement metrics and a customizable reporting
@@ -751,8 +750,7 @@ function SummariesSection() {
                     <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 1 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         Sarah presented the new mobile UI update, which includes a streamlined navigation bar and
@@ -760,8 +758,7 @@ function SummariesSection() {
                       </li>
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 2 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
@@ -769,8 +766,7 @@ function SummariesSection() {
                       </li>
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 3 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         The UI update will be implemented in phases, starting with core navigation improvements. Ben
@@ -783,8 +779,7 @@ function SummariesSection() {
                     <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 4 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         Alice emphasized that the new analytics dashboard must be prioritized due to increasing
@@ -792,8 +787,7 @@ function SummariesSection() {
                       </li>
                       <li
                         className={cn(
-                          "transition-opacity duration-500",
-                          enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                          ["transition-opacity duration-500", enhancedLines >= 5 ? "opacity-100" : "opacity-0"],
                         )}
                       >
                         The new dashboard will feature real-time user engagement metrics and a customizable reporting

@@ -38,10 +38,8 @@ function Component() {
   }
 
   return (
-    <div
-      data-tauri-drag-region
-      className="flex h-full items-center justify-center px-8 pt-20 pb-12"
-    >
+    <div className="flex flex-col h-full relative items-center justify-center p-8">
+      <div data-tauri-drag-region className="h-14 w-full absolute top-0 left-0 right-0" />
       {content}
     </div>
   );

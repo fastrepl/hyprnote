@@ -127,8 +127,7 @@ jobs:
 
       - name: Install Python and Poetry
         run: |
-          pacman -S --noconfirm python python-pip
-          pip install poetry
+          pacman -S --noconfirm python python-pip python-poetry
           poetry install
 
       - name: Run pre-build script

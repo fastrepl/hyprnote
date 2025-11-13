@@ -24,6 +24,10 @@ declare global {
 
 export function Devtool() {
   const [open, setOpen] = useState(false);
+  const [triggerPosition, setTriggerPosition] = useState({
+    x: typeof window !== "undefined" ? window.innerWidth - 96 : 0,
+    y: typeof window !== "undefined" ? window.innerHeight - 40 : 0,
+  });
 
   const stores = useStores();
   const persistedStore = stores[STORE_ID_PERSISTED] as unknown as
@@ -79,25 +83,100 @@ export function Devtool() {
 
   return (
     <>
-      {!open && <DevtoolTrigger onToggle={handleToggle} />}
+      {!open && (
+        <DevtoolTrigger
+          onToggle={handleToggle}
+          position={triggerPosition}
+          onPositionChange={setTriggerPosition}
+        />
+      )}
       <DevtoolDrawer open={open} onClose={handleClose} onSeed={handleSeed} />
     </>
   );
 }
 
-function DevtoolTrigger({ onToggle }: { onToggle: () => void }) {
+function DevtoolTrigger({
+  onToggle,
+  position,
+  onPositionChange,
+}: {
+  onToggle: () => void;
+  position: { x: number; y: number };
+  onPositionChange: (position: { x: number; y: number }) => void;
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [hasDragged, setHasDragged] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0) return; // Only left click
+      setIsDragging(true);
+      setHasDragged(false);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      });
+      e.preventDefault();
+    },
+    [position],
+  );
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setHasDragged(true);
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+
+      // Constrain to viewport
+      const maxX = window.innerWidth - 32; // 32px is button width
+      const maxY = window.innerHeight - 32; // 32px is button height
+
+      onPositionChange({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, dragStart, onPositionChange]);
+
+  const handleClick = useCallback(() => {
+    if (!hasDragged) {
+      onToggle();
+    }
+  }, [hasDragged, onToggle]);
+
   return (
     <button
       type="button"
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+      }}
       className={cn([
-        "fixed right-16 bottom-2 z-[2147483001]",
+        "fixed z-2147483001",
         "w-8 h-8 rounded-md",
         "bg-[#121214]/90 border border-white/16",
-        "text-[#f5f5f5] text-[11px] font-semibold",
+        "text-[#f5f5f5] text-xs font-semibold",
         "flex items-center justify-center",
-        "cursor-pointer",
+        isDragging ? "cursor-grabbing" : "cursor-grab",
+        "select-none",
       ])}
-      onClick={onToggle}
+      onMouseDown={handleMouseDown}
+      onClick={handleClick}
     >
       Dev
     </button>
@@ -118,7 +197,7 @@ function DevtoolDrawer({
   return (
     <aside
       className={cn([
-        "fixed top-0 right-0 h-full w-[240px] z-[2147483000] font-sans transition-transform duration-300",
+        "fixed top-0 right-0 h-full w-60 z-2147483000 font-sans transition-transform duration-300",
         open ? "translate-x-0" : "translate-x-full",
       ])}
     >

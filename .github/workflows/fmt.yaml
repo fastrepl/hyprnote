@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/pnpm_install
       - uses: dprint/check@v2.3
         with:
           config-path: dprint.json

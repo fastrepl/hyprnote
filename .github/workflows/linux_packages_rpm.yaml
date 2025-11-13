@@ -197,7 +197,7 @@ jobs:
           echo "Testing RPM package installation..."
 
           # Install the package
-          dnf install -y ${{ steps.find-rpm.outputs.rpm_path }}
+          dnf install -y "${{ steps.find-rpm.outputs.rpm_path }}"
 
           # Verify installation
           rpm -qa | grep hyprnote
@@ -237,15 +237,15 @@ jobs:
           echo "Verifying ARM64 RPM package structure..."
 
           # Display RPM info
-          rpm -qip ${{ steps.find-rpm.outputs.rpm_path }}
+          rpm -qip "${{ steps.find-rpm.outputs.rpm_path }}"
 
           # List package contents
-          rpm -qlp ${{ steps.find-rpm.outputs.rpm_path }}
+          rpm -qlp "${{ steps.find-rpm.outputs.rpm_path }}"
 
           # Extract RPM to inspect
           mkdir -p /tmp/rpm-test
           cd /tmp/rpm-test
-          rpm2cpio ${{ steps.find-rpm.outputs.rpm_path }} | cpio -idmv
+          rpm2cpio "${{ steps.find-rpm.outputs.rpm_path }}" | cpio -idmv
 
           # Find and verify binary architecture
           BINARY=$(find /tmp/rpm-test -type f -name "*hyprnote*" -executable 2>/dev/null | head -n 1)

@@ -56,6 +56,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Validate version
         run: |
           # Extract version using jq for robust JSON parsing

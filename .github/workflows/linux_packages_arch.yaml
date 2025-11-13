@@ -106,6 +106,7 @@ jobs:
             vulkan-icd-loader \
             vulkan-headers \
             xdotool \
+            xdg-utils \
             unzip \
             clang \
             nodejs \

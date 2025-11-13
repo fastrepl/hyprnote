@@ -350,6 +350,7 @@ jobs:
             cmake \
             libvulkan-dev \
             libxdo-dev \
+            xdg-utils \
             file \
             wget \
             libclang-dev

@@ -30,6 +30,7 @@ pub struct SpeakerStream {
     _tap: ca::TapGuard,
     waker_state: Arc<Mutex<WakerState>>,
     current_sample_rate: Arc<AtomicU32>,
+    read_buffer: Vec<f32>,
 }
 
 impl SpeakerStream {
@@ -177,6 +178,7 @@ impl SpeakerInput {
 
         let device = self.start_device(&mut ctx).unwrap();
 
+        const CHUNK_SIZE: usize = 256;
         SpeakerStream {
             consumer,
             _device: device,
@@ -184,6 +186,7 @@ impl SpeakerInput {
             _tap: self.tap,
             waker_state,
             current_sample_rate,
+            read_buffer: vec![0.0f32; CHUNK_SIZE],
         }
     }
 }
@@ -221,26 +224,31 @@ fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
 }
 
 impl Stream for SpeakerStream {
-    type Item = f32;
+    type Item = Vec<f32>;
 
     fn poll_next(
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        if let Some(sample) = self.consumer.try_pop() {
-            return Poll::Ready(Some(sample));
+        let this = self.as_mut().get_mut();
+        let popped = this.consumer.pop_slice(&mut this.read_buffer);
+
+        if popped > 0 {
+            return Poll::Ready(Some(this.read_buffer[..popped].to_vec()));
         }
 
-        if self._ctx.should_terminate.load(Ordering::Acquire) {
+        if this._ctx.should_terminate.load(Ordering::Acquire) {
             tracing::warn!("should_terminate");
-            return match self.consumer.try_pop() {
-                Some(sample) => Poll::Ready(Some(sample)),
-                None => Poll::Ready(None),
+            let popped = this.consumer.pop_slice(&mut this.read_buffer);
+            return if popped > 0 {
+                Poll::Ready(Some(this.read_buffer[..popped].to_vec()))
+            } else {
+                Poll::Ready(None)
             };
         }
 
         {
-            let mut state = self.waker_state.lock().unwrap();
+            let mut state = this.waker_state.lock().unwrap();
             state.has_data = false;
             state.waker = Some(cx.waker().clone());
         }

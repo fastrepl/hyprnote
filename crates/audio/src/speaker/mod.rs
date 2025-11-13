@@ -55,7 +55,11 @@ impl SpeakerInput {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub fn stream(self) -> Result<SpeakerStream> {
         let inner = self.inner.stream();
-        Ok(SpeakerStream { inner })
+        Ok(SpeakerStream {
+            inner,
+            buffer: Vec::new(),
+            buffer_idx: 0,
+        })
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
@@ -69,6 +73,8 @@ impl SpeakerInput {
 // https://github.com/floneum/floneum/blob/50afe10/interfaces/kalosm-sound/src/source/mic.rs#L140
 pub struct SpeakerStream {
     inner: PlatformSpeakerStream,
+    buffer: Vec<f32>,
+    buffer_idx: usize,
 }
 
 impl Stream for SpeakerStream {
@@ -80,7 +86,27 @@ impl Stream for SpeakerStream {
     ) -> std::task::Poll<Option<Self::Item>> {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         {
-            self.inner.poll_next_unpin(cx)
+            if self.buffer_idx < self.buffer.len() {
+                let sample = self.buffer[self.buffer_idx];
+                self.buffer_idx += 1;
+                return std::task::Poll::Ready(Some(sample));
+            }
+
+            match self.inner.poll_next_unpin(cx) {
+                std::task::Poll::Ready(Some(chunk)) => {
+                    self.buffer = chunk;
+                    self.buffer_idx = 0;
+                    if !self.buffer.is_empty() {
+                        let sample = self.buffer[0];
+                        self.buffer_idx = 1;
+                        std::task::Poll::Ready(Some(sample))
+                    } else {
+                        std::task::Poll::Pending
+                    }
+                }
+                std::task::Poll::Ready(None) => std::task::Poll::Ready(None),
+                std::task::Poll::Pending => std::task::Poll::Pending,
+            }
         }
 
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]

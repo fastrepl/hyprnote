@@ -72,12 +72,12 @@ jobs:
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-       - name: Install system dependencies
-         run: |
-           # Update package database and keyring
-           pacman -Syu --noconfirm
+      - name: Install system dependencies
+        run: |
+          # Update package database and keyring
+          pacman -Syu --noconfirm
 
-           # Install base development tools
+          # Install base development tools
            pacman -S --noconfirm \
              base-devel \
              git \

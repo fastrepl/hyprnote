@@ -13,12 +13,6 @@
       "**/*.wxl"
     ]
   },
-  "typescript": {
-    "associations": [
-      "**/*.{js,ts,jsx,tsx,mjs,mts}"
-    ],
-    "singleBodyPosition": "nextLine"
-  },
   "excludes": [
     ".venv",
     ".drizzle",
@@ -40,13 +34,20 @@
   ],
   "exec": {
     "cwd": "${configDir}",
-    "commands": [{
-      "command": "rustfmt --edition 2021",
-      "exts": ["rs"]
-    }, {
-      "command": "swift-format format",
-      "exts": ["swift"]
-    }]
+    "commands": [
+      {
+        "command": "npx prettier --config .prettierrc --write",
+        "exts": ["js", "ts", "jsx", "tsx", "mjs", "mts"]
+      },
+      {
+        "command": "rustfmt --edition 2021",
+        "exts": ["rs"]
+      },
+      {
+        "command": "swift-format format",
+        "exts": ["swift"]
+      }
+    ]
   },
   "plugins": [
     "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.0.wasm",
@@ -58,7 +59,6 @@
     "https://plugins.dprint.dev/json-0.20.0.wasm",
     "https://plugins.dprint.dev/markdown-0.17.8.wasm",
     "https://plugins.dprint.dev/g-plane/markup_fmt-v0.18.0.wasm",
-    "https://plugins.dprint.dev/g-plane/malva-v0.12.1.wasm",
-    "https://plugins.dprint.dev/typescript-0.94.0.wasm"
+    "https://plugins.dprint.dev/g-plane/malva-v0.12.1.wasm"
   ]
 }

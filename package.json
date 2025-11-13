@@ -4,7 +4,10 @@
   },
   "packageManager": "pnpm@10.21.0",
   "devDependencies": {
+    "@prettier/plugin-oxc": "^0.0.4",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "esbuild": "0.25.11",
+    "prettier": "^3.6.2",
     "turbo": "^2.6.0"
   },
   "pnpm": {

@@ -1,10 +1,19 @@
+import { useCallback } from "react";
+
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
 export function ChatBodyEmpty({ isModelConfigured = true }: { isModelConfigured?: boolean }) {
-  const handleGoToSettings = () => {
-    windowsCommands.windowShow({ type: "settings" });
-  };
+  const handleGoToSettings = useCallback(() => {
+    windowsCommands.windowShow({ type: "settings" })
+      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
+      .then(() =>
+        windowsCommands.windowEmitNavigate({ type: "settings" }, {
+          path: "/app/settings",
+          search: { tab: "intelligence" },
+        })
+      );
+  }, []);
 
   const quickActions = [
     "Make a 1-paragraph summary",

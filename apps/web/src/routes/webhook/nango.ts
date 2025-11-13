@@ -8,9 +8,9 @@ export const Route = createFileRoute("/webhook/nango")({
           const payload = await request.json();
 
           if (
-            payload.type === "auth"
-            && payload.operation === "creation"
-            && payload.success === true
+            payload.type === "auth" &&
+            payload.operation === "creation" &&
+            payload.success === true
           ) {
             const connectionId = payload.connectionId;
             const endUserId = payload.endUser?.endUserId;

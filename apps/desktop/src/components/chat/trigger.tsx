@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
-
 import { createPortal } from "react-dom";
+
+import { cn } from "@hypr/utils";
 
 export function ChatTrigger({ onClick }: { onClick: () => void }) {
   return createPortal(

@@ -1,8 +1,12 @@
-import "../../styles.css";
-
-import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
+import {
+  EditorContent,
+  type HTMLContent,
+  type Editor as TiptapEditor,
+  useEditor,
+} from "@tiptap/react";
 import { forwardRef, useEffect } from "react";
 
+import "../../styles.css";
 import * as shared from "../shared";
 import { mentionReadonly } from "./mention-readonly";
 

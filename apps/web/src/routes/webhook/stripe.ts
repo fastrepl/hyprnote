@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import Stripe from "stripe";
-
 import { env } from "@/env";
 import { getStripeClient } from "@/functions/stripe";
+import { createFileRoute } from "@tanstack/react-router";
+import Stripe from "stripe";
 
 const ALLOWED_EVENTS: Stripe.Event.Type[] = [
   "checkout.session.completed",
@@ -38,7 +37,9 @@ async function processEvent(event: Stripe.Event) {
     );
   }
 
-  console.log(`[STRIPE WEBHOOK] Processing event ${event.type} for customer ${customerId}`);
+  console.log(
+    `[STRIPE WEBHOOK] Processing event ${event.type} for customer ${customerId}`,
+  );
 }
 
 export const Route = createFileRoute("/webhook/stripe")({
@@ -49,7 +50,9 @@ export const Route = createFileRoute("/webhook/stripe")({
         const signature = request.headers.get("Stripe-Signature");
 
         if (!signature) {
-          return new Response(JSON.stringify({ error: "No signature" }), { status: 400 });
+          return new Response(JSON.stringify({ error: "No signature" }), {
+            status: 400,
+          });
         }
 
         try {
@@ -63,10 +66,14 @@ export const Route = createFileRoute("/webhook/stripe")({
 
           await processEvent(event);
 
-          return new Response(JSON.stringify({ received: true }), { status: 200 });
+          return new Response(JSON.stringify({ received: true }), {
+            status: 200,
+          });
         } catch (error) {
           console.error("[STRIPE WEBHOOK] Error processing event", error);
-          return new Response(JSON.stringify({ received: true }), { status: 200 });
+          return new Response(JSON.stringify({ received: true }), {
+            status: 200,
+          });
         }
       },
     },

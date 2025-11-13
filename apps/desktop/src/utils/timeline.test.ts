@@ -1,5 +1,3 @@
-process.env.TZ = "UTC";
-
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -8,6 +6,8 @@ import {
   getBucketInfo,
   type SessionsWithMaybeEventTable,
 } from "./timeline";
+
+process.env.TZ = "UTC";
 
 const SYSTEM_TIME = new Date("2024-01-15T12:00:00.000Z");
 
@@ -42,7 +42,7 @@ describe("timeline utils", () => {
       sessionsWithMaybeEventTable: null,
     });
 
-    const todayBucket = buckets.find(bucket => bucket.label === "Today");
+    const todayBucket = buckets.find((bucket) => bucket.label === "Today");
     expect(todayBucket).toBeUndefined();
   });
 
@@ -79,17 +79,27 @@ describe("timeline utils", () => {
       },
     };
 
-    const buckets = buildTimelineBuckets({ eventsWithoutSessionTable, sessionsWithMaybeEventTable });
+    const buckets = buildTimelineBuckets({
+      eventsWithoutSessionTable,
+      sessionsWithMaybeEventTable,
+    });
 
     const futureBucket = buckets[0];
     expect(futureBucket.label).toBe("in 3 days");
     expect(futureBucket.items).toHaveLength(1);
-    expect(futureBucket.items[0]).toMatchObject({ type: "event", id: "event-1" });
+    expect(futureBucket.items[0]).toMatchObject({
+      type: "event",
+      id: "event-1",
+    });
 
-    const sessionBucket = buckets.find(bucket => bucket.items.some(item => item.id === "session-2"));
+    const sessionBucket = buckets.find((bucket) =>
+      bucket.items.some((item) => item.id === "session-2"),
+    );
     expect(sessionBucket).toBeDefined();
     expect(sessionBucket?.items).toHaveLength(1);
-    const containsLinkedSession = buckets.some(bucket => bucket.items.some(item => item.id === "session-1"));
+    const containsLinkedSession = buckets.some((bucket) =>
+      bucket.items.some((item) => item.id === "session-1"),
+    );
     expect(containsLinkedSession).toBe(false);
   });
 
@@ -118,17 +128,25 @@ describe("timeline utils", () => {
       },
     };
 
-    const buckets = buildTimelineBuckets({ eventsWithoutSessionTable, sessionsWithMaybeEventTable });
+    const buckets = buildTimelineBuckets({
+      eventsWithoutSessionTable,
+      sessionsWithMaybeEventTable,
+    });
 
-    const pastBucket = buckets.find(bucket => bucket.label === "5 days ago");
+    const pastBucket = buckets.find((bucket) => bucket.label === "5 days ago");
     expect(pastBucket).toBeDefined();
     expect(pastBucket?.items).toHaveLength(1);
-    expect(pastBucket?.items[0]).toMatchObject({ type: "session", id: "session-past" });
+    expect(pastBucket?.items[0]).toMatchObject({
+      type: "session",
+      id: "session-past",
+    });
 
-    const hasPastEvent = buckets.some(bucket => bucket.items.some(item => item.id === "event-past"));
+    const hasPastEvent = buckets.some((bucket) =>
+      bucket.items.some((item) => item.id === "event-past"),
+    );
     expect(hasPastEvent).toBe(false);
 
-    const todayBucket = buckets.find(bucket => bucket.label === "Today");
+    const todayBucket = buckets.find((bucket) => bucket.label === "Today");
     expect(todayBucket).toBeUndefined();
   });
 
@@ -153,8 +171,14 @@ describe("timeline utils", () => {
       },
     };
 
-    const buckets = buildTimelineBuckets({ eventsWithoutSessionTable: null, sessionsWithMaybeEventTable });
+    const buckets = buildTimelineBuckets({
+      eventsWithoutSessionTable: null,
+      sessionsWithMaybeEventTable,
+    });
 
-    expect(buckets.map(bucket => bucket.label)).toEqual(["Tomorrow", "Yesterday"]);
+    expect(buckets.map((bucket) => bucket.label)).toEqual([
+      "Tomorrow",
+      "Yesterday",
+    ]);
   });
 });

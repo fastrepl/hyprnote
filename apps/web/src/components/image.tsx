@@ -7,10 +7,6 @@ export const Image = ({
   ...props
 }: Partial<ImageProps> & Pick<ImageProps, "src" | "alt">) => {
   return (
-    <UnpicImage
-      {...props as any}
-      layout={layout}
-      transformer={transform}
-    />
+    <UnpicImage {...(props as any)} layout={layout} transformer={transform} />
   );
 };

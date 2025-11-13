@@ -1,6 +1,6 @@
+import { PostHogProvider as PostHogReactProvider } from "@posthog/react";
 import posthog from "posthog-js";
 
-import { PostHogProvider as PostHogReactProvider } from "@posthog/react";
 import { env } from "../env";
 
 if (typeof window !== "undefined") {
@@ -12,5 +12,7 @@ if (typeof window !== "undefined") {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  return <PostHogReactProvider client={posthog}>{children}</PostHogReactProvider>;
+  return (
+    <PostHogReactProvider client={posthog}>{children}</PostHogReactProvider>
+  );
 }

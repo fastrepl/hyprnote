@@ -11,7 +11,10 @@ export function usePlatform(): Platform {
     }
 
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isMobile = /mobile|android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    const isMobile =
+      /mobile|android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+        userAgent,
+      );
 
     if (isMobile) {
       setPlatform("mobile");
@@ -67,6 +70,7 @@ export function getHeroCTA(platform: Platform): {
     buttonLabel: "Join",
     showInput: true,
     inputPlaceholder: "Enter your email",
-    subtext: "Join the waitlist and get notified as soon as the app is released",
+    subtext:
+      "Join the waitlist and get notified as soon as the app is released",
   };
 }

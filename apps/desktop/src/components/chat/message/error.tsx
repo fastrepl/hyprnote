@@ -2,7 +2,13 @@ import { RotateCcw } from "lucide-react";
 
 import { ActionButton, MessageBubble, MessageContainer } from "./shared";
 
-export function ErrorMessage({ error, onRetry }: { error: Error; onRetry?: () => void }) {
+export function ErrorMessage({
+  error,
+  onRetry,
+}: {
+  error: Error;
+  onRetry?: () => void;
+}) {
   return (
     <MessageContainer align="start">
       <MessageBubble variant="error" withActionButton={!!onRetry}>

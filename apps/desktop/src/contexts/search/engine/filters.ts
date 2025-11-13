@@ -1,6 +1,8 @@
 import type { SearchFilters } from "./types";
 
-export function buildOramaFilters(filters: SearchFilters | null): Record<string, any> | undefined {
+export function buildOramaFilters(
+  filters: SearchFilters | null,
+): Record<string, any> | undefined {
   if (!filters || !filters.created_at) {
     return undefined;
   }

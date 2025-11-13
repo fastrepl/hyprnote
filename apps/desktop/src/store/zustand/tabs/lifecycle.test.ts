@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+
 import { type Tab, useTabs } from ".";
 import { createSessionTab, resetTabsStore, seedTabsStore } from "./test-utils";
 
@@ -16,7 +17,9 @@ describe("Tab Lifecycle", () => {
     useTabs.getState().close(tab);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: tab.id, type: "sessions" }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: tab.id, type: "sessions" }),
+    );
   });
 
   test("registerOnClose triggers handler when openCurrent replaces tab", () => {
@@ -29,7 +32,9 @@ describe("Tab Lifecycle", () => {
     useTabs.getState().openCurrent(tab2);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: tab1.id, type: "sessions" }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: tab1.id, type: "sessions" }),
+    );
   });
 
   test("registerOnClose handler receives correct tab when multiple tabs close", () => {

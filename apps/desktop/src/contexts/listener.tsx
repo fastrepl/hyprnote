@@ -1,11 +1,15 @@
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import React, { createContext, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 
 import { events as detectEvents } from "@hypr/plugin-detect";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { createListenerStore, type ListenerStore } from "../store/zustand/listener";
+
+import {
+  createListenerStore,
+  type ListenerStore,
+} from "../store/zustand/listener";
 
 const ListenerContext = createContext<ListenerStore | null>(null);
 
@@ -38,9 +42,7 @@ export const useListener = <T,>(
   const store = useContext(ListenerContext);
 
   if (!store) {
-    throw new Error(
-      "'useListener' must be used within a 'ListenerProvider'",
-    );
+    throw new Error("'useListener' must be used within a 'ListenerProvider'");
   }
 
   return useStore(store, useShallow(selector));
@@ -55,37 +57,42 @@ const useHandleDetectEvents = (store: ListenerStore) => {
     let cancelled = false;
     let notificationTimerId: ReturnType<typeof setTimeout>;
 
-    detectEvents.detectEvent.listen(({ payload }) => {
-      if (payload.type === "micStarted") {
-        getCurrentWindow().isFocused().then((isFocused) => {
-          if (isFocused) {
-            return;
-          }
+    detectEvents.detectEvent
+      .listen(({ payload }) => {
+        if (payload.type === "micStarted") {
+          getCurrentWindow()
+            .isFocused()
+            .then((isFocused) => {
+              if (isFocused) {
+                return;
+              }
 
-          notificationTimerId = setTimeout(() => {
-            notificationCommands.showNotification({
-              key: payload.key,
-              title: "Mic Started",
-              message: "Mic started",
-              url: null,
-              timeout: { secs: 8, nanos: 0 },
+              notificationTimerId = setTimeout(() => {
+                notificationCommands.showNotification({
+                  key: payload.key,
+                  title: "Mic Started",
+                  message: "Mic started",
+                  url: null,
+                  timeout: { secs: 8, nanos: 0 },
+                });
+              }, 2000);
             });
-          }, 2000);
-        });
-      } else if (payload.type === "micStopped") {
-        stop();
-      } else if (payload.type === "micMuted") {
-        setMuted(payload.value);
-      }
-    }).then((fn) => {
-      if (cancelled) {
-        fn();
-      } else {
-        unlisten = fn;
-      }
-    }).catch((err) => {
-      console.error("Failed to setup detect event listener:", err);
-    });
+        } else if (payload.type === "micStopped") {
+          stop();
+        } else if (payload.type === "micMuted") {
+          setMuted(payload.value);
+        }
+      })
+      .then((fn) => {
+        if (cancelled) {
+          fn();
+        } else {
+          unlisten = fn;
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to setup detect event listener:", err);
+      });
 
     return () => {
       cancelled = true;

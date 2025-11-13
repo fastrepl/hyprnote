@@ -1,14 +1,20 @@
 import { faker } from "@faker-js/faker";
 
-import type { TemplateSection, TemplateStorage } from "../../../store/tinybase/main";
+import type {
+  TemplateSection,
+  TemplateStorage,
+} from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
 export const createTemplate = (): { id: string; data: TemplateStorage } => {
   const sectionCount = faker.number.int({ min: 2, max: 5 });
-  const sections: TemplateSection[] = Array.from({ length: sectionCount }, () => ({
-    title: faker.lorem.words({ min: 2, max: 4 }),
-    description: faker.lorem.sentence(),
-  }));
+  const sections: TemplateSection[] = Array.from(
+    { length: sectionCount },
+    () => ({
+      title: faker.lorem.words({ min: 2, max: 4 }),
+      description: faker.lorem.sentence(),
+    }),
+  );
 
   return {
     id: id(),

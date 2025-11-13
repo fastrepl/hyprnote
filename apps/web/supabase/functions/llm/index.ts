@@ -8,7 +8,13 @@ app.use(
   "*",
   cors({
     origin: "*",
-    allowHeaders: ["authorization", "x-client-info", "apikey", "content-type", "user-agent"],
+    allowHeaders: [
+      "authorization",
+      "x-client-info",
+      "apikey",
+      "content-type",
+      "user-agent",
+    ],
     allowMethods: ["POST", "GET", "OPTIONS"],
   }),
 );
@@ -26,7 +32,10 @@ app.use("*", async (c, next) => {
   );
 
   const token = authHeader.replace("Bearer ", "");
-  const { data: { user }, error } = await supabaseClient.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabaseClient.auth.getUser(token);
 
   if (error || !user) {
     return c.text("unauthorized", 401);
@@ -38,7 +47,8 @@ app.use("*", async (c, next) => {
 app.post("/chat/completions", async (c) => {
   const requestBody = await c.req.json();
 
-  const needsToolCalling = requestBody.tools && requestBody.tool_choice !== "none";
+  const needsToolCalling =
+    requestBody.tools && requestBody.tool_choice !== "none";
 
   const modelsToUse = needsToolCalling
     ? ["anthropic/claude-haiku-4.5", "openai/gpt-oss-120b:nitro"]
@@ -51,19 +61,23 @@ app.post("/chat/completions", async (c) => {
     models: modelsToUse,
   };
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${Deno.env.get("OPENROUTER_API_KEY")}`,
+  const response = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("OPENROUTER_API_KEY")}`,
+      },
+      body: JSON.stringify(modifiedBody),
     },
-    body: JSON.stringify(modifiedBody),
-  });
+  );
 
   return new Response(response.body, {
     status: response.status,
     headers: {
-      "Content-Type": response.headers.get("Content-Type") || "application/json",
+      "Content-Type":
+        response.headers.get("Content-Type") || "application/json",
     },
   });
 });

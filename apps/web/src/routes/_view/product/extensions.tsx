@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
-
 import { createFileRoute } from "@tanstack/react-router";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/product/extensions")({
   component: Component,
@@ -18,7 +18,10 @@ export const Route = createFileRoute("/_view/product/extensions")({
 
 function Component() {
   const extensionAreas = [
-    { label: "Custom Views", description: "Graph views, kanban boards, and more" },
+    {
+      label: "Custom Views",
+      description: "Graph views, kanban boards, and more",
+    },
     { label: "Themes", description: "Personalize your workspace" },
     { label: "Editor Plugins", description: "Enhanced editing capabilities" },
     { label: "Integrations", description: "Connect external tools" },
@@ -38,7 +41,8 @@ function Component() {
               Build Beyond the Defaults
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600 mb-10">
-              Extend Hyprnote with custom themes, plugins, and views. Build together with the community.
+              Extend Hyprnote with custom themes, plugins, and views. Build
+              together with the community.
             </p>
 
             <div className="mb-10">

@@ -14,7 +14,9 @@ export function TemplateCard({
   onClick?: () => void;
 }) {
   const displayTitle = title?.trim() ? title : "Untitled";
-  const displayDescription = description?.trim() ? description : "No description provided.";
+  const displayDescription = description?.trim()
+    ? description
+    : "No description provided.";
 
   return (
     <div
@@ -34,22 +36,23 @@ export function TemplateCard({
       className={cn([
         "flex items-start gap-4",
         "p-4 border border-neutral-200 rounded-lg",
-        onClick ? "cursor-pointer transition-colors hover:bg-neutral-50" : "cursor-default",
+        onClick
+          ? "cursor-pointer transition-colors hover:bg-neutral-50"
+          : "cursor-default",
       ])}
     >
       <div className="flex-1">
         <h3 className="text-sm font-medium mb-2 inline-flex items-center gap-1">
           <span>{displayTitle}</span>
-          {category && (
-            <span className="text-stone-400">
-              - {category}
-            </span>
-          )}
+          {category && <span className="text-stone-400">- {category}</span>}
         </h3>
         <p className="text-xs text-neutral-600 mb-2">{displayDescription}</p>
         <div className="flex items-center gap-2 flex-wrap">
           {targets?.map((target, index) => (
-            <span key={index} className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">
+            <span
+              key={index}
+              className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded"
+            >
               {target}
             </span>
           ))}

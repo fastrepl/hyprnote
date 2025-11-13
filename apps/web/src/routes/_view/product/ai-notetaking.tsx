@@ -1,11 +1,10 @@
-import { cn } from "@hypr/utils";
-
+import { MockWindow } from "@/components/mock-window";
+import { SlashSeparator } from "@/components/slash-separator";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { MockWindow } from "@/components/mock-window";
-import { SlashSeparator } from "@/components/slash-separator";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/product/ai-notetaking")({
   component: Component,
@@ -24,7 +23,10 @@ export const Route = createFileRoute("/_view/product/ai-notetaking")({
           "Record meetings in real-time or upload audio files. Get instant AI transcriptions, summaries, and action items with customizable templates.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://hyprnote.com/product/ai-notetaking" },
+      {
+        property: "og:url",
+        content: "https://hyprnote.com/product/ai-notetaking",
+      },
     ],
   }),
 });
@@ -62,11 +64,13 @@ function HeroSection() {
       <div className="px-6 py-12 lg:py-20">
         <header className="mb-12 text-center max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-            AI notetaking that<br className="hidden sm:inline" /> captures everything
+            AI notetaking that
+            <br className="hidden sm:inline" /> captures everything
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
-            Record meetings or upload audio files to get instant<br className="hidden sm:inline" />{" "}
-            AI transcriptions and customizable summaries
+            Record meetings or upload audio files to get instant
+            <br className="hidden sm:inline" /> AI transcriptions and
+            customizable summaries
           </p>
           <div className="mt-8">
             <a
@@ -99,22 +103,40 @@ function EditorSection() {
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
-            <h2 className="text-3xl font-serif text-stone-600">Notion-like editor with markdown support</h2>
+            <h2 className="text-3xl font-serif text-stone-600">
+              Notion-like editor with markdown support
+            </h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Write and organize your notes with a powerful, intuitive editor that supports full markdown syntax
+              Write and organize your notes with a powerful, intuitive editor
+              that supports full markdown syntax
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-                <span className="text-neutral-600">Full markdown syntax support for quick formatting</span>
+                <Icon
+                  icon="mdi:check-circle"
+                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
+                />
+                <span className="text-neutral-600">
+                  Full markdown syntax support for quick formatting
+                </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-                <span className="text-neutral-600">Clean, distraction-free writing experience</span>
+                <Icon
+                  icon="mdi:check-circle"
+                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
+                />
+                <span className="text-neutral-600">
+                  Clean, distraction-free writing experience
+                </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-                <span className="text-neutral-600">Rich text editing with familiar keyboard shortcuts</span>
+                <Icon
+                  icon="mdi:check-circle"
+                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
+                />
+                <span className="text-neutral-600">
+                  Rich text editing with familiar keyboard shortcuts
+                </span>
               </li>
             </ul>
           </div>
@@ -130,22 +152,40 @@ function EditorSection() {
 
       <div className="sm:hidden">
         <div className="p-6 border-b border-neutral-100">
-          <h2 className="text-2xl font-serif text-stone-600 mb-3">Notion-like editor with markdown support</h2>
+          <h2 className="text-2xl font-serif text-stone-600 mb-3">
+            Notion-like editor with markdown support
+          </h2>
           <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Write and organize your notes with a powerful, intuitive editor that supports full markdown syntax.
+            Write and organize your notes with a powerful, intuitive editor that
+            supports full markdown syntax.
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-              <span className="text-neutral-600 text-sm">Full markdown syntax support for quick formatting</span>
+              <Icon
+                icon="mdi:check-circle"
+                className="text-stone-600 shrink-0 mt-0.5 text-xl"
+              />
+              <span className="text-neutral-600 text-sm">
+                Full markdown syntax support for quick formatting
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-              <span className="text-neutral-600 text-sm">Clean, distraction-free writing experience</span>
+              <Icon
+                icon="mdi:check-circle"
+                className="text-stone-600 shrink-0 mt-0.5 text-xl"
+              />
+              <span className="text-neutral-600 text-sm">
+                Clean, distraction-free writing experience
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-              <span className="text-neutral-600 text-sm">Rich text editing with familiar keyboard shortcuts</span>
+              <Icon
+                icon="mdi:check-circle"
+                className="text-stone-600 shrink-0 mt-0.5 text-xl"
+              />
+              <span className="text-neutral-600 text-sm">
+                Rich text editing with familiar keyboard shortcuts
+              </span>
             </li>
           </ul>
         </div>
@@ -176,7 +216,7 @@ function AudioTranscriptionDemo() {
   const words = [
     { position: 0.02, text: "Welcome" }, // ~7 chars
     { position: 0.15, text: "to" }, // ~2 chars
-    { position: 0.20, text: "today's" }, // ~7 chars
+    { position: 0.2, text: "today's" }, // ~7 chars
     { position: 0.33, text: "meeting" }, // ~7 chars
     { position: 0.48, text: "Let's" }, // ~5 chars
     { position: 0.59, text: "discuss" }, // ~7 chars
@@ -257,7 +297,9 @@ function AudioTranscriptionDemo() {
 }
 
 function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
-  const [completedLines, setCompletedLines] = useState<React.ReactElement[]>([]);
+  const [completedLines, setCompletedLines] = useState<React.ReactElement[]>(
+    [],
+  );
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [typingText, setTypingText] = useState("");
   const [isTransformed, setIsTransformed] = useState(false);
@@ -267,7 +309,10 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     { text: "- Product roadmap review", type: "bullet" as const },
     { text: "- Q4 marketing strategy", type: "bullet" as const },
     { text: "- Budget allocation", type: "bullet" as const },
-    { text: "**Decision:** Launch campaign by end of month", type: "bold" as const },
+    {
+      text: "**Decision:** Launch campaign by end of month",
+      type: "bold" as const,
+    },
   ];
 
   useEffect(() => {
@@ -293,9 +338,10 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
         charIndex++;
 
         // Check if we just typed the trigger characters
-        const shouldTransform = (currentLine.type === "heading" && newText === "# ")
-          || (currentLine.type === "bullet" && newText === "- ")
-          || (currentLine.type === "bold" && newText.match(/\*\*[^*]+\*\*/));
+        const shouldTransform =
+          (currentLine.type === "heading" && newText === "# ") ||
+          (currentLine.type === "bullet" && newText === "- ") ||
+          (currentLine.type === "bold" && newText.match(/\*\*[^*]+\*\*/));
 
         if (shouldTransform) {
           setIsTransformed(true);
@@ -324,13 +370,22 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     return () => clearTimeout(timeout);
   }, [currentLineIndex, isMobile]);
 
-  const renderCompletedLine = (line: typeof lines[number], mobile: boolean) => {
+  const renderCompletedLine = (
+    line: (typeof lines)[number],
+    mobile: boolean,
+  ) => {
     const key = `completed-${currentLineIndex}`;
 
     if (line.type === "heading") {
       const text = line.text.replace("# ", "");
       return (
-        <h1 key={key} className={cn(["font-bold text-stone-700", mobile ? "text-xl" : "text-2xl"])}>
+        <h1
+          key={key}
+          className={cn([
+            "font-bold text-stone-700",
+            mobile ? "text-xl" : "text-2xl",
+          ])}
+        >
           {text}
         </h1>
       );
@@ -339,7 +394,13 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (line.type === "bullet") {
       const text = line.text.replace("- ", "");
       return (
-        <ul key={key} className={cn(["list-disc pl-5 text-neutral-700", mobile ? "text-sm" : "text-base"])}>
+        <ul
+          key={key}
+          className={cn([
+            "list-disc pl-5 text-neutral-700",
+            mobile ? "text-sm" : "text-base",
+          ])}
+        >
           <li>{text}</li>
         </ul>
       );
@@ -348,10 +409,17 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (line.type === "bold") {
       const parts = line.text.split(/(\*\*.*?\*\*)/g);
       return (
-        <p key={key} className={cn(["text-neutral-700", mobile ? "text-sm" : "text-base"])}>
+        <p
+          key={key}
+          className={cn(["text-neutral-700", mobile ? "text-sm" : "text-base"])}
+        >
           {parts.map((part, i) => {
             if (part.startsWith("**") && part.endsWith("**")) {
-              return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+              return (
+                <span key={i} className="font-bold">
+                  {part.slice(2, -2)}
+                </span>
+              );
             }
             return part;
           })}
@@ -372,7 +440,12 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "heading" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "# "
       return (
-        <h1 className={cn(["font-bold text-stone-700", isMobile ? "text-xl" : "text-2xl"])}>
+        <h1
+          className={cn([
+            "font-bold text-stone-700",
+            isMobile ? "text-xl" : "text-2xl",
+          ])}
+        >
           {displayText}
           <span className="animate-pulse">|</span>
         </h1>
@@ -382,7 +455,12 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "bullet" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "- "
       return (
-        <ul className={cn(["list-disc pl-5 text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
+        <ul
+          className={cn([
+            "list-disc pl-5 text-neutral-700",
+            isMobile ? "text-sm" : "text-base",
+          ])}
+        >
           <li>
             {displayText}
             <span className="animate-pulse">|</span>
@@ -394,10 +472,19 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "bold" && isTransformed) {
       const parts = typingText.split(/(\*\*.*?\*\*)/g);
       return (
-        <p className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
+        <p
+          className={cn([
+            "text-neutral-700",
+            isMobile ? "text-sm" : "text-base",
+          ])}
+        >
           {parts.map((part, i) => {
             if (part.startsWith("**") && part.endsWith("**")) {
-              return <span key={i} className="font-bold">{part.slice(2, -2)}</span>;
+              return (
+                <span key={i} className="font-bold">
+                  {part.slice(2, -2)}
+                </span>
+              );
             }
             return part;
           })}
@@ -408,7 +495,9 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
     // Show raw text before transformation
     return (
-      <div className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
+      <div
+        className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}
+      >
         {typingText}
         <span className="animate-pulse">|</span>
       </div>
@@ -427,7 +516,9 @@ function TranscriptionSection() {
   return (
     <section id="transcription" className="border-y border-neutral-100">
       <div className="text-center py-12 px-4 lg:px-0">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">Transcription</h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          Transcription
+        </h2>
         <p className="text-base text-neutral-600 max-w-2xl mx-auto">
           From live meetings to recorded audio, Hyprnote can transcribe it all
         </p>
@@ -440,15 +531,17 @@ function TranscriptionSection() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Icon icon="mdi:chip" className="text-3xl text-stone-600" />
-                  <h3 className="text-2xl font-serif text-stone-600">Fully on-device</h3>
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Fully on-device
+                  </h3>
                 </div>
                 <div className="px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium whitespace-nowrap">
                   Apple Silicon only
                 </div>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                For Apple Silicon Macs, transcription happens entirely on your device. Fast, private, and no internet
-                required
+                For Apple Silicon Macs, transcription happens entirely on your
+                device. Fast, private, and no internet required
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -463,10 +556,13 @@ function TranscriptionSection() {
             <div className="p-8 flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <Icon icon="mdi:upload" className="text-3xl text-stone-600" />
-                <h3 className="text-2xl font-serif text-stone-600">Upload files</h3>
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Upload files
+                </h3>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT, TXT) to get AI summaries and insights
+                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT,
+                TXT) to get AI summaries and insights
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden bg-neutral-100">
@@ -483,11 +579,13 @@ function TranscriptionSection() {
               </div>
               <div className="flex items-center gap-3 mb-3">
                 <Icon icon="mdi:chip" className="text-2xl text-stone-600" />
-                <h3 className="text-xl font-serif text-stone-600">Fully on-device</h3>
+                <h3 className="text-xl font-serif text-stone-600">
+                  Fully on-device
+                </h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-                For Apple Silicon Macs, transcription happens entirely on your device. Fast, private, and no internet
-                required
+                For Apple Silicon Macs, transcription happens entirely on your
+                device. Fast, private, and no internet required
               </p>
             </div>
             <div className="overflow-hidden bg-neutral-100">
@@ -502,10 +600,13 @@ function TranscriptionSection() {
             <div className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <Icon icon="mdi:upload" className="text-2xl text-stone-600" />
-                <h3 className="text-xl font-serif text-stone-600">Upload files</h3>
+                <h3 className="text-xl font-serif text-stone-600">
+                  Upload files
+                </h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT, TXT) to get AI summaries and insights
+                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT,
+                TXT) to get AI summaries and insights
               </p>
             </div>
             <div className="overflow-hidden bg-neutral-100">
@@ -575,9 +676,12 @@ function SummariesSection() {
   return (
     <section id="summaries">
       <div className="text-center py-12 px-4 lg:px-0">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">AI summaries</h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          AI summaries
+        </h2>
         <p className="text-base text-neutral-600 max-w-3xl mx-auto">
-          Hyprnote combines your notes with transcripts to create intelligent summaries after your meeting ends.
+          Hyprnote combines your notes with transcripts to create intelligent
+          summaries after your meeting ends.
         </p>
       </div>
       <div className="border-t border-neutral-100">
@@ -586,7 +690,8 @@ function SummariesSection() {
             <div className="p-8 flex flex-col gap-4">
               <p className="text-lg font-serif text-neutral-600 leading-relaxed">
                 <span className="font-semibold">While you take notes,</span>{" "}
-                Hyprnote listens and keeps track of everything that happens during the meeting.
+                Hyprnote listens and keeps track of everything that happens
+                during the meeting.
               </p>
             </div>
             <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -598,11 +703,15 @@ function SummariesSection() {
                   <div className="text-neutral-700">a/b test next wk</div>
                   <div className="text-neutral-700 mt-4">
                     {typedText1}
-                    {typedText1 && typedText1.length < text1.length && <span className="animate-pulse">|</span>}
+                    {typedText1 && typedText1.length < text1.length && (
+                      <span className="animate-pulse">|</span>
+                    )}
                   </div>
                   <div className="text-neutral-700">
                     {typedText2}
-                    {typedText2 && typedText2.length < text2.length && <span className="animate-pulse">|</span>}
+                    {typedText2 && typedText2.length < text2.length && (
+                      <span className="animate-pulse">|</span>
+                    )}
                   </div>
                 </div>
               </MockWindow>
@@ -612,8 +721,11 @@ function SummariesSection() {
           <div className="flex flex-col overflow-clip">
             <div className="p-8 flex flex-col gap-4">
               <p className="text-lg font-serif text-neutral-600 leading-relaxed">
-                <span className="font-semibold">After the meeting is over,</span>{" "}
-                Hyprnote combines your notes with transcripts to create a perfect summary.
+                <span className="font-semibold">
+                  After the meeting is over,
+                </span>{" "}
+                Hyprnote combines your notes with transcripts to create a
+                perfect summary.
               </p>
             </div>
             <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -621,69 +733,73 @@ function SummariesSection() {
                 <div className="p-6 space-y-4 h-[300px] overflow-hidden">
                   <div className="space-y-2">
                     <h4
-                      className={cn(
-                        [
-                          "text-lg font-semibold text-stone-700 transition-opacity duration-500",
-                          enhancedLines >= 1 ? "opacity-100" : "opacity-0",
-                        ],
-                      )}
+                      className={cn([
+                        "text-lg font-semibold text-stone-700 transition-opacity duration-500",
+                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
                       Mobile UI Update and API Adjustments
                     </h4>
                     <ul className="space-y-2 text-neutral-700 list-disc pl-5">
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 1 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        Sarah presented the new mobile UI update, which includes a streamlined navigation bar and
-                        improved button placements for better accessibility.
+                        Sarah presented the new mobile UI update, which includes
+                        a streamlined navigation bar and improved button
+                        placements for better accessibility.
                       </li>
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 2 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
-                        fetching personalized user data more efficiently.
+                        Ben confirmed that API adjustments are needed to support
+                        dynamic UI changes, particularly for fetching
+                        personalized user data more efficiently.
                       </li>
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 3 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        The UI update will be implemented in phases, starting with core navigation improvements. Ben
-                        will ensure API modifications are completed before development begins.
+                        The UI update will be implemented in phases, starting
+                        with core navigation improvements. Ben will ensure API
+                        modifications are completed before development begins.
                       </li>
                     </ul>
                   </div>
                   <div className="space-y-2">
                     <h4
-                      className={cn(
-                        [
-                          "font-semibold text-stone-700 transition-opacity duration-500",
-                          enhancedLines >= 4 ? "opacity-100" : "opacity-0",
-                        ],
-                      )}
+                      className={cn([
+                        "font-semibold text-stone-700 transition-opacity duration-500",
+                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
                       New Dashboard – Urgent Priority
                     </h4>
                     <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 4 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        Alice emphasized that the new analytics dashboard must be prioritized due to increasing
-                        stakeholder demand.
+                        Alice emphasized that the new analytics dashboard must
+                        be prioritized due to increasing stakeholder demand.
                       </li>
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 5 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        The new dashboard will feature real-time user engagement metrics and a customizable reporting
-                        system.
+                        The new dashboard will feature real-time user engagement
+                        metrics and a customizable reporting system.
                       </li>
                     </ul>
                   </div>
@@ -698,7 +814,8 @@ function SummariesSection() {
             <div className="p-6 pb-2">
               <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
                 <span className="font-semibold">While you take notes,</span>{" "}
-                Hyprnote listens and keeps track of everything that happens during the meeting.
+                Hyprnote listens and keeps track of everything that happens
+                during the meeting.
               </p>
             </div>
             <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -717,11 +834,15 @@ function SummariesSection() {
                   <div className="text-neutral-700">a/b test next wk</div>
                   <div className="text-neutral-700 mt-3">
                     {typedText1}
-                    {typedText1 && typedText1.length < text1.length && <span className="animate-pulse">|</span>}
+                    {typedText1 && typedText1.length < text1.length && (
+                      <span className="animate-pulse">|</span>
+                    )}
                   </div>
                   <div className="text-neutral-700">
                     {typedText2}
-                    {typedText2 && typedText2.length < text2.length && <span className="animate-pulse">|</span>}
+                    {typedText2 && typedText2.length < text2.length && (
+                      <span className="animate-pulse">|</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -731,8 +852,11 @@ function SummariesSection() {
           <div>
             <div className="p-6 pb-2">
               <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
-                <span className="font-semibold">After the meeting is over,</span>{" "}
-                Hyprnote combines your notes with transcripts to create a perfect summary.
+                <span className="font-semibold">
+                  After the meeting is over,
+                </span>{" "}
+                Hyprnote combines your notes with transcripts to create a
+                perfect summary.
               </p>
             </div>
             <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -746,52 +870,64 @@ function SummariesSection() {
                 </div>
                 <div className="p-6 space-y-4 h-[200px] overflow-hidden">
                   <div className="space-y-2">
-                    <h4 className="text-lg font-semibold text-stone-700">Mobile UI Update and API Adjustments</h4>
+                    <h4 className="text-lg font-semibold text-stone-700">
+                      Mobile UI Update and API Adjustments
+                    </h4>
                     <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 1 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        Sarah presented the new mobile UI update, which includes a streamlined navigation bar and
-                        improved button placements for better accessibility.
+                        Sarah presented the new mobile UI update, which includes
+                        a streamlined navigation bar and improved button
+                        placements for better accessibility.
                       </li>
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 2 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
-                        fetching personalized user data more efficiently.
+                        Ben confirmed that API adjustments are needed to support
+                        dynamic UI changes, particularly for fetching
+                        personalized user data more efficiently.
                       </li>
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 3 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        The UI update will be implemented in phases, starting with core navigation improvements. Ben
-                        will ensure API modifications are completed before development begins.
+                        The UI update will be implemented in phases, starting
+                        with core navigation improvements. Ben will ensure API
+                        modifications are completed before development begins.
                       </li>
                     </ul>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="text-lg font-semibold text-stone-700">New Dashboard – Urgent Priority</h4>
+                    <h4 className="text-lg font-semibold text-stone-700">
+                      New Dashboard – Urgent Priority
+                    </h4>
                     <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 4 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        Alice emphasized that the new analytics dashboard must be prioritized due to increasing
-                        stakeholder demand.
+                        Alice emphasized that the new analytics dashboard must
+                        be prioritized due to increasing stakeholder demand.
                       </li>
                       <li
-                        className={cn(
-                          ["transition-opacity duration-500", enhancedLines >= 5 ? "opacity-100" : "opacity-0"],
-                        )}
+                        className={cn([
+                          "transition-opacity duration-500",
+                          enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                        ])}
                       >
-                        The new dashboard will feature real-time user engagement metrics and a customizable reporting
-                        system.
+                        The new dashboard will feature real-time user engagement
+                        metrics and a customizable reporting system.
                       </li>
                     </ul>
                   </div>
@@ -810,28 +946,39 @@ function SearchSection() {
     <section id="search" className="bg-stone-50/30 space-y-12">
       <div className="pt-12 lg:pt-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-serif text-stone-600 mb-4">Search notes instantly by who, what, when</h2>
+          <h2 className="text-3xl font-serif text-stone-600 mb-4">
+            Search notes instantly by who, what, when
+          </h2>
           <p className="text-base text-neutral-600 mb-8 max-w-3xl mx-auto">
-            Find any note, conversation, or meeting in seconds by searching participant names, topics, keywords, or date
-            ranges
+            Find any note, conversation, or meeting in seconds by searching
+            participant names, topics, keywords, or date ranges
           </p>
           <div className="grid md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto">
             <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon icon="mdi:account-search" className="text-4xl text-stone-600 mb-3 mx-auto" />
+              <Icon
+                icon="mdi:account-search"
+                className="text-4xl text-stone-600 mb-3 mx-auto"
+              />
               <h3 className="text-lg font-serif text-stone-600 mb-2">Who</h3>
               <p className="text-sm text-neutral-600">
                 Search by participant or speaker names
               </p>
             </div>
             <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon icon="mdi:text-search" className="text-4xl text-stone-600 mb-3 mx-auto" />
+              <Icon
+                icon="mdi:text-search"
+                className="text-4xl text-stone-600 mb-3 mx-auto"
+              />
               <h3 className="text-lg font-serif text-stone-600 mb-2">What</h3>
               <p className="text-sm text-neutral-600">
                 Find by keywords, topics, or content
               </p>
             </div>
             <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon icon="mdi:calendar-search" className="text-4xl text-stone-600 mb-3 mx-auto" />
+              <Icon
+                icon="mdi:calendar-search"
+                className="text-4xl text-stone-600 mb-3 mx-auto"
+              />
               <h3 className="text-lg font-serif text-stone-600 mb-2">When</h3>
               <p className="text-sm text-neutral-600">
                 Filter by date, time, or range
@@ -840,20 +987,40 @@ function SearchSection() {
           </div>
           <ul className="space-y-3 text-left max-w-2xl mx-auto">
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-              <span className="text-neutral-600">Lightning-fast full-text search across all notes</span>
+              <Icon
+                icon="mdi:check-circle"
+                className="text-stone-600 shrink-0 mt-0.5 text-xl"
+              />
+              <span className="text-neutral-600">
+                Lightning-fast full-text search across all notes
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-              <span className="text-neutral-600">Search within transcripts and summaries</span>
+              <Icon
+                icon="mdi:check-circle"
+                className="text-stone-600 shrink-0 mt-0.5 text-xl"
+              />
+              <span className="text-neutral-600">
+                Search within transcripts and summaries
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-              <span className="text-neutral-600">Filter by tags, dates, and participants</span>
+              <Icon
+                icon="mdi:check-circle"
+                className="text-stone-600 shrink-0 mt-0.5 text-xl"
+              />
+              <span className="text-neutral-600">
+                Filter by tags, dates, and participants
+              </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon icon="mdi:check-circle" className="text-stone-600 shrink-0 mt-0.5 text-xl" />
-              <span className="text-neutral-600">Jump directly to relevant moments in recordings</span>
+              <Icon
+                icon="mdi:check-circle"
+                className="text-stone-600 shrink-0 mt-0.5 text-xl"
+              />
+              <span className="text-neutral-600">
+                Jump directly to relevant moments in recordings
+              </span>
             </li>
           </ul>
         </div>
@@ -863,10 +1030,12 @@ function SearchSection() {
           <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-3">
             Coming Soon
           </div>
-          <h3 className="text-xl font-serif text-stone-600 mb-2">Advanced search view</h3>
+          <h3 className="text-xl font-serif text-stone-600 mb-2">
+            Advanced search view
+          </h3>
           <p className="text-sm text-neutral-600">
-            Build complex queries with boolean operators, date ranges, and custom filters for powerful search
-            capabilities.
+            Build complex queries with boolean operators, date ranges, and
+            custom filters for powerful search capabilities.
           </p>
         </div>
       </div>
@@ -883,28 +1052,45 @@ function SharingSection() {
         </div>
         <h2 className="text-3xl font-serif text-stone-600 mb-4">Share notes</h2>
         <p className="text-base text-neutral-600 mb-12 max-w-3xl mx-auto">
-          Collaborate seamlessly by sharing meeting notes, transcripts, and summaries.
+          Collaborate seamlessly by sharing meeting notes, transcripts, and
+          summaries.
         </p>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon icon="mdi:link-variant" className="text-4xl text-stone-600 mb-4" />
-            <h3 className="text-xl font-serif text-stone-600 mb-3">Public sharing</h3>
+            <Icon
+              icon="mdi:link-variant"
+              className="text-4xl text-stone-600 mb-4"
+            />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Public sharing
+            </h3>
             <p className="text-neutral-600 leading-relaxed">
               Generate shareable links for easy distribution to anyone.
             </p>
           </div>
           <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon icon="mdi:file-export" className="text-4xl text-stone-600 mb-4" />
-            <h3 className="text-xl font-serif text-stone-600 mb-3">Export formats</h3>
+            <Icon
+              icon="mdi:file-export"
+              className="text-4xl text-stone-600 mb-4"
+            />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Export formats
+            </h3>
             <p className="text-neutral-600 leading-relaxed">
               Export as PDF, Markdown, or plain text for maximum flexibility.
             </p>
           </div>
           <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon icon="mdi:account-group" className="text-4xl text-stone-600 mb-4" />
-            <h3 className="text-xl font-serif text-stone-600 mb-3">Team sharing</h3>
+            <Icon
+              icon="mdi:account-group"
+              className="text-4xl text-stone-600 mb-4"
+            />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Team sharing
+            </h3>
             <p className="text-neutral-600 leading-relaxed">
-              Share with team members with expiration dates, watermarks, and access controls for Enterprise.
+              Share with team members with expiration dates, watermarks, and
+              access controls for Enterprise.
             </p>
           </div>
         </div>
@@ -928,9 +1114,12 @@ function FloatingPanelHeader() {
       <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-4">
         Coming Soon
       </div>
-      <h2 className="text-3xl font-serif text-stone-600 mb-4">Floating panel for meetings</h2>
+      <h2 className="text-3xl font-serif text-stone-600 mb-4">
+        Floating panel for meetings
+      </h2>
       <p className="text-base text-neutral-600 max-w-3xl mx-auto">
-        A compact overlay that stays on top during meetings but won't show when you share your screen.
+        A compact overlay that stays on top during meetings but won't show when
+        you share your screen.
       </p>
     </div>
   );
@@ -960,7 +1149,8 @@ function FloatingPanelDesktop() {
       title: "Memos",
       description:
         "Take quick notes during the meeting. Jot down important points, ideas, or reminders without losing focus on the conversation.",
-      image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-memos.jpg",
+      image:
+        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-memos.jpg",
     },
     {
       title: "Transcript",
@@ -980,13 +1170,17 @@ function FloatingPanelDesktop() {
       title: "Chat",
       description:
         "Ask questions and get instant answers during the meeting. Query the transcript, get clarifications, or find specific information on the fly.",
-      image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-chat.jpg",
+      image:
+        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-chat.jpg",
     },
   ];
 
   return (
     <div className="min-[800px]:grid hidden grid-cols-2">
-      <div className="border-r border-neutral-100 relative overflow-hidden" style={{ paddingBottom: "56.25%" }}>
+      <div
+        className="border-r border-neutral-100 relative overflow-hidden"
+        style={{ paddingBottom: "56.25%" }}
+      >
         <div className="absolute inset-0 overflow-y-auto">
           {tabs.map((tab, index) => (
             <div
@@ -999,7 +1193,10 @@ function FloatingPanelDesktop() {
               ])}
             >
               <p className="text-sm text-neutral-600 leading-relaxed">
-                <span className="font-semibold text-stone-800">{tab.title}</span> – {tab.description}
+                <span className="font-semibold text-stone-800">
+                  {tab.title}
+                </span>{" "}
+                – {tab.description}
               </p>
             </div>
           ))}
@@ -1029,37 +1226,39 @@ function FloatingPanelMobile() {
       </div>
       <div className="p-6 border-b border-neutral-100">
         <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Compact Mode</span>{" "}
-          – The default collapsed overlay that indicates the meeting is being listened to. Minimal and unobtrusive,
-          staying out of your way.
+          <span className="font-semibold text-stone-800">Compact Mode</span> –
+          The default collapsed overlay that indicates the meeting is being
+          listened to. Minimal and unobtrusive, staying out of your way.
         </p>
       </div>
       <div className="p-6 border-b border-neutral-100">
         <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Memos</span>{" "}
-          – Take quick notes during the meeting. Jot down important points, ideas, or reminders without losing focus on
-          the conversation.
+          <span className="font-semibold text-stone-800">Memos</span> – Take
+          quick notes during the meeting. Jot down important points, ideas, or
+          reminders without losing focus on the conversation.
         </p>
       </div>
       <div className="p-6 border-b border-neutral-100">
         <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Transcript</span>{" "}
-          – Watch the live transcript as the conversation unfolds in real-time, so you never miss what was said during
-          the meeting.
+          <span className="font-semibold text-stone-800">Transcript</span> –
+          Watch the live transcript as the conversation unfolds in real-time, so
+          you never miss what was said during the meeting.
         </p>
       </div>
       <div className="p-6 border-b border-neutral-100">
         <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Live Insights</span>{" "}
-          – Get a rolling summary of the past 5 minutes with AI-powered suggestions. For sales calls, receive prompts
-          for qualification questions and next steps.
+          <span className="font-semibold text-stone-800">Live Insights</span> –
+          Get a rolling summary of the past 5 minutes with AI-powered
+          suggestions. For sales calls, receive prompts for qualification
+          questions and next steps.
         </p>
       </div>
       <div className="p-6">
         <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Chat</span>{" "}
-          – Ask questions and get instant answers during the meeting. Query the transcript, get clarifications, or find
-          specific information on the fly.
+          <span className="font-semibold text-stone-800">Chat</span> – Ask
+          questions and get instant answers during the meeting. Query the
+          transcript, get clarifications, or find specific information on the
+          fly.
         </p>
       </div>
     </div>
@@ -1083,8 +1282,8 @@ function CTASection() {
           The complete AI notetaking solution
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          From live meetings to archived recordings, handle all your audio transcription and AI summary needs with one
-          powerful tool
+          From live meetings to archived recordings, handle all your audio
+          transcription and AI summary needs with one powerful tool
         </p>
         <div className="pt-6">
           <a

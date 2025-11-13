@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 interface SearchContextValue {
@@ -19,12 +27,17 @@ export function useTranscriptSearch() {
   return useContext(SearchContext);
 }
 
-function getMatchingElements(container: HTMLElement | null, query: string): HTMLElement[] {
+function getMatchingElements(
+  container: HTMLElement | null,
+  query: string,
+): HTMLElement[] {
   if (!container || !query) {
     return [];
   }
 
-  const allSpans = Array.from(container.querySelectorAll<HTMLElement>("[data-word-id]"));
+  const allSpans = Array.from(
+    container.querySelectorAll<HTMLElement>("[data-word-id]"),
+  );
   return allSpans.filter((span) => {
     const text = span.textContent || "";
     return text.toLowerCase().includes(query.toLowerCase());
@@ -50,7 +63,9 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       return current;
     }
 
-    const next = document.querySelector<HTMLElement>("[data-transcript-container]");
+    const next = document.querySelector<HTMLElement>(
+      "[data-transcript-container]",
+    );
     containerRef.current = next;
     return next;
   }, []);
@@ -70,7 +85,11 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
 
       setIsVisible((prev) => !prev);
     },
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [ensureContainer],
   );
 
@@ -79,7 +98,11 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
     () => {
       close();
     },
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [close],
   );
 
@@ -159,7 +182,9 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const element = container.querySelector<HTMLElement>(`[data-word-id="${activeMatchId}"]`);
+    const element = container.querySelector<HTMLElement>(
+      `[data-word-id="${activeMatchId}"]`,
+    );
 
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -178,12 +203,19 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
       close,
       setQuery,
     }),
-    [query, isVisible, currentMatchIndex, totalMatches, activeMatchId, onNext, onPrev, close],
+    [
+      query,
+      isVisible,
+      currentMatchIndex,
+      totalMatches,
+      activeMatchId,
+      onNext,
+      onPrev,
+      close,
+    ],
   );
 
   return (
-    <SearchContext.Provider value={value}>
-      {children}
-    </SearchContext.Provider>
+    <SearchContext.Provider value={value}>{children}</SearchContext.Provider>
   );
 }

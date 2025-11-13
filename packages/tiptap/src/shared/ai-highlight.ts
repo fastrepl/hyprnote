@@ -6,7 +6,10 @@ declare module "@tiptap/core" {
       /**
        * Set an AI highlight mark
        */
-      setAIHighlight: (attributes?: { timestamp?: string; sessionId?: string }) => ReturnType;
+      setAIHighlight: (attributes?: {
+        timestamp?: string;
+        sessionId?: string;
+      }) => ReturnType;
       /**
        * Remove an AI highlight mark
        */
@@ -14,7 +17,10 @@ declare module "@tiptap/core" {
       /**
        * Toggle an AI highlight mark
        */
-      toggleAIHighlight: (attributes?: { timestamp?: string; sessionId?: string }) => ReturnType;
+      toggleAIHighlight: (attributes?: {
+        timestamp?: string;
+        sessionId?: string;
+      }) => ReturnType;
     };
   }
 }
@@ -39,8 +45,8 @@ export const AIHighlight = Mark.create<AIHighlightOptions>({
     return {
       timestamp: {
         default: null,
-        parseHTML: element => element.getAttribute("data-timestamp"),
-        renderHTML: attributes => {
+        parseHTML: (element) => element.getAttribute("data-timestamp"),
+        renderHTML: (attributes) => {
           if (!attributes.timestamp) {
             return {};
           }
@@ -51,8 +57,8 @@ export const AIHighlight = Mark.create<AIHighlightOptions>({
       },
       sessionId: {
         default: null,
-        parseHTML: element => element.getAttribute("data-session-id"),
-        renderHTML: attributes => {
+        parseHTML: (element) => element.getAttribute("data-session-id"),
+        renderHTML: (attributes) => {
           if (!attributes.sessionId) {
             return {};
           }
@@ -65,27 +71,39 @@ export const AIHighlight = Mark.create<AIHighlightOptions>({
   },
 
   parseHTML() {
-    return [{
-      tag: "mark[data-ai-highlight]",
-      priority: 100, // Higher priority to ensure it's recognized
-    }];
+    return [
+      {
+        tag: "mark[data-ai-highlight]",
+        priority: 100, // Higher priority to ensure it's recognized
+      },
+    ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ["mark", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
+    return [
+      "mark",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
+      0,
+    ];
   },
 
   addCommands() {
     return {
-      setAIHighlight: (attributes?: { timestamp?: string; sessionId?: string }) => ({ commands }) => {
-        return commands.setMark(this.name, attributes);
-      },
-      unsetAIHighlight: () => ({ commands }) => {
-        return commands.unsetMark(this.name);
-      },
-      toggleAIHighlight: (attributes?: { timestamp?: string; sessionId?: string }) => ({ commands }) => {
-        return commands.toggleMark(this.name, attributes);
-      },
+      setAIHighlight:
+        (attributes?: { timestamp?: string; sessionId?: string }) =>
+        ({ commands }) => {
+          return commands.setMark(this.name, attributes);
+        },
+      unsetAIHighlight:
+        () =>
+        ({ commands }) => {
+          return commands.unsetMark(this.name);
+        },
+      toggleAIHighlight:
+        (attributes?: { timestamp?: string; sessionId?: string }) =>
+        ({ commands }) => {
+          return commands.toggleMark(this.name, attributes);
+        },
     };
   },
 });

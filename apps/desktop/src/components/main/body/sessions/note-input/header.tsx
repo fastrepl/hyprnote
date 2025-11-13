@@ -1,11 +1,19 @@
-import { cn } from "@hypr/utils";
-
+import { AlertCircleIcon, RefreshCcwIcon, SparklesIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { AlertCircleIcon, RefreshCcwIcon, SparklesIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/utils";
+
 import { useListener } from "../../../../../contexts/listener";
 import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
@@ -32,7 +40,11 @@ function HeaderTab({
         "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
         isActive
           ? ["text-neutral-900", "border-neutral-900"]
-          : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],
+          : [
+              "text-neutral-600",
+              "border-transparent",
+              "hover:text-neutral-800",
+            ],
       ])}
     >
       {children}
@@ -40,19 +52,18 @@ function HeaderTab({
   );
 }
 
-function HeaderTabEnhanced(
-  {
-    isActive,
-    onClick = () => {},
-    sessionId,
-  }: {
-    isActive: boolean;
-    onClick?: () => void;
-    sessionId: string;
-  },
-) {
+function HeaderTabEnhanced({
+  isActive,
+  onClick = () => {},
+  sessionId,
+}: {
+  isActive: boolean;
+  onClick?: () => void;
+  sessionId: string;
+}) {
   const [open, setOpen] = useState(false);
-  const { templates, isGenerating, isError, error, onRegenerate } = useEnhanceLogic(sessionId);
+  const { templates, isGenerating, isError, error, onRegenerate } =
+    useEnhanceLogic(sessionId);
 
   const handleTabClick = useCallback(() => {
     if (!isActive) {
@@ -62,10 +73,13 @@ function HeaderTabEnhanced(
     }
   }, [isActive, onClick, onRegenerate, setOpen]);
 
-  const handleTemplateClick = useCallback((templateId: string | null) => {
-    setOpen(false);
-    onRegenerate(templateId);
-  }, [onRegenerate]);
+  const handleTemplateClick = useCallback(
+    (templateId: string | null) => {
+      setOpen(false);
+      onRegenerate(templateId);
+    },
+    [onRegenerate],
+  );
 
   if (isGenerating) {
     return (
@@ -84,8 +98,8 @@ function HeaderTabEnhanced(
           "group relative inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
           isError
             ? [
-              "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
-            ]
+                "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
+              ]
             : ["hover:bg-neutral-200 focus-visible:bg-neutral-200"],
         ])}
       >
@@ -99,7 +113,9 @@ function HeaderTabEnhanced(
           size={12}
           className={cn([
             "pointer-events-none absolute inset-0 m-auto transition-opacity duration-200",
-            isError ? "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100" : "opacity-100",
+            isError
+              ? "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+              : "opacity-100",
           ])}
         />
       </span>
@@ -114,53 +130,57 @@ function HeaderTabEnhanced(
           "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
           isActive
             ? ["text-neutral-900", "border-neutral-900"]
-            : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],
+            : [
+                "text-neutral-600",
+                "border-transparent",
+                "hover:text-neutral-800",
+              ],
         ])}
       >
         <span className="flex items-center gap-1">
           <span>Summary</span>
           {isActive && (
             <div className="flex items-center gap-1">
-              {isError
-                ? (
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>{regenerateTrigger}</TooltipTrigger>
-                    {error && (
-                      <TooltipContent side="bottom">
-                        <p className="text-xs max-w-xs">{error instanceof Error ? error.message : String(error)}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                )
-                : regenerateTrigger}
+              {isError ? (
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>{regenerateTrigger}</TooltipTrigger>
+                  {error && (
+                    <TooltipContent side="bottom">
+                      <p className="text-xs max-w-xs">
+                        {error instanceof Error ? error.message : String(error)}
+                      </p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              ) : (
+                regenerateTrigger
+              )}
             </div>
           )}
         </span>
       </button>
       <PopoverContent className="w-64" align="start">
         <div className="flex flex-col gap-2">
-          {Object.entries(templates).length > 0
-            ? (
-              Object.entries(templates).map(([templateId, template]) => (
-                <TemplateButton
-                  key={templateId}
-                  onClick={() => handleTemplateClick(templateId)}
-                >
-                  {template.title}
-                </TemplateButton>
-              ))
-            )
-            : (
+          {Object.entries(templates).length > 0 ? (
+            Object.entries(templates).map(([templateId, template]) => (
               <TemplateButton
-                className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
-                onClick={() => {
-                  setOpen(false);
-                  handleGoToTemplates();
-                }}
+                key={templateId}
+                onClick={() => handleTemplateClick(templateId)}
               >
-                Create templates
+                {template.title}
               </TemplateButton>
-            )}
+            ))
+          ) : (
+            <TemplateButton
+              className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
+              onClick={() => {
+                setOpen(false);
+                handleGoToTemplates();
+              }}
+            >
+              Create templates
+            </TemplateButton>
+          )}
 
           <div className="flex items-center gap-3 text-neutral-400 text-sm my-1">
             <div className="flex-1 h-px bg-neutral-300"></div>
@@ -184,33 +204,33 @@ function HeaderTabEnhanced(
   );
 }
 
-export function Header(
-  {
-    sessionId,
-    editorTabs,
-    currentTab,
-    handleTabChange,
-    isInactive,
-    isEditing,
-    setIsEditing,
-  }: {
-    sessionId: string;
-    editorTabs: EditorView[];
-    currentTab: EditorView;
-    handleTabChange: (view: EditorView) => void;
-    isInactive: boolean;
-    isEditing: boolean;
-    setIsEditing: (isEditing: boolean) => void;
-  },
-) {
+export function Header({
+  sessionId,
+  editorTabs,
+  currentTab,
+  handleTabChange,
+  isInactive,
+  isEditing,
+  setIsEditing,
+}: {
+  sessionId: string;
+  editorTabs: EditorView[];
+  currentTab: EditorView;
+  handleTabChange: (view: EditorView) => void;
+  isInactive: boolean;
+  isEditing: boolean;
+  setIsEditing: (isEditing: boolean) => void;
+}) {
   if (editorTabs.length === 1 && editorTabs[0] === "raw") {
     return null;
   }
 
   const isBatchProcessing = useListener((state) => sessionId in state.batch);
 
-  const showProgress = currentTab === "transcript" && (isInactive || isBatchProcessing);
-  const showEditingControls = currentTab === "transcript" && isInactive && !isBatchProcessing;
+  const showProgress =
+    currentTab === "transcript" && (isInactive || isBatchProcessing);
+  const showEditingControls =
+    currentTab === "transcript" && isInactive && !isBatchProcessing;
 
   return (
     <div className="flex flex-col">
@@ -252,7 +272,11 @@ export function Header(
   );
 }
 
-export function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
+export function useEditorTabs({
+  sessionId,
+}: {
+  sessionId: string;
+}): EditorView[] {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const hasTranscript = useHasTranscript(sessionId);
 
@@ -283,7 +307,9 @@ function labelForEditorView(view: EditorView): string {
 function useEnhanceLogic(sessionId: string) {
   const model = useLanguageModel();
   const taskId = createTaskId(sessionId, "enhance");
-  const [missingModelError, setMissingModelError] = useState<Error | null>(null);
+  const [missingModelError, setMissingModelError] = useState<Error | null>(
+    null,
+  );
 
   const updateEnhancedMd = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -301,21 +327,29 @@ function useEnhanceLogic(sessionId: string) {
     },
   });
 
-  const templates = main.UI.useResultTable(main.QUERIES.visibleTemplates, main.STORE_ID);
+  const templates = main.UI.useResultTable(
+    main.QUERIES.visibleTemplates,
+    main.STORE_ID,
+  );
 
-  const onRegenerate = useCallback(async (templateId: string | null) => {
-    if (!model) {
-      setMissingModelError(new Error("Intelligence provider not configured."));
-      return;
-    }
+  const onRegenerate = useCallback(
+    async (templateId: string | null) => {
+      if (!model) {
+        setMissingModelError(
+          new Error("Intelligence provider not configured."),
+        );
+        return;
+      }
 
-    setMissingModelError(null);
+      setMissingModelError(null);
 
-    await enhanceTask.start({
-      model,
-      args: { sessionId, templateId: templateId ?? undefined },
-    });
-  }, [model, enhanceTask.start, sessionId]);
+      await enhanceTask.start({
+        model,
+        args: { sessionId, templateId: templateId ?? undefined },
+      });
+    },
+    [model, enhanceTask.start, sessionId],
+  );
 
   useEffect(() => {
     if (model && missingModelError) {
@@ -337,13 +371,17 @@ function useEnhanceLogic(sessionId: string) {
 }
 
 function handleGoToTemplates() {
-  windowsCommands.windowShow({ type: "settings" })
+  windowsCommands
+    .windowShow({ type: "settings" })
     .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
     .then(() =>
-      windowsCommands.windowEmitNavigate({ type: "settings" }, {
-        path: "/app/settings",
-        search: { tab: "templates" },
-      })
+      windowsCommands.windowEmitNavigate(
+        { type: "settings" },
+        {
+          path: "/app/settings",
+          search: { tab: "templates" },
+        },
+      ),
     );
 }
 

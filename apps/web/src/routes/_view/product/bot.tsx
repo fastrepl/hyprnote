@@ -1,7 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/product/bot")({
   component: Component,
@@ -33,7 +33,11 @@ function Component() {
         {DRAGGABLE_ICONS.map((icon, idx) => (
           <DraggableIcon
             key={idx}
-            initialPosition={{ left: icon.left, top: icon.top, rotate: icon.rotate }}
+            initialPosition={{
+              left: icon.left,
+              top: icon.top,
+              rotate: icon.rotate,
+            }}
             size={icon.size}
           />
         ))}
@@ -44,7 +48,8 @@ function Component() {
               Hyprnote Bot
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600">
-              An optional bot solution for teams that need centralized meeting recording and management.
+              An optional bot solution for teams that need centralized meeting
+              recording and management.
             </p>
             <div className="mt-8">
               <button
@@ -72,7 +77,9 @@ function DraggableIcon({
   initialPosition: { left: string; top: string; rotate: string };
   size: number;
 }) {
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
+    null,
+  );
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -90,8 +97,10 @@ function DraggableIcon({
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
 
-    const x = (containerWidth * parseInt(initialPosition.left)) / 100 - size / 2;
-    const y = (containerHeight * parseInt(initialPosition.top)) / 100 - size / 2;
+    const x =
+      (containerWidth * parseInt(initialPosition.left)) / 100 - size / 2;
+    const y =
+      (containerHeight * parseInt(initialPosition.top)) / 100 - size / 2;
 
     return { x, y };
   }, [initialPosition, size]);

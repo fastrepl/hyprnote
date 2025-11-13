@@ -17,7 +17,10 @@ export function useDismissedBanners(): {
     main.STORE_ID,
   );
 
-  const dismissedSet = useMemo(() => new Set(dismissedBanners), [dismissedBanners]);
+  const dismissedSet = useMemo(
+    () => new Set(dismissedBanners),
+    [dismissedBanners],
+  );
 
   const dismissBanner = useCallback(
     (id: string) => {
@@ -31,7 +34,10 @@ export function useDismissedBanners(): {
     [dismissedBanners, dismissedSet, setDismissedBanners],
   );
 
-  const isDismissed = useCallback((id: string) => dismissedSet.has(id), [dismissedSet]);
+  const isDismissed = useCallback(
+    (id: string) => dismissedSet.has(id),
+    [dismissedSet],
+  );
 
   return {
     dismissedBanners,

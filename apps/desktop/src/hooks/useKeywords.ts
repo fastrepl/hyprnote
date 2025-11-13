@@ -1,9 +1,7 @@
-import { useMemo } from "react";
-
 import { Effect, Option, pipe } from "effect";
 import type { UnknownException } from "effect/Cause";
-
 import { toString } from "nlcst-to-string";
+import { useMemo } from "react";
 import retextEnglish from "retext-english";
 import type { Keyphrase, Keyword } from "retext-keywords";
 import retextKeywords from "retext-keywords";
@@ -15,14 +13,18 @@ import type { VFile } from "vfile";
 import * as main from "../store/tinybase/main";
 
 export function useKeywords(sessionId: string) {
-  const vocabsTable = main.UI.useResultTable(main.QUERIES.visibleVocabs, main.STORE_ID);
+  const vocabsTable = main.UI.useResultTable(
+    main.QUERIES.visibleVocabs,
+    main.STORE_ID,
+  );
   const rawMd = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
 
   return useMemo(() => {
     const vocabs = extractVocabs(vocabsTable);
-    const { keywords, keyphrases } = rawMd && typeof rawMd === "string"
-      ? extractKeywordsFromMarkdown(rawMd)
-      : { keywords: [], keyphrases: [] };
+    const { keywords, keyphrases } =
+      rawMd && typeof rawMd === "string"
+        ? extractKeywordsFromMarkdown(rawMd)
+        : { keywords: [], keyphrases: [] };
 
     return combineKeywords(vocabs, [...keywords, ...keyphrases]);
   }, [vocabsTable, rawMd]);
@@ -42,10 +44,12 @@ export const extractKeywordsFromMarkdown = (
       cleaned.trim().length === 0
         ? Effect.succeed({ keywords: hashtags, keyphrases: [] })
         : pipe(
-          processMarkdown(cleaned),
-          Effect.map((file) => gatherKeywords(file, hashtags)),
-          Effect.orElse(() => Effect.succeed({ keywords: hashtags, keyphrases: [] })),
-        )
+            processMarkdown(cleaned),
+            Effect.map((file) => gatherKeywords(file, hashtags)),
+            Effect.orElse(() =>
+              Effect.succeed({ keywords: hashtags, keyphrases: [] }),
+            ),
+          ),
     ),
     Effect.runSync,
   );
@@ -59,7 +63,7 @@ const processMarkdown = (
       .use(retextPos)
       .use(retextKeywords, { maximum: 50 })
       .use(retextStringify)
-      .processSync(markdown)
+      .processSync(markdown),
   );
 
 const gatherKeywords = (
@@ -79,7 +83,9 @@ const gatherKeywords = (
   );
 
   return {
-    keywords: [...hashtags, ...keywords].filter((keyword) => keyword.length >= 2),
+    keywords: [...hashtags, ...keywords].filter(
+      (keyword) => keyword.length >= 2,
+    ),
     keyphrases: keyphrases.filter((phrase) => phrase.length >= 2),
   };
 };
@@ -96,7 +102,9 @@ const extractKeyphraseMatches = (phrase: Keyphrase): string[] =>
     return text.length > 0 ? [text] : [];
   });
 
-const extractVocabs = (vocabsTable: Record<string, { text?: unknown }>): string[] =>
+const extractVocabs = (
+  vocabsTable: Record<string, { text?: unknown }>,
+): string[] =>
   Object.values(vocabsTable).flatMap(({ text }) =>
     pipe(
       Option.fromNullable(text),
@@ -107,15 +115,21 @@ const extractVocabs = (vocabsTable: Record<string, { text?: unknown }>): string[
         onNone: () => [],
         onSome: (t) => [t],
       }),
-    )
+    ),
   );
 
 const combineKeywords = (vocabs: string[], markdownWords: string[]): string[] =>
-  Array.from(new Set([...vocabs, ...markdownWords])).filter((keyword) => keyword.length >= 2);
+  Array.from(new Set([...vocabs, ...markdownWords])).filter(
+    (keyword) => keyword.length >= 2,
+  );
 
-const removeCodeBlocks = (text: string): string => text.replace(/```[\s\S]*?```/g, "").replace(/`[^`]+`/g, "");
+const removeCodeBlocks = (text: string): string =>
+  text.replace(/```[\s\S]*?```/g, "").replace(/`[^`]+`/g, "");
 
 const extractHashtags = (text: string): string[] =>
-  Array.from(text.matchAll(/#([\p{L}\p{N}_]+)/gu), (match) => match[1]).filter(Boolean);
+  Array.from(text.matchAll(/#([\p{L}\p{N}_]+)/gu), (match) => match[1]).filter(
+    Boolean,
+  );
 
-const stripMarkdownFormatting = (text: string): string => text.replace(/[#*_~`\[\]()]/g, " ");
+const stripMarkdownFormatting = (text: string): string =>
+  text.replace(/[#*_~`\[\]()]/g, " ");

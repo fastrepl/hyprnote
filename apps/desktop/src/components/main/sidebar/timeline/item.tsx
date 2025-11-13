@@ -1,26 +1,39 @@
+import { memo, useCallback, useMemo } from "react";
+
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
-
-import { memo, useCallback, useMemo } from "react";
 
 import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
-import { type TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
+import {
+  type TimelineItem,
+  TimelinePrecision,
+} from "../../../../utils/timeline";
 import { InteractiveButton } from "../../../interactive-button";
 
 export const TimelineItemComponent = memo(
-  ({ item, precision, selected }: { item: TimelineItem; precision: TimelinePrecision; selected: boolean }) => {
+  ({
+    item,
+    precision,
+    selected,
+  }: {
+    item: TimelineItem;
+    precision: TimelinePrecision;
+    selected: boolean;
+  }) => {
     const openCurrent = useTabs((state) => state.openCurrent);
     const openNew = useTabs((state) => state.openNew);
     const invalidateResource = useTabs((state) => state.invalidateResource);
 
     const store = main.UI.useStore(main.STORE_ID);
 
-    const eventId = item.type === "event" ? item.id : (item.data.event_id || undefined);
+    const eventId =
+      item.type === "event" ? item.id : item.data.event_id || undefined;
 
     const title = item.data.title || "Untitled";
-    const timestamp = item.type === "event" ? item.data.started_at : item.data.created_at;
+    const timestamp =
+      item.type === "event" ? item.data.started_at : item.data.created_at;
 
     const handleClick = () => {
       if (item.type === "event") {
@@ -116,7 +129,10 @@ export const TimelineItemComponent = memo(
         return "";
       }
 
-      const time = date.toLocaleTimeString([], { hour: "numeric", minute: "numeric" });
+      const time = date.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "numeric",
+      });
 
       if (precision === "time") {
         return time;
@@ -125,7 +141,11 @@ export const TimelineItemComponent = memo(
       const sameYear = date.getFullYear() === new Date().getFullYear();
       const dateStr = sameYear
         ? date.toLocaleDateString([], { month: "short", day: "numeric" })
-        : date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+        : date.toLocaleDateString([], {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          });
       return `${dateStr}, ${time}`;
     }, [timestamp, precision]);
 
@@ -142,7 +162,9 @@ export const TimelineItemComponent = memo(
       >
         <div className="flex flex-col gap-0.5">
           <div className="text-sm font-normal truncate">{title}</div>
-          {displayTime && <div className="text-xs text-neutral-500">{displayTime}</div>}
+          {displayTime && (
+            <div className="text-xs text-neutral-500">{displayTime}</div>
+          )}
         </div>
       </InteractiveButton>
     );

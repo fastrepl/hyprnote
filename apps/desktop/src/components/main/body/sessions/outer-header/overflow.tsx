@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
+
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as main from "../../../../../store/tinybase/main";
@@ -77,7 +78,13 @@ function Copy() {
   );
 }
 
-function Folder({ sessionId, setOpen }: { sessionId: string; setOpen?: (open: boolean) => void }) {
+function Folder({
+  sessionId,
+  setOpen,
+}: {
+  sessionId: string;
+  setOpen?: (open: boolean) => void;
+}) {
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger className="cursor-pointer">
@@ -136,8 +143,8 @@ function Listening({ sessionId }: { sessionId: string }) {
         {isBatching
           ? "Batch processing"
           : isListening
-          ? "Stop listening"
-          : "Start listening"}
+            ? "Stop listening"
+            : "Start listening"}
       </span>
     </DropdownMenuItem>
   );
@@ -184,9 +191,9 @@ function DeleteRecording({ sessionId }: { sessionId: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         predicate: (query) =>
-          query.queryKey.length >= 2
-          && query.queryKey[0] === "audio"
-          && query.queryKey[1] === sessionId,
+          query.queryKey.length >= 2 &&
+          query.queryKey[0] === "audio" &&
+          query.queryKey[1] === sessionId,
       });
     },
   });
@@ -206,7 +213,13 @@ function DeleteRecording({ sessionId }: { sessionId: string }) {
       ])}
     >
       {isPending ? <Loader2Icon className="animate-spin" /> : <TrashIcon />}
-      <span>{isPending ? "Deleting..." : isError ? "Failed to delete" : "Delete only recording"}</span>
+      <span>
+        {isPending
+          ? "Deleting..."
+          : isError
+            ? "Failed to delete"
+            : "Delete only recording"}
+      </span>
     </DropdownMenuItem>
   );
 }

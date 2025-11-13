@@ -1,6 +1,6 @@
-export * from "./bindings.gen";
-
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+
+export * from "./bindings.gen";
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 

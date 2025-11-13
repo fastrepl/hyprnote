@@ -24,13 +24,15 @@ export const SEARCH_SCHEMA = {
 
 export type Index = Orama<typeof SEARCH_SCHEMA>;
 
-const numberFilterSchema = z.object({
-  gte: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  lt: z.number().optional(),
-  eq: z.number().optional(),
-}).optional();
+const numberFilterSchema = z
+  .object({
+    gte: z.number().optional(),
+    lte: z.number().optional(),
+    gt: z.number().optional(),
+    lt: z.number().optional(),
+    eq: z.number().optional(),
+  })
+  .optional();
 
 export const searchFiltersSchema = z.object({
   created_at: numberFilterSchema,
@@ -43,11 +45,15 @@ export type SearchHit = {
   document: SearchDocument;
 };
 
-type InferOramaField<T> = T extends z.ZodString ? "string"
-  : T extends z.ZodNumber ? "number"
-  : T extends z.ZodBoolean ? "boolean"
-  : T extends z.ZodEnum<any> ? "enum"
-  : never;
+type InferOramaField<T> = T extends z.ZodString
+  ? "string"
+  : T extends z.ZodNumber
+    ? "number"
+    : T extends z.ZodBoolean
+      ? "boolean"
+      : T extends z.ZodEnum<any>
+        ? "enum"
+        : never;
 
 type InferOramaSchema<T extends z.ZodObject<any>> = {
   [K in keyof T["shape"]]: InferOramaField<T["shape"][K]>;

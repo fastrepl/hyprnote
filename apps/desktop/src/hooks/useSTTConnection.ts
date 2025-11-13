@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+
 import { ProviderId } from "../components/settings/ai/stt/shared";
 import * as main from "../store/tinybase/main";
 
@@ -13,7 +14,9 @@ type Connection = {
 };
 
 export const useSTTConnection = (): Connection | null => {
-  const { current_stt_provider, current_stt_model } = main.UI.useValues(main.STORE_ID) as {
+  const { current_stt_provider, current_stt_model } = main.UI.useValues(
+    main.STORE_ID,
+  ) as {
     current_stt_provider: ProviderId | undefined;
     current_stt_model: string | undefined;
   };
@@ -24,8 +27,10 @@ export const useSTTConnection = (): Connection | null => {
     main.STORE_ID,
   ) as main.AIProviderStorage | undefined;
 
-  const isLocalModel = current_stt_provider === "hyprnote"
-    && (current_stt_model?.startsWith("am-") || current_stt_model?.startsWith("Quantized"));
+  const isLocalModel =
+    current_stt_provider === "hyprnote" &&
+    (current_stt_model?.startsWith("am-") ||
+      current_stt_model?.startsWith("Quantized"));
 
   const { data: localConnection } = useQuery({
     enabled: current_stt_provider === "hyprnote",
@@ -43,7 +48,9 @@ export const useSTTConnection = (): Connection | null => {
       }
 
       const isInternalModel = current_stt_model.startsWith("Quantized");
-      const server = isInternalModel ? servers.data.internal : servers.data.external;
+      const server = isInternalModel
+        ? servers.data.internal
+        : servers.data.external;
 
       if (server?.status === "ready" && server.url) {
         return {

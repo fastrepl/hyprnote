@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-export function useAutoCloser(onClose: () => void, {
-  esc = true,
-  outside = true,
-}: {
-  esc?: boolean;
-  outside?: boolean;
-}) {
+export function useAutoCloser(
+  onClose: () => void,
+  {
+    esc = true,
+    outside = true,
+  }: {
+    esc?: boolean;
+    outside?: boolean;
+  },
+) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   const handleClose = useCallback(() => {

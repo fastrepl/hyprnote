@@ -1,7 +1,7 @@
+import { AlertCircle, CheckCircle, Download, RefreshCw, X } from "lucide-react";
+
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
-
-import { AlertCircle, CheckCircle, Download, RefreshCw, X } from "lucide-react";
 
 import { MenuItem } from "../shared";
 import { useOTA } from "./task";
@@ -33,7 +33,11 @@ export function UpdateChecker() {
     return (
       <MenuItem
         icon={CheckCircle}
-        label={currentVersion ? `You're up to date (v${currentVersion})` : "You're up to date"}
+        label={
+          currentVersion
+            ? `You're up to date (v${currentVersion})`
+            : "You're up to date"
+        }
         onClick={() => {}}
       />
     );
@@ -50,9 +54,13 @@ export function UpdateChecker() {
               e.stopPropagation();
               handleCheckForUpdate();
             }}
-            className={cn(
-              ["rounded-full", "px-2 py-0.5", "bg-red-50", "text-xs font-semibold text-red-600", "hover:bg-red-100"],
-            )}
+            className={cn([
+              "rounded-full",
+              "px-2 py-0.5",
+              "bg-red-50",
+              "text-xs font-semibold text-red-600",
+              "hover:bg-red-100",
+            ])}
           >
             Retry
           </button>
@@ -99,7 +107,10 @@ export function UpdateChecker() {
                 strokeDashoffset={`${2 * Math.PI * 6 * (1 - downloadProgress.percentage / 100)}`}
                 strokeLinecap="round"
                 className="text-neutral-500 transition-all duration-300"
-                style={{ transform: "rotate(-90deg)", transformOrigin: "center" }}
+                style={{
+                  transform: "rotate(-90deg)",
+                  transformOrigin: "center",
+                }}
               />
             </svg>
             <span className="text-sm text-black">
@@ -128,20 +139,16 @@ export function UpdateChecker() {
       <MenuItem
         icon={CheckCircle}
         label="Install update"
-        badge={<div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />}
+        badge={
+          <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+        }
         onClick={handleInstall}
       />
     );
   }
 
   if (state === "installing") {
-    return (
-      <MenuItem
-        icon={Spinner}
-        label="Installing..."
-        onClick={() => {}}
-      />
-    );
+    return <MenuItem icon={Spinner} label="Installing..." onClick={() => {}} />;
   }
 
   if (state === "idle") {
@@ -158,14 +165,12 @@ export function UpdateChecker() {
 function MenuItemLikeContainer({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className={cn(
-        [
-          "flex w-full items-center gap-2.5 rounded-lg",
-          "px-4 py-1.5",
-          "text-sm text-black",
-          "transition-colors hover:bg-neutral-100",
-        ],
-      )}
+      className={cn([
+        "flex w-full items-center gap-2.5 rounded-lg",
+        "px-4 py-1.5",
+        "text-sm text-black",
+        "transition-colors hover:bg-neutral-100",
+      ])}
     >
       {children}
     </div>

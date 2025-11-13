@@ -1,12 +1,20 @@
-import { cn } from "@hypr/utils";
-
+import { CtaCard } from "@/components/cta-card";
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 
-import { CtaCard } from "@/components/cta-card";
-import { Accordion, Card, Columns, Info, Note, Step, Steps, Tip } from "@hypr/ui/docs";
+import {
+  Accordion,
+  Card,
+  Columns,
+  Info,
+  Note,
+  Step,
+  Steps,
+  Tip,
+} from "@hypr/ui/docs";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/docs/$slug")({
   component: Component,
@@ -57,8 +65,13 @@ function Component() {
 }
 
 function ArticleHeader({ doc }: { doc: any }) {
-  const sectionTitle = allDocs.find(d => d.sectionFolder === doc.sectionFolder && d.isIndex)?.title
-    || doc.sectionFolder.split("-").map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+  const sectionTitle =
+    allDocs.find((d) => d.sectionFolder === doc.sectionFolder && d.isIndex)
+      ?.title ||
+    doc.sectionFolder
+      .split("-")
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
 
   return (
     <header className="mb-8 lg:mb-12">
@@ -91,7 +104,8 @@ function ArticleHeader({ doc }: { doc: any }) {
             <>
               <span>·</span>
               <span className="text-neutral-400">
-                Updated {new Date(doc.updated).toLocaleDateString("en-US", {
+                Updated{" "}
+                {new Date(doc.updated).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -209,14 +223,12 @@ function RightSidebar({
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className={cn(
-                  [
-                    "block text-sm py-1 transition-colors border-l-2",
-                    item.level === 3 && "pl-4",
-                    item.level === 2 && "pl-2",
-                    "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
-                  ],
-                )}
+                className={cn([
+                  "block text-sm py-1 transition-colors border-l-2",
+                  item.level === 3 && "pl-4",
+                  item.level === 2 && "pl-2",
+                  "border-transparent text-neutral-600 hover:text-stone-600 hover:border-neutral-300",
+                ])}
               >
                 {item.text}
               </a>

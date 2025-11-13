@@ -1,5 +1,6 @@
 import { providerSpeakerIndexSchema } from "@hypr/db";
 import type { ProviderSpeakerIndexHint } from "@hypr/db";
+
 import type { SpeakerHintStorage } from "../store/tinybase/schema-external";
 import type { RuntimeSpeakerHint } from "./segment";
 
@@ -35,17 +36,23 @@ export function convertStorageHintsToRuntime(
         });
       }
     } else if (hint.type === "user_speaker_assignment") {
-      const data = typeof hint.value === "string"
-        ? (() => {
-          try {
-            return JSON.parse(hint.value);
-          } catch {
-            return undefined;
-          }
-        })()
-        : hint.value;
+      const data =
+        typeof hint.value === "string"
+          ? (() => {
+              try {
+                return JSON.parse(hint.value);
+              } catch {
+                return undefined;
+              }
+            })()
+          : hint.value;
 
-      if (data && typeof data === "object" && "human_id" in data && typeof data.human_id === "string") {
+      if (
+        data &&
+        typeof data === "object" &&
+        "human_id" in data &&
+        typeof data.human_id === "string"
+      ) {
         hints.push({
           wordIndex,
           data: {
@@ -60,20 +67,23 @@ export function convertStorageHintsToRuntime(
   return hints;
 }
 
-const parseProviderSpeakerIndex = (raw: unknown): ProviderSpeakerIndexHint | undefined => {
+const parseProviderSpeakerIndex = (
+  raw: unknown,
+): ProviderSpeakerIndexHint | undefined => {
   if (raw == null) {
     return undefined;
   }
 
-  const data = typeof raw === "string"
-    ? (() => {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return undefined;
-      }
-    })()
-    : raw;
+  const data =
+    typeof raw === "string"
+      ? (() => {
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return undefined;
+          }
+        })()
+      : raw;
 
   return providerSpeakerIndexSchema.safeParse(data).data;
 };

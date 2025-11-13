@@ -1,4 +1,8 @@
-import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  useRouteContext,
+} from "@tanstack/react-router";
 import { useCallback, useEffect, useRef } from "react";
 
 import { buildChatTools } from "../../../chat/tools";
@@ -16,7 +20,9 @@ export const Route = createFileRoute("/app/main/_layout")({
 });
 
 function Component() {
-  const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({ from: "__root__" });
+  const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({
+    from: "__root__",
+  });
   const { registerOnEmpty, openNew, tabs } = useTabs();
   const hasOpenedInitialTab = useRef(false);
 
@@ -57,11 +63,7 @@ function Component() {
 function ToolRegistration() {
   const { search } = useSearchEngine();
 
-  useRegisterTools(
-    "chat",
-    () => buildChatTools({ search }),
-    [search],
-  );
+  useRegisterTools("chat", () => buildChatTools({ search }), [search]);
 
   return null;
 }

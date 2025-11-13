@@ -2,10 +2,9 @@ import type { StoreApi } from "zustand";
 
 import { id } from "../../../utils";
 import type { LifecycleState } from "./lifecycle";
-import { isSameTab, type Tab, type TabInput, tabSchema } from "./schema";
-
 import type { NavigationState, TabHistory } from "./navigation";
 import { pushHistory } from "./navigation";
+import { isSameTab, type Tab, type TabInput, tabSchema } from "./schema";
 
 export type BasicState = {
   tabs: Tab[];
@@ -22,7 +21,9 @@ export type BasicActions = {
   closeAll: () => void;
 };
 
-export const createBasicSlice = <T extends BasicState & NavigationState & LifecycleState>(
+export const createBasicSlice = <
+  T extends BasicState & NavigationState & LifecycleState,
+>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): BasicState & BasicActions => ({
@@ -65,7 +66,10 @@ export const createBasicSlice = <T extends BasicState & NavigationState & Lifecy
 
     const closedTabIndex = tabs.findIndex((t) => isSameTab(t, tab));
     const nextActiveIndex = findNextActiveIndex(remainingTabs, closedTabIndex);
-    const nextTabs = setActiveFlags(remainingTabs, remainingTabs[nextActiveIndex]);
+    const nextTabs = setActiveFlags(
+      remainingTabs,
+      remainingTabs[nextActiveIndex],
+    );
     const nextCurrentTab = nextTabs[nextActiveIndex];
 
     const nextHistory = new Map(history);
@@ -147,7 +151,11 @@ const openTab = <T extends BasicState & NavigationState>(
   history: Map<string, TabHistory>,
   replaceActive: boolean,
 ): Partial<T> => {
-  const tabWithDefaults: Tab = tabSchema.parse({ ...newTab, active: false, slotId: id() });
+  const tabWithDefaults: Tab = tabSchema.parse({
+    ...newTab,
+    active: false,
+    slotId: id(),
+  });
 
   let nextTabs: Tab[];
   let activeTab: Tab;
@@ -160,7 +168,11 @@ const openTab = <T extends BasicState & NavigationState>(
     const currentActiveTab = tabs[existingActiveIdx];
 
     if (existingActiveIdx !== -1 && currentActiveTab) {
-      activeTab = { ...tabWithDefaults, active: true, slotId: currentActiveTab.slotId };
+      activeTab = {
+        ...tabWithDefaults,
+        active: true,
+        slotId: currentActiveTab.slotId,
+      };
 
       nextTabs = tabs
         .map((t, idx) => {

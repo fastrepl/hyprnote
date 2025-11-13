@@ -2,9 +2,13 @@ import { generateId, generateObject, type LanguageModel } from "ai";
 import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
+
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
 
-export const titleWorkflow: Pick<TaskConfig<"title">, "executeWorkflow" | "transforms"> = {
+export const titleWorkflow: Pick<
+  TaskConfig<"title">,
+  "executeWorkflow" | "transforms"
+> = {
   executeWorkflow,
   transforms: [],
 };
@@ -61,10 +65,9 @@ async function getSystemPrompt(_args: TaskArgsMapTransformed["title"]) {
 async function getUserPrompt(args: TaskArgsMapTransformed["title"]) {
   const { enhancedMd } = args;
 
-  const result = await templateCommands.render(
-    "title.user",
-    { enhanced_note: enhancedMd },
-  );
+  const result = await templateCommands.render("title.user", {
+    enhanced_note: enhancedMd,
+  });
 
   if (result.status === "error") {
     throw new Error(result.error);

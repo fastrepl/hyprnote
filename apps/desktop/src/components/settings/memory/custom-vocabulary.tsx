@@ -1,9 +1,9 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
-
 import { useForm } from "@tanstack/react-form";
 import { Check, MinusCircle, Pencil, Plus, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
 
 import { QUERIES, STORE_ID, UI } from "../../../store/tinybase/main";
 import { id } from "../../../utils";
@@ -54,7 +54,8 @@ export function CustomVocabularyView() {
       <div className="mb-4">
         <h3 className="text-sm font-medium mb-1">Custom vocabulary</h3>
         <p className="text-xs text-neutral-600">
-          Add jargons or industry/company-specific terms to improve transcription accuracy
+          Add jargons or industry/company-specific terms to improve
+          transcription accuracy
         </p>
       </div>
 
@@ -83,10 +84,7 @@ export function CustomVocabularyView() {
             )}
           </form.Field>
           {showAddButton && (
-            <Button
-              type="submit"
-              size="sm"
-            >
+            <Button type="submit" size="sm">
               <Plus className="size-4" />
               Add
             </Button>
@@ -94,30 +92,30 @@ export function CustomVocabularyView() {
         </form>
 
         <div className="max-h-[300px] overflow-y-auto">
-          {filteredItems.length === 0
-            ? (
-              <div className="px-4 py-8 text-center text-sm text-neutral-400">
-                {searchValue.trim() ? "No matching terms" : "No custom vocabulary added"}
-              </div>
-            )
-            : (
-              filteredItems.map((item) => {
-                return (
-                  <VocabularyItem
-                    key={item.rowId}
-                    item={item}
-                    itemNumber={itemIndexMap.get(item.rowId)!}
-                    vocabItems={vocabItems}
-                    isEditing={editingId === item.rowId}
-                    isSearching={searchValue.trim().length > 0}
-                    onStartEdit={() => setEditingId(item.rowId)}
-                    onCancelEdit={() => setEditingId(null)}
-                    onUpdate={mutations.update}
-                    onRemove={() => mutations.delete(item.rowId)}
-                  />
-                );
-              })
-            )}
+          {filteredItems.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm text-neutral-400">
+              {searchValue.trim()
+                ? "No matching terms"
+                : "No custom vocabulary added"}
+            </div>
+          ) : (
+            filteredItems.map((item) => {
+              return (
+                <VocabularyItem
+                  key={item.rowId}
+                  item={item}
+                  itemNumber={itemIndexMap.get(item.rowId)!}
+                  vocabItems={vocabItems}
+                  isEditing={editingId === item.rowId}
+                  isSearching={searchValue.trim().length > 0}
+                  onStartEdit={() => setEditingId(item.rowId)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onUpdate={mutations.update}
+                  onRemove={() => mutations.delete(item.rowId)}
+                />
+              );
+            })
+          )}
         </div>
       </div>
     </div>
@@ -171,7 +169,9 @@ function VocabularyItem({
           };
         }
         const isDuplicate = vocabItems.some(
-          (v) => v.rowId !== item.rowId && v.text.toLowerCase() === text.toLowerCase(),
+          (v) =>
+            v.rowId !== item.rowId &&
+            v.text.toLowerCase() === text.toLowerCase(),
         );
         if (isDuplicate) {
           return {
@@ -195,87 +195,90 @@ function VocabularyItem({
       onMouseLeave={() => setHoveredItem(false)}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        <span className={cn(["text-sm text-neutral-400 w-4 flex-shrink-0 text-center", isSearching && "invisible"])}>
+        <span
+          className={cn([
+            "text-sm text-neutral-400 w-4 flex-shrink-0 text-center",
+            isSearching && "invisible",
+          ])}
+        >
           {itemNumber}
         </span>
-        {isEditing
-          ? (
-            <form.Field name="text">
-              {(field) => (
-                <input
-                  type="text"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      form.handleSubmit();
-                    } else if (e.key === "Escape") {
-                      e.preventDefault();
-                      onCancelEdit();
-                    }
-                  }}
-                  className="flex-1 text-sm text-neutral-900 focus:outline-none bg-transparent"
-                  autoFocus
-                />
-              )}
-            </form.Field>
-          )
-          : <span className="text-sm text-neutral-700">{item.text}</span>}
+        {isEditing ? (
+          <form.Field name="text">
+            {(field) => (
+              <input
+                type="text"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.handleSubmit();
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    onCancelEdit();
+                  }
+                }}
+                className="flex-1 text-sm text-neutral-900 focus:outline-none bg-transparent"
+                autoFocus
+              />
+            )}
+          </form.Field>
+        ) : (
+          <span className="text-sm text-neutral-700">{item.text}</span>
+        )}
       </div>
       <div className="flex items-center gap-1">
-        {isEditing
-          ? (
-            <form.Subscribe selector={(state) => [state.canSubmit]}>
-              {([canSubmit]) => (
-                <>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => form.handleSubmit()}
-                    disabled={!canSubmit}
-                    className="h-auto p-0 hover:bg-transparent disabled:opacity-50"
-                  >
-                    <Check className="h-5 w-5 text-green-600" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={onCancelEdit}
-                    className="h-auto p-0 hover:bg-transparent"
-                  >
-                    <X className="h-5 w-5 text-neutral-500" />
-                  </Button>
-                </>
-              )}
-            </form.Subscribe>
-          )
-          : (
-            hoveredItem && (
+        {isEditing ? (
+          <form.Subscribe selector={(state) => [state.canSubmit]}>
+            {([canSubmit]) => (
               <>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={onStartEdit}
-                  className="h-auto p-0 hover:bg-transparent"
+                  onClick={() => form.handleSubmit()}
+                  disabled={!canSubmit}
+                  className="h-auto p-0 hover:bg-transparent disabled:opacity-50"
                 >
-                  <Pencil className="h-4 w-4 text-neutral-500" />
+                  <Check className="h-5 w-5 text-green-600" />
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={onRemove}
+                  onClick={onCancelEdit}
                   className="h-auto p-0 hover:bg-transparent"
                 >
-                  <MinusCircle className="h-5 w-5 text-red-500" />
+                  <X className="h-5 w-5 text-neutral-500" />
                 </Button>
               </>
-            )
-          )}
+            )}
+          </form.Subscribe>
+        ) : (
+          hoveredItem && (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onStartEdit}
+                className="h-auto p-0 hover:bg-transparent"
+              >
+                <Pencil className="h-4 w-4 text-neutral-500" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onRemove}
+                className="h-auto p-0 hover:bg-transparent"
+              >
+                <MinusCircle className="h-5 w-5 text-red-500" />
+              </Button>
+            </>
+          )
+        )}
       </div>
     </div>
   );
@@ -284,10 +287,13 @@ function VocabularyItem({
 function useVocabs() {
   const table = UI.useResultTable(QUERIES.visibleVocabs, STORE_ID);
 
-  return Object.entries(table ?? {}).map(([rowId, { text }]) => ({
-    rowId,
-    text,
-  } as VocabItem));
+  return Object.entries(table ?? {}).map(
+    ([rowId, { text }]) =>
+      ({
+        rowId,
+        text,
+      }) as VocabItem,
+  );
 }
 
 function useVocabMutations() {

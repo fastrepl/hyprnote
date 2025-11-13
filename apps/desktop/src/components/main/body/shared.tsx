@@ -1,10 +1,10 @@
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
-
-import { X } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 import { type Tab } from "../../../store/zustand/tabs";
@@ -17,30 +17,34 @@ type TabItemProps<T extends Tab = Tab> = { tab: T; tabIndex?: number } & {
   handleCloseAll: () => void;
 };
 
-type TabItemBaseProps =
-  & { icon: React.ReactNode; title: string; selected: boolean; active?: boolean; tabIndex?: number }
-  & {
-    handleCloseThis: () => void;
-    handleSelectThis: () => void;
-    handleCloseOthers: () => void;
-    handleCloseAll: () => void;
-  };
+type TabItemBaseProps = {
+  icon: React.ReactNode;
+  title: string;
+  selected: boolean;
+  active?: boolean;
+  tabIndex?: number;
+} & {
+  handleCloseThis: () => void;
+  handleSelectThis: () => void;
+  handleCloseOthers: () => void;
+  handleCloseAll: () => void;
+};
 
-export type TabItem<T extends Tab = Tab> = (props: TabItemProps<T>) => React.ReactNode;
+export type TabItem<T extends Tab = Tab> = (
+  props: TabItemProps<T>,
+) => React.ReactNode;
 
-export function TabItemBase(
-  {
-    icon,
-    title,
-    selected,
-    active = false,
-    tabIndex,
-    handleCloseThis,
-    handleSelectThis,
-    handleCloseOthers,
-    handleCloseAll,
-  }: TabItemBaseProps,
-) {
+export function TabItemBase({
+  icon,
+  title,
+  selected,
+  active = false,
+  tabIndex,
+  handleCloseThis,
+  handleSelectThis,
+  handleCloseOthers,
+  handleCloseAll,
+}: TabItemBaseProps) {
   const isCmdPressed = useCmdKeyPressed();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -52,15 +56,15 @@ export function TabItemBase(
     }
   };
 
-  const contextMenu = !active
-    ? (
-      <>
-        <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
-        <ContextMenuItem onClick={handleCloseOthers}>close others</ContextMenuItem>
-        <ContextMenuItem onClick={handleCloseAll}>close all</ContextMenuItem>
-      </>
-    )
-    : undefined;
+  const contextMenu = !active ? (
+    <>
+      <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
+      <ContextMenuItem onClick={handleCloseOthers}>
+        close others
+      </ContextMenuItem>
+      <ContextMenuItem onClick={handleCloseAll}>close all</ContextMenuItem>
+    </>
+  ) : undefined;
 
   const showShortcut = isCmdPressed && tabIndex !== undefined;
 
@@ -83,10 +87,10 @@ export function TabItemBase(
           active && selected
             ? ["bg-red-50", "text-red-600", "border-red-500"]
             : active
-            ? ["bg-red-50", "text-red-500", "border-0"]
-            : selected
-            ? ["bg-neutral-50", "text-black", "border-black"]
-            : ["bg-neutral-50", "text-neutral-500", "border-transparent"],
+              ? ["bg-red-50", "text-red-500", "border-0"]
+              : selected
+                ? ["bg-neutral-50", "text-black", "border-black"]
+                : ["bg-neutral-50", "text-neutral-500", "border-transparent"],
         ])}
       >
         <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
@@ -97,14 +101,14 @@ export function TabItemBase(
                 isHovered ? "opacity-0" : "opacity-100",
               )}
             >
-              {active
-                ? (
-                  <div className="relative size-2">
-                    <div className="absolute inset-0 rounded-full bg-red-600"></div>
-                    <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
-                  </div>
-                )
-                : icon}
+              {active ? (
+                <div className="relative size-2">
+                  <div className="absolute inset-0 rounded-full bg-red-600"></div>
+                  <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
+                </div>
+              ) : (
+                icon
+              )}
             </div>
             <div
               className={cn(
@@ -117,16 +121,14 @@ export function TabItemBase(
                   e.stopPropagation();
                   handleCloseThis();
                 }}
-                className={cn(
-                  [
-                    "flex items-center justify-center transition-colors",
-                    active
-                      ? "text-red-600 hover:text-red-700"
-                      : selected
+                className={cn([
+                  "flex items-center justify-center transition-colors",
+                  active
+                    ? "text-red-600 hover:text-red-700"
+                    : selected
                       ? "text-neutral-700 hover:text-neutral-900"
                       : "text-neutral-500 hover:text-neutral-700",
-                  ],
-                )}
+                ])}
               >
                 <X size={16} />
               </button>
@@ -138,7 +140,9 @@ export function TabItemBase(
           <div className="absolute top-[3px] right-2 pointer-events-none">
             <KbdGroup>
               <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>⌘</Kbd>
-              <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>{tabIndex}</Kbd>
+              <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>
+                {tabIndex}
+              </Kbd>
             </KbdGroup>
           </div>
         )}
@@ -171,7 +175,7 @@ export function SoundIndicator({
   const u16max = 65535;
   useEffect(() => {
     const sample = Array.isArray(value)
-      ? (value.reduce((sum, v) => sum + v, 0) / value.length) / u16max
+      ? value.reduce((sum, v) => sum + v, 0) / value.length / u16max
       : value / u16max;
     setAmplitude(Math.min(sample, 1));
   }, [value]);

@@ -1,22 +1,24 @@
-import "@hypr/ui/globals.css";
-import "./styles/globals.css";
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode, useMemo } from "react";
 import ReactDOM from "react-dom/client";
 import { Provider as TinyBaseProvider, useStores } from "tinybase/ui-react";
 import { createManager } from "tinytick";
-import { Provider as TinyTickProvider, useCreateManager } from "tinytick/ui-react";
+import {
+  Provider as TinyTickProvider,
+  useCreateManager,
+} from "tinytick/ui-react";
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { TaskManager } from "./components/task-manager";
-import { type Store, STORE_ID, StoreComponent } from "./store/tinybase/main";
+import "@hypr/ui/globals.css";
 
+import { TaskManager } from "./components/task-manager";
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import { routeTree } from "./routeTree.gen";
+import { type Store, STORE_ID, StoreComponent } from "./store/tinybase/main";
 import { createAITaskStore } from "./store/zustand/ai-task";
 import { createListenerStore } from "./store/zustand/listener";
+import "./styles/globals.css";
 
 const toolRegistry = createToolRegistry();
 const listenerStore = createListenerStore();

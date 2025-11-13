@@ -4,7 +4,12 @@ import type { StoreApi } from "zustand";
 
 import type { Store as PersistedStore } from "../../tinybase/main";
 import { applyTransforms } from "./shared/transform_infra";
-import { TASK_CONFIGS, type TaskArgsMap, type TaskId, type TaskType } from "./task-configs";
+import {
+  TASK_CONFIGS,
+  type TaskArgsMap,
+  type TaskId,
+  type TaskType,
+} from "./task-configs";
 
 export type TasksState = {
   tasks: Record<string, TaskState>;
@@ -25,12 +30,14 @@ export type TasksActions = {
   getState: <T extends TaskType>(taskId: TaskId<T>) => TaskState<T> | undefined;
 };
 
-export type TaskStepInfo<T extends TaskType = TaskType> = T extends "enhance" ?
-    | { type: "analyzing" }
-    | { type: "generating" }
-    | { type: "retrying"; attempt: number; reason: string }
-  : T extends "title" ? { type: "generating" }
-  : { type: "generating" };
+export type TaskStepInfo<T extends TaskType = TaskType> = T extends "enhance"
+  ?
+      | { type: "analyzing" }
+      | { type: "generating" }
+      | { type: "retrying"; attempt: number; reason: string }
+  : T extends "title"
+    ? { type: "generating" }
+    : { type: "generating" };
 
 export type TaskStatus = "idle" | "generating" | "success" | "error";
 
@@ -64,7 +71,9 @@ export const createTasksSlice = <T extends TasksState>(
   deps: { persistedStore: PersistedStore },
 ): TasksState & TasksActions => ({
   ...initialState,
-  getState: <Task extends TaskType>(taskId: TaskId<Task>): TaskState<Task> | undefined => {
+  getState: <Task extends TaskType>(
+    taskId: TaskId<Task>,
+  ): TaskState<Task> | undefined => {
     const task = get().tasks[taskId];
     return task as TaskState<Task> | undefined;
   },
@@ -86,7 +95,7 @@ export const createTasksSlice = <T extends TasksState>(
           abortController: null,
           currentStep: undefined,
         };
-      })
+      }),
     );
   },
   reset: (taskId: string) => {
@@ -102,7 +111,7 @@ export const createTasksSlice = <T extends TasksState>(
             abortController: null,
             currentStep: undefined,
           };
-        })
+        }),
       );
     }
   },
@@ -119,7 +128,10 @@ export const createTasksSlice = <T extends TasksState>(
     const taskConfig = TASK_CONFIGS[config.taskType];
 
     try {
-      const enrichedArgs = await taskConfig.transformArgs(config.args, deps.persistedStore);
+      const enrichedArgs = await taskConfig.transformArgs(
+        config.args,
+        deps.persistedStore,
+      );
 
       set((state) =>
         mutate(state, (draft) => {
@@ -131,7 +143,7 @@ export const createTasksSlice = <T extends TasksState>(
             abortController,
             currentStep: undefined,
           };
-        })
+        }),
       );
       let fullText = "";
 
@@ -150,7 +162,7 @@ export const createTasksSlice = <T extends TasksState>(
             if (currentState?.taskType === config.taskType) {
               (currentState as any).currentStep = step;
             }
-          })
+          }),
         );
       };
 
@@ -180,7 +192,7 @@ export const createTasksSlice = <T extends TasksState>(
               if (currentState) {
                 currentState.streamedText = fullText;
               }
-            })
+            }),
           );
         }
       }
@@ -195,13 +207,16 @@ export const createTasksSlice = <T extends TasksState>(
             abortController: null,
             currentStep: undefined,
           };
-        })
+        }),
       );
 
       console.log("fullText", fullText);
       config.onComplete?.(fullText);
     } catch (err) {
-      if (err instanceof Error && (err.name === "AbortError" || err.message === "Aborted")) {
+      if (
+        err instanceof Error &&
+        (err.name === "AbortError" || err.message === "Aborted")
+      ) {
         set((state) =>
           mutate(state, (draft) => {
             draft.tasks[taskId] = {
@@ -212,7 +227,7 @@ export const createTasksSlice = <T extends TasksState>(
               abortController: null,
               currentStep: undefined,
             };
-          })
+          }),
         );
       } else {
         const error = extractUnderlyingError(err);
@@ -226,7 +241,7 @@ export const createTasksSlice = <T extends TasksState>(
               abortController: null,
               currentStep: undefined,
             };
-          })
+          }),
         );
       }
     }

@@ -1,11 +1,10 @@
-import { cn } from "@hypr/utils";
-
+import { CtaCard } from "@/components/cta-card";
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 
-import { CtaCard } from "@/components/cta-card";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/docs/")({
   component: Component,

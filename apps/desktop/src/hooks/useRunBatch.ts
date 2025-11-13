@@ -27,7 +27,8 @@ export const useRunBatch = (sessionId: string) => {
   const runBatch = useListener((state) => state.runBatch);
   const sessionTab = useTabs((state) => {
     const found = state.tabs.find(
-      (tab): tab is Extract<Tab, { type: "sessions" }> => tab.type === "sessions" && tab.id === sessionId,
+      (tab): tab is Extract<Tab, { type: "sessions" }> =>
+        tab.type === "sessions" && tab.id === sessionId,
     );
     return found ?? null;
   });
@@ -75,10 +76,12 @@ export const useRunBatch = (sessionId: string) => {
         started_at: Date.now(),
       });
 
-      const handlePersist: HandlePersistCallback | undefined = options?.handlePersist;
+      const handlePersist: HandlePersistCallback | undefined =
+        options?.handlePersist;
 
-      const persist = handlePersist
-        ?? ((words, hints) => {
+      const persist =
+        handlePersist ??
+        ((words, hints) => {
           if (words.length === 0) {
             return;
           }
@@ -141,6 +144,16 @@ export const useRunBatch = (sessionId: string) => {
 
       await runBatch(params, { handlePersist: persist, sessionId });
     },
-    [conn, keywords, languages, runBatch, sessionId, sessionTab, store, updateSessionTabState, user_id],
+    [
+      conn,
+      keywords,
+      languages,
+      runBatch,
+      sessionId,
+      sessionTab,
+      store,
+      updateSessionTabState,
+      user_id,
+    ],
   );
 };

@@ -1,7 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import type { ChatStatus } from "ai";
 import { useEffect, useRef } from "react";
+
+import { cn } from "@hypr/utils";
 
 import type { HyprUIMessage } from "../../../chat/types";
 import { useShell } from "../../../contexts/shell";
@@ -37,21 +37,22 @@ export function ChatBody({
       ref={scrollRef}
       className={cn([
         "flex-1 overflow-y-auto flex flex-col",
-        chat.mode === "RightPanelOpen" && "border mt-1 rounded-md rounded-b-none",
+        chat.mode === "RightPanelOpen" &&
+          "border mt-1 rounded-md rounded-b-none",
       ])}
     >
       <div className="flex-1" />
-      {messages.length === 0
-        ? <ChatBodyEmpty isModelConfigured={isModelConfigured} />
-        : (
-          <ChatBodyNonEmpty
-            messages={messages}
-            status={status}
-            error={error}
-            onReload={onReload}
-            onStop={onStop}
-          />
-        )}
+      {messages.length === 0 ? (
+        <ChatBodyEmpty isModelConfigured={isModelConfigured} />
+      ) : (
+        <ChatBodyNonEmpty
+          messages={messages}
+          status={status}
+          error={error}
+          onReload={onReload}
+          onStop={onStop}
+        />
+      )}
     </div>
   );
 }

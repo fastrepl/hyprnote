@@ -9,7 +9,10 @@ export type NavigationState = {
   canGoNext: boolean;
 };
 
-type InvalidatableResourceType = Extract<Tab["type"], "sessions" | "events" | "humans" | "organizations">;
+type InvalidatableResourceType = Extract<
+  Tab["type"],
+  "sessions" | "events" | "humans" | "organizations"
+>;
 
 export type NavigationActions = {
   goBack: () => void;
@@ -39,12 +42,16 @@ export const createNavigationSlice = <T extends NavigationState & BasicState>(
     const prevIndex = tabHistory.currentIndex - 1;
     const prevTab = tabHistory.stack[prevIndex];
 
-    const nextTabs = tabs.map((t) => t.active ? prevTab : t);
+    const nextTabs = tabs.map((t) => (t.active ? prevTab : t));
 
     const nextHistory = new Map(history);
     nextHistory.set(slotId, { ...tabHistory, currentIndex: prevIndex });
 
-    set({ tabs: nextTabs, currentTab: prevTab, history: nextHistory } as Partial<T>);
+    set({
+      tabs: nextTabs,
+      currentTab: prevTab,
+      history: nextHistory,
+    } as Partial<T>);
   },
   goNext: () => {
     const { tabs, history, currentTab } = get();
@@ -61,12 +68,16 @@ export const createNavigationSlice = <T extends NavigationState & BasicState>(
     const nextIndex = tabHistory.currentIndex + 1;
     const nextTab = tabHistory.stack[nextIndex];
 
-    const nextTabs = tabs.map((t) => t.active ? nextTab : t);
+    const nextTabs = tabs.map((t) => (t.active ? nextTab : t));
 
     const nextHistory = new Map(history);
     nextHistory.set(slotId, { ...tabHistory, currentIndex: nextIndex });
 
-    set({ tabs: nextTabs, currentTab: nextTab, history: nextHistory } as Partial<T>);
+    set({
+      tabs: nextTabs,
+      currentTab: nextTab,
+      history: nextHistory,
+    } as Partial<T>);
   },
   invalidateResource: (type: InvalidatableResourceType, id: string) => {
     const { history, tabs, currentTab } = get();
@@ -74,7 +85,9 @@ export const createNavigationSlice = <T extends NavigationState & BasicState>(
     let hasChanges = false;
 
     for (const [slotId, tabHistory] of history.entries()) {
-      const cleaned = cleanHistoryStack(tabHistory, (tab) => isResourceMatch(tab, type, id));
+      const cleaned = cleanHistoryStack(tabHistory, (tab) =>
+        isResourceMatch(tab, type, id),
+      );
       if (cleaned) {
         nextHistory.set(slotId, cleaned);
       } else {
@@ -87,12 +100,17 @@ export const createNavigationSlice = <T extends NavigationState & BasicState>(
 
     const nextTabs = tabs.filter((tab) => !isResourceMatch(tab, type, id));
 
-    const nextCurrentTab = currentTab && isResourceMatch(currentTab, type, id)
-      ? (nextTabs.find((t) => t.active) || nextTabs[0] || null)
-      : currentTab;
+    const nextCurrentTab =
+      currentTab && isResourceMatch(currentTab, type, id)
+        ? nextTabs.find((t) => t.active) || nextTabs[0] || null
+        : currentTab;
 
     if (hasChanges || nextTabs.length !== tabs.length) {
-      set({ history: nextHistory, tabs: nextTabs, currentTab: nextCurrentTab } as Partial<T>);
+      set({
+        history: nextHistory,
+        tabs: nextTabs,
+        currentTab: nextCurrentTab,
+      } as Partial<T>);
     }
   },
 });
@@ -112,11 +130,16 @@ export const computeHistoryFlags = (
 
   return {
     canGoBack: tabHistory ? tabHistory.currentIndex > 0 : false,
-    canGoNext: tabHistory ? tabHistory.currentIndex < tabHistory.stack.length - 1 : false,
+    canGoNext: tabHistory
+      ? tabHistory.currentIndex < tabHistory.stack.length - 1
+      : false,
   };
 };
 
-export const pushHistory = (history: Map<string, TabHistory>, tab: Tab): Map<string, TabHistory> => {
+export const pushHistory = (
+  history: Map<string, TabHistory>,
+  tab: Tab,
+): Map<string, TabHistory> => {
   if (tab.type === "empty") {
     return history;
   }
@@ -133,7 +156,10 @@ export const pushHistory = (history: Map<string, TabHistory>, tab: Tab): Map<str
   return newHistory;
 };
 
-export const updateHistoryCurrent = (history: Map<string, TabHistory>, tab: Tab): Map<string, TabHistory> => {
+export const updateHistoryCurrent = (
+  history: Map<string, TabHistory>,
+  tab: Tab,
+): Map<string, TabHistory> => {
   const newHistory = new Map(history);
   const slotId = tab.slotId;
   const existing = newHistory.get(slotId);
@@ -149,7 +175,11 @@ export const updateHistoryCurrent = (history: Map<string, TabHistory>, tab: Tab)
   return newHistory;
 };
 
-export const isResourceMatch = (tab: Tab, type: InvalidatableResourceType, id: string): boolean => {
+export const isResourceMatch = (
+  tab: Tab,
+  type: InvalidatableResourceType,
+  id: string,
+): boolean => {
   if (tab.type !== type) {
     return false;
   }
@@ -173,7 +203,13 @@ export const cleanHistoryStack = (
     }
   }
 
-  const newIndex = Math.max(0, Math.min(tabHistory.currentIndex - removedBeforeCurrent, cleanedStack.length - 1));
+  const newIndex = Math.max(
+    0,
+    Math.min(
+      tabHistory.currentIndex - removedBeforeCurrent,
+      cleanedStack.length - 1,
+    ),
+  );
   return { stack: cleanedStack, currentIndex: newIndex };
 };
 
@@ -186,44 +222,53 @@ type NavigationMiddleware = <
   },
   Mps extends [StoreMutatorIdentifier, unknown][] = [],
   Mcs extends [StoreMutatorIdentifier, unknown][] = [],
->(f: StateCreator<T, Mps, Mcs>) => StateCreator<T, Mps, Mcs>;
+>(
+  f: StateCreator<T, Mps, Mcs>,
+) => StateCreator<T, Mps, Mcs>;
 
-const navigationMiddlewareImpl = <
-  T extends {
-    history: HistoryMap;
-    currentTab: Tab | null;
-    canGoBack: boolean;
-    canGoNext: boolean;
-  },
->(config: StateCreator<T, [], []>): StateCreator<T, [], []> =>
-(set, get, api) => {
-  let applyingFlags = false;
-
-  return config(
-    (args) => {
-      set(args);
-
-      if (applyingFlags) {
-        return;
-      }
-
-      const state = get();
-      const nextFlags = computeHistoryFlags(state.history, state.currentTab);
-
-      if (state.canGoBack === nextFlags.canGoBack && state.canGoNext === nextFlags.canGoNext) {
-        return;
-      }
-
-      applyingFlags = true;
-      try {
-        set(nextFlags as Partial<T>);
-      } finally {
-        applyingFlags = false;
-      }
+const navigationMiddlewareImpl =
+  <
+    T extends {
+      history: HistoryMap;
+      currentTab: Tab | null;
+      canGoBack: boolean;
+      canGoNext: boolean;
     },
-    get,
-    api,
-  );
-};
+  >(
+    config: StateCreator<T, [], []>,
+  ): StateCreator<T, [], []> =>
+  (set, get, api) => {
+    let applyingFlags = false;
 
-export const navigationMiddleware = navigationMiddlewareImpl as NavigationMiddleware;
+    return config(
+      (args) => {
+        set(args);
+
+        if (applyingFlags) {
+          return;
+        }
+
+        const state = get();
+        const nextFlags = computeHistoryFlags(state.history, state.currentTab);
+
+        if (
+          state.canGoBack === nextFlags.canGoBack &&
+          state.canGoNext === nextFlags.canGoNext
+        ) {
+          return;
+        }
+
+        applyingFlags = true;
+        try {
+          set(nextFlags as Partial<T>);
+        } finally {
+          applyingFlags = false;
+        }
+      },
+      get,
+      api,
+    );
+  };
+
+export const navigationMiddleware =
+  navigationMiddlewareImpl as NavigationMiddleware;

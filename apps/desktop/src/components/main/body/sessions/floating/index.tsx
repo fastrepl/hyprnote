@@ -2,10 +2,13 @@ import { type ReactNode } from "react";
 
 import type { Tab } from "../../../../../store/zustand/tabs/schema";
 import { useCurrentNoteTab, useHasTranscript } from "../shared";
-
 import { ListenButton } from "./listen";
 
-export function FloatingActionButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+export function FloatingActionButton({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
   const currentTab = useCurrentNoteTab(tab);
   const hasTranscript = useHasTranscript(tab.id);
 

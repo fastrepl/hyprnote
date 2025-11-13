@@ -1,10 +1,9 @@
-import { cn } from "@hypr/utils";
-
+import { Image } from "@/components/image";
+import { SlashSeparator } from "@/components/slash-separator";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Image } from "@/components/image";
-import { SlashSeparator } from "@/components/slash-separator";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/pricing")({
   component: Component,
@@ -28,14 +27,19 @@ const pricingPlans: PricingPlan[] = [
   {
     name: "Free",
     price: null,
-    description: "Fully functional with your own API keys. Perfect for individuals who want complete control.",
+    description:
+      "Fully functional with your own API keys. Perfect for individuals who want complete control.",
     features: [
       { label: "Local Transcription", included: true },
       { label: "Speaker Identification", included: true, comingSoon: true },
       { label: "Bring Your Own Key (STT & LLM)", included: true },
       { label: "Basic Sharing (Copy, PDF)", included: true },
       { label: "All Data Local", included: true },
-      { label: "Integrations", included: "partial", tooltip: "Available with free account signup" },
+      {
+        label: "Integrations",
+        included: "partial",
+        tooltip: "Available with free account signup",
+      },
       { label: "Templates & Chat", included: false },
       { label: "Cloud Services (STT & LLM)", included: false },
       { label: "Cloud Sync", included: false },
@@ -53,21 +57,31 @@ const pricingPlans: PricingPlan[] = [
       monthly: 20,
       yearly: 169,
     },
-    description: "No API keys needed. Get cloud services, advanced sharing, and team features out of the box.",
+    description:
+      "No API keys needed. Get cloud services, advanced sharing, and team features out of the box.",
     popular: true,
     features: [
       { label: "Everything in Free", included: true },
       { label: "Integrations", included: true },
       { label: "Templates & Chat", included: true },
       { label: "Cloud Services (STT & LLM)", included: true },
-      { label: "Cloud Sync", included: true, tooltip: "Select which notes to sync", comingSoon: true },
+      {
+        label: "Cloud Sync",
+        included: true,
+        tooltip: "Select which notes to sync",
+        comingSoon: true,
+      },
       {
         label: "Shareable Links",
         included: true,
         tooltip: "DocSend-like: view tracking, expiration, revocation",
         comingSoon: true,
       },
-      { label: "Unified Billing & Access Management", included: true, comingSoon: true },
+      {
+        label: "Unified Billing & Access Management",
+        included: true,
+        comingSoon: true,
+      },
     ],
   },
 ];
@@ -103,7 +117,8 @@ function TeamPricingBanner() {
       ])}
     >
       <span>
-        <strong>Early Bird Discount:</strong> Get 60% off as we launch our new version and help with migration
+        <strong>Early Bird Discount:</strong> Get 60% off as we launch our new
+        version and help with migration
       </span>
     </div>
   );
@@ -117,7 +132,8 @@ function HeroSection() {
           Hyprnote Pricing
         </h1>
         <p className="text-lg sm:text-xl text-neutral-600">
-          Choose the plan that fits your needs. Start for free, upgrade when you need cloud features.
+          Choose the plan that fits your needs. Start for free, upgrade when you
+          need cloud features.
         </p>
       </div>
     </section>
@@ -128,7 +144,9 @@ function PricingCardsSection() {
   return (
     <section className="py-16 px-4 laptop:px-0">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        {pricingPlans.map((plan) => <PricingCard key={plan.name} plan={plan} />)}
+        {pricingPlans.map((plan) => (
+          <PricingCard key={plan.name} plan={plan} />
+        ))}
       </div>
     </section>
   );
@@ -137,14 +155,12 @@ function PricingCardsSection() {
 function PricingCard({ plan }: { plan: PricingPlan }) {
   return (
     <div
-      className={cn(
-        [
-          "border rounded-sm overflow-hidden flex flex-col transition-transform",
-          plan.popular
-            ? "border-stone-600 shadow-lg relative scale-105"
-            : "border-neutral-100",
-        ],
-      )}
+      className={cn([
+        "border rounded-sm overflow-hidden flex flex-col transition-transform",
+        plan.popular
+          ? "border-stone-600 shadow-lg relative scale-105"
+          : "border-neutral-100",
+      ])}
     >
       {plan.popular && (
         <div className="bg-stone-600 text-white text-center py-2 px-4 text-sm font-medium">
@@ -154,69 +170,70 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 
       <div className="p-8 flex-1 flex flex-col">
         <div className="mb-6">
-          <h2 className="text-2xl font-serif text-stone-600 mb-2">{plan.name}</h2>
+          <h2 className="text-2xl font-serif text-stone-600 mb-2">
+            {plan.name}
+          </h2>
           <p className="text-sm text-neutral-600 mb-4">{plan.description}</p>
 
-          {plan.price
-            ? (
-              <div className="space-y-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-serif text-stone-600">
-                    ${plan.price.monthly}
+          {plan.price ? (
+            <div className="space-y-2">
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-serif text-stone-600">
+                  ${plan.price.monthly}
+                </span>
+                {plan.originalPrice && (
+                  <span className="text-xl text-neutral-400 line-through">
+                    ${plan.originalPrice.monthly}
                   </span>
-                  {plan.originalPrice && (
-                    <span className="text-xl text-neutral-400 line-through">
-                      ${plan.originalPrice.monthly}
-                    </span>
-                  )}
-                  <span className="text-neutral-600">/seat/month</span>
-                </div>
-                <div className="text-sm text-neutral-600">
-                  or ${plan.price.yearly}/seat/year{" "}
-                  {plan.originalPrice && (
-                    <span className="text-neutral-400 line-through">
-                      ${plan.originalPrice.yearly}
-                    </span>
-                  )} <span className="text-green-700 font-medium">(save 65%)</span>
-                </div>
+                )}
+                <span className="text-neutral-600">/seat/month</span>
               </div>
-            )
-            : <div className="text-4xl font-serif text-stone-600">Free</div>}
+              <div className="text-sm text-neutral-600">
+                or ${plan.price.yearly}/seat/year{" "}
+                {plan.originalPrice && (
+                  <span className="text-neutral-400 line-through">
+                    ${plan.originalPrice.yearly}
+                  </span>
+                )}{" "}
+                <span className="text-green-700 font-medium">(save 65%)</span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-4xl font-serif text-stone-600">Free</div>
+          )}
         </div>
 
         <div className="space-y-3 flex-1">
           {plan.features.map((feature, idx) => (
             <div key={idx} className="flex gap-3 items-start">
               <Icon
-                icon={feature.included === true
-                  ? "mdi:check-circle"
-                  : feature.included === "partial"
-                  ? "mdi:minus-circle"
-                  : "mdi:close-circle"}
-                className={cn(
-                  [
-                    "text-lg mt-0.5 shrink-0",
-                    feature.included === true
-                      ? "text-green-700"
-                      : feature.included === "partial"
+                icon={
+                  feature.included === true
+                    ? "mdi:check-circle"
+                    : feature.included === "partial"
+                      ? "mdi:minus-circle"
+                      : "mdi:close-circle"
+                }
+                className={cn([
+                  "text-lg mt-0.5 shrink-0",
+                  feature.included === true
+                    ? "text-green-700"
+                    : feature.included === "partial"
                       ? "text-yellow-600"
                       : "text-neutral-300",
-                  ],
-                )}
+                ])}
               />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span
-                    className={cn(
-                      [
-                        "text-sm",
-                        feature.included === true
-                          ? "text-neutral-900"
-                          : feature.included === "partial"
+                    className={cn([
+                      "text-sm",
+                      feature.included === true
+                        ? "text-neutral-900"
+                        : feature.included === "partial"
                           ? "text-neutral-700"
                           : "text-neutral-400",
-                      ],
-                    )}
+                    ])}
                   >
                     {feature.label}
                   </span>
@@ -236,33 +253,27 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
           ))}
         </div>
 
-        {plan.price
-          ? (
-            <Link
-              to="/join-waitlist"
-              className={cn(
-                [
-                  "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
-                  "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-                ],
-              )}
-            >
-              Join Waitlist
-            </Link>
-          )
-          : (
-            <Link
-              to="/download"
-              className={cn(
-                [
-                  "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
-                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
-                ],
-              )}
-            >
-              Download for free
-            </Link>
-          )}
+        {plan.price ? (
+          <Link
+            to="/join-waitlist"
+            className={cn([
+              "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
+              "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+            ])}
+          >
+            Join Waitlist
+          </Link>
+        ) : (
+          <Link
+            to="/download"
+            className={cn([
+              "mt-8 w-full h-10 flex items-center justify-center text-sm font-medium transition-all cursor-pointer",
+              "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+            ])}
+          >
+            Download for free
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -299,7 +310,10 @@ function FAQSection() {
         </h2>
         <div className="space-y-6">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="border-b border-neutral-100 pb-6 last:border-b-0">
+            <div
+              key={idx}
+              className="border-b border-neutral-100 pb-6 last:border-b-0"
+            >
               <h3 className="text-lg font-medium text-neutral-900 mb-2">
                 {faq.question}
               </h3>
@@ -325,9 +339,7 @@ function CTASection() {
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif">
-          Need a team plan?
-        </h2>
+        <h2 className="text-2xl sm:text-3xl font-serif">Need a team plan?</h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
           Book a call to discuss custom team pricing and enterprise solutions
         </p>

@@ -1,21 +1,34 @@
-import { cn } from "@hypr/utils";
-
 import { Icon } from "@iconify-icon/react";
 import { type AnyFieldApi } from "@tanstack/react-form";
 import { AlertCircleIcon } from "lucide-react";
 import { Streamdown } from "streamdown";
 
-import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@hypr/ui/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@hypr/ui/components/ui/input-group";
+import { cn } from "@hypr/utils";
+
 import * as main from "../../../../store/tinybase/main";
 
 export * from "./model-combobox";
 
 const streamdownComponents = {
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => {
-    return <ul className="list-disc pl-6 mb-1 block relative">{props.children as React.ReactNode}</ul>;
+    return (
+      <ul className="list-disc pl-6 mb-1 block relative">
+        {props.children as React.ReactNode}
+      </ul>
+    );
   },
   ol: (props: React.HTMLAttributes<HTMLOListElement>) => {
-    return <ol className="list-decimal pl-6 mb-1 block relative">{props.children as React.ReactNode}</ol>;
+    return (
+      <ol className="list-decimal pl-6 mb-1 block relative">
+        {props.children as React.ReactNode}
+      </ol>
+    );
   },
   li: (props: React.HTMLAttributes<HTMLLIElement>) => {
     return <li className="mb-1">{props.children as React.ReactNode}</li>;
@@ -25,9 +38,18 @@ const streamdownComponents = {
   },
 } as const;
 
-export function StyledStreamdown({ children, className }: { children: string; className?: string }) {
+export function StyledStreamdown({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
   return (
-    <Streamdown components={streamdownComponents} className={cn(["text-sm mt-1", className])}>
+    <Streamdown
+      components={streamdownComponents}
+      className={cn(["text-sm mt-1", className])}
+    >
       {children}
     </Streamdown>
   );
@@ -60,14 +82,16 @@ export function FormField({
   placeholder?: string;
   type?: string;
 }) {
-  const { meta: { errors, isTouched } } = field.state;
+  const {
+    meta: { errors, isTouched },
+  } = field.state;
   const hasError = isTouched && errors && errors.length > 0;
   const errorMessage = hasError
-    ? (typeof errors[0] === "string"
+    ? typeof errors[0] === "string"
       ? errors[0]
       : "message" in errors[0]
-      ? errors[0].message
-      : JSON.stringify(errors[0]))
+        ? errors[0].message
+        : JSON.stringify(errors[0])
     : null;
 
   return (

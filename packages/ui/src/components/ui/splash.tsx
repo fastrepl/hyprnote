@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
-
 import React, { useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 const DURATION = 1500;
 const MAX_WORM_LENGTH = 0.6;
@@ -55,9 +55,10 @@ export const SplashLoader: React.FC<SplashLoaderProps> = ({
     if (pathRef.current) {
       const length = pathRef.current.getTotalLength();
 
-      const easeInOutProgress = progress < 0.5
-        ? 2 * progress * progress
-        : -1 + (4 - 2 * progress) * progress;
+      const easeInOutProgress =
+        progress < 0.5
+          ? 2 * progress * progress
+          : -1 + (4 - 2 * progress) * progress;
 
       const dynamicWormLength = MAX_WORM_LENGTH * Math.sin(progress * Math.PI);
 

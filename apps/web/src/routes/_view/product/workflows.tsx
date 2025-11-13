@@ -1,8 +1,8 @@
-import { cn } from "@hypr/utils";
-
 import { Image } from "@/components/image";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/product/workflows")({
   component: Component,
@@ -11,31 +11,111 @@ export const Route = createFileRoute("/_view/product/workflows")({
       { title: "Workflows - Hyprnote" },
       {
         name: "description",
-        content: "Automate your meeting workflow with powerful automation. No coding required. Workflows coming soon.",
+        content:
+          "Automate your meeting workflow with powerful automation. No coding required. Workflows coming soon.",
       },
     ],
   }),
 });
 
 const DRAGGABLE_ICONS = [
-  { left: "15%", top: "25%", rotate: "-8deg", size: 76, flowDirection: "in", image: "slack.jpg" },
-  { left: "78%", top: "28%", rotate: "5deg", size: 84, flowDirection: "out", image: "linear.jpg" },
-  { left: "20%", top: "70%", rotate: "12deg", size: 72, flowDirection: "in", image: "notion.jpg" },
-  { left: "82%", top: "72%", rotate: "-6deg", size: 80, flowDirection: "out", image: "salesforce.jpg" },
-  { left: "10%", top: "48%", rotate: "3deg", size: 78, flowDirection: "out", image: "affinity.jpg" },
-  { left: "88%", top: "50%", rotate: "-10deg", size: 74, flowDirection: "in", image: "attio.jpg" },
-  { left: "35%", top: "22%", rotate: "8deg", size: 70, flowDirection: "in", image: "gcal.jpg" },
-  { left: "60%", top: "20%", rotate: "-4deg", size: 82, flowDirection: "out", image: "gmail.jpg" },
-  { left: "48%", top: "75%", rotate: "6deg", size: 76, flowDirection: "in", image: "hubspot.jpg" },
-  { left: "65%", top: "78%", rotate: "-8deg", size: 72, flowDirection: "out", image: "jira.jpg" },
-  { left: "5%", top: "10%", rotate: "10deg", size: 68, flowDirection: "in", image: "obsidian.jpg" },
+  {
+    left: "15%",
+    top: "25%",
+    rotate: "-8deg",
+    size: 76,
+    flowDirection: "in",
+    image: "slack.jpg",
+  },
+  {
+    left: "78%",
+    top: "28%",
+    rotate: "5deg",
+    size: 84,
+    flowDirection: "out",
+    image: "linear.jpg",
+  },
+  {
+    left: "20%",
+    top: "70%",
+    rotate: "12deg",
+    size: 72,
+    flowDirection: "in",
+    image: "notion.jpg",
+  },
+  {
+    left: "82%",
+    top: "72%",
+    rotate: "-6deg",
+    size: 80,
+    flowDirection: "out",
+    image: "salesforce.jpg",
+  },
+  {
+    left: "10%",
+    top: "48%",
+    rotate: "3deg",
+    size: 78,
+    flowDirection: "out",
+    image: "affinity.jpg",
+  },
+  {
+    left: "88%",
+    top: "50%",
+    rotate: "-10deg",
+    size: 74,
+    flowDirection: "in",
+    image: "attio.jpg",
+  },
+  {
+    left: "35%",
+    top: "22%",
+    rotate: "8deg",
+    size: 70,
+    flowDirection: "in",
+    image: "gcal.jpg",
+  },
+  {
+    left: "60%",
+    top: "20%",
+    rotate: "-4deg",
+    size: 82,
+    flowDirection: "out",
+    image: "gmail.jpg",
+  },
+  {
+    left: "48%",
+    top: "75%",
+    rotate: "6deg",
+    size: 76,
+    flowDirection: "in",
+    image: "hubspot.jpg",
+  },
+  {
+    left: "65%",
+    top: "78%",
+    rotate: "-8deg",
+    size: 72,
+    flowDirection: "out",
+    image: "jira.jpg",
+  },
+  {
+    left: "5%",
+    top: "10%",
+    rotate: "10deg",
+    size: 68,
+    flowDirection: "in",
+    image: "obsidian.jpg",
+  },
 ] as const;
 
 function Component() {
   const containerRef = useRef<HTMLDivElement>(null);
   const fixedIconRef = useRef<HTMLDivElement>(null);
   const [fixedIconRect, setFixedIconRect] = useState<DOMRect | null>(null);
-  const [draggablePositions, setDraggablePositions] = useState<{ x: number; y: number }[]>([]);
+  const [draggablePositions, setDraggablePositions] = useState<
+    { x: number; y: number }[]
+  >([]);
 
   useEffect(() => {
     const updateFixedIconRect = () => {
@@ -54,13 +134,16 @@ function Component() {
     };
   }, []);
 
-  const handleDraggablePositionChange = useCallback((index: number, pos: { x: number; y: number }) => {
-    setDraggablePositions((prev) => {
-      const newPositions = [...prev];
-      newPositions[index] = pos;
-      return newPositions;
-    });
-  }, []);
+  const handleDraggablePositionChange = useCallback(
+    (index: number, pos: { x: number; y: number }) => {
+      setDraggablePositions((prev) => {
+        const newPositions = [...prev];
+        newPositions[index] = pos;
+        return newPositions;
+      });
+    },
+    [],
+  );
 
   return (
     <div
@@ -69,7 +152,10 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         {/* Hero Section */}
-        <div ref={containerRef} className="h-[calc(100vh-65px)] relative overflow-hidden">
+        <div
+          ref={containerRef}
+          className="h-[calc(100vh-65px)] relative overflow-hidden"
+        >
           {/* SVG for connection lines - fixed position */}
           {fixedIconRect && (
             <svg
@@ -77,12 +163,24 @@ function Component() {
               style={{ zIndex: 15 }}
             >
               <defs>
-                <linearGradient id="beam-gradient-in" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient
+                  id="beam-gradient-in"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
                   <stop offset="0%" stopColor="rgba(120, 113, 108, 0)" />
                   <stop offset="50%" stopColor="rgba(120, 113, 108, 0.4)" />
                   <stop offset="100%" stopColor="rgba(120, 113, 108, 0)" />
                 </linearGradient>
-                <linearGradient id="beam-gradient-out" x1="0%" y1="0%" x2="100%" y2="0%">
+                <linearGradient
+                  id="beam-gradient-out"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
                   <stop offset="0%" stopColor="rgba(120, 113, 108, 0)" />
                   <stop offset="50%" stopColor="rgba(120, 113, 108, 0.4)" />
                   <stop offset="100%" stopColor="rgba(120, 113, 108, 0)" />
@@ -110,8 +208,8 @@ function Component() {
                 const sag = distance * 0.15; // 15% sag for looseness
 
                 // Perpendicular offset
-                const offsetX = -dy / distance * sag;
-                const offsetY = dx / distance * sag;
+                const offsetX = (-dy / distance) * sag;
+                const offsetY = (dx / distance) * sag;
 
                 const controlX = midX + offsetX;
                 const controlY = midY + offsetY;
@@ -138,10 +236,16 @@ function Component() {
           {DRAGGABLE_ICONS.map((icon, idx) => (
             <DraggableIcon
               key={idx}
-              initialPosition={{ left: icon.left, top: icon.top, rotate: icon.rotate }}
+              initialPosition={{
+                left: icon.left,
+                top: icon.top,
+                rotate: icon.rotate,
+              }}
               size={icon.size}
               image={icon.image}
-              onPositionChange={(pos) => handleDraggablePositionChange(idx, pos)}
+              onPositionChange={(pos) =>
+                handleDraggablePositionChange(idx, pos)
+              }
             />
           ))}
 
@@ -165,7 +269,8 @@ function Component() {
                 Automate your workflow with powerful automation
               </h1>
               <p className="text-lg sm:text-xl text-neutral-600">
-                Automate repetitive tasks with powerful workflows. No coding required.
+                Automate repetitive tasks with powerful workflows. No coding
+                required.
               </p>
               <div className="mt-8">
                 <button
@@ -192,17 +297,61 @@ function Component() {
 
 function IntegrationsSection() {
   const integrations = [
-    { name: "Slack", image: "slack.jpg", description: "Team communication and collaboration" },
-    { name: "Linear", image: "linear.jpg", description: "Issue tracking and project management" },
-    { name: "Notion", image: "notion.jpg", description: "All-in-one workspace" },
-    { name: "Salesforce", image: "salesforce.jpg", description: "Customer relationship management" },
-    { name: "Affinity", image: "affinity.jpg", description: "Relationship intelligence platform" },
-    { name: "Attio", image: "attio.jpg", description: "Modern CRM for startups" },
-    { name: "Google Calendar", image: "gcal.jpg", description: "Calendar and scheduling" },
-    { name: "Gmail", image: "gmail.jpg", description: "Email and communication" },
-    { name: "HubSpot", image: "hubspot.jpg", description: "Marketing and sales platform" },
-    { name: "Jira", image: "jira.jpg", description: "Project tracking and agile workflows" },
-    { name: "Obsidian", image: "obsidian.jpg", description: "Knowledge base and note-taking" },
+    {
+      name: "Slack",
+      image: "slack.jpg",
+      description: "Team communication and collaboration",
+    },
+    {
+      name: "Linear",
+      image: "linear.jpg",
+      description: "Issue tracking and project management",
+    },
+    {
+      name: "Notion",
+      image: "notion.jpg",
+      description: "All-in-one workspace",
+    },
+    {
+      name: "Salesforce",
+      image: "salesforce.jpg",
+      description: "Customer relationship management",
+    },
+    {
+      name: "Affinity",
+      image: "affinity.jpg",
+      description: "Relationship intelligence platform",
+    },
+    {
+      name: "Attio",
+      image: "attio.jpg",
+      description: "Modern CRM for startups",
+    },
+    {
+      name: "Google Calendar",
+      image: "gcal.jpg",
+      description: "Calendar and scheduling",
+    },
+    {
+      name: "Gmail",
+      image: "gmail.jpg",
+      description: "Email and communication",
+    },
+    {
+      name: "HubSpot",
+      image: "hubspot.jpg",
+      description: "Marketing and sales platform",
+    },
+    {
+      name: "Jira",
+      image: "jira.jpg",
+      description: "Project tracking and agile workflows",
+    },
+    {
+      name: "Obsidian",
+      image: "obsidian.jpg",
+      description: "Knowledge base and note-taking",
+    },
   ];
 
   return (
@@ -234,8 +383,12 @@ function IntegrationsSection() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-medium text-stone-700 mb-1">{integration.name}</h3>
-                  <p className="text-xs text-neutral-500 leading-relaxed">{integration.description}</p>
+                  <h3 className="font-medium text-stone-700 mb-1">
+                    {integration.name}
+                  </h3>
+                  <p className="text-xs text-neutral-500 leading-relaxed">
+                    {integration.description}
+                  </p>
                 </div>
               </div>
             </div>
@@ -273,7 +426,9 @@ function DraggableIcon({
   image: string;
   onPositionChange?: (pos: { x: number; y: number }) => void;
 }) {
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
+    null,
+  );
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -291,8 +446,10 @@ function DraggableIcon({
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
 
-    const x = (containerWidth * parseInt(initialPosition.left)) / 100 - size / 2;
-    const y = (containerHeight * parseInt(initialPosition.top)) / 100 - size / 2;
+    const x =
+      (containerWidth * parseInt(initialPosition.left)) / 100 - size / 2;
+    const y =
+      (containerHeight * parseInt(initialPosition.top)) / 100 - size / 2;
 
     return { x, y };
   }, [initialPosition, size]);

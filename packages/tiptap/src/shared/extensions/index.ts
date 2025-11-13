@@ -27,12 +27,14 @@ export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
   Image,
   Underline,
   Placeholder.configure({
-    placeholder: placeholderComponent ?? (({ node }) => {
-      if (node.type.name === "paragraph") {
-        return "Start taking notes...";
-      }
-      return "";
-    }),
+    placeholder:
+      placeholderComponent ??
+      (({ node }) => {
+        if (node.type.name === "paragraph") {
+          return "Start taking notes...";
+        }
+        return "";
+      }),
     showOnlyWhenEditable: true,
   }),
   Hashtag,
@@ -42,7 +44,9 @@ export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
     protocols: ["http", "https"],
     isAllowedUri: (url, ctx) => {
       try {
-        const parsedUrl = url.includes(":") ? new URL(url) : new URL(`${ctx.defaultProtocol}://${url}`);
+        const parsedUrl = url.includes(":")
+          ? new URL(url)
+          : new URL(`${ctx.defaultProtocol}://${url}`);
 
         if (!ctx.defaultValidate(parsedUrl.href)) {
           return false;
@@ -55,7 +59,9 @@ export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
           return false;
         }
 
-        const allowedProtocols = ctx.protocols.map(p => (typeof p === "string" ? p : p.scheme));
+        const allowedProtocols = ctx.protocols.map((p) =>
+          typeof p === "string" ? p : p.scheme,
+        );
 
         if (!allowedProtocols.includes(protocol)) {
           return false;
@@ -66,7 +72,8 @@ export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
         return false;
       }
     },
-    shouldAutoLink: (url) => url.startsWith("https://") || url.startsWith("http://"),
+    shouldAutoLink: (url) =>
+      url.startsWith("https://") || url.startsWith("http://"),
   }),
   TaskList,
   TaskItem.configure({ nested: true }),

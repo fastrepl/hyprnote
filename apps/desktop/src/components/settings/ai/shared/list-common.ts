@@ -18,7 +18,14 @@ export type ListModelsResult = {
 export const DEFAULT_RESULT: ListModelsResult = { models: [], ignored: [] };
 export const REQUEST_TIMEOUT = "5 seconds";
 
-export const commonIgnoreKeywords = ["embed", "tts", "whisper", "dall-e", "audio", "image"] as const;
+export const commonIgnoreKeywords = [
+  "embed",
+  "tts",
+  "whisper",
+  "dall-e",
+  "audio",
+  "image",
+] as const;
 
 export const fetchJson = (url: string, headers: Record<string, string>) =>
   Effect.tryPromise({
@@ -37,7 +44,7 @@ export const shouldIgnoreCommonKeywords = (id: string): boolean => {
   return commonIgnoreKeywords.some((keyword) => lowerId.includes(keyword));
 };
 
-export const partition = <T>(
+export const partition = <T,>(
   items: readonly T[],
   shouldIgnore: (item: T) => ModelIgnoreReason[] | null,
   extract: (item: T) => string,

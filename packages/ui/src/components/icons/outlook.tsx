@@ -30,7 +30,10 @@ export const OutlookIcon = forwardRef<SVGSVGElement, OutlookIconProps>(
         />
         <path fill="#0078D4" d="M936.833,255.5h425.833v383.25H936.833V255.5z" />
         <path fill="#0364B8" d="M936.833,1022h425.833v383.25H936.833V1022z" />
-        <path fill="#14447D" d="M520.453,1025.151h416.38v346.969h-416.38V1025.151z" />
+        <path
+          fill="#14447D"
+          d="M520.453,1025.151h416.38v346.969h-416.38V1025.151z"
+        />
         <path fill="#0078D4" d="M1362.667,1022h383.25v383.25h-383.25V1022z" />
         <defs>
           <linearGradient

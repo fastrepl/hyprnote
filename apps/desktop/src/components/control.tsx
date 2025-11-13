@@ -1,4 +1,8 @@
-import { type ErrorRouteComponent, NotFoundRouteComponent, useNavigate } from "@tanstack/react-router";
+import {
+  type ErrorRouteComponent,
+  NotFoundRouteComponent,
+  useNavigate,
+} from "@tanstack/react-router";
 
 import { Button } from "@hypr/ui/components/ui/button";
 
@@ -18,7 +22,11 @@ export const ErrorComponent: ErrorRouteComponent = ({ error, reset }) => {
           <Button size="sm" onClick={() => reset()}>
             Try again
           </Button>
-          <Button size="sm" variant="outline" onClick={() => navigate({ to: "/app/main" })}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate({ to: "/app/main" })}
+          >
             Go home
           </Button>
         </div>

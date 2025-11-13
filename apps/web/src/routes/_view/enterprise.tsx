@@ -1,9 +1,8 @@
-import { cn } from "@hypr/utils";
-
+import { SlashSeparator } from "@/components/slash-separator";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { SlashSeparator } from "@/components/slash-separator";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/enterprise")({
   component: Component,
@@ -30,12 +29,14 @@ export const Route = createFileRoute("/_view/enterprise")({
 function Component() {
   const faqs = [
     {
-      question: "How can i boost my team's product while ensuring data sovereignty?",
+      question:
+        "How can i boost my team's product while ensuring data sovereignty?",
       answer:
         "Deploy Hyprnote on your own infrastructure to maintain complete control over your data. Your meeting recordings and transcripts never leave your network, ensuring full compliance with data residency requirements.",
     },
     {
-      question: "Is there a way to ensure consents are properly granted and managed?",
+      question:
+        "Is there a way to ensure consents are properly granted and managed?",
       answer:
         "Hyprnote provides multiple consent options including voice-activated consent during meetings, pre-meeting consent links, and explicit consent prompts when joining. We prioritize transparency and respect in every recording scenario.",
     },
@@ -70,7 +71,8 @@ function Component() {
                 Enterprise
               </h1>
               <p className="text-lg sm:text-xl text-neutral-600">
-                Meeting notes your team will love, with enterprise features when you need them.
+                Meeting notes your team will love, with enterprise features when
+                you need them.
               </p>
             </div>
 
@@ -100,12 +102,16 @@ function Component() {
             </h2>
             <div className="space-y-6">
               {faqs.map((faq, index) => (
-                <div key={index} className="border-b border-neutral-100 pb-6 last:border-b-0">
+                <div
+                  key={index}
+                  className="border-b border-neutral-100 pb-6 last:border-b-0"
+                >
                   <h3 className="text-lg font-medium text-neutral-900 mb-2">
                     <span className="text-stone-600">Q:</span> {faq.question}
                   </h3>
                   <p className="text-neutral-600">
-                    <span className="font-medium text-stone-600">A:</span> {faq.answer}
+                    <span className="font-medium text-stone-600">A:</span>{" "}
+                    {faq.answer}
                   </p>
                 </div>
               ))}

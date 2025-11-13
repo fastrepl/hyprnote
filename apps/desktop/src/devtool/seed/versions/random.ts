@@ -49,20 +49,28 @@ const RANDOM_DATA = (() => {
 
   const templates = buildTemplates(5);
 
-  const sessions = buildSessionsPerHuman(humanIds, { min: 1, max: 4 }, {
-    eventsByHuman,
-    folderIds,
-    eventLinkProbability: 0.6,
-    folderProbability: 0.6,
-  });
+  const sessions = buildSessionsPerHuman(
+    humanIds,
+    { min: 1, max: 4 },
+    {
+      eventsByHuman,
+      folderIds,
+      eventLinkProbability: 0.6,
+      folderProbability: 0.6,
+    },
+  );
   const sessionIds = Object.keys(sessions);
 
   const { transcripts, words } = buildTranscriptsForSessions(sessionIds);
 
-  const mapping_session_participant = buildSessionParticipants(sessionIds, humanIds, {
-    min: 1,
-    max: 4,
-  });
+  const mapping_session_participant = buildSessionParticipants(
+    sessionIds,
+    humanIds,
+    {
+      min: 1,
+      max: 4,
+    },
+  );
 
   const mapping_tag_session = buildSessionTags(sessionIds, tagIds, {
     tagProbability: 0.6,

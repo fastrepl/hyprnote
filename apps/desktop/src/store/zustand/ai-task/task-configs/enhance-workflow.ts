@@ -1,13 +1,32 @@
-import { generateObject, type LanguageModel, smoothStream, streamText } from "ai";
+import {
+  generateObject,
+  type LanguageModel,
+  smoothStream,
+  streamText,
+} from "ai";
 import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
-import { type Template, TemplateSection, templateSectionSchema } from "../../../tinybase/schema-external";
-import { addMarkdownSectionSeparators, trimBeforeMarker } from "../shared/transform_impl";
-import { type EarlyValidatorFn, withEarlyValidationRetry } from "../shared/validate";
-import type { TaskArgsMapTransformed, TaskConfig } from ".";
 
-export const enhanceWorkflow: Pick<TaskConfig<"enhance">, "executeWorkflow" | "transforms"> = {
+import type { TaskArgsMapTransformed, TaskConfig } from ".";
+import {
+  type Template,
+  TemplateSection,
+  templateSectionSchema,
+} from "../../../tinybase/schema-external";
+import {
+  addMarkdownSectionSeparators,
+  trimBeforeMarker,
+} from "../shared/transform_impl";
+import {
+  type EarlyValidatorFn,
+  withEarlyValidationRetry,
+} from "../shared/validate";
+
+export const enhanceWorkflow: Pick<
+  TaskConfig<"enhance">,
+  "executeWorkflow" | "transforms"
+> = {
   executeWorkflow,
   transforms: [
     trimBeforeMarker("#"),
@@ -24,13 +43,28 @@ async function* executeWorkflow(params: {
 }) {
   const { model, args, onProgress, signal } = params;
 
-  const sections = await generateTemplateIfNeeded({ model, args, onProgress, signal });
-  const argsWithTemplate = { ...args, template: sections ? { sections } : undefined };
+  const sections = await generateTemplateIfNeeded({
+    model,
+    args,
+    onProgress,
+    signal,
+  });
+  const argsWithTemplate = {
+    ...args,
+    template: sections ? { sections } : undefined,
+  };
 
   const system = await getSystemPrompt(argsWithTemplate);
   const prompt = await getUserPrompt(argsWithTemplate);
 
-  yield* generateSummary({ model, args: argsWithTemplate, system, prompt, onProgress, signal });
+  yield* generateSummary({
+    model,
+    args: argsWithTemplate,
+    system,
+    prompt,
+    onProgress,
+    signal,
+  });
 }
 
 async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
@@ -170,13 +204,16 @@ IMPORTANT: Previous attempt failed. ${previousFeedback}`;
   );
 }
 
-function createValidator(template?: Pick<Template, "sections">): EarlyValidatorFn {
+function createValidator(
+  template?: Pick<Template, "sections">,
+): EarlyValidatorFn {
   return (textSoFar: string) => {
     const normalized = textSoFar.trim();
 
     if (!template?.sections || template.sections.length === 0) {
       if (!normalized.startsWith("# ")) {
-        const feedback = "Output must start with a markdown h1 heading (# Title).";
+        const feedback =
+          "Output must start with a markdown h1 heading (# Title).";
         return { valid: false, feedback };
       }
 
@@ -185,7 +222,9 @@ function createValidator(template?: Pick<Template, "sections">): EarlyValidatorF
 
     const firstSection = template.sections[0];
     const expectedStart = `# ${firstSection.title}`;
-    const isValid = expectedStart.startsWith(normalized) || normalized.startsWith(expectedStart);
+    const isValid =
+      expectedStart.startsWith(normalized) ||
+      normalized.startsWith(expectedStart);
     if (!isValid) {
       const feedback = `Output must start with the first template section heading: "${expectedStart}"`;
       return { valid: false, feedback };

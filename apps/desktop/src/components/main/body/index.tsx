@@ -1,14 +1,23 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
-
-import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  PanelLeftOpenIcon,
+  PlusIcon,
+} from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useShallow } from "zustand/shallow";
 
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
+
 import { useShell } from "../../../contexts/shell";
-import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
+import {
+  type Tab,
+  uniqueIdfromTab,
+  useTabs,
+} from "../../../store/zustand/tabs";
 import { ChatFloatingButton } from "../../chat";
 import { useNewNote } from "../shared";
 import { TabContentCalendar, TabItemCalendar } from "./calendars";
@@ -36,10 +45,7 @@ export function Body() {
     <div className="flex flex-col gap-1 h-full flex-1 relative">
       <Header tabs={tabs} />
       <div className="flex-1 overflow-auto">
-        <ContentWrapper
-          key={uniqueIdfromTab(currentTab)}
-          tab={currentTab}
-        />
+        <ContentWrapper key={uniqueIdfromTab(currentTab)} tab={currentTab} />
       </div>
     </div>
   );
@@ -47,7 +53,17 @@ export function Body() {
 
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
-  const { select, close, reorder, goBack, goNext, canGoBack, canGoNext, closeOthers, closeAll } = useTabs(
+  const {
+    select,
+    close,
+    reorder,
+    goBack,
+    goNext,
+    canGoBack,
+    canGoNext,
+    closeOthers,
+    closeAll,
+  } = useTabs(
     useShallow((state) => ({
       select: state.select,
       close: state.close,
@@ -75,7 +91,11 @@ function Header({ tabs }: { tabs: Tab[] }) {
       ])}
     >
       {!leftsidebar.expanded && (
-        <Button size="icon" variant="ghost" onClick={() => leftsidebar.setExpanded(true)}>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => leftsidebar.setExpanded(true)}
+        >
           <PanelLeftOpenIcon size={16} className="text-neutral-600" />
         </Button>
       )}
@@ -117,7 +137,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
         >
           {tabs.map((tab, index) => {
             const isLastTab = index === tabs.length - 1;
-            const shortcutIndex = index < 8 ? index + 1 : (isLastTab ? 9 : undefined);
+            const shortcutIndex =
+              index < 8 ? index + 1 : isLastTab ? 9 : undefined;
 
             return (
               <Reorder.Item
@@ -162,23 +183,21 @@ function Header({ tabs }: { tabs: Tab[] }) {
   );
 }
 
-function TabItem(
-  {
-    tab,
-    handleClose,
-    handleSelect,
-    handleCloseOthersCallback,
-    handleCloseAll,
-    tabIndex,
-  }: {
-    tab: Tab;
-    handleClose: (tab: Tab) => void;
-    handleSelect: (tab: Tab) => void;
-    handleCloseOthersCallback: (tab: Tab) => void;
-    handleCloseAll: () => void;
-    tabIndex?: number;
-  },
-) {
+function TabItem({
+  tab,
+  handleClose,
+  handleSelect,
+  handleCloseOthersCallback,
+  handleCloseAll,
+  tabIndex,
+}: {
+  tab: Tab;
+  handleClose: (tab: Tab) => void;
+  handleSelect: (tab: Tab) => void;
+  handleCloseOthersCallback: (tab: Tab) => void;
+  handleCloseAll: () => void;
+  tabIndex?: number;
+}) {
   const handleCloseOthers = () => handleCloseOthersCallback(tab);
 
   if (tab.type === "sessions") {
@@ -306,17 +325,15 @@ function TabChatButton() {
   return <ChatFloatingButton />;
 }
 
-export function StandardTabWrapper(
-  {
-    children,
-    afterBorder,
-    floatingButton,
-  }: {
-    children: React.ReactNode;
-    afterBorder?: React.ReactNode;
-    floatingButton?: React.ReactNode;
-  },
-) {
+export function StandardTabWrapper({
+  children,
+  afterBorder,
+  floatingButton,
+}: {
+  children: React.ReactNode;
+  afterBorder?: React.ReactNode;
+  floatingButton?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col rounded-lg border flex-1 overflow-hidden relative">
@@ -380,14 +397,22 @@ function useTabsShortcuts() {
         newNote();
       }
     },
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [currentTab, newNote, newNoteCurrent],
   );
 
   useHotkeys(
     "mod+t",
     () => newEmptyTab(),
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [newEmptyTab],
   );
 
@@ -398,7 +423,11 @@ function useTabsShortcuts() {
         close(currentTab);
       }
     },
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [currentTab, close],
   );
 
@@ -406,13 +435,18 @@ function useTabsShortcuts() {
     "mod+1, mod+2, mod+3, mod+4, mod+5, mod+6, mod+7, mod+8, mod+9",
     (event) => {
       const key = event.key;
-      const targetIndex = key === "9" ? tabs.length - 1 : Number.parseInt(key, 10) - 1;
+      const targetIndex =
+        key === "9" ? tabs.length - 1 : Number.parseInt(key, 10) - 1;
       const target = tabs[targetIndex];
       if (target) {
         select(target);
       }
     },
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [tabs, select],
   );
 

@@ -1,8 +1,8 @@
-import { cn } from "@hypr/utils";
-
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
+
+import { cn } from "@hypr/utils";
 
 const sliderVariants = cva(
   "relative flex w-full touch-none select-none items-center",
@@ -36,9 +36,7 @@ const trackVariants = cva(
   },
 );
 
-const rangeVariants = cva(
-  "absolute h-full bg-primary",
-);
+const rangeVariants = cva("absolute h-full bg-primary");
 
 const thumbVariants = cva(
   "block rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -57,8 +55,8 @@ const thumbVariants = cva(
 );
 
 export interface SliderProps
-  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>, VariantProps<typeof sliderVariants>
-{}
+  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>,
+    VariantProps<typeof sliderVariants> {}
 
 const Slider = React.forwardRef<
   React.ComponentRef<typeof SliderPrimitive.Root>,

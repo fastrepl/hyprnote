@@ -1,3 +1,11 @@
+import {
+  Calendar,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useState } from "react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import {
@@ -12,9 +20,6 @@ import {
   subDays,
 } from "@hypr/utils";
 
-import { Calendar, CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
-
 import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -22,16 +27,14 @@ import { type TabItem, TabItemBase } from "../shared";
 import { CalendarCheckboxRow } from "./calendar-checkbox-row";
 import { TabContentCalendarDay } from "./calendar-day";
 
-export const TabItemCalendar: TabItem<Extract<Tab, { type: "calendars" }>> = (
-  {
-    tab,
-    tabIndex,
-    handleCloseThis,
-    handleSelectThis,
-    handleCloseOthers,
-    handleCloseAll,
-  },
-) => {
+export const TabItemCalendar: TabItem<Extract<Tab, { type: "calendars" }>> = ({
+  tab,
+  tabIndex,
+  handleCloseThis,
+  handleSelectThis,
+  handleCloseOthers,
+  handleCloseAll,
+}) => {
   return (
     <TabItemBase
       icon={<Calendar size={16} />}
@@ -53,14 +56,20 @@ export function TabContentCalendar({ tab }: { tab: Tab }) {
   return <TabContentCalendarInner tab={tab} />;
 }
 
-function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars" }> }) {
+function TabContentCalendarInner({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "calendars" }>;
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const openCurrent = useTabs((state) => state.openCurrent);
 
   const calendarIds = main.UI.useRowIds("calendars", main.STORE_ID);
 
-  const [selectedCalendars, setSelectedCalendars] = useState<Set<string>>(() => new Set(calendarIds));
+  const [selectedCalendars, setSelectedCalendars] = useState<Set<string>>(
+    () => new Set(calendarIds),
+  );
 
   const monthStart = startOfMonth(tab.month);
   const startDayOfWeek = getDay(monthStart);
@@ -70,7 +79,10 @@ function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars
   const calendarStart = subDays(monthStart, startDayOfWeek);
   const totalCells = 42;
   const calendarEnd = addDays(calendarStart, totalCells - 1);
-  const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd }).map((day) => format(day, "yyyy-MM-dd"));
+  const allDays = eachDayOfInterval({
+    start: calendarStart,
+    end: calendarEnd,
+  }).map((day) => format(day, "yyyy-MM-dd"));
 
   const handlePreviousMonth = () => {
     openCurrent({ ...tab, month: addMonths(tab.month, -1) });
@@ -90,7 +102,11 @@ function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars
         {sidebarOpen && (
           <aside className="w-64 border-r border-neutral-200 bg-white flex flex-col">
             <div className="p-2 text-sm border-b border-neutral-200 flex items-center gap-2">
-              <Button size="icon" variant={sidebarOpen ? "default" : "ghost"} onClick={() => setSidebarOpen(false)}>
+              <Button
+                size="icon"
+                variant={sidebarOpen ? "default" : "ghost"}
+                onClick={() => setSidebarOpen(false)}
+              >
                 <CalendarDays size={16} />
               </Button>
               My Calendars
@@ -124,11 +140,17 @@ function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars
           <header className="flex-shrink-0">
             <div className="p-2 flex items-center relative">
               {!sidebarOpen && (
-                <Button size="icon" variant="ghost" onClick={() => setSidebarOpen(true)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setSidebarOpen(true)}
+                >
                   <CalendarDays size={16} />
                 </Button>
               )}
-              <div className="text-xl font-semibold absolute left-1/2 transform -translate-x-1/2">{monthLabel}</div>
+              <div className="text-xl font-semibold absolute left-1/2 transform -translate-x-1/2">
+                {monthLabel}
+              </div>
               <ButtonGroup className="ml-auto">
                 <Button
                   variant="outline"
@@ -163,12 +185,10 @@ function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars
               {weekDays.map((day, index) => (
                 <div
                   key={day}
-                  className={cn(
-                    [
-                      "text-center text-sm font-medium p-2",
-                      index === 0 || index === 6 ? "text-black/70" : "text-black",
-                    ],
-                  )}
+                  className={cn([
+                    "text-center text-sm font-medium p-2",
+                    index === 0 || index === 6 ? "text-black/70" : "text-black",
+                  ])}
                 >
                   {day}
                 </div>
@@ -179,16 +199,18 @@ function TabContentCalendarInner({ tab }: { tab: Extract<Tab, { type: "calendars
           <div className="flex-1 flex flex-col overflow-hidden">
             {Array.from({ length: 6 }).map((_, weekIndex) => (
               <div key={weekIndex} className="flex flex-1 min-h-0">
-                {allDays.slice(weekIndex * 7, (weekIndex + 1) * 7).map((day, dayIndex) => (
-                  <TabContentCalendarDay
-                    key={day}
-                    day={day}
-                    isCurrentMonth={isSameMonth(new Date(day), tab.month)}
-                    isFirstColumn={dayIndex === 0}
-                    isLastRow={weekIndex === 5}
-                    selectedCalendars={selectedCalendars}
-                  />
-                ))}
+                {allDays
+                  .slice(weekIndex * 7, (weekIndex + 1) * 7)
+                  .map((day, dayIndex) => (
+                    <TabContentCalendarDay
+                      key={day}
+                      day={day}
+                      isCurrentMonth={isSameMonth(new Date(day), tab.month)}
+                      isFirstColumn={dayIndex === 0}
+                      isLastRow={weekIndex === 5}
+                      selectedCalendars={selectedCalendars}
+                    />
+                  ))}
               </div>
             ))}
           </div>

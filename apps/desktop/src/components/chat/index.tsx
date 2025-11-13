@@ -1,6 +1,6 @@
-import { commands as windowsCommands } from "@hypr/plugin-windows";
-
 import { useCallback } from "react";
+
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import { useShell } from "../../contexts/shell";
 import { useAutoCloser } from "../../hooks/useAutoCloser";
@@ -12,7 +12,10 @@ export function ChatFloatingButton() {
   const { chat } = useShell();
   const isOpen = chat.mode === "FloatingOpen";
 
-  useAutoCloser(() => chat.sendEvent({ type: "CLOSE" }), { esc: isOpen, outside: false });
+  useAutoCloser(() => chat.sendEvent({ type: "CLOSE" }), {
+    esc: isOpen,
+    outside: false,
+  });
 
   const handleClickTrigger = useCallback(async () => {
     const isExists = await windowsCommands.windowIsExists({ type: "chat" });

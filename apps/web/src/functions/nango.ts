@@ -1,7 +1,6 @@
+import { nangoMiddleware } from "@/middleware/nango";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-
-import { nangoMiddleware } from "@/middleware/nango";
 
 const CreateConnectSessionInput = z.object({
   userId: z.string().min(1),

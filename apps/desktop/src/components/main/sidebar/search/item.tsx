@@ -2,13 +2,14 @@ import DOMPurify from "dompurify";
 import { useCallback, useMemo } from "react";
 
 import { cn } from "@hypr/utils";
+
 import { type SearchResult } from "../../../../contexts/search/ui";
 import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { getInitials } from "../../body/contacts/shared";
 
 export function SearchResultItem({ result }: { result: SearchResult }) {
-  const openCurrent = useTabs(state => state.openCurrent);
+  const openCurrent = useTabs((state) => state.openCurrent);
 
   const handleClick = useCallback(() => {
     const tab = getTab(result);
@@ -22,7 +23,9 @@ export function SearchResultItem({ result }: { result: SearchResult }) {
   }
 
   if (result.type === "organization") {
-    return <OrganizationSearchResultItem result={result} onClick={handleClick} />;
+    return (
+      <OrganizationSearchResultItem result={result} onClick={handleClick} />
+    );
   }
 
   if (result.type === "session") {
@@ -32,9 +35,19 @@ export function SearchResultItem({ result }: { result: SearchResult }) {
   return null;
 }
 
-function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
+function HumanSearchResultItem({
+  result,
+  onClick,
+}: {
+  result: SearchResult;
+  onClick: () => void;
+}) {
   const sanitizedTitle = useMemo(
-    () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
+    () =>
+      DOMPurify.sanitize(result.titleHighlighted, {
+        ALLOWED_TAGS: ["mark"],
+        ALLOWED_ATTR: [],
+      }),
     [result.titleHighlighted],
   );
 
@@ -49,7 +62,11 @@ function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onCl
         "text-left",
       ])}
     >
-      <div className={cn(["flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center"])}>
+      <div
+        className={cn([
+          "flex-shrink-0 w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center",
+        ])}
+      >
         <span className={cn(["text-xs font-medium text-neutral-600"])}>
           {getInitials(result.title)}
         </span>
@@ -66,7 +83,13 @@ function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onCl
   );
 }
 
-function OrganizationSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
+function OrganizationSearchResultItem({
+  result,
+  onClick,
+}: {
+  result: SearchResult;
+  onClick: () => void;
+}) {
   const humanIds = main.UI.useSliceRowIds(
     main.INDEXES.humansByOrg,
     result.id,
@@ -74,7 +97,11 @@ function OrganizationSearchResultItem({ result, onClick }: { result: SearchResul
   );
 
   const sanitizedTitle = useMemo(
-    () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
+    () =>
+      DOMPurify.sanitize(result.titleHighlighted, {
+        ALLOWED_TAGS: ["mark"],
+        ALLOWED_ATTR: [],
+      }),
     [result.titleHighlighted],
   );
 
@@ -107,14 +134,28 @@ function OrganizationSearchResultItem({ result, onClick }: { result: SearchResul
   );
 }
 
-function SessionSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
+function SessionSearchResultItem({
+  result,
+  onClick,
+}: {
+  result: SearchResult;
+  onClick: () => void;
+}) {
   const sanitizedTitle = useMemo(
-    () => DOMPurify.sanitize(result.titleHighlighted, { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
+    () =>
+      DOMPurify.sanitize(result.titleHighlighted, {
+        ALLOWED_TAGS: ["mark"],
+        ALLOWED_ATTR: [],
+      }),
     [result.titleHighlighted],
   );
 
   const sanitizedContent = useMemo(
-    () => DOMPurify.sanitize(result.contentHighlighted.slice(0, 200), { ALLOWED_TAGS: ["mark"], ALLOWED_ATTR: [] }),
+    () =>
+      DOMPurify.sanitize(result.contentHighlighted.slice(0, 200), {
+        ALLOWED_TAGS: ["mark"],
+        ALLOWED_ATTR: [],
+      }),
     [result.contentHighlighted],
   );
 
@@ -160,9 +201,7 @@ function SessionSearchResultItem({ result, onClick }: { result: SearchResult; on
         ])}
         dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
       />
-      <div className={cn(["text-xs text-neutral-500"])}>
-        {timeAgo}
-      </div>
+      <div className={cn(["text-xs text-neutral-500"])}>{timeAgo}</div>
       {result.content && (
         <div
           className={cn([

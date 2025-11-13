@@ -1,7 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import { Icon } from "@iconify-icon/react";
 import MuxPlayer from "@mux/mux-player-react";
+
+import { cn } from "@hypr/utils";
 
 interface VideoThumbnailProps {
   playbackId: string;
@@ -15,16 +15,24 @@ export function VideoThumbnail({
   onPlay,
 }: VideoThumbnailProps) {
   return (
-    <div className={cn(["relative w-full h-full overflow-hidden group cursor-pointer", className])} onClick={onPlay}>
+    <div
+      className={cn([
+        "relative w-full h-full overflow-hidden group cursor-pointer",
+        className,
+      ])}
+      onClick={onPlay}
+    >
       <MuxPlayer
         playbackId={playbackId}
         poster="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/poster-image.png"
         muted
         playsInline
         className="w-full h-full object-cover pointer-events-none aspect-video"
-        style={{
-          "--controls": "none",
-        } as React.CSSProperties}
+        style={
+          {
+            "--controls": "none",
+          } as React.CSSProperties
+        }
       />
 
       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">

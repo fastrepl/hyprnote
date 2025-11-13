@@ -1,7 +1,10 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { commands as detectCommands } from "@hypr/plugin-detect";
-import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
+import {
+  commands as localSttCommands,
+  type SupportedSttModel,
+} from "@hypr/plugin-local-stt";
 
 export type ConfigKey =
   | "autostart"
@@ -20,12 +23,16 @@ export type ConfigKey =
   | "current_llm_provider"
   | "current_llm_model";
 
-type ConfigValueType<K extends ConfigKey> = (typeof CONFIG_REGISTRY)[K]["default"];
+type ConfigValueType<K extends ConfigKey> =
+  (typeof CONFIG_REGISTRY)[K]["default"];
 
 interface ConfigDefinition<T = any> {
   key: ConfigKey;
   default: T;
-  sideEffect?: (value: T, getConfig: <K extends ConfigKey>(key: K) => ConfigValueType<K>) => void | Promise<void>;
+  sideEffect?: (
+    value: T,
+    getConfig: <K extends ConfigKey>(key: K) => ConfigValueType<K>,
+  ) => void | Promise<void>;
 }
 
 export const CONFIG_REGISTRY = {
@@ -85,7 +92,9 @@ export const CONFIG_REGISTRY = {
     default: undefined,
     sideEffect: async (_value: string | undefined, getConfig) => {
       const provider = getConfig("current_stt_provider");
-      const model = getConfig("current_stt_model") as SupportedSttModel | undefined;
+      const model = getConfig("current_stt_model") as
+        | SupportedSttModel
+        | undefined;
 
       if (provider === "hyprnote" && model) {
         await localSttCommands.startServer(model);
@@ -98,7 +107,9 @@ export const CONFIG_REGISTRY = {
     default: undefined,
     sideEffect: async (_value: string | undefined, getConfig) => {
       const provider = getConfig("current_stt_provider");
-      const model = getConfig("current_stt_model") as SupportedSttModel | undefined;
+      const model = getConfig("current_stt_model") as
+        | SupportedSttModel
+        | undefined;
 
       if (provider === "hyprnote" && model) {
         await localSttCommands.startServer(model);

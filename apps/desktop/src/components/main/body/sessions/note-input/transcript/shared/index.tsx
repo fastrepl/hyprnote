@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
+
 import { useListener } from "../../../../../../../contexts/listener";
 import * as main from "../../../../../../../store/tinybase/main";
 import { useAutoScroll, useScrollDetection } from "./hooks";
@@ -10,7 +11,13 @@ import { SelectionMenu } from "./selection-menu";
 
 export { SegmentRenderer } from "./segment-renderer";
 
-export function TranscriptContainer({ sessionId, operations }: { sessionId: string; operations?: Operations }) {
+export function TranscriptContainer({
+  sessionId,
+  operations,
+}: {
+  sessionId: string;
+  operations?: Operations;
+}) {
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
     sessionId,
@@ -18,13 +25,19 @@ export function TranscriptContainer({ sessionId, operations }: { sessionId: stri
   );
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const currentActive = sessionMode === "running_active" || sessionMode === "finalizing";
-  const editable = sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
-  const partialWords = useListener((state) => Object.values(state.partialWordsByChannel).flat());
+  const currentActive =
+    sessionMode === "running_active" || sessionMode === "finalizing";
+  const editable =
+    sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
+  const partialWords = useListener((state) =>
+    Object.values(state.partialWordsByChannel).flat(),
+  );
   const partialHints = useListener((state) => state.partialHints);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+    null,
+  );
   const handleContainerRef = useCallback((node: HTMLDivElement | null) => {
     containerRef.current = node;
     setScrollElement(node);
@@ -61,8 +74,12 @@ export function TranscriptContainer({ sessionId, operations }: { sessionId: stri
               isAtBottom={isAtBottom}
               editable={editable}
               transcriptId={transcriptId}
-              partialWords={index === transcriptIds.length - 1 ? partialWords : []}
-              partialHints={index === transcriptIds.length - 1 ? partialHints : []}
+              partialWords={
+                index === transcriptIds.length - 1 ? partialWords : []
+              }
+              partialHints={
+                index === transcriptIds.length - 1 ? partialHints : []
+              }
               operations={operations}
             />
             {index < transcriptIds.length - 1 && <TranscriptSeparator />}
@@ -77,7 +94,7 @@ export function TranscriptContainer({ sessionId, operations }: { sessionId: stri
         )}
       </div>
 
-      {(!isAtBottom && currentActive) && (
+      {!isAtBottom && currentActive && (
         <button
           onClick={scrollToBottom}
           className={cn([

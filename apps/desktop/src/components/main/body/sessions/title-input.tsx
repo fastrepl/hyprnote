@@ -3,8 +3,15 @@ import { cn } from "@hypr/utils";
 import * as main from "../../../../store/tinybase/main";
 import { type Tab } from "../../../../store/zustand/tabs";
 
-export function TitleInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
-  const { id: sessionId, state: { editor } } = tab;
+export function TitleInput({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
+  const {
+    id: sessionId,
+    state: { editor },
+  } = tab;
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
 
   const handleEditTitle = main.UI.useSetPartialRowCallback(

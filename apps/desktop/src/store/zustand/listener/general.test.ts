@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
+
 import { createListenerStore } from ".";
 
 let store: ReturnType<typeof createListenerStore>;
@@ -74,7 +75,8 @@ describe("General Listener Slice", () => {
   describe("Batch State", () => {
     test("handleBatchResponseStreamed tracks progress per session", () => {
       const sessionId = "session-progress";
-      const { handleBatchResponseStreamed, clearBatchSession } = store.getState();
+      const { handleBatchResponseStreamed, clearBatchSession } =
+        store.getState();
 
       const mockResponse = {
         type: "Results" as const,
@@ -105,7 +107,10 @@ describe("General Listener Slice", () => {
       };
 
       handleBatchResponseStreamed(sessionId, mockResponse, 0.5);
-      expect(store.getState().batch[sessionId]).toEqual({ percentage: 0.5, isComplete: false });
+      expect(store.getState().batch[sessionId]).toEqual({
+        percentage: 0.5,
+        isComplete: false,
+      });
 
       clearBatchSession(sessionId);
       expect(store.getState().batch[sessionId]).toBeUndefined();

@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
+
 import { useTemplateNavigation } from "../../../components/settings/template/utils";
 import * as main from "../../../store/tinybase/main";
 
@@ -115,7 +116,8 @@ const TAB_CONFIG: Record<
   },
 };
 
-const getEnabledTabs = () => TAB_KEYS.filter(key => !TAB_CONFIG[key].disabled);
+const getEnabledTabs = () =>
+  TAB_KEYS.filter((key) => !TAB_CONFIG[key].disabled);
 const DEFAULT_TAB = (getEnabledTabs()[0] ?? TAB_KEYS[0]) as TabKey;
 
 const validateSearch = z.object({
@@ -139,7 +141,12 @@ function Component() {
   return (
     <div className={cn(["flex h-full p-1 gap-1"])}>
       <aside className="w-52 flex flex-col justify-between overflow-hidden gap-1">
-        <Group tabs={group1Tabs} activeTab={search.tab} expandHeight={true} includeTrafficLight={true} />
+        <Group
+          tabs={group1Tabs}
+          activeTab={search.tab}
+          expandHeight={true}
+          includeTrafficLight={true}
+        />
         <Group tabs={group2Tabs} activeTab={search.tab} />
         <Group tabs={group3Tabs} activeTab={search.tab} />
       </aside>
@@ -154,19 +161,17 @@ function Component() {
   );
 }
 
-function Group(
-  {
-    tabs,
-    activeTab,
-    expandHeight = false,
-    includeTrafficLight = false,
-  }: {
-    tabs: TabKey[];
-    activeTab: TabKey;
-    expandHeight?: boolean;
-    includeTrafficLight?: boolean;
-  },
-) {
+function Group({
+  tabs,
+  activeTab,
+  expandHeight = false,
+  includeTrafficLight = false,
+}: {
+  tabs: TabKey[];
+  activeTab: TabKey;
+  expandHeight?: boolean;
+  includeTrafficLight?: boolean;
+}) {
   const navigate = Route.useNavigate();
 
   const handleTabClick = async (tab: TabKey) => {
@@ -180,12 +185,7 @@ function Group(
   };
 
   return (
-    <div
-      className={cn([
-        "rounded-md bg-neutral-50",
-        expandHeight && "flex-1",
-      ])}
-    >
+    <div className={cn(["rounded-md bg-neutral-50", expandHeight && "flex-1"])}>
       {includeTrafficLight && <div data-tauri-drag-region className="h-9" />}
       {tabs.map((tab) => {
         const tabInfo = info(tab);
@@ -198,7 +198,9 @@ function Group(
             className={cn([
               "w-full justify-between",
               "font-normal",
-              activeTab === tab ? "bg-neutral-200 hover:bg-neutral-200" : "hover:bg-neutral-100",
+              activeTab === tab
+                ? "bg-neutral-200 hover:bg-neutral-200"
+                : "hover:bg-neutral-100",
             ])}
             onClick={() => handleTabClick(tab)}
           >
@@ -206,7 +208,9 @@ function Group(
               <Icon size={16} className="shrink-0" />
               <span>{tabInfo.label}</span>
             </div>
-            {(tab === "developers" || tab === "feedback") && <ExternalLinkIcon className="shrink-0 text-neutral-500" />}
+            {(tab === "developers" || tab === "feedback") && (
+              <ExternalLinkIcon className="shrink-0 text-neutral-500" />
+            )}
           </Button>
         );
       })}
@@ -222,14 +226,11 @@ function Header() {
 
   return (
     <>
-      {search.tab === "templates" && search.templateId
-        ? (
-          <InnerHeader
-            templateId={search.templateId}
-            onBack={goToList}
-          />
-        )
-        : <TopLevelHeader />}
+      {search.tab === "templates" && search.templateId ? (
+        <InnerHeader templateId={search.templateId} onBack={goToList} />
+      ) : (
+        <TopLevelHeader />
+      )}
     </>
   );
 }
@@ -243,7 +244,10 @@ function TopLevelHeader() {
       data-tauri-drag-region
       className="h-9 w-full bg-neutral-50 rounded-lg flex items-center justify-center relative"
     >
-      <h1 data-tauri-drag-region className="font-semibold capitalize select-none cursor-default">
+      <h1
+        data-tauri-drag-region
+        className="font-semibold capitalize select-none cursor-default"
+      >
         {info(search.tab).label}
       </h1>
       {search.tab === "templates" && (
@@ -260,8 +264,19 @@ function TopLevelHeader() {
   );
 }
 
-function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () => void }) {
-  const value = main.UI.useCell("templates", templateId, "title", main.STORE_ID);
+function InnerHeader({
+  templateId,
+  onBack,
+}: {
+  templateId: string;
+  onBack: () => void;
+}) {
+  const value = main.UI.useCell(
+    "templates",
+    templateId,
+    "title",
+    main.STORE_ID,
+  );
   const handleDelete = useDeleteTemplate(templateId);
 
   return (
@@ -289,11 +304,7 @@ function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () =>
       <div className="absolute right-2 flex items-center gap-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-            >
+            <Button variant="ghost" size="icon" className="h-7 w-7">
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>

@@ -1,10 +1,23 @@
-import { DependencyList, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import {
+  DependencyList,
+  RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import * as main from "../../../../../../../store/tinybase/main";
-import { buildSegments, type RuntimeSpeakerHint, type Segment } from "../../../../../../../utils/segment";
+import {
+  buildSegments,
+  type RuntimeSpeakerHint,
+  type Segment,
+} from "../../../../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
 
-export function useFinalWords(transcriptId: string): (main.Word & { id: string })[] {
+export function useFinalWords(
+  transcriptId: string,
+): (main.Word & { id: string })[] {
   const queryId = useWordsQuery(transcriptId);
   const resultTable = main.UI.useResultTable(queryId, main.STORE_ID);
 
@@ -14,7 +27,10 @@ export function useFinalWords(transcriptId: string): (main.Word & { id: string }
     }
 
     const ret = Object.entries(resultTable)
-      .map(([wordId, row]) => ({ ...(row as unknown as main.Word), id: wordId }))
+      .map(([wordId, row]) => ({
+        ...(row as unknown as main.Word),
+        id: wordId,
+      }))
       .sort((a, b) => a.start_ms - b.start_ms);
 
     return ret;
@@ -23,7 +39,10 @@ export function useFinalWords(transcriptId: string): (main.Word & { id: string }
 
 function useWordsQuery(transcriptId: string) {
   const queries = main.UI.useQueries(main.STORE_ID);
-  const queryId = useMemo(() => `wordsByTranscript:${transcriptId}`, [transcriptId]);
+  const queryId = useMemo(
+    () => `wordsByTranscript:${transcriptId}`,
+    [transcriptId],
+  );
 
   useEffect(() => {
     if (!queries || !transcriptId) {
@@ -50,10 +69,20 @@ function useWordsQuery(transcriptId: string) {
   return queryId;
 }
 
-export function useFinalSpeakerHints(transcriptId: string): RuntimeSpeakerHint[] {
+export function useFinalSpeakerHints(
+  transcriptId: string,
+): RuntimeSpeakerHint[] {
   const store = main.UI.useStore(main.STORE_ID);
-  const wordIds = main.UI.useSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId, main.STORE_ID);
-  const speakerHintIds = main.UI.useSliceRowIds(main.INDEXES.speakerHintsByTranscript, transcriptId, main.STORE_ID);
+  const wordIds = main.UI.useSliceRowIds(
+    main.INDEXES.wordsByTranscript,
+    transcriptId,
+    main.STORE_ID,
+  );
+  const speakerHintIds = main.UI.useSliceRowIds(
+    main.INDEXES.speakerHintsByTranscript,
+    transcriptId,
+    main.STORE_ID,
+  );
 
   return useMemo(() => {
     if (!store || !wordIds) {
@@ -67,7 +96,9 @@ export function useFinalSpeakerHints(transcriptId: string): RuntimeSpeakerHint[]
 
     const storageHints: main.SpeakerHintStorage[] = [];
     speakerHintIds?.forEach((hintId) => {
-      const hint = store.getRow("speaker_hints", hintId) as main.SpeakerHintStorage | undefined;
+      const hint = store.getRow("speaker_hints", hintId) as
+        | main.SpeakerHintStorage
+        | undefined;
       if (hint) {
         storageHints.push(hint);
       }
@@ -106,8 +137,9 @@ export function useTranscriptOffset(transcriptId: string): number {
     main.STORE_ID,
   );
 
-  return (transcriptStartedAt && firstTranscriptStartedAt)
-    ? new Date(transcriptStartedAt).getTime() - new Date(firstTranscriptStartedAt).getTime()
+  return transcriptStartedAt && firstTranscriptStartedAt
+    ? new Date(transcriptStartedAt).getTime() -
+        new Date(firstTranscriptStartedAt).getTime()
     : 0;
 }
 
@@ -150,7 +182,12 @@ export const useStableSegments: SegmentsBuilder = (
   const cacheRef = useRef<Map<string, Segment>>(new Map());
 
   return useMemo(() => {
-    const fresh = buildSegments(finalWords, partialWords, speakerHints, options);
+    const fresh = buildSegments(
+      finalWords,
+      partialWords,
+      speakerHints,
+      options,
+    );
     const nextCache = new Map<string, Segment>();
 
     const segments = fresh.map((segment) => {
@@ -176,11 +213,11 @@ function createStableSegmentKey(segment: Segment) {
   const lastWord = segment.words[segment.words.length - 1];
 
   const firstAnchor = firstWord
-    ? firstWord.id ?? `start:${firstWord.start_ms}`
+    ? (firstWord.id ?? `start:${firstWord.start_ms}`)
     : "none";
 
   const lastAnchor = lastWord
-    ? lastWord.id ?? `end:${lastWord.end_ms}`
+    ? (lastWord.id ?? `end:${lastWord.end_ms}`)
     : "none";
 
   return [
@@ -207,10 +244,10 @@ export function createSegmentKey(
 
 function segmentsDeepEqual(a: Segment, b: Segment) {
   if (
-    a.key.channel !== b.key.channel
-    || a.key.speaker_index !== b.key.speaker_index
-    || a.key.speaker_human_id !== b.key.speaker_human_id
-    || a.words.length !== b.words.length
+    a.key.channel !== b.key.channel ||
+    a.key.speaker_index !== b.key.speaker_index ||
+    a.key.speaker_human_id !== b.key.speaker_human_id ||
+    a.words.length !== b.words.length
   ) {
     return false;
   }
@@ -220,12 +257,12 @@ function segmentsDeepEqual(a: Segment, b: Segment) {
     const bw = b.words[index];
 
     if (
-      aw.id !== bw.id
-      || aw.text !== bw.text
-      || aw.start_ms !== bw.start_ms
-      || aw.end_ms !== bw.end_ms
-      || aw.channel !== bw.channel
-      || aw.isFinal !== bw.isFinal
+      aw.id !== bw.id ||
+      aw.text !== bw.text ||
+      aw.start_ms !== bw.start_ms ||
+      aw.end_ms !== bw.end_ms ||
+      aw.channel !== bw.channel ||
+      aw.isFinal !== bw.isFinal
     ) {
       return false;
     }
@@ -252,7 +289,9 @@ export function segmentsShallowEqual(a: Segment[], b: Segment[]) {
   return true;
 }
 
-export function useScrollDetection(containerRef: RefObject<HTMLDivElement | null>) {
+export function useScrollDetection(
+  containerRef: RefObject<HTMLDivElement | null>,
+) {
   const [isAtBottom, setIsAtBottom] = useState(true);
 
   useEffect(() => {
@@ -263,7 +302,9 @@ export function useScrollDetection(containerRef: RefObject<HTMLDivElement | null
 
     const handleScroll = () => {
       const threshold = 100;
-      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold;
+      const isNearBottom =
+        element.scrollHeight - element.scrollTop - element.clientHeight <
+        threshold;
       setIsAtBottom(isNearBottom);
     };
 
@@ -282,7 +323,10 @@ export function useScrollDetection(containerRef: RefObject<HTMLDivElement | null
   return { isAtBottom, scrollToBottom };
 }
 
-export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps: DependencyList) {
+export function useAutoScroll(
+  containerRef: RefObject<HTMLElement | null>,
+  deps: DependencyList,
+) {
   const rafRef = useRef<number | null>(null);
   const lastHeightRef = useRef(0);
   const initialFlushRef = useRef(true);
@@ -296,7 +340,8 @@ export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps:
     lastHeightRef.current = element.scrollHeight;
 
     const isPinned = () => {
-      const distanceToBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+      const distanceToBottom =
+        element.scrollHeight - element.scrollTop - element.clientHeight;
       return distanceToBottom < 80;
     };
 
@@ -325,7 +370,10 @@ export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps:
       schedule();
     }
 
-    if (typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
+    if (
+      typeof window === "undefined" ||
+      typeof window.ResizeObserver === "undefined"
+    ) {
       const mutationObserver = new MutationObserver(() => {
         const nextHeight = element.scrollHeight;
         if (nextHeight === lastHeightRef.current) {
@@ -335,7 +383,11 @@ export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps:
         schedule();
       });
 
-      mutationObserver.observe(element, { childList: true, subtree: true, characterData: true });
+      mutationObserver.observe(element, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
 
       return () => {
         mutationObserver.disconnect();
@@ -356,7 +408,9 @@ export function useAutoScroll(containerRef: RefObject<HTMLElement | null>, deps:
     });
 
     const targets = new Set<Element>([element]);
-    element.querySelectorAll<HTMLElement>("[data-virtual-root]").forEach((target) => targets.add(target));
+    element
+      .querySelectorAll<HTMLElement>("[data-virtual-root]")
+      .forEach((target) => targets.add(target));
     targets.forEach((target) => resizeObserver.observe(target));
 
     return () => {

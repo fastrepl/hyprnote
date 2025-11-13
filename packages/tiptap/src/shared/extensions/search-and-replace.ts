@@ -1,8 +1,12 @@
 // https://github.com/sereneinserenade/tiptap-search-and-replace/blob/main/src/searchAndReplace.ts
-
 import { type Dispatch, Extension, Range } from "@tiptap/core";
 import { Node as PMNode } from "@tiptap/pm/model";
-import { type EditorState, Plugin, PluginKey, type Transaction } from "@tiptap/pm/state";
+import {
+  type EditorState,
+  Plugin,
+  PluginKey,
+  type Transaction,
+} from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 declare module "@tiptap/core" {
@@ -108,9 +112,10 @@ function processSearches(
 
   for (let i = 0; i < results.length; i += 1) {
     const r = results[i];
-    const className = i === resultIndex
-      ? `${searchResultClass} ${searchResultClass}-current`
-      : searchResultClass;
+    const className =
+      i === resultIndex
+        ? `${searchResultClass} ${searchResultClass}-current`
+        : searchResultClass;
     const decoration: Decoration = Decoration.inline(r.from, r.to, {
       class: className,
     });
@@ -254,66 +259,82 @@ export const SearchAndReplace = Extension.create<
 
   addCommands() {
     return {
-      setSearchTerm: (searchTerm: string) => ({ editor }) => {
-        editor.storage.searchAndReplace.searchTerm = searchTerm;
+      setSearchTerm:
+        (searchTerm: string) =>
+        ({ editor }) => {
+          editor.storage.searchAndReplace.searchTerm = searchTerm;
 
-        return false;
-      },
-      setReplaceTerm: (replaceTerm: string) => ({ editor }) => {
-        editor.storage.searchAndReplace.replaceTerm = replaceTerm;
+          return false;
+        },
+      setReplaceTerm:
+        (replaceTerm: string) =>
+        ({ editor }) => {
+          editor.storage.searchAndReplace.replaceTerm = replaceTerm;
 
-        return false;
-      },
-      setCaseSensitive: (caseSensitive: boolean) => ({ editor }) => {
-        editor.storage.searchAndReplace.caseSensitive = caseSensitive;
+          return false;
+        },
+      setCaseSensitive:
+        (caseSensitive: boolean) =>
+        ({ editor }) => {
+          editor.storage.searchAndReplace.caseSensitive = caseSensitive;
 
-        return false;
-      },
-      resetIndex: () => ({ editor }) => {
-        editor.storage.searchAndReplace.resultIndex = 0;
-
-        return false;
-      },
-      nextSearchResult: () => ({ editor }) => {
-        const { results, resultIndex } = editor.storage.searchAndReplace;
-
-        const nextIndex = resultIndex + 1;
-
-        if (results[nextIndex]) {
-          editor.storage.searchAndReplace.resultIndex = nextIndex;
-        } else {
+          return false;
+        },
+      resetIndex:
+        () =>
+        ({ editor }) => {
           editor.storage.searchAndReplace.resultIndex = 0;
-        }
 
-        return false;
-      },
-      previousSearchResult: () => ({ editor }) => {
-        const { results, resultIndex } = editor.storage.searchAndReplace;
+          return false;
+        },
+      nextSearchResult:
+        () =>
+        ({ editor }) => {
+          const { results, resultIndex } = editor.storage.searchAndReplace;
 
-        const prevIndex = resultIndex - 1;
+          const nextIndex = resultIndex + 1;
 
-        if (results[prevIndex]) {
-          editor.storage.searchAndReplace.resultIndex = prevIndex;
-        } else {
-          editor.storage.searchAndReplace.resultIndex = results.length - 1;
-        }
+          if (results[nextIndex]) {
+            editor.storage.searchAndReplace.resultIndex = nextIndex;
+          } else {
+            editor.storage.searchAndReplace.resultIndex = 0;
+          }
 
-        return false;
-      },
-      replace: () => ({ editor, state, dispatch }) => {
-        const { replaceTerm, results } = editor.storage.searchAndReplace;
+          return false;
+        },
+      previousSearchResult:
+        () =>
+        ({ editor }) => {
+          const { results, resultIndex } = editor.storage.searchAndReplace;
 
-        replace(replaceTerm, results, { state, dispatch });
+          const prevIndex = resultIndex - 1;
 
-        return false;
-      },
-      replaceAll: () => ({ editor, tr, dispatch }) => {
-        const { replaceTerm, results } = editor.storage.searchAndReplace;
+          if (results[prevIndex]) {
+            editor.storage.searchAndReplace.resultIndex = prevIndex;
+          } else {
+            editor.storage.searchAndReplace.resultIndex = results.length - 1;
+          }
 
-        replaceAll(replaceTerm, results, { tr, dispatch });
+          return false;
+        },
+      replace:
+        () =>
+        ({ editor, state, dispatch }) => {
+          const { replaceTerm, results } = editor.storage.searchAndReplace;
 
-        return false;
-      },
+          replace(replaceTerm, results, { state, dispatch });
+
+          return false;
+        },
+      replaceAll:
+        () =>
+        ({ editor, tr, dispatch }) => {
+          const { replaceTerm, results } = editor.storage.searchAndReplace;
+
+          replaceAll(replaceTerm, results, { tr, dispatch });
+
+          return false;
+        },
     };
   },
 
@@ -321,9 +342,12 @@ export const SearchAndReplace = Extension.create<
     const editor = this.editor;
     const { searchResultClass, disableRegex } = this.options;
 
-    const setLastSearchTerm = (t: string) => (editor.storage.searchAndReplace.lastSearchTerm = t);
-    const setLastCaseSensitive = (t: boolean) => (editor.storage.searchAndReplace.lastCaseSensitive = t);
-    const setLastResultIndex = (t: number) => (editor.storage.searchAndReplace.lastResultIndex = t);
+    const setLastSearchTerm = (t: string) =>
+      (editor.storage.searchAndReplace.lastSearchTerm = t);
+    const setLastCaseSensitive = (t: boolean) =>
+      (editor.storage.searchAndReplace.lastCaseSensitive = t);
+    const setLastResultIndex = (t: number) =>
+      (editor.storage.searchAndReplace.lastResultIndex = t);
 
     return [
       new Plugin({
@@ -341,10 +365,10 @@ export const SearchAndReplace = Extension.create<
             } = editor.storage.searchAndReplace;
 
             if (
-              !docChanged
-              && lastSearchTerm === searchTerm
-              && lastCaseSensitive === caseSensitive
-              && lastResultIndex === resultIndex
+              !docChanged &&
+              lastSearchTerm === searchTerm &&
+              lastCaseSensitive === caseSensitive &&
+              lastResultIndex === resultIndex
             ) {
               return oldState;
             }

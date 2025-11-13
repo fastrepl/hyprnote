@@ -1,5 +1,3 @@
-import { cn } from "@hypr/utils";
-
 import chroma from "chroma-js";
 import { useCallback, useMemo } from "react";
 
@@ -12,8 +10,13 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@hypr/ui/components/ui/dropdown-menu";
+import { cn } from "@hypr/utils";
+
 import * as main from "../../../../../../../store/tinybase/main";
-import { ChannelProfile, type Segment } from "../../../../../../../utils/segment";
+import {
+  ChannelProfile,
+  type Segment,
+} from "../../../../../../../utils/segment";
 import { Operations } from "./operations";
 
 export function SegmentHeader({
@@ -46,7 +49,9 @@ export function SegmentHeader({
     const firstWord = segment.words[0];
     const lastWord = segment.words[segment.words.length - 1];
 
-    const [from, to] = [firstWord.start_ms, lastWord.end_ms].map(formatTimestamp);
+    const [from, to] = [firstWord.start_ms, lastWord.end_ms].map(
+      formatTimestamp,
+    );
     return `${from} - ${to}`;
   }, [segment.words.length, formatTimestamp]);
 
@@ -54,7 +59,8 @@ export function SegmentHeader({
   const label = useSpeakerLabel(segment.key);
   const participants = useSessionParticipants(sessionId);
 
-  const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
+  const mode =
+    operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
   const wordIds = segment.words.filter((w) => w.id).map((w) => w.id!);
   const headerClassName = cn([
     "sticky top-0 z-20 bg-background",
@@ -75,12 +81,13 @@ export function SegmentHeader({
 
   if (mode === "editor" && wordIds.length > 0) {
     return (
-      <p
-        className={headerClassName}
-      >
+      <p className={headerClassName}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <span style={{ color }} className="cursor-pointer rounded hover:bg-neutral-100">
+            <span
+              style={{ color }}
+              className="cursor-pointer rounded hover:bg-neutral-100"
+            >
               {label}
             </span>
           </DropdownMenuTrigger>
@@ -96,7 +103,11 @@ export function SegmentHeader({
                     {participant.name || participant.humanId}
                   </DropdownMenuItem>
                 ))}
-                {participants.length === 0 && <DropdownMenuItem disabled>No participants available</DropdownMenuItem>}
+                {participants.length === 0 && (
+                  <DropdownMenuItem disabled>
+                    No participants available
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           </DropdownMenuContent>
@@ -107,9 +118,7 @@ export function SegmentHeader({
   }
 
   return (
-    <p
-      className={headerClassName}
-    >
+    <p className={headerClassName}>
       <span style={{ color }}>{label}</span>
       <span className="font-mono text-neutral-500">{timestamp}</span>
     </p>
@@ -146,11 +155,12 @@ function useSpeakerLabel(key: Segment["key"]) {
       }
     }
 
-    const channelLabel = key.channel === ChannelProfile.DirectMic
-      ? "A"
-      : key.channel === ChannelProfile.RemoteParty
-      ? "B"
-      : "C";
+    const channelLabel =
+      key.channel === ChannelProfile.DirectMic
+        ? "A"
+        : key.channel === ChannelProfile.RemoteParty
+          ? "B"
+          : "C";
 
     return key.speaker_index !== undefined
       ? `Speaker ${key.speaker_index + 1}`

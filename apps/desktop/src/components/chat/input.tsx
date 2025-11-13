@@ -1,11 +1,11 @@
+import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
+import { useCallback, useEffect, useRef } from "react";
+
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import Editor from "@hypr/tiptap/editor";
 import type { PlaceholderFunction } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
-
-import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
 
 import { useShell } from "../../contexts/shell";
 
@@ -18,7 +18,8 @@ export function ChatMessageInput({
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
 
-  const disabled = typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
+  const disabled =
+    typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
 
   const handleSubmit = useCallback(() => {
     const json = editorRef.current?.editor?.getJSON();
@@ -69,7 +70,9 @@ export function ChatMessageInput({
             placeholderComponent={ChatPlaceholder}
             mentionConfig={{
               trigger: "@",
-              handleSearch: async () => [{ id: "123", type: "human", label: "John Doe" }],
+              handleSearch: async () => [
+                { id: "123", type: "human", label: "John Doe" },
+              ],
             }}
           />
         </div>
@@ -81,10 +84,7 @@ export function ChatMessageInput({
               disabled={disabled}
               size="icon"
               variant="ghost"
-              className={cn([
-                "h-8 w-8",
-                disabled && "text-neutral-400",
-              ])}
+              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
             >
               <PaperclipIcon size={16} />
             </Button>
@@ -93,10 +93,7 @@ export function ChatMessageInput({
               disabled={disabled}
               size="icon"
               variant="ghost"
-              className={cn([
-                "h-8 w-8",
-                disabled && "text-neutral-400",
-              ])}
+              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
             >
               <FullscreenIcon size={16} />
             </Button>
@@ -108,10 +105,7 @@ export function ChatMessageInput({
               disabled={disabled}
               size="icon"
               variant="ghost"
-              className={cn([
-                "h-8 w-8",
-                disabled && "text-neutral-400",
-              ])}
+              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
             >
               <MicIcon size={16} />
             </Button>
@@ -120,10 +114,7 @@ export function ChatMessageInput({
               disabled={disabled}
               size="icon"
               variant="ghost"
-              className={cn([
-                "h-8 w-8",
-                disabled && "text-neutral-400",
-              ])}
+              className={cn(["h-8 w-8", disabled && "text-neutral-400"])}
             >
               <SendIcon size={16} />
             </Button>
@@ -153,7 +144,11 @@ function Container({ children }: { children: React.ReactNode }) {
 
 const ChatPlaceholder: PlaceholderFunction = ({ node, pos }) => {
   if (node.type.name === "paragraph" && pos === 0) {
-    return <p className="text-sm text-neutral-400">Ask & search about anything, or be creative!</p>;
+    return (
+      <p className="text-sm text-neutral-400">
+        Ask & search about anything, or be creative!
+      </p>
+    );
   }
   return "";
 };

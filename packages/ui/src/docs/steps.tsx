@@ -35,12 +35,10 @@ interface StepsProps {
 export function Steps({ children, className }: StepsProps) {
   return (
     <div
-      className={cn(
-        [
-          "my-4 rounded-none border border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900",
-          className,
-        ],
-      )}
+      className={cn([
+        "my-4 rounded-none border border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900",
+        className,
+      ])}
     >
       {children}
     </div>

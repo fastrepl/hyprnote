@@ -31,7 +31,8 @@ export function createBannerRegistry({
         id: "missing-stt",
         icon: <AudioLinesIcon className="size-5" />,
         title: "Configure STT model",
-        description: "Speech-to-text model is needed to make Hyprnote listen to your conversations",
+        description:
+          "Speech-to-text model is needed to make Hyprnote listen to your conversations",
         primaryAction: {
           label: "Go to settings",
           onClick: onOpenSTTSettings,
@@ -45,7 +46,8 @@ export function createBannerRegistry({
         id: "missing-llm",
         icon: <SparklesIcon className="size-5" />,
         title: "Configure LLM",
-        description: "Language model is needed to make Hyprnote summarize and chat about your conversations",
+        description:
+          "Language model is needed to make Hyprnote summarize and chat about your conversations",
         primaryAction: {
           label: "Go to settings",
           onClick: onOpenLLMSettings,
@@ -57,9 +59,16 @@ export function createBannerRegistry({
     {
       banner: {
         id: "upgrade-to-pro",
-        icon: <img src="/assets/hyprnote-pro.png" alt="Hyprnote Pro" className="size-5" />,
+        icon: (
+          <img
+            src="/assets/hyprnote-pro.png"
+            alt="Hyprnote Pro"
+            className="size-5"
+          />
+        ),
         title: "Keep the magic going",
-        description: "Transcription stays free. Pro unlocks other magic you'll love.",
+        description:
+          "Transcription stays free. Pro unlocks other magic you'll love.",
         primaryAction: {
           label: "Upgrade to Pro",
           onClick: onSignIn,

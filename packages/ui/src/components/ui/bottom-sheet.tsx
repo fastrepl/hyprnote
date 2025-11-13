@@ -1,7 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import { AnimatePresence, motion } from "motion/react";
 import * as React from "react";
+
+import { cn } from "@hypr/utils";
 
 interface BottomSheetProps {
   open: boolean;
@@ -51,9 +51,11 @@ export function BottomSheet({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className={cn(
-              ["fixed bottom-0 left-0 right-0 z-50", "rounded-t-lg shadow-lg border-t overflow-clip", className],
-            )}
+            className={cn([
+              "fixed bottom-0 left-0 right-0 z-50",
+              "rounded-t-lg shadow-lg border-t overflow-clip",
+              className,
+            ])}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -80,11 +82,7 @@ export function BottomSheetContent({
   children,
   className,
 }: BottomSheetContentProps) {
-  return (
-    <div className={cn(["p-4", className])}>
-      {children}
-    </div>
-  );
+  return <div className={cn(["p-4", className])}>{children}</div>;
 }
 
 interface BottomSheetTriggerProps {
@@ -99,10 +97,7 @@ export function BottomSheetTrigger({
   className,
 }: BottomSheetTriggerProps) {
   return (
-    <div
-      onClick={onClick}
-      className={cn(["cursor-pointer", className])}
-    >
+    <div onClick={onClick} className={cn(["cursor-pointer", className])}>
       {children}
     </div>
   );

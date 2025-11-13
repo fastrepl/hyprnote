@@ -1,7 +1,6 @@
+import { env } from "@/env";
 import { createServerOnlyFn } from "@tanstack/react-start";
 import Stripe from "stripe";
-
-import { env } from "@/env";
 
 export const getStripeClient = createServerOnlyFn(() => {
   return new Stripe(env.STRIPE_SECRET_KEY, {

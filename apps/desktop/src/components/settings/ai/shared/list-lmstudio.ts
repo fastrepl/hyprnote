@@ -9,7 +9,10 @@ import {
   REQUEST_TIMEOUT,
 } from "./list-common";
 
-export async function listLMStudioModels(baseUrl: string, _apiKey: string): Promise<ListModelsResult> {
+export async function listLMStudioModels(
+  baseUrl: string,
+  _apiKey: string,
+): Promise<ListModelsResult> {
   if (!baseUrl) {
     return DEFAULT_RESULT;
   }
@@ -19,8 +22,10 @@ export async function listLMStudioModels(baseUrl: string, _apiKey: string): Prom
     Effect.flatMap((client) =>
       pipe(
         fetchLMStudioInventory(client),
-        Effect.map(({ downloadedModels, loadedLLMs }) => processLMStudioModels(downloadedModels, loadedLLMs)),
-      )
+        Effect.map(({ downloadedModels, loadedLLMs }) =>
+          processLMStudioModels(downloadedModels, loadedLLMs),
+        ),
+      ),
     ),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
@@ -38,12 +43,15 @@ const createLMStudioClient = (baseUrl: string) =>
 
 const fetchLMStudioInventory = (client: LMStudioClient) =>
   pipe(
-    Effect.all([
-      Effect.tryPromise(() => client.system.listDownloadedModels()),
-      Effect.tryPromise(() => client.llm.listLoaded()).pipe(
-        Effect.catchAll(() => Effect.succeed([] as Array<LLM>)),
-      ),
-    ], { concurrency: "unbounded" }),
+    Effect.all(
+      [
+        Effect.tryPromise(() => client.system.listDownloadedModels()),
+        Effect.tryPromise(() => client.llm.listLoaded()).pipe(
+          Effect.catchAll(() => Effect.succeed([] as Array<LLM>)),
+        ),
+      ],
+      { concurrency: "unbounded" },
+    ),
     Effect.flatMap(([downloadedModels, _loadedLLMs]) =>
       pipe(
         Effect.all(
@@ -51,12 +59,12 @@ const fetchLMStudioInventory = (client: LMStudioClient) =>
             Effect.tryPromise(async () => ({
               modelKey: llm.modelKey,
               context: await llm.getContextLength(),
-            }))
+            })),
           ),
           { concurrency: "unbounded" },
         ),
         Effect.map((loadedLLMs) => ({ downloadedModels, loadedLLMs })),
-      )
+      ),
     ),
   );
 

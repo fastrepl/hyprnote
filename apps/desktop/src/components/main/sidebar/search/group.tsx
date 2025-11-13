@@ -2,6 +2,7 @@ import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 
 import { cn } from "@hypr/utils";
+
 import { type SearchGroup } from "../../../../contexts/search/ui";
 import { SearchResultItem } from "./item";
 
@@ -26,7 +27,9 @@ export function SearchResultGroup({ group }: { group: SearchGroup }) {
         </h3>
       </div>
       <div className={cn(["space-y-0.5"])}>
-        {visibleResults.map((result) => <SearchResultItem key={result.id} result={result} />)}
+        {visibleResults.map((result) => (
+          <SearchResultItem key={result.id} result={result} />
+        ))}
       </div>
       {hasMore && (
         <button

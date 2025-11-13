@@ -1,5 +1,6 @@
-import { type TiptapEditor } from "@hypr/tiptap/editor";
 import { forwardRef } from "react";
+
+import { type TiptapEditor } from "@hypr/tiptap/editor";
 
 import { useAITaskTask } from "../../../../../../hooks/useAITaskTask";
 import { createTaskId } from "../../../../../../store/zustand/ai-task/task-configs";

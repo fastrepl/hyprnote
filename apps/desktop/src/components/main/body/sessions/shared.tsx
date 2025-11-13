@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
+
 import { useListener } from "../../../../contexts/listener";
 import { useAITaskTask } from "../../../../hooks/useAITaskTask";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
@@ -20,25 +21,25 @@ export function useHasTranscript(sessionId: string): boolean {
   return !!transcriptIds && transcriptIds.length > 0;
 }
 
-export function useCurrentNoteTab(tab: Extract<Tab, { type: "sessions" }>): EditorView {
+export function useCurrentNoteTab(
+  tab: Extract<Tab, { type: "sessions" }>,
+): EditorView {
   const hasTranscript = useHasTranscript(tab.id);
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
-  const isListenerActive = sessionMode === "running_active" || sessionMode === "finalizing";
+  const isListenerActive =
+    sessionMode === "running_active" || sessionMode === "finalizing";
 
-  return useMemo(
-    () => {
-      if (tab.state.editor) {
-        return tab.state.editor as EditorView;
-      }
+  return useMemo(() => {
+    if (tab.state.editor) {
+      return tab.state.editor as EditorView;
+    }
 
-      if (isListenerActive) {
-        return "raw";
-      }
+    if (isListenerActive) {
+      return "raw";
+    }
 
-      return hasTranscript ? "enhanced" : "raw";
-    },
-    [tab.state.editor, isListenerActive, hasTranscript],
-  );
+    return hasTranscript ? "enhanced" : "raw";
+  }, [tab.state.editor, isListenerActive, hasTranscript]);
 }
 
 export function RecordingIcon({ disabled }: { disabled?: boolean }) {
@@ -50,15 +51,15 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
           "absolute inset-0 rounded-full bg-red-300",
           disabled ? "bg-red-600" : "animate-ping",
         ])}
-      >
-      </div>
+      ></div>
     </div>
   );
 }
 
 export function useListenButtonState(sessionId: string) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const active = sessionMode === "running_active" || sessionMode === "finalizing";
+  const active =
+    sessionMode === "running_active" || sessionMode === "finalizing";
   const batching = sessionMode === "running_batch";
 
   const taskId = createTaskId(sessionId, "enhance");
@@ -71,8 +72,8 @@ export function useListenButtonState(sessionId: string) {
   const warningMessage = !sttConnection
     ? "Transcription model not available."
     : batching
-    ? "Batch transcription in progress."
-    : "";
+      ? "Batch transcription in progress."
+      : "";
 
   return {
     shouldRender,

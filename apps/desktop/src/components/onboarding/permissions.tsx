@@ -1,7 +1,7 @@
+import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
-
-import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
 import { usePermissions } from "../../hooks/use-permissions";
 import { OnboardingContainer, type OnboardingNext } from "./shared";
@@ -14,7 +14,13 @@ type PermissionBlockProps = {
   onAction: () => void;
 };
 
-function PermissionBlock({ name, status, description, isPending, onAction }: PermissionBlockProps) {
+function PermissionBlock({
+  name,
+  status,
+  description,
+  isPending,
+  onAction,
+}: PermissionBlockProps) {
   const isAuthorized = status === "authorized";
 
   return (
@@ -38,10 +44,21 @@ function PermissionBlock({ name, status, description, isPending, onAction }: Per
         size="icon"
         onClick={onAction}
         disabled={isPending || isAuthorized}
-        className={cn(["size-8", isAuthorized && "bg-stone-100 text-stone-800"])}
-        aria-label={isAuthorized ? `${name} permission granted` : `Request ${name.toLowerCase()} permission`}
+        className={cn([
+          "size-8",
+          isAuthorized && "bg-stone-100 text-stone-800",
+        ])}
+        aria-label={
+          isAuthorized
+            ? `${name} permission granted`
+            : `Request ${name.toLowerCase()} permission`
+        }
       >
-        {isAuthorized ? <CheckIcon className="size-5" /> : <ArrowRightIcon className="size-5" />}
+        {isAuthorized ? (
+          <CheckIcon className="size-5" />
+        ) : (
+          <ArrowRightIcon className="size-5" />
+        )}
       </Button>
     </div>
   );
@@ -64,9 +81,10 @@ export function Permissions({ onNext }: PermissionsProps) {
     handleAccessibilityPermissionAction,
   } = usePermissions();
 
-  const allPermissionsGranted = micPermissionStatus.data === "authorized"
-    && systemAudioPermissionStatus.data === "authorized"
-    && accessibilityPermissionStatus.data === "authorized";
+  const allPermissionsGranted =
+    micPermissionStatus.data === "authorized" &&
+    systemAudioPermissionStatus.data === "authorized" &&
+    accessibilityPermissionStatus.data === "authorized";
 
   return (
     <OnboardingContainer title="Quick permissions before we begin">
@@ -74,7 +92,10 @@ export function Permissions({ onNext }: PermissionsProps) {
         <PermissionBlock
           name="Microphone"
           status={micPermissionStatus.data}
-          description={{ authorized: "Good to go :)", unauthorized: "To capture your voice" }}
+          description={{
+            authorized: "Good to go :)",
+            unauthorized: "To capture your voice",
+          }}
           isPending={micPermission.isPending}
           onAction={handleMicPermissionAction}
         />
@@ -82,7 +103,10 @@ export function Permissions({ onNext }: PermissionsProps) {
         <PermissionBlock
           name="System audio"
           status={systemAudioPermissionStatus.data}
-          description={{ authorized: "Good to go :)", unauthorized: "To capture what other people are saying" }}
+          description={{
+            authorized: "Good to go :)",
+            unauthorized: "To capture what other people are saying",
+          }}
           isPending={systemAudioPermission.isPending}
           onAction={handleSystemAudioPermissionAction}
         />
@@ -90,14 +114,23 @@ export function Permissions({ onNext }: PermissionsProps) {
         <PermissionBlock
           name="Accessibility"
           status={accessibilityPermissionStatus.data}
-          description={{ authorized: "Good to go :)", unauthorized: "To sync mic inputs & mute from meetings" }}
+          description={{
+            authorized: "Good to go :)",
+            unauthorized: "To sync mic inputs & mute from meetings",
+          }}
           isPending={accessibilityPermission.isPending}
           onAction={handleAccessibilityPermissionAction}
         />
       </div>
 
-      <Button onClick={() => onNext()} className="w-full" disabled={!allPermissionsGranted}>
-        {allPermissionsGranted ? "Continue" : "Need all permissions to continue"}
+      <Button
+        onClick={() => onNext()}
+        className="w-full"
+        disabled={!allPermissionsGranted}
+      >
+        {allPermissionsGranted
+          ? "Continue"
+          : "Need all permissions to continue"}
       </Button>
     </OnboardingContainer>
   );

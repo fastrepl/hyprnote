@@ -1,5 +1,15 @@
 import { sql } from "drizzle-orm";
-import { AnyPgColumn, integer, json, pgPolicy, pgSchema, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  AnyPgColumn,
+  integer,
+  json,
+  pgPolicy,
+  pgSchema,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { authenticatedRole, serviceRole } from "drizzle-orm/supabase";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -52,7 +62,9 @@ const users = auth.table("users", {
 const profiles = pgTable(
   "profiles",
   {
-    id: uuid("id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+    id: uuid("id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
   },
   (table) => createPolicies("profiles", table.id),
 ).enableRLS();
@@ -75,7 +87,9 @@ export const humans = pgTable(
 
 const SHARED = {
   id: uuid("id").primaryKey().defaultRandom(),
-  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => profiles.id, { onDelete: "cascade" }),
   created_at: timestamp("created_at").notNull().defaultNow(),
 };
 
@@ -95,7 +109,10 @@ export const folders: any = pgTable(
   {
     ...SHARED,
     name: text("name").notNull(),
-    parent_folder_id: uuid("parent_folder_id").references((): any => folders.id, { onDelete: "cascade" }),
+    parent_folder_id: uuid("parent_folder_id").references(
+      (): any => folders.id,
+      { onDelete: "cascade" },
+    ),
   },
   (table) => createPolicies(TABLE_FOLDERS, table.user_id),
 ).enableRLS();
@@ -105,7 +122,9 @@ export const sessions = pgTable(
   TABLE_SESSIONS,
   {
     ...SHARED,
-    folder_id: uuid("folder_id").references(() => folders.id, { onDelete: "cascade" }),
+    folder_id: uuid("folder_id").references(() => folders.id, {
+      onDelete: "cascade",
+    }),
     event_id: uuid("event_id"),
     title: text("title").notNull(),
     raw_md: text("raw_md").notNull(),
@@ -119,7 +138,9 @@ export const transcripts = pgTable(
   TABLE_TRANSCRIPTS,
   {
     ...SHARED,
-    session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+    session_id: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
     started_at: integer("started_at").notNull(),
     ended_at: integer("ended_at"),
   },
@@ -131,7 +152,9 @@ export const words = pgTable(
   TABLE_WORDS,
   {
     ...SHARED,
-    transcript_id: uuid("transcript_id").notNull().references(() => transcripts.id, { onDelete: "cascade" }),
+    transcript_id: uuid("transcript_id")
+      .notNull()
+      .references(() => transcripts.id, { onDelete: "cascade" }),
     text: text("text").notNull(),
     start_ms: integer("start_ms").notNull(),
     end_ms: integer("end_ms").notNull(),
@@ -145,8 +168,12 @@ export const speakerHints = pgTable(
   TABLE_SPEAKER_HINTS,
   {
     ...SHARED,
-    transcript_id: uuid("transcript_id").notNull().references(() => transcripts.id, { onDelete: "cascade" }),
-    word_id: uuid("word_id").notNull().references(() => words.id, { onDelete: "cascade" }),
+    transcript_id: uuid("transcript_id")
+      .notNull()
+      .references(() => transcripts.id, { onDelete: "cascade" }),
+    word_id: uuid("word_id")
+      .notNull()
+      .references(() => words.id, { onDelete: "cascade" }),
     type: text("type").notNull(),
     value: json("value").notNull(),
   },
@@ -158,7 +185,9 @@ export const events = pgTable(
   TABLE_EVENTS,
   {
     ...SHARED,
-    calendar_id: uuid("calendar_id").notNull().references(() => calendars.id, { onDelete: "cascade" }),
+    calendar_id: uuid("calendar_id")
+      .notNull()
+      .references(() => calendars.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     started_at: timestamp("started_at").notNull(),
     ended_at: timestamp("ended_at").notNull(),
@@ -185,8 +214,12 @@ export const mappingSessionParticipant = pgTable(
   TABLE_MAPPING_SESSION_PARTICIPANT,
   {
     ...SHARED,
-    session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
-    human_id: uuid("human_id").notNull().references(() => humans.id, { onDelete: "cascade" }),
+    session_id: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    human_id: uuid("human_id")
+      .notNull()
+      .references(() => humans.id, { onDelete: "cascade" }),
   },
   (table) => createPolicies(TABLE_MAPPING_SESSION_PARTICIPANT, table.user_id),
 ).enableRLS();
@@ -206,8 +239,12 @@ export const mappingTagSession = pgTable(
   TABLE_MAPPING_TAG_SESSION,
   {
     ...SHARED,
-    tag_id: uuid("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
-    session_id: uuid("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+    tag_id: uuid("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+    session_id: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
   },
   (table) => createPolicies(TABLE_MAPPING_TAG_SESSION, table.user_id),
 ).enableRLS();
@@ -241,7 +278,9 @@ export const chatMessages = pgTable(
   TABLE_CHAT_MESSAGES,
   {
     ...SHARED,
-    chat_group_id: uuid("chat_group_id").notNull().references(() => chatGroups.id, { onDelete: "cascade" }),
+    chat_group_id: uuid("chat_group_id")
+      .notNull()
+      .references(() => chatGroups.id, { onDelete: "cascade" }),
     // https://ai-sdk.dev/docs/reference/ai-sdk-ui/use-chat#messages
     role: text("role").notNull(),
     content: text("content").notNull(),
@@ -272,7 +311,9 @@ export const sessionSchema = createSelectSchema(sessions);
 export const transcriptSchema = createSelectSchema(transcripts);
 export const wordSchema = createSelectSchema(words);
 export const speakerHintSchema = createSelectSchema(speakerHints);
-export const mappingSessionParticipantSchema = createSelectSchema(mappingSessionParticipant);
+export const mappingSessionParticipantSchema = createSelectSchema(
+  mappingSessionParticipant,
+);
 export const tagSchema = createSelectSchema(tags);
 export const mappingTagSessionSchema = createSelectSchema(mappingTagSession);
 export const templateSchema = createSelectSchema(templates);
@@ -286,4 +327,6 @@ export const providerSpeakerIndexSchema = z.object({
   channel: z.number().optional(),
 });
 
-export type ProviderSpeakerIndexHint = z.infer<typeof providerSpeakerIndexSchema>;
+export type ProviderSpeakerIndexHint = z.infer<
+  typeof providerSpeakerIndexSchema
+>;

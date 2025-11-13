@@ -1,8 +1,12 @@
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
-
 import { Contact2Icon } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import { useShallow } from "zustand/shallow";
+
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
 
 import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
@@ -13,16 +17,14 @@ import { OrganizationDetailsColumn } from "./organization-details";
 import { OrganizationsColumn } from "./organizations";
 import { PeopleColumn, useSortedHumanIds } from "./people";
 
-export const TabItemContact: TabItem<Extract<Tab, { type: "contacts" }>> = (
-  {
-    tab,
-    tabIndex,
-    handleCloseThis,
-    handleSelectThis,
-    handleCloseOthers,
-    handleCloseAll,
-  },
-) => {
+export const TabItemContact: TabItem<Extract<Tab, { type: "contacts" }>> = ({
+  tab,
+  tabIndex,
+  handleCloseThis,
+  handleSelectThis,
+  handleCloseOthers,
+  handleCloseAll,
+}) => {
   return (
     <TabItemBase
       icon={<Contact2Icon className="w-4 h-4" />}
@@ -37,7 +39,11 @@ export const TabItemContact: TabItem<Extract<Tab, { type: "contacts" }>> = (
   );
 };
 
-export function TabContentContact({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
+export function TabContentContact({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "contacts" }>;
+}) {
   return (
     <StandardTabWrapper>
       <ContactView tab={tab} />
@@ -46,7 +52,9 @@ export function TabContentContact({ tab }: { tab: Extract<Tab, { type: "contacts
 }
 
 function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
-  const updateContactsTabState = useTabs((state) => state.updateContactsTabState);
+  const updateContactsTabState = useTabs(
+    (state) => state.updateContactsTabState,
+  );
   const { openCurrent, invalidateResource } = useTabs(
     useShallow((state) => ({
       openCurrent: state.openCurrent,
@@ -56,25 +64,34 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
 
   const { selectedOrganization, selectedPerson } = tab.state;
 
-  const setSelectedOrganization = useCallback((value: string | null) => {
-    updateContactsTabState(tab, {
-      ...tab.state,
-      selectedOrganization: value,
-      // Clear selected person when selecting an organization
-      selectedPerson: value ? null : tab.state.selectedPerson,
-    });
-  }, [updateContactsTabState, tab]);
+  const setSelectedOrganization = useCallback(
+    (value: string | null) => {
+      updateContactsTabState(tab, {
+        ...tab.state,
+        selectedOrganization: value,
+        // Clear selected person when selecting an organization
+        selectedPerson: value ? null : tab.state.selectedPerson,
+      });
+    },
+    [updateContactsTabState, tab],
+  );
 
-  const setSelectedPerson = useCallback((value: string | null) => {
-    updateContactsTabState(tab, {
-      ...tab.state,
-      selectedPerson: value,
-    });
-  }, [updateContactsTabState, tab]);
+  const setSelectedPerson = useCallback(
+    (value: string | null) => {
+      updateContactsTabState(tab, {
+        ...tab.state,
+        selectedPerson: value,
+      });
+    },
+    [updateContactsTabState, tab],
+  );
 
-  const handleSessionClick = useCallback((id: string) => {
-    openCurrent({ type: "sessions", id });
-  }, [openCurrent]);
+  const handleSessionClick = useCallback(
+    (id: string) => {
+      openCurrent({ type: "sessions", id });
+    },
+    [openCurrent],
+  );
 
   const deletePersonFromStore = main.UI.useDelRowCallback(
     "humans",
@@ -82,10 +99,13 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
     main.STORE_ID,
   );
 
-  const handleDeletePerson = useCallback((id: string) => {
-    invalidateResource("humans", id);
-    deletePersonFromStore(id);
-  }, [invalidateResource, deletePersonFromStore]);
+  const handleDeletePerson = useCallback(
+    (id: string) => {
+      invalidateResource("humans", id);
+      deletePersonFromStore(id);
+    },
+    [invalidateResource, deletePersonFromStore],
+  );
 
   const deleteOrganizationFromStore = main.UI.useDelRowCallback(
     "organizations",
@@ -93,10 +113,13 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
     main.STORE_ID,
   );
 
-  const handleDeleteOrganization = useCallback((id: string) => {
-    invalidateResource("organizations" as const, id);
-    deleteOrganizationFromStore(id);
-  }, [invalidateResource, deleteOrganizationFromStore]);
+  const handleDeleteOrganization = useCallback(
+    (id: string) => {
+      invalidateResource("organizations" as const, id);
+      deleteOrganizationFromStore(id);
+    },
+    [invalidateResource, deleteOrganizationFromStore],
+  );
 
   // Get the list of humanIds to auto-select the first person (only when no org is selected)
   const { humanIds } = useSortedHumanIds(selectedOrganization);
@@ -129,23 +152,21 @@ function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel defaultSize={55} minSize={30}>
-        {selectedOrganization && !selectedPerson
-          ? (
-            // Show organization details when org is selected but no person is selected
-            <OrganizationDetailsColumn
-              selectedOrganizationId={selectedOrganization}
-              handleDeleteOrganization={handleDeleteOrganization}
-              onPersonClick={setSelectedPerson}
-            />
-          )
-          : (
-            // Show person details when a person is selected or no org is selected
-            <DetailsColumn
-              selectedHumanId={selectedPerson}
-              handleDeletePerson={handleDeletePerson}
-              handleSessionClick={handleSessionClick}
-            />
-          )}
+        {selectedOrganization && !selectedPerson ? (
+          // Show organization details when org is selected but no person is selected
+          <OrganizationDetailsColumn
+            selectedOrganizationId={selectedOrganization}
+            handleDeleteOrganization={handleDeleteOrganization}
+            onPersonClick={setSelectedPerson}
+          />
+        ) : (
+          // Show person details when a person is selected or no org is selected
+          <DetailsColumn
+            selectedHumanId={selectedPerson}
+            handleDeletePerson={handleDeletePerson}
+            handleSessionClick={handleSessionClick}
+          />
+        )}
       </ResizablePanel>
     </ResizablePanelGroup>
   );

@@ -1,7 +1,8 @@
-import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/faq")({
   component: Component,
@@ -122,9 +123,10 @@ function Component() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const filteredFAQs = selectedCategory === "All"
-    ? faqs
-    : faqs.filter((faq) => faq.category === selectedCategory);
+  const filteredFAQs =
+    selectedCategory === "All"
+      ? faqs
+      : faqs.filter((faq) => faq.category === selectedCategory);
 
   return (
     <div
@@ -138,7 +140,8 @@ function Component() {
               Frequently Asked Questions
             </h1>
             <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-              Find answers to common questions about Hyprnote. Can't find what you're looking for?{" "}
+              Find answers to common questions about Hyprnote. Can't find what
+              you're looking for?{" "}
               <a
                 href="mailto:support@hyprnote.com"
                 className="text-stone-600 hover:underline"
@@ -189,12 +192,16 @@ function Component() {
           </div>
 
           <div className="mt-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 text-center">
-            <Icon icon="mdi:help-circle" className="text-4xl text-stone-600 mx-auto mb-4" />
+            <Icon
+              icon="mdi:help-circle"
+              className="text-4xl text-stone-600 mx-auto mb-4"
+            />
             <h3 className="text-2xl font-serif text-stone-600 mb-4">
               Still have questions?
             </h3>
             <p className="text-neutral-600 mb-6">
-              Our team is here to help. Reach out and we'll get back to you as soon as possible.
+              Our team is here to help. Reach out and we'll get back to you as
+              soon as possible.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
@@ -246,7 +253,9 @@ function FAQItem({
           <span className="text-xs text-neutral-500 uppercase tracking-wider">
             {faq.category}
           </span>
-          <h3 className="text-lg font-medium text-stone-600 mt-1">{faq.question}</h3>
+          <h3 className="text-lg font-medium text-stone-600 mt-1">
+            {faq.question}
+          </h3>
         </div>
         <Icon
           icon={isOpen ? "mdi:chevron-up" : "mdi:chevron-down"}

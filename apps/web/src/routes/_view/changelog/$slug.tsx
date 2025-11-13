@@ -6,15 +6,23 @@ import { allChangelogs } from "content-collections";
 export const Route = createFileRoute("/_view/changelog/$slug")({
   component: Component,
   loader: async ({ params }) => {
-    const changelog = allChangelogs.find((changelog) => changelog.slug === params.slug);
+    const changelog = allChangelogs.find(
+      (changelog) => changelog.slug === params.slug,
+    );
     if (!changelog) {
       throw notFound();
     }
 
     const sortedChangelogs = [...allChangelogs].reverse();
-    const currentIndex = sortedChangelogs.findIndex((c) => c.slug === changelog.slug);
-    const nextChangelog = currentIndex > 0 ? sortedChangelogs[currentIndex - 1] : null;
-    const prevChangelog = currentIndex < sortedChangelogs.length - 1 ? sortedChangelogs[currentIndex + 1] : null;
+    const currentIndex = sortedChangelogs.findIndex(
+      (c) => c.slug === changelog.slug,
+    );
+    const nextChangelog =
+      currentIndex > 0 ? sortedChangelogs[currentIndex - 1] : null;
+    const prevChangelog =
+      currentIndex < sortedChangelogs.length - 1
+        ? sortedChangelogs[currentIndex + 1]
+        : null;
 
     return { changelog, nextChangelog, prevChangelog };
   },
@@ -38,7 +46,10 @@ function Component() {
         <header className="mb-12 pb-8 border-b border-neutral-100">
           <div className="flex items-center gap-3 mb-4">
             <div className="inline-flex items-center justify-center size-12 rounded-full bg-stone-50 border border-neutral-100">
-              <Icon icon={isLatest ? "mdi:star" : "mdi:package-variant"} className="text-2xl text-stone-600" />
+              <Icon
+                icon={isLatest ? "mdi:star" : "mdi:package-variant"}
+                className="text-2xl text-stone-600"
+              />
             </div>
             {isLatest && (
               <span className="inline-flex items-center gap-1 px-3 py-1 text-sm font-medium bg-stone-100 text-stone-700 rounded-full">
@@ -59,37 +70,47 @@ function Component() {
 
         <footer className="mt-16 pt-8 border-t border-neutral-100">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
-            {prevChangelog
-              ? (
-                <Link
-                  to="/changelog/$slug"
-                  params={{ slug: prevChangelog.slug }}
-                  className="flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors group"
-                >
-                  <Icon icon="mdi:arrow-left" className="text-xl group-hover:-translate-x-1 transition-transform" />
-                  <div>
-                    <div className="text-xs text-neutral-500 mb-1">Older</div>
-                    <div className="font-medium">Version {prevChangelog.version}</div>
+            {prevChangelog ? (
+              <Link
+                to="/changelog/$slug"
+                params={{ slug: prevChangelog.slug }}
+                className="flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors group"
+              >
+                <Icon
+                  icon="mdi:arrow-left"
+                  className="text-xl group-hover:-translate-x-1 transition-transform"
+                />
+                <div>
+                  <div className="text-xs text-neutral-500 mb-1">Older</div>
+                  <div className="font-medium">
+                    Version {prevChangelog.version}
                   </div>
-                </Link>
-              )
-              : <div />}
+                </div>
+              </Link>
+            ) : (
+              <div />
+            )}
 
-            {nextChangelog
-              ? (
-                <Link
-                  to="/changelog/$slug"
-                  params={{ slug: nextChangelog.slug }}
-                  className="flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors group text-right sm:text-left"
-                >
-                  <div>
-                    <div className="text-xs text-neutral-500 mb-1">Newer</div>
-                    <div className="font-medium">Version {nextChangelog.version}</div>
+            {nextChangelog ? (
+              <Link
+                to="/changelog/$slug"
+                params={{ slug: nextChangelog.slug }}
+                className="flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors group text-right sm:text-left"
+              >
+                <div>
+                  <div className="text-xs text-neutral-500 mb-1">Newer</div>
+                  <div className="font-medium">
+                    Version {nextChangelog.version}
                   </div>
-                  <Icon icon="mdi:arrow-right" className="text-xl group-hover:translate-x-1 transition-transform" />
-                </Link>
-              )
-              : <div />}
+                </div>
+                <Icon
+                  icon="mdi:arrow-right"
+                  className="text-xl group-hover:translate-x-1 transition-transform"
+                />
+              </Link>
+            ) : (
+              <div />
+            )}
           </div>
 
           <div className="mt-8 text-center">

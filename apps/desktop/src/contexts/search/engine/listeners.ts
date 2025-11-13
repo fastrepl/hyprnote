@@ -3,11 +3,16 @@ import { RowListener } from "tinybase/with-schemas";
 
 import { Schemas } from "../../../store/tinybase/main";
 import { type Store as PersistedStore } from "../../../store/tinybase/main";
-import { createHumanSearchableContent, createSessionSearchableContent } from "./content";
+import {
+  createHumanSearchableContent,
+  createSessionSearchableContent,
+} from "./content";
 import type { Index } from "./types";
 import { collectCells, toNumber, toTrimmedString } from "./utils";
 
-export function createSessionListener(index: Index): RowListener<Schemas, "sessions", null, PersistedStore> {
+export function createSessionListener(
+  index: Index,
+): RowListener<Schemas, "sessions", null, PersistedStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("sessions", rowId);
@@ -42,7 +47,9 @@ export function createSessionListener(index: Index): RowListener<Schemas, "sessi
   };
 }
 
-export function createHumanListener(index: Index): RowListener<Schemas, "humans", null, PersistedStore> {
+export function createHumanListener(
+  index: Index,
+): RowListener<Schemas, "humans", null, PersistedStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("humans", rowId);
@@ -50,11 +57,7 @@ export function createHumanListener(index: Index): RowListener<Schemas, "humans"
       if (!rowExists) {
         void remove(index, rowId);
       } else {
-        const fields = [
-          "name",
-          "email",
-          "created_at",
-        ];
+        const fields = ["name", "email", "created_at"];
         const row = collectCells(store, "humans", rowId, fields);
         const title = toTrimmedString(row.name) || "Unknown";
 
@@ -73,7 +76,9 @@ export function createHumanListener(index: Index): RowListener<Schemas, "humans"
   };
 }
 
-export function createOrganizationListener(index: Index): RowListener<Schemas, "organizations", null, PersistedStore> {
+export function createOrganizationListener(
+  index: Index,
+): RowListener<Schemas, "organizations", null, PersistedStore> {
   return (store, _, rowId) => {
     try {
       const rowExists = store.getRow("organizations", rowId);

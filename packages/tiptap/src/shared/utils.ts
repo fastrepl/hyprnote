@@ -4,7 +4,7 @@ const turndown = new TurndownService({ headingStyle: "atx" });
 
 turndown.addRule("p", {
   filter: "p",
-  replacement: function(content, node) {
+  replacement: function (content, node) {
     if (node.parentNode?.nodeName === "LI") {
       return content;
     }
@@ -18,24 +18,31 @@ turndown.addRule("p", {
 });
 
 turndown.addRule("taskList", {
-  filter: function(node) {
-    return node.nodeName === "UL" && node.getAttribute("data-type") === "taskList";
+  filter: function (node) {
+    return (
+      node.nodeName === "UL" && node.getAttribute("data-type") === "taskList"
+    );
   },
-  replacement: function(content) {
+  replacement: function (content) {
     return content;
   },
 });
 
 turndown.addRule("taskItem", {
-  filter: function(node) {
+  filter: function (node) {
     if (node.nodeName !== "LI" || !node.parentNode) {
       return false;
     }
     const parent = node.parentNode as HTMLElement;
-    return parent.nodeName === "UL" && parent.getAttribute("data-type") === "taskList";
+    return (
+      parent.nodeName === "UL" &&
+      parent.getAttribute("data-type") === "taskList"
+    );
   },
-  replacement: function(content, node) {
-    const checkbox = node.querySelector("input[type=\"checkbox\"]") as HTMLInputElement;
+  replacement: function (content, node) {
+    const checkbox = node.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
     const isChecked = checkbox ? checkbox.checked : false;
     const checkboxSymbol = isChecked ? "[x]" : "[ ]";
 

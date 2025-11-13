@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useTheme } from "next-themes";
 import React from "react";
-import { toast as sonnerToast, Toaster as Sonner } from "sonner";
+import { Toaster as Sonner, toast as sonnerToast } from "sonner";
 
 export { sonnerToast };
 
@@ -51,9 +51,11 @@ export function CustomToast(props: CustomToastProps) {
                 button.onClick();
                 sonnerToast.dismiss(id);
               }}
-              className={button.primary
-                ? "px-3 py-1.5 text-sm bg-neutral-800 text-white rounded-md hover:bg-neutral-700"
-                : "px-3 py-1.5 text-sm bg-neutral-200 text-neutral-800 rounded-md hover:bg-neutral-300"}
+              className={
+                button.primary
+                  ? "px-3 py-1.5 text-sm bg-neutral-800 text-white rounded-md hover:bg-neutral-700"
+                  : "px-3 py-1.5 text-sm bg-neutral-200 text-neutral-800 rounded-md hover:bg-neutral-300"
+              }
             >
               {button.label}
             </button>
@@ -99,8 +101,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
           toast:
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border group-[.toaster]:border-border group-[.toaster]:shadow-lg group-[.toaster]:rounded-lg group-[.toaster]:overflow-clip group-[.toaster]:w-[300px]",
           description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+          actionButton:
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+          cancelButton:
+            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
       }}
       {...props}

@@ -15,9 +15,7 @@ async function* createMockStream(
   }
 }
 
-async function collectStream<T>(
-  stream: AsyncIterable<T>,
-): Promise<T[]> {
+async function collectStream<T>(stream: AsyncIterable<T>): Promise<T[]> {
   const results: T[] = [];
   for await (const chunk of stream) {
     results.push(chunk);
@@ -37,7 +35,9 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-delta", text: "!", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
     const validator: EarlyValidatorFn = (_text) => ({ valid: true });
 
@@ -62,9 +62,13 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-delta", text: " world", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
-    const validator: EarlyValidatorFn = vi.fn((_text) => ({ valid: true as const }));
+    const validator: EarlyValidatorFn = vi.fn((_text) => ({
+      valid: true as const,
+    }));
 
     const stream = withEarlyValidationRetry(executeStream, validator, {
       minChar: 5,
@@ -82,22 +86,26 @@ describe("withEarlyValidationRetry", () => {
 
     const executeStream = vi.fn((signal: AbortSignal, _context) => {
       attemptCount++;
-      const chunks: TextStreamPart<ToolSet>[] = attemptCount === 1
-        ? [
-          { type: "text-delta", text: "Invalid", id: "1" },
-          { type: "text-delta", text: " start", id: "1" },
-        ]
-        : [
-          { type: "text-delta", text: "Valid", id: "1" },
-          { type: "text-delta", text: " content", id: "1" },
-        ];
+      const chunks: TextStreamPart<ToolSet>[] =
+        attemptCount === 1
+          ? [
+              { type: "text-delta", text: "Invalid", id: "1" },
+              { type: "text-delta", text: " start", id: "1" },
+            ]
+          : [
+              { type: "text-delta", text: "Valid", id: "1" },
+              { type: "text-delta", text: " content", id: "1" },
+            ];
 
       return createMockStream(chunks, signal);
     });
 
     const validator: EarlyValidatorFn = vi.fn((text) => {
       if (text.trim().startsWith("Invalid")) {
-        return { valid: false as const, feedback: "Text must not start with Invalid" };
+        return {
+          valid: false as const,
+          feedback: "Text must not start with Invalid",
+        };
       }
       return { valid: true as const };
     });
@@ -127,7 +135,9 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-delta", text: " text", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
     const validator: EarlyValidatorFn = vi.fn(() => ({
       valid: false as const,
@@ -155,7 +165,9 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-delta", text: "that exceeds maxChar", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
     const validator: EarlyValidatorFn = vi.fn(() => ({ valid: true as const }));
 
@@ -173,11 +185,15 @@ describe("withEarlyValidationRetry", () => {
     let attemptCount = 0;
 
     const executeStream = vi.fn(
-      (signal: AbortSignal, context: { attempt: number; previousFeedback?: string }) => {
+      (
+        signal: AbortSignal,
+        context: { attempt: number; previousFeedback?: string },
+      ) => {
         attemptCount++;
-        const chunks: TextStreamPart<ToolSet>[] = attemptCount === 1
-          ? [{ type: "text-delta", text: "Wrong answer", id: "1" }]
-          : [{ type: "text-delta", text: "Correct answer", id: "1" }];
+        const chunks: TextStreamPart<ToolSet>[] =
+          attemptCount === 1
+            ? [{ type: "text-delta", text: "Wrong answer", id: "1" }]
+            : [{ type: "text-delta", text: "Correct answer", id: "1" }];
 
         if (attemptCount === 2) {
           expect(context.previousFeedback).toBe("Must start with Correct");
@@ -212,7 +228,9 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-end", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
     const validator: EarlyValidatorFn = () => ({ valid: true as const });
 
@@ -233,7 +251,9 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-delta", text: " world", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
     const validator: EarlyValidatorFn = vi.fn(() => ({ valid: true as const }));
 
@@ -282,7 +302,9 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-delta", text: "Hello world", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
     const validator: EarlyValidatorFn = () => ({ valid: true as const });
 
@@ -298,7 +320,9 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-delta", text: "Hi", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
     const validator: EarlyValidatorFn = vi.fn(() => ({ valid: true as const }));
 
@@ -317,17 +341,21 @@ describe("withEarlyValidationRetry", () => {
     const feedbackHistory: string[] = [];
 
     const executeStream = vi.fn(
-      (signal: AbortSignal, context: { attempt: number; previousFeedback?: string }) => {
+      (
+        signal: AbortSignal,
+        context: { attempt: number; previousFeedback?: string },
+      ) => {
         attemptCount++;
         if (context.previousFeedback) {
           feedbackHistory.push(context.previousFeedback);
         }
 
-        const chunks: TextStreamPart<ToolSet>[] = attemptCount === 1
-          ? [{ type: "text-delta", text: "First wrong", id: "1" }]
-          : attemptCount === 2
-          ? [{ type: "text-delta", text: "Second wrong", id: "1" }]
-          : [{ type: "text-delta", text: "Correct answer", id: "1" }];
+        const chunks: TextStreamPart<ToolSet>[] =
+          attemptCount === 1
+            ? [{ type: "text-delta", text: "First wrong", id: "1" }]
+            : attemptCount === 2
+              ? [{ type: "text-delta", text: "Second wrong", id: "1" }]
+              : [{ type: "text-delta", text: "Correct answer", id: "1" }];
 
         return createMockStream(chunks, signal);
       },
@@ -354,7 +382,10 @@ describe("withEarlyValidationRetry", () => {
     expect(results).toEqual([
       { type: "text-delta", text: "Correct answer", id: "1" },
     ]);
-    expect(feedbackHistory).toEqual(["First attempt failed", "Second attempt failed"]);
+    expect(feedbackHistory).toEqual([
+      "First attempt failed",
+      "Second attempt failed",
+    ]);
     expect(executeStream).toHaveBeenCalledTimes(3);
   });
 
@@ -364,7 +395,9 @@ describe("withEarlyValidationRetry", () => {
       { type: "text-delta", text: "67890", id: "1" },
     ];
 
-    const executeStream = vi.fn((signal: AbortSignal) => createMockStream(chunks, signal));
+    const executeStream = vi.fn((signal: AbortSignal) =>
+      createMockStream(chunks, signal),
+    );
 
     const validator: EarlyValidatorFn = vi.fn(() => ({ valid: true as const }));
 
@@ -405,10 +438,16 @@ describe("withEarlyValidationRetry", () => {
     })[Symbol.asyncIterator]();
 
     const first = await iterator.next();
-    expect(first).toEqual({ done: false, value: { type: "text-start", id: "1" } });
+    expect(first).toEqual({
+      done: false,
+      value: { type: "text-start", id: "1" },
+    });
 
     const second = await iterator.next();
-    expect(second).toEqual({ done: false, value: { type: "text-delta", text: "Hello", id: "1" } });
+    expect(second).toEqual({
+      done: false,
+      value: { type: "text-delta", text: "Hello", id: "1" },
+    });
 
     const third = await iterator.next();
     expect(third).toEqual({
@@ -417,7 +456,10 @@ describe("withEarlyValidationRetry", () => {
     });
 
     const fourth = await iterator.next();
-    expect(fourth).toEqual({ done: false, value: { type: "text-end", id: "1" } });
+    expect(fourth).toEqual({
+      done: false,
+      value: { type: "text-end", id: "1" },
+    });
 
     const completion = await iterator.next();
     expect(completion).toEqual({ done: true, value: undefined });

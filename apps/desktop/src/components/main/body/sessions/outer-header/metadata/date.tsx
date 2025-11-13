@@ -1,21 +1,25 @@
 import { format } from "date-fns";
+
 import * as main from "../../../../../../store/tinybase/main";
 
 export function DateDisplay({ sessionId }: { sessionId: string }) {
-  const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
+  const createdAt = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "created_at",
+    main.STORE_ID,
+  );
   const { startedAt, endedAt } = useSessionRecordingTimes(sessionId);
 
   const displayDate = !startedAt
     ? format(createdAt ? new Date(createdAt) : new Date(), "MMM d, yyyy")
     : !endedAt
-    ? format(new Date(startedAt), "MMM d, yyyy h:mm a")
-    : `${format(new Date(startedAt), "MMM d, yyyy h:mm a")} - ${format(new Date(endedAt), "MMM d, yyyy h:mm a")}`;
+      ? format(new Date(startedAt), "MMM d, yyyy h:mm a")
+      : `${format(new Date(startedAt), "MMM d, yyyy h:mm a")} - ${format(new Date(endedAt), "MMM d, yyyy h:mm a")}`;
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="text-sm font-medium text-neutral-700">
-        {displayDate}
-      </div>
+      <div className="text-sm font-medium text-neutral-700">{displayDate}</div>
     </div>
   );
 }

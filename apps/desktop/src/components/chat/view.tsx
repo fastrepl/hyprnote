@@ -2,10 +2,9 @@ import { useCallback, useRef } from "react";
 
 import type { HyprUIMessage } from "../../chat/types";
 import { useShell } from "../../contexts/shell";
+import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
-
-import { useLanguageModel } from "../../hooks/useLLMConnection";
 import { ChatBody } from "./body";
 import { ChatHeader } from "./header";
 import { ChatMessageInput } from "./input";
@@ -34,8 +33,22 @@ export function ChatView() {
 
   const createChatMessage = main.UI.useSetRowCallback(
     "chat_messages",
-    (p: { id: string; chat_group_id: string; content: string; role: string; parts: any; metadata: any }) => p.id,
-    (p: { id: string; chat_group_id: string; content: string; role: string; parts: any; metadata: any }) => ({
+    (p: {
+      id: string;
+      chat_group_id: string;
+      content: string;
+      role: string;
+      parts: any;
+      metadata: any;
+    }) => p.id,
+    (p: {
+      id: string;
+      chat_group_id: string;
+      content: string;
+      role: string;
+      parts: any;
+      metadata: any;
+    }) => ({
       user_id,
       chat_group_id: p.chat_group_id,
       content: p.content,
@@ -49,9 +62,18 @@ export function ChatView() {
   );
 
   const handleSendMessage = useCallback(
-    (content: string, parts: any[], sendMessage: (message: HyprUIMessage) => void) => {
+    (
+      content: string,
+      parts: any[],
+      sendMessage: (message: HyprUIMessage) => void,
+    ) => {
       const messageId = id();
-      const uiMessage: HyprUIMessage = { id: messageId, role: "user", parts, metadata: { createdAt: Date.now() } };
+      const uiMessage: HyprUIMessage = {
+        id: messageId,
+        role: "user",
+        parts,
+        metadata: { createdAt: Date.now() },
+      };
 
       let currentGroupId = groupId;
       if (!currentGroupId) {
@@ -95,7 +117,11 @@ export function ChatView() {
         handleClose={() => chat.sendEvent({ type: "CLOSE" })}
       />
 
-      <ChatSession key={stableSessionId} sessionId={stableSessionId} chatGroupId={groupId}>
+      <ChatSession
+        key={stableSessionId}
+        sessionId={stableSessionId}
+        chatGroupId={groupId}
+      >
         {({ messages, sendMessage, regenerate, stop, status, error }) => (
           <>
             <ChatBody
@@ -108,7 +134,9 @@ export function ChatView() {
             />
             <ChatMessageInput
               disabled={!model || status !== "ready"}
-              onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
+              onSendMessage={(content, parts) =>
+                handleSendMessage(content, parts, sendMessage)
+              }
             />
           </>
         )}

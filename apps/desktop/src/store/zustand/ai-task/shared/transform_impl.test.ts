@@ -1,7 +1,10 @@
 import type { TextStreamPart, ToolSet } from "ai";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { addMarkdownSectionSeparators, trimBeforeMarker } from "./transform_impl";
+import {
+  addMarkdownSectionSeparators,
+  trimBeforeMarker,
+} from "./transform_impl";
 
 function convertArrayToReadableStream<T>(values: T[]): ReadableStream<T> {
   return new ReadableStream({
@@ -299,9 +302,15 @@ describe("addMarkdownSectionSeparators", () => {
   it("should add <p></p> separator between markdown sections", async () => {
     const stream = convertArrayToReadableStream<TextStreamPart<ToolSet>>([
       { type: "text-start", id: "1" },
-      { text: "# Key Decisions\n- Item 1\n- Item 2\n\n# Market Insights\n- Data", type: "text-delta", id: "1" },
+      {
+        text: "# Key Decisions\n- Item 1\n- Item 2\n\n# Market Insights\n- Data",
+        type: "text-delta",
+        id: "1",
+      },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -340,7 +349,9 @@ describe("addMarkdownSectionSeparators", () => {
         id: "1",
       },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -379,7 +390,9 @@ describe("addMarkdownSectionSeparators", () => {
       { type: "text-start", id: "1" },
       { text: "# First Section\nContent", type: "text-delta", id: "1" },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -408,7 +421,9 @@ describe("addMarkdownSectionSeparators", () => {
       { type: "text-start", id: "1" },
       { text: "Content\n# Heading", type: "text-delta", id: "1" },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -443,7 +458,9 @@ describe("addMarkdownSectionSeparators", () => {
         input: {},
       },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -465,25 +482,37 @@ describe("addMarkdownSectionSeparators", () => {
   });
 
   it("streams separators without waiting for text-end", async () => {
-    let streamController!: ReadableStreamDefaultController<TextStreamPart<ToolSet>>;
+    let streamController!: ReadableStreamDefaultController<
+      TextStreamPart<ToolSet>
+    >;
 
     const source = new ReadableStream<TextStreamPart<ToolSet>>({
       start(controller) {
         streamController = controller;
         controller.enqueue({ type: "text-start", id: "1" });
-        controller.enqueue({ type: "text-delta", text: "# First\n\n", id: "1" });
+        controller.enqueue({
+          type: "text-delta",
+          text: "# First\n\n",
+          id: "1",
+        });
       },
     });
 
     const reader = source
-      .pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }))
+      .pipeThrough(
+        addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+      )
       .getReader();
 
     const first = await reader.read();
     expect(first.value).toEqual({ type: "text-start", id: "1" });
 
     const second = await reader.read();
-    expect(second.value).toEqual({ type: "text-delta", text: "# First\n\n", id: "1" });
+    expect(second.value).toEqual({
+      type: "text-delta",
+      text: "# First\n\n",
+      id: "1",
+    });
 
     streamController.enqueue({ type: "text-delta", text: "# Second", id: "1" });
 

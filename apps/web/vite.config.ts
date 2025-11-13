@@ -18,12 +18,14 @@ const config = defineConfig(() => ({
         crawlLinks: true,
         autoStaticPathsDiscovery: true,
         filter: ({ path }) => {
-          return path.startsWith("/blog")
-            || path.startsWith("/docs")
-            || path.startsWith("/changelog")
-            || path.startsWith("/legal")
-            || path.startsWith("/product")
-            || path.startsWith("/pricing");
+          return (
+            path.startsWith("/blog") ||
+            path.startsWith("/docs") ||
+            path.startsWith("/changelog") ||
+            path.startsWith("/legal") ||
+            path.startsWith("/product") ||
+            path.startsWith("/pricing")
+          );
         },
       },
     }),

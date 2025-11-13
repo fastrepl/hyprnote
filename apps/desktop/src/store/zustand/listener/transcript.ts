@@ -2,11 +2,15 @@ import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
 import type { StreamAlternatives, StreamResponse } from "@hypr/plugin-listener";
+
 import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 
 type WordsByChannel = Record<number, WordLike[]>;
 
-export type HandlePersistCallback = (words: WordLike[], hints: RuntimeSpeakerHint[]) => void;
+export type HandlePersistCallback = (
+  words: WordLike[],
+  hints: RuntimeSpeakerHint[],
+) => void;
 
 export type TranscriptState = {
   finalWordsMaxEndMsByChannel: Record<number, number>;
@@ -28,7 +32,9 @@ const initialState: TranscriptState = {
   handlePersist: undefined,
 };
 
-export const createTranscriptSlice = <T extends TranscriptState & TranscriptActions>(
+export const createTranscriptSlice = <
+  T extends TranscriptState & TranscriptActions,
+>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): TranscriptState & TranscriptActions => {
@@ -47,7 +53,9 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
     const lastPersistedEndMs = finalWordsMaxEndMsByChannel[channelIndex] ?? 0;
     const lastEndMs = getLastEndMs(words);
 
-    const firstNewWordIndex = words.findIndex((word) => word.end_ms > lastPersistedEndMs);
+    const firstNewWordIndex = words.findIndex(
+      (word) => word.end_ms > lastPersistedEndMs,
+    );
     if (firstNewWordIndex === -1) {
       return;
     }
@@ -60,8 +68,9 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
         wordIndex: hint.wordIndex - firstNewWordIndex,
       }));
 
-    const remainingPartialWords = (partialWordsByChannel[channelIndex] ?? [])
-      .filter((word) => word.start_ms > lastEndMs);
+    const remainingPartialWords = (
+      partialWordsByChannel[channelIndex] ?? []
+    ).filter((word) => word.start_ms > lastEndMs);
 
     const remainingPartialHints = partialHints.filter((hint) => {
       const partialWords = partialWordsByChannel[channelIndex] ?? [];
@@ -74,7 +83,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
         draft.partialWordsByChannel[channelIndex] = remainingPartialWords;
         draft.partialHints = remainingPartialHints;
         draft.finalWordsMaxEndMsByChannel[channelIndex] = lastEndMs;
-      })
+      }),
     );
 
     handlePersist?.(newWords, newHints);
@@ -91,10 +100,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
     const firstStartMs = getFirstStartMs(words);
     const lastEndMs = getLastEndMs(words);
 
-    const [
-      before,
-      after,
-    ] = [
+    const [before, after] = [
       existing.filter((word) => word.end_ms <= firstStartMs),
       existing.filter((word) => word.start_ms >= lastEndMs),
     ];
@@ -108,14 +114,16 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
 
     const filteredOldHints = partialHints.filter((hint) => {
       const word = existing[hint.wordIndex];
-      return word && (word.end_ms <= firstStartMs || word.start_ms >= lastEndMs);
+      return (
+        word && (word.end_ms <= firstStartMs || word.start_ms >= lastEndMs)
+      );
     });
 
     set((state) =>
       mutate(state, (draft) => {
         draft.partialWordsByChannel[channelIndex] = newWords;
         draft.partialHints = [...filteredOldHints, ...hintsWithAdjustedIndices];
-      })
+      }),
     );
   };
 
@@ -125,7 +133,7 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
       set((state) =>
         mutate(state, (draft) => {
           draft.handlePersist = callback;
-        })
+        }),
       );
     },
     handleTranscriptResponse: (response) => {
@@ -164,13 +172,14 @@ export const createTranscriptSlice = <T extends TranscriptState & TranscriptActi
           draft.partialHints = [];
           draft.finalWordsMaxEndMsByChannel = {};
           draft.handlePersist = undefined;
-        })
+        }),
       );
     },
   };
 };
 
-const getLastEndMs = (words: WordLike[]): number => words[words.length - 1]?.end_ms ?? 0;
+const getLastEndMs = (words: WordLike[]): number =>
+  words[words.length - 1]?.end_ms ?? 0;
 const getFirstStartMs = (words: WordLike[]): number => words[0]?.start_ms ?? 0;
 
 function transformWords(
@@ -210,7 +219,10 @@ function transformWords(
   return [words, hints];
 }
 
-export function fixSpacingForWords(words: string[], transcript: string): string[] {
+export function fixSpacingForWords(
+  words: string[],
+  transcript: string,
+): string[] {
   const result: string[] = [];
   let pos = 0;
 

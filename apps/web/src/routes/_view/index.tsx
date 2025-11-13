@@ -1,12 +1,3 @@
-import { cn } from "@hypr/utils";
-
-import { Icon } from "@iconify-icon/react";
-import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { allArticles } from "content-collections";
-import { useCallback, useEffect, useRef, useState } from "react";
-
 import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
@@ -20,6 +11,15 @@ import { VideoThumbnail } from "@/components/video-thumbnail";
 import { addContact } from "@/functions/loops";
 import { getHeroCTA, getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { useAnalytics } from "@/hooks/use-posthog";
+import { Icon } from "@iconify-icon/react";
+import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { allArticles } from "content-collections";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
+
 import { useHeroContext } from "./route";
 
 const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
@@ -29,33 +29,40 @@ const mainFeatures = [
     icon: "mdi:text-box-outline",
     title: "Transcript",
     description: "Realtime transcript and speaker identification",
-    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/transcript.jpg",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/transcript.jpg",
     link: "/product/ai-notetaking#transcription",
   },
   {
     icon: "mdi:file-document-outline",
     title: "Summary",
-    description: "Create customized summaries with templates for various formats",
-    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/summary.jpg",
+    description:
+      "Create customized summaries with templates for various formats",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/summary.jpg",
     link: "/product/ai-notetaking#summaries",
   },
   {
     icon: "mdi:chat-outline",
     title: "Chat",
-    description: "Get context-aware answers in realtime, even from past meetings",
-    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/chat.jpg",
+    description:
+      "Get context-aware answers in realtime, even from past meetings",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/chat.jpg",
     link: "/product/ai-assistant",
   },
   {
     icon: "mdi:window-restore",
     title: "Floating Panel",
-    description: "Compact notepad with transcript, summary, and chat during meetings",
+    description:
+      "Compact notepad with transcript, summary, and chat during meetings",
     comingSoon: true,
   },
   {
     icon: "mdi:calendar-check-outline",
     title: "Daily Note",
-    description: "Track todos and navigate emails and events throughout the day",
+    description:
+      "Track todos and navigate emails and events throughout the day",
     comingSoon: true,
   },
 ];
@@ -65,20 +72,23 @@ const detailsFeatures = [
     icon: "mdi:text-box-edit-outline",
     title: "Notion-like Editor",
     description: "Full markdown support with distraction-free writing",
-    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/editor.jpg",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/editor.jpg",
     link: "/product/ai-notetaking#editor",
   },
   {
     icon: "mdi:account-multiple-outline",
     title: "Contacts",
     description: "Organize and manage your contacts with ease",
-    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/contacts.jpg",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/contacts.jpg",
   },
   {
     icon: "mdi:calendar-outline",
     title: "Calendar",
     description: "Stay on top of your schedule with integrated calendar",
-    image: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/calendar.jpg",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/calendar.jpg",
   },
   {
     icon: "mdi:upload-outline",
@@ -222,7 +232,8 @@ function HeroSection({
   const mutation = useMutation({
     mutationFn: async (email: string) => {
       const intent = platform === "mobile" ? "Reminder" : "Waitlist";
-      const eventName = platform === "mobile" ? "reminder_requested" : "os_waitlist_joined";
+      const eventName =
+        platform === "mobile" ? "reminder_requested" : "os_waitlist_joined";
 
       track(eventName, {
         platform: platform,
@@ -234,7 +245,10 @@ function HeroSection({
         data: {
           email,
           userGroup: "Lead",
-          platform: platform === "mobile" ? "Mobile" : platform.charAt(0).toUpperCase() + platform.slice(1),
+          platform:
+            platform === "mobile"
+              ? "Mobile"
+              : platform.charAt(0).toUpperCase() + platform.slice(1),
           source: "LANDING_PAGE",
           intent: intent,
         },
@@ -272,123 +286,119 @@ function HeroSection({
         <section className="flex flex-col items-center text-center gap-12 py-24 px-4 laptop:px-0">
           <div className="space-y-6 max-w-4xl">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
-              The AI notepad for <br className="block sm:hidden" />private meetings
+              The AI notepad for <br className="block sm:hidden" />
+              private meetings
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600">
               Hyprnote listens and summarizes your meetings{" "}
-              <br className="hidden sm:block" />without sending any voice to remote servers
+              <br className="hidden sm:block" />
+              without sending any voice to remote servers
             </p>
           </div>
 
-          {heroCTA.showInput
-            ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit();
+          {heroCTA.showInput ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+              }}
+              className="w-full max-w-md"
+            >
+              <form.Field
+                name="email"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (!value) {
+                      return "Email is required";
+                    }
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                      return "Please enter a valid email";
+                    }
+                    return undefined;
+                  },
                 }}
-                className="w-full max-w-md"
               >
-                <form.Field
-                  name="email"
-                  validators={{
-                    onChange: ({ value }) => {
-                      if (!value) {
-                        return "Email is required";
-                      }
-                      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                        return "Please enter a valid email";
-                      }
-                      return undefined;
-                    },
-                  }}
-                >
-                  {(field) => (
-                    <>
-                      <div
-                        className={cn([
-                          "relative flex items-center border-2 rounded-full overflow-hidden transition-all duration-200",
-                          shake && "animate-shake border-stone-600",
-                          !shake && mutation.isError && "border-red-500",
-                          !shake && mutation.isSuccess && "border-green-500",
-                          !shake && !mutation.isError && !mutation.isSuccess
-                          && "border-neutral-200 focus-within:border-stone-500",
-                        ])}
+                {(field) => (
+                  <>
+                    <div
+                      className={cn([
+                        "relative flex items-center border-2 rounded-full overflow-hidden transition-all duration-200",
+                        shake && "animate-shake border-stone-600",
+                        !shake && mutation.isError && "border-red-500",
+                        !shake && mutation.isSuccess && "border-green-500",
+                        !shake &&
+                          !mutation.isError &&
+                          !mutation.isSuccess &&
+                          "border-neutral-200 focus-within:border-stone-500",
+                      ])}
+                    >
+                      <input
+                        ref={heroInputRef}
+                        type="email"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder={heroCTA.inputPlaceholder}
+                        className="flex-1 px-6 py-4 text-base outline-none bg-white"
+                        disabled={mutation.isPending || mutation.isSuccess}
+                      />
+                      <button
+                        type="submit"
+                        disabled={mutation.isPending || mutation.isSuccess}
+                        className="absolute right-1 px-6 py-3 text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50"
                       >
-                        <input
-                          ref={heroInputRef}
-                          type="email"
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          placeholder={heroCTA.inputPlaceholder}
-                          className="flex-1 px-6 py-4 text-base outline-none bg-white"
-                          disabled={mutation.isPending || mutation.isSuccess}
-                        />
-                        <button
-                          type="submit"
-                          disabled={mutation.isPending || mutation.isSuccess}
-                          className="absolute right-1 px-6 py-3 text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50"
-                        >
-                          {mutation.isPending
-                            ? "Sending..."
-                            : mutation.isSuccess
+                        {mutation.isPending
+                          ? "Sending..."
+                          : mutation.isSuccess
                             ? "Sent!"
                             : heroCTA.buttonLabel}
-                        </button>
-                      </div>
-                      {mutation.isSuccess && (
-                        <p className="text-green-600 mt-4 text-sm">
-                          Thanks! We'll be in touch soon.
+                      </button>
+                    </div>
+                    {mutation.isSuccess && (
+                      <p className="text-green-600 mt-4 text-sm">
+                        Thanks! We'll be in touch soon.
+                      </p>
+                    )}
+                    {mutation.isError && (
+                      <p className="text-red-600 mt-4 text-sm">
+                        {mutation.error instanceof Error
+                          ? mutation.error.message
+                          : "Something went wrong. Please try again."}
+                      </p>
+                    )}
+                    {!mutation.isSuccess &&
+                      !mutation.isError &&
+                      (heroCTA.subtextLink ? (
+                        <Link
+                          to={heroCTA.subtextLink}
+                          className="text-neutral-500 hover:text-neutral-700 hover:underline decoration-dotted mt-4 text-sm block transition-colors"
+                        >
+                          {heroCTA.subtext}
+                        </Link>
+                      ) : (
+                        <p className="text-neutral-500 mt-4 text-sm">
+                          {heroCTA.subtext}
                         </p>
-                      )}
-                      {mutation.isError && (
-                        <p className="text-red-600 mt-4 text-sm">
-                          {mutation.error instanceof Error
-                            ? mutation.error.message
-                            : "Something went wrong. Please try again."}
-                        </p>
-                      )}
-                      {!mutation.isSuccess && !mutation.isError && (
-                        heroCTA.subtextLink
-                          ? (
-                            <Link
-                              to={heroCTA.subtextLink}
-                              className="text-neutral-500 hover:text-neutral-700 hover:underline decoration-dotted mt-4 text-sm block transition-colors"
-                            >
-                              {heroCTA.subtext}
-                            </Link>
-                          )
-                          : (
-                            <p className="text-neutral-500 mt-4 text-sm">
-                              {heroCTA.subtext}
-                            </p>
-                          )
-                      )}
-                    </>
-                  )}
-                </form.Field>
-              </form>
-            )
-            : (
-              <div className="flex flex-col gap-4 items-center">
-                <DownloadButton />
-                {heroCTA.subtextLink
-                  ? (
-                    <Link
-                      to={heroCTA.subtextLink}
-                      className="text-neutral-500 hover:text-neutral-700 text-sm transition-colors"
-                    >
-                      {heroCTA.subtext}
-                    </Link>
-                  )
-                  : (
-                    <p className="text-neutral-500 text-sm">
-                      {heroCTA.subtext}
-                    </p>
-                  )}
-              </div>
-            )}
+                      ))}
+                  </>
+                )}
+              </form.Field>
+            </form>
+          ) : (
+            <div className="flex flex-col gap-4 items-center">
+              <DownloadButton />
+              {heroCTA.subtextLink ? (
+                <Link
+                  to={heroCTA.subtextLink}
+                  className="text-neutral-500 hover:text-neutral-700 text-sm transition-colors"
+                >
+                  {heroCTA.subtext}
+                </Link>
+              ) : (
+                <p className="text-neutral-500 text-sm">{heroCTA.subtext}</p>
+              )}
+            </div>
+          )}
         </section>
 
         <div className="relative aspect-video w-full max-w-4xl border-t border-neutral-100 md:hidden overflow-hidden">
@@ -418,17 +428,22 @@ function ValuePropsGrid() {
       <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
         <h3 className="font-medium mb-1 text-neutral-900 font-mono">Private</h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
-          Your notes stay local by default. Sync to a cloud only when you choose.
+          Your notes stay local by default. Sync to a cloud only when you
+          choose.
         </p>
       </div>
       <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">Effortless</h3>
+        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
+          Effortless
+        </h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
           A simple notepad that just works—fast, minimal, and distraction-free.
         </p>
       </div>
       <div className="p-6 text-left">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">Flexible</h3>
+        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
+          Flexible
+        </h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
           Use any STT or LLM. Local or cloud. No lock-ins, no forced stack.
         </p>
@@ -631,9 +646,13 @@ function FeaturesIntroSection() {
             className="size-24 rounded-3xl border border-neutral-100"
           />
         </div>
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">Works like charm</h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          Works like charm
+        </h2>
         <p className="text-neutral-600 max-w-lg mx-auto">
-          {"Super simple and easy to use with its clean interface. And it's getting better with every update — every single week."}
+          {
+            "Super simple and easy to use with its clean interface. And it's getting better with every update — every single week."
+          }
         </p>
       </div>
     </section>
@@ -653,7 +672,10 @@ function CoolStuffSection() {
         <div className="border-r border-neutral-100 flex flex-col">
           <div className="p-8 flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <Icon icon="mdi:robot-off-outline" className="text-3xl text-stone-600" />
+              <Icon
+                icon="mdi:robot-off-outline"
+                className="text-3xl text-stone-600"
+              />
               <h3 className="text-2xl font-serif text-stone-600">No bots</h3>
             </div>
             <p className="text-base text-neutral-600 leading-relaxed">
@@ -672,7 +694,9 @@ function CoolStuffSection() {
           <div className="p-8 flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <Icon icon="mdi:wifi-off" className="text-3xl text-stone-600" />
-              <h3 className="text-2xl font-serif text-stone-600">No internet</h3>
+              <h3 className="text-2xl font-serif text-stone-600">
+                No internet
+              </h3>
             </div>
             <p className="text-base text-neutral-600 leading-relaxed">
               Hyprnote is local-first. Take notes anywhere.
@@ -692,7 +716,10 @@ function CoolStuffSection() {
         <div className="border-b border-neutral-100">
           <div className="p-6">
             <div className="flex items-center gap-3 mb-3">
-              <Icon icon="mdi:robot-off-outline" className="text-2xl text-stone-600" />
+              <Icon
+                icon="mdi:robot-off-outline"
+                className="text-2xl text-stone-600"
+              />
               <h3 className="text-xl font-serif text-stone-600">No bots</h3>
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed mb-4">
@@ -796,7 +823,8 @@ function HowItWorksSection() {
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">
               <span className="font-semibold">While you take notes,</span>{" "}
-              Hyprnote listens and keeps track of everything that happens during the meeting.
+              Hyprnote listens and keeps track of everything that happens during
+              the meeting.
             </p>
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -808,11 +836,15 @@ function HowItWorksSection() {
                 <div className="text-neutral-700">a/b tst next wk</div>
                 <div className="text-neutral-700 mt-4">
                   {typedText1}
-                  {typedText1 && typedText1.length < text1.length && <span className="animate-pulse">|</span>}
+                  {typedText1 && typedText1.length < text1.length && (
+                    <span className="animate-pulse">|</span>
+                  )}
                 </div>
                 <div className="text-neutral-700">
                   {typedText2}
-                  {typedText2 && typedText2.length < text2.length && <span className="animate-pulse">|</span>}
+                  {typedText2 && typedText2.length < text2.length && (
+                    <span className="animate-pulse">|</span>
+                  )}
                 </div>
               </div>
             </MockWindow>
@@ -823,7 +855,8 @@ function HowItWorksSection() {
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">
               <span className="font-semibold">After the meeting is over,</span>{" "}
-              Hyprnote combines your notes with transcripts to create a perfect summary.
+              Hyprnote combines your notes with transcripts to create a perfect
+              summary.
             </p>
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -831,12 +864,10 @@ function HowItWorksSection() {
               <div className="p-6 space-y-4 h-[300px] overflow-hidden">
                 <div className="space-y-2">
                   <h4
-                    className={cn(
-                      [
-                        "text-lg font-semibold text-stone-700 transition-opacity duration-500",
-                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
-                      ],
-                    )}
+                    className={cn([
+                      "text-lg font-semibold text-stone-700 transition-opacity duration-500",
+                      enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                    ])}
                   >
                     Mobile UI Update and API Adjustments
                   </h4>
@@ -847,54 +878,59 @@ function HowItWorksSection() {
                         enhancedLines >= 1 ? "opacity-100" : "opacity-0",
                       )}
                     >
-                      Sarah presented the new mobile UI update, which includes a streamlined navigation bar and improved
-                      button placements for better accessibility.
+                      Sarah presented the new mobile UI update, which includes a
+                      streamlined navigation bar and improved button placements
+                      for better accessibility.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 2 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
-                      fetching personalized user data more efficiently.
+                      Ben confirmed that API adjustments are needed to support
+                      dynamic UI changes, particularly for fetching personalized
+                      user data more efficiently.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 3 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      The UI update will be implemented in phases, starting with core navigation improvements. Ben will
-                      ensure API modifications are completed before development begins.
+                      The UI update will be implemented in phases, starting with
+                      core navigation improvements. Ben will ensure API
+                      modifications are completed before development begins.
                     </li>
                   </ul>
                 </div>
                 <div className="space-y-2">
                   <h4
-                    className={cn(
-                      [
-                        "font-semibold text-stone-700 transition-opacity duration-500",
-                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
-                      ],
-                    )}
+                    className={cn([
+                      "font-semibold text-stone-700 transition-opacity duration-500",
+                      enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                    ])}
                   >
                     New Dashboard – Urgent Priority
                   </h4>
                   <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 4 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      Alice emphasized that the new analytics dashboard must be prioritized due to increasing
-                      stakeholder demand.
+                      Alice emphasized that the new analytics dashboard must be
+                      prioritized due to increasing stakeholder demand.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 5 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      The new dashboard will feature real-time user engagement metrics and a customizable reporting
-                      system.
+                      The new dashboard will feature real-time user engagement
+                      metrics and a customizable reporting system.
                     </li>
                   </ul>
                 </div>
@@ -909,7 +945,8 @@ function HowItWorksSection() {
           <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
               <span className="font-semibold">While you take notes,</span>{" "}
-              Hyprnote listens and keeps track of everything that happens during the meeting.
+              Hyprnote listens and keeps track of everything that happens during
+              the meeting.
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -921,11 +958,15 @@ function HowItWorksSection() {
                 <div className="text-neutral-700">a/b tst next wk</div>
                 <div className="text-neutral-700 mt-3">
                   {typedText1}
-                  {typedText1 && typedText1.length < text1.length && <span className="animate-pulse">|</span>}
+                  {typedText1 && typedText1.length < text1.length && (
+                    <span className="animate-pulse">|</span>
+                  )}
                 </div>
                 <div className="text-neutral-700">
                   {typedText2}
-                  {typedText2 && typedText2.length < text2.length && <span className="animate-pulse">|</span>}
+                  {typedText2 && typedText2.length < text2.length && (
+                    <span className="animate-pulse">|</span>
+                  )}
                 </div>
               </div>
             </MockWindow>
@@ -936,82 +977,99 @@ function HowItWorksSection() {
           <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
               <span className="font-semibold">After the meeting is over,</span>{" "}
-              Hyprnote combines your notes with transcripts to create a perfect summary.
+              Hyprnote combines your notes with transcripts to create a perfect
+              summary.
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
             <MockWindow variant="mobile">
               <div className="p-6 space-y-4 h-[200px] overflow-hidden">
                 <div className="space-y-2">
-                  <h4 className="text-lg font-semibold text-stone-700">Mobile UI Update and API Adjustments</h4>
+                  <h4 className="text-lg font-semibold text-stone-700">
+                    Mobile UI Update and API Adjustments
+                  </h4>
                   <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 1 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      Sarah presented the new mobile UI update, which includes a streamlined navigation bar and improved
-                      button placements for better accessibility.
+                      Sarah presented the new mobile UI update, which includes a
+                      streamlined navigation bar and improved button placements
+                      for better accessibility.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 2 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
-                      fetching personalized user data more efficiently.
+                      Ben confirmed that API adjustments are needed to support
+                      dynamic UI changes, particularly for fetching personalized
+                      user data more efficiently.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 3 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      The UI update will be implemented in phases, starting with core navigation improvements. Ben will
-                      ensure API modifications are completed before development begins.
+                      The UI update will be implemented in phases, starting with
+                      core navigation improvements. Ben will ensure API
+                      modifications are completed before development begins.
                     </li>
                   </ul>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-lg font-semibold text-stone-700">New Dashboard – Urgent Priority</h4>
+                  <h4 className="text-lg font-semibold text-stone-700">
+                    New Dashboard – Urgent Priority
+                  </h4>
                   <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 4 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      Alice emphasized that the new analytics dashboard must be prioritized due to increasing
-                      stakeholder demand.
+                      Alice emphasized that the new analytics dashboard must be
+                      prioritized due to increasing stakeholder demand.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 5 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      The new dashboard will feature real-time user engagement metrics and a customizable reporting
-                      system.
+                      The new dashboard will feature real-time user engagement
+                      metrics and a customizable reporting system.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 6 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      Ben mentioned that backend infrastructure needs optimization to handle real-time data processing.
+                      Ben mentioned that backend infrastructure needs
+                      optimization to handle real-time data processing.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 6 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      Mark stressed that the dashboard launch should align with marketing efforts to maximize user
-                      adoption.
+                      Mark stressed that the dashboard launch should align with
+                      marketing efforts to maximize user adoption.
                     </li>
                     <li
-                      className={cn(
-                        ["transition-opacity duration-500", enhancedLines >= 6 ? "opacity-100" : "opacity-0"],
-                      )}
+                      className={cn([
+                        "transition-opacity duration-500",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                      ])}
                     >
-                      Development will start immediately, and a basic prototype must be ready for stakeholder review
-                      next week.
+                      Development will start immediately, and a basic prototype
+                      must be ready for stakeholder review next week.
                     </li>
                   </ul>
                 </div>
@@ -1087,14 +1145,18 @@ function FeaturesMobileCarousel({
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
+                    <h3 className="text-lg font-serif text-stone-600">
+                      {feature.title}
+                    </h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
                         Coming Soon
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-600">{feature.description}</p>
+                  <p className="text-sm text-neutral-600">
+                    {feature.description}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1135,62 +1197,68 @@ function FeaturesDesktopGrid() {
   return (
     <div className="min-[800px]:grid hidden grid-cols-6">
       {mainFeatures.map((feature, index) => (
-        <div key={index} className={cn(gridClasses[index], "border-neutral-100 overflow-hidden flex flex-col")}>
+        <div
+          key={index}
+          className={cn(
+            gridClasses[index],
+            "border-neutral-100 overflow-hidden flex flex-col",
+          )}
+        >
           <div
             className={cn([
               "aspect-video border-b border-neutral-100 overflow-hidden relative group",
               feature.image && "bg-neutral-100",
             ])}
-            onMouseEnter={() =>
-              setHoveredFeature(index)}
-            onMouseLeave={() =>
-              setHoveredFeature(null)}
+            onMouseEnter={() => setHoveredFeature(index)}
+            onMouseLeave={() => setHoveredFeature(null)}
           >
-            {feature.image
-              ? (
-                <>
-                  <Image
-                    src={feature.image}
-                    alt={`${feature.title} feature`}
-                    className="w-full h-full object-contain"
-                  />
-                  {feature.link && (
-                    <div
+            {feature.image ? (
+              <>
+                <Image
+                  src={feature.image}
+                  alt={`${feature.title} feature`}
+                  className="w-full h-full object-contain"
+                />
+                {feature.link && (
+                  <div
+                    className={cn([
+                      "absolute bottom-0 left-0 right-0",
+                      "transition-all duration-300 ease-out",
+                      hoveredFeature === index
+                        ? "translate-y-0 opacity-100"
+                        : "translate-y-full opacity-0",
+                    ])}
+                  >
+                    <Link
+                      to={feature.link}
                       className={cn([
-                        "absolute bottom-0 left-0 right-0",
-                        "transition-all duration-300 ease-out",
-                        hoveredFeature === index ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
+                        "w-full py-4 text-xs font-mono cursor-pointer block text-center",
+                        "bg-stone-100/95 text-stone-800",
+                        "hover:bg-stone-200/95 active:bg-stone-400/95",
+                        "transition-all duration-150",
+                        "backdrop-blur-sm",
                       ])}
                     >
-                      <Link
-                        to={feature.link}
-                        className={cn([
-                          "w-full py-4 text-xs font-mono cursor-pointer block text-center",
-                          "bg-stone-100/95 text-stone-800",
-                          "hover:bg-stone-200/95 active:bg-stone-400/95",
-                          "transition-all duration-150",
-                          "backdrop-blur-sm",
-                        ])}
-                      >
-                        Learn more
-                      </Link>
-                    </div>
-                  )}
-                </>
-              )
-              : (
-                <img
-                  src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
-                  alt={`${feature.title} feature`}
-                  className="w-full h-full object-cover"
-                />
-              )}
+                      Learn more
+                    </Link>
+                  </div>
+                )}
+              </>
+            ) : (
+              <img
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+                alt={`${feature.title} feature`}
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
           <div className="p-6 flex-1">
             <div className="flex items-center justify-between gap-3 mb-2">
               <div className="flex items-center gap-3">
                 <Icon icon={feature.icon} className="text-2xl text-stone-600" />
-                <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
+                <h3 className="text-lg font-serif text-stone-600">
+                  {feature.title}
+                </h3>
               </div>
               {feature.comingSoon && (
                 <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
@@ -1238,9 +1306,12 @@ function DetailsSection({
 function DetailsSectionHeader() {
   return (
     <div className="text-center py-12 px-4 laptop:px-0">
-      <h2 className="text-3xl font-serif text-stone-600 mb-4">We focus on every bit of details</h2>
+      <h2 className="text-3xl font-serif text-stone-600 mb-4">
+        We focus on every bit of details
+      </h2>
       <p className="text-neutral-600 max-w-lg mx-auto">
-        From powerful editing to seamless organization, every feature is crafted with care
+        From powerful editing to seamless organization, every feature is crafted
+        with care
       </p>
     </div>
   );
@@ -1275,32 +1346,34 @@ function DetailsMobileCarousel({
             <div key={index} className="w-full shrink-0 snap-center">
               <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
                 <div className="aspect-video border-y border-neutral-100 overflow-hidden">
-                  {feature.image
-                    ? (
-                      <Image
-                        src={feature.image}
-                        alt={`${feature.title} feature`}
-                        className="w-full h-full object-contain"
-                      />
-                    )
-                    : (
-                      <img
-                        src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
-                        alt={`${feature.title} feature`}
-                        className="w-full h-full object-contain"
-                      />
-                    )}
+                  {feature.image ? (
+                    <Image
+                      src={feature.image}
+                      alt={`${feature.title} feature`}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <img
+                      src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+                      alt={`${feature.title} feature`}
+                      className="w-full h-full object-contain"
+                    />
+                  )}
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
+                    <h3 className="text-lg font-serif text-stone-600">
+                      {feature.title}
+                    </h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
                         Coming Soon
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-600">{feature.description}</p>
+                  <p className="text-sm text-neutral-600">
+                    {feature.description}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1343,25 +1416,27 @@ function DetailsTabletView({
               <button
                 key={index}
                 onClick={() => setSelectedDetail(index)}
-                className={cn(
-                  [
-                    "p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
-                    selectedDetail === index
-                      ? "bg-stone-50"
-                      : "hover:bg-neutral-50",
-                  ],
-                )}
+                className={cn([
+                  "p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
+                  selectedDetail === index
+                    ? "bg-stone-50"
+                    : "hover:bg-neutral-50",
+                ])}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <h3 className="text-base font-serif font-medium text-stone-600">{feature.title}</h3>
+                    <h3 className="text-base font-serif font-medium text-stone-600">
+                      {feature.title}
+                    </h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
                         Coming Soon
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-600">{feature.description}</p>
+                  <p className="text-sm text-neutral-600">
+                    {feature.description}
+                  </p>
                 </div>
               </button>
             ))}
@@ -1369,21 +1444,19 @@ function DetailsTabletView({
         </div>
 
         <div className="aspect-video">
-          {detailsFeatures[selectedDetail].image
-            ? (
-              <Image
-                src={detailsFeatures[selectedDetail].image}
-                alt={`${detailsFeatures[selectedDetail].title} feature`}
-                className="w-full h-full object-contain"
-              />
-            )
-            : (
-              <img
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
-                alt={`${detailsFeatures[selectedDetail].title} feature`}
-                className="w-full h-full object-contain"
-              />
-            )}
+          {detailsFeatures[selectedDetail].image ? (
+            <Image
+              src={detailsFeatures[selectedDetail].image}
+              alt={`${detailsFeatures[selectedDetail].title} feature`}
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <img
+              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+              alt={`${detailsFeatures[selectedDetail].title} feature`}
+              className="w-full h-full object-contain"
+            />
+          )}
         </div>
       </div>
     </div>
@@ -1393,30 +1466,42 @@ function DetailsTabletView({
 function DetailsDesktopView() {
   const [selectedDetail, setSelectedDetail] = useState<number>(0);
   const [hoveredDetail, setHoveredDetail] = useState<number | null>(null);
-  const selectedFeature = selectedDetail !== null ? detailsFeatures[selectedDetail] : null;
+  const selectedFeature =
+    selectedDetail !== null ? detailsFeatures[selectedDetail] : null;
 
   return (
     <div className="min-[1200px]:grid hidden grid-cols-2 border-t border-neutral-100">
-      <div className="border-r border-neutral-100 relative overflow-hidden" style={{ paddingBottom: "56.25%" }}>
+      <div
+        className="border-r border-neutral-100 relative overflow-hidden"
+        style={{ paddingBottom: "56.25%" }}
+      >
         <div className="absolute inset-0 overflow-y-auto">
           {detailsFeatures.map((feature, index) => (
             <div
               key={index}
               onClick={() => setSelectedDetail(index)}
-              className={cn(
-                [
-                  "p-6 cursor-pointer transition-colors",
-                  index < detailsFeatures.length - 1 && "border-b border-neutral-100",
-                  selectedDetail === index ? "bg-stone-50" : "hover:bg-neutral-50",
-                ],
-              )}
+              className={cn([
+                "p-6 cursor-pointer transition-colors",
+                index < detailsFeatures.length - 1 &&
+                  "border-b border-neutral-100",
+                selectedDetail === index
+                  ? "bg-stone-50"
+                  : "hover:bg-neutral-50",
+              ])}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <Icon icon={feature.icon} className="text-2xl text-stone-600 mt-0.5" />
+                  <Icon
+                    icon={feature.icon}
+                    className="text-2xl text-stone-600 mt-0.5"
+                  />
                   <div>
-                    <h3 className="text-base font-serif font-medium text-stone-600 mb-1">{feature.title}</h3>
-                    <p className="text-sm text-neutral-600">{feature.description}</p>
+                    <h3 className="text-base font-serif font-medium text-stone-600 mb-1">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-neutral-600">
+                      {feature.description}
+                    </p>
                   </div>
                 </div>
                 {feature.comingSoon && (
@@ -1435,49 +1520,46 @@ function DetailsDesktopView() {
         onMouseEnter={() => setHoveredDetail(selectedDetail)}
         onMouseLeave={() => setHoveredDetail(null)}
       >
-        {selectedFeature && (
-          selectedFeature.image
-            ? (
-              <>
-                <Image
-                  src={selectedFeature.image}
-                  alt={`${selectedFeature.title} feature`}
-                  className="w-full h-full object-contain"
-                />
-                {selectedFeature.link && (
-                  <div
-                    className={cn(
-                      [
-                        "absolute bottom-0 left-0 right-0",
-                        "transition-all duration-300 ease-out",
-                        hoveredDetail === selectedDetail ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-                      ],
-                    )}
-                  >
-                    <Link
-                      to={selectedFeature.link}
-                      className={cn([
-                        "w-full py-4 text-xs font-mono cursor-pointer block text-center",
-                        "bg-stone-100/95 text-stone-800",
-                        "hover:bg-stone-200/95 active:bg-stone-400/95",
-                        "transition-all duration-150",
-                        "backdrop-blur-sm",
-                      ])}
-                    >
-                      Learn more
-                    </Link>
-                  </div>
-                )}
-              </>
-            )
-            : (
-              <img
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+        {selectedFeature &&
+          (selectedFeature.image ? (
+            <>
+              <Image
+                src={selectedFeature.image}
                 alt={`${selectedFeature.title} feature`}
                 className="w-full h-full object-contain"
               />
-            )
-        )}
+              {selectedFeature.link && (
+                <div
+                  className={cn([
+                    "absolute bottom-0 left-0 right-0",
+                    "transition-all duration-300 ease-out",
+                    hoveredDetail === selectedDetail
+                      ? "translate-y-0 opacity-100"
+                      : "translate-y-full opacity-0",
+                  ])}
+                >
+                  <Link
+                    to={selectedFeature.link}
+                    className={cn([
+                      "w-full py-4 text-xs font-mono cursor-pointer block text-center",
+                      "bg-stone-100/95 text-stone-800",
+                      "hover:bg-stone-200/95 active:bg-stone-400/95",
+                      "transition-all duration-150",
+                      "backdrop-blur-sm",
+                    ])}
+                  >
+                    Learn more
+                  </Link>
+                </div>
+              )}
+            </>
+          ) : (
+            <img
+              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+              alt={`${selectedFeature.title} feature`}
+              className="w-full h-full object-contain"
+            />
+          ))}
       </div>
     </div>
   );
@@ -1501,20 +1583,27 @@ function ManifestoSection() {
                 "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/paper.png)",
             }}
           >
-            <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">Our manifesto</h2>
+            <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">
+              Our manifesto
+            </h2>
 
             <div className="space-y-4 text-neutral-700 leading-relaxed">
               <p>
-                We believe in the power of notetaking, not notetakers. Meetings should be moments of presence, not
-                passive attendance. If you are not added value, your time is better spent elsewhere for you and your
-                team.
+                We believe in the power of notetaking, not notetakers. Meetings
+                should be moments of presence, not passive attendance. If you
+                are not added value, your time is better spent elsewhere for you
+                and your team.
               </p>
               <p>
-                Hyprnote exists to preserve what makes us human: conversations that spark ideas, collaborations that
-                move work forward. We build tools that amplify human agency, not replace it. No ghost bots. No silent
-                note lurkers. Just people, thinking together.
+                Hyprnote exists to preserve what makes us human: conversations
+                that spark ideas, collaborations that move work forward. We
+                build tools that amplify human agency, not replace it. No ghost
+                bots. No silent note lurkers. Just people, thinking together.
               </p>
-              <p>We stand with those who value real connection and purposeful collaboration.</p>
+              <p>
+                We stand with those who value real connection and purposeful
+                collaboration.
+              </p>
             </div>
 
             <div className="flex gap-2 mt-12 mb-4">
@@ -1536,8 +1625,12 @@ function ManifestoSection() {
 
             <div className="space-y-4">
               <div>
-                <p className="text-base text-neutral-600 font-medium italic font-serif">Hyprnote</p>
-                <p className="text-sm text-neutral-500">John Jeong, Yujong Lee</p>
+                <p className="text-base text-neutral-600 font-medium italic font-serif">
+                  Hyprnote
+                </p>
+                <p className="text-sm text-neutral-500">
+                  John Jeong, Yujong Lee
+                </p>
               </div>
 
               <div>
@@ -1574,7 +1667,9 @@ function BlogSection() {
   return (
     <section className="border-t border-neutral-100 py-16">
       <div className="text-center mb-12 px-4">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">Latest from our blog</h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          Latest from our blog
+        </h2>
         <p className="text-neutral-600 max-w-lg mx-auto">
           Insights, updates, and stories from the Hyprnote team
         </p>
@@ -1610,7 +1705,10 @@ function BlogSection() {
                   </p>
 
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
-                    <time dateTime={article.updated} className="text-xs text-neutral-500">
+                    <time
+                      dateTime={article.updated}
+                      className="text-xs text-neutral-500"
+                    >
                       {new Date(article.updated).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -1643,7 +1741,11 @@ function BlogSection() {
             stroke="currentColor"
             className="h-4 w-4"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+            />
           </svg>
         </Link>
       </div>
@@ -1651,7 +1753,11 @@ function BlogSection() {
   );
 }
 
-function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputElement | null> }) {
+function CTASection({
+  heroInputRef,
+}: {
+  heroInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
   const platform = usePlatform();
   const platformCTA = getPlatformCTA(platform);
 
@@ -1668,9 +1774,15 @@ function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputE
       setTimeout(() => {
         if (heroInputRef.current) {
           heroInputRef.current.focus();
-          heroInputRef.current.parentElement?.classList.add("animate-shake", "border-stone-600");
+          heroInputRef.current.parentElement?.classList.add(
+            "animate-shake",
+            "border-stone-600",
+          );
           setTimeout(() => {
-            heroInputRef.current?.parentElement?.classList.remove("animate-shake", "border-stone-600");
+            heroInputRef.current?.parentElement?.classList.remove(
+              "animate-shake",
+              "border-stone-600",
+            );
           }, 500);
         }
       }, 500);
@@ -1690,13 +1802,17 @@ function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputE
           />
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif">
-          Where conversations<br className="sm:hidden" /> stay yours
+          Where conversations
+          <br className="sm:hidden" /> stay yours
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Start using Hyprnote today and bring clarity to your back-to-back meetings
+          Start using Hyprnote today and bring clarity to your back-to-back
+          meetings
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
-          {platformCTA.action === "download" ? <DownloadButton /> : (
+          {platformCTA.action === "download" ? (
+            <DownloadButton />
+          ) : (
             <button
               onClick={handleCTAClick}
               className={cn([

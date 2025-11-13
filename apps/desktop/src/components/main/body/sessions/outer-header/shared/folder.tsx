@@ -18,9 +18,18 @@ import {
 
 import * as main from "../../../../../../store/tinybase/main";
 
-export function SearchableFolderDropdown({ sessionId, trigger }: { sessionId: string; trigger: ReactNode }) {
+export function SearchableFolderDropdown({
+  sessionId,
+  trigger,
+}: {
+  sessionId: string;
+  trigger: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
-  const folders = main.UI.useResultTable(main.QUERIES.visibleFolders, main.STORE_ID);
+  const folders = main.UI.useResultTable(
+    main.QUERIES.visibleFolders,
+    main.STORE_ID,
+  );
 
   const handleSelectFolder = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -34,18 +43,33 @@ export function SearchableFolderDropdown({ sessionId, trigger }: { sessionId: st
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[200px] p-0">
-        {Object.keys(folders).length
-          ? <SearchableFolderContent folders={folders} onSelectFolder={handleSelectFolder} setOpen={setOpen} />
-          : <div className="py-6 text-center text-sm text-muted-foreground">No folders available</div>}
+        {Object.keys(folders).length ? (
+          <SearchableFolderContent
+            folders={folders}
+            onSelectFolder={handleSelectFolder}
+            setOpen={setOpen}
+          />
+        ) : (
+          <div className="py-6 text-center text-sm text-muted-foreground">
+            No folders available
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-export function SearchableFolderSubmenuContent(
-  { sessionId, setOpen }: { sessionId: string; setOpen?: (open: boolean) => void },
-) {
-  const folders = main.UI.useResultTable(main.QUERIES.visibleFolders, main.STORE_ID);
+export function SearchableFolderSubmenuContent({
+  sessionId,
+  setOpen,
+}: {
+  sessionId: string;
+  setOpen?: (open: boolean) => void;
+}) {
+  const folders = main.UI.useResultTable(
+    main.QUERIES.visibleFolders,
+    main.STORE_ID,
+  );
 
   const handleSelectFolder = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -57,14 +81,26 @@ export function SearchableFolderSubmenuContent(
 
   return (
     <DropdownMenuSubContent className="w-[200px] p-0">
-      {Object.keys(folders).length
-        ? <SearchableFolderContent folders={folders} onSelectFolder={handleSelectFolder} setOpen={setOpen} />
-        : <div className="py-6 text-center text-sm text-muted-foreground">No folders available</div>}
+      {Object.keys(folders).length ? (
+        <SearchableFolderContent
+          folders={folders}
+          onSelectFolder={handleSelectFolder}
+          setOpen={setOpen}
+        />
+      ) : (
+        <div className="py-6 text-center text-sm text-muted-foreground">
+          No folders available
+        </div>
+      )}
     </DropdownMenuSubContent>
   );
 }
 
-function SearchableFolderContent({ folders, onSelectFolder, setOpen }: {
+function SearchableFolderContent({
+  folders,
+  onSelectFolder,
+  setOpen,
+}: {
   folders: Record<string, any>;
   onSelectFolder: (folderId: string) => void;
   setOpen?: (open: boolean) => void;

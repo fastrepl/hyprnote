@@ -5,46 +5,47 @@ import NoteEditor from "@hypr/tiptap/editor";
 
 import * as main from "../../../../../../store/tinybase/main";
 
-export const EnhancedEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId: string }>(
-  ({ sessionId }, ref) => {
-    const store = main.UI.useStore(main.STORE_ID);
-    const [initialContent, setInitialContent] = useState<string>("");
+export const EnhancedEditor = forwardRef<
+  { editor: TiptapEditor | null },
+  { sessionId: string }
+>(({ sessionId }, ref) => {
+  const store = main.UI.useStore(main.STORE_ID);
+  const [initialContent, setInitialContent] = useState<string>("");
 
-    useEffect(() => {
-      if (store) {
-        const value = store.getCell("sessions", sessionId, "enhanced_md");
-        setInitialContent((value as string) || "");
-      }
-    }, [store, sessionId]);
+  useEffect(() => {
+    if (store) {
+      const value = store.getCell("sessions", sessionId, "enhanced_md");
+      setInitialContent((value as string) || "");
+    }
+  }, [store, sessionId]);
 
-    const handleChange = main.UI.useSetPartialRowCallback(
-      "sessions",
-      sessionId,
-      (input: string) => ({ enhanced_md: input }),
-      [],
-      main.STORE_ID,
-    );
+  const handleChange = main.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: string) => ({ enhanced_md: input }),
+    [],
+    main.STORE_ID,
+  );
 
-    const mentionConfig = useMemo(
-      () => ({
-        trigger: "@",
-        handleSearch: async () => {
-          return [];
-        },
-      }),
-      [],
-    );
+  const mentionConfig = useMemo(
+    () => ({
+      trigger: "@",
+      handleSearch: async () => {
+        return [];
+      },
+    }),
+    [],
+  );
 
-    return (
-      <div className="h-full">
-        <NoteEditor
-          ref={ref}
-          key={`session-${sessionId}-enhanced`}
-          initialContent={initialContent}
-          handleChange={handleChange}
-          mentionConfig={mentionConfig}
-        />
-      </div>
-    );
-  },
-);
+  return (
+    <div className="h-full">
+      <NoteEditor
+        ref={ref}
+        key={`session-${sessionId}-enhanced`}
+        initialContent={initialContent}
+        handleChange={handleChange}
+        mentionConfig={mentionConfig}
+      />
+    </div>
+  );
+});

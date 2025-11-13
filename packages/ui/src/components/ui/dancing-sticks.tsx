@@ -4,7 +4,7 @@ import { useMemo } from "react";
 const getRandomValues = (max: number, length: number, baseLength: number) => {
   const values: number[] = [];
   for (let i = 0; i < length - 1; i++) {
-    values.push((Math.random() * max - max / 2) + (baseLength / 100) * max);
+    values.push(Math.random() * max - max / 2 + (baseLength / 100) * max);
   }
   values.push(values[0]);
   return values;
@@ -18,7 +18,13 @@ type EqualizerStickProps = {
   stickWidth: number;
 };
 
-function EqualizerStick({ baseLength, amplitude, color, height, stickWidth }: EqualizerStickProps) {
+function EqualizerStick({
+  baseLength,
+  amplitude,
+  color,
+  height,
+  stickWidth,
+}: EqualizerStickProps) {
   const scaledBaseLength = baseLength * Math.max(0.2, Math.max(amplitude, 0.1));
 
   const animationHeights = useMemo(

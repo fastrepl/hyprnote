@@ -20,7 +20,9 @@ type GithubIssue = z.infer<typeof issueSchema>;
 const sync = createSync({
   description: `Fetches the Github issues from all a user's repositories.`,
   version: "1.0.0",
-  endpoints: [{ method: "GET", path: "/example/github/issues", group: "Issues" }],
+  endpoints: [
+    { method: "GET", path: "/example/github/issues", group: "Issues" },
+  ],
   frequency: "every hour",
   autoStart: true,
   syncType: "full",
@@ -60,7 +62,9 @@ const sync = createSync({
 
         if (mappedIssues.length > 0) {
           await nango.batchSave(mappedIssues, "GithubIssue");
-          await nango.log(`Sent ${mappedIssues.length} issues from ${repo.owner.login}/${repo.name}`);
+          await nango.log(
+            `Sent ${mappedIssues.length} issues from ${repo.owner.login}/${repo.name}`,
+          );
         }
       }
     }

@@ -54,8 +54,9 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   }, [hasTranscript, model, enhanceTask.status, enhanceTask.start, sessionId]);
 
   useEffect(() => {
-    const listenerJustStopped = prevListenerStatus === "running_active"
-      && listenerStatus !== "running_active";
+    const listenerJustStopped =
+      prevListenerStatus === "running_active" &&
+      listenerStatus !== "running_active";
 
     if (listenerJustStopped) {
       startEnhance();

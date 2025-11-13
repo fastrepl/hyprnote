@@ -1,9 +1,16 @@
-import { CircleMinus, CornerDownLeft, Linkedin, MailIcon, SearchIcon } from "lucide-react";
+import {
+  CircleMinus,
+  CornerDownLeft,
+  Linkedin,
+  MailIcon,
+  SearchIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/shallow";
 
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { cn } from "@hypr/utils";
+
 import * as main from "../../../../../../store/tinybase/main";
 import { useTabs } from "../../../../../../store/zustand/tabs";
 
@@ -34,7 +41,12 @@ function createHuman(store: any, userId: string, name: string) {
   return humanId;
 }
 
-function linkHumanToSession(store: any, userId: string, sessionId: string, humanId: string) {
+function linkHumanToSession(
+  store: any,
+  userId: string,
+  sessionId: string,
+  humanId: string,
+) {
   const mappingId = crypto.randomUUID();
   store.setRow("mapping_session_participant", mappingId, {
     user_id: userId,
@@ -44,7 +56,12 @@ function linkHumanToSession(store: any, userId: string, sessionId: string, human
   });
 }
 
-function createAndLinkHuman(store: any, userId: string, sessionId: string, name: string) {
+function createAndLinkHuman(
+  store: any,
+  userId: string,
+  sessionId: string,
+  name: string,
+) {
   const humanId = createHuman(store, userId, name);
   linkHumanToSession(store, userId, sessionId, humanId);
   return humanId;
@@ -78,7 +95,9 @@ export function ParticipantsDisplay({ sessionId }: { sessionId: string }) {
               {orgName ?? "No organization"}
             </div>
             <div className="flex flex-col rounded-md overflow-hidden bg-neutral-50 border border-neutral-100">
-              {mappingIds.map((mappingId) => <ParticipantItem key={mappingId} mappingId={mappingId} />)}
+              {mappingIds.map((mappingId) => (
+                <ParticipantItem key={mappingId} mappingId={mappingId} />
+              ))}
             </div>
           </div>
         ))}
@@ -104,7 +123,11 @@ function useGroupedParticipants(sessionId: string) {
 
     const participantsByOrg: Record<
       string,
-      { mappingId: string; orgId: string | undefined; orgName: string | undefined }[]
+      {
+        mappingId: string;
+        orgId: string | undefined;
+        orgName: string | undefined;
+      }[]
     > = {};
 
     for (const mappingId of mappingIds) {
@@ -162,7 +185,8 @@ function useParticipantDetails(mappingId: string) {
     humanName: (result.human_name as string) || "",
     humanEmail: (result.human_email as string | undefined) || undefined,
     humanJobTitle: (result.human_job_title as string | undefined) || undefined,
-    humanLinkedinUsername: (result.human_linkedin_username as string | undefined) || undefined,
+    humanLinkedinUsername:
+      (result.human_linkedin_username as string | undefined) || undefined,
     humanIsUser: result.human_is_user as boolean,
     orgId: (result.org_id as string | undefined) || undefined,
     orgName: result.org_name as string | undefined,
@@ -171,15 +195,16 @@ function useParticipantDetails(mappingId: string) {
 }
 
 function parseHumanIdFromHintValue(value: unknown): string | undefined {
-  const data = typeof value === "string"
-    ? (() => {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return undefined;
-      }
-    })()
-    : value;
+  const data =
+    typeof value === "string"
+      ? (() => {
+          try {
+            return JSON.parse(value);
+          } catch {
+            return undefined;
+          }
+        })()
+      : value;
 
   if (data && typeof data === "object" && "human_id" in data) {
     const humanId = (data as Record<string, unknown>).human_id;
@@ -209,7 +234,9 @@ function useRemoveParticipant({
       const hintIdsToDelete: string[] = [];
 
       store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
-        const hint = store.getRow("speaker_hints", hintId) as main.SpeakerHintStorage | undefined;
+        const hint = store.getRow("speaker_hints", hintId) as
+          | main.SpeakerHintStorage
+          | undefined;
         if (!hint || hint.type !== "user_speaker_assignment") {
           return;
         }
@@ -219,7 +246,9 @@ function useRemoveParticipant({
           return;
         }
 
-        const transcript = store.getRow("transcripts", transcriptId) as main.Transcript | undefined;
+        const transcript = store.getRow("transcripts", transcriptId) as
+          | main.Transcript
+          | undefined;
         if (!transcript || transcript.session_id !== sessionId) {
           return;
         }
@@ -254,24 +283,40 @@ function ParticipantItem({ mappingId }: { mappingId: string }) {
   const assignedHumanId = details?.humanId;
   const sessionId = details?.sessionId;
 
-  const handleRemove = useRemoveParticipant({ mappingId, assignedHumanId, sessionId });
+  const handleRemove = useRemoveParticipant({
+    mappingId,
+    assignedHumanId,
+    sessionId,
+  });
 
-  const handleOpenContact = useCallback((humanId: string) => {
-    const existingContactsTab = tabs.find((tab) => tab.type === "contacts");
+  const handleOpenContact = useCallback(
+    (humanId: string) => {
+      const existingContactsTab = tabs.find((tab) => tab.type === "contacts");
 
-    if (existingContactsTab) {
-      updateContactsTabState(existingContactsTab, { selectedPerson: humanId, selectedOrganization: null });
-      select(existingContactsTab);
-    } else {
-      openNew({ type: "contacts", state: { selectedPerson: humanId } });
-    }
-  }, [tabs, updateContactsTabState, select, openNew]);
+      if (existingContactsTab) {
+        updateContactsTabState(existingContactsTab, {
+          selectedPerson: humanId,
+          selectedOrganization: null,
+        });
+        select(existingContactsTab);
+      } else {
+        openNew({ type: "contacts", state: { selectedPerson: humanId } });
+      }
+    },
+    [tabs, updateContactsTabState, select, openNew],
+  );
 
   if (!details) {
     return null;
   }
 
-  const { humanId, humanName, humanEmail, humanJobTitle, humanLinkedinUsername } = details;
+  const {
+    humanId,
+    humanName,
+    humanEmail,
+    humanJobTitle,
+    humanLinkedinUsername,
+  } = details;
 
   return (
     <div
@@ -320,17 +365,15 @@ function ParticipantItem({ mappingId }: { mappingId: string }) {
           </div>
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          {humanName
-            ? (
-              <span className="text-sm font-medium text-neutral-700 truncate">
-                {humanName}
-              </span>
-            )
-            : (
-              <span className="text-sm font-medium text-neutral-400">
-                {humanId === userId ? "You" : "Unknown"}
-              </span>
-            )}
+          {humanName ? (
+            <span className="text-sm font-medium text-neutral-700 truncate">
+              {humanName}
+            </span>
+          ) : (
+            <span className="text-sm font-medium text-neutral-400">
+              {humanId === userId ? "You" : "Unknown"}
+            </span>
+          )}
           {humanJobTitle && (
             <span className="text-xs text-neutral-400 truncate">
               {humanJobTitle}
@@ -356,9 +399,9 @@ function ParticipantItem({ mappingId }: { mappingId: string }) {
             href={(() => {
               const username = humanLinkedinUsername;
               if (
-                username.startsWith("https://")
-                || username.startsWith("www.linkedin.com")
-                || username.startsWith("linkedin.com")
+                username.startsWith("https://") ||
+                username.startsWith("www.linkedin.com") ||
+                username.startsWith("linkedin.com")
               ) {
                 return username;
               }
@@ -392,14 +435,17 @@ function ParticipantAddControl({ sessionId }: { sessionId: string }) {
     }
   }, []);
 
-  const handleCreateNew = useCallback((name: string) => {
-    if (!store || !userId) {
-      return;
-    }
+  const handleCreateNew = useCallback(
+    (name: string) => {
+      if (!store || !userId) {
+        return;
+      }
 
-    createAndLinkHuman(store, userId, sessionId, name);
-    setSearchInput("");
-  }, [store, userId, sessionId]);
+      createAndLinkHuman(store, userId, sessionId, name);
+      setSearchInput("");
+    },
+    [store, userId, sessionId],
+  );
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -497,10 +543,14 @@ function useParticipantCandidateKeyboardNav({
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        onSelectedIndexChange(selectedIndex < totalItems - 1 ? selectedIndex + 1 : 0);
+        onSelectedIndexChange(
+          selectedIndex < totalItems - 1 ? selectedIndex + 1 : 0,
+        );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        onSelectedIndexChange(selectedIndex > 0 ? selectedIndex - 1 : totalItems - 1);
+        onSelectedIndexChange(
+          selectedIndex > 0 ? selectedIndex - 1 : totalItems - 1,
+        );
       } else if (e.key === "Enter" && selectedIndex >= 0) {
         e.preventDefault();
         if (selectedIndex < candidateCount) {
@@ -649,14 +699,17 @@ function ParticipantCandidates({
     onMutation();
   }, [store, userId, sessionId, query, onMutation]);
 
-  const handleSelectCandidate = useCallback((candidateId: string) => {
-    if (!store || !userId) {
-      return;
-    }
+  const handleSelectCandidate = useCallback(
+    (candidateId: string) => {
+      if (!store || !userId) {
+        return;
+      }
 
-    linkHumanToSession(store, userId, sessionId, candidateId);
-    onMutation();
-  }, [store, userId, sessionId, onMutation]);
+      linkHumanToSession(store, userId, sessionId, candidateId);
+      onMutation();
+    },
+    [store, userId, sessionId, onMutation],
+  );
 
   if (!query) {
     return null;
@@ -664,20 +717,25 @@ function ParticipantCandidates({
 
   return (
     <div className="flex flex-col w-full rounded border border-neutral-200 overflow-hidden">
-      {candidates.map((candidate: {
-        id: string;
-        name: string;
-        email: string;
-        orgId: string | undefined;
-        jobTitle: string | undefined;
-      }, index: number) => (
-        <ParticipantCandidate
-          key={candidate.id}
-          candidate={candidate}
-          isSelected={selectedIndex === index}
-          onSelect={() => handleSelectCandidate(candidate.id)}
-        />
-      ))}
+      {candidates.map(
+        (
+          candidate: {
+            id: string;
+            name: string;
+            email: string;
+            orgId: string | undefined;
+            jobTitle: string | undefined;
+          },
+          index: number,
+        ) => (
+          <ParticipantCandidate
+            key={candidate.id}
+            candidate={candidate}
+            isSelected={selectedIndex === index}
+            onSelect={() => handleSelectCandidate(candidate.id)}
+          />
+        ),
+      )}
 
       {hasCreateOption && (
         <button
@@ -693,7 +751,9 @@ function ParticipantCandidates({
           </span>
           <span className="flex items-center gap-1 font-medium text-neutral-600">
             Create
-            <span className="text-neutral-900 truncate max-w-[140px]">&quot;{query}&quot;</span>
+            <span className="text-neutral-900 truncate max-w-[140px]">
+              &quot;{query}&quot;
+            </span>
           </span>
         </button>
       )}
@@ -730,9 +790,13 @@ function ParticipantCandidate({
       onClick={onSelect}
     >
       <span className="flex-shrink-0 size-5 flex items-center justify-center mr-2 bg-neutral-100 rounded-full">
-        <span className="text-xs">{candidate.name ? getInitials(candidate.name) : "?"}</span>
+        <span className="text-xs">
+          {candidate.name ? getInitials(candidate.name) : "?"}
+        </span>
       </span>
-      <span className="font-medium truncate max-w-[180px]">{candidate.name}</span>
+      <span className="font-medium truncate max-w-[180px]">
+        {candidate.name}
+      </span>
 
       <div className="flex gap-0 items-center justify-between flex-1 min-w-0">
         {org?.name && (

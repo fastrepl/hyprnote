@@ -12,36 +12,40 @@ export type EditorView = z.infer<typeof editorViewSchema>;
 
 export const tabSchema = z.discriminatedUnion("type", [
   baseTabSchema.extend({
-    type: z.literal("sessions" satisfies typeof TABLES[number]),
+    type: z.literal("sessions" satisfies (typeof TABLES)[number]),
     id: z.string(),
-    state: z.object({
-      editor: editorViewSchema.optional(),
-    }).default({}),
+    state: z
+      .object({
+        editor: editorViewSchema.optional(),
+      })
+      .default({}),
   }),
   baseTabSchema.extend({
     type: z.literal("contacts"),
-    state: z.object({
-      selectedOrganization: z.string().nullable().default(null),
-      selectedPerson: z.string().nullable().default(null),
-    }).default({
-      selectedOrganization: null,
-      selectedPerson: null,
-    }),
+    state: z
+      .object({
+        selectedOrganization: z.string().nullable().default(null),
+        selectedPerson: z.string().nullable().default(null),
+      })
+      .default({
+        selectedOrganization: null,
+        selectedPerson: null,
+      }),
   }),
   baseTabSchema.extend({
-    type: z.literal("events" satisfies typeof TABLES[number]),
+    type: z.literal("events" satisfies (typeof TABLES)[number]),
     id: z.string(),
   }),
   baseTabSchema.extend({
-    type: z.literal("humans" satisfies typeof TABLES[number]),
+    type: z.literal("humans" satisfies (typeof TABLES)[number]),
     id: z.string(),
   }),
   baseTabSchema.extend({
-    type: z.literal("organizations" satisfies typeof TABLES[number]),
+    type: z.literal("organizations" satisfies (typeof TABLES)[number]),
     id: z.string(),
   }),
   baseTabSchema.extend({
-    type: z.literal("folders" satisfies typeof TABLES[number]),
+    type: z.literal("folders" satisfies (typeof TABLES)[number]),
     id: z.string().nullable(),
   }),
 
@@ -57,8 +61,18 @@ export const tabSchema = z.discriminatedUnion("type", [
 export type Tab = z.infer<typeof tabSchema>;
 
 export type TabInput =
-  | { type: "sessions"; id: string; state?: { editor?: "raw" | "enhanced" | "transcript" } }
-  | { type: "contacts"; state?: { selectedOrganization?: string | null; selectedPerson?: string | null } }
+  | {
+      type: "sessions";
+      id: string;
+      state?: { editor?: "raw" | "enhanced" | "transcript" };
+    }
+  | {
+      type: "contacts";
+      state?: {
+        selectedOrganization?: string | null;
+        selectedPerson?: string | null;
+      };
+    }
   | { type: "events"; id: string }
   | { type: "humans"; id: string }
   | { type: "organizations"; id: string }

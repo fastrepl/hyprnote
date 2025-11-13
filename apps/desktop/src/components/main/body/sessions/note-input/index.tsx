@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
-import { useHotkeys } from "react-hotkeys-hook";
+
 import { useListener } from "../../../../../contexts/listener";
 import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
 import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
@@ -14,7 +15,11 @@ import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
-export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+export function NoteInput({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
@@ -67,12 +72,20 @@ export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) 
         onClick={handleContainerClick}
         className={cn([
           "flex-1 mt-2 px-3",
-          currentTab === "transcript" ? "overflow-hidden" : ["overflow-auto", "pb-6"],
+          currentTab === "transcript"
+            ? "overflow-hidden"
+            : ["overflow-auto", "pb-6"],
         ])}
       >
-        {currentTab === "enhanced" && <Enhanced ref={editorRef} sessionId={sessionId} />}
-        {currentTab === "raw" && <RawEditor ref={editorRef} sessionId={sessionId} />}
-        {currentTab === "transcript" && <Transcript sessionId={sessionId} isEditing={isEditing} />}
+        {currentTab === "enhanced" && (
+          <Enhanced ref={editorRef} sessionId={sessionId} />
+        )}
+        {currentTab === "raw" && (
+          <RawEditor ref={editorRef} sessionId={sessionId} />
+        )}
+        {currentTab === "transcript" && (
+          <Transcript sessionId={sessionId} isEditing={isEditing} />
+        )}
       </div>
     </div>
   );
@@ -87,18 +100,25 @@ function useTabShortcuts({
   currentTab: EditorView;
   handleTabChange: (view: EditorView) => void;
 }) {
-  const switchToTab = useCallback((targetTab: EditorView) => {
-    if (editorTabs.includes(targetTab) && currentTab !== targetTab) {
-      handleTabChange(targetTab);
-    }
-  }, [currentTab, editorTabs, handleTabChange]);
+  const switchToTab = useCallback(
+    (targetTab: EditorView) => {
+      if (editorTabs.includes(targetTab) && currentTab !== targetTab) {
+        handleTabChange(targetTab);
+      }
+    },
+    [currentTab, editorTabs, handleTabChange],
+  );
 
   useHotkeys(
     "alt+s",
     () => {
       switchToTab("enhanced");
     },
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [switchToTab],
   );
 
@@ -107,7 +127,11 @@ function useTabShortcuts({
     () => {
       switchToTab("raw");
     },
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [switchToTab],
   );
 
@@ -116,7 +140,11 @@ function useTabShortcuts({
     () => {
       switchToTab("transcript");
     },
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [switchToTab],
   );
 }

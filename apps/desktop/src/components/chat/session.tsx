@@ -34,16 +34,18 @@ export function ChatSession({
 
   const createChatMessage = main.UI.useSetRowCallback(
     "chat_messages",
-    (p: Omit<main.ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
-    (p: Omit<main.ChatMessage, "user_id" | "created_at"> & { id: string }) => ({
-      user_id,
-      chat_group_id: p.chat_group_id,
-      content: p.content,
-      created_at: new Date().toISOString(),
-      role: p.role,
-      metadata: JSON.stringify(p.metadata),
-      parts: JSON.stringify(p.parts),
-    } satisfies main.ChatMessageStorage),
+    (p: Omit<main.ChatMessage, "user_id" | "created_at"> & { id: string }) =>
+      p.id,
+    (p: Omit<main.ChatMessage, "user_id" | "created_at"> & { id: string }) =>
+      ({
+        user_id,
+        chat_group_id: p.chat_group_id,
+        content: p.content,
+        created_at: new Date().toISOString(),
+        role: p.role,
+        metadata: JSON.stringify(p.metadata),
+        parts: JSON.stringify(p.parts),
+      }) satisfies main.ChatMessageStorage,
     [user_id],
     main.STORE_ID,
   );
@@ -78,11 +80,15 @@ export function ChatSession({
     return initialMessages.filter((message) => message.role === "assistant");
   }, [initialMessages]);
 
-  const persistedAssistantIds = useRef(new Set(initialAssistantMessages.map((message) => message.id)));
+  const persistedAssistantIds = useRef(
+    new Set(initialAssistantMessages.map((message) => message.id)),
+  );
   const prevMessagesRef = useRef<HyprUIMessage[]>(initialMessages);
 
   useEffect(() => {
-    persistedAssistantIds.current = new Set(initialAssistantMessages.map((message) => message.id));
+    persistedAssistantIds.current = new Set(
+      initialAssistantMessages.map((message) => message.id),
+    );
   }, [initialAssistantMessages]);
 
   const { messages, sendMessage, regenerate, stop, status, error } = useChat({
@@ -103,9 +109,9 @@ export function ChatSession({
 
     for (const prevMessage of prevMessagesRef.current) {
       if (
-        prevMessage.role === "assistant"
-        && persistedAssistantIds.current.has(prevMessage.id)
-        && !currentMessageIds.has(prevMessage.id)
+        prevMessage.role === "assistant" &&
+        persistedAssistantIds.current.has(prevMessage.id) &&
+        !currentMessageIds.has(prevMessage.id)
       ) {
         store.delRow("chat_messages", prevMessage.id);
         persistedAssistantIds.current.delete(prevMessage.id);
@@ -121,7 +127,10 @@ export function ChatSession({
     }
 
     for (const message of messages) {
-      if (message.role !== "assistant" || persistedAssistantIds.current.has(message.id)) {
+      if (
+        message.role !== "assistant" ||
+        persistedAssistantIds.current.has(message.id)
+      ) {
         continue;
       }
 
@@ -143,7 +152,9 @@ export function ChatSession({
     }
   }, [chatGroupId, createChatMessage, messages, status]);
 
-  return <>{children({ messages, sendMessage, regenerate, stop, status, error })}</>;
+  return (
+    <>{children({ messages, sendMessage, regenerate, stop, status, error })}</>
+  );
 }
 
 function useTransport() {

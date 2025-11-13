@@ -1,8 +1,12 @@
 import type { TextStreamPart, ToolSet } from "ai";
 
-export type EarlyValidatorFn = (textSoFar: string) => { valid: true } | { valid: false; feedback: string };
+export type EarlyValidatorFn = (
+  textSoFar: string,
+) => { valid: true } | { valid: false; feedback: string };
 
-export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>(
+export async function* withEarlyValidationRetry<
+  TOOLS extends ToolSet = ToolSet,
+>(
   executeStream: (
     signal: AbortSignal,
     attemptContext: { attempt: number; previousFeedback?: string },
@@ -16,7 +20,13 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
     onRetrySuccess?: () => void;
   } = {},
 ): AsyncIterable<TextStreamPart<TOOLS>> {
-  const { minChar = 5, maxChar = 30, maxRetries = 2, onRetry, onRetrySuccess } = options;
+  const {
+    minChar = 5,
+    maxChar = 30,
+    maxRetries = 2,
+    onRetry,
+    onRetrySuccess,
+  } = options;
 
   let previousFeedback: string | undefined;
 
@@ -26,7 +36,7 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
     let accumulatedText = "";
     let validationComplete = false;
 
-    const flushBuffer = function*() {
+    const flushBuffer = function* () {
       validationComplete = true;
       if (attempt > 0) {
         onRetrySuccess?.();
@@ -36,7 +46,10 @@ export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>
     };
 
     try {
-      const stream = executeStream(abortController.signal, { attempt, previousFeedback });
+      const stream = executeStream(abortController.signal, {
+        attempt,
+        previousFeedback,
+      });
 
       for await (const chunk of stream) {
         if (!validationComplete) {

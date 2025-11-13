@@ -1,5 +1,6 @@
-import { cn } from "@hypr/utils";
 import { type ReactNode } from "react";
+
+import { cn } from "@hypr/utils";
 
 export function Section({
   icon,
@@ -28,9 +29,7 @@ export function Section({
       </div>
 
       {children || (
-        <div className="text-sm text-muted-foreground py-4">
-          Empty
-        </div>
+        <div className="text-sm text-muted-foreground py-4">Empty</div>
       )}
     </div>
   );

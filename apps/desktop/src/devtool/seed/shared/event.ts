@@ -63,32 +63,33 @@ const PROVIDERS: MeetingProvider[] = [
       ];
       const sipAddress = `${meetingId.replace(/\s/g, "")}@zoomcrc.com`;
       const aiCompanionLink = `https://hyprnote.${PROVIDERS[0].domain}/launch/edl?muid=${faker.string.uuid()}`;
-      const joinInstructionsLink = `https://hyprnote.${PROVIDERS[0].domain}/meetings/${
-        meetingId.replace(/\s/g, "")
-      }/invitations?signature=${faker.string.alphanumeric(40)}`;
+      const joinInstructionsLink = `https://hyprnote.${PROVIDERS[0].domain}/meetings/${meetingId.replace(
+        /\s/g,
+        "",
+      )}/invitations?signature=${faker.string.alphanumeric(40)}`;
 
       return `<p>──────────<br/>${host} is inviting you to a scheduled Zoom meeting.<br/><br/>${title}<br/><br/>Join Zoom Meeting<br/>${link}<br/><br/>View meeting insights with Zoom AI Companion<br/>${aiCompanionLink}<br/><br/>Meeting ID: ${meetingId}<br/>Passcode: ${passcode}<br/><br/>---<br/><br/>One tap mobile<br/>${
         dialInNumbers[0]
-      },,${meetingId.replace(/\s/g, "")}#,,,,*${passcode}# US<br/>${dialInNumbers[1]},,${
-        meetingId.replace(/\s/g, "")
-      }#,,,,*${passcode}# US (New York)<br/><br/>Dial by your location<br/>${
-        dialInNumbers.map(num => `${num} US`).join("<br/>")
-      }<br/><br/>---<br/><br/>Join by SIP<br/>• ${sipAddress}<br/><br/>Join instructions<br/>${joinInstructionsLink}<br/><br/>──────────</p>`;
+      },,${meetingId.replace(/\s/g, "")}#,,,,*${passcode}# US<br/>${dialInNumbers[1]},,${meetingId.replace(
+        /\s/g,
+        "",
+      )}#,,,,*${passcode}# US (New York)<br/><br/>Dial by your location<br/>${dialInNumbers
+        .map((num) => `${num} US`)
+        .join(
+          "<br/>",
+        )}<br/><br/>---<br/><br/>Join by SIP<br/>• ${sipAddress}<br/><br/>Join instructions<br/>${joinInstructionsLink}<br/><br/>──────────</p>`;
     },
   },
   {
     name: "Google Meet",
     domain: "meet.google.com",
     generateInvite: ({ title, host, link }) => {
-      const phoneNumbers = [
-        "(US) +1 570-865-7873",
-        "(US) +1 929-436-2866",
-      ];
+      const phoneNumbers = ["(US) +1 570-865-7873", "(US) +1 929-436-2866"];
       const pin = faker.string.numeric(9);
 
-      return `<p>──────────<br/>${host} has invited you to a Google Meet video call.<br/><br/>${title}<br/><br/>Join the meeting:<br/>${link}<br/><br/>Or dial:<br/>${
-        phoneNumbers.join("<br/>")
-      }<br/><br/>PIN: ${pin}#<br/><br/>More phone numbers:<br/>https://tel.meet/lookup<br/><br/>──────────</p>`;
+      return `<p>──────────<br/>${host} has invited you to a Google Meet video call.<br/><br/>${title}<br/><br/>Join the meeting:<br/>${link}<br/><br/>Or dial:<br/>${phoneNumbers.join(
+        "<br/>",
+      )}<br/><br/>PIN: ${pin}#<br/><br/>More phone numbers:<br/>https://tel.meet/lookup<br/><br/>──────────</p>`;
     },
   },
   {
@@ -96,14 +97,13 @@ const PROVIDERS: MeetingProvider[] = [
     domain: "teams.microsoft.com",
     generateInvite: ({ title, host, link }) => {
       const conferenceId = faker.string.numeric(9);
-      const phoneNumbers = [
-        "+1 323-886-7531",
-        "+1 929-203-0582",
-      ];
+      const phoneNumbers = ["+1 323-886-7531", "+1 929-203-0582"];
 
-      return `<p>──────────<br/>Microsoft Teams meeting<br/><br/>${title}<br/><br/>Join on your computer, mobile app or room device<br/><br/>${link}<br/><br/>Meeting ID: ${conferenceId}<br/><br/>Or call in (audio only)<br/>${
-        phoneNumbers.map(num => `${num},,${conferenceId}#`).join("<br/>")
-      }<br/><br/>Phone Conference ID: ${conferenceId}#<br/><br/>Find a local number | Reset PIN<br/><br/>Organized by ${host}<br/><br/>──────────</p>`;
+      return `<p>──────────<br/>Microsoft Teams meeting<br/><br/>${title}<br/><br/>Join on your computer, mobile app or room device<br/><br/>${link}<br/><br/>Meeting ID: ${conferenceId}<br/><br/>Or call in (audio only)<br/>${phoneNumbers
+        .map((num) => `${num},,${conferenceId}#`)
+        .join(
+          "<br/>",
+        )}<br/><br/>Phone Conference ID: ${conferenceId}#<br/><br/>Find a local number | Reset PIN<br/><br/>Organized by ${host}<br/><br/>──────────</p>`;
     },
   },
 ];
@@ -114,7 +114,12 @@ export const createEvent = (calendar_id: string) => {
   const hoursOffset = faker.number.int({ min: 8, max: 18 });
   const startsAt = new Date(now);
   startsAt.setDate(startsAt.getDate() + daysOffset);
-  startsAt.setHours(hoursOffset, faker.helpers.arrayElement([0, 15, 30, 45]), 0, 0);
+  startsAt.setHours(
+    hoursOffset,
+    faker.helpers.arrayElement([0, 15, 30, 45]),
+    0,
+    0,
+  );
 
   const durationMinutes = faker.helpers.arrayElement([15, 30, 45, 60, 90, 120]);
   const endsAt = new Date(startsAt.getTime() + durationMinutes * 60 * 1000);
@@ -129,13 +134,15 @@ export const createEvent = (calendar_id: string) => {
   const provider = faker.helpers.arrayElement(PROVIDERS);
   const host = faker.person.fullName();
 
-  const meetingIdFormat = provider.name === "Zoom"
-    ? `${faker.string.numeric(3)} ${faker.string.numeric(4)} ${faker.string.numeric(4)}`
-    : faker.string.numeric(10);
+  const meetingIdFormat =
+    provider.name === "Zoom"
+      ? `${faker.string.numeric(3)} ${faker.string.numeric(4)} ${faker.string.numeric(4)}`
+      : faker.string.numeric(10);
   const passcode = faker.string.numeric(6);
-  const meetingPath = provider.name === "Zoom"
-    ? `j/${meetingIdFormat.replace(/\s/g, "")}?pwd=${faker.string.alphanumeric(40)}`
-    : faker.string.alphanumeric(12);
+  const meetingPath =
+    provider.name === "Zoom"
+      ? `j/${meetingIdFormat.replace(/\s/g, "")}?pwd=${faker.string.alphanumeric(40)}`
+      : faker.string.alphanumeric(12);
 
   let meeting_link: string | undefined;
   let location: string | undefined;

@@ -1,9 +1,21 @@
-import { createClient, processLock, type Session, SupabaseClient, type SupportedStorage } from "@supabase/supabase-js";
+import {
+  createClient,
+  processLock,
+  type Session,
+  SupabaseClient,
+  type SupportedStorage,
+} from "@supabase/supabase-js";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { load } from "@tauri-apps/plugin-store";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import { env } from "./env";
 
@@ -25,29 +37,28 @@ const tauriStorage: SupportedStorage = {
   },
 };
 
-const supabase = env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY
-  ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY, {
-    auth: {
-      storage: tauriStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-      lock: processLock,
-    },
-  })
-  : null;
+const supabase =
+  env.VITE_SUPABASE_URL && env.VITE_SUPABASE_PUBLISHABLE_KEY
+    ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_PUBLISHABLE_KEY, {
+        auth: {
+          storage: tauriStorage,
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: false,
+          lock: processLock,
+        },
+      })
+    : null;
 
-const AuthContext = createContext<
-  {
-    supabase: SupabaseClient | null;
-    session: Session | null;
-    signIn: () => Promise<void>;
-    signOut: () => Promise<void>;
-    handleAuthCallback: (url: string) => Promise<void>;
-    getHeaders: () => Record<string, string> | null;
-    getAvatarUrl: () => Promise<string>;
-  } | null
->(null);
+const AuthContext = createContext<{
+  supabase: SupabaseClient | null;
+  session: Session | null;
+  signIn: () => Promise<void>;
+  signOut: () => Promise<void>;
+  handleAuthCallback: (url: string) => Promise<void>;
+  getHeaders: () => Record<string, string> | null;
+  getAvatarUrl: () => Promise<string>;
+} | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -137,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
 
-    return { "Authorization": `${session.token_type} ${session.access_token}` };
+    return { Authorization: `${session.token_type} ${session.access_token}` };
   }, [session]);
 
   const getAvatarUrl = useCallback(async () => {
@@ -167,11 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getAvatarUrl,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

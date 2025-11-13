@@ -1,19 +1,31 @@
-import { formatDistanceToNow } from "@hypr/utils";
 import { BrainIcon, RotateCcw } from "lucide-react";
 import { Streamdown } from "streamdown";
+
+import { formatDistanceToNow } from "@hypr/utils";
 
 import type { ToolPartType } from "../../../chat/tools";
 import type { HyprUIMessage } from "../../../chat/types";
 import { hasRenderableContent } from "../shared";
-import { ActionButton, Disclosure, MessageBubble, MessageContainer } from "./shared";
+import {
+  ActionButton,
+  Disclosure,
+  MessageBubble,
+  MessageContainer,
+} from "./shared";
 import { Tool } from "./tool";
 import type { Part } from "./types";
 
-export function NormalMessage({ message, handleReload }: { message: HyprUIMessage; handleReload?: () => void }) {
+export function NormalMessage({
+  message,
+  handleReload,
+}: {
+  message: HyprUIMessage;
+  handleReload?: () => void;
+}) {
   const isUser = message.role === "user";
 
   const shouldShowTimestamp = message.metadata?.createdAt
-    ? (Date.now() - message.metadata.createdAt) >= 60000
+    ? Date.now() - message.metadata.createdAt >= 60000
     : false;
 
   if (!hasRenderableContent(message)) {
@@ -27,7 +39,9 @@ export function NormalMessage({ message, handleReload }: { message: HyprUIMessag
           variant={isUser ? "user" : "assistant"}
           withActionButton={!isUser && !!handleReload}
         >
-          {message.parts.map((part, i) => <Part key={i} part={part as Part} />)}
+          {message.parts.map((part, i) => (
+            <Part key={i} part={part as Part} />
+          ))}
           {!isUser && handleReload && (
             <ActionButton
               onClick={handleReload}
@@ -39,7 +53,9 @@ export function NormalMessage({ message, handleReload }: { message: HyprUIMessag
         </MessageBubble>
         {shouldShowTimestamp && message.metadata?.createdAt && (
           <div className="text-xs text-neutral-400 mt-1 px-2">
-            {formatDistanceToNow(message.metadata.createdAt, { addSuffix: true })}
+            {formatDistanceToNow(message.metadata.createdAt, {
+              addSuffix: true,
+            })}
           </div>
         )}
       </div>
@@ -91,13 +107,25 @@ function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
 function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
   const components = {
     h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
-      return <h2 className="text-lg font-bold pt-2">{props.children as React.ReactNode}</h2>;
+      return (
+        <h2 className="text-lg font-bold pt-2">
+          {props.children as React.ReactNode}
+        </h2>
+      );
     },
     ul: (props: React.HTMLAttributes<HTMLUListElement>) => {
-      return <ul className="list-disc list-inside flex flex-col gap-1.5">{props.children as React.ReactNode}</ul>;
+      return (
+        <ul className="list-disc list-inside flex flex-col gap-1.5">
+          {props.children as React.ReactNode}
+        </ul>
+      );
     },
     ol: (props: React.HTMLAttributes<HTMLOListElement>) => {
-      return <ol className="list-decimal list-inside flex flex-col gap-1.5">{props.children as React.ReactNode}</ol>;
+      return (
+        <ol className="list-decimal list-inside flex flex-col gap-1.5">
+          {props.children as React.ReactNode}
+        </ol>
+      );
     },
     li: (props: React.HTMLAttributes<HTMLLIElement>) => {
       return <li className="list-item">{props.children as React.ReactNode}</li>;
@@ -105,10 +133,7 @@ function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
   } as const;
 
   return (
-    <Streamdown
-      components={components}
-      className="px-0.5 py-1"
-    >
+    <Streamdown components={components} className="px-0.5 py-1">
       {part.text}
     </Streamdown>
   );

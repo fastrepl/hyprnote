@@ -6,11 +6,15 @@ import { TemplateEditor as CodeMirrorEditor } from "@hypr/codemirror/template";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
+
 import * as main from "../../../store/tinybase/main";
 
 type SectionDraft = main.TemplateSection & { key: string };
 
-function createDraft(section: main.TemplateSection, key?: string): SectionDraft {
+function createDraft(
+  section: main.TemplateSection,
+  key?: string,
+): SectionDraft {
   return {
     key: key ?? crypto.randomUUID(),
     title: section.title,
@@ -30,7 +34,9 @@ function sameSection(draft: SectionDraft, section?: main.TemplateSection) {
     return false;
   }
 
-  return draft.title === section.title && draft.description === section.description;
+  return (
+    draft.title === section.title && draft.description === section.description
+  );
 }
 
 function useEditableSections({
@@ -42,18 +48,23 @@ function useEditableSections({
   initialItems: main.TemplateSection[];
   onChange: (items: main.TemplateSection[]) => void;
 }) {
-  const [drafts, setDrafts] = useState<SectionDraft[]>(() => initialItems.map((section) => createDraft(section)));
+  const [drafts, setDrafts] = useState<SectionDraft[]>(() =>
+    initialItems.map((section) => createDraft(section)),
+  );
 
   useEffect(() => {
     setDrafts((prev) => {
-      const shouldUpdate = prev.length !== initialItems.length
-        || prev.some((draft, index) => !sameSection(draft, initialItems[index]));
+      const shouldUpdate =
+        prev.length !== initialItems.length ||
+        prev.some((draft, index) => !sameSection(draft, initialItems[index]));
 
       if (!shouldUpdate) {
         return prev;
       }
 
-      return initialItems.map((section, index) => createDraft(section, prev[index]?.key));
+      return initialItems.map((section, index) =>
+        createDraft(section, prev[index]?.key),
+      );
     });
   }, [initialItems]);
 
@@ -70,7 +81,9 @@ function useEditableSections({
 
   const changeSection = useCallback(
     (draft: SectionDraft) => {
-      commitDrafts((prev) => prev.map((section) => (section.key === draft.key ? draft : section)));
+      commitDrafts((prev) =>
+        prev.map((section) => (section.key === draft.key ? draft : section)),
+      );
     },
     [commitDrafts],
   );
@@ -94,7 +107,10 @@ function useEditableSections({
   );
 
   const addSection = useCallback(() => {
-    commitDrafts((prev) => [...prev, createDraft({ title: "", description: "" })]);
+    commitDrafts((prev) => [
+      ...prev,
+      createDraft({ title: "", description: "" }),
+    ]);
   }, [commitDrafts]);
 
   return {
@@ -116,17 +132,12 @@ export function SectionsList({
   onChange: (items: main.TemplateSection[]) => void;
 }) {
   const controls = useDragControls();
-  const {
-    drafts,
-    addSection,
-    changeSection,
-    deleteSection,
-    reorderSections,
-  } = useEditableSections({
-    disabled,
-    initialItems: _items,
-    onChange,
-  });
+  const { drafts, addSection, changeSection, deleteSection, reorderSections } =
+    useEditableSections({
+      disabled,
+      initialItems: _items,
+      onChange,
+    });
 
   return (
     <div className="flex flex-col space-y-3">
@@ -181,7 +192,9 @@ function SectionItem({
     <div
       className={cn([
         "group relative rounded-lg border p-3 transition-all bg-white",
-        isFocused ? "border-blue-500" : "border-border hover:border-neutral-300",
+        isFocused
+          ? "border-blue-500"
+          : "border-border hover:border-neutral-300",
       ])}
     >
       <button

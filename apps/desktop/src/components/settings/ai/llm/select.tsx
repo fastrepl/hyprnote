@@ -1,11 +1,21 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/utils";
-
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { generateText } from "ai";
 import { useMemo } from "react";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@hypr/ui/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
@@ -14,7 +24,11 @@ import * as main from "../../../../store/tinybase/main";
 import type { ListModelsResult } from "../shared/list-common";
 import { listLMStudioModels } from "../shared/list-lmstudio";
 import { listOllamaModels } from "../shared/list-ollama";
-import { listAnthropicModels, listGenericModels, listOpenAIModels } from "../shared/list-openai";
+import {
+  listAnthropicModels,
+  listGenericModels,
+  listOpenAIModels,
+} from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
 import { PROVIDERS } from "./shared";
@@ -22,9 +36,10 @@ import { PROVIDERS } from "./shared";
 export function SelectProviderAndModel() {
   const configuredProviders = useConfiguredMapping();
 
-  const { current_llm_model, current_llm_provider } = useConfigValues(
-    ["current_llm_model", "current_llm_provider"] as const,
-  );
+  const { current_llm_model, current_llm_provider } = useConfigValues([
+    "current_llm_model",
+    "current_llm_provider",
+  ] as const);
 
   const handleSelectProvider = main.UI.useSetValueCallback(
     "current_llm_provider",
@@ -46,7 +61,9 @@ export function SelectProviderAndModel() {
     },
     listeners: {
       onChange: ({ formApi }) => {
-        const { form: { errors } } = formApi.getAllErrors();
+        const {
+          form: { errors },
+        } = formApi.getAllErrors();
         if (errors.length > 0) {
           console.log(errors);
         }
@@ -67,7 +84,9 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-col gap-4",
           "p-4 rounded-lg border border-neutral-200",
-          (!!current_llm_provider && !!current_llm_model) ? "bg-neutral-50" : "bg-red-50",
+          !!current_llm_provider && !!current_llm_model
+            ? "bg-neutral-50"
+            : "bg-red-50",
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -141,9 +160,15 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<string, null | (() => Promise<ListModelsResult>)> {
+function useConfiguredMapping(): Record<
+  string,
+  null | (() => Promise<ListModelsResult>)
+> {
   const auth = useAuth();
-  const configuredProviders = main.UI.useResultTable(main.QUERIES.llmProviders, main.STORE_ID);
+  const configuredProviders = main.UI.useResultTable(
+    main.QUERIES.llmProviders,
+    main.STORE_ID,
+  );
 
   const mapping = useMemo(() => {
     return Object.fromEntries(
@@ -153,10 +178,7 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<ListModels
             return [provider.id, null];
           }
 
-          return [
-            provider.id,
-            async () => ({ models: ["Auto"], ignored: [] }),
-          ];
+          return [provider.id, async () => ({ models: ["Auto"], ignored: [] })];
         }
 
         const config = configuredProviders[provider.id];
@@ -271,8 +293,18 @@ function HealthCheck() {
             {isLoading && (
               <span className="inline-block ml-0.5">
                 <span className="animate-pulse">.</span>
-                <span className="animate-pulse" style={{ animationDelay: "0.2s" }}>.</span>
-                <span className="animate-pulse" style={{ animationDelay: "0.4s" }}>.</span>
+                <span
+                  className="animate-pulse"
+                  style={{ animationDelay: "0.2s" }}
+                >
+                  .
+                </span>
+                <span
+                  className="animate-pulse"
+                  style={{ animationDelay: "0.4s" }}
+                >
+                  .
+                </span>
               </span>
             )}
           </span>

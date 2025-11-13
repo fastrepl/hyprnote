@@ -11,12 +11,15 @@ import {
   type SessionParams,
   type StreamResponse,
 } from "@hypr/plugin-listener";
-import { fromResult } from "../../../effect";
 
+import { fromResult } from "../../../effect";
 import type { BatchActions, BatchState } from "./batch";
 import type { HandlePersistCallback, TranscriptActions } from "./transcript";
 
-type LiveSessionStatus = Extract<SessionEvent["type"], "inactive" | "running_active" | "finalizing">;
+type LiveSessionStatus = Extract<
+  SessionEvent["type"],
+  "inactive" | "running_active" | "finalizing"
+>;
 export type SessionMode = LiveSessionStatus | "running_batch";
 
 export type GeneralState = {
@@ -61,15 +64,21 @@ const listenToSessionEvents = (
   onEvent: (payload: any) => void,
 ): Effect.Effect<() => void, unknown> =>
   Effect.tryPromise({
-    try: () => listenerEvents.sessionEvent.listen(({ payload }) => onEvent(payload)),
+    try: () =>
+      listenerEvents.sessionEvent.listen(({ payload }) => onEvent(payload)),
     catch: (error) => error,
   });
 
-const startSessionEffect = (params: SessionParams) => fromResult(listenerCommands.startSession(params));
+const startSessionEffect = (params: SessionParams) =>
+  fromResult(listenerCommands.startSession(params));
 const stopSessionEffect = () => fromResult(listenerCommands.stopSession());
 
 export const createGeneralSlice = <
-  T extends GeneralState & GeneralActions & TranscriptActions & BatchActions & BatchState,
+  T extends GeneralState &
+    GeneralActions &
+    TranscriptActions &
+    BatchActions &
+    BatchState,
 >(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
@@ -85,7 +94,9 @@ export const createGeneralSlice = <
 
     const currentMode = get().getSessionMode(targetSessionId);
     if (currentMode === "running_batch") {
-      console.warn(`[listener] cannot start live session while batch processing session ${targetSessionId}`);
+      console.warn(
+        `[listener] cannot start live session while batch processing session ${targetSessionId}`,
+      );
       return;
     }
 
@@ -93,7 +104,7 @@ export const createGeneralSlice = <
       mutate(state, (draft) => {
         draft.live.loading = true;
         draft.live.sessionId = targetSessionId;
-      })
+      }),
     );
 
     if (options?.handlePersist) {
@@ -108,7 +119,7 @@ export const createGeneralSlice = <
               mic: payload.mic,
               speaker: payload.speaker,
             };
-          })
+          }),
         );
       } else if (payload.type === "running_active") {
         const currentState = get();
@@ -120,7 +131,7 @@ export const createGeneralSlice = <
           set((s) =>
             mutate(s, (d) => {
               d.live.seconds += 1;
-            })
+            }),
           );
         }, 1000);
 
@@ -131,7 +142,7 @@ export const createGeneralSlice = <
             draft.live.seconds = 0;
             draft.live.intervalId = intervalId;
             draft.live.sessionId = targetSessionId;
-          })
+          }),
         );
       } else if (payload.type === "finalizing") {
         set((state) =>
@@ -142,7 +153,7 @@ export const createGeneralSlice = <
             }
             draft.live.status = "finalizing";
             draft.live.loading = true;
-          })
+          }),
         );
       } else if (payload.type === "inactive") {
         const currentState = get();
@@ -156,7 +167,7 @@ export const createGeneralSlice = <
             draft.live.loading = false;
             draft.live.sessionId = null;
             draft.live.sessionEventUnlisten = undefined;
-          })
+          }),
         );
 
         get().resetTranscript();
@@ -172,13 +183,13 @@ export const createGeneralSlice = <
       }
     };
 
-    const program = Effect.gen(function*() {
+    const program = Effect.gen(function* () {
       const unlisten = yield* listenToSessionEvents(handleSessionEvent);
 
       set((state) =>
         mutate(state, (draft) => {
           draft.live.sessionEventUnlisten = unlisten;
-        })
+        }),
       );
 
       yield* startSessionEffect(params);
@@ -187,7 +198,7 @@ export const createGeneralSlice = <
           draft.live.status = "running_active";
           draft.live.loading = false;
           draft.live.sessionId = targetSessionId;
-        })
+        }),
       );
     });
 
@@ -209,7 +220,7 @@ export const createGeneralSlice = <
               draft.live.seconds = 0;
               draft.live.sessionId = null;
               draft.live.muted = initialState.live.muted;
-            })
+            }),
           );
         },
         onSuccess: () => {},
@@ -217,7 +228,7 @@ export const createGeneralSlice = <
     });
   },
   stop: () => {
-    const program = Effect.gen(function*() {
+    const program = Effect.gen(function* () {
       yield* stopSessionEffect();
     });
 
@@ -228,7 +239,7 @@ export const createGeneralSlice = <
           set((state) =>
             mutate(state, (draft) => {
               draft.live.loading = false;
-            })
+            }),
           );
         },
         onSuccess: () => {},
@@ -240,7 +251,7 @@ export const createGeneralSlice = <
       mutate(state, (draft) => {
         draft.live.muted = value;
         listenerCommands.setMicMuted(value);
-      })
+      }),
     );
   },
   runBatch: async (params, options) => {
@@ -253,12 +264,16 @@ export const createGeneralSlice = <
 
     const mode = get().getSessionMode(sessionId);
     if (mode === "running_active" || mode === "finalizing") {
-      console.warn(`[listener] cannot start batch processing while session ${sessionId} is live`);
+      console.warn(
+        `[listener] cannot start batch processing while session ${sessionId} is live`,
+      );
       return;
     }
 
     if (mode === "running_batch") {
-      console.warn(`[listener] session ${sessionId} is already processing in batch mode`);
+      console.warn(
+        `[listener] session ${sessionId} is already processing in batch mode`,
+      );
       return;
     }
 

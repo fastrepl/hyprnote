@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
-
 import { createFileRoute } from "@tanstack/react-router";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/cal")({
   component: Component,
@@ -54,7 +54,8 @@ function Header() {
         Skip the Waitlist
       </h1>
       <p className="text-lg text-stone-600 mb-8 text-center">
-        Book a quick 20-minute chat with the founders and get guaranteed early access to Hyprnote
+        Book a quick 20-minute chat with the founders and get guaranteed early
+        access to Hyprnote
       </p>
     </>
   );
@@ -63,11 +64,7 @@ function Header() {
 function BookingButton() {
   return (
     <div className="mb-8 flex justify-center">
-      <a
-        href="/founders"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a href="/founders" target="_blank" rel="noopener noreferrer">
         <button
           className={cn([
             "group px-6 h-12 text-base sm:text-lg cursor-pointer",

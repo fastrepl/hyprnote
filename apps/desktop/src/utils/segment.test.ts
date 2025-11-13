@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+
 import { buildSegments, SegmentKey, WordLike } from "./segment";
 
 describe("buildSegments", () => {
@@ -12,9 +13,7 @@ describe("buildSegments", () => {
     },
     {
       name: "simple multi-channel example without merging",
-      finalWords: [
-        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
-      ],
+      finalWords: [{ text: "0", start_ms: 0, end_ms: 100, channel: 0 }],
       partialWords: [
         { text: "1", start_ms: 150, end_ms: 200, channel: 0 },
         { text: "2", start_ms: 150, end_ms: 200, channel: 1 },
@@ -39,9 +38,7 @@ describe("buildSegments", () => {
     },
     {
       name: "merges same-channel turns across interleaving speakers if gap is less than maxGapMs",
-      finalWords: [
-        { text: "0", start_ms: 300, end_ms: 400, channel: 1 },
-      ],
+      finalWords: [{ text: "0", start_ms: 300, end_ms: 400, channel: 1 }],
       partialWords: [
         { text: "1", start_ms: 0, end_ms: 100, channel: 0 },
         { text: "2", start_ms: 600, end_ms: 700, channel: 0 },
@@ -56,17 +53,13 @@ describe("buildSegments", () => {
         }),
         expect.objectContaining({
           key: SegmentKey.make({ channel: 1 }),
-          words: [
-            expect.objectContaining({ text: "0" }),
-          ],
+          words: [expect.objectContaining({ text: "0" })],
         }),
       ],
     },
     {
       name: "should be always sorted per channel by start_ms",
-      finalWords: [
-        { text: "2", start_ms: 400, end_ms: 450, channel: 0 },
-      ],
+      finalWords: [{ text: "2", start_ms: 400, end_ms: 450, channel: 0 }],
       partialWords: [
         { text: "0", start_ms: 100, end_ms: 150, channel: 0 },
         { text: "1", start_ms: 250, end_ms: 300, channel: 0 },
@@ -149,9 +142,7 @@ describe("buildSegments", () => {
     },
     {
       name: "handles single word input",
-      finalWords: [
-        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
-      ],
+      finalWords: [{ text: "0", start_ms: 0, end_ms: 100, channel: 0 }],
       partialWords: [],
       expected: [
         expect.objectContaining({
@@ -169,9 +160,18 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
-        { wordIndex: 1, data: { type: "provider_speaker_index" as const, speaker_index: 1 } },
-        { wordIndex: 2, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index" as const, speaker_index: 0 },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "provider_speaker_index" as const, speaker_index: 1 },
+        },
+        {
+          wordIndex: 2,
+          data: { type: "provider_speaker_index" as const, speaker_index: 0 },
+        },
       ],
       expected: [
         expect.objectContaining({
@@ -224,13 +224,26 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, data: { type: "provider_speaker_index" as const, speaker_index: 1 } },
-        { wordIndex: 1, data: { type: "provider_speaker_index" as const, speaker_index: 1 } },
-        { wordIndex: 1, data: { type: "user_speaker_assignment" as const, human_id: "alice" } },
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index" as const, speaker_index: 1 },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "provider_speaker_index" as const, speaker_index: 1 },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.make({ channel: 0, speaker_index: 1, speaker_human_id: "alice" }),
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 1,
+            speaker_human_id: "alice",
+          }),
           words: [
             expect.objectContaining({ text: "0" }),
             expect.objectContaining({ text: "1" }),
@@ -240,19 +253,25 @@ describe("buildSegments", () => {
     },
     {
       name: "infers human id for partial words via last known speaker",
-      finalWords: [
-        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
-      ],
-      partialWords: [
-        { text: "1", start_ms: 150, end_ms: 200, channel: 0 },
-      ],
+      finalWords: [{ text: "0", start_ms: 0, end_ms: 100, channel: 0 }],
+      partialWords: [{ text: "1", start_ms: 150, end_ms: 200, channel: 0 }],
       speakerHints: [
-        { wordIndex: 0, data: { type: "provider_speaker_index" as const, speaker_index: 2 } },
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "bob" } },
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index" as const, speaker_index: 2 },
+        },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "bob" },
+        },
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.make({ channel: 0, speaker_index: 2, speaker_human_id: "bob" }),
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 2,
+            speaker_human_id: "bob",
+          }),
           words: [
             expect.objectContaining({ text: "0" }),
             expect.objectContaining({ text: "1" }),
@@ -268,18 +287,38 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "alice" } },
-        { wordIndex: 1, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
-        { wordIndex: 1, data: { type: "user_speaker_assignment" as const, human_id: "bob" } },
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index" as const, speaker_index: 0 },
+        },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "provider_speaker_index" as const, speaker_index: 0 },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "user_speaker_assignment" as const, human_id: "bob" },
+        },
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.make({ channel: 0, speaker_index: 0, speaker_human_id: "alice" }),
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 0,
+            speaker_human_id: "alice",
+          }),
           words: [expect.objectContaining({ text: "0" })],
         }),
         expect.objectContaining({
-          key: SegmentKey.make({ channel: 0, speaker_index: 0, speaker_human_id: "bob" }),
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 0,
+            speaker_human_id: "bob",
+          }),
           words: [expect.objectContaining({ text: "1" })],
         }),
       ],
@@ -293,14 +332,30 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
-        { wordIndex: 1, data: { type: "provider_speaker_index" as const, speaker_index: 1 } },
-        { wordIndex: 2, data: { type: "provider_speaker_index" as const, speaker_index: 0 } },
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "bob" } },
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index" as const, speaker_index: 0 },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "provider_speaker_index" as const, speaker_index: 1 },
+        },
+        {
+          wordIndex: 2,
+          data: { type: "provider_speaker_index" as const, speaker_index: 0 },
+        },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "bob" },
+        },
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.make({ channel: 0, speaker_index: 0, speaker_human_id: "bob" }),
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 0,
+            speaker_human_id: "bob",
+          }),
           words: [expect.objectContaining({ text: "0" })],
         }),
         expect.objectContaining({
@@ -308,7 +363,11 @@ describe("buildSegments", () => {
           words: [expect.objectContaining({ text: "1" })],
         }),
         expect.objectContaining({
-          key: SegmentKey.make({ channel: 0, speaker_index: 0, speaker_human_id: "bob" }),
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 0,
+            speaker_human_id: "bob",
+          }),
           words: [expect.objectContaining({ text: "2" })],
         }),
       ],
@@ -321,12 +380,22 @@ describe("buildSegments", () => {
         { text: "1", start_ms: 120, end_ms: 200, channel: 0 },
       ],
       speakerHints: [
-        { wordIndex: 0, data: { type: "provider_speaker_index" as const, speaker_index: 3 } },
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "alice" } },
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index" as const, speaker_index: 3 },
+        },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
       ],
       expected: [
         expect.objectContaining({
-          key: SegmentKey.make({ channel: 0, speaker_index: 3, speaker_human_id: "alice" }),
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 3,
+            speaker_human_id: "alice",
+          }),
           words: [
             expect.objectContaining({ text: "0", isFinal: false }),
             expect.objectContaining({ text: "1", isFinal: false }),
@@ -336,15 +405,17 @@ describe("buildSegments", () => {
     },
     {
       name: "applies speaker hints targeting partial word indexes",
-      finalWords: [
-        { text: "0", start_ms: 0, end_ms: 90, channel: 0 },
-      ],
-      partialWords: [
-        { text: "1", start_ms: 140, end_ms: 220, channel: 0 },
-      ],
+      finalWords: [{ text: "0", start_ms: 0, end_ms: 90, channel: 0 }],
+      partialWords: [{ text: "1", start_ms: 140, end_ms: 220, channel: 0 }],
       speakerHints: [
-        { wordIndex: 1, data: { type: "provider_speaker_index" as const, speaker_index: 4 } },
-        { wordIndex: 1, data: { type: "user_speaker_assignment" as const, human_id: "alice" } },
+        {
+          wordIndex: 1,
+          data: { type: "provider_speaker_index" as const, speaker_index: 4 },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
       ],
       expected: [
         expect.objectContaining({
@@ -352,7 +423,11 @@ describe("buildSegments", () => {
           words: [expect.objectContaining({ text: "0", isFinal: true })],
         }),
         expect.objectContaining({
-          key: SegmentKey.make({ channel: 0, speaker_index: 4, speaker_human_id: "alice" }),
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 4,
+            speaker_human_id: "alice",
+          }),
           words: [expect.objectContaining({ text: "1", isFinal: false })],
         }),
       ],
@@ -365,8 +440,14 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "alice" } },
-        { wordIndex: 1, data: { type: "user_speaker_assignment" as const, human_id: "alice" } },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
       ],
       expected: [
         expect.objectContaining({
@@ -382,7 +463,12 @@ describe("buildSegments", () => {
       name: "propagates human assignment to partial words without speaker index",
       finalWords: [{ text: "0", start_ms: 0, end_ms: 50, channel: 0 }],
       partialWords: [{ text: "1", start_ms: 100, end_ms: 150, channel: 0 }],
-      speakerHints: [{ wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "alice" } }],
+      speakerHints: [
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
+      ],
       expected: [
         expect.objectContaining({
           key: SegmentKey.make({ channel: 0, speaker_human_id: "alice" }),
@@ -401,8 +487,14 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "alice" } },
-        { wordIndex: 1, data: { type: "user_speaker_assignment" as const, human_id: "bob" } },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "user_speaker_assignment" as const, human_id: "bob" },
+        },
       ],
       expected: [
         expect.objectContaining({
@@ -423,7 +515,10 @@ describe("buildSegments", () => {
         { text: "1", start_ms: 120, end_ms: 200, channel: 1 },
       ],
       speakerHints: [
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "carol" } },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "carol" },
+        },
       ],
       expected: [
         expect.objectContaining({
@@ -455,7 +550,10 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "carol" } },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "carol" },
+        },
       ],
       expected: [
         expect.objectContaining({
@@ -509,7 +607,10 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 11, data: { type: "user_speaker_assignment" as const, human_id: "carol" } },
+        {
+          wordIndex: 11,
+          data: { type: "user_speaker_assignment" as const, human_id: "carol" },
+        },
       ],
       expected: [
         expect.objectContaining({
@@ -551,7 +652,13 @@ describe("buildSegments", () => {
       ],
       partialWords: [],
       speakerHints: [
-        { wordIndex: 0, data: { type: "user_speaker_assignment" as const, human_id: "remote" } },
+        {
+          wordIndex: 0,
+          data: {
+            type: "user_speaker_assignment" as const,
+            human_id: "remote",
+          },
+        },
       ],
       numSpeakers: 2,
       expected: [
@@ -570,27 +677,19 @@ describe("buildSegments", () => {
         { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
         { text: "1", start_ms: 150, end_ms: 220, channel: 1 },
       ],
-      partialWords: [
-        { text: "2", start_ms: 230, end_ms: 300, channel: 0 },
-      ],
+      partialWords: [{ text: "2", start_ms: 230, end_ms: 300, channel: 0 }],
       expected: [
         expect.objectContaining({
           key: SegmentKey.make({ channel: 0 }),
-          words: [
-            expect.objectContaining({ text: "0", isFinal: true }),
-          ],
+          words: [expect.objectContaining({ text: "0", isFinal: true })],
         }),
         expect.objectContaining({
           key: SegmentKey.make({ channel: 1 }),
-          words: [
-            expect.objectContaining({ text: "1", isFinal: true }),
-          ],
+          words: [expect.objectContaining({ text: "1", isFinal: true })],
         }),
         expect.objectContaining({
           key: SegmentKey.make({ channel: 0 }),
-          words: [
-            expect.objectContaining({ text: "2", isFinal: false }),
-          ],
+          words: [expect.objectContaining({ text: "2", isFinal: false })],
         }),
       ],
     },
@@ -613,41 +712,55 @@ describe("buildSegments", () => {
         }),
         expect.objectContaining({
           key: SegmentKey.make({ channel: 0 }),
-          words: [
-            expect.objectContaining({ text: "2" }),
-          ],
+          words: [expect.objectContaining({ text: "2" })],
         }),
       ],
     },
   ];
 
-  test.each(testCases)("$name", ({ finalWords, partialWords, speakerHints, expected, maxGapMs, numSpeakers }) => {
-    finalWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
-    partialWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
-
-    const options = maxGapMs !== undefined || numSpeakers !== undefined
-      ? {
-        ...(maxGapMs !== undefined && { maxGapMs }),
-        ...(numSpeakers !== undefined && { numSpeakers }),
-      }
-      : undefined;
-
-    const segments = buildSegments(
+  test.each(testCases)(
+    "$name",
+    ({
       finalWords,
       partialWords,
       speakerHints,
-      options,
-    );
-    expect(segments).toEqual(expected);
+      expected,
+      maxGapMs,
+      numSpeakers,
+    }) => {
+      finalWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
+      partialWords.forEach((word) =>
+        expect(word.channel).toBeLessThanOrEqual(2),
+      );
 
-    console.error(visualizeSegments(finalWords, partialWords));
-  });
+      const options =
+        maxGapMs !== undefined || numSpeakers !== undefined
+          ? {
+              ...(maxGapMs !== undefined && { maxGapMs }),
+              ...(numSpeakers !== undefined && { numSpeakers }),
+            }
+          : undefined;
+
+      const segments = buildSegments(
+        finalWords,
+        partialWords,
+        speakerHints,
+        options,
+      );
+      expect(segments).toEqual(expected);
+
+      console.error(visualizeSegments(finalWords, partialWords));
+    },
+  );
 });
 
-function visualizeSegments(finalWords: readonly WordLike[], partialWords: readonly WordLike[]): string {
+function visualizeSegments(
+  finalWords: readonly WordLike[],
+  partialWords: readonly WordLike[],
+): string {
   const allWords = [
-    ...finalWords.map(w => ({ ...w, is_final: true })),
-    ...partialWords.map(w => ({ ...w, is_final: false })),
+    ...finalWords.map((w) => ({ ...w, is_final: true })),
+    ...partialWords.map((w) => ({ ...w, is_final: false })),
   ];
   if (allWords.length === 0) {
     return "";
@@ -681,14 +794,17 @@ function visualizeSegments(finalWords: readonly WordLike[], partialWords: readon
 
   let result = `//    ${header.trimEnd()}\n`;
 
-  const sortedChannels = Array.from(new Set(allWords.map((word) => word.channel))).sort((a, b) => a - b);
+  const sortedChannels = Array.from(
+    new Set(allWords.map((word) => word.channel)),
+  ).sort((a, b) => a - b);
 
   sortedChannels.forEach((channel) => {
     const line = Array(totalWidth).fill(" ");
     const channelWords = allWords
       .filter((word) => word.channel === channel)
       .sort((a, b) => {
-        const startDiff = slotIndex.get(a.start_ms)! - slotIndex.get(b.start_ms)!;
+        const startDiff =
+          slotIndex.get(a.start_ms)! - slotIndex.get(b.start_ms)!;
         if (startDiff !== 0) {
           return startDiff;
         }
@@ -707,7 +823,10 @@ function visualizeSegments(finalWords: readonly WordLike[], partialWords: readon
       const startColBase = startSlot * CELL_WIDTH;
       const slotSpan = Math.max(1, endSlot - startSlot);
       const widthOffset = slotSpan === 1 ? CELL_WIDTH - MIN_SEGMENT_WIDTH : 0;
-      const baseSegmentWidth = Math.max(MIN_SEGMENT_WIDTH, slotSpan * CELL_WIDTH - widthOffset);
+      const baseSegmentWidth = Math.max(
+        MIN_SEGMENT_WIDTH,
+        slotSpan * CELL_WIDTH - widthOffset,
+      );
       let startCol = startColBase;
       let endCol = startCol + baseSegmentWidth - 1;
 
@@ -728,7 +847,8 @@ function visualizeSegments(finalWords: readonly WordLike[], partialWords: readon
 
       const wordIndex = String(wordOrder.get(word)!);
       const label = word.is_final ? wordIndex : `${wordIndex}-p`;
-      const desiredWidth = label.length > 0 ? label.length + 2 : baseSegmentWidth;
+      const desiredWidth =
+        label.length > 0 ? label.length + 2 : baseSegmentWidth;
       if (desiredWidth > endCol - startCol + 1) {
         const extendedEnd = startCol + desiredWidth - 1;
         if (extendedEnd < line.length) {
@@ -743,7 +863,8 @@ function visualizeSegments(finalWords: readonly WordLike[], partialWords: readon
       if (label.length > 0 && interiorEnd >= interiorStart) {
         const interiorWidth = interiorEnd - interiorStart + 1;
         if (label.length <= interiorWidth) {
-          const labelStart = interiorStart + Math.floor((interiorWidth - label.length) / 2);
+          const labelStart =
+            interiorStart + Math.floor((interiorWidth - label.length) / 2);
           for (let i = 0; i < label.length; i++) {
             line[labelStart + i] = label[i];
           }

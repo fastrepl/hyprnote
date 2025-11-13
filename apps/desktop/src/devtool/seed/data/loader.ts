@@ -18,7 +18,9 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const sessions: Tables<Schemas[0]>["sessions"] = {};
   const transcripts: Tables<Schemas[0]>["transcripts"] = {};
   const words: Tables<Schemas[0]>["words"] = {};
-  const mapping_session_participant: Tables<Schemas[0]>["mapping_session_participant"] = {};
+  const mapping_session_participant: Tables<
+    Schemas[0]
+  >["mapping_session_participant"] = {};
   const mapping_tag_session: Tables<Schemas[0]>["mapping_tag_session"] = {};
   const chat_groups: Tables<Schemas[0]>["chat_groups"] = {};
   const chat_messages: Tables<Schemas[0]>["chat_messages"] = {};
@@ -73,7 +75,9 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     folders[folderId] = {
       user_id: DEFAULT_USER_ID,
       name: folder.name,
-      parent_folder_id: folder.parent ? folderNameToId.get(folder.parent) : undefined,
+      parent_folder_id: folder.parent
+        ? folderNameToId.get(folder.parent)
+        : undefined,
       created_at: new Date().toISOString(),
     };
   });
@@ -119,8 +123,12 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
 
   data.sessions.forEach((session) => {
     const sessionId = id();
-    const folderId = session.folder ? folderNameToId.get(session.folder) : undefined;
-    const eventId = session.event ? eventNameToId.get(session.event) : undefined;
+    const folderId = session.folder
+      ? folderNameToId.get(session.folder)
+      : undefined;
+    const eventId = session.event
+      ? eventNameToId.get(session.event)
+      : undefined;
 
     sessions[sessionId] = {
       user_id: DEFAULT_USER_ID,

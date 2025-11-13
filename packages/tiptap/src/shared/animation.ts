@@ -13,26 +13,29 @@ export const StreamingAnimation = Extension.create({
 
   addCommands() {
     return {
-      markNewContent: () => ({ editor }) => {
-        const editorEl = editor.view.dom;
-        const blockElements = editorEl.querySelectorAll("h1, p, ul, ol");
+      markNewContent:
+        () =>
+        ({ editor }) => {
+          const editorEl = editor.view.dom;
+          const blockElements = editorEl.querySelectorAll("h1, p, ul, ol");
 
-        blockElements.forEach((el) => {
-          if (!el.classList.contains("tiptap-animated")) {
-            el.classList.add("tiptap-animating");
-            el.classList.add("tiptap-animated");
-          }
-        });
-
-        setTimeout(() => {
-          const animatingElements = editorEl.querySelectorAll(".tiptap-animating");
-          animatingElements.forEach((el) => {
-            el.classList.remove("tiptap-animating");
+          blockElements.forEach((el) => {
+            if (!el.classList.contains("tiptap-animated")) {
+              el.classList.add("tiptap-animating");
+              el.classList.add("tiptap-animated");
+            }
           });
-        }, 1000);
 
-        return true;
-      },
+          setTimeout(() => {
+            const animatingElements =
+              editorEl.querySelectorAll(".tiptap-animating");
+            animatingElements.forEach((el) => {
+              el.classList.remove("tiptap-animating");
+            });
+          }, 1000);
+
+          return true;
+        },
     };
   },
 });

@@ -1,4 +1,8 @@
-import { type ChangeMessage as IncomingChangeMessage, type Offset, ShapeStream } from "@electric-sql/client";
+import {
+  type ChangeMessage as IncomingChangeMessage,
+  type Offset,
+  ShapeStream,
+} from "@electric-sql/client";
 import { useCallback } from "react";
 
 import { useAuth } from "../../auth";
@@ -6,16 +10,18 @@ import * as main from "./main";
 
 const ELECTRIC_URL = "http://localhost:3001/v1/shape";
 
-type OutgoingChangeMessage<T extends Record<string, unknown>> = {
-  table: string;
-  row_id: string;
-  operation: "delete";
-} | {
-  table: string;
-  row_id: string;
-  data: T;
-  operation: "update";
-};
+type OutgoingChangeMessage<T extends Record<string, unknown>> =
+  | {
+      table: string;
+      row_id: string;
+      operation: "delete";
+    }
+  | {
+      table: string;
+      row_id: string;
+      data: T;
+      operation: "update";
+    };
 
 export const useCloudPersister = () => {
   const save = useCloudSaver();
@@ -96,20 +102,23 @@ const useCloudLoader = () => {
 
   const load = useCallback(async () => {
     const steams = main.TABLES.map((table) => {
-      const metaRow = Object.values(metaTable).find((row) => row.table === table);
+      const metaRow = Object.values(metaTable).find(
+        (row) => row.table === table,
+      );
 
       const resumable: {
         offset?: Offset;
         handle?: string;
-      } = (metaRow?.offset && metaRow?.handle)
-        ? {
-          offset: metaRow.offset as Offset,
-          handle: metaRow.handle as string,
-        }
-        : {
-          offset: "-1",
-          handle: undefined,
-        };
+      } =
+        metaRow?.offset && metaRow?.handle
+          ? {
+              offset: metaRow.offset as Offset,
+              handle: metaRow.handle as string,
+            }
+          : {
+              offset: "-1",
+              handle: undefined,
+            };
 
       return new ShapeStream({
         ...resumable,
@@ -130,34 +139,42 @@ const useCloudLoader = () => {
         return new Promise<IncomingChangeMessage[]>((resolve) => {
           const messages: IncomingChangeMessage[] = [];
 
-          const unsubscribe = stream.subscribe((batch) => {
-            messages.push(...batch.filter((msg) => !msg.headers?.control) as IncomingChangeMessage[]);
+          const unsubscribe = stream.subscribe(
+            (batch) => {
+              messages.push(
+                ...(batch.filter(
+                  (msg) => !msg.headers?.control,
+                ) as IncomingChangeMessage[]),
+              );
 
-            if (batch.some((msg) => msg.headers?.control === "up-to-date")) {
+              if (batch.some((msg) => msg.headers?.control === "up-to-date")) {
+                unsubscribe();
+                resolve(messages);
+              }
+            },
+            (error) => {
+              console.error(error);
+
               unsubscribe();
               resolve(messages);
-            }
-          }, (error) => {
-            console.error(error);
-
-            unsubscribe();
-            resolve(messages);
-          });
+            },
+          );
         });
       }),
     );
 
-    const results = main.TABLES.reduce((acc, table, index) => {
-      acc[table] = resultsArray[index];
-      return acc;
-    }, {} as Record<typeof main.TABLES[number], IncomingChangeMessage[]>);
+    const results = main.TABLES.reduce(
+      (acc, table, index) => {
+        acc[table] = resultsArray[index];
+        return acc;
+      },
+      {} as Record<(typeof main.TABLES)[number], IncomingChangeMessage[]>,
+    );
 
-    for (
-      const [table, messages] of Object.entries(results) as [
-        typeof main.TABLES[number],
-        IncomingChangeMessage[],
-      ][]
-    ) {
+    for (const [table, messages] of Object.entries(results) as [
+      (typeof main.TABLES)[number],
+      IncomingChangeMessage[],
+    ][]) {
       for (const message of messages) {
         const rowId = String(message.value.id);
 

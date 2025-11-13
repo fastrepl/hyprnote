@@ -175,26 +175,26 @@ jobs:
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
             echo "Creating custom makepkg.conf for ARM64 cross-compilation..."
             cat > /tmp/pkgbuild/makepkg.conf << 'MAKEPKG_EOF'
-# ARM64 cross-compilation makepkg configuration
-CARCH="aarch64"
-CHOST="aarch64-unknown-linux-gnu"
-
-# Compiler and linker flags (ARM64-compatible, no x86-64 specifics)
-CFLAGS="-O2 -pipe -fstack-protector-strong -fno-plt"
-CXXFLAGS="-O2 -pipe -fstack-protector-strong -fno-plt"
-LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
-
-# Make flags
-MAKEFLAGS="-j$(nproc)"
-
-# Build environment
-BUILDENV=(!distcc color !ccache check !sign)
-OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge !debug !lto)
-
-# Package output
-PKGEXT='.pkg.tar.zst'
-SRCEXT='.src.tar.gz'
-MAKEPKG_EOF
+          # ARM64 cross-compilation makepkg configuration
+          CARCH="aarch64"
+          CHOST="aarch64-unknown-linux-gnu"
+          
+          # Compiler and linker flags (ARM64-compatible, no x86-64 specifics)
+          CFLAGS="-O2 -pipe -fstack-protector-strong -fno-plt"
+          CXXFLAGS="-O2 -pipe -fstack-protector-strong -fno-plt"
+          LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+          
+          # Make flags
+          MAKEFLAGS="-j$(nproc)"
+          
+          # Build environment
+          BUILDENV=(!distcc color !ccache check !sign)
+          OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge !debug !lto)
+          
+          # Package output
+          PKGEXT='.pkg.tar.zst'
+          SRCEXT='.src.tar.gz'
+          MAKEPKG_EOF
           fi
 
           cat > PKGBUILD << EOF

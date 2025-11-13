@@ -3,10 +3,10 @@ import { allDocs } from "content-collections";
 
 import { DocLayout } from "./-components";
 
-export const Route = createFileRoute("/_view/docs/")({
+export const Route = createFileRoute("/_view/docs/$")({
   component: Component,
-  loader: async () => {
-    const doc = allDocs.find((doc) => doc.slug === "index");
+  loader: async ({ params }) => {
+    const doc = allDocs.find((doc) => doc.slug === params._splat);
     if (!doc) {
       throw notFound();
     }
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_view/docs/")({
   },
   head: ({ loaderData }) => {
     const { doc } = loaderData!;
-    const url = "https://hyprnote.com/docs";
+    const url = `https://hyprnote.com/docs/${doc.slug}`;
 
     return {
       meta: [
@@ -36,5 +36,5 @@ export const Route = createFileRoute("/_view/docs/")({
 function Component() {
   const { doc } = Route.useLoaderData();
 
-  return <DocLayout doc={doc} showSectionTitle={false} />;
+  return <DocLayout doc={doc} showSectionTitle={true} />;
 }

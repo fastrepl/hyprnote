@@ -50,7 +50,7 @@ import { Route as ViewProductAiNotetakingRouteImport } from './routes/_view/prod
 import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/product/ai-assistant'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
-import { Route as ViewDocsSlugRouteImport } from './routes/_view/docs/$slug'
+import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
 import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
@@ -262,9 +262,9 @@ const ViewDownloadAppleSiliconRoute =
     path: '/download/apple-silicon',
     getParentRoute: () => ViewRouteRoute,
   } as any)
-const ViewDocsSlugRoute = ViewDocsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
+const ViewDocsSplatRoute = ViewDocsSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => ViewDocsRouteRoute,
 } as any)
 const ViewChangelogSlugRoute = ViewChangelogSlugRouteImport.update({
@@ -321,7 +321,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
-  '/docs/$slug': typeof ViewDocsSlugRoute
+  '/docs/$': typeof ViewDocsSplatRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -367,7 +367,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
-  '/docs/$slug': typeof ViewDocsSlugRoute
+  '/docs/$': typeof ViewDocsSplatRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -417,7 +417,7 @@ export interface FileRoutesById {
   '/_view/blog/$slug': typeof ViewBlogSlugRoute
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
-  '/_view/docs/$slug': typeof ViewDocsSlugRoute
+  '/_view/docs/$': typeof ViewDocsSplatRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
   '/_view/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -467,7 +467,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/callback/auth'
     | '/changelog/$slug'
-    | '/docs/$slug'
+    | '/docs/$'
     | '/download/apple-silicon'
     | '/legal/$slug'
     | '/product/ai-assistant'
@@ -513,7 +513,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/callback/auth'
     | '/changelog/$slug'
-    | '/docs/$slug'
+    | '/docs/$'
     | '/download/apple-silicon'
     | '/legal/$slug'
     | '/product/ai-assistant'
@@ -562,7 +562,7 @@ export interface FileRouteTypes {
     | '/_view/blog/$slug'
     | '/_view/callback/auth'
     | '/_view/changelog/$slug'
-    | '/_view/docs/$slug'
+    | '/_view/docs/$'
     | '/_view/download/apple-silicon'
     | '/_view/legal/$slug'
     | '/_view/product/ai-assistant'
@@ -888,11 +888,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadAppleSiliconRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/docs/$slug': {
-      id: '/_view/docs/$slug'
-      path: '/$slug'
-      fullPath: '/docs/$slug'
-      preLoaderRoute: typeof ViewDocsSlugRouteImport
+    '/_view/docs/$': {
+      id: '/_view/docs/$'
+      path: '/$'
+      fullPath: '/docs/$'
+      preLoaderRoute: typeof ViewDocsSplatRouteImport
       parentRoute: typeof ViewDocsRouteRoute
     }
     '/_view/changelog/$slug': {
@@ -950,12 +950,12 @@ const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(
 )
 
 interface ViewDocsRouteRouteChildren {
-  ViewDocsSlugRoute: typeof ViewDocsSlugRoute
+  ViewDocsSplatRoute: typeof ViewDocsSplatRoute
   ViewDocsIndexRoute: typeof ViewDocsIndexRoute
 }
 
 const ViewDocsRouteRouteChildren: ViewDocsRouteRouteChildren = {
-  ViewDocsSlugRoute: ViewDocsSlugRoute,
+  ViewDocsSplatRoute: ViewDocsSplatRoute,
   ViewDocsIndexRoute: ViewDocsIndexRoute,
 }
 

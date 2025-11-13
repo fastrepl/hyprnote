@@ -212,7 +212,7 @@ function TableOfContents({
 
   return (
     <aside className="hidden lg:block w-64 shrink-0">
-      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto px-2 pt-6 pb-18 scrollbar-hide">
+      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto px-2 pt-6 pb-18 scrollbar-hide">
         <Link
           to="/blog"
           className="mx-2 inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8 font-serif"

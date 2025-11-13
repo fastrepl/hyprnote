@@ -43,13 +43,7 @@ where
         let source_rate = source.sample_rate();
         let input_block_size = output_chunk_size;
         let ratio = target_rate as f64 / source_rate as f64;
-        let resampler = FastFixedIn::<f32>::new(
-            ratio,
-            2.0,
-            PolynomialDegree::Linear,
-            input_block_size.max(1),
-            1,
-        )?;
+        let resampler = Self::create_resampler(ratio, input_block_size)?;
         let driver = RubatoChunkResampler::new(resampler, output_chunk_size, input_block_size);
         Ok(Self {
             source,
@@ -64,13 +58,7 @@ where
 
     fn rebuild_resampler(&mut self, new_rate: u32) -> Result<(), crate::Error> {
         let ratio = self.target_rate as f64 / new_rate as f64;
-        let resampler = FastFixedIn::<f32>::new(
-            ratio,
-            2.0,
-            PolynomialDegree::Linear,
-            self.input_block_size.max(1),
-            1,
-        )?;
+        let resampler = Self::create_resampler(ratio, self.input_block_size)?;
         self.driver
             .rebind_resampler(resampler, self.output_chunk_size, self.input_block_size);
         self.last_source_rate = new_rate;
@@ -97,6 +85,20 @@ where
         self.driver.process_all_ready_blocks()?;
         self.driver.process_partial_block(true)?;
         Ok(())
+    }
+
+    fn create_resampler(
+        ratio: f64,
+        input_block_size: usize,
+    ) -> Result<FastFixedIn<f32>, crate::Error> {
+        FastFixedIn::<f32>::new(
+            ratio,
+            2.0,
+            PolynomialDegree::Quintic,
+            input_block_size.max(1),
+            1,
+        )
+        .map_err(Into::into)
     }
 }
 

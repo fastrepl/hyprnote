@@ -58,7 +58,7 @@ where
         let resampler = FastFixedIn::<f32>::new(
             ratio,
             2.0,
-            PolynomialDegree::Linear,
+            PolynomialDegree::Quintic,
             input_block_size.max(1),
             1,
         )?;

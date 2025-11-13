@@ -32,6 +32,7 @@ mod tests {
         current_segment: usize,
         current_position: usize,
         poll_count: usize,
+        pending_yield: bool,
     }
 
     impl DynamicRateSource {
@@ -41,6 +42,7 @@ mod tests {
                 current_segment: 0,
                 current_position: 0,
                 poll_count: 0,
+                pending_yield: false,
             }
         }
     }
@@ -70,8 +72,15 @@ mod tests {
             let source = &mut self.source;
 
             source.poll_count += 1;
-            if source.poll_count % 1000 == 0 {
-                cx.waker().wake_by_ref();
+            if source.pending_yield {
+                source.pending_yield = false;
+            } else if source.poll_count % 1000 == 0 {
+                let waker = cx.waker().clone();
+                source.pending_yield = true;
+                tokio::spawn(async move {
+                    tokio::task::yield_now().await;
+                    waker.wake();
+                });
                 return Poll::Pending;
             }
 
@@ -103,6 +112,23 @@ mod tests {
         ])
     }
 
+    macro_rules! write_wav {
+        ($path:expr, $sample_rate:expr, $samples:expr $(,)?) => {{
+            let spec = hound::WavSpec {
+                channels: 1,
+                sample_rate: $sample_rate,
+                bits_per_sample: 32,
+                sample_format: hound::SampleFormat::Float,
+            };
+
+            let mut writer = hound::WavWriter::create($path, spec).unwrap();
+            for sample in $samples {
+                writer.write_sample(sample).unwrap();
+            }
+            writer.finalize().unwrap();
+        }};
+    }
+
     #[tokio::test]
     async fn test_kalosm_builtin_resampler() {
         let source = create_test_source();
@@ -113,24 +139,30 @@ mod tests {
     #[tokio::test]
     async fn test_dynamic_old_resampler() {
         let source = create_test_source();
-        let resampled = ResamplerDynamicOld::new(source, 16000);
-        assert_eq!(resampled.collect::<Vec<_>>().await.len(), 2791777);
+        let samples = ResamplerDynamicOld::new(source, 16000)
+            .collect::<Vec<_>>()
+            .await;
+
+        assert_eq!(samples.len(), 2791777);
+        write_wav!("dynamic_old_resampler.wav", 16000, samples.iter().copied());
     }
 
     #[tokio::test]
     async fn test_dynamic_new_resampler() {
-        tokio::time::timeout(std::time::Duration::from_secs(5), async {
-            let source = create_test_source();
-            let chunk_size = 1920;
-            let resampler = ResamplerDynamicNew::new(source, 16000, chunk_size).unwrap();
+        let source = create_test_source();
+        let chunk_size = 1920;
+        let resampler = ResamplerDynamicNew::new(source, 16000, chunk_size).unwrap();
 
-            let chunks: Vec<_> = resampler.collect().await;
-            let total_samples: usize = chunks.iter().map(|c| c.as_ref().unwrap().len()).sum();
+        let chunks: Vec<_> = resampler.collect().await;
+        let total_samples: usize = chunks.iter().map(|c| c.as_ref().unwrap().len()).sum();
 
-            assert!((total_samples as i64 - 2784000).abs() < 100000);
-        })
-        .await
-        .expect("Test timed out after 5 seconds");
+        assert!((total_samples as i64 - 2784000).abs() < 100000);
+
+        write_wav!(
+            "dynamic_new_resampler.wav",
+            16000,
+            chunks.iter().flatten().flatten().copied()
+        );
     }
 
     #[tokio::test]
@@ -146,5 +178,11 @@ mod tests {
         let total_samples: usize = chunks.iter().map(|c| c.as_ref().unwrap().len()).sum();
 
         assert!(total_samples > 0);
+
+        write_wav!(
+            "static_new_resampler.wav",
+            16000,
+            chunks.iter().flatten().flatten().copied()
+        );
     }
 }

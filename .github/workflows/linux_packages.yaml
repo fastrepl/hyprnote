@@ -194,7 +194,7 @@ jobs:
           echo "Testing .deb package installation..."
 
           # Install the package
-          sudo dpkg -i ${{ steps.find-deb.outputs.deb_path }} || true
+          sudo dpkg -i "${{ steps.find-deb.outputs.deb_path }}" || true
 
           # Fix any dependency issues
           sudo apt-get install -f -y

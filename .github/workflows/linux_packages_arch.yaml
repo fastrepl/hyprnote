@@ -43,10 +43,12 @@ jobs:
             arch: "x86_64"
             features: "stt-openblas,llm-vulkan"
             platform: "linux/amd64"
-          - target: "aarch64-unknown-linux-gnu"
-            arch: "aarch64"
-            features: "stt-openblas,llm-vulkan"
-            platform: "linux/arm64"
+          # ARM64 builds temporarily disabled - archlinux:latest doesn't support ARM64
+          # TODO: Implement ARM64 support using cross-compilation or alternative approach
+          # - target: "aarch64-unknown-linux-gnu"
+          #   arch: "aarch64"
+          #   features: "stt-openblas,llm-vulkan"
+          #   platform: "linux/arm64"
 
     steps:
       - name: Checkout repository

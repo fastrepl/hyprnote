@@ -11,11 +11,6 @@ on:
         options:
           - "stable"
           - "nightly"
-  push:
-    branches:
-      - linux-development
-    paths:
-      - '.github/workflows/linux_packages_arch.yaml'
   release:
     types:
       - published
@@ -31,7 +26,7 @@ env:
 
 jobs:
   build-arch-package:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event.release && startsWith(github.event.release.tag_name, 'desktop_')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.release && startsWith(github.event.release.tag_name, 'desktop_')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

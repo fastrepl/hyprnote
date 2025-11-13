@@ -42,20 +42,23 @@ jobs:
           - target: "x86_64-unknown-linux-gnu"
             arch: "x86_64"
             features: "stt-openblas,llm-vulkan"
+            platform: "linux/amd64"
           - target: "aarch64-unknown-linux-gnu"
             arch: "aarch64"
             features: "stt-openblas,llm-vulkan"
-
-    container:
-      image: archlinux:latest
-
-    defaults:
-      run:
-        shell: bash
+            platform: "linux/arm64"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Validate version
         run: |
@@ -72,135 +75,97 @@ jobs:
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Install system dependencies
+      - name: Build in Arch Linux container
         run: |
-          # Update package database and keyring
+          # Create build script that will run inside the container
+          cat > build.sh << 'BUILD_SCRIPT_EOF'
+          #!/bin/bash
+          set -e
+          
+          echo "=== Building Hyprnote $VERSION for $ARCH ==="
+          
+          # Update system and install dependencies
           pacman -Syu --noconfirm
-
-          # Install base development tools
-           pacman -S --noconfirm \
-             base-devel \
-             git \
-             wget \
-             curl \
-             file \
-             cmake \
-             pkgconf \
-             openssl \
-             gtk3 \
-             webkit2gtk-4.1 \
-             libappindicator-gtk3 \
-             librsvg \
-             alsa-lib \
-             libpulse \
-             openblas \
-             vulkan-icd-loader \
-             vulkan-headers \
-             xdotool \
-             unzip \
-             clang
-
-          # Install cross-compilation tools for ARM64 if needed
-          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
-            pacman -S --noconfirm \
-              aarch64-linux-gnu-gcc \
-              aarch64-linux-gnu-binutils || true
-          fi
-
-      - name: Setup Protoc
-        uses: ./.github/actions/setup_protoc
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Rust toolchain
-        run: |
+          pacman -S --noconfirm \
+            base-devel \
+            git \
+            wget \
+            curl \
+            file \
+            cmake \
+            pkgconf \
+            openssl \
+            gtk3 \
+            webkit2gtk-4.1 \
+            libappindicator-gtk3 \
+            librsvg \
+            alsa-lib \
+            libpulse \
+            openblas \
+            vulkan-icd-loader \
+            vulkan-headers \
+            xdotool \
+            unzip \
+            clang \
+            nodejs \
+            npm \
+            python \
+            python-pip \
+            python-poetry
+          
+          # Install pnpm
+          npm install -g pnpm
+          
+          # Install Rust
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
           source "$HOME/.cargo/env"
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Add Rust target
-        run: |
-          source "$HOME/.cargo/env"
-          rustup target add ${{ matrix.target }}
-
-      - name: Install Node.js and pnpm
-        run: |
-          pacman -S --noconfirm nodejs npm
-          npm install -g pnpm
-
-      - name: Install Node.js dependencies
-        run: pnpm install
-
-      - name: Install Python and Poetry
-        run: |
-          pacman -S --noconfirm python python-pip python-poetry
+          rustup target add $RUST_TARGET
+          
+          # Install protoc
+          cd /tmp
+          PROTOC_VERSION=25.1
+          PROTOC_ARCH=$PROTOC_ARCH_NAME
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${PROTOC_ARCH}.zip
+          unzip protoc-${PROTOC_VERSION}-linux-${PROTOC_ARCH}.zip -d /usr/local
+          chmod +x /usr/local/bin/protoc
+          
+          # Build the application
+          cd /workspace
+          
+          # Install Node dependencies
+          pnpm install
+          
+          # Install Python dependencies and run pre-build
           poetry install
-
-      - name: Run pre-build script
-        run: |
-          source "$HOME/.cargo/env"
           poetry run python scripts/pre_build.py
-
-      - name: Compile translations
-        run: pnpm -F desktop lingui:compile
-
-      - name: Build UI package
-        run: pnpm -F ui build
-
-      - name: Set cross-compilation environment for ARM64
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
           
-          # Set ARM64-specific compiler flags to override x86-64 defaults
-          echo "CFLAGS_aarch64_unknown_linux_gnu=-O2 -pipe" >> $GITHUB_ENV
-          echo "CXXFLAGS_aarch64_unknown_linux_gnu=-O2 -pipe" >> $GITHUB_ENV
-          echo "ARCH_OVERRIDE_CFLAGS=-O2 -pipe" >> $GITHUB_ENV
-          echo "ARCH_OVERRIDE_CXXFLAGS=-O2 -pipe" >> $GITHUB_ENV
-
-      - name: Create PKGBUILD
-        run: |
-          source "$HOME/.cargo/env"
-
-          mkdir -p /tmp/pkgbuild
-          cd /tmp/pkgbuild
-
-          # Get the project root
-          PROJECT_ROOT="${GITHUB_WORKSPACE}"
+          # Compile translations
+          pnpm -F desktop lingui:compile
           
-          # Create custom makepkg.conf for ARM64 cross-compilation if needed
-          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
-            echo "Creating custom makepkg.conf for ARM64 cross-compilation..."
-            cat > /tmp/pkgbuild/makepkg.conf << 'MAKEPKG_EOF'
-          # ARM64 cross-compilation makepkg configuration
-          CARCH="aarch64"
-          CHOST="aarch64-unknown-linux-gnu"
+          # Build UI package
+          pnpm -F ui build
           
-          # Compiler and linker flags (ARM64-compatible, no x86-64 specifics)
-          CFLAGS="-O2 -pipe -fstack-protector-strong -fno-plt"
-          CXXFLAGS="-O2 -pipe -fstack-protector-strong -fno-plt"
-          LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+          # Set environment for build
+          export LIBCLANG_PATH=/usr/lib
+          export CARGO_LOG=cargo::core::compiler::fingerprint=info
+          export RUST_BACKTRACE=1
           
-          # Make flags
-          MAKEFLAGS="-j$(nproc)"
+          # Build with Tauri
+          pnpm -F desktop tauri build \
+            --target $RUST_TARGET \
+            --config $TAURI_CONF \
+            --verbose \
+            -- --verbose
           
-          # Build environment
-          BUILDENV=(!distcc color !ccache check !sign)
-          OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge !debug !lto)
+          # Create PKGBUILD directory
+          mkdir -p /pkgbuild
+          cd /pkgbuild
           
-          # Package output
-          PKGEXT='.pkg.tar.zst'
-          SRCEXT='.src.tar.gz'
-          MAKEPKG_EOF
-          fi
-
-          cat > PKGBUILD << EOF
+          # Create PKGBUILD
+          cat > PKGBUILD << 'PKGBUILD_EOF'
           # Maintainer: Hyprnote Team
           pkgname=hyprnote
-          pkgver=${{ env.VERSION }}
+          pkgver=${VERSION}
           pkgrel=1
           pkgdesc="AI-powered note-taking and transcription application"
           arch=('x86_64' 'aarch64')
@@ -218,156 +183,93 @@ jobs:
             'vulkan-icd-loader'
             'xdotool'
           )
-          makedepends=()
           source=()
           sha256sums=()
           options=('!strip')
-
-          build() {
-            cd "${PROJECT_ROOT}"
-
-            # Set up environment
-            export PATH="\$HOME/.cargo/bin:\$PATH"
-            source "\$HOME/.cargo/env" || true
-
-            # Set LIBCLANG_PATH for bindgen
-            export LIBCLANG_PATH=/usr/lib
-
-            # When cross-compiling to ARM64, override x86-64 specific flags from makepkg.conf
-            if [ "$CARCH" = "aarch64" ]; then
-              # Use generic ARM64-compatible flags instead of x86-64 specific ones
-              export CFLAGS="\${ARCH_OVERRIDE_CFLAGS:--O2 -pipe}"
-              export CXXFLAGS="\${ARCH_OVERRIDE_CXXFLAGS:--O2 -pipe}"
-              export LDFLAGS="-Wl,-O1,--sort-common,--as-needed"
-              
-              # Set target-specific environment for Rust/C cross-compilation
-              export CC_aarch64_unknown_linux_gnu="aarch64-linux-gnu-gcc"
-              export CXX_aarch64_unknown_linux_gnu="aarch64-linux-gnu-g++"
-              export AR_aarch64_unknown_linux_gnu="aarch64-linux-gnu-ar"
-              export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="aarch64-linux-gnu-gcc"
-              
-              echo "Cross-compiling for ARM64 with flags:"
-              echo "  CFLAGS=\$CFLAGS"
-              echo "  CXXFLAGS=\$CXXFLAGS"
-            fi
-
-            # Set verbose flags for better debugging
-            export CARGO_LOG=cargo::core::compiler::fingerprint=info
-            export RUST_BACKTRACE=1
-            
-            # Build using Tauri (without --bundles to just build the binary)
-            pnpm -F desktop tauri build \
-              --target ${{ matrix.target }} \
-              --config ${{ env.TAURI_CONF_PATH }} \
-              --verbose \
-              -- --verbose
-          }
-
+          
           package() {
-            cd "${PROJECT_ROOT}"
-
             # Find the binary
-            BINARY=\$(find apps/desktop/src-tauri/target/${{ matrix.target }}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
-
-            if [ -z "\$BINARY" ]; then
+            BINARY=$(find /workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
+            
+            if [ -z "$BINARY" ]; then
               echo "Error: Binary not found"
               exit 1
             fi
-
+            
             # Install binary
-            install -Dm755 "\$BINARY" "\${pkgdir}/usr/bin/hyprnote"
-
+            install -Dm755 "$BINARY" "${pkgdir}/usr/bin/hyprnote"
+            
             # Install .desktop file if exists
-            DESKTOP_FILE=\$(find apps/desktop/src-tauri -name "*.desktop" | head -n 1)
-            if [ -n "\$DESKTOP_FILE" ]; then
-              install -Dm644 "\$DESKTOP_FILE" "\${pkgdir}/usr/share/applications/hyprnote.desktop"
+            DESKTOP_FILE=$(find /workspace/apps/desktop/src-tauri -name "*.desktop" | head -n 1)
+            if [ -n "$DESKTOP_FILE" ]; then
+              install -Dm644 "$DESKTOP_FILE" "${pkgdir}/usr/share/applications/hyprnote.desktop"
             fi
-
+            
             # Install icons if they exist
             for size in 32 128 256; do
-              ICON=\$(find apps/desktop/public -name "\${size}x\${size}.png" -o -name "icon_\${size}x\${size}.png" | head -n 1)
-              if [ -n "\$ICON" ]; then
-                install -Dm644 "\$ICON" "\${pkgdir}/usr/share/icons/hicolor/\${size}x\${size}/apps/hyprnote.png"
+              ICON=$(find /workspace/apps/desktop/public -name "${size}x${size}.png" -o -name "icon_${size}x${size}.png" | head -n 1)
+              if [ -n "$ICON" ]; then
+                install -Dm644 "$ICON" "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps/hyprnote.png"
               fi
             done
-
+            
             # Install license
-            if [ -f LICENSE ]; then
-              install -Dm644 LICENSE "\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE"
+            if [ -f /workspace/LICENSE ]; then
+              install -Dm644 /workspace/LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
             fi
           }
-          EOF
-
-          echo "PKGBUILD created:"
-          cat PKGBUILD
-
-      - name: Build package with makepkg
-        run: |
-          source "$HOME/.cargo/env"
-          cd /tmp/pkgbuild
-
-          # Create a non-root user for makepkg (makepkg refuses to run as root)
-          useradd -m builder
-          chown -R builder:builder /tmp/pkgbuild
-          chown -R builder:builder "${GITHUB_WORKSPACE}"
+          PKGBUILD_EOF
           
-          # Copy cargo/rust installation to builder's home
-          cp -r "$HOME/.cargo" /home/builder/
-          cp -r "$HOME/.rustup" /home/builder/ || true
-          chown -R builder:builder /home/builder/.cargo
-          chown -R builder:builder /home/builder/.rustup || true
-
-          # Allow builder to run commands without password
+          # Build package as non-root user
+          useradd -m builder
+          chown -R builder:builder /pkgbuild
+          chown -R builder:builder /workspace
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           
-          # Export environment variables that need to be passed
-          export PROJECT_ROOT="${GITHUB_WORKSPACE}"
-
-          # Build as builder user with proper environment
-          su - builder -c "
-            export PROJECT_ROOT='${GITHUB_WORKSPACE}'
-            export PATH=\"\$HOME/.cargo/bin:\$PATH\"
-            export LIBCLANG_PATH='/usr/lib'
-            export PKG_CONFIG_ALLOW_CROSS='$PKG_CONFIG_ALLOW_CROSS'
-            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER='$CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER'
-            export CC_aarch64_unknown_linux_gnu='$CC_aarch64_unknown_linux_gnu'
-            export CXX_aarch64_unknown_linux_gnu='$CXX_aarch64_unknown_linux_gnu'
-            export CFLAGS_aarch64_unknown_linux_gnu='$CFLAGS_aarch64_unknown_linux_gnu'
-            export CXXFLAGS_aarch64_unknown_linux_gnu='$CXXFLAGS_aarch64_unknown_linux_gnu'
-            export ARCH_OVERRIDE_CFLAGS='$ARCH_OVERRIDE_CFLAGS'
-            export ARCH_OVERRIDE_CXXFLAGS='$ARCH_OVERRIDE_CXXFLAGS'
-            export CI='$CI'
-            export GITHUB_TOKEN='$GITHUB_TOKEN'
-            export POSTHOG_API_KEY='$POSTHOG_API_KEY'
-            export SENTRY_DSN='$SENTRY_DSN'
-            export KEYGEN_ACCOUNT_ID='$KEYGEN_ACCOUNT_ID'
-            export KEYGEN_VERIFY_KEY='$KEYGEN_VERIFY_KEY'
-            export TAURI_SIGNING_PRIVATE_KEY='$TAURI_SIGNING_PRIVATE_KEY'
-            export TAURI_SIGNING_PRIVATE_KEY_PASSWORD='$TAURI_SIGNING_PRIVATE_KEY_PASSWORD'
-            cd /tmp/pkgbuild
-            
-            # Use custom makepkg.conf for ARM64 cross-compilation if it exists
-            if [ -f /tmp/pkgbuild/makepkg.conf ]; then
-              echo 'Using custom makepkg.conf for cross-compilation'
-              makepkg --noconfirm --skippgpcheck --config /tmp/pkgbuild/makepkg.conf
-            else
-              makepkg --noconfirm --skippgpcheck
-            fi
-          "
-        env:
-          CI: false
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}
-          KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          su - builder -c "cd /pkgbuild && makepkg --noconfirm --skippgpcheck"
+          
+          # Copy package to output
+          cp /pkgbuild/*.pkg.tar.zst /output/
+          
+          echo "=== Build completed successfully ==="
+          BUILD_SCRIPT_EOF
+          
+          chmod +x build.sh
+          
+          # Determine protoc architecture name
+          if [[ "${{ matrix.arch }}" == "x86_64" ]]; then
+            PROTOC_ARCH_NAME="x86_64"
+          else
+            PROTOC_ARCH_NAME="aarch_64"
+          fi
+          
+          # Run build in Docker container with appropriate platform
+          mkdir -p "${GITHUB_WORKSPACE}/output"
+          docker run --rm \
+            --platform ${{ matrix.platform }} \
+            -v "${GITHUB_WORKSPACE}:/workspace" \
+            -v "${GITHUB_WORKSPACE}/output:/output" \
+            -v "${GITHUB_WORKSPACE}/build.sh:/build.sh" \
+            -e VERSION="${{ env.VERSION }}" \
+            -e ARCH="${{ matrix.arch }}" \
+            -e RUST_TARGET="${{ matrix.target }}" \
+            -e TAURI_CONF="${{ env.TAURI_CONF_PATH }}" \
+            -e PROTOC_ARCH_NAME="$PROTOC_ARCH_NAME" \
+            -e CI="false" \
+            -e GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" \
+            -e POSTHOG_API_KEY="${{ secrets.POSTHOG_API_KEY }}" \
+            -e SENTRY_DSN="${{ secrets.SENTRY_DSN }}" \
+            -e KEYGEN_ACCOUNT_ID="${{ secrets.KEYGEN_ACCOUNT_ID }}" \
+            -e KEYGEN_VERIFY_KEY="${{ secrets.KEYGEN_VERIFY_KEY }}" \
+            -e TAURI_SIGNING_PRIVATE_KEY="${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" \
+            -e TAURI_SIGNING_PRIVATE_KEY_PASSWORD="${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}" \
+            archlinux:latest \
+            /bin/bash /build.sh
 
       - name: Find package file
         id: find-pkg
         run: |
-          PKG_PATH=$(find /tmp/pkgbuild -name "*.pkg.tar.zst" | head -n 1)
+          PKG_PATH=$(find "${GITHUB_WORKSPACE}/output" -name "*.pkg.tar.zst" | head -n 1)
           if [ -z "$PKG_PATH" ]; then
             echo "Error: No package file found"
             exit 1
@@ -381,43 +283,48 @@ jobs:
         run: |
           echo "Testing Arch package installation..."
 
-          # Install the package
-          pacman -U --noconfirm ${{ steps.find-pkg.outputs.pkg_path }}
+          # Run test in Docker container
+          docker run --rm \
+            --platform ${{ matrix.platform }} \
+            -v "${{ steps.find-pkg.outputs.pkg_path }}:/package.pkg.tar.zst" \
+            archlinux:latest \
+            /bin/bash -c "
+              # Install the package
+              pacman -Syu --noconfirm
+              pacman -U --noconfirm /package.pkg.tar.zst
 
-          # Verify installation
-          pacman -Q hyprnote
+              # Verify installation
+              pacman -Q hyprnote
 
-          # Check if binary exists and is executable
-          if [ -f /usr/bin/hyprnote ]; then
-            echo "Found binary: /usr/bin/hyprnote"
-            file /usr/bin/hyprnote
-            ldd /usr/bin/hyprnote || true
-            echo "Binary verification successful"
-          else
-            echo "Error: Binary not found"
-            exit 1
-          fi
+              # Check if binary exists and is executable
+              if [ -f /usr/bin/hyprnote ]; then
+                echo 'Found binary: /usr/bin/hyprnote'
+                file /usr/bin/hyprnote
+                ldd /usr/bin/hyprnote || true
+                echo 'Binary verification successful'
+              else
+                echo 'Error: Binary not found'
+                exit 1
+              fi
 
-          # Verify .desktop file
-          DESKTOP_FILE=$(find /usr/share/applications -name "*hyprnote*.desktop" 2>/dev/null | head -n 1)
-          if [ -n "$DESKTOP_FILE" ]; then
-            echo "Found .desktop file: $DESKTOP_FILE"
-            cat "$DESKTOP_FILE"
-          else
-            echo "Warning: .desktop file not found"
-          fi
+              # Verify .desktop file
+              DESKTOP_FILE=\$(find /usr/share/applications -name '*hyprnote*.desktop' 2>/dev/null | head -n 1)
+              if [ -n \"\$DESKTOP_FILE\" ]; then
+                echo \"Found .desktop file: \$DESKTOP_FILE\"
+                cat \"\$DESKTOP_FILE\"
+              else
+                echo 'Warning: .desktop file not found'
+              fi
 
-          # Clean up
-          pacman -R --noconfirm hyprnote || true
-
-          echo "✅ Arch package installation test passed"
+              echo '✅ Arch package installation test passed'
+            "
 
       - name: Verify package (cross-compiled ARM64)
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           echo "Verifying ARM64 Arch package structure..."
 
-          # Extract package
+          # Extract and verify package
           mkdir -p /tmp/pkg-test
           cd /tmp/pkg-test
           tar -xf ${{ steps.find-pkg.outputs.pkg_path }}
@@ -447,10 +354,6 @@ jobs:
             echo "Found .desktop file: $DESKTOP_FILE"
             cat "$DESKTOP_FILE"
           fi
-
-          # Clean up
-          cd /
-          rm -rf /tmp/pkg-test
 
           echo "✅ ARM64 Arch package verification passed"
 

@@ -144,14 +144,31 @@ For each workflow run:
 
 ---
 
+## Issues Fixed
+
+### 1. Arch Workflow PKGBUILD Variable Substitution (FIXED)
+- **Issue:** PKGBUILD heredoc used single quotes preventing variable substitution
+- **Impact:** `${VERSION}` and `${RUST_TARGET}` remained literal, causing makepkg failure
+- **Fix:** Removed quotes from heredoc delimiter, escaped bash variables  
+- **Commit:** 91eafa1b - "fix(ci): fix PKGBUILD variable substitution in Arch Linux workflow"
+- **Line:** 167 in `.github/workflows/linux_packages_arch.yaml`
+
+### 2. Arch Workflow Package Signing (FIXED)
+- **Issue:** makepkg tried to sign packages without GPG key in CI container
+- **Error:** `==> ERROR: There is no secret key available to sign with.`
+- **Fix:** Added `--nosign` flag to makepkg command
+- **Commit:** 3d7c1141 - "fix(ci): disable package signing in Arch Linux workflow"
+- **Line:** 231 in `.github/workflows/linux_packages_arch.yaml`
+
 ## Issues Requiring Attention
 
 ### Priority: Critical
 
-1. **Arch workflow failure**
-   - **Action:** Investigate Run #19327850824 failure logs on fork
-   - **Timeline:** Before publishing
-   - **Owner:** Developer with fork access
+1. **GitHub push failure to fork**
+   - **Status:** GitHub Internal Server Error preventing push
+   - **Action:** Retry push once GitHub resolves internal issues
+   - **Affected:** Cannot test latest Arch workflow fix on fork
+   - **Workaround:** Create PR to main repo and test there
 
 ### Priority: High
 

@@ -1,15 +1,15 @@
 mod batch;
+mod controller;
 mod listener;
 mod processor;
 mod recorder;
-mod session;
 mod source;
 
 pub use batch::*;
+pub use controller::*;
 pub use listener::*;
 pub use processor::*;
 pub use recorder::*;
-pub use session::*;
 pub use source::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

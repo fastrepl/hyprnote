@@ -2,12 +2,12 @@ use std::time::{Instant, SystemTime};
 
 use tauri::Manager;
 use tauri_specta::Event;
+use tokio_util::sync::CancellationToken;
 
 use ractor::{
     call_t, concurrency, registry, Actor, ActorCell, ActorName, ActorProcessingErr, ActorRef,
     RpcReplyPort, SupervisionEvent,
 };
-use tokio_util::sync::CancellationToken;
 
 use crate::{
     actors::{
@@ -18,7 +18,7 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub enum SessionMsg {
+pub enum ControllerMsg {
     SetMicMute(bool),
     GetMicMute(RpcReplyPort<bool>),
     GetMicDeviceName(RpcReplyPort<Option<String>>),
@@ -26,7 +26,7 @@ pub enum SessionMsg {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
-pub struct SessionParams {
+pub struct ControllerParams {
     pub session_id: String,
     pub languages: Vec<hypr_language::Language>,
     pub onboarding: bool,
@@ -37,32 +37,32 @@ pub struct SessionParams {
     pub keywords: Vec<String>,
 }
 
-pub struct SessionArgs {
+pub struct ControllerArgs {
     pub app: tauri::AppHandle,
-    pub params: SessionParams,
+    pub params: ControllerParams,
 }
 
-pub struct SessionState {
+pub struct ControllerState {
     app: tauri::AppHandle,
     token: CancellationToken,
-    params: SessionParams,
+    params: ControllerParams,
     started_at_instant: Instant,
     started_at_system: SystemTime,
 }
 
-pub struct SessionActor;
+pub struct ControllerActor;
 
-impl SessionActor {
+impl ControllerActor {
     pub fn name() -> ActorName {
-        "session".into()
+        "controller".into()
     }
 }
 
 #[ractor::async_trait]
-impl Actor for SessionActor {
-    type Msg = SessionMsg;
-    type State = SessionState;
-    type Arguments = SessionArgs;
+impl Actor for ControllerActor {
+    type Msg = ControllerMsg;
+    type State = ControllerState;
+    type Arguments = ControllerArgs;
 
     async fn pre_start(
         &self,
@@ -78,7 +78,7 @@ impl Actor for SessionActor {
             let _ = args.app.set_start_disabled(true);
         }
 
-        let state = SessionState {
+        let state = ControllerState {
             app: args.app,
             token: cancellation_token,
             params: args.params,
@@ -102,7 +102,7 @@ impl Actor for SessionActor {
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match message {
-            SessionMsg::SetMicMute(muted) => {
+            ControllerMsg::SetMicMute(muted) => {
                 if let Some(cell) = registry::where_is(SourceActor::name()) {
                     let actor: ActorRef<SourceMsg> = cell.into();
                     actor.cast(SourceMsg::SetMicMute(muted))?;
@@ -110,7 +110,7 @@ impl Actor for SessionActor {
                 SessionEvent::MicMuted { value: muted }.emit(&state.app)?;
             }
 
-            SessionMsg::GetMicDeviceName(reply) => {
+            ControllerMsg::GetMicDeviceName(reply) => {
                 if !reply.is_closed() {
                     let device_name = if let Some(cell) = registry::where_is(SourceActor::name()) {
                         let actor: ActorRef<SourceMsg> = cell.into();
@@ -123,7 +123,7 @@ impl Actor for SessionActor {
                 }
             }
 
-            SessionMsg::GetMicMute(reply) => {
+            ControllerMsg::GetMicMute(reply) => {
                 let muted = if let Some(cell) = registry::where_is(SourceActor::name()) {
                     let actor: ActorRef<SourceMsg> = cell.into();
                     call_t!(actor, SourceMsg::GetMicMute, 100)?
@@ -136,7 +136,7 @@ impl Actor for SessionActor {
                 }
             }
 
-            SessionMsg::ChangeMicDevice(device) => {
+            ControllerMsg::ChangeMicDevice(device) => {
                 if let Some(cell) = registry::where_is(SourceActor::name()) {
                     let actor: ActorRef<SourceMsg> = cell.into();
                     actor.cast(SourceMsg::SetMicDevice(device))?;
@@ -200,10 +200,10 @@ impl Actor for SessionActor {
     }
 }
 
-impl SessionActor {
+impl ControllerActor {
     async fn start_all_actors(
         supervisor: ActorCell,
-        state: &SessionState,
+        state: &ControllerState,
     ) -> Result<(), ActorProcessingErr> {
         Self::start_processor(supervisor.clone(), state).await?;
         Self::start_source(supervisor.clone(), state).await?;
@@ -225,7 +225,7 @@ impl SessionActor {
 
     async fn start_source(
         supervisor: ActorCell,
-        state: &SessionState,
+        state: &ControllerState,
     ) -> Result<ActorRef<SourceMsg>, ActorProcessingErr> {
         let (ar, _) = Actor::spawn_linked(
             Some(SourceActor::name()),
@@ -255,7 +255,7 @@ impl SessionActor {
 
     async fn start_processor(
         supervisor: ActorCell,
-        state: &SessionState,
+        state: &ControllerState,
     ) -> Result<ActorRef<ProcMsg>, ActorProcessingErr> {
         let (ar, _) = Actor::spawn_linked(
             Some(ProcessorActor::name()),
@@ -283,7 +283,7 @@ impl SessionActor {
 
     async fn start_recorder(
         supervisor: ActorCell,
-        state: &SessionState,
+        state: &ControllerState,
     ) -> Result<ActorRef<RecMsg>, ActorProcessingErr> {
         let (rec_ref, _) = Actor::spawn_linked(
             Some(RecorderActor::name()),
@@ -312,7 +312,7 @@ impl SessionActor {
 
     async fn start_listener(
         supervisor: ActorCell,
-        session_state: &SessionState,
+        session_state: &ControllerState,
         listener_args: Option<ListenerArgs>,
     ) -> Result<ActorRef<ListenerMsg>, ActorProcessingErr> {
         use crate::actors::ChannelMode;

@@ -1,4 +1,4 @@
-use crate::{actors::SessionParams, BatchParams, ListenerPluginExt};
+use crate::{actors::ControllerParams, BatchParams, ListenerPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -51,7 +51,7 @@ pub async fn set_mic_muted<R: tauri::Runtime>(
 #[specta::specta]
 pub async fn start_session<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-    params: SessionParams,
+    params: ControllerParams,
 ) -> Result<(), String> {
     app.start_session(params).await;
     Ok(())

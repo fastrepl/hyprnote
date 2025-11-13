@@ -6,7 +6,7 @@ use tauri_specta::Event;
 
 use crate::actors::spawn_batch_actor;
 use crate::{
-    actors::{BatchArgs, SessionActor, SessionArgs, SessionMsg, SessionParams},
+    actors::{BatchArgs, ControllerActor, ControllerArgs, ControllerMsg, ControllerParams},
     SessionEvent,
 };
 
@@ -47,7 +47,7 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
 
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
     fn stop_session(&self) -> impl Future<Output = ()>;
-    fn start_session(&self, params: SessionParams) -> impl Future<Output = ()>;
+    fn start_session(&self, params: ControllerParams) -> impl Future<Output = ()>;
     fn run_batch(&self, params: BatchParams) -> impl Future<Output = Result<(), crate::Error>>;
 }
 
@@ -59,15 +59,15 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
 
-            match call_t!(actor, SessionMsg::GetMicDeviceName, 500) {
+            match call_t!(actor, ControllerMsg::GetMicDeviceName, 500) {
                 Ok(device_name) => Ok(device_name),
                 Err(_) => Ok(None),
             }
         } else {
-            Err(crate::Error::ActorNotFound(SessionActor::name()))
+            Err(crate::Error::ActorNotFound(ControllerActor::name()))
         }
     }
 
@@ -76,9 +76,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         &self,
         device_name: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-            let _ = actor.cast(SessionMsg::ChangeMicDevice(Some(device_name.into())));
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
+            let _ = actor.cast(ControllerMsg::ChangeMicDevice(Some(device_name.into())));
         }
 
         Ok(())
@@ -86,7 +86,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_state(&self) -> crate::fsm::State {
-        if let Some(_) = registry::where_is(SessionActor::name()) {
+        if let Some(_) = registry::where_is(ControllerActor::name()) {
             crate::fsm::State::RunningActive
         } else {
             crate::fsm::State::Inactive
@@ -95,10 +95,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
 
-            match call_t!(actor, SessionMsg::GetMicMute, 100) {
+            match call_t!(actor, ControllerMsg::GetMicMute, 100) {
                 Ok(muted) => muted,
                 Err(_) => false,
             }
@@ -109,21 +109,21 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
-            let actor: ActorRef<SessionMsg> = cell.into();
-            let _ = actor.cast(SessionMsg::SetMicMute(muted));
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
+            let _ = actor.cast(ControllerMsg::SetMicMute(muted));
         }
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_session(&self, params: SessionParams) {
+    async fn start_session(&self, params: ControllerParams) {
         let state = self.state::<crate::SharedState>();
         let guard = state.lock().await;
 
         let _ = Actor::spawn(
-            Some(SessionActor::name()),
-            SessionActor,
-            SessionArgs {
+            Some(ControllerActor::name()),
+            ControllerActor,
+            ControllerArgs {
                 app: guard.app.clone(),
                 params,
             },
@@ -133,14 +133,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn stop_session(&self) {
-        if let Some(cell) = registry::where_is(SessionActor::name()) {
+        if let Some(cell) = registry::where_is(ControllerActor::name()) {
             {
                 let state = self.state::<crate::SharedState>();
                 let guard = state.lock().await;
                 SessionEvent::Finalizing {}.emit(&guard.app).unwrap();
             }
 
-            let actor: ActorRef<SessionMsg> = cell.into();
+            let actor: ActorRef<ControllerMsg> = cell.into();
             let _ = actor
                 .stop_and_wait(None, Some(concurrency::Duration::from_secs(10)))
                 .await;

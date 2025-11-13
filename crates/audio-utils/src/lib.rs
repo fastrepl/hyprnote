@@ -5,8 +5,11 @@ use futures_util::{Stream, StreamExt};
 use kalosm_sound::AsyncSource;
 
 mod error;
-pub use error::*;
+mod resampler;
 mod vorbis;
+
+pub use error::*;
+pub use resampler::*;
 pub use vorbis::*;
 
 pub use rodio::Source;

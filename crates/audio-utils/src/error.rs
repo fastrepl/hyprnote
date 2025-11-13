@@ -12,8 +12,6 @@ pub enum Error {
     Hound(#[from] hound::Error),
     #[error(transparent)]
     Vorbis(#[from] vorbis_rs::VorbisError),
-    #[error("vorbis channel count mismatch (expected {expected}, actual {actual})")]
-    ChannelCountMismatch { expected: u8, actual: u8 },
     #[error("vorbis channel data length mismatch for channel {channel}")]
     ChannelDataLengthMismatch { channel: usize },
     #[error("unsupported channel count {count}")]

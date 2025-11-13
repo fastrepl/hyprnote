@@ -1,4 +1,5 @@
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::any::TypeId;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
 
@@ -30,6 +31,7 @@ pub struct SpeakerStream {
     _tap: ca::TapGuard,
     waker_state: Arc<Mutex<WakerState>>,
     current_sample_rate: Arc<AtomicU32>,
+    read_buffer: Vec<f32>,
 }
 
 impl SpeakerStream {
@@ -43,9 +45,9 @@ struct Ctx {
     producer: HeapProd<f32>,
     waker_state: Arc<Mutex<WakerState>>,
     current_sample_rate: Arc<AtomicU32>,
-    consecutive_drops: Arc<AtomicU32>,
-    should_terminate: Arc<AtomicBool>,
 }
+
+const CHUNK_SIZE: usize = 256;
 
 impl SpeakerInput {
     pub fn new() -> Result<Self> {
@@ -126,16 +128,41 @@ impl SpeakerInput {
                 if let Some(data) = view.data_f32_at(0) {
                     process_audio_data(ctx, data);
                 }
-            } else if ctx.format.common_format() == av::audio::CommonFormat::PcmF32 {
+            } else {
                 let first_buffer = &input_data.buffers[0];
-                let byte_count = first_buffer.data_bytes_size as usize;
-                let float_count = byte_count / std::mem::size_of::<f32>();
 
-                if float_count > 0 && first_buffer.data != std::ptr::null_mut() {
-                    let data = unsafe {
-                        std::slice::from_raw_parts(first_buffer.data as *const f32, float_count)
-                    };
-                    process_audio_data(ctx, data);
+                if first_buffer.data_bytes_size == 0 || first_buffer.data.is_null() {
+                    return os::Status::NO_ERR;
+                }
+
+                match ctx.format.common_format() {
+                    av::audio::CommonFormat::PcmF32 => {
+                        process_samples(ctx, first_buffer, |sample: f32| sample);
+                    }
+                    av::audio::CommonFormat::PcmF64 => {
+                        process_samples(ctx, first_buffer, |sample: f64| sample as f32);
+                    }
+                    av::audio::CommonFormat::PcmI32 => {
+                        let scale = i32::MAX as f32;
+                        process_samples(ctx, first_buffer, move |sample: i32| {
+                            if sample == i32::MIN {
+                                -1.0
+                            } else {
+                                sample as f32 / scale
+                            }
+                        });
+                    }
+                    av::audio::CommonFormat::PcmI16 => {
+                        let scale = i16::MAX as f32;
+                        process_samples(ctx, first_buffer, move |sample: i16| {
+                            if sample == i16::MIN {
+                                -1.0
+                            } else {
+                                sample as f32 / scale
+                            }
+                        });
+                    }
+                    _ => {}
                 }
             }
 
@@ -154,7 +181,7 @@ impl SpeakerInput {
 
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
 
-        let buffer_size = 1024 * 128;
+        let buffer_size = CHUNK_SIZE * 4;
         let rb = HeapRb::<f32>::new(buffer_size);
         let (producer, consumer) = rb.split();
 
@@ -171,8 +198,6 @@ impl SpeakerInput {
             producer,
             waker_state: waker_state.clone(),
             current_sample_rate: current_sample_rate.clone(),
-            consecutive_drops: Arc::new(AtomicU32::new(0)),
-            should_terminate: Arc::new(AtomicBool::new(false)),
         });
 
         let device = self.start_device(&mut ctx).unwrap();
@@ -184,24 +209,56 @@ impl SpeakerInput {
             _tap: self.tap,
             waker_state,
             current_sample_rate,
+            read_buffer: vec![0.0f32; CHUNK_SIZE],
+        }
+    }
+}
+
+fn read_samples<T: Copy>(buffer: &cat::AudioBuf) -> Option<&[T]> {
+    let byte_count = buffer.data_bytes_size as usize;
+
+    if byte_count == 0 || buffer.data.is_null() {
+        return None;
+    }
+
+    let sample_count = byte_count / std::mem::size_of::<T>();
+    if sample_count == 0 {
+        return None;
+    }
+
+    Some(unsafe { std::slice::from_raw_parts(buffer.data as *const T, sample_count) })
+}
+
+fn process_samples<T, F>(ctx: &mut Ctx, buffer: &cat::AudioBuf, mut convert: F)
+where
+    T: Copy + 'static,
+    F: FnMut(T) -> f32,
+{
+    if let Some(samples) = read_samples::<T>(buffer) {
+        if samples.is_empty() {
+            return;
+        }
+
+        if TypeId::of::<T>() == TypeId::of::<f32>() {
+            let data = unsafe {
+                std::slice::from_raw_parts(samples.as_ptr() as *const f32, samples.len())
+            };
+            process_audio_data(ctx, data);
+            return;
+        }
+
+        let mut converted = Vec::with_capacity(samples.len());
+        for sample in samples {
+            converted.push(convert(*sample));
+        }
+        if !converted.is_empty() {
+            process_audio_data(ctx, &converted);
         }
     }
 }
 
 fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
-    let buffer_size = data.len();
     let pushed = ctx.producer.push_slice(data);
-
-    if pushed < buffer_size {
-        let consecutive = ctx.consecutive_drops.fetch_add(1, Ordering::AcqRel) + 1;
-
-        if consecutive > 10 {
-            ctx.should_terminate.store(true, Ordering::Release);
-            return;
-        }
-    } else {
-        ctx.consecutive_drops.store(0, Ordering::Release);
-    }
 
     if pushed > 0 {
         let should_wake = {
@@ -221,26 +278,21 @@ fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
 }
 
 impl Stream for SpeakerStream {
-    type Item = f32;
+    type Item = Vec<f32>;
 
     fn poll_next(
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        if let Some(sample) = self.consumer.try_pop() {
-            return Poll::Ready(Some(sample));
-        }
+        let this = self.as_mut().get_mut();
+        let popped = this.consumer.pop_slice(&mut this.read_buffer);
 
-        if self._ctx.should_terminate.load(Ordering::Acquire) {
-            tracing::warn!("should_terminate");
-            return match self.consumer.try_pop() {
-                Some(sample) => Poll::Ready(Some(sample)),
-                None => Poll::Ready(None),
-            };
+        if popped > 0 {
+            return Poll::Ready(Some(this.read_buffer[..popped].to_vec()));
         }
 
         {
-            let mut state = self.waker_state.lock().unwrap();
+            let mut state = this.waker_state.lock().unwrap();
             state.has_data = false;
             state.waker = Some(cx.waker().clone());
         }
@@ -250,7 +302,5 @@ impl Stream for SpeakerStream {
 }
 
 impl Drop for SpeakerStream {
-    fn drop(&mut self) {
-        self._ctx.should_terminate.store(true, Ordering::Release);
-    }
+    fn drop(&mut self) {}
 }

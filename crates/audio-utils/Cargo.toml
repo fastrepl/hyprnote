@@ -9,7 +9,12 @@ futures-util = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 thiserror = { workspace = true }
 
+dasp = { workspace = true }
 hound = { workspace = true }
 rodio = { workspace = true }
 rubato = "0.16.2"
 vorbis_rs = { workspace = true }
+
+[dev-dependencies]
+hypr-data = { workspace = true }
+tokio = { workspace = true, features = ["full"] }

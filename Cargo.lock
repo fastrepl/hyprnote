@@ -919,12 +919,15 @@ name = "audio-utils"
 version = "0.1.0"
 dependencies = [
  "bytes",
+ "dasp",
+ "data",
  "futures-util",
  "hound",
  "kalosm-sound",
  "rodio",
  "rubato",
  "thiserror 2.0.17",
+ "tokio",
  "vorbis_rs",
 ]
 
@@ -2596,8 +2599,9 @@ dependencies = [
 
 [[package]]
 name = "cidre"
-version = "0.11.3"
-source = "git+https://github.com/yury/cidre?rev=a9587fa#a9587fa1d4ff6f0d5d082849ae7c62880fd739f7"
+version = "0.11.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "885c8d7613de18ff99dd2290ec7eb8885652c9d87bd45ad876f8eb0741384ef1"
 dependencies = [
  "cidre-macros",
  "half",

@@ -41,10 +41,12 @@ impl SpeakerInput {
             error!("Audio initialization failed: {}", e);
         }
 
+        const CHUNK_SIZE: usize = 256;
         SpeakerStream {
             sample_queue,
             waker_state,
             capture_thread: Some(capture_thread),
+            read_buffer: vec![0.0f32; CHUNK_SIZE],
         }
     }
 }
@@ -59,6 +61,7 @@ pub struct SpeakerStream {
     sample_queue: Arc<Mutex<VecDeque<f32>>>,
     waker_state: Arc<Mutex<WakerState>>,
     capture_thread: Option<thread::JoinHandle<()>>,
+    read_buffer: Vec<f32>,
 }
 
 impl SpeakerStream {
@@ -183,9 +186,9 @@ impl Drop for SpeakerStream {
 }
 
 impl Stream for SpeakerStream {
-    type Item = f32;
+    type Item = Vec<f32>;
     fn poll_next(
-        self: std::pin::Pin<&mut Self>,
+        mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
         {
@@ -197,8 +200,12 @@ impl Stream for SpeakerStream {
 
         {
             let mut queue = self.sample_queue.lock().unwrap();
-            if let Some(sample) = queue.pop_front() {
-                return Poll::Ready(Some(sample));
+            if !queue.is_empty() {
+                let chunk_len = queue.len().min(self.read_buffer.len());
+                for i in 0..chunk_len {
+                    self.read_buffer[i] = queue.pop_front().unwrap();
+                }
+                return Poll::Ready(Some(self.read_buffer[..chunk_len].to_vec()));
             }
         }
 
@@ -214,9 +221,14 @@ impl Stream for SpeakerStream {
 
         {
             let mut queue = self.sample_queue.lock().unwrap();
-            match queue.pop_front() {
-                Some(sample) => Poll::Ready(Some(sample)),
-                None => Poll::Pending,
+            if !queue.is_empty() {
+                let chunk_len = queue.len().min(self.read_buffer.len());
+                for i in 0..chunk_len {
+                    self.read_buffer[i] = queue.pop_front().unwrap();
+                }
+                Poll::Ready(Some(self.read_buffer[..chunk_len].to_vec()))
+            } else {
+                Poll::Pending
             }
         }
     }

@@ -139,6 +139,7 @@ impl Actor for ExternalSTTActor {
                                 && !text.contains("Sent interim text:")
                                 && !text.contains("[TranscriptionHandler]")
                                 && !text.contains("/v1/status")
+                                && !text.contains("text:")
                             {
                                 tracing::info!("{}", text);
                             }

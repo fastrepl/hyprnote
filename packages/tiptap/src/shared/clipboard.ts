@@ -1,4 +1,8 @@
-import { Extension, getTextBetween, getTextSerializersFromSchema } from "@tiptap/core";
+import {
+  Extension,
+  getTextBetween,
+  getTextSerializersFromSchema,
+} from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 
 import { html2md } from "./utils";
@@ -16,8 +20,8 @@ export const ClipboardTextSerializer = Extension.create({
             const { state, schema } = editor;
             const { doc, selection } = state;
             const { ranges } = selection;
-            const from = Math.min(...ranges.map(range => range.$from.pos));
-            const to = Math.max(...ranges.map(range => range.$to.pos));
+            const from = Math.min(...ranges.map((range) => range.$from.pos));
+            const to = Math.max(...ranges.map((range) => range.$to.pos));
 
             if (from === 0 && to === doc.content.size) {
               const html = editor.getHTML();

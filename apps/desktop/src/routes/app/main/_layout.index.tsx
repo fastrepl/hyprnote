@@ -1,5 +1,10 @@
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@hypr/ui/components/ui/resizable";
 import { createFileRoute } from "@tanstack/react-router";
+
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
 
 import { ChatView } from "../../../components/chat/view";
 import { Body } from "../../../components/main/body";
@@ -30,7 +35,12 @@ function Component() {
         {isChatOpen && (
           <>
             <ResizableHandle className="w-0" />
-            <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="pl-1">
+            <ResizablePanel
+              defaultSize={30}
+              minSize={20}
+              maxSize={50}
+              className="pl-1"
+            >
               <ChatView />
             </ResizablePanel>
           </>

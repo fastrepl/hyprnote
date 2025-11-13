@@ -1,7 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import { AnimatePresence, motion, MotionProps, Variants } from "motion/react";
 import { ElementType } from "react";
+
+import { cn } from "@hypr/utils";
 
 type AnimationType = "text" | "word" | "character" | "line";
 type AnimationVariant =
@@ -318,24 +318,24 @@ export function TextAnimate({
   // Use provided variants or default variants based on animation type
   const finalVariants = animation
     ? {
-      container: {
-        ...defaultItemAnimationVariants[animation].container,
-        show: {
-          ...defaultItemAnimationVariants[animation].container.show,
-          transition: {
-            staggerChildren: staggerTimings[by],
+        container: {
+          ...defaultItemAnimationVariants[animation].container,
+          show: {
+            ...defaultItemAnimationVariants[animation].container.show,
+            transition: {
+              staggerChildren: staggerTimings[by],
+            },
+          },
+          exit: {
+            ...defaultItemAnimationVariants[animation].container.exit,
+            transition: {
+              staggerChildren: staggerTimings[by],
+              staggerDirection: -1,
+            },
           },
         },
-        exit: {
-          ...defaultItemAnimationVariants[animation].container.exit,
-          transition: {
-            staggerChildren: staggerTimings[by],
-            staggerDirection: -1,
-          },
-        },
-      },
-      item: defaultItemAnimationVariants[animation].item,
-    }
+        item: defaultItemAnimationVariants[animation].item,
+      }
     : { container: defaultContainerVariants, item: defaultItemVariants };
 
   let segments: string[] = [];
@@ -372,9 +372,10 @@ export function TextAnimate({
             key={`${by}-${segment}-${i}`}
             variants={finalVariants.item}
             custom={i * staggerTimings[by]}
-            className={cn(
-              [by === "line" ? "block" : "inline-block whitespace-pre", segmentClassName],
-            )}
+            className={cn([
+              by === "line" ? "block" : "inline-block whitespace-pre",
+              segmentClassName,
+            ])}
           >
             {segment}
           </motion.span>

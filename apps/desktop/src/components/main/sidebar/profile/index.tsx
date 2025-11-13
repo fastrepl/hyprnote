@@ -1,7 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { CalendarIcon, ChevronUpIcon, FolderOpenIcon, SettingsIcon, UserIcon, UsersIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  ChevronUpIcon,
+  FolderOpenIcon,
+  SettingsIcon,
+  UserIcon,
+  UsersIcon,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
@@ -12,7 +25,10 @@ import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
-import { NotificationsMenuContent, NotificationsMenuHeader } from "./notification";
+import {
+  NotificationsMenuContent,
+  NotificationsMenuHeader,
+} from "./notification";
 import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
 
@@ -27,7 +43,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   const [currentView, setCurrentView] = useState<ProfileView>("main");
   const [mainViewHeight, setMainViewHeight] = useState<number | null>(null);
   const mainViewRef = useRef<HTMLDivElement | null>(null);
-  const openNew = useTabs(state => state.openNew);
+  const openNew = useTabs((state) => state.openNew);
   const auth = useAuth();
 
   const isAuthenticated = !!auth?.session;
@@ -94,7 +110,10 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     };
   }, [isExpanded, currentView, isAuthenticated]);
 
-  const profileRef = useAutoCloser(closeMenu, { esc: isExpanded, outside: isExpanded });
+  const profileRef = useAutoCloser(closeMenu, {
+    esc: isExpanded,
+    outside: isExpanded,
+  });
 
   const handleClickSettings = useCallback(() => {
     windowsCommands.windowShow({ type: "settings" });
@@ -174,42 +193,46 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
             <div className="bg-neutral-50 rounded-lg overflow-hidden shadow-lg border">
               <div className="pt-1.5">
                 <AnimatePresence mode="wait">
-                  {currentView === "main"
-                    ? (
-                      <motion.div
-                        key="main"
-                        initial={{ x: 0, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                        ref={mainViewRef}
-                      >
-                        <NotificationsMenuHeader onClick={handleClickNotifications} />
-                        <UpdateChecker />
+                  {currentView === "main" ? (
+                    <motion.div
+                      key="main"
+                      initial={{ x: 0, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      ref={mainViewRef}
+                    >
+                      <NotificationsMenuHeader
+                        onClick={handleClickNotifications}
+                      />
+                      <UpdateChecker />
 
-                        <div className="my-1.5 border-t border-neutral-100" />
+                      <div className="my-1.5 border-t border-neutral-100" />
 
-                        {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
+                      {menuItems.map((item) => (
+                        <MenuItem key={item.label} {...item} />
+                      ))}
 
-                        <AuthSection
-                          isAuthenticated={isAuthenticated}
-                          onSignIn={handleSignIn}
-                          onSignOut={handleSignOut}
-                        />
-                      </motion.div>
-                    )
-                    : (
-                      <motion.div
-                        key="notifications"
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: 20, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                        style={mainViewHeight ? { height: mainViewHeight } : undefined}
-                      >
-                        <NotificationsMenuContent onBack={handleBackToMain} />
-                      </motion.div>
-                    )}
+                      <AuthSection
+                        isAuthenticated={isAuthenticated}
+                        onSignIn={handleSignIn}
+                        onSignOut={handleSignOut}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="notifications"
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: 20, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      style={
+                        mainViewHeight ? { height: mainViewHeight } : undefined
+                      }
+                    >
+                      <NotificationsMenuContent onBack={handleBackToMain} />
+                    </motion.div>
+                  )}
                 </AnimatePresence>
               </div>
             </div>
@@ -227,15 +250,13 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   );
 }
 
-function ProfileButton(
-  {
-    isExpanded,
-    onClick,
-  }: {
-    isExpanded: boolean;
-    onClick: () => void;
-  },
-) {
+function ProfileButton({
+  isExpanded,
+  onClick,
+}: {
+  isExpanded: boolean;
+  onClick: () => void;
+}) {
   const auth = useAuth();
   const name = useMyName();
 
@@ -249,29 +270,25 @@ function ProfileButton(
 
   return (
     <button
-      className={cn(
-        [
-          "flex w-full items-center gap-2.5",
-          "px-4 py-2",
-          "text-left",
-          "transition-all duration-300",
-          "hover:bg-neutral-100",
-          isExpanded && "bg-neutral-50 border-t border-neutral-100",
-        ],
-      )}
+      className={cn([
+        "flex w-full items-center gap-2.5",
+        "px-4 py-2",
+        "text-left",
+        "transition-all duration-300",
+        "hover:bg-neutral-100",
+        isExpanded && "bg-neutral-50 border-t border-neutral-100",
+      ])}
       onClick={onClick}
     >
       <div
-        className={cn(
-          [
-            "flex size-8 flex-shrink-0 items-center justify-center",
-            "overflow-hidden rounded-full",
-            "border border-white/60 border-t border-neutral-400",
-            "bg-gradient-to-br from-indigo-400 to-purple-500",
-            "shadow-sm",
-            "transition-transform duration-300",
-          ],
-        )}
+        className={cn([
+          "flex size-8 flex-shrink-0 items-center justify-center",
+          "overflow-hidden rounded-full",
+          "border border-white/60 border-t border-neutral-400",
+          "bg-gradient-to-br from-indigo-400 to-purple-500",
+          "shadow-sm",
+          "transition-transform duration-300",
+        ])}
       >
         <img
           src={profile.data ?? ""}
@@ -284,13 +301,11 @@ function ProfileButton(
       </div>
       <div className="flex items-center gap-1.5">
         <ChevronUpIcon
-          className={cn(
-            [
-              "h-4 w-4",
-              "transition-transform duration-300",
-              isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
-            ],
-          )}
+          className={cn([
+            "h-4 w-4",
+            "transition-transform duration-300",
+            isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
+          ])}
         />
       </div>
     </button>

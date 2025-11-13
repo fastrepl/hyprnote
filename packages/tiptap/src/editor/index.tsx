@@ -1,11 +1,15 @@
-import "../../styles.css";
-
 import { Markdown } from "@tiptap/markdown";
-import { type Editor as TiptapEditor, EditorContent, type HTMLContent, useEditor } from "@tiptap/react";
+import {
+  EditorContent,
+  type HTMLContent,
+  type Editor as TiptapEditor,
+  useEditor,
+} from "@tiptap/react";
 import { forwardRef, useEffect, useMemo, useRef } from "react";
-import { useDebounceCallback } from "usehooks-ts";
 import "requestidlecallback-polyfill";
+import { useDebounceCallback } from "usehooks-ts";
 
+import "../../styles.css";
 import * as shared from "../shared";
 import type { PlaceholderFunction } from "../shared/extensions/placeholder";
 import { mention, type MentionConfig } from "./mention";
@@ -67,7 +71,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         scrollMargin: 32,
         handleKeyDown: (view, event) => {
           const allowedGlobalShortcuts = ["w", "n", "t", ",", "j", "l", "k"];
-          if ((event.metaKey || event.ctrlKey) && allowedGlobalShortcuts.includes(event.key)) {
+          if (
+            (event.metaKey || event.ctrlKey) &&
+            allowedGlobalShortcuts.includes(event.key)
+          ) {
             return false;
           }
 
@@ -118,7 +125,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     }, [editor]);
 
     useEffect(() => {
-      if (editor && (setContentFromOutside || previousContentRef.current !== initialContent)) {
+      if (
+        editor &&
+        (setContentFromOutside || previousContentRef.current !== initialContent)
+      ) {
         previousContentRef.current = initialContent;
         if (setContentFromOutside) {
           const { from, to } = editor.state.selection;

@@ -4,7 +4,6 @@ import type { ChannelProfile } from "../../../../utils/segment";
 import type { Store as PersistedStore, Template } from "../../../tinybase/main";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
-
 import { enhanceTransform } from "./enhance-transform";
 import { enhanceWorkflow } from "./enhance-workflow";
 import { titleTransform } from "./title-transform";
@@ -62,7 +61,10 @@ export function createTaskId<T extends TaskType>(
 }
 
 export interface TaskConfig<T extends TaskType = TaskType> {
-  transformArgs: (args: TaskArgsMap[T], store: PersistedStore) => Promise<TaskArgsMapTransformed[T]>;
+  transformArgs: (
+    args: TaskArgsMap[T],
+    store: PersistedStore,
+  ) => Promise<TaskArgsMapTransformed[T]>;
   executeWorkflow: (params: {
     model: LanguageModel;
     args: TaskArgsMapTransformed[T];

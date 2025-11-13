@@ -1,12 +1,11 @@
-import { cn } from "@hypr/utils";
-
+import { DownloadButton } from "@/components/download-button";
+import { SlashSeparator } from "@/components/slash-separator";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { allTemplates } from "content-collections";
 import { useMemo, useState } from "react";
 
-import { DownloadButton } from "@/components/download-button";
-import { SlashSeparator } from "@/components/slash-separator";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/templates")({
   component: Component,
@@ -50,9 +49,9 @@ function Component() {
       const query = searchQuery.toLowerCase();
       templates = templates.filter(
         (t) =>
-          t.title.toLowerCase().includes(query)
-          || t.description.toLowerCase().includes(query)
-          || t.category.toLowerCase().includes(query),
+          t.title.toLowerCase().includes(query) ||
+          t.description.toLowerCase().includes(query) ||
+          t.category.toLowerCase().includes(query),
       );
     }
 
@@ -84,11 +83,12 @@ function Component() {
           <section className="flex flex-col items-center text-center gap-12 py-24 px-4 laptop:px-0">
             <div className="space-y-6 max-w-4xl">
               <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
-                Meeting templates for <br className="hidden sm:block" />every conversation
+                Meeting templates for <br className="hidden sm:block" />
+                every conversation
               </h1>
               <p className="text-lg sm:text-xl text-neutral-600">
-                Choose from {allTemplates.length} templates to structure your AI summaries.{" "}
-                <br className="hidden sm:block" />
+                Choose from {allTemplates.length} templates to structure your AI
+                summaries. <br className="hidden sm:block" />
                 From sprint planning to sales calls, find the perfect format.
               </p>
             </div>
@@ -143,25 +143,32 @@ function Component() {
         <div className="px-6 py-12 lg:py-20">
           {/* Templates List */}
           <section>
-            {filteredTemplates.length === 0
-              ? (
-                <div className="text-center py-12">
-                  <Icon icon="mdi:file-search" className="text-6xl text-neutral-300 mb-4 mx-auto" />
-                  <p className="text-neutral-600">No templates found matching your search.</p>
-                </div>
-              )
-              : (
-                Object.entries(filteredByCategory).map(([category, templates]) => (
+            {filteredTemplates.length === 0 ? (
+              <div className="text-center py-12">
+                <Icon
+                  icon="mdi:file-search"
+                  className="text-6xl text-neutral-300 mb-4 mx-auto"
+                />
+                <p className="text-neutral-600">
+                  No templates found matching your search.
+                </p>
+              </div>
+            ) : (
+              Object.entries(filteredByCategory).map(
+                ([category, templates]) => (
                   <div key={category} className="mb-12">
                     <h3 className="text-xl font-serif text-stone-600 mb-6 pb-2 border-b border-neutral-200">
                       {category}
                     </h3>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {templates.map((template) => <TemplateCard key={template.slug} template={template} />)}
+                      {templates.map((template) => (
+                        <TemplateCard key={template.slug} template={template} />
+                      ))}
                     </div>
                   </div>
-                ))
-              )}
+                ),
+              )
+            )}
           </section>
         </div>
 
@@ -174,7 +181,8 @@ function Component() {
               Ready to transform your meetings?
             </h2>
             <p className="text-lg text-neutral-600">
-              Download Hyprnote and start using these templates to capture perfect meeting notes with AI.
+              Download Hyprnote and start using these templates to capture
+              perfect meeting notes with AI.
             </p>
             <div className="flex flex-col items-center gap-4 pt-4">
               <DownloadButton />
@@ -239,19 +247,28 @@ function TemplateCard({ template }: { template: (typeof allTemplates)[0] }) {
           <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
             {template.title}
           </h3>
-          <p className="text-sm text-neutral-600 line-clamp-2">{template.description}</p>
+          <p className="text-sm text-neutral-600 line-clamp-2">
+            {template.description}
+          </p>
         </div>
       </div>
       <div className="pt-4 border-t border-neutral-100">
-        <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">Sections</div>
+        <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
+          Sections
+        </div>
         <div className="flex flex-wrap gap-2">
           {template.sections.slice(0, 3).map((section) => (
-            <span key={section.title} className="text-xs px-2 py-1 bg-stone-50 text-stone-600 rounded">
+            <span
+              key={section.title}
+              className="text-xs px-2 py-1 bg-stone-50 text-stone-600 rounded"
+            >
               {section.title}
             </span>
           ))}
           {template.sections.length > 3 && (
-            <span className="text-xs px-2 py-1 text-neutral-500">+{template.sections.length - 3} more</span>
+            <span className="text-xs px-2 py-1 text-neutral-500">
+              +{template.sections.length - 3} more
+            </span>
           )}
         </div>
       </div>

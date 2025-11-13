@@ -1,7 +1,13 @@
 import { Icon } from "@iconify-icon/react";
-import { Anthropic, LmStudio, Ollama, OpenAI, OpenRouter } from "@lobehub/icons";
+import {
+  Anthropic,
+  LmStudio,
+  Ollama,
+  OpenAI,
+  OpenRouter,
+} from "@lobehub/icons";
 
-export type ProviderId = typeof PROVIDERS[number]["id"];
+export type ProviderId = (typeof PROVIDERS)[number]["id"];
 
 export const PROVIDERS = [
   {

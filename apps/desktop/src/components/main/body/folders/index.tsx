@@ -1,6 +1,12 @@
-import { FolderIcon, FoldersIcon, PlusIcon, StickyNoteIcon } from "lucide-react";
+import {
+  FolderIcon,
+  FoldersIcon,
+  PlusIcon,
+  StickyNoteIcon,
+} from "lucide-react";
 
 import { cn } from "@hypr/utils";
+
 import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -8,7 +14,9 @@ import { type TabItem, TabItemBase } from "../shared";
 import { FolderBreadcrumb, useFolderChain } from "../shared/folder-breadcrumb";
 import { Section } from "./shared";
 
-export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (props) => {
+export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (
+  props,
+) => {
   if (props.tab.type === "folders" && props.tab.id === null) {
     return <TabItemFolderAll {...props} />;
   }
@@ -20,16 +28,14 @@ export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (props)
   return null;
 };
 
-const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = (
-  {
-    tab,
-    tabIndex,
-    handleCloseThis: handleCloseThis,
-    handleSelectThis: handleSelectThis,
-    handleCloseAll,
-    handleCloseOthers,
-  },
-) => {
+const TabItemFolderAll: TabItem<Extract<Tab, { type: "folders" }>> = ({
+  tab,
+  tabIndex,
+  handleCloseThis: handleCloseThis,
+  handleSelectThis: handleSelectThis,
+  handleCloseAll,
+  handleCloseOthers,
+}) => {
   return (
     <TabItemBase
       icon={<FoldersIcon className="w-4 h-4" />}
@@ -77,7 +83,11 @@ export function TabContentFolder({ tab }: { tab: Tab }) {
 
   return (
     <StandardTabWrapper>
-      {tab.id === null ? <TabContentFolderTopLevel /> : <TabContentFolderSpecific folderId={tab.id} />}
+      {tab.id === null ? (
+        <TabContentFolderTopLevel />
+      ) : (
+        <TabContentFolderSpecific folderId={tab.id} />
+      )}
     </StandardTabWrapper>
   );
 }
@@ -102,7 +112,9 @@ function TabContentFolderTopLevel() {
       >
         {(topLevelFolderIds?.length ?? 0) > 0 && (
           <div className="grid grid-cols-4 gap-4">
-            {topLevelFolderIds!.map((folderId) => <FolderCard key={folderId} folderId={folderId} />)}
+            {topLevelFolderIds!.map((folderId) => (
+              <FolderCard key={folderId} folderId={folderId} />
+            ))}
           </div>
         )}
       </Section>
@@ -138,7 +150,11 @@ function FolderCard({ folderId }: { folderId: string }) {
     >
       <FolderIcon className="w-12 h-12 text-muted-foreground" />
       <span className="text-sm font-medium text-center">{folder.name}</span>
-      {childCount > 0 && <span className="text-xs text-muted-foreground">{childCount} items</span>}
+      {childCount > 0 && (
+        <span className="text-xs text-muted-foreground">
+          {childCount} items
+        </span>
+      )}
     </div>
   );
 }
@@ -156,7 +172,8 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
     main.STORE_ID,
   );
 
-  const isEmpty = (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
+  const isEmpty =
+    (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -173,7 +190,9 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
       >
         {(childFolderIds?.length ?? 0) > 0 && (
           <div className="grid grid-cols-4 gap-4">
-            {childFolderIds!.map((childId) => <FolderCard key={childId} folderId={childId} />)}
+            {childFolderIds!.map((childId) => (
+              <FolderCard key={childId} folderId={childId} />
+            ))}
           </div>
         )}
       </Section>
@@ -190,7 +209,9 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
         >
           {(sessionIds?.length ?? 0) > 0 && (
             <div className="space-y-2">
-              {sessionIds!.map((sessionId) => <FolderSessionItem key={sessionId} sessionId={sessionId} />)}
+              {sessionIds!.map((sessionId) => (
+                <FolderSessionItem key={sessionId} sessionId={sessionId} />
+              ))}
             </div>
           )}
         </Section>
@@ -216,7 +237,9 @@ function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
       renderCrumb={({ id, name, isLast }) => (
         <button
           onClick={() => !isLast && openCurrent({ type: "folders", id })}
-          className={isLast ? "text-foreground font-medium" : "hover:text-foreground"}
+          className={
+            isLast ? "text-foreground font-medium" : "hover:text-foreground"
+          }
         >
           {name}
         </button>

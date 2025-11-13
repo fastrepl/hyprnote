@@ -34,8 +34,7 @@ export function Welcome({ onNext }: WelcomeProps) {
         Get Started
       </Button>
 
-      {
-        /*<div
+      {/*<div
         className={cn([
           "flex flex-row items-center gap-1",
           "text-neutral-400 transition-colors hover:text-neutral-800",
@@ -45,8 +44,7 @@ export function Welcome({ onNext }: WelcomeProps) {
           Or proceed without an account
         </button>
         <CircleQuestionMarkIcon className="h-4 w-4 cursor-help" />
-      </div>*/
-      }
+      </div>*/}
     </>
   );
 }

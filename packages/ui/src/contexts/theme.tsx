@@ -1,5 +1,4 @@
 // https://ui.shadcn.com/docs/dark-mode/vite
-
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
@@ -39,7 +38,7 @@ export function ThemeProvider({
 
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-          .matches
+        .matches
         ? "dark"
         : "light";
 

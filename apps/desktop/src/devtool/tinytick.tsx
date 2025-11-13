@@ -113,7 +113,9 @@ export function TinyTickMonitor() {
               <div className="text-[11px] font-semibold text-green-400">
                 Running ({runningTasks.length})
               </div>
-              {runningTasks.map((task) => <TaskCard key={task.taskRunId} task={task} />)}
+              {runningTasks.map((task) => (
+                <TaskCard key={task.taskRunId} task={task} />
+              ))}
             </div>
           )}
 
@@ -122,7 +124,9 @@ export function TinyTickMonitor() {
               <div className="text-[11px] font-semibold text-blue-400">
                 Scheduled ({scheduledTasks.length})
               </div>
-              {scheduledTasks.map((task) => <TaskCard key={task.taskRunId} task={task} />)}
+              {scheduledTasks.map((task) => (
+                <TaskCard key={task.taskRunId} task={task} />
+              ))}
             </div>
           )}
 
@@ -168,7 +172,10 @@ function TaskCard({ task }: { task: TaskInfo }) {
     }
 
     const updateTimeUntil = () => {
-      const remaining = Math.max(0, Math.floor((task.nextTimestamp! - Date.now()) / 1000));
+      const remaining = Math.max(
+        0,
+        Math.floor((task.nextTimestamp! - Date.now()) / 1000),
+      );
       setTimeUntil(remaining);
     };
 

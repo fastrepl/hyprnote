@@ -1,8 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import { MockWindow } from "@/components/mock-window";
-
 import { createFileRoute } from "@tanstack/react-router";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/product/api")({
   component: Component,
@@ -37,22 +36,36 @@ function Component() {
               <MockWindow variant="desktop">
                 <div className="p-4 bg-black text-green-400 font-mono text-sm rounded-b-xl text-left">
                   <div className="mb-2">
-                    <span className="text-white">$</span> curl -X POST https://api.hyprnote.com/v1/notes \
+                    <span className="text-white">$</span> curl -X POST
+                    https://api.hyprnote.com/v1/notes \
                   </div>
                   <div className="ml-4 mb-2">
-                    -H <span className="text-yellow-300">"Authorization: Bearer YOUR_API_KEY"</span> \
+                    -H{" "}
+                    <span className="text-yellow-300">
+                      "Authorization: Bearer YOUR_API_KEY"
+                    </span>{" "}
+                    \
                   </div>
                   <div className="ml-4 mb-2">
-                    -H <span className="text-yellow-300">"Content-Type: application/json"</span> \
+                    -H{" "}
+                    <span className="text-yellow-300">
+                      "Content-Type: application/json"
+                    </span>{" "}
+                    \
                   </div>
                   <div className="ml-4 mb-4">
-                    -d <span className="text-yellow-300">'{"{"}"title": "Meeting Notes", "content": "..."{"}"}'</span>
+                    -d{" "}
+                    <span className="text-yellow-300">
+                      '{"{"}"title": "Meeting Notes", "content": "..."{"}"}'
+                    </span>
                   </div>
                   <div className="text-gray-400">
                     {"{"}
                     <div className="ml-4">"id": "note_1a2b3c4d",</div>
                     <div className="ml-4">"title": "Meeting Notes",</div>
-                    <div className="ml-4">"created_at": "2025-11-09T10:30:00Z"</div>
+                    <div className="ml-4">
+                      "created_at": "2025-11-09T10:30:00Z"
+                    </div>
                     {"}"}
                   </div>
                 </div>

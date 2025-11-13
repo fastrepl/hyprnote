@@ -9,9 +9,7 @@ interface Update {
   version: string;
   date?: string;
   body?: string;
-  download: (
-    onEvent?: (progress: DownloadEvent) => void,
-  ) => Promise<void>;
+  download: (onEvent?: (progress: DownloadEvent) => void) => Promise<void>;
   install: () => Promise<void>;
   close: () => Promise<void>;
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-
 import { z } from "zod";
+
 import { jsonObject } from "../store/tinybase/shared";
 
 describe("jsonObject", () => {
@@ -20,19 +20,25 @@ describe("jsonObject", () => {
       },
     };
 
-    const serialized_1 = JSON.stringify(b.parse({
-      field_3: 1,
-      field_2: JSON.stringify(a.parse({
-        field_1: "test",
-      })),
-    }));
+    const serialized_1 = JSON.stringify(
+      b.parse({
+        field_3: 1,
+        field_2: JSON.stringify(
+          a.parse({
+            field_1: "test",
+          }),
+        ),
+      }),
+    );
 
-    const serialized_2 = JSON.stringify(b.parse({
-      field_3: 1,
-      field_2: {
-        field_1: "test",
-      },
-    }));
+    const serialized_2 = JSON.stringify(
+      b.parse({
+        field_3: 1,
+        field_2: {
+          field_1: "test",
+        },
+      }),
+    );
 
     const result_1 = b.safeParse(JSON.parse(serialized_1));
     expect(result_1.success).toBe(true);
@@ -61,9 +67,11 @@ describe("jsonObject", () => {
 
     const serialized_1 = JSON.stringify({
       field_3: 1,
-      field_2: JSON.stringify(a.parse({
-        field_1: "test",
-      })),
+      field_2: JSON.stringify(
+        a.parse({
+          field_1: "test",
+        }),
+      ),
     });
     const result_1 = b.safeParse(JSON.parse(serialized_1));
     expect(result_1.success).toBe(false);

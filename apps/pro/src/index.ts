@@ -36,19 +36,16 @@ app.get("/health", (c) => {
 
 app.post("/chat/completions", apiRateLimit, keygenAuth(), async (c) => {
   const data = await c.req.json();
-  const res = await proxy(
-    `${env.OPENAI_BASE_URL}/chat/completions`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        ...data,
-        model: env.OPENAI_DEFAULT_MODEL,
-      }),
-      headers: {
-        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
-      },
+  const res = await proxy(`${env.OPENAI_BASE_URL}/chat/completions`, {
+    method: "POST",
+    body: JSON.stringify({
+      ...data,
+      model: env.OPENAI_DEFAULT_MODEL,
+    }),
+    headers: {
+      Authorization: `Bearer ${env.OPENAI_API_KEY}`,
     },
-  );
+  });
 
   return res;
 });
@@ -59,9 +56,12 @@ app.all("/mcp", apiRateLimit, keygenAuth(), async (c) => {
   return transport.handleRequest(c);
 });
 
-serve({
-  fetch: app.fetch,
-  port: env.PORT,
-}, (info) => {
-  console.log(`Server is running on http://localhost:${info.port}`);
-});
+serve(
+  {
+    fetch: app.fetch,
+    port: env.PORT,
+  },
+  (info) => {
+    console.log(`Server is running on http://localhost:${info.port}`);
+  },
+);

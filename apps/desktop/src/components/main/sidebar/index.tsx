@@ -1,9 +1,8 @@
+import { PanelLeftCloseIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
-
-import { PanelLeftCloseIcon } from "lucide-react";
 
 import { useSearch } from "../../../contexts/search/ui";
 import { useShell } from "../../../contexts/shell";
@@ -30,10 +29,12 @@ export function LeftSidebar() {
           "pl-[72px] bg-neutral-50",
         ])}
       >
-        <Button size="icon" variant="ghost" onClick={leftsidebar.toggleExpanded}>
-          <PanelLeftCloseIcon
-            size={16}
-          />
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={leftsidebar.toggleExpanded}
+        >
+          <PanelLeftCloseIcon size={16} />
         </Button>
       </header>
 

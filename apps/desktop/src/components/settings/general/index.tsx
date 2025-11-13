@@ -9,24 +9,29 @@ import { MainLanguageView } from "./main-language";
 import { Permissions } from "./permissions";
 
 export function SettingsGeneral() {
-  const value = useConfigValues(
-    [
-      "autostart",
-      "notification_detect",
-      "save_recordings",
-      "telemetry_consent",
-      "ai_language",
-      "spoken_languages",
-    ] as const,
-  );
+  const value = useConfigValues([
+    "autostart",
+    "notification_detect",
+    "save_recordings",
+    "telemetry_consent",
+    "ai_language",
+    "spoken_languages",
+  ] as const);
 
   const setPartialValues = main.UI.useSetPartialValuesCallback(
-    (row: Partial<main.General>) => ({
-      ...row,
-      spoken_languages: row.spoken_languages ? JSON.stringify(row.spoken_languages) : undefined,
-      ignored_platforms: row.ignored_platforms ? JSON.stringify(row.ignored_platforms) : undefined,
-      dismissed_banners: row.dismissed_banners ? JSON.stringify(row.dismissed_banners) : undefined,
-    } satisfies Partial<main.GeneralStorage>),
+    (row: Partial<main.General>) =>
+      ({
+        ...row,
+        spoken_languages: row.spoken_languages
+          ? JSON.stringify(row.spoken_languages)
+          : undefined,
+        ignored_platforms: row.ignored_platforms
+          ? JSON.stringify(row.ignored_platforms)
+          : undefined,
+        dismissed_banners: row.dismissed_banners
+          ? JSON.stringify(row.dismissed_banners)
+          : undefined,
+      }) satisfies Partial<main.GeneralStorage>,
     [],
     main.STORE_ID,
   );
@@ -42,7 +47,9 @@ export function SettingsGeneral() {
     },
     listeners: {
       onChange: ({ formApi }) => {
-        const { form: { errors } } = formApi.getAllErrors();
+        const {
+          form: { errors },
+        } = formApi.getAllErrors();
         if (errors.length > 0) {
           console.log(errors);
         }
@@ -73,27 +80,35 @@ export function SettingsGeneral() {
                       <AppSettingsView
                         autostart={{
                           title: "Start Hyprnote automatically at login",
-                          description: "Hyprnote will always be ready for action without you having to turn it on",
+                          description:
+                            "Hyprnote will always be ready for action without you having to turn it on",
                           value: autostartField.state.value,
                           onChange: (val) => autostartField.handleChange(val),
                         }}
                         notificationDetect={{
-                          title: "Start/Stop listening to meetings automatically",
-                          description: "You don't have to press button every time — we'll start/stop listening for you",
+                          title:
+                            "Start/Stop listening to meetings automatically",
+                          description:
+                            "You don't have to press button every time — we'll start/stop listening for you",
                           value: notificationDetectField.state.value,
-                          onChange: (val) => notificationDetectField.handleChange(val),
+                          onChange: (val) =>
+                            notificationDetectField.handleChange(val),
                         }}
                         saveRecordings={{
                           title: "Save recordings",
-                          description: "Audio files of meetings will be saved locally and won't be leaving your device",
+                          description:
+                            "Audio files of meetings will be saved locally and won't be leaving your device",
                           value: saveRecordingsField.state.value,
-                          onChange: (val) => saveRecordingsField.handleChange(val),
+                          onChange: (val) =>
+                            saveRecordingsField.handleChange(val),
                         }}
                         telemetryConsent={{
                           title: "Share usage data",
-                          description: "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
+                          description:
+                            "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
                           value: telemetryConsentField.state.value,
-                          onChange: (val) => telemetryConsentField.handleChange(val),
+                          onChange: (val) =>
+                            telemetryConsentField.handleChange(val),
                         }}
                       />
                     )}

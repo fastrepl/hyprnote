@@ -1,8 +1,8 @@
-import { cn } from "@hypr/utils";
-
 import { Slot } from "@radix-ui/react-slot";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 import * as React from "react";
+
+import { cn } from "@hypr/utils";
 
 const Breadcrumb = React.forwardRef<
   HTMLElement,
@@ -18,9 +18,10 @@ const BreadcrumbList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ol
     ref={ref}
-    className={cn(
-      ["flex flex-wrap items-center gap-1.5 break-words text-sm text-neutral-600 sm:gap-2.5", className],
-    )}
+    className={cn([
+      "flex flex-wrap items-center gap-1.5 break-words text-sm text-neutral-600 sm:gap-2.5",
+      className,
+    ])}
     {...props}
   />
 ));

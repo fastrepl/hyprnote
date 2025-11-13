@@ -1,4 +1,9 @@
-import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useMatchRoute,
+} from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 import { useMemo } from "react";
 
@@ -23,38 +28,52 @@ function LeftSidebar() {
   const matchRoute = useMatchRoute();
   const match = matchRoute({ to: "/docs/$slug", fuzzy: true });
 
-  const currentSlug = (match && typeof match !== "boolean" ? match.slug : undefined) as string | undefined;
+  const currentSlug = (
+    match && typeof match !== "boolean" ? match.slug : undefined
+  ) as string | undefined;
 
   const docsBySection = useMemo(() => {
-    const grouped = allDocs.reduce((acc, doc) => {
-      if (!acc[doc.sectionFolder]) {
-        acc[doc.sectionFolder] = {
-          title: "",
-          docs: [],
-          indexDoc: null as typeof doc | null,
-        };
-      }
+    const grouped = allDocs.reduce(
+      (acc, doc) => {
+        if (!acc[doc.sectionFolder]) {
+          acc[doc.sectionFolder] = {
+            title: "",
+            docs: [],
+            indexDoc: null as typeof doc | null,
+          };
+        }
 
-      if (doc.isIndex) {
-        acc[doc.sectionFolder].indexDoc = doc;
-        acc[doc.sectionFolder].title = doc.title;
-      } else {
-        acc[doc.sectionFolder].docs.push(doc);
-      }
+        if (doc.isIndex) {
+          acc[doc.sectionFolder].indexDoc = doc;
+          acc[doc.sectionFolder].title = doc.title;
+        } else {
+          acc[doc.sectionFolder].docs.push(doc);
+        }
 
-      return acc;
-    }, {} as Record<string, { title: string; docs: typeof allDocs; indexDoc: typeof allDocs[0] | null }>);
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          title: string;
+          docs: typeof allDocs;
+          indexDoc: (typeof allDocs)[0] | null;
+        }
+      >,
+    );
 
-    Object.keys(grouped).forEach(folder => {
+    Object.keys(grouped).forEach((folder) => {
       if (!grouped[folder].title) {
         grouped[folder].title = folder
           .split("-")
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
       }
     });
 
-    return Object.values(grouped).sort((a, b) => a.title.localeCompare(b.title));
+    return Object.values(grouped).sort((a, b) =>
+      a.title.localeCompare(b.title),
+    );
   }, []);
 
   return (
@@ -64,19 +83,17 @@ function LeftSidebar() {
           {docsBySection.map((section) => (
             <div key={section.title}>
               <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">
-                {section.indexDoc
-                  ? (
-                    <Link
-                      to="/docs/$slug"
-                      params={{ slug: section.indexDoc.slug }}
-                      className="hover:text-stone-600 transition-colors"
-                    >
-                      {section.title}
-                    </Link>
-                  )
-                  : (
-                    section.title
-                  )}
+                {section.indexDoc ? (
+                  <Link
+                    to="/docs/$slug"
+                    params={{ slug: section.indexDoc.slug }}
+                    className="hover:text-stone-600 transition-colors"
+                  >
+                    {section.title}
+                  </Link>
+                ) : (
+                  section.title
+                )}
               </h3>
               <div className="space-y-0.5">
                 {section.docs.map((doc) => (

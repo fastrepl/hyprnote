@@ -1,7 +1,20 @@
-import { cn } from "@hypr/utils";
+import {
+  flip,
+  FloatingPortal,
+  offset,
+  shift,
+  useFloating,
+} from "@floating-ui/react";
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
-import { flip, FloatingPortal, offset, shift, useFloating } from "@floating-ui/react";
-import { type ChangeEvent, type KeyboardEvent, type MouseEvent, useCallback, useEffect, useState } from "react";
+import { cn } from "@hypr/utils";
 
 import { useAutoCloser } from "../../../../../../../hooks/useAutoCloser";
 
@@ -27,16 +40,14 @@ export function SelectionMenu({
   onAction,
 }: {
   containerRef: React.RefObject<HTMLElement | null>;
-  onAction?: (action: string, selectedText: string, replaceWith?: string) => void;
+  onAction?: (
+    action: string,
+    selectedText: string,
+    replaceWith?: string,
+  ) => void;
 }) {
-  const {
-    isVisible,
-    selectedText,
-    hide,
-    refs,
-    floatingStyles,
-    storedRange,
-  } = useSelectionMenuState({ containerRef });
+  const { isVisible, selectedText, hide, refs, floatingStyles, storedRange } =
+    useSelectionMenuState({ containerRef });
 
   const [mode, setMode] = useState<"menu" | "replace">("menu");
 
@@ -91,19 +102,17 @@ export function SelectionMenu({
           className={cn(MENU_CONTAINER_CLASSES)}
           onMouseDown={handleMouseDown}
         >
-          {mode === "menu"
-            ? (
-              <MainMenu
-                onRemove={() => handleAction("remove")}
-                onReplace={() => setMode("replace")}
-              />
-            )
-            : (
-              <ReplaceMenu
-                onSubmit={(text) => handleAction("replace", text)}
-                onCancel={() => setMode("menu")}
-              />
-            )}
+          {mode === "menu" ? (
+            <MainMenu
+              onRemove={() => handleAction("remove")}
+              onReplace={() => setMode("replace")}
+            />
+          ) : (
+            <ReplaceMenu
+              onSubmit={(text) => handleAction("replace", text)}
+              onCancel={() => setMode("menu")}
+            />
+          )}
         </div>
       </FloatingPortal>
     </>

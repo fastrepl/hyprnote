@@ -1,10 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config = {
-  content: [
-    "src/**/*.{js,ts,jsx,tsx}",
-    "index.html",
-  ],
+  content: ["src/**/*.{js,ts,jsx,tsx}", "index.html"],
   theme: {
     extend: {
       fontFamily: {

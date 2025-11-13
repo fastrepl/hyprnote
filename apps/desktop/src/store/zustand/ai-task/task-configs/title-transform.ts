@@ -1,5 +1,5 @@
-import type { Store as MainStore } from "../../../tinybase/main";
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
+import type { Store as MainStore } from "../../../tinybase/main";
 
 export const titleTransform: Pick<TaskConfig<"title">, "transformArgs"> = {
   transformArgs,

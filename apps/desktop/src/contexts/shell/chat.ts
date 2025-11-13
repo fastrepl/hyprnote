@@ -3,7 +3,11 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { createActor, fromTransition } from "xstate";
 
 export type ChatMode = "RightPanelOpen" | "FloatingClosed" | "FloatingOpen";
-export type ChatEvent = { type: "OPEN" } | { type: "CLOSE" } | { type: "SHIFT" } | { type: "TOGGLE" };
+export type ChatEvent =
+  | { type: "OPEN" }
+  | { type: "CLOSE" }
+  | { type: "SHIFT" }
+  | { type: "TOGGLE" };
 
 const chatModeLogic = fromTransition(
   (state: ChatMode, event: ChatEvent): ChatMode => {
@@ -55,7 +59,11 @@ export function useChatMode() {
   useHotkeys(
     "mod+j",
     () => sendEvent({ type: "TOGGLE" }),
-    { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
     [sendEvent],
   );
 

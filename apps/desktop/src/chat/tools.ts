@@ -5,7 +5,10 @@ import { searchFiltersSchema } from "../contexts/search/engine/types";
 import type { SearchFilters, SearchHit } from "../contexts/search/engine/types";
 
 export interface ToolDependencies {
-  search: (query: string, filters?: SearchFilters | null) => Promise<SearchHit[]>;
+  search: (
+    query: string,
+    filters?: SearchFilters | null,
+  ) => Promise<SearchHit[]>;
 }
 
 const buildSearchSessionsTool = (deps: ToolDependencies) =>
@@ -16,7 +19,9 @@ const buildSearchSessionsTool = (deps: ToolDependencies) =>
   `.trim(),
     inputSchema: z.object({
       query: z.string().describe("The search query to find relevant sessions"),
-      filters: searchFiltersSchema.optional().describe("Optional filters for the search query"),
+      filters: searchFiltersSchema
+        .optional()
+        .describe("Optional filters for the search query"),
     }),
     execute: async (params: { query: string; filters?: SearchFilters }) => {
       const hits = await deps.search(params.query, params.filters || null);
@@ -40,7 +45,15 @@ export const buildChatTools = (deps: ToolDependencies) => ({
 export type Tools = {
   search_sessions: {
     input: { query: string; filters?: SearchFilters };
-    output: { results: Array<{ id: string; title: string; content: string; score: number; created_at: number }> };
+    output: {
+      results: Array<{
+        id: string;
+        title: string;
+        content: string;
+        score: number;
+        created_at: number;
+      }>;
+    };
   };
 };
 

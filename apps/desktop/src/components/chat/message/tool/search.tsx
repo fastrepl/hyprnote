@@ -9,6 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@hypr/ui/components/ui/carousel";
+
 import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Disclosure } from "../shared";
@@ -18,7 +19,8 @@ type Renderer = ToolRenderer<"tool-search_sessions">;
 type Part = Parameters<Renderer>[0]["part"];
 
 export const ToolSearchSessions: Renderer = ({ part }) => {
-  const disabled = part.state === "input-streaming" || part.state === "input-available";
+  const disabled =
+    part.state === "input-streaming" || part.state === "input-available";
 
   return (
     <Disclosure
@@ -48,7 +50,11 @@ const getTitle = (part: Part) => {
 };
 
 function RenderContent({ part }: { part: Part }) {
-  if (part.state === "output-available" && part.output && "results" in part.output) {
+  if (
+    part.state === "output-available" &&
+    part.output &&
+    "results" in part.output
+  ) {
     const { results } = part.output;
 
     if (!results || results.length === 0) {
@@ -61,13 +67,13 @@ function RenderContent({ part }: { part: Part }) {
 
     return (
       <div className="relative -mx-1">
-        <Carousel
-          className="w-full"
-          opts={{ align: "start" }}
-        >
+        <Carousel className="w-full" opts={{ align: "start" }}>
           <CarouselContent className="-ml-2">
             {results.map((result: any, index: number) => (
-              <CarouselItem key={result.id || index} className="pl-1 basis-full sm:basis-1/2 lg:basis-1/3">
+              <CarouselItem
+                key={result.id || index}
+                className="pl-1 basis-full sm:basis-1/2 lg:basis-1/3"
+              >
                 <Card className="h-full bg-neutral-50">
                   <CardContent className="px-2 py-0.5">
                     <RenderSession sessionId={result.id} />
@@ -99,7 +105,11 @@ function RenderSession({ sessionId }: { sessionId: string }) {
   }, [openNew, sessionId]);
 
   if (!session) {
-    return <div className="text-xs text-muted-foreground italic">Session unavailable</div>;
+    return (
+      <div className="text-xs text-muted-foreground italic">
+        Session unavailable
+      </div>
+    );
   }
 
   return (

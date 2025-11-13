@@ -110,11 +110,7 @@ export function ConnectedServiceCard({
         )}
       </div>
 
-      {children && (
-        <div className="p-4">
-          {children}
-        </div>
-      )}
+      {children && <div className="p-4">{children}</div>}
 
       {showAdvanced && (onReconnect || onDisconnect || connectedAt) && (
         <div className="border-t border-neutral-200">
@@ -126,14 +122,19 @@ export function ConnectedServiceCard({
             ])}
           >
             Advanced
-            {isAdvancedOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {isAdvancedOpen ? (
+              <ChevronUp size={16} />
+            ) : (
+              <ChevronDown size={16} />
+            )}
           </button>
 
           {isAdvancedOpen && (
             <div className="px-4 pb-4 space-y-3 bg-neutral-50">
               {connectedAt && (
                 <div className="text-xs text-neutral-600">
-                  <span className="font-medium">Connected on:</span> {formatConnectionDate(connectedAt)}
+                  <span className="font-medium">Connected on:</span>{" "}
+                  {formatConnectionDate(connectedAt)}
                 </div>
               )}
 
@@ -147,16 +148,14 @@ export function ConnectedServiceCard({
                       disabled={isReconnecting}
                       className="flex-1"
                     >
-                      {isReconnecting
-                        ? (
-                          <>
-                            <Spinner size={14} className="mr-2" />
-                            Reconnecting...
-                          </>
-                        )
-                        : (
-                          "Reconnect"
-                        )}
+                      {isReconnecting ? (
+                        <>
+                          <Spinner size={14} className="mr-2" />
+                          Reconnecting...
+                        </>
+                      ) : (
+                        "Reconnect"
+                      )}
                     </Button>
                   )}
 
@@ -178,16 +177,23 @@ export function ConnectedServiceCard({
       )}
 
       {onDisconnect && (
-        <Dialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+        <Dialog
+          open={showDisconnectDialog}
+          onOpenChange={setShowDisconnectDialog}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{disconnectDialogTitle}</DialogTitle>
               <DialogDescription>
-                {disconnectDialogDescription || "Are you sure you want to disconnect this service?"}
+                {disconnectDialogDescription ||
+                  "Are you sure you want to disconnect this service?"}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDisconnectDialog(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDisconnectDialog(false)}
+              >
                 Cancel
               </Button>
               <Button variant="destructive" onClick={handleDisconnect}>

@@ -1,26 +1,48 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-
 import { create, search as oramaSearch } from "@orama/orama";
 import { pluginQPS } from "@orama/plugin-qps";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { type Store as PersistedStore } from "../../../store/tinybase/main";
 import { buildOramaFilters } from "./filters";
 import { indexHumans, indexOrganizations, indexSessions } from "./indexing";
-import { createHumanListener, createOrganizationListener, createSessionListener } from "./listeners";
+import {
+  createHumanListener,
+  createOrganizationListener,
+  createSessionListener,
+} from "./listeners";
 import type { Index, SearchFilters, SearchHit } from "./types";
 import { SEARCH_SCHEMA } from "./types";
 import { normalizeQuery } from "./utils";
 
-export type { SearchDocument, SearchEntityType, SearchFilters, SearchHit } from "./types";
+export type {
+  SearchDocument,
+  SearchEntityType,
+  SearchFilters,
+  SearchHit,
+} from "./types";
 
-const SearchEngineContext = createContext<
-  {
-    search: (query: string, filters?: SearchFilters | null) => Promise<SearchHit[]>;
-    isIndexing: boolean;
-  } | null
->(null);
+const SearchEngineContext = createContext<{
+  search: (
+    query: string,
+    filters?: SearchFilters | null,
+  ) => Promise<SearchHit[]>;
+  isIndexing: boolean;
+} | null>(null);
 
-export function SearchEngineProvider({ children, store }: { children: React.ReactNode; store?: PersistedStore }) {
+export function SearchEngineProvider({
+  children,
+  store,
+}: {
+  children: React.ReactNode;
+  store?: PersistedStore;
+}) {
   const [isIndexing, setIsIndexing] = useState(true);
   const oramaInstance = useRef<Index | null>(null);
   const listenerIds = useRef<string[]>([]);
@@ -80,7 +102,10 @@ export function SearchEngineProvider({ children, store }: { children: React.Reac
   }, [store]);
 
   const search = useCallback(
-    async (query: string, filters: SearchFilters | null = null): Promise<SearchHit[]> => {
+    async (
+      query: string,
+      filters: SearchFilters | null = null,
+    ): Promise<SearchHit[]> => {
       const normalizedQuery = normalizeQuery(query);
 
       if (normalizedQuery.length < 1) {
@@ -119,7 +144,11 @@ export function SearchEngineProvider({ children, store }: { children: React.Reac
     isIndexing,
   };
 
-  return <SearchEngineContext.Provider value={value}>{children}</SearchEngineContext.Provider>;
+  return (
+    <SearchEngineContext.Provider value={value}>
+      {children}
+    </SearchEngineContext.Provider>
+  );
 }
 
 export function useSearchEngine() {

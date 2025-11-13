@@ -36,7 +36,8 @@ function TemplateList({ templates }: { templates: main.Template[] }) {
               title: template.title,
               description: template.description,
               sections: template.sections,
-            })}
+            })
+          }
         />
       ))}
     </div>
@@ -62,8 +63,12 @@ function useSuggestedTemplates(query: string) {
 
       return data.filter((template) => {
         const titleMatch = template.title.toLowerCase().includes(lowerQuery);
-        const categoryMatch = template.category?.toLowerCase().includes(lowerQuery);
-        const targetsMatch = template.targets?.some((target) => target?.toLowerCase().includes(lowerQuery));
+        const categoryMatch = template.category
+          ?.toLowerCase()
+          .includes(lowerQuery);
+        const targetsMatch = template.targets?.some((target) =>
+          target?.toLowerCase().includes(lowerQuery),
+        );
 
         return titleMatch || categoryMatch || targetsMatch;
       });

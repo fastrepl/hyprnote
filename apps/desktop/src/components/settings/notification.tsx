@@ -7,10 +7,21 @@ import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@hypr/ui/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@hypr/ui/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
+
 import { useConfigValues } from "../../config/use-config";
 import * as main from "../../store/tinybase/main";
 
@@ -18,15 +29,13 @@ export function SettingsNotifications() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newAppName, setNewAppName] = useState("");
 
-  const configs = useConfigValues(
-    [
-      "notification_event",
-      "notification_detect",
-      "respect_dnd",
-      "ignored_platforms",
-      "quit_intercept",
-    ] as const,
-  );
+  const configs = useConfigValues([
+    "notification_event",
+    "notification_detect",
+    "respect_dnd",
+    "ignored_platforms",
+    "quit_intercept",
+  ] as const);
 
   useEffect(() => {
     notificationCommands.clearNotifications();
@@ -58,11 +67,11 @@ export function SettingsNotifications() {
   });
 
   const bundleIdToName = (bundleId: string) => {
-    return allInstalledApps?.find(a => a.id === bundleId)?.name ?? bundleId;
+    return allInstalledApps?.find((a) => a.id === bundleId)?.name ?? bundleId;
   };
 
   const nameToBundleId = (name: string) => {
-    return allInstalledApps?.find(a => a.name === name)?.id ?? name;
+    return allInstalledApps?.find((a) => a.name === name)?.id ?? name;
   };
 
   const isDefaultIgnored = (appName: string) => {
@@ -115,7 +124,9 @@ export function SettingsNotifications() {
     },
     listeners: {
       onChange: async ({ formApi }) => {
-        const anyEnabled = formApi.getFieldValue("notification_event") || formApi.getFieldValue("notification_detect");
+        const anyEnabled =
+          formApi.getFieldValue("notification_event") ||
+          formApi.getFieldValue("notification_detect");
         formApi.setFieldValue("quit_intercept", anyEnabled);
         formApi.handleSubmit();
       },
@@ -124,19 +135,26 @@ export function SettingsNotifications() {
       handleSetNotificationEvent(value.notification_event);
       handleSetNotificationDetect(value.notification_detect);
       handleSetRespectDnd(value.respect_dnd);
-      handleSetIgnoredPlatforms(JSON.stringify(value.ignored_platforms.map(nameToBundleId)));
+      handleSetIgnoredPlatforms(
+        JSON.stringify(value.ignored_platforms.map(nameToBundleId)),
+      );
       handleSetQuitIntercept(value.quit_intercept);
     },
   });
 
-  const anyNotificationEnabled = configs.notification_event || configs.notification_detect;
+  const anyNotificationEnabled =
+    configs.notification_event || configs.notification_detect;
   const ignoredPlatforms = form.getFieldValue("ignored_platforms");
 
-  const installedApps = allInstalledApps?.map(app => app.name) ?? [];
+  const installedApps = allInstalledApps?.map((app) => app.name) ?? [];
 
   const handleAddIgnoredApp = (appName: string) => {
     const trimmedName = appName.trim();
-    if (!trimmedName || ignoredPlatforms.includes(trimmedName) || isDefaultIgnored(trimmedName)) {
+    if (
+      !trimmedName ||
+      ignoredPlatforms.includes(trimmedName) ||
+      isDefaultIgnored(trimmedName)
+    ) {
       return;
     }
 
@@ -146,7 +164,10 @@ export function SettingsNotifications() {
   };
 
   const handleRemoveIgnoredApp = (app: string) => {
-    form.setFieldValue("ignored_platforms", ignoredPlatforms.filter((a: string) => a !== app));
+    form.setFieldValue(
+      "ignored_platforms",
+      ignoredPlatforms.filter((a: string) => a !== app),
+    );
   };
 
   return (
@@ -158,10 +179,18 @@ export function SettingsNotifications() {
             {(field) => (
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h3 className="mb-1 text-sm font-medium">Event notifications (Not-available)</h3>
-                  <p className="text-xs text-neutral-600">Get notified about upcoming calendar events</p>
+                  <h3 className="mb-1 text-sm font-medium">
+                    Event notifications (Not-available)
+                  </h3>
+                  <p className="text-xs text-neutral-600">
+                    Get notified about upcoming calendar events
+                  </p>
                 </div>
-                <Switch checked={false} onCheckedChange={field.handleChange} disabled />
+                <Switch
+                  checked={false}
+                  onCheckedChange={field.handleChange}
+                  disabled
+                />
               </div>
             )}
           </form.Field>
@@ -171,19 +200,31 @@ export function SettingsNotifications() {
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="mb-1 text-sm font-medium">Microphone detection</h3>
+                    <h3 className="mb-1 text-sm font-medium">
+                      Microphone detection
+                    </h3>
                     <p className="text-xs text-neutral-600">
-                      Automatically detect when a meeting starts based on microphone activity.
+                      Automatically detect when a meeting starts based on
+                      microphone activity.
                     </p>
                   </div>
-                  <Switch checked={field.state.value} onCheckedChange={field.handleChange} />
+                  <Switch
+                    checked={field.state.value}
+                    onCheckedChange={field.handleChange}
+                  />
                 </div>
 
                 {field.state.value && (
-                  <div className={cn(["ml-6 border-l-2 border-muted pl-6 pt-2"])}>
+                  <div
+                    className={cn(["ml-6 border-l-2 border-muted pl-6 pt-2"])}
+                  >
                     <div className="mb-3 space-y-1">
-                      <h4 className="text-sm font-medium">Exclude apps from detection</h4>
-                      <p className="text-xs text-neutral-600">These apps will not trigger detection.</p>
+                      <h4 className="text-sm font-medium">
+                        Exclude apps from detection
+                      </h4>
+                      <p className="text-xs text-neutral-600">
+                        These apps will not trigger detection.
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="min-h-[38px] flex-1 flex-wrap gap-2 rounded-md border p-2 flex">
@@ -195,12 +236,18 @@ export function SettingsNotifications() {
                               variant="secondary"
                               className={cn([
                                 "flex items-center gap-1 px-2 py-0.5 text-xs",
-                                isDefault ? ["bg-neutral-200 text-neutral-700"] : ["bg-muted"],
+                                isDefault
+                                  ? ["bg-neutral-200 text-neutral-700"]
+                                  : ["bg-muted"],
                               ])}
                               title={isDefault ? "default" : undefined}
                             >
                               {app}
-                              {isDefault && <span className="text-[10px] opacity-70">(default)</span>}
+                              {isDefault && (
+                                <span className="text-[10px] opacity-70">
+                                  (default)
+                                </span>
+                              )}
                               {!isDefault && (
                                 <Button
                                   type="button"
@@ -218,7 +265,12 @@ export function SettingsNotifications() {
                       </div>
                       <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                         <PopoverTrigger asChild>
-                          <Button type="button" variant="outline" size="icon" className="h-[38px] w-[38px]">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-[38px] w-[38px]"
+                          >
                             <Plus className="h-4 w-4" />
                           </Button>
                         </PopoverTrigger>
@@ -237,28 +289,38 @@ export function SettingsNotifications() {
                               }}
                             />
                             <CommandEmpty>
-                              {newAppName
-                                ? (
-                                  <button
-                                    className="w-full px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
-                                    onClick={() => handleAddIgnoredApp(newAppName)}
-                                  >
-                                    Add "{newAppName}"
-                                  </button>
-                                )
-                                : "Type an app name to add"}
+                              {newAppName ? (
+                                <button
+                                  className="w-full px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                                  onClick={() =>
+                                    handleAddIgnoredApp(newAppName)
+                                  }
+                                >
+                                  Add "{newAppName}"
+                                </button>
+                              ) : (
+                                "Type an app name to add"
+                              )}
                             </CommandEmpty>
                             <CommandGroup className="max-h-[200px] overflow-auto">
                               {installedApps
-                                .filter(app => !ignoredPlatforms.includes(app))
+                                .filter(
+                                  (app) => !ignoredPlatforms.includes(app),
+                                )
                                 .map((app) => {
                                   const isDefault = isDefaultIgnored(app);
                                   return (
                                     <CommandItem
                                       key={app}
-                                      onSelect={() => !isDefault && handleAddIgnoredApp(app)}
+                                      onSelect={() =>
+                                        !isDefault && handleAddIgnoredApp(app)
+                                      }
                                       disabled={isDefault}
-                                      className={cn([isDefault && ["opacity-50 cursor-not-allowed"]])}
+                                      className={cn([
+                                        isDefault && [
+                                          "opacity-50 cursor-not-allowed",
+                                        ],
+                                      ])}
                                     >
                                       <span className="flex items-center gap-2">
                                         {app}
@@ -294,12 +356,19 @@ export function SettingsNotifications() {
               {(field) => (
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="mb-1 text-sm font-medium">Quit intercept (Read-only)</h3>
+                    <h3 className="mb-1 text-sm font-medium">
+                      Quit intercept (Read-only)
+                    </h3>
                     <p className="text-xs text-neutral-600">
-                      Prevents Hyprnote from quitting, which is required for notifications to work.
+                      Prevents Hyprnote from quitting, which is required for
+                      notifications to work.
                     </p>
                   </div>
-                  <Switch checked={field.state.value} onCheckedChange={field.handleChange} disabled />
+                  <Switch
+                    checked={field.state.value}
+                    onCheckedChange={field.handleChange}
+                    disabled
+                  />
                 </div>
               )}
             </form.Field>
@@ -308,9 +377,12 @@ export function SettingsNotifications() {
               {(field) => (
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h3 className="mb-1 text-sm font-medium">Respect Do-Not-Disturb mode</h3>
+                    <h3 className="mb-1 text-sm font-medium">
+                      Respect Do-Not-Disturb mode
+                    </h3>
                     <p className="text-xs text-neutral-600">
-                      Don't show notifications when Do-Not-Disturb is enabled on your system
+                      Don't show notifications when Do-Not-Disturb is enabled on
+                      your system
                     </p>
                   </div>
                   <Switch

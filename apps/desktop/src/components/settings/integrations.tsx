@@ -1,15 +1,21 @@
+import { Icon } from "@iconify-icon/react";
+import { Puzzle, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+
 import { Button } from "@hypr/ui/components/ui/button";
 import { ButtonGroup } from "@hypr/ui/components/ui/button-group";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 
-import { Icon } from "@iconify-icon/react";
-import { Puzzle, Search } from "lucide-react";
-import { useMemo, useState } from "react";
-
 import { ConnectedServiceCard } from "./shared";
 
-type IntegrationProvider = "slack" | "notion" | "discord" | "linear" | "github" | "jira";
+type IntegrationProvider =
+  | "slack"
+  | "notion"
+  | "discord"
+  | "linear"
+  | "github"
+  | "jira";
 
 interface Integration {
   id: string;
@@ -105,8 +111,8 @@ export function SettingsIntegrations() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (integration) =>
-          integration.name.toLowerCase().includes(query)
-          || integration.description.toLowerCase().includes(query),
+          integration.name.toLowerCase().includes(query) ||
+          integration.description.toLowerCase().includes(query),
       );
     }
 
@@ -157,7 +163,10 @@ export function SettingsIntegrations() {
         </div>
 
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
+            size={16}
+          />
           <Input
             type="text"
             placeholder="Search integrations..."
@@ -168,26 +177,24 @@ export function SettingsIntegrations() {
         </div>
 
         <div className="space-y-4">
-          {filteredIntegrations.length === 0
-            ? (
-              <div className="text-center py-12 text-neutral-500">
-                <Puzzle size={48} className="mx-auto mb-4 text-neutral-300" />
-                <p className="text-sm">No integrations found</p>
-                <p className="text-xs text-neutral-400 mt-1">
-                  Try a different search term
-                </p>
-              </div>
-            )
-            : (
-              filteredIntegrations.map((integration) => (
-                <IntegrationCard
-                  key={integration.id}
-                  integration={integration}
-                  onConnect={handleConnect}
-                  onDisconnect={handleDisconnect}
-                />
-              ))
-            )}
+          {filteredIntegrations.length === 0 ? (
+            <div className="text-center py-12 text-neutral-500">
+              <Puzzle size={48} className="mx-auto mb-4 text-neutral-300" />
+              <p className="text-sm">No integrations found</p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Try a different search term
+              </p>
+            </div>
+          ) : (
+            filteredIntegrations.map((integration) => (
+              <IntegrationCard
+                key={integration.id}
+                integration={integration}
+                onConnect={handleConnect}
+                onDisconnect={handleDisconnect}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -236,7 +243,9 @@ function IntegrationCard({
           <div className="mt-1">{getProviderIcon(integration.provider)}</div>
           <div className="flex-1">
             <h3 className="text-sm font-medium mb-1">{integration.name}</h3>
-            <p className="text-xs text-neutral-600">{integration.description}</p>
+            <p className="text-xs text-neutral-600">
+              {integration.description}
+            </p>
           </div>
           <Button
             size="sm"
@@ -245,16 +254,14 @@ function IntegrationCard({
             disabled={isConnecting}
             className="shrink-0"
           >
-            {isConnecting
-              ? (
-                <>
-                  <Spinner size={14} className="mr-2" />
-                  Connecting...
-                </>
-              )
-              : (
-                "Connect"
-              )}
+            {isConnecting ? (
+              <>
+                <Spinner size={14} className="mr-2" />
+                Connecting...
+              </>
+            ) : (
+              "Connect"
+            )}
           </Button>
         </div>
       </div>
@@ -274,8 +281,8 @@ function IntegrationCard({
       disconnectDialogDescription={
         <>
           Are you sure you want to disconnect {integration.name}
-          {integration.accountInfo && ` (${integration.accountInfo})`}? This integration will no longer sync with
-          Hyprnote.
+          {integration.accountInfo && ` (${integration.accountInfo})`}? This
+          integration will no longer sync with Hyprnote.
         </>
       }
     >

@@ -1,6 +1,11 @@
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useRouterState,
+} from "@tanstack/react-router";
 import { createContext, useContext, useState } from "react";
 
 export const Route = createFileRoute("/_view")({
@@ -20,7 +25,8 @@ export function useHeroContext() {
 }
 
 function getMaxWidthClass(pathname: string): string {
-  const isBlogOrDocs = pathname.startsWith("/blog") || pathname.startsWith("/docs");
+  const isBlogOrDocs =
+    pathname.startsWith("/blog") || pathname.startsWith("/docs");
   return isBlogOrDocs ? "max-w-6xl" : "max-w-6xl";
 }
 
@@ -30,7 +36,12 @@ function Component() {
   const [onTrigger, setOnTrigger] = useState<(() => void) | null>(null);
 
   return (
-    <HeroContext.Provider value={{ onTrigger, setOnTrigger: (callback) => setOnTrigger(() => callback) }}>
+    <HeroContext.Provider
+      value={{
+        onTrigger,
+        setOnTrigger: (callback) => setOnTrigger(() => callback),
+      }}
+    >
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">
@@ -80,7 +91,9 @@ function Header() {
   return (
     <>
       <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
-        <div className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4`}>
+        <div
+          className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4`}
+        >
           <div className="flex items-center justify-between">
             <div className="hidden sm:flex items-center gap-5">
               <Link
@@ -100,7 +113,10 @@ function Header() {
               >
                 <button className="flex items-center gap-1 text-sm text-neutral-600 hover:text-neutral-800 transition-all py-2">
                   Product
-                  <Icon icon={isProductOpen ? "mdi:chevron-up" : "mdi:chevron-down"} className="text-base" />
+                  <Icon
+                    icon={isProductOpen ? "mdi:chevron-up" : "mdi:chevron-down"}
+                    className="text-base"
+                  />
                 </button>
                 {isProductOpen && (
                   <div className="absolute top-full left-0 pt-2 w-[520px] z-50">
@@ -195,45 +211,41 @@ function Header() {
               >
                 Get started
               </Link>
-              {platformCTA.action === "download"
-                ? (
-                  <a
-                    href="/download/apple-silicon"
-                    download
-                    className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-                  >
-                    {platformCTA.label}
-                  </a>
-                )
-                : (
-                  <button
-                    onClick={handleCTAClick}
-                    className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-                  >
-                    {platformCTA.label}
-                  </button>
-                )}
+              {platformCTA.action === "download" ? (
+                <a
+                  href="/download/apple-silicon"
+                  download
+                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+                >
+                  {platformCTA.label}
+                </a>
+              ) : (
+                <button
+                  onClick={handleCTAClick}
+                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+                >
+                  {platformCTA.label}
+                </button>
+              )}
             </nav>
 
             <div className="sm:hidden flex items-center gap-1">
-              {platformCTA.action === "download"
-                ? (
-                  <a
-                    href="/download/apple-silicon"
-                    download
-                    className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
-                  >
-                    {platformCTA.label}
-                  </a>
-                )
-                : (
-                  <button
-                    onClick={handleCTAClick}
-                    className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
-                  >
-                    {platform === "mobile" ? "Remind me" : platformCTA.label}
-                  </button>
-                )}
+              {platformCTA.action === "download" ? (
+                <a
+                  href="/download/apple-silicon"
+                  download
+                  className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
+                >
+                  {platformCTA.label}
+                </a>
+              ) : (
+                <button
+                  onClick={handleCTAClick}
+                  className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
+                >
+                  {platform === "mobile" ? "Remind me" : platformCTA.label}
+                </button>
+              )}
               <button
                 onClick={() => setIsMenuOpen(true)}
                 className="px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
@@ -263,7 +275,12 @@ function Header() {
                       className="flex items-center justify-between w-full text-base text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       <span>Product</span>
-                      <Icon icon={isProductOpen ? "mdi:chevron-up" : "mdi:chevron-down"} className="text-lg" />
+                      <Icon
+                        icon={
+                          isProductOpen ? "mdi:chevron-up" : "mdi:chevron-down"
+                        }
+                        className="text-lg"
+                      />
                     </button>
                     {isProductOpen && (
                       <div className="mt-3 ml-4 space-y-4 border-l-2 border-neutral-200 pl-4">
@@ -347,28 +364,28 @@ function Header() {
                   >
                     Get started
                   </Link>
-                  {platformCTA.action === "download"
-                    ? (
-                      <a
-                        href="/download/apple-silicon"
-                        download
-                        onClick={() => setIsMenuOpen(false)}
-                        className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
-                      >
-                        {platformCTA.label}
-                      </a>
-                    )
-                    : (
-                      <button
-                        onClick={(e) => {
-                          setIsMenuOpen(false);
-                          handleCTAClick(e);
-                        }}
-                        className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
-                      >
-                        {platform === "mobile" ? "Get reminder" : platformCTA.label}
-                      </button>
-                    )}
+                  {platformCTA.action === "download" ? (
+                    <a
+                      href="/download/apple-silicon"
+                      download
+                      onClick={() => setIsMenuOpen(false)}
+                      className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
+                    >
+                      {platformCTA.label}
+                    </a>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        setIsMenuOpen(false);
+                        handleCTAClick(e);
+                      }}
+                      className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
+                    >
+                      {platform === "mobile"
+                        ? "Get reminder"
+                        : platformCTA.label}
+                    </button>
+                  )}
                 </div>
               </div>
             </nav>
@@ -386,7 +403,9 @@ function Footer() {
 
   return (
     <footer className="border-t border-neutral-100 bg-linear-to-b from-stone-50/30 to-stone-100">
-      <div className={`${maxWidthClass} mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100`}>
+      <div
+        className={`${maxWidthClass} mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100`}
+      >
         <div className="grid md:grid-cols-2 gap-12">
           <div>
             <Link to="/" className="inline-block mb-4">
@@ -429,7 +448,9 @@ function Footer() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-4">Product</h3>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4">
+                Product
+              </h3>
               <ul className="space-y-3">
                 <li>
                   <a
@@ -441,17 +462,26 @@ function Footer() {
                   </a>
                 </li>
                 <li>
-                  <Link to="/changelog" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/changelog"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     Releases
                   </Link>
                 </li>
                 <li>
-                  <Link to="/roadmap" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/roadmap"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     Roadmap
                   </Link>
                 </li>
                 <li>
-                  <Link to="/docs" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/docs"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     Docs
                   </Link>
                 </li>
@@ -469,10 +499,15 @@ function Footer() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-4">Resources</h3>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4">
+                Resources
+              </h3>
               <ul className="space-y-3">
                 <li>
-                  <Link to="/faq" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/faq"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     FAQ
                   </Link>
                 </li>
@@ -495,7 +530,10 @@ function Footer() {
                   </a>
                 </li>
                 <li>
-                  <Link to="/pricing" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/pricing"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     Pricing
                   </Link>
                 </li>
@@ -503,25 +541,39 @@ function Footer() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-4">Company</h3>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4">
+                Company
+              </h3>
               <ul className="space-y-3">
                 <li>
-                  <Link to="/blog" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/blog"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     Blog
                   </Link>
                 </li>
                 <li>
-                  <Link to="/about" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/about"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     About
                   </Link>
                 </li>
                 <li>
-                  <Link to="/team" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/team"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     Team
                   </Link>
                 </li>
                 <li>
-                  <Link to="/enterprise" className="text-sm text-neutral-600 hover:text-stone-600 transition-colors">
+                  <Link
+                    to="/enterprise"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
                     Enterprise
                   </Link>
                 </li>
@@ -547,7 +599,9 @@ function Footer() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-4">Social</h3>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4">
+                Social
+              </h3>
               <ul className="space-y-3">
                 <li>
                   <a

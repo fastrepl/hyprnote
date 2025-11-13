@@ -1,7 +1,7 @@
 import {
+  Experimental_Agent as Agent,
   type ChatTransport,
   convertToModelMessages,
-  Experimental_Agent as Agent,
   type LanguageModel,
   stepCountIs,
 } from "ai";
@@ -10,9 +10,14 @@ import { type ToolRegistry } from "../contexts/tool";
 import type { HyprUIMessage } from "./types";
 
 export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
-  constructor(private registry: ToolRegistry, private model: LanguageModel) {}
+  constructor(
+    private registry: ToolRegistry,
+    private model: LanguageModel,
+  ) {}
 
-  sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (options) => {
+  sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (
+    options,
+  ) => {
     const tools = this.registry.getTools("chat");
 
     const agent = new Agent({
@@ -28,7 +33,9 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
       },
     });
 
-    const result = agent.stream({ messages: convertToModelMessages(options.messages) });
+    const result = agent.stream({
+      messages: convertToModelMessages(options.messages),
+    });
 
     return result.toUIMessageStream({
       originalMessages: options.messages,
@@ -44,7 +51,8 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
     });
   };
 
-  reconnectToStream: ChatTransport<HyprUIMessage>["reconnectToStream"] = async () => {
-    return null;
-  };
+  reconnectToStream: ChatTransport<HyprUIMessage>["reconnectToStream"] =
+    async () => {
+      return null;
+    };
 }

@@ -1,9 +1,20 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
-import { cn, formatDistanceToNow } from "@hypr/utils";
-
-import { ChevronDown, MessageCircle, PanelRightIcon, PictureInPicture2Icon, Plus, X } from "lucide-react";
+import {
+  ChevronDown,
+  MessageCircle,
+  PanelRightIcon,
+  PictureInPicture2Icon,
+  Plus,
+  X,
+} from "lucide-react";
 import { useState } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@hypr/ui/components/ui/dropdown-menu";
+import { cn, formatDistanceToNow } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
 import * as main from "../../store/tinybase/main";
@@ -30,7 +41,10 @@ export function ChatHeader({
       ])}
     >
       <div className="flex items-center">
-        <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
+        <ChatGroups
+          currentChatGroupId={currentChatGroupId}
+          onSelectChat={onSelectChat}
+        />
         <ChatActionButton
           icon={<Plus size={16} />}
           onClick={onNewChat}
@@ -40,9 +54,13 @@ export function ChatHeader({
 
       <div className="flex items-center">
         <ChatActionButton
-          icon={chat.mode === "RightPanelOpen"
-            ? <PictureInPicture2Icon className="w-4 h-4" />
-            : <PanelRightIcon className="w-4 h-4" />}
+          icon={
+            chat.mode === "RightPanelOpen" ? (
+              <PictureInPicture2Icon className="w-4 h-4" />
+            ) : (
+              <PanelRightIcon className="w-4 h-4" />
+            )
+          }
           onClick={() => chat.sendEvent({ type: "SHIFT" })}
           title="Toggle"
         />
@@ -66,12 +84,7 @@ function ChatActionButton({
   onClick: () => void;
 }) {
   return (
-    <Button
-      onClick={onClick}
-      title={title}
-      size="icon"
-      variant="ghost"
-    >
+    <Button onClick={onClick} title={title} size="icon" variant="ghost">
       {icon}
     </Button>
   );
@@ -123,30 +136,30 @@ function ChatGroups({
       <DropdownMenuContent align="start" className="w-72 p-1.5">
         <div className="space-y-0.5">
           <div className="px-2 py-1.5">
-            <h4 className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Recent Chats</h4>
+            <h4 className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">
+              Recent Chats
+            </h4>
           </div>
-          {recentChatGroupIds.length > 0
-            ? (
-              <div className="space-y-0.5">
-                {recentChatGroupIds.map((groupId) => (
-                  <ChatGroupItem
-                    key={groupId}
-                    groupId={groupId}
-                    isActive={groupId === currentChatGroupId}
-                    onSelect={(id) => {
-                      onSelectChat(id);
-                      setIsDropdownOpen(false);
-                    }}
-                  />
-                ))}
-              </div>
-            )
-            : (
-              <div className="px-3 py-6 text-center">
-                <MessageCircle className="w-6 h-6 text-neutral-300 mx-auto mb-1.5" />
-                <p className="text-xs text-neutral-400">No recent chats</p>
-              </div>
-            )}
+          {recentChatGroupIds.length > 0 ? (
+            <div className="space-y-0.5">
+              {recentChatGroupIds.map((groupId) => (
+                <ChatGroupItem
+                  key={groupId}
+                  groupId={groupId}
+                  isActive={groupId === currentChatGroupId}
+                  onSelect={(id) => {
+                    onSelectChat(id);
+                    setIsDropdownOpen(false);
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="px-3 py-6 text-center">
+              <MessageCircle className="w-6 h-6 text-neutral-300 mx-auto mb-1.5" />
+              <p className="text-xs text-neutral-400">No recent chats</p>
+            </div>
+          )}
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -178,7 +191,9 @@ function ChatGroupItem({
       onClick={() => onSelect(groupId)}
       className={cn([
         "w-full justify-start h-auto px-2.5 py-1.5 group",
-        isActive ? "bg-neutral-100 shadow-sm hover:bg-neutral-100" : "hover:bg-neutral-50 active:bg-neutral-100",
+        isActive
+          ? "bg-neutral-100 shadow-sm hover:bg-neutral-100"
+          : "hover:bg-neutral-50 active:bg-neutral-100",
       ])}
     >
       <div className="flex items-center gap-2.5 w-full">
@@ -186,7 +201,9 @@ function ChatGroupItem({
           <MessageCircle
             className={cn([
               "w-3.5 h-3.5 transition-colors",
-              isActive ? "text-neutral-700" : "text-neutral-400 group-hover:text-neutral-600",
+              isActive
+                ? "text-neutral-700"
+                : "text-neutral-400 group-hover:text-neutral-600",
             ])}
           />
         </div>

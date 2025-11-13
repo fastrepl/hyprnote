@@ -23,7 +23,10 @@ import { createChatGroup, createChatMessage } from "./chat";
 import { createEvent } from "./event";
 import { createFolder } from "./folder";
 import { createHuman } from "./human";
-import { createmappingSessionParticipant, createMappingTagSession } from "./mapping";
+import {
+  createmappingSessionParticipant,
+  createMappingTagSession,
+} from "./mapping";
 import { createMemory } from "./memory";
 import { createOrganization } from "./organization";
 import { createSession } from "./session";
@@ -31,7 +34,9 @@ import { createTag } from "./tag";
 import { createTemplate } from "./template";
 import { generateTranscript } from "./transcript";
 
-export const buildOrganizations = (count: number): Record<string, Organization> => {
+export const buildOrganizations = (
+  count: number,
+): Record<string, Organization> => {
   const organizations: Record<string, Organization> = {};
 
   for (let i = 0; i < count; i++) {
@@ -55,7 +60,10 @@ export const buildCalendars = (count: number): Record<string, Calendar> => {
 
 export const buildHumans = (
   orgIds: string[],
-  options: { includeCurrentUser?: boolean; countPerOrg: { min: number; max: number } } = {
+  options: {
+    includeCurrentUser?: boolean;
+    countPerOrg: { min: number; max: number };
+  } = {
     includeCurrentUser: true,
     countPerOrg: { min: 2, max: 5 },
   },
@@ -99,7 +107,10 @@ export const buildEventsByHuman = (
   humanIds: string[],
   calendarIds: string[],
   countPerHuman: { min: number; max: number },
-): { events: Record<string, Event>; eventsByHuman: Record<string, string[]> } => {
+): {
+  events: Record<string, Event>;
+  eventsByHuman: Record<string, string[]>;
+} => {
   const events: Record<string, Event> = {};
   const eventsByHuman: Record<string, string[]> = {};
 
@@ -153,7 +164,9 @@ export const buildTags = (count: number): Record<string, Tag> => {
   return tags;
 };
 
-export const buildTemplates = (count: number): Record<string, TemplateStorage> => {
+export const buildTemplates = (
+  count: number,
+): Record<string, TemplateStorage> => {
   const templates: Record<string, TemplateStorage> = {};
 
   for (let i = 0; i < count; i++) {
@@ -182,11 +195,19 @@ export const buildSessions = (
   } = options;
 
   for (let i = 0; i < count; i++) {
-    const shouldLinkToEvent = eventIds.length > 0 && faker.datatype.boolean({ probability: eventLinkProbability });
-    const shouldAddToFolder = folderIds.length > 0 && faker.datatype.boolean({ probability: folderProbability });
+    const shouldLinkToEvent =
+      eventIds.length > 0 &&
+      faker.datatype.boolean({ probability: eventLinkProbability });
+    const shouldAddToFolder =
+      folderIds.length > 0 &&
+      faker.datatype.boolean({ probability: folderProbability });
 
-    const eventId = shouldLinkToEvent ? faker.helpers.arrayElement(eventIds) : undefined;
-    const folderId = shouldAddToFolder ? faker.helpers.arrayElement(folderIds) : undefined;
+    const eventId = shouldLinkToEvent
+      ? faker.helpers.arrayElement(eventIds)
+      : undefined;
+    const folderId = shouldAddToFolder
+      ? faker.helpers.arrayElement(folderIds)
+      : undefined;
 
     const session = createSession(eventId, folderId);
     sessions[session.id] = session.data;
@@ -218,12 +239,19 @@ export const buildSessionsPerHuman = (
     const humanEventIds = eventsByHuman[humanId] || [];
 
     for (let i = 0; i < sessionCount; i++) {
-      const shouldLinkToEvent = humanEventIds.length > 0
-        && faker.datatype.boolean({ probability: eventLinkProbability });
-      const shouldAddToFolder = folderIds.length > 0 && faker.datatype.boolean({ probability: folderProbability });
+      const shouldLinkToEvent =
+        humanEventIds.length > 0 &&
+        faker.datatype.boolean({ probability: eventLinkProbability });
+      const shouldAddToFolder =
+        folderIds.length > 0 &&
+        faker.datatype.boolean({ probability: folderProbability });
 
-      const eventId = shouldLinkToEvent ? faker.helpers.arrayElement(humanEventIds) : undefined;
-      const folderId = shouldAddToFolder ? faker.helpers.arrayElement(folderIds) : undefined;
+      const eventId = shouldLinkToEvent
+        ? faker.helpers.arrayElement(humanEventIds)
+        : undefined;
+      const folderId = shouldAddToFolder
+        ? faker.helpers.arrayElement(folderIds)
+        : undefined;
 
       const session = createSession(eventId, folderId);
       sessions[session.id] = session.data;
@@ -283,11 +311,15 @@ export const buildSessionParticipants = (
   humanIds: string[],
   participantsPerSession: { min: number; max: number },
 ): Record<string, mappingSessionParticipant> => {
-  const mapping_session_participant: Record<string, mappingSessionParticipant> = {};
+  const mapping_session_participant: Record<string, mappingSessionParticipant> =
+    {};
 
   sessionIds.forEach((sessionId) => {
     const participantCount = faker.number.int(participantsPerSession);
-    const selectedHumans = faker.helpers.arrayElements(humanIds, participantCount);
+    const selectedHumans = faker.helpers.arrayElements(
+      humanIds,
+      participantCount,
+    );
 
     selectedHumans.forEach((humanId) => {
       const mapping = createmappingSessionParticipant(sessionId, humanId);

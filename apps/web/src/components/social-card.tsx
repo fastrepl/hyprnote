@@ -53,12 +53,10 @@ export function SocialCard({
 
   return (
     <div
-      className={cn(
-        [
-          "block border border-neutral-100 bg-white p-6 transition-all duration-200 text-left hover:bg-neutral-50",
-          className,
-        ],
-      )}
+      className={cn([
+        "block border border-neutral-100 bg-white p-6 transition-all duration-200 text-left hover:bg-neutral-50",
+        className,
+      ])}
     >
       <div className="space-y-4 text-left">
         <div className="flex justify-between items-start">
@@ -67,7 +65,9 @@ export function SocialCard({
               {config.userPrefix}
               {author}
             </p>
-            {config.subtitle && <p className="text-sm text-neutral-600">{config.subtitle}</p>}
+            {config.subtitle && (
+              <p className="text-sm text-neutral-600">{config.subtitle}</p>
+            )}
           </div>
           <a
             href={url}
@@ -76,12 +76,18 @@ export function SocialCard({
             className="hover:opacity-70 transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
-            <svg className={cn(["size-5 shrink-0", config.iconColor])} fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className={cn(["size-5 shrink-0", config.iconColor])}
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d={config.iconPath} />
             </svg>
           </a>
         </div>
-        <p className="text-neutral-700 leading-relaxed line-clamp-4 md:line-clamp-15 overflow-hidden">{body}</p>
+        <p className="text-neutral-700 leading-relaxed line-clamp-4 md:line-clamp-15 overflow-hidden">
+          {body}
+        </p>
       </div>
     </div>
   );

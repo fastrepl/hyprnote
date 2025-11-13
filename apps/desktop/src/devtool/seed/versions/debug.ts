@@ -6,7 +6,13 @@ import type { Store as PersistedStore } from "../../../store/tinybase/main";
 import type { WordStorage } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 import type { SeedDefinition } from "../shared";
-import { buildCalendars, buildHumans, buildOrganizations, buildSessionParticipants, buildTags } from "../shared";
+import {
+  buildCalendars,
+  buildHumans,
+  buildOrganizations,
+  buildSessionParticipants,
+  buildTags,
+} from "../shared";
 import { createSession } from "../shared/session";
 
 faker.seed(456);
@@ -45,7 +51,8 @@ const generateLongTranscript = (targetDurationMs: number) => {
     "to be honest",
   ];
 
-  const sanitizeWord = (raw: string) => raw.replace(/^[^A-Za-z0-9'-]+/, "").replace(/[^A-Za-z0-9'-]+$/, "");
+  const sanitizeWord = (raw: string) =>
+    raw.replace(/^[^A-Za-z0-9'-]+/, "").replace(/[^A-Za-z0-9'-]+$/, "");
 
   const durationForWord = (text: string) => {
     const base = faker.number.int({ min: 110, max: 260 });
@@ -78,7 +85,10 @@ const generateLongTranscript = (targetDurationMs: number) => {
 
       if (faker.datatype.boolean({ probability: 0.4 })) {
         appendPhrase(sentenceWords, faker.helpers.arrayElement(bridges));
-        appendPhrase(sentenceWords, faker.lorem.words(faker.number.int({ min: 3, max: 10 })));
+        appendPhrase(
+          sentenceWords,
+          faker.lorem.words(faker.number.int({ min: 3, max: 10 })),
+        );
       }
     }
 
@@ -88,7 +98,11 @@ const generateLongTranscript = (targetDurationMs: number) => {
   while (currentTimeMs < targetDurationMs) {
     const sentenceCount = faker.number.int({ min: 2, max: 8 });
 
-    for (let sentenceIndex = 0; sentenceIndex < sentenceCount; sentenceIndex++) {
+    for (
+      let sentenceIndex = 0;
+      sentenceIndex < sentenceCount;
+      sentenceIndex++
+    ) {
       const sentenceWords = generateSentence();
 
       for (const raw of sentenceWords) {
@@ -166,16 +180,32 @@ const DEBUG_DATA = (() => {
   };
 
   const thirtyMinutesMs = 30 * 60 * 1000;
-  const { transcriptId: transcriptId1, words: words1, endedAt: endedAt1 } = generateLongTranscript(thirtyMinutesMs);
+  const {
+    transcriptId: transcriptId1,
+    words: words1,
+    endedAt: endedAt1,
+  } = generateLongTranscript(thirtyMinutesMs);
 
   const oneHourMs = 60 * 60 * 1000;
-  const { transcriptId: transcriptId2, words: words2, endedAt: endedAt2 } = generateLongTranscript(oneHourMs);
+  const {
+    transcriptId: transcriptId2,
+    words: words2,
+    endedAt: endedAt2,
+  } = generateLongTranscript(oneHourMs);
 
   const twoHoursMs = 2 * 60 * 60 * 1000;
-  const { transcriptId: transcriptId3, words: words3, endedAt: endedAt3 } = generateLongTranscript(twoHoursMs);
+  const {
+    transcriptId: transcriptId3,
+    words: words3,
+    endedAt: endedAt3,
+  } = generateLongTranscript(twoHoursMs);
 
   const fourHoursMs = 4 * 60 * 60 * 1000;
-  const { transcriptId: transcriptId4, words: words4, endedAt: endedAt4 } = generateLongTranscript(fourHoursMs);
+  const {
+    transcriptId: transcriptId4,
+    words: words4,
+    endedAt: endedAt4,
+  } = generateLongTranscript(fourHoursMs);
 
   const createdAt1 = faker.date.recent({ days: 30 });
   const startedAt1 = createdAt1.getTime();

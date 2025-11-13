@@ -1,6 +1,6 @@
-import { cn, format, getDay } from "@hypr/utils";
-
 import { useEffect, useRef, useState } from "react";
+
+import { cn, format, getDay } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
 import { TabContentCalendarDayEvents } from "./day-events";
@@ -34,7 +34,9 @@ export function TabContentCalendarDay({
 
   const eventIds = allEventIds.filter((eventId) => {
     const event = store?.getRow("events", eventId);
-    return event?.calendar_id && selectedCalendars.has(event.calendar_id as string);
+    return (
+      event?.calendar_id && selectedCalendars.has(event.calendar_id as string)
+    );
   });
 
   const sessionIds = main.UI.useSliceRowIds(
@@ -59,7 +61,9 @@ export function TabContentCalendarDay({
         const SPACING = 4; // space-y-1
 
         // Calculate how many items can fit
-        const itemsWithSpacing = Math.floor((availableHeight + SPACING) / (EVENT_HEIGHT + SPACING));
+        const itemsWithSpacing = Math.floor(
+          (availableHeight + SPACING) / (EVENT_HEIGHT + SPACING),
+        );
         // Reserve space for "+x more" if needed
         setMaxVisibleItems(Math.max(1, itemsWithSpacing));
       }
@@ -73,25 +77,24 @@ export function TabContentCalendarDay({
   }, []);
 
   const totalItems = eventIds.length + sessionIds.length;
-  const visibleCount = totalItems > maxVisibleItems
-    ? maxVisibleItems - 1
-    : totalItems;
+  const visibleCount =
+    totalItems > maxVisibleItems ? maxVisibleItems - 1 : totalItems;
   const hiddenCount = totalItems - visibleCount;
 
   const allItems = [
-    ...eventIds.map(id => ({ type: "event" as const, id })),
-    ...sessionIds.map(id => ({ type: "session" as const, id })),
+    ...eventIds.map((id) => ({ type: "event" as const, id })),
+    ...sessionIds.map((id) => ({ type: "session" as const, id })),
   ];
 
   const visibleItems = allItems.slice(0, visibleCount);
   const hiddenItems = allItems.slice(visibleCount);
 
   const hiddenEventIds = hiddenItems
-    .filter(item => item.type === "event")
-    .map(item => item.id);
+    .filter((item) => item.type === "event")
+    .map((item) => item.id);
   const hiddenSessionIds = hiddenItems
-    .filter(item => item.type === "session")
-    .map(item => item.id);
+    .filter((item) => item.type === "session")
+    .map((item) => item.id);
 
   return (
     <div
@@ -104,19 +107,18 @@ export function TabContentCalendarDay({
       ])}
     >
       <div
-        className={cn(
-          ["text-sm size-6 rounded-full flex items-center justify-center mb-1", isToday && "bg-red-500"],
-        )}
+        className={cn([
+          "text-sm size-6 rounded-full flex items-center justify-center mb-1",
+          isToday && "bg-red-500",
+        ])}
       >
         <span
-          className={cn(
-            [
-              isToday && "text-white font-medium",
-              !isToday && !isCurrentMonth && "text-neutral-400",
-              !isToday && isCurrentMonth && isWeekend && "text-neutral-500",
-              !isToday && isCurrentMonth && !isWeekend && "text-neutral-700",
-            ],
-          )}
+          className={cn([
+            isToday && "text-white font-medium",
+            !isToday && !isCurrentMonth && "text-neutral-400",
+            !isToday && isCurrentMonth && isWeekend && "text-neutral-500",
+            !isToday && isCurrentMonth && !isWeekend && "text-neutral-700",
+          ])}
         >
           {dayNumber}
         </span>
@@ -124,9 +126,11 @@ export function TabContentCalendarDay({
 
       <div ref={contentRef} className="flex-1 w-full">
         {visibleItems.map((item) =>
-          item.type === "event"
-            ? <TabContentCalendarDayEvents key={item.id} eventId={item.id} />
-            : <TabContentCalendarDaySessions key={item.id} sessionId={item.id} />
+          item.type === "event" ? (
+            <TabContentCalendarDayEvents key={item.id} eventId={item.id} />
+          ) : (
+            <TabContentCalendarDaySessions key={item.id} sessionId={item.id} />
+          ),
         )}
 
         {hiddenCount > 0 && (

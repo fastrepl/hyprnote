@@ -1,7 +1,11 @@
-import { createCustomSqlitePersister, DpcJson } from "tinybase/persisters/with-schemas";
+import {
+  createCustomSqlitePersister,
+  DpcJson,
+} from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { commands as db2Commands } from "@hypr/plugin-db2";
+
 import { MergeableStoreOnly } from "./shared";
 
 // https://tinybase.org/api/persisters/functions/creation/createcustomsqlitepersister

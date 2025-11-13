@@ -3,8 +3,16 @@ import { useCallback, useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useAITask } from "../contexts/ai-task";
-import type { TaskArgsMap, TaskId, TaskType } from "../store/zustand/ai-task/task-configs";
-import { getTaskState, type TaskState, type TaskStatus } from "../store/zustand/ai-task/tasks";
+import type {
+  TaskArgsMap,
+  TaskId,
+  TaskType,
+} from "../store/zustand/ai-task/task-configs";
+import {
+  getTaskState,
+  type TaskState,
+  type TaskStatus,
+} from "../store/zustand/ai-task/tasks";
 import { useLatestRef } from "./useLatestRef";
 
 type SuccessPayload<T extends TaskType> = {

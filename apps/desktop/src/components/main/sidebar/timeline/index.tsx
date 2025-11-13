@@ -1,9 +1,9 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
-
 import { startOfDay } from "date-fns";
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
@@ -20,7 +20,10 @@ import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
 
 export function TimelineView() {
   const buckets = useTimelineData();
-  const hasToday = useMemo(() => buckets.some(bucket => bucket.label === "Today"), [buckets]);
+  const hasToday = useMemo(
+    () => buckets.some((bucket) => bucket.label === "Today"),
+    [buckets],
+  );
 
   const currentTab = useTabs((state) => state.currentTab);
   const store = main.UI.useStore(main.STORE_ID);
@@ -47,7 +50,7 @@ export function TimelineView() {
   } = useAnchor();
 
   const todayBucketLength = useMemo(() => {
-    const b = buckets.find(bucket => bucket.label === "Today");
+    const b = buckets.find((bucket) => bucket.label === "Today");
     return b?.items.length ?? 0;
   }, [buckets]);
 
@@ -63,16 +66,21 @@ export function TimelineView() {
     if (hasToday) {
       return -1;
     }
-    return buckets.findIndex(bucket =>
-      bucket.items.length > 0 && (() => {
-        const firstItem = bucket.items[0];
-        const timestamp = firstItem.type === "event" ? firstItem.data.started_at : firstItem.data.created_at;
-        if (!timestamp) {
-          return false;
-        }
-        const itemDate = new Date(timestamp);
-        return itemDate.getTime() < todayTimestamp;
-      })()
+    return buckets.findIndex(
+      (bucket) =>
+        bucket.items.length > 0 &&
+        (() => {
+          const firstItem = bucket.items[0];
+          const timestamp =
+            firstItem.type === "event"
+              ? firstItem.data.started_at
+              : firstItem.data.created_at;
+          if (!timestamp) {
+            return false;
+          }
+          const itemDate = new Date(timestamp);
+          return itemDate.getTime() < todayTimestamp;
+        })(),
     );
   }, [buckets, hasToday, todayTimestamp]);
 
@@ -87,50 +95,52 @@ export function TimelineView() {
       >
         {buckets.map((bucket, index) => {
           const isToday = bucket.label === "Today";
-          const shouldRenderIndicatorBefore = !hasToday && indicatorIndex === index;
+          const shouldRenderIndicatorBefore =
+            !hasToday && indicatorIndex === index;
 
           return (
             <div key={bucket.label}>
-              {shouldRenderIndicatorBefore && <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />}
+              {shouldRenderIndicatorBefore && (
+                <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
+              )}
               <div
-                className={cn([
-                  "sticky top-0 z-10",
-                  "bg-neutral-50 px-2 py-1",
-                ])}
+                className={cn(["sticky top-0 z-10", "bg-neutral-50 px-2 py-1"])}
               >
-                <div className="text-base font-bold text-neutral-900">{bucket.label}</div>
+                <div className="text-base font-bold text-neutral-900">
+                  {bucket.label}
+                </div>
               </div>
-              {isToday
-                ? (
-                  <TodayBucket
-                    items={bucket.items}
-                    precision={bucket.precision}
-                    registerIndicator={setCurrentTimeIndicatorRef}
-                    selectedSessionId={selectedSessionId}
-                    selectedEventId={selectedEventId}
-                  />
-                )
-                : (
-                  bucket.items.map((item) => {
-                    const selected = item.type === "session"
+              {isToday ? (
+                <TodayBucket
+                  items={bucket.items}
+                  precision={bucket.precision}
+                  registerIndicator={setCurrentTimeIndicatorRef}
+                  selectedSessionId={selectedSessionId}
+                  selectedEventId={selectedEventId}
+                />
+              ) : (
+                bucket.items.map((item) => {
+                  const selected =
+                    item.type === "session"
                       ? item.id === selectedSessionId
                       : item.id === selectedEventId;
-                    return (
-                      <TimelineItemComponent
-                        key={`${item.type}-${item.id}`}
-                        item={item}
-                        precision={bucket.precision}
-                        selected={selected}
-                      />
-                    );
-                  })
-                )}
+                  return (
+                    <TimelineItemComponent
+                      key={`${item.type}-${item.id}`}
+                      item={item}
+                      precision={bucket.precision}
+                      selected={selected}
+                    />
+                  );
+                })
+              )}
             </div>
           );
         })}
-        {!hasToday && (indicatorIndex === -1 || indicatorIndex === buckets.length) && (
-          <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
-        )}
+        {!hasToday &&
+          (indicatorIndex === -1 || indicatorIndex === buckets.length) && (
+            <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
+          )}
       </div>
 
       {!isTodayVisible && (
@@ -147,7 +157,11 @@ export function TimelineView() {
           ])}
           variant="outline"
         >
-          {!isScrolledPastToday ? <ChevronDownIcon size={12} /> : <ChevronUpIcon size={12} />}
+          {!isScrolledPastToday ? (
+            <ChevronDownIcon size={12} />
+          ) : (
+            <ChevronUpIcon size={12} />
+          )}
           <span className="text-xs">Go back to now</span>
         </Button>
       )}
@@ -202,12 +216,18 @@ function TodayBucket({
 
     entries.forEach((entry, index) => {
       if (index === indicatorIndex) {
-        nodes.push(<CurrentTimeIndicator ref={registerIndicator} key="current-time-indicator" />);
+        nodes.push(
+          <CurrentTimeIndicator
+            ref={registerIndicator}
+            key="current-time-indicator"
+          />,
+        );
       }
 
-      const selected = entry.item.type === "session"
-        ? entry.item.id === selectedSessionId
-        : entry.item.id === selectedEventId;
+      const selected =
+        entry.item.type === "session"
+          ? entry.item.id === selectedSessionId
+          : entry.item.id === selectedEventId;
 
       nodes.push(
         <TimelineItemComponent
@@ -220,11 +240,23 @@ function TodayBucket({
     });
 
     if (indicatorIndex === entries.length) {
-      nodes.push(<CurrentTimeIndicator ref={registerIndicator} key="current-time-indicator-end" />);
+      nodes.push(
+        <CurrentTimeIndicator
+          ref={registerIndicator}
+          key="current-time-indicator-end"
+        />,
+      );
     }
 
     return <>{nodes}</>;
-  }, [entries, indicatorIndex, precision, registerIndicator, selectedSessionId, selectedEventId]);
+  }, [
+    entries,
+    indicatorIndex,
+    precision,
+    registerIndicator,
+    selectedSessionId,
+    selectedEventId,
+  ]);
 
   return renderedEntries;
 }
@@ -250,7 +282,8 @@ function useTimelineData(): TimelineBucket[] {
 }
 
 function getItemTimestamp(item: TimelineItem): Date | null {
-  const value = item.type === "event" ? item.data.started_at : item.data.created_at;
+  const value =
+    item.type === "event" ? item.data.started_at : item.data.created_at;
 
   if (!value) {
     return null;

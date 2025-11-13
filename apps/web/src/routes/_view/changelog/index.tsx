@@ -24,36 +24,43 @@ function Component() {
           </p>
         </header>
 
-        {sortedChangelogs.length === 0
-          ? (
-            <div className="text-center py-16">
-              <div className="mb-6">
-                <Icon icon="mdi:clipboard-text-outline" className="text-6xl text-neutral-300 mx-auto" />
-              </div>
-              <p className="text-neutral-500">No releases yet. Stay tuned!</p>
+        {sortedChangelogs.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="mb-6">
+              <Icon
+                icon="mdi:clipboard-text-outline"
+                className="text-6xl text-neutral-300 mx-auto"
+              />
             </div>
-          )
-          : (
-            <div className="relative">
-              <div className="absolute left-8 top-0 bottom-0 w-px bg-neutral-200 hidden sm:block" />
+            <p className="text-neutral-500">No releases yet. Stay tuned!</p>
+          </div>
+        ) : (
+          <div className="relative">
+            <div className="absolute left-8 top-0 bottom-0 w-px bg-neutral-200 hidden sm:block" />
 
-              <div className="space-y-12">
-                {sortedChangelogs.map((changelog, index) => (
-                  <ChangelogCard
-                    key={changelog._meta.filePath}
-                    changelog={changelog}
-                    isFirst={index === 0}
-                  />
-                ))}
-              </div>
+            <div className="space-y-12">
+              {sortedChangelogs.map((changelog, index) => (
+                <ChangelogCard
+                  key={changelog._meta.filePath}
+                  changelog={changelog}
+                  isFirst={index === 0}
+                />
+              ))}
             </div>
-          )}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function ChangelogCard({ changelog, isFirst }: { changelog: Changelog; isFirst: boolean }) {
+function ChangelogCard({
+  changelog,
+  isFirst,
+}: {
+  changelog: Changelog;
+  isFirst: boolean;
+}) {
   return (
     <Link
       to="/changelog/$slug"

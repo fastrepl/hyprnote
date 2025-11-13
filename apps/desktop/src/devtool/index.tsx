@@ -4,8 +4,12 @@ import { useStores } from "tinybase/ui-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
+
 import { useAutoCloser } from "../hooks/useAutoCloser";
-import { type Store as PersistedStore, STORE_ID as STORE_ID_PERSISTED } from "../store/tinybase/main";
+import {
+  type Store as PersistedStore,
+  STORE_ID as STORE_ID_PERSISTED,
+} from "../store/tinybase/main";
 import { SeedDefinition, seeds } from "./seed/index";
 import { TinyTickMonitor } from "./tinytick";
 
@@ -22,7 +26,9 @@ export function Devtool() {
   const [open, setOpen] = useState(false);
 
   const stores = useStores();
-  const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore | undefined;
+  const persistedStore = stores[STORE_ID_PERSISTED] as unknown as
+    | PersistedStore
+    | undefined;
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -34,7 +40,7 @@ export function Devtool() {
 
     const api = {
       seed: (id?: string) => {
-        const target = id ? seeds.find(item => item.id === id) : seeds[0];
+        const target = id ? seeds.find((item) => item.id === id) : seeds[0];
         if (target) {
           target.run(persistedStore);
         }
@@ -50,7 +56,7 @@ export function Devtool() {
   }, [persistedStore]);
 
   const handleToggle = useCallback(() => {
-    setOpen(prev => !prev);
+    setOpen((prev) => !prev);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -98,17 +104,15 @@ function DevtoolTrigger({ onToggle }: { onToggle: () => void }) {
   );
 }
 
-function DevtoolDrawer(
-  {
-    open,
-    onClose,
-    onSeed,
-  }: {
-    open: boolean;
-    onClose: () => void;
-    onSeed: (seed: SeedDefinition) => void;
-  },
-) {
+function DevtoolDrawer({
+  open,
+  onClose,
+  onSeed,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSeed: (seed: SeedDefinition) => void;
+}) {
   const ref = useAutoCloser(onClose, { esc: true, outside: true });
 
   return (
@@ -138,7 +142,13 @@ function DevtoolDrawer(
   );
 }
 
-function DevtoolSection({ title, children }: { title: string; children: React.ReactNode }) {
+function DevtoolSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="flex flex-col gap-1.5">
       <h2 className="text-sm font-semibold">{title}</h2>
@@ -156,15 +166,28 @@ function NavigationList() {
 
   const handleShowOnboarding = useCallback(() => {
     windowsCommands.windowShow({ type: "onboarding" }).then(() => {
-      windowsCommands.windowEmitNavigate({ type: "onboarding" }, { path: "/app/onboarding", search: {} });
+      windowsCommands.windowEmitNavigate(
+        { type: "onboarding" },
+        { path: "/app/onboarding", search: {} },
+      );
     });
   }, [navigate]);
 
   return (
     <DevtoolSection title="Navigation">
       <nav className="flex flex-col gap-2 text-sm">
-        <button onClick={handleShowOnboarding} className="pl-2 text-left hover:underline">Onboarding</button>
-        <button onClick={handleShowMain} className="pl-2 text-left hover:underline">Main</button>
+        <button
+          onClick={handleShowOnboarding}
+          className="pl-2 text-left hover:underline"
+        >
+          Onboarding
+        </button>
+        <button
+          onClick={handleShowMain}
+          className="pl-2 text-left hover:underline"
+        >
+          Main
+        </button>
       </nav>
     </DevtoolSection>
   );
@@ -174,13 +197,21 @@ function SeedList({ onSeed }: { onSeed: (seed: SeedDefinition) => void }) {
   return (
     <DevtoolSection title="Seeds">
       <div className="flex flex-col gap-1.5">
-        {seeds.map(seed => <SeedButton key={seed.id} seed={seed} onClick={() => onSeed(seed)} />)}
+        {seeds.map((seed) => (
+          <SeedButton key={seed.id} seed={seed} onClick={() => onSeed(seed)} />
+        ))}
       </div>
     </DevtoolSection>
   );
 }
 
-function SeedButton({ seed, onClick }: { seed: SeedDefinition; onClick: () => void }) {
+function SeedButton({
+  seed,
+  onClick,
+}: {
+  seed: SeedDefinition;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"

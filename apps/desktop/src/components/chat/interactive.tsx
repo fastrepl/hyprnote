@@ -1,27 +1,22 @@
-import { cn } from "@hypr/utils";
-
 import { Resizable } from "re-resizable";
 import { type ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
 
-export function InteractiveContainer(
-  {
-    children,
-    width,
-    height,
-  }: {
-    children: ReactNode;
-    width: number;
-    height: number;
-  },
-) {
+import { cn } from "@hypr/utils";
+
+export function InteractiveContainer({
+  children,
+  width,
+  height,
+}: {
+  children: ReactNode;
+  width: number;
+  height: number;
+}) {
   const [isResizing, setIsResizing] = useState(false);
 
   return createPortal(
-    <div
-      className="fixed z-[100]"
-      style={{ right: 16, bottom: 16 }}
-    >
+    <div className="fixed z-[100]" style={{ right: 16, bottom: 16 }}>
       <Resizable
         defaultSize={{ width, height }}
         minWidth={width / 2}

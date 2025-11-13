@@ -1,8 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { z } from "zod";
-
 import { getSupabaseServerClient } from "@/functions/supabase";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 
 const validateSearch = z.object({
   code: z.string().optional(),
@@ -26,7 +25,9 @@ export const Route = createFileRoute("/_view/callback/auth")({
 
     if (search.flow === "desktop" && search.code) {
       const supabase = getSupabaseServerClient();
-      const { data, error } = await supabase.auth.exchangeCodeForSession(search.code);
+      const { data, error } = await supabase.auth.exchangeCodeForSession(
+        search.code,
+      );
 
       if (!error && data.session) {
         throw redirect({
@@ -47,7 +48,11 @@ function Component() {
   const [attempted, setAttempted] = useState(false);
 
   const handleDeeplink = () => {
-    if (search.flow === "desktop" && search.access_token && search.refresh_token) {
+    if (
+      search.flow === "desktop" &&
+      search.access_token &&
+      search.refresh_token
+    ) {
       const params = new URLSearchParams();
       params.set("access_token", search.access_token);
       params.set("refresh_token", search.refresh_token);
@@ -62,7 +67,11 @@ function Component() {
       throw redirect({ to: "/app" });
     }
 
-    if (search.flow === "desktop" && search.access_token && search.refresh_token) {
+    if (
+      search.flow === "desktop" &&
+      search.access_token &&
+      search.refresh_token
+    ) {
       setTimeout(() => {
         handleDeeplink();
       }, 2000);
@@ -84,9 +93,7 @@ function Component() {
 
           {attempted && (
             <div className="pt-8 space-y-2">
-              <p className="text-sm text-neutral-600">
-                Popup didn't appear?
-              </p>
+              <p className="text-sm text-neutral-600">Popup didn't appear?</p>
               <button
                 onClick={handleDeeplink}
                 className="px-6 py-3 bg-stone-600 hover:bg-stone-700 text-white rounded-lg transition-colors font-medium"

@@ -1,10 +1,9 @@
-import { Component, createElement, type ReactElement } from "react";
-import ReactDOM from "react-dom/client";
-
 import { type Editor, Extension, isNodeEmpty } from "@tiptap/core";
 import type { Node as ProsemirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import { Component, createElement, type ReactElement } from "react";
+import ReactDOM from "react-dom/client";
 
 export type PlaceholderFunction = (props: {
   editor: Editor;
@@ -18,11 +17,11 @@ export interface PlaceholderOptions {
   emptyNodeClass: string;
   placeholder:
     | ((props: {
-      editor: Editor;
-      node: ProsemirrorNode;
-      pos: number;
-      hasAnchor: boolean;
-    }) => ReactElement | string)
+        editor: Editor;
+        node: ProsemirrorNode;
+        pos: number;
+        hasAnchor: boolean;
+      }) => ReactElement | string)
     | ReactElement
     | string;
   showOnlyWhenEditable: boolean;
@@ -45,9 +44,15 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
   },
 
   addProseMirrorPlugins() {
-    const containers = new Map<number, { container: HTMLElement; root: ReactDOM.Root }>();
+    const containers = new Map<
+      number,
+      { container: HTMLElement; root: ReactDOM.Root }
+    >();
 
-    const scheduleReactRender = (root: ReactDOM.Root, element: ReactElement) => {
+    const scheduleReactRender = (
+      root: ReactDOM.Root,
+      element: ReactElement,
+    ) => {
       queueMicrotask(() => root.render(element));
     };
 
@@ -56,7 +61,8 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
         key: new PluginKey("reactPlaceholder"),
         props: {
           decorations: ({ doc, selection }) => {
-            const active = this.editor.isEditable || !this.options.showOnlyWhenEditable;
+            const active =
+              this.editor.isEditable || !this.options.showOnlyWhenEditable;
             const { anchor } = selection;
             const decorations: Decoration[] = [];
 
@@ -78,19 +84,20 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
                   classes.push(this.options.emptyEditorClass);
                 }
 
-                const placeholderContent = typeof this.options.placeholder === "function"
-                  ? this.options.placeholder({
-                    editor: this.editor,
-                    node,
-                    pos,
-                    hasAnchor,
-                  })
-                  : this.options.placeholder;
+                const placeholderContent =
+                  typeof this.options.placeholder === "function"
+                    ? this.options.placeholder({
+                        editor: this.editor,
+                        node,
+                        pos,
+                        hasAnchor,
+                      })
+                    : this.options.placeholder;
 
                 if (
-                  typeof placeholderContent === "object"
-                  && placeholderContent !== null
-                  && "type" in placeholderContent
+                  typeof placeholderContent === "object" &&
+                  placeholderContent !== null &&
+                  "type" in placeholderContent
                 ) {
                   const wrappedContent = createElement(
                     PlaceholderErrorBoundary,

@@ -1,8 +1,12 @@
 import type { StoreApi } from "zustand";
 
-import type { BatchAlternatives, BatchResponse, StreamResponse } from "@hypr/plugin-listener";
-import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
+import type {
+  BatchAlternatives,
+  BatchResponse,
+  StreamResponse,
+} from "@hypr/plugin-listener";
 
+import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 import type { HandlePersistCallback } from "./transcript";
 import { fixSpacingForWords } from "./transcript";
 
@@ -19,7 +23,11 @@ export type BatchState = {
 export type BatchActions = {
   handleBatchStarted: (sessionId: string) => void;
   handleBatchResponse: (sessionId: string, response: BatchResponse) => void;
-  handleBatchResponseStreamed: (sessionId: string, response: StreamResponse, percentage: number) => void;
+  handleBatchResponseStreamed: (
+    sessionId: string,
+    response: StreamResponse,
+    percentage: number,
+  ) => void;
   clearBatchSession: (sessionId: string) => void;
 };
 

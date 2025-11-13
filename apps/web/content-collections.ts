@@ -5,7 +5,9 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 
-function extractToc(content: string): Array<{ id: string; text: string; level: number }> {
+function extractToc(
+  content: string,
+): Array<{ id: string; text: string; level: number }> {
   const toc: Array<{ id: string; text: string; level: number }> = [];
   const lines = content.split("\n");
 

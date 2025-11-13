@@ -1,8 +1,13 @@
-import { Button } from "@hypr/ui/components/ui/button";
-
 import { clsx } from "clsx";
-import { ArrowLeft, ArrowRight, Bell, CheckCheck, MessageSquare } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bell,
+  CheckCheck,
+  MessageSquare,
+} from "lucide-react";
 
+import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { MenuItem } from "./shared";
@@ -55,10 +60,7 @@ export function NotificationsMenuContent({ onBack }: { onBack: () => void }) {
 
       <div className="flex-1 overflow-y-auto space-y-1">
         {MOCK_NOTIFICATIONS.map((notification) => (
-          <NotificationItem
-            key={notification.id}
-            notification={notification}
-          />
+          <NotificationItem key={notification.id} notification={notification} />
         ))}
 
         {MOCK_NOTIFICATIONS.length === 0 && (
@@ -127,7 +129,9 @@ function NotificationItem({ notification }: { notification: Notification }) {
           >
             {notification.title}
           </p>
-          {!notification.read && <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500" />}
+          {!notification.read && (
+            <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500" />
+          )}
         </div>
         <p className="text-xs text-neutral-600 line-clamp-2 mb-1">
           {notification.description}

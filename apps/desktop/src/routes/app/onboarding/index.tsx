@@ -1,9 +1,9 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useCallback } from "react";
+import { z } from "zod";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
 
 import { Permissions } from "../../../components/onboarding/permissions";
 import type { OnboardingNext } from "../../../components/onboarding/shared";
@@ -39,7 +39,10 @@ function Component() {
 
   return (
     <div className="flex flex-col h-full relative items-center justify-center p-8">
-      <div data-tauri-drag-region className="h-14 w-full absolute top-0 left-0 right-0" />
+      <div
+        data-tauri-drag-region
+        className="h-14 w-full absolute top-0 left-0 right-0"
+      />
       {content}
     </div>
   );
@@ -50,8 +53,12 @@ function useOnboarding() {
   const search: OnboardingSearch = Route.useSearch();
   const { step, local } = search;
 
-  const previous = STEPS?.[STEPS.indexOf(step) - 1] as (typeof STEPS)[number] | undefined;
-  const next = STEPS?.[STEPS.indexOf(step) + 1] as (typeof STEPS)[number] | undefined;
+  const previous = STEPS?.[STEPS.indexOf(step) - 1] as
+    | (typeof STEPS)[number]
+    | undefined;
+  const next = STEPS?.[STEPS.indexOf(step) + 1] as
+    | (typeof STEPS)[number]
+    | undefined;
 
   const goPrevious = useCallback(() => {
     if (!previous) {
@@ -61,20 +68,23 @@ function useOnboarding() {
     navigate({ to: "/app/onboarding", search: { ...search, step: previous } });
   }, [navigate, previous, search]);
 
-  const goNext = useCallback<OnboardingNext>((params) => {
-    if (!next) {
-      commands.setOnboardingNeeded(false).catch((e) => console.error(e));
-      windowsCommands.windowShow({ type: "main" }).then(() => {
-        windowsCommands.windowDestroy({ type: "onboarding" });
-      });
-      return;
-    }
+  const goNext = useCallback<OnboardingNext>(
+    (params) => {
+      if (!next) {
+        commands.setOnboardingNeeded(false).catch((e) => console.error(e));
+        windowsCommands.windowShow({ type: "main" }).then(() => {
+          windowsCommands.windowDestroy({ type: "onboarding" });
+        });
+        return;
+      }
 
-    navigate({
-      to: "/app/onboarding",
-      search: { ...search, step: next, ...(params ?? {}) },
-    });
-  }, [navigate, next, search]);
+      navigate({
+        to: "/app/onboarding",
+        search: { ...search, step: next, ...(params ?? {}) },
+      });
+    },
+    [navigate, next, search],
+  );
 
   return {
     step,

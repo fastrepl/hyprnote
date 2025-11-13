@@ -1,4 +1,11 @@
-import { differenceInCalendarMonths, differenceInDays, format, isPast, startOfDay } from "@hypr/utils";
+import {
+  differenceInCalendarMonths,
+  differenceInDays,
+  format,
+  isPast,
+  startOfDay,
+} from "@hypr/utils";
+
 import type * as main from "../store/tinybase/main";
 
 export type TimelineEventRow = {
@@ -16,8 +23,14 @@ export type TimelineSessionRow = {
   [key: string]: unknown;
 };
 
-export type EventsWithoutSessionTable = Record<string, TimelineEventRow> | null | undefined;
-export type SessionsWithMaybeEventTable = Record<string, TimelineSessionRow> | null | undefined;
+export type EventsWithoutSessionTable =
+  | Record<string, TimelineEventRow>
+  | null
+  | undefined;
+export type SessionsWithMaybeEventTable =
+  | Record<string, TimelineSessionRow>
+  | null
+  | undefined;
 
 export type TimelineItem =
   | { type: "event"; id: string; date: string; data: main.Event }
@@ -31,7 +44,11 @@ export type TimelineBucket = {
   items: TimelineItem[];
 };
 
-export function getBucketInfo(date: Date): { label: string; sortKey: number; precision: TimelinePrecision } {
+export function getBucketInfo(date: Date): {
+  label: string;
+  sortKey: number;
+  precision: TimelinePrecision;
+} {
   const now = startOfDay(new Date());
   const targetDay = startOfDay(date);
   const daysDiff = differenceInDays(targetDay, now);
@@ -57,7 +74,9 @@ export function getBucketInfo(date: Date): { label: string; sortKey: number; pre
 
     if (absDays <= 27) {
       const weeks = Math.max(1, Math.round(absDays / 7));
-      const weekStart = startOfDay(new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000));
+      const weekStart = startOfDay(
+        new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000),
+      );
       const weekSortKey = weekStart.getTime();
 
       return {
@@ -71,7 +90,9 @@ export function getBucketInfo(date: Date): { label: string; sortKey: number; pre
     if (months === 0) {
       months = 1;
     }
-    const monthStart = startOfDay(new Date(targetDay.getFullYear(), targetDay.getMonth(), 1));
+    const monthStart = startOfDay(
+      new Date(targetDay.getFullYear(), targetDay.getMonth(), 1),
+    );
     return {
       label: months === 1 ? "a month ago" : `${months} months ago`,
       sortKey: monthStart.getTime(),
@@ -85,7 +106,9 @@ export function getBucketInfo(date: Date): { label: string; sortKey: number; pre
 
   if (absDays <= 27) {
     const weeks = Math.max(1, Math.round(absDays / 7));
-    const weekStart = startOfDay(new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000));
+    const weekStart = startOfDay(
+      new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000),
+    );
     const weekSortKey = weekStart.getTime();
 
     return {
@@ -99,7 +122,9 @@ export function getBucketInfo(date: Date): { label: string; sortKey: number; pre
   if (months === 0) {
     months = 1;
   }
-  const monthStart = startOfDay(new Date(targetDay.getFullYear(), targetDay.getMonth(), 1));
+  const monthStart = startOfDay(
+    new Date(targetDay.getFullYear(), targetDay.getMonth(), 1),
+  );
   return {
     label: months === 1 ? "next month" : `in ${months} months`,
     sortKey: monthStart.getTime(),
@@ -136,8 +161,8 @@ export function buildTimelineBuckets({
   const items: TimelineItem[] = [];
   const seenEvents = new Set<string>();
 
-  eventsWithoutSessionTable
-    && Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
+  eventsWithoutSessionTable &&
+    Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
       const rawTimestamp = String(row.started_at ?? "");
       const eventStartTime = new Date(rawTimestamp);
 
@@ -156,8 +181,8 @@ export function buildTimelineBuckets({
       }
     });
 
-  sessionsWithMaybeEventTable
-    && Object.entries(sessionsWithMaybeEventTable).forEach(([sessionId, row]) => {
+  sessionsWithMaybeEventTable &&
+    Object.entries(sessionsWithMaybeEventTable).forEach(([sessionId, row]) => {
       const eventId = row.event_id ? String(row.event_id) : undefined;
       if (eventId && seenEvents.has(eventId)) {
         return;
@@ -190,19 +215,33 @@ export function buildTimelineBuckets({
     return timeBValue - timeAValue;
   });
 
-  const bucketMap = new Map<string, { sortKey: number; precision: TimelinePrecision; items: TimelineItem[] }>();
+  const bucketMap = new Map<
+    string,
+    { sortKey: number; precision: TimelinePrecision; items: TimelineItem[] }
+  >();
 
   items.forEach((item) => {
     const itemDate = new Date(item.date);
     const bucket = getBucketInfo(itemDate);
 
     if (!bucketMap.has(bucket.label)) {
-      bucketMap.set(bucket.label, { sortKey: bucket.sortKey, precision: bucket.precision, items: [] });
+      bucketMap.set(bucket.label, {
+        sortKey: bucket.sortKey,
+        precision: bucket.precision,
+        items: [],
+      });
     }
     bucketMap.get(bucket.label)!.items.push(item);
   });
 
   return Array.from(bucketMap.entries())
     .sort((a, b) => b[1].sortKey - a[1].sortKey)
-    .map(([label, value]) => ({ label, items: value.items, precision: value.precision } satisfies TimelineBucket));
+    .map(
+      ([label, value]) =>
+        ({
+          label,
+          items: value.items,
+          precision: value.precision,
+        }) satisfies TimelineBucket,
+    );
 }

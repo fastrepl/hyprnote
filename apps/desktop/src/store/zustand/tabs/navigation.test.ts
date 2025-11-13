@@ -1,7 +1,7 @@
-import "./test-matchers";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { useTabs } from ".";
+import "./test-matchers";
 import { createSessionTab, resetTabsStore } from "./test-utils";
 
 describe("navigation", () => {
@@ -123,9 +123,15 @@ describe("navigation", () => {
       const state = useTabs.getState();
       expect(state).toHaveHistoryLength(2);
       const history = Array.from(state.history.values())[0];
-      expect(history.stack.some((t) => t.type === "sessions" && t.id === tab2.id)).toBe(false);
-      expect(history.stack.some((t) => t.type === "sessions" && t.id === tab1.id)).toBe(true);
-      expect(history.stack.some((t) => t.type === "sessions" && t.id === tab3.id)).toBe(true);
+      expect(
+        history.stack.some((t) => t.type === "sessions" && t.id === tab2.id),
+      ).toBe(false);
+      expect(
+        history.stack.some((t) => t.type === "sessions" && t.id === tab1.id),
+      ).toBe(true);
+      expect(
+        history.stack.some((t) => t.type === "sessions" && t.id === tab3.id),
+      ).toBe(true);
     });
 
     test("adjusts currentIndex when invalidated tab is before current position", () => {
@@ -221,9 +227,15 @@ describe("navigation", () => {
 
       const state = useTabs.getState();
       expect(state.tabs).toHaveLength(2);
-      expect(state.tabs.some((t) => t.type === "sessions" && t.id === tab1.id)).toBe(true);
-      expect(state.tabs.some((t) => t.type === "sessions" && t.id === tab2.id)).toBe(false);
-      expect(state.tabs.some((t) => t.type === "sessions" && t.id === tab3.id)).toBe(true);
+      expect(
+        state.tabs.some((t) => t.type === "sessions" && t.id === tab1.id),
+      ).toBe(true);
+      expect(
+        state.tabs.some((t) => t.type === "sessions" && t.id === tab2.id),
+      ).toBe(false);
+      expect(
+        state.tabs.some((t) => t.type === "sessions" && t.id === tab3.id),
+      ).toBe(true);
     });
 
     test("handles invalidation of non-existent resource gracefully", () => {

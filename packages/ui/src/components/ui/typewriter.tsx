@@ -1,7 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import { motion, Variants } from "motion/react";
 import { useEffect, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 interface TypewriterProps {
   text: string | string[];
@@ -113,15 +113,13 @@ const Typewriter = ({
       {showCursor && (
         <motion.span
           variants={cursorAnimationVariants}
-          className={cn(
-            [
-              cursorClassName,
-              hideCursorOnType
-                && (currentIndex < texts[currentTextIndex].length || isDeleting)
-                ? "hidden"
-                : "",
-            ],
-          )}
+          className={cn([
+            cursorClassName,
+            hideCursorOnType &&
+            (currentIndex < texts[currentTextIndex].length || isDeleting)
+              ? "hidden"
+              : "",
+          ])}
           initial="initial"
           animate="animate"
         >

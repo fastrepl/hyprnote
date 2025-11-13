@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
-
 import { createFileRoute } from "@tanstack/react-router";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/product/self-hosting")({
   component: Component,
@@ -29,8 +29,8 @@ function Component() {
               Self-Hosting
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600">
-              Deploy Hyprnote on your own infrastructure for complete control, maximum security, and full data
-              sovereignty.
+              Deploy Hyprnote on your own infrastructure for complete control,
+              maximum security, and full data sovereignty.
             </p>
             <div className="mt-8">
               <button

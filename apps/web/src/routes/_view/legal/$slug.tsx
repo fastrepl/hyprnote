@@ -42,7 +42,8 @@ function Component() {
           <h1>{doc.title}</h1>
 
           <p className="text-xl text-neutral-600 mb-8">
-            Last updated: {new Date(doc.updated).toLocaleDateString("en-US", {
+            Last updated:{" "}
+            {new Date(doc.updated).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "numeric",

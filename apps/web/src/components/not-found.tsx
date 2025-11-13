@@ -15,7 +15,8 @@ export function NotFoundDocument() {
           </div>
 
           <p className="text-base text-neutral-600 max-w-md mx-auto">
-            We couldn't find the page you were looking for. If you think this is an error, you can{" "}
+            We couldn't find the page you were looking for. If you think this is
+            an error, you can{" "}
             <a
               href="mailto:support@hyprnote.com"
               className="text-stone-700 underline hover:text-stone-900 transition-colors"
@@ -94,10 +95,16 @@ function Footer() {
         <div className="flex items-center justify-between text-sm text-neutral-500">
           <p>© {currentYear} Fastrepl, Inc.</p>
           <div className="flex gap-6">
-            <a href="/privacy" className="hover:text-neutral-800 transition-colors">
+            <a
+              href="/privacy"
+              className="hover:text-neutral-800 transition-colors"
+            >
               Privacy
             </a>
-            <a href="/terms" className="hover:text-neutral-800 transition-colors">
+            <a
+              href="/terms"
+              className="hover:text-neutral-800 transition-colors"
+            >
               Terms
             </a>
           </div>

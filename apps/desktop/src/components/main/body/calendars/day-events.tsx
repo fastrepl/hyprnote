@@ -1,9 +1,13 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { cn, format, isSameDay } from "@hypr/utils";
-
 import { Calendar, Pen, StickyNote } from "lucide-react";
 import { useState } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
+import { cn, format, isSameDay } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
@@ -21,7 +25,11 @@ export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
     main.STORE_ID,
   );
   const linkedSessionId = sessionIds[0];
-  const linkedSession = main.UI.useRow("sessions", linkedSessionId || "dummy", main.STORE_ID);
+  const linkedSession = main.UI.useRow(
+    "sessions",
+    linkedSessionId || "dummy",
+    main.STORE_ID,
+  );
 
   const handleOpenNote = () => {
     setOpen(false);
@@ -55,9 +63,10 @@ export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className={cn(
-            ["w-full justify-start px-1 text-neutral-600 h-6", open && "bg-neutral-100 hover:bg-neutral-100"],
-          )}
+          className={cn([
+            "w-full justify-start px-1 text-neutral-600 h-6",
+            open && "bg-neutral-100 hover:bg-neutral-100",
+          ])}
         >
           <Calendar size={12} className="text-pink-600" />
           <p className="truncate">{title}</p>
@@ -68,23 +77,21 @@ export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
           {title}
         </div>
 
-        <p className="text-sm text-neutral-600 mb-4">
-          {formatEventTime()}
-        </p>
+        <p className="text-sm text-neutral-600 mb-4">{formatEventTime()}</p>
 
-        {linkedSessionId
-          ? (
-            <Button className="w-full justify-start" onClick={handleOpenNote}>
-              <StickyNote />
-              <p className="truncate">{linkedSession?.title || "Untitled Note"}</p>
-            </Button>
-          )
-          : (
-            <Button className="w-full" onClick={handleOpenNote}>
-              <Pen />
-              Create Note
-            </Button>
-          )}
+        {linkedSessionId ? (
+          <Button className="w-full justify-start" onClick={handleOpenNote}>
+            <StickyNote />
+            <p className="truncate">
+              {linkedSession?.title || "Untitled Note"}
+            </p>
+          </Button>
+        ) : (
+          <Button className="w-full" onClick={handleOpenNote}>
+            <Pen />
+            Create Note
+          </Button>
+        )}
       </PopoverContent>
     </Popover>
   );

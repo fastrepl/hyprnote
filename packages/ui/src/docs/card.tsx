@@ -10,9 +10,10 @@ interface CardProps {
 export function Card({ title, icon, children, className }: CardProps) {
   return (
     <div
-      className={cn(
-        ["rounded-none border border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900", className],
-      )}
+      className={cn([
+        "rounded-none border border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900",
+        className,
+      ])}
     >
       {(title || icon) && (
         <div className="mb-3 flex items-center gap-2">

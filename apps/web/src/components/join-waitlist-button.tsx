@@ -1,5 +1,6 @@
-import { cn } from "@hypr/utils";
 import { Link } from "@tanstack/react-router";
+
+import { cn } from "@hypr/utils";
 
 export function JoinWaitlistButton() {
   return (

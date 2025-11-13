@@ -1,0 +1,11 @@
+parser: "typescript"
+plugins:
+  - "@trivago/prettier-plugin-sort-imports"
+  - "@prettier/plugin-oxc"
+importOrder:
+  - "<THIRD_PARTY_MODULES>"
+  - "^@hypr/(.*)$"
+  - "^[./]"
+importOrderSeparation: true
+importOrderSortSpecifiers: true
+importOrderCaseInsensitive: true

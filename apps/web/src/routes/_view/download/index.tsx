@@ -1,10 +1,9 @@
-import { cn } from "@hypr/utils";
-
+import { Image } from "@/components/image";
+import { SlashSeparator } from "@/components/slash-separator";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { Image } from "@/components/image";
-import { SlashSeparator } from "@/components/slash-separator";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/download/")({
   component: Component,
@@ -27,8 +26,8 @@ function Component() {
           ])}
         >
           <span>
-            Mac (Apple Silicon) features on-device speech-to-text. Other platforms coming soon without on-device
-            processing.
+            Mac (Apple Silicon) features on-device speech-to-text. Other
+            platforms coming soon without on-device processing.
           </span>
         </div>
 
@@ -121,32 +120,30 @@ function DownloadCard({
       <Icon icon={iconName} className="text-5xl text-neutral-700 mb-4" />
       <p className="text-sm text-neutral-600 mb-6 text-center">{spec}</p>
 
-      {available
-        ? (
-          <a
-            href={downloadUrl}
-            download
-            className="group w-full px-4 h-11 flex items-center justify-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all text-base font-medium"
-          >
-            Download
-            <Icon
-              icon="ph:arrow-circle-right"
-              className="text-xl ml-2 group-hover:translate-x-1 transition-transform"
-            />
-          </a>
-        )
-        : (
-          <button
-            disabled
-            className={cn([
-              "w-full px-4 h-11 rounded-full font-medium cursor-not-allowed",
-              "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-              "opacity-50",
-            ])}
-          >
-            Planned
-          </button>
-        )}
+      {available ? (
+        <a
+          href={downloadUrl}
+          download
+          className="group w-full px-4 h-11 flex items-center justify-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all text-base font-medium"
+        >
+          Download
+          <Icon
+            icon="ph:arrow-circle-right"
+            className="text-xl ml-2 group-hover:translate-x-1 transition-transform"
+          />
+        </a>
+      ) : (
+        <button
+          disabled
+          className={cn([
+            "w-full px-4 h-11 rounded-full font-medium cursor-not-allowed",
+            "bg-linear-to-t from-stone-600 to-stone-500 text-white",
+            "opacity-50",
+          ])}
+        >
+          Planned
+        </button>
+      )}
     </div>
   );
 }
@@ -183,7 +180,10 @@ function FAQSection() {
         </h2>
         <div className="space-y-6">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="border-b border-neutral-100 pb-6 last:border-b-0">
+            <div
+              key={idx}
+              className="border-b border-neutral-100 pb-6 last:border-b-0"
+            >
               <h3 className="text-lg font-medium text-neutral-900 mb-2">
                 {faq.question}
               </h3>
@@ -209,9 +209,7 @@ function CTASection() {
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif">
-          Need a team plan?
-        </h2>
+        <h2 className="text-2xl sm:text-3xl font-serif">Need a team plan?</h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
           Book a call to discuss custom team pricing and enterprise solutions
         </p>

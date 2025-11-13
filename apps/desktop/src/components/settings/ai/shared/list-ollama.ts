@@ -9,7 +9,10 @@ import {
   REQUEST_TIMEOUT,
 } from "./list-common";
 
-export async function listOllamaModels(baseUrl: string, _apiKey: string): Promise<ListModelsResult> {
+export async function listOllamaModels(
+  baseUrl: string,
+  _apiKey: string,
+): Promise<ListModelsResult> {
   if (!baseUrl) {
     return DEFAULT_RESULT;
   }
@@ -23,9 +26,9 @@ export async function listOllamaModels(baseUrl: string, _apiKey: string): Promis
           pipe(
             fetchOllamaDetails(ollama, models, runningModelNames),
             Effect.map(summarizeOllamaDetails),
-          )
+          ),
         ),
-      )
+      ),
     ),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
@@ -38,15 +41,22 @@ const createOllamaClient = (baseUrl: string) =>
 
 const fetchOllamaInventory = (ollama: Ollama) =>
   pipe(
-    Effect.all([
-      Effect.tryPromise(() => ollama.list()),
-      Effect.tryPromise(() => ollama.ps()).pipe(
-        Effect.catchAll(() => Effect.succeed({ models: [] as Array<{ name: string }> })),
-      ),
-    ], { concurrency: "unbounded" }),
+    Effect.all(
+      [
+        Effect.tryPromise(() => ollama.list()),
+        Effect.tryPromise(() => ollama.ps()).pipe(
+          Effect.catchAll(() =>
+            Effect.succeed({ models: [] as Array<{ name: string }> }),
+          ),
+        ),
+      ],
+      { concurrency: "unbounded" },
+    ),
     Effect.map(([listResponse, psResponse]) => ({
       models: listResponse.models,
-      runningModelNames: new Set<string>(psResponse.models?.map((model) => model.name) ?? []),
+      runningModelNames: new Set<string>(
+        psResponse.models?.map((model) => model.name) ?? [],
+      ),
     })),
   );
 
@@ -68,9 +78,9 @@ const fetchOllamaDetails = (
             name: model.name,
             capabilities: [] as string[],
             isRunning: runningModelNames.has(model.name),
-          })
+          }),
         ),
-      )
+      ),
     ),
     { concurrency: "unbounded" },
   );

@@ -20,11 +20,16 @@ export const CustomListKeymap = ListKeymap.extend({
           return false;
         }
 
-        if (isNodeActive(state, listNodeType.name) && selection.$from.parent.content.size === 0) {
+        if (
+          isNodeActive(state, listNodeType.name) &&
+          selection.$from.parent.content.size === 0
+        ) {
           return editor.chain().liftListItem(listNodeType.name).run();
         }
 
-        return originalShortcuts.Enter ? originalShortcuts.Enter({ editor }) : false;
+        return originalShortcuts.Enter
+          ? originalShortcuts.Enter({ editor })
+          : false;
       },
 
       Backspace: () => {
@@ -38,14 +43,16 @@ export const CustomListKeymap = ListKeymap.extend({
         }
 
         if (
-          isNodeActive(state, listNodeType.name)
-          && selection.$from.parentOffset === 0
-          && selection.$from.parent.content.size === 0
+          isNodeActive(state, listNodeType.name) &&
+          selection.$from.parentOffset === 0 &&
+          selection.$from.parent.content.size === 0
         ) {
           return editor.chain().liftListItem(listNodeType.name).run();
         }
 
-        return originalShortcuts.Backspace ? originalShortcuts.Backspace({ editor }) : false;
+        return originalShortcuts.Backspace
+          ? originalShortcuts.Backspace({ editor })
+          : false;
       },
     };
   },

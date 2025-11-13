@@ -1,7 +1,10 @@
 import { insert } from "@orama/orama";
 
 import { type Store as PersistedStore } from "../../../store/tinybase/main";
-import { createHumanSearchableContent, createSessionSearchableContent } from "./content";
+import {
+  createHumanSearchableContent,
+  createSessionSearchableContent,
+} from "./content";
 import type { Index } from "./types";
 import { collectCells, toNumber, toTrimmedString } from "./utils";
 

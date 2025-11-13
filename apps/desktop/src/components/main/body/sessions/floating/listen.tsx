@@ -1,19 +1,31 @@
-import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/utils";
-
 import { Icon } from "@iconify-icon/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { downloadDir } from "@tauri-apps/api/path";
 import { open as selectFile } from "@tauri-apps/plugin-dialog";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { Effect, pipe } from "effect";
-import { EllipsisVerticalIcon, FileTextIcon, UploadCloudIcon } from "lucide-react";
+import {
+  EllipsisVerticalIcon,
+  FileTextIcon,
+  UploadCloudIcon,
+} from "lucide-react";
 import { useCallback, useState } from "react";
+
+import { commands as miscCommands } from "@hypr/plugin-misc";
+import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
 import { fromResult } from "../../../../../effect";
@@ -25,7 +37,11 @@ import { commands as tauriCommands } from "../../../../../types/tauri.gen";
 import { RecordingIcon, useListenButtonState } from "../shared";
 import { ActionableTooltipContent, FloatingButton } from "./shared";
 
-export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+export function ListenButton({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
   const { shouldRender } = useListenButtonState(tab.id);
   const { loading, stop } = useListener((state) => ({
     loading: state.live.loading,
@@ -47,7 +63,11 @@ export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> 
   return null;
 }
 
-function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+function BeforeMeeingButton({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
   const remote = useRemoteMeeting(tab.id);
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
@@ -103,13 +123,17 @@ function ListenSplitButton({
 }) {
   const handleAction = useCallback(() => {
     onPrimaryClick();
-    windowsCommands.windowShow({ type: "settings" })
+    windowsCommands
+      .windowShow({ type: "settings" })
       .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
       .then(() =>
-        windowsCommands.windowEmitNavigate({ type: "settings" }, {
-          path: "/app/settings",
-          search: { tab: "transcription" },
-        })
+        windowsCommands.windowEmitNavigate(
+          { type: "settings" },
+          {
+            path: "/app/settings",
+            search: { tab: "transcription" },
+          },
+        ),
       );
   }, [onPrimaryClick]);
 
@@ -121,20 +145,22 @@ function ListenSplitButton({
           icon={icon}
           disabled={disabled}
           className="justify-center gap-2 pr-12"
-          tooltip={warningMessage
-            ? {
-              side: "top",
-              content: (
-                <ActionableTooltipContent
-                  message={warningMessage}
-                  action={{
-                    label: "Configure",
-                    handleClick: handleAction,
-                  }}
-                />
-              ),
-            }
-            : undefined}
+          tooltip={
+            warningMessage
+              ? {
+                  side: "top",
+                  content: (
+                    <ActionableTooltipContent
+                      message={warningMessage}
+                      action={{
+                        label: "Configure",
+                        handleClick: handleAction,
+                      }}
+                    />
+                  ),
+                }
+              : undefined
+          }
         >
           {text}
         </FloatingButton>
@@ -181,14 +207,21 @@ function OptionsMenu({
       const normalizedPath = path.toLowerCase();
 
       if (kind === "transcript") {
-        if (!normalizedPath.endsWith(".vtt") && !normalizedPath.endsWith(".srt")) {
+        if (
+          !normalizedPath.endsWith(".vtt") &&
+          !normalizedPath.endsWith(".srt")
+        ) {
           return Effect.void;
         }
 
         return fromResult(tauriCommands.parseSubtitle(path));
       }
 
-      if (!normalizedPath.endsWith(".wav") && !normalizedPath.endsWith(".mp3") && !normalizedPath.endsWith(".ogg")) {
+      if (
+        !normalizedPath.endsWith(".wav") &&
+        !normalizedPath.endsWith(".mp3") &&
+        !normalizedPath.endsWith(".ogg")
+      ) {
         return Effect.void;
       }
 
@@ -196,18 +229,30 @@ function OptionsMenu({
         fromResult(miscCommands.audioImport(sessionId, path)),
         Effect.tap(() =>
           Effect.sync(() => {
-            queryClient.invalidateQueries({ queryKey: ["audio", sessionId, "exist"] });
-            queryClient.invalidateQueries({ queryKey: ["audio", sessionId, "url"] });
-          })
+            queryClient.invalidateQueries({
+              queryKey: ["audio", sessionId, "exist"],
+            });
+            queryClient.invalidateQueries({
+              queryKey: ["audio", sessionId, "url"],
+            });
+          }),
         ),
-        Effect.flatMap((importedPath) => Effect.promise(() => runBatch(importedPath))),
+        Effect.flatMap((importedPath) =>
+          Effect.promise(() => runBatch(importedPath)),
+        ),
       );
     },
     [queryClient, runBatch, sessionId],
   );
 
   const selectAndHandleFile = useCallback(
-    (options: { title: string; filters: { name: string; extensions: string[] }[] }, kind: "audio" | "transcript") => {
+    (
+      options: {
+        title: string;
+        filters: { name: string; extensions: string[] }[];
+      },
+      kind: "audio" | "transcript",
+    ) => {
       if (disabled) {
         return;
       }
@@ -224,8 +269,8 @@ function OptionsMenu({
               directory: false,
               defaultPath,
               filters: options.filters,
-            })
-          )
+            }),
+          ),
         ),
         Effect.flatMap((selection) => handleFilePath(selection, kind)),
       );
@@ -289,12 +334,14 @@ function OptionsMenu({
         <TooltipContent side="top" align="end">
           <ActionableTooltipContent
             message={warningMessage}
-            action={onConfigure
-              ? {
-                label: "Configure",
-                handleClick: onConfigure,
-              }
-              : undefined}
+            action={
+              onConfigure
+                ? {
+                    label: "Configure",
+                    handleClick: onConfigure,
+                  }
+                : undefined
+            }
           />
         </TooltipContent>
       </Tooltip>
@@ -307,9 +354,7 @@ function OptionsMenu({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        {triggerButton}
-      </PopoverTrigger>
+      <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
       <PopoverContent side="top" align="end" className="w-auto p-1.5">
         <div className="flex flex-col gap-1">
           <Button
@@ -335,10 +380,16 @@ function OptionsMenu({
   );
 }
 
-type RemoteMeeting = { type: "zoom" | "google-meet" | "webex" | "teams"; url: string | null };
+type RemoteMeeting = {
+  type: "zoom" | "google-meet" | "webex" | "teams";
+  url: string | null;
+};
 
 function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
-  const eventId = main.UI.useRemoteRowId(main.RELATIONSHIPS.sessionToEvent, sessionId);
+  const eventId = main.UI.useRemoteRowId(
+    main.RELATIONSHIPS.sessionToEvent,
+    sessionId,
+  );
   const note = main.UI.useCell("events", eventId ?? "", "note", main.STORE_ID);
 
   if (!note) {

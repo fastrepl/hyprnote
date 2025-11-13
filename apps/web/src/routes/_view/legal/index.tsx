@@ -7,14 +7,26 @@ export const Route = createFileRoute("/_view/legal/")({
   head: () => ({
     meta: [
       { title: "Legal - Hyprnote" },
-      { name: "description", content: "Terms, privacy policy, and other legal documents for Hyprnote" },
+      {
+        name: "description",
+        content:
+          "Terms, privacy policy, and other legal documents for Hyprnote",
+      },
       { property: "og:title", content: "Legal - Hyprnote" },
-      { property: "og:description", content: "Terms, privacy policy, and other legal documents for Hyprnote" },
+      {
+        property: "og:description",
+        content:
+          "Terms, privacy policy, and other legal documents for Hyprnote",
+      },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/legal" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Legal - Hyprnote" },
-      { name: "twitter:description", content: "Terms, privacy policy, and other legal documents for Hyprnote" },
+      {
+        name: "twitter:description",
+        content:
+          "Terms, privacy policy, and other legal documents for Hyprnote",
+      },
     ],
   }),
 });
@@ -33,20 +45,18 @@ function Component() {
         </header>
 
         <div className="grid gap-4 md:grid-cols-2">
-          {allLegals.map((doc) => <LegalCard key={doc.slug} doc={doc} />)}
+          {allLegals.map((doc) => (
+            <LegalCard key={doc.slug} doc={doc} />
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-function LegalCard({ doc }: { doc: typeof allLegals[number] }) {
+function LegalCard({ doc }: { doc: (typeof allLegals)[number] }) {
   return (
-    <Link
-      to="/legal/$slug"
-      params={{ slug: doc.slug }}
-      className="group block"
-    >
+    <Link to="/legal/$slug" params={{ slug: doc.slug }} className="group block">
       <article className="h-full border border-neutral-100 rounded-sm bg-white hover:shadow-md hover:border-neutral-200 transition-all duration-300 p-6">
         <div className="flex items-start gap-3 mb-3">
           <Icon
@@ -65,7 +75,8 @@ function LegalCard({ doc }: { doc: typeof allLegals[number] }) {
 
         <div className="flex items-center justify-between text-sm text-neutral-500 mt-4 pt-4 border-t border-neutral-100">
           <span className="text-xs">
-            Updated {new Date(doc.updated).toLocaleDateString("en-US", {
+            Updated{" "}
+            {new Date(doc.updated).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
               year: "numeric",

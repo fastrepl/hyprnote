@@ -5,7 +5,10 @@ import type { Tab, useTabs } from ".";
 type TabsState = ReturnType<typeof useTabs.getState>;
 
 interface CustomMatchers<R = unknown> {
-  toHaveNavigationState: (expected: { canGoBack: boolean; canGoNext: boolean }) => R;
+  toHaveNavigationState: (expected: {
+    canGoBack: boolean;
+    canGoNext: boolean;
+  }) => R;
   toHaveCurrentTab: (expected: Partial<Tab>) => R;
   toHaveHistoryLength: (length: number) => R;
   toHaveLastHistoryEntry: (expected: Partial<Tab>) => R;
@@ -17,8 +20,13 @@ declare module "vitest" {
 }
 
 expect.extend({
-  toHaveNavigationState(state: TabsState, expected: { canGoBack: boolean; canGoNext: boolean }) {
-    const pass = state.canGoBack === expected.canGoBack && state.canGoNext === expected.canGoNext;
+  toHaveNavigationState(
+    state: TabsState,
+    expected: { canGoBack: boolean; canGoNext: boolean },
+  ) {
+    const pass =
+      state.canGoBack === expected.canGoBack &&
+      state.canGoNext === expected.canGoNext;
 
     return {
       pass,
@@ -35,14 +43,17 @@ expect.extend({
     if (!state.currentTab) {
       return {
         pass: false,
-        message: () => `Expected currentTab to match ${JSON.stringify(expected)}, but got null`,
+        message: () =>
+          `Expected currentTab to match ${JSON.stringify(expected)}, but got null`,
         actual: null,
         expected,
       };
     }
 
     const pass = Object.entries(expected).every(
-      ([key, value]) => JSON.stringify(state.currentTab![key as keyof Tab]) === JSON.stringify(value),
+      ([key, value]) =>
+        JSON.stringify(state.currentTab![key as keyof Tab]) ===
+        JSON.stringify(value),
     );
 
     return {
@@ -60,7 +71,8 @@ expect.extend({
     if (!state.currentTab) {
       return {
         pass: length === 0,
-        message: () => `Expected history length to be ${length}, but no current tab`,
+        message: () =>
+          `Expected history length to be ${length}, but no current tab`,
         actual: 0,
         expected: length,
       };
@@ -86,7 +98,8 @@ expect.extend({
     if (!state.currentTab) {
       return {
         pass: false,
-        message: () => `Expected history to have last entry matching ${JSON.stringify(expected)}, but no current tab`,
+        message: () =>
+          `Expected history to have last entry matching ${JSON.stringify(expected)}, but no current tab`,
         actual: null,
         expected,
       };
@@ -98,7 +111,8 @@ expect.extend({
     if (!stack || stack.length === 0) {
       return {
         pass: false,
-        message: () => `Expected history to have last entry matching ${JSON.stringify(expected)}, but history is empty`,
+        message: () =>
+          `Expected history to have last entry matching ${JSON.stringify(expected)}, but history is empty`,
         actual: null,
         expected,
       };
@@ -106,7 +120,8 @@ expect.extend({
 
     const lastEntry = stack[stack.length - 1];
     const pass = Object.entries(expected).every(
-      ([key, value]) => JSON.stringify(lastEntry[key as keyof Tab]) === JSON.stringify(value),
+      ([key, value]) =>
+        JSON.stringify(lastEntry[key as keyof Tab]) === JSON.stringify(value),
     );
 
     return {
@@ -126,17 +141,24 @@ expect.extend({
     if (tabs.length !== expected.length) {
       return {
         pass: false,
-        message: () => `Expected ${expected.length} tabs, but got ${tabs.length}`,
+        message: () =>
+          `Expected ${expected.length} tabs, but got ${tabs.length}`,
         actual: tabs.length,
         expected: expected.length,
       };
     }
 
-    const failures: Array<{ index: number; expected: Partial<Tab>; actual: Tab }> = [];
+    const failures: Array<{
+      index: number;
+      expected: Partial<Tab>;
+      actual: Tab;
+    }> = [];
 
     expected.forEach((partial, index) => {
       const matches = Object.entries(partial).every(
-        ([key, value]) => JSON.stringify(tabs[index][key as keyof Tab]) === JSON.stringify(value),
+        ([key, value]) =>
+          JSON.stringify(tabs[index][key as keyof Tab]) ===
+          JSON.stringify(value),
       );
 
       if (!matches) {
@@ -151,13 +173,12 @@ expect.extend({
       message: () =>
         pass
           ? `Expected tabs not to match the provided order`
-          : `Expected tabs to match order, but found mismatches:\n${
-            failures
+          : `Expected tabs to match order, but found mismatches:\n${failures
               .map(
-                (f) => `  [${f.index}] expected ${JSON.stringify(f.expected)}, got ${JSON.stringify(f.actual)}`,
+                (f) =>
+                  `  [${f.index}] expected ${JSON.stringify(f.expected)}, got ${JSON.stringify(f.actual)}`,
               )
-              .join("\n")
-          }`,
+              .join("\n")}`,
       actual: tabs,
       expected,
     };

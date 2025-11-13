@@ -1,9 +1,9 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
-
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Check } from "lucide-react";
 import { useCallback, useState } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
 
 export function SettingsBilling() {
   const [currentPlan, setCurrentPlan] = useState<PlanId>("free");
@@ -41,34 +41,30 @@ export function SettingsBilling() {
   );
 }
 
-function BillingPlanCard(
-  {
-    plan,
-    currentPlan,
-    onChangePlan,
-    onContactSales,
-    className,
-    removeBorder = false,
-  }: {
-    plan: BillingPlan;
-    currentPlan: PlanId;
-    onChangePlan: (plan: PlanId) => void;
-    onContactSales: () => void;
-    className?: string;
-    removeBorder?: boolean;
-  },
-) {
+function BillingPlanCard({
+  plan,
+  currentPlan,
+  onChangePlan,
+  onContactSales,
+  className,
+  removeBorder = false,
+}: {
+  plan: BillingPlan;
+  currentPlan: PlanId;
+  onChangePlan: (plan: PlanId) => void;
+  onContactSales: () => void;
+  className?: string;
+  removeBorder?: boolean;
+}) {
   const isCurrent = plan.id === currentPlan;
 
   return (
     <div
-      className={cn(
-        [
-          "h-full p-8 flex flex-col justify-center gap-6 bg-white",
-          !removeBorder && "border border-neutral-200 rounded-lg",
-          className,
-        ],
-      )}
+      className={cn([
+        "h-full p-8 flex flex-col justify-center gap-6 bg-white",
+        !removeBorder && "border border-neutral-200 rounded-lg",
+        className,
+      ])}
     >
       <div className="flex flex-col gap-4">
         <div className="space-y-2">
@@ -78,7 +74,10 @@ function BillingPlanCard(
 
         <ul className="space-y-3">
           {plan.features.map((feature) => (
-            <li key={feature} className="flex items-start gap-2 text-sm text-neutral-700">
+            <li
+              key={feature}
+              className="flex items-start gap-2 text-sm text-neutral-700"
+            >
               <Check size={16} className="mt-0.5 text-emerald-500 shrink-0" />
               <span>{feature}</span>
             </li>
@@ -87,7 +86,11 @@ function BillingPlanCard(
 
         <p className="text-xl font-semibold">
           {plan.price}{" "}
-          {plan.priceSuffix && <span className="text-sm text-neutral-500 font-light">{plan.priceSuffix}</span>}
+          {plan.priceSuffix && (
+            <span className="text-sm text-neutral-500 font-light">
+              {plan.priceSuffix}
+            </span>
+          )}
         </p>
 
         <PlanActions
@@ -102,21 +105,19 @@ function BillingPlanCard(
   );
 }
 
-function PlanActions(
-  {
-    planId,
-    currentPlan,
-    onChangePlan,
-    onContactSales,
-    isCurrent,
-  }: {
-    planId: PlanId;
-    currentPlan: PlanId;
-    onChangePlan: (plan: PlanId) => void;
-    onContactSales: () => void;
-    isCurrent: boolean;
-  },
-) {
+function PlanActions({
+  planId,
+  currentPlan,
+  onChangePlan,
+  onContactSales,
+  isCurrent,
+}: {
+  planId: PlanId;
+  currentPlan: PlanId;
+  onChangePlan: (plan: PlanId) => void;
+  onContactSales: () => void;
+  isCurrent: boolean;
+}) {
   if (isCurrent) {
     return (
       <Button variant="outline" disabled className="w-full">
@@ -127,7 +128,11 @@ function PlanActions(
 
   if (planId === "free") {
     return (
-      <Button variant="outline" onClick={() => onChangePlan("free")} className="w-full">
+      <Button
+        variant="outline"
+        onClick={() => onChangePlan("free")}
+        className="w-full"
+      >
         Downgrade to Free
       </Button>
     );
@@ -143,7 +148,11 @@ function PlanActions(
     }
 
     return (
-      <Button variant="outline" onClick={() => onChangePlan("pro")} className="w-full">
+      <Button
+        variant="outline"
+        onClick={() => onChangePlan("pro")}
+        className="w-full"
+      >
         Downgrade to Pro
       </Button>
     );

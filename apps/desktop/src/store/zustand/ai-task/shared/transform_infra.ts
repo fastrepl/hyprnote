@@ -1,5 +1,4 @@
 // https://github.com/vercel/ai/blob/282f062922cb59167dd3a11e3af67cfa0b75f317/packages/ai/src/generate-text/stream-text.ts
-
 import type { TextStreamPart, ToolSet } from "ai";
 
 export type StreamTransform<TOOLS extends ToolSet = ToolSet> = (options: {
@@ -33,9 +32,7 @@ export async function* applyTransforms<TOOLS extends ToolSet = ToolSet>(
   yield* streamToAsyncIterable(readableStream);
 }
 
-function streamToReadable<T>(
-  stream: AsyncIterable<T>,
-): ReadableStream<T> {
+function streamToReadable<T>(stream: AsyncIterable<T>): ReadableStream<T> {
   return new ReadableStream({
     async start(controller) {
       try {

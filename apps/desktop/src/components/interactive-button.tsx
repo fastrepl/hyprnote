@@ -1,5 +1,10 @@
-import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@hypr/ui/components/ui/context-menu";
 import { type MouseEvent, type ReactNode, useCallback } from "react";
+
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from "@hypr/ui/components/ui/context-menu";
 
 interface InteractiveButtonProps {
   children: ReactNode;

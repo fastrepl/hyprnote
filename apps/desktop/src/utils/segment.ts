@@ -20,7 +20,12 @@ export type PartialWord = WordLike;
 export type SegmentWord = WordLike & { isFinal: boolean; id?: string };
 
 type SpeakerHintData =
-  | { type: "provider_speaker_index"; speaker_index: number; provider?: string; channel?: number }
+  | {
+      type: "provider_speaker_index";
+      speaker_index: number;
+      provider?: string;
+      channel?: number;
+    }
   | { type: "user_speaker_assignment"; human_id: string };
 
 export type RuntimeSpeakerHint = {
@@ -41,7 +46,10 @@ export type SegmentKey = {
 
 export const SegmentKey = {
   make: (
-    params: { channel: ChannelProfile } & Partial<{ speaker_index: number; speaker_human_id: string }>,
+    params: { channel: ChannelProfile } & Partial<{
+      speaker_index: number;
+      speaker_human_id: string;
+    }>,
   ): SegmentKey => Data.struct(params),
 };
 
@@ -171,14 +179,20 @@ function resolveSpeakerIdentity<TWord extends SegmentWord>(
     identity.human_id = state.humanIdBySpeakerIndex.get(identity.speaker_index);
   }
 
-  if (identity.human_id === undefined && state.completeChannels.has(word.channel)) {
+  if (
+    identity.human_id === undefined &&
+    state.completeChannels.has(word.channel)
+  ) {
     const channelHumanId = state.humanIdByChannel.get(word.channel);
     if (channelHumanId !== undefined) {
       identity.human_id = channelHumanId;
     }
   }
 
-  if (!word.isFinal && (identity.speaker_index === undefined || identity.human_id === undefined)) {
+  if (
+    !word.isFinal &&
+    (identity.speaker_index === undefined || identity.human_id === undefined)
+  ) {
     const last = state.lastSpeakerByChannel.get(word.channel);
     if (last) {
       if (identity.speaker_index === undefined) {
@@ -199,27 +213,32 @@ function rememberIdentity<TWord extends SegmentWord>(
   identity: SpeakerIdentity,
   state: SpeakerState,
 ): void {
-  const hasExplicitAssignment = assignment !== undefined
-    && (assignment.speaker_index !== undefined || assignment.human_id !== undefined);
+  const hasExplicitAssignment =
+    assignment !== undefined &&
+    (assignment.speaker_index !== undefined ||
+      assignment.human_id !== undefined);
 
   if (identity.speaker_index !== undefined && identity.human_id !== undefined) {
     state.humanIdBySpeakerIndex.set(identity.speaker_index, identity.human_id);
   }
 
   if (
-    state.completeChannels.has(word.channel)
-    && identity.human_id !== undefined
-    && identity.speaker_index === undefined
+    state.completeChannels.has(word.channel) &&
+    identity.human_id !== undefined &&
+    identity.speaker_index === undefined
   ) {
     state.humanIdByChannel.set(word.channel, identity.human_id);
   }
 
   if (
-    !word.isFinal
-    || identity.speaker_index !== undefined
-    || hasExplicitAssignment
+    !word.isFinal ||
+    identity.speaker_index !== undefined ||
+    hasExplicitAssignment
   ) {
-    if (identity.speaker_index !== undefined || identity.human_id !== undefined) {
+    if (
+      identity.speaker_index !== undefined ||
+      identity.human_id !== undefined
+    ) {
       state.lastSpeakerByChannel.set(word.channel, { ...identity });
     }
   }
@@ -242,7 +261,10 @@ function placeWordInSegment<TWord extends SegmentWord>(
 
   if (word.isFinal && !hasSpeakerIdentity(key)) {
     for (const [id, segment] of activeSegments) {
-      if (!hasSpeakerIdentity(segment.key) && segment.key.channel === key.channel) {
+      if (
+        !hasSpeakerIdentity(segment.key) &&
+        segment.key.channel === key.channel
+      ) {
         if (canExtend(segment, segment.key, word, segments, options)) {
           segment.words.push(word);
           activeSegments.set(segmentId, segment);
@@ -290,14 +312,18 @@ function hasSpeakerIdentity(key: SegmentKey): boolean {
 
 function sameKey(a: SegmentKey, b: SegmentKey): boolean {
   return (
-    a.channel === b.channel
-    && a.speaker_index === b.speaker_index
-    && a.speaker_human_id === b.speaker_human_id
+    a.channel === b.channel &&
+    a.speaker_index === b.speaker_index &&
+    a.speaker_human_id === b.speaker_human_id
   );
 }
 
 function segmentKeyId(key: SegmentKey): string {
-  return JSON.stringify([key.channel, key.speaker_index ?? null, key.speaker_human_id ?? null]);
+  return JSON.stringify([
+    key.channel,
+    key.speaker_index ?? null,
+    key.speaker_human_id ?? null,
+  ]);
 }
 
 function propagateCompleteChannelIdentities<TWord extends SegmentWord>(
@@ -311,7 +337,10 @@ function propagateCompleteChannelIdentities<TWord extends SegmentWord>(
     }
 
     segments.forEach((segment) => {
-      if (segment.key.channel !== channel || segment.key.speaker_human_id !== undefined) {
+      if (
+        segment.key.channel !== channel ||
+        segment.key.speaker_human_id !== undefined
+      ) {
         return;
       }
 
@@ -333,7 +362,9 @@ function propagateCompleteChannelIdentities<TWord extends SegmentWord>(
   });
 }
 
-function mergeAdjacentSegments<TWord extends SegmentWord>(segments: Segment<TWord>[]): Segment<TWord>[] {
+function mergeAdjacentSegments<TWord extends SegmentWord>(
+  segments: Segment<TWord>[],
+): Segment<TWord>[] {
   if (segments.length <= 1) {
     return segments;
   }
@@ -343,7 +374,11 @@ function mergeAdjacentSegments<TWord extends SegmentWord>(segments: Segment<TWor
   segments.forEach((segment) => {
     const last = merged[merged.length - 1];
 
-    if (last && sameKey(last.key, segment.key) && canMergeSegments(last, segment)) {
+    if (
+      last &&
+      sameKey(last.key, segment.key) &&
+      canMergeSegments(last, segment)
+    ) {
       last.words.push(...segment.words);
       return;
     }
@@ -387,5 +422,7 @@ function normalizeWords<TFinal extends WordLike, TPartial extends WordLike>(
     ...("id" in word && word.id ? { id: word.id as string } : {}),
   }));
 
-  return [...finalNormalized, ...partialNormalized].sort((a, b) => a.start_ms - b.start_ms);
+  return [...finalNormalized, ...partialNormalized].sort(
+    (a, b) => a.start_ms - b.start_ms,
+  );
 }

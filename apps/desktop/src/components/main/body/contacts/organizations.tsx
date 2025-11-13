@@ -1,7 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import { Building2, CornerDownLeft, User } from "lucide-react";
 import React, { useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
 import { ColumnHeader, type SortOption } from "./shared";
@@ -17,7 +17,8 @@ export function OrganizationsColumn({
 }) {
   const [showNewOrg, setShowNewOrg] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const { organizationIds, sortOption, setSortOption } = useSortedOrganizationIds();
+  const { organizationIds, sortOption, setSortOption } =
+    useSortedOrganizationIds();
 
   const allOrgs = main.UI.useTable("organizations", main.STORE_ID);
 
@@ -66,7 +67,9 @@ export function OrganizationsColumn({
               key={orgId}
               organizationId={orgId}
               isSelected={selectedOrganization === orgId}
-              isViewingDetails={isViewingOrgDetails && selectedOrganization === orgId}
+              isViewingDetails={
+                isViewingOrgDetails && selectedOrganization === orgId
+              }
               setSelectedOrganization={setSelectedOrganization}
             />
           ))}
@@ -112,13 +115,14 @@ function useSortedOrganizationIds() {
     main.STORE_ID,
   );
 
-  const organizationIds = sortOption === "alphabetical"
-    ? alphabeticalIds
-    : sortOption === "reverse-alphabetical"
-    ? reverseAlphabeticalIds
-    : sortOption === "newest"
-    ? newestIds
-    : oldestIds;
+  const organizationIds =
+    sortOption === "alphabetical"
+      ? alphabeticalIds
+      : sortOption === "reverse-alphabetical"
+        ? reverseAlphabeticalIds
+        : sortOption === "newest"
+          ? newestIds
+          : oldestIds;
 
   return { organizationIds, sortOption, setSortOption };
 }
@@ -134,7 +138,11 @@ function OrganizationItem({
   isViewingDetails: boolean;
   setSelectedOrganization: (id: string | null) => void;
 }) {
-  const organization = main.UI.useRow("organizations", organizationId, main.STORE_ID);
+  const organization = main.UI.useRow(
+    "organizations",
+    organizationId,
+    main.STORE_ID,
+  );
   if (!organization) {
     return null;
   }

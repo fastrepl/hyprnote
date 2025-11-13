@@ -1,13 +1,17 @@
-import { cn } from "@hypr/utils";
-
 import { Icon } from "@iconify-icon/react";
 
-import { GITHUB_LAST_SEEN_STARS, GITHUB_ORG_REPO, useGitHubStats } from "../queries";
+import { cn } from "@hypr/utils";
+
+import {
+  GITHUB_LAST_SEEN_STARS,
+  GITHUB_ORG_REPO,
+  useGitHubStats,
+} from "../queries";
 
 export function GithubStars() {
   const githubStats = useGitHubStats();
   const starCount = githubStats.data?.stars ?? GITHUB_LAST_SEEN_STARS;
-  const render = (n: number) => n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
+  const render = (n: number) => (n > 1000 ? `${(n / 1000).toFixed(1)}k` : n);
 
   return (
     <a href={`https://github.com/${GITHUB_ORG_REPO}`} target="_blank">

@@ -18,10 +18,14 @@ export function BannerForLLM() {
 
 function useHasLLMModel(): { hasModel: boolean; message: string } {
   const auth = useAuth();
-  const { current_llm_provider, current_llm_model } = useConfigValues(
-    ["current_llm_provider", "current_llm_model"] as const,
+  const { current_llm_provider, current_llm_model } = useConfigValues([
+    "current_llm_provider",
+    "current_llm_model",
+  ] as const);
+  const configuredProviders = main.UI.useResultTable(
+    main.QUERIES.llmProviders,
+    main.STORE_ID,
   );
-  const configuredProviders = main.UI.useResultTable(main.QUERIES.llmProviders, main.STORE_ID);
 
   const result = useMemo(() => {
     if (!current_llm_provider || !current_llm_model) {
@@ -37,18 +41,28 @@ function useHasLLMModel(): { hasModel: boolean; message: string } {
 
     if (providerId === "hyprnote") {
       if (!auth?.session) {
-        return { hasModel: false, message: "Please sign in to use Hyprnote LLM" };
+        return {
+          hasModel: false,
+          message: "Please sign in to use Hyprnote LLM",
+        };
       }
       return { hasModel: true, message: "" };
     }
 
     const config = configuredProviders[providerId];
     if (!config || !config.base_url) {
-      return { hasModel: false, message: "Provider not configured. Please configure the provider below." };
+      return {
+        hasModel: false,
+        message:
+          "Provider not configured. Please configure the provider below.",
+      };
     }
 
     if (provider.apiKey && !config.api_key) {
-      return { hasModel: false, message: "API key required. Please add your API key below." };
+      return {
+        hasModel: false,
+        message: "API key required. Please add your API key below.",
+      };
     }
 
     return { hasModel: true, message: "" };

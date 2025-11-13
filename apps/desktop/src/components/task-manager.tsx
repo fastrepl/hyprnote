@@ -3,6 +3,7 @@ import { useScheduleTaskRun, useSetTask } from "tinytick/ui-react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
+
 import { checkForUpdate } from "./main/sidebar/profile/ota/task";
 
 const UPDATE_CHECK_TASK_ID = "checkForUpdate";
@@ -12,7 +13,10 @@ export const DOWNLOAD_MODEL_TASK_ID = "downloadModel";
 
 const downloadProgressCallbacks = new Map<string, (progress: number) => void>();
 
-export function registerDownloadProgressCallback(model: SupportedSttModel, callback: (progress: number) => void) {
+export function registerDownloadProgressCallback(
+  model: SupportedSttModel,
+  callback: (progress: number) => void,
+) {
   downloadProgressCallbacks.set(model, callback);
 }
 

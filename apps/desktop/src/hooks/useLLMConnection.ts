@@ -3,11 +3,18 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import { extractReasoningMiddleware, type LanguageModel, wrapLanguageModel } from "ai";
+import {
+  extractReasoningMiddleware,
+  type LanguageModel,
+  wrapLanguageModel,
+} from "ai";
 import { useMemo } from "react";
 
 import { useAuth } from "../auth";
-import { type ProviderId, PROVIDERS } from "../components/settings/ai/llm/shared";
+import {
+  type ProviderId,
+  PROVIDERS,
+} from "../components/settings/ai/llm/shared";
 import { env } from "../env";
 import * as main from "../store/tinybase/main";
 
@@ -26,11 +33,13 @@ export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
         baseURL: connection.baseUrl,
         apiKey: connection.apiKey,
         headers: {
-          "Authorization": `Bearer ${connection.apiKey}`,
+          Authorization: `Bearer ${connection.apiKey}`,
         },
       });
 
-      return wrapWithThinkingMiddleware(hyprnoteProvider.chatModel(connection.modelId));
+      return wrapWithThinkingMiddleware(
+        hyprnoteProvider.chatModel(connection.modelId),
+      );
     }
 
     if (connection.providerId === "anthropic") {
@@ -78,7 +87,9 @@ export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
 
     const openAICompatibleProvider = createOpenAICompatible(config);
 
-    return wrapWithThinkingMiddleware(openAICompatibleProvider.chatModel(connection.modelId));
+    return wrapWithThinkingMiddleware(
+      openAICompatibleProvider.chatModel(connection.modelId),
+    );
   }, [connection]);
 };
 
@@ -90,7 +101,9 @@ const useLLMConnection = (): {
 } | null => {
   const auth = useAuth();
 
-  const { current_llm_provider, current_llm_model } = main.UI.useValues(main.STORE_ID);
+  const { current_llm_provider, current_llm_model } = main.UI.useValues(
+    main.STORE_ID,
+  );
   const providerConfig = main.UI.useRow(
     "ai_providers",
     current_llm_provider ?? "",
@@ -103,7 +116,9 @@ const useLLMConnection = (): {
     }
 
     const providerId = current_llm_provider as ProviderId;
-    const providerDefinition = PROVIDERS.find((provider) => provider.id === providerId);
+    const providerDefinition = PROVIDERS.find(
+      (provider) => provider.id === providerId,
+    );
 
     if (providerId === "hyprnote") {
       if (!auth?.session || !env.VITE_SUPABASE_URL) {
@@ -121,7 +136,8 @@ const useLLMConnection = (): {
       };
     }
 
-    const baseUrl = providerConfig?.base_url?.trim() || providerDefinition?.baseUrl || "";
+    const baseUrl =
+      providerConfig?.base_url?.trim() || providerDefinition?.baseUrl || "";
     const apiKey = providerConfig?.api_key?.trim() || "";
 
     if (!baseUrl) {

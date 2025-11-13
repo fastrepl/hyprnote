@@ -16,11 +16,15 @@ export function BannerForSTT() {
 }
 
 function useHasSTTModel(): { hasModel: boolean; message: string } {
-  const { current_stt_provider, current_stt_model } = useConfigValues(
-    ["current_stt_provider", "current_stt_model"] as const,
-  );
+  const { current_stt_provider, current_stt_model } = useConfigValues([
+    "current_stt_provider",
+    "current_stt_model",
+  ] as const);
 
-  const configuredProviders = main.UI.useResultTable(main.QUERIES.sttProviders, main.STORE_ID);
+  const configuredProviders = main.UI.useResultTable(
+    main.QUERIES.sttProviders,
+    main.STORE_ID,
+  );
 
   const [p2, p3, tinyEn, smallEn] = useQueries({
     queries: [
@@ -50,16 +54,27 @@ function useHasSTTModel(): { hasModel: boolean; message: string } {
       { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
     ];
 
-    const hasAvailableModel = downloadedModels.some((model) => model.isDownloaded);
+    const hasAvailableModel = downloadedModels.some(
+      (model) => model.isDownloaded,
+    );
     if (!hasAvailableModel) {
-      return { hasModel: false, message: "No Hyprnote models downloaded. Please download a model below." };
+      return {
+        hasModel: false,
+        message:
+          "No Hyprnote models downloaded. Please download a model below.",
+      };
     }
     return { hasModel: true, message: "" };
   }
 
-  const config = configuredProviders[providerId] as main.AIProviderStorage | undefined;
+  const config = configuredProviders[providerId] as
+    | main.AIProviderStorage
+    | undefined;
   if (!config) {
-    return { hasModel: false, message: "Provider not configured. Please configure the provider below." };
+    return {
+      hasModel: false,
+      message: "Provider not configured. Please configure the provider below.",
+    };
   }
 
   if (providerId === "custom") {
@@ -68,7 +83,10 @@ function useHasSTTModel(): { hasModel: boolean; message: string } {
 
   const hasModels = provider.models && provider.models.length > 0;
   if (!hasModels) {
-    return { hasModel: false, message: "No models available for this provider" };
+    return {
+      hasModel: false,
+      message: "No models available for this provider",
+    };
   }
 
   return { hasModel: true, message: "" };

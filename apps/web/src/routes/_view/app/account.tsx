@@ -1,12 +1,11 @@
-import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-
 import { signOutFn } from "@/functions/auth";
 import { createPortalSession } from "@/functions/billing";
 import { addContact } from "@/functions/loops";
 import { useAnalytics } from "@/hooks/use-posthog";
+import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_view/app/account")({
   component: Component,
@@ -27,11 +26,15 @@ function Component() {
 
         <div className="mt-8 space-y-6 px-4 pb-20 max-w-4xl mx-auto">
           <section>
-            <h2 className="text-lg font-medium mb-4 font-serif">Profile info</h2>
+            <h2 className="text-lg font-medium mb-4 font-serif">
+              Profile info
+            </h2>
             <div className="space-y-2">
               <div>
                 <div className="text-sm text-neutral-500">Email</div>
-                <div className="text-base">{user?.email || "Not available"}</div>
+                <div className="text-base">
+                  {user?.email || "Not available"}
+                </div>
               </div>
             </div>
           </section>
@@ -50,7 +53,9 @@ function Component() {
 }
 
 function AccountSettingsCard() {
-  const [currentPlan] = useState<"free" | "trial" | "trial_over" | "pro">("free");
+  const [currentPlan] = useState<"free" | "trial" | "trial_over" | "pro">(
+    "free",
+  );
 
   const startTrialMutation = useMutation({
     mutationFn: async () => {
@@ -150,7 +155,9 @@ function AccountSettingsCard() {
   return (
     <div className="border border-neutral-100 rounded-sm">
       <div className="p-4">
-        <h3 className="font-serif text-lg font-semibold mb-2">Account Settings</h3>
+        <h3 className="font-serif text-lg font-semibold mb-2">
+          Account Settings
+        </h3>
         <p className="text-sm text-neutral-600">
           Manage your account preferences and billing settings
         </p>
@@ -173,7 +180,9 @@ function IntegrationsSettingsCard() {
   return (
     <div className="border border-neutral-100 rounded-sm">
       <div className="p-4">
-        <h3 className="font-serif text-lg font-semibold mb-2">Integrations Settings</h3>
+        <h3 className="font-serif text-lg font-semibold mb-2">
+          Integrations Settings
+        </h3>
         <p className="text-sm text-neutral-600">
           Save your time by streamlining your work related to meetings
         </p>
@@ -181,7 +190,8 @@ function IntegrationsSettingsCard() {
 
       <div className="flex items-center justify-between border-t border-neutral-100 p-4">
         <div className="text-sm">
-          {connectedApps} {connectedApps === 1 ? "app is" : "apps are"} connected to Hyprnote
+          {connectedApps} {connectedApps === 1 ? "app is" : "apps are"}{" "}
+          connected to Hyprnote
         </div>
         <Link
           to="/app/integration"
@@ -229,62 +239,65 @@ function ProWaitlistCard({ userEmail }: { userEmail?: string }) {
   return (
     <div className="border border-neutral-100 rounded-sm">
       <div className="p-4">
-        <h3 className="font-serif text-lg font-semibold mb-2">Join Pro Waitlist</h3>
+        <h3 className="font-serif text-lg font-semibold mb-2">
+          Join Pro Waitlist
+        </h3>
         <p className="text-sm text-neutral-600 mb-4">
-          Get notified when Pro features are available, including cloud services, templates, chat, and more.
+          Get notified when Pro features are available, including cloud
+          services, templates, chat, and more.
         </p>
 
-        {addContactMutation.isSuccess
-          ? (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-sm">
-              <p className="text-sm text-green-700">
-                Thanks for joining the waitlist! We'll notify you when Pro is ready.
-              </p>
-            </div>
-          )
-          : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                form.handleSubmit();
+        {addContactMutation.isSuccess ? (
+          <div className="p-4 bg-green-50 border border-green-200 rounded-sm">
+            <p className="text-sm text-green-700">
+              Thanks for joining the waitlist! We'll notify you when Pro is
+              ready.
+            </p>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+            className="space-y-3"
+          >
+            <form.Field
+              name="email"
+              validators={{
+                onChange: ({ value }) =>
+                  !value ? "Email is required" : undefined,
               }}
-              className="space-y-3"
             >
-              <form.Field
-                name="email"
-                validators={{
-                  onChange: ({ value }) => !value ? "Email is required" : undefined,
-                }}
-              >
-                {(field) => (
-                  <input
-                    type="email"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full px-4 py-2 text-sm border border-neutral-200 rounded-sm focus:outline-none focus:border-stone-500 transition-colors"
-                    required
-                    disabled={addContactMutation.isPending}
-                  />
-                )}
-              </form.Field>
-              {addContactMutation.isError && (
-                <p className="text-sm text-red-600">
-                  {addContactMutation.error instanceof Error
-                    ? addContactMutation.error.message
-                    : "Something went wrong. Please try again."}
-                </p>
+              {(field) => (
+                <input
+                  type="email"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter your email"
+                  className="w-full px-4 py-2 text-sm border border-neutral-200 rounded-sm focus:outline-none focus:border-stone-500 transition-colors"
+                  required
+                  disabled={addContactMutation.isPending}
+                />
               )}
-              <button
-                type="submit"
-                disabled={addContactMutation.isPending}
-                className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
-              >
-                {addContactMutation.isPending ? "Joining..." : "Join Waitlist"}
-              </button>
-            </form>
-          )}
+            </form.Field>
+            {addContactMutation.isError && (
+              <p className="text-sm text-red-600">
+                {addContactMutation.error instanceof Error
+                  ? addContactMutation.error.message
+                  : "Something went wrong. Please try again."}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={addContactMutation.isPending}
+              className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+            >
+              {addContactMutation.isPending ? "Joining..." : "Join Waitlist"}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

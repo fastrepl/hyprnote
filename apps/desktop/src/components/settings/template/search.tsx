@@ -35,7 +35,10 @@ export function TemplateSearch({
       }}
       className="relative"
     >
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
+      <Search
+        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
+        size={16}
+      />
       <form.Field name="query">
         {(field) => (
           <Input

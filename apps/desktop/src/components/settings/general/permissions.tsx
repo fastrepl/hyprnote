@@ -1,9 +1,9 @@
+import { AlertCircleIcon, Check } from "lucide-react";
+
 import type { PermissionStatus } from "@hypr/plugin-permissions";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
-
-import { AlertCircleIcon, Check } from "lucide-react";
 
 import { usePermissions } from "../../../hooks/use-permissions";
 
@@ -26,27 +26,28 @@ function PermissionRow({
   const displayMessage = isAuthorized
     ? "Permission granted"
     : isDenied
-    ? "Please enable this permission in System Settings"
-    : description;
+      ? "Please enable this permission in System Settings"
+      : description;
 
   const buttonText = isAuthorized
     ? "Access Granted"
     : isDenied
-    ? "Open Settings"
-    : "Enable";
+      ? "Open Settings"
+      : "Enable";
 
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
-        <div className={cn(["flex items-center gap-2 mb-1", !isAuthorized && "text-red-500"])}>
+        <div
+          className={cn([
+            "flex items-center gap-2 mb-1",
+            !isAuthorized && "text-red-500",
+          ])}
+        >
           {!isAuthorized && <AlertCircleIcon className="size-4" />}
-          <h3 className="text-sm font-medium">
-            {title}
-          </h3>
+          <h3 className="text-sm font-medium">{title}</h3>
         </div>
-        <p className="text-xs text-neutral-600">
-          {displayMessage}
-        </p>
+        <p className="text-xs text-neutral-600">{displayMessage}</p>
       </div>
       <Button
         variant={isAuthorized ? "outline" : "default"}
@@ -54,19 +55,17 @@ function PermissionRow({
         disabled={isAuthorized || isPending}
         onClick={onAction}
       >
-        {isPending
-          ? (
-            <>
-              <Spinner className="mr-1" />
-              Requesting...
-            </>
-          )
-          : (
-            <>
-              {isAuthorized ? <Check size={16} /> : null}
-              {buttonText}
-            </>
-          )}
+        {isPending ? (
+          <>
+            <Spinner className="mr-1" />
+            Requesting...
+          </>
+        ) : (
+          <>
+            {isAuthorized ? <Check size={16} /> : null}
+            {buttonText}
+          </>
+        )}
       </Button>
     </div>
   );

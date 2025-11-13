@@ -1,13 +1,12 @@
-import { cn } from "@hypr/utils";
-
+import { CtaCard } from "@/components/cta-card";
+import { Image } from "@/components/image";
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import { useState } from "react";
 
-import { CtaCard } from "@/components/cta-card";
-import { Image } from "@/components/image";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
@@ -44,14 +43,22 @@ export const Route = createFileRoute("/_view/blog/$slug")({
         { property: "og:description", content: article.meta_description },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        ...(article.coverImage ? [{ property: "og:image", content: article.coverImage }] : []),
+        ...(article.coverImage
+          ? [{ property: "og:image", content: article.coverImage }]
+          : []),
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: article.title },
         { name: "twitter:description", content: article.meta_description },
-        ...(article.coverImage ? [{ name: "twitter:image", content: article.coverImage }] : []),
-        ...(article.author ? [{ name: "author", content: article.author }] : []),
+        ...(article.coverImage
+          ? [{ name: "twitter:image", content: article.coverImage }]
+          : []),
+        ...(article.author
+          ? [{ name: "author", content: article.author }]
+          : []),
         { property: "article:published_time", content: article.created },
-        ...(article.updated ? [{ property: "article:modified_time", content: article.updated }] : []),
+        ...(article.updated
+          ? [{ property: "article:modified_time", content: article.updated }]
+          : []),
       ],
     };
   },
@@ -121,7 +128,9 @@ interface TocItem {
   children: TocItem[];
 }
 
-function buildTocTree(toc: Array<{ id: string; text: string; level: number }>): TocItem[] {
+function buildTocTree(
+  toc: Array<{ id: string; text: string; level: number }>,
+): TocItem[] {
   const tree: TocItem[] = [];
   const stack: TocItem[] = [];
 
@@ -176,14 +185,18 @@ function TocNode({ item, depth = 0 }: { item: TocItem; depth?: number }) {
             item.level === 3 && "text-neutral-400/90",
             item.level === 4 && "text-neutral-400/80",
           ])}
-          style={{ paddingLeft: hasChildren ? 0 : depth > 0 ? `${depth * 0.5}rem` : 0 }}
+          style={{
+            paddingLeft: hasChildren ? 0 : depth > 0 ? `${depth * 0.5}rem` : 0,
+          }}
         >
           {item.text}
         </a>
       </div>
       {hasChildren && isExpanded && (
         <div className="ml-2">
-          {item.children.map((child) => <TocNode key={child.id} item={child} depth={depth + 1} />)}
+          {item.children.map((child) => (
+            <TocNode key={child.id} item={child} depth={depth + 1} />
+          ))}
         </div>
       )}
     </div>
@@ -210,7 +223,9 @@ function TableOfContents({
 
         {tocTree.length > 0 && (
           <nav className="space-y-1">
-            {tocTree.map((item) => <TocNode key={item.id} item={item} />)}
+            {tocTree.map((item) => (
+              <TocNode key={item.id} item={item} />
+            ))}
           </nav>
         )}
       </div>
@@ -242,7 +257,8 @@ function ArticleHeader({ article }: { article: any }) {
           <>
             <span>·</span>
             <span className="text-neutral-400">
-              Updated {new Date(article.updated).toLocaleDateString("en-US", {
+              Updated{" "}
+              {new Date(article.updated).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
@@ -279,12 +295,10 @@ function CoverImage({
         alt={article.title}
         width={1200}
         height={630}
-        className={cn(
-          [
-            "w-full aspect-40/21 object-cover rounded-none sm:rounded-sm border-y sm:border border-neutral-200 transition-opacity duration-300",
-            coverImageLoaded ? "opacity-100" : "opacity-0",
-          ],
-        )}
+        className={cn([
+          "w-full aspect-40/21 object-cover rounded-none sm:rounded-sm border-y sm:border border-neutral-200 transition-opacity duration-300",
+          coverImageLoaded ? "opacity-100" : "opacity-0",
+        ])}
         onLoad={onLoad}
         onError={onError}
         loading="eager"
@@ -306,7 +320,11 @@ function ArticleContent({ article }: { article: any }) {
   );
 }
 
-function RelatedArticlesMobile({ relatedArticles }: { relatedArticles: any[] }) {
+function RelatedArticlesMobile({
+  relatedArticles,
+}: {
+  relatedArticles: any[];
+}) {
   if (relatedArticles.length === 0) {
     return null;
   }
@@ -315,7 +333,9 @@ function RelatedArticlesMobile({ relatedArticles }: { relatedArticles: any[] }) 
     <div className="sm:hidden mt-16 pt-8 border-t border-neutral-100">
       <h3 className="text-xl font-serif text-stone-600 mb-6">More articles</h3>
       <div className="space-y-4">
-        {relatedArticles.map((related) => <RelatedArticleCard key={related.slug} article={related} compact />)}
+        {relatedArticles.map((related) => (
+          <RelatedArticleCard key={related.slug} article={related} compact />
+        ))}
       </div>
     </div>
   );
@@ -345,7 +365,9 @@ function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
               More articles
             </h3>
             <div className="space-y-4">
-              {relatedArticles.map((related) => <RelatedArticleCard key={related.slug} article={related} />)}
+              {relatedArticles.map((related) => (
+                <RelatedArticleCard key={related.slug} article={related} />
+              ))}
             </div>
           </div>
         )}
@@ -407,7 +429,13 @@ function MobileCTA() {
   );
 }
 
-function RelatedArticleCard({ article, compact = false }: { article: any; compact?: boolean }) {
+function RelatedArticleCard({
+  article,
+  compact = false,
+}: {
+  article: any;
+  compact?: boolean;
+}) {
   return (
     <Link
       to="/blog/$slug"
@@ -417,15 +445,22 @@ function RelatedArticleCard({ article, compact = false }: { article: any; compac
       <h4 className="font-serif text-sm text-stone-600 group-hover:text-stone-800 transition-colors line-clamp-2 mb-2">
         {article.title}
       </h4>
-      {!compact && <p className="text-xs text-neutral-500 line-clamp-2 mb-2">{article.summary}</p>}
+      {!compact && (
+        <p className="text-xs text-neutral-500 line-clamp-2 mb-2">
+          {article.summary}
+        </p>
+      )}
       <time
         dateTime={article.updated || article.created}
         className="text-xs text-neutral-400"
       >
-        {new Date(article.updated || article.created).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })}
+        {new Date(article.updated || article.created).toLocaleDateString(
+          "en-US",
+          {
+            month: "short",
+            day: "numeric",
+          },
+        )}
       </time>
     </Link>
   );

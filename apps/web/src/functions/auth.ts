@@ -1,21 +1,22 @@
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
-
 import { env } from "@/env";
 import { getSupabaseServerClient } from "@/functions/supabase";
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
 const shared = z.object({
   flow: z.enum(["desktop", "web"]).default("desktop"),
 });
 
 export const doAuth = createServerFn({ method: "POST" })
-  .inputValidator(z.discriminatedUnion(
-    "method",
-    [
+  .inputValidator(
+    z.discriminatedUnion("method", [
       shared.extend({ method: z.literal("email_otp"), email: z.email() }),
-      shared.extend({ method: z.literal("oauth"), provider: z.enum(["google", "github"]) }),
-    ],
-  ))
+      shared.extend({
+        method: z.literal("oauth"),
+        provider: z.enum(["google", "github"]),
+      }),
+    ]),
+  )
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
 
@@ -64,13 +65,15 @@ export const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
   };
 });
 
-export const signOutFn = createServerFn({ method: "POST" }).handler(async () => {
-  const supabase = getSupabaseServerClient();
-  const { error } = await supabase.auth.signOut();
+export const signOutFn = createServerFn({ method: "POST" }).handler(
+  async () => {
+    const supabase = getSupabaseServerClient();
+    const { error } = await supabase.auth.signOut();
 
-  if (error) {
-    return { success: false, message: error.message };
-  }
+    if (error) {
+      return { success: false, message: error.message };
+    }
 
-  return { success: true };
-});
+    return { success: true };
+  },
+);

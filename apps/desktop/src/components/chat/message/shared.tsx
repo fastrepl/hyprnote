@@ -82,19 +82,17 @@ export function ActionButton({
   );
 }
 
-export function Disclosure(
-  {
-    icon,
-    title,
-    children,
-    disabled,
-  }: {
-    icon: ReactNode;
-    title: ReactNode;
-    children: ReactNode;
-    disabled?: boolean;
-  },
-) {
+export function Disclosure({
+  icon,
+  title,
+  children,
+  disabled,
+}: {
+  icon: ReactNode;
+  title: ReactNode;
+  children: ReactNode;
+  disabled?: boolean;
+}) {
   return (
     <details
       className={cn([
@@ -111,13 +109,8 @@ export function Disclosure(
         ])}
       >
         {disabled ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-        {(!disabled && icon) && <span className="flex-shrink-0">{icon}</span>}
-        <span
-          className={cn([
-            "flex-1 truncate",
-            "group-open:font-medium",
-          ])}
-        >
+        {!disabled && icon && <span className="flex-shrink-0">{icon}</span>}
+        <span className={cn(["flex-1 truncate", "group-open:font-medium"])}>
           {title}
         </span>
         <ChevronRight className="w-3 h-3 flex-shrink-0 transition-transform group-open:rotate-90" />

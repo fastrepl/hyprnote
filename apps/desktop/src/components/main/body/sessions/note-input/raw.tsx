@@ -2,51 +2,53 @@ import { forwardRef, useEffect, useMemo, useState } from "react";
 
 import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import type { PlaceholderFunction } from "@hypr/tiptap/shared";
+
 import * as main from "../../../../../store/tinybase/main";
 
-export const RawEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId: string }>(
-  ({ sessionId }, ref) => {
-    const store = main.UI.useStore(main.STORE_ID);
+export const RawEditor = forwardRef<
+  { editor: TiptapEditor | null },
+  { sessionId: string }
+>(({ sessionId }, ref) => {
+  const store = main.UI.useStore(main.STORE_ID);
 
-    const [initialContent, setInitialContent] = useState<string>("");
+  const [initialContent, setInitialContent] = useState<string>("");
 
-    useEffect(() => {
-      if (store) {
-        const value = store.getCell("sessions", sessionId, "raw_md");
-        setInitialContent((value as string) || "");
-      }
-    }, [store, sessionId]);
+  useEffect(() => {
+    if (store) {
+      const value = store.getCell("sessions", sessionId, "raw_md");
+      setInitialContent((value as string) || "");
+    }
+  }, [store, sessionId]);
 
-    const handleChange = main.UI.useSetPartialRowCallback(
-      "sessions",
-      sessionId,
-      (input: string) => ({ raw_md: input }),
-      [],
-      main.STORE_ID,
-    );
+  const handleChange = main.UI.useSetPartialRowCallback(
+    "sessions",
+    sessionId,
+    (input: string) => ({ raw_md: input }),
+    [],
+    main.STORE_ID,
+  );
 
-    const mentionConfig = useMemo(
-      () => ({
-        trigger: "@",
-        handleSearch: async () => {
-          return [];
-        },
-      }),
-      [],
-    );
+  const mentionConfig = useMemo(
+    () => ({
+      trigger: "@",
+      handleSearch: async () => {
+        return [];
+      },
+    }),
+    [],
+  );
 
-    return (
-      <NoteEditor
-        ref={ref}
-        key={`session-${sessionId}-raw`}
-        initialContent={initialContent}
-        handleChange={handleChange}
-        mentionConfig={mentionConfig}
-        placeholderComponent={Placeholder}
-      />
-    );
-  },
-);
+  return (
+    <NoteEditor
+      ref={ref}
+      key={`session-${sessionId}-raw`}
+      initialContent={initialContent}
+      handleChange={handleChange}
+      mentionConfig={mentionConfig}
+      placeholderComponent={Placeholder}
+    />
+  );
+});
 
 const Placeholder: PlaceholderFunction = ({ node, pos }) => {
   if (node.type.name === "paragraph" && pos === 0) {

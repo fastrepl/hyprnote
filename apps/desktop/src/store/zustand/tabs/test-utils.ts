@@ -1,5 +1,5 @@
-import { id } from "../../../utils";
 import { type Tab, useTabs } from ".";
+import { id } from "../../../utils";
 import { computeHistoryFlags, type TabHistory } from "./navigation";
 
 type SessionTab = Extract<Tab, { type: "sessions" }>;
@@ -13,7 +13,9 @@ type ContactsOverrides = Partial<Omit<ContactsTab, "type" | "state">> & {
   state?: Partial<ContactsTab["state"]>;
 };
 
-export const createSessionTab = (overrides: SessionOverrides = {}): SessionTab => ({
+export const createSessionTab = (
+  overrides: SessionOverrides = {},
+): SessionTab => ({
   type: "sessions",
   id: overrides.id ?? id(),
   active: overrides.active ?? false,
@@ -24,7 +26,9 @@ export const createSessionTab = (overrides: SessionOverrides = {}): SessionTab =
   },
 });
 
-export const createContactsTab = (overrides: ContactsOverrides = {}): ContactsTab => ({
+export const createContactsTab = (
+  overrides: ContactsOverrides = {},
+): ContactsTab => ({
   type: "contacts",
   active: overrides.active ?? false,
   slotId: id(),
@@ -57,7 +61,9 @@ const createDefaultTabsState = (): TabsStateSlice => ({
   onEmpty: null,
 });
 
-export const seedTabsStore = (overrides: Partial<TabsStateSlice> = {}): void => {
+export const seedTabsStore = (
+  overrides: Partial<TabsStateSlice> = {},
+): void => {
   const state = { ...createDefaultTabsState(), ...overrides };
   useTabs.setState(() => state);
   const flags = computeHistoryFlags(state.history, state.currentTab);
@@ -74,7 +80,9 @@ type HistoryEntry = {
   currentIndex?: number;
 };
 
-export const createHistory = (entries: HistoryEntry[]): Map<string, TabHistory> => {
+export const createHistory = (
+  entries: HistoryEntry[],
+): Map<string, TabHistory> => {
   const history = new Map<string, TabHistory>();
 
   entries.forEach(({ slotId, stack, currentIndex }) => {

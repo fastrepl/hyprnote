@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import "./test-matchers";
 
 import { type Tab, useTabs } from ".";
-import { createContactsTab, createSessionTab, resetTabsStore } from "./test-utils";
+import "./test-matchers";
+import {
+  createContactsTab,
+  createSessionTab,
+  resetTabsStore,
+} from "./test-utils";
 
-const isSessionsTab = (tab: Tab): tab is Extract<Tab, { type: "sessions" }> => tab.type === "sessions";
+const isSessionsTab = (tab: Tab): tab is Extract<Tab, { type: "sessions" }> =>
+  tab.type === "sessions";
 
 describe("Basic Tab Actions", () => {
   beforeEach(() => {
@@ -13,7 +18,10 @@ describe("Basic Tab Actions", () => {
 
   test("openNew builds tab list with last tab active", () => {
     const session1 = createSessionTab({ active: false });
-    const session2 = createSessionTab({ active: false, state: { editor: "enhanced" } });
+    const session2 = createSessionTab({
+      active: false,
+      state: { editor: "enhanced" },
+    });
     const contacts = createContactsTab({ active: false });
 
     useTabs.getState().openNew(session1);
@@ -27,7 +35,10 @@ describe("Basic Tab Actions", () => {
       { type: "contacts", active: true },
     ]);
     expect(useTabs.getState()).toHaveHistoryLength(1);
-    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: false, canGoNext: false });
+    expect(useTabs.getState()).toHaveNavigationState({
+      canGoBack: false,
+      canGoNext: false,
+    });
   });
 
   test("openCurrent replaces active tab and closes all duplicates", () => {
@@ -38,7 +49,10 @@ describe("Basic Tab Actions", () => {
     useTabs.getState().openNew(session2);
     useTabs.getState().openNew(session3);
 
-    const duplicateOfSession1 = createSessionTab({ id: session1.id, active: false });
+    const duplicateOfSession1 = createSessionTab({
+      id: session1.id,
+      active: false,
+    });
     useTabs.getState().openCurrent(duplicateOfSession1);
 
     expect(useTabs.getState()).toMatchTabsInOrder([
@@ -47,7 +61,10 @@ describe("Basic Tab Actions", () => {
     ]);
     expect(useTabs.getState()).toHaveLastHistoryEntry({ id: session1.id });
     expect(useTabs.getState()).toHaveHistoryLength(2);
-    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: true, canGoNext: false });
+    expect(useTabs.getState()).toHaveNavigationState({
+      canGoBack: true,
+      canGoNext: false,
+    });
   });
 
   test("openCurrent closes existing active tab via lifecycle handlers", () => {
@@ -60,7 +77,9 @@ describe("Basic Tab Actions", () => {
     useTabs.getState().openCurrent(next);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: "first" }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "first" }),
+    );
   });
 
   test("openNew is idempotent - switches to existing tab instead of duplicating", () => {
@@ -114,7 +133,10 @@ describe("Basic Tab Actions", () => {
     ]);
     expect(useTabs.getState()).toHaveCurrentTab({ id: next.id });
     expect(useTabs.getState().history.size).toBe(1);
-    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: false, canGoNext: false });
+    expect(useTabs.getState()).toHaveNavigationState({
+      canGoBack: false,
+      canGoNext: false,
+    });
   });
 
   test("close last tab empties store", () => {
@@ -125,7 +147,10 @@ describe("Basic Tab Actions", () => {
 
     expect(useTabs.getState().tabs).toHaveLength(0);
     expect(useTabs.getState().currentTab).toBeNull();
-    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: false, canGoNext: false });
+    expect(useTabs.getState()).toHaveNavigationState({
+      canGoBack: false,
+      canGoNext: false,
+    });
   });
 
   test("reorder keeps current tab and flags consistent", () => {
@@ -141,7 +166,10 @@ describe("Basic Tab Actions", () => {
       { id: active.id, active: true },
     ]);
     expect(useTabs.getState()).toHaveCurrentTab(active);
-    expect(useTabs.getState()).toHaveNavigationState({ canGoBack: false, canGoNext: false });
+    expect(useTabs.getState()).toHaveNavigationState({
+      canGoBack: false,
+      canGoNext: false,
+    });
   });
 
   test("closeOthers keeps selected tab and notifies closures", () => {
@@ -164,8 +192,12 @@ describe("Basic Tab Actions", () => {
     expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
     expect(state.history.size).toBe(1);
     expect(handler).toHaveBeenCalledTimes(2);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: session1.id }));
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: session3.id }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: session1.id }),
+    );
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: session3.id }),
+    );
   });
 
   test("closeAll clears store state and notifies handlers", () => {
@@ -187,8 +219,12 @@ describe("Basic Tab Actions", () => {
     expect(state.history.size).toBe(0);
     expect(state).toHaveNavigationState({ canGoBack: false, canGoNext: false });
     expect(onClose).toHaveBeenCalledTimes(2);
-    expect(onClose).toHaveBeenCalledWith(expect.objectContaining({ id: first.id }));
-    expect(onClose).toHaveBeenCalledWith(expect.objectContaining({ type: "contacts" }));
+    expect(onClose).toHaveBeenCalledWith(
+      expect.objectContaining({ id: first.id }),
+    );
+    expect(onClose).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "contacts" }),
+    );
     expect(onEmpty).toHaveBeenCalledTimes(1);
   });
 });

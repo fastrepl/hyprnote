@@ -1,13 +1,12 @@
-import { cn } from "@hypr/utils";
-
+import { Image } from "@/components/image";
+import { doAuth } from "@/functions/auth";
 import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { Image } from "@/components/image";
-import { doAuth } from "@/functions/auth";
+import { cn } from "@hypr/utils";
 
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
@@ -66,13 +65,12 @@ function Header() {
           alt="Hyprnote"
           width={96}
           height={96}
-          className={cn([
-            "size-24",
-            "rounded-3xl border border-neutral-200",
-          ])}
+          className={cn(["size-24", "rounded-3xl border border-neutral-200"])}
         />
       </div>
-      <h1 className="text-3xl font-serif text-stone-800 mb-2">Welcome to Hyprnote</h1>
+      <h1 className="text-3xl font-serif text-stone-800 mb-2">
+        Welcome to Hyprnote
+      </h1>
     </div>
   );
 }
@@ -167,13 +165,18 @@ function EmailAuthForm({ flow }: { flow: "desktop" | "web" }) {
               />
               {field.state.meta.errors.length > 0 && (
                 <p className="mt-1 text-sm text-red-400">
-                  {field.state.meta.errors[0]?.message ?? "An unexpected error occurred"}
+                  {field.state.meta.errors[0]?.message ??
+                    "An unexpected error occurred"}
                 </p>
               )}
 
               <button
                 type="submit"
-                disabled={emailAuthMutation.isPending || field.state.meta.errors.length > 0 || !field.state.value}
+                disabled={
+                  emailAuthMutation.isPending ||
+                  field.state.meta.errors.length > 0 ||
+                  !field.state.value
+                }
                 className={cn([
                   "w-full px-4 py-2 mt-4",
                   "bg-stone-600 text-white font-medium",
@@ -194,7 +197,13 @@ function EmailAuthForm({ flow }: { flow: "desktop" | "web" }) {
   );
 }
 
-function OAuthButton({ flow, provider }: { flow: "desktop" | "web"; provider: "google" | "github" }) {
+function OAuthButton({
+  flow,
+  provider,
+}: {
+  flow: "desktop" | "web";
+  provider: "google" | "github";
+}) {
   const oauthMutation = useMutation({
     mutationFn: (provider: "google" | "github") =>
       doAuth({
@@ -225,7 +234,9 @@ function OAuthButton({ flow, provider }: { flow: "desktop" | "web"; provider: "g
         "flex items-center justify-center gap-2",
       ])}
     >
-      <Icon icon={provider === "google" ? "logos:google-icon" : "logos:github-icon"} />
+      <Icon
+        icon={provider === "google" ? "logos:google-icon" : "logos:github-icon"}
+      />
       Sign in with {provider.charAt(0).toUpperCase() + provider.slice(1)}
     </button>
   );

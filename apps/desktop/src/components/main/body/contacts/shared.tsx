@@ -1,8 +1,13 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@hypr/ui/components/ui/select";
-
 import { ArrowDownUp, Plus, Search, X } from "lucide-react";
 import { useState } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@hypr/ui/components/ui/select";
 
 export const getInitials = (name?: string | null) => {
   if (!name) {
@@ -10,13 +15,17 @@ export const getInitials = (name?: string | null) => {
   }
   return name
     .split(" ")
-    .map(n => n[0])
+    .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
 };
 
-export type SortOption = "alphabetical" | "reverse-alphabetical" | "oldest" | "newest";
+export type SortOption =
+  | "alphabetical"
+  | "reverse-alphabetical"
+  | "oldest"
+  | "newest";
 
 export function SortDropdown({
   sortOption,
@@ -100,15 +109,13 @@ export function ColumnHeader({
           )}
           {sortOption && setSortOption && (
             <div className="hidden @[220px]:block">
-              <SortDropdown sortOption={sortOption} setSortOption={setSortOption} />
+              <SortDropdown
+                sortOption={sortOption}
+                setSortOption={setSortOption}
+              />
             </div>
           )}
-          <Button
-            onClick={onAdd}
-            size="icon"
-            variant="ghost"
-            title="Add"
-          >
+          <Button onClick={onAdd} size="icon" variant="ghost" title="Add">
             <Plus size={16} />
           </Button>
         </div>

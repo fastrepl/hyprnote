@@ -1,6 +1,7 @@
-import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/roadmap")({
   component: Component,
@@ -9,7 +10,8 @@ export const Route = createFileRoute("/_view/roadmap")({
       { title: "Roadmap - Hyprnote" },
       {
         name: "description",
-        content: "See what we're building next for Hyprnote. Our product roadmap and future plans.",
+        content:
+          "See what we're building next for Hyprnote. Our product roadmap and future plans.",
       },
     ],
   }),
@@ -25,7 +27,8 @@ interface RoadmapItem {
 const roadmapItems: RoadmapItem[] = [
   {
     title: "Dual audio capture (Mic + System)",
-    description: "Record both microphone and system audio simultaneously for complete context.",
+    description:
+      "Record both microphone and system audio simultaneously for complete context.",
     status: "shipped",
     quarter: "Q4 2024",
   },
@@ -37,13 +40,15 @@ const roadmapItems: RoadmapItem[] = [
   },
   {
     title: "Custom templates",
-    description: "Create and use custom note templates for different meeting types.",
+    description:
+      "Create and use custom note templates for different meeting types.",
     status: "shipped",
     quarter: "Q1 2025",
   },
   {
     title: "Chat with your notes",
-    description: "Ask questions and get insights from your recorded conversations.",
+    description:
+      "Ask questions and get insights from your recorded conversations.",
     status: "in-progress",
     quarter: "Q1 2025",
   },
@@ -67,7 +72,8 @@ const roadmapItems: RoadmapItem[] = [
   },
   {
     title: "Action item tracking",
-    description: "Automatically extract and track action items across all your meetings.",
+    description:
+      "Automatically extract and track action items across all your meetings.",
     status: "planned",
     quarter: "Q2 2025",
   },
@@ -87,7 +93,9 @@ const roadmapItems: RoadmapItem[] = [
 
 function Component() {
   const shipped = roadmapItems.filter((item) => item.status === "shipped");
-  const inProgress = roadmapItems.filter((item) => item.status === "in-progress");
+  const inProgress = roadmapItems.filter(
+    (item) => item.status === "in-progress",
+  );
   const planned = roadmapItems.filter((item) => item.status === "planned");
 
   return (
@@ -102,7 +110,8 @@ function Component() {
               Product Roadmap
             </h1>
             <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-              See what we're building and what's coming next. We're always listening to feedback from our community.
+              See what we're building and what's coming next. We're always
+              listening to feedback from our community.
             </p>
           </header>
 
@@ -110,11 +119,18 @@ function Component() {
             {shipped.length > 0 && (
               <section>
                 <div className="flex items-center gap-3 mb-8">
-                  <Icon icon="mdi:check-circle" className="text-3xl text-green-600" />
-                  <h2 className="text-3xl font-serif text-stone-600">Shipped</h2>
+                  <Icon
+                    icon="mdi:check-circle"
+                    className="text-3xl text-green-600"
+                  />
+                  <h2 className="text-3xl font-serif text-stone-600">
+                    Shipped
+                  </h2>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
-                  {shipped.map((item) => <RoadmapCard key={item.title} item={item} />)}
+                  {shipped.map((item) => (
+                    <RoadmapCard key={item.title} item={item} />
+                  ))}
                 </div>
               </section>
             )}
@@ -122,11 +138,18 @@ function Component() {
             {inProgress.length > 0 && (
               <section>
                 <div className="flex items-center gap-3 mb-8">
-                  <Icon icon="mdi:progress-clock" className="text-3xl text-blue-600" />
-                  <h2 className="text-3xl font-serif text-stone-600">In Progress</h2>
+                  <Icon
+                    icon="mdi:progress-clock"
+                    className="text-3xl text-blue-600"
+                  />
+                  <h2 className="text-3xl font-serif text-stone-600">
+                    In Progress
+                  </h2>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
-                  {inProgress.map((item) => <RoadmapCard key={item.title} item={item} />)}
+                  {inProgress.map((item) => (
+                    <RoadmapCard key={item.title} item={item} />
+                  ))}
                 </div>
               </section>
             )}
@@ -134,20 +157,30 @@ function Component() {
             {planned.length > 0 && (
               <section>
                 <div className="flex items-center gap-3 mb-8">
-                  <Icon icon="mdi:calendar-clock" className="text-3xl text-neutral-400" />
-                  <h2 className="text-3xl font-serif text-stone-600">Planned</h2>
+                  <Icon
+                    icon="mdi:calendar-clock"
+                    className="text-3xl text-neutral-400"
+                  />
+                  <h2 className="text-3xl font-serif text-stone-600">
+                    Planned
+                  </h2>
                 </div>
                 <div className="grid md:grid-cols-2 gap-6">
-                  {planned.map((item) => <RoadmapCard key={item.title} item={item} />)}
+                  {planned.map((item) => (
+                    <RoadmapCard key={item.title} item={item} />
+                  ))}
                 </div>
               </section>
             )}
           </div>
 
           <div className="mt-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 text-center">
-            <h3 className="text-2xl font-serif text-stone-600 mb-4">Have a feature request?</h3>
+            <h3 className="text-2xl font-serif text-stone-600 mb-4">
+              Have a feature request?
+            </h3>
             <p className="text-neutral-600 mb-6">
-              We'd love to hear your ideas. Join our community and share your thoughts.
+              We'd love to hear your ideas. Join our community and share your
+              thoughts.
             </p>
             <a
               href="https://github.com/fastrepl/hyprnote/discussions"
@@ -198,8 +231,12 @@ function RoadmapCard({ item }: { item: RoadmapItem }) {
   return (
     <div className="p-6 border border-neutral-200 rounded-lg bg-white hover:shadow-sm transition-shadow">
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-lg font-serif text-stone-600 flex-1">{item.title}</h3>
-        {item.quarter && <span className="text-xs text-neutral-500 ml-2">{item.quarter}</span>}
+        <h3 className="text-lg font-serif text-stone-600 flex-1">
+          {item.title}
+        </h3>
+        {item.quarter && (
+          <span className="text-xs text-neutral-500 ml-2">{item.quarter}</span>
+        )}
       </div>
       <p className="text-neutral-600 text-sm mb-4">{item.description}</p>
       <div

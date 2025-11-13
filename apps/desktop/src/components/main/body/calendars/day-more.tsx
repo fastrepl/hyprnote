@@ -1,8 +1,12 @@
-import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { format } from "@hypr/utils";
-
 import { useState } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
+import { format } from "@hypr/utils";
 
 import { TabContentCalendarDayEvents } from "./day-events";
 import { TabContentCalendarDaySessions } from "./day-sessions";
@@ -23,7 +27,10 @@ export function TabContentCalendarDayMore({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start px-1 text-neutral-600 h-6">
+        <Button
+          variant="ghost"
+          className="w-full justify-start px-1 text-neutral-600 h-6"
+        >
           +{hiddenCount} more
         </Button>
       </PopoverTrigger>
@@ -36,8 +43,15 @@ export function TabContentCalendarDayMore({
         </div>
 
         <div className="space-y-1">
-          {eventIds.map((eventId) => <TabContentCalendarDayEvents key={eventId} eventId={eventId} />)}
-          {sessionIds.map((sessionId) => <TabContentCalendarDaySessions key={sessionId} sessionId={sessionId} />)}
+          {eventIds.map((eventId) => (
+            <TabContentCalendarDayEvents key={eventId} eventId={eventId} />
+          ))}
+          {sessionIds.map((sessionId) => (
+            <TabContentCalendarDaySessions
+              key={sessionId}
+              sessionId={sessionId}
+            />
+          ))}
         </div>
       </PopoverContent>
     </Popover>

@@ -1,8 +1,8 @@
-import { cn } from "@hypr/utils";
-
 import { X } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
+
 import type { BannerType } from "./types";
 
 export function Banner({
@@ -43,9 +43,7 @@ export function Banner({
         )}
 
         {!banner.icon && (
-          <h3 className="text-lg font-bold text-neutral-900">
-            {banner.title}
-          </h3>
+          <h3 className="text-lg font-bold text-neutral-900">{banner.title}</h3>
         )}
 
         <p className="text-sm">{banner.description}</p>
@@ -57,7 +55,11 @@ export function Banner({
             </Button>
           )}
           {banner.secondaryAction && (
-            <Button onClick={banner.secondaryAction.onClick} variant="outline" className="w-full">
+            <Button
+              onClick={banner.secondaryAction.onClick}
+              variant="outline"
+              className="w-full"
+            >
               {banner.secondaryAction.label}
             </Button>
           )}

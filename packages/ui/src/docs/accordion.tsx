@@ -1,8 +1,9 @@
 "use client";
 
-import { cn } from "@hypr/utils";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
+
+import { cn } from "@hypr/utils";
 
 interface AccordionProps {
   title: string;
@@ -24,9 +25,10 @@ export function Accordion({
       type="single"
       collapsible
       defaultValue={defaultOpen ? "item-1" : undefined}
-      className={cn(
-        ["rounded-none border border-neutral-300 dark:border-neutral-700", className],
-      )}
+      className={cn([
+        "rounded-none border border-neutral-300 dark:border-neutral-700",
+        className,
+      ])}
     >
       <AccordionPrimitive.Item value="item-1">
         <AccordionPrimitive.Header>

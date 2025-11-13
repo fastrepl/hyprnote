@@ -1,4 +1,10 @@
-import { type DependencyList, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type DependencyList,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 export function useAnchor() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -7,7 +13,9 @@ export function useAnchor() {
   const [anchorNode, setAnchorNode] = useState<HTMLDivElement | null>(null);
 
   const registerAnchor = useCallback((node: HTMLDivElement | null) => {
-    setAnchorNode(previousNode => (previousNode === node ? previousNode : node));
+    setAnchorNode((previousNode) =>
+      previousNode === node ? previousNode : node,
+    );
   }, []);
 
   const scrollToAnchor = useCallback(() => {
@@ -18,8 +26,15 @@ export function useAnchor() {
 
     const containerRect = container.getBoundingClientRect();
     const anchorRect = anchorNode.getBoundingClientRect();
-    const anchorCenter = anchorRect.top - containerRect.top + container.scrollTop + (anchorRect.height / 2);
-    const targetScrollTop = Math.max(anchorCenter - (container.clientHeight / 2), 0);
+    const anchorCenter =
+      anchorRect.top -
+      containerRect.top +
+      container.scrollTop +
+      anchorRect.height / 2;
+    const targetScrollTop = Math.max(
+      anchorCenter - container.clientHeight / 2,
+      0,
+    );
     container.scrollTo({ top: targetScrollTop, behavior: "smooth" });
   }, [anchorNode]);
 

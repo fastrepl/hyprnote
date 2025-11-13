@@ -1,8 +1,9 @@
 import { ArrowUpRight, FileIcon } from "lucide-react";
+import { useCallback } from "react";
 
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
-import { useCallback } from "react";
+
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { useNewNote } from "../../shared";
 import { StandardTabWrapper } from "../index";
@@ -30,7 +31,11 @@ export const TabItemEmpty: TabItem<Extract<Tab, { type: "empty" }>> = ({
   );
 };
 
-export function TabContentEmpty({ tab: _tab }: { tab: Extract<Tab, { type: "empty" }> }) {
+export function TabContentEmpty({
+  tab: _tab,
+}: {
+  tab: Extract<Tab, { type: "empty" }>;
+}) {
   return (
     <StandardTabWrapper>
       <EmptyView />
@@ -41,8 +46,14 @@ export function TabContentEmpty({ tab: _tab }: { tab: Extract<Tab, { type: "empt
 function EmptyView() {
   const newNote = useNewNote({ behavior: "current" });
   const openCurrent = useTabs((state) => state.openCurrent);
-  const openCalendar = useCallback(() => openCurrent({ type: "calendars", month: new Date() }), [openCurrent]);
-  const openContacts = useCallback(() => openCurrent({ type: "contacts" }), [openCurrent]);
+  const openCalendar = useCallback(
+    () => openCurrent({ type: "calendars", month: new Date() }),
+    [openCurrent],
+  );
+  const openContacts = useCallback(
+    () => openCurrent({ type: "contacts" }),
+    [openCurrent],
+  );
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 text-neutral-600">
@@ -75,17 +86,17 @@ function ActionItem({
       ])}
     >
       <span>{label}</span>
-      {shortcut && shortcut.length > 0
-        ? (
-          <KbdGroup>
-            {shortcut.map((key, index) => (
-              <Kbd key={index} className="bg-neutral-200">
-                {key}
-              </Kbd>
-            ))}
-          </KbdGroup>
-        )
-        : <ArrowUpRight className="w-4 h-4 text-neutral-400" />}
+      {shortcut && shortcut.length > 0 ? (
+        <KbdGroup>
+          {shortcut.map((key, index) => (
+            <Kbd key={index} className="bg-neutral-200">
+              {key}
+            </Kbd>
+          ))}
+        </KbdGroup>
+      ) : (
+        <ArrowUpRight className="w-4 h-4 text-neutral-400" />
+      )}
     </button>
   );
 }

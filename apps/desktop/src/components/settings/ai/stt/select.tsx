@@ -1,24 +1,43 @@
-import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
-import { Button } from "@hypr/ui/components/ui/button";
-import { Input } from "@hypr/ui/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
-import { cn } from "@hypr/utils";
-
 import { useForm } from "@tanstack/react-form";
 import { useQueries } from "@tanstack/react-query";
 import { RefreshCwIcon } from "lucide-react";
 import { useCallback } from "react";
 
+import {
+  commands as localSttCommands,
+  type SupportedSttModel,
+} from "@hypr/plugin-local-stt";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@hypr/ui/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
+import { cn } from "@hypr/utils";
+
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
-import { displayModelId, type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
+import {
+  displayModelId,
+  type ProviderId,
+  PROVIDERS,
+  sttModelQueries,
+} from "./shared";
 
 export function SelectProviderAndModel() {
-  const { current_stt_provider, current_stt_model } = useConfigValues(
-    ["current_stt_provider", "current_stt_model"] as const,
-  );
+  const { current_stt_provider, current_stt_model } = useConfigValues([
+    "current_stt_provider",
+    "current_stt_model",
+  ] as const);
   const configuredProviders = useConfiguredMapping();
 
   const handleSelectProvider = main.UI.useSetValueCallback(
@@ -42,7 +61,9 @@ export function SelectProviderAndModel() {
     },
     listeners: {
       onChange: ({ formApi }) => {
-        const { form: { errors } } = formApi.getAllErrors();
+        const {
+          form: { errors },
+        } = formApi.getAllErrors();
         if (errors.length > 0) {
           console.log(errors);
         }
@@ -63,7 +84,9 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-col gap-4",
           "p-4 rounded-lg border border-neutral-200",
-          (!!current_stt_provider && !!current_stt_model) ? "bg-neutral-50" : "bg-red-50",
+          !!current_stt_provider && !!current_stt_model
+            ? "bg-neutral-50"
+            : "bg-red-50",
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -85,18 +108,26 @@ export function SelectProviderAndModel() {
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PROVIDERS.filter(({ disabled }) => !disabled).map((provider) => (
-                      <SelectItem
-                        key={provider.id}
-                        value={provider.id}
-                        disabled={provider.disabled || !(configuredProviders[provider.id]?.configured ?? false)}
-                      >
-                        <div className="flex items-center gap-2">
-                          {provider.icon}
-                          <span>{provider.displayName}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {PROVIDERS.filter(({ disabled }) => !disabled).map(
+                      (provider) => (
+                        <SelectItem
+                          key={provider.id}
+                          value={provider.id}
+                          disabled={
+                            provider.disabled ||
+                            !(
+                              configuredProviders[provider.id]?.configured ??
+                              false
+                            )
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            {provider.icon}
+                            <span>{provider.displayName}</span>
+                          </div>
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -107,13 +138,17 @@ export function SelectProviderAndModel() {
 
           <form.Field name="model">
             {(field) => {
-              const providerId = field.form.getFieldValue("provider") as ProviderId;
+              const providerId = field.form.getFieldValue(
+                "provider",
+              ) as ProviderId;
               if (providerId === "custom") {
                 return (
                   <div className="flex-[3] min-w-0">
                     <Input
                       value={field.state.value}
-                      onChange={(event) => field.handleChange(event.target.value)}
+                      onChange={(event) =>
+                        field.handleChange(event.target.value)
+                      }
                       className="text-xs"
                       placeholder="Enter a model identifier"
                     />
@@ -141,7 +176,11 @@ export function SelectProviderAndModel() {
                     </SelectTrigger>
                     <SelectContent>
                       {models.map((model) => (
-                        <SelectItem key={model.id} value={model.id} disabled={!model.isDownloaded}>
+                        <SelectItem
+                          key={model.id}
+                          value={model.id}
+                          disabled={!model.isDownloaded}
+                        >
                           {displayModelId(model.id)}
                         </SelectItem>
                       ))}
@@ -165,7 +204,10 @@ function useConfiguredMapping(): Record<
     models: Array<{ id: string; isDownloaded: boolean }>;
   }
 > {
-  const configuredProviders = main.UI.useResultTable(main.QUERIES.sttProviders, main.STORE_ID);
+  const configuredProviders = main.UI.useResultTable(
+    main.QUERIES.sttProviders,
+    main.STORE_ID,
+  );
 
   const [p2, p3, tinyEn, smallEn] = useQueries({
     queries: [
@@ -193,7 +235,9 @@ function useConfiguredMapping(): Record<
         ];
       }
 
-      const config = configuredProviders[provider.id] as main.AIProviderStorage | undefined;
+      const config = configuredProviders[provider.id] as
+        | main.AIProviderStorage
+        | undefined;
 
       if (!config) {
         return [provider.id, { configured: false, models: [] }];
@@ -207,7 +251,10 @@ function useConfiguredMapping(): Record<
         provider.id,
         {
           configured: true,
-          models: provider.models.map((model) => ({ id: model, isDownloaded: true })),
+          models: provider.models.map((model) => ({
+            id: model,
+            isDownloaded: true,
+          })),
         },
       ];
     }),
@@ -221,24 +268,29 @@ function useConfiguredMapping(): Record<
 }
 
 function HealthCheck() {
-  const configs = useConfigValues(
-    ["current_stt_provider", "current_stt_model", "spoken_languages"] as const,
-  );
-  const current_stt_provider = configs.current_stt_provider as string | undefined;
+  const configs = useConfigValues([
+    "current_stt_provider",
+    "current_stt_model",
+    "spoken_languages",
+  ] as const);
+  const current_stt_provider = configs.current_stt_provider as
+    | string
+    | undefined;
   const current_stt_model = configs.current_stt_model as string | undefined;
 
   const experimental_handleServer = useCallback(() => {
     if (
-      current_stt_provider === "hyprnote"
-      && current_stt_model
-      && (
-        current_stt_model.startsWith("am-")
-        || current_stt_model.startsWith("Quantized")
-      )
+      current_stt_provider === "hyprnote" &&
+      current_stt_model &&
+      (current_stt_model.startsWith("am-") ||
+        current_stt_model.startsWith("Quantized"))
     ) {
-      localSttCommands.stopServer(null)
+      localSttCommands
+        .stopServer(null)
         .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
-        .then(() => localSttCommands.startServer(current_stt_model as SupportedSttModel))
+        .then(() =>
+          localSttCommands.startServer(current_stt_model as SupportedSttModel),
+        )
         .then(console.log)
         .catch(console.error);
     }
@@ -246,12 +298,11 @@ function HealthCheck() {
 
   const conn = useSTTConnection();
 
-  const isLocalModel = current_stt_provider === "hyprnote"
-    && current_stt_model
-    && (
-      current_stt_model.startsWith("am-")
-      || current_stt_model.startsWith("Quantized")
-    );
+  const isLocalModel =
+    current_stt_provider === "hyprnote" &&
+    current_stt_model &&
+    (current_stt_model.startsWith("am-") ||
+      current_stt_model.startsWith("Quantized"));
 
   if (!isLocalModel) {
     return null;
@@ -304,11 +355,7 @@ function HealthCheck() {
         </TooltipContent>
       </Tooltip>
       {hasServerIssue && (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={experimental_handleServer}
-        >
+        <Button size="sm" variant="ghost" onClick={experimental_handleServer}>
           <RefreshCwIcon size={12} />
           Restart Server
         </Button>

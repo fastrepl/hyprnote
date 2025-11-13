@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
-
 import { Icon } from "@iconify-icon/react";
+
+import { cn } from "@hypr/utils";
 
 export function DownloadButton() {
   return (

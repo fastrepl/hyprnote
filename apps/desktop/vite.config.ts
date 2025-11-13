@@ -1,5 +1,4 @@
 /// <reference types="vitest" />
-
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type UserConfig } from "vite";
@@ -13,21 +12,19 @@ export default defineConfig(() => ({
     react(),
   ],
   resolve: {
-    alias: process.env.NODE_ENV === "development"
-      ? {
-        "@tauri-apps/plugin-updater": "/src/mocks/updater.ts",
-      }
-      : {},
+    alias:
+      process.env.NODE_ENV === "development"
+        ? {
+            "@tauri-apps/plugin-updater": "/src/mocks/updater.ts",
+          }
+        : {},
   },
   test: {
     reporters: "default",
     onConsoleLog: (_, type) => {
       return type === "stderr";
     },
-    exclude: [
-      "**/node_modules/**",
-      "**/src-tauri/**",
-    ],
+    exclude: ["**/node_modules/**", "**/src-tauri/**"],
   },
   ...tauri,
 }));
@@ -41,10 +38,10 @@ const tauri: UserConfig = {
     host: host || false,
     hmr: host
       ? {
-        protocol: "ws",
-        host,
-        port: 1423,
-      }
+          protocol: "ws",
+          host,
+          port: 1423,
+        }
       : undefined,
     watch: {
       ignored: ["**/src-tauri/**"],
@@ -54,7 +51,8 @@ const tauri: UserConfig = {
   build: {
     outDir: "./dist",
     chunkSizeWarningLimit: 500 * 10,
-    target: process.env.TAURI_ENV_PLATFORM == "windows" ? "chrome105" : "safari13",
+    target:
+      process.env.TAURI_ENV_PLATFORM == "windows" ? "chrome105" : "safari13",
     // minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
     minify: false,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,

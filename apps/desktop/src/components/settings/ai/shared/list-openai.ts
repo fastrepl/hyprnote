@@ -1,4 +1,5 @@
 import { Effect, pipe, Schema } from "effect";
+
 import {
   DEFAULT_RESULT,
   fetchJson,
@@ -10,18 +11,23 @@ import {
 } from "./list-common";
 
 const OpenAIModelSchema = Schema.Struct({
-  data: Schema.Array(Schema.Struct({
-    id: Schema.String,
-  })),
+  data: Schema.Array(
+    Schema.Struct({
+      id: Schema.String,
+    }),
+  ),
 });
 
-export async function listOpenAIModels(baseUrl: string, apiKey: string): Promise<ListModelsResult> {
+export async function listOpenAIModels(
+  baseUrl: string,
+  apiKey: string,
+): Promise<ListModelsResult> {
   if (!baseUrl) {
     return DEFAULT_RESULT;
   }
 
   return pipe(
-    fetchJson(`${baseUrl}/models`, { "Authorization": `Bearer ${apiKey}` }),
+    fetchJson(`${baseUrl}/models`, { Authorization: `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
     Effect.map(({ data }) =>
       partition(
@@ -34,7 +40,7 @@ export async function listOpenAIModels(baseUrl: string, apiKey: string): Promise
           return reasons.length > 0 ? reasons : null;
         },
         (model) => model.id,
-      )
+      ),
     ),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
@@ -42,13 +48,16 @@ export async function listOpenAIModels(baseUrl: string, apiKey: string): Promise
   );
 }
 
-export async function listAnthropicModels(baseUrl: string, apiKey: string): Promise<ListModelsResult> {
+export async function listAnthropicModels(
+  baseUrl: string,
+  apiKey: string,
+): Promise<ListModelsResult> {
   if (!baseUrl) {
     return DEFAULT_RESULT;
   }
 
   return pipe(
-    fetchJson(`${baseUrl}/models`, { "Authorization": `Bearer ${apiKey}` }),
+    fetchJson(`${baseUrl}/models`, { Authorization: `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
     Effect.map(({ data }) =>
       partition(
@@ -61,7 +70,7 @@ export async function listAnthropicModels(baseUrl: string, apiKey: string): Prom
           return reasons.length > 0 ? reasons : null;
         },
         (model) => model.id,
-      )
+      ),
     ),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
@@ -69,13 +78,16 @@ export async function listAnthropicModels(baseUrl: string, apiKey: string): Prom
   );
 }
 
-export async function listGenericModels(baseUrl: string, apiKey: string): Promise<ListModelsResult> {
+export async function listGenericModels(
+  baseUrl: string,
+  apiKey: string,
+): Promise<ListModelsResult> {
   if (!baseUrl) {
     return DEFAULT_RESULT;
   }
 
   return pipe(
-    fetchJson(`${baseUrl}/models`, { "Authorization": `Bearer ${apiKey}` }),
+    fetchJson(`${baseUrl}/models`, { Authorization: `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
     Effect.map(({ data }) =>
       partition(
@@ -88,7 +100,7 @@ export async function listGenericModels(baseUrl: string, apiKey: string): Promis
           return reasons.length > 0 ? reasons : null;
         },
         (model) => model.id,
-      )
+      ),
     ),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),

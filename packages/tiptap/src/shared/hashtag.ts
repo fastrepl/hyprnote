@@ -24,7 +24,7 @@ export function extractHashtags(content: string): string[] {
 
   getTextNodes(tempDiv);
 
-  textNodes.forEach(node => {
+  textNodes.forEach((node) => {
     const text = node.textContent || "";
 
     HASHTAG_REGEX.lastIndex = 0;

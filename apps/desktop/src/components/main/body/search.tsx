@@ -1,11 +1,11 @@
-import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
-import { cn } from "@hypr/utils";
-
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { Loader2Icon, SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { cn } from "@hypr/utils";
+
 import { useSearch } from "../../../contexts/search/ui";
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
 
@@ -47,7 +47,12 @@ export function Search() {
   };
 
   if (shouldShowExpanded) {
-    return <ExpandedSearch onFocus={handleExpandedFocus} onBlur={handleExpandedBlur} />;
+    return (
+      <ExpandedSearch
+        onFocus={handleExpandedFocus}
+        onBlur={handleExpandedBlur}
+      />
+    );
   }
 
   return <CollapsedSearch onClick={handleCollapsedClick} />;
@@ -64,14 +69,22 @@ function CollapsedSearch({ onClick }: { onClick: () => void }) {
       variant="ghost"
       className="text-neutral-400"
     >
-      {showLoading
-        ? <Loader2Icon className="size-4 animate-spin" />
-        : <SearchIcon className="size-4" />}
+      {showLoading ? (
+        <Loader2Icon className="size-4 animate-spin" />
+      ) : (
+        <SearchIcon className="size-4" />
+      )}
     </Button>
   );
 }
 
-function ExpandedSearch({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => void }) {
+function ExpandedSearch({
+  onFocus,
+  onBlur,
+}: {
+  onFocus?: () => void;
+  onBlur?: () => void;
+}) {
   const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
   const isCmdPressed = useCmdKeyPressed();
@@ -81,7 +94,11 @@ function ExpandedSearch({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: ()
   const showShortcut = isCmdPressed && !query;
 
   // On narrow screens, always show the focused width when expanded
-  const width = hasSpace ? (isFocused ? "w-[250px]" : "w-[180px]") : "w-[250px]";
+  const width = hasSpace
+    ? isFocused
+      ? "w-[250px]"
+      : "w-[180px]"
+    : "w-[250px]";
 
   return (
     <div
@@ -92,9 +109,17 @@ function ExpandedSearch({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: ()
       ])}
     >
       <div className="relative flex items-center w-full h-full">
-        {showLoading
-          ? <Loader2Icon className={cn(["h-4 w-4 absolute left-3 text-neutral-400 animate-spin"])} />
-          : <SearchIcon className={cn(["h-4 w-4 absolute left-3 text-neutral-400"])} />}
+        {showLoading ? (
+          <Loader2Icon
+            className={cn([
+              "h-4 w-4 absolute left-3 text-neutral-400 animate-spin",
+            ])}
+          />
+        ) : (
+          <SearchIcon
+            className={cn(["h-4 w-4 absolute left-3 text-neutral-400"])}
+          />
+        )}
         <input
           ref={inputRef}
           type="text"

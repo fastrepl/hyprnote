@@ -10,15 +10,29 @@ export function useTemplateNavigation() {
 
   const setRow = main.UI.useSetRowCallback(
     "templates",
-    (p: { id: string; user_id: string; created_at: string; title: string; description: string; sections: any[] }) =>
-      p.id,
-    (p: { id: string; user_id: string; created_at: string; title: string; description: string; sections: any[] }) => ({
-      user_id: p.user_id,
-      created_at: p.created_at,
-      title: p.title,
-      description: p.description,
-      sections: JSON.stringify(p.sections),
-    } satisfies main.TemplateStorage),
+    (p: {
+      id: string;
+      user_id: string;
+      created_at: string;
+      title: string;
+      description: string;
+      sections: any[];
+    }) => p.id,
+    (p: {
+      id: string;
+      user_id: string;
+      created_at: string;
+      title: string;
+      description: string;
+      sections: any[];
+    }) =>
+      ({
+        user_id: p.user_id,
+        created_at: p.created_at,
+        title: p.title,
+        description: p.description,
+        sections: JSON.stringify(p.sections),
+      }) satisfies main.TemplateStorage,
     [],
     main.STORE_ID,
   );
@@ -27,9 +41,12 @@ export function useTemplateNavigation() {
     navigate({ search: (prev) => ({ ...prev, templateId: undefined }) });
   }, [navigate]);
 
-  const goToEdit = useCallback((id: string) => {
-    navigate({ search: (prev) => ({ ...prev, templateId: id }) });
-  }, [navigate]);
+  const goToEdit = useCallback(
+    (id: string) => {
+      navigate({ search: (prev) => ({ ...prev, templateId: id }) });
+    },
+    [navigate],
+  );
 
   const createAndEdit = useCallback(() => {
     if (!user_id) {
@@ -52,7 +69,11 @@ export function useTemplateNavigation() {
   }, [user_id, setRow, navigate]);
 
   const cloneAndEdit = useCallback(
-    (template: { title: string; description: string; sections: main.TemplateSection[] }) => {
+    (template: {
+      title: string;
+      description: string;
+      sections: main.TemplateSection[];
+    }) => {
       if (!user_id) {
         return;
       }
@@ -91,13 +112,16 @@ export function normalizeTemplateWithId(id: string, template: unknown) {
 }
 
 export function normalizeTemplatePayload(template: unknown): main.Template {
-  const record = (template && typeof template === "object" ? template : {}) as Record<string, unknown>;
+  const record = (
+    template && typeof template === "object" ? template : {}
+  ) as Record<string, unknown>;
 
   const base = {
     user_id: typeof record.user_id === "string" ? record.user_id : "",
     created_at: typeof record.created_at === "string" ? record.created_at : "",
     title: typeof record.title === "string" ? record.title : "",
-    description: typeof record.description === "string" ? record.description : "",
+    description:
+      typeof record.description === "string" ? record.description : "",
     sections: normalizeSections(record.sections),
   };
 
@@ -118,7 +142,9 @@ export function filterTemplatesByQuery(
     const title = template.title?.toLowerCase() ?? "";
     const description = template.description?.toLowerCase() ?? "";
 
-    return title.includes(normalizedQuery) || description.includes(normalizedQuery);
+    return (
+      title.includes(normalizedQuery) || description.includes(normalizedQuery)
+    );
   });
 }
 
@@ -139,10 +165,13 @@ function normalizeSections(source: unknown): main.TemplateSection[] {
 }
 
 function normalizeSection(section: unknown): main.TemplateSection {
-  const record = (section && typeof section === "object" ? section : {}) as Record<string, unknown>;
+  const record = (
+    section && typeof section === "object" ? section : {}
+  ) as Record<string, unknown>;
 
   return {
     title: typeof record.title === "string" ? record.title : "",
-    description: typeof record.description === "string" ? record.description : "",
+    description:
+      typeof record.description === "string" ? record.description : "",
   };
 }

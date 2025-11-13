@@ -16,7 +16,9 @@ const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
 );
 
-const verifyStripeWebhook = createMiddleware<{ Variables: { stripeEvent: Stripe.Event } }>(async (c, next) => {
+const verifyStripeWebhook = createMiddleware<{
+  Variables: { stripeEvent: Stripe.Event };
+}>(async (c, next) => {
   const signature = c.req.header("Stripe-Signature");
 
   if (!signature) {
@@ -52,9 +54,17 @@ app.post("/webhook", verifyStripeWebhook, async (c) => {
 
   const userId = eventData.metadata?.user_id;
 
-  if (userId && (eventType.startsWith("customer.") || eventType.startsWith("customer.subscription."))) {
-    const customerId = "customer" in eventData ? eventData.customer as string : eventData.id;
-    const subscriptionId = "object" in eventData && eventData.object === "subscription" ? eventData.id : null;
+  if (
+    userId &&
+    (eventType.startsWith("customer.") ||
+      eventType.startsWith("customer.subscription."))
+  ) {
+    const customerId =
+      "customer" in eventData ? (eventData.customer as string) : eventData.id;
+    const subscriptionId =
+      "object" in eventData && eventData.object === "subscription"
+        ? eventData.id
+        : null;
 
     const updateData: {
       stripe_customer_id?: string;
@@ -74,7 +84,10 @@ app.post("/webhook", verifyStripeWebhook, async (c) => {
       .eq("user_id", userId);
 
     if (error) {
-      console.error(`[STRIPE WEBHOOK] Failed to update billings for user ${userId}:`, error);
+      console.error(
+        `[STRIPE WEBHOOK] Failed to update billings for user ${userId}:`,
+        error,
+      );
       return c.json({ error: error.message }, 500);
     }
 

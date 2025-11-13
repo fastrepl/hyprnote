@@ -1,3 +1,5 @@
+import { Fragment, useCallback, useMemo } from "react";
+
 import {
   ContextMenu,
   ContextMenuContent,
@@ -5,7 +7,7 @@ import {
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
-import { Fragment, useCallback, useMemo } from "react";
+
 import { SegmentWord } from "../../../../../../../utils/segment";
 import { useTranscriptSearch } from "../search-context";
 import { Operations } from "./operations";
@@ -23,7 +25,8 @@ export function WordSpan({
   operations?: Operations;
   onClickWord: (word: SegmentWord) => void;
 }) {
-  const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
+  const mode =
+    operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
   const { segments, isActive } = useTranscriptSearchHighlights(word);
   const hasMatch = segments.some((segment) => segment.isMatch);
 
@@ -31,13 +34,16 @@ export function WordSpan({
     const baseKey = word.id ?? word.text ?? "word";
 
     return segments.map((piece, index) =>
-      piece.isMatch
-        ? (
-          <span key={`${baseKey}-match-${index}`} className={isActive ? "bg-yellow-500" : "bg-yellow-200/50"}>
-            {piece.text}
-          </span>
-        )
-        : <Fragment key={`${baseKey}-text-${index}`}>{piece.text}</Fragment>
+      piece.isMatch ? (
+        <span
+          key={`${baseKey}-match-${index}`}
+          className={isActive ? "bg-yellow-500" : "bg-yellow-200/50"}
+        >
+          {piece.text}
+        </span>
+      ) : (
+        <Fragment key={`${baseKey}-text-${index}`}>{piece.text}</Fragment>
+      ),
     );
   }, [segments, isActive, word.id, word.text]);
 
@@ -57,7 +63,11 @@ export function WordSpan({
     return (
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <span onClick={handleClick} className={className} data-word-id={word.id}>
+          <span
+            onClick={handleClick}
+            className={className}
+            data-word-id={word.id}
+          >
             {content}
           </span>
         </ContextMenuTrigger>

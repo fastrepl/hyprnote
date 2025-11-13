@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
-
 import { useMemo, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
 import { ColumnHeader, getInitials, type SortOption } from "./shared";
@@ -15,7 +15,8 @@ export function PeopleColumn({
   setSelectedPerson: (id: string | null) => void;
 }) {
   const [searchValue, setSearchValue] = useState("");
-  const { humanIds, sortOption, setSortOption } = useSortedHumanIds(currentOrgId);
+  const { humanIds, sortOption, setSortOption } =
+    useSortedHumanIds(currentOrgId);
 
   const allHumans = main.UI.useTable("humans", main.STORE_ID);
 
@@ -103,19 +104,20 @@ export function useSortedHumanIds(currentOrgId?: string | null) {
 
   const humanIds = currentOrgId
     ? (sortOption === "alphabetical"
+        ? allAlphabeticalIds
+        : sortOption === "reverse-alphabetical"
+          ? allReverseAlphabeticalIds
+          : sortOption === "newest"
+            ? allNewestIds
+            : allOldestIds
+      ).filter((id) => thisOrgHumanIds.includes(id))
+    : sortOption === "alphabetical"
       ? allAlphabeticalIds
       : sortOption === "reverse-alphabetical"
-      ? allReverseAlphabeticalIds
-      : sortOption === "newest"
-      ? allNewestIds
-      : allOldestIds).filter((id) => thisOrgHumanIds.includes(id))
-    : (sortOption === "alphabetical"
-      ? allAlphabeticalIds
-      : sortOption === "reverse-alphabetical"
-      ? allReverseAlphabeticalIds
-      : sortOption === "newest"
-      ? allNewestIds
-      : allOldestIds);
+        ? allReverseAlphabeticalIds
+        : sortOption === "newest"
+          ? allNewestIds
+          : allOldestIds;
 
   return { humanIds, sortOption, setSortOption };
 }
@@ -147,9 +149,17 @@ function PersonItem({
       <div className="flex-1 min-w-0">
         <div className="font-medium truncate flex items-center gap-1">
           {person.name || person.email || "Unnamed"}
-          {person.is_user && <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">You</span>}
+          {person.is_user && (
+            <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
+              You
+            </span>
+          )}
         </div>
-        {person.email && person.name && <div className="text-xs text-neutral-500 truncate">{person.email}</div>}
+        {person.email && person.name && (
+          <div className="text-xs text-neutral-500 truncate">
+            {person.email}
+          </div>
+        )}
       </div>
     </button>
   );

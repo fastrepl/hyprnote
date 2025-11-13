@@ -3,17 +3,18 @@ import { faker } from "@faker-js/faker";
 import type { WordStorage } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
-const selectWeighted = <T>(choices: Array<{ weight: number; value: T }>): T =>
+const selectWeighted = <T,>(choices: Array<{ weight: number; value: T }>): T =>
   faker.helpers.weightedArrayElement(choices);
 
 const appendPhrase = (target: string[], phrase: string) => {
   phrase
     .split(/\s+/)
     .filter(Boolean)
-    .forEach(piece => target.push(piece));
+    .forEach((piece) => target.push(piece));
 };
 
-const sanitizeWord = (raw: string) => raw.replace(/^[^A-Za-z0-9'-]+/, "").replace(/[^A-Za-z0-9'-]+$/, "");
+const sanitizeWord = (raw: string) =>
+  raw.replace(/^[^A-Za-z0-9'-]+/, "").replace(/[^A-Za-z0-9'-]+$/, "");
 
 const durationForWord = (text: string) => {
   const base = faker.number.int({ min: 110, max: 260 });
@@ -61,11 +62,17 @@ const generateSentence = () => {
       { weight: 25, value: { min: 16, max: 22 } },
       { weight: 10, value: { min: 23, max: 30 } },
     ]);
-    appendPhrase(sentenceWords, faker.lorem.words(faker.number.int(lengthRange)));
+    appendPhrase(
+      sentenceWords,
+      faker.lorem.words(faker.number.int(lengthRange)),
+    );
 
     if (faker.datatype.boolean({ probability: 0.35 })) {
       appendPhrase(sentenceWords, faker.helpers.arrayElement(bridges));
-      appendPhrase(sentenceWords, faker.lorem.words(faker.number.int({ min: 3, max: 8 })));
+      appendPhrase(
+        sentenceWords,
+        faker.lorem.words(faker.number.int({ min: 3, max: 8 })),
+      );
     }
   }
 
@@ -92,7 +99,11 @@ export const generateTranscript = () => {
       { weight: 10, value: faker.number.int({ min: 9, max: 10 }) },
     ]);
 
-    for (let sentenceIndex = 0; sentenceIndex < sentenceCount; sentenceIndex++) {
+    for (
+      let sentenceIndex = 0;
+      sentenceIndex < sentenceCount;
+      sentenceIndex++
+    ) {
       const sentenceWords = generateSentence();
 
       for (const raw of sentenceWords) {

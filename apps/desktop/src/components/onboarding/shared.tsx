@@ -1,7 +1,7 @@
-import { Button } from "@hypr/ui/components/ui/button";
-
 import { ArrowRightIcon, CheckIcon } from "lucide-react";
 import type { ReactNode } from "react";
+
+import { Button } from "@hypr/ui/components/ui/button";
 
 export type OnboardingNext = (params?: { local?: boolean }) => void;
 
@@ -18,17 +18,22 @@ type OnboardingContainerProps = {
   children: ReactNode;
 };
 
-export function OnboardingContainer({ title, description, action, children }: OnboardingContainerProps) {
+export function OnboardingContainer({
+  title,
+  description,
+  action,
+  children,
+}: OnboardingContainerProps) {
   return (
     <>
       <div className="space-y-3 text-center mb-8">
         <h1 className="text-xl font-semibold text-neutral-900">{title}</h1>
-        {description && <p className="text-base text-neutral-500">{description}</p>}
+        {description && (
+          <p className="text-base text-neutral-500">{description}</p>
+        )}
       </div>
 
-      <div className="flex flex-col gap-6 w-full max-w-md">
-        {children}
-      </div>
+      <div className="flex flex-col gap-6 w-full max-w-md">{children}</div>
 
       {action && !action.hide && (
         <button
@@ -50,7 +55,13 @@ type IntegrationRowProps = {
   disabled?: boolean;
 };
 
-export function IntegrationRow({ icon, name, onConnect, connected = false, disabled = false }: IntegrationRowProps) {
+export function IntegrationRow({
+  icon,
+  name,
+  onConnect,
+  connected = false,
+  disabled = false,
+}: IntegrationRowProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -65,7 +76,11 @@ export function IntegrationRow({ icon, name, onConnect, connected = false, disab
         disabled={disabled || connected}
         className="h-8 w-8"
       >
-        {connected ? <CheckIcon className="h-5 w-5" /> : <ArrowRightIcon className="h-5 w-5" />}
+        {connected ? (
+          <CheckIcon className="h-5 w-5" />
+        ) : (
+          <ArrowRightIcon className="h-5 w-5" />
+        )}
       </Button>
     </div>
   );

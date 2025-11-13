@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
+
 import * as main from "../../../store/tinybase/main";
 import { SectionsList } from "./sections";
 import { normalizeTemplatePayload } from "./utils";
@@ -13,11 +14,12 @@ export function TemplateEditor({ id }: { id: string }) {
   const handleUpdate = main.UI.useSetPartialRowCallback(
     "templates",
     id,
-    (row: Partial<main.Template>) => ({
-      ...row,
-      sections: row.sections ? JSON.stringify(row.sections) : undefined,
-      targets: row.targets ? JSON.stringify(row.targets) : undefined,
-    } satisfies Partial<main.TemplateStorage>),
+    (row: Partial<main.Template>) =>
+      ({
+        ...row,
+        sections: row.sections ? JSON.stringify(row.sections) : undefined,
+        targets: row.targets ? JSON.stringify(row.targets) : undefined,
+      }) satisfies Partial<main.TemplateStorage>,
     [id],
     main.STORE_ID,
   );
@@ -31,7 +33,9 @@ export function TemplateEditor({ id }: { id: string }) {
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {
-          const { form: { errors } } = formApi.getAllErrors();
+          const {
+            form: { errors },
+          } = formApi.getAllErrors();
           if (errors.length === 0) {
             formApi.handleSubmit();
           }

@@ -1,9 +1,9 @@
+import { Icon } from "@iconify-icon/react";
+import { Calendar, Plus } from "lucide-react";
+
 import { OutlookIcon } from "@hypr/ui/components/icons/outlook";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Checkbox } from "@hypr/ui/components/ui/checkbox";
-
-import { Icon } from "@iconify-icon/react";
-import { Calendar, Plus } from "lucide-react";
 
 import { ConnectedServiceCard } from "./shared";
 
@@ -39,9 +39,7 @@ const MOCK_ACCOUNTS: CalendarAccount[] = [
     provider: "icloud",
     email: "john@icloud.com",
     connectedAt: "2024-09-20T14:15:00Z",
-    calendars: [
-      { id: "cal-4", name: "personal", enabled: true },
-    ],
+    calendars: [{ id: "cal-4", name: "personal", enabled: true }],
   },
 ];
 
@@ -105,26 +103,24 @@ export function SettingsCalendar() {
         </div>
 
         <div className="space-y-6">
-          {accounts.length === 0
-            ? (
-              <div className="text-center py-12 text-neutral-500">
-                <Calendar size={48} className="mx-auto mb-4 text-neutral-300" />
-                <p className="text-sm">No calendar accounts connected</p>
-                <p className="text-xs text-neutral-400 mt-1">
-                  Add an account to sync your calendar events
-                </p>
-              </div>
-            )
-            : (
-              accounts.map((account) => (
-                <CalendarAccountSection
-                  key={account.id}
-                  account={account}
-                  onToggleCalendar={handleToggleCalendar}
-                  onRemoveAccount={handleRemoveAccount}
-                />
-              ))
-            )}
+          {accounts.length === 0 ? (
+            <div className="text-center py-12 text-neutral-500">
+              <Calendar size={48} className="mx-auto mb-4 text-neutral-300" />
+              <p className="text-sm">No calendar accounts connected</p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Add an account to sync your calendar events
+              </p>
+            </div>
+          ) : (
+            accounts.map((account) => (
+              <CalendarAccountSection
+                key={account.id}
+                account={account}
+                onToggleCalendar={handleToggleCalendar}
+                onRemoveAccount={handleRemoveAccount}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -167,8 +163,9 @@ function CalendarAccountSection({
       disconnectDialogTitle="Disconnect Calendar Account?"
       disconnectDialogDescription={
         <>
-          Are you sure you want to disconnect <strong>{account.email}</strong> from{" "}
-          {getProviderName(account.provider)}? Your calendar events will no longer sync with Hyprnote.
+          Are you sure you want to disconnect <strong>{account.email}</strong>{" "}
+          from {getProviderName(account.provider)}? Your calendar events will no
+          longer sync with Hyprnote.
         </>
       }
     >

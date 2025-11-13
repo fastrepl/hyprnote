@@ -1,8 +1,13 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
-import { cn } from "@hypr/utils";
-
 import { useForm } from "@tanstack/react-form";
 import { useEffect } from "react";
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@hypr/ui/components/ui/accordion";
+import { cn } from "@hypr/utils";
 
 import { aiProviderSchema } from "../../../../store/tinybase/main";
 import * as main from "../../../../store/tinybase/main";
@@ -17,22 +22,25 @@ export function ConfigureProviders() {
         <HyprProviderCard
           providerId="hyprnote"
           providerName="Hyprnote"
-          icon={<img src="/assets/icon.png" alt="Hyprnote" className="size-5" />}
+          icon={
+            <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
+          }
         />
-        {PROVIDERS
-          .filter((provider) => provider.id !== "hyprnote")
-          .map((provider) => (
-            <NonHyprProviderCard
-              key={provider.id}
-              config={provider}
-            />
-          ))}
+        {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
+          (provider) => (
+            <NonHyprProviderCard key={provider.id} config={provider} />
+          ),
+        )}
       </Accordion>
     </div>
   );
 }
 
-function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
+function NonHyprProviderCard({
+  config,
+}: {
+  config: (typeof PROVIDERS)[number];
+}) {
   const [provider, setProvider] = useProvider(config.id);
 
   useEffect(() => {
@@ -47,8 +55,9 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
-    defaultValues: provider
-      ?? ({
+    defaultValues:
+      provider ??
+      ({
         type: "llm",
         base_url: config.baseUrl ?? "",
         api_key: "",
@@ -56,7 +65,9 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {
-          const { form: { errors } } = formApi.getAllErrors();
+          const {
+            form: { errors },
+          } = formApi.getAllErrors();
           if (errors.length > 0) {
             console.log(errors);
           }
@@ -91,11 +102,7 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
           {!config.baseUrl && (
             <form.Field name="base_url">
               {(field) => (
-                <FormField
-                  field={field}
-                  label="Base URL"
-                  icon="mdi:web"
-                />
+                <FormField field={field} label="Base URL" icon="mdi:web" />
               )}
             </form.Field>
           )}
@@ -120,11 +127,7 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
               <div className="mt-4">
                 <form.Field name="base_url">
                   {(field) => (
-                    <FormField
-                      field={field}
-                      label="Base URL"
-                      icon="mdi:web"
-                    />
+                    <FormField field={field} label="Base URL" icon="mdi:web" />
                   )}
                 </form.Field>
               </div>
@@ -136,17 +139,15 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
   );
 }
 
-function HyprProviderCard(
-  {
-    providerId,
-    providerName,
-    icon,
-  }: {
-    providerId: ProviderId;
-    providerName: string;
-    icon: React.ReactNode;
-  },
-) {
+function HyprProviderCard({
+  providerId,
+  providerName,
+  icon,
+}: {
+  providerId: ProviderId;
+  providerName: string;
+  icon: React.ReactNode;
+}) {
   return (
     <AccordionItem
       value={providerId}
@@ -169,15 +170,16 @@ function HyprProviderCard(
 }
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
-  const content = providerId === "hyprnote"
-    ? "The Hyprnote team continuously tests different models to provide the **best performance & reliability.**"
-    : providerId === "lmstudio"
-    ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config."
-    : providerId === "custom"
-    ? "We only support **OpenAI compatible** endpoints for now."
-    : providerId === "openrouter"
-    ? "We filter out models from the combobox based on heuristics like **input modalities** and **tool support**."
-    : "";
+  const content =
+    providerId === "hyprnote"
+      ? "The Hyprnote team continuously tests different models to provide the **best performance & reliability.**"
+      : providerId === "lmstudio"
+        ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config."
+        : providerId === "custom"
+          ? "We only support **OpenAI compatible** endpoints for now."
+          : providerId === "openrouter"
+            ? "We filter out models from the combobox based on heuristics like **input modalities** and **tool support**."
+            : "";
 
   if (!content) {
     return null;

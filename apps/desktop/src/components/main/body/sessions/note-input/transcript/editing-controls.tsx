@@ -1,27 +1,29 @@
-import { cn } from "@hypr/utils";
-
 import { ChevronDownIcon, RefreshCcwIcon } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
+import { cn } from "@hypr/utils";
+
 import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
 import { useListener } from "../../../../../../contexts/listener";
 import { useRunBatch } from "../../../../../../hooks/useRunBatch";
 import * as main from "../../../../../../store/tinybase/main";
 
-export function EditingControls(
-  {
-    sessionId,
-    isEditing,
-    setIsEditing,
-  }: {
-    sessionId: string;
-    isEditing: boolean;
-    setIsEditing: (isEditing: boolean) => void;
-  },
-) {
+export function EditingControls({
+  sessionId,
+  isEditing,
+  setIsEditing,
+}: {
+  sessionId: string;
+  isEditing: boolean;
+  setIsEditing: (isEditing: boolean) => void;
+}) {
   const { audioExists } = useAudioPlayer();
   const isBatchProcessing = useListener((state) => sessionId in state.batch);
   const store = main.UI.useStore(main.STORE_ID);
@@ -43,7 +45,10 @@ export function EditingControls(
 
       const result = await miscCommands.audioPath(sessionId);
       if (result.status === "error") {
-        console.error("[redo_transcript] failed to retrieve audio path", result.error);
+        console.error(
+          "[redo_transcript] failed to retrieve audio path",
+          result.error,
+        );
         return;
       }
 
@@ -59,7 +64,15 @@ export function EditingControls(
     } finally {
       setIsRedoing(false);
     }
-  }, [audioExists, clearTranscriptData, isBatchProcessing, runBatch, sessionId, setIsEditing, store]);
+  }, [
+    audioExists,
+    clearTranscriptData,
+    isBatchProcessing,
+    runBatch,
+    sessionId,
+    setIsEditing,
+    store,
+  ]);
 
   const [open, setOpen] = useState(false);
   const {
@@ -77,76 +90,76 @@ export function EditingControls(
     handleRedoTranscript();
   }, [handleRedoTranscript]);
 
-  const viewModeControls = audioExists
-    ? (
-      <div className="relative flex items-center">
-        <button
-          onClick={handleEdit}
-          className={cn([
-            "px-3 py-0.5 pr-8 rounded text-xs",
-            "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
-            "transition-colors",
-          ])}
-        >
-          Edit
-        </button>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn([
-                "absolute right-0.5 top-1/2 -translate-y-1/2 z-10",
-                "h-6 w-6 rounded hover:bg-neutral-300/50 transition-colors",
-                "text-neutral-600 hover:text-neutral-900",
-                open ? "bg-neutral-300/50 text-neutral-900" : null,
-              ])}
-            >
-              <ChevronDownIcon
-                className={cn([
-                  "w-4 h-4 transition-transform",
-                  open && "rotate-180",
-                ])}
-              />
-              <span className="sr-only">More options</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent side="bottom" align="end" className="w-auto p-1.5">
-            <div className="flex flex-col gap-1">
-              <button
-                onClick={handleRedoClick}
-                disabled={isBatchProcessing || isRedoing}
-                className={cn([
-                  "flex items-center gap-2 h-9 px-3 whitespace-nowrap rounded text-sm",
-                  "text-left",
-                  isBatchProcessing || isRedoing
-                    ? "text-neutral-400 cursor-not-allowed"
-                    : "hover:bg-neutral-100 transition-colors",
-                ])}
-              >
-                <RefreshCcwIcon
-                  size={12}
-                  className={cn([(isBatchProcessing || isRedoing) && "animate-spin"])}
-                />
-                <span className="text-xs">Rerun transcription</span>
-              </button>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-    )
-    : (
+  const viewModeControls = audioExists ? (
+    <div className="relative flex items-center">
       <button
         onClick={handleEdit}
         className={cn([
-          "px-3 py-0.5 rounded text-xs",
+          "px-3 py-0.5 pr-8 rounded text-xs",
           "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
           "transition-colors",
         ])}
       >
         Edit
       </button>
-    );
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn([
+              "absolute right-0.5 top-1/2 -translate-y-1/2 z-10",
+              "h-6 w-6 rounded hover:bg-neutral-300/50 transition-colors",
+              "text-neutral-600 hover:text-neutral-900",
+              open ? "bg-neutral-300/50 text-neutral-900" : null,
+            ])}
+          >
+            <ChevronDownIcon
+              className={cn([
+                "w-4 h-4 transition-transform",
+                open && "rotate-180",
+              ])}
+            />
+            <span className="sr-only">More options</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent side="bottom" align="end" className="w-auto p-1.5">
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={handleRedoClick}
+              disabled={isBatchProcessing || isRedoing}
+              className={cn([
+                "flex items-center gap-2 h-9 px-3 whitespace-nowrap rounded text-sm",
+                "text-left",
+                isBatchProcessing || isRedoing
+                  ? "text-neutral-400 cursor-not-allowed"
+                  : "hover:bg-neutral-100 transition-colors",
+              ])}
+            >
+              <RefreshCcwIcon
+                size={12}
+                className={cn([
+                  (isBatchProcessing || isRedoing) && "animate-spin",
+                ])}
+              />
+              <span className="text-xs">Rerun transcription</span>
+            </button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  ) : (
+    <button
+      onClick={handleEdit}
+      className={cn([
+        "px-3 py-0.5 rounded text-xs",
+        "bg-neutral-100 hover:bg-neutral-200 text-neutral-900",
+        "transition-colors",
+      ])}
+    >
+      Edit
+    </button>
+  );
 
   const editModeControls = (
     <>
@@ -215,17 +228,21 @@ function useTranscriptEditing({
   setIsEditing: (isEditing: boolean) => void;
 }) {
   const checkpoints = main.UI.useCheckpoints(main.STORE_ID);
-  const checkpointIds = main.UI.useCheckpointIds(main.STORE_ID) ?? [[], undefined, []];
+  const checkpointIds = main.UI.useCheckpointIds(main.STORE_ID) ?? [
+    [],
+    undefined,
+    [],
+  ];
   const [, currentId, forwardIds] = checkpointIds;
 
   const baselineIdRef = useRef<string | undefined>(undefined);
 
   const canUndo = useMemo(
     () =>
-      isEditing
-      && !!baselineIdRef.current
-      && !!currentId
-      && currentId !== baselineIdRef.current,
+      isEditing &&
+      !!baselineIdRef.current &&
+      !!currentId &&
+      currentId !== baselineIdRef.current,
     [isEditing, currentId],
   );
 
@@ -251,7 +268,8 @@ function useTranscriptEditing({
       return;
     }
     const [, id] = checkpoints.getCheckpointIds();
-    baselineIdRef.current = id ?? checkpoints.addCheckpoint("transcript_edit:baseline");
+    baselineIdRef.current =
+      id ?? checkpoints.addCheckpoint("transcript_edit:baseline");
     setIsEditing(true);
   }, [checkpoints, setIsEditing]);
 
@@ -311,14 +329,24 @@ function useClearTranscript(sessionId: string) {
 
     store.forEachRow("words", (wordId, _forEachCell) => {
       const transcriptId = store.getCell("words", wordId, "transcript_id");
-      if (typeof transcriptId === "string" && transcriptIdSet.has(transcriptId)) {
+      if (
+        typeof transcriptId === "string" &&
+        transcriptIdSet.has(transcriptId)
+      ) {
         wordIds.push(wordId);
       }
     });
 
     store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
-      const transcriptId = store.getCell("speaker_hints", hintId, "transcript_id");
-      if (typeof transcriptId === "string" && transcriptIdSet.has(transcriptId)) {
+      const transcriptId = store.getCell(
+        "speaker_hints",
+        hintId,
+        "transcript_id",
+      );
+      if (
+        typeof transcriptId === "string" &&
+        transcriptIdSet.has(transcriptId)
+      ) {
         hintIds.push(hintId);
       }
     });

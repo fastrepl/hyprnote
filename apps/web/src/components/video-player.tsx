@@ -1,7 +1,7 @@
-import { cn } from "@hypr/utils";
-
 import MuxPlayer, { type MuxPlayerRefAttributes } from "@mux/mux-player-react";
 import { useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 interface VideoPlayerProps {
   playbackId: string;
@@ -37,7 +37,10 @@ export function VideoPlayer({
 
   return (
     <div
-      className={cn(["relative w-full h-full overflow-hidden group", className])}
+      className={cn([
+        "relative w-full h-full overflow-hidden group",
+        className,
+      ])}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -49,22 +52,24 @@ export function VideoPlayer({
         playsInline
         accentColor="#78716c"
         className="w-full h-full object-cover"
-        style={{
-          "--controls": "none",
-          aspectRatio: "16/9",
-        } as React.CSSProperties}
+        style={
+          {
+            "--controls": "none",
+            aspectRatio: "16/9",
+          } as React.CSSProperties
+        }
       />
 
       {showButtons && showControls && (
         <div
-          className={cn(
-            [
-              "absolute bottom-0 left-0 right-0",
-              "transition-all duration-300 ease-out",
-              "flex gap-0",
-              isHovered ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
-            ],
-          )}
+          className={cn([
+            "absolute bottom-0 left-0 right-0",
+            "transition-all duration-300 ease-out",
+            "flex gap-0",
+            isHovered
+              ? "translate-y-0 opacity-100"
+              : "translate-y-full opacity-0",
+          ])}
         >
           <button
             onClick={(e) => {

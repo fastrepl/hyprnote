@@ -84,7 +84,9 @@ export function createToolRegistry<TTool = any>(): ToolRegistry<TTool> {
 
       const execute = (entry.tool as any)?.execute;
       if (typeof execute !== "function") {
-        throw new Error(`Tool "${key}" in scope "${scope}" does not implement execute()`);
+        throw new Error(
+          `Tool "${key}" in scope "${scope}" does not implement execute()`,
+        );
       }
 
       return await execute(input);

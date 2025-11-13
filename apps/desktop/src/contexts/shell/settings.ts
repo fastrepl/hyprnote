@@ -1,6 +1,7 @@
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { useCallback } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 export function useSettings() {
   const openSettings = useCallback(() => {

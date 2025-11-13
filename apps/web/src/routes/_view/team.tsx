@@ -1,6 +1,7 @@
-import { cn } from "@hypr/utils";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/team")({
   component: Component,
@@ -9,7 +10,8 @@ export const Route = createFileRoute("/_view/team")({
       { title: "Meet the Team - Hyprnote" },
       {
         name: "description",
-        content: "Meet the team behind Hyprnote, building the future of private, local-first notetaking.",
+        content:
+          "Meet the team behind Hyprnote, building the future of private, local-first notetaking.",
       },
     ],
   }),
@@ -28,17 +30,19 @@ function Component() {
               Meet the Team
             </h1>
             <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-              We're a small team passionate about building tools that help people work better while respecting their
-              privacy.
+              We're a small team passionate about building tools that help
+              people work better while respecting their privacy.
             </p>
           </header>
 
           <section className="mb-20">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-serif text-stone-600 mb-4">Built by Fastrepl</h2>
+              <h2 className="text-3xl font-serif text-stone-600 mb-4">
+                Built by Fastrepl
+              </h2>
               <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-                Hyprnote is developed by Fastrepl, a team dedicated to creating productivity tools that prioritize
-                privacy and user experience.
+                Hyprnote is developed by Fastrepl, a team dedicated to creating
+                productivity tools that prioritize privacy and user experience.
               </p>
             </div>
 
@@ -89,10 +93,16 @@ function Component() {
 
           <section className="mb-20">
             <div className="text-center mb-12">
-              <Icon icon="mdi:open-source-initiative" className="text-5xl text-stone-600 mx-auto mb-4" />
-              <h2 className="text-3xl font-serif text-stone-600 mb-4">Open Source</h2>
+              <Icon
+                icon="mdi:open-source-initiative"
+                className="text-5xl text-stone-600 mx-auto mb-4"
+              />
+              <h2 className="text-3xl font-serif text-stone-600 mb-4">
+                Open Source
+              </h2>
               <p className="text-lg text-neutral-600 max-w-2xl mx-auto mb-8">
-                Hyprnote is open source. We believe in transparency and welcome contributions from the community.
+                Hyprnote is open source. We believe in transparency and welcome
+                contributions from the community.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
@@ -126,10 +136,12 @@ function Component() {
           </section>
 
           <section className="text-center bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12">
-            <h2 className="text-3xl font-serif text-stone-600 mb-4">Join Our Community</h2>
+            <h2 className="text-3xl font-serif text-stone-600 mb-4">
+              Join Our Community
+            </h2>
             <p className="text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-              Whether you want to contribute code, share feedback, or just connect with other users, we'd love to have
-              you in our community.
+              Whether you want to contribute code, share feedback, or just
+              connect with other users, we'd love to have you in our community.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
@@ -185,7 +197,9 @@ function TeamMember({
     <div className="p-8 border border-neutral-200 rounded-lg bg-white">
       <div className="mb-4">
         <h3 className="text-2xl font-serif text-stone-600 mb-1">{name}</h3>
-        <p className="text-sm text-neutral-500 uppercase tracking-wider">{role}</p>
+        <p className="text-sm text-neutral-500 uppercase tracking-wider">
+          {role}
+        </p>
       </div>
       <p className="text-neutral-600 mb-6">{bio}</p>
       {links && (

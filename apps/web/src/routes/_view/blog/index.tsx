@@ -1,17 +1,23 @@
-import { cn } from "@hypr/utils";
-
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allArticles, type Article } from "content-collections";
 import { useState } from "react";
+
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/blog/")({
   component: Component,
   head: () => ({
     meta: [
       { title: "Blog - Hyprnote" },
-      { name: "description", content: "Insights, updates, and stories from the Hyprnote team" },
+      {
+        name: "description",
+        content: "Insights, updates, and stories from the Hyprnote team",
+      },
       { property: "og:title", content: "Blog - Hyprnote" },
-      { property: "og:description", content: "Insights, updates, and stories from the Hyprnote team" },
+      {
+        property: "og:description",
+        content: "Insights, updates, and stories from the Hyprnote team",
+      },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/blog" },
     ],
@@ -44,7 +50,9 @@ function Component() {
 function Header() {
   return (
     <header className="mb-16 text-center">
-      <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">Blog</h1>
+      <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">
+        Blog
+      </h1>
       <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
         Insights, updates, and stories from the Hyprnote team
       </p>
@@ -61,7 +69,9 @@ function FeaturedSection({ articles }: { articles: Article[] }) {
     <section className="mb-20">
       <SectionHeader title="Featured" />
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {articles.slice(0, 3).map((article) => <FeaturedCard key={article._meta.filePath} article={article} />)}
+        {articles.slice(0, 3).map((article) => (
+          <FeaturedCard key={article._meta.filePath} article={article} />
+        ))}
       </div>
     </section>
   );
@@ -80,7 +90,9 @@ function AllArticlesSection({ articles }: { articles: Article[] }) {
     <section>
       <SectionHeader title="All" />
       <div className="divide-y divide-neutral-100">
-        {articles.map((article) => <ArticleListItem key={article._meta.filePath} article={article} />)}
+        {articles.map((article) => (
+          <ArticleListItem key={article._meta.filePath} article={article} />
+        ))}
       </div>
     </section>
   );
@@ -102,7 +114,11 @@ function FeaturedCard({ article }: { article: Article }) {
   const displayDate = article.updated || article.created;
 
   return (
-    <Link to="/blog/$slug" params={{ slug: article.slug }} className="group block h-full">
+    <Link
+      to="/blog/$slug"
+      params={{ slug: article.slug }}
+      className="group block h-full"
+    >
       <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-xl transition-all duration-300">
         {hasCoverImage && (
           <ArticleImage
@@ -126,11 +142,7 @@ function FeaturedCard({ article }: { article: Article }) {
             {article.meta_description}
           </p>
 
-          <ArticleFooter
-            author={article.author}
-            date={displayDate}
-            showYear
-          />
+          <ArticleFooter author={article.author} date={displayDate} showYear />
         </div>
       </article>
     </Link>
@@ -141,7 +153,11 @@ function ArticleListItem({ article }: { article: Article }) {
   const displayDate = article.updated || article.created;
 
   return (
-    <Link to="/blog/$slug" params={{ slug: article.slug }} className="group block">
+    <Link
+      to="/blog/$slug"
+      params={{ slug: article.slug }}
+      className="group block"
+    >
       <article className="py-4 hover:bg-stone-50/50 transition-colors duration-200">
         <div className="flex items-center gap-3">
           <span className="text-base font-serif text-stone-600 group-hover:text-stone-800 transition-colors">
@@ -149,7 +165,10 @@ function ArticleListItem({ article }: { article: Article }) {
           </span>
           <span className="text-sm text-neutral-500">by {article.author}</span>
           <div className="h-px flex-1 bg-neutral-200" />
-          <time dateTime={displayDate} className="text-sm text-neutral-500 shrink-0">
+          <time
+            dateTime={displayDate}
+            className="text-sm text-neutral-500 shrink-0"
+          >
             {new Date(displayDate).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -186,12 +205,10 @@ function ArticleImage({
       <img
         src={src}
         alt={alt}
-        className={cn(
-          [
-            "w-full h-full object-cover group-hover:scale-105 transition-all duration-500",
-            isLoaded ? "opacity-100" : "opacity-0",
-          ],
-        )}
+        className={cn([
+          "w-full h-full object-cover group-hover:scale-105 transition-all duration-500",
+          isLoaded ? "opacity-100" : "opacity-0",
+        ])}
         onLoad={onLoad}
         onError={onError}
         loading={loading}

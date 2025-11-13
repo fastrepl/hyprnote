@@ -13,7 +13,8 @@ mcpServer.registerTool(
   "exa-search",
   {
     title: "Exa Web Search",
-    description: "Search the web via Exa and optionally include page text and highlights in results.",
+    description:
+      "Search the web via Exa and optionally include page text and highlights in results.",
     inputSchema: searchAndContentsInputSchema.shape,
   },
   async (args) => {
@@ -36,17 +37,21 @@ mcpServer.registerTool(
   },
 );
 
-mcpServer.registerTool("read-url", {
-  title: "Read URL",
-  description: "Visit a URL and return the content as markdown.",
-  inputSchema: z.object({ url: z.string() }).shape,
-}, async ({ url }) => {
-  const encoded = encodeURIComponent(url);
-  const text = await fetch(`https://r.jina.ai/${encoded}`, {
-    headers: { "Authorization": `Bearer ${env.JINA_API_KEY}` },
-  }).then((res) => res.text());
+mcpServer.registerTool(
+  "read-url",
+  {
+    title: "Read URL",
+    description: "Visit a URL and return the content as markdown.",
+    inputSchema: z.object({ url: z.string() }).shape,
+  },
+  async ({ url }) => {
+    const encoded = encodeURIComponent(url);
+    const text = await fetch(`https://r.jina.ai/${encoded}`, {
+      headers: { Authorization: `Bearer ${env.JINA_API_KEY}` },
+    }).then((res) => res.text());
 
-  return {
-    content: [{ type: "text", text }],
-  };
-});
+    return {
+      content: [{ type: "text", text }],
+    };
+  },
+);

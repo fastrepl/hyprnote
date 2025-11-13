@@ -37,9 +37,15 @@ export const generateEnhancedMarkdown = () => {
   return `${sections.join("\n\n")}`;
 };
 
-export const createSession = (eventId?: string, folderId?: string): { id: string; data: SessionStorage } => {
+export const createSession = (
+  eventId?: string,
+  folderId?: string,
+): { id: string; data: SessionStorage } => {
   const title = generateTitle();
-  const raw_md = faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 }), "\n\n");
+  const raw_md = faker.lorem.paragraphs(
+    faker.number.int({ min: 2, max: 5 }),
+    "\n\n",
+  );
   const enhanced_md = generateEnhancedMarkdown();
 
   return {

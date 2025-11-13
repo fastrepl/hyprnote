@@ -1,8 +1,17 @@
 import { createStore } from "zustand";
 
 import { type BatchActions, type BatchState, createBatchSlice } from "./batch";
-import { createGeneralSlice, type GeneralActions, type GeneralState, type SessionMode } from "./general";
-import { createTranscriptSlice, type TranscriptActions, type TranscriptState } from "./transcript";
+import {
+  createGeneralSlice,
+  type GeneralActions,
+  type GeneralState,
+  type SessionMode,
+} from "./general";
+import {
+  createTranscriptSlice,
+  type TranscriptActions,
+  type TranscriptState,
+} from "./transcript";
 
 type State = GeneralState & TranscriptState & BatchState;
 type Actions = GeneralActions & TranscriptActions & BatchActions;

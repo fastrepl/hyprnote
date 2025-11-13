@@ -5,10 +5,19 @@ import { openPath } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useState } from "react";
 import { useManager } from "tinytick/ui-react";
 
-import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@hypr/ui/components/ui/accordion";
+import {
+  commands as localSttCommands,
+  type SupportedSttModel,
+} from "@hypr/plugin-local-stt";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
+
 import { useListener } from "../../../../contexts/listener";
 import * as main from "../../../../store/tinybase/main";
 import { aiProviderSchema } from "../../../../store/tinybase/main";
@@ -28,28 +37,32 @@ export function ConfigureProviders() {
         <HyprProviderCard
           providerId="hyprnote"
           providerName="Hyprnote"
-          icon={<img src="/assets/icon.png" alt="Hyprnote" className="size-5" />}
+          icon={
+            <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
+          }
         />
-        {PROVIDERS
-          .filter((provider) => provider.id !== "hyprnote")
-          .map((provider) => (
-            <NonHyprProviderCard
-              key={provider.id}
-              config={provider}
-            />
-          ))}
+        {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
+          (provider) => (
+            <NonHyprProviderCard key={provider.id} config={provider} />
+          ),
+        )}
       </Accordion>
     </div>
   );
 }
 
-function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
+function NonHyprProviderCard({
+  config,
+}: {
+  config: (typeof PROVIDERS)[number];
+}) {
   const [provider, setProvider] = useProvider(config.id);
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
-    defaultValues: provider
-      ?? ({
+    defaultValues:
+      provider ??
+      ({
         type: "stt",
         base_url: config.baseUrl ?? "",
         api_key: "",
@@ -57,7 +70,9 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {
-          const { form: { errors } } = formApi.getAllErrors();
+          const {
+            form: { errors },
+          } = formApi.getAllErrors();
           if (errors.length > 0) {
             console.log(errors);
           }
@@ -98,11 +113,7 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
           {!config.baseUrl && (
             <form.Field name="base_url">
               {(field) => (
-                <FormField
-                  field={field}
-                  label="Base URL"
-                  icon="mdi:web"
-                />
+                <FormField field={field} label="Base URL" icon="mdi:web" />
               )}
             </form.Field>
           )}
@@ -125,11 +136,7 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
               <div className="mt-4">
                 <form.Field name="base_url">
                   {(field) => (
-                    <FormField
-                      field={field}
-                      label="Base URL"
-                      icon="mdi:web"
-                    />
+                    <FormField field={field} label="Base URL" icon="mdi:web" />
                   )}
                 </form.Field>
               </div>
@@ -141,17 +148,15 @@ function NonHyprProviderCard({ config }: { config: typeof PROVIDERS[number] }) {
   );
 }
 
-function HyprProviderCard(
-  {
-    providerId,
-    providerName,
-    icon,
-  }: {
-    providerId: ProviderId;
-    providerName: string;
-    icon: React.ReactNode;
-  },
-) {
+function HyprProviderCard({
+  providerId,
+  providerName,
+  icon,
+}: {
+  providerId: ProviderId;
+  providerName: string;
+  icon: React.ReactNode;
+}) {
   return (
     <AccordionItem
       value={providerId}
@@ -260,7 +265,7 @@ function LocalModelAction({
       size="sm"
       className="w-[110px] relative overflow-hidden group"
       variant={isDownloaded ? "outline" : "default"}
-      onClick={isDownloaded ? onOpen : (showProgress ? onCancel : onDownload)}
+      onClick={isDownloaded ? onOpen : showProgress ? onCancel : onDownload}
     >
       {showProgress && (
         <div
@@ -268,34 +273,30 @@ function LocalModelAction({
           style={{ width: `${progress}%` }}
         />
       )}
-      {isDownloaded
-        ? (
-          <>
-            <div className="relative z-10 flex items-center gap-1">
-              <Icon icon="mdi:folder-open" size={16} />
-              <span>Show Model</span>
-            </div>
-          </>
-        )
-        : showProgress
-        ? (
-          <>
-            <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
-              <Icon icon="mdi:loading" size={16} className="animate-spin" />
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <div className="relative z-10 hidden items-center gap-2 group-hover:flex">
-              <Icon icon="mdi:close" size={16} />
-              <span>Cancel</span>
-            </div>
-          </>
-        )
-        : (
-          <div className="relative z-10 flex items-center gap-2">
-            <Icon icon="mdi:download" size={16} />
-            <span>Download</span>
+      {isDownloaded ? (
+        <>
+          <div className="relative z-10 flex items-center gap-1">
+            <Icon icon="mdi:folder-open" size={16} />
+            <span>Show Model</span>
           </div>
-        )}
+        </>
+      ) : showProgress ? (
+        <>
+          <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
+            <Icon icon="mdi:loading" size={16} className="animate-spin" />
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <div className="relative z-10 hidden items-center gap-2 group-hover:flex">
+            <Icon icon="mdi:close" size={16} />
+            <span>Cancel</span>
+          </div>
+        </>
+      ) : (
+        <div className="relative z-10 flex items-center gap-2">
+          <Icon icon="mdi:download" size={16} />
+          <span>Download</span>
+        </div>
+      )}
     </Button>
   );
 }
@@ -311,13 +312,8 @@ function HyprProviderLocalRow({
 }) {
   const handleSelectModel = useSafeSelectModel();
 
-  const {
-    progress,
-    isDownloaded,
-    showProgress,
-    handleDownload,
-    handleCancel,
-  } = useLocalModelDownload(model, handleSelectModel);
+  const { progress, isDownloaded, showProgress, handleDownload, handleCancel } =
+    useLocalModelDownload(model, handleSelectModel);
 
   const handleOpen = () =>
     localSttCommands.modelsDir().then((result) => {
@@ -330,9 +326,7 @@ function HyprProviderLocalRow({
     <HyprProviderRow>
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">{displayName}</span>
-        <span className="text-xs text-neutral-500">
-          {description}
-        </span>
+        <span className="text-xs text-neutral-500">{description}</span>
       </div>
 
       <LocalModelAction
@@ -376,11 +370,21 @@ function useLocalModelDownload(
   useEffect(() => {
     const isNotDownloading = !isDownloading.data;
     const isNotDownloaded = !isDownloaded.data;
-    if (isNotDownloading && isNotDownloaded && taskRunId && !isDownloading.isLoading) {
+    if (
+      isNotDownloading &&
+      isNotDownloaded &&
+      taskRunId &&
+      !isDownloading.isLoading
+    ) {
       setTaskRunId(null);
       setProgress(0);
     }
-  }, [isDownloading.data, isDownloading.isLoading, isDownloaded.data, taskRunId]);
+  }, [
+    isDownloading.data,
+    isDownloading.isLoading,
+    isDownloaded.data,
+    taskRunId,
+  ]);
 
   const handleDownload = () => {
     if (!manager || isDownloaded.data) {
@@ -414,16 +418,17 @@ function useLocalModelDownload(
 }
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
-  const content = providerId === "hyprnote"
-    ? "Hyprnote curates list of on-device models and also cloud models with high-availability and performance."
-    : providerId === "deepgram"
-    ? `Use [Deepgram](https://deepgram.com) for transcriptions. \
+  const content =
+    providerId === "hyprnote"
+      ? "Hyprnote curates list of on-device models and also cloud models with high-availability and performance."
+      : providerId === "deepgram"
+        ? `Use [Deepgram](https://deepgram.com) for transcriptions. \
     If you want to use a [Dedicated](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints)
     or [EU](https://developers.deepgram.com/reference/custom-endpoints#eu-endpoints) endpoint,
     you can do that in the **advanced** section.`
-    : providerId === "custom"
-    ? `We only support **Deepgram compatible** endpoints for now.`
-    : "";
+        : providerId === "custom"
+          ? `We only support **Deepgram compatible** endpoints for now.`
+          : "";
 
   if (!content.trim()) {
     return null;
@@ -442,12 +447,15 @@ function useSafeSelectModel() {
 
   const active = useListener((state) => state.live.status !== "inactive");
 
-  const handler = useCallback((model: SupportedSttModel) => {
-    if (active) {
-      return;
-    }
-    handleSelectModel(model);
-  }, [active, handleSelectModel]);
+  const handler = useCallback(
+    (model: SupportedSttModel) => {
+      if (active) {
+        return;
+      }
+      handleSelectModel(model);
+    },
+    [active, handleSelectModel],
+  );
 
   return handler;
 }

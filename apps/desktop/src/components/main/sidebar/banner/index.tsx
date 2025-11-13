@@ -1,9 +1,8 @@
-import { cn } from "@hypr/utils";
-
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import * as main from "../../../../store/tinybase/main";
@@ -34,16 +33,23 @@ export function BannerArea({
     await auth?.signIn();
   }, [auth]);
 
-  const openSettingsTab = useCallback((tab: "intelligence" | "transcription") => {
-    windowsCommands.windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate({ type: "settings" }, {
-          path: "/app/settings",
-          search: { tab },
-        })
-      );
-  }, []);
+  const openSettingsTab = useCallback(
+    (tab: "intelligence" | "transcription") => {
+      windowsCommands
+        .windowShow({ type: "settings" })
+        .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
+        .then(() =>
+          windowsCommands.windowEmitNavigate(
+            { type: "settings" },
+            {
+              path: "/app/settings",
+              search: { tab },
+            },
+          ),
+        );
+    },
+    [],
+  );
 
   const handleOpenLLMSettings = useCallback(() => {
     openSettingsTab("intelligence");
@@ -86,25 +92,26 @@ export function BannerArea({
 
   return (
     <AnimatePresence mode="wait">
-      {shouldShowBanner && currentBanner
-        ? (
-          <motion.div
-            key={currentBanner.id}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={cn([
-              "absolute bottom-0 left-0 right-0 z-20",
-              "pointer-events-none",
-            ])}
-          >
-            <div className="pointer-events-auto">
-              <Banner banner={currentBanner} onDismiss={currentBanner.dismissible ? handleDismiss : undefined} />
-            </div>
-          </motion.div>
-        )
-        : null}
+      {shouldShowBanner && currentBanner ? (
+        <motion.div
+          key={currentBanner.id}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 16 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className={cn([
+            "absolute bottom-0 left-0 right-0 z-20",
+            "pointer-events-none",
+          ])}
+        >
+          <div className="pointer-events-auto">
+            <Banner
+              banner={currentBanner}
+              onDismiss={currentBanner.dismissible ? handleDismiss : undefined}
+            />
+          </div>
+        </motion.div>
+      ) : null}
     </AnimatePresence>
   );
 }

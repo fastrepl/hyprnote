@@ -1,6 +1,6 @@
-import { cn } from "@hypr/utils";
-
 import * as React from "react";
+
+import { cn } from "@hypr/utils";
 
 interface ModalProps {
   open: boolean;
@@ -62,21 +62,18 @@ export function Modal({
             data-tauri-drag-region
             className="w-full min-h-11"
             onClick={(e) => e.stopPropagation()}
-          >
-          </div>
+          ></div>
         </div>
       )}
       <div
         role="dialog"
         aria-modal="true"
-        className={cn(
-          [
-            "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-            "overflow-clip rounded-lg bg-background shadow-lg",
-            sizeClasses[size],
-            className,
-          ],
-        )}
+        className={cn([
+          "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+          "overflow-clip rounded-lg bg-background shadow-lg",
+          sizeClasses[size],
+          className,
+        ])}
       >
         {children}
       </div>
@@ -114,9 +111,10 @@ interface ModalFooterProps {
 export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
     <div
-      className={cn(
-        ["flex items-center justify-end gap-2 px-6 py-4", className],
-      )}
+      className={cn([
+        "flex items-center justify-end gap-2 px-6 py-4",
+        className,
+      ])}
     >
       {children}
     </div>
@@ -145,5 +143,9 @@ export function ModalDescription({
   children,
   className,
 }: ModalDescriptionProps) {
-  return <p className={cn(["text-sm text-muted-foreground", className])}>{children}</p>;
+  return (
+    <p className={cn(["text-sm text-muted-foreground", className])}>
+      {children}
+    </p>
+  );
 }

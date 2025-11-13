@@ -50,10 +50,7 @@ export function toBoolean(value: unknown): boolean {
 }
 
 export function mergeContent(parts: unknown[]): string {
-  return parts
-    .map(toTrimmedString)
-    .filter(Boolean)
-    .join(" ");
+  return parts.map(toTrimmedString).filter(Boolean).join(" ");
 }
 
 export function flattenTranscript(transcript: unknown): string {
@@ -94,7 +91,9 @@ export function flattenTranscript(transcript: unknown): string {
   }
 
   if (typeof parsed === "object" && parsed !== null) {
-    return mergeContent(Object.values(parsed).map((value) => flattenTranscript(value)));
+    return mergeContent(
+      Object.values(parsed).map((value) => flattenTranscript(value)),
+    );
   }
 
   return "";

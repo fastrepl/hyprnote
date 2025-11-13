@@ -1,10 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { createRootRouteWithContext, Outlet, useNavigate } from "@tanstack/react-router";
+import {
+  createRootRouteWithContext,
+  Outlet,
+  useNavigate,
+} from "@tanstack/react-router";
 import { app } from "@tauri-apps/api";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, Suspense, useEffect } from "react";
 
 import { events as windowsEvents } from "@hypr/plugin-windows";
+
 import { AuthProvider } from "../auth";
 import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
@@ -34,7 +39,9 @@ function DevtoolWrapper() {
     queryFn: () => app.getIdentifier(),
   });
 
-  if (["com.hyprnote.dev", "com.hyprnote.staging"].includes(appIdentifier ?? "")) {
+  if (
+    ["com.hyprnote.dev", "com.hyprnote.staging"].includes(appIdentifier ?? "")
+  ) {
     return <Devtool />;
   }
 
@@ -49,11 +56,14 @@ const useNavigationEvents = () => {
 
     const webview = getCurrentWebviewWindow();
 
-    windowsEvents.navigate(webview).listen(({ payload }) => {
-      navigate({ to: payload.path, search: payload.search ?? undefined });
-    }).then((fn) => {
-      unlisten = fn;
-    });
+    windowsEvents
+      .navigate(webview)
+      .listen(({ payload }) => {
+        navigate({ to: payload.path, search: payload.search ?? undefined });
+      })
+      .then((fn) => {
+        unlisten = fn;
+      });
 
     return () => {
       unlisten?.();
@@ -61,18 +71,19 @@ const useNavigationEvents = () => {
   }, [navigate]);
 };
 
-export const TanStackRouterDevtools = process.env.NODE_ENV === "production"
-  ? () => null
-  : lazy(() =>
-    import("@tanstack/react-router-devtools").then((res) => ({
-      default: (
-        props: React.ComponentProps<typeof res.TanStackRouterDevtools>,
-      ) => <res.TanStackRouterDevtools {...props} />,
-    }))
-  );
+export const TanStackRouterDevtools =
+  process.env.NODE_ENV === "production"
+    ? () => null
+    : lazy(() =>
+        import("@tanstack/react-router-devtools").then((res) => ({
+          default: (
+            props: React.ComponentProps<typeof res.TanStackRouterDevtools>,
+          ) => <res.TanStackRouterDevtools {...props} />,
+        })),
+      );
 
 const Devtool = lazy(() =>
   import("../devtool/index").then(({ Devtool }) => ({
     default: Devtool,
-  }))
+  })),
 );

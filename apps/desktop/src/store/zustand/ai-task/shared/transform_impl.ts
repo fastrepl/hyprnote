@@ -1,22 +1,25 @@
 import type { TextStreamPart, ToolSet } from "ai";
+
 import type { StreamTransform } from "./transform_infra";
 
 function isNonTextChunk<TOOLS extends ToolSet>(
   chunk: TextStreamPart<TOOLS>,
 ): boolean {
   return (
-    chunk.type === "tool-call"
-    || chunk.type === "tool-result"
-    || chunk.type === "tool-error"
-    || chunk.type === "tool-input-start"
-    || chunk.type === "tool-input-delta"
-    || chunk.type === "tool-input-end"
-    || chunk.type === "start-step"
-    || chunk.type === "finish-step"
+    chunk.type === "tool-call" ||
+    chunk.type === "tool-result" ||
+    chunk.type === "tool-error" ||
+    chunk.type === "tool-input-start" ||
+    chunk.type === "tool-input-delta" ||
+    chunk.type === "tool-input-end" ||
+    chunk.type === "start-step" ||
+    chunk.type === "finish-step"
   );
 }
 
-export function addMarkdownSectionSeparators<TOOLS extends ToolSet = ToolSet>(): StreamTransform<TOOLS> {
+export function addMarkdownSectionSeparators<
+  TOOLS extends ToolSet = ToolSet,
+>(): StreamTransform<TOOLS> {
   return () => {
     let consecutiveNewlines = 0;
 

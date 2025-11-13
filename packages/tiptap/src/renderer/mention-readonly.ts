@@ -54,7 +54,7 @@ export const mentionReadonly = Node.create({
   parseHTML() {
     return [
       {
-        tag: "a.mention[data-mention=\"true\"]",
+        tag: 'a.mention[data-mention="true"]',
         getAttrs: (dom: HTMLElement) => {
           const label = dom.getAttribute("data-label") || dom.textContent || "";
           return {

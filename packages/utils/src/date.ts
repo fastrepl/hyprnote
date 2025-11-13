@@ -31,21 +31,37 @@ export * from "date-fns";
 export const formatDate = (date: Date, formatString: string): string => {
   const pad = (n: number) => n.toString().padStart(2, "0");
 
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const replacements: Record<string, string> = {
-    "yyyy": date.getFullYear().toString(),
-    "MMM": months[date.getMonth()],
-    "MM": pad(date.getMonth() + 1),
-    "d": date.getDate().toString(),
-    "dd": pad(date.getDate()),
-    "EEE": days[date.getDay()],
-    "h": (date.getHours() % 12 || 12).toString(),
-    "mm": pad(date.getMinutes()),
-    "a": date.getHours() >= 12 ? "PM" : "AM",
-    "p": `${date.getHours() % 12 || 12}:${pad(date.getMinutes())} ${date.getHours() >= 12 ? "PM" : "AM"}`,
+    yyyy: date.getFullYear().toString(),
+    MMM: months[date.getMonth()],
+    MM: pad(date.getMonth() + 1),
+    d: date.getDate().toString(),
+    dd: pad(date.getDate()),
+    EEE: days[date.getDay()],
+    h: (date.getHours() % 12 || 12).toString(),
+    mm: pad(date.getMinutes()),
+    a: date.getHours() >= 12 ? "PM" : "AM",
+    p: `${date.getHours() % 12 || 12}:${pad(date.getMinutes())} ${date.getHours() >= 12 ? "PM" : "AM"}`,
   };
 
-  return formatString.replace(/yyyy|MMM|MM|dd|EEE|h|mm|a|p|d/g, (token) => replacements[token]);
+  return formatString.replace(
+    /yyyy|MMM|MM|dd|EEE|h|mm|a|p|d/g,
+    (token) => replacements[token],
+  );
 };

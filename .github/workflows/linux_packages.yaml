@@ -26,7 +26,7 @@ env:
 
 jobs:
   build-linux-packages:
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.release && startsWith(github.event.release.tag_name, 'desktop_')) }}
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: write
@@ -53,7 +53,7 @@ jobs:
 
       - name: Validate version
         run: |
-          VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
+          VERSION=$(jq -r '.version' "${{ env.TAURI_CONF_PATH }}")
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG_NAME="${{ github.event.release.tag_name }}"
@@ -101,14 +101,21 @@ jobs:
             sudo apt-get update
 
             # Install ARM64 development libraries
+            # Note: Some ARM64 packages may not be available in all Ubuntu repos
+            # libopenblas-dev:arm64 may fail on some runners, but is required for stt-openblas feature
             sudo apt-get install -y \
               libc6-dev:arm64 \
               libwebkit2gtk-4.1-dev:arm64 \
               libgtk-3-dev:arm64 \
               libssl-dev:arm64 \
               libasound2-dev:arm64 \
-              libpulse-dev:arm64 \
-              libopenblas-dev:arm64 || true
+              libpulse-dev:arm64
+            
+            # Try to install OpenBLAS for ARM64, continue if unavailable
+            sudo apt-get install -y libopenblas-dev:arm64 || {
+              echo "Warning: libopenblas-dev:arm64 not available, build may fail if stt-openblas feature is used"
+              echo "Attempting to continue without ARM64 OpenBLAS..."
+            }
 
             # Set cross-compilation environment
             echo "PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig" >> $GITHUB_ENV
@@ -277,7 +284,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-appimage:
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.release && startsWith(github.event.release.tag_name, 'desktop_')) }}
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: write
@@ -304,7 +311,7 @@ jobs:
 
       - name: Validate version
         run: |
-          VERSION=$(jq -r '.version' ./apps/desktop/src-tauri/tauri.conf.json)
+          VERSION=$(jq -r '.version' "${{ env.TAURI_CONF_PATH }}")
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG_NAME="${{ github.event.release.tag_name }}"

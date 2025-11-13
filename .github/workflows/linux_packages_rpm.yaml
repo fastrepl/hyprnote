@@ -26,7 +26,7 @@ env:
 
 jobs:
   build-rpm:
-    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'desktop_') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.release && startsWith(github.event.release.tag_name, 'desktop_')) }}
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: write
@@ -58,7 +58,8 @@ jobs:
 
       - name: Validate version
         run: |
-          VERSION=$(grep -oP '"version"\s*:\s*"\K[^"]+' ./apps/desktop/src-tauri/tauri.conf.json)
+          # Extract version using jq for robust JSON parsing
+          VERSION=$(jq -r '.version' "${{ env.TAURI_CONF_PATH }}")
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG_NAME="${{ github.event.release.tag_name }}"

@@ -166,7 +166,7 @@ jobs:
           pkgver=${VERSION}
           pkgrel=1
           pkgdesc="AI-powered note-taking and transcription application"
-          arch=('x86_64')
+          arch=("${ARCH}")
           url="https://github.com/different-ai/hyprnote"
           license=('custom')
           depends=(
@@ -238,7 +238,7 @@ jobs:
           if [[ "${{ matrix.arch }}" == "x86_64" ]]; then
             PROTOC_ARCH_NAME="x86_64"
           else
-            PROTOC_ARCH_NAME="aarch_64"
+            PROTOC_ARCH_NAME="aarch64"
           fi
           
           # Run build in Docker container with appropriate platform

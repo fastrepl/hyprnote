@@ -19,9 +19,9 @@ pub const SUPERVISOR_NAME: &str = "stt_supervisor";
 pub async fn spawn_stt_supervisor() -> Result<ActorRef<DynamicSupervisorMsg>, ActorProcessingErr> {
     let options = DynamicSupervisorOptions {
         max_children: Some(1),
-        max_restarts: 5,
-        max_window: Duration::from_secs(5),
-        reset_after: None,
+        max_restarts: 15,
+        max_window: Duration::from_secs(30),
+        reset_after: Some(Duration::from_secs(60)),
     };
 
     let (supervisor_ref, _handle) =
@@ -123,7 +123,7 @@ pub async fn stop_all_stt_servers(
 }
 
 async fn wait_for_actor_shutdown(actor_name: ractor::ActorName) {
-    for _ in 0..20 {
+    for _ in 0..50 {
         if registry::where_is(actor_name.clone()).is_none() {
             break;
         }

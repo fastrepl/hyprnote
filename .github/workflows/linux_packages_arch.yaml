@@ -27,7 +27,7 @@ concurrency:
 
 env:
   RELEASE_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || 'nightly' }}
-  TAURI_CONF_PATH: ${{ (github.event_name == 'workflow_dispatch' && inputs.channel == 'stable') && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.nightly.json' }}
+  TAURI_CONF_PATH: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'stable' && './src-tauri/tauri.conf.stable.json' || './src-tauri/tauri.conf.nightly.json' }}
 
 jobs:
   build-arch-package:

@@ -12,9 +12,9 @@ All three Linux packaging workflows have been reviewed for syntax, configuration
 
 | Workflow | YAML Valid | Configuration | Test Status | Ready to Publish |
 |----------|------------|---------------|-------------|------------------|
-| `linux_packages.yaml` | ✅ Valid | ⚠️ Minor issues | ❌ Not tested | ⚠️ Needs testing |
-| `linux_packages_rpm.yaml` | ✅ Valid | ✅ Good | ❌ Not tested | ⚠️ Needs testing |
-| `linux_packages_arch.yaml` | ✅ Valid | ✅ Fixes applied | ❌ Not tested | ⚠️ Needs testing |
+| `linux_packages.yaml` | ✅ Valid | ✅ Fixes applied | ❌ Not tested | ✅ Ready to test |
+| `linux_packages_rpm.yaml` | ✅ Valid | ✅ Fixes applied | ❌ Not tested | ✅ Ready to test |
+| `linux_packages_arch.yaml` | ✅ Valid | ✅ Fixes applied | ❌ Not tested | ✅ Ready to test |
 
 ## Detailed Findings
 
@@ -22,21 +22,13 @@ All three Linux packaging workflows have been reviewed for syntax, configuration
 
 **YAML Syntax:** ✅ Valid
 
-**Issues Found:**
+**Issues Found:** All fixed ✅
 
-1. **Minor Issue - Silent Failures (Line 111)**
-   ```yaml
-   libopenblas-dev:arm64 || true
-   ```
-   - **Severity:** Low
-   - **Impact:** ARM64 cross-compilation dependencies might fail silently
-   - **Recommendation:** Remove `|| true` and handle errors explicitly
-   - **Fix:** Check if ARM64 libraries are actually required or optional
-
-2. **Configuration Check Needed**
-   - Tauri config path: `./src-tauri/tauri.conf.{stable|nightly}.json`
-   - **Note:** This path is relative to the workspace when using `pnpm -F desktop`
-   - **Status:** Matches `desktop_cd.yaml` pattern - likely correct but untested
+**Fixes Applied:**
+- Added null safety check for `github.event.release` in job conditionals
+- Replaced hardcoded paths with `${{ env.TAURI_CONF_PATH }}`
+- Improved ARM64 OpenBLAS error handling with explicit warning messages
+- Separated required dependencies from optional ones
 
 **Positive Aspects:**
 - Comprehensive testing for x86_64 builds (installation test)
@@ -44,7 +36,7 @@ All three Linux packaging workflows have been reviewed for syntax, configuration
 - Good error handling in most steps
 - Clear separation of DEB and AppImage jobs
 
-**Recommendation:** ⚠️ **Test before publishing** - Remove silent failure handlers
+**Recommendation:** ✅ **Ready to test**
 
 ---
 
@@ -52,7 +44,12 @@ All three Linux packaging workflows have been reviewed for syntax, configuration
 
 **YAML Syntax:** ✅ Valid
 
-**Issues Found:** None
+**Issues Found:** All fixed ✅
+
+**Fixes Applied:**
+- Added null safety check for `github.event.release` in job conditional
+- Replaced grep regex with `jq -r '.version' "${{ env.TAURI_CONF_PATH }}"`
+- Consistent use of TAURI_CONF_PATH environment variable
 
 **Configuration:**
 - Uses Fedora 40 container - ✅ Good choice (recent, stable)
@@ -66,7 +63,7 @@ All three Linux packaging workflows have been reviewed for syntax, configuration
 - Good test coverage (x86_64 installation test)
 - ARM64 verification using rpm2cpio
 
-**Recommendation:** ✅ **Ready to test** - No blocking issues found
+**Recommendation:** ✅ **Ready to test**
 
 ---
 
@@ -170,6 +167,18 @@ For each workflow run:
   4. Changed PKGBUILD arch to only `('x86_64')` matching actual build matrix
 - **Commit:** 5e1116c2 - "fix(ci): apply CodeRabbit improvements to Arch Linux workflow"
 - **Lines:** 34, 67, 173 in `.github/workflows/linux_packages_arch.yaml`
+
+### 4. DEB and RPM Workflows - Consistency & Robustness (FIXED)
+- **Issue:** Similar robustness issues found across all workflows
+  1. DEB workflow: Silent failure handling for ARM64 OpenBLAS, hardcoded paths, missing null checks
+  2. RPM workflow: Brittle grep regex, hardcoded path, missing null check
+- **Fix:**
+  1. Added null safety checks for `github.event.release` in all job conditionals
+  2. Replaced hardcoded `tauri.conf.json` paths with `${{ env.TAURI_CONF_PATH }}`
+  3. Replaced grep with jq in RPM workflow
+  4. Improved ARM64 OpenBLAS error handling with explicit warnings
+- **Commit:** b566fed5 - "fix(ci): apply robustness improvements to DEB and RPM workflows"
+- **Files:** `.github/workflows/linux_packages.yaml`, `.github/workflows/linux_packages_rpm.yaml`
 
 ## Issues Requiring Attention
 

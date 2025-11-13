@@ -9,7 +9,19 @@ use rubato::{FastFixedIn, PolynomialDegree, ResampleError, Resampler, ResamplerC
 const CHANNELS: usize = 1;
 const MAX_RESAMPLE_RATIO_RELATIVE: f64 = 2.0;
 
-pub struct RubatoChunkResampler<S>
+pub trait ResampleExtDynamicNew: AsyncSource + Sized + Unpin {
+    fn resampled_chunks(
+        self,
+        target_rate: u32,
+        chunk_size: usize,
+    ) -> Result<ResamplerDynamicNew<Self>, ResamplerConstructionError> {
+        ResamplerDynamicNew::new(self, target_rate, chunk_size)
+    }
+}
+
+impl<T> ResampleExtDynamicNew for T where T: AsyncSource + Sized + Unpin {}
+
+pub struct ResamplerDynamicNew<S>
 where
     S: AsyncSource + Unpin,
 {
@@ -32,7 +44,7 @@ enum DrainOutcome {
     ProducedOutput,
 }
 
-impl<S> RubatoChunkResampler<S>
+impl<S> ResamplerDynamicNew<S>
 where
     S: AsyncSource + Unpin,
 {
@@ -211,7 +223,7 @@ impl From<ResamplerConstructionError> for ResamplerError {
     }
 }
 
-impl<S> Stream for RubatoChunkResampler<S>
+impl<S> Stream for ResamplerDynamicNew<S>
 where
     S: AsyncSource + Unpin,
 {
@@ -306,18 +318,6 @@ where
         }
     }
 }
-
-pub trait AsyncSourceChunkResampleExt: AsyncSource + Sized + Unpin {
-    fn resampled_chunks(
-        self,
-        target_rate: u32,
-        chunk_size: usize,
-    ) -> Result<RubatoChunkResampler<Self>, ResamplerConstructionError> {
-        RubatoChunkResampler::new(self, target_rate, chunk_size)
-    }
-}
-
-impl<T> AsyncSourceChunkResampleExt for T where T: AsyncSource + Sized + Unpin {}
 
 #[cfg(test)]
 mod tests {
@@ -443,7 +443,7 @@ mod tests {
 
         {
             let chunk_size = 1920;
-            let resampler = RubatoChunkResampler::new(source, 16000, chunk_size).unwrap();
+            let resampler = ResamplerDynamicNew::new(source, 16000, chunk_size).unwrap();
 
             let chunks: Vec<_> = resampler.collect().await;
 

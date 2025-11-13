@@ -7,7 +7,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, ProcMsg, ProcessorActor};
 use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
-use hypr_audio_utils::AsyncSourceChunkResampleExt;
+use hypr_audio_utils::ResampleExtDynamicNew;
 
 const SAMPLE_RATE: u32 = 16000;
 

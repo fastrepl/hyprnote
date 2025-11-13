@@ -919,6 +919,7 @@ name = "audio-utils"
 version = "0.1.0"
 dependencies = [
  "bytes",
+ "dasp",
  "data",
  "futures-util",
  "hound",

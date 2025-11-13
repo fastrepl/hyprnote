@@ -228,7 +228,7 @@ jobs:
           chown -R builder:builder /workspace
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           
-          su - builder -c "cd /pkgbuild && makepkg --noconfirm --skippgpcheck"
+          su - builder -c "cd /pkgbuild && makepkg --noconfirm --skippgpcheck --nosign"
           
           # Copy package to output
           cp /pkgbuild/*.pkg.tar.zst /output/

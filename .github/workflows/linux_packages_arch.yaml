@@ -158,11 +158,30 @@ jobs:
           # Note: AppImage build may fail due to strip incompatibility with modern Arch libraries,
           # but we only need the binary for our Arch package, so we continue on error
           TAURI_CONF_RELATIVE="./src-tauri/$(basename $TAURI_CONF)"
+          set +e  # Temporarily disable exit on error
           pnpm -F desktop tauri build \
             --target $RUST_TARGET \
             --config "$TAURI_CONF_RELATIVE" \
             --verbose \
-            -- --verbose || echo "Tauri build completed with warnings (AppImage bundling may have failed, but binary was built)"
+            -- --verbose
+          BUILD_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+          
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "⚠️  Tauri build completed with errors (exit code: $BUILD_EXIT_CODE)"
+            echo "This is expected - AppImage bundling fails due to strip incompatibility,"
+            echo "but the binary itself was built successfully and that's what we need."
+            
+            # Verify the binary was actually built
+            BINARY_CHECK=$(find /workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
+            if [ -z "$BINARY_CHECK" ]; then
+              echo "❌ Error: Binary was not built. This is a real failure."
+              exit 1
+            fi
+            echo "✅ Binary verified at: $BINARY_CHECK"
+          else
+            echo "✅ Tauri build completed successfully"
+          fi
           
           # Create PKGBUILD directory
           mkdir -p /pkgbuild

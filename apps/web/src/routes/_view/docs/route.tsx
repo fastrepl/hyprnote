@@ -26,10 +26,10 @@ function Component() {
 
 function LeftSidebar() {
   const matchRoute = useMatchRoute();
-  const match = matchRoute({ to: "/docs/$slug", fuzzy: true });
+  const match = matchRoute({ to: "/docs/$", fuzzy: true });
 
   const currentSlug = (
-    match && typeof match !== "boolean" ? match.slug : undefined
+    match && typeof match !== "boolean" ? match._splat : undefined
   ) as string | undefined;
 
   const docsBySection = useMemo(() => {
@@ -78,15 +78,15 @@ function LeftSidebar() {
 
   return (
     <aside className="hidden lg:block lg:col-span-3">
-      <div className="sticky top-[65px] max-h-[calc(100vh-65px)] overflow-y-auto space-y-6 px-4 py-6">
+      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto space-y-6 px-4 py-6">
         <nav className="space-y-4">
           {docsBySection.map((section) => (
             <div key={section.title}>
               <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">
                 {section.indexDoc ? (
                   <Link
-                    to="/docs/$slug"
-                    params={{ slug: section.indexDoc.slug }}
+                    to="/docs/$"
+                    params={{ _splat: section.indexDoc.slug }}
                     className="hover:text-stone-600 transition-colors"
                   >
                     {section.title}
@@ -99,8 +99,8 @@ function LeftSidebar() {
                 {section.docs.map((doc) => (
                   <Link
                     key={doc.slug}
-                    to="/docs/$slug"
-                    params={{ slug: doc.slug }}
+                    to="/docs/$"
+                    params={{ _splat: doc.slug }}
                     className={`block px-3 py-1.5 text-sm rounded-sm transition-colors ${
                       currentSlug === doc.slug
                         ? "bg-neutral-100 text-stone-600 font-medium"

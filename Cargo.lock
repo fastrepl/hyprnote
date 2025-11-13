@@ -919,12 +919,14 @@ name = "audio-utils"
 version = "0.1.0"
 dependencies = [
  "bytes",
+ "data",
  "futures-util",
  "hound",
  "kalosm-sound",
  "rodio",
  "rubato",
  "thiserror 2.0.17",
+ "tokio",
  "vorbis_rs",
 ]
 

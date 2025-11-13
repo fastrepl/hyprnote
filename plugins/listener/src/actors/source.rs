@@ -6,10 +6,8 @@ use ractor::{registry, Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyP
 use tokio_util::sync::CancellationToken;
 
 use crate::actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, ProcMsg, ProcessorActor};
-use hypr_audio::{
-    is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle,
-    ResampledAsyncSource,
-};
+use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
+use hypr_audio_utils::AsyncSourceChunkResampleExt;
 
 const SAMPLE_RATE: u32 = 16000;
 
@@ -236,13 +234,19 @@ async fn start_source_loop(
                 let mic_stream = {
                     let mut mic_input = AudioInput::from_mic(mic_device).unwrap();
                     let chunk_size = chunk_size_from_sample_rate(SAMPLE_RATE);
-                    ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE).chunks(chunk_size)
+                    mic_input
+                        .stream()
+                        .resampled_chunks(SAMPLE_RATE, chunk_size)
+                        .unwrap()
                 };
                 tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
                 let spk_stream = {
                     let mut spk_input = hypr_audio::AudioInput::from_speaker();
                     let chunk_size = chunk_size_from_sample_rate(SAMPLE_RATE);
-                    ResampledAsyncSource::new(spk_input.stream(), SAMPLE_RATE).chunks(chunk_size)
+                    spk_input
+                        .stream()
+                        .resampled_chunks(SAMPLE_RATE, chunk_size)
+                        .unwrap()
                 };
 
                 tokio::pin!(mic_stream);

@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
 
@@ -44,9 +44,9 @@ struct Ctx {
     producer: HeapProd<f32>,
     waker_state: Arc<Mutex<WakerState>>,
     current_sample_rate: Arc<AtomicU32>,
-    consecutive_drops: Arc<AtomicU32>,
-    should_terminate: Arc<AtomicBool>,
 }
+
+const CHUNK_SIZE: usize = 256;
 
 impl SpeakerInput {
     pub fn new() -> Result<Self> {
@@ -155,7 +155,7 @@ impl SpeakerInput {
 
         let format = av::AudioFormat::with_asbd(&asbd).unwrap();
 
-        let buffer_size = 1024 * 128;
+        let buffer_size = CHUNK_SIZE * 4;
         let rb = HeapRb::<f32>::new(buffer_size);
         let (producer, consumer) = rb.split();
 
@@ -172,13 +172,10 @@ impl SpeakerInput {
             producer,
             waker_state: waker_state.clone(),
             current_sample_rate: current_sample_rate.clone(),
-            consecutive_drops: Arc::new(AtomicU32::new(0)),
-            should_terminate: Arc::new(AtomicBool::new(false)),
         });
 
         let device = self.start_device(&mut ctx).unwrap();
 
-        const CHUNK_SIZE: usize = 256;
         SpeakerStream {
             consumer,
             _device: device,
@@ -192,19 +189,7 @@ impl SpeakerInput {
 }
 
 fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
-    let buffer_size = data.len();
     let pushed = ctx.producer.push_slice(data);
-
-    if pushed < buffer_size {
-        let consecutive = ctx.consecutive_drops.fetch_add(1, Ordering::AcqRel) + 1;
-
-        if consecutive > 10 {
-            ctx.should_terminate.store(true, Ordering::Release);
-            return;
-        }
-    } else {
-        ctx.consecutive_drops.store(0, Ordering::Release);
-    }
 
     if pushed > 0 {
         let should_wake = {
@@ -237,16 +222,6 @@ impl Stream for SpeakerStream {
             return Poll::Ready(Some(this.read_buffer[..popped].to_vec()));
         }
 
-        if this._ctx.should_terminate.load(Ordering::Acquire) {
-            tracing::warn!("should_terminate");
-            let popped = this.consumer.pop_slice(&mut this.read_buffer);
-            return if popped > 0 {
-                Poll::Ready(Some(this.read_buffer[..popped].to_vec()))
-            } else {
-                Poll::Ready(None)
-            };
-        }
-
         {
             let mut state = this.waker_state.lock().unwrap();
             state.has_data = false;
@@ -258,7 +233,5 @@ impl Stream for SpeakerStream {
 }
 
 impl Drop for SpeakerStream {
-    fn drop(&mut self) {
-        self._ctx.should_terminate.store(true, Ordering::Release);
-    }
+    fn drop(&mut self) {}
 }

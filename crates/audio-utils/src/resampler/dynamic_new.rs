@@ -77,13 +77,17 @@ where
 
     fn drain_for_rate_change(&mut self) -> Result<bool, crate::Error> {
         self.driver.process_all_ready_blocks()?;
-        self.driver.process_partial_block(true)?;
+        if self.driver.has_input() {
+            self.driver.process_partial_block(true)?;
+        }
         Ok(self.driver.output_is_empty())
     }
 
     fn drain_at_eos(&mut self) -> Result<(), crate::Error> {
         self.driver.process_all_ready_blocks()?;
-        self.driver.process_partial_block(true)?;
+        if self.driver.has_input() {
+            self.driver.process_partial_block(true)?;
+        }
         Ok(())
     }
 

@@ -164,7 +164,7 @@ jobs:
           cd /pkgbuild
           
           # Create PKGBUILD
-          cat > PKGBUILD << 'PKGBUILD_EOF'
+          cat > PKGBUILD << PKGBUILD_EOF
           # Maintainer: Hyprnote Team
           pkgname=hyprnote
           pkgver=${VERSION}
@@ -191,33 +191,33 @@ jobs:
           
           package() {
             # Find the binary
-            BINARY=$(find /workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
+            BINARY=\$(find /workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
             
-            if [ -z "$BINARY" ]; then
+            if [ -z "\$BINARY" ]; then
               echo "Error: Binary not found"
               exit 1
             fi
             
             # Install binary
-            install -Dm755 "$BINARY" "${pkgdir}/usr/bin/hyprnote"
+            install -Dm755 "\$BINARY" "\${pkgdir}/usr/bin/hyprnote"
             
             # Install .desktop file if exists
-            DESKTOP_FILE=$(find /workspace/apps/desktop/src-tauri -name "*.desktop" | head -n 1)
-            if [ -n "$DESKTOP_FILE" ]; then
-              install -Dm644 "$DESKTOP_FILE" "${pkgdir}/usr/share/applications/hyprnote.desktop"
+            DESKTOP_FILE=\$(find /workspace/apps/desktop/src-tauri -name "*.desktop" | head -n 1)
+            if [ -n "\$DESKTOP_FILE" ]; then
+              install -Dm644 "\$DESKTOP_FILE" "\${pkgdir}/usr/share/applications/hyprnote.desktop"
             fi
             
             # Install icons if they exist
             for size in 32 128 256; do
-              ICON=$(find /workspace/apps/desktop/public -name "${size}x${size}.png" -o -name "icon_${size}x${size}.png" | head -n 1)
-              if [ -n "$ICON" ]; then
-                install -Dm644 "$ICON" "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps/hyprnote.png"
+              ICON=\$(find /workspace/apps/desktop/public -name "\${size}x\${size}.png" -o -name "icon_\${size}x\${size}.png" | head -n 1)
+              if [ -n "\$ICON" ]; then
+                install -Dm644 "\$ICON" "\${pkgdir}/usr/share/icons/hicolor/\${size}x\${size}/apps/hyprnote.png"
               fi
             done
             
             # Install license
             if [ -f /workspace/LICENSE ]; then
-              install -Dm644 /workspace/LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+              install -Dm644 /workspace/LICENSE "\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE"
             fi
           }
           PKGBUILD_EOF

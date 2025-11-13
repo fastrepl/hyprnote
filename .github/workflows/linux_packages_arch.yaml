@@ -152,20 +152,26 @@ jobs:
           export CARGO_LOG=cargo::core::compiler::fingerprint=info
           export RUST_BACKTRACE=1
           
-          # Build with Tauri
-          # Note: When using pnpm -F desktop, the command runs in apps/desktop context
-          # So the config path should be relative to that directory
-          # Note: We use --bundles none to skip AppImage bundling which fails on modern Arch
-          # due to incompatible strip utility. We only need the binary for our Arch package.
-          TAURI_CONF_RELATIVE="./src-tauri/$(basename $TAURI_CONF)"
-          pnpm -F desktop tauri build \
+          # Build with Cargo directly
+          # Note: We skip Tauri CLI bundling (which creates AppImage/deb/rpm) because
+          # AppImage bundling fails on modern Arch due to incompatible strip utility.
+          # We only need the binary for our Arch package, so we build with cargo directly.
+          cd /workspace/apps/desktop/src-tauri
+          cargo build \
+            --release \
             --target $RUST_TARGET \
-            --config "$TAURI_CONF_RELATIVE" \
-            --bundles none \
-            --verbose \
-            -- --verbose
+            --features $FEATURES \
+            --verbose
           
-          echo "✅ Tauri build completed successfully"
+          echo "✅ Cargo build completed successfully"
+          
+          # Verify binary was built
+          BINARY_PATH="/workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release/hyprnote"
+          if [ ! -f "$BINARY_PATH" ]; then
+            echo "❌ Error: Binary not found at $BINARY_PATH"
+            exit 1
+          fi
+          echo "✅ Binary verified at: $BINARY_PATH"
           
           # Create PKGBUILD directory
           mkdir -p /pkgbuild
@@ -263,6 +269,7 @@ jobs:
             -e VERSION="${{ env.VERSION }}" \
             -e ARCH="${{ matrix.arch }}" \
             -e RUST_TARGET="${{ matrix.target }}" \
+            -e FEATURES="${{ matrix.features }}" \
             -e TAURI_CONF="${{ env.TAURI_CONF_PATH }}" \
             -e PROTOC_ARCH_NAME="$PROTOC_ARCH_NAME" \
             -e CI="false" \

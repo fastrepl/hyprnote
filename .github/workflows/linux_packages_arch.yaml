@@ -192,11 +192,10 @@ jobs:
             export PATH="\$HOME/.cargo/bin:\$PATH"
             source "\$HOME/.cargo/env" || true
 
-            # Build using Tauri
+            # Build using Tauri (without --bundles to just build the binary)
             pnpm -F desktop tauri build \
               --target ${{ matrix.target }} \
               --config ${{ env.TAURI_CONF_PATH }} \
-              --bundles none \
               --verbose
           }
 

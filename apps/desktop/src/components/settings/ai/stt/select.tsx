@@ -70,18 +70,8 @@ export function SelectProviderAndModel() {
           <form.Field
             name="provider"
             listeners={{
-              onChange: ({ value }) => {
+              onChange: () => {
                 form.setFieldValue("model", "");
-                const providerId = value as ProviderId;
-                if (providerId !== "custom") {
-                  const allModels = configuredProviders?.[providerId]?.models ?? [];
-                  const availableModels = allModels.filter((model) => model.isDownloaded);
-                  if (availableModels.length > 0) {
-                    setTimeout(() => {
-                      form.setFieldValue("model", availableModels[0].id);
-                    }, 0);
-                  }
-                }
               },
             }}
           >

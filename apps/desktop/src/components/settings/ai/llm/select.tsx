@@ -74,22 +74,8 @@ export function SelectProviderAndModel() {
           <form.Field
             name="provider"
             listeners={{
-              onChange: ({ value }) => {
+              onChange: () => {
                 form.setFieldValue("model", "");
-                const providerId = value as string;
-                const listModelsFunc = configuredProviders[providerId];
-                if (listModelsFunc) {
-                  listModelsFunc()
-                    .then((result) => {
-                      if (form.getFieldValue("provider") !== providerId) {
-                        return;
-                      }
-                      if (result.models.length > 0) {
-                        form.setFieldValue("model", result.models[0]);
-                      }
-                    })
-                    .catch(console.error);
-                }
               },
             }}
           >
@@ -188,8 +174,6 @@ function useConfiguredMapping(): Record<string, null | (() => Promise<ListModels
         const apiKey = String(api_key);
 
         let listModelsFunc: () => Promise<ListModelsResult>;
-
-        console.log(provider.id, baseUrl, apiKey);
 
         switch (provider.id) {
           case "openai":

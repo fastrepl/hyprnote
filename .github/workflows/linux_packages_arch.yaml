@@ -31,7 +31,7 @@ env:
 
 jobs:
   build-arch-package:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || startsWith(github.event.release.tag_name, 'desktop_') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event.release && startsWith(github.event.release.tag_name, 'desktop_')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -64,7 +64,8 @@ jobs:
 
       - name: Validate version
         run: |
-          VERSION=$(grep -oP '"version"\s*:\s*"\K[^"]+' ./apps/desktop/src-tauri/tauri.conf.json)
+          # Extract version using jq for robust JSON parsing
+          VERSION=$(jq -r '.version' "${{ env.TAURI_CONF_PATH }}")
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG_NAME="${{ github.event.release.tag_name }}"
@@ -170,7 +171,7 @@ jobs:
           pkgver=${VERSION}
           pkgrel=1
           pkgdesc="AI-powered note-taking and transcription application"
-          arch=('x86_64' 'aarch64')
+          arch=('x86_64')
           url="https://github.com/different-ai/hyprnote"
           license=('custom')
           depends=(

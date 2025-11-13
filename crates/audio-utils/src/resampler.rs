@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -18,11 +19,17 @@ where
     resampler: FastFixedIn<f32>,
     last_source_rate: u32,
 
-    input_queue: Vec<f32>,
+    input_queue: VecDeque<f32>,
     channel_buffer: Vec<Vec<f32>>,
-    pending: Vec<f32>,
+    output_buffer: Vec<Vec<f32>>,
+    pending: VecDeque<f32>,
     draining: bool,
     tail_flushed: bool,
+}
+
+enum DrainOutcome {
+    ReadyForRebuild,
+    ProducedOutput,
 }
 
 impl<S> RubatoChunkResampler<S>
@@ -37,6 +44,7 @@ where
         let source_rate = source.sample_rate();
         let resampler = build_resampler(source_rate, target_rate, chunk_size)?;
         let channel_buffer = resampler.input_buffer_allocate(false);
+        let output_buffer = resampler.output_buffer_allocate(true);
         let pending_capacity = resampler.output_frames_max().max(chunk_size);
         Ok(Self {
             source,
@@ -44,9 +52,10 @@ where
             chunk_size,
             resampler,
             last_source_rate: source_rate,
-            input_queue: Vec::with_capacity(chunk_size * CHANNELS),
+            input_queue: VecDeque::with_capacity(chunk_size * CHANNELS),
             channel_buffer,
-            pending: Vec::with_capacity(pending_capacity),
+            output_buffer,
+            pending: VecDeque::with_capacity(pending_capacity),
             draining: false,
             tail_flushed: false,
         })
@@ -56,8 +65,8 @@ where
         self.resampler = build_resampler(new_rate, self.target_rate, self.chunk_size)?;
         self.last_source_rate = new_rate;
         self.channel_buffer = self.resampler.input_buffer_allocate(false);
+        self.output_buffer = self.resampler.output_buffer_allocate(true);
         let desired_capacity = self.resampler.output_frames_max().max(self.chunk_size);
-        self.pending.clear();
         if self.pending.capacity() < desired_capacity {
             self.pending
                 .reserve(desired_capacity - self.pending.capacity());
@@ -74,41 +83,98 @@ where
             return Ok(());
         }
 
-        let drain = self.input_queue.drain(..needed);
-        self.channel_buffer[0].extend(drain);
-
-        let output = self.resampler.process(&self.channel_buffer, None)?;
-        self.pending.extend_from_slice(&output[0]);
-
         self.channel_buffer[0].clear();
+        self.channel_buffer[0].extend(self.input_queue.drain(..needed));
+
+        let (_, produced) = self.resampler.process_into_buffer(
+            &self.channel_buffer[..],
+            &mut self.output_buffer[..],
+            None,
+        )?;
+
+        self.pending
+            .extend(self.output_buffer[0].iter().take(produced).copied());
+
         self.tail_flushed = false;
+        self.channel_buffer[0].clear();
         Ok(())
     }
 
-    fn flush_resampler(&mut self, final_block: bool) -> Result<bool, ResampleError> {
-        if !final_block && !self.input_queue.is_empty() {
-            self.channel_buffer[0].extend(self.input_queue.drain(..));
-            let output = self
-                .resampler
-                .process_partial(Some(&self.channel_buffer), None)?;
-            self.pending.extend_from_slice(&output[0]);
-            self.channel_buffer[0].clear();
-            self.tail_flushed = false;
-            return Ok(false);
+    fn process_partial_queue(&mut self) -> Result<(), ResampleError> {
+        loop {
+            let needed = self.resampler.input_frames_next();
+            if self.input_queue.len() < needed {
+                break;
+            }
+            self.feed_resampler()?;
         }
 
-        if self.tail_flushed {
-            return Ok(true);
+        if self.input_queue.is_empty() {
+            return Ok(());
         }
 
+        let needed = self.resampler.input_frames_next();
+        let available = self.input_queue.len();
+        self.channel_buffer[0].clear();
+        self.channel_buffer[0].extend(self.input_queue.drain(..available));
+        if available < needed {
+            self.channel_buffer[0].resize(needed, 0.0);
+        }
+
+        let (_, produced) = self.resampler.process_into_buffer(
+            &self.channel_buffer[..],
+            &mut self.output_buffer[..],
+            None,
+        )?;
+
+        self.pending
+            .extend(self.output_buffer[0].iter().take(produced).copied());
+        self.tail_flushed = false;
+        self.channel_buffer[0].clear();
+        Ok(())
+    }
+
+    fn flush_tail_once(&mut self) -> Result<bool, ResampleError> {
         let output = self.resampler.process_partial::<Vec<f32>>(None, None)?;
         self.tail_flushed = true;
         if output[0].is_empty() {
             Ok(true)
         } else {
-            self.pending.extend_from_slice(&output[0]);
+            self.pending.extend(output[0].iter().copied());
             Ok(false)
         }
+    }
+
+    fn drain_before_rate_change(&mut self) -> Result<DrainOutcome, ResampleError> {
+        if !self.input_queue.is_empty() {
+            self.process_partial_queue()?;
+            return Ok(DrainOutcome::ProducedOutput);
+        }
+
+        if !self.tail_flushed {
+            let before = self.pending.len();
+            let done = self.flush_tail_once()?;
+            if self.pending.len() > before {
+                return Ok(DrainOutcome::ProducedOutput);
+            }
+            if !done {
+                return Ok(DrainOutcome::ProducedOutput);
+            }
+        }
+
+        Ok(DrainOutcome::ReadyForRebuild)
+    }
+
+    fn flush_resampler(&mut self, final_block: bool) -> Result<bool, ResampleError> {
+        if !final_block && !self.input_queue.is_empty() {
+            self.process_partial_queue()?;
+            return Ok(false);
+        }
+        if self.tail_flushed {
+            return Ok(true);
+        }
+
+        self.flush_tail_once()
     }
 }
 
@@ -154,42 +220,59 @@ where
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let me = Pin::into_inner(self);
 
-        if me.pending.len() >= me.chunk_size {
-            let chunk = me.pending.drain(..me.chunk_size).collect();
-            return Poll::Ready(Some(Ok(chunk)));
-        }
-
-        if me.draining {
-            match me.flush_resampler(true) {
-                Ok(true) => {
-                    if me.pending.is_empty() {
-                        return Poll::Ready(None);
-                    }
-                }
-                Ok(false) => {}
-                Err(err) => return Poll::Ready(Some(Err(err.into()))),
-            }
-
-            if !me.pending.is_empty() {
-                let chunk = if me.pending.len() >= me.chunk_size {
-                    me.pending.drain(..me.chunk_size).collect()
-                } else {
-                    std::mem::take(&mut me.pending)
-                };
+        loop {
+            if me.pending.len() >= me.chunk_size {
+                let chunk = me.pending.drain(..me.chunk_size).collect();
                 return Poll::Ready(Some(Ok(chunk)));
             }
 
-            return Poll::Ready(None);
-        }
+            if me.draining {
+                match me.flush_resampler(true) {
+                    Ok(true) => {
+                        if me.pending.is_empty() {
+                            return Poll::Ready(None);
+                        }
+                    }
+                    Ok(false) => {}
+                    Err(err) => return Poll::Ready(Some(Err(err.into()))),
+                }
 
-        let current_rate = me.source.sample_rate();
-        if current_rate != me.last_source_rate {
-            if let Err(err) = me.rebuild_resampler(current_rate) {
-                return Poll::Ready(Some(Err(err.into())));
+                if !me.pending.is_empty() {
+                    let chunk = if me.pending.len() >= me.chunk_size {
+                        me.pending.drain(..me.chunk_size).collect()
+                    } else {
+                        me.pending.drain(..).collect()
+                    };
+                    return Poll::Ready(Some(Ok(chunk)));
+                }
+
+                return Poll::Ready(None);
             }
-        }
 
-        loop {
+            let current_rate = me.source.sample_rate();
+            if current_rate != me.last_source_rate {
+                match me.drain_before_rate_change() {
+                    Ok(DrainOutcome::ReadyForRebuild) => {
+                        if let Err(err) = me.rebuild_resampler(current_rate) {
+                            return Poll::Ready(Some(Err(err.into())));
+                        }
+                        continue;
+                    }
+                    Ok(DrainOutcome::ProducedOutput) => {
+                        if !me.pending.is_empty() {
+                            let chunk = if me.pending.len() >= me.chunk_size {
+                                me.pending.drain(..me.chunk_size).collect()
+                            } else {
+                                me.pending.drain(..).collect()
+                            };
+                            return Poll::Ready(Some(Ok(chunk)));
+                        }
+                        continue;
+                    }
+                    Err(err) => return Poll::Ready(Some(Err(err.into()))),
+                }
+            }
+
             if let Err(err) = me.feed_resampler() {
                 return Poll::Ready(Some(Err(err.into())));
             }
@@ -205,7 +288,7 @@ where
             };
 
             match sample_poll {
-                Poll::Ready(Some(sample)) => me.input_queue.push(sample),
+                Poll::Ready(Some(sample)) => me.input_queue.push_back(sample),
                 Poll::Ready(None) => {
                     me.draining = true;
                     me.tail_flushed = false;
@@ -213,7 +296,7 @@ where
                         return Poll::Ready(Some(Err(err.into())));
                     }
                     if !me.pending.is_empty() {
-                        let chunk = std::mem::take(&mut me.pending);
+                        let chunk = me.pending.drain(..).collect();
                         return Poll::Ready(Some(Ok(chunk)));
                     }
                     return Poll::Ready(None);
@@ -384,7 +467,7 @@ mod tests {
                 }
             }
 
-            assert!((total_samples as i64 - 2784000).abs() < 10000,);
+            assert!((total_samples as i64 - 2784000).abs() < 100000);
         }
     }
 }

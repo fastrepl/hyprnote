@@ -272,24 +272,32 @@ async fn start_source_loop(
                             return;
                         }
                         mic_next = mic_stream.next() => {
-                            if let Some(data) = mic_next {
-                                let output_data = if mic_muted.load(Ordering::Relaxed) {
-                                    vec![0.0; data.len()]
-                                } else {
-                                    data
-                                };
-                                let msg = ProcMsg::Mic(AudioChunk { data: output_data });
-                                let _ = proc.cast(msg);
-                            } else {
-                                break;
+                            match mic_next {
+                                Some(Ok(data)) => {
+                                    let output_data = if mic_muted.load(Ordering::Relaxed) {
+                                        vec![0.0; data.len()]
+                                    } else {
+                                        data
+                                    };
+                                    let msg = ProcMsg::Mic(AudioChunk { data: output_data });
+                                    let _ = proc.cast(msg);
+                                }
+                                Some(Err(err)) => {
+                                    tracing::warn!(error = ?err, "mic_resample_failed");
+                                }
+                                None => break,
                             }
                         }
                         spk_next = spk_stream.next() => {
-                            if let Some(data) = spk_next {
-                                let msg = ProcMsg::Speaker(AudioChunk{ data });
-                                let _ = proc.cast(msg);
-                            } else {
-                                break;
+                            match spk_next {
+                                Some(Ok(data)) => {
+                                    let msg = ProcMsg::Speaker(AudioChunk{ data });
+                                    let _ = proc.cast(msg);
+                                }
+                                Some(Err(err)) => {
+                                    tracing::warn!(error = ?err, "speaker_resample_failed");
+                                }
+                                None => break,
                             }
                         }
                     }

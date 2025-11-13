@@ -156,22 +156,41 @@ jobs:
           # Note: We skip Tauri CLI bundling (which creates AppImage/deb/rpm) because
           # AppImage bundling fails on modern Arch due to incompatible strip utility.
           # We only need the binary for our Arch package, so we build with cargo directly.
+          echo "=== Starting cargo build ==="
           cd /workspace/apps/desktop/src-tauri
-          cargo build \
-            --release \
-            --target $RUST_TARGET \
-            --features $FEATURES \
-            --verbose
+          
+          # Build with explicit output capture and error handling
+          echo "Running: cargo build --release --target $RUST_TARGET --features $FEATURES"
+          if cargo build --release --target $RUST_TARGET --features $FEATURES 2>&1 | tee /tmp/cargo-build.log; then
+            BUILD_EXIT_CODE=${PIPESTATUS[0]}
+          else
+            BUILD_EXIT_CODE=$?
+          fi
+          
+          echo "=== Cargo build exit code: $BUILD_EXIT_CODE ==="
+          
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "❌ Cargo build failed with exit code $BUILD_EXIT_CODE"
+            echo "=== Last 100 lines of build log ==="
+            tail -n 100 /tmp/cargo-build.log || true
+            exit $BUILD_EXIT_CODE
+          fi
           
           echo "✅ Cargo build completed successfully"
           
           # Verify binary was built
           BINARY_PATH="/workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release/hyprnote"
+          echo "Checking for binary at: $BINARY_PATH"
           if [ ! -f "$BINARY_PATH" ]; then
             echo "❌ Error: Binary not found at $BINARY_PATH"
+            echo "=== Contents of target directory ==="
+            ls -la "/workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release/" || echo "Release directory does not exist"
+            echo "=== Last 50 lines of build log ==="
+            tail -n 50 /tmp/cargo-build.log || true
             exit 1
           fi
           echo "✅ Binary verified at: $BINARY_PATH"
+          ls -lh "$BINARY_PATH"
           
           # Create PKGBUILD directory
           mkdir -p /pkgbuild

@@ -152,9 +152,12 @@ jobs:
           export RUST_BACKTRACE=1
           
           # Build with Tauri
+          # Note: When using pnpm -F desktop, the command runs in apps/desktop context
+          # So the config path should be relative to that directory
+          TAURI_CONF_RELATIVE="./src-tauri/$(basename $TAURI_CONF)"
           pnpm -F desktop tauri build \
             --target $RUST_TARGET \
-            --config $TAURI_CONF \
+            --config "$TAURI_CONF_RELATIVE" \
             --verbose \
             -- --verbose
           

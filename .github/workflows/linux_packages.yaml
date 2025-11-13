@@ -157,9 +157,12 @@ jobs:
 
       - name: Build Tauri app with .deb
         run: |
+          # Note: When using pnpm -F desktop, the command runs in apps/desktop context
+          # So we need to extract just the filename from the full path
+          TAURI_CONF_FILE=$(basename ${{ env.TAURI_CONF_PATH }})
           pnpm -F desktop tauri build \
             --target ${{ matrix.target }} \
-            --config ${{ env.TAURI_CONF_PATH }} \
+            --config "./src-tauri/${TAURI_CONF_FILE}" \
             --bundles deb \
             --verbose
         env:
@@ -410,9 +413,12 @@ jobs:
 
       - name: Build Tauri app with AppImage
         run: |
+          # Note: When using pnpm -F desktop, the command runs in apps/desktop context
+          # So we need to extract just the filename from the full path
+          TAURI_CONF_FILE=$(basename ${{ env.TAURI_CONF_PATH }})
           pnpm -F desktop tauri build \
             --target ${{ matrix.target }} \
-            --config ${{ env.TAURI_CONF_PATH }} \
+            --config "./src-tauri/${TAURI_CONF_FILE}" \
             --bundles appimage \
             --verbose
         env:

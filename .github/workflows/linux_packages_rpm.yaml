@@ -168,9 +168,12 @@ jobs:
       - name: Build Tauri app with RPM
         run: |
           source "$HOME/.cargo/env"
+          # Note: When using pnpm -F desktop, the command runs in apps/desktop context
+          # So we need to extract just the filename from the full path
+          TAURI_CONF_FILE=$(basename ${{ env.TAURI_CONF_PATH }})
           pnpm -F desktop tauri build \
             --target ${{ matrix.target }} \
-            --config ${{ env.TAURI_CONF_PATH }} \
+            --config "./src-tauri/${TAURI_CONF_FILE}" \
             --bundles rpm \
             --verbose
         env:

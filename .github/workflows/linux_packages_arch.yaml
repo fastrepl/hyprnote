@@ -192,6 +192,11 @@ jobs:
             export PATH="\$HOME/.cargo/bin:\$PATH"
             source "\$HOME/.cargo/env" || true
 
+            # When cross-compiling to ARM64, unset x86-64 specific flags from makepkg.conf
+            if [ "$CARCH" = "aarch64" ]; then
+              unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+            fi
+
             # Build using Tauri (without --bundles to just build the binary)
             pnpm -F desktop tauri build \
               --target ${{ matrix.target }} \

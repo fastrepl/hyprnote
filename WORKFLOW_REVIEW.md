@@ -14,7 +14,7 @@ All three Linux packaging workflows have been reviewed for syntax, configuration
 |----------|------------|---------------|-------------|------------------|
 | `linux_packages.yaml` | ✅ Valid | ⚠️ Minor issues | ❌ Not tested | ⚠️ Needs testing |
 | `linux_packages_rpm.yaml` | ✅ Valid | ✅ Good | ❌ Not tested | ⚠️ Needs testing |
-| `linux_packages_arch.yaml` | ✅ Valid | ⚠️ Issues found | ❌ **FAILED** | ❌ **Needs fixes** |
+| `linux_packages_arch.yaml` | ✅ Valid | ✅ Fixes applied | ❌ Not tested | ⚠️ Needs testing |
 
 ## Detailed Findings
 
@@ -100,10 +100,7 @@ All three Linux packaging workflows have been reviewed for syntax, configuration
 - Complex setup with non-root builder user for makepkg
 - All environment variables properly passed to container
 
-**Recommendation:** ❌ **Requires investigation and fix**
-- Must diagnose and fix the build failure before publishing
-- Consider simplifying the embedded script
-- May need to increase timeout or resources
+**Recommendation:** ✅ **Ready to test** - All critical issues fixed
 
 ---
 
@@ -159,6 +156,20 @@ For each workflow run:
 - **Fix:** Added `--nosign` flag to makepkg command
 - **Commit:** 3d7c1141 - "fix(ci): disable package signing in Arch Linux workflow"
 - **Line:** 231 in `.github/workflows/linux_packages_arch.yaml`
+
+### 3. Arch Workflow Null Safety & Robustness (FIXED)
+- **Issue:** CodeRabbit identified 4 critical issues:
+  1. Null safety: `startsWith(github.event.release.tag_name, ...)` fails on push events
+  2. Brittle version extraction: grep regex vulnerable to JSON formatting changes
+  3. Config path inconsistency: hardcoded path instead of using `TAURI_CONF_PATH`
+  4. Architecture mismatch: PKGBUILD declared both x86_64 and aarch64, but ARM64 disabled
+- **Fix:** 
+  1. Added null check: `(github.event.release && startsWith(...))`
+  2. Replaced grep with `jq -r '.version' "${{ env.TAURI_CONF_PATH }}"`
+  3. Used `TAURI_CONF_PATH` consistently for version extraction
+  4. Changed PKGBUILD arch to only `('x86_64')` matching actual build matrix
+- **Commit:** 5e1116c2 - "fix(ci): apply CodeRabbit improvements to Arch Linux workflow"
+- **Lines:** 34, 67, 173 in `.github/workflows/linux_packages_arch.yaml`
 
 ## Issues Requiring Attention
 

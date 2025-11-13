@@ -159,13 +159,13 @@ jobs:
           # Get the project root
           PROJECT_ROOT="${GITHUB_WORKSPACE}"
 
-          cat > PKGBUILD << 'EOF'
+          cat > PKGBUILD << EOF
           # Maintainer: Hyprnote Team
           pkgname=hyprnote
           pkgver=${{ env.VERSION }}
           pkgrel=1
           pkgdesc="AI-powered note-taking and transcription application"
-          arch=('${{ matrix.arch }}')
+          arch=('x86_64' 'aarch64')
           url="https://github.com/different-ai/hyprnote"
           license=('custom')
           depends=(
@@ -180,20 +180,17 @@ jobs:
             'vulkan-icd-loader'
             'xdotool'
           )
-          makedepends=(
-            'rust'
-            'cargo'
-            'nodejs'
-            'npm'
-            'python'
-            'cmake'
-            'git'
-          )
+          makedepends=()
           source=()
           sha256sums=()
+          options=('!strip')
 
           build() {
-            cd "$PROJECT_ROOT"
+            cd "${PROJECT_ROOT}"
+
+            # Set up environment
+            export PATH="\$HOME/.cargo/bin:\$PATH"
+            source "\$HOME/.cargo/env" || true
 
             # Build using Tauri
             pnpm -F desktop tauri build \
@@ -204,36 +201,36 @@ jobs:
           }
 
           package() {
-            cd "$PROJECT_ROOT"
+            cd "${PROJECT_ROOT}"
 
             # Find the binary
-            BINARY=$(find apps/desktop/src-tauri/target/${{ matrix.target }}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
+            BINARY=\$(find apps/desktop/src-tauri/target/${{ matrix.target }}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
 
-            if [ -z "$BINARY" ]; then
+            if [ -z "\$BINARY" ]; then
               echo "Error: Binary not found"
               exit 1
             fi
 
             # Install binary
-            install -Dm755 "$BINARY" "${pkgdir}/usr/bin/hyprnote"
+            install -Dm755 "\$BINARY" "\${pkgdir}/usr/bin/hyprnote"
 
             # Install .desktop file if exists
-            DESKTOP_FILE=$(find apps/desktop/src-tauri -name "*.desktop" | head -n 1)
-            if [ -n "$DESKTOP_FILE" ]; then
-              install -Dm644 "$DESKTOP_FILE" "${pkgdir}/usr/share/applications/hyprnote.desktop"
+            DESKTOP_FILE=\$(find apps/desktop/src-tauri -name "*.desktop" | head -n 1)
+            if [ -n "\$DESKTOP_FILE" ]; then
+              install -Dm644 "\$DESKTOP_FILE" "\${pkgdir}/usr/share/applications/hyprnote.desktop"
             fi
 
             # Install icons if they exist
             for size in 32 128 256; do
-              ICON=$(find apps/desktop/public -name "${size}x${size}.png" -o -name "icon_${size}x${size}.png" | head -n 1)
-              if [ -n "$ICON" ]; then
-                install -Dm644 "$ICON" "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps/hyprnote.png"
+              ICON=\$(find apps/desktop/public -name "\${size}x\${size}.png" -o -name "icon_\${size}x\${size}.png" | head -n 1)
+              if [ -n "\$ICON" ]; then
+                install -Dm644 "\$ICON" "\${pkgdir}/usr/share/icons/hicolor/\${size}x\${size}/apps/hyprnote.png"
               fi
             done
 
             # Install license
             if [ -f LICENSE ]; then
-              install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+              install -Dm644 LICENSE "\${pkgdir}/usr/share/licenses/\${pkgname}/LICENSE"
             fi
           }
           EOF
@@ -250,12 +247,37 @@ jobs:
           useradd -m builder
           chown -R builder:builder /tmp/pkgbuild
           chown -R builder:builder "${GITHUB_WORKSPACE}"
+          
+          # Copy cargo/rust installation to builder's home
+          cp -r "$HOME/.cargo" /home/builder/
+          cp -r "$HOME/.rustup" /home/builder/ || true
+          chown -R builder:builder /home/builder/.cargo
+          chown -R builder:builder /home/builder/.rustup || true
 
           # Allow builder to run commands without password
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          
+          # Export environment variables that need to be passed
+          export PROJECT_ROOT="${GITHUB_WORKSPACE}"
 
-          # Build as builder user
-          su - builder -c "cd /tmp/pkgbuild && makepkg --noconfirm"
+          # Build as builder user with proper environment
+          su - builder -c "
+            export PROJECT_ROOT='${GITHUB_WORKSPACE}'
+            export PATH=\"\$HOME/.cargo/bin:\$PATH\"
+            export PKG_CONFIG_ALLOW_CROSS='$PKG_CONFIG_ALLOW_CROSS'
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER='$CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER'
+            export CC_aarch64_unknown_linux_gnu='$CC_aarch64_unknown_linux_gnu'
+            export CXX_aarch64_unknown_linux_gnu='$CXX_aarch64_unknown_linux_gnu'
+            export CI='$CI'
+            export GITHUB_TOKEN='$GITHUB_TOKEN'
+            export POSTHOG_API_KEY='$POSTHOG_API_KEY'
+            export SENTRY_DSN='$SENTRY_DSN'
+            export KEYGEN_ACCOUNT_ID='$KEYGEN_ACCOUNT_ID'
+            export KEYGEN_VERIFY_KEY='$KEYGEN_VERIFY_KEY'
+            export TAURI_SIGNING_PRIVATE_KEY='$TAURI_SIGNING_PRIVATE_KEY'
+            export TAURI_SIGNING_PRIVATE_KEY_PASSWORD='$TAURI_SIGNING_PRIVATE_KEY_PASSWORD'
+            cd /tmp/pkgbuild && makepkg --noconfirm --skippgpcheck
+          "
         env:
           CI: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

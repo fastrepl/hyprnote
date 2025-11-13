@@ -330,7 +330,7 @@ jobs:
           # Extract and verify package
           mkdir -p /tmp/pkg-test
           cd /tmp/pkg-test
-          tar -xf ${{ steps.find-pkg.outputs.pkg_path }}
+          tar -xf "${{ steps.find-pkg.outputs.pkg_path }}"
 
           # List contents
           ls -la

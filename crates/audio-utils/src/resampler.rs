@@ -364,6 +364,7 @@ mod tests {
 
             let chunks: Vec<_> = resampler.collect().await;
 
+            let mut total_samples = 0;
             let mut out_wav = hound::WavWriter::create(
                 "./out_2.wav",
                 hound::WavSpec {
@@ -377,10 +378,13 @@ mod tests {
 
             for chunk in chunks {
                 let c = chunk.unwrap();
+                total_samples += c.len();
                 for sample in c {
                     out_wav.write_sample(sample).unwrap();
                 }
             }
+
+            assert!((total_samples as i64 - 2784000).abs() < 10000,);
         }
     }
 }

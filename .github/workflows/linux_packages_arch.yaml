@@ -67,32 +67,33 @@ jobs:
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Install system dependencies
-        run: |
-          # Update package database and keyring
-          pacman -Syu --noconfirm
+       - name: Install system dependencies
+         run: |
+           # Update package database and keyring
+           pacman -Syu --noconfirm
 
-          # Install base development tools
-          pacman -S --noconfirm \
-            base-devel \
-            git \
-            wget \
-            curl \
-            file \
-            cmake \
-            pkgconf \
-            openssl \
-            gtk3 \
-            webkit2gtk-4.1 \
-            libappindicator-gtk3 \
-            librsvg \
-            alsa-lib \
-            libpulse \
-            openblas \
-            vulkan-icd-loader \
-            vulkan-headers \
-            xdotool \
-            unzip
+           # Install base development tools
+           pacman -S --noconfirm \
+             base-devel \
+             git \
+             wget \
+             curl \
+             file \
+             cmake \
+             pkgconf \
+             openssl \
+             gtk3 \
+             webkit2gtk-4.1 \
+             libappindicator-gtk3 \
+             librsvg \
+             alsa-lib \
+             libpulse \
+             openblas \
+             vulkan-icd-loader \
+             vulkan-headers \
+             xdotool \
+             unzip \
+             clang
 
           # Install cross-compilation tools for ARM64 if needed
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
@@ -192,6 +193,9 @@ jobs:
             export PATH="\$HOME/.cargo/bin:\$PATH"
             source "\$HOME/.cargo/env" || true
 
+            # Set LIBCLANG_PATH for bindgen
+            export LIBCLANG_PATH=/usr/lib
+
             # When cross-compiling to ARM64, unset x86-64 specific flags from makepkg.conf
             if [ "$CARCH" = "aarch64" ]; then
               unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
@@ -268,6 +272,7 @@ jobs:
           su - builder -c "
             export PROJECT_ROOT='${GITHUB_WORKSPACE}'
             export PATH=\"\$HOME/.cargo/bin:\$PATH\"
+            export LIBCLANG_PATH='/usr/lib'
             export PKG_CONFIG_ALLOW_CROSS='$PKG_CONFIG_ALLOW_CROSS'
             export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER='$CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER'
             export CC_aarch64_unknown_linux_gnu='$CC_aarch64_unknown_linux_gnu'

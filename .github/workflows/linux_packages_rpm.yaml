@@ -39,11 +39,12 @@ jobs:
             features: "stt-openblas,llm-vulkan"
             runner: "ubuntu-24.04"
             fedora_version: "40"
-          - target: "aarch64-unknown-linux-gnu"
-            arch: "aarch64"
-            features: "stt-openblas,llm-vulkan"
-            runner: "ubuntu-24.04"
-            fedora_version: "40"
+          # ARM64 builds disabled temporarily due to cross-compilation dependency issues
+          # - target: "aarch64-unknown-linux-gnu"
+          #   arch: "aarch64"
+          #   features: "stt-openblas,llm-vulkan"
+          #   runner: "ubuntu-24.04"
+          #   fedora_version: "40"
 
     container:
       image: fedora:${{ matrix.fedora_version }}
@@ -209,10 +210,16 @@ jobs:
           # Verify installation
           rpm -qa | grep hyprnote
 
+          # Get the actual package name (handles both hyprnote and hyprnote-nightly)
+          PACKAGE_NAME=$(rpm -qa | grep hyprnote)
+          echo "Package name: $PACKAGE_NAME"
+
           # Check if binary exists and is executable
-          BINARY_PATH=$(rpm -ql hyprnote | grep -E 'bin/.*' | grep -v '\.so' | head -n 1)
+          BINARY_PATH=$(rpm -ql $PACKAGE_NAME | grep -E '/usr/bin/' | head -n 1)
           if [ -z "$BINARY_PATH" ]; then
             echo "Error: Binary not found in package"
+            echo "Package contents:"
+            rpm -ql $PACKAGE_NAME
             exit 1
           fi
           echo "Found binary: $BINARY_PATH"
@@ -234,7 +241,7 @@ jobs:
           fi
 
           # Clean up
-          dnf remove -y hyprnote || true
+          dnf remove -y $PACKAGE_NAME || true
 
           echo "✅ RPM package installation test passed"
 

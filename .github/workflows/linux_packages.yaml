@@ -38,10 +38,11 @@ jobs:
             arch: "amd64"
             features: "stt-openblas,llm-vulkan"
             runner: "ubuntu-24.04"
-          - target: "aarch64-unknown-linux-gnu"
-            arch: "arm64"
-            features: "stt-openblas,llm-vulkan"
-            runner: "ubuntu-24.04"
+          # ARM64 builds disabled temporarily due to cross-compilation dependency issues
+          # - target: "aarch64-unknown-linux-gnu"
+          #   arch: "arm64"
+          #   features: "stt-openblas,llm-vulkan"
+          #   runner: "ubuntu-24.04"
 
     defaults:
       run:
@@ -201,10 +202,16 @@ jobs:
           # Verify installation
           dpkg -l | grep hyprnote
 
+          # Get the actual package name (handles both hyprnote and hyprnote-nightly)
+          PACKAGE_NAME=$(dpkg -l | grep hyprnote | awk '{print $2}')
+          echo "Package name: $PACKAGE_NAME"
+
           # Check if binary exists and is executable
-          BINARY_PATH=$(dpkg -L $(dpkg -l | grep hyprnote | awk '{print $2}') | grep -E 'bin/.*' | grep -v '\.so' | head -n 1)
+          BINARY_PATH=$(dpkg -L $PACKAGE_NAME | grep -E '/usr/bin/' | head -n 1)
           if [ -z "$BINARY_PATH" ]; then
             echo "Error: Binary not found in package"
+            echo "Package contents:"
+            dpkg -L $PACKAGE_NAME
             exit 1
           fi
           echo "Found binary: $BINARY_PATH"
@@ -226,7 +233,7 @@ jobs:
           fi
 
           # Clean up
-          sudo apt-get remove -y $(dpkg -l | grep hyprnote | awk '{print $2}') || true
+          sudo apt-get remove -y $PACKAGE_NAME || true
 
           echo "✅ .deb package installation test passed"
 
@@ -301,10 +308,11 @@ jobs:
             arch: "x86_64"
             features: "stt-openblas,llm-vulkan"
             runner: "ubuntu-20.04"
-          - target: "aarch64-unknown-linux-gnu"
-            arch: "aarch64"
-            features: "stt-openblas,llm-vulkan"
-            runner: "ubuntu-20.04"
+          # ARM64 builds disabled temporarily due to cross-compilation dependency issues
+          # - target: "aarch64-unknown-linux-gnu"
+          #   arch: "aarch64"
+          #   features: "stt-openblas,llm-vulkan"
+          #   runner: "ubuntu-20.04"
 
     defaults:
       run:

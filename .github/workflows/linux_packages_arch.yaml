@@ -154,6 +154,12 @@ jobs:
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
           echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
+          
+          # Set ARM64-specific compiler flags to override x86-64 defaults
+          echo "CFLAGS_aarch64_unknown_linux_gnu=-O2 -pipe" >> $GITHUB_ENV
+          echo "CXXFLAGS_aarch64_unknown_linux_gnu=-O2 -pipe" >> $GITHUB_ENV
+          echo "ARCH_OVERRIDE_CFLAGS=-O2 -pipe" >> $GITHUB_ENV
+          echo "ARCH_OVERRIDE_CXXFLAGS=-O2 -pipe" >> $GITHUB_ENV
 
       - name: Create PKGBUILD
         run: |
@@ -164,6 +170,32 @@ jobs:
 
           # Get the project root
           PROJECT_ROOT="${GITHUB_WORKSPACE}"
+          
+          # Create custom makepkg.conf for ARM64 cross-compilation if needed
+          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
+            echo "Creating custom makepkg.conf for ARM64 cross-compilation..."
+            cat > /tmp/pkgbuild/makepkg.conf << 'MAKEPKG_EOF'
+# ARM64 cross-compilation makepkg configuration
+CARCH="aarch64"
+CHOST="aarch64-unknown-linux-gnu"
+
+# Compiler and linker flags (ARM64-compatible, no x86-64 specifics)
+CFLAGS="-O2 -pipe -fstack-protector-strong -fno-plt"
+CXXFLAGS="-O2 -pipe -fstack-protector-strong -fno-plt"
+LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+
+# Make flags
+MAKEFLAGS="-j$(nproc)"
+
+# Build environment
+BUILDENV=(!distcc color !ccache check !sign)
+OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge !debug !lto)
+
+# Package output
+PKGEXT='.pkg.tar.zst'
+SRCEXT='.src.tar.gz'
+MAKEPKG_EOF
+          fi
 
           cat > PKGBUILD << EOF
           # Maintainer: Hyprnote Team
@@ -201,16 +233,34 @@ jobs:
             # Set LIBCLANG_PATH for bindgen
             export LIBCLANG_PATH=/usr/lib
 
-            # When cross-compiling to ARM64, unset x86-64 specific flags from makepkg.conf
+            # When cross-compiling to ARM64, override x86-64 specific flags from makepkg.conf
             if [ "$CARCH" = "aarch64" ]; then
-              unset CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+              # Use generic ARM64-compatible flags instead of x86-64 specific ones
+              export CFLAGS="\${ARCH_OVERRIDE_CFLAGS:--O2 -pipe}"
+              export CXXFLAGS="\${ARCH_OVERRIDE_CXXFLAGS:--O2 -pipe}"
+              export LDFLAGS="-Wl,-O1,--sort-common,--as-needed"
+              
+              # Set target-specific environment for Rust/C cross-compilation
+              export CC_aarch64_unknown_linux_gnu="aarch64-linux-gnu-gcc"
+              export CXX_aarch64_unknown_linux_gnu="aarch64-linux-gnu-g++"
+              export AR_aarch64_unknown_linux_gnu="aarch64-linux-gnu-ar"
+              export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="aarch64-linux-gnu-gcc"
+              
+              echo "Cross-compiling for ARM64 with flags:"
+              echo "  CFLAGS=\$CFLAGS"
+              echo "  CXXFLAGS=\$CXXFLAGS"
             fi
 
+            # Set verbose flags for better debugging
+            export CARGO_LOG=cargo::core::compiler::fingerprint=info
+            export RUST_BACKTRACE=1
+            
             # Build using Tauri (without --bundles to just build the binary)
             pnpm -F desktop tauri build \
               --target ${{ matrix.target }} \
               --config ${{ env.TAURI_CONF_PATH }} \
-              --verbose
+              --verbose \
+              -- --verbose
           }
 
           package() {
@@ -282,6 +332,10 @@ jobs:
             export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER='$CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER'
             export CC_aarch64_unknown_linux_gnu='$CC_aarch64_unknown_linux_gnu'
             export CXX_aarch64_unknown_linux_gnu='$CXX_aarch64_unknown_linux_gnu'
+            export CFLAGS_aarch64_unknown_linux_gnu='$CFLAGS_aarch64_unknown_linux_gnu'
+            export CXXFLAGS_aarch64_unknown_linux_gnu='$CXXFLAGS_aarch64_unknown_linux_gnu'
+            export ARCH_OVERRIDE_CFLAGS='$ARCH_OVERRIDE_CFLAGS'
+            export ARCH_OVERRIDE_CXXFLAGS='$ARCH_OVERRIDE_CXXFLAGS'
             export CI='$CI'
             export GITHUB_TOKEN='$GITHUB_TOKEN'
             export POSTHOG_API_KEY='$POSTHOG_API_KEY'
@@ -290,7 +344,15 @@ jobs:
             export KEYGEN_VERIFY_KEY='$KEYGEN_VERIFY_KEY'
             export TAURI_SIGNING_PRIVATE_KEY='$TAURI_SIGNING_PRIVATE_KEY'
             export TAURI_SIGNING_PRIVATE_KEY_PASSWORD='$TAURI_SIGNING_PRIVATE_KEY_PASSWORD'
-            cd /tmp/pkgbuild && makepkg --noconfirm --skippgpcheck
+            cd /tmp/pkgbuild
+            
+            # Use custom makepkg.conf for ARM64 cross-compilation if it exists
+            if [ -f /tmp/pkgbuild/makepkg.conf ]; then
+              echo 'Using custom makepkg.conf for cross-compilation'
+              makepkg --noconfirm --skippgpcheck --config /tmp/pkgbuild/makepkg.conf
+            else
+              makepkg --noconfirm --skippgpcheck
+            fi
           "
         env:
           CI: false

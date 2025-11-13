@@ -1,9 +1,11 @@
+import { cn } from "@hypr/utils";
+
 import { Icon } from "@iconify-icon/react";
+import { type AnyFieldApi } from "@tanstack/react-form";
+import { AlertCircleIcon } from "lucide-react";
 import { Streamdown } from "streamdown";
 
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@hypr/ui/components/ui/input-group";
-import { cn } from "@hypr/utils";
-import { type AnyFieldApi } from "@tanstack/react-form";
 import * as main from "../../../../store/tinybase/main";
 
 export * from "./model-combobox";
@@ -92,6 +94,22 @@ export function FormField({
           <span>{errorMessage}</span>
         </p>
       )}
+    </div>
+  );
+}
+
+export function Banner({ message }: { message: string }) {
+  return (
+    <div
+      className={cn([
+        "flex items-center justify-center gap-2 text-center",
+        "bg-red-50/70 border-b border-red-200",
+        "py-3 px-4 -mx-6 -mt-6",
+        "text-sm text-red-700",
+      ])}
+    >
+      <AlertCircleIcon className="h-4 w-4 flex-shrink-0" />
+      {message}
     </div>
   );
 }

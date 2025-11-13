@@ -1,33 +1,19 @@
-import { cn } from "@hypr/utils";
-
-import { AlertCircleIcon } from "lucide-react";
 import { useMemo } from "react";
 
 import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/main";
+import { Banner } from "../shared";
 import { PROVIDERS } from "./shared";
 
-export function NoModelBanner() {
+export function BannerForLLM() {
   const { hasModel, message } = useHasLLMModel();
 
   if (hasModel) {
     return null;
   }
 
-  return (
-    <div
-      className={cn([
-        "flex items-center justify-center gap-2 text-center",
-        "bg-red-50/70 border-b border-red-200",
-        "py-3 px-4 -mx-6 -mt-6",
-        "text-sm text-red-700",
-      ])}
-    >
-      <AlertCircleIcon className="h-4 w-4 flex-shrink-0" />
-      {message}
-    </div>
-  );
+  return <Banner message={message} />;
 }
 
 function useHasLLMModel(): { hasModel: boolean; message: string } {

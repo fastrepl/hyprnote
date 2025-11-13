@@ -250,23 +250,27 @@ function ProfileButton(
   return (
     <button
       className={cn(
-        "flex w-full items-center gap-2.5",
-        "px-4 py-2",
-        "text-left",
-        "transition-all duration-300",
-        "hover:bg-neutral-100",
-        isExpanded && "bg-neutral-50 border-t border-neutral-100",
+        [
+          "flex w-full items-center gap-2.5",
+          "px-4 py-2",
+          "text-left",
+          "transition-all duration-300",
+          "hover:bg-neutral-100",
+          isExpanded && "bg-neutral-50 border-t border-neutral-100",
+        ],
       )}
       onClick={onClick}
     >
       <div
         className={cn(
-          "flex size-8 flex-shrink-0 items-center justify-center",
-          "overflow-hidden rounded-full",
-          "border border-white/60 border-t border-neutral-400",
-          "bg-gradient-to-br from-indigo-400 to-purple-500",
-          "shadow-sm",
-          "transition-transform duration-300",
+          [
+            "flex size-8 flex-shrink-0 items-center justify-center",
+            "overflow-hidden rounded-full",
+            "border border-white/60 border-t border-neutral-400",
+            "bg-gradient-to-br from-indigo-400 to-purple-500",
+            "shadow-sm",
+            "transition-transform duration-300",
+          ],
         )}
       >
         <img
@@ -281,9 +285,11 @@ function ProfileButton(
       <div className="flex items-center gap-1.5">
         <ChevronUpIcon
           className={cn(
-            "h-4 w-4",
-            "transition-transform duration-300",
-            isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
+            [
+              "h-4 w-4",
+              "transition-transform duration-300",
+              isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
+            ],
           )}
         />
       </div>

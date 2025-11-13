@@ -1,10 +1,51 @@
-import { EyeIcon, MicIcon, Volume2Icon } from "lucide-react";
-
 import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
+
+import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
 import { usePermissions } from "../../hooks/use-permissions";
-import { PermissionRow } from "../shared/permission-row";
 import { OnboardingContainer, type OnboardingNext } from "./shared";
+
+type PermissionBlockProps = {
+  name: string;
+  status: string | undefined;
+  description: { authorized: string; unauthorized: string };
+  isPending: boolean;
+  onAction: () => void;
+};
+
+function PermissionBlock({ name, status, description, isPending, onAction }: PermissionBlockProps) {
+  const isAuthorized = status === "authorized";
+
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2">
+        <div
+          className={cn([
+            "flex items-center gap-2",
+            !isAuthorized ? "text-red-500" : "text-neutral-900",
+          ])}
+        >
+          {!isAuthorized && <AlertCircleIcon className="size-4" />}
+          <span className="text-base font-medium">{name}</span>
+        </div>
+        <p className="text-sm text-neutral-500">
+          {isAuthorized ? description.authorized : description.unauthorized}
+        </p>
+      </div>
+      <Button
+        variant={isAuthorized ? "outline" : "default"}
+        size="icon"
+        onClick={onAction}
+        disabled={isPending || isAuthorized}
+        className={cn(["size-8", isAuthorized && "bg-stone-100 text-stone-800"])}
+        aria-label={isAuthorized ? `${name} permission granted` : `Request ${name.toLowerCase()} permission`}
+      >
+        {isAuthorized ? <CheckIcon className="size-5" /> : <ArrowRightIcon className="size-5" />}
+      </Button>
+    </div>
+  );
+}
 
 type PermissionsProps = {
   onNext: OnboardingNext;
@@ -28,50 +69,36 @@ export function Permissions({ onNext }: PermissionsProps) {
     && accessibilityPermissionStatus.data === "authorized";
 
   return (
-    <OnboardingContainer
-      title="Just three quick permissions before we begin"
-      description="After you grant system audio access, app will restart to apply the changes"
-    >
+    <OnboardingContainer title="Quick permissions before we begin">
       <div className="flex flex-col gap-4">
-        <PermissionRow
-          icon={<MicIcon className="h-5 w-5" />}
-          title="Microphone"
-          description={micPermissionStatus.data === "authorized" ? "Good to go :)" : "Used to capture your voice"}
+        <PermissionBlock
+          name="Microphone"
           status={micPermissionStatus.data}
+          description={{ authorized: "Good to go :)", unauthorized: "To capture your voice" }}
           isPending={micPermission.isPending}
           onAction={handleMicPermissionAction}
         />
-        <PermissionRow
-          icon={<Volume2Icon className="h-5 w-5" />}
-          title="System audio"
-          description={systemAudioPermissionStatus.data === "authorized"
-            ? "Good to go :)"
-            : "Used to capture what other people are saying"}
+
+        <PermissionBlock
+          name="System audio"
           status={systemAudioPermissionStatus.data}
+          description={{ authorized: "Good to go :)", unauthorized: "To capture what other people are saying" }}
           isPending={systemAudioPermission.isPending}
           onAction={handleSystemAudioPermissionAction}
         />
-        <PermissionRow
-          icon={<EyeIcon className="h-5 w-5" />}
-          title="Accessibility"
-          description={accessibilityPermissionStatus.data === "authorized"
-            ? "Good to go :)"
-            : "Used to sync mic inputs & mute from calls"}
+
+        <PermissionBlock
+          name="Accessibility"
           status={accessibilityPermissionStatus.data}
+          description={{ authorized: "Good to go :)", unauthorized: "To sync mic inputs & mute from meetings" }}
           isPending={accessibilityPermission.isPending}
           onAction={handleAccessibilityPermissionAction}
         />
       </div>
 
-      <Button onClick={() => onNext()} className="w-full">
-        Continue
+      <Button onClick={() => onNext()} className="w-full" disabled={!allPermissionsGranted}>
+        {allPermissionsGranted ? "Continue" : "Need all permissions to continue"}
       </Button>
-
-      {!allPermissionsGranted && (
-        <p className="text-center text-xs text-muted-foreground">
-          You can grant permissions later in settings
-        </p>
-      )}
     </OnboardingContainer>
   );
 }

@@ -114,11 +114,13 @@ const Typewriter = ({
         <motion.span
           variants={cursorAnimationVariants}
           className={cn(
-            cursorClassName,
-            hideCursorOnType
-              && (currentIndex < texts[currentTextIndex].length || isDeleting)
-              ? "hidden"
-              : "",
+            [
+              cursorClassName,
+              hideCursorOnType
+                && (currentIndex < texts[currentTextIndex].length || isDeleting)
+                ? "hidden"
+                : "",
+            ],
           )}
           initial="initial"
           animate="animate"

@@ -8,15 +8,17 @@ interface AvatarProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimit
 }
 
 const Avatar = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentRef<typeof AvatarPrimitive.Root>,
   AvatarProps
 >(({ className, variant = "circle", ...props }, ref) => (
   <AvatarPrimitive.Root
     ref={ref}
     className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden",
-      variant === "circle" ? "rounded-full" : "rounded-lg",
-      className,
+      [
+        "relative flex h-10 w-10 shrink-0 overflow-hidden",
+        variant === "circle" ? "rounded-full" : "rounded-lg",
+        className,
+      ],
     )}
     {...props}
   />
@@ -24,12 +26,12 @@ const Avatar = React.forwardRef<
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
 const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Image
     ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
+    className={cn(["aspect-square h-full w-full", className])}
     {...props}
   />
 ));
@@ -40,15 +42,17 @@ interface AvatarFallbackProps extends React.ComponentPropsWithoutRef<typeof Avat
 }
 
 const AvatarFallback = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentRef<typeof AvatarPrimitive.Fallback>,
   AvatarFallbackProps
 >(({ className, variant = "circle", ...props }, ref) => (
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center bg-muted",
-      variant === "circle" ? "rounded-full" : "rounded-lg",
-      className,
+      [
+        "flex h-full w-full items-center justify-center bg-muted",
+        variant === "circle" ? "rounded-full" : "rounded-lg",
+        className,
+      ],
     )}
     {...props}
   />

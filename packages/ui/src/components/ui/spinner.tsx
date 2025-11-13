@@ -14,7 +14,7 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
     return (
       <div
         ref={ref}
-        className={cn("relative inline-block", className)}
+        className={cn(["relative inline-block", className])}
         style={{
           width: size,
           height: size,

@@ -1,8 +1,8 @@
+import { cn } from "@hypr/utils";
+
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-
-import { cn } from "../../lib/utils";
 
 const sliderVariants = cva(
   "relative flex w-full touch-none select-none items-center",
@@ -61,18 +61,18 @@ export interface SliderProps
 {}
 
 const Slider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentRef<typeof SliderPrimitive.Root>,
   SliderProps
 >(({ className, size, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
-    className={cn(sliderVariants({ size }), className)}
+    className={cn([sliderVariants({ size }), className])}
     {...props}
   >
-    <SliderPrimitive.Track className={cn(trackVariants({ size }))}>
-      <SliderPrimitive.Range className={cn(rangeVariants())} />
+    <SliderPrimitive.Track className={cn([trackVariants({ size })])}>
+      <SliderPrimitive.Range className={cn([rangeVariants()])} />
     </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className={cn(thumbVariants({ size }))} />
+    <SliderPrimitive.Thumb className={cn([thumbVariants({ size })])} />
   </SliderPrimitive.Root>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;

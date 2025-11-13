@@ -27,7 +27,7 @@ export function ProgressiveBlur({
   const segmentSize = 1 / (blurLayers + 1);
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn(["relative", className])}>
       {Array.from({ length: layers }).map((_, index) => {
         const angle = GRADIENT_ANGLES[direction];
         const gradientStops = [

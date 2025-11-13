@@ -25,8 +25,7 @@ export function Accordion({
       collapsible
       defaultValue={defaultOpen ? "item-1" : undefined}
       className={cn(
-        "rounded-none border border-neutral-300 dark:border-neutral-700",
-        className,
+        ["rounded-none border border-neutral-300 dark:border-neutral-700", className],
       )}
     >
       <AccordionPrimitive.Item value="item-1">

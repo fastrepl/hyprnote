@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChevronsUpDown, CirclePlus, Eye, EyeOff } from "lucide-react";
+import { ChevronDown, CirclePlus, Eye, EyeOff } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -100,7 +100,7 @@ export function ModelCombobox({
           {value && value.length > 0
             ? <span className="truncate">{value}</span>
             : <span className="text-muted-foreground">{isLoading ? "Loading models..." : placeholder}</span>}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]">

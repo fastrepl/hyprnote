@@ -1,4 +1,4 @@
-import { CaptionsOffIcon, Zap } from "lucide-react";
+import { AudioLinesIcon, SparklesIcon } from "lucide-react";
 
 import type { BannerCondition, BannerType } from "./types";
 
@@ -29,11 +29,11 @@ export function createBannerRegistry({
     {
       banner: {
         id: "missing-stt",
-        icon: <CaptionsOffIcon className="size-5" />,
-        title: "Missing transcription",
-        description: "Needs to be configured to transcribe your meetings.",
+        icon: <AudioLinesIcon className="size-5" />,
+        title: "Configure STT model",
+        description: "Speech-to-text model is needed to make Hyprnote listen to your conversations",
         primaryAction: {
-          label: "Open AI settings",
+          label: "Go to settings",
           onClick: onOpenSTTSettings,
         },
         dismissible: false,
@@ -43,11 +43,11 @@ export function createBannerRegistry({
     {
       banner: {
         id: "missing-llm",
-        icon: <Zap className="size-5" />,
-        title: "Missing intelligence",
-        description: "Needs to be configured to get the most out of the transcription.",
+        icon: <SparklesIcon className="size-5" />,
+        title: "Configure LLM",
+        description: "Language model is needed to make Hyprnote summarize and chat about your conversations",
         primaryAction: {
-          label: "Open AI settings",
+          label: "Go to settings",
           onClick: onOpenLLMSettings,
         },
         dismissible: false,

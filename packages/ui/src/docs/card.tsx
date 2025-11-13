@@ -11,8 +11,7 @@ export function Card({ title, icon, children, className }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-none border border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900",
-        className,
+        ["rounded-none border border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900", className],
       )}
     >
       {(title || icon) && (

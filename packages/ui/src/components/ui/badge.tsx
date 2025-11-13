@@ -47,7 +47,7 @@ function Badge({
 }: BadgeProps) {
   return (
     <div
-      className={cn(badgeVariants({ variant, size, disabled }), className)}
+      className={cn([badgeVariants({ variant, size, disabled }), className])}
       aria-label={label}
       role="status"
       {...props}

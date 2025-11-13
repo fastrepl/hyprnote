@@ -3,10 +3,14 @@ import { cn } from "@hypr/utils";
 export function TemplateCard({
   title,
   description,
+  category,
+  targets,
   onClick,
 }: {
   title?: string | null;
   description?: string | null;
+  category?: string | null;
+  targets?: string[] | null;
   onClick?: () => void;
 }) {
   const displayTitle = title?.trim() ? title : "Untitled";
@@ -34,8 +38,22 @@ export function TemplateCard({
       ])}
     >
       <div className="flex-1">
-        <h3 className="text-sm font-medium mb-1">{displayTitle}</h3>
-        <p className="text-xs text-neutral-600">{displayDescription}</p>
+        <h3 className="text-sm font-medium mb-2 inline-flex items-center gap-1">
+          <span>{displayTitle}</span>
+          {category && (
+            <span className="text-stone-400">
+              - {category}
+            </span>
+          )}
+        </h3>
+        <p className="text-xs text-neutral-600 mb-2">{displayDescription}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          {targets?.map((target, index) => (
+            <span key={index} className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">
+              {target}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

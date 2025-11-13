@@ -1,10 +1,10 @@
-import { formatDistanceToNow } from "@hypr/utils";
+import { Button } from "@hypr/ui/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
+import { cn, formatDistanceToNow } from "@hypr/utils";
+
 import { ChevronDown, MessageCircle, PanelRightIcon, PictureInPicture2Icon, Plus, X } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@hypr/ui/components/ui/dropdown-menu";
-import { cn } from "@hypr/utils";
 import { useShell } from "../../contexts/shell";
 import * as main from "../../store/tinybase/main";
 

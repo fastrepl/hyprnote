@@ -1,12 +1,12 @@
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
+
 import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useShallow } from "zustand/shallow";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
 import { useShell } from "../../../contexts/shell";
 import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
 import { ChatFloatingButton } from "../../chat";
@@ -76,7 +76,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
     >
       {!leftsidebar.expanded && (
         <Button size="icon" variant="ghost" onClick={() => leftsidebar.setExpanded(true)}>
-          <PanelLeftOpenIcon size={16} />
+          <PanelLeftOpenIcon size={16} className="text-neutral-600" />
         </Button>
       )}
 
@@ -151,7 +151,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
           onClick={handleNewEmptyTab}
           variant="ghost"
           size="icon"
-          className="text-neutral-500"
+          className="text-neutral-600"
         >
           <PlusIcon size={16} />
         </Button>
@@ -376,16 +376,12 @@ function useTabsShortcuts() {
     () => {
       if (currentTab?.type === "empty") {
         newNoteCurrent();
-        return;
+      } else {
+        newNote();
       }
-
-      if (currentTab) {
-        close(currentTab);
-      }
-      newNote();
     },
     { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
-    [currentTab, close, newNote, newNoteCurrent],
+    [currentTab, newNote, newNoteCurrent],
   );
 
   useHotkeys(
@@ -398,15 +394,12 @@ function useTabsShortcuts() {
   useHotkeys(
     "mod+w",
     async () => {
-      if (currentTab && tabs.length > 1) {
+      if (currentTab) {
         close(currentTab);
-      } else {
-        const appWindow = getCurrentWebviewWindow();
-        await appWindow.close();
       }
     },
     { preventDefault: true, enableOnFormTags: true, enableOnContentEditable: true },
-    [tabs, currentTab, close],
+    [currentTab, close],
   );
 
   useHotkeys(

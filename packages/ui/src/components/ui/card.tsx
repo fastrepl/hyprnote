@@ -11,11 +11,13 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "rounded-lg",
-        variant === "default" && "bg-background border shadow-sm",
-        variant === "outline" && "border",
-        variant === "ghost" && "border-none shadow-none",
-        className,
+        [
+          "rounded-lg",
+          variant === "default" && "bg-background border shadow-sm",
+          variant === "outline" && "border",
+          variant === "ghost" && "border-none shadow-none",
+          className,
+        ],
       )}
       {...props}
     />
@@ -32,11 +34,13 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
     <div
       ref={ref}
       className={cn(
-        "flex flex-col",
-        spacing === "default" && "space-y-1.5 p-6",
-        spacing === "compact" && "space-y-1 p-4",
-        spacing === "loose" && "space-y-2 p-8",
-        className,
+        [
+          "flex flex-col",
+          spacing === "default" && "space-y-1.5 p-6",
+          spacing === "compact" && "space-y-1 p-4",
+          spacing === "loose" && "space-y-2 p-8",
+          className,
+        ],
       )}
       {...props}
     />
@@ -52,7 +56,7 @@ export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
   ({ className, as: Component = "h3", ...props }, ref) => (
     <Component
       ref={ref}
-      className={cn("font-semibold leading-none tracking-tight", className)}
+      className={cn(["font-semibold leading-none tracking-tight", className])}
       {...props}
     />
   ),
@@ -67,7 +71,7 @@ export const CardDescription = forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-neutral-500", className)}
+    className={cn(["text-sm text-neutral-500", className])}
     {...props}
   />
 ));
@@ -82,10 +86,12 @@ export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
     <div
       ref={ref}
       className={cn(
-        spacing === "default" && "p-6 pt-0",
-        spacing === "compact" && "p-4 pt-0",
-        spacing === "loose" && "p-8 pt-0",
-        className,
+        [
+          spacing === "default" && "p-6 pt-0",
+          spacing === "compact" && "p-4 pt-0",
+          spacing === "loose" && "p-8 pt-0",
+          className,
+        ],
       )}
       {...props}
     />
@@ -103,17 +109,19 @@ export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
     <div
       ref={ref}
       className={cn(
-        "flex",
-        spacing === "default" && "p-6 pt-0",
-        spacing === "compact" && "p-4 pt-0",
-        spacing === "loose" && "p-8 pt-0",
-        align === "start" && "justify-start",
-        align === "center" && "justify-center",
-        align === "end" && "justify-end",
-        align === "between" && "justify-between",
-        align === "around" && "justify-around",
-        align === "evenly" && "justify-evenly",
-        className,
+        [
+          "flex",
+          spacing === "default" && "p-6 pt-0",
+          spacing === "compact" && "p-4 pt-0",
+          spacing === "loose" && "p-8 pt-0",
+          align === "start" && "justify-start",
+          align === "center" && "justify-center",
+          align === "end" && "justify-end",
+          align === "between" && "justify-between",
+          align === "around" && "justify-around",
+          align === "evenly" && "justify-evenly",
+          className,
+        ],
       )}
       {...props}
     />

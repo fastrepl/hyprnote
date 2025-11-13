@@ -41,15 +41,15 @@ interface SwitchProps
 {}
 
 const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentRef<typeof SwitchPrimitives.Root>,
   SwitchProps
 >(({ className, size, ...props }, ref) => (
   <SwitchPrimitives.Root
-    className={cn(switchVariants({ size, className }))}
+    className={cn([switchVariants({ size, className })])}
     {...props}
     ref={ref}
   >
-    <SwitchPrimitives.Thumb className={cn(thumbVariants({ size }))} />
+    <SwitchPrimitives.Thumb className={cn([thumbVariants({ size })])} />
   </SwitchPrimitives.Root>
 ));
 Switch.displayName = SwitchPrimitives.Root.displayName;

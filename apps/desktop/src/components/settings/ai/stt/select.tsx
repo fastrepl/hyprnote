@@ -1,12 +1,15 @@
-import { useForm } from "@tanstack/react-form";
-import { useQueries } from "@tanstack/react-query";
-import { useCallback } from "react";
-
 import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
+import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
+
+import { useForm } from "@tanstack/react-form";
+import { useQueries } from "@tanstack/react-query";
+import { RefreshCwIcon } from "lucide-react";
+import { useCallback } from "react";
+
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
@@ -55,97 +58,101 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-row items-center gap-2">
-        <h3 className="text-md font-semibold">Model being used</h3>
-        <HealthCheck />
-      </div>
+      <h3 className="text-md font-semibold">Model being used</h3>
       <div
         className={cn([
-          "flex flex-row items-center gap-4",
-          "p-4 rounded-md border border-neutral-500 bg-neutral-50",
-          (!!current_stt_provider && !!current_stt_model) ? "border-solid" : "border-dashed border-red-400",
+          "flex flex-col gap-4",
+          "p-4 rounded-lg border border-neutral-200",
+          (!!current_stt_provider && !!current_stt_model) ? "bg-neutral-50" : "bg-red-50",
         ])}
       >
-        <form.Field
-          name="provider"
-          listeners={{ onChange: () => form.setFieldValue("model", "") }}
-        >
-          {(field) => (
-            <div className="flex-[2] min-w-0">
-              <Select
-                value={field.state.value}
-                onValueChange={(value) => field.handleChange(value)}
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Select a provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROVIDERS.filter(({ disabled }) => !disabled).map((provider) => (
-                    <SelectItem
-                      key={provider.id}
-                      value={provider.id}
-                      disabled={provider.disabled || !(configuredProviders[provider.id]?.configured ?? false)}
-                    >
-                      <div className="flex items-center gap-2">
-                        {provider.icon}
-                        <span>{provider.displayName}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </form.Field>
-
-        <span className="text-neutral-500">/</span>
-
-        <form.Field name="model">
-          {(field) => {
-            const providerId = field.form.getFieldValue("provider") as ProviderId;
-            if (providerId === "custom") {
-              return (
-                <div className="flex-[3] min-w-0">
-                  <Input
-                    value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    className="text-xs"
-                    placeholder="Enter a model identifier"
-                  />
-                </div>
-              );
-            }
-
-            const allModels = configuredProviders?.[providerId]?.models ?? [];
-            const models = allModels.filter((model) => {
-              if (model.id.startsWith("Quantized")) {
-                return model.isDownloaded;
-              }
-              return true;
-            });
-
-            return (
-              <div className="flex-[3] min-w-0">
+        <div className="flex flex-row items-center gap-4">
+          <form.Field
+            name="provider"
+            listeners={{
+              onChange: () => {
+                form.setFieldValue("model", "");
+              },
+            }}
+          >
+            {(field) => (
+              <div className="flex-[2] min-w-0" data-stt-provider-selector>
                 <Select
                   value={field.state.value}
                   onValueChange={(value) => field.handleChange(value)}
-                  disabled={models.length === 0}
                 >
                   <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Select a model" />
+                    <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
-                    {models.map((model) => (
-                      <SelectItem key={model.id} value={model.id} disabled={!model.isDownloaded}>
-                        {displayModelId(model.id)}
+                    {PROVIDERS.filter(({ disabled }) => !disabled).map((provider) => (
+                      <SelectItem
+                        key={provider.id}
+                        value={provider.id}
+                        disabled={provider.disabled || !(configuredProviders[provider.id]?.configured ?? false)}
+                      >
+                        <div className="flex items-center gap-2">
+                          {provider.icon}
+                          <span>{provider.displayName}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            );
-          }}
-        </form.Field>
+            )}
+          </form.Field>
+
+          <span className="text-neutral-500">/</span>
+
+          <form.Field name="model">
+            {(field) => {
+              const providerId = field.form.getFieldValue("provider") as ProviderId;
+              if (providerId === "custom") {
+                return (
+                  <div className="flex-[3] min-w-0">
+                    <Input
+                      value={field.state.value}
+                      onChange={(event) => field.handleChange(event.target.value)}
+                      className="text-xs"
+                      placeholder="Enter a model identifier"
+                    />
+                  </div>
+                );
+              }
+
+              const allModels = configuredProviders?.[providerId]?.models ?? [];
+              const models = allModels.filter((model) => {
+                if (model.id.startsWith("Quantized")) {
+                  return model.isDownloaded;
+                }
+                return true;
+              });
+
+              return (
+                <div className="flex-[3] min-w-0">
+                  <Select
+                    value={field.state.value}
+                    onValueChange={(value) => field.handleChange(value)}
+                    disabled={models.length === 0}
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select a model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {models.map((model) => (
+                        <SelectItem key={model.id} value={model.id} disabled={!model.isDownloaded}>
+                          {displayModelId(model.id)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            }}
+          </form.Field>
+        </div>
+        {current_stt_provider && current_stt_model && <HealthCheck />}
       </div>
     </div>
   );
@@ -239,51 +246,73 @@ function HealthCheck() {
 
   const conn = useSTTConnection();
 
-  const isLocalModel = current_stt_provider === "hyprnote" && current_stt_model?.startsWith("am-") === true;
-  const hasServerIssue = isLocalModel && !conn?.baseUrl;
+  const isLocalModel = current_stt_provider === "hyprnote"
+    && current_stt_model
+    && (
+      current_stt_model.startsWith("am-")
+      || current_stt_model.startsWith("Quantized")
+    );
 
-  const { color, tooltipMessage } = (() => {
+  if (!isLocalModel) {
+    return null;
+  }
+
+  const hasServerIssue = !conn?.baseUrl;
+
+  const { status, message, textColor } = (() => {
     if (!conn) {
       return {
-        color: "bg-red-400",
-        tooltipMessage: "No STT connection. Please configure a provider and model.",
+        status: "No STT connection. Please configure a provider and model.",
+        message: "No STT connection. Please configure a provider and model.",
+        textColor: "text-red-600",
       };
     }
 
     if (hasServerIssue) {
       return {
-        color: "bg-red-400",
-        tooltipMessage: "Local server not ready. Click to restart.",
+        status: "Local server not ready. Click to restart.",
+        message: "Local server not ready. Click to restart.",
+        textColor: "text-red-600",
       };
     }
 
     if (conn.baseUrl) {
       return {
-        color: "bg-green-400",
-        tooltipMessage: "STT connection ready",
+        status: "Connected!",
+        message: "STT connection ready",
+        textColor: "text-green-600",
       };
     }
 
     return {
-      color: "bg-red-400",
-      tooltipMessage: "Connection not available",
+      status: "Connection not available",
+      message: "Connection not available",
+      textColor: "text-red-600",
     };
   })();
 
   return (
-    <Tooltip delayDuration={0}>
-      <TooltipTrigger asChild>
-        <span
+    <div className="flex items-center justify-between gap-2 h-7">
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <span className={cn(["text-xs font-medium", textColor])}>
+            {status}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs">
+          <p className="text-xs">{message}</p>
+        </TooltipContent>
+      </Tooltip>
+      {hasServerIssue && (
+        <Button
+          size="sm"
+          variant="ghost"
           onClick={experimental_handleServer}
-          className={cn([
-            "w-2 h-2 rounded-full cursor-pointer",
-            color,
-          ])}
-        />
-      </TooltipTrigger>
-      <TooltipContent side="bottom" className="max-w-xs">
-        <p className="text-xs">{tooltipMessage}</p>
-      </TooltipContent>
-    </Tooltip>
+        >
+          <RefreshCwIcon size={12} />
+          Restart Server
+        </Button>
+      )}
+    </div>
   );
 }

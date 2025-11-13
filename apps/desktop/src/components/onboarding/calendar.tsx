@@ -20,18 +20,15 @@ export function Calendars({ local, onNext }: CalendarsProps) {
               <IntegrationRow
                 icon={<Icon icon="logos:google-calendar" size={24} />}
                 name="Google Calendar"
-                description="Connect your Google Calendar"
               />
               <IntegrationRow
                 icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
                 name="Outlook"
-                description="Connect your Outlook Calendar"
               />
               <Divider text="Directly connecting Google/Outlook works better" />
               <IntegrationRow
                 icon={<Icon icon="logos:apple" size={24} />}
                 name="Apple Calendar"
-                description="Connect your Apple Calendar"
               />
             </>
           )
@@ -40,19 +37,16 @@ export function Calendars({ local, onNext }: CalendarsProps) {
               <IntegrationRow
                 icon={<Icon icon="logos:apple" size={24} />}
                 name="Apple Calendar"
-                description="Connect your Apple Calendar"
               />
               <Divider text="You need account" />
               <IntegrationRow
                 icon={<Icon icon="logos:google-calendar" size={24} />}
                 name="Google Calendar"
-                description="Connect your Google Calendar"
                 disabled
               />
               <IntegrationRow
                 icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
                 name="Outlook"
-                description="Connect your Outlook Calendar"
                 disabled
               />
             </>

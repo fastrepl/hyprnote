@@ -104,13 +104,10 @@ export function ChatView() {
               error={error}
               onReload={regenerate}
               onStop={stop}
+              isModelConfigured={!!model}
             />
             <ChatMessageInput
-              disabled={!model
-                ? { disabled: true, message: "Language model not configured." }
-                : status !== "ready"
-                ? true
-                : false}
+              disabled={!model || status !== "ready"}
               onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
             />
           </>

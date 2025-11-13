@@ -1,8 +1,5 @@
-import { CircleQuestionMarkIcon } from "lucide-react";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
-import { cn } from "@hypr/utils";
 
 import type { OnboardingNext } from "./shared";
 
@@ -12,7 +9,7 @@ type WelcomeProps = {
 
 export function Welcome({ onNext }: WelcomeProps) {
   return (
-    <div className="flex flex-col items-center">
+    <>
       <img
         src="/assets/logo.svg"
         alt="HYPRNOTE"
@@ -31,12 +28,14 @@ export function Welcome({ onNext }: WelcomeProps) {
 
       <Button
         onClick={() => onNext({ local: false })}
-        className="mb-4 w-full max-w-sm decoration-neutral-100 hover:underline"
+        size="lg"
+        className="w-full"
       >
         Get Started
       </Button>
 
-      <div
+      {
+        /*<div
         className={cn([
           "flex flex-row items-center gap-1",
           "text-neutral-400 transition-colors hover:text-neutral-800",
@@ -46,7 +45,8 @@ export function Welcome({ onNext }: WelcomeProps) {
           Or proceed without an account
         </button>
         <CircleQuestionMarkIcon className="h-4 w-4 cursor-help" />
-      </div>
-    </div>
+      </div>*/
+      }
+    </>
   );
 }

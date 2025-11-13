@@ -16,6 +16,7 @@ export function TemplateEditor({ id }: { id: string }) {
     (row: Partial<main.Template>) => ({
       ...row,
       sections: row.sections ? JSON.stringify(row.sections) : undefined,
+      targets: row.targets ? JSON.stringify(row.targets) : undefined,
     } satisfies Partial<main.TemplateStorage>),
     [id],
     main.STORE_ID,

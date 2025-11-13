@@ -947,8 +947,7 @@ function HowItWorksSection() {
                   <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 1 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       Sarah presented the new mobile UI update, which includes a streamlined navigation bar and improved
@@ -956,8 +955,7 @@ function HowItWorksSection() {
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 2 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       Ben confirmed that API adjustments are needed to support dynamic UI changes, particularly for
@@ -965,8 +963,7 @@ function HowItWorksSection() {
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 3 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       The UI update will be implemented in phases, starting with core navigation improvements. Ben will
@@ -979,8 +976,7 @@ function HowItWorksSection() {
                   <ul className="space-y-2 text-neutral-700 list-disc pl-4">
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 4 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       Alice emphasized that the new analytics dashboard must be prioritized due to increasing
@@ -988,8 +984,7 @@ function HowItWorksSection() {
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 5 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       The new dashboard will feature real-time user engagement metrics and a customizable reporting
@@ -997,16 +992,14 @@ function HowItWorksSection() {
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 6 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       Ben mentioned that backend infrastructure needs optimization to handle real-time data processing.
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 6 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       Mark stressed that the dashboard launch should align with marketing efforts to maximize user
@@ -1014,8 +1007,7 @@ function HowItWorksSection() {
                     </li>
                     <li
                       className={cn(
-                        "transition-opacity duration-500",
-                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
+                        ["transition-opacity duration-500", enhancedLines >= 6 ? "opacity-100" : "opacity-0"],
                       )}
                     >
                       Development will start immediately, and a basic prototype must be ready for stakeholder review

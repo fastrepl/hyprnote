@@ -70,10 +70,12 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-          "overflow-clip rounded-lg bg-background shadow-lg",
-          sizeClasses[size],
-          className,
+          [
+            "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+            "overflow-clip rounded-lg bg-background shadow-lg",
+            sizeClasses[size],
+            className,
+          ],
         )}
       >
         {children}
@@ -88,7 +90,7 @@ interface ModalHeaderProps {
 }
 
 export function ModalHeader({ children, className }: ModalHeaderProps) {
-  return <div className={cn("flex flex-col", className)}>{children}</div>;
+  return <div className={cn(["flex flex-col", className])}>{children}</div>;
 }
 
 interface ModalBodyProps {
@@ -98,7 +100,7 @@ interface ModalBodyProps {
 
 export function ModalBody({ children, className }: ModalBodyProps) {
   return (
-    <div className={cn("flex-1 overflow-auto p-6 h-full", className)}>
+    <div className={cn(["flex-1 overflow-auto p-6 h-full", className])}>
       {children}
     </div>
   );
@@ -113,8 +115,7 @@ export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-end gap-2 px-6 py-4",
-        className,
+        ["flex items-center justify-end gap-2 px-6 py-4", className],
       )}
     >
       {children}
@@ -129,7 +130,7 @@ interface ModalTitleProps {
 
 export function ModalTitle({ children, className }: ModalTitleProps) {
   return (
-    <h2 className={cn("text-lg font-semibold leading-none", className)}>
+    <h2 className={cn(["text-lg font-semibold leading-none", className])}>
       {children}
     </h2>
   );
@@ -144,5 +145,5 @@ export function ModalDescription({
   children,
   className,
 }: ModalDescriptionProps) {
-  return <p className={cn("text-sm text-muted-foreground", className)}>{children}</p>;
+  return <p className={cn(["text-sm text-muted-foreground", className])}>{children}</p>;
 }

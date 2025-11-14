@@ -5,8 +5,6 @@ import type {
   SpeakerState,
 } from "./shared";
 
-type IdentityRule = (ctx: IdentityRuleContext) => void;
-
 type SpeakerStateSnapshot = Pick<
   SpeakerState,
   | "completeChannels"
@@ -15,40 +13,24 @@ type SpeakerStateSnapshot = Pick<
   | "lastSpeakerByChannel"
 >;
 
-type IdentityRuleContext = {
+type IdentityRuleArgs = {
   assignment?: SpeakerIdentity;
-  identity: SpeakerIdentity;
   snapshot: SpeakerStateSnapshot;
   word: SegmentWord;
 };
 
-const identityRules: IdentityRule[] = [
-  applyExplicitAssignment,
-  applySpeakerIndexHumanId,
-  applyChannelHumanId,
-  carryPartialIdentityForward,
-];
-
-class SpeakerTracker {
-  constructor(private readonly state: SpeakerState) {}
-
-  inferIdentity(
-    word: SegmentWord,
-    assignment: SpeakerIdentity | undefined,
-  ): SpeakerIdentity {
-    const identity = applyIdentityRules(word, assignment, this.state);
-    rememberIdentity(word, assignment, identity, this.state);
-    return identity;
-  }
-}
+type IdentityRule = (
+  identity: SpeakerIdentity,
+  args: IdentityRuleArgs,
+) => SpeakerIdentity;
 
 export const resolveIdentitiesPass: SegmentPass<"words"> = {
   id: "resolve_speakers",
   run(graph, ctx) {
-    const tracker = new SpeakerTracker(ctx.speakerState);
     const frames = graph.words.map((word, index) => {
       const assignment = ctx.speakerState.assignmentByWordIndex.get(index);
-      const identity = tracker.inferIdentity(word, assignment);
+      const identity = applyIdentityRules(word, assignment, ctx.speakerState);
+      rememberIdentity(word, assignment, identity, ctx.speakerState);
 
       return {
         word,
@@ -65,15 +47,23 @@ function applyIdentityRules(
   assignment: SpeakerIdentity | undefined,
   snapshot: SpeakerStateSnapshot,
 ): SpeakerIdentity {
-  const identity: SpeakerIdentity = {};
-  const ctx: IdentityRuleContext = {
+  const rules: IdentityRule[] = [
+    applyExplicitAssignment,
+    applySpeakerIndexHumanId,
+    applyChannelHumanId,
+    carryPartialIdentityForward,
+  ];
+
+  const args: IdentityRuleArgs = {
     assignment,
-    identity,
     snapshot,
     word,
   };
-  identityRules.forEach((rule) => rule(ctx));
-  return identity;
+
+  return rules.reduce(
+    (identity, rule) => rule(identity, args),
+    {} as SpeakerIdentity,
+  );
 }
 
 function rememberIdentity(
@@ -113,70 +103,82 @@ function rememberIdentity(
   }
 }
 
-function applyExplicitAssignment(ctx: IdentityRuleContext): void {
-  if (!ctx.assignment) {
-    return;
-  }
-  if (ctx.assignment.speaker_index !== undefined) {
-    ctx.identity.speaker_index = ctx.assignment.speaker_index;
-  }
-  if (ctx.assignment.human_id !== undefined) {
-    ctx.identity.human_id = ctx.assignment.human_id;
-  }
-}
-
-function applySpeakerIndexHumanId(ctx: IdentityRuleContext): void {
-  if (
-    ctx.identity.speaker_index === undefined ||
-    ctx.identity.human_id !== undefined
-  ) {
-    return;
+const applyExplicitAssignment: IdentityRule = (identity, { assignment }) => {
+  if (!assignment) {
+    return identity;
   }
 
-  const humanId = ctx.snapshot.humanIdBySpeakerIndex.get(
-    ctx.identity.speaker_index,
-  );
+  const updates: Partial<SpeakerIdentity> = {};
+  if (assignment.speaker_index !== undefined) {
+    updates.speaker_index = assignment.speaker_index;
+  }
+  if (assignment.human_id !== undefined) {
+    updates.human_id = assignment.human_id;
+  }
+
+  return Object.keys(updates).length > 0
+    ? { ...identity, ...updates }
+    : identity;
+};
+
+const applySpeakerIndexHumanId: IdentityRule = (identity, { snapshot }) => {
+  if (identity.speaker_index === undefined || identity.human_id !== undefined) {
+    return identity;
+  }
+
+  const humanId = snapshot.humanIdBySpeakerIndex.get(identity.speaker_index);
   if (humanId !== undefined) {
-    ctx.identity.human_id = humanId;
-  }
-}
-
-function applyChannelHumanId(ctx: IdentityRuleContext): void {
-  if (ctx.identity.human_id !== undefined) {
-    return;
+    return { ...identity, human_id: humanId };
   }
 
-  if (!ctx.snapshot.completeChannels.has(ctx.word.channel)) {
-    return;
+  return identity;
+};
+
+const applyChannelHumanId: IdentityRule = (identity, { snapshot, word }) => {
+  if (identity.human_id !== undefined) {
+    return identity;
   }
 
-  const humanId = ctx.snapshot.humanIdByChannel.get(ctx.word.channel);
+  if (!snapshot.completeChannels.has(word.channel)) {
+    return identity;
+  }
+
+  const humanId = snapshot.humanIdByChannel.get(word.channel);
   if (humanId !== undefined) {
-    ctx.identity.human_id = humanId;
+    return { ...identity, human_id: humanId };
   }
-}
 
-function carryPartialIdentityForward(ctx: IdentityRuleContext): void {
+  return identity;
+};
+
+const carryPartialIdentityForward: IdentityRule = (
+  identity,
+  { snapshot, word },
+) => {
   if (
-    ctx.word.isFinal ||
-    (ctx.identity.speaker_index !== undefined &&
-      ctx.identity.human_id !== undefined)
+    word.isFinal ||
+    (identity.speaker_index !== undefined && identity.human_id !== undefined)
   ) {
-    return;
+    return identity;
   }
 
-  const last = ctx.snapshot.lastSpeakerByChannel.get(ctx.word.channel);
+  const last = snapshot.lastSpeakerByChannel.get(word.channel);
   if (!last) {
-    return;
+    return identity;
   }
 
+  const updates: Partial<SpeakerIdentity> = {};
   if (
-    ctx.identity.speaker_index === undefined &&
+    identity.speaker_index === undefined &&
     last.speaker_index !== undefined
   ) {
-    ctx.identity.speaker_index = last.speaker_index;
+    updates.speaker_index = last.speaker_index;
   }
-  if (ctx.identity.human_id === undefined && last.human_id !== undefined) {
-    ctx.identity.human_id = last.human_id;
+  if (identity.human_id === undefined && last.human_id !== undefined) {
+    updates.human_id = last.human_id;
   }
-}
+
+  return Object.keys(updates).length > 0
+    ? { ...identity, ...updates }
+    : identity;
+};

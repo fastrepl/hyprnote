@@ -231,9 +231,9 @@ impl Actor for ExternalSTTActor {
             }
             ExternalSTTMessage::GetHealth(reply_port) => {
                 let status = match state.client.status().await {
-                    Ok(r) => match r.model_state {
-                        hypr_am::ModelState::Loading => ServerStatus::Loading,
-                        hypr_am::ModelState::Loaded => ServerStatus::Ready,
+                    Ok(r) => match r.status {
+                        hypr_am::ServerStatusType::Ready => ServerStatus::Ready,
+                        hypr_am::ServerStatusType::Initializing => ServerStatus::Loading,
                         _ => ServerStatus::Unreachable,
                     },
                     Err(e) => {

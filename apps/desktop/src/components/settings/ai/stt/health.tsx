@@ -25,17 +25,22 @@ function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
     };
   }
 
-  if (conn) {
+  const serverStatus = local.snapshot?.serverStatus ?? "unavailable";
+
+  if (serverStatus === "loading") {
     return {
-      status: "success" as const,
+      status: "pending",
+      tooltip: "Local STT server is starting up…",
     };
   }
 
-  const serverStatus = local.snapshot?.serverStatus ?? "unavailable";
+  if (conn) {
+    return { status: "success" };
+  }
 
   return {
     status: "error",
-    tooltip: `Local server status: ${serverStatus}. Click to restart.`,
+    tooltip: `Local server status: ${serverStatus}.`,
   };
 }
 

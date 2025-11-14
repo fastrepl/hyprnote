@@ -103,6 +103,7 @@ jobs:
             alsa-lib \
             libpulse \
             openblas \
+            cblas \
             vulkan-icd-loader \
             vulkan-headers \
             xdotool \
@@ -147,11 +148,20 @@ jobs:
           # Build UI package
           pnpm -F ui build
           
-          # Set environment for build
+          # Find cblas.h location and set environment for build
+          CBLAS_LOCATION=$(find /usr/include -name "cblas.h" 2>/dev/null | head -n 1)
+          if [ -n "$CBLAS_LOCATION" ]; then
+            CBLAS_DIR=$(dirname "$CBLAS_LOCATION")
+            echo "Found cblas.h at: $CBLAS_LOCATION (directory: $CBLAS_DIR)"
+            export BLAS_INCLUDE_DIRS="$CBLAS_DIR"
+          else
+            echo "Warning: cblas.h not found, using default /usr/include"
+            export BLAS_INCLUDE_DIRS=/usr/include
+          fi
+          
           export LIBCLANG_PATH=/usr/lib
           export CARGO_LOG=cargo::core::compiler::fingerprint=info
           export RUST_BACKTRACE=1
-          export BLAS_INCLUDE_DIRS=/usr/include
           
           # Build with Cargo directly
           # Note: We skip Tauri CLI bundling (which creates AppImage/deb/rpm) because

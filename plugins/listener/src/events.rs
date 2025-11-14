@@ -13,52 +13,38 @@ common_event_derives! {
     #[serde(tag = "type")]
     pub enum SessionEvent {
         #[serde(rename = "inactive")]
-        Inactive {},
+        Inactive { session_id: String },
         #[serde(rename = "running_active")]
-        RunningActive {},
+        RunningActive { session_id: String },
         #[serde(rename = "finalizing")]
-        Finalizing {},
+        Finalizing { session_id: String },
         #[serde(rename = "audioAmplitude")]
-        AudioAmplitude { mic: u16, speaker: u16 },
+        AudioAmplitude {
+            session_id: String,
+            mic: u16,
+            speaker: u16,
+        },
         #[serde(rename = "micMuted")]
-        MicMuted { value: bool },
+        MicMuted { session_id: String, value: bool },
         #[serde(rename = "streamResponse")]
-        StreamResponse { response: StreamResponse },
+        StreamResponse {
+            session_id: String,
+            response: StreamResponse,
+        },
         #[serde(rename = "batchStarted")]
         BatchStarted { session_id: String },
         #[serde(rename = "batchResponse")]
-        BatchResponse { response: BatchResponse },
+        BatchResponse {
+            session_id: String,
+            response: BatchResponse,
+        },
         #[serde(rename = "batchProgress")]
-        BatchResponseStreamed { response: StreamResponse, percentage: f64 },
+        BatchResponseStreamed {
+            session_id: String,
+            response: StreamResponse,
+            percentage: f64,
+        },
         #[serde(rename = "batchFailed")]
-        BatchFailed { error: String },
-    }
-}
-
-impl From<(&[f32], &[f32])> for SessionEvent {
-    fn from((mic_chunk, speaker_chunk): (&[f32], &[f32])) -> Self {
-        let mic = (mic_chunk
-            .iter()
-            .map(|&x| x.abs())
-            .filter(|x| x.is_finite())
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap_or(0.0)
-            * 100.0) as u16;
-
-        let speaker = (speaker_chunk
-            .iter()
-            .map(|&x| x.abs())
-            .filter(|x| x.is_finite())
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
-            .unwrap_or(0.0)
-            * 100.0) as u16;
-
-        Self::AudioAmplitude { mic, speaker }
-    }
-}
-
-impl From<(&Vec<f32>, &Vec<f32>)> for SessionEvent {
-    fn from((mic_chunk, speaker_chunk): (&Vec<f32>, &Vec<f32>)) -> Self {
-        Self::from((mic_chunk.as_slice(), speaker_chunk.as_slice()))
+        BatchFailed { session_id: String, error: String },
     }
 }

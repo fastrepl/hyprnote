@@ -5,10 +5,10 @@ import type { StoreApi } from "zustand";
 import {
   type BatchParams,
   type BatchResponse,
+  type ControllerParams,
   commands as listenerCommands,
   events as listenerEvents,
   type SessionEvent,
-  type SessionParams,
   type StreamResponse,
 } from "@hypr/plugin-listener";
 
@@ -21,6 +21,11 @@ type LiveSessionStatus = Extract<
   "inactive" | "running_active" | "finalizing"
 >;
 export type SessionMode = LiveSessionStatus | "running_batch";
+
+const hasSessionId = (
+  payload: SessionEvent,
+): payload is SessionEvent & { session_id: string } =>
+  "session_id" in payload && typeof payload.session_id === "string";
 
 export type GeneralState = {
   live: {
@@ -37,7 +42,7 @@ export type GeneralState = {
 
 export type GeneralActions = {
   start: (
-    params: SessionParams,
+    params: ControllerParams,
     options?: { handlePersist?: HandlePersistCallback },
   ) => void;
   stop: () => void;
@@ -61,7 +66,7 @@ const initialState: GeneralState = {
 };
 
 const listenToSessionEvents = (
-  onEvent: (payload: any) => void,
+  onEvent: (payload: SessionEvent) => void,
 ): Effect.Effect<() => void, unknown> =>
   Effect.tryPromise({
     try: () =>
@@ -69,7 +74,7 @@ const listenToSessionEvents = (
     catch: (error) => error,
   });
 
-const startSessionEffect = (params: SessionParams) =>
+const startSessionEffect = (params: ControllerParams) =>
   fromResult(listenerCommands.startSession(params));
 const stopSessionEffect = () => fromResult(listenerCommands.stopSession());
 
@@ -84,7 +89,7 @@ export const createGeneralSlice = <
   get: StoreApi<T>["getState"],
 ): GeneralState & GeneralActions => ({
   ...initialState,
-  start: (params: SessionParams, options) => {
+  start: (params: ControllerParams, options) => {
     const targetSessionId = params.session_id;
 
     if (!targetSessionId) {
@@ -111,7 +116,11 @@ export const createGeneralSlice = <
       get().setTranscriptPersist(options.handlePersist);
     }
 
-    const handleSessionEvent = (payload: any) => {
+    const handleSessionEvent = (payload: SessionEvent) => {
+      if (!hasSessionId(payload) || payload.session_id !== targetSessionId) {
+        return;
+      }
+
       if (payload.type === "audioAmplitude") {
         set((state) =>
           mutate(state, (draft) => {
@@ -303,6 +312,10 @@ export const createGeneralSlice = <
     await new Promise<void>((resolve, reject) => {
       listenerEvents.sessionEvent
         .listen(({ payload }) => {
+          if (!hasSessionId(payload) || payload.session_id !== sessionId) {
+            return;
+          }
+
           if (payload.type === "batchStarted") {
             get().handleBatchStarted(payload.session_id);
             return;

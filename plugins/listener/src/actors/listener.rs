@@ -37,6 +37,7 @@ pub struct ListenerArgs {
     pub mode: crate::actors::ChannelMode,
     pub session_started_at: Instant,
     pub session_started_at_unix: SystemTime,
+    pub session_id: String,
 }
 
 pub struct ListenerState {
@@ -106,7 +107,11 @@ impl Actor for ListenerActor {
                     response.remap_channel_index(0, 2);
                 }
 
-                SessionEvent::StreamResponse { response }.emit(&state.args.app)?;
+                SessionEvent::StreamResponse {
+                    session_id: state.args.session_id.clone(),
+                    response,
+                }
+                .emit(&state.args.app)?;
             }
 
             ListenerMsg::StreamStartFailed(error) => {

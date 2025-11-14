@@ -23,6 +23,7 @@ pub enum ControllerMsg {
     GetMicMute(RpcReplyPort<bool>),
     GetMicDeviceName(RpcReplyPort<Option<String>>),
     ChangeMicDevice(Option<String>),
+    GetSessionId(RpcReplyPort<String>),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
@@ -91,7 +92,11 @@ impl Actor for ControllerActor {
             Self::start_all_actors(c, &state).await?;
         }
 
-        SessionEvent::RunningActive {}.emit(&state.app).unwrap();
+        SessionEvent::RunningActive {
+            session_id: state.params.session_id.clone(),
+        }
+        .emit(&state.app)
+        .unwrap();
         Ok(state)
     }
 
@@ -107,7 +112,11 @@ impl Actor for ControllerActor {
                     let actor: ActorRef<SourceMsg> = cell.into();
                     actor.cast(SourceMsg::SetMicMute(muted))?;
                 }
-                SessionEvent::MicMuted { value: muted }.emit(&state.app)?;
+                SessionEvent::MicMuted {
+                    session_id: state.params.session_id.clone(),
+                    value: muted,
+                }
+                .emit(&state.app)?;
             }
 
             ControllerMsg::GetMicDeviceName(reply) => {
@@ -140,6 +149,12 @@ impl Actor for ControllerActor {
                 if let Some(cell) = registry::where_is(SourceActor::name()) {
                     let actor: ActorRef<SourceMsg> = cell.into();
                     actor.cast(SourceMsg::SetMicDevice(device))?;
+                }
+            }
+
+            ControllerMsg::GetSessionId(reply) => {
+                if !reply.is_closed() {
+                    let _ = reply.send(state.params.session_id.clone());
                 }
             }
         }
@@ -194,7 +209,10 @@ impl Actor for ControllerActor {
             let _ = state.app.set_start_disabled(false);
         }
 
-        SessionEvent::Inactive {}.emit(&state.app)?;
+        SessionEvent::Inactive {
+            session_id: state.params.session_id.clone(),
+        }
+        .emit(&state.app)?;
 
         Ok(())
     }
@@ -233,6 +251,7 @@ impl ControllerActor {
                 mic_device: None,
                 onboarding: state.params.onboarding,
                 app: state.app.clone(),
+                session_id: state.params.session_id.clone(),
             },
             supervisor,
         )
@@ -316,6 +335,7 @@ impl ControllerActor {
                 mode,
                 session_started_at: session_state.started_at_instant,
                 session_started_at_unix: session_state.started_at_system,
+                session_id: session_state.params.session_id.clone(),
             }),
             supervisor,
         )

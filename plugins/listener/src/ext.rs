@@ -134,13 +134,20 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     async fn stop_session(&self) {
         if let Some(cell) = registry::where_is(ControllerActor::name()) {
+            let actor: ActorRef<ControllerMsg> = cell.into();
+
+            let session_id = call_t!(actor, ControllerMsg::GetSessionId, 100).ok();
+
             {
                 let state = self.state::<crate::SharedState>();
                 let guard = state.lock().await;
-                SessionEvent::Finalizing {}.emit(&guard.app).unwrap();
+                if let Some(session_id) = session_id.clone() {
+                    SessionEvent::Finalizing { session_id }
+                        .emit(&guard.app)
+                        .unwrap();
+                }
             }
 
-            let actor: ActorRef<ControllerMsg> = cell.into();
             let _ = actor
                 .stop_and_wait(None, Some(concurrency::Duration::from_secs(10)))
                 .await;
@@ -188,6 +195,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                     api_key: params.api_key.clone(),
                     listen_params: listen_params.clone(),
                     start_notifier: start_notifier.clone(),
+                    session_id: params.session_id.clone(),
                 };
 
                 match spawn_batch_actor(args).await {
@@ -249,9 +257,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
                 tracing::info!("batch transcription completed, emitting response");
 
-                SessionEvent::BatchResponse { response }
-                    .emit(self.app_handle())
-                    .map_err(|_| crate::Error::StartSessionFailed)?;
+                SessionEvent::BatchResponse {
+                    session_id: params.session_id.clone(),
+                    response,
+                }
+                .emit(self.app_handle())
+                .map_err(|_| crate::Error::StartSessionFailed)?;
 
                 Ok(())
             }

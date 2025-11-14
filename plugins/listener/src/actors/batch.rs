@@ -31,10 +31,12 @@ pub struct BatchArgs {
     pub api_key: String,
     pub listen_params: owhisper_interface::ListenParams,
     pub start_notifier: BatchStartNotifier,
+    pub session_id: String,
 }
 
 pub struct BatchState {
     pub app: tauri::AppHandle,
+    pub session_id: String,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
     audio_duration_secs: Option<f64>,
@@ -68,6 +70,7 @@ impl BatchState {
         };
 
         SessionEvent::BatchResponseStreamed {
+            session_id: self.session_id.clone(),
             response,
             percentage,
         }
@@ -76,7 +79,11 @@ impl BatchState {
     }
 
     fn emit_failure(&self, error: String) -> Result<(), ActorProcessingErr> {
-        SessionEvent::BatchFailed { error }.emit(&self.app)?;
+        SessionEvent::BatchFailed {
+            session_id: self.session_id.clone(),
+            error,
+        }
+        .emit(&self.app)?;
         Ok(())
     }
 }
@@ -109,6 +116,7 @@ impl Actor for BatchActor {
 
         let state = BatchState {
             app: args.app,
+            session_id: args.session_id,
             rx_task,
             shutdown_tx: Some(shutdown_tx),
             audio_duration_secs: None,

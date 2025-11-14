@@ -39,6 +39,7 @@ pub struct SourceArgs {
     pub token: CancellationToken,
     pub onboarding: bool,
     pub app: tauri::AppHandle,
+    pub session_id: String,
 }
 
 pub struct SourceState {
@@ -130,7 +131,7 @@ impl Actor for SourceActor {
             .or_else(|| Some(AudioInput::get_default_device_name()));
         tracing::info!(mic_device = ?mic_device);
 
-        let pipeline = Pipeline::new(args.app.clone());
+        let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
 
         let mut st = SourceState {
             mic_device,
@@ -336,12 +337,12 @@ struct Pipeline {
 }
 
 impl Pipeline {
-    fn new(app: tauri::AppHandle) -> Self {
+    fn new(app: tauri::AppHandle, session_id: String) -> Self {
         Self {
             agc_mic: Agc::default(),
             agc_spk: Agc::default(),
             joiner: Joiner::new(),
-            amplitude: AmplitudeEmitter::new(app),
+            amplitude: AmplitudeEmitter::new(app, session_id),
         }
     }
 
@@ -421,15 +422,17 @@ impl Pipeline {
 
 struct AmplitudeEmitter {
     app: tauri::AppHandle,
+    session_id: String,
     last_mic: Option<Arc<[f32]>>,
     last_spk: Option<Arc<[f32]>>,
     last_emit: Instant,
 }
 
 impl AmplitudeEmitter {
-    fn new(app: tauri::AppHandle) -> Self {
+    fn new(app: tauri::AppHandle, session_id: String) -> Self {
         Self {
             app,
+            session_id,
             last_mic: None,
             last_spk: None,
             last_emit: Instant::now(),
@@ -457,11 +460,30 @@ impl AmplitudeEmitter {
             return;
         };
 
-        if let Err(error) = SessionEvent::from((mic.as_ref(), spk.as_ref())).emit(&self.app) {
+        let mic_level = Self::amplitude_from_chunk(mic.as_ref());
+        let spk_level = Self::amplitude_from_chunk(spk.as_ref());
+
+        if let Err(error) = (SessionEvent::AudioAmplitude {
+            session_id: self.session_id.clone(),
+            mic: mic_level,
+            speaker: spk_level,
+        })
+        .emit(&self.app)
+        {
             tracing::error!(error = ?error, "session_event_emit_failed");
         }
 
         self.last_emit = Instant::now();
+    }
+
+    fn amplitude_from_chunk(chunk: &[f32]) -> u16 {
+        (chunk
+            .iter()
+            .map(|&x| x.abs())
+            .filter(|x| x.is_finite())
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap_or(0.0)
+            * 100.0) as u16
     }
 }
 

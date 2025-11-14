@@ -5,61 +5,78 @@ import type {
   SpeakerState,
 } from "./shared";
 
-export function resolveSpeakerIdentity(
+type IdentityRule = (ctx: IdentityRuleContext) => void;
+
+type SpeakerStateSnapshot = Pick<
+  SpeakerState,
+  | "completeChannels"
+  | "humanIdByChannel"
+  | "humanIdBySpeakerIndex"
+  | "lastSpeakerByChannel"
+>;
+
+type IdentityRuleContext = {
+  assignment?: SpeakerIdentity;
+  identity: SpeakerIdentity;
+  snapshot: SpeakerStateSnapshot;
+  word: SegmentWord;
+};
+
+const identityRules: IdentityRule[] = [
+  applyExplicitAssignment,
+  applySpeakerIndexHumanId,
+  applyChannelHumanId,
+  carryPartialIdentityForward,
+];
+
+class SpeakerTracker {
+  constructor(private readonly state: SpeakerState) {}
+
+  inferIdentity(
+    word: SegmentWord,
+    assignment: SpeakerIdentity | undefined,
+  ): SpeakerIdentity {
+    const identity = applyIdentityRules(word, assignment, this.state);
+    rememberIdentity(word, assignment, identity, this.state);
+    return identity;
+  }
+}
+
+export const resolveIdentitiesPass: SegmentPass<"words"> = {
+  id: "resolve_speakers",
+  run(graph, ctx) {
+    const tracker = new SpeakerTracker(ctx.speakerState);
+    const frames = graph.words.map((word, index) => {
+      const assignment = ctx.speakerState.assignmentByWordIndex.get(index);
+      const identity = tracker.inferIdentity(word, assignment);
+
+      return {
+        word,
+        identity,
+      };
+    });
+
+    return { ...graph, frames };
+  },
+};
+
+function applyIdentityRules(
   word: SegmentWord,
   assignment: SpeakerIdentity | undefined,
-  state: SpeakerState,
+  snapshot: SpeakerStateSnapshot,
 ): SpeakerIdentity {
   const identity: SpeakerIdentity = {};
-
-  if (assignment) {
-    if (assignment.speaker_index !== undefined) {
-      identity.speaker_index = assignment.speaker_index;
-    }
-    if (assignment.human_id !== undefined) {
-      identity.human_id = assignment.human_id;
-    }
-  }
-
-  if (identity.speaker_index !== undefined && identity.human_id === undefined) {
-    const humanId = state.humanIdBySpeakerIndex.get(identity.speaker_index);
-    if (humanId !== undefined) {
-      identity.human_id = humanId;
-    }
-  }
-
-  if (
-    identity.human_id === undefined &&
-    state.completeChannels.has(word.channel)
-  ) {
-    const channelHumanId = state.humanIdByChannel.get(word.channel);
-    if (channelHumanId !== undefined) {
-      identity.human_id = channelHumanId;
-    }
-  }
-
-  if (
-    !word.isFinal &&
-    (identity.speaker_index === undefined || identity.human_id === undefined)
-  ) {
-    const last = state.lastSpeakerByChannel.get(word.channel);
-    if (last) {
-      if (
-        identity.speaker_index === undefined &&
-        last.speaker_index !== undefined
-      ) {
-        identity.speaker_index = last.speaker_index;
-      }
-      if (identity.human_id === undefined && last.human_id !== undefined) {
-        identity.human_id = last.human_id;
-      }
-    }
-  }
-
+  const ctx: IdentityRuleContext = {
+    assignment,
+    identity,
+    snapshot,
+    word,
+  };
+  identityRules.forEach((rule) => rule(ctx));
   return identity;
 }
 
-export function rememberIdentity(
+function rememberIdentity(
   word: SegmentWord,
   assignment: SpeakerIdentity | undefined,
   identity: SpeakerIdentity,
@@ -96,24 +113,70 @@ export function rememberIdentity(
   }
 }
 
-export const resolveIdentitiesPass: SegmentPass<"words"> = {
-  id: "resolve_speakers",
-  run(graph, ctx) {
-    const frames = graph.words.map((word, index) => {
-      const assignment = ctx.speakerState.assignmentByWordIndex.get(index);
-      const identity = resolveSpeakerIdentity(
-        word,
-        assignment,
-        ctx.speakerState,
-      );
-      rememberIdentity(word, assignment, identity, ctx.speakerState);
+function applyExplicitAssignment(ctx: IdentityRuleContext): void {
+  if (!ctx.assignment) {
+    return;
+  }
+  if (ctx.assignment.speaker_index !== undefined) {
+    ctx.identity.speaker_index = ctx.assignment.speaker_index;
+  }
+  if (ctx.assignment.human_id !== undefined) {
+    ctx.identity.human_id = ctx.assignment.human_id;
+  }
+}
 
-      return {
-        word,
-        identity,
-      };
-    });
+function applySpeakerIndexHumanId(ctx: IdentityRuleContext): void {
+  if (
+    ctx.identity.speaker_index === undefined ||
+    ctx.identity.human_id !== undefined
+  ) {
+    return;
+  }
 
-    return { ...graph, frames };
-  },
-};
+  const humanId = ctx.snapshot.humanIdBySpeakerIndex.get(
+    ctx.identity.speaker_index,
+  );
+  if (humanId !== undefined) {
+    ctx.identity.human_id = humanId;
+  }
+}
+
+function applyChannelHumanId(ctx: IdentityRuleContext): void {
+  if (ctx.identity.human_id !== undefined) {
+    return;
+  }
+
+  if (!ctx.snapshot.completeChannels.has(ctx.word.channel)) {
+    return;
+  }
+
+  const humanId = ctx.snapshot.humanIdByChannel.get(ctx.word.channel);
+  if (humanId !== undefined) {
+    ctx.identity.human_id = humanId;
+  }
+}
+
+function carryPartialIdentityForward(ctx: IdentityRuleContext): void {
+  if (
+    ctx.word.isFinal ||
+    (ctx.identity.speaker_index !== undefined &&
+      ctx.identity.human_id !== undefined)
+  ) {
+    return;
+  }
+
+  const last = ctx.snapshot.lastSpeakerByChannel.get(ctx.word.channel);
+  if (!last) {
+    return;
+  }
+
+  if (
+    ctx.identity.speaker_index === undefined &&
+    last.speaker_index !== undefined
+  ) {
+    ctx.identity.speaker_index = last.speaker_index;
+  }
+  if (ctx.identity.human_id === undefined && last.human_id !== undefined) {
+    ctx.identity.human_id = last.human_id;
+  }
+}

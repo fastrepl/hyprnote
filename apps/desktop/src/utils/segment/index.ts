@@ -1,5 +1,4 @@
 import { segmentationPass } from "./pass-build-segments";
-import { mergeSegmentsPass } from "./pass-merge-segments";
 import { normalizeWordsPass } from "./pass-normalize-words";
 import { identityPropagationPass } from "./pass-propagate-identity";
 import { resolveIdentitiesPass } from "./pass-resolve-speakers";
@@ -15,6 +14,7 @@ import type {
   SegmentWord,
   SpeakerIdentity,
   SpeakerState,
+  StageId,
   WordLike,
 } from "./shared";
 
@@ -44,23 +44,70 @@ export function buildSegments<
   }
 
   const context = createSegmentPassContext(speakerHints, options);
-  const initialGraph: SegmentGraph = {
-    finalWords,
-    partialWords,
-  };
-
-  const graph = runSegmentPipeline(
-    [
-      normalizeWordsPass,
-      resolveIdentitiesPass,
-      segmentationPass,
-      identityPropagationPass,
-      mergeSegmentsPass,
-    ],
-    initialGraph,
-    context,
+  const initialGraph: SegmentGraph = { finalWords, partialWords };
+  const graph = runSegmentPipeline(initialGraph, context);
+  const segmentsGraph = ensureGraphKey(
+    graph,
+    "segments",
+    "Segment pipeline must produce segments",
   );
-  return finalizeSegments(graph.segments ?? []);
+  return finalizeSegments(segmentsGraph.segments);
+}
+
+type SegmentPipelineStage<
+  TNeeds extends readonly (keyof SegmentGraph)[],
+  TEnsures extends keyof SegmentGraph,
+> = {
+  pass: SegmentPass<TNeeds[number]>;
+  needs: TNeeds;
+  ensures: TEnsures;
+  errorMessage: string;
+};
+
+const SEGMENT_PIPELINE = [
+  {
+    pass: normalizeWordsPass,
+    needs: [] as const,
+    ensures: "words",
+    errorMessage: "normalizeWordsPass must produce words",
+  },
+  {
+    pass: resolveIdentitiesPass,
+    needs: ["words"] as const,
+    ensures: "frames",
+    errorMessage: "resolveIdentitiesPass must produce frames",
+  },
+  {
+    pass: segmentationPass,
+    needs: ["frames"] as const,
+    ensures: "segments",
+    errorMessage: "segmentationPass must produce segments",
+  },
+  {
+    pass: identityPropagationPass,
+    needs: ["segments"] as const,
+    ensures: "segments",
+    errorMessage: "identityPropagationPass must preserve segments",
+  },
+] as const satisfies readonly SegmentPipelineStage<
+  readonly (keyof SegmentGraph)[],
+  keyof SegmentGraph
+>[];
+
+function runSegmentPipeline(
+  initialGraph: SegmentGraph,
+  ctx: SegmentPassContext,
+): SegmentGraph {
+  return SEGMENT_PIPELINE.reduce<SegmentGraph>((graph, stage) => {
+    const ensuredGraph = ensureGraphHasKeys(graph, stage.needs, stage.pass.id);
+    return runPassAndExpectKey(
+      stage.pass,
+      ensuredGraph,
+      ctx,
+      stage.ensures,
+      stage.errorMessage,
+    );
+  }, initialGraph);
 }
 
 function createSpeakerState(
@@ -113,17 +160,6 @@ function createSegmentPassContext(
   };
 }
 
-function runSegmentPipeline(
-  passes: readonly SegmentPass<keyof SegmentGraph>[],
-  initialGraph: SegmentGraph,
-  ctx: SegmentPassContext,
-): SegmentGraph {
-  return passes.reduce(
-    (graph, pass) => pass.run(graph as any, ctx),
-    initialGraph,
-  );
-}
-
 function finalizeSegments(segments: ProtoSegment[]): Segment[] {
   return segments.map((segment) => ({
     key: segment.key,
@@ -132,4 +168,45 @@ function finalizeSegments(segments: ProtoSegment[]): Segment[] {
       return rest as SegmentWord;
     }),
   }));
+}
+
+type GraphWithKey<TKey extends keyof SegmentGraph> = SegmentGraph & {
+  [K in TKey]-?: NonNullable<SegmentGraph[K]>;
+};
+
+function ensureGraphHasKeys<TKeys extends readonly (keyof SegmentGraph)[]>(
+  graph: SegmentGraph,
+  keys: TKeys,
+  stageId: StageId,
+): GraphWithKey<TKeys[number]> {
+  const ensured = keys.reduce<SegmentGraph>((current, key) => {
+    return ensureGraphKey(current, key, `${stageId} requires ${String(key)}`);
+  }, graph);
+
+  return ensured as GraphWithKey<TKeys[number]>;
+}
+
+function ensureGraphKey<TKey extends keyof SegmentGraph>(
+  graph: SegmentGraph,
+  key: TKey,
+  errorMessage: string,
+): GraphWithKey<TKey> {
+  if (graph[key] == null) {
+    throw new Error(errorMessage);
+  }
+  return graph as GraphWithKey<TKey>;
+}
+
+function runPassAndExpectKey<
+  TNeeds extends keyof SegmentGraph,
+  TEnsures extends keyof SegmentGraph,
+>(
+  pass: SegmentPass<TNeeds>,
+  graph: GraphWithKey<TNeeds>,
+  ctx: SegmentPassContext,
+  key: TEnsures,
+  errorMessage: string,
+): GraphWithKey<TEnsures> {
+  const next = pass.run(graph, ctx);
+  return ensureGraphKey(next, key, errorMessage);
 }

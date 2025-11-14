@@ -84,8 +84,7 @@ export type StageId =
   | "normalize_words"
   | "resolve_speakers"
   | "build_segments"
-  | "propagate_identity"
-  | "merge_segments";
+  | "propagate_identity";
 
 export type SpeakerIdentity = {
   speaker_index?: number;

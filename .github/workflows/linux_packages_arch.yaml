@@ -106,6 +106,7 @@ jobs:
             cblas \
             vulkan-icd-loader \
             vulkan-headers \
+            shaderc \
             xdotool \
             xdg-utils \
             unzip \

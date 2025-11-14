@@ -15,7 +15,7 @@ export function useStartListening(sessionId: string) {
   const record_enabled = useConfigValue("save_recordings");
 
   const start = useListener((state) => state.start);
-  const conn = useSTTConnection();
+  const { conn } = useSTTConnection();
 
   const keywords = useKeywords(sessionId);
 

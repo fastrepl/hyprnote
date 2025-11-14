@@ -34,7 +34,7 @@ export const useRunBatch = (sessionId: string) => {
   });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
 
-  const conn = useSTTConnection();
+  const { conn } = useSTTConnection();
   const keywords = useKeywords(sessionId);
   const languages = useConfigValue("spoken_languages");
 

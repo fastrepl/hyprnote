@@ -1,4 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import {
+  type FetchStatus,
+  type QueryStatus,
+  useQuery,
+} from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
@@ -13,7 +17,25 @@ type Connection = {
   apiKey: string;
 };
 
-export const useSTTConnection = (): Connection | null => {
+type LocalConnectionSnapshot = {
+  serverStatus: string | null;
+  connection: Connection | null;
+};
+
+type LocalConnectionMeta = {
+  snapshot: LocalConnectionSnapshot | null;
+  status: QueryStatus;
+  fetchStatus: FetchStatus;
+  isFetching: boolean;
+  isPending: boolean;
+};
+
+export type STTConnectionResult = {
+  conn: Connection | null;
+  local: LocalConnectionMeta | null;
+};
+
+export const useSTTConnection = (): STTConnectionResult => {
   const { current_stt_provider, current_stt_model } = main.UI.useValues(
     main.STORE_ID,
   ) as {
@@ -29,10 +51,17 @@ export const useSTTConnection = (): Connection | null => {
 
   const isLocalModel =
     current_stt_provider === "hyprnote" &&
-    (current_stt_model?.startsWith("am-") ||
-      current_stt_model?.startsWith("Quantized"));
+    !!current_stt_model &&
+    (current_stt_model.startsWith("am-") ||
+      current_stt_model.startsWith("Quantized"));
 
-  const { data: localConnection } = useQuery({
+  const {
+    data: localSnapshot,
+    status: localStatus,
+    fetchStatus: localFetchStatus,
+    isFetching: localIsFetching,
+    isPending: localIsPending,
+  } = useQuery<LocalConnectionSnapshot | null>({
     enabled: current_stt_provider === "hyprnote",
     queryKey: ["stt-connection", isLocalModel, current_stt_model],
     refetchInterval: 1000,
@@ -54,27 +83,33 @@ export const useSTTConnection = (): Connection | null => {
 
       if (server?.status === "ready" && server.url) {
         return {
-          provider: current_stt_provider!,
-          model: current_stt_model,
-          baseUrl: server.url,
-          apiKey: "",
+          serverStatus: server.status ?? "ready",
+          connection: {
+            provider: current_stt_provider!,
+            model: current_stt_model,
+            baseUrl: server.url,
+            apiKey: "",
+          },
         };
       }
 
-      return null;
+      return {
+        serverStatus: server?.status ?? "unknown",
+        connection: null,
+      };
     },
   });
 
   const baseUrl = providerConfig?.base_url?.trim();
   const apiKey = providerConfig?.api_key?.trim();
 
-  return useMemo(() => {
+  const connection = useMemo(() => {
     if (!current_stt_provider || !current_stt_model) {
       return null;
     }
 
     if (isLocalModel) {
-      return localConnection ?? null;
+      return localSnapshot?.connection ?? null;
     }
 
     if (!baseUrl || !apiKey) {
@@ -91,8 +126,32 @@ export const useSTTConnection = (): Connection | null => {
     current_stt_provider,
     current_stt_model,
     isLocalModel,
-    localConnection,
+    localSnapshot,
     baseUrl,
     apiKey,
   ]);
+
+  return useMemo(
+    () => ({
+      conn: connection,
+      local: isLocalModel
+        ? {
+            snapshot: localSnapshot ?? null,
+            status: localStatus,
+            fetchStatus: localFetchStatus,
+            isFetching: localIsFetching,
+            isPending: localIsPending,
+          }
+        : null,
+    }),
+    [
+      connection,
+      isLocalModel,
+      localSnapshot,
+      localStatus,
+      localFetchStatus,
+      localIsFetching,
+      localIsPending,
+    ],
+  );
 };

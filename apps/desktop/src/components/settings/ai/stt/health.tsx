@@ -1,5 +1,4 @@
 import { useQueries } from "@tanstack/react-query";
-import { useMemo } from "react";
 
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
@@ -8,93 +7,51 @@ import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
 import { type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function HealthCheckForConnection() {
-  const health = useConnectionHealth();
-
-  const { status, tooltip } = useMemo(() => {
-    if (!health) {
-      return {
-        status: null,
-        tooltip: "No local model selected",
-      };
-    }
-
-    if (health === "no-connection") {
-      return {
-        status: "error",
-        tooltip: "No STT connection. Please configure a provider and model.",
-      };
-    }
-
-    if (health === "server-not-ready") {
-      return {
-        status: "error",
-        tooltip: "Local server not ready. Click to restart.",
-      };
-    }
-
-    if (health === "connected") {
-      return {
-        status: "success",
-        tooltip: "STT connection ready",
-      };
-    }
-
-    return {
-      status: "error",
-      tooltip: "Connection not available",
-    };
-  }, [health]) satisfies Parameters<typeof ConnectionHealth>[0];
-
-  return <ConnectionHealth status={status} tooltip={tooltip} />;
+  const props = useConnectionHealth();
+  return <ConnectionHealth {...props} />;
 }
 
-function useConnectionHealth() {
-  const configs = useConfigValues([
-    "current_stt_provider",
-    "current_stt_model",
-  ] as const);
-  const current_stt_provider = configs.current_stt_provider as
-    | string
-    | undefined;
-  const current_stt_model = configs.current_stt_model as string | undefined;
+function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
+  const { conn, local } = useSTTConnection();
 
-  const conn = useSTTConnection();
-
-  const isLocalModel =
-    current_stt_provider === "hyprnote" &&
-    current_stt_model &&
-    (current_stt_model.startsWith("am-") ||
-      current_stt_model.startsWith("Quantized"));
-
-  if (!isLocalModel) {
-    return null;
+  if (!local) {
+    return { status: "success" };
   }
 
-  if (!conn) {
-    return "no-connection";
+  if (local.isPending || local.fetchStatus === "fetching") {
+    return {
+      status: "pending",
+      tooltip: "Checking local STT server…",
+    };
   }
 
-  if (!conn.baseUrl) {
-    return "server-not-ready";
+  if (conn) {
+    return {
+      status: "success" as const,
+    };
   }
 
-  return "connected";
+  const serverStatus = local.snapshot?.serverStatus ?? "unavailable";
+
+  return {
+    status: "error",
+    tooltip: `Local server status: ${serverStatus}. Click to restart.`,
+  };
 }
 
 export function HealthCheckForAvailability() {
-  const { hasModel, message } = useSTTModelAvailability();
+  const result = useAvailability();
 
-  if (hasModel) {
+  if (result.available) {
     return null;
   }
 
-  return <AvailabilityHealth message={message} />;
+  return <AvailabilityHealth message={result.message} />;
 }
 
-function useSTTModelAvailability(): {
-  hasModel: boolean;
-  message: string;
-} {
+function useAvailability():
+  | { available: true }
+  | { available: false; message: string } {
   const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
     "current_stt_model",
@@ -115,14 +72,14 @@ function useSTTModelAvailability(): {
   });
 
   if (!current_stt_provider || !current_stt_model) {
-    return { hasModel: false, message: "Please select a provider and model" };
+    return { available: false, message: "Please select a provider and model." };
   }
 
   const providerId = current_stt_provider as ProviderId;
 
   const provider = PROVIDERS.find((p) => p.id === providerId);
   if (!provider) {
-    return { hasModel: false, message: "Selected provider not found" };
+    return { available: false, message: "Selected provider not found." };
   }
 
   if (providerId === "hyprnote") {
@@ -138,12 +95,12 @@ function useSTTModelAvailability(): {
     );
     if (!hasAvailableModel) {
       return {
-        hasModel: false,
+        available: false,
         message:
           "No Hyprnote models downloaded. Please download a model below.",
       };
     }
-    return { hasModel: true, message: "" };
+    return { available: true };
   }
 
   const config = configuredProviders[providerId] as
@@ -151,22 +108,22 @@ function useSTTModelAvailability(): {
     | undefined;
   if (!config) {
     return {
-      hasModel: false,
+      available: false,
       message: "Provider not configured. Please configure the provider below.",
     };
   }
 
   if (providerId === "custom") {
-    return { hasModel: true, message: "" };
+    return { available: true };
   }
 
   const hasModels = provider.models && provider.models.length > 0;
   if (!hasModels) {
     return {
-      hasModel: false,
+      available: false,
       message: "No models available for this provider",
     };
   }
 
-  return { hasModel: true, message: "" };
+  return { available: true };
 }

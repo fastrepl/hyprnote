@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { generateText } from "ai";
 import { useEffect, useMemo } from "react";
 
-import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
 import * as main from "../../../../store/tinybase/main";
@@ -12,42 +11,32 @@ import { PROVIDERS } from "./shared";
 export function HealthCheckForConnection() {
   const health = useConnectionHealth();
 
-  const { status, tooltip } = useMemo(() => {
-    if (!health) {
-      return {
-        status: null,
-        tooltip: "No local model selected",
-      };
-    }
-
+  const props = useMemo(() => {
     if (health === "pending") {
       return {
-        status: "loading",
-        tooltip: "Checking LLM connection...",
+        status: "pending",
+        tooltip: "Checking connection...",
       };
     }
 
     if (health === "error") {
       return {
         status: "error",
-        tooltip: "LLM connection failed. Please check your configuration.",
+        tooltip: "Connection failed.",
       };
     }
 
     if (health === "success") {
       return {
         status: "success",
-        tooltip: "LLM connection ready",
+        tooltip: "Connection ready",
       };
     }
 
-    return {
-      status: "error",
-      tooltip: "Connection not available",
-    };
+    return { status: null };
   }, [health]) satisfies Parameters<typeof ConnectionHealth>[0];
 
-  return <ConnectionHealth status={status} tooltip={tooltip} />;
+  return <ConnectionHealth {...props} />;
 }
 
 function useConnectionHealth() {
@@ -82,24 +71,21 @@ function useConnectionHealth() {
 }
 
 export function HealthCheckForAvailability() {
-  const { hasModel, message } = useLLMModelAvailability();
+  const result = useAvailability();
 
-  if (hasModel) {
+  if (result.available) {
     return null;
   }
 
-  return <AvailabilityHealth message={message} />;
+  return <AvailabilityHealth message={result.message} />;
 }
 
-function useLLMModelAvailability(): {
-  hasModel: boolean;
-  message: string;
-} {
-  const auth = useAuth();
+function useAvailability() {
   const { current_llm_provider, current_llm_model } = useConfigValues([
     "current_llm_provider",
     "current_llm_model",
   ] as const);
+
   const configuredProviders = main.UI.useResultTable(
     main.QUERIES.llmProviders,
     main.STORE_ID,
@@ -107,44 +93,29 @@ function useLLMModelAvailability(): {
 
   const result = useMemo(() => {
     if (!current_llm_provider || !current_llm_model) {
-      return { hasModel: false, message: "Please select a provider and model" };
-    }
-
-    const providerId = current_llm_provider as string;
-
-    const provider = PROVIDERS.find((p) => p.id === providerId);
-    if (!provider) {
-      return { hasModel: false, message: "Selected provider not found" };
-    }
-
-    if (providerId === "hyprnote") {
-      if (!auth?.session) {
-        return {
-          hasModel: false,
-          message: "Please sign in to use Hyprnote LLM",
-        };
-      }
-      return { hasModel: true, message: "" };
-    }
-
-    const config = configuredProviders[providerId];
-    if (!config || !config.base_url) {
       return {
-        hasModel: false,
+        available: false,
+        message: "Please select a provider and model.",
+      };
+    }
+
+    if (PROVIDERS.find((p) => p.id === current_llm_provider)) {
+      return {
+        available: false,
+        message: "Provider not found. Please select a valid provider.",
+      };
+    }
+
+    if (configuredProviders[current_llm_provider]?.base_url) {
+      return {
+        available: false,
         message:
           "Provider not configured. Please configure the provider below.",
       };
     }
 
-    if (provider.apiKey && !config.api_key) {
-      return {
-        hasModel: false,
-        message: "API key required. Please add your API key below.",
-      };
-    }
+    return { available: true };
+  }, [current_llm_provider, current_llm_model, configuredProviders]);
 
-    return { hasModel: true, message: "" };
-  }, [current_llm_provider, current_llm_model, configuredProviders, auth]);
-
-  return result;
+  return result as { available: true } | { available: false; message: string };
 }

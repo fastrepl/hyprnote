@@ -7,21 +7,19 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
-export function ConnectionHealth({
-  status,
-  tooltip,
-}: {
-  status?: "loading" | "error" | "success" | null;
-  tooltip: string;
-}) {
-  if (!status) {
+type Props =
+  | { status?: "success" | null }
+  | { status: "pending" | "error"; tooltip: string };
+
+export function ConnectionHealth(props: Props) {
+  if (!props.status) {
     return null;
   }
 
   const color =
-    status === "loading"
+    props.status === "pending"
       ? "text-yellow-500"
-      : status === "error"
+      : props.status === "error"
         ? "text-red-500"
         : "text-green-500";
 
@@ -29,17 +27,23 @@ export function ConnectionHealth({
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>
         <div className={color}>
-          {status === "loading" ? (
+          {props.status === "pending" ? (
             <Loader2Icon size={16} className="animate-spin" />
-          ) : status === "error" ? (
+          ) : props.status === "error" ? (
             <AlertCircleIcon size={16} />
-          ) : status === "success" ? (
+          ) : props.status === "success" ? (
             <CheckCircleIcon size={16} />
           ) : null}
         </div>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="max-w-xs">
-        <p className="text-xs">{tooltip}</p>
+        <p className="text-xs">
+          {props.status === "success"
+            ? "Connection ready"
+            : "tooltip" in props
+              ? props.tooltip
+              : null}
+        </p>
       </TooltipContent>
     </Tooltip>
   );

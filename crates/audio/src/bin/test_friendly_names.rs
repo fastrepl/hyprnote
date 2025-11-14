@@ -1,7 +1,7 @@
 use audio::AudioInput;
 
 fn main() {
-    // Initialize tracing if available, otherwise just print
+    // Print device enumeration diagnostics to stdout
     println!("Testing friendly device name enumeration...\n");
 
     // Test microphone devices

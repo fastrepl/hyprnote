@@ -4,7 +4,7 @@
 
 **🎉 MAJOR UPDATES: Production-ready Linux support achieved!**
 
-The Linux support has reached production-ready status with two critical systems fully implemented:
+The Linux support has reached production-ready status with three critical systems fully implemented:
 
 ### ✅ Speaker Audio Capture (Fully Implemented)
 - **Full PulseAudio integration** via monitor sources for system audio capture
@@ -33,7 +33,7 @@ The Linux support has reached production-ready status with two critical systems 
 
 ## Install
 
-My (work in progress) notes about installation on linux.
+Work-in-progress notes for Linux installation.
 
 For some information see *CONTRIBUTING.md*.
 
@@ -63,7 +63,16 @@ git clone https://github.com/fastrepl/hyprnote.git
 cd hyprnote
 
 
+# Install pnpm if not already available (requires npm/node)
+# npm install -g pnpm
+# Or follow installation instructions at: https://pnpm.io/installation
+
 # access the X Window System display without authentication
+# WARNING: This relaxes X server access control for the current local user
+# Only use when running GUI apps that require X11 access (e.g., from containers/sudo)
+# Security: Grants local user processes GUI access; avoid on multi-user systems
+# Revoke after use with: xhost -SI:localuser:$USER
+# Alternative: Use Xauthority forwarding or run without privilege escalation
 xhost +SI:localuser:$USER
 
 # add virtual echo-cancel source to allow shared access

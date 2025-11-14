@@ -24,8 +24,12 @@ fn main() {
     }
 
     // Test with CPU only
-    let whisper = Whisper::builder()
-        .model_path(model_path.to_str().unwrap())
+    let model_path_str = model_path
+        .to_str()
+        .expect("model path contains non-UTF-8 characters");
+    
+    let _whisper = Whisper::builder()
+        .model_path(model_path_str)
         .build();
 
     println!("Model initialized successfully!");

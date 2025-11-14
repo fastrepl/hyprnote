@@ -1,21 +1,52 @@
 import { useQueries } from "@tanstack/react-query";
 
 import { useConfigValues } from "../../../../config/use-config";
+import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
-import { Banner } from "../shared";
+import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
 import { type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
-export function BannerForSTT() {
-  const { hasModel, message } = useHasSTTModel();
+export function HealthCheckForConnection() {
+  const props = useConnectionHealth();
+  return <ConnectionHealth {...props} />;
+}
 
-  if (hasModel) {
+function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
+  const { conn, local } = useSTTConnection();
+
+  if (!local) {
+    return { status: "success" };
+  }
+
+  const serverStatus = local.data?.status ?? "unavailable";
+
+  if (serverStatus === "loading") {
+    return {
+      status: "pending",
+      tooltip: "Local STT server is starting up…",
+    };
+  }
+
+  if (serverStatus === "ready" && conn) {
+    return { status: "success" };
+  }
+
+  return { status: "error", tooltip: `Local server status: ${serverStatus}.` };
+}
+
+export function HealthCheckForAvailability() {
+  const result = useAvailability();
+
+  if (result.available) {
     return null;
   }
 
-  return <Banner message={message} />;
+  return <AvailabilityHealth message={result.message} />;
 }
 
-function useHasSTTModel(): { hasModel: boolean; message: string } {
+function useAvailability():
+  | { available: true }
+  | { available: false; message: string } {
   const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
     "current_stt_model",
@@ -36,14 +67,14 @@ function useHasSTTModel(): { hasModel: boolean; message: string } {
   });
 
   if (!current_stt_provider || !current_stt_model) {
-    return { hasModel: false, message: "Please select a provider and model" };
+    return { available: false, message: "Please select a provider and model." };
   }
 
   const providerId = current_stt_provider as ProviderId;
 
   const provider = PROVIDERS.find((p) => p.id === providerId);
   if (!provider) {
-    return { hasModel: false, message: "Selected provider not found" };
+    return { available: false, message: "Selected provider not found." };
   }
 
   if (providerId === "hyprnote") {
@@ -59,12 +90,12 @@ function useHasSTTModel(): { hasModel: boolean; message: string } {
     );
     if (!hasAvailableModel) {
       return {
-        hasModel: false,
+        available: false,
         message:
           "No Hyprnote models downloaded. Please download a model below.",
       };
     }
-    return { hasModel: true, message: "" };
+    return { available: true };
   }
 
   const config = configuredProviders[providerId] as
@@ -72,22 +103,22 @@ function useHasSTTModel(): { hasModel: boolean; message: string } {
     | undefined;
   if (!config) {
     return {
-      hasModel: false,
+      available: false,
       message: "Provider not configured. Please configure the provider below.",
     };
   }
 
   if (providerId === "custom") {
-    return { hasModel: true, message: "" };
+    return { available: true };
   }
 
   const hasModels = provider.models && provider.models.length > 0;
   if (!hasModels) {
     return {
-      hasModel: false,
+      available: false,
       message: "No models available for this provider",
     };
   }
 
-  return { hasModel: true, message: "" };
+  return { available: true };
 }

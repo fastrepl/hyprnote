@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { buildSegments, SegmentKey, WordLike } from "./segment";
+import { buildSegments, SegmentKey, type WordLike } from ".";
 
 describe("buildSegments", () => {
   const testCases = [

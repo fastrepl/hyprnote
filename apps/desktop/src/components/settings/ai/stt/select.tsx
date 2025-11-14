@@ -1,13 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueries } from "@tanstack/react-query";
-import { RefreshCwIcon } from "lucide-react";
-import { useCallback } from "react";
 
-import {
-  commands as localSttCommands,
-  type SupportedSttModel,
-} from "@hypr/plugin-local-stt";
-import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import {
   Select,
@@ -16,16 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@hypr/ui/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useConfigValues } from "../../../../config/use-config";
-import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
+import { HealthCheckForConnection } from "./health";
 import {
   displayModelId,
   type ProviderId,
@@ -190,8 +178,11 @@ export function SelectProviderAndModel() {
               );
             }}
           </form.Field>
+
+          {current_stt_provider && current_stt_model && (
+            <HealthCheckForConnection />
+          )}
         </div>
-        {current_stt_provider && current_stt_model && <HealthCheck />}
       </div>
     </div>
   );
@@ -265,101 +256,4 @@ function useConfiguredMapping(): Record<
       models: Array<{ id: string; isDownloaded: boolean }>;
     }
   >;
-}
-
-function HealthCheck() {
-  const configs = useConfigValues([
-    "current_stt_provider",
-    "current_stt_model",
-    "spoken_languages",
-  ] as const);
-  const current_stt_provider = configs.current_stt_provider as
-    | string
-    | undefined;
-  const current_stt_model = configs.current_stt_model as string | undefined;
-
-  const experimental_handleServer = useCallback(() => {
-    if (
-      current_stt_provider === "hyprnote" &&
-      current_stt_model &&
-      (current_stt_model.startsWith("am-") ||
-        current_stt_model.startsWith("Quantized"))
-    ) {
-      localSttCommands
-        .stopServer(null)
-        .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
-        .then(() =>
-          localSttCommands.startServer(current_stt_model as SupportedSttModel),
-        )
-        .then(console.log)
-        .catch(console.error);
-    }
-  }, [current_stt_provider, current_stt_model]);
-
-  const conn = useSTTConnection();
-
-  const isLocalModel =
-    current_stt_provider === "hyprnote" &&
-    current_stt_model &&
-    (current_stt_model.startsWith("am-") ||
-      current_stt_model.startsWith("Quantized"));
-
-  if (!isLocalModel) {
-    return null;
-  }
-
-  const hasServerIssue = !conn?.baseUrl;
-
-  const { status, message, textColor } = (() => {
-    if (!conn) {
-      return {
-        status: "No STT connection. Please configure a provider and model.",
-        message: "No STT connection. Please configure a provider and model.",
-        textColor: "text-red-600",
-      };
-    }
-
-    if (hasServerIssue) {
-      return {
-        status: "Local server not ready. Click to restart.",
-        message: "Local server not ready. Click to restart.",
-        textColor: "text-red-600",
-      };
-    }
-
-    if (conn.baseUrl) {
-      return {
-        status: "Connected!",
-        message: "STT connection ready",
-        textColor: "text-green-600",
-      };
-    }
-
-    return {
-      status: "Connection not available",
-      message: "Connection not available",
-      textColor: "text-red-600",
-    };
-  })();
-
-  return (
-    <div className="flex items-center justify-between gap-2 h-7">
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <span className={cn(["text-xs font-medium", textColor])}>
-            {status}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs">
-          <p className="text-xs">{message}</p>
-        </TooltipContent>
-      </Tooltip>
-      {hasServerIssue && (
-        <Button size="sm" variant="ghost" onClick={experimental_handleServer}>
-          <RefreshCwIcon size={12} />
-          Restart Server
-        </Button>
-      )}
-    </div>
-  );
 }

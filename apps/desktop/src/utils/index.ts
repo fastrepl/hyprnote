@@ -1,4 +1,5 @@
 export * from "./timeline";
+export * from "./segment";
 
 export const id = () => crypto.randomUUID() as string;
 

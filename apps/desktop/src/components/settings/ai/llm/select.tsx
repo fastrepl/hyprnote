@@ -1,6 +1,4 @@
 import { useForm } from "@tanstack/react-form";
-import { useQuery } from "@tanstack/react-query";
-import { generateText } from "ai";
 import { useMemo } from "react";
 
 import {
@@ -10,16 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@hypr/ui/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
-import { useLanguageModel } from "../../../../hooks/useLLMConnection";
 import * as main from "../../../../store/tinybase/main";
 import type { ListModelsResult } from "../shared/list-common";
 import { listLMStudioModels } from "../shared/list-lmstudio";
@@ -31,6 +23,7 @@ import {
 } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
+import { HealthCheckForConnection } from "./health";
 import { PROVIDERS } from "./shared";
 
 export function SelectProviderAndModel() {
@@ -153,8 +146,11 @@ export function SelectProviderAndModel() {
               );
             }}
           </form.Field>
+
+          {current_llm_provider && current_llm_model && (
+            <HealthCheckForConnection />
+          )}
         </div>
-        {current_llm_provider && current_llm_model && <HealthCheck />}
       </div>
     </div>
   );
@@ -226,93 +222,4 @@ function useConfiguredMapping(): Record<
   }, [configuredProviders, auth]);
 
   return mapping;
-}
-
-function HealthCheck() {
-  const model = useLanguageModel();
-
-  const text = useQuery({
-    enabled: !!model,
-    queryKey: ["model-health-check", model],
-    queryFn: () =>
-      generateText({
-        model: model!,
-        system: "If user says hi, respond with hello, without any other text.",
-        prompt: "Hi",
-      }),
-  });
-
-  const { status, message, textColor } = (() => {
-    if (!model) {
-      return {
-        status: "No model configured",
-        message: "Please configure a provider and model",
-        textColor: "text-red-600",
-      };
-    }
-
-    if (text.isPending) {
-      return {
-        status: "Checking connection",
-        message: "Testing model connection",
-        textColor: "text-yellow-600",
-      };
-    }
-
-    if (text.isError) {
-      return {
-        status: "Connection failed",
-        message: text.error?.message || "Unable to connect to the model",
-        textColor: "text-red-600",
-      };
-    }
-
-    if (text.isSuccess) {
-      return {
-        status: "Connected!",
-        message: "Model is ready to use",
-        textColor: "text-green-600",
-      };
-    }
-
-    return {
-      status: "Unknown status",
-      message: "Connection status unknown",
-      textColor: "text-red-600",
-    };
-  })();
-
-  const isLoading = text.isPending;
-
-  return (
-    <div className="flex items-center justify-between gap-2 h-7">
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>
-          <span className={cn(["text-xs font-medium", textColor])}>
-            {status}
-            {isLoading && (
-              <span className="inline-block ml-0.5">
-                <span className="animate-pulse">.</span>
-                <span
-                  className="animate-pulse"
-                  style={{ animationDelay: "0.2s" }}
-                >
-                  .
-                </span>
-                <span
-                  className="animate-pulse"
-                  style={{ animationDelay: "0.4s" }}
-                >
-                  .
-                </span>
-              </span>
-            )}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs">
-          <p className="text-xs">{message}</p>
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  );
 }

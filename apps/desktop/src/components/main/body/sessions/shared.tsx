@@ -65,7 +65,7 @@ export function useListenButtonState(sessionId: string) {
   const taskId = createTaskId(sessionId, "enhance");
   const { status } = useAITaskTask(taskId, "enhance");
   const generating = status === "generating";
-  const sttConnection = useSTTConnection();
+  const { conn: sttConnection } = useSTTConnection();
 
   const shouldRender = !active && !generating;
   const isDisabled = !sttConnection || batching;

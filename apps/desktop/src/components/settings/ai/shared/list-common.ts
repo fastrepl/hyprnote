@@ -20,6 +20,7 @@ export const REQUEST_TIMEOUT = "5 seconds";
 
 export const commonIgnoreKeywords = [
   "embed",
+  "sora",
   "tts",
   "whisper",
   "dall-e",

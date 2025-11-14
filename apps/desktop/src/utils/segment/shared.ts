@@ -51,6 +51,20 @@ export const SegmentKey = {
       speaker_human_id: string;
     }>,
   ): SegmentKey => Data.struct(params),
+
+  hasSpeakerIdentity: (key: SegmentKey): boolean => {
+    return (
+      key.speaker_index !== undefined || key.speaker_human_id !== undefined
+    );
+  },
+
+  equals: (a: SegmentKey, b: SegmentKey): boolean => {
+    return (
+      a.channel === b.channel &&
+      a.speaker_index === b.speaker_index &&
+      a.speaker_human_id === b.speaker_human_id
+    );
+  },
 };
 
 export type SegmentBuilderOptions = {

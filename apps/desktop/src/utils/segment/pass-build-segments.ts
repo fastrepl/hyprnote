@@ -7,7 +7,7 @@ import type {
   SegmentPass,
   SpeakerIdentity,
 } from "./shared";
-import { SegmentKey as SegmentKeyModule } from "./shared";
+import { SegmentKey as SegmentKeyUtils } from "./shared";
 
 export const segmentationPass: SegmentPass = {
   id: "build_segments",
@@ -47,19 +47,7 @@ function createSegmentKeyFromIdentity(
     params.speaker_human_id = identity.human_id;
   }
 
-  return SegmentKeyModule.make(params);
-}
-
-function hasSpeakerIdentity(key: SegmentKey): boolean {
-  return key.speaker_index !== undefined || key.speaker_human_id !== undefined;
-}
-
-function sameKey(a: SegmentKey, b: SegmentKey): boolean {
-  return (
-    a.channel === b.channel &&
-    a.speaker_index === b.speaker_index &&
-    a.speaker_human_id === b.speaker_human_id
-  );
+  return SegmentKeyUtils.make(params);
 }
 
 function segmentKeyId(key: SegmentKey): string {
@@ -77,9 +65,12 @@ function canExtendSegment(
   segments: ProtoSegment[],
   options?: SegmentBuilderOptions,
 ): boolean {
-  if (hasSpeakerIdentity(candidateKey)) {
+  if (SegmentKeyUtils.hasSpeakerIdentity(candidateKey)) {
     const lastSegment = segments[segments.length - 1];
-    if (!lastSegment || !sameKey(lastSegment.key, candidateKey)) {
+    if (
+      !lastSegment ||
+      !SegmentKeyUtils.equals(lastSegment.key, candidateKey)
+    ) {
       return false;
     }
   }
@@ -116,10 +107,10 @@ function placeFrameInSegment(
     return;
   }
 
-  if (frame.word.isFinal && !hasSpeakerIdentity(key)) {
+  if (frame.word.isFinal && !SegmentKeyUtils.hasSpeakerIdentity(key)) {
     for (const [id, segment] of activeSegments) {
       if (
-        !hasSpeakerIdentity(segment.key) &&
+        !SegmentKeyUtils.hasSpeakerIdentity(segment.key) &&
         segment.key.channel === key.channel
       ) {
         if (canExtendSegment(segment, segment.key, frame, segments, options)) {

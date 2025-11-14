@@ -4,7 +4,7 @@ import type {
   SegmentPass,
   SpeakerState,
 } from "./shared";
-import { SegmentKey as SegmentKeyModule } from "./shared";
+import { SegmentKey as SegmentKeyUtils } from "./shared";
 
 export function propagateCompleteChannelIdentities(
   segments: ProtoSegment[],
@@ -37,7 +37,7 @@ export function propagateCompleteChannelIdentities(
         params.speaker_index = segment.key.speaker_index;
       }
 
-      segment.key = SegmentKeyModule.make(params);
+      segment.key = SegmentKeyUtils.make(params);
     });
   });
 }

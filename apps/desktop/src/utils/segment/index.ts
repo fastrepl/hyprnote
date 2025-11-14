@@ -49,17 +49,19 @@ export function buildSegments<
     partialWords,
   };
 
-  const graph = runSegmentPipeline(defaultSegmentPasses, initialGraph, context);
+  const graph = runSegmentPipeline(
+    [
+      normalizeWordsPass,
+      resolveIdentitiesPass,
+      segmentationPass,
+      identityPropagationPass,
+      mergeSegmentsPass,
+    ],
+    initialGraph,
+    context,
+  );
   return finalizeSegments(graph.segments ?? []);
 }
-
-const defaultSegmentPasses: readonly SegmentPass[] = [
-  normalizeWordsPass,
-  resolveIdentitiesPass,
-  segmentationPass,
-  identityPropagationPass,
-  mergeSegmentsPass,
-];
 
 function createSpeakerState(
   speakerHints: readonly RuntimeSpeakerHint[],

@@ -33,8 +33,35 @@
       ]
     },
     {
+      "identifier": "fs:allow-mkdir",
+      "allow": [
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
       "identifier": "fs:allow-exists",
-      "allow": [{ "path": "/Applications/*" }]
+      "allow": [
+        { "path": "/Applications/*" },
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" },
+        { "path": "$DOWNLOAD/*" },
+        { "path": "$DOWNLOAD/**" }
+      ]
     },
     {
       "identifier": "fs:allow-write-file",

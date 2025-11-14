@@ -1,4 +1,10 @@
 import { listen, TauriEvent, type UnlistenFn } from "@tauri-apps/api/event";
+import {
+  BaseDirectory,
+  exists,
+  mkdir,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import { useEffect } from "react";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import * as _UI from "tinybase/ui-react/with-schemas";
@@ -20,6 +26,7 @@ import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
+import { createLocalPersister2 } from "./localPersister2";
 import { externalTableSchemaForTinybase } from "./schema-external";
 import { internalSchemaForTinybase } from "./schema-internal";
 
@@ -149,8 +156,39 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     [persist],
   );
 
+  const localPersister2 = useCreatePersister(
+    store,
+    async (store) => {
+      exists("sessions", { baseDir: BaseDirectory.AppData }).then(
+        async (exists) => {
+          if (!exists) {
+            mkdir("sessions", { baseDir: BaseDirectory.AppData });
+          }
+        },
+      );
+
+      const persister = createLocalPersister2<Schemas>(
+        store as Store,
+        async (session) => {
+          if (session.enhanced_md) {
+            await writeTextFile(
+              `sessions/${session.id}.md`,
+              session.enhanced_md,
+              {
+                baseDir: BaseDirectory.AppData,
+              },
+            );
+          }
+        },
+      );
+
+      return persister;
+    },
+    [],
+  );
+
   useEffect(() => {
-    if (!persist || !localPersister) {
+    if (!persist || !localPersister || !localPersister2) {
       return;
     }
 
@@ -164,9 +202,13 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     const register = async () => {
       unlistenClose = await listen(
         TauriEvent.WINDOW_CLOSE_REQUESTED,
+        // We call prevent_close in the rust side
         async () => {
-          // We call prevent_close in the rust side
-          await localPersister.save();
+          try {
+            await Promise.all([localPersister2.save(), localPersister.save()]);
+          } catch (error) {
+            console.error(error);
+          }
         },
         { target: { kind: "WebviewWindow", label: "main" } },
       );
@@ -174,7 +216,11 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       unlistenBlur = await listen(
         TauriEvent.WINDOW_BLUR,
         async () => {
-          await localPersister.save();
+          try {
+            await Promise.all([localPersister2.save(), localPersister.save()]);
+          } catch (error) {
+            console.error(error);
+          }
         },
         { target: { kind: "WebviewWindow", label: "main" } },
       );
@@ -186,7 +232,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       unlistenBlur?.();
       unlistenClose?.();
     };
-  }, [localPersister, persist]);
+  }, [localPersister, localPersister2, persist]);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
     createBroadcastChannelSynchronizer(
@@ -572,6 +618,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   useProvideIndexes(STORE_ID, indexes!);
   useProvideMetrics(STORE_ID, metrics!);
   useProvidePersister(STORE_ID, persist ? localPersister : undefined);
+  useProvidePersister("TODO", persist ? localPersister2 : undefined);
   useProvideSynchronizer(STORE_ID, synchronizer);
   useProvideCheckpoints(STORE_ID, checkpoints!);
 

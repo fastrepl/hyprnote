@@ -42,16 +42,6 @@ export function HealthCheckForConnection() {
 function useConnectionHealth() {
   const model = useLanguageModel();
 
-  useEffect(() => {
-    if (model) {
-      text.refetch();
-    }
-  }, [model]);
-
-  if (!model) {
-    return null;
-  }
-
   const text = useQuery({
     enabled: !!model,
     queryKey: ["llm-health-check", model],
@@ -66,6 +56,16 @@ function useConnectionHealth() {
         maxOutputTokens: 1,
       }),
   });
+
+  useEffect(() => {
+    if (model) {
+      text.refetch();
+    }
+  }, [model]);
+
+  if (!model) {
+    return null;
+  }
 
   return text.status;
 }

@@ -191,7 +191,8 @@ jobs:
           echo "✅ Cargo build completed successfully"
           
           # Verify binary was built
-          BINARY_PATH="/workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release/hyprnote"
+          # Note: The Cargo package name is "desktop", so the binary is named "desktop"
+          BINARY_PATH="/workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release/desktop"
           echo "Checking for binary at: $BINARY_PATH"
           if [ ! -f "$BINARY_PATH" ]; then
             echo "❌ Error: Binary not found at $BINARY_PATH"
@@ -235,15 +236,15 @@ jobs:
           options=('!strip')
           
           package() {
-            # Find the binary
-            BINARY=\$(find /workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release -maxdepth 1 -type f -executable -name "hyprnote" | head -n 1)
+            # Find the binary (Cargo package name is "desktop", so binary is named "desktop")
+            BINARY=\$(find /workspace/apps/desktop/src-tauri/target/${RUST_TARGET}/release -maxdepth 1 -type f -executable -name "desktop" | head -n 1)
             
             if [ -z "\$BINARY" ]; then
               echo "Error: Binary not found"
               exit 1
             fi
             
-            # Install binary
+            # Install binary as "hyprnote" (rename desktop -> hyprnote)
             install -Dm755 "\$BINARY" "\${pkgdir}/usr/bin/hyprnote"
             
             # Install .desktop file if exists

@@ -1,6 +1,6 @@
 use ractor::{concurrency::Duration, registry, ActorCell, ActorProcessingErr, ActorRef};
 use ractor_supervisor::{
-    core::{ChildSpec, Restart, SpawnFn, SupervisorError},
+    core::{ChildBackoffFn, ChildSpec, Restart, SpawnFn, SupervisorError},
     dynamic::{DynamicSupervisor, DynamicSupervisorMsg, DynamicSupervisorOptions},
 };
 
@@ -16,18 +16,19 @@ pub const INTERNAL_STT_ACTOR_NAME: &str = "internal_stt";
 pub const EXTERNAL_STT_ACTOR_NAME: &str = "external_stt";
 pub const SUPERVISOR_NAME: &str = "stt_supervisor";
 
-pub async fn spawn_stt_supervisor() -> Result<ActorRef<DynamicSupervisorMsg>, ActorProcessingErr> {
+pub async fn spawn_stt_supervisor(
+) -> Result<(ActorRef<DynamicSupervisorMsg>, crate::SupervisorHandle), ActorProcessingErr> {
     let options = DynamicSupervisorOptions {
         max_children: Some(1),
         max_restarts: 15,
-        max_window: Duration::from_secs(30),
-        reset_after: Some(Duration::from_secs(60)),
+        max_window: Duration::from_secs(10),
+        reset_after: Some(Duration::from_secs(30)),
     };
 
-    let (supervisor_ref, _handle) =
+    let (supervisor_ref, handle) =
         DynamicSupervisor::spawn(SUPERVISOR_NAME.to_string(), options).await?;
 
-    Ok(supervisor_ref)
+    Ok((supervisor_ref, handle))
 }
 
 pub async fn start_internal_stt(
@@ -61,7 +62,9 @@ fn create_internal_child_spec_with_args(args: InternalSTTArgs) -> ChildSpec {
         id: INTERNAL_STT_ACTOR_NAME.to_string(),
         spawn_fn,
         restart: Restart::Transient,
-        backoff_fn: None,
+        backoff_fn: Some(ChildBackoffFn::new(|_, _, _, _| {
+            Some(Duration::from_millis(500))
+        })),
         reset_after: None,
     }
 }
@@ -81,7 +84,9 @@ fn create_external_child_spec_with_args(args: ExternalSTTArgs) -> ChildSpec {
         id: EXTERNAL_STT_ACTOR_NAME.to_string(),
         spawn_fn,
         restart: Restart::Transient,
-        backoff_fn: None,
+        backoff_fn: Some(ChildBackoffFn::new(|_, _, _, _| {
+            Some(Duration::from_secs(1))
+        })),
         reset_after: None,
     }
 }

@@ -18,11 +18,13 @@ pub use server::*;
 pub use types::*;
 
 pub type SharedState = std::sync::Arc<tokio::sync::Mutex<State>>;
+pub type SupervisorHandle = tokio::task::JoinHandle<()>;
 
 pub struct State {
     pub am_api_key: Option<String>,
     pub download_task: HashMap<SupportedSttModel, (tokio::task::JoinHandle<()>, CancellationToken)>,
     pub stt_supervisor: Option<ActorRef<DynamicSupervisorMsg>>,
+    pub supervisor_handle: Option<SupervisorHandle>,
 }
 
 const PLUGIN_NAME: &str = "local-stt";
@@ -70,15 +72,17 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
                 am_api_key: api_key,
                 download_task: HashMap::new(),
                 stt_supervisor: None,
+                supervisor_handle: None,
             }));
 
             app.manage(state.clone());
 
             tauri::async_runtime::spawn(async move {
                 match server::supervisor::spawn_stt_supervisor().await {
-                    Ok(supervisor) => {
+                    Ok((supervisor, handle)) => {
                         let mut guard = state.lock().await;
                         guard.stt_supervisor = Some(supervisor);
+                        guard.supervisor_handle = Some(handle);
                         tracing::info!("stt_supervisor_spawned");
                     }
                     Err(e) => {

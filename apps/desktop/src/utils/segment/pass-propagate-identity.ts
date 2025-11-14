@@ -4,58 +4,73 @@ import type {
   SegmentPass,
   SpeakerState,
 } from "./shared";
-import { SegmentKey as SegmentKeyModule } from "./shared";
+import { SegmentKey as SegmentKeyUtils } from "./shared";
 
-export function propagateCompleteChannelIdentities(
+export const identityPropagationPass: SegmentPass<"segments"> = {
+  id: "propagate_identity",
+  run(graph, ctx) {
+    postProcessSegments(graph.segments, ctx.speakerState);
+    return { ...graph, segments: graph.segments };
+  },
+};
+
+function postProcessSegments(
   segments: ProtoSegment[],
   state: SpeakerState,
 ): void {
-  state.completeChannels.forEach((channel) => {
-    const humanId = state.humanIdByChannel.get(channel);
-    if (!humanId) {
-      return;
+  let writeIndex = 0;
+  let lastKept: ProtoSegment | undefined;
+
+  for (const segment of segments) {
+    assignCompleteChannelHumanId(segment, state);
+
+    if (
+      lastKept &&
+      SegmentKeyUtils.equals(lastKept.key, segment.key) &&
+      SegmentKeyUtils.hasSpeakerIdentity(segment.key)
+    ) {
+      lastKept.words.push(...segment.words);
+      continue;
     }
 
-    segments.forEach((segment) => {
-      if (
-        segment.key.channel !== channel ||
-        segment.key.speaker_human_id !== undefined
-      ) {
-        return;
-      }
+    segments[writeIndex] = segment;
+    lastKept = segment;
+    writeIndex += 1;
+  }
 
-      const params: {
-        channel: ChannelProfile;
-        speaker_index?: number;
-        speaker_human_id: string;
-      } = {
-        channel,
-        speaker_human_id: humanId,
-      };
-
-      if (segment.key.speaker_index !== undefined) {
-        params.speaker_index = segment.key.speaker_index;
-      }
-
-      segment.key = SegmentKeyModule.make(params);
-    });
-  });
+  segments.length = writeIndex;
 }
 
-export const identityPropagationPass: SegmentPass = {
-  id: "propagate_identity",
-  needs: ["segments"],
-  run(graph, ctx) {
-    if (!graph.segments) {
-      return graph;
-    }
+function assignCompleteChannelHumanId(
+  segment: ProtoSegment,
+  state: SpeakerState,
+): void {
+  if (segment.key.speaker_human_id !== undefined) {
+    return;
+  }
 
-    const segments = graph.segments.map((segment) => ({
-      ...segment,
-      words: [...segment.words],
-    }));
+  const channel = segment.key.channel;
+  if (!state.completeChannels.has(channel)) {
+    return;
+  }
 
-    propagateCompleteChannelIdentities(segments, ctx.speakerState);
-    return { ...graph, segments };
-  },
-};
+  const humanId = state.humanIdByChannel.get(channel);
+  if (!humanId) {
+    return;
+  }
+
+  const params: {
+    channel: ChannelProfile;
+    speaker_index?: number;
+    speaker_human_id: string;
+  } = {
+    channel,
+    speaker_human_id: humanId,
+  };
+
+  if (segment.key.speaker_index !== undefined) {
+    params.speaker_index = segment.key.speaker_index;
+  }
+
+  segment.key = SegmentKeyUtils.make(params);
+}

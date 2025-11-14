@@ -1,73 +1,72 @@
 import type {
-  IdentityProvenance,
   SegmentPass,
   SegmentWord,
   SpeakerIdentity,
-  SpeakerIdentityResolution,
   SpeakerState,
 } from "./shared";
 
-export function resolveSpeakerIdentity(
+type SpeakerStateSnapshot = Pick<
+  SpeakerState,
+  | "completeChannels"
+  | "humanIdByChannel"
+  | "humanIdBySpeakerIndex"
+  | "lastSpeakerByChannel"
+>;
+
+type IdentityRuleArgs = {
+  assignment?: SpeakerIdentity;
+  snapshot: SpeakerStateSnapshot;
+  word: SegmentWord;
+};
+
+type IdentityRule = (
+  identity: SpeakerIdentity,
+  args: IdentityRuleArgs,
+) => SpeakerIdentity;
+
+export const resolveIdentitiesPass: SegmentPass<"words"> = {
+  id: "resolve_speakers",
+  run(graph, ctx) {
+    const frames = graph.words.map((word, index) => {
+      const assignment = ctx.speakerState.assignmentByWordIndex.get(index);
+      const identity = applyIdentityRules(word, assignment, ctx.speakerState);
+      rememberIdentity(word, assignment, identity, ctx.speakerState);
+
+      return {
+        word,
+        identity,
+      };
+    });
+
+    return { ...graph, frames };
+  },
+};
+
+function applyIdentityRules(
   word: SegmentWord,
   assignment: SpeakerIdentity | undefined,
-  state: SpeakerState,
-): SpeakerIdentityResolution {
-  const provenance: IdentityProvenance[] = [];
-  const identity: SpeakerIdentity = {};
+  snapshot: SpeakerStateSnapshot,
+): SpeakerIdentity {
+  const rules: IdentityRule[] = [
+    applyExplicitAssignment,
+    applySpeakerIndexHumanId,
+    applyChannelHumanId,
+    carryPartialIdentityForward,
+  ];
 
-  if (assignment) {
-    if (assignment.speaker_index !== undefined) {
-      identity.speaker_index = assignment.speaker_index;
-    }
-    if (assignment.human_id !== undefined) {
-      identity.human_id = assignment.human_id;
-    }
-    provenance.push("explicit_assignment");
-  }
+  const args: IdentityRuleArgs = {
+    assignment,
+    snapshot,
+    word,
+  };
 
-  if (identity.speaker_index !== undefined && identity.human_id === undefined) {
-    const humanId = state.humanIdBySpeakerIndex.get(identity.speaker_index);
-    if (humanId !== undefined) {
-      identity.human_id = humanId;
-      provenance.push("speaker_index_lookup");
-    }
-  }
-
-  if (
-    identity.human_id === undefined &&
-    state.completeChannels.has(word.channel)
-  ) {
-    const channelHumanId = state.humanIdByChannel.get(word.channel);
-    if (channelHumanId !== undefined) {
-      identity.human_id = channelHumanId;
-      provenance.push("channel_completion");
-    }
-  }
-
-  if (
-    !word.isFinal &&
-    (identity.speaker_index === undefined || identity.human_id === undefined)
-  ) {
-    const last = state.lastSpeakerByChannel.get(word.channel);
-    if (last) {
-      if (
-        identity.speaker_index === undefined &&
-        last.speaker_index !== undefined
-      ) {
-        identity.speaker_index = last.speaker_index;
-        provenance.push("last_speaker");
-      }
-      if (identity.human_id === undefined && last.human_id !== undefined) {
-        identity.human_id = last.human_id;
-        provenance.push("last_speaker");
-      }
-    }
-  }
-
-  return { identity, provenance };
+  return rules.reduce(
+    (identity, rule) => rule(identity, args),
+    {} as SpeakerIdentity,
+  );
 }
 
-export function rememberIdentity(
+function rememberIdentity(
   word: SegmentWord,
   assignment: SpeakerIdentity | undefined,
   identity: SpeakerIdentity,
@@ -104,27 +103,82 @@ export function rememberIdentity(
   }
 }
 
-export const resolveIdentitiesPass: SegmentPass = {
-  id: "resolve_speakers",
-  needs: ["words"],
-  run(graph, ctx) {
-    const words = graph.words ?? [];
-    const frames = words.map((word, index) => {
-      const assignment = ctx.speakerState.assignmentByWordIndex.get(index);
-      const resolution = resolveSpeakerIdentity(
-        word,
-        assignment,
-        ctx.speakerState,
-      );
-      rememberIdentity(word, assignment, resolution.identity, ctx.speakerState);
+const applyExplicitAssignment: IdentityRule = (identity, { assignment }) => {
+  if (!assignment) {
+    return identity;
+  }
 
-      return {
-        word,
-        identity: resolution.identity,
-        provenance: resolution.provenance,
-      };
-    });
+  const updates: Partial<SpeakerIdentity> = {};
+  if (assignment.speaker_index !== undefined) {
+    updates.speaker_index = assignment.speaker_index;
+  }
+  if (assignment.human_id !== undefined) {
+    updates.human_id = assignment.human_id;
+  }
 
-    return { ...graph, frames };
-  },
+  return Object.keys(updates).length > 0
+    ? { ...identity, ...updates }
+    : identity;
+};
+
+const applySpeakerIndexHumanId: IdentityRule = (identity, { snapshot }) => {
+  if (identity.speaker_index === undefined || identity.human_id !== undefined) {
+    return identity;
+  }
+
+  const humanId = snapshot.humanIdBySpeakerIndex.get(identity.speaker_index);
+  if (humanId !== undefined) {
+    return { ...identity, human_id: humanId };
+  }
+
+  return identity;
+};
+
+const applyChannelHumanId: IdentityRule = (identity, { snapshot, word }) => {
+  if (identity.human_id !== undefined) {
+    return identity;
+  }
+
+  if (!snapshot.completeChannels.has(word.channel)) {
+    return identity;
+  }
+
+  const humanId = snapshot.humanIdByChannel.get(word.channel);
+  if (humanId !== undefined) {
+    return { ...identity, human_id: humanId };
+  }
+
+  return identity;
+};
+
+const carryPartialIdentityForward: IdentityRule = (
+  identity,
+  { snapshot, word },
+) => {
+  if (
+    word.isFinal ||
+    (identity.speaker_index !== undefined && identity.human_id !== undefined)
+  ) {
+    return identity;
+  }
+
+  const last = snapshot.lastSpeakerByChannel.get(word.channel);
+  if (!last) {
+    return identity;
+  }
+
+  const updates: Partial<SpeakerIdentity> = {};
+  if (
+    identity.speaker_index === undefined &&
+    last.speaker_index !== undefined
+  ) {
+    updates.speaker_index = last.speaker_index;
+  }
+  if (identity.human_id === undefined && last.human_id !== undefined) {
+    updates.human_id = last.human_id;
+  }
+
+  return Object.keys(updates).length > 0
+    ? { ...identity, ...updates }
+    : identity;
 };

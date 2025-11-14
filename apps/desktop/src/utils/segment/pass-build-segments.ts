@@ -7,24 +7,12 @@ import type {
   SegmentPass,
   SpeakerIdentity,
 } from "./shared";
-import { SegmentKey as SegmentKeyModule } from "./shared";
+import { SegmentKey as SegmentKeyUtils } from "./shared";
 
-export const segmentationPass: SegmentPass = {
+export const segmentationPass: SegmentPass<"frames"> = {
   id: "build_segments",
-  needs: ["frames"],
   run(graph, ctx) {
-    const frames = graph.frames ?? [];
-    const segments: ProtoSegment[] = [];
-    const activeSegments = new Map<string, ProtoSegment>();
-
-    frames.forEach((frame) => {
-      const key = createSegmentKeyFromIdentity(
-        frame.word.channel,
-        frame.identity,
-      );
-      placeFrameInSegment(frame, key, segments, activeSegments, ctx.options);
-    });
-
+    const segments = collectSegments(graph.frames, ctx.options);
     return { ...graph, segments };
   },
 };
@@ -47,46 +35,124 @@ function createSegmentKeyFromIdentity(
     params.speaker_human_id = identity.human_id;
   }
 
-  return SegmentKeyModule.make(params);
+  return SegmentKeyUtils.make(params);
 }
 
-function hasSpeakerIdentity(key: SegmentKey): boolean {
-  return key.speaker_index !== undefined || key.speaker_human_id !== undefined;
-}
+type ChannelSegmentsState = {
+  activeByKey: Map<string, ProtoSegment>;
+  lastAnonymous?: ProtoSegment;
+};
 
-function sameKey(a: SegmentKey, b: SegmentKey): boolean {
-  return (
-    a.channel === b.channel &&
-    a.speaker_index === b.speaker_index &&
-    a.speaker_human_id === b.speaker_human_id
+type SegmentationReducerState = {
+  segments: ProtoSegment[];
+  channelState: Map<ChannelProfile, ChannelSegmentsState>;
+};
+
+function collectSegments(
+  frames: ResolvedWordFrame[],
+  options?: SegmentBuilderOptions,
+): ProtoSegment[] {
+  const initial: SegmentationReducerState = {
+    segments: [],
+    channelState: new Map(),
+  };
+
+  const finalState = frames.reduce<SegmentationReducerState>(
+    (state, frame) => reduceFrame(state, frame, options),
+    initial,
   );
+
+  return finalState.segments;
 }
 
-function segmentKeyId(key: SegmentKey): string {
-  return JSON.stringify([
-    key.channel,
-    key.speaker_index ?? null,
-    key.speaker_human_id ?? null,
-  ]);
+function reduceFrame(
+  state: SegmentationReducerState,
+  frame: ResolvedWordFrame,
+  options?: SegmentBuilderOptions,
+): SegmentationReducerState {
+  const key = createSegmentKeyFromIdentity(frame.word.channel, frame.identity);
+  const channelState = channelStateFor(state.channelState, key.channel);
+  const extension = selectSegmentExtension(
+    state,
+    channelState,
+    key,
+    frame,
+    options,
+  );
+
+  if (extension) {
+    extension.segment.words.push(frame);
+    channelState.activeByKey.set(
+      SegmentKeyUtils.serialize(extension.segment.key),
+      extension.segment,
+    );
+    trackAnonymousSegment(channelState, extension.segment);
+    return state;
+  }
+
+  const segment = startSegment(state.segments, key, frame);
+  channelState.activeByKey.set(SegmentKeyUtils.serialize(key), segment);
+  trackAnonymousSegment(channelState, segment);
+  return state;
 }
 
-function canExtendSegment(
+function selectSegmentExtension(
+  state: SegmentationReducerState,
+  channelState: ChannelSegmentsState,
+  key: SegmentKey,
+  frame: ResolvedWordFrame,
+  options?: SegmentBuilderOptions,
+): { segment: ProtoSegment } | undefined {
+  const segmentId = SegmentKeyUtils.serialize(key);
+  const activeSegment = channelState.activeByKey.get(segmentId);
+
+  if (activeSegment && canExtend(state, activeSegment, key, frame, options)) {
+    return { segment: activeSegment };
+  }
+
+  const anonymousSegment = channelState.lastAnonymous;
+  if (
+    !SegmentKeyUtils.hasSpeakerIdentity(key) &&
+    frame.word.isFinal &&
+    anonymousSegment &&
+    canExtend(state, anonymousSegment, anonymousSegment.key, frame, options)
+  ) {
+    return { segment: anonymousSegment };
+  }
+
+  return undefined;
+}
+
+function startSegment(
+  segments: ProtoSegment[],
+  key: SegmentKey,
+  frame: ResolvedWordFrame,
+): ProtoSegment {
+  const segment: ProtoSegment = { key, words: [frame] };
+  segments.push(segment);
+  return segment;
+}
+
+function canExtend(
+  state: SegmentationReducerState,
   existingSegment: ProtoSegment,
   candidateKey: SegmentKey,
   frame: ResolvedWordFrame,
-  segments: ProtoSegment[],
   options?: SegmentBuilderOptions,
 ): boolean {
-  if (hasSpeakerIdentity(candidateKey)) {
-    const lastSegment = segments[segments.length - 1];
-    if (!lastSegment || !sameKey(lastSegment.key, candidateKey)) {
+  if (SegmentKeyUtils.hasSpeakerIdentity(candidateKey)) {
+    const lastSegment = state.segments[state.segments.length - 1];
+    if (
+      !lastSegment ||
+      !SegmentKeyUtils.equals(lastSegment.key, candidateKey)
+    ) {
       return false;
     }
   }
 
   if (
     !frame.word.isFinal &&
-    existingSegment !== segments[segments.length - 1]
+    existingSegment !== state.segments[state.segments.length - 1]
   ) {
     const allWordsArePartial = existingSegment.words.every(
       (w) => !w.word.isFinal,
@@ -101,38 +167,27 @@ function canExtendSegment(
   return frame.word.start_ms - lastWord.end_ms <= maxGapMs;
 }
 
-function placeFrameInSegment(
-  frame: ResolvedWordFrame,
-  key: SegmentKey,
-  segments: ProtoSegment[],
-  activeSegments: Map<string, ProtoSegment>,
-  options?: SegmentBuilderOptions,
+function channelStateFor(
+  channelState: Map<ChannelProfile, ChannelSegmentsState>,
+  channel: ChannelProfile,
+): ChannelSegmentsState {
+  const existing = channelState.get(channel);
+  if (existing) {
+    return existing;
+  }
+
+  const state: ChannelSegmentsState = {
+    activeByKey: new Map(),
+  };
+  channelState.set(channel, state);
+  return state;
+}
+
+function trackAnonymousSegment(
+  state: ChannelSegmentsState,
+  segment: ProtoSegment,
 ): void {
-  const segmentId = segmentKeyId(key);
-  const existing = activeSegments.get(segmentId);
-
-  if (existing && canExtendSegment(existing, key, frame, segments, options)) {
-    existing.words.push(frame);
-    return;
+  if (!SegmentKeyUtils.hasSpeakerIdentity(segment.key)) {
+    state.lastAnonymous = segment;
   }
-
-  if (frame.word.isFinal && !hasSpeakerIdentity(key)) {
-    for (const [id, segment] of activeSegments) {
-      if (
-        !hasSpeakerIdentity(segment.key) &&
-        segment.key.channel === key.channel
-      ) {
-        if (canExtendSegment(segment, segment.key, frame, segments, options)) {
-          segment.words.push(frame);
-          activeSegments.set(segmentId, segment);
-          activeSegments.set(id, segment);
-          return;
-        }
-      }
-    }
-  }
-
-  const newSegment: ProtoSegment = { key, words: [frame] };
-  segments.push(newSegment);
-  activeSegments.set(segmentId, newSegment);
 }

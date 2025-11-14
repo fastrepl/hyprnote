@@ -11,8 +11,8 @@ use ractor::{
 
 use crate::{
     actors::{
-        ListenerActor, ListenerArgs, ListenerMsg, ProcArgs, ProcMsg, ProcessorActor, RecArgs,
-        RecMsg, RecorderActor, SourceActor, SourceArgs, SourceMsg,
+        ListenerActor, ListenerArgs, ListenerMsg, RecArgs, RecMsg, RecorderActor, SourceActor,
+        SourceArgs, SourceMsg,
     },
     SessionEvent,
 };
@@ -205,7 +205,6 @@ impl ControllerActor {
         supervisor: ActorCell,
         state: &ControllerState,
     ) -> Result<(), ActorProcessingErr> {
-        Self::start_processor(supervisor.clone(), state).await?;
         Self::start_source(supervisor.clone(), state).await?;
         Self::start_listener(supervisor.clone(), state, None).await?;
 
@@ -217,7 +216,6 @@ impl ControllerActor {
     }
 
     async fn stop_all_actors() {
-        Self::stop_processor().await;
         Self::stop_source().await;
         Self::stop_listener().await;
         Self::stop_recorder().await;
@@ -234,6 +232,7 @@ impl ControllerActor {
                 token: state.token.clone(),
                 mic_device: None,
                 onboarding: state.params.onboarding,
+                app: state.app.clone(),
             },
             supervisor,
         )
@@ -244,34 +243,6 @@ impl ControllerActor {
     async fn stop_source() {
         if let Some(cell) = registry::where_is(SourceActor::name()) {
             let actor: ActorRef<SourceMsg> = cell.into();
-            let _ = actor
-                .stop_and_wait(
-                    Some("restart".to_string()),
-                    Some(concurrency::Duration::from_secs(3)),
-                )
-                .await;
-        }
-    }
-
-    async fn start_processor(
-        supervisor: ActorCell,
-        state: &ControllerState,
-    ) -> Result<ActorRef<ProcMsg>, ActorProcessingErr> {
-        let (ar, _) = Actor::spawn_linked(
-            Some(ProcessorActor::name()),
-            ProcessorActor {},
-            ProcArgs {
-                app: state.app.clone(),
-            },
-            supervisor,
-        )
-        .await?;
-        Ok(ar)
-    }
-
-    async fn stop_processor() {
-        if let Some(cell) = registry::where_is(ProcessorActor::name()) {
-            let actor: ActorRef<ProcMsg> = cell.into();
             let _ = actor
                 .stop_and_wait(
                     Some("restart".to_string()),

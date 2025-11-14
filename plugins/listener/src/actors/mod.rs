@@ -1,14 +1,12 @@
 mod batch;
 mod controller;
 mod listener;
-mod processor;
 mod recorder;
 mod source;
 
 pub use batch::*;
 pub use controller::*;
 pub use listener::*;
-pub use processor::*;
 pub use recorder::*;
 pub use source::*;
 

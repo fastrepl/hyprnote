@@ -1,15 +1,28 @@
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::{
+    collections::{HashMap, VecDeque},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        mpsc::{self, Receiver},
+        Arc,
+    },
+    time::{Duration, Instant},
+};
 
 use futures_util::StreamExt;
 use ractor::{registry, Actor, ActorName, ActorProcessingErr, ActorRef, RpcReplyPort};
 use tokio_util::sync::CancellationToken;
 
-use crate::actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, ProcMsg, ProcessorActor};
+use crate::{
+    actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, RecMsg, RecorderActor},
+    SessionEvent,
+};
+use hypr_agc::Agc;
 use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
-use hypr_audio_utils::ResampleExtDynamicNew;
+use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
+use tauri_specta::Event;
 
-const SAMPLE_RATE: u32 = 16000;
+const SAMPLE_RATE: u32 = 16 * 1000;
+const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 
 pub enum SourceMsg {
     SetMicMute(bool),
@@ -17,12 +30,15 @@ pub enum SourceMsg {
     SetMicDevice(Option<String>),
     GetMicDevice(RpcReplyPort<Option<String>>),
     GetMode(RpcReplyPort<ChannelMode>),
+    MicChunk(AudioChunk),
+    SpeakerChunk(AudioChunk),
 }
 
 pub struct SourceArgs {
     pub mic_device: Option<String>,
     pub token: CancellationToken,
     pub onboarding: bool,
+    pub app: tauri::AppHandle,
 }
 
 pub struct SourceState {
@@ -32,13 +48,62 @@ pub struct SourceState {
     mic_muted: Arc<AtomicBool>,
     run_task: Option<tokio::task::JoinHandle<()>>,
     stream_cancel_token: Option<CancellationToken>,
-    _device_monitor_handle: Option<DeviceMonitorHandle>,
+    _device_watcher: Option<DeviceChangeWatcher>,
     _silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
-    _device_event_thread: Option<std::thread::JoinHandle<()>>,
     current_mode: ChannelMode,
+    pipeline: Pipeline,
 }
 
 pub struct SourceActor;
+
+struct DeviceChangeWatcher {
+    _handle: DeviceMonitorHandle,
+    _thread: std::thread::JoinHandle<()>,
+}
+
+impl DeviceChangeWatcher {
+    fn spawn(actor: ActorRef<SourceMsg>) -> Self {
+        let (event_tx, event_rx) = mpsc::channel();
+        let handle = DeviceMonitor::spawn(event_tx);
+        let thread = std::thread::spawn(move || Self::event_loop(event_rx, actor));
+
+        Self {
+            _handle: handle,
+            _thread: thread,
+        }
+    }
+
+    fn event_loop(event_rx: Receiver<DeviceEvent>, actor: ActorRef<SourceMsg>) {
+        use std::sync::mpsc::RecvTimeoutError;
+
+        let debounce_duration = Duration::from_millis(1000);
+        let mut pending_change = false;
+
+        loop {
+            let event = if pending_change {
+                event_rx.recv_timeout(debounce_duration)
+            } else {
+                event_rx.recv().map_err(|_| RecvTimeoutError::Disconnected)
+            };
+
+            match event {
+                Ok(DeviceEvent::DefaultInputChanged { .. })
+                | Ok(DeviceEvent::DefaultOutputChanged { .. }) => {
+                    tracing::info!(event = ?event, "device_event");
+                    pending_change = true;
+                }
+                Err(RecvTimeoutError::Timeout) => {
+                    if pending_change {
+                        let new_device = AudioInput::get_default_device_name();
+                        let _ = actor.cast(SourceMsg::SetMicDevice(Some(new_device)));
+                        pending_change = false;
+                    }
+                }
+                Err(RecvTimeoutError::Disconnected) => break,
+            }
+        }
+    }
+}
 
 impl SourceActor {
     pub fn name() -> ActorName {
@@ -57,54 +122,15 @@ impl Actor for SourceActor {
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let (event_tx, event_rx) = std::sync::mpsc::channel();
-        let device_monitor_handle = DeviceMonitor::spawn(event_tx);
-
-        let myself_clone = myself.clone();
-
-        let device_event_thread = std::thread::spawn(move || {
-            use std::sync::mpsc::RecvTimeoutError;
-            use std::time::Duration;
-
-            let debounce_duration = Duration::from_millis(1000);
-
-            loop {
-                match event_rx.recv() {
-                    Ok(event) => match event {
-                        DeviceEvent::DefaultInputChanged { .. }
-                        | DeviceEvent::DefaultOutputChanged { .. } => {
-                            tracing::info!(event = ?event, "device_event_outer");
-
-                            loop {
-                                let event = event_rx.recv_timeout(debounce_duration);
-                                tracing::info!(event = ?event, "device_event_inner");
-
-                                match event {
-                                    Ok(DeviceEvent::DefaultInputChanged { .. })
-                                    | Ok(DeviceEvent::DefaultOutputChanged { .. }) => {
-                                        continue;
-                                    }
-                                    Err(RecvTimeoutError::Timeout) => {
-                                        let new_device = AudioInput::get_default_device_name();
-                                        let _ = myself_clone
-                                            .cast(SourceMsg::SetMicDevice(Some(new_device)));
-                                        break;
-                                    }
-                                    Err(RecvTimeoutError::Disconnected) => return,
-                                }
-                            }
-                        }
-                    },
-                    Err(_) => break,
-                }
-            }
-        });
+        let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
 
         let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
         let mic_device = args
             .mic_device
             .or_else(|| Some(AudioInput::get_default_device_name()));
         tracing::info!(mic_device = ?mic_device);
+
+        let pipeline = Pipeline::new(args.app.clone());
 
         let mut st = SourceState {
             mic_device,
@@ -113,10 +139,10 @@ impl Actor for SourceActor {
             mic_muted: Arc::new(AtomicBool::new(false)),
             run_task: None,
             stream_cancel_token: None,
-            _device_monitor_handle: Some(device_monitor_handle),
+            _device_watcher: Some(device_watcher),
             _silence_stream_tx: silence_stream_tx,
-            _device_event_thread: Some(device_event_thread),
             current_mode: ChannelMode::Dual,
+            pipeline,
         };
 
         start_source_loop(&myself, &mut st).await?;
@@ -145,13 +171,14 @@ impl Actor for SourceActor {
             }
             SourceMsg::SetMicDevice(dev) => {
                 st.mic_device = dev;
+                st.pipeline.reset();
 
                 if let Some(cancel_token) = st.stream_cancel_token.take() {
                     cancel_token.cancel();
                 }
 
-                if let Some(t) = st.run_task.take() {
-                    t.abort();
+                if let Some(task) = st.run_task.take() {
+                    task.abort();
                 }
                 start_source_loop(&myself, st).await?;
             }
@@ -159,6 +186,14 @@ impl Actor for SourceActor {
                 if !reply.is_closed() {
                     let _ = reply.send(st.current_mode);
                 }
+            }
+            SourceMsg::MicChunk(chunk) => {
+                st.pipeline.ingest_mic(chunk);
+                st.pipeline.flush(st.current_mode);
+            }
+            SourceMsg::SpeakerChunk(chunk) => {
+                st.pipeline.ingest_speaker(chunk);
+                st.pipeline.flush(st.current_mode);
             }
         }
 
@@ -208,184 +243,301 @@ async fn start_source_loop(
 
     tracing::info!(?new_mode, mode_changed, "start_source_loop");
 
-    if let Some(cell) = registry::where_is(ProcessorActor::name()) {
-        let actor: ActorRef<ProcMsg> = cell.into();
-        let _ = actor.cast(ProcMsg::Reset);
-    }
+    st.pipeline.reset();
 
     if mode_changed {
-        if let Some(cell) = registry::where_is(ProcessorActor::name()) {
-            let actor: ActorRef<ProcMsg> = cell.into();
-            let _ = actor.cast(ProcMsg::SetMode(new_mode));
-        }
-
         if let Some(cell) = registry::where_is(ListenerActor::name()) {
             let actor: ActorRef<ListenerMsg> = cell.into();
             let _ = actor.cast(ListenerMsg::ChangeMode(new_mode));
         }
     }
 
-    let use_mixed = new_mode == ChannelMode::Single;
+    #[cfg(not(target_os = "macos"))]
+    if new_mode == ChannelMode::Single {
+        st.run_task = Some(tokio::spawn(async move {}));
+        return Ok(());
+    }
 
-    let handle = if use_mixed {
-        #[cfg(target_os = "macos")]
-        {
-            tokio::spawn(async move {
-                let mic_stream = {
-                    let mut mic_input = AudioInput::from_mic(mic_device).unwrap();
-                    let chunk_size = chunk_size_from_sample_rate(SAMPLE_RATE);
-                    mic_input
-                        .stream()
-                        .resampled_chunks(SAMPLE_RATE, chunk_size)
-                        .unwrap()
-                };
-                tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-                let spk_stream = {
-                    let mut spk_input = hypr_audio::AudioInput::from_speaker();
-                    let chunk_size = chunk_size_from_sample_rate(SAMPLE_RATE);
-                    spk_input
-                        .stream()
-                        .resampled_chunks(SAMPLE_RATE, chunk_size)
-                        .unwrap()
-                };
+    let handle = tokio::spawn(async move {
+        let mic_stream = {
+            let mut mic_input = AudioInput::from_mic(mic_device.clone()).unwrap();
+            let chunk_size = chunk_size_for_stt(SAMPLE_RATE);
+            mic_input
+                .stream()
+                .resampled_chunks(SAMPLE_RATE, chunk_size)
+                .unwrap()
+        };
+        tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+        let spk_stream = {
+            let mut spk_input = hypr_audio::AudioInput::from_speaker();
+            let chunk_size = chunk_size_for_stt(SAMPLE_RATE);
+            spk_input
+                .stream()
+                .resampled_chunks(SAMPLE_RATE, chunk_size)
+                .unwrap()
+        };
 
-                tokio::pin!(mic_stream);
-                tokio::pin!(spk_stream);
+        tokio::pin!(mic_stream);
+        tokio::pin!(spk_stream);
 
-                loop {
-                    let Some(cell) = registry::where_is(ProcessorActor::name()) else {
-                        tracing::warn!("processor_actor_not_found");
-                        continue;
-                    };
-                    let proc: ActorRef<ProcMsg> = cell.into();
-
-                    tokio::select! {
-                        _ = token.cancelled() => {
-                            drop(mic_stream);
-                            drop(spk_stream);
-                            myself2.stop(None);
-                            return;
-                        }
-                        _ = stream_cancel_token.cancelled() => {
-                            drop(mic_stream);
-                            drop(spk_stream);
-                            return;
-                        }
-                        mic_next = mic_stream.next() => {
-                            match mic_next {
-                                Some(Ok(data)) => {
-                                    let output_data = if mic_muted.load(Ordering::Relaxed) {
-                                        vec![0.0; data.len()]
-                                    } else {
-                                        data
-                                    };
-                                    let msg = ProcMsg::Mic(AudioChunk { data: output_data });
-                                    let _ = proc.cast(msg);
-                                }
-                                Some(Err(err)) => {
-                                    tracing::warn!(error = ?err, "mic_resample_failed");
-                                }
-                                None => break,
-                            }
-                        }
-                        spk_next = spk_stream.next() => {
-                            match spk_next {
-                                Some(Ok(data)) => {
-                                    let msg = ProcMsg::Speaker(AudioChunk{ data });
-                                    let _ = proc.cast(msg);
-                                }
-                                Some(Err(err)) => {
-                                    tracing::warn!(error = ?err, "speaker_resample_failed");
-                                }
-                                None => break,
-                            }
-                        }
-                    }
+        loop {
+            tokio::select! {
+                _ = token.cancelled() => {
+                    drop(mic_stream);
+                    drop(spk_stream);
+                    myself2.stop(None);
+                    return;
                 }
-            })
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            tokio::spawn(async move {})
-        }
-    } else {
-        tokio::spawn(async move {
-            let mic_stream = {
-                let mut mic_input = hypr_audio::AudioInput::from_mic(mic_device).unwrap();
-                let chunk_size = chunk_size_from_sample_rate(mic_input.sample_rate());
-                mic_input.stream().chunks(chunk_size)
-            };
-            tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-            let spk_stream = {
-                let mut spk_input = hypr_audio::AudioInput::from_speaker();
-                let chunk_size = chunk_size_from_sample_rate(spk_input.sample_rate());
-                spk_input.stream().chunks(chunk_size)
-            };
-            tokio::pin!(mic_stream);
-            tokio::pin!(spk_stream);
-
-            loop {
-                let Some(cell) = registry::where_is(ProcessorActor::name()) else {
-                    tracing::warn!("processor_actor_not_found");
-                    continue;
-                };
-                let proc: ActorRef<ProcMsg> = cell.into();
-
-                tokio::select! {
-                    _ = token.cancelled() => {
-                        drop(mic_stream);
-                        drop(spk_stream);
-                        myself2.stop(None);
-                        return;
-                    }
-                    _ = stream_cancel_token.cancelled() => {
-                        drop(mic_stream);
-                        drop(spk_stream);
-                        return;
-                    }
-                    mic_next = mic_stream.next() => {
-                        if let Some(data) = mic_next {
-                            let output_data = if mic_muted.load(Ordering::Relaxed) {
-                                vec![0.0; data.len()]
-                            } else {
-                                data
-                            };
-
-                            let msg = ProcMsg::Mic(AudioChunk{ data: output_data });
-                            let _ = proc.cast(msg);
-                        } else {
-                            break;
-                        }
-                    }
-                    spk_next = spk_stream.next() => {
-                        if let Some(data) = spk_next {
-                            let msg = ProcMsg::Speaker(AudioChunk{ data });
-                            let _ = proc.cast(msg);
-                        } else {
-                            break;
-                        }
-                    }
+                _ = stream_cancel_token.cancelled() => {
+                    drop(mic_stream);
+                    drop(spk_stream);
+                    return;
                 }
+                mic_next = mic_stream.next() => match mic_next {
+                    Some(Ok(data)) => {
+                        let output_data = if mic_muted.load(Ordering::Relaxed) {
+                            vec![0.0; data.len()]
+                        } else {
+                            data
+                        };
+                        if myself2.cast(SourceMsg::MicChunk(AudioChunk { data: output_data })).is_err() {
+                            tracing::warn!("failed_to_cast_mic_chunk");
+                        }
+                    }
+                    Some(Err(err)) => {
+                        tracing::warn!(error = ?err, "mic_resample_failed");
+                    }
+                    None => break,
+                },
+                spk_next = spk_stream.next() => match spk_next {
+                    Some(Ok(data)) => {
+                        if myself2.cast(SourceMsg::SpeakerChunk(AudioChunk { data })).is_err() {
+                            tracing::warn!("failed_to_cast_speaker_chunk");
+                        }
+                    }
+                    Some(Err(err)) => {
+                        tracing::warn!(error = ?err, "speaker_resample_failed");
+                    }
+                    None => break,
+                },
             }
-        })
-    };
+        }
+    });
 
     st.run_task = Some(handle);
     Ok(())
 }
 
-fn chunk_size_from_sample_rate(sample_rate: u32) -> usize {
-    // https://github.com/orgs/deepgram/discussions/224#discussioncomment-6234166
-    const CHUNK_MS: u32 = 120;
+struct Pipeline {
+    agc_mic: Agc,
+    agc_spk: Agc,
+    joiner: Joiner,
+    amplitude: AmplitudeEmitter,
+}
 
-    let samples = ((sample_rate as u64) * (CHUNK_MS as u64)) / 1000;
-    let samples = samples.max(1024).min(7168) as usize;
+impl Pipeline {
+    fn new(app: tauri::AppHandle) -> Self {
+        Self {
+            agc_mic: Agc::default(),
+            agc_spk: Agc::default(),
+            joiner: Joiner::new(),
+            amplitude: AmplitudeEmitter::new(app),
+        }
+    }
 
-    tracing::info!(
-        sample_rate = sample_rate,
-        samples = samples,
-        "chunk_size_from_sample_rate"
-    );
+    fn reset(&mut self) {
+        self.joiner.reset();
+        self.agc_mic = Agc::default();
+        self.agc_spk = Agc::default();
+        self.amplitude.reset();
+    }
 
-    samples
+    fn ingest_mic(&mut self, chunk: AudioChunk) {
+        let mut data = chunk.data;
+        self.agc_mic.process(&mut data);
+        let arc = Arc::<[f32]>::from(data);
+        self.joiner.push_mic(arc);
+    }
+
+    fn ingest_speaker(&mut self, chunk: AudioChunk) {
+        let mut data = chunk.data;
+        self.agc_spk.process(&mut data);
+        let arc = Arc::<[f32]>::from(data);
+        self.joiner.push_spk(arc);
+    }
+
+    fn flush(&mut self, mode: ChannelMode) {
+        while let Some((mic, spk)) = self.joiner.pop_pair(mode) {
+            self.dispatch(mic, spk, mode);
+        }
+    }
+
+    fn dispatch(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) {
+        if let Some(cell) = registry::where_is(RecorderActor::name()) {
+            let actor: ActorRef<RecMsg> = cell.into();
+            let mixed = Self::mix(mic.as_ref(), spk.as_ref());
+            if let Err(e) = actor.cast(RecMsg::Audio(mixed)) {
+                tracing::error!(error = ?e, "failed_to_send_audio_to_recorder");
+            }
+        }
+
+        let Some(cell) = registry::where_is(ListenerActor::name()) else {
+            tracing::debug!(actor = ListenerActor::name(), "unavailable");
+            return;
+        };
+
+        let actor: ActorRef<ListenerMsg> = cell.into();
+        let (mic_bytes, spk_bytes) = if mode == ChannelMode::Single {
+            let mixed = Self::mix(mic.as_ref(), spk.as_ref());
+            (
+                f32_to_i16_bytes(mic.iter().copied()),
+                f32_to_i16_bytes(mixed.iter().copied()),
+            )
+        } else {
+            (
+                f32_to_i16_bytes(mic.iter().copied()),
+                f32_to_i16_bytes(spk.iter().copied()),
+            )
+        };
+
+        if actor
+            .cast(ListenerMsg::Audio(mic_bytes, spk_bytes))
+            .is_err()
+        {
+            tracing::warn!(actor = ListenerActor::name(), "cast_failed");
+            return;
+        }
+
+        self.amplitude.observe(mic, spk);
+    }
+
+    fn mix(mic: &[f32], spk: &[f32]) -> Vec<f32> {
+        mic.iter()
+            .zip(spk.iter())
+            .map(|(m, s)| (m + s).clamp(-1.0, 1.0))
+            .collect()
+    }
+}
+
+struct AmplitudeEmitter {
+    app: tauri::AppHandle,
+    last_mic: Option<Arc<[f32]>>,
+    last_spk: Option<Arc<[f32]>>,
+    last_emit: Instant,
+}
+
+impl AmplitudeEmitter {
+    fn new(app: tauri::AppHandle) -> Self {
+        Self {
+            app,
+            last_mic: None,
+            last_spk: None,
+            last_emit: Instant::now(),
+        }
+    }
+
+    fn reset(&mut self) {
+        self.last_mic = None;
+        self.last_spk = None;
+        self.last_emit = Instant::now();
+    }
+
+    fn observe(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>) {
+        self.last_mic = Some(mic);
+        self.last_spk = Some(spk);
+        self.emit_if_ready();
+    }
+
+    fn emit_if_ready(&mut self) {
+        if self.last_emit.elapsed() < AUDIO_AMPLITUDE_THROTTLE {
+            return;
+        }
+
+        let (Some(mic), Some(spk)) = (&self.last_mic, &self.last_spk) else {
+            return;
+        };
+
+        if let Err(error) = SessionEvent::from((mic.as_ref(), spk.as_ref())).emit(&self.app) {
+            tracing::error!(error = ?error, "session_event_emit_failed");
+        }
+
+        self.last_emit = Instant::now();
+    }
+}
+
+struct Joiner {
+    mic: VecDeque<Arc<[f32]>>,
+    spk: VecDeque<Arc<[f32]>>,
+    silence_cache: HashMap<usize, Arc<[f32]>>,
+}
+
+impl Joiner {
+    const MAX_LAG: usize = 4;
+    const MAX_QUEUE_SIZE: usize = 30;
+
+    fn new() -> Self {
+        Self {
+            mic: VecDeque::new(),
+            spk: VecDeque::new(),
+            silence_cache: HashMap::new(),
+        }
+    }
+
+    fn reset(&mut self) {
+        self.mic.clear();
+        self.spk.clear();
+    }
+
+    fn get_silence(&mut self, len: usize) -> Arc<[f32]> {
+        self.silence_cache
+            .entry(len)
+            .or_insert_with(|| Arc::from(vec![0.0; len]))
+            .clone()
+    }
+
+    fn push_mic(&mut self, data: Arc<[f32]>) {
+        self.mic.push_back(data);
+        if self.mic.len() > Self::MAX_QUEUE_SIZE {
+            tracing::warn!("mic_queue_overflow");
+            self.mic.pop_front();
+        }
+    }
+
+    fn push_spk(&mut self, data: Arc<[f32]>) {
+        self.spk.push_back(data);
+        if self.spk.len() > Self::MAX_QUEUE_SIZE {
+            tracing::warn!("spk_queue_overflow");
+            self.spk.pop_front();
+        }
+    }
+
+    fn pop_pair(&mut self, mode: ChannelMode) -> Option<(Arc<[f32]>, Arc<[f32]>)> {
+        if self.mic.front().is_some() && self.spk.front().is_some() {
+            return Some((self.mic.pop_front()?, self.spk.pop_front()?));
+        }
+
+        if self.should_use_silence_for_speaker(mode) {
+            let mic = self.mic.pop_front()?;
+            let spk = self.get_silence(mic.len());
+            return Some((mic, spk));
+        }
+
+        if self.should_use_silence_for_mic() {
+            let spk = self.spk.pop_front()?;
+            let mic = self.get_silence(spk.len());
+            return Some((mic, spk));
+        }
+
+        None
+    }
+
+    fn should_use_silence_for_speaker(&self, mode: ChannelMode) -> bool {
+        self.mic.front().is_some()
+            && self.spk.is_empty()
+            && (mode == ChannelMode::Single || self.mic.len() > Self::MAX_LAG)
+    }
+
+    fn should_use_silence_for_mic(&self) -> bool {
+        self.spk.front().is_some() && self.mic.is_empty() && self.spk.len() > Self::MAX_LAG
+    }
 }

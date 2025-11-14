@@ -307,7 +307,7 @@ jobs:
           - target: "x86_64-unknown-linux-gnu"
             arch: "x86_64"
             features: "stt-openblas,llm-vulkan"
-            runner: "ubuntu-20.04"
+            runner: "ubuntu-22.04"
           # ARM64 builds disabled temporarily due to cross-compilation dependency issues
           # - target: "aarch64-unknown-linux-gnu"
           #   arch: "aarch64"

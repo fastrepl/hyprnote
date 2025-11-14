@@ -99,14 +99,14 @@ function useAvailability() {
       };
     }
 
-    if (PROVIDERS.find((p) => p.id === current_llm_provider)) {
+    if (!PROVIDERS.find((p) => p.id === current_llm_provider)) {
       return {
         available: false,
         message: "Provider not found. Please select a valid provider.",
       };
     }
 
-    if (configuredProviders[current_llm_provider]?.base_url) {
+    if (!configuredProviders[current_llm_provider]?.base_url) {
       return {
         available: false,
         message:

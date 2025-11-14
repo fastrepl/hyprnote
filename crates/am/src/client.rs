@@ -102,7 +102,7 @@ impl InitRequest {
             model: None,
             model_repo: None,
             model_folder: None,
-            custom_vocabulary: Some(vec![]),
+            custom_vocabulary: None,
         }
     }
 
@@ -120,6 +120,16 @@ impl InitRequest {
                 .to_string_lossy()
                 .to_string(),
         );
+
+        match model {
+            crate::AmModel::ParakeetV2 => {
+                self.custom_vocabulary = Some(vec![]);
+            }
+            _ => {
+                self.custom_vocabulary = None;
+            }
+        }
+
         self
     }
 }

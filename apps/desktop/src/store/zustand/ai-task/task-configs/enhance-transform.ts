@@ -2,9 +2,10 @@ import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 import {
   buildSegments,
   type RuntimeSpeakerHint,
-  type Segment,
+  SegmentKey,
   type WordLike,
 } from "../../../../utils/segment";
+import { defaultRenderLabelContext } from "../../../../utils/segment/shared";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as MainStore } from "../../../tinybase/main";
 
@@ -26,7 +27,7 @@ type WordRow = Record<string, unknown> & {
 type WordWithTranscript = WordRow & { transcriptStartedAt: number };
 
 type SegmentPayload = {
-  channel: Segment["key"]["channel"];
+  speaker_label: string;
   start_ms: number;
   end_ms: number;
   text: string;
@@ -212,7 +213,7 @@ function getTranscriptSegments(sessionId: string, store: MainStore) {
         return acc;
       }
 
-      acc.push(toSegmentPayload(segment as any, sessionStartMs));
+      acc.push(toSegmentPayload(segment as any, sessionStartMs, store));
       return acc;
     },
     [],
@@ -307,6 +308,7 @@ function collectSpeakerHints(
 function toSegmentPayload(
   segment: any,
   sessionStartMs: number,
+  store: MainStore,
 ): SegmentPayload {
   const firstWord = segment.words[0];
   const lastWord = segment.words[segment.words.length - 1];
@@ -314,8 +316,11 @@ function toSegmentPayload(
   const absoluteStartMs = firstWord.transcriptStartedAt + firstWord.start_ms;
   const absoluteEndMs = lastWord.transcriptStartedAt + lastWord.end_ms;
 
+  const ctx = defaultRenderLabelContext(store);
+  const label = SegmentKey.renderLabel(segment.key, ctx);
+
   return {
-    channel: segment.key.channel,
+    speaker_label: label,
     start_ms: absoluteStartMs - sessionStartMs,
     end_ms: absoluteEndMs - sessionStartMs,
     text: segment.words.map((word: any) => word.text).join(" "),

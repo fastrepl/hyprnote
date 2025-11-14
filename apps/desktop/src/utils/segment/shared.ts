@@ -1,5 +1,7 @@
 import { Data, Schema } from "effect";
 
+import { type Store } from "../../store/tinybase/main";
+
 export enum ChannelProfile {
   DirectMic = 0,
   RemoteParty = 1,
@@ -38,6 +40,26 @@ export type Segment<TWord extends SegmentWord = SegmentWord> = {
   words: TWord[];
 };
 
+type RenderLabelContext = {
+  getSelfHumanId: () => string | undefined;
+  getHumanName: (id: string) => string | undefined;
+};
+
+export const defaultRenderLabelContext = (
+  store: Pick<Store, "getValue" | "getRow">,
+): RenderLabelContext => {
+  return {
+    getSelfHumanId: () => {
+      const selfId = store.getValue("user_id");
+      return typeof selfId === "string" ? selfId : undefined;
+    },
+    getHumanName: (id: string) => {
+      const human = store.getRow("humans", id);
+      return typeof human.name === "string" ? human.name : undefined;
+    },
+  };
+};
+
 export type SegmentKey = {
   readonly channel: ChannelProfile;
   readonly speaker_index?: number;
@@ -72,6 +94,34 @@ export const SegmentKey = {
       key.speaker_index ?? null,
       key.speaker_human_id ?? null,
     ]);
+  },
+
+  renderLabel: (key: SegmentKey, ctx?: RenderLabelContext): string => {
+    if (ctx && key.speaker_human_id) {
+      const human = ctx.getHumanName(key.speaker_human_id);
+      if (human) {
+        return human;
+      }
+    }
+
+    if (ctx && key.channel === ChannelProfile.DirectMic) {
+      const selfHumanId = ctx.getSelfHumanId();
+      if (selfHumanId) {
+        const selfHuman = ctx.getHumanName(selfHumanId);
+        return selfHuman ?? "You";
+      }
+    }
+
+    const channelLabel =
+      key.channel === ChannelProfile.DirectMic
+        ? "A"
+        : key.channel === ChannelProfile.RemoteParty
+          ? "B"
+          : "C";
+
+    return key.speaker_index !== undefined
+      ? `Speaker ${key.speaker_index + 1}`
+      : `Speaker ${channelLabel}`;
   },
 };
 

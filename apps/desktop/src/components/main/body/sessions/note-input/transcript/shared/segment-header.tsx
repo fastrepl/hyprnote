@@ -13,10 +13,8 @@ import {
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../../../../store/tinybase/main";
-import {
-  ChannelProfile,
-  type Segment,
-} from "../../../../../../../utils/segment";
+import { type Segment, SegmentKey } from "../../../../../../../utils/segment";
+import { defaultRenderLabelContext } from "../../../../../../../utils/segment/shared";
 import { Operations } from "./operations";
 
 export function SegmentHeader({
@@ -148,23 +146,11 @@ function useSpeakerLabel(key: Segment["key"]) {
   const store = main.UI.useStore(main.STORE_ID);
 
   return useMemo(() => {
-    if (key.speaker_human_id && store) {
-      const human = store.getRow("humans", key.speaker_human_id);
-      if (human?.name) {
-        return human.name as string;
-      }
+    if (!store) {
+      return SegmentKey.renderLabel(key);
     }
-
-    const channelLabel =
-      key.channel === ChannelProfile.DirectMic
-        ? "A"
-        : key.channel === ChannelProfile.RemoteParty
-          ? "B"
-          : "C";
-
-    return key.speaker_index !== undefined
-      ? `Speaker ${key.speaker_index + 1}`
-      : `Speaker ${channelLabel}`;
+    const ctx = defaultRenderLabelContext(store);
+    return SegmentKey.renderLabel(key, ctx);
   }, [key, store]);
 }
 

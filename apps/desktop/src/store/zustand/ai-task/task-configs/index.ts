@@ -1,6 +1,5 @@
 import type { LanguageModel, TextStreamPart } from "ai";
 
-import type { ChannelProfile } from "../../../../utils/segment";
 import type { Store as PersistedStore, Template } from "../../../tinybase/main";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
@@ -33,7 +32,7 @@ export interface TaskArgsMapTransformed {
       job_title: string;
     }>;
     segments: Array<{
-      channel: ChannelProfile;
+      speaker_label: string;
       start_ms: number;
       end_ms: number;
       text: string;

@@ -4,18 +4,17 @@ pub fn transcript(segments: Value) -> Result<String, minijinja::Error> {
     let mut output = String::new();
 
     for segment in segments.try_iter()? {
-        let channel = segment
-            .get_attr("channel")
-            .ok()
-            .and_then(|v| v.as_i64())
-            .unwrap_or(0);
+        let speaker_label = segment
+            .get_attr("speaker_label")
+            .map(|v| v.to_string())
+            .unwrap_or_else(|_| "Unknown Speaker".to_string());
 
         let text = segment
             .get_attr("text")
             .map(|v| v.to_string())
             .unwrap_or_default();
 
-        output.push_str(&format!("[Channel {}]\n{}\n\n", channel, text));
+        output.push_str(&format!("[{}]\n{}\n\n", speaker_label, text));
     }
 
     Ok(output)

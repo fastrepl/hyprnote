@@ -151,6 +151,7 @@ jobs:
           export LIBCLANG_PATH=/usr/lib
           export CARGO_LOG=cargo::core::compiler::fingerprint=info
           export RUST_BACKTRACE=1
+          export BLAS_INCLUDE_DIRS=/usr/include
           
           # Build with Cargo directly
           # Note: We skip Tauri CLI bundling (which creates AppImage/deb/rpm) because

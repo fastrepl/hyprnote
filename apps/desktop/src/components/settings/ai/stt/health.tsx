@@ -18,14 +18,7 @@ function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
     return { status: "success" };
   }
 
-  if (local.isPending || local.fetchStatus === "fetching") {
-    return {
-      status: "pending",
-      tooltip: "Checking local STT server…",
-    };
-  }
-
-  const serverStatus = local.snapshot?.serverStatus ?? "unavailable";
+  const serverStatus = local.data?.status ?? "unavailable";
 
   if (serverStatus === "loading") {
     return {
@@ -34,14 +27,11 @@ function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
     };
   }
 
-  if (conn) {
+  if (serverStatus === "ready" && conn) {
     return { status: "success" };
   }
 
-  return {
-    status: "error",
-    tooltip: `Local server status: ${serverStatus}.`,
-  };
+  return { status: "error", tooltip: `Local server status: ${serverStatus}.` };
 }
 
 export function HealthCheckForAvailability() {

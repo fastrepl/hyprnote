@@ -8,17 +8,6 @@ export const mergeSegmentsPass: SegmentPass<"segments"> = {
   },
 };
 
-function canMergeSegments(seg1: ProtoSegment, seg2: ProtoSegment): boolean {
-  if (
-    !SegmentKeyUtils.hasSpeakerIdentity(seg1.key) &&
-    !SegmentKeyUtils.hasSpeakerIdentity(seg2.key)
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
 function mergeAdjacentSegments(segments: ProtoSegment[]): ProtoSegment[] {
   if (segments.length <= 1) {
     return segments;
@@ -32,7 +21,7 @@ function mergeAdjacentSegments(segments: ProtoSegment[]): ProtoSegment[] {
     if (
       last &&
       SegmentKeyUtils.equals(last.key, segment.key) &&
-      canMergeSegments(last, segment)
+      SegmentKeyUtils.hasSpeakerIdentity(segment.key)
     ) {
       last.words.push(...segment.words);
       return;

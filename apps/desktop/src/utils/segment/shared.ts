@@ -65,6 +65,14 @@ export const SegmentKey = {
       a.speaker_human_id === b.speaker_human_id
     );
   },
+
+  serialize: (key: SegmentKey): string => {
+    return JSON.stringify([
+      key.channel,
+      key.speaker_index ?? null,
+      key.speaker_human_id ?? null,
+    ]);
+  },
 };
 
 export type SegmentBuilderOptions = {

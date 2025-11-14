@@ -59,14 +59,6 @@ function createSegmentKeyFromIdentity(
   return SegmentKeyUtils.make(params);
 }
 
-function segmentKeyId(key: SegmentKey): string {
-  return JSON.stringify([
-    key.channel,
-    key.speaker_index ?? null,
-    key.speaker_human_id ?? null,
-  ]);
-}
-
 function canExtendSegment(
   existingSegment: ProtoSegment,
   candidateKey: SegmentKey,
@@ -109,7 +101,7 @@ function placeFrameInSegment(
   lastAnonymousSegmentByChannel: Map<ChannelProfile, ProtoSegment>,
   options?: SegmentBuilderOptions,
 ): void {
-  const segmentId = segmentKeyId(key);
+  const segmentId = SegmentKeyUtils.serialize(key);
   const existing = activeSegments.get(segmentId);
 
   if (existing && canExtendSegment(existing, key, frame, segments, options)) {

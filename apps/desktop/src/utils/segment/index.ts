@@ -113,35 +113,22 @@ function createSegmentPassContext(
   };
 }
 
-function ensurePassRequirements(pass: SegmentPass, graph: SegmentGraph) {
-  if (!pass.needs || pass.needs.length === 0) {
-    return;
-  }
-
-  const missing = pass.needs.filter((key) => graph[key] === undefined);
-  if (missing.length > 0) {
-    throw new Error(
-      `Segment pass "${pass.id}" missing required graph keys: ${missing.join(", ")}`,
-    );
-  }
-}
-
 function runSegmentPipeline(
-  passes: readonly SegmentPass[],
+  passes: readonly SegmentPass<keyof SegmentGraph>[],
   initialGraph: SegmentGraph,
   ctx: SegmentPassContext,
 ): SegmentGraph {
-  return passes.reduce((graph, pass) => {
-    ensurePassRequirements(pass, graph);
-    return pass.run(graph, ctx);
-  }, initialGraph);
+  return passes.reduce(
+    (graph, pass) => pass.run(graph as any, ctx),
+    initialGraph,
+  );
 }
 
 function finalizeSegments(segments: ProtoSegment[]): Segment[] {
   return segments.map((segment) => ({
     key: segment.key,
     words: segment.words.map(({ word }) => {
-      const { order: _order, ...rest } = word;
+      const { order, ...rest } = word;
       return rest as SegmentWord;
     }),
   }));

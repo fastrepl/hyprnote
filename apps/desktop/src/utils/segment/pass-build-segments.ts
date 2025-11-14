@@ -9,20 +9,29 @@ import type {
 } from "./shared";
 import { SegmentKey as SegmentKeyUtils } from "./shared";
 
-export const segmentationPass: SegmentPass = {
+export const segmentationPass: SegmentPass<"frames"> = {
   id: "build_segments",
-  needs: ["frames"],
   run(graph, ctx) {
-    const frames = graph.frames ?? [];
     const segments: ProtoSegment[] = [];
     const activeSegments = new Map<string, ProtoSegment>();
+    const lastAnonymousSegmentByChannel = new Map<
+      ChannelProfile,
+      ProtoSegment
+    >();
 
-    frames.forEach((frame) => {
+    graph.frames.forEach((frame) => {
       const key = createSegmentKeyFromIdentity(
         frame.word.channel,
         frame.identity,
       );
-      placeFrameInSegment(frame, key, segments, activeSegments, ctx.options);
+      placeFrameInSegment(
+        frame,
+        key,
+        segments,
+        activeSegments,
+        lastAnonymousSegmentByChannel,
+        ctx.options,
+      );
     });
 
     return { ...graph, segments };
@@ -97,6 +106,7 @@ function placeFrameInSegment(
   key: SegmentKey,
   segments: ProtoSegment[],
   activeSegments: Map<string, ProtoSegment>,
+  lastAnonymousSegmentByChannel: Map<ChannelProfile, ProtoSegment>,
   options?: SegmentBuilderOptions,
 ): void {
   const segmentId = segmentKeyId(key);
@@ -104,26 +114,29 @@ function placeFrameInSegment(
 
   if (existing && canExtendSegment(existing, key, frame, segments, options)) {
     existing.words.push(frame);
+    if (!SegmentKeyUtils.hasSpeakerIdentity(existing.key)) {
+      lastAnonymousSegmentByChannel.set(existing.key.channel, existing);
+    }
     return;
   }
 
   if (frame.word.isFinal && !SegmentKeyUtils.hasSpeakerIdentity(key)) {
-    for (const [id, segment] of activeSegments) {
-      if (
-        !SegmentKeyUtils.hasSpeakerIdentity(segment.key) &&
-        segment.key.channel === key.channel
-      ) {
-        if (canExtendSegment(segment, segment.key, frame, segments, options)) {
-          segment.words.push(frame);
-          activeSegments.set(segmentId, segment);
-          activeSegments.set(id, segment);
-          return;
-        }
-      }
+    const segment = lastAnonymousSegmentByChannel.get(key.channel);
+    if (
+      segment &&
+      canExtendSegment(segment, segment.key, frame, segments, options)
+    ) {
+      segment.words.push(frame);
+      activeSegments.set(segmentId, segment);
+      lastAnonymousSegmentByChannel.set(key.channel, segment);
+      return;
     }
   }
 
   const newSegment: ProtoSegment = { key, words: [frame] };
   segments.push(newSegment);
   activeSegments.set(segmentId, newSegment);
+  if (!SegmentKeyUtils.hasSpeakerIdentity(newSegment.key)) {
+    lastAnonymousSegmentByChannel.set(newSegment.key.channel, newSegment);
+  }
 }

@@ -1,9 +1,7 @@
 import type {
-  IdentityProvenance,
   SegmentPass,
   SegmentWord,
   SpeakerIdentity,
-  SpeakerIdentityResolution,
   SpeakerState,
 } from "./shared";
 
@@ -11,8 +9,7 @@ export function resolveSpeakerIdentity(
   word: SegmentWord,
   assignment: SpeakerIdentity | undefined,
   state: SpeakerState,
-): SpeakerIdentityResolution {
-  const provenance: IdentityProvenance[] = [];
+): SpeakerIdentity {
   const identity: SpeakerIdentity = {};
 
   if (assignment) {
@@ -22,14 +19,12 @@ export function resolveSpeakerIdentity(
     if (assignment.human_id !== undefined) {
       identity.human_id = assignment.human_id;
     }
-    provenance.push("explicit_assignment");
   }
 
   if (identity.speaker_index !== undefined && identity.human_id === undefined) {
     const humanId = state.humanIdBySpeakerIndex.get(identity.speaker_index);
     if (humanId !== undefined) {
       identity.human_id = humanId;
-      provenance.push("speaker_index_lookup");
     }
   }
 
@@ -40,7 +35,6 @@ export function resolveSpeakerIdentity(
     const channelHumanId = state.humanIdByChannel.get(word.channel);
     if (channelHumanId !== undefined) {
       identity.human_id = channelHumanId;
-      provenance.push("channel_completion");
     }
   }
 
@@ -55,16 +49,14 @@ export function resolveSpeakerIdentity(
         last.speaker_index !== undefined
       ) {
         identity.speaker_index = last.speaker_index;
-        provenance.push("last_speaker");
       }
       if (identity.human_id === undefined && last.human_id !== undefined) {
         identity.human_id = last.human_id;
-        provenance.push("last_speaker");
       }
     }
   }
 
-  return { identity, provenance };
+  return identity;
 }
 
 export function rememberIdentity(
@@ -104,24 +96,21 @@ export function rememberIdentity(
   }
 }
 
-export const resolveIdentitiesPass: SegmentPass = {
+export const resolveIdentitiesPass: SegmentPass<"words"> = {
   id: "resolve_speakers",
-  needs: ["words"],
   run(graph, ctx) {
-    const words = graph.words ?? [];
-    const frames = words.map((word, index) => {
+    const frames = graph.words.map((word, index) => {
       const assignment = ctx.speakerState.assignmentByWordIndex.get(index);
-      const resolution = resolveSpeakerIdentity(
+      const identity = resolveSpeakerIdentity(
         word,
         assignment,
         ctx.speakerState,
       );
-      rememberIdentity(word, assignment, resolution.identity, ctx.speakerState);
+      rememberIdentity(word, assignment, identity, ctx.speakerState);
 
       return {
         word,
-        identity: resolution.identity,
-        provenance: resolution.provenance,
+        identity,
       };
     });
 

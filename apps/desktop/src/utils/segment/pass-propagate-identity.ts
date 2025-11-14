@@ -42,14 +42,9 @@ export function propagateCompleteChannelIdentities(
   });
 }
 
-export const identityPropagationPass: SegmentPass = {
+export const identityPropagationPass: SegmentPass<"segments"> = {
   id: "propagate_identity",
-  needs: ["segments"],
   run(graph, ctx) {
-    if (!graph.segments) {
-      return graph;
-    }
-
     const segments = graph.segments.map((segment) => ({
       ...segment,
       words: [...segment.words],

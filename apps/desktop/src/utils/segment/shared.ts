@@ -84,23 +84,11 @@ export type SpeakerIdentity = {
   human_id?: string;
 };
 
-export type IdentityProvenance =
-  | "explicit_assignment"
-  | "speaker_index_lookup"
-  | "channel_completion"
-  | "last_speaker";
-
 export type NormalizedWord = SegmentWord & { order: number };
 
 export type ResolvedWordFrame = {
   word: NormalizedWord;
   identity?: SpeakerIdentity;
-  provenance: IdentityProvenance[];
-};
-
-export type SpeakerIdentityResolution = {
-  identity: SpeakerIdentity;
-  provenance: IdentityProvenance[];
 };
 
 export type ProtoSegment = {
@@ -116,10 +104,14 @@ export type SegmentGraph = {
   segments?: ProtoSegment[];
 };
 
-export type SegmentPass = {
+type RequireKeys<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+
+export type SegmentPass<TNeedsKeys extends keyof SegmentGraph = never> = {
   id: StageId;
-  needs?: (keyof SegmentGraph)[];
-  run: (graph: SegmentGraph, ctx: SegmentPassContext) => SegmentGraph;
+  run: (
+    graph: RequireKeys<SegmentGraph, TNeedsKeys>,
+    ctx: SegmentPassContext,
+  ) => SegmentGraph;
 };
 
 export type SegmentPassContext = {

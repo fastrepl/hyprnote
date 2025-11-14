@@ -1,14 +1,9 @@
 import type { ProtoSegment, SegmentPass } from "./shared";
 import { SegmentKey as SegmentKeyUtils } from "./shared";
 
-export const mergeSegmentsPass: SegmentPass = {
+export const mergeSegmentsPass: SegmentPass<"segments"> = {
   id: "merge_segments",
-  needs: ["segments"],
   run(graph) {
-    if (!graph.segments) {
-      return graph;
-    }
-
     return { ...graph, segments: mergeAdjacentSegments(graph.segments) };
   },
 };

@@ -11,7 +11,7 @@ export const env = createEnv({
     SUPABASE_ANON_KEY: z.string().min(1),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     STRIPE_API_KEY: z.string().min(1),
-    STRIPE_WEBHOOK_SIGNING_SECRET: z.string().min(1),
+    STRIPE_WEBHOOK_SECRET: z.string().min(1),
     OPENROUTER_API_KEY: z.string().min(1),
     DEEPGRAM_API_KEY: z.string().min(1),
   },

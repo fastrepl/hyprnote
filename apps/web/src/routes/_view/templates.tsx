@@ -1,11 +1,12 @@
-import { DownloadButton } from "@/components/download-button";
-import { SlashSeparator } from "@/components/slash-separator";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { allTemplates } from "content-collections";
 import { useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
+
+import { DownloadButton } from "@/components/download-button";
+import { SlashSeparator } from "@/components/slash-separator";
 
 export const Route = createFileRoute("/_view/templates")({
   component: Component,

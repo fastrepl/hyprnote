@@ -1,7 +1,8 @@
-import { env } from "@/env";
-import { getSupabaseServerClient } from "@/functions/supabase";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+
+import { env } from "@/env";
+import { getSupabaseServerClient } from "@/functions/supabase";
 
 const shared = z.object({
   flow: z.enum(["desktop", "web"]).default("desktop"),

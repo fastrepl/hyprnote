@@ -11,6 +11,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
+import { BillingProvider } from "../billing";
 import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
 
@@ -25,10 +26,12 @@ function Component() {
 
   return (
     <AuthProvider>
-      <Outlet />
-      <Suspense>
-        <DevtoolWrapper />
-      </Suspense>
+      <BillingProvider>
+        <Outlet />
+        <Suspense>
+          <DevtoolWrapper />
+        </Suspense>
+      </BillingProvider>
     </AuthProvider>
   );
 }

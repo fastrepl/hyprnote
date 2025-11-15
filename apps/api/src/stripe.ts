@@ -19,12 +19,11 @@ export const verifyStripeWebhook = createMiddleware<{
   }
 
   const body = await c.req.text();
-
   try {
     const event = await stripe.webhooks.constructEventAsync(
       body,
       signature,
-      env.STRIPE_WEBHOOK_SIGNING_SECRET,
+      env.STRIPE_WEBHOOK_SECRET,
       undefined,
       cryptoProvider,
     );
@@ -32,6 +31,7 @@ export const verifyStripeWebhook = createMiddleware<{
     c.set("stripeEvent", event);
     await next();
   } catch (err) {
+    console.error(err);
     const message = err instanceof Error ? err.message : "unknown_error";
     return c.text(message, 400);
   }

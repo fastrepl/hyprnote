@@ -1,5 +1,3 @@
-import { CtaCard } from "@/components/cta-card";
-import { Image } from "@/components/image";
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
@@ -7,6 +5,9 @@ import { allArticles } from "content-collections";
 import { useState } from "react";
 
 import { cn } from "@hypr/utils";
+
+import { CtaCard } from "@/components/cta-card";
+import { Image } from "@/components/image";
 
 export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,

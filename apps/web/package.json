@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "env-cmd -f ./.env -- vite dev --port 3000",
+    "dev": "env-cmd --silent -f ./.env -- vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
     "typecheck": "pnpm -F @hypr/web build && tsc --noEmit"

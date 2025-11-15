@@ -1,10 +1,16 @@
 import { useQueries } from "@tanstack/react-query";
 
+import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as main from "../../../../store/tinybase/main";
 import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
-import { type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
+import {
+  type ProviderId,
+  PROVIDERS,
+  sttModelQueries,
+  sttProviderRequiresPro,
+} from "./shared";
 
 export function HealthCheckForConnection() {
   const props = useConnectionHealth();
@@ -56,6 +62,7 @@ function useAvailability():
     "current_stt_provider",
     "current_stt_model",
   ] as const);
+  const billing = useBillingAccess();
 
   const configuredProviders = main.UI.useResultTable(
     main.QUERIES.sttProviders,
@@ -80,6 +87,15 @@ function useAvailability():
   const provider = PROVIDERS.find((p) => p.id === providerId);
   if (!provider) {
     return { available: false, message: "Selected provider not found." };
+  }
+
+  if (sttProviderRequiresPro(providerId) && !billing.isPro) {
+    return {
+      available: false,
+      message: billing.isLoading
+        ? "Checking plan access for this provider..."
+        : "Upgrade to Pro to use this provider.",
+    };
   }
 
   if (providerId === "hyprnote") {

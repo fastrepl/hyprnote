@@ -1,5 +1,6 @@
-import { getSupabaseServerClient } from "@/functions/supabase";
 import { createMiddleware } from "@tanstack/react-start";
+
+import { getSupabaseServerClient } from "@/functions/supabase";
 
 export const supabaseClientMiddleware = createMiddleware().server(
   async ({ next }) => {

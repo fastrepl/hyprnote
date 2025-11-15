@@ -1,10 +1,11 @@
-import { MockWindow } from "@/components/mock-window";
-import { SlashSeparator } from "@/components/slash-separator";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { cn } from "@hypr/utils";
+
+import { MockWindow } from "@/components/mock-window";
+import { SlashSeparator } from "@/components/slash-separator";
 
 export const Route = createFileRoute("/_view/product/ai-notetaking")({
   component: Component,

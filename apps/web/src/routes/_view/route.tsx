@@ -1,4 +1,3 @@
-import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { Icon } from "@iconify-icon/react";
 import {
   createFileRoute,
@@ -7,6 +6,8 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { createContext, useContext, useState } from "react";
+
+import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
 export const Route = createFileRoute("/_view")({
   component: Component,

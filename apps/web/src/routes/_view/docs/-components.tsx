@@ -1,4 +1,3 @@
-import { CtaCard } from "@/components/cta-card";
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { Link } from "@tanstack/react-router";
@@ -15,6 +14,8 @@ import {
   Tip,
 } from "@hypr/ui/docs";
 import { cn } from "@hypr/utils";
+
+import { CtaCard } from "@/components/cta-card";
 
 export function DocLayout({
   doc,

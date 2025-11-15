@@ -7,10 +7,10 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "env-cmd -f ./.env -- tauri",
+    "tauri": "env-cmd --silent -f ./.env -- tauri",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "tauri:dev": "env-cmd -f ./.env -- tauri dev",
+    "tauri:dev": "env-cmd --silent -f ./.env -- tauri dev",
     "tauri:build": "tauri build",
     "gen:schema": "tsx src/devtool/seed/script.ts"
   },

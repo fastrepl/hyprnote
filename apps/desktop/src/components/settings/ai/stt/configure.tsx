@@ -18,6 +18,7 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
 import * as main from "../../../../store/tinybase/main";
 import { aiProviderSchema } from "../../../../store/tinybase/main";
@@ -26,7 +27,12 @@ import {
   registerDownloadProgressCallback,
   unregisterDownloadProgressCallback,
 } from "../../../task-manager";
-import { FormField, StyledStreamdown, useProvider } from "../shared";
+import {
+  FormField,
+  PlanLockMessage,
+  StyledStreamdown,
+  useProvider,
+} from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function ConfigureProviders() {
@@ -56,7 +62,9 @@ function NonHyprProviderCard({
 }: {
   config: (typeof PROVIDERS)[number];
 }) {
+  const billing = useBillingAccess();
   const [provider, setProvider] = useProvider(config.id);
+  const locked = config.requiresPro && !billing.isPro;
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
@@ -86,14 +94,14 @@ function NonHyprProviderCard({
 
   return (
     <AccordionItem
-      disabled={config.disabled}
+      disabled={config.disabled || locked}
       value={config.id}
       className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
     >
       <AccordionTrigger
         className={cn([
           "capitalize gap-2 px-4",
-          config.disabled && "cursor-not-allowed opacity-30",
+          (config.disabled || locked) && "cursor-not-allowed opacity-30",
         ])}
       >
         <div className="flex items-center gap-2">
@@ -103,46 +111,54 @@ function NonHyprProviderCard({
       </AccordionTrigger>
       <AccordionContent className="px-4">
         <ProviderContext providerId={config.id} />
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          {!config.baseUrl && (
-            <form.Field name="base_url">
+        {locked ? (
+          <PlanLockMessage message="Upgrade to Pro to configure this provider." />
+        ) : (
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            {!config.baseUrl && (
+              <form.Field name="base_url">
+                {(field) => (
+                  <FormField field={field} label="Base URL" icon="mdi:web" />
+                )}
+              </form.Field>
+            )}
+            <form.Field name="api_key">
               {(field) => (
-                <FormField field={field} label="Base URL" icon="mdi:web" />
+                <FormField
+                  field={field}
+                  label="API Key"
+                  icon="mdi:key"
+                  placeholder="Enter your API key"
+                  type="password"
+                />
               )}
             </form.Field>
-          )}
-          <form.Field name="api_key">
-            {(field) => (
-              <FormField
-                field={field}
-                label="API Key"
-                icon="mdi:key"
-                placeholder="Enter your API key"
-                type="password"
-              />
+            {config.baseUrl && (
+              <details className="space-y-4 pt-2">
+                <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+                  Advanced
+                </summary>
+                <div className="mt-4">
+                  <form.Field name="base_url">
+                    {(field) => (
+                      <FormField
+                        field={field}
+                        label="Base URL"
+                        icon="mdi:web"
+                      />
+                    )}
+                  </form.Field>
+                </div>
+              </details>
             )}
-          </form.Field>
-          {config.baseUrl && (
-            <details className="space-y-4 pt-2">
-              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-                Advanced
-              </summary>
-              <div className="mt-4">
-                <form.Field name="base_url">
-                  {(field) => (
-                    <FormField field={field} label="Base URL" icon="mdi:web" />
-                  )}
-                </form.Field>
-              </div>
-            </details>
-          )}
-        </form>
+          </form>
+        )}
       </AccordionContent>
     </AccordionItem>
   );
@@ -223,6 +239,9 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
 }
 
 function HyprProviderCloudRow() {
+  const billing = useBillingAccess();
+  const locked = !billing.isPro;
+
   return (
     <HyprProviderRow>
       <div className="flex items-center justify-between w-full">
@@ -238,7 +257,7 @@ function HyprProviderCloudRow() {
           variant="default"
           disabled={true}
         >
-          For Pro Users
+          {locked ? "For Pro Users" : "Coming soon"}
         </Button>
       </div>
     </HyprProviderRow>

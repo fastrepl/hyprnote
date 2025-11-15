@@ -1,7 +1,8 @@
-import { MockWindow } from "@/components/mock-window";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { cn } from "@hypr/utils";
+
+import { MockWindow } from "@/components/mock-window";
 
 export const Route = createFileRoute("/_view/product/api")({
   component: Component,

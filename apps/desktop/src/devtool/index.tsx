@@ -165,13 +165,13 @@ function DevtoolTrigger({
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
+        fontSize: "12px",
       }}
       className={cn([
         "fixed z-2147483001",
-        "w-8 h-8 rounded-md",
-        "bg-[#121214]/90 border border-white/16",
-        "text-[#f5f5f5] text-xs font-semibold",
-        "flex items-center justify-center",
+        "px-2 py-1 rounded-md",
+        "bg-black",
+        "text-white font-semibold",
         isDragging ? "cursor-grabbing" : "cursor-grab",
         "select-none",
       ])}

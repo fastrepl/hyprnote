@@ -57,18 +57,6 @@ function AccountSettingsCard() {
     "free",
   );
 
-  const startTrialMutation = useMutation({
-    mutationFn: async () => {
-      console.log("Starting trial...");
-    },
-  });
-
-  const startProTrialMutation = useMutation({
-    mutationFn: async () => {
-      console.log("Starting pro trial...");
-    },
-  });
-
   const manageBillingMutation = useMutation({
     mutationFn: async () => {
       const { url } = await createPortalSession();
@@ -81,13 +69,13 @@ function AccountSettingsCard() {
   const renderPlanButton = () => {
     if (currentPlan === "free") {
       return (
-        <button
-          onClick={() => startTrialMutation.mutate()}
-          disabled={startTrialMutation.isPending}
-          className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+        <Link
+          to="/app/checkout"
+          search={{ period: "monthly" }}
+          className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
         >
-          {startTrialMutation.isPending ? "Loading..." : "Start trial"}
-        </button>
+          Upgrade to Pro
+        </Link>
       );
     }
 
@@ -106,18 +94,12 @@ function AccountSettingsCard() {
     if (currentPlan === "trial_over") {
       return (
         <div className="flex gap-2">
-          <button
-            onClick={() => startProTrialMutation.mutate()}
-            disabled={startProTrialMutation.isPending}
-            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
-          >
-            {startProTrialMutation.isPending ? "Loading..." : "Start pro trial"}
-          </button>
           <Link
-            to="/pricing"
+            to="/app/checkout"
+            search={{ period: "monthly" }}
             className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
           >
-            Upgrade
+            Upgrade to Pro
           </Link>
         </div>
       );

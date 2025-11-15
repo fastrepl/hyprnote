@@ -55,6 +55,7 @@ import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
 import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
+import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 
 const YoutubeRoute = YoutubeRouteImport.update({
@@ -287,6 +288,11 @@ const ViewAppIntegrationRoute = ViewAppIntegrationRouteImport.update({
   path: '/integration',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ViewAppCheckoutRoute = ViewAppCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => ViewAppRouteRoute,
+} as any)
 const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
+  '/app/checkout': typeof ViewAppCheckoutRoute
   '/app/integration': typeof ViewAppIntegrationRoute
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
@@ -363,6 +370,7 @@ export interface FileRoutesByTo {
   '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
+  '/app/checkout': typeof ViewAppCheckoutRoute
   '/app/integration': typeof ViewAppIntegrationRoute
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
@@ -413,6 +421,7 @@ export interface FileRoutesById {
   '/webhook/stripe': typeof WebhookStripeRoute
   '/_view/': typeof ViewIndexRoute
   '/_view/app/account': typeof ViewAppAccountRoute
+  '/_view/app/checkout': typeof ViewAppCheckoutRoute
   '/_view/app/integration': typeof ViewAppIntegrationRoute
   '/_view/blog/$slug': typeof ViewBlogSlugRoute
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
@@ -463,6 +472,7 @@ export interface FileRouteTypes {
     | '/webhook/stripe'
     | '/'
     | '/app/account'
+    | '/app/checkout'
     | '/app/integration'
     | '/blog/$slug'
     | '/callback/auth'
@@ -509,6 +519,7 @@ export interface FileRouteTypes {
     | '/webhook/stripe'
     | '/'
     | '/app/account'
+    | '/app/checkout'
     | '/app/integration'
     | '/blog/$slug'
     | '/callback/auth'
@@ -558,6 +569,7 @@ export interface FileRouteTypes {
     | '/webhook/stripe'
     | '/_view/'
     | '/_view/app/account'
+    | '/_view/app/checkout'
     | '/_view/app/integration'
     | '/_view/blog/$slug'
     | '/_view/callback/auth'
@@ -923,6 +935,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppIntegrationRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
+    '/_view/app/checkout': {
+      id: '/_view/app/checkout'
+      path: '/checkout'
+      fullPath: '/app/checkout'
+      preLoaderRoute: typeof ViewAppCheckoutRouteImport
+      parentRoute: typeof ViewAppRouteRoute
+    }
     '/_view/app/account': {
       id: '/_view/app/account'
       path: '/account'
@@ -935,12 +954,14 @@ declare module '@tanstack/react-router' {
 
 interface ViewAppRouteRouteChildren {
   ViewAppAccountRoute: typeof ViewAppAccountRoute
+  ViewAppCheckoutRoute: typeof ViewAppCheckoutRoute
   ViewAppIntegrationRoute: typeof ViewAppIntegrationRoute
   ViewAppIndexRoute: typeof ViewAppIndexRoute
 }
 
 const ViewAppRouteRouteChildren: ViewAppRouteRouteChildren = {
   ViewAppAccountRoute: ViewAppAccountRoute,
+  ViewAppCheckoutRoute: ViewAppCheckoutRoute,
   ViewAppIntegrationRoute: ViewAppIntegrationRoute,
   ViewAppIndexRoute: ViewAppIndexRoute,
 }

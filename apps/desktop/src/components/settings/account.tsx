@@ -26,8 +26,13 @@ function SettingsBilling() {
   const [currentPlan, setCurrentPlan] = useState<PlanId>("free");
 
   const handlePlanChange = useCallback((nextPlan: PlanId) => {
-    setCurrentPlan(nextPlan);
-    console.log(`[billing] Requested plan change to ${nextPlan}`);
+    if (nextPlan === "pro") {
+      const base = env.VITE_APP_URL ?? "http://localhost:3000";
+      openUrl(`${base}/app/checkout?period=monthly`);
+    } else {
+      setCurrentPlan(nextPlan);
+      console.log(`[billing] Requested plan change to ${nextPlan}`);
+    }
   }, []);
 
   const handleContact = useCallback(() => {

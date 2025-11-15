@@ -2,9 +2,15 @@ import { env } from "@/env";
 import { getStripeClient } from "@/functions/stripe";
 import { getSupabaseServerClient } from "@/functions/supabase";
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
-export const createCheckoutSession = createServerFn({ method: "POST" }).handler(
-  async () => {
+const createCheckoutSessionInput = z.object({
+  period: z.enum(["monthly", "yearly"]),
+});
+
+export const createCheckoutSession = createServerFn({ method: "POST" })
+  .inputValidator(createCheckoutSessionInput)
+  .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     const {
       data: { user },
@@ -37,13 +43,18 @@ export const createCheckoutSession = createServerFn({ method: "POST" }).handler(
       stripeCustomerId = newCustomer.id;
     }
 
+    const priceId =
+      data.period === "yearly"
+        ? env.STRIPE_YEARLY_PRICE_ID
+        : env.STRIPE_MONTHLY_PRICE_ID;
+
     const checkout = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       success_url: `${env.VITE_APP_URL}/app/account?success=true`,
       cancel_url: `${env.VITE_APP_URL}/app/account`,
       line_items: [
         {
-          price: env.STRIPE_MONTHLY_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -51,8 +62,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" }).handler(
     });
 
     return { url: checkout.url };
-  },
-);
+  });
 
 export const createPortalSession = createServerFn({ method: "POST" }).handler(
   async () => {

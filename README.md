@@ -1,7 +1,7 @@
-![github_banner_v2](https://github.com/user-attachments/assets/e5fac942-1a51-4180-9d64-f508db705f9d)
+![poster-image](https://github.com/user-attachments/assets/d4502cab-9fbd-404b-8fc9-6469695492e7)
 
 <p align="center">
-  <p align="center">AI notepad for <strong>private</strong> meetings. Not a single byte of data leaves your laptop/server — have full control.</p>
+  <p align="center">Hyprnote - The AI notepad for <strong>private</strong> meetings</p>
   <p align="center">
    <a href="https://deepwiki.com/fastrepl/hyprnote"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
    <a href="https://hyprnote.com/discord" target="_blank"><img src="https://img.shields.io/static/v1?label=Join%20our&message=Discord&color=blue&logo=Discord" alt="Discord"></a>
@@ -11,13 +11,14 @@
    
 ## What is Hyprnote?
 
-Hyprnote is a local-first AI notepad designed for people in back-to-back meetings.
+Hyprnote is an AI notetaking app specifically designed to take meeting notes. With Hyprnote, you can transcribe all kinds of meetings whether it be online or offline.
 
-- Listens to your meetings while you write
-- Crafts smart summaries based on your quick notes
-- Runs completely **offline** using open-source models like Whisper or HyprLLM
+- **Listens** to your meetings so you can only jot down important stuff
+- No bots joining your meetings - Hyprnote listens directly to sounds coming in & out of your computer
+- Crafts perfect **summaries** based on your memos, right after the meeting is over
+- You can run Hyprnote completely **offline** by using LM Studio or Ollama
 
-No clouds. No leaks. Just your notes—on your machine.
+You can also use it for taking notes for lectures or organizing your thoughts
 
 ## Installation
 

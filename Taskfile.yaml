@@ -236,27 +236,22 @@ tasks:
 
           generated_env_file=".stripe/generated.env"
           env_target="apps/api/.env"
-          temp_fifo=$(mktemp -u)
-          mkfifo "$temp_fifo"
 
           cleanup() {
-            rm -f "$temp_fifo" "$generated_env_file"
+            rm -f "$generated_env_file"
           }
           trap cleanup EXIT
 
           mkdir -p "$(dirname "$generated_env_file")"
 
-          (stripe listen --skip-verify --forward-to http://localhost:8787/webhook/stripe 2>&1 | tee "$temp_fifo") &
-          STRIPE_PID=$!
+          secret=$(stripe listen --print-secret | tr -d '\r\n')
 
-          awk '
-            /Your webhook signing secret is whsec_/ {
-              match($0, /whsec_[a-zA-Z0-9]+/)
-              secret = substr($0, RSTART, RLENGTH)
-              print "STRIPE_WEBHOOK_SECRET=\"" secret "\""
-              exit
-            }
-          ' "$temp_fifo" > "$generated_env_file"
+          if [ -z "$secret" ]; then
+            echo "failed to retrieve Stripe webhook secret" >&2
+            exit 1
+          fi
+
+          printf 'STRIPE_WEBHOOK_SECRET="%s"\n' "$secret" > "$generated_env_file"
 
           if [ -s "$generated_env_file" ]; then
             mkdir -p "$(dirname "$env_target")"
@@ -311,5 +306,7 @@ tasks:
             echo "✓ Webhook secret written to $env_target"
           fi
 
-          wait $STRIPE_PID
+          rm -f "$generated_env_file"
+
+          stripe listen --skip-verify --forward-to http://localhost:8787/webhook/stripe
           EOF

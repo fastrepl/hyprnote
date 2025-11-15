@@ -100,9 +100,12 @@ tasks:
   supabase-start:
     cmds:
       - curl -o supabase/config.toml https://gist.githubusercontent.com/yujonglee/c0704ebe0818621a64753d663c4fcaff/raw/b82572dfcb6ffa4d20c332a8dd7650e5b82b99c3/supabase-default.toml
+      - dasel put -f supabase/config.toml -t string -v 'http://localhost:3000' 'auth.site_url'
+      - dasel put -f supabase/config.toml -t json -v '["http://localhost:3000/callback/auth"]' 'auth.additional_redirect_urls'
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t bool -v true ''auth.external.github.enabled'' || true'
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GITHUB_CLIENT_ID}}'' ''auth.external.github.client_id'' || true'
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GITHUB_CLIENT_SECRET}}'' ''auth.external.github.secret'' || true'
+      - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v '''' ''auth.external.github.redirect_uri'' || true'
       - dprint fmt supabase/config.toml
       - task: supabase-start:capture
       - task: env:merge

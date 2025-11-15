@@ -5,11 +5,6 @@ tasks:
     cmds:
       - fly deploy --config apps/api/fly.toml
 
-  env-sample:
-    dir: .
-    cmds:
-      - sed -E '/^[A-Z_][A-Z0-9_]*=/s/=.*/=""/' .env > .env.sample
-
   env-prod:
     dir: .
     cmds:

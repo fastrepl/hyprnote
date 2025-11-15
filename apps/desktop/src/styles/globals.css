@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap");
 @import "./scrollbar.css";
 
 @tailwind base;
@@ -53,6 +53,7 @@ h6 {
 p {
   text-wrap: pretty;
 }
+
 h1,
 h2,
 h3,
@@ -85,7 +86,9 @@ body {
     user-select: none;
   }
 
-  input, textarea, [contenteditable="true"] {
+  input,
+  textarea,
+  [contenteditable="true"] {
     user-select: text;
   }
 }

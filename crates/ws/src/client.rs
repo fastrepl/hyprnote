@@ -1,7 +1,10 @@
 use serde::de::DeserializeOwned;
 
 use backon::{ConstantBuilder, Retryable};
-use futures_util::{SinkExt, Stream, StreamExt};
+use futures_util::{
+    future::{pending, FutureExt},
+    SinkExt, Stream, StreamExt,
+};
 use tokio_tungstenite::{
     connect_async,
     tungstenite::{client::IntoClientRequest, Utf8Bytes},
@@ -12,6 +15,12 @@ pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder
 #[derive(Debug)]
 enum ControlCommand {
     Finalize(Option<Message>),
+}
+
+#[derive(Clone)]
+struct KeepAliveConfig {
+    interval: std::time::Duration,
+    message: Message,
 }
 
 #[derive(Clone)]
@@ -39,11 +48,24 @@ pub trait WebSocketIO: Send + 'static {
 
 pub struct WebSocketClient {
     request: ClientRequestBuilder,
+    keep_alive: Option<KeepAliveConfig>,
 }
 
 impl WebSocketClient {
     pub fn new(request: ClientRequestBuilder) -> Self {
-        Self { request }
+        Self {
+            request,
+            keep_alive: None,
+        }
+    }
+
+    pub fn with_keep_alive_message(
+        mut self,
+        interval: std::time::Duration,
+        message: Message,
+    ) -> Self {
+        self.keep_alive = Some(KeepAliveConfig { interval, message });
+        self
     }
 
     pub async fn from_audio<T: WebSocketIO>(
@@ -56,6 +78,7 @@ impl WebSocketClient {
         ),
         crate::Error,
     > {
+        let keep_alive_config = self.keep_alive.clone();
         let ws_stream = (|| self.try_connect(self.request.clone()))
             .retry(
                 ConstantBuilder::default()
@@ -76,8 +99,27 @@ impl WebSocketClient {
         let handle = WebSocketHandle { control_tx };
 
         let _send_task = tokio::spawn(async move {
+            let mut last_outbound_at = tokio::time::Instant::now();
             loop {
+                let mut keep_alive_fut = if let Some(cfg) = keep_alive_config.as_ref() {
+                    tokio::time::sleep_until(last_outbound_at + cfg.interval).boxed()
+                } else {
+                    pending().boxed()
+                };
+
                 tokio::select! {
+                    biased;
+
+                    _ = keep_alive_fut.as_mut() => {
+                        if let Some(cfg) = keep_alive_config.as_ref() {
+                            if let Err(e) = ws_sender.send(cfg.message.clone()).await {
+                                tracing::error!("ws_keepalive_failed: {:?}", e);
+                                let _ = error_tx.send(e.into());
+                                break;
+                            }
+                            last_outbound_at = tokio::time::Instant::now();
+                        }
+                    }
                     Some(data) = audio_stream.next() => {
                         let input = T::to_input(data);
                         let msg = T::to_message(input);
@@ -87,6 +129,7 @@ impl WebSocketClient {
                             let _ = error_tx.send(e.into());
                             break;
                         }
+                        last_outbound_at = tokio::time::Instant::now();
                     }
                     Some(cmd) = control_rx.recv() => {
                         match cmd {
@@ -97,6 +140,7 @@ impl WebSocketClient {
                                         let _ = error_tx.send(e.into());
                                         break;
                                     }
+                                    last_outbound_at = tokio::time::Instant::now();
                                 }
                             }
                         }

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use futures_util::Stream;
 
 use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
@@ -115,7 +117,7 @@ impl ListenClient {
         ),
         hypr_ws::Error,
     > {
-        let ws = WebSocketClient::new(self.request.clone());
+        let ws = websocket_client_with_keep_alive(&self.request);
         ws.from_audio::<Self>(audio_stream).await
     }
 }
@@ -131,7 +133,20 @@ impl ListenClientDual {
         ),
         hypr_ws::Error,
     > {
-        let ws = WebSocketClient::new(self.request.clone());
+        let ws = websocket_client_with_keep_alive(&self.request);
         ws.from_audio::<Self>(stream).await
     }
+}
+
+fn websocket_client_with_keep_alive(request: &ClientRequestBuilder) -> WebSocketClient {
+    WebSocketClient::new(request.clone())
+        .with_keep_alive_message(Duration::from_secs(5), keep_alive_message())
+}
+
+fn keep_alive_message() -> Message {
+    Message::Text(
+        serde_json::to_string(&ControlMessage::KeepAlive)
+            .unwrap()
+            .into(),
+    )
 }

@@ -1,0 +1,20 @@
+# Stripe
+
+- Stripe CLI: https://docs.stripe.com/stripe-cli/install
+
+```bash
+task stripe
+```
+
+`task stripe` will modify `apps/api/.env` based on the output of `stripe listen`.
+
+# Supabase
+
+- https://supabase.com/docs/guides/local-development/cli/getting-started
+
+```bash
+task supabase-start
+task supabase-stop
+```
+
+`task supabase-start` will modify `apps/api/.env` and `apps/web/.env` based on the output of `supabase start`.

@@ -100,11 +100,13 @@ tasks:
   supabase-start:
     cmds:
       - task: supabase-start:capture
-      - task: supabase-start:merge
+      - task: env:merge
         vars:
+          ENV_SOURCE: ".supabase/generated.env"
           ENV_TARGET: "apps/api/.env"
-      - task: supabase-start:merge
+      - task: env:merge
         vars:
+          ENV_SOURCE: ".supabase/generated.env"
           ENV_TARGET: "apps/web/.env"
       - rm -f .supabase/generated.env
 
@@ -147,30 +149,28 @@ tasks:
           ' "$output_file" > "$generated_env_file"
           EOF
 
-  supabase-start:merge:
+  env:merge:
     internal: true
     cmds:
       - |
-          ENV_TARGET="{{.ENV_TARGET}}" bash <<'EOF'
+          ENV_SOURCE="{{.ENV_SOURCE}}" ENV_TARGET="{{.ENV_TARGET}}" bash <<'EOF'
           set -euo pipefail
 
-          generated_env_file=".supabase/generated.env"
-
-          if [ ! -f "$generated_env_file" ]; then
-            echo "Generated env file not found: $generated_env_file" >&2
+          if [ ! -f "$ENV_SOURCE" ]; then
+            echo "Source env file not found: $ENV_SOURCE" >&2
             exit 1
           fi
 
           mkdir -p "$(dirname "$ENV_TARGET")"
 
           if [ ! -f "$ENV_TARGET" ]; then
-            cp "$generated_env_file" "$ENV_TARGET"
+            cp "$ENV_SOURCE" "$ENV_TARGET"
             exit 0
           fi
 
           merged_env_file=$(mktemp)
 
-          awk -v new_file="$generated_env_file" '
+          awk -v new_file="$ENV_SOURCE" '
             BEGIN {
               while ((getline line < new_file) > 0) {
                 if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) continue
@@ -213,4 +213,90 @@ tasks:
           ' "$ENV_TARGET" > "$merged_env_file"
 
           mv "$merged_env_file" "$ENV_TARGET"
+          EOF
+
+  stripe:
+    cmds:
+      - |
+          bash <<'EOF'
+          set -euo pipefail
+
+          generated_env_file=".stripe/generated.env"
+          env_target="apps/api/.env"
+          temp_fifo=$(mktemp -u)
+          mkfifo "$temp_fifo"
+
+          cleanup() {
+            rm -f "$temp_fifo" "$generated_env_file"
+          }
+          trap cleanup EXIT
+
+          mkdir -p "$(dirname "$generated_env_file")"
+
+          (stripe listen --skip-verify --forward-to http://localhost:8787/webhook/stripe 2>&1 | tee "$temp_fifo") &
+          STRIPE_PID=$!
+
+          awk '
+            /Your webhook signing secret is whsec_/ {
+              match($0, /whsec_[a-zA-Z0-9]+/)
+              secret = substr($0, RSTART, RLENGTH)
+              print "STRIPE_WEBHOOK_SECRET=\"" secret "\""
+              exit
+            }
+          ' "$temp_fifo" > "$generated_env_file"
+
+          if [ -s "$generated_env_file" ]; then
+            mkdir -p "$(dirname "$env_target")"
+
+            if [ ! -f "$env_target" ]; then
+              cp "$generated_env_file" "$env_target"
+            else
+              merged_env=$(mktemp)
+              awk -v new_file="$generated_env_file" '
+                BEGIN {
+                  while ((getline line < new_file) > 0) {
+                    if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) continue
+                    sep = index(line, "=")
+                    if (sep == 0) continue
+                    key = substr(line, 1, sep - 1)
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+                    value = substr(line, sep + 1)
+                    new_values[key] = value
+                  }
+                  close(new_file)
+                }
+                {
+                  line = $0
+                  if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) {
+                    print line
+                    next
+                  }
+                  sep = index(line, "=")
+                  if (sep == 0) {
+                    print line
+                    next
+                  }
+                  key = substr(line, 1, sep - 1)
+                  gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+                  if (key in new_values) {
+                    print key "=" new_values[key]
+                    used[key] = 1
+                  } else {
+                    print line
+                  }
+                }
+                END {
+                  for (key in new_values) {
+                    if (!(key in used)) {
+                      print key "=" new_values[key]
+                    }
+                  }
+                }
+              ' "$env_target" > "$merged_env"
+              mv "$merged_env" "$env_target"
+            fi
+            echo "✓ Webhook secret written to $env_target"
+          fi
+
+          wait $STRIPE_PID
           EOF

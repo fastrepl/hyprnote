@@ -1,4 +1,4 @@
-import type { ServerWebSocket } from "bun";
+import type { ServerWebSocket, WebSocketOptions } from "bun";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { upgradeWebSocket, websocket } from "hono/bun";
@@ -9,7 +9,7 @@ import Stripe from "stripe";
 import { env } from "./env";
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth, supabaseAdmin } from "./supabase";
-import { normalizeWsData, type WsPayload } from "./ws";
+import { buildDeepgramUrl, normalizeWsData, type WsPayload } from "./ws";
 
 const app = new Hono();
 
@@ -139,29 +139,27 @@ app.post("/webhook/stripe", verifyStripeWebhook, async (c) => {
   return c.json({ ok: true });
 });
 
-const buildDeepgramUrl = (incomingUrl: URL) => {
-  const target = new URL("wss://api.deepgram.com/v1/listen");
-
-  incomingUrl.searchParams.forEach((value, key) => {
-    target.searchParams.append(key, value);
-  });
-
-  return target;
-};
-
 app.get(
   "/listen",
-  requireSupabaseAuth,
+  // requireSupabaseAuth,
   upgradeWebSocket((c) => {
     const clientUrl = new URL(c.req.url, "http://localhost");
     const deepgramUrl = buildDeepgramUrl(clientUrl).toString();
     const supabaseUserId = c.var.supabaseUserId;
 
-    let upstream: WebSocket | undefined;
+    let upstream: InstanceType<typeof WebSocket> | undefined;
     let upstreamReady = false;
     let shuttingDown = false;
     let clientSocket: ServerWebSocket<unknown> | null = null;
     const pending: WsPayload[] = [];
+    let upstreamCloseFallback: ReturnType<typeof setTimeout> | null = null;
+
+    const clearUpstreamCloseFallback = () => {
+      if (upstreamCloseFallback) {
+        clearTimeout(upstreamCloseFallback);
+        upstreamCloseFallback = null;
+      }
+    };
 
     const closeBoth = (code = 1011, reason = "connection_closed") => {
       if (shuttingDown) {
@@ -169,10 +167,15 @@ app.get(
       }
 
       shuttingDown = true;
+      clearUpstreamCloseFallback();
 
       if (clientSocket && clientSocket.readyState !== WebSocket.CLOSED) {
         try {
-          clientSocket.close(code, reason);
+          const validCode =
+            code === 1005 || code === 1006 || code === 1015 || code >= 5000
+              ? 1011
+              : code;
+          clientSocket.close(validCode, reason);
         } catch (error) {
           console.error(
             `[LISTEN SOCKET] failed to close client (${supabaseUserId})`,
@@ -199,6 +202,17 @@ app.get(
       pending.length = 0;
       clientSocket = null;
       upstream = undefined;
+    };
+
+    const scheduleUpstreamCloseFallback = () => {
+      clearUpstreamCloseFallback();
+      upstreamCloseFallback = setTimeout(() => {
+        upstreamCloseFallback = null;
+        if (shuttingDown) {
+          return;
+        }
+        closeBoth(1011, "upstream_error");
+      }, 1000);
     };
 
     const flushPending = () => {
@@ -229,10 +243,19 @@ app.get(
       onOpen(_event, ws) {
         clientSocket = ws.raw;
 
-        const dgUrl = new URL(deepgramUrl);
-        dgUrl.searchParams.set("access_token", env.DEEPGRAM_API_KEY);
+        const wsOptions: WebSocketOptions = {
+          headers: {
+            Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
+          },
+        };
 
-        upstream = new WebSocket(dgUrl.toString());
+        upstream = new (globalThis.WebSocket as {
+          new (
+            url: string | URL,
+            options?: WebSocketOptions,
+          ): InstanceType<typeof WebSocket>;
+        })(deepgramUrl, wsOptions);
+
         upstream.binaryType = "arraybuffer";
 
         upstream.addEventListener("open", () => {
@@ -262,6 +285,7 @@ app.get(
         });
 
         upstream.addEventListener("close", (event) => {
+          clearUpstreamCloseFallback();
           closeBoth(event.code || 1011, event.reason || "upstream_closed");
         });
 
@@ -270,7 +294,7 @@ app.get(
             `[DEEPGRAM SOCKET] encountered error (${supabaseUserId})`,
             error,
           );
-          closeBoth(1011, "upstream_error");
+          scheduleUpstreamCloseFallback();
         });
       },
       async onMessage(event) {

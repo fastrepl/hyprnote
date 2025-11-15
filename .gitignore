@@ -7,6 +7,8 @@ Secrets*.toml
 .env.prod
 .venv
 **/__pycache__/
+.supabase/
+.stripe/
 
 *storybook.log
 .cache/

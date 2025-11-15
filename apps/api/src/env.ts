@@ -4,6 +4,9 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     PORT: z.number().default(8787),
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
     SUPABASE_URL: z.url(),
     SUPABASE_ANON_KEY: z.string().min(1),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),

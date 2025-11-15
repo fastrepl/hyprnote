@@ -1,6 +1,5 @@
 import "./instrument";
 
-import type { ServerWebSocket, WebSocketOptions } from "bun";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { upgradeWebSocket, websocket } from "hono/bun";
@@ -8,10 +7,15 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import Stripe from "stripe";
 
+import {
+  buildDeepgramUrl,
+  DeepgramProxyConnection,
+  normalizeWsData,
+} from "./deepgram";
 import { env } from "./env";
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth, supabaseAdmin } from "./supabase";
-import { buildDeepgramUrl, normalizeWsData, type WsPayload } from "./ws";
+import { listenSocketHandler } from "./ws";
 
 const app = new Hono();
 
@@ -141,204 +145,11 @@ app.post("/webhook/stripe", verifyStripeWebhook, async (c) => {
   return c.json({ ok: true });
 });
 
-app.get(
-  "/listen",
-  // requireSupabaseAuth,
-  upgradeWebSocket((c) => {
-    const clientUrl = new URL(c.req.url, "http://localhost");
-    const deepgramUrl = buildDeepgramUrl(clientUrl).toString();
-    const supabaseUserId = c.var.supabaseUserId;
-
-    let upstream: InstanceType<typeof WebSocket> | undefined;
-    let upstreamReady = false;
-    let shuttingDown = false;
-    let clientSocket: ServerWebSocket<unknown> | null = null;
-    const pending: WsPayload[] = [];
-    let upstreamCloseFallback: ReturnType<typeof setTimeout> | null = null;
-
-    const clearUpstreamCloseFallback = () => {
-      if (upstreamCloseFallback) {
-        clearTimeout(upstreamCloseFallback);
-        upstreamCloseFallback = null;
-      }
-    };
-
-    const closeBoth = (code = 1011, reason = "connection_closed") => {
-      if (shuttingDown) {
-        return;
-      }
-
-      shuttingDown = true;
-      clearUpstreamCloseFallback();
-
-      if (clientSocket && clientSocket.readyState !== WebSocket.CLOSED) {
-        try {
-          const validCode =
-            code === 1005 || code === 1006 || code === 1015 || code >= 5000
-              ? 1011
-              : code;
-          clientSocket.close(validCode, reason);
-        } catch (error) {
-          console.error(
-            `[LISTEN SOCKET] failed to close client (${supabaseUserId})`,
-            error,
-          );
-        }
-      }
-
-      if (
-        upstream &&
-        upstream.readyState !== WebSocket.CLOSED &&
-        upstream.readyState !== WebSocket.CLOSING
-      ) {
-        try {
-          upstream.close(code, reason);
-        } catch (error) {
-          console.error(
-            `[DEEPGRAM SOCKET] failed to close upstream (${supabaseUserId})`,
-            error,
-          );
-        }
-      }
-
-      pending.length = 0;
-      clientSocket = null;
-      upstream = undefined;
-    };
-
-    const scheduleUpstreamCloseFallback = () => {
-      clearUpstreamCloseFallback();
-      upstreamCloseFallback = setTimeout(() => {
-        upstreamCloseFallback = null;
-        if (shuttingDown) {
-          return;
-        }
-        closeBoth(1011, "upstream_error");
-      }, 1000);
-    };
-
-    const flushPending = () => {
-      if (!upstream || !upstreamReady || pending.length === 0) {
-        return;
-      }
-
-      while (pending.length > 0) {
-        const message = pending.shift();
-        if (!message) {
-          continue;
-        }
-
-        try {
-          upstream.send(message);
-        } catch (error) {
-          console.error(
-            `[DEEPGRAM SOCKET] failed to flush queued message (${supabaseUserId})`,
-            error,
-          );
-          closeBoth(1011, "upstream_send_failed");
-          break;
-        }
-      }
-    };
-
-    return {
-      onOpen(_event, ws) {
-        clientSocket = ws.raw;
-
-        const wsOptions: WebSocketOptions = {
-          headers: {
-            Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
-          },
-        };
-
-        upstream = new (globalThis.WebSocket as {
-          new (
-            url: string | URL,
-            options?: WebSocketOptions,
-          ): InstanceType<typeof WebSocket>;
-        })(deepgramUrl, wsOptions);
-
-        upstream.binaryType = "arraybuffer";
-
-        upstream.addEventListener("open", () => {
-          upstreamReady = true;
-          flushPending();
-        });
-
-        upstream.addEventListener("message", async (event) => {
-          if (!clientSocket || clientSocket.readyState !== WebSocket.OPEN) {
-            return;
-          }
-
-          const payload = await normalizeWsData(event.data);
-          if (!payload) {
-            return;
-          }
-
-          try {
-            clientSocket.send(payload);
-          } catch (error) {
-            console.error(
-              `[LISTEN SOCKET] failed to forward upstream payload (${supabaseUserId})`,
-              error,
-            );
-            closeBoth(1011, "downstream_send_failed");
-          }
-        });
-
-        upstream.addEventListener("close", (event) => {
-          clearUpstreamCloseFallback();
-          closeBoth(event.code || 1011, event.reason || "upstream_closed");
-        });
-
-        upstream.addEventListener("error", (error) => {
-          console.error(
-            `[DEEPGRAM SOCKET] encountered error (${supabaseUserId})`,
-            error,
-          );
-          scheduleUpstreamCloseFallback();
-        });
-      },
-      async onMessage(event) {
-        if (!upstream) {
-          if (clientSocket) {
-            closeBoth(1011, "upstream_unavailable");
-          }
-          return;
-        }
-
-        const payload = await normalizeWsData(event.data);
-        if (!payload) {
-          return;
-        }
-
-        if (!upstreamReady) {
-          pending.push(payload);
-          return;
-        }
-
-        try {
-          upstream.send(payload);
-        } catch (error) {
-          console.error(
-            `[LISTEN SOCKET] failed to forward client payload (${supabaseUserId})`,
-            error,
-          );
-          closeBoth(1011, "upstream_send_failed");
-        }
-      },
-      onClose(event) {
-        const code = event?.code ?? 1000;
-        const reason = event?.reason || "client_closed";
-        closeBoth(code, reason);
-      },
-      onError(err) {
-        console.error(`[LISTEN SOCKET] client error (${supabaseUserId})`, err);
-        closeBoth(1011, "client_error");
-      },
-    };
-  }),
-);
+if (env.NODE_ENV === "development") {
+  app.get("/listen", listenSocketHandler);
+} else {
+  app.get("/listen", requireSupabaseAuth, listenSocketHandler);
+}
 
 export default {
   port: env.PORT,

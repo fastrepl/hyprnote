@@ -1,8 +1,4 @@
-import { useForm } from "@tanstack/react-form";
 import { Search } from "lucide-react";
-import { useEffect } from "react";
-
-import { Input } from "@hypr/ui/components/ui/input";
 
 export function TemplateSearch({
   value,
@@ -11,52 +7,16 @@ export function TemplateSearch({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const form = useForm({
-    defaultValues: {
-      query: value,
-    },
-    onSubmit: ({ value: submitted }) => {
-      onChange(submitted.query);
-    },
-  });
-
-  useEffect(() => {
-    const current = form.getFieldValue("query");
-    if (current !== value) {
-      form.setFieldValue("query", value);
-    }
-  }, [form, value]);
-
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        form.handleSubmit();
-      }}
-      className="relative"
-    >
-      <Search
-        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400"
-        size={16}
+    <div className="flex items-center gap-2 pl-4 pr-2 h-12">
+      <Search className="size-4 text-neutral-400" />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Search templates..."
+        className="flex-1 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none bg-transparent"
       />
-      <form.Field name="query">
-        {(field) => (
-          <Input
-            type="text"
-            placeholder="Search templates..."
-            value={field.state.value}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              field.handleChange(nextValue);
-              if (nextValue !== value) {
-                onChange(nextValue);
-              }
-            }}
-            onBlur={field.handleBlur}
-            className="pl-9 shadow-none"
-          />
-        )}
-      </form.Field>
-    </form>
+    </div>
   );
 }

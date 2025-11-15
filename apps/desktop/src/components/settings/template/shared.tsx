@@ -18,6 +18,8 @@ export function TemplateCard({
     ? description
     : "No description provided.";
 
+  const isMine = category === "mine";
+
   return (
     <div
       onClick={onClick}
@@ -34,29 +36,38 @@ export function TemplateCard({
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={cn([
-        "flex items-start gap-4",
+        "flex items-start gap-4 relative",
         "p-4 border border-neutral-200 rounded-lg",
         onClick
           ? "cursor-pointer transition-colors hover:bg-neutral-50"
           : "cursor-default",
       ])}
     >
+      {isMine && (
+        <div className="absolute top-0 right-0 bg-neutral-100 text-neutral-600 text-xs font-medium px-2 py-1 rounded-bl-md rounded-tr-lg border-l border-b border-neutral-200">
+          Made by me
+        </div>
+      )}
       <div className="flex-1">
         <h3 className="text-sm font-medium mb-2 inline-flex items-center gap-1">
-          <span>{displayTitle}</span>
-          {category && <span className="text-stone-400">- {category}</span>}
+          {displayTitle}
+          {category && !isMine && (
+            <span className="text-stone-400 font-mono">({category})</span>
+          )}
         </h3>
-        <p className="text-xs text-neutral-600 mb-2">{displayDescription}</p>
-        <div className="flex items-center gap-2 flex-wrap">
-          {targets?.map((target, index) => (
-            <span
-              key={index}
-              className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded"
-            >
-              {target}
-            </span>
-          ))}
-        </div>
+        <p className="text-xs text-neutral-600">{displayDescription}</p>
+        {targets && targets.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap mt-3">
+            {targets.map((target, index) => (
+              <span
+                key={index}
+                className="text-xs text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded"
+              >
+                {target}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

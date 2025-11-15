@@ -30,7 +30,7 @@ export function createBannerRegistry({
       banner: {
         id: "missing-stt",
         icon: <AudioLinesIcon className="size-5" />,
-        title: "Configure STT model",
+        title: "Missing AI model",
         description:
           "Speech-to-text model is needed to make Hyprnote listen to your conversations",
         primaryAction: {
@@ -45,7 +45,7 @@ export function createBannerRegistry({
       banner: {
         id: "missing-llm",
         icon: <SparklesIcon className="size-5" />,
-        title: "Configure LLM",
+        title: "Add intelligence",
         description:
           "Language model is needed to make Hyprnote summarize and chat about your conversations",
         primaryAction: {

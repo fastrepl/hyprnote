@@ -336,7 +336,7 @@ export function StandardTabWrapper({
 }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col rounded-lg border flex-1 overflow-hidden relative">
+      <div className="flex flex-col rounded-lg border border-neutral-200 flex-1 overflow-hidden relative">
         {children}
         {floatingButton}
         <TabChatButton />

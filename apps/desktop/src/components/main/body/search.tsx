@@ -140,7 +140,7 @@ function ExpandedSearch({
             onBlur?.();
           }}
           className={cn([
-            "text-sm",
+            "text-sm placeholder:text-sm placeholder:text-neutral-400",
             "w-full pl-9 h-full",
             query ? "pr-9" : showShortcut ? "pr-14" : "pr-4",
             "rounded-lg bg-neutral-100 border border-transparent",

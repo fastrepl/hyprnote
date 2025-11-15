@@ -1,8 +1,7 @@
-import { AlertCircleIcon, Check } from "lucide-react";
+import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
 import type { PermissionStatus } from "@hypr/plugin-permissions";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
 import { usePermissions } from "../../../hooks/use-permissions";
@@ -29,14 +28,8 @@ function PermissionRow({
       ? "Please enable this permission in System Settings"
       : description;
 
-  const buttonText = isAuthorized
-    ? "Access Granted"
-    : isDenied
-      ? "Open Settings"
-      : "Enable";
-
   return (
-    <div className="flex items-start justify-between gap-4">
+    <div className="flex items-center justify-between gap-4">
       <div className="flex-1">
         <div
           className={cn([
@@ -51,20 +44,23 @@ function PermissionRow({
       </div>
       <Button
         variant={isAuthorized ? "outline" : "default"}
-        className="w-40 text-xs shadow-none"
-        disabled={isAuthorized || isPending}
+        size="icon"
         onClick={onAction}
+        disabled={isPending || isAuthorized}
+        className={cn([
+          "size-8",
+          isAuthorized && "bg-stone-100 text-stone-800",
+        ])}
+        aria-label={
+          isAuthorized
+            ? `${title} permission granted`
+            : `Request ${title.toLowerCase()} permission`
+        }
       >
-        {isPending ? (
-          <>
-            <Spinner className="mr-1" />
-            Requesting...
-          </>
+        {isAuthorized ? (
+          <CheckIcon className="size-5" />
         ) : (
-          <>
-            {isAuthorized ? <Check size={16} /> : null}
-            {buttonText}
-          </>
+          <ArrowRightIcon className="size-5" />
         )}
       </Button>
     </div>

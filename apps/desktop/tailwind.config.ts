@@ -5,7 +5,8 @@ const config = {
   theme: {
     extend: {
       fontFamily: {
-        "racing-sans": ["Racing Sans One", "cursive"],
+        serif: ["Lora", "Georgia", "serif"],
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
       },
     },
   },

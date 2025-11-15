@@ -36,7 +36,7 @@ export function ChatHeader({
     <div
       data-tauri-drag-region={chat.mode === "RightPanelOpen"}
       className={cn([
-        "flex items-center justify-between px-1 py-0.5 border-b border-neutral-200 h-9",
+        "flex items-center justify-between px-1 border-b border-neutral-200 h-9",
         chat.mode === "RightPanelOpen" && "border rounded-md",
       ])}
     >
@@ -197,7 +197,7 @@ function ChatGroupItem({
       ])}
     >
       <div className="flex items-center gap-2.5 w-full">
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <MessageCircle
             className={cn([
               "w-3.5 h-3.5 transition-colors",

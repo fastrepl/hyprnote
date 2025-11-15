@@ -141,34 +141,32 @@ export function SectionsList({
 
   return (
     <div className="flex flex-col space-y-3">
-      <div className="bg-neutral-50 rounded-lg p-4">
-        <Reorder.Group values={drafts} onReorder={reorderSections}>
-          <div className="flex flex-col space-y-2">
-            {drafts.map((draft) => (
-              <Reorder.Item key={draft.key} value={draft}>
-                <SectionItem
-                  disabled={disabled}
-                  item={draft}
-                  onChange={changeSection}
-                  onDelete={deleteSection}
-                  dragControls={controls}
-                />
-              </Reorder.Item>
-            ))}
-          </div>
-        </Reorder.Group>
+      <Reorder.Group values={drafts} onReorder={reorderSections}>
+        <div className="flex flex-col space-y-2">
+          {drafts.map((draft) => (
+            <Reorder.Item key={draft.key} value={draft}>
+              <SectionItem
+                disabled={disabled}
+                item={draft}
+                onChange={changeSection}
+                onDelete={deleteSection}
+                dragControls={controls}
+              />
+            </Reorder.Item>
+          ))}
+        </div>
+      </Reorder.Group>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-2 text-sm w-full"
-          onClick={addSection}
-          disabled={disabled}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Section
-        </Button>
-      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-sm w-full"
+        onClick={addSection}
+        disabled={disabled}
+      >
+        <Plus className="mr-2 h-4 w-4" />
+        Add Section
+      </Button>
     </div>
   );
 }
@@ -189,16 +187,9 @@ function SectionItem({
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <div
-      className={cn([
-        "group relative rounded-lg border p-3 transition-all bg-white",
-        isFocused
-          ? "border-blue-500"
-          : "border-border hover:border-neutral-300",
-      ])}
-    >
+    <div className="group relative bg-white">
       <button
-        className="absolute left-2 top-2 cursor-move opacity-0 group-hover:opacity-30 hover:opacity-60 transition-opacity"
+        className="absolute -left-5 top-2.5 cursor-move opacity-0 group-hover:opacity-30 hover:opacity-60 transition-opacity"
         onPointerDown={(event) => dragControls.start(event)}
         disabled={disabled}
       >
@@ -213,18 +204,25 @@ function SectionItem({
         <X size={16} />
       </button>
 
-      <div className="ml-5 mr-5 space-y-1">
+      <div className="space-y-1">
         <Input
           disabled={disabled}
           value={item.title}
           onChange={(e) => onChange({ ...item, title: e.target.value })}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
           placeholder="Untitled"
-          className="border-0 bg-transparent p-0 text-lg font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
+          className="border-0 bg-transparent p-0 font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
         />
 
-        <div className="min-h-[100px] border rounded-md">
+        <div
+          className={cn(
+            "min-h-[100px] border rounded-md overflow-clip transition-colors",
+            isFocused
+              ? "border-blue-500 ring-2 ring-primary/20"
+              : "border-input",
+          )}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        >
           <CodeMirrorEditor
             value={item.description}
             onChange={(value) => onChange({ ...item, description: value })}

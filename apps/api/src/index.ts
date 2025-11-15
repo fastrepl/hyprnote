@@ -1,3 +1,5 @@
+import "./instrument";
+
 import type { ServerWebSocket, WebSocketOptions } from "bun";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";

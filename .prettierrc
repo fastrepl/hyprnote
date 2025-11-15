@@ -3,6 +3,7 @@ plugins:
   - "@trivago/prettier-plugin-sort-imports"
   - "@prettier/plugin-oxc"
 importOrder:
+  - "^\\./instrument$"
   - "<THIRD_PARTY_MODULES>"
   - "^@hypr/(.*)$"
   - "^[./]"

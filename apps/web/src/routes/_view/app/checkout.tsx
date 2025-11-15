@@ -1,6 +1,7 @@
-import { createCheckoutSession } from "@/functions/billing";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
+
+import { createCheckoutSession } from "@/functions/billing";
 
 const validateSearch = z.object({
   period: z.enum(["monthly", "yearly"]).default("monthly"),

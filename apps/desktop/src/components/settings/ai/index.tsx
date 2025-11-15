@@ -15,7 +15,6 @@ export function SettingsAI() {
   const [activeTab, setActiveTab] = useState<"transcription" | "intelligence">(
     "transcription",
   );
-
   return (
     <Tabs
       value={activeTab}

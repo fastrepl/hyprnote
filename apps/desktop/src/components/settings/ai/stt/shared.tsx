@@ -1,6 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { Fireworks, Groq } from "@lobehub/icons";
 import { queryOptions } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type {
@@ -8,6 +9,17 @@ import type {
   SupportedSttModel,
   WhisperModel,
 } from "@hypr/plugin-local-stt";
+
+type Provider = {
+  disabled: boolean;
+  id: string;
+  displayName: string;
+  icon: ReactNode;
+  baseUrl?: string;
+  models: SupportedSttModel[] | string[];
+  badge?: string | null;
+  requiresPro?: boolean;
+};
 
 export type ProviderId = (typeof PROVIDERS)[number]["id"];
 
@@ -60,6 +72,7 @@ export const PROVIDERS = [
       "QuantizedTinyEn",
       "QuantizedSmallEn",
     ] satisfies SupportedSttModel[],
+    requiresPro: false,
   },
   {
     disabled: false,
@@ -82,6 +95,7 @@ export const PROVIDERS = [
       "nova-2-automotive",
       "nova-2-atc",
     ],
+    requiresPro: false,
   },
   {
     disabled: false,
@@ -91,6 +105,7 @@ export const PROVIDERS = [
     icon: <Icon icon="mingcute:random-fill" />,
     baseUrl: undefined,
     models: [],
+    requiresPro: false,
   },
   {
     disabled: true,
@@ -100,6 +115,7 @@ export const PROVIDERS = [
     icon: <Groq size={16} />,
     baseUrl: "https://api.groq.com/v1",
     models: ["whisper-large-v3-turbo", "whisper-large-v3"],
+    requiresPro: false,
   },
   {
     disabled: true,
@@ -109,8 +125,13 @@ export const PROVIDERS = [
     icon: <Fireworks size={16} />,
     baseUrl: "https://api.firework.ai/v1",
     models: ["whisper-large-v3-turbo", "whisper-large-v3"],
+    requiresPro: false,
   },
-] as const;
+] as const satisfies readonly Provider[];
+
+export const sttProviderRequiresPro = (providerId: ProviderId) =>
+  PROVIDERS.find((provider) => provider.id === providerId)?.requiresPro ??
+  false;
 
 export const LANGUAGE_SUPPORT: LanguageSupportMap = {
   hyprnote: {

@@ -6,7 +6,7 @@ import { getCookies, setCookie } from "@tanstack/react-start/server";
 export const getSupabaseBrowserClient = createClientOnlyFn(() => {
   return createBrowserClient(
     env.VITE_SUPABASE_URL,
-    env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    env.VITE_SUPABASE_ANON_KEY,
     {
       auth: {
         detectSessionInUrl: true,

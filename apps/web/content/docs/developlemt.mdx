@@ -1,12 +1,32 @@
-# Stripe
+# Development
 
-- Stripe CLI: https://docs.stripe.com/stripe-cli/install
+> How to run the app?
+
+- We use `pnpm` for workspace management and package management.
+
+## Desktop (apps/desktop)
 
 ```bash
-task stripe
+npx turbo -F @hypr/desktop tauri:dev
 ```
 
-`task stripe` will modify `apps/api/.env` based on the output of `stripe listen`.
+or
+
+```bash
+pnpm -F ui build && pnpm -F desktop tauri dev
+```
+
+## Web (apps/web)
+
+```bash
+pnpm -F web dev
+```
+
+## API (apps/api)
+
+```bash
+pnpm -F api dev
+```
 
 # Supabase
 
@@ -17,4 +37,15 @@ task supabase-start
 task supabase-stop
 ```
 
-`task supabase-start` will modify `apps/api/.env` and `apps/web/.env` based on the output of `supabase start`.
+- `task supabase-start` will modify `apps/api/.env` and `apps/web/.env` based on the output of `supabase start`.
+
+
+## Stripe
+
+- Stripe CLI: https://docs.stripe.com/stripe-cli/install
+
+```bash
+task stripe
+```
+
+- `task stripe` will modify `apps/api/.env` based on the output of `stripe listen`.

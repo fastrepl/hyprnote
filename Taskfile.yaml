@@ -108,6 +108,10 @@ tasks:
         vars:
           ENV_SOURCE: ".supabase/generated.env"
           ENV_TARGET: "apps/web/.env"
+      - task: env:merge
+        vars:
+          ENV_SOURCE: ".supabase/generated.env"
+          ENV_TARGET: "apps/desktop/.env"
       - rm -f .supabase/generated.env
       - open http://127.0.0.1:54323
 
@@ -137,12 +141,12 @@ tasks:
           fi
 
           awk '
-            /API URL:/ { print "SUPABASE_URL=\"" $NF "\"" }
-            /GraphQL URL:/ { print "SUPABASE_GRAPHQL_URL=\"" $NF "\"" }
-            /S3 Storage URL:/ { print "SUPABASE_STORAGE_URL=\"" $NF "\"" }
+            /API URL:/ { print "SUPABASE_URL=\"" $NF "\""; print "VITE_SUPABASE_URL=\"" $NF "\"" }
+            /GraphQL URL:/ { print "SUPABASE_GRAPHQL_URL=\"" $NF "\""; print "VITE_SUPABASE_GRAPHQL_URL=\"" $NF "\"" }
+            /S3 Storage URL:/ { print "SUPABASE_STORAGE_URL=\"" $NF "\""; print "VITE_SUPABASE_STORAGE_URL=\"" $NF "\"" }
             /Database URL:/ { print "DATABASE_URL=\"" $NF "\"" }
             /Studio URL:/ { print "SUPABASE_STUDIO_URL=\"" $NF "\"" }
-            /Publishable key:/ { print "SUPABASE_ANON_KEY=\"" $NF "\"" }
+            /Publishable key:/ { print "SUPABASE_ANON_KEY=\"" $NF "\""; print "VITE_SUPABASE_ANON_KEY=\"" $NF "\"" }
             /Secret key:/ { print "SUPABASE_SERVICE_ROLE_KEY=\"" $NF "\"" }
             /S3 Access Key:/ { print "S3_ACCESS_KEY=\"" $NF "\"" }
             /S3 Secret Key:/ { print "S3_SECRET_KEY=\"" $NF "\"" }

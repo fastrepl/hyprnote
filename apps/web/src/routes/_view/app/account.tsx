@@ -1,11 +1,12 @@
-import { signOutFn } from "@/functions/auth";
-import { createPortalSession } from "@/functions/billing";
-import { addContact } from "@/functions/loops";
-import { useAnalytics } from "@/hooks/use-posthog";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+
+import { signOutFn } from "@/functions/auth";
+import { createPortalSession } from "@/functions/billing";
+import { addContact } from "@/functions/loops";
+import { useAnalytics } from "@/hooks/use-posthog";
 
 export const Route = createFileRoute("/_view/app/account")({
   component: Component,

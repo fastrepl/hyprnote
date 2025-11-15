@@ -1,5 +1,3 @@
-import { Image } from "@/components/image";
-import { doAuth } from "@/functions/auth";
 import { Icon } from "@iconify-icon/react";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
@@ -7,6 +5,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { cn } from "@hypr/utils";
+
+import { Image } from "@/components/image";
+import { doAuth } from "@/functions/auth";
 
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),

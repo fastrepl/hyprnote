@@ -1,8 +1,9 @@
-import { SlashSeparator } from "@/components/slash-separator";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { cn } from "@hypr/utils";
+
+import { SlashSeparator } from "@/components/slash-separator";
 
 export const Route = createFileRoute("/_view/product/ai-assistant")({
   component: Component,

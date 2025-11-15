@@ -1,6 +1,3 @@
-import { NotFoundDocument } from "@/components/not-found";
-import { fetchUser } from "@/functions/auth";
-import appCss from "@/styles.css?url";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
@@ -8,6 +5,10 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { lazy } from "react";
+
+import { NotFoundDocument } from "@/components/not-found";
+import { fetchUser } from "@/functions/auth";
+import appCss from "@/styles.css?url";
 
 interface RouterContext {
   queryClient: QueryClient;

@@ -1,3 +1,12 @@
+import { Icon } from "@iconify-icon/react";
+import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { allArticles } from "content-collections";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@hypr/utils";
+
 import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { GithubStars } from "@/components/github-stars";
@@ -11,14 +20,6 @@ import { VideoThumbnail } from "@/components/video-thumbnail";
 import { addContact } from "@/functions/loops";
 import { getHeroCTA, getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { useAnalytics } from "@/hooks/use-posthog";
-import { Icon } from "@iconify-icon/react";
-import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { allArticles } from "content-collections";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import { cn } from "@hypr/utils";
 
 import { useHeroContext } from "./route";
 

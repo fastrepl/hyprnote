@@ -1,7 +1,8 @@
-import { env } from "@/env";
 import { createBrowserClient, createServerClient } from "@supabase/ssr";
 import { createClientOnlyFn, createServerOnlyFn } from "@tanstack/react-start";
 import { getCookies, setCookie } from "@tanstack/react-start/server";
+
+import { env } from "@/env";
 
 export const getSupabaseBrowserClient = createClientOnlyFn(() => {
   return createBrowserClient(

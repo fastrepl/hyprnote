@@ -38,7 +38,8 @@ task supabase-stop
 ```
 
 - `task supabase-start` will modify `apps/api/.env` and `apps/web/.env` based on the output of `supabase start`.
-
+- We generate `supabase/config.toml` dynamically based on the environment variables, and it is `gitignored`.
+- Currently, `GITHUB_CLIENT_SECRET` and `GITHUB_CLIENT_ID` is supported to enable `GitHub OAuth`.
 
 ## Stripe
 

@@ -6,8 +6,7 @@
     "dev": "env-cmd -f ./.env -- vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
-    "deploy": "npx netlify deploy --prod",
-    "typecheck": "pnpm -F @hypr/web build && (cd supabase/functions/llm && deno check index.ts) && (cd supabase/functions/stripe && deno check index.ts) && tsc --noEmit"
+    "typecheck": "pnpm -F @hypr/web build && tsc --noEmit"
   },
   "dependencies": {
     "@hypr/ui": "workspace:*",

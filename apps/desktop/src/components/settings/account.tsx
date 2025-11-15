@@ -1,5 +1,5 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Check } from "lucide-react";
+import { Check, ExternalLinkIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -14,11 +14,56 @@ export function SettingsAccount() {
   }, []);
 
   return (
-    <div>
-      <h1>Manage account</h1>
-      <Button onClick={handleOpenInBrowser}>Open in browser</Button>
-      <SettingsBilling />
+    <div className="flex flex-col gap-4">
+      <Container
+        title="Your Account"
+        description="Redirect to the web app to manage your account."
+        action={
+          <Button variant="outline" onClick={handleOpenInBrowser}>
+            <span>Open</span>
+            <ExternalLinkIcon className="text-neutral-600" />
+          </Button>
+        }
+      />
+
+      <Container
+        title="Plan & Billing"
+        description="Redirect to the web app to manage your account."
+        action={
+          <Button variant="outline" onClick={handleOpenInBrowser}>
+            <span>Open</span>
+            <ExternalLinkIcon className="text-neutral-600" />
+          </Button>
+        }
+      >
+        <SettingsBilling />
+      </Container>
     </div>
+  );
+}
+
+function Container({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title: string;
+  description: string;
+  action: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <section className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-md font-semibold">{title}</h1>
+          <p className="text-sm text-neutral-600">{description}</p>
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
 

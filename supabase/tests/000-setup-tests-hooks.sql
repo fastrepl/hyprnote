@@ -34,3 +34,15 @@ select dbdev.install('supabase-dbdev');
 -- Drop and recreate the extension to ensure a clean installation
 drop extension if exists "supabase-dbdev";
 create extension "supabase-dbdev";
+
+begin;
+select plan(1);
+
+select results_eq(
+    $$select count(*) from pg_extension where extname = 'supabase-dbdev'$$,
+    array[1::bigint],
+    'Installs supabase-dbdev extension exactly once'
+);
+
+select * from finish();
+rollback;

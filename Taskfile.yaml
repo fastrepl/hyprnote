@@ -109,6 +109,7 @@ tasks:
           ENV_SOURCE: ".supabase/generated.env"
           ENV_TARGET: "apps/web/.env"
       - rm -f .supabase/generated.env
+      - open http://127.0.0.1:54323
 
   supabase-start:capture:
     internal: true

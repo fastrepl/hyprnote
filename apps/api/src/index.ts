@@ -2,26 +2,20 @@ import "./instrument";
 
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { upgradeWebSocket, websocket } from "hono/bun";
+import { websocket } from "hono/bun";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import Stripe from "stripe";
 
-import {
-  buildDeepgramUrl,
-  DeepgramProxyConnection,
-  normalizeWsData,
-} from "./deepgram";
 import { env } from "./env";
+import { listenSocketHandler } from "./listen";
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth, supabaseAdmin } from "./supabase";
-import { listenSocketHandler } from "./ws";
 
 const app = new Hono();
 
 app.use(logger());
 app.use(bodyLimit({ maxSize: 1024 * 1024 * 5 }));
-app.notFound((c) => c.text("not_found", 404));
 
 const corsMiddleware = cors({
   origin: "*",
@@ -43,6 +37,7 @@ app.use("*", (c, next) => {
 });
 
 app.get("/health", (c) => c.json({ status: "ok" }));
+app.notFound((c) => c.text("not_found", 404));
 
 app.post("/chat/completions", requireSupabaseAuth, async (c) => {
   const requestBody = await c.req.json<

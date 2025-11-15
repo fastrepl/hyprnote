@@ -6,46 +6,7 @@ tasks:
     cmds:
       - netlify deploy --prod
 
-  env-sample:
-    dir: .
-    cmds:
-      - sed -E '/^[A-Z_][A-Z0-9_]*=/s/=.*/=""/' .env > .env.sample
-
   env-prod:
     dir: .
     cmds:
       - netlify env:import .env.prod
-      # - |
-      #     grep -v '^#' ./.env.prod | grep '=' | while IFS='=' read -r key value; do
-      #       netlify env:set "$key" "$value" --context production --secret
-      #     done
-
-  supabase:
-    dir: .
-    cmds:
-      - supabase {{.CLI_ARGS}}
-
-  supabase-env:
-    dir: .
-    cmds:
-      - supabase secrets set --env-file ./supabase/functions/.env --project-ref ijoptyyjrfqwaqhyxkxj
-
-  supabase-start:
-    dir: .
-    cmds:
-      - |
-          OUTPUT=$(supabase start 2>&1)
-          echo "$OUTPUT"
-
-          echo "$OUTPUT" | awk '
-            /API URL:/ { print "SUPABASE_URL=" $NF }
-            /GraphQL URL:/ { print "SUPABASE_GRAPHQL_URL=" $NF }
-            /S3 Storage URL:/ { print "SUPABASE_STORAGE_URL=" $NF }
-            /Database URL:/ { print "DATABASE_URL=" $NF }
-            /Studio URL:/ { print "SUPABASE_STUDIO_URL=" $NF }
-            /Publishable key:/ { print "SUPABASE_ANON_KEY=" $NF }
-            /Secret key:/ { print "SUPABASE_SERVICE_ROLE_KEY=" $NF }
-            /S3 Access Key:/ { print "S3_ACCESS_KEY=" $NF }
-            /S3 Secret Key:/ { print "S3_SECRET_KEY=" $NF }
-            /S3 Region:/ { print "S3_REGION=" $NF }
-          ' > .env.test

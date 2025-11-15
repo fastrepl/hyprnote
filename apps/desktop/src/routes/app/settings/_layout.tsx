@@ -7,7 +7,6 @@ import {
   BookText,
   Brain,
   CalendarDays,
-  CreditCard,
   ExternalLinkIcon,
   type LucideIcon,
   MessageCircleQuestion,
@@ -16,6 +15,7 @@ import {
   Puzzle,
   Settings2,
   Sparkles,
+  UserIcon,
 } from "lucide-react";
 import { useCallback } from "react";
 import { z } from "zod";
@@ -43,7 +43,7 @@ const TAB_KEYS = [
   "integrations",
   "feedback",
   "developers",
-  "billing",
+  "account",
 ] as const;
 
 type TabKey = (typeof TAB_KEYS)[number];
@@ -109,9 +109,9 @@ const TAB_CONFIG: Record<
     icon: Settings2,
     group: 2,
   },
-  billing: {
-    label: "Billing",
-    icon: CreditCard,
+  account: {
+    label: "Account",
+    icon: UserIcon,
     group: 3,
   },
 };

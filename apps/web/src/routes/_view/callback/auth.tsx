@@ -20,6 +20,8 @@ export const Route = createFileRoute("/_view/callback/auth")({
 
       if (!error) {
         throw redirect({ to: "/app" });
+      } else {
+        console.error(error);
       }
     }
 
@@ -38,6 +40,8 @@ export const Route = createFileRoute("/_view/callback/auth")({
             refresh_token: data.session.refresh_token,
           },
         });
+      } else {
+        console.error(error);
       }
     }
   },

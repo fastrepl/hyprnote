@@ -1,0 +1,53 @@
+# Development
+
+> How to run the app?
+
+- We use `pnpm` for workspace management and package management.
+
+## Desktop (apps/desktop)
+
+```bash
+npx turbo -F @hypr/desktop tauri:dev
+```
+
+or
+
+```bash
+pnpm -F ui build && pnpm -F desktop tauri dev
+```
+
+## Web (apps/web)
+
+```bash
+pnpm -F web dev
+```
+
+## API (apps/api)
+
+```bash
+pnpm -F api dev
+```
+
+# Supabase
+
+- https://supabase.com/docs/guides/local-development/cli/getting-started
+
+```bash
+task supabase-start
+task supabase-stop
+```
+
+- `task supabase-start` will modify `apps/api/.env` and `apps/web/.env` based on the output of `supabase start`.
+- We generate `supabase/config.toml` dynamically based on the environment variables, and it is `gitignored`.
+- Currently, `GITHUB_CLIENT_SECRET` and `GITHUB_CLIENT_ID` is supported to enable `GitHub OAuth`.
+- It is important to set `<SUPABASE_URL>/auth/v1/callback` as redirect URI in your OAuth application settings.
+
+## Stripe
+
+- Stripe CLI: https://docs.stripe.com/stripe-cli/install
+
+```bash
+task stripe
+```
+
+- `task stripe` will modify `apps/api/.env` based on the output of `stripe listen`.

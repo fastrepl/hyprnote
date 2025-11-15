@@ -1,0 +1,22 @@
+{
+  "name": "@hypr/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "env-cmd -f ./.env -- bun --hot src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sentry/bun": "^10.25.0",
+    "@supabase/supabase-js": "^2.80.0",
+    "@t3-oss/env-core": "^0.13.8",
+    "hono": "^4.6.9",
+    "stripe": "^19.3.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.2",
+    "env-cmd": "^11.0.0",
+    "typescript": "^5.9.3"
+  }
+}

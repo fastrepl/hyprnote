@@ -98,8 +98,9 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           VITE_APP_URL: ${{ secrets.VITE_APP_URL }}
+          VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
       - run: |
           mkdir -p target/release/
           find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;

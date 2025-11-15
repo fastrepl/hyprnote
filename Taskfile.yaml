@@ -3,7 +3,8 @@ dotenv: [".env"]
 includes:
   web:
     taskfile: ./apps/web
-    dir: ./apps/web
+  api:
+    taskfile: ./apps/api
 
 tasks:
   py:init: POETRY_VIRTUALENVS_IN_PROJECT=true poetry install --no-cache --no-interaction --all-extras
@@ -18,7 +19,6 @@ tasks:
       DIFF_TO: "desktop_v0.0.80"
       PATHS: "apps/desktop/src-tauri plugins crates"
     cmds:
-      # - git diff {{.DIFF_FROM}} {{.DIFF_TO}} -- {{.PATHS}} > out.diff
       - git diff {{.DIFF_FROM}} {{.DIFF_TO}} -- {{.PATHS}} | diff2html -i stdin
 
   jsonschema:
@@ -81,3 +81,235 @@ tasks:
           sqlite3 -json "$DB" 'SELECT store FROM main LIMIT 1;' |
           jq -r '.[0].store' |
           jless
+
+  env-sample:
+    vars:
+      INPUT_ENV: '{{.INPUT_ENV | default ".env"}}'
+      OUTPUT_ENV: '{{.OUTPUT_ENV | default ".env.sample"}}'
+    cmds:
+      - sed -E '/^[A-Z_][A-Z0-9_]*=/s/=.*/=""/' {{.INPUT_ENV}} > {{.OUTPUT_ENV}}
+
+  supabase:
+    cmds:
+      - supabase {{.CLI_ARGS}}
+
+  supabase-stop:
+    cmds:
+      - supabase stop
+
+  supabase-start:
+    cmds:
+      - curl -o supabase/config.toml https://gist.githubusercontent.com/yujonglee/c0704ebe0818621a64753d663c4fcaff/raw/b82572dfcb6ffa4d20c332a8dd7650e5b82b99c3/supabase-default.toml
+      - dasel put -f supabase/config.toml -t string -v 'http://localhost:3000' 'auth.site_url'
+      - dasel put -f supabase/config.toml -t json -v '["http://localhost:3000/callback/auth"]' 'auth.additional_redirect_urls'
+      - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t bool -v true ''auth.external.github.enabled'' || true'
+      - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GITHUB_CLIENT_ID}}'' ''auth.external.github.client_id'' || true'
+      - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GITHUB_CLIENT_SECRET}}'' ''auth.external.github.secret'' || true'
+      - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v '''' ''auth.external.github.redirect_uri'' || true'
+      - dprint fmt supabase/config.toml
+      - task: supabase-start:capture
+      - task: env:merge
+        vars:
+          ENV_SOURCE: ".supabase/generated.env"
+          ENV_TARGET: "apps/api/.env"
+      - task: env:merge
+        vars:
+          ENV_SOURCE: ".supabase/generated.env"
+          ENV_TARGET: "apps/web/.env"
+      - task: env:merge
+        vars:
+          ENV_SOURCE: ".supabase/generated.env"
+          ENV_TARGET: "apps/desktop/.env"
+      - rm -f .supabase/generated.env
+      - open http://127.0.0.1:54323
+
+  supabase-start:capture:
+    internal: true
+    cmds:
+      - |
+          bash <<'EOF'
+          set -euo pipefail
+
+          generated_env_file=".supabase/generated.env"
+          output_file=$(mktemp)
+          cleanup() {
+            rm -f "$output_file"
+          }
+          trap cleanup EXIT
+
+          mkdir -p "$(dirname "$generated_env_file")"
+
+          set +e
+          supabase start 2>&1 | tee "$output_file"
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            exit "$EXIT_CODE"
+          fi
+
+          awk '
+            /API URL:/ { print "SUPABASE_URL=\"" $NF "\""; print "VITE_SUPABASE_URL=\"" $NF "\"" }
+            /GraphQL URL:/ { print "SUPABASE_GRAPHQL_URL=\"" $NF "\""; print "VITE_SUPABASE_GRAPHQL_URL=\"" $NF "\"" }
+            /S3 Storage URL:/ { print "SUPABASE_STORAGE_URL=\"" $NF "\""; print "VITE_SUPABASE_STORAGE_URL=\"" $NF "\"" }
+            /Database URL:/ { print "DATABASE_URL=\"" $NF "\"" }
+            /Studio URL:/ { print "SUPABASE_STUDIO_URL=\"" $NF "\"" }
+            /Publishable key:/ { print "SUPABASE_ANON_KEY=\"" $NF "\""; print "VITE_SUPABASE_ANON_KEY=\"" $NF "\"" }
+            /Secret key:/ { print "SUPABASE_SERVICE_ROLE_KEY=\"" $NF "\"" }
+            /S3 Access Key:/ { print "S3_ACCESS_KEY=\"" $NF "\"" }
+            /S3 Secret Key:/ { print "S3_SECRET_KEY=\"" $NF "\"" }
+            /S3 Region:/ { print "S3_REGION=\"" $NF "\"" }
+          ' "$output_file" > "$generated_env_file"
+          EOF
+
+  env:merge:
+    internal: true
+    cmds:
+      - |
+          ENV_SOURCE="{{.ENV_SOURCE}}" ENV_TARGET="{{.ENV_TARGET}}" bash <<'EOF'
+          set -euo pipefail
+
+          if [ ! -f "$ENV_SOURCE" ]; then
+            echo "Source env file not found: $ENV_SOURCE" >&2
+            exit 1
+          fi
+
+          mkdir -p "$(dirname "$ENV_TARGET")"
+
+          if [ ! -f "$ENV_TARGET" ]; then
+            cp "$ENV_SOURCE" "$ENV_TARGET"
+            exit 0
+          fi
+
+          merged_env_file=$(mktemp)
+
+          awk -v new_file="$ENV_SOURCE" '
+            BEGIN {
+              while ((getline line < new_file) > 0) {
+                if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) continue
+                sep = index(line, "=")
+                if (sep == 0) continue
+                key = substr(line, 1, sep - 1)
+                gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+                value = substr(line, sep + 1)
+                new_values[key] = value
+              }
+              close(new_file)
+            }
+            {
+              line = $0
+              if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) {
+                print line
+                next
+              }
+              sep = index(line, "=")
+              if (sep == 0) {
+                print line
+                next
+              }
+              key = substr(line, 1, sep - 1)
+              gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+              if (key in new_values) {
+                print key "=" new_values[key]
+                used[key] = 1
+              } else {
+                print line
+              }
+            }
+            END {
+              for (key in new_values) {
+                if (!(key in used)) {
+                  print key "=" new_values[key]
+                }
+              }
+            }
+          ' "$ENV_TARGET" > "$merged_env_file"
+
+          mv "$merged_env_file" "$ENV_TARGET"
+          EOF
+
+  stripe:
+    cmds:
+      - |
+          bash <<'EOF'
+          set -euo pipefail
+
+          generated_env_file=".stripe/generated.env"
+          env_target="apps/api/.env"
+          temp_fifo=$(mktemp -u)
+          mkfifo "$temp_fifo"
+
+          cleanup() {
+            rm -f "$temp_fifo" "$generated_env_file"
+          }
+          trap cleanup EXIT
+
+          mkdir -p "$(dirname "$generated_env_file")"
+
+          (stripe listen --skip-verify --forward-to http://localhost:8787/webhook/stripe 2>&1 | tee "$temp_fifo") &
+          STRIPE_PID=$!
+
+          awk '
+            /Your webhook signing secret is whsec_/ {
+              match($0, /whsec_[a-zA-Z0-9]+/)
+              secret = substr($0, RSTART, RLENGTH)
+              print "STRIPE_WEBHOOK_SECRET=\"" secret "\""
+              exit
+            }
+          ' "$temp_fifo" > "$generated_env_file"
+
+          if [ -s "$generated_env_file" ]; then
+            mkdir -p "$(dirname "$env_target")"
+
+            if [ ! -f "$env_target" ]; then
+              cp "$generated_env_file" "$env_target"
+            else
+              merged_env=$(mktemp)
+              awk -v new_file="$generated_env_file" '
+                BEGIN {
+                  while ((getline line < new_file) > 0) {
+                    if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) continue
+                    sep = index(line, "=")
+                    if (sep == 0) continue
+                    key = substr(line, 1, sep - 1)
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+                    value = substr(line, sep + 1)
+                    new_values[key] = value
+                  }
+                  close(new_file)
+                }
+                {
+                  line = $0
+                  if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) {
+                    print line
+                    next
+                  }
+                  sep = index(line, "=")
+                  if (sep == 0) {
+                    print line
+                    next
+                  }
+                  key = substr(line, 1, sep - 1)
+                  gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+                  if (key in new_values) {
+                    print key "=" new_values[key]
+                    used[key] = 1
+                  } else {
+                    print line
+                  }
+                }
+                END {
+                  for (key in new_values) {
+                    if (!(key in used)) {
+                      print key "=" new_values[key]
+                    }
+                  }
+                }
+              ' "$env_target" > "$merged_env"
+              mv "$merged_env" "$env_target"
+            fi
+            echo "✓ Webhook secret written to $env_target"
+          fi
+
+          wait $STRIPE_PID
+          EOF

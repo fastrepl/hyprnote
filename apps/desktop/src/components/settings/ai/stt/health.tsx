@@ -13,9 +13,14 @@ export function HealthCheckForConnection() {
 
 function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
   const { conn, local } = useSTTConnection();
+  const { current_stt_provider } = useConfigValues([
+    "current_stt_provider",
+  ] as const);
 
-  if (!local) {
-    return { status: "success" };
+  if (current_stt_provider !== "hyprnote") {
+    return conn
+      ? { status: "success" }
+      : { status: "error", tooltip: "Provider not configured." };
   }
 
   const serverStatus = local.data?.status ?? "unavailable";

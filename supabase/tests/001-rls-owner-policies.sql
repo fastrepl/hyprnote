@@ -12,44 +12,47 @@ select tests.clear_authentication();
 select tests.authenticate_as('owner');
 
 select lives_ok(
-  $$insert into humans (user_id, name, email, org_id) values (auth.uid(), 'Owner Human', 'owner@acme.com', gen_random_uuid())$$,
-  'Owner can insert own humans row'
+  $$insert into billings (user_id, stripe_customer, stripe_subscription)
+    values (auth.uid(), '{"id": "cus_owner"}'::jsonb, '{"id": "sub_owner"}'::jsonb)$$,
+  'Owner can insert own billing row'
 );
 
 select results_eq(
-  $$select count(*) from humans where user_id = auth.uid()$$,
+  $$select count(*) from billings where user_id = auth.uid()$$,
   array[1::bigint],
-  'Owner can view own humans row'
+  'Owner can view own billing row'
 );
 
 select tests.clear_authentication();
 select tests.authenticate_as('other');
 
 select results_eq(
-  $$select count(*) from humans$$,
+  $$select count(*) from billings$$,
   array[0::bigint],
-  'Other user cannot view owner humans'
+  'Other user cannot view owner billing'
 );
 
 select throws_ok(
-  $$insert into humans (user_id, name, email, org_id) values (tests.get_supabase_uid('owner'), 'Other Human', 'other@acme.com', gen_random_uuid())$$,
+  $$insert into billings (user_id, stripe_customer)
+    values (tests.get_supabase_uid('owner'), '{"id": "cus_other"}'::jsonb)$$,
   '42501',
   null,
-  'Cannot insert for another user'
+  'Cannot insert billing for another user'
 );
 
 select tests.clear_authentication();
 select tests.authenticate_as_service_role();
 
 select lives_ok(
-  $$insert into humans (user_id, name, email, org_id) values (tests.get_supabase_uid('owner'), 'Service Human', 'svc@acme.com', gen_random_uuid())$$,
+  $$insert into billings (user_id, stripe_customer)
+    values (tests.get_supabase_uid('other'), '{"id": "cus_service"}'::jsonb)$$,
   'Service role bypasses owner RLS'
 );
 
 select results_eq(
-  $$select count(*) from humans$$,
+  $$select count(*) from billings$$,
   array[2::bigint],
-  'Service role can view all humans'
+  'Service role can view all billings'
 );
 
 select tests.rls_enabled('public');

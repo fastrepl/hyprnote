@@ -1,8 +1,0 @@
-{
-  "imports": {
-    "supabase-js": "npm:@supabase/supabase-js@2.76.1",
-    "hono": "jsr:@hono/hono@^4.10.4",
-    "hono/factory": "jsr:@hono/hono@^4.10.4/factory",
-    "stripe": "npm:stripe@^19.2.0"
-  }
-}

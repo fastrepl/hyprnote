@@ -5,7 +5,24 @@ import { useCallback, useState } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-export function SettingsBilling() {
+import { env } from "../../env";
+
+export function SettingsAccount() {
+  const handleOpenInBrowser = useCallback(() => {
+    const base = env.VITE_APP_URL ?? "http://localhost:3000";
+    openUrl(`${base}/app/account`);
+  }, []);
+
+  return (
+    <div>
+      <h1>Manage account</h1>
+      <Button onClick={handleOpenInBrowser}>Open in browser</Button>
+      <SettingsBilling />
+    </div>
+  );
+}
+
+function SettingsBilling() {
   const [currentPlan, setCurrentPlan] = useState<PlanId>("free");
 
   const handlePlanChange = useCallback((nextPlan: PlanId) => {

@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.80.0",
+    "@t3-oss/env-core": "^0.13.8",
     "hono": "^4.6.9",
-    "stripe": "^19.3.0"
+    "stripe": "^19.3.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/bun": "^1.3.2",

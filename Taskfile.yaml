@@ -98,7 +98,15 @@ tasks:
       - supabase stop
 
   supabase-start:
+    vars:
+      GITHUB_CLIENT_ID: "Ov23liirdRYXEtpe7JBw"
+      GITHUB_CLIENT_SECRET: "placeholder-client-secret"
     cmds:
+      - curl -o supabase/config.toml https://gist.githubusercontent.com/yujonglee/c0704ebe0818621a64753d663c4fcaff/raw/b82572dfcb6ffa4d20c332a8dd7650e5b82b99c3/supabase-default.toml
+      - dasel put -f supabase/config.toml -t bool -v true 'auth.external.github.enabled'
+      - dasel put -f supabase/config.toml -t string -v '{{.GITHUB_CLIENT_ID}}' 'auth.external.github.client_id'
+      - dasel put -f supabase/config.toml -t string -v '{{.GITHUB_CLIENT_SECRET}}' 'auth.external.github.secret'
+      - dprint fmt supabase/config.toml
       - task: supabase-start:capture
       - task: env:merge
         vars:

@@ -68,7 +68,7 @@ export function TemplateEditor({ id }: { id: string }) {
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               placeholder="Describe the template purpose and usage..."
-              className="min-h-[100px] resize-none"
+              className="min-h-[100px] resize-none shadow-none"
             />
           </div>
         )}

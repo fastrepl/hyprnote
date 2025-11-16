@@ -10,23 +10,17 @@ import {
   ExternalLinkIcon,
   type LucideIcon,
   MessageCircleQuestion,
-  MoreVertical,
   Plus,
   Puzzle,
   Settings2,
   Sparkles,
+  Trash2,
   UserIcon,
 } from "lucide-react";
 import { useCallback } from "react";
 import { z } from "zod";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@hypr/ui/components/ui/dropdown-menu";
 import { cn } from "@hypr/utils";
 
 import { useTemplateNavigation } from "../../../components/settings/template/utils";
@@ -301,22 +295,15 @@ function InnerHeader({
         </h1>
       </div>
 
-      <div className="absolute right-2 flex items-center gap-1">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="text-red-600 focus:text-red-600"
-            >
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="absolute right-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={handleDelete}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
       </div>
     </header>
   );

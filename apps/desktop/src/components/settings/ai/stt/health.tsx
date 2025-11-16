@@ -3,7 +3,6 @@ import { useQueries } from "@tanstack/react-query";
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
-import * as main from "../../../../store/tinybase/main";
 import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
 import {
   type ProviderId,
@@ -27,6 +26,7 @@ function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
   const isCloud =
     current_stt_provider === "hyprnote" || current_stt_model === "cloud";
 
+  console.log(conn);
   if (isCloud) {
     return conn
       ? { status: "success" }
@@ -67,11 +67,6 @@ function useAvailability():
     "current_stt_model",
   ] as const);
   const billing = useBillingAccess();
-
-  const configuredProviders = main.UI.useResultTable(
-    main.QUERIES.sttProviders,
-    main.STORE_ID,
-  );
 
   const [p2, p3, tinyEn, smallEn] = useQueries({
     queries: [
@@ -121,16 +116,6 @@ function useAvailability():
       };
     }
     return { available: true };
-  }
-
-  const config = configuredProviders[providerId] as
-    | main.AIProviderStorage
-    | undefined;
-  if (!config) {
-    return {
-      available: false,
-      message: "Provider not configured. Please configure the provider below.",
-    };
   }
 
   if (providerId === "custom") {

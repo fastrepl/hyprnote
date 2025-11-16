@@ -18,43 +18,68 @@ import {
 import { env } from "../env";
 import * as main from "../store/tinybase/main";
 
+type LLMConnectionInfo = {
+  providerId: ProviderId;
+  modelId: string;
+  baseUrl: string;
+  apiKey: string;
+};
+
+type LLMConnectionStatus =
+  | { status: "pending"; reason: "missing_provider" }
+  | { status: "pending"; reason: "missing_model"; providerId: ProviderId }
+  | { status: "error"; reason: "provider_not_found"; providerId: string }
+  | { status: "error"; reason: "unauthenticated"; providerId: "hyprnote" }
+  | {
+      status: "error";
+      reason: "missing_config";
+      providerId: ProviderId;
+      missing: Array<"base_url" | "api_key">;
+    }
+  | { status: "success"; providerId: ProviderId; isHosted: boolean };
+
+type LLMConnectionResult = {
+  conn: LLMConnectionInfo | null;
+  status: LLMConnectionStatus;
+};
+
 export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
-  const connection = useLLMConnection();
+  const { conn } = useLLMConnection();
 
   return useMemo(() => {
-    if (!connection) {
+    if (!conn) {
       return null;
     }
 
-    if (connection.providerId === "hyprnote") {
+    if (conn.providerId === "hyprnote") {
       const hyprnoteProvider = createOpenAICompatible({
         fetch: tauriFetch,
         name: "hyprnote",
-        baseURL: connection.baseUrl,
-        apiKey: connection.apiKey,
+        baseURL: conn.baseUrl,
+        apiKey: conn.apiKey,
         headers: {
-          Authorization: `Bearer ${connection.apiKey}`,
+          Authorization: `Bearer ${conn.apiKey}`,
         },
       });
 
       return wrapWithThinkingMiddleware(
-        hyprnoteProvider.chatModel(connection.modelId),
+        hyprnoteProvider.chatModel(conn.modelId),
       );
     }
 
-    if (connection.providerId === "anthropic") {
+    if (conn.providerId === "anthropic") {
       const anthropicProvider = createAnthropic({
         fetch: tauriFetch,
-        apiKey: connection.apiKey,
+        apiKey: conn.apiKey,
       });
 
-      return wrapWithThinkingMiddleware(anthropicProvider(connection.modelId));
+      return wrapWithThinkingMiddleware(anthropicProvider(conn.modelId));
     }
 
-    if (connection.providerId === "openrouter") {
+    if (conn.providerId === "openrouter") {
       const openRouterProvider = createOpenRouter({
         fetch: tauriFetch,
-        apiKey: connection.apiKey,
+        apiKey: conn.apiKey,
         extraBody: {
           provider: {
             // https://openrouter.ai/docs/features/provider-routing#provider-sorting
@@ -63,42 +88,37 @@ export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
         },
       });
 
-      return wrapWithThinkingMiddleware(openRouterProvider(connection.modelId));
+      return wrapWithThinkingMiddleware(openRouterProvider(conn.modelId));
     }
 
-    if (connection.providerId === "openai") {
+    if (conn.providerId === "openai") {
       const openAIProvider = createOpenAI({
         fetch: tauriFetch,
-        apiKey: connection.apiKey,
+        apiKey: conn.apiKey,
       });
 
-      return wrapWithThinkingMiddleware(openAIProvider(connection.modelId));
+      return wrapWithThinkingMiddleware(openAIProvider(conn.modelId));
     }
 
     const config: Parameters<typeof createOpenAICompatible>[0] = {
       fetch: tauriFetch,
-      name: connection.providerId,
-      baseURL: connection.baseUrl,
+      name: conn.providerId,
+      baseURL: conn.baseUrl,
     };
 
-    if (connection.apiKey) {
-      config.apiKey = connection.apiKey;
+    if (conn.apiKey) {
+      config.apiKey = conn.apiKey;
     }
 
     const openAICompatibleProvider = createOpenAICompatible(config);
 
     return wrapWithThinkingMiddleware(
-      openAICompatibleProvider.chatModel(connection.modelId),
+      openAICompatibleProvider.chatModel(conn.modelId),
     );
-  }, [connection]);
+  }, [conn]);
 };
 
-const useLLMConnection = (): {
-  providerId: ProviderId;
-  modelId: string;
-  baseUrl: string;
-  apiKey: string;
-} | null => {
+export const useLLMConnection = (): LLMConnectionResult => {
   const auth = useAuth();
 
   const { current_llm_provider, current_llm_model } = main.UI.useValues(
@@ -110,48 +130,103 @@ const useLLMConnection = (): {
     main.STORE_ID,
   ) as main.AIProviderStorage | undefined;
 
-  return useMemo(() => {
-    if (!current_llm_provider || !current_llm_model) {
-      return null;
+  return useMemo<LLMConnectionResult>(() => {
+    if (!current_llm_provider) {
+      return {
+        conn: null,
+        status: { status: "pending", reason: "missing_provider" },
+      };
     }
 
     const providerId = current_llm_provider as ProviderId;
+
+    if (!current_llm_model) {
+      return {
+        conn: null,
+        status: {
+          status: "pending",
+          reason: "missing_model",
+          providerId,
+        },
+      };
+    }
+
     const providerDefinition = PROVIDERS.find(
-      (provider) => provider.id === providerId,
+      (provider) => provider.id === current_llm_provider,
     );
+
+    if (!providerDefinition) {
+      return {
+        conn: null,
+        status: {
+          status: "error",
+          reason: "provider_not_found",
+          providerId: current_llm_provider,
+        },
+      };
+    }
 
     if (providerId === "hyprnote") {
       if (!auth?.session) {
-        return null;
+        return {
+          conn: null,
+          status: { status: "error", reason: "unauthenticated", providerId },
+        };
       }
 
-      return {
+      const conn: LLMConnectionInfo = {
         providerId,
         modelId: current_llm_model,
         baseUrl: `${env.VITE_API_URL}`,
         apiKey: auth.session.access_token,
       };
+
+      return {
+        conn,
+        status: { status: "success", providerId, isHosted: true },
+      };
     }
 
     const baseUrl =
-      providerConfig?.base_url?.trim() || providerDefinition?.baseUrl || "";
+      providerConfig?.base_url?.trim() ||
+      providerDefinition.baseUrl?.trim() ||
+      "";
     const apiKey = providerConfig?.api_key?.trim() || "";
 
+    const missing: Array<"base_url" | "api_key"> = [];
+
     if (!baseUrl) {
-      return null;
+      missing.push("base_url");
     }
 
-    if ((providerDefinition?.apiKey ?? true) && !apiKey) {
-      return null;
+    if (providerDefinition.apiKey && !apiKey) {
+      missing.push("api_key");
     }
 
-    return {
+    if (missing.length > 0) {
+      return {
+        conn: null,
+        status: {
+          status: "error",
+          reason: "missing_config",
+          providerId,
+          missing,
+        },
+      };
+    }
+
+    const conn: LLMConnectionInfo = {
       providerId,
       modelId: current_llm_model,
       baseUrl,
       apiKey,
     };
-  }, [current_llm_provider, current_llm_model, providerConfig, auth]);
+
+    return {
+      conn,
+      status: { status: "success", providerId, isHosted: false },
+    };
+  }, [auth, current_llm_model, current_llm_provider, providerConfig]);
 };
 
 const wrapWithThinkingMiddleware = (model: Exclude<LanguageModel, string>) => {

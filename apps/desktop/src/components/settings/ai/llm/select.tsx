@@ -11,6 +11,7 @@ import {
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
+import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/main";
 import type { ListModelsResult } from "../shared/list-common";
@@ -33,6 +34,7 @@ export function SelectProviderAndModel() {
     "current_llm_model",
     "current_llm_provider",
   ] as const);
+  const billing = useBillingAccess();
 
   const handleSelectProvider = main.UI.useSetValueCallback(
     "current_llm_provider",
@@ -86,8 +88,12 @@ export function SelectProviderAndModel() {
           <form.Field
             name="provider"
             listeners={{
-              onChange: () => {
-                form.setFieldValue("model", "");
+              onChange: ({ value }) => {
+                if (value === "hyprnote") {
+                  form.setFieldValue("model", "Auto");
+                } else {
+                  form.setFieldValue("model", "");
+                }
               },
             }}
           >
@@ -101,18 +107,29 @@ export function SelectProviderAndModel() {
                     <SelectValue placeholder="Select a provider" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PROVIDERS.map((provider) => (
-                      <SelectItem
-                        key={provider.id}
-                        value={provider.id}
-                        disabled={!configuredProviders[provider.id]}
-                      >
-                        <div className="flex items-center gap-2">
-                          {provider.icon}
-                          <span>{provider.displayName}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {PROVIDERS.map((provider) => {
+                      const locked = provider.requiresPro && !billing.isPro;
+                      const configured = configuredProviders[provider.id];
+                      return (
+                        <SelectItem
+                          key={provider.id}
+                          value={provider.id}
+                          disabled={!configured || locked}
+                        >
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              {provider.icon}
+                              <span>{provider.displayName}</span>
+                            </div>
+                            {locked ? (
+                              <span className="text-[11px] text-neutral-500">
+                                Upgrade to Pro to use this provider.
+                              </span>
+                            ) : null}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -126,8 +143,14 @@ export function SelectProviderAndModel() {
               const providerId = form.getFieldValue("provider");
               const maybeListModels = configuredProviders[providerId];
 
+              const providerDef = PROVIDERS.find(
+                (provider) => provider.id === providerId,
+              );
+              const providerRequiresPro = providerDef?.requiresPro ?? false;
+              const locked = providerRequiresPro && !billing.isPro;
+
               const listModels = () => {
-                if (!maybeListModels) {
+                if (!maybeListModels || locked) {
                   return { models: [], ignored: [] };
                 }
                 return maybeListModels();
@@ -139,9 +162,15 @@ export function SelectProviderAndModel() {
                     providerId={providerId}
                     value={field.state.value}
                     onChange={(value) => field.handleChange(value)}
-                    disabled={!maybeListModels}
+                    disabled={!maybeListModels || locked}
                     listModels={listModels}
                   />
+                  {locked ? (
+                    <p className="mt-1 text-[11px] text-neutral-500">
+                      Upgrade to Pro to pick{" "}
+                      {providerDef?.displayName ?? "this provider"} models.
+                    </p>
+                  ) : null}
                 </div>
               );
             }}
@@ -161,6 +190,7 @@ function useConfiguredMapping(): Record<
   null | (() => Promise<ListModelsResult>)
 > {
   const auth = useAuth();
+  const billing = useBillingAccess();
   const configuredProviders = main.UI.useResultTable(
     main.QUERIES.llmProviders,
     main.STORE_ID,
@@ -169,6 +199,10 @@ function useConfiguredMapping(): Record<
   const mapping = useMemo(() => {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
+        if (provider.requiresPro && !billing.isPro) {
+          return [provider.id, null];
+        }
+
         if (provider.id === "hyprnote") {
           if (!auth?.session) {
             return [provider.id, null];
@@ -219,7 +253,7 @@ function useConfiguredMapping(): Record<
         return [provider.id, listModelsFunc];
       }),
     ) as Record<string, null | (() => Promise<ListModelsResult>)>;
-  }, [configuredProviders, auth]);
+  }, [configuredProviders, auth, billing]);
 
   return mapping;
 }

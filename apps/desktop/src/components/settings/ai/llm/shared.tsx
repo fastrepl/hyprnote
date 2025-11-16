@@ -6,6 +6,17 @@ import {
   OpenAI,
   OpenRouter,
 } from "@lobehub/icons";
+import type { ReactNode } from "react";
+
+type Provider = {
+  id: string;
+  displayName: string;
+  badge: string | null;
+  icon: ReactNode;
+  apiKey: boolean;
+  baseUrl?: string;
+  requiresPro?: boolean;
+};
 
 export type ProviderId = (typeof PROVIDERS)[number]["id"];
 
@@ -17,6 +28,7 @@ export const PROVIDERS = [
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     apiKey: false,
     baseUrl: "/functions/v1/llm",
+    requiresPro: true,
   },
   {
     id: "openrouter",
@@ -25,6 +37,7 @@ export const PROVIDERS = [
     icon: <OpenRouter size={16} />,
     apiKey: true,
     baseUrl: "https://openrouter.ai/api/v1",
+    requiresPro: false,
   },
   {
     id: "openai",
@@ -33,6 +46,7 @@ export const PROVIDERS = [
     icon: <OpenAI size={16} />,
     apiKey: true,
     baseUrl: "https://api.openai.com/v1",
+    requiresPro: false,
   },
   {
     id: "anthropic",
@@ -41,6 +55,7 @@ export const PROVIDERS = [
     icon: <Anthropic size={16} />,
     apiKey: true,
     baseUrl: "https://api.anthropic.com/v1",
+    requiresPro: false,
   },
   {
     id: "custom",
@@ -49,6 +64,7 @@ export const PROVIDERS = [
     icon: <Icon icon="mingcute:random-fill" />,
     apiKey: true,
     baseUrl: undefined,
+    requiresPro: false,
   },
   {
     id: "lmstudio",
@@ -57,6 +73,7 @@ export const PROVIDERS = [
     icon: <LmStudio size={16} />,
     apiKey: false,
     baseUrl: "http://127.0.0.1:1234/v1",
+    requiresPro: false,
   },
   {
     id: "ollama",
@@ -65,5 +82,10 @@ export const PROVIDERS = [
     icon: <Ollama size={16} />,
     apiKey: false,
     baseUrl: "http://127.0.0.1:11434/v1",
+    requiresPro: false,
   },
-] as const;
+] as const satisfies readonly Provider[];
+
+export const llmProviderRequiresPro = (providerId: ProviderId) =>
+  PROVIDERS.find((provider) => provider.id === providerId)?.requiresPro ??
+  false;

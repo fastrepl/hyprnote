@@ -1,7 +1,8 @@
-import { env } from "@/env";
-import { getStripeClient } from "@/functions/stripe";
 import { createFileRoute } from "@tanstack/react-router";
 import Stripe from "stripe";
+
+import { env } from "@/env";
+import { getStripeClient } from "@/functions/stripe";
 
 const ALLOWED_EVENTS: Stripe.Event.Type[] = [
   "checkout.session.completed",

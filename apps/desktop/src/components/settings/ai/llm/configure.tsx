@@ -7,11 +7,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
+import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { useBillingAccess } from "../../../../billing";
 import { aiProviderSchema } from "../../../../store/tinybase/main";
 import * as main from "../../../../store/tinybase/main";
-import { FormField, StyledStreamdown, useProvider } from "../shared";
+import {
+  FormField,
+  PlanLockMessage,
+  StyledStreamdown,
+  useProvider,
+} from "../shared";
 import { ProviderId, PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
@@ -41,7 +48,9 @@ function NonHyprProviderCard({
 }: {
   config: (typeof PROVIDERS)[number];
 }) {
+  const billing = useBillingAccess();
   const [provider, setProvider] = useProvider(config.id);
+  const locked = config.requiresPro && !billing.isPro;
 
   useEffect(() => {
     if (!provider && config.baseUrl && !config.apiKey) {
@@ -83,8 +92,14 @@ function NonHyprProviderCard({
     <AccordionItem
       value={config.id}
       className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
+      disabled={locked}
     >
-      <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
+      <AccordionTrigger
+        className={cn([
+          "capitalize gap-2 px-4",
+          locked && "cursor-not-allowed opacity-30",
+        ])}
+      >
         <div className="flex items-center gap-2">
           {config.icon}
           <span>{config.displayName}</span>
@@ -92,48 +107,56 @@ function NonHyprProviderCard({
       </AccordionTrigger>
       <AccordionContent className="px-4 space-y-6">
         <ProviderContext providerId={config.id} />
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          {!config.baseUrl && (
-            <form.Field name="base_url">
-              {(field) => (
-                <FormField field={field} label="Base URL" icon="mdi:web" />
-              )}
-            </form.Field>
-          )}
-          {config?.apiKey && (
-            <form.Field name="api_key">
-              {(field) => (
-                <FormField
-                  field={field}
-                  label="API Key"
-                  icon="mdi:key"
-                  placeholder="Enter your API key"
-                  type="password"
-                />
-              )}
-            </form.Field>
-          )}
-          {config.baseUrl && (
-            <details className="space-y-4 pt-2">
-              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-                Advanced
-              </summary>
-              <div className="mt-4">
-                <form.Field name="base_url">
-                  {(field) => (
-                    <FormField field={field} label="Base URL" icon="mdi:web" />
-                  )}
-                </form.Field>
-              </div>
-            </details>
-          )}
-        </form>
+        {locked ? (
+          <PlanLockMessage message="Upgrade to Pro to configure this provider." />
+        ) : (
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            {!config.baseUrl && (
+              <form.Field name="base_url">
+                {(field) => (
+                  <FormField field={field} label="Base URL" icon="mdi:web" />
+                )}
+              </form.Field>
+            )}
+            {config?.apiKey && (
+              <form.Field name="api_key">
+                {(field) => (
+                  <FormField
+                    field={field}
+                    label="API Key"
+                    icon="mdi:key"
+                    placeholder="Enter your API key"
+                    type="password"
+                  />
+                )}
+              </form.Field>
+            )}
+            {config.baseUrl && (
+              <details className="space-y-4 pt-2">
+                <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+                  Advanced
+                </summary>
+                <div className="mt-4">
+                  <form.Field name="base_url">
+                    {(field) => (
+                      <FormField
+                        field={field}
+                        label="Base URL"
+                        icon="mdi:web"
+                      />
+                    )}
+                  </form.Field>
+                </div>
+              </details>
+            )}
+          </form>
+        )}
       </AccordionContent>
     </AccordionItem>
   );
@@ -148,12 +171,21 @@ function HyprProviderCard({
   providerName: string;
   icon: React.ReactNode;
 }) {
+  const billing = useBillingAccess();
+  const locked = providerId === "hyprnote" && !billing.isPro;
+
   return (
     <AccordionItem
       value={providerId}
       className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
+      disabled={locked}
     >
-      <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
+      <AccordionTrigger
+        className={cn([
+          "capitalize gap-2 px-4",
+          locked && "cursor-not-allowed opacity-30",
+        ])}
+      >
         <div className="flex items-center gap-2">
           {icon}
           <span>{providerName}</span>
@@ -164,22 +196,38 @@ function HyprProviderCard({
       </AccordionTrigger>
       <AccordionContent className="px-4">
         <ProviderContext providerId={providerId} />
+        {locked ? (
+          <PlanLockMessage message="Upgrade to Pro to use Hyprnote LLMs." />
+        ) : null}
       </AccordionContent>
     </AccordionItem>
   );
 }
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
+  const { isPro, upgradeToPro } = useBillingAccess();
+
   const content =
     providerId === "hyprnote"
-      ? "The Hyprnote team continuously tests different models to provide the **best performance & reliability.**"
+      ? "We continuously test models to provide the **best performance & reliability.**"
       : providerId === "lmstudio"
         ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config."
         : providerId === "custom"
-          ? "We only support **OpenAI compatible** endpoints for now."
+          ? "We only support **OpenAI-compatible** endpoints for now."
           : providerId === "openrouter"
             ? "We filter out models from the combobox based on heuristics like **input modalities** and **tool support**."
             : "";
+
+  if (providerId === "hyprnote" && !isPro) {
+    return (
+      <div className="flex flex-row justify-between items-center gap-2">
+        <StyledStreamdown>{content}</StyledStreamdown>
+        <Button size="sm" variant="default" onClick={upgradeToPro}>
+          Upgrade to Pro
+        </Button>
+      </div>
+    );
+  }
 
   if (!content) {
     return null;

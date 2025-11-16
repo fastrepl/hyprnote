@@ -1,10 +1,15 @@
 import { useQueries } from "@tanstack/react-query";
 
+import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
-import * as main from "../../../../store/tinybase/main";
 import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
-import { type ProviderId, PROVIDERS, sttModelQueries } from "./shared";
+import {
+  type ProviderId,
+  PROVIDERS,
+  sttModelQueries,
+  sttProviderRequiresPro,
+} from "./shared";
 
 export function HealthCheckForConnection() {
   const props = useConnectionHealth();
@@ -13,11 +18,16 @@ export function HealthCheckForConnection() {
 
 function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
   const { conn, local } = useSTTConnection();
-  const { current_stt_provider } = useConfigValues([
+  const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
+    "current_stt_model",
   ] as const);
 
-  if (current_stt_provider !== "hyprnote") {
+  const isCloud =
+    current_stt_provider === "hyprnote" || current_stt_model === "cloud";
+
+  console.log(conn);
+  if (isCloud) {
     return conn
       ? { status: "success" }
       : { status: "error", tooltip: "Provider not configured." };
@@ -56,11 +66,7 @@ function useAvailability():
     "current_stt_provider",
     "current_stt_model",
   ] as const);
-
-  const configuredProviders = main.UI.useResultTable(
-    main.QUERIES.sttProviders,
-    main.STORE_ID,
-  );
+  const billing = useBillingAccess();
 
   const [p2, p3, tinyEn, smallEn] = useQueries({
     queries: [
@@ -82,6 +88,15 @@ function useAvailability():
     return { available: false, message: "Selected provider not found." };
   }
 
+  if (sttProviderRequiresPro(providerId) && !billing.isPro) {
+    return {
+      available: false,
+      message: billing.isLoading
+        ? "Checking plan access for this provider..."
+        : "Upgrade to Pro to use this provider.",
+    };
+  }
+
   if (providerId === "hyprnote") {
     const downloadedModels = [
       { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
@@ -101,16 +116,6 @@ function useAvailability():
       };
     }
     return { available: true };
-  }
-
-  const config = configuredProviders[providerId] as
-    | main.AIProviderStorage
-    | undefined;
-  if (!config) {
-    return {
-      available: false,
-      message: "Provider not configured. Please configure the provider below.",
-    };
   }
 
   if (providerId === "custom") {

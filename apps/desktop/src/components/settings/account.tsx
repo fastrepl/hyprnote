@@ -1,221 +1,132 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Check } from "lucide-react";
-import { useCallback, useState } from "react";
+import { ExternalLinkIcon } from "lucide-react";
+import { type ReactNode, useCallback } from "react";
+import type Stripe from "stripe";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { cn } from "@hypr/utils";
 
+import { useAuth } from "../../auth";
+import { useBillingAccess } from "../../billing";
 import { env } from "../../env";
 
+const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
+
 export function SettingsAccount() {
-  const handleOpenInBrowser = useCallback(() => {
-    const base = env.VITE_APP_URL ?? "http://localhost:3000";
-    openUrl(`${base}/app/account`);
+  const auth = useAuth();
+  const billing = useBillingAccess();
+
+  const isAuthenticated = !!auth?.session;
+
+  const handleOpenAccount = useCallback(() => {
+    openUrl(`${WEB_APP_BASE_URL}/app/account`);
   }, []);
+
+  const handleSignIn = useCallback(() => {
+    auth?.signIn();
+  }, [auth]);
+
+  if (!isAuthenticated) {
+    return (
+      <Container
+        title="Sign in to Hyprnote"
+        description="Hyprnote account is required to access pro plan."
+        action={
+          <Button onClick={handleSignIn}>
+            <span>Get Started</span>
+          </Button>
+        }
+      ></Container>
+    );
+  }
+
+  const hasStripeCustomer = !!billing.data?.stripe_customer;
 
   return (
-    <div>
-      <h1>Manage account</h1>
-      <Button onClick={handleOpenInBrowser}>Open in browser</Button>
-      <SettingsBilling />
-    </div>
-  );
-}
+    <div className="flex flex-col gap-4">
+      <Container
+        title="Your Account"
+        description="Redirect to the web app to manage your account."
+        action={
+          <Button
+            variant="outline"
+            onClick={handleOpenAccount}
+            className="w-[100px] flex flex-row gap-1.5"
+          >
+            <span className="text-sm">Open</span>
+            <ExternalLinkIcon className="text-neutral-600" />
+          </Button>
+        }
+      ></Container>
 
-function SettingsBilling() {
-  const [currentPlan, setCurrentPlan] = useState<PlanId>("free");
-
-  const handlePlanChange = useCallback((nextPlan: PlanId) => {
-    setCurrentPlan(nextPlan);
-    console.log(`[billing] Requested plan change to ${nextPlan}`);
-  }, []);
-
-  const handleContact = useCallback(() => {
-    openUrl("https://cal.com/team/hyprnote/welcome");
-  }, []);
-
-  return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 border border-neutral-200 rounded-lg bg-white overflow-hidden">
-        <div className="grid grid-cols-2 h-full">
-          {PLANS.map((plan, index) => (
-            <div
-              key={plan.id}
-              className={cn([index === 0 && "border-r border-neutral-200"])}
+      <Container
+        title="Plan & Billing"
+        description="View your current plan and manage billing on the web."
+        action={
+          hasStripeCustomer ? (
+            <Button
+              variant="outline"
+              onClick={handleOpenAccount}
+              className="w-[100px] flex flex-row gap-1.5"
             >
-              <BillingPlanCard
-                plan={plan}
-                currentPlan={currentPlan}
-                onChangePlan={handlePlanChange}
-                onContactSales={handleContact}
-                removeBorder
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+              <span className="text-sm">Manage</span>
+              <ExternalLinkIcon className="text-neutral-600" size={12} />
+            </Button>
+          ) : undefined
+        }
+      >
+        {billing.data?.stripe_subscription && (
+          <SubscriptionDetails
+            subscription={billing.data.stripe_subscription}
+          />
+        )}
+      </Container>
     </div>
   );
 }
 
-function BillingPlanCard({
-  plan,
-  currentPlan,
-  onChangePlan,
-  onContactSales,
-  className,
-  removeBorder = false,
+function SubscriptionDetails({
+  subscription,
 }: {
-  plan: BillingPlan;
-  currentPlan: PlanId;
-  onChangePlan: (plan: PlanId) => void;
-  onContactSales: () => void;
-  className?: string;
-  removeBorder?: boolean;
+  subscription: Stripe.Subscription;
 }) {
-  const isCurrent = plan.id === currentPlan;
+  const {
+    status,
+    items: {
+      data: [{ current_period_end, current_period_start }],
+    },
+  } = subscription;
 
   return (
-    <div
-      className={cn([
-        "h-full p-8 flex flex-col justify-center gap-6 bg-white",
-        !removeBorder && "border border-neutral-200 rounded-lg",
-        className,
-      ])}
-    >
-      <div className="flex flex-col gap-4">
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">{plan.name}</h3>
-          <p className="text-sm text-neutral-600">{plan.description}</p>
-        </div>
-
-        <ul className="space-y-3">
-          {plan.features.map((feature) => (
-            <li
-              key={feature}
-              className="flex items-start gap-2 text-sm text-neutral-700"
-            >
-              <Check size={16} className="mt-0.5 text-emerald-500 shrink-0" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-
-        <p className="text-xl font-semibold">
-          {plan.price}{" "}
-          {plan.priceSuffix && (
-            <span className="text-sm text-neutral-500 font-light">
-              {plan.priceSuffix}
-            </span>
-          )}
-        </p>
-
-        <PlanActions
-          planId={plan.id}
-          currentPlan={currentPlan}
-          onChangePlan={onChangePlan}
-          onContactSales={onContactSales}
-          isCurrent={isCurrent}
-        />
-      </div>
+    <div className="flex flex-row gap-1 text-xs text-neutral-600">
+      <span className="capitalize">{status}:</span>
+      <span>{new Date(current_period_start * 1000).toLocaleDateString()}</span>
+      <span>~</span>
+      <span>{new Date(current_period_end * 1000).toLocaleDateString()}</span>
     </div>
   );
 }
 
-function PlanActions({
-  planId,
-  currentPlan,
-  onChangePlan,
-  onContactSales,
-  isCurrent,
+function Container({
+  title,
+  description,
+  action,
+  children,
 }: {
-  planId: PlanId;
-  currentPlan: PlanId;
-  onChangePlan: (plan: PlanId) => void;
-  onContactSales: () => void;
-  isCurrent: boolean;
-}) {
-  if (isCurrent) {
-    return (
-      <Button variant="outline" disabled className="w-full">
-        Current Plan
-      </Button>
-    );
-  }
-
-  if (planId === "free") {
-    return (
-      <Button
-        variant="outline"
-        onClick={() => onChangePlan("free")}
-        className="w-full"
-      >
-        Downgrade to Free
-      </Button>
-    );
-  }
-
-  if (planId === "pro") {
-    if (currentPlan === "free") {
-      return (
-        <Button onClick={() => onChangePlan("pro")} className="w-full">
-          Upgrade to Pro
-        </Button>
-      );
-    }
-
-    return (
-      <Button
-        variant="outline"
-        onClick={() => onChangePlan("pro")}
-        className="w-full"
-      >
-        Downgrade to Pro
-      </Button>
-    );
-  }
-
-  return (
-    <Button onClick={onContactSales} className="w-full">
-      Contact Us
-    </Button>
-  );
-}
-
-type PlanId = "free" | "pro";
-
-interface BillingPlan {
-  id: PlanId;
-  name: string;
+  title: string;
   description: string;
-  price: string;
-  priceSuffix?: string;
-  features: string[];
+  action?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <section className="bg-neutral-50 p-4 rounded-lg flex flex-col gap-4">
+      <div className="flex flex-row items-center justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-md font-semibold">{title}</h1>
+          <p className="text-sm text-neutral-600">{description}</p>
+        </div>
+        {action ? <div className="flex-shrink-0">{action}</div> : null}
+      </div>
+      {children}
+    </section>
+  );
 }
-
-const PLANS: BillingPlan[] = [
-  {
-    id: "free",
-    name: "Free",
-    description: "Get started with local transcription and essential exports.",
-    price: "$0",
-    priceSuffix: "per month",
-    features: [
-      "Local transcription with BYOK intelligence",
-      "Copy and PDF sharing",
-      "Community support",
-    ],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    description: "Unlock cloud enhancements and org-ready workflows.",
-    price: "$19",
-    priceSuffix: "per seat / month",
-    features: [
-      "Local + cloud transcription",
-      "Shareable links with viewer permissions",
-      "Unified billing and access controls",
-    ],
-  },
-];

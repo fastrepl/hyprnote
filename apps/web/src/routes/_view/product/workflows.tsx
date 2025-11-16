@@ -1,8 +1,9 @@
-import { Image } from "@/components/image";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
+
+import { Image } from "@/components/image";
 
 export const Route = createFileRoute("/_view/product/workflows")({
   component: Component,

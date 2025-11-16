@@ -1,7 +1,8 @@
-import { getSupabaseServerClient } from "@/functions/supabase";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
+
+import { getSupabaseServerClient } from "@/functions/supabase";
 
 const validateSearch = z.object({
   code: z.string().optional(),

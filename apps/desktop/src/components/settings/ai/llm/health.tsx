@@ -2,11 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { generateText } from "ai";
 import { useEffect, useMemo } from "react";
 
+import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
 import * as main from "../../../../store/tinybase/main";
 import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
-import { PROVIDERS } from "./shared";
+import { llmProviderRequiresPro, PROVIDERS } from "./shared";
 
 export function HealthCheckForConnection() {
   const health = useConnectionHealth();
@@ -85,6 +86,7 @@ function useAvailability() {
     "current_llm_provider",
     "current_llm_model",
   ] as const);
+  const billing = useBillingAccess();
 
   const configuredProviders = main.UI.useResultTable(
     main.QUERIES.llmProviders,
@@ -106,11 +108,12 @@ function useAvailability() {
       };
     }
 
-    if (!configuredProviders[current_llm_provider]?.base_url) {
+    if (llmProviderRequiresPro(current_llm_provider) && !billing.isPro) {
       return {
         available: false,
-        message:
-          "Provider not configured. Please configure the provider below.",
+        message: billing.isLoading
+          ? "Checking plan access for this provider..."
+          : "Upgrade to Pro to use this provider.",
       };
     }
 

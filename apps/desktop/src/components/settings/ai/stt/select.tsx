@@ -11,6 +11,7 @@ import {
 } from "@hypr/ui/components/ui/select";
 import { cn } from "@hypr/utils";
 
+import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/main";
 import { HealthCheckForConnection } from "./health";
@@ -26,6 +27,7 @@ export function SelectProviderAndModel() {
     "current_stt_provider",
     "current_stt_model",
   ] as const);
+  const billing = useBillingAccess();
   const configuredProviders = useConfiguredMapping();
 
   const handleSelectProvider = main.UI.useSetValueCallback(
@@ -97,24 +99,37 @@ export function SelectProviderAndModel() {
                   </SelectTrigger>
                   <SelectContent>
                     {PROVIDERS.filter(({ disabled }) => !disabled).map(
-                      (provider) => (
-                        <SelectItem
-                          key={provider.id}
-                          value={provider.id}
-                          disabled={
-                            provider.disabled ||
-                            !(
-                              configuredProviders[provider.id]?.configured ??
-                              false
-                            )
-                          }
-                        >
-                          <div className="flex items-center gap-2">
-                            {provider.icon}
-                            <span>{provider.displayName}</span>
-                          </div>
-                        </SelectItem>
-                      ),
+                      (provider) => {
+                        const configured =
+                          configuredProviders[provider.id]?.configured ?? false;
+                        const locked = provider.requiresPro && !billing.isPro;
+                        return (
+                          <SelectItem
+                            key={provider.id}
+                            value={provider.id}
+                            disabled={
+                              provider.disabled || !configured || locked
+                            }
+                          >
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center gap-2">
+                                {provider.icon}
+                                <span>{provider.displayName}</span>
+                                {provider.requiresPro ? (
+                                  <span className="text-[10px] uppercase tracking-wide text-neutral-500 border border-neutral-200 rounded-full px-2 py-0.5">
+                                    Pro
+                                  </span>
+                                ) : null}
+                              </div>
+                              {locked ? (
+                                <span className="text-[11px] text-neutral-500">
+                                  Upgrade to Pro to use this provider.
+                                </span>
+                              ) : null}
+                            </div>
+                          </SelectItem>
+                        );
+                      },
                     )}
                   </SelectContent>
                 </Select>
@@ -146,6 +161,9 @@ export function SelectProviderAndModel() {
 
               const allModels = configuredProviders?.[providerId]?.models ?? [];
               const models = allModels.filter((model) => {
+                if (model.id === "cloud") {
+                  return true;
+                }
                 if (model.id.startsWith("Quantized")) {
                   return model.isDownloaded;
                 }
@@ -195,6 +213,7 @@ function useConfiguredMapping(): Record<
     models: Array<{ id: string; isDownloaded: boolean }>;
   }
 > {
+  const billing = useBillingAccess();
   const configuredProviders = main.UI.useResultTable(
     main.QUERIES.sttProviders,
     main.STORE_ID,
@@ -211,12 +230,17 @@ function useConfiguredMapping(): Record<
 
   return Object.fromEntries(
     PROVIDERS.map((provider) => {
+      if (provider.requiresPro && !billing.isPro) {
+        return [provider.id, { configured: false, models: [] }];
+      }
+
       if (provider.id === "hyprnote") {
         return [
           provider.id,
           {
             configured: true,
             models: [
+              { id: "cloud", isDownloaded: billing.isPro },
               { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
               { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
               { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },

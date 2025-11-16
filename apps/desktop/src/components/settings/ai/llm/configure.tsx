@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
+import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
@@ -204,16 +205,29 @@ function HyprProviderCard({
 }
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
+  const { isPro, upgradeToPro } = useBillingAccess();
+
   const content =
     providerId === "hyprnote"
-      ? "The Hyprnote team continuously tests different models to provide the **best performance & reliability.**"
+      ? "We continuously test models to provide the **best performance & reliability.**"
       : providerId === "lmstudio"
         ? "- Ensure LM Studio server is **running.** (Default port is 1234)\n- Enable **CORS** in LM Studio config."
         : providerId === "custom"
-          ? "We only support **OpenAI compatible** endpoints for now."
+          ? "We only support **OpenAI-compatible** endpoints for now."
           : providerId === "openrouter"
             ? "We filter out models from the combobox based on heuristics like **input modalities** and **tool support**."
             : "";
+
+  if (providerId === "hyprnote" && !isPro) {
+    return (
+      <div className="flex flex-row justify-between items-center gap-2">
+        <StyledStreamdown>{content}</StyledStreamdown>
+        <Button size="sm" variant="default" onClick={upgradeToPro}>
+          Upgrade to Pro
+        </Button>
+      </div>
+    );
+  }
 
   if (!content) {
     return null;

@@ -117,14 +117,6 @@ function useAvailability() {
       };
     }
 
-    if (!configuredProviders[current_llm_provider]?.base_url) {
-      return {
-        available: false,
-        message:
-          "Provider not configured. Please configure the provider below.",
-      };
-    }
-
     return { available: true };
   }, [current_llm_provider, current_llm_model, configuredProviders]);
 

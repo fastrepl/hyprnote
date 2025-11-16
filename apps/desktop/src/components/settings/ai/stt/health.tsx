@@ -19,11 +19,15 @@ export function HealthCheckForConnection() {
 
 function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
   const { conn, local } = useSTTConnection();
-  const { current_stt_provider } = useConfigValues([
+  const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
+    "current_stt_model",
   ] as const);
 
-  if (current_stt_provider !== "hyprnote") {
+  const isCloud =
+    current_stt_provider === "hyprnote" || current_stt_model === "cloud";
+
+  if (isCloud) {
     return conn
       ? { status: "success" }
       : { status: "error", tooltip: "Provider not configured." };

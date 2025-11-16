@@ -3,10 +3,13 @@ import { useMemo } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 
+import { useAuth } from "../auth";
 import { ProviderId } from "../components/settings/ai/stt/shared";
+import { env } from "../env";
 import * as main from "../store/tinybase/main";
 
 export const useSTTConnection = () => {
+  const auth = useAuth();
   const { current_stt_provider, current_stt_model } = main.UI.useValues(
     main.STORE_ID,
   ) as {
@@ -25,6 +28,9 @@ export const useSTTConnection = () => {
     !!current_stt_model &&
     (current_stt_model.startsWith("am-") ||
       current_stt_model.startsWith("Quantized"));
+
+  const isCloudModel =
+    current_stt_provider === "hyprnote" && current_stt_model === "cloud";
 
   const local = useQuery({
     enabled: current_stt_provider === "hyprnote",
@@ -77,6 +83,19 @@ export const useSTTConnection = () => {
       return local.data?.connection ?? null;
     }
 
+    if (isCloudModel) {
+      if (!auth?.session) {
+        return null;
+      }
+
+      return {
+        provider: current_stt_provider,
+        model: current_stt_model,
+        baseUrl: `${env.VITE_API_URL}`,
+        apiKey: auth.session.access_token,
+      };
+    }
+
     if (!baseUrl || !apiKey) {
       return null;
     }
@@ -91,9 +110,11 @@ export const useSTTConnection = () => {
     current_stt_provider,
     current_stt_model,
     isLocalModel,
+    isCloudModel,
     local.data,
     baseUrl,
     apiKey,
+    auth,
   ]);
 
   return {

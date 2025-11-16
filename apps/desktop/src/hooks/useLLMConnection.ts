@@ -121,18 +121,15 @@ const useLLMConnection = (): {
     );
 
     if (providerId === "hyprnote") {
-      if (!auth?.session || !env.VITE_SUPABASE_URL) {
+      if (!auth?.session) {
         return null;
       }
-
-      const baseUrl = `${env.VITE_SUPABASE_URL}${providerDefinition?.baseUrl || ""}`;
-      const apiKey = auth.session.access_token;
 
       return {
         providerId,
         modelId: current_llm_model,
-        baseUrl,
-        apiKey,
+        baseUrl: `${env.VITE_API_URL}`,
+        apiKey: auth.session.access_token,
       };
     }
 

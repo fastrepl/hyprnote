@@ -1,5 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { createContext, type ReactNode, useContext, useMemo } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+} from "react";
 import type Stripe from "stripe";
 
 import { useAuth } from "./auth";
@@ -26,6 +33,7 @@ type BillingContextValue = {
   isError: boolean;
   error: unknown;
   refetch: () => Promise<unknown>;
+  upgradeToPro: () => void;
 };
 
 export type BillingAccess = BillingContextValue;
@@ -76,6 +84,10 @@ export function BillingProvider({ children }: { children: ReactNode }) {
 
   const data = queryData ?? null;
 
+  const upgradeToPro = useCallback(() => {
+    openUrl(`${env.VITE_APP_URL}/app/checkout?period=monthly`);
+  }, [auth]);
+
   const value = useMemo<BillingContextValue>(
     () => ({
       data,
@@ -87,6 +99,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
       isError,
       error,
       refetch: () => refetch(),
+      upgradeToPro,
     }),
     [
       data,
@@ -97,6 +110,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
       isPending,
       isRefetching,
       refetch,
+      upgradeToPro,
     ],
   );
 

@@ -36,6 +36,10 @@ type LanguageSupportMap = {
 };
 
 export const displayModelId = (model: string) => {
+  if (model === "cloud") {
+    return "Cloud";
+  }
+
   if (model.startsWith("am-")) {
     const am = model as AmModel;
     if (am == "am-parakeet-v2") {
@@ -67,11 +71,12 @@ export const PROVIDERS = [
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     baseUrl: "https://api.hyprnote.com/v1",
     models: [
+      "cloud",
       "am-parakeet-v2",
       "am-parakeet-v3",
       "QuantizedTinyEn",
       "QuantizedSmallEn",
-    ] satisfies SupportedSttModel[],
+    ],
     requiresPro: false,
   },
   {

@@ -239,8 +239,30 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
 }
 
 function HyprProviderCloudRow() {
-  const billing = useBillingAccess();
-  const locked = !billing.isPro;
+  const { isPro, upgradeToPro } = useBillingAccess();
+
+  const handleSelectProvider = main.UI.useSetValueCallback(
+    "current_stt_provider",
+    (provider: string) => provider,
+    [],
+    main.STORE_ID,
+  );
+
+  const handleSelectModel = main.UI.useSetValueCallback(
+    "current_stt_model",
+    (model: string) => model,
+    [],
+    main.STORE_ID,
+  );
+
+  const handleClick = useCallback(() => {
+    if (!isPro) {
+      upgradeToPro();
+    } else {
+      handleSelectProvider("hyprnote");
+      handleSelectModel("cloud");
+    }
+  }, [isPro, upgradeToPro, handleSelectProvider, handleSelectModel]);
 
   return (
     <HyprProviderRow>
@@ -252,12 +274,13 @@ function HyprProviderCloudRow() {
           </span>
         </div>
         <Button
+          onClick={handleClick}
           className="w-[110px]"
           size="sm"
           variant="default"
-          disabled={true}
+          disabled={!isPro}
         >
-          {locked ? "For Pro Users" : "Coming soon"}
+          {isPro ? "Ready to use" : "Pro users only"}
         </Button>
       </div>
     </HyprProviderRow>

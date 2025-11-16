@@ -161,6 +161,9 @@ export function SelectProviderAndModel() {
 
               const allModels = configuredProviders?.[providerId]?.models ?? [];
               const models = allModels.filter((model) => {
+                if (model.id === "cloud") {
+                  return true;
+                }
                 if (model.id.startsWith("Quantized")) {
                   return model.isDownloaded;
                 }
@@ -237,6 +240,7 @@ function useConfiguredMapping(): Record<
           {
             configured: true,
             models: [
+              { id: "cloud", isDownloaded: billing.isPro },
               { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
               { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
               { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },

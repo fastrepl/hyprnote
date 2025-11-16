@@ -88,8 +88,12 @@ export function SelectProviderAndModel() {
           <form.Field
             name="provider"
             listeners={{
-              onChange: () => {
-                form.setFieldValue("model", "");
+              onChange: ({ value }) => {
+                if (value === "hyprnote") {
+                  form.setFieldValue("model", "Auto");
+                } else {
+                  form.setFieldValue("model", "");
+                }
               },
             }}
           >
@@ -116,11 +120,6 @@ export function SelectProviderAndModel() {
                             <div className="flex items-center gap-2">
                               {provider.icon}
                               <span>{provider.displayName}</span>
-                              {provider.requiresPro ? (
-                                <span className="text-[10px] uppercase tracking-wide text-neutral-500 border border-neutral-200 rounded-full px-2 py-0.5">
-                                  Pro
-                                </span>
-                              ) : null}
                             </div>
                             {locked ? (
                               <span className="text-[11px] text-neutral-500">

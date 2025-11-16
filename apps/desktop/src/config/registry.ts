@@ -91,13 +91,16 @@ export const CONFIG_REGISTRY = {
     key: "current_stt_provider",
     default: undefined,
     sideEffect: async (_value: string | undefined, getConfig) => {
-      const provider = getConfig("current_stt_provider");
-      const model = getConfig("current_stt_model") as
-        | SupportedSttModel
-        | undefined;
+      const provider = getConfig("current_stt_provider") as string | undefined;
+      const model = getConfig("current_stt_model") as string | undefined;
 
-      if (provider === "hyprnote" && model) {
-        await localSttCommands.startServer(model);
+      if (
+        provider === "hyprnote" &&
+        model &&
+        model !== "cloud" &&
+        (model.startsWith("am-") || model.startsWith("Quantized"))
+      ) {
+        await localSttCommands.startServer(model as SupportedSttModel);
       }
     },
   },
@@ -106,13 +109,16 @@ export const CONFIG_REGISTRY = {
     key: "current_stt_model",
     default: undefined,
     sideEffect: async (_value: string | undefined, getConfig) => {
-      const provider = getConfig("current_stt_provider");
-      const model = getConfig("current_stt_model") as
-        | SupportedSttModel
-        | undefined;
+      const provider = getConfig("current_stt_provider") as string | undefined;
+      const model = getConfig("current_stt_model") as string | undefined;
 
-      if (provider === "hyprnote" && model) {
-        await localSttCommands.startServer(model);
+      if (
+        provider === "hyprnote" &&
+        model &&
+        model !== "cloud" &&
+        (model.startsWith("am-") || model.startsWith("Quantized"))
+      ) {
+        await localSttCommands.startServer(model as SupportedSttModel);
       }
     },
   },

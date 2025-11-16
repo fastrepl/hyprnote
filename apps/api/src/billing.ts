@@ -35,9 +35,6 @@ export async function syncBillingState(customerId: string) {
   const userId = getUserIdFromCustomer(customer);
 
   if (!userId) {
-    console.warn(
-      `[STRIPE SYNC] Missing user id metadata for customer ${customer.id}`,
-    );
     return;
   }
 
@@ -71,14 +68,8 @@ export async function syncBillingState(customerId: string) {
     .upsert(payload, { onConflict: "user_id" });
 
   if (error) {
-    throw new Error(
-      `[STRIPE SYNC] Failed to sync billing for user ${userId}: ${error.message}`,
-    );
+    throw error;
   }
-
-  console.log(
-    `[STRIPE SYNC] Synced billing for user ${userId} (customer ${customer.id})`,
-  );
 }
 
 export async function syncBillingForStripeEvent(event: Stripe.Event) {
@@ -89,9 +80,6 @@ export async function syncBillingForStripeEvent(event: Stripe.Event) {
   const customerId = getCustomerId(event.data.object);
 
   if (!customerId) {
-    console.warn(
-      `[STRIPE WEBHOOK] Missing customer id for event ${event.type}`,
-    );
     return;
   }
 

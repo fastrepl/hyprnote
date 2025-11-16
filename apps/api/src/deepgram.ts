@@ -365,8 +365,9 @@ export const buildDeepgramUrl = (incomingUrl: URL) => {
   const target = new URL("wss://api.deepgram.com/v1/listen");
 
   incomingUrl.searchParams.forEach((value, key) => {
-    target.searchParams.append(key, value);
+    target.searchParams.set(key, value);
   });
+  target.searchParams.set("model", "nova-3-general");
   target.searchParams.set("mip_opt_out", "false");
 
   return target;

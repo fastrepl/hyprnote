@@ -1,4 +1,24 @@
+import { renderToMarkdown } from "@tiptap/static-renderer/pm/markdown";
+import { generateJSON as tiptapGenerateJSON, type JSONContent } from "@tiptap/react";
 import TurndownService from "turndown";
+
+import { extensions, markdownExtensions } from "./extensions";
+
+// Re-export types and functions for convenience
+export type { JSONContent };
+export { tiptapGenerateJSON as generateJSON };
+
+/**
+ * Empty Tiptap document constant
+ * Use this for initializing empty documents consistently across the codebase
+ */
+export const EMPTY_TIPTAP_DOC: JSONContent = { type: "doc", content: [] };
+
+/**
+ * Stringified empty Tiptap document
+ * Use this when storing empty documents as strings
+ */
+export const EMPTY_TIPTAP_DOC_STRING = JSON.stringify(EMPTY_TIPTAP_DOC);
 
 const turndown = new TurndownService({ headingStyle: "atx" });
 
@@ -54,4 +74,44 @@ turndown.addRule("taskItem", {
 
 export function html2md(html: string) {
   return turndown.turndown(html);
+}
+
+/**
+ * Converts markdown string to Tiptap JSON
+ * @param markdown - Markdown string
+ * @returns Tiptap JSON content
+ */
+export function md2json(markdown: string): JSONContent {
+  return tiptapGenerateJSON(markdown, markdownExtensions);
+}
+
+/**
+ * Converts Tiptap JSON content to markdown string
+ * @param jsonContent - Tiptap JSON content or stringified JSON
+ * @returns Markdown string
+ */
+export function json2md(jsonContent: JSONContent | string): string {
+  try {
+    // Handle empty or null input
+    if (!jsonContent) {
+      return "";
+    }
+
+    const content =
+      typeof jsonContent === "string" ? JSON.parse(jsonContent) : jsonContent;
+
+    // Validate that we have a valid Tiptap document structure
+    if (!content || typeof content !== "object" || content.type !== "doc") {
+      console.error("Invalid Tiptap document structure:", content);
+      return "";
+    }
+
+    return renderToMarkdown({
+      extensions,
+      content,
+    });
+  } catch (error) {
+    console.error("Failed to convert JSON to markdown:", error, jsonContent);
+    return "";
+  }
 }

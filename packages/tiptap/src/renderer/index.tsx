@@ -1,6 +1,6 @@
 import {
   EditorContent,
-  type HTMLContent,
+  type JSONContent,
   type Editor as TiptapEditor,
   useEditor,
 } from "@tiptap/react";
@@ -11,7 +11,7 @@ import * as shared from "../shared";
 import { mentionReadonly } from "./mention-readonly";
 
 interface RendererProps {
-  initialContent: HTMLContent;
+  initialContent: JSONContent;
 }
 
 const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
@@ -37,10 +37,7 @@ const Renderer = forwardRef<{ editor: TiptapEditor | null }, RendererProps>(
 
     useEffect(() => {
       if (editor) {
-        editor.commands.setContent(initialContent, {
-          contentType: "markdown",
-          parseOptions: { preserveWhitespace: "full" },
-        });
+        editor.commands.setContent(initialContent);
       }
     }, [editor, initialContent]);
 

@@ -1,7 +1,22 @@
 import { faker } from "@faker-js/faker";
 
+import { EMPTY_TIPTAP_DOC_STRING, md2json } from "@hypr/tiptap/shared";
+
 import type { SessionStorage } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
+
+/**
+ * Converts markdown string to JSON string for storage
+ */
+const markdownToJsonString = (markdown: string): string => {
+  try {
+    const json = md2json(markdown);
+    return JSON.stringify(json);
+  } catch (error) {
+    console.error("Failed to convert markdown to JSON:", error);
+    return EMPTY_TIPTAP_DOC_STRING;
+  }
+};
 
 export const generateTitle = () => {
   const lengthConfig = faker.helpers.weightedArrayElement([
@@ -42,19 +57,19 @@ export const createSession = (
   folderId?: string,
 ): { id: string; data: SessionStorage } => {
   const title = generateTitle();
-  const raw_md = faker.lorem.paragraphs(
+  const raw_md_markdown = faker.lorem.paragraphs(
     faker.number.int({ min: 2, max: 5 }),
     "\n\n",
   );
-  const enhanced_md = generateEnhancedMarkdown();
+  const enhanced_md_markdown = generateEnhancedMarkdown();
 
   return {
     id: id(),
     data: {
       user_id: DEFAULT_USER_ID,
       title,
-      raw_md,
-      enhanced_md,
+      raw_md: markdownToJsonString(raw_md_markdown),
+      enhanced_md: markdownToJsonString(enhanced_md_markdown),
       created_at: faker.date.recent({ days: 30 }).toISOString(),
       event_id: eventId,
       folder_id: folderId,

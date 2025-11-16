@@ -4,6 +4,7 @@ import Link from "@tiptap/extension-link";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import Underline from "@tiptap/extension-underline";
+import { Markdown } from "@tiptap/markdown";
 import StarterKit from "@tiptap/starter-kit";
 
 import { AIHighlight } from "../ai-highlight";
@@ -15,6 +16,60 @@ import { Placeholder, type PlaceholderFunction } from "./placeholder";
 import { SearchAndReplace } from "./search-and-replace";
 
 export type { PlaceholderFunction };
+
+// Extensions for parsing markdown (includes Markdown extension)
+export const markdownExtensions = [
+  StarterKit.configure({
+    heading: { levels: [1, 2, 3] },
+    underline: false,
+    link: false,
+    listKeymap: false,
+  }),
+  Image,
+  Underline,
+  Hashtag,
+  Link.configure({
+    openOnClick: true,
+    defaultProtocol: "https",
+    protocols: ["http", "https"],
+    isAllowedUri: (url, ctx) => {
+      try {
+        const parsedUrl = url.includes(":")
+          ? new URL(url)
+          : new URL(`${ctx.defaultProtocol}://${url}`);
+
+        if (!ctx.defaultValidate(parsedUrl.href)) {
+          return false;
+        }
+
+        const disallowedProtocols = ["ftp", "file", "mailto"];
+        const protocol = parsedUrl.protocol.replace(":", "");
+
+        if (disallowedProtocols.includes(protocol)) {
+          return false;
+        }
+
+        const allowedProtocols = ctx.protocols.map((p) =>
+          typeof p === "string" ? p : p.scheme,
+        );
+
+        if (!allowedProtocols.includes(protocol)) {
+          return false;
+        }
+
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    shouldAutoLink: (url) =>
+      url.startsWith("https://") || url.startsWith("http://"),
+  }),
+  TaskList,
+  TaskItem.configure({ nested: true }),
+  Highlight,
+  Markdown,
+];
 
 export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
   // https://tiptap.dev/docs/editor/extensions/functionality/starterkit

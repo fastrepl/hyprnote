@@ -1,7 +1,6 @@
-import { Markdown } from "@tiptap/markdown";
 import {
   EditorContent,
-  type HTMLContent,
+  type JSONContent,
   type Editor as TiptapEditor,
   useEditor,
 } from "@tiptap/react";
@@ -17,8 +16,8 @@ import { mention, type MentionConfig } from "./mention";
 export type { TiptapEditor };
 
 interface EditorProps {
-  handleChange?: (content: HTMLContent) => void;
-  initialContent?: HTMLContent;
+  handleChange?: (content: JSONContent) => void;
+  initialContent?: JSONContent;
   editable?: boolean;
   setContentFromOutside?: boolean;
   mentionConfig: MentionConfig;
@@ -37,7 +36,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     },
     ref,
   ) => {
-    const previousContentRef = useRef<HTMLContent>(initialContent);
+    const previousContentRef = useRef<JSONContent>(initialContent);
 
     const onUpdate = useDebounceCallback(
       ({ editor }: { editor: TiptapEditor }) => {
@@ -46,7 +45,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         }
 
         requestIdleCallback(() => {
-          const content = editor.getMarkdown();
+          const content = editor.getJSON();
           handleChange(content);
         });
       },
@@ -57,7 +56,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       () => [
         ...shared.getExtensions(placeholderComponent),
         mention(mentionConfig),
-        Markdown,
       ],
       [mentionConfig, placeholderComponent],
     );
@@ -102,8 +100,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       {
         extensions,
         editable,
-        contentType: "markdown",
-        content: initialContent || "",
+        content: initialContent || undefined,
         onCreate: ({ editor }) => {
           editor.view.dom.setAttribute("spellcheck", "false");
           editor.view.dom.setAttribute("autocomplete", "off");
@@ -112,7 +109,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         onUpdate,
         immediatelyRender: true,
         shouldRerenderOnTransaction: false,
-        parseOptions: { preserveWhitespace: "full" },
         editorProps,
       },
       [extensions],
@@ -141,10 +137,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           }
         } else if (!editor.isFocused) {
           if (initialContent) {
-            editor.commands.setContent(initialContent, {
-              contentType: "markdown",
-              parseOptions: { preserveWhitespace: "full" },
-            });
+            editor.commands.setContent(initialContent);
           }
         }
       }

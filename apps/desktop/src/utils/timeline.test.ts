@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
+import { EMPTY_TIPTAP_DOC_STRING } from "@hypr/tiptap/shared";
+
 import {
   buildTimelineBuckets,
   type EventsWithoutSessionTable,
@@ -65,16 +67,16 @@ describe("timeline utils", () => {
         event_id: "event-1",
         event_started_at: "2024-01-18T12:00:00.000Z",
         user_id: "user-1",
-        raw_md: "",
-        enhanced_md: "",
+        raw_md: EMPTY_TIPTAP_DOC_STRING,
+        enhanced_md: EMPTY_TIPTAP_DOC_STRING,
         transcript: { words: [] },
       },
       "session-2": {
         title: "Standalone Session",
         created_at: "2024-01-14T12:00:00.000Z",
         user_id: "user-1",
-        raw_md: "",
-        enhanced_md: "",
+        raw_md: EMPTY_TIPTAP_DOC_STRING,
+        enhanced_md: EMPTY_TIPTAP_DOC_STRING,
         transcript: { words: [] },
       },
     };
@@ -122,8 +124,8 @@ describe("timeline utils", () => {
         event_id: "event-past",
         event_started_at: "2024-01-10T10:00:00.000Z",
         user_id: "user-1",
-        raw_md: "",
-        enhanced_md: "",
+        raw_md: EMPTY_TIPTAP_DOC_STRING,
+        enhanced_md: EMPTY_TIPTAP_DOC_STRING,
         transcript: { words: [] },
       },
     };
@@ -157,16 +159,16 @@ describe("timeline utils", () => {
         created_at: "2024-01-10T12:00:00.000Z",
         event_started_at: "2024-01-16T09:00:00.000Z",
         user_id: "user-1",
-        raw_md: "",
-        enhanced_md: "",
+        raw_md: EMPTY_TIPTAP_DOC_STRING,
+        enhanced_md: EMPTY_TIPTAP_DOC_STRING,
         transcript: { words: [] },
       },
       "session-past": {
         title: "Past Session",
         created_at: "2024-01-14T09:00:00.000Z",
         user_id: "user-1",
-        raw_md: "",
-        enhanced_md: "",
+        raw_md: EMPTY_TIPTAP_DOC_STRING,
+        enhanced_md: EMPTY_TIPTAP_DOC_STRING,
         transcript: { words: [] },
       },
     };

@@ -2,6 +2,7 @@ import { AlertCircleIcon, RefreshCcwIcon, SparklesIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { generateJSON, markdownExtensions } from "@hypr/tiptap/shared";
 import {
   Popover,
   PopoverContent,
@@ -280,41 +281,64 @@ export function useEditorTabs({
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const hasTranscript = useHasTranscript(sessionId);
 
+  // Query all enhanced notes for this session
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    sessionId,
+    main.STORE_ID,
+  );
+
   if (sessionMode === "running_active" || sessionMode === "running_batch") {
-    return ["raw", "transcript"];
+    return [{ type: "raw" }, { type: "transcript" }];
   }
+
+  const tabs: EditorView[] = [];
+
+  // Add multiple enhanced tabs
+  enhancedNoteIds.forEach((enhancedNoteId) => {
+    tabs.push({ type: "enhanced", enhancedNoteId });
+  });
+
+  tabs.push({ type: "raw" });
 
   if (hasTranscript) {
-    return ["enhanced", "raw", "transcript"];
+    tabs.push({ type: "transcript" });
   }
 
-  return ["raw"];
+  return tabs;
 }
 
 function labelForEditorView(view: EditorView): string {
-  if (view === "enhanced") {
-    return "Summary";
-  }
-  if (view === "raw") {
+  if (view.type === "raw") {
     return "Memos";
   }
-  if (view === "transcript") {
+  if (view.type === "transcript") {
     return "Transcript";
   }
+  // Enhanced tabs will use their own component with custom title
   return "";
 }
 
-function useEnhanceLogic(sessionId: string) {
+function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
   const model = useLanguageModel();
-  const taskId = createTaskId(sessionId, "enhance");
+  const taskId = createTaskId(enhancedNoteId, "enhance");
   const [missingModelError, setMissingModelError] = useState<Error | null>(
     null,
   );
 
-  const updateEnhancedMd = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (input: string) => ({ enhanced_md: input }),
+  const updateEnhancedNote = main.UI.useSetPartialRowCallback(
+    "enhanced_notes",
+    enhancedNoteId,
+    (input: string) => {
+      // Convert markdown text to Tiptap JSON
+      try {
+        const jsonContent = generateJSON(input, markdownExtensions);
+        return { content: JSON.stringify(jsonContent) };
+      } catch (error) {
+        console.error("Failed to convert markdown to JSON:", error);
+        return { content: "" };
+      }
+    },
     [],
     main.STORE_ID,
   );

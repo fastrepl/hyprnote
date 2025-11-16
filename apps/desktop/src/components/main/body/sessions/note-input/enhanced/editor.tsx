@@ -1,7 +1,8 @@
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 
 import { TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
+import { type JSONContent } from "@hypr/tiptap/shared";
 
 import * as main from "../../../../../../store/tinybase/main";
 
@@ -10,19 +11,37 @@ export const EnhancedEditor = forwardRef<
   { sessionId: string }
 >(({ sessionId }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
-  const [initialContent, setInitialContent] = useState<string>("");
+  const loadedNoteIdRef = useRef<string | null>(null);
+  const [initialContent, setInitialContent] = useState<JSONContent | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
-    if (store) {
-      const value = store.getCell("sessions", sessionId, "enhanced_md");
-      setInitialContent((value as string) || "");
+    // Only load content once per enhanced note to avoid overwriting user changes
+    if (store && loadedNoteIdRef.current !== enhancedNoteId) {
+      const value = store.getCell("enhanced_notes", enhancedNoteId, "content");
+      if (value) {
+        try {
+          const jsonContent =
+            typeof value === "string" ? JSON.parse(value) : value;
+          setInitialContent(jsonContent);
+          loadedNoteIdRef.current = enhancedNoteId;
+        } catch (error) {
+          console.error(`[EnhancedEditor] Failed to parse enhanced note content JSON for note ${enhancedNoteId}:`, error);
+          setInitialContent(undefined);
+          loadedNoteIdRef.current = enhancedNoteId;
+        }
+      } else {
+        setInitialContent(undefined);
+        loadedNoteIdRef.current = enhancedNoteId;
+      }
     }
-  }, [store, sessionId]);
+  }, [store, enhancedNoteId]);
 
   const handleChange = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (input: string) => ({ enhanced_md: input }),
+    "enhanced_notes",
+    enhancedNoteId,
+    (input: JSONContent) => ({ content: JSON.stringify(input) }),
     [],
     main.STORE_ID,
   );

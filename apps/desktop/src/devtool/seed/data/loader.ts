@@ -1,11 +1,26 @@
 import type { Tables } from "tinybase/with-schemas";
 
+import { EMPTY_TIPTAP_DOC_STRING, md2json } from "@hypr/tiptap/shared";
+
 import type { Schemas } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 import { type CuratedData, CuratedDataSchema } from "./schema";
 
 export type { CuratedData };
 export { CuratedDataSchema };
+
+/**
+ * Converts markdown string to JSON string for storage
+ */
+const markdownToJsonString = (markdown: string): string => {
+  try {
+    const json = md2json(markdown);
+    return JSON.stringify(json);
+  } catch (error) {
+    console.error("Failed to convert markdown to JSON:", error);
+    return EMPTY_TIPTAP_DOC_STRING;
+  }
+};
 
 export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const organizations: Tables<Schemas[0]>["organizations"] = {};
@@ -133,8 +148,8 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     sessions[sessionId] = {
       user_id: DEFAULT_USER_ID,
       title: session.title,
-      raw_md: session.raw_md,
-      enhanced_md: session.enhanced_md,
+      raw_md: markdownToJsonString(session.raw_md),
+      enhanced_md: markdownToJsonString(session.enhanced_md),
       created_at: new Date().toISOString(),
       event_id: eventId,
       folder_id: folderId,

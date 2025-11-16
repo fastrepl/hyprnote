@@ -36,6 +36,7 @@
     "@tiptap/pm": "^3.10.2",
     "@tiptap/react": "^3.10.2",
     "@tiptap/starter-kit": "^3.10.2",
+    "@tiptap/static-renderer": "^3.10.2",
     "@tiptap/suggestion": "^3.10.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",

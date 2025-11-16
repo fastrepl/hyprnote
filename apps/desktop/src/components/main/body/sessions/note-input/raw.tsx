@@ -1,7 +1,7 @@
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 
 import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
-import type { PlaceholderFunction } from "@hypr/tiptap/shared";
+import { type JSONContent, type PlaceholderFunction } from "@hypr/tiptap/shared";
 
 import * as main from "../../../../../store/tinybase/main";
 
@@ -10,20 +10,38 @@ export const RawEditor = forwardRef<
   { sessionId: string }
 >(({ sessionId }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
+  const loadedSessionIdRef = useRef<string | null>(null);
 
-  const [initialContent, setInitialContent] = useState<string>("");
+  const [initialContent, setInitialContent] = useState<JSONContent | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
-    if (store) {
+    // Only load content once per session to avoid overwriting user changes
+    if (store && loadedSessionIdRef.current !== sessionId) {
       const value = store.getCell("sessions", sessionId, "raw_md");
-      setInitialContent((value as string) || "");
+      if (value) {
+        try {
+          const jsonContent =
+            typeof value === "string" ? JSON.parse(value) : value;
+          setInitialContent(jsonContent);
+          loadedSessionIdRef.current = sessionId;
+        } catch (error) {
+          console.error(`[RawEditor] Failed to parse raw_md JSON for session ${sessionId}:`, error);
+          setInitialContent(undefined);
+          loadedSessionIdRef.current = sessionId;
+        }
+      } else {
+        setInitialContent(undefined);
+        loadedSessionIdRef.current = sessionId;
+      }
     }
   }, [store, sessionId]);
 
   const handleChange = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
-    (input: string) => ({ raw_md: input }),
+    (input: JSONContent) => ({ raw_md: JSON.stringify(input) }),
     [],
     main.STORE_ID,
   );

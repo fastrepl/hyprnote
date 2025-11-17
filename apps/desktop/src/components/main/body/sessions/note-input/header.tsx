@@ -293,9 +293,8 @@ export function useEditorTabs({
 
   const tabs: EditorView[] = [];
 
-  // Add multiple enhanced tabs
-  enhancedNoteIds.forEach((enhancedNoteId) => {
-    tabs.push({ type: "enhanced", enhancedNoteId });
+  enhancedNoteIds.forEach((id) => {
+    tabs.push({ type: "enhanced", id });
   });
 
   tabs.push({ type: "raw" });

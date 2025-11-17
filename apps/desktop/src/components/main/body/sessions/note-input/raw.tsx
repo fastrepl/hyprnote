@@ -1,7 +1,10 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 
 import NoteEditor, { type TiptapEditor } from "@hypr/tiptap/editor";
-import { type JSONContent, type PlaceholderFunction } from "@hypr/tiptap/shared";
+import {
+  type JSONContent,
+  type PlaceholderFunction,
+} from "@hypr/tiptap/shared";
 
 import * as main from "../../../../../store/tinybase/main";
 
@@ -27,7 +30,10 @@ export const RawEditor = forwardRef<
           setInitialContent(jsonContent);
           loadedSessionIdRef.current = sessionId;
         } catch (error) {
-          console.error(`[RawEditor] Failed to parse raw_md JSON for session ${sessionId}:`, error);
+          console.error(
+            `[RawEditor] Failed to parse raw_md JSON for session ${sessionId}:`,
+            error,
+          );
           setInitialContent(undefined);
           loadedSessionIdRef.current = sessionId;
         }

@@ -133,65 +133,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           });
         }
 
-        // One-time migration: Convert markdown strings to Tiptap JSON
-        const migrationVersion = store.getValue("data_migration_version") as number | undefined;
-        if (!migrationVersion || migrationVersion < 1) {
-          console.log("[Store] Running data migration v1: markdown to JSON");
-
-          const sessionIds = store.getRowIds("sessions");
-          let migratedCount = 0;
-
-          sessionIds.forEach((sessionId) => {
-            const session = store.getRow("sessions", sessionId);
-            let needsUpdate = false;
-            const updates: Record<string, string> = {};
-
-            // Migrate raw_md if it's markdown (doesn't start with '{')
-            if (session.raw_md && typeof session.raw_md === "string") {
-              if (!session.raw_md.startsWith("{")) {
-                try {
-                  const jsonContent = md2json(session.raw_md);
-                  updates.raw_md = JSON.stringify(jsonContent);
-                  needsUpdate = true;
-                  console.log(`[Store] Migrated raw_md for session ${sessionId}`);
-                } catch (error) {
-                  console.error(
-                    `[Store] Failed to migrate raw_md for session ${sessionId}:`,
-                    error,
-                  );
-                  // Keep the original data if migration fails
-                }
-              }
-            }
-
-            // Migrate enhanced_md if it's markdown (doesn't start with '{')
-            if (session.enhanced_md && typeof session.enhanced_md === "string") {
-              if (!session.enhanced_md.startsWith("{")) {
-                try {
-                  const jsonContent = md2json(session.enhanced_md);
-                  updates.enhanced_md = JSON.stringify(jsonContent);
-                  needsUpdate = true;
-                  console.log(`[Store] Migrated enhanced_md for session ${sessionId}`);
-                } catch (error) {
-                  console.error(
-                    `[Store] Failed to migrate enhanced_md for session ${sessionId}:`,
-                    error,
-                  );
-                  // Keep the original data if migration fails
-                }
-              }
-            }
-
-            if (needsUpdate) {
-              store.setPartialRow("sessions", sessionId, updates);
-              migratedCount++;
-            }
-          });
-
-          console.log(`[Store] Migration v1 complete: ${migratedCount} sessions migrated`);
-          store.setValue("data_migration_version", 1);
-        }
-
         if (
           !store.getTableIds().includes("sessions") ||
           store.getRowIds("sessions").length === 0
@@ -230,13 +171,9 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         store as Store,
         async (session, markdownContent) => {
           if (markdownContent) {
-            await writeTextFile(
-              `sessions/${session.id}.md`,
-              markdownContent,
-              {
-                baseDir: BaseDirectory.AppData,
-              },
-            );
+            await writeTextFile(`sessions/${session.id}.md`, markdownContent, {
+              baseDir: BaseDirectory.AppData,
+            });
           }
         },
       );

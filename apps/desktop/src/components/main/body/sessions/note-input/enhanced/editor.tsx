@@ -27,7 +27,10 @@ export const EnhancedEditor = forwardRef<
           setInitialContent(jsonContent);
           loadedNoteIdRef.current = enhancedNoteId;
         } catch (error) {
-          console.error(`[EnhancedEditor] Failed to parse enhanced note content JSON for note ${enhancedNoteId}:`, error);
+          console.error(
+            `[EnhancedEditor] Failed to parse enhanced note content JSON for note ${enhancedNoteId}:`,
+            error,
+          );
           setInitialContent(undefined);
           loadedNoteIdRef.current = enhancedNoteId;
         }

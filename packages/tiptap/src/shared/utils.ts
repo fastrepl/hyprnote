@@ -1,5 +1,8 @@
+import {
+  type JSONContent,
+  generateJSON as tiptapGenerateJSON,
+} from "@tiptap/react";
 import { renderToMarkdown } from "@tiptap/static-renderer/pm/markdown";
-import { generateJSON as tiptapGenerateJSON, type JSONContent } from "@tiptap/react";
 import TurndownService from "turndown";
 
 import { extensions, markdownExtensions } from "./extensions";

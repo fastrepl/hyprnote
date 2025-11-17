@@ -35,7 +35,11 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
             if (typeof session.enhanced_md === "string") {
               // Try to parse to validate it's valid JSON
               const parsed = JSON.parse(session.enhanced_md);
-              if (parsed && typeof parsed === "object" && parsed.type === "doc") {
+              if (
+                parsed &&
+                typeof parsed === "object" &&
+                parsed.type === "doc"
+              ) {
                 markdownContent = json2md(session.enhanced_md);
               } else {
                 console.error(

@@ -797,7 +797,16 @@ function HowItWorksSection() {
                       setEnhancedLines(3);
                       setTimeout(() => {
                         setEnhancedLines(4);
-                        setTimeout(() => runAnimation(), 1000);
+                        setTimeout(() => {
+                          setEnhancedLines(5);
+                          setTimeout(() => {
+                            setEnhancedLines(6);
+                            setTimeout(() => {
+                              setEnhancedLines(7);
+                              setTimeout(() => runAnimation(), 1000);
+                            }, 800);
+                          }, 800);
+                        }, 800);
                       }, 800);
                     }, 800);
                   }, 800);
@@ -876,7 +885,7 @@ function HowItWorksSection() {
                     <li
                       className={cn(
                         "transition-opacity duration-500",
-                        enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                        enhancedLines >= 2 ? "opacity-100" : "opacity-0",
                       )}
                     >
                       Sarah presented the new mobile UI update, which includes a
@@ -886,7 +895,7 @@ function HowItWorksSection() {
                     <li
                       className={cn([
                         "transition-opacity duration-500",
-                        enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                        enhancedLines >= 3 ? "opacity-100" : "opacity-0",
                       ])}
                     >
                       Ben confirmed that API adjustments are needed to support
@@ -896,7 +905,7 @@ function HowItWorksSection() {
                     <li
                       className={cn([
                         "transition-opacity duration-500",
-                        enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
                       ])}
                     >
                       The UI update will be implemented in phases, starting with
@@ -909,7 +918,7 @@ function HowItWorksSection() {
                   <h4
                     className={cn([
                       "font-semibold text-stone-700 transition-opacity duration-500",
-                      enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                      enhancedLines >= 5 ? "opacity-100" : "opacity-0",
                     ])}
                   >
                     New Dashboard – Urgent Priority
@@ -918,7 +927,7 @@ function HowItWorksSection() {
                     <li
                       className={cn([
                         "transition-opacity duration-500",
-                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                        enhancedLines >= 6 ? "opacity-100" : "opacity-0",
                       ])}
                     >
                       Alice emphasized that the new analytics dashboard must be
@@ -927,7 +936,7 @@ function HowItWorksSection() {
                     <li
                       className={cn([
                         "transition-opacity duration-500",
-                        enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                        enhancedLines >= 7 ? "opacity-100" : "opacity-0",
                       ])}
                     >
                       The new dashboard will feature real-time user engagement

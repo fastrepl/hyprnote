@@ -49,7 +49,11 @@ pub trait LocalSttPluginExt<R: Runtime> {
 
 impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     fn models_dir(&self) -> PathBuf {
-        self.path().app_data_dir().unwrap().join("stt")
+        dirs::data_dir()
+            .unwrap()
+            .join("hyprnote")
+            .join("models")
+            .join("stt")
     }
 
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend> {
@@ -132,7 +136,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 start_internal_server(&supervisor, cache_dir, whisper_model).await
             }
             ServerType::External => {
-                let data_dir = self.app_handle().path().app_data_dir().unwrap().join("stt");
+                let data_dir = dirs::data_dir()
+                    .unwrap()
+                    .join("hyprnote")
+                    .join("models")
+                    .join("stt");
                 let am_model = match model {
                     SupportedSttModel::Am(m) => m,
                     _ => return Err(crate::Error::UnsupportedModelType),

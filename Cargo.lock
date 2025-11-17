@@ -14786,28 +14786,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-mcp"
-version = "0.1.0"
-dependencies = [
- "serde",
- "specta",
- "specta-typescript",
- "strum 0.26.3",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-store",
- "tauri-plugin-store2",
- "tauri-specta",
- "thiserror 2.0.17",
- "tokio",
-]
-
-[[package]]
 name = "tauri-plugin-misc"
 version = "0.1.0"
 dependencies = [
  "audio-utils",
  "buffer",
+ "dirs 6.0.0",
  "host",
  "indoc",
  "lazy_static",

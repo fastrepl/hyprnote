@@ -24,6 +24,7 @@ tauri = { workspace = true, features = ["test"] }
 tauri-plugin-opener = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+dirs = { workspace = true }
 lazy_static = { workspace = true }
 regex = { workspace = true }
 rodio = { workspace = true, features = ["wav"] }

@@ -16,8 +16,8 @@ mod tests {
     async fn test_service() -> Result<(), Box<dyn std::error::Error>> {
         let model_path = dirs::data_dir()
             .unwrap()
-            .join("com.hyprnote.dev")
-            .join("stt/ggml-small-q8_0.bin");
+            .join("hyprnote")
+            .join("models/stt/ggml-small-q8_0.bin");
 
         let service = HandleError::new(
             TranscribeService::builder().model_path(model_path).build(),

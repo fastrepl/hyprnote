@@ -48,7 +48,11 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
     }
 
     fn models_dir(&self) -> PathBuf {
-        self.path().app_data_dir().unwrap().join("ttt")
+        dirs::data_dir()
+            .unwrap()
+            .join("hyprnote")
+            .join("models")
+            .join("llm")
     }
 
     #[tracing::instrument(skip_all)]

@@ -10,8 +10,8 @@ if pgrep -q "Hyprnote"; then
     exit 1
 fi
 
-STABLE_DIR="$HOME/Library/Application Support/com.hyprnote.stable"
-NIGHTLY_DIR="$HOME/Library/Application Support/com.hyprnote.nightly"
+STABLE_DIR="$HOME/Library/Application Support/hyprnote"
+NIGHTLY_DIR="$HOME/Library/Application Support/hyprnote"
 TEMP_DIR=$(mktemp -d)
 
 if [[ ! -d "$STABLE_DIR" ]]; then

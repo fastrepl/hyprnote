@@ -46,15 +46,15 @@ impl ModelConfig {
 }
 
 pub fn models_dir() -> std::path::PathBuf {
-    dirs::cache_dir().unwrap().join("com.fastrepl.owhisper")
+    dirs::cache_dir().unwrap().join("owhisper")
 }
 
 pub fn data_dir() -> std::path::PathBuf {
-    dirs::data_dir().unwrap().join("com.fastrepl.owhisper")
+    dirs::data_dir().unwrap().join("owhisper")
 }
 
 pub fn config_dir() -> std::path::PathBuf {
-    dirs::config_dir().unwrap().join("com.fastrepl.owhisper")
+    dirs::config_dir().unwrap().join("owhisper")
 }
 
 pub fn global_config_path() -> std::path::PathBuf {

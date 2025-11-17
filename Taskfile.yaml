@@ -75,7 +75,7 @@ tasks:
 
   db:
     env:
-      DB: /Users/yujonglee/Library/Application Support/com.hyprnote.nightly/db.sqlite
+      DB: /Users/yujonglee/Library/Application Support/hyprnote/db.sqlite
     cmds:
       - |
           sqlite3 -json "$DB" 'SELECT store FROM main LIMIT 1;' |

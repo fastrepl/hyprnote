@@ -101,14 +101,18 @@ export function useConfigSideEffects() {
         configs[key] !== undefined ? configs[key] : definition.default;
 
       try {
-        (
+        const result = (
           definition.sideEffect as (
             value: unknown,
             getConfig: GetConfigFn,
           ) => void | Promise<void>
         )(storedValue, getConfig);
+
+        Promise.resolve(result).catch((error) => {
+          console.error("Side effect error:", error);
+        });
       } catch (error) {
-        console.error(error);
+        console.error("Side effect error:", error);
       }
     }
   }

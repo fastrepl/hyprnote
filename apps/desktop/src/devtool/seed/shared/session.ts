@@ -1,5 +1,7 @@
 import { faker } from "@faker-js/faker";
 
+import { md2json } from "@hypr/tiptap/shared";
+
 import type { SessionStorage } from "../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../utils";
 
@@ -53,8 +55,8 @@ export const createSession = (
     data: {
       user_id: DEFAULT_USER_ID,
       title,
-      raw_md,
-      enhanced_md,
+      raw_md: JSON.stringify(md2json(raw_md)),
+      enhanced_md: JSON.stringify(md2json(enhanced_md)),
       created_at: faker.date.recent({ days: 30 }).toISOString(),
       event_id: eventId,
       folder_id: folderId,

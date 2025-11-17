@@ -88,7 +88,19 @@
     "template:default",
     "notification:default",
     "shell:allow-open",
-    "shell:allow-execute",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "exec-sh",
+          "cmd": "sh",
+          "args": [
+            "-c",
+            { "validator": ".+" }
+          ]
+        }
+      ]
+    },
     "misc:default",
     "os:default",
     "detect:default",

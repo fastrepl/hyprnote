@@ -5,6 +5,7 @@ alwaysApply: true
 # Formatting
 
 - Format using `dprint fmt` from the root. Do not use `cargo fmt`.
+- Run it after you make changes.
 
 # Typescript
 

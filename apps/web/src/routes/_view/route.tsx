@@ -91,11 +91,11 @@ function Header() {
 
   return (
     <>
-      <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50">
+      <header className="sticky top-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 z-50 h-[69px]">
         <div
-          className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 py-4`}
+          className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between h-full">
             <div className="hidden sm:flex items-center gap-5">
               <Link
                 to="/"
@@ -170,7 +170,7 @@ function Header() {
               </div>
               <Link
                 to="/docs"
-                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+                className="hidden md:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
               >
                 Docs
               </Link>
@@ -188,7 +188,7 @@ function Header() {
               </Link>
               <Link
                 to="/enterprise"
-                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+                className="hidden md:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
               >
                 Enterprise
               </Link>
@@ -235,16 +235,16 @@ function Header() {
                 <a
                   href="/download/apple-silicon"
                   download
-                  className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
+                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
                 >
                   {platformCTA.label}
                 </a>
               ) : (
                 <button
                   onClick={handleCTAClick}
-                  className="px-3 h-8 flex items-center text-xs bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
+                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
                 >
-                  {platform === "mobile" ? "Remind me" : platformCTA.label}
+                  {platformCTA.label}
                 </button>
               )}
               <button

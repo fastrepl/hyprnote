@@ -1,0 +1,353 @@
+# XDG Base Directory Migration Plan (macOS)
+
+## Overview
+Migrate from bundle-specific directories (`com.hyprnote.{stable,nightly,dev}`) to shared `hyprnote` directories, allowing all app variants to share the same data. **macOS only** - follows macOS conventions aligned with XDG principles.
+
+## Current vs New Structure
+
+### Current (Bundle-Specific)
+```
+~/Library/Application Support/com.hyprnote.{bundle}/
+├── db.sqlite                 # User database
+├── store.json               # App state/config
+├── stt/*.bin                # STT models
+├── ttt/*.gguf               # LLM models
+├── {session-id}/audio.*     # Session recordings
+└── logs/                    # Application logs
+```
+
+### New (Shared, No Bundle Prefix)
+```
+~/Library/Application Support/hyprnote/     # Data (persistent)
+├── db.sqlite
+├── models/
+│   ├── stt/*.bin
+│   └── llm/*.gguf
+└── sessions/{session-id}/audio.*
+
+~/Library/Preferences/hyprnote/             # Config (optional, or keep in AppSupport)
+└── config.json                             # Renamed from store.json
+
+~/Library/Logs/hyprnote/                    # Logs (can be deleted by user/system)
+```
+
+**Note on Cache**: No separate cache directory needed. Models are downloaded by user and should persist in Application Support, not in Caches (which macOS can purge).
+
+## Code Changes Required
+
+### 1. Core Path Infrastructure (NEW - Optional)
+**Create**: `apps/desktop/src-tauri/src/paths.rs`
+```rust
+// Centralized path helper (optional but recommended)
+pub fn data_dir() -> PathBuf {
+    dirs::data_dir().unwrap().join("hyprnote")
+}
+
+pub fn config_dir() -> PathBuf {
+    dirs::config_dir().unwrap().join("hyprnote")
+    // Or keep in data_dir for simplicity
+}
+
+pub fn logs_dir() -> PathBuf {
+    dirs::home_dir().unwrap()
+        .join("Library/Logs/hyprnote")
+}
+
+pub fn database_file() -> PathBuf {
+    data_dir().join("db.sqlite")
+}
+
+pub fn models_dir() -> PathBuf {
+    data_dir().join("models")
+}
+
+pub fn stt_models_dir() -> PathBuf {
+    models_dir().join("stt")
+}
+
+pub fn llm_models_dir() -> PathBuf {
+    models_dir().join("llm")
+}
+
+pub fn sessions_dir() -> PathBuf {
+    data_dir().join("sessions")
+}
+```
+
+### 2. Replace `app.path().app_data_dir()` Pattern
+
+#### Database (2 files)
+- **`plugins/db/src/ext.rs:40`**
+  ```rust
+  // OLD: let dir = app.path().app_data_dir()?;
+  // NEW:
+  let dir = dirs::data_dir()
+      .ok_or(...)?
+      .join("hyprnote");
+  std::fs::create_dir_all(&dir)?;
+  dir.join("db.sqlite")
+  ```
+
+- **`plugins/db2/src/ext.rs:30-31`** → Same pattern
+
+#### STT Models (2 files)
+- **`plugins/local-stt/src/ext.rs:52`**
+  ```rust
+  // OLD: self.path().app_data_dir().unwrap().join("stt")
+  // NEW:
+  dirs::data_dir().unwrap()
+      .join("hyprnote")
+      .join("models")
+      .join("stt")
+  ```
+
+- **`plugins/local-stt/src/ext.rs:135`** → Same pattern
+
+#### LLM Models (2 files)
+- **`plugins/local-llm/src/ext/plugin.rs:51`**
+  ```rust
+  // OLD: self.path().app_data_dir().unwrap().join("ttt")
+  // NEW:
+  dirs::data_dir().unwrap()
+      .join("hyprnote")
+      .join("models")
+      .join("llm")
+  ```
+
+- **`plugins/local-llm/src/lib.rs:72`** → Same pattern
+
+#### Session Audio (1 file, 6 functions)
+- **`plugins/misc/src/commands.rs:39, 58, 91, 124, 142, 158`**
+  ```rust
+  // OLD: let data_dir = app.path().app_data_dir().unwrap();
+  //      let session_dir = data_dir.join(session_id);
+  // NEW:
+  let data_dir = dirs::data_dir().unwrap()
+      .join("hyprnote")
+      .join("sessions");
+  let session_dir = data_dir.join(session_id);
+  ```
+
+#### Logs (1 file)
+- **`plugins/tracing/src/ext.rs:9-12`**
+  ```rust
+  // OLD: fn logs_dir(&self, bundle_id: impl Into<String>) -> Result<PathBuf> {
+  //          let base_dir = dirs::data_dir().unwrap();
+  //          let logs_dir = base_dir.join(bundle_id.into()).join("logs");
+  // NEW:
+  fn logs_dir(&self) -> Result<PathBuf> {
+      let logs_dir = dirs::home_dir().unwrap()
+          .join("Library/Logs/hyprnote");
+      std::fs::create_dir_all(&logs_dir)?;
+      Ok(logs_dir)
+  }
+  // Remove bundle_id parameter from function signature
+  ```
+
+#### Store/Config (3 locations)
+- **`plugins/store2/src/ext.rs`**
+  ```rust
+  // Update STORE_FILENAME path resolution
+  // Store in data dir for simplicity:
+  dirs::data_dir().unwrap()
+      .join("hyprnote")
+      .join("config.json")  // Or keep as "store.json"
+  ```
+
+- **`plugins/auth/src/store.rs:18`** → Use same path as store2
+
+- **`apps/desktop/src-tauri/src/lib.rs:70`**
+  ```rust
+  // Configure tauri-plugin-store2 with custom path if needed
+  .plugin(tauri_plugin_store2::Builder::new()
+      .path(/* custom path */)
+      .build())
+  ```
+
+#### Other Plugins (1 file)
+- **`plugins/listener/src/actors/controller.rs:282`**
+  ```rust
+  // OLD: app_dir: state.app.path().app_data_dir().unwrap(),
+  // NEW:
+  app_dir: dirs::data_dir().unwrap().join("hyprnote"),
+  ```
+
+#### owhisper Integration (1 file, 3 functions)
+- **`owhisper/owhisper-config/src/lib.rs:49, 53, 57`**
+  ```rust
+  // OLD: dirs::cache_dir().unwrap().join("com.fastrepl.owhisper")
+  // NEW: dirs::cache_dir().unwrap().join("owhisper")
+
+  // OLD: dirs::data_dir().unwrap().join("com.fastrepl.owhisper")
+  // NEW: dirs::data_dir().unwrap().join("owhisper")
+
+  // OLD: dirs::config_dir().unwrap().join("com.fastrepl.owhisper")
+  // NEW: dirs::config_dir().unwrap().join("owhisper")
+  ```
+
+### 3. Test Files (4 files)
+Replace `com.hyprnote.dev` → `hyprnote`:
+- **`crates/llama/src/lib.rs:442-445`**
+- **`crates/gguf/src/lib.rs:164-167`**
+- **`crates/transcribe-whisper-local/src/lib.rs:17-20`**
+- **`owhisper/owhisper-server/src/server.rs:385-387`**
+
+### 4. Scripts (3 files)
+- **`scripts/info.sh:8-16`**
+  ```bash
+  # OLD: "$HOME/Library/Application Support/com.hyprnote.stable"
+  # NEW: "$HOME/Library/Application Support/hyprnote"
+  ```
+
+- **`scripts/swap.sh:13-14`**
+  ```bash
+  # OLD: STABLE_DIR="$HOME/Library/Application Support/com.hyprnote.stable"
+  # NEW: STABLE_DIR="$HOME/Library/Application Support/hyprnote"
+  ```
+
+- **`Taskfile.yaml:78`**
+  ```yaml
+  # OLD: DB: /Users/.../com.hyprnote.nightly/db.sqlite
+  # NEW: DB: /Users/.../hyprnote/db.sqlite
+  ```
+
+### 5. Frontend (1 file)
+- **`apps/desktop/src/routes/__root.tsx:46`**
+  ```typescript
+  // OLD: ["com.hyprnote.dev", "com.hyprnote.staging"].includes(appIdentifier ?? "")
+  // NEW: Use environment variable or build flag instead of bundle ID check
+  ```
+
+### 6. Detection/Permissions (4 files)
+- **`plugins/detect/src/handler.rs:67-69`** - Update bundle ID list if needed
+- **`crates/tcc/src/lib.rs:66, 73`** - Update test bundle IDs
+- **`plugins/analytics/src/lib.rs:72`** - Update identifier if needed
+- **`plugins/local-llm/src/lib.rs:138`** - Update identifier if needed
+
+## Migration Strategy
+
+### User Data Migration (Run on First Launch)
+```rust
+async fn migrate_from_bundle_dirs(app: &AppHandle) -> Result<()> {
+    let bundle_id = app.config().identifier; // e.g., "com.hyprnote.stable"
+
+    let old_dir = dirs::data_dir()
+        .ok_or(...)?
+        .join(bundle_id);
+
+    let new_dir = dirs::data_dir()
+        .ok_or(...)?
+        .join("hyprnote");
+
+    if old_dir.exists() && !new_dir.exists() {
+        // Move entire directory
+        std::fs::rename(&old_dir, &new_dir)?;
+
+        // Reorganize internal structure:
+        // - Move stt/*.bin → models/stt/*.bin
+        // - Move ttt/*.gguf → models/llm/*.gguf
+        // - Move {session-id}/ → sessions/{session-id}/
+        // - Move store.json → config.json (optional rename)
+    }
+
+    Ok(())
+}
+```
+
+### Migration Checklist
+- [ ] Detect existing bundle-specific directories
+- [ ] Move/rename entire directory structure
+- [ ] Reorganize models: `stt/` → `models/stt/`, `ttt/` → `models/llm/`
+- [ ] Reorganize sessions: `{session-id}/` → `sessions/{session-id}/`
+- [ ] Optionally rename `store.json` → `config.json`
+- [ ] Move logs to `~/Library/Logs/hyprnote/`
+- [ ] Clean up old directories (optional, after verification)
+- [ ] Log migration success/failure
+
+## Testing Checklist
+- [ ] Fresh install creates correct structure
+- [ ] Upgrade from `com.hyprnote.stable` migrates data
+- [ ] Upgrade from `com.hyprnote.nightly` migrates data
+- [ ] Both stable and nightly can coexist and share data
+- [ ] Database loads from new location
+- [ ] STT models load from `models/stt/`
+- [ ] LLM models load from `models/llm/`
+- [ ] Session recordings save/load from `sessions/`
+- [ ] Logs write to `~/Library/Logs/hyprnote/`
+- [ ] Config persists correctly
+- [ ] macOS TCC permissions work correctly
+
+## Files Summary (27 locations)
+
+**Rust Core** (15 files):
+1. Database: `plugins/db/src/ext.rs`, `plugins/db2/src/ext.rs`
+2. Models: `plugins/local-stt/src/ext.rs` (2 locations), `plugins/local-llm/src/ext/plugin.rs`, `plugins/local-llm/src/lib.rs`
+3. Sessions: `plugins/misc/src/commands.rs` (6 functions)
+4. Logs: `plugins/tracing/src/ext.rs`
+5. Config: `plugins/store2/src/ext.rs`, `plugins/auth/src/store.rs`, `apps/desktop/src-tauri/src/lib.rs`
+6. Other: `plugins/listener/src/actors/controller.rs`
+7. owhisper: `owhisper/owhisper-config/src/lib.rs` (3 functions)
+
+**Tests** (4 files):
+- `crates/llama/src/lib.rs`
+- `crates/gguf/src/lib.rs`
+- `crates/transcribe-whisper-local/src/lib.rs`
+- `owhisper/owhisper-server/src/server.rs`
+
+**Scripts** (3 files):
+- `scripts/info.sh`
+- `scripts/swap.sh`
+- `Taskfile.yaml`
+
+**Frontend** (1 file):
+- `apps/desktop/src/routes/__root.tsx`
+
+**Config/Detection** (4 files):
+- `plugins/detect/src/handler.rs`
+- `crates/tcc/src/lib.rs`
+- `plugins/analytics/src/lib.rs`
+- `plugins/local-llm/src/lib.rs`
+
+## macOS Directory Structure (Final)
+
+```
+~/Library/Application Support/hyprnote/
+├── db.sqlite                      # User database
+├── config.json                    # App config (was store.json)
+├── models/                        # Downloaded models (NOT in cache)
+│   ├── stt/
+│   │   └── *.bin
+│   └── llm/
+│       └── *.gguf
+└── sessions/                      # Session recordings
+    └── {session-id}/
+        ├── audio.wav
+        └── audio.ogg
+
+~/Library/Logs/hyprnote/           # Application logs
+```
+
+## Benefits
+✓ All app variants (stable/nightly/dev) share data
+✓ Follows macOS conventions
+✓ Clear organization with `models/` and `sessions/` subdirectories
+✓ Models persist in Application Support (not cache)
+✓ Easier backup (all data in one location)
+✓ Simpler mental model for users
+
+## Risks & Mitigation
+- **Risk**: Migration fails, user loses data
+  **Mitigation**: Use `fs::rename()` (atomic on same filesystem), log errors, keep backups
+
+- **Risk**: macOS TCC permissions issues
+  **Mitigation**: Test thoroughly with existing permissions, handle errors gracefully
+
+- **Risk**: Breaking existing installations
+  **Mitigation**: Staged rollout, version checks, clear migration logs
+
+## Documentation Updates
+- [ ] User docs: Update data location references
+- [ ] Developer docs: Document new path structure
+- [ ] Changelog: Add migration notes
+- [ ] Release notes: Warn users about data location changes
+- [ ] Support docs: Add manual migration instructions

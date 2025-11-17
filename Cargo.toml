@@ -116,7 +116,6 @@ tauri-plugin-detect = { path = "plugins/detect" }
 tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }
-tauri-plugin-mcp = { path = "plugins/mcp" }
 tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-notification = { path = "plugins/notification" }
 tauri-plugin-permissions = { path = "plugins/permissions" }
@@ -238,7 +237,6 @@ objc2-core-foundation = "0.3"
 objc2-foundation = "0.3"
 objc2-user-notifications = "0.3"
 
-rmcp = "0.5.0"
 tokenizers = "0.21.4"
 
 swift-rs = { git = "https://github.com/Brendonovich/swift-rs", rev = "01980f9" }

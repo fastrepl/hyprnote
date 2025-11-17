@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use tauri::Manager;
 use tauri_plugin_opener::OpenerExt;
 
 use crate::audio::import_audio;

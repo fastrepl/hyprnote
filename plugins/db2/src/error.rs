@@ -8,6 +8,8 @@ pub enum Error {
     HyprDbError(#[from] hypr_db_core::Error),
     #[error(transparent)]
     TauriError(#[from] tauri::Error),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
 }
 
 impl Serialize for Error {

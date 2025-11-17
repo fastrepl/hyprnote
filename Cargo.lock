@@ -14515,6 +14515,7 @@ version = "0.1.0"
 dependencies = [
  "db-core",
  "db-user",
+ "dirs 6.0.0",
  "owhisper-interface",
  "schemars 0.8.22",
  "serde",
@@ -14535,6 +14536,7 @@ name = "tauri-plugin-db2"
 version = "0.1.0"
 dependencies = [
  "db-core",
+ "dirs 6.0.0",
  "futures-util",
  "serde",
  "serde_json",

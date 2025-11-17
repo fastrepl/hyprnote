@@ -78,12 +78,10 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="min-h-screen max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <MobileHeader />
-
         <div className="flex gap-6">
           <TableOfContents toc={article.toc} />
 
-          <main className="flex-1 min-w-0 pb-6 lg:py-6">
+          <main className="flex-1 min-w-0 pb-6 px-4 lg:px-0 lg:py-6">
             <CoverImage
               article={article}
               hasCoverImage={hasCoverImage}
@@ -101,22 +99,6 @@ function Component() {
         </div>
 
         <MobileCTA />
-      </div>
-    </div>
-  );
-}
-
-function MobileHeader() {
-  return (
-    <div className="lg:hidden border-b border-neutral-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-      <div className="px-4 py-4">
-        <Link
-          to="/blog"
-          className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-        >
-          <span>←</span>
-          <span>Back to blog</span>
-        </Link>
       </div>
     </div>
   );
@@ -216,7 +198,7 @@ function TableOfContents({
       <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto px-2 pt-6 pb-18 scrollbar-hide">
         <Link
           to="/blog"
-          className="mx-2 inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8 font-serif"
+          className="mx-2 inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-4 font-serif"
         >
           <Icon icon="mdi:arrow-left" className="text-base" />
           <span>Back to blog</span>
@@ -237,7 +219,7 @@ function TableOfContents({
 function ArticleHeader({ article }: { article: any }) {
   return (
     <header className="mb-8 lg:mb-12">
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 mb-4">
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-600 mb-4">
         {article.title}
       </h1>
       <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed mb-6">
@@ -290,7 +272,7 @@ function CoverImage({
   }
 
   return (
-    <div className="mb-8 lg:mb-12 -mx-4 sm:mx-0">
+    <div className="mb-8 lg:mb-12 -mx-4 sm:mx-0 pt-6 lg:pt-0">
       <Image
         src={article.coverImage}
         alt={article.title}
@@ -310,7 +292,7 @@ function CoverImage({
 
 function ArticleContent({ article }: { article: any }) {
   return (
-    <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-4xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-xl prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
+    <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
       <MDXContent
         code={article.mdx}
         components={{
@@ -359,12 +341,20 @@ function ArticleFooter() {
 function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
   return (
     <aside className="hidden sm:block w-80 shrink-0">
-      <div className="sticky top-[65px] space-y-4 px-4 py-6">
+      <div className="sticky top-[69px] space-y-4 px-4 py-6">
         {relatedArticles.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-4">
-              More articles
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider">
+                Recent articles
+              </h3>
+              <Link
+                to="/blog"
+                className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+              >
+                See more
+              </Link>
+            </div>
             <div className="space-y-4">
               {relatedArticles.map((related) => (
                 <RelatedArticleCard key={related.slug} article={related} />
@@ -373,7 +363,7 @@ function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
           </div>
         )}
 
-        <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white p-4">
+        <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-4">
           <h3 className="font-serif text-base text-stone-600 mb-4">
             Learn more about Hyprnote directly from the founders
           </h3>

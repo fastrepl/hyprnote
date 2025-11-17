@@ -11,9 +11,9 @@ if [ -d "$HOME/Library/Application Support/hyprnote" ]; then
     fi
 fi
 
-if [ -d "$HOME/Library/Application Support/hyprnote" ]; then
-    if [ -f "$HOME/Library/Application Support/hyprnote/store.json" ]; then
-        nightly_user_id=$(jq -r '."auth-user-id" // empty' "$HOME/Library/Application Support/hyprnote/store.json")
+if [ -d "$HOME/Library/Application Support/hyprnote-nightly" ]; then
+    if [ -f "$HOME/Library/Application Support/hyprnote-nightly/store.json" ]; then
+        nightly_user_id=$(jq -r '."auth-user-id" // empty' "$HOME/Library/Application Support/hyprnote-nightly/store.json")
     fi
 fi
 

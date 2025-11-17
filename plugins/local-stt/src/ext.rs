@@ -136,11 +136,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 start_internal_server(&supervisor, cache_dir, whisper_model).await
             }
             ServerType::External => {
-                let data_dir = dirs::data_dir()
-                    .unwrap()
-                    .join("hyprnote")
-                    .join("models")
-                    .join("stt");
+                let data_dir = self.models_dir();
                 let am_model = match model {
                     SupportedSttModel::Am(m) => m,
                     _ => return Err(crate::Error::UnsupportedModelType),

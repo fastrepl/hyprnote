@@ -1,5 +1,4 @@
 import { MDXContent } from "@content-collections/mdx/react";
-import { Icon } from "@iconify-icon/react";
 import { Link } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 
@@ -26,15 +25,13 @@ export function DocLayout({
 }) {
   return (
     <>
-      <main className="lg:col-span-6 xl:col-span-6 px-4 py-6">
+      <main className="flex-1 min-w-0 px-4 py-6">
         <ArticleHeader doc={doc} showSectionTitle={showSectionTitle} />
         <ArticleContent doc={doc} />
         <ArticleFooter />
       </main>
 
       <RightSidebar toc={doc.toc} />
-
-      <MobileCTA />
     </>
   );
 }
@@ -61,7 +58,7 @@ function ArticleHeader({
           <span>{sectionTitle}</span>
         </div>
       )}
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 mb-4">
+      <h1 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-4">
         {doc.title}
       </h1>
       {doc.summary && (
@@ -104,7 +101,7 @@ function ArticleHeader({
 
 function ArticleContent({ doc }: { doc: any }) {
   return (
-    <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-4xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-xl prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:my-8 max-w-none">
+    <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:my-8 max-w-none">
       <MDXContent
         code={doc.mdx}
         components={{
@@ -195,7 +192,7 @@ function RightSidebar({
   toc: Array<{ id: string; text: string; level: number }>;
 }) {
   return (
-    <aside className="hidden lg:block lg:col-span-3">
+    <aside className="hidden lg:block w-64 shrink-0">
       <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto space-y-6 px-4 py-6">
         {toc.length > 0 && (
           <nav className="space-y-1">
@@ -240,26 +237,5 @@ function RightSidebar({
         </div>
       </div>
     </aside>
-  );
-}
-
-function MobileCTA() {
-  return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 border-t border-neutral-200 bg-white/95 backdrop-blur-sm p-4 z-20">
-      <a
-        href="/founders"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={cn([
-          "group px-4 h-12 flex items-center justify-center text-base w-full",
-          "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
-          "hover:scale-[102%] active:scale-[98%]",
-          "transition-all",
-        ])}
-      >
-        Book a call with us
-        <Icon icon="mdi:calendar" className="ml-2 text-xl" />
-      </a>
-    </div>
   );
 }

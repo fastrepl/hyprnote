@@ -5,5 +5,5 @@ export const Route = createFileRoute("/_view/security")({
 });
 
 function RouteComponent() {
-  return <div>Hello "/_view/product/security"!</div>;
+  return <div>Hello "/_view/security"!</div>;
 }

@@ -4,6 +4,7 @@ import type {
   Calendar,
   ChatGroup,
   ChatMessageStorage,
+  EnhancedNoteStorage,
   Event,
   Folder,
   Human,
@@ -20,6 +21,7 @@ import type {
 import { DEFAULT_USER_ID, id } from "../../../utils";
 import { createCalendar } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";
+import { createEnhancedNote } from "./enhanced-note";
 import { createEvent } from "./event";
 import { createFolder } from "./folder";
 import { createHuman } from "./human";
@@ -401,4 +403,33 @@ export const buildMemories = (
   }
 
   return memories;
+};
+
+export const buildEnhancedNotesForSessions = (
+  sessionIds: string[],
+  templateIds: string[],
+  options: {
+    notesPerSession?: { min: number; max: number };
+    templateProbability?: number;
+  } = {},
+): Record<string, EnhancedNoteStorage> => {
+  const enhanced_notes: Record<string, EnhancedNoteStorage> = {};
+  const { notesPerSession = { min: 0, max: 3 }, templateProbability = 0.3 } =
+    options;
+
+  sessionIds.forEach((sessionId) => {
+    const noteCount = faker.number.int(notesPerSession);
+    for (let i = 0; i < noteCount; i++) {
+      const shouldUseTemplate =
+        templateIds.length > 0 &&
+        faker.datatype.boolean({ probability: templateProbability });
+      const templateId = shouldUseTemplate
+        ? faker.helpers.arrayElement(templateIds)
+        : undefined;
+      const note = createEnhancedNote(sessionId, i, templateId);
+      enhanced_notes[note.id] = note.data;
+    }
+  });
+
+  return enhanced_notes;
 };

@@ -8,6 +8,7 @@ import {
   buildCalendars,
   buildChatGroups,
   buildChatMessages,
+  buildEnhancedNotesForSessions,
   buildEventsByHuman,
   buildFolders,
   buildHumans,
@@ -48,6 +49,7 @@ const RANDOM_DATA = (() => {
   const tagIds = Object.keys(tags);
 
   const templates = buildTemplates(5);
+  const templateIds = Object.keys(templates);
 
   const sessions = buildSessionsPerHuman(
     humanIds,
@@ -84,6 +86,15 @@ const RANDOM_DATA = (() => {
 
   const memories = buildMemories("vocab", 8);
 
+  const enhanced_notes = buildEnhancedNotesForSessions(
+    sessionIds,
+    templateIds,
+    {
+      notesPerSession: { min: 0, max: 3 },
+      templateProbability: 0.3,
+    },
+  );
+
   return {
     organizations,
     humans,
@@ -100,6 +111,7 @@ const RANDOM_DATA = (() => {
     chat_groups,
     chat_messages,
     memories,
+    enhanced_notes,
   } satisfies Tables<Schemas[0]>;
 })();
 

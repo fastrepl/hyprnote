@@ -366,6 +366,43 @@
         ],
         "additionalProperties": false
       }
+    },
+    "enhanced_notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "position": {
+            "type": "number"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session",
+          "content",
+          "position",
+          "template"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [
@@ -378,7 +415,8 @@
     "events",
     "sessions",
     "chat_groups",
-    "memories"
+    "memories",
+    "enhanced_notes"
   ],
   "additionalProperties": false
 }

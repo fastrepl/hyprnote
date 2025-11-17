@@ -716,6 +716,98 @@ describe("buildSegments", () => {
         }),
       ],
     },
+    {
+      name: "partial words inherit speaker_index from previous final word on same channel",
+      finalWords: [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 150, end_ms: 250, channel: 1 },
+      ],
+      partialWords: [
+        { text: "2", start_ms: 300, end_ms: 400, channel: 0 },
+        { text: "3", start_ms: 450, end_ms: 550, channel: 1 },
+      ],
+      speakerHints: [
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index" as const, speaker_index: 0 },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "provider_speaker_index" as const, speaker_index: 1 },
+        },
+      ],
+      expected: [
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 0, speaker_index: 0 }),
+          words: [
+            expect.objectContaining({ text: "0", isFinal: true }),
+            expect.objectContaining({ text: "2", isFinal: false }),
+          ],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.make({ channel: 1, speaker_index: 1 }),
+          words: [
+            expect.objectContaining({ text: "1", isFinal: true }),
+            expect.objectContaining({ text: "3", isFinal: false }),
+          ],
+        }),
+      ],
+    },
+    {
+      name: "partial words inherit both speaker_index and human_id from previous final word per channel",
+      finalWords: [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 150, end_ms: 250, channel: 1 },
+      ],
+      partialWords: [
+        { text: "2", start_ms: 300, end_ms: 400, channel: 0 },
+        { text: "3", start_ms: 450, end_ms: 550, channel: 1 },
+        { text: "4", start_ms: 600, end_ms: 700, channel: 0 },
+      ],
+      speakerHints: [
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index" as const, speaker_index: 5 },
+        },
+        {
+          wordIndex: 0,
+          data: { type: "user_speaker_assignment" as const, human_id: "alice" },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "provider_speaker_index" as const, speaker_index: 7 },
+        },
+        {
+          wordIndex: 1,
+          data: { type: "user_speaker_assignment" as const, human_id: "bob" },
+        },
+      ],
+      expected: [
+        expect.objectContaining({
+          key: SegmentKey.make({
+            channel: 0,
+            speaker_index: 5,
+            speaker_human_id: "alice",
+          }),
+          words: [
+            expect.objectContaining({ text: "0", isFinal: true }),
+            expect.objectContaining({ text: "2", isFinal: false }),
+            expect.objectContaining({ text: "4", isFinal: false }),
+          ],
+        }),
+        expect.objectContaining({
+          key: SegmentKey.make({
+            channel: 1,
+            speaker_index: 7,
+            speaker_human_id: "bob",
+          }),
+          words: [
+            expect.objectContaining({ text: "1", isFinal: true }),
+            expect.objectContaining({ text: "3", isFinal: false }),
+          ],
+        }),
+      ],
+    },
   ];
 
   test.each(testCases)(

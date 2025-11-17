@@ -212,31 +212,27 @@ function EditorSection() {
 function AudioTranscriptionDemo() {
   const [progress, setProgress] = useState(0);
 
-  // Words with their position along the timeline (0 to 1)
-  // Positioning accounts for approximate text width to prevent overlap
   const words = [
-    { position: 0.02, text: "Welcome" }, // ~7 chars
-    { position: 0.15, text: "to" }, // ~2 chars
-    { position: 0.2, text: "today's" }, // ~7 chars
-    { position: 0.33, text: "meeting" }, // ~7 chars
-    { position: 0.48, text: "Let's" }, // ~5 chars
-    { position: 0.59, text: "discuss" }, // ~7 chars
-    { position: 0.73, text: "the" }, // ~3 chars
-    { position: 0.79, text: "Q4" }, // ~2 chars
-    { position: 0.86, text: "roadmap" }, // ~7 chars
+    { position: 0.02, text: "Welcome" },
+    { position: 0.15, text: "to" },
+    { position: 0.2, text: "today's" },
+    { position: 0.33, text: "meeting" },
+    { position: 0.48, text: "Let's" },
+    { position: 0.59, text: "discuss" },
+    { position: 0.73, text: "the" },
+    { position: 0.79, text: "Q4" },
+    { position: 0.86, text: "roadmap" },
   ];
 
-  // Generate static audio bars with varying heights (memoized to prevent regeneration)
   const audioBarHeights = useState(() => {
     const audioBarCount = 60;
     return Array.from({ length: audioBarCount }, () => {
-      // Random heights between 20% and 100%
       return Math.random() * 0.8 + 0.2;
     });
   })[0];
 
   useEffect(() => {
-    const duration = 8000; // 8 seconds for full cycle
+    const duration = 8000;
     const startTime = Date.now();
 
     const animate = () => {
@@ -257,7 +253,6 @@ function AudioTranscriptionDemo() {
       className="relative w-full bg-white flex flex-col items-center justify-center p-8 gap-6"
       style={{ aspectRatio: "52/39" }}
     >
-      {/* Audio bars - taking up more vertical space */}
       <div className="w-full flex items-center justify-center gap-1 flex-1">
         {audioBarHeights.map((height, i) => {
           const isTranscribed = i / audioBarHeights.length <= progress;
@@ -275,7 +270,6 @@ function AudioTranscriptionDemo() {
         })}
       </div>
 
-      {/* Subtitle display - words appear along timeline */}
       <div className="w-full px-4 relative h-8 flex items-center">
         {words.map((word, i) => {
           const isVisible = progress >= word.position;
@@ -318,7 +312,6 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
   useEffect(() => {
     if (currentLineIndex >= lines.length) {
-      // Reset animation after a pause
       const timeout = setTimeout(() => {
         setCompletedLines([]);
         setCurrentLineIndex(0);
@@ -338,7 +331,6 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
         setTypingText(newText);
         charIndex++;
 
-        // Check if we just typed the trigger characters
         const shouldTransform =
           (currentLine.type === "heading" && newText === "# ") ||
           (currentLine.type === "bullet" && newText === "- ") ||
@@ -350,15 +342,12 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
         timeout = setTimeout(typeCharacter, 60);
       } else {
-        // Finished typing this line
         timeout = setTimeout(() => {
-          // Add the completed line
           const completedElement = renderCompletedLine(currentLine, isMobile);
           if (completedElement) {
             setCompletedLines((prev) => [...prev, completedElement]);
           }
 
-          // Reset for next line
           setTypingText("");
           setIsTransformed(false);
           setCurrentLineIndex((prev) => prev + 1);
@@ -494,7 +483,6 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       );
     }
 
-    // Show raw text before transformation
     return (
       <div
         className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}
@@ -659,7 +647,16 @@ function SummariesSection() {
                       setEnhancedLines(3);
                       setTimeout(() => {
                         setEnhancedLines(4);
-                        setTimeout(() => runAnimation(), 1000);
+                        setTimeout(() => {
+                          setEnhancedLines(5);
+                          setTimeout(() => {
+                            setEnhancedLines(6);
+                            setTimeout(() => {
+                              setEnhancedLines(7);
+                              setTimeout(() => runAnimation(), 1000);
+                            }, 800);
+                          }, 800);
+                        }, 800);
                       }, 800);
                     }, 800);
                   }, 800);
@@ -745,7 +742,7 @@ function SummariesSection() {
                       <li
                         className={cn([
                           "transition-opacity duration-500",
-                          enhancedLines >= 1 ? "opacity-100" : "opacity-0",
+                          enhancedLines >= 2 ? "opacity-100" : "opacity-0",
                         ])}
                       >
                         Sarah presented the new mobile UI update, which includes
@@ -755,7 +752,7 @@ function SummariesSection() {
                       <li
                         className={cn([
                           "transition-opacity duration-500",
-                          enhancedLines >= 2 ? "opacity-100" : "opacity-0",
+                          enhancedLines >= 3 ? "opacity-100" : "opacity-0",
                         ])}
                       >
                         Ben confirmed that API adjustments are needed to support
@@ -765,7 +762,7 @@ function SummariesSection() {
                       <li
                         className={cn([
                           "transition-opacity duration-500",
-                          enhancedLines >= 3 ? "opacity-100" : "opacity-0",
+                          enhancedLines >= 4 ? "opacity-100" : "opacity-0",
                         ])}
                       >
                         The UI update will be implemented in phases, starting
@@ -778,7 +775,7 @@ function SummariesSection() {
                     <h4
                       className={cn([
                         "font-semibold text-stone-700 transition-opacity duration-500",
-                        enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                        enhancedLines >= 5 ? "opacity-100" : "opacity-0",
                       ])}
                     >
                       New Dashboard – Urgent Priority
@@ -787,7 +784,7 @@ function SummariesSection() {
                       <li
                         className={cn([
                           "transition-opacity duration-500",
-                          enhancedLines >= 4 ? "opacity-100" : "opacity-0",
+                          enhancedLines >= 6 ? "opacity-100" : "opacity-0",
                         ])}
                       >
                         Alice emphasized that the new analytics dashboard must
@@ -796,7 +793,7 @@ function SummariesSection() {
                       <li
                         className={cn([
                           "transition-opacity duration-500",
-                          enhancedLines >= 5 ? "opacity-100" : "opacity-0",
+                          enhancedLines >= 7 ? "opacity-100" : "opacity-0",
                         ])}
                       >
                         The new dashboard will feature real-time user engagement

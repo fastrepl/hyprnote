@@ -29,7 +29,9 @@ export function useCreateEnhancedNote() {
       let title = "Summary";
       if (templateId) {
         const templateTitle = store.getCell("templates", templateId, "title");
-        title = templateTitle || "Summary";
+        if (typeof templateTitle === "string") {
+          title = templateTitle;
+        }
       }
 
       store.setRow("enhanced_notes", enhancedNoteId, {

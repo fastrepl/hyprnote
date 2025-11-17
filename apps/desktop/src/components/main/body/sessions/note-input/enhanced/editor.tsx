@@ -7,8 +7,8 @@ import * as main from "../../../../../../store/tinybase/main";
 
 export const EnhancedEditor = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string }
->(({ sessionId }, ref) => {
+  { sessionId: string; enhancedNoteId: string }
+>(({ enhancedNoteId }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
   const [initialContent, setInitialContent] = useState<string>("");
 
@@ -41,7 +41,7 @@ export const EnhancedEditor = forwardRef<
     <div className="h-full">
       <NoteEditor
         ref={ref}
-        key={`session-${sessionId}-enhanced`}
+        key={`enhanced-note-${enhancedNoteId}`}
         initialContent={initialContent}
         handleChange={handleChange}
         mentionConfig={mentionConfig}

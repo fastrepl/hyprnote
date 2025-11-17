@@ -56,14 +56,25 @@ function HeaderTabEnhanced({
   isActive,
   onClick = () => {},
   sessionId,
+  enhancedNoteId,
 }: {
   isActive: boolean;
   onClick?: () => void;
   sessionId: string;
+  enhancedNoteId: string;
 }) {
   const [open, setOpen] = useState(false);
   const { templates, isGenerating, isError, error, onRegenerate } =
-    useEnhanceLogic(sessionId);
+    useEnhanceLogic(sessionId, enhancedNoteId);
+
+  // Get the title from the enhanced_notes table
+  const title =
+    main.UI.useCell(
+      "enhanced_notes",
+      enhancedNoteId,
+      "title",
+      main.STORE_ID,
+    ) || "Summary";
 
   const handleTabClick = useCallback(() => {
     if (!isActive) {
@@ -85,7 +96,7 @@ function HeaderTabEnhanced({
     return (
       <HeaderTab isActive={isActive}>
         <span className="flex items-center gap-1">
-          <span>Summary</span>
+          <span>{title}</span>
         </span>
       </HeaderTab>
     );
@@ -138,7 +149,7 @@ function HeaderTabEnhanced({
         ])}
       >
         <span className="flex items-center gap-1">
-          <span>Summary</span>
+          <span>{title}</span>
           {isActive && (
             <div className="flex items-center gap-1">
               {isError ? (
@@ -221,28 +232,32 @@ export function Header({
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
 }) {
-  if (editorTabs.length === 1 && editorTabs[0] === "raw") {
+  if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
   }
 
   const isBatchProcessing = useListener((state) => sessionId in state.batch);
 
   const showProgress =
-    currentTab === "transcript" && (isInactive || isBatchProcessing);
+    currentTab.type === "transcript" && (isInactive || isBatchProcessing);
   const showEditingControls =
-    currentTab === "transcript" && isInactive && !isBatchProcessing;
+    currentTab.type === "transcript" && isInactive && !isBatchProcessing;
 
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center">
         <div className="flex gap-1">
           {editorTabs.map((view) => {
-            if (view === "enhanced") {
+            if (view.type === "enhanced") {
               return (
                 <HeaderTabEnhanced
-                  key={view}
+                  key={`enhanced-${view.enhancedNoteId}`}
                   sessionId={sessionId}
-                  isActive={currentTab === view}
+                  enhancedNoteId={view.enhancedNoteId}
+                  isActive={
+                    currentTab.type === "enhanced" &&
+                    currentTab.enhancedNoteId === view.enhancedNoteId
+                  }
                   onClick={() => handleTabChange(view)}
                 />
               );
@@ -250,8 +265,8 @@ export function Header({
 
             return (
               <HeaderTab
-                key={view}
-                isActive={currentTab === view}
+                key={view.type}
+                isActive={currentTab.type === view.type}
                 onClick={() => handleTabChange(view)}
               >
                 {labelForEditorView(view)}
@@ -322,7 +337,7 @@ function useEnhanceLogic(sessionId: string) {
   const enhanceTask = useAITaskTask(taskId, "enhance", {
     onSuccess: ({ text }) => {
       if (text) {
-        updateEnhancedMd(text);
+        updateEnhancedNote(text);
       }
     },
   });
@@ -345,10 +360,14 @@ function useEnhanceLogic(sessionId: string) {
 
       await enhanceTask.start({
         model,
-        args: { sessionId, templateId: templateId ?? undefined },
+        args: {
+          sessionId,
+          enhancedNoteId,
+          templateId: templateId ?? undefined,
+        },
       });
     },
-    [model, enhanceTask.start, sessionId],
+    [model, enhanceTask.start, sessionId, enhancedNoteId],
   );
 
   useEffect(() => {

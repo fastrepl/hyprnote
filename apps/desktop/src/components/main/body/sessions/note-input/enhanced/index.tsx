@@ -9,9 +9,9 @@ import { StreamingView } from "./streaming";
 
 export const Enhanced = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string }
->(({ sessionId }, ref) => {
-  const taskId = createTaskId(sessionId, "enhance");
+  { sessionId: string; enhancedNoteId: string }
+>(({ sessionId, enhancedNoteId }, ref) => {
+  const taskId = createTaskId(enhancedNoteId, "enhance");
 
   const { status } = useAITaskTask(taskId, "enhance");
 
@@ -20,8 +20,14 @@ export const Enhanced = forwardRef<
   }
 
   if (status === "generating") {
-    return <StreamingView sessionId={sessionId} />;
+    return <StreamingView enhancedNoteId={enhancedNoteId} />;
   }
 
-  return <EnhancedEditor ref={ref} sessionId={sessionId} />;
+  return (
+    <EnhancedEditor
+      ref={ref}
+      sessionId={sessionId}
+      enhancedNoteId={enhancedNoteId}
+    />
+  );
 });

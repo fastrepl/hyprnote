@@ -24,22 +24,36 @@ export function useHasTranscript(sessionId: string): boolean {
 export function useCurrentNoteTab(
   tab: Extract<Tab, { type: "sessions" }>,
 ): EditorView {
-  const hasTranscript = useHasTranscript(tab.id);
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
   const isListenerActive =
     sessionMode === "running_active" || sessionMode === "finalizing";
 
+  // Get first enhanced note ID (if any) as default
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    tab.id,
+    main.STORE_ID,
+  );
+  const firstEnhancedNoteId = enhancedNoteIds?.[0];
+
   return useMemo(() => {
+    // User explicitly set a tab
     if (tab.state.editor) {
-      return tab.state.editor as EditorView;
+      return tab.state.editor;
     }
 
+    // Recording is active, show raw
     if (isListenerActive) {
-      return "raw";
+      return { type: "raw" };
     }
 
-    return hasTranscript ? "enhanced" : "raw";
-  }, [tab.state.editor, isListenerActive, hasTranscript]);
+    // Show first enhanced note if available, else raw
+    if (firstEnhancedNoteId) {
+      return { type: "enhanced", enhancedNoteId: firstEnhancedNoteId };
+    }
+
+    return { type: "raw" };
+  }, [tab.state.editor, isListenerActive, firstEnhancedNoteId]);
 }
 
 export function RecordingIcon({ disabled }: { disabled?: boolean }) {

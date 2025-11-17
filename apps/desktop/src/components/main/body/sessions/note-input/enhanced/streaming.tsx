@@ -12,8 +12,12 @@ import {
 } from "../../../../../../store/zustand/ai-task/task-configs";
 import { type TaskStepInfo } from "../../../../../../store/zustand/ai-task/tasks";
 
-export function StreamingView({ sessionId }: { sessionId: string }) {
-  const taskId = createTaskId(sessionId, "enhance");
+export function StreamingView({
+  enhancedNoteId,
+}: {
+  enhancedNoteId: string;
+}) {
+  const taskId = createTaskId(enhancedNoteId, "enhance");
   const { streamedText, isGenerating } = useAITaskTask(taskId, "enhance");
 
   const containerRef = useAutoScrollToBottom(streamedText);

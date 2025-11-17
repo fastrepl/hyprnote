@@ -11,13 +11,14 @@ import { titleWorkflow } from "./title-workflow";
 export type TaskType = "enhance" | "title";
 
 export interface TaskArgsMap {
-  enhance: { sessionId: string; templateId?: string };
+  enhance: { sessionId: string; enhancedNoteId: string; templateId?: string };
   title: { sessionId: string };
 }
 
 export interface TaskArgsMapTransformed {
   enhance: {
     sessionId: string;
+    enhancedNoteId: string;
     rawMd: string;
     sessionData: {
       title: string;

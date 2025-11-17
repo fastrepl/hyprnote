@@ -7,8 +7,22 @@ const baseTabSchema = z.object({
   slotId: z.string(),
 });
 
-export const editorViewSchema = z.enum(["raw", "enhanced", "transcript"]);
+export const editorViewSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("raw") }),
+  z.object({ type: z.literal("transcript") }),
+  z.object({
+    type: z.literal("enhanced"),
+    id: z.string(),
+  }),
+]);
 export type EditorView = z.infer<typeof editorViewSchema>;
+
+// prettier-ignore
+export const isEnhancedView = (view: EditorView): view is { type: "enhanced"; id: string } => view.type === "enhanced";
+// prettier-ignore
+export const isRawView = (view: EditorView): view is { type: "raw" } => view.type === "raw";
+// prettier-ignore
+export const isTranscriptView = (view: EditorView): view is { type: "transcript" } => view.type === "transcript";
 
 export const tabSchema = z.discriminatedUnion("type", [
   baseTabSchema.extend({
@@ -64,7 +78,7 @@ export type TabInput =
   | {
       type: "sessions";
       id: string;
-      state?: { editor?: "raw" | "enhanced" | "transcript" };
+      state?: { editor?: EditorView };
     }
   | {
       type: "contacts";

@@ -54,6 +54,22 @@ function HeaderTab({
   );
 }
 
+function TruncatedTitle({
+  title,
+  isActive,
+}: {
+  title: string;
+  isActive: boolean;
+}) {
+  return (
+    <span
+      className={cn(["truncate", isActive ? "max-w-[120px]" : "max-w-[60px]"])}
+    >
+      {title}
+    </span>
+  );
+}
+
 function HeaderTabEnhanced({
   isActive,
   onClick = () => {},
@@ -86,7 +102,7 @@ function HeaderTabEnhanced({
     return (
       <HeaderTab isActive={isActive} onClick={onClick}>
         <span className="flex items-center gap-1">
-          <span>{title}</span>
+          <TruncatedTitle title={title} isActive={isActive} />
         </span>
       </HeaderTab>
     );
@@ -137,7 +153,7 @@ function HeaderTabEnhanced({
       ])}
     >
       <span className="flex items-center gap-1">
-        <span>{title}</span>
+        <TruncatedTitle title={title} isActive={isActive} />
         {isActive && (
           <div className="flex items-center gap-1">
             {isError ? (

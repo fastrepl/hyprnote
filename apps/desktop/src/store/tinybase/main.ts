@@ -159,10 +159,13 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const localPersister2 = useCreatePersister(
     store,
     async (store) => {
-      exists("sessions", { baseDir: BaseDirectory.AppData }).then(
+      exists("hyprnote/sessions", { baseDir: BaseDirectory.Data }).then(
         async (exists) => {
           if (!exists) {
-            mkdir("sessions", { baseDir: BaseDirectory.AppData });
+            mkdir("hyprnote/sessions", {
+              baseDir: BaseDirectory.Data,
+              recursive: true,
+            });
           }
         },
       );
@@ -172,10 +175,10 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         async (session) => {
           if (session.enhanced_md) {
             await writeTextFile(
-              `sessions/${session.id}.md`,
+              `hyprnote/sessions/${session.id}.md`,
               session.enhanced_md,
               {
-                baseDir: BaseDirectory.AppData,
+                baseDir: BaseDirectory.Data,
               },
             );
           }

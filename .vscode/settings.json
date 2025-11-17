@@ -1,4 +1,7 @@
 {
+  "explorer.excludeGitIgnore": false,
+  "search.useParentIgnoreFiles": false,
+  "search.useIgnoreFiles": false,
   "files.watcherExclude": {
     "**/routeTree.gen.ts": true
   },

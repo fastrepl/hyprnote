@@ -12,7 +12,7 @@ export function FloatingActionButton({
   const currentTab = useCurrentNoteTab(tab);
   const hasTranscript = useHasTranscript(tab.id);
 
-  if (!(currentTab === "raw" && !hasTranscript)) {
+  if (!(currentTab.type === "raw" && !hasTranscript)) {
     return null;
   }
 

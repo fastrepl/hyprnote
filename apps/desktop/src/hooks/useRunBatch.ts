@@ -63,7 +63,7 @@ export const useRunBatch = (sessionId: string) => {
       }
 
       if (sessionTab) {
-        updateSessionTabState(sessionTab, { editor: "transcript" });
+        updateSessionTabState(sessionTab, { editor: { type: "transcript" } });
       }
 
       const transcriptId = id();

@@ -21,7 +21,6 @@ export const createSessionTab = (
   active: overrides.active ?? false,
   slotId: id(),
   state: {
-    editor: "raw",
     ...overrides.state,
   },
 });

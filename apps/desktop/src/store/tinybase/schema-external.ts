@@ -116,6 +116,16 @@ export const memorySchema = baseMemorySchema.omit({ id: true }).extend({
   created_at: z.string(),
 });
 
+export const enhancedNoteSchema = z.object({
+  user_id: z.string(),
+  created_at: z.string(),
+  session_id: z.string(),
+  content: z.string(),
+  template_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  position: z.number(),
+  title: z.preprocess((val) => val ?? undefined, z.string().optional()),
+});
+
 export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
   created_at: z.string(),
   speaker: z.preprocess((val) => val ?? undefined, z.string().optional()),
@@ -155,6 +165,7 @@ export type TemplateSection = z.infer<typeof templateSectionSchema>;
 export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export type Memory = z.infer<typeof memorySchema>;
+export type EnhancedNote = z.infer<typeof enhancedNoteSchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
@@ -165,6 +176,7 @@ export type SpeakerHintStorage = ToStorageType<
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
 export type MemoryStorage = ToStorageType<typeof memorySchema>;
+export type EnhancedNoteStorage = ToStorageType<typeof enhancedNoteSchema>;
 
 export const externalTableSchemaForTinybase = {
   folders: {
@@ -284,4 +296,13 @@ export const externalTableSchemaForTinybase = {
     type: { type: "string" },
     text: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof memorySchema>,
+  enhanced_notes: {
+    user_id: { type: "string" },
+    created_at: { type: "string" },
+    session_id: { type: "string" },
+    content: { type: "string" },
+    template_id: { type: "string" },
+    position: { type: "number" },
+    title: { type: "string" },
+  } satisfies InferTinyBaseSchema<typeof enhancedNoteSchema>,
 } as const satisfies TablesSchema;

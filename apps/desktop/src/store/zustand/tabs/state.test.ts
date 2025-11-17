@@ -18,19 +18,21 @@ describe("State Updater Actions", () => {
       const tab = createSessionTab({ active: true });
       useTabs.getState().openNew(tab);
 
-      useTabs.getState().updateSessionTabState(tab, { editor: "enhanced" });
+      useTabs.getState().updateSessionTabState(tab, {
+        editor: { type: "enhanced", id: "note-1" },
+      });
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({
         id: tab.id,
-        state: { editor: "enhanced" },
+        state: { editor: { type: "enhanced", id: "note-1" } },
       });
       expect(useTabs.getState()).toHaveCurrentTab({
         id: tab.id,
-        state: { editor: "enhanced" },
+        state: { editor: { type: "enhanced", id: "note-1" } },
       });
       expect(useTabs.getState()).toHaveLastHistoryEntry({
-        state: { editor: "enhanced" },
+        state: { editor: { type: "enhanced", id: "note-1" } },
       });
     });
 
@@ -40,20 +42,22 @@ describe("State Updater Actions", () => {
       useTabs.getState().openNew(tab);
       useTabs.getState().openNew(active);
 
-      useTabs.getState().updateSessionTabState(tab, { editor: "enhanced" });
+      useTabs.getState().updateSessionTabState(tab, {
+        editor: { type: "enhanced", id: "note-1" },
+      });
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({
         id: tab.id,
-        state: { editor: "enhanced" },
+        state: { editor: { type: "enhanced", id: "note-1" } },
       });
       expect(state.tabs[1]).toMatchObject({
         id: active.id,
-        state: { editor: "raw" },
+        state: {},
       });
       expect(useTabs.getState()).toHaveLastHistoryEntry({
         id: active.id,
-        state: { editor: "raw" },
+        state: {},
       });
     });
 

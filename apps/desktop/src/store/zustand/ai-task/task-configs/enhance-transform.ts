@@ -42,13 +42,14 @@ async function transformArgs(
   args: TaskArgsMap["enhance"],
   store: MainStore,
 ): Promise<TaskArgsMapTransformed["enhance"]> {
-  const { sessionId, templateId } = args;
+  const { sessionId, enhancedNoteId, templateId } = args;
 
   const sessionContext = getSessionContext(sessionId, store);
   const template = templateId ? getTemplateData(templateId, store) : undefined;
 
   return {
     sessionId,
+    enhancedNoteId,
     rawMd: sessionContext.rawMd,
     sessionData: sessionContext.sessionData,
     participants: sessionContext.participants,

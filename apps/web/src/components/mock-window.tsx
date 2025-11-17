@@ -4,10 +4,12 @@ import { cn } from "@hypr/utils";
 export function MockWindow({
   showAudioIndicator,
   variant = "desktop",
+  className,
   children,
 }: {
   showAudioIndicator?: boolean;
   variant?: "desktop" | "mobile";
+  className?: string;
   children: React.ReactNode;
 }) {
   const isMobile = variant === "mobile";
@@ -17,6 +19,7 @@ export function MockWindow({
       className={cn([
         "bg-white shadow-lg border border-neutral-200 border-b-0 overflow-hidden",
         isMobile ? "rounded-t-lg" : "w-full max-w-lg rounded-t-xl",
+        className,
       ])}
     >
       <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200 bg-neutral-50">

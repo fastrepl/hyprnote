@@ -15,7 +15,7 @@ function Component() {
   return (
     <div className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-[calc(100vh-4rem)]">
       <div className="max-w-6xl mx-auto border-x border-neutral-100">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="flex gap-8">
           <LeftSidebar />
           <Outlet />
         </div>
@@ -77,7 +77,7 @@ function LeftSidebar() {
   }, []);
 
   return (
-    <aside className="hidden lg:block lg:col-span-3">
+    <aside className="hidden md:block w-64 flex-shrink-0">
       <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto space-y-6 px-4 py-6">
         <nav className="space-y-4">
           {docsBySection.map((section) => (

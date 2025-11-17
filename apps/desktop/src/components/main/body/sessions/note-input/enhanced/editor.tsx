@@ -1,7 +1,8 @@
 import { forwardRef, useEffect, useMemo, useState } from "react";
 
-import { TiptapEditor } from "@hypr/tiptap/editor";
+import { type JSONContent, TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
+import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 
 import * as main from "../../../../../../store/tinybase/main";
 
@@ -10,19 +11,28 @@ export const EnhancedEditor = forwardRef<
   { sessionId: string }
 >(({ sessionId }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
-  const [initialContent, setInitialContent] = useState<string>("");
+  const [initialContent, setInitialContent] =
+    useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
   useEffect(() => {
     if (store) {
       const value = store.getCell("sessions", sessionId, "enhanced_md");
-      setInitialContent((value as string) || "");
+      if (value && typeof value === "string" && value.trim()) {
+        try {
+          setInitialContent(JSON.parse(value));
+        } catch {
+          setInitialContent(EMPTY_TIPTAP_DOC);
+        }
+      } else {
+        setInitialContent(EMPTY_TIPTAP_DOC);
+      }
     }
   }, [store, sessionId]);
 
   const handleChange = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
-    (input: string) => ({ enhanced_md: input }),
+    (input: JSONContent) => ({ enhanced_md: JSON.stringify(input) }),
     [],
     main.STORE_ID,
   );

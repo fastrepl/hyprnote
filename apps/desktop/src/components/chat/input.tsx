@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef } from "react";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import Editor from "@hypr/tiptap/editor";
-import type { PlaceholderFunction } from "@hypr/tiptap/shared";
+import {
+  EMPTY_TIPTAP_DOC,
+  type PlaceholderFunction,
+} from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
@@ -45,17 +48,14 @@ export function ChatMessageInput({
   }, [disabled]);
 
   const handleAttachFile = useCallback(() => {
-    // TODO: Implement file attachment
     console.log("Attach file clicked");
   }, []);
 
   const handleTakeScreenshot = useCallback(() => {
-    // TODO: Implement screenshot
     console.log("Take screenshot clicked");
   }, []);
 
   const handleVoiceInput = useCallback(() => {
-    // TODO: Implement voice input
     console.log("Voice input clicked");
   }, []);
 
@@ -66,7 +66,7 @@ export function ChatMessageInput({
           <Editor
             ref={editorRef}
             editable={!disabled}
-            initialContent=""
+            initialContent={EMPTY_TIPTAP_DOC}
             placeholderComponent={ChatPlaceholder}
             mentionConfig={{
               trigger: "@",

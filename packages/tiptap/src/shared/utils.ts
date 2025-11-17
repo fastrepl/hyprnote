@@ -1,4 +1,21 @@
+import { Markdown } from "@tiptap/markdown";
+import { generateJSON, type JSONContent } from "@tiptap/react";
+import { renderToMarkdown } from "@tiptap/static-renderer/pm/markdown";
 import TurndownService from "turndown";
+
+import { getExtensions } from "./extensions";
+
+export const EMPTY_TIPTAP_DOC: JSONContent = { type: "doc", content: [] };
+
+export function json2md(jsonContent: JSONContent | string): string {
+  const content =
+    typeof jsonContent === "string" ? JSON.parse(jsonContent) : jsonContent;
+
+  return renderToMarkdown({
+    extensions: [],
+    content,
+  });
+}
 
 const turndown = new TurndownService({ headingStyle: "atx" });
 
@@ -54,4 +71,8 @@ turndown.addRule("taskItem", {
 
 export function html2md(html: string) {
   return turndown.turndown(html);
+}
+
+export function md2json(markdown: string): JSONContent {
+  return generateJSON(markdown, [...getExtensions(), Markdown]);
 }

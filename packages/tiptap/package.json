@@ -5,7 +5,6 @@
   "type": "module",
   "exports": {
     "./editor": "./src/editor/index.tsx",
-    "./renderer": "./src/renderer/index.tsx",
     "./shared": "./src/shared/index.ts",
     "./styles.css": "./styles.css"
   },
@@ -32,10 +31,11 @@
     "@tiptap/extension-task-list": "^3.10.2",
     "@tiptap/extension-typography": "^3.10.2",
     "@tiptap/extension-underline": "^3.10.2",
-    "@tiptap/markdown": "^3.10.2",
+    "@tiptap/markdown": "^3.10.7",
     "@tiptap/pm": "^3.10.2",
     "@tiptap/react": "^3.10.2",
     "@tiptap/starter-kit": "^3.10.2",
+    "@tiptap/static-renderer": "^3.10.7",
     "@tiptap/suggestion": "^3.10.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",

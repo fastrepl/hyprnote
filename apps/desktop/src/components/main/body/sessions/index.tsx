@@ -60,11 +60,11 @@ export function TabContentNote({
 }) {
   const listenerStatus = useListener((state) => state.live.status);
   const { data: audioUrl } = useQuery({
+    enabled: listenerStatus === "inactive",
     queryKey: ["audio", tab.id, "url"],
     queryFn: () => miscCommands.audioPath(tab.id),
     select: (result) => {
       if (result.status === "error") {
-        console.error(result.error);
         return null;
       }
       return convertFileSrc(result.data);

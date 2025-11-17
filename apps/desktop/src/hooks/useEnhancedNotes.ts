@@ -13,18 +13,11 @@ export function useCreateEnhancedNote() {
       const now = new Date().toISOString();
       const userId = store.getValue("user_id");
 
-      let existingCount = 0;
-      store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
-        const rowSessionId = store.getCell(
-          "enhanced_notes",
-          rowId,
-          "session_id",
-        );
-        if (rowSessionId === sessionId) {
-          existingCount++;
-        }
-      });
-      const nextPosition = existingCount + 1;
+      const existingNoteIds = store.getSliceRowIds(
+        main.INDEXES.enhancedNotesBySession,
+        sessionId,
+      );
+      const nextPosition = existingNoteIds.length + 1;
 
       let title = "Summary";
       if (templateId) {

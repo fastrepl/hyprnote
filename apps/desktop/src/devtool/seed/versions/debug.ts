@@ -275,6 +275,7 @@ const DEBUG_DATA = (() => {
     chat_groups: {},
     chat_messages: {},
     memories: {},
+    enhanced_notes: {},
   } satisfies Tables<Schemas[0]>;
 })();
 

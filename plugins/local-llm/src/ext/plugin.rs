@@ -117,16 +117,29 @@ impl<R: Runtime, T: Manager<R>> LocalLlmPluginExt<R> for T {
         }
 
         let task = tokio::spawn(async move {
-            let callback = |progress: DownloadProgress| match progress {
-                DownloadProgress::Started => {
-                    let _ = channel.send(0);
-                }
-                DownloadProgress::Progress(downloaded, total_size) => {
-                    let percent = (downloaded as f64 / total_size as f64) * 100.0;
-                    let _ = channel.send(percent as i8);
-                }
-                DownloadProgress::Finished => {
-                    let _ = channel.send(100);
+            let last_progress = std::sync::Arc::new(std::sync::Mutex::new(0i8));
+
+            let callback = |progress: DownloadProgress| {
+                let mut last = last_progress.lock().unwrap();
+
+                match progress {
+                    DownloadProgress::Started => {
+                        *last = 0;
+                        let _ = channel.send(0);
+                    }
+                    DownloadProgress::Progress(downloaded, total_size) => {
+                        let percent = (downloaded as f64 / total_size as f64) * 100.0;
+                        let current = percent as i8;
+
+                        if current > *last {
+                            *last = current;
+                            let _ = channel.send(current);
+                        }
+                    }
+                    DownloadProgress::Finished => {
+                        *last = 100;
+                        let _ = channel.send(100);
+                    }
                 }
             };
 

@@ -110,6 +110,7 @@ export function SelectProviderAndModel() {
                     {PROVIDERS.map((provider) => {
                       const locked = provider.requiresPro && !billing.isPro;
                       const configured = configuredProviders[provider.id];
+
                       return (
                         <SelectItem
                           key={provider.id}
@@ -121,11 +122,6 @@ export function SelectProviderAndModel() {
                               {provider.icon}
                               <span>{provider.displayName}</span>
                             </div>
-                            {locked ? (
-                              <span className="text-[11px] text-neutral-500">
-                                Upgrade to Pro to use this provider.
-                              </span>
-                            ) : null}
                           </div>
                         </SelectItem>
                       );

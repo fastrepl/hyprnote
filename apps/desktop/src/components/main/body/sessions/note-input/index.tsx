@@ -4,7 +4,6 @@ import { useHotkeys } from "react-hotkeys-hook";
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import { cn } from "@hypr/utils";
 
-import { useListener } from "../../../../../contexts/listener";
 import { useAutoEnhance } from "../../../../../hooks/useAutoEnhance";
 import { useAutoTitle } from "../../../../../hooks/useAutoTitle";
 import { type Tab, useTabs } from "../../../../../store/zustand/tabs";
@@ -23,7 +22,6 @@ export function NoteInput({
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const inactive = useListener((state) => state.live.status === "inactive");
   const [isEditing, setIsEditing] = useState(false);
 
   const sessionId = tab.id;
@@ -62,7 +60,6 @@ export function NoteInput({
           editorTabs={editorTabs}
           currentTab={currentTab}
           handleTabChange={handleTabChange}
-          isInactive={inactive}
           isEditing={isEditing}
           setIsEditing={setIsEditing}
         />

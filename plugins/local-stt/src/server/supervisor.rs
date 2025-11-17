@@ -20,8 +20,8 @@ pub async fn spawn_stt_supervisor(
 ) -> Result<(ActorRef<DynamicSupervisorMsg>, crate::SupervisorHandle), ActorProcessingErr> {
     let options = DynamicSupervisorOptions {
         max_children: Some(1),
-        max_restarts: 15,
-        max_window: Duration::from_secs(10),
+        max_restarts: 100,
+        max_window: Duration::from_secs(60 * 3),
         reset_after: Some(Duration::from_secs(30)),
     };
 

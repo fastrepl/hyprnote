@@ -99,12 +99,17 @@ export function useConfigSideEffects() {
       type GetConfigFn = <K extends ConfigKey>(k: K) => ConfigValueType<K>;
       const storedValue =
         configs[key] !== undefined ? configs[key] : definition.default;
-      (
-        definition.sideEffect as (
-          value: unknown,
-          getConfig: GetConfigFn,
-        ) => void | Promise<void>
-      )(storedValue, getConfig);
+
+      try {
+        (
+          definition.sideEffect as (
+            value: unknown,
+            getConfig: GetConfigFn,
+          ) => void | Promise<void>
+        )(storedValue, getConfig);
+      } catch (error) {
+        console.error(error);
+      }
     }
   }
 }

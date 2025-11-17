@@ -24,9 +24,8 @@ function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
   ] as const);
 
   const isCloud =
-    current_stt_provider === "hyprnote" || current_stt_model === "cloud";
+    current_stt_provider !== "hyprnote" || current_stt_model !== "cloud";
 
-  console.log(conn);
   if (isCloud) {
     return conn
       ? { status: "success" }

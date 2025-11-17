@@ -27,12 +27,7 @@ import {
   registerDownloadProgressCallback,
   unregisterDownloadProgressCallback,
 } from "../../../task-manager";
-import {
-  FormField,
-  PlanLockMessage,
-  StyledStreamdown,
-  useProvider,
-} from "../shared";
+import { FormField, StyledStreamdown, useProvider } from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function ConfigureProviders() {
@@ -111,54 +106,47 @@ function NonHyprProviderCard({
       </AccordionTrigger>
       <AccordionContent className="px-4">
         <ProviderContext providerId={config.id} />
-        {locked ? (
-          <PlanLockMessage message="Upgrade to Pro to configure this provider." />
-        ) : (
-          <form
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            {!config.baseUrl && (
-              <form.Field name="base_url">
-                {(field) => (
-                  <FormField field={field} label="Base URL" icon="mdi:web" />
-                )}
-              </form.Field>
-            )}
-            <form.Field name="api_key">
+
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          {!config.baseUrl && (
+            <form.Field name="base_url">
               {(field) => (
-                <FormField
-                  field={field}
-                  label="API Key"
-                  icon="mdi:key"
-                  placeholder="Enter your API key"
-                  type="password"
-                />
+                <FormField field={field} label="Base URL" icon="mdi:web" />
               )}
             </form.Field>
-            {config.baseUrl && (
-              <details className="space-y-4 pt-2">
-                <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-                  Advanced
-                </summary>
-                <div className="mt-4">
-                  <form.Field name="base_url">
-                    {(field) => (
-                      <FormField
-                        field={field}
-                        label="Base URL"
-                        icon="mdi:web"
-                      />
-                    )}
-                  </form.Field>
-                </div>
-              </details>
+          )}
+          <form.Field name="api_key">
+            {(field) => (
+              <FormField
+                field={field}
+                label="API Key"
+                icon="mdi:key"
+                placeholder="Enter your API key"
+                type="password"
+              />
             )}
-          </form>
-        )}
+          </form.Field>
+          {config.baseUrl && (
+            <details className="space-y-4 pt-2">
+              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
+                Advanced
+              </summary>
+              <div className="mt-4">
+                <form.Field name="base_url">
+                  {(field) => (
+                    <FormField field={field} label="Base URL" icon="mdi:web" />
+                  )}
+                </form.Field>
+              </div>
+            </details>
+          )}
+        </form>
       </AccordionContent>
     </AccordionItem>
   );

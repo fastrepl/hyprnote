@@ -119,6 +119,8 @@ export const CONFIG_REGISTRY = {
         (model.startsWith("am-") || model.startsWith("Quantized"))
       ) {
         await localSttCommands.startServer(model as SupportedSttModel);
+      } else {
+        await localSttCommands.stopServer(null);
       }
     },
   },

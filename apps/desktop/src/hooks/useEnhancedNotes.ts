@@ -4,16 +4,17 @@ import * as main from "../store/tinybase/main";
 
 export function useCreateEnhancedNote() {
   const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
+  const indexes = main.UI.useIndexes(main.STORE_ID);
 
   return useCallback(
     (sessionId: string, templateId?: string) => {
-      if (!store) return null;
+      if (!store || !indexes) return null;
 
       const enhancedNoteId = crypto.randomUUID();
       const now = new Date().toISOString();
       const userId = store.getValue("user_id");
 
-      const existingNoteIds = store.getSliceRowIds(
+      const existingNoteIds = indexes.getSliceRowIds(
         main.INDEXES.enhancedNotesBySession,
         sessionId,
       );
@@ -39,7 +40,7 @@ export function useCreateEnhancedNote() {
 
       return enhancedNoteId;
     },
-    [store],
+    [store, indexes],
   );
 }
 

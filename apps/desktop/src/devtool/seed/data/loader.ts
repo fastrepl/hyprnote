@@ -27,6 +27,7 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const chat_groups: Tables<Schemas[0]>["chat_groups"] = {};
   const chat_messages: Tables<Schemas[0]>["chat_messages"] = {};
   const memories: Tables<Schemas[0]>["memories"] = {};
+  const enhanced_notes: Tables<Schemas[0]>["enhanced_notes"] = {};
 
   const orgNameToId = new Map<string, string>();
   const folderNameToId = new Map<string, string>();
@@ -34,6 +35,8 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const personNameToId = new Map<string, string>();
   const calendarNameToId = new Map<string, string>();
   const eventNameToId = new Map<string, string>();
+  const sessionTitleToId = new Map<string, string>();
+  const templateTitleToId = new Map<string, string>();
 
   data.organizations.forEach((org) => {
     const orgId = id();
@@ -96,6 +99,7 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
 
   data.templates.forEach((template) => {
     const templateId = id();
+    templateTitleToId.set(template.title, templateId);
     templates[templateId] = {
       user_id: DEFAULT_USER_ID,
       title: template.title,
@@ -125,6 +129,7 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
 
   data.sessions.forEach((session) => {
     const sessionId = id();
+    sessionTitleToId.set(session.title, sessionId);
     const folderId = session.folder
       ? folderNameToId.get(session.folder)
       : undefined;
@@ -238,6 +243,26 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     };
   });
 
+  data.enhanced_notes.forEach((note) => {
+    const enhancedNoteId = id();
+    const sessionId = sessionTitleToId.get(note.session);
+    const templateId = note.template
+      ? templateTitleToId.get(note.template)
+      : undefined;
+
+    if (sessionId) {
+      enhanced_notes[enhancedNoteId] = {
+        user_id: DEFAULT_USER_ID,
+        session_id: sessionId,
+        content: JSON.stringify(md2json(note.content)),
+        position: note.position,
+        template_id: templateId,
+        title: note.title,
+        created_at: new Date().toISOString(),
+      };
+    }
+  });
+
   return {
     organizations,
     humans,
@@ -254,5 +279,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     chat_groups,
     chat_messages,
     memories,
+    enhanced_notes,
   };
 };

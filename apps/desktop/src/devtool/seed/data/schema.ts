@@ -92,6 +92,14 @@ const CuratedMemorySchema = z.object({
   text: z.string(),
 });
 
+const CuratedEnhancedNoteSchema = z.object({
+  session: z.string(),
+  content: z.string(),
+  position: z.number(),
+  template: z.string().nullable(),
+  title: z.string().optional(),
+});
+
 export const CuratedDataSchema = z.object({
   $schema: z.string().optional(),
   organizations: z.array(CuratedOrganizationSchema),
@@ -104,6 +112,7 @@ export const CuratedDataSchema = z.object({
   sessions: z.array(CuratedSessionSchema),
   chat_groups: z.array(CuratedChatGroupSchema),
   memories: z.array(CuratedMemorySchema),
+  enhanced_notes: z.array(CuratedEnhancedNoteSchema),
 });
 
 export type CuratedData = z.infer<typeof CuratedDataSchema>;

@@ -2855,5 +2855,28 @@
       "type": "vocab",
       "text": "Slack integration"
     }
+  ],
+  "enhanced_notes": [
+    {
+      "session": "Q4 Strategy Meeting",
+      "content": "## Technical Architecture\n\nSlack integration will use webhook-based architecture for real-time notifications. Michael to provide detailed technical spec by November 5th including API endpoints and authentication flow.",
+      "position": 0,
+      "template": "Meeting Notes",
+      "title": "Technical Specification Follow-up"
+    },
+    {
+      "session": "Q4 Strategy Meeting",
+      "content": "## Resource Allocation\n\n- 2 senior engineers + 1 junior engineer for Salesforce integration (6-7 weeks)\n- 1 senior engineer for Slack integration (3-4 weeks)\n- Performance team: TBD after profiling results\n\nBoard approval needed by end of week.",
+      "position": 1,
+      "template": null,
+      "title": "Team Resource Planning"
+    },
+    {
+      "session": "TechStart Partnership Call",
+      "content": "## Revenue Model Details\n\n- TechStart receives 30% on referrals from their customer base\n- Acme retains 70%\n- Revenue sharing model creates win-win alignment\n- Legal review timeline: 2 weeks",
+      "position": 0,
+      "template": null,
+      "title": "Partnership Economics"
+    }
   ]
 }

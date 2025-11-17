@@ -8,15 +8,15 @@ import * as main from "../../../../../../store/tinybase/main";
 
 export const EnhancedEditor = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string }
->(({ sessionId }, ref) => {
+  { sessionId: string; enhancedNoteId: string }
+>(({ enhancedNoteId }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
   const [initialContent, setInitialContent] =
     useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
   useEffect(() => {
     if (store) {
-      const value = store.getCell("sessions", sessionId, "enhanced_md");
+      const value = store.getCell("enhanced_notes", enhancedNoteId, "content");
       if (value && typeof value === "string" && value.trim()) {
         try {
           setInitialContent(JSON.parse(value));
@@ -27,12 +27,12 @@ export const EnhancedEditor = forwardRef<
         setInitialContent(EMPTY_TIPTAP_DOC);
       }
     }
-  }, [store, sessionId]);
+  }, [store, enhancedNoteId]);
 
   const handleChange = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (input: JSONContent) => ({ enhanced_md: JSON.stringify(input) }),
+    "enhanced_notes",
+    enhancedNoteId,
+    (input: JSONContent) => ({ content: JSON.stringify(input) }),
     [],
     main.STORE_ID,
   );
@@ -51,7 +51,7 @@ export const EnhancedEditor = forwardRef<
     <div className="h-full">
       <NoteEditor
         ref={ref}
-        key={`session-${sessionId}-enhanced`}
+        key={`enhanced-note-${enhancedNoteId}`}
         initialContent={initialContent}
         handleChange={handleChange}
         mentionConfig={mentionConfig}

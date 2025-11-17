@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
@@ -43,13 +43,13 @@ export function NoteInput({
   });
 
   useEffect(() => {
-    if (currentTab === "transcript" && editorRef.current) {
+    if (currentTab.type === "transcript" && editorRef.current) {
       editorRef.current = { editor: null };
     }
   }, [currentTab]);
 
   const handleContainerClick = () => {
-    if (currentTab !== "transcript") {
+    if (currentTab.type !== "transcript") {
       editorRef.current?.editor?.commands.focus();
     }
   };
@@ -72,18 +72,22 @@ export function NoteInput({
         onClick={handleContainerClick}
         className={cn([
           "flex-1 mt-2 px-3",
-          currentTab === "transcript"
+          currentTab.type === "transcript"
             ? "overflow-hidden"
             : ["overflow-auto", "pb-6"],
         ])}
       >
-        {currentTab === "enhanced" && (
-          <Enhanced ref={editorRef} sessionId={sessionId} />
+        {currentTab.type === "enhanced" && (
+          <Enhanced
+            ref={editorRef}
+            sessionId={sessionId}
+            enhancedNoteId={currentTab.id}
+          />
         )}
-        {currentTab === "raw" && (
+        {currentTab.type === "raw" && (
           <RawEditor ref={editorRef} sessionId={sessionId} />
         )}
-        {currentTab === "transcript" && (
+        {currentTab.type === "transcript" && (
           <Transcript sessionId={sessionId} isEditing={isEditing} />
         )}
       </div>
@@ -100,51 +104,59 @@ function useTabShortcuts({
   currentTab: EditorView;
   handleTabChange: (view: EditorView) => void;
 }) {
-  const switchToTab = useCallback(
-    (targetTab: EditorView) => {
-      if (editorTabs.includes(targetTab) && currentTab !== targetTab) {
-        handleTabChange(targetTab);
+  useHotkeys(
+    "alt+s",
+    () => {
+      const enhancedTabs = editorTabs.filter((t) => t.type === "enhanced");
+      if (enhancedTabs.length === 0) return;
+
+      if (currentTab.type === "enhanced") {
+        const currentIndex = enhancedTabs.findIndex(
+          (t) => t.type === "enhanced" && t.id === currentTab.id,
+        );
+        const nextIndex = (currentIndex + 1) % enhancedTabs.length;
+        handleTabChange(enhancedTabs[nextIndex]);
+      } else {
+        handleTabChange(enhancedTabs[0]);
       }
+    },
+    {
+      preventDefault: true,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
     },
     [currentTab, editorTabs, handleTabChange],
   );
 
   useHotkeys(
-    "alt+s",
-    () => {
-      switchToTab("enhanced");
-    },
-    {
-      preventDefault: true,
-      enableOnFormTags: true,
-      enableOnContentEditable: true,
-    },
-    [switchToTab],
-  );
-
-  useHotkeys(
     "alt+m",
     () => {
-      switchToTab("raw");
+      const rawTab = editorTabs.find((t) => t.type === "raw");
+      if (rawTab && currentTab.type !== "raw") {
+        handleTabChange(rawTab);
+      }
     },
     {
       preventDefault: true,
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [switchToTab],
+    [currentTab, editorTabs, handleTabChange],
   );
 
   useHotkeys(
     "alt+t",
     () => {
-      switchToTab("transcript");
+      const transcriptTab = editorTabs.find((t) => t.type === "transcript");
+      if (transcriptTab && currentTab.type !== "transcript") {
+        handleTabChange(transcriptTab);
+      }
     },
     {
       preventDefault: true,
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [switchToTab],
+    [currentTab, editorTabs, handleTabChange],
   );
 }

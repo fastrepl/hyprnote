@@ -1,7 +1,8 @@
-import { AlertCircleIcon, RefreshCcwIcon, SparklesIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { AlertCircleIcon, PlusIcon, RefreshCcwIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
+import { md2json } from "@hypr/tiptap/shared";
 import {
   Popover,
   PopoverContent,
@@ -16,6 +17,7 @@ import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
 import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
+import { useCreateEnhancedNote } from "../../../../../hooks/useEnhancedNotes";
 import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
 import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
@@ -52,113 +54,215 @@ function HeaderTab({
   );
 }
 
+function TruncatedTitle({
+  title,
+  isActive,
+}: {
+  title: string;
+  isActive: boolean;
+}) {
+  return (
+    <span
+      className={cn(["truncate", isActive ? "max-w-[120px]" : "max-w-[60px]"])}
+    >
+      {title}
+    </span>
+  );
+}
+
 function HeaderTabEnhanced({
   isActive,
   onClick = () => {},
   sessionId,
+  enhancedNoteId,
 }: {
   isActive: boolean;
   onClick?: () => void;
   sessionId: string;
+  enhancedNoteId: string;
 }) {
-  const [open, setOpen] = useState(false);
-  const { templates, isGenerating, isError, error, onRegenerate } =
-    useEnhanceLogic(sessionId);
+  const { isGenerating, isError, error, onRegenerate } = useEnhanceLogic(
+    sessionId,
+    enhancedNoteId,
+  );
 
-  const handleTabClick = useCallback(() => {
-    if (!isActive) {
-      onClick();
-    } else {
-      setOpen(true);
-    }
-  }, [isActive, onClick, onRegenerate, setOpen]);
+  const title =
+    main.UI.useCell("enhanced_notes", enhancedNoteId, "title", main.STORE_ID) ||
+    "Summary";
 
-  const handleTemplateClick = useCallback(
-    (templateId: string | null) => {
-      setOpen(false);
-      onRegenerate(templateId);
+  const handleRegenerateClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onRegenerate(null);
     },
     [onRegenerate],
   );
 
   if (isGenerating) {
     return (
-      <HeaderTab isActive={isActive}>
+      <HeaderTab isActive={isActive} onClick={onClick}>
         <span className="flex items-center gap-1">
-          <span>Summary</span>
+          <TruncatedTitle title={title} isActive={isActive} />
         </span>
       </HeaderTab>
     );
   }
 
-  const regenerateTrigger = (
-    <PopoverTrigger asChild>
-      <span
-        className={cn([
-          "group relative inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
-          isError
-            ? [
-                "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
-              ]
-            : ["hover:bg-neutral-200 focus-visible:bg-neutral-200"],
-        ])}
-      >
-        {isError && (
-          <AlertCircleIcon
-            size={12}
-            className="pointer-events-none absolute inset-0 m-auto transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
-          />
-        )}
-        <RefreshCcwIcon
+  const regenerateIcon = (
+    <span
+      onClick={handleRegenerateClick}
+      className={cn([
+        "group relative inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer",
+        isError
+          ? [
+              "text-red-600 hover:bg-red-50 hover:text-neutral-900 focus-visible:bg-red-50 focus-visible:text-neutral-900",
+            ]
+          : ["hover:bg-neutral-200 focus-visible:bg-neutral-200"],
+      ])}
+    >
+      {isError && (
+        <AlertCircleIcon
           size={12}
-          className={cn([
-            "pointer-events-none absolute inset-0 m-auto transition-opacity duration-200",
-            isError
-              ? "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-              : "opacity-100",
-          ])}
+          className="pointer-events-none absolute inset-0 m-auto transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
         />
+      )}
+      <RefreshCcwIcon
+        size={12}
+        className={cn([
+          "pointer-events-none absolute inset-0 m-auto transition-opacity duration-200",
+          isError
+            ? "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+            : "opacity-100",
+        ])}
+      />
+    </span>
+  );
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn([
+        "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
+        isActive
+          ? ["text-neutral-900", "border-neutral-900"]
+          : [
+              "text-neutral-600",
+              "border-transparent",
+              "hover:text-neutral-800",
+            ],
+      ])}
+    >
+      <span className="flex items-center gap-1">
+        <TruncatedTitle title={title} isActive={isActive} />
+        {isActive && (
+          <div className="flex items-center gap-1">
+            {isError ? (
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>{regenerateIcon}</TooltipTrigger>
+                {error && (
+                  <TooltipContent side="bottom">
+                    <p className="text-xs max-w-xs">
+                      {error instanceof Error ? error.message : String(error)}
+                    </p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            ) : (
+              regenerateIcon
+            )}
+          </div>
+        )}
       </span>
-    </PopoverTrigger>
+    </button>
+  );
+}
+
+function CreateOtherFormatButton({
+  sessionId,
+  handleTabChange,
+}: {
+  sessionId: string;
+  handleTabChange: (view: EditorView) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pendingNote, setPendingNote] = useState<{
+    id: string;
+    templateId: string;
+  } | null>(null);
+  const startedTasksRef = useRef(new Set<string>());
+  const templates = main.UI.useResultTable(
+    main.QUERIES.visibleTemplates,
+    main.STORE_ID,
+  );
+  const createEnhancedNote = useCreateEnhancedNote();
+  const model = useLanguageModel();
+
+  const store = main.UI.useStore(main.STORE_ID);
+  const taskId = createTaskId(pendingNote?.id || "placeholder", "enhance");
+  const enhanceTask = useAITaskTask(taskId, "enhance", {
+    onSuccess: ({ text }) => {
+      if (text && pendingNote && store) {
+        try {
+          const jsonContent = md2json(text);
+          store.setPartialRow("enhanced_notes", pendingNote.id, {
+            content: JSON.stringify(jsonContent),
+          });
+        } catch (error) {
+          console.error("Failed to convert markdown to JSON:", error);
+        }
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (pendingNote && model && !startedTasksRef.current.has(pendingNote.id)) {
+      startedTasksRef.current.add(pendingNote.id);
+      void enhanceTask.start({
+        model,
+        args: {
+          sessionId,
+          enhancedNoteId: pendingNote.id,
+          templateId: pendingNote.templateId,
+        },
+      });
+    }
+  }, [pendingNote, model, sessionId, enhanceTask.start]);
+
+  const handleTemplateClick = useCallback(
+    (templateId: string) => {
+      setOpen(false);
+
+      if (!model) {
+        console.error("No language model available");
+        return;
+      }
+
+      const enhancedNoteId = createEnhancedNote(sessionId, templateId);
+      if (!enhancedNoteId) {
+        console.error("Failed to create enhanced note");
+        return;
+      }
+
+      handleTabChange({ type: "enhanced", id: enhancedNoteId });
+      setPendingNote({ id: enhancedNoteId, templateId });
+    },
+    [sessionId, createEnhancedNote, model, handleTabChange],
   );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <button
-        onClick={handleTabClick}
-        className={cn([
-          "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
-          isActive
-            ? ["text-neutral-900", "border-neutral-900"]
-            : [
-                "text-neutral-600",
-                "border-transparent",
-                "hover:text-neutral-800",
-              ],
-        ])}
-      >
-        <span className="flex items-center gap-1">
-          <span>Summary</span>
-          {isActive && (
-            <div className="flex items-center gap-1">
-              {isError ? (
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>{regenerateTrigger}</TooltipTrigger>
-                  {error && (
-                    <TooltipContent side="bottom">
-                      <p className="text-xs max-w-xs">
-                        {error instanceof Error ? error.message : String(error)}
-                      </p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              ) : (
-                regenerateTrigger
-              )}
-            </div>
-          )}
-        </span>
-      </button>
+      <PopoverTrigger asChild>
+        <button
+          className={cn([
+            "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200",
+            "text-neutral-600 hover:text-neutral-800",
+            "flex items-center gap-1",
+          ])}
+        >
+          <PlusIcon size={14} />
+          <span>Create other format</span>
+        </button>
+      </PopoverTrigger>
       <PopoverContent className="w-64" align="start">
         <div className="flex flex-col gap-2">
           {Object.entries(templates).length > 0 ? (
@@ -181,23 +285,6 @@ function HeaderTabEnhanced({
               Create templates
             </TemplateButton>
           )}
-
-          <div className="flex items-center gap-3 text-neutral-400 text-sm my-1">
-            <div className="flex-1 h-px bg-neutral-300"></div>
-            <span>or</span>
-            <div className="flex-1 h-px bg-neutral-300"></div>
-          </div>
-
-          <TemplateButton
-            className={cn([
-              "flex items-center justify-center gap-2",
-              "text-neutral-100 bg-neutral-800 hover:bg-neutral-700",
-            ])}
-            onClick={() => handleTemplateClick(null)}
-          >
-            <SparklesIcon className="w-4 h-4" />
-            <span className="text-sm">Auto</span>
-          </TemplateButton>
         </div>
       </PopoverContent>
     </Popover>
@@ -221,28 +308,31 @@ export function Header({
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
 }) {
-  if (editorTabs.length === 1 && editorTabs[0] === "raw") {
+  const isBatchProcessing = useListener((state) => sessionId in state.batch);
+
+  if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
   }
 
-  const isBatchProcessing = useListener((state) => sessionId in state.batch);
-
   const showProgress =
-    currentTab === "transcript" && (isInactive || isBatchProcessing);
+    currentTab.type === "transcript" && (isInactive || isBatchProcessing);
   const showEditingControls =
-    currentTab === "transcript" && isInactive && !isBatchProcessing;
+    currentTab.type === "transcript" && isInactive && !isBatchProcessing;
 
   return (
     <div className="flex flex-col">
       <div className="flex justify-between items-center">
-        <div className="flex gap-1">
+        <div className="flex gap-1 items-center">
           {editorTabs.map((view) => {
-            if (view === "enhanced") {
+            if (view.type === "enhanced") {
               return (
                 <HeaderTabEnhanced
-                  key={view}
+                  key={`enhanced-${view.id}`}
                   sessionId={sessionId}
-                  isActive={currentTab === view}
+                  enhancedNoteId={view.id}
+                  isActive={
+                    currentTab.type === "enhanced" && currentTab.id === view.id
+                  }
                   onClick={() => handleTabChange(view)}
                 />
               );
@@ -250,14 +340,18 @@ export function Header({
 
             return (
               <HeaderTab
-                key={view}
-                isActive={currentTab === view}
+                key={view.type}
+                isActive={currentTab.type === view.type}
                 onClick={() => handleTabChange(view)}
               >
                 {labelForEditorView(view)}
               </HeaderTab>
             );
           })}
+          <CreateOtherFormatButton
+            sessionId={sessionId}
+            handleTabChange={handleTabChange}
+          />
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
         {showEditingControls && (
@@ -279,58 +373,63 @@ export function useEditorTabs({
 }): EditorView[] {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const hasTranscript = useHasTranscript(sessionId);
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    sessionId,
+    main.STORE_ID,
+  );
 
   if (sessionMode === "running_active" || sessionMode === "running_batch") {
-    return ["raw", "transcript"];
+    return [{ type: "raw" }, { type: "transcript" }];
   }
 
   if (hasTranscript) {
-    return ["enhanced", "raw", "transcript"];
+    const enhancedTabs: EditorView[] = (enhancedNoteIds || []).map((id) => ({
+      type: "enhanced",
+      id,
+    }));
+    return [...enhancedTabs, { type: "raw" }, { type: "transcript" }];
   }
 
-  return ["raw"];
+  return [{ type: "raw" }];
 }
 
 function labelForEditorView(view: EditorView): string {
-  if (view === "enhanced") {
+  if (view.type === "enhanced") {
     return "Summary";
   }
-  if (view === "raw") {
+  if (view.type === "raw") {
     return "Memos";
   }
-  if (view === "transcript") {
+  if (view.type === "transcript") {
     return "Transcript";
   }
   return "";
 }
 
-function useEnhanceLogic(sessionId: string) {
+function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
   const model = useLanguageModel();
-  const taskId = createTaskId(sessionId, "enhance");
+  const taskId = createTaskId(enhancedNoteId, "enhance");
   const [missingModelError, setMissingModelError] = useState<Error | null>(
     null,
   );
 
-  const updateEnhancedMd = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (input: string) => ({ enhanced_md: input }),
-    [],
-    main.STORE_ID,
-  );
+  const store = main.UI.useStore(main.STORE_ID);
 
   const enhanceTask = useAITaskTask(taskId, "enhance", {
     onSuccess: ({ text }) => {
-      if (text) {
-        updateEnhancedMd(text);
+      if (text && store) {
+        try {
+          const jsonContent = md2json(text);
+          store.setPartialRow("enhanced_notes", enhancedNoteId, {
+            content: JSON.stringify(jsonContent),
+          });
+        } catch (error) {
+          console.error("Failed to convert markdown to JSON:", error);
+        }
       }
     },
   });
-
-  const templates = main.UI.useResultTable(
-    main.QUERIES.visibleTemplates,
-    main.STORE_ID,
-  );
 
   const onRegenerate = useCallback(
     async (templateId: string | null) => {
@@ -345,10 +444,14 @@ function useEnhanceLogic(sessionId: string) {
 
       await enhanceTask.start({
         model,
-        args: { sessionId, templateId: templateId ?? undefined },
+        args: {
+          sessionId,
+          enhancedNoteId,
+          templateId: templateId ?? undefined,
+        },
       });
     },
-    [model, enhanceTask.start, sessionId],
+    [model, enhanceTask.start, sessionId, enhancedNoteId],
   );
 
   useEffect(() => {
@@ -361,8 +464,6 @@ function useEnhanceLogic(sessionId: string) {
   const isError = !!missingModelError || enhanceTask.isError;
 
   return {
-    model,
-    templates,
     isGenerating: enhanceTask.isGenerating,
     isError,
     error,

@@ -72,7 +72,7 @@ export function TabContentNote({
   });
 
   const showTimeline =
-    tab.state.editor === "transcript" &&
+    tab.state.editor?.type === "transcript" &&
     Boolean(audioUrl) &&
     listenerStatus === "inactive";
 

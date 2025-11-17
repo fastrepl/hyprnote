@@ -328,6 +328,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           "chat_messages",
           "chat_groups",
           "chat_group_id",
+        )
+        .setRelationshipDefinition(
+          RELATIONSHIPS.enhancedNoteToSession,
+          "enhanced_notes",
+          "sessions",
+          "session_id",
         ),
     [],
   )!;
@@ -588,6 +594,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         "chat_messages",
         "chat_group_id",
         "created_at",
+      )
+      .setIndexDefinition(
+        INDEXES.enhancedNotesBySession,
+        "enhanced_notes",
+        "session_id",
+        "position",
       ),
   );
 
@@ -665,6 +677,7 @@ export const INDEXES = {
   tagSessionsByTag: "tagSessionsByTag",
   chatMessagesByGroup: "chatMessagesByGroup",
   sessionsByHuman: "sessionsByHuman",
+  enhancedNotesBySession: "enhancedNotesBySession",
 };
 
 export const RELATIONSHIPS = {
@@ -682,4 +695,5 @@ export const RELATIONSHIPS = {
   tagSessionToTag: "tagSessionToTag",
   tagSessionToSession: "tagSessionToSession",
   chatMessageToGroup: "chatMessageToGroup",
+  enhancedNoteToSession: "enhancedNoteToSession",
 };

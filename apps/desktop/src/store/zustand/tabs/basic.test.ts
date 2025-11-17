@@ -20,7 +20,7 @@ describe("Basic Tab Actions", () => {
     const session1 = createSessionTab({ active: false });
     const session2 = createSessionTab({
       active: false,
-      state: { editor: "enhanced" },
+      state: { editor: { type: "enhanced", id: "note-1" } },
     });
     const contacts = createContactsTab({ active: false });
 

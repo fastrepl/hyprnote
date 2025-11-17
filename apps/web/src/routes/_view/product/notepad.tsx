@@ -44,21 +44,18 @@ function Component() {
 
   return (
     <div
-      className="bg-linear-to-b from-white via-stone-50/20 to-white h-[calc(100vh-65px)] relative overflow-hidden"
+      className="bg-linear-to-b from-white via-stone-50/20 to-white sm:h-[calc(100vh-65px)] overflow-hidden"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white h-full relative flex flex-col">
-        {/* Hero content */}
-        <div className="flex-1 bg-[linear-gradient(to_bottom,rgba(245,245,244,0.2),white_50%,rgba(245,245,244,0.3))] px-6 flex items-center justify-center relative z-10">
+        <div className="flex-1 bg-[linear-gradient(to_bottom,rgba(245,245,244,0.2),white_50%,rgba(245,245,244,0.3))] px-6 py-12 flex items-center justify-center relative z-10">
           <div className="text-center max-w-4xl mx-auto pointer-events-auto">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6 max-w-2xl mx-auto">
               Your private notepad. <br className="hidden sm:inline" />
               No bots. Local-first.
             </h1>
-            <p className="text-lg sm:text-xl text-neutral-600 mb-8 max-w-xl mx-auto">
-              Hyprnote takes your memos and transcripts{" "}
-              <br className="hidden sm:inline" />
-              to make crazy good notes
+            <p className="text-lg sm:text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
+              Hyprnote takes your memos and transcripts to make crazy good notes
             </p>
 
             <AnimatedNotesDemo />
@@ -182,7 +179,7 @@ function AnimatedNotesDemo() {
         variant="desktop"
         className="mb-8 rounded-lg border-b w-full sm:w-[420px] md:w-[480px] lg:w-[540px] mx-auto"
       >
-        <div className="p-6 space-y-4 h-64 overflow-hidden text-left">
+        <div className="p-6 space-y-4 h-96 overflow-hidden text-left">
           <div className="space-y-2">
             <h4
               className={cn([
@@ -234,7 +231,7 @@ function AnimatedNotesDemo() {
             >
               New Dashboard – Urgent Priority
             </h4>
-            <ul className="space-y-2 text-sm text-neutral-700 list-disc pl-5">
+            <ul className="space-y-2 text-neutral-700 list-disc pl-5">
               <li
                 className={cn([
                   "transition-opacity duration-500",
@@ -257,7 +254,7 @@ function AnimatedNotesDemo() {
       variant="desktop"
       className="mb-8 rounded-lg border-b w-full sm:w-[420px] md:w-[480px] lg:w-[540px] mx-auto"
     >
-      <div className="p-6 h-64 overflow-hidden text-left">
+      <div className="p-6 h-96 overflow-hidden text-left">
         <div className="text-neutral-700">ui update - mobile</div>
         <div className="text-neutral-700">api</div>
         <div className="text-neutral-700 mt-4">new dash - urgent</div>

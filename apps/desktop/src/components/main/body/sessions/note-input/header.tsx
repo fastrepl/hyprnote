@@ -308,11 +308,11 @@ export function Header({
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
 }) {
+  const isBatchProcessing = useListener((state) => sessionId in state.batch);
+
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
   }
-
-  const isBatchProcessing = useListener((state) => sessionId in state.batch);
 
   const showProgress =
     currentTab.type === "transcript" && (isInactive || isBatchProcessing);

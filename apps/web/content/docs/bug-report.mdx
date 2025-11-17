@@ -1,0 +1,136 @@
+---
+title: "Bug Reports & Debugging"
+description: "How to report bugs and find log files for troubleshooting Hyprnote"
+---
+
+## Reporting Bugs
+
+If you encounter any issues with Hyprnote, we'd love to hear about them! You can report bugs through:
+
+- **GitHub Issues**: [github.com/hyprnote/hyprnote/issues](https://github.com/hyprnote/hyprnote/issues)
+- **Discord**: Join our community for quick support and discussion
+
+When reporting a bug, please include:
+- Your operating system and version
+- Steps to reproduce the issue
+- Expected vs actual behavior
+- Any error messages you see
+- Relevant logs (see below for log locations)
+
+## Finding Log Files
+
+Hyprnote stores logs in platform-specific directories following XDG Base Directory conventions. These logs contain detailed information about application events and can help diagnose issues.
+
+### macOS
+
+```bash
+~/Library/Logs/hyprnote/
+```
+
+The logs directory contains rolling daily logs with timestamped filenames, allowing you to review historical application events.
+
+### Windows
+
+```bash
+C:\Users\[username]\AppData\Local\hyprnote\logs
+```
+
+### Linux
+
+```bash
+~/.local/share/hyprnote/logs/
+```
+
+or
+
+```bash
+~/.config/hyprnote/logs/
+```
+
+## Application Data Locations
+
+If you need to inspect or back up your application data, here's where Hyprnote stores various files:
+
+### macOS
+
+```bash
+~/Library/Application Support/hyprnote/
+├── db.sqlite              # User database
+├── config.json            # App configuration
+├── models/                # Downloaded AI models
+│   ├── stt/              # Speech-to-text models
+│   └── llm/              # Language models
+└── sessions/             # Session recordings
+```
+
+### Windows
+
+```bash
+C:\Users\[username]\AppData\Local\hyprnote\
+```
+
+### Linux
+
+```bash
+~/.local/share/hyprnote/
+```
+
+## Debugging Tips
+
+### Frontend Issues
+
+If you're experiencing UI-related problems:
+
+1. Open Developer Tools (View → Toggle Developer Tools)
+2. Check the Console tab for JavaScript errors
+3. Check the Network tab for failed requests
+
+### Backend Issues
+
+For deeper investigation of backend problems:
+
+1. Check the log files in the locations above
+2. Look for error messages or stack traces
+3. Note the timestamps of when issues occurred
+
+### Performance Issues
+
+If Hyprnote is running slowly:
+
+1. Check log files for any repeated errors
+2. Monitor system resources (CPU, memory, disk usage)
+3. Check if large models are being loaded
+4. Review session recordings for unusually large files
+
+## Common Issues
+
+### Cannot Find Logs
+
+If the logs directory doesn't exist, it may mean:
+- Hyprnote hasn't been launched yet
+- Permissions prevent directory creation
+- The app is using a different data directory
+
+### Clearing Old Data
+
+To free up space, you can safely delete:
+- Old log files from the logs directory
+- Old session recordings from the sessions directory
+
+Do **not** delete:
+- `db.sqlite` (contains your notes and data)
+- `config.json` (contains your settings)
+- Model files (unless you want to re-download them)
+
+## Getting Help
+
+Still stuck? We're here to help:
+
+- Join our [Discord community](https://discord.gg/hyprnote)
+- Create a [GitHub issue](https://github.com/hyprnote/hyprnote/issues)
+- Email us at support@hyprnote.com
+
+When reaching out, please include:
+- The contents of your log files (if relevant)
+- Your system information
+- A detailed description of the problem

@@ -16,14 +16,16 @@ export const createTemplate = (): { id: string; data: TemplateStorage } => {
     }),
   );
 
+  const data: TemplateStorage = {
+    user_id: DEFAULT_USER_ID,
+    title: faker.lorem.words({ min: 2, max: 5 }),
+    description: faker.lorem.sentence(),
+    sections: JSON.stringify(sections),
+    created_at: faker.date.past({ years: 1 }).toISOString(),
+  };
+
   return {
     id: id(),
-    data: {
-      user_id: DEFAULT_USER_ID,
-      title: faker.lorem.words({ min: 2, max: 5 }),
-      description: faker.lorem.sentence(),
-      sections: JSON.stringify(sections),
-      created_at: faker.date.past({ years: 1 }).toISOString(),
-    },
+    data,
   };
 };

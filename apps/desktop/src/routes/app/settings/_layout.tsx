@@ -310,18 +310,44 @@ function InnerHeader({
 }
 
 function useDeleteTemplate(templateId: string) {
+  const store = main.UI.useStore(main.STORE_ID);
   const handleDeleteRow = main.UI.useDelRowCallback(
     "templates",
     templateId,
     main.STORE_ID,
   );
-
+  const handleArchive = main.UI.useSetPartialRowCallback(
+    "templates",
+    templateId,
+    () => ({ archived: true }),
+    [],
+    main.STORE_ID,
+  );
   const navigate = Route.useNavigate();
 
   const handleDelete = useCallback(() => {
-    handleDeleteRow();
+    if (!store) return;
+
+    let hasRelatedNotes = false;
+    store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
+      const noteTemplateId = store.getCell(
+        "enhanced_notes",
+        rowId,
+        "template_id",
+      );
+      if (noteTemplateId === templateId) {
+        hasRelatedNotes = true;
+      }
+    });
+
+    if (hasRelatedNotes) {
+      handleArchive();
+    } else {
+      handleDeleteRow();
+    }
+
     navigate({ search: { tab: "templates" } });
-  }, [handleDeleteRow, navigate]);
+  }, [store, templateId, handleArchive, handleDeleteRow, navigate]);
 
   return handleDelete;
 }

@@ -1,8 +1,8 @@
 import { useCallback, useRef } from "react";
 
 import type { HyprUIMessage } from "../../chat/types";
-import { useShell } from "../../contexts/shell";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
+import { useShell } from "../../contexts/shell";
 import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
 import { ChatBody } from "./body";

@@ -4,8 +4,8 @@ import { type ReactNode, useEffect, useMemo, useRef } from "react";
 
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
-import { useToolRegistry } from "../../contexts/tool";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
+import { useToolRegistry } from "../../contexts/tool";
 import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
 

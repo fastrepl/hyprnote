@@ -1,10 +1,10 @@
-import { Icon } from "@iconify-icon/react";
 import {
   createFileRoute,
   Link,
   Outlet,
   useRouterState,
 } from "@tanstack/react-router";
+import { ChevronDown, ChevronUp, Menu } from "lucide-react";
 import { createContext, useContext, useState } from "react";
 
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
@@ -114,10 +114,11 @@ function Header() {
               >
                 <button className="flex items-center gap-1 text-sm text-neutral-600 hover:text-neutral-800 transition-all py-2">
                   Product
-                  <Icon
-                    icon={isProductOpen ? "mdi:chevron-up" : "mdi:chevron-down"}
-                    className="text-base"
-                  />
+                  {isProductOpen ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
                 </button>
                 {isProductOpen && (
                   <div className="absolute top-full left-0 pt-2 w-[520px] z-50">
@@ -252,7 +253,7 @@ function Header() {
                 className="px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
                 aria-label="Open menu"
               >
-                <Icon icon="mdi:menu" className="text-lg text-neutral-600" />
+                <Menu className="text-neutral-600" size={16} />
               </button>
             </div>
           </div>
@@ -276,12 +277,11 @@ function Header() {
                       className="flex items-center justify-between w-full text-base text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       <span>Product</span>
-                      <Icon
-                        icon={
-                          isProductOpen ? "mdi:chevron-up" : "mdi:chevron-down"
-                        }
-                        className="text-lg"
-                      />
+                      {isProductOpen ? (
+                        <ChevronUp size={16} />
+                      ) : (
+                        <ChevronDown size={16} />
+                      )}
                     </button>
                     {isProductOpen && (
                       <div className="mt-3 ml-4 space-y-4 border-l-2 border-neutral-200 pl-4">

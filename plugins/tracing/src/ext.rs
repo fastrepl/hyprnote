@@ -1,14 +1,13 @@
 use std::path::PathBuf;
 
 pub trait TracingPluginExt<R: tauri::Runtime> {
-    fn logs_dir(&self, bundle_id: impl Into<String>) -> Result<PathBuf, crate::Error>;
+    fn logs_dir(&self) -> Result<PathBuf, crate::Error>;
     fn do_log(&self, level: Level, data: Vec<serde_json::Value>) -> Result<(), crate::Error>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> TracingPluginExt<R> for T {
-    fn logs_dir(&self, bundle_id: impl Into<String>) -> Result<PathBuf, crate::Error> {
-        let base_dir = dirs::data_dir().unwrap();
-        let logs_dir = base_dir.join(bundle_id.into()).join("logs");
+    fn logs_dir(&self) -> Result<PathBuf, crate::Error> {
+        let logs_dir = dirs::home_dir().unwrap().join("Library/Logs/hyprnote");
         let _ = std::fs::create_dir_all(&logs_dir);
         Ok(logs_dir)
     }

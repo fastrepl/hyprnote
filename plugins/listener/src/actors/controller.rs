@@ -279,7 +279,7 @@ impl ControllerActor {
             Some(RecorderActor::name()),
             RecorderActor,
             RecArgs {
-                app_dir: state.app.path().app_data_dir().unwrap(),
+                app_dir: dirs::data_dir().unwrap().join("hyprnote").join("sessions"),
                 session_id: state.params.session_id.clone(),
             },
             supervisor,

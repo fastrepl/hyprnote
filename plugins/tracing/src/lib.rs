@@ -40,10 +40,9 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 .unwrap_or_else(|_| EnvFilter::new("info"))
                 .add_directive("ort=warn".parse().unwrap());
 
-            if let Some((file_writer, guard)) = make_file_writer_if_enabled(
-                true,
-                &app.logs_dir(app.config().identifier.clone()).unwrap(),
-            ) {
+            if let Some((file_writer, guard)) =
+                make_file_writer_if_enabled(true, &app.logs_dir().unwrap())
+            {
                 tracing_subscriber::Registry::default()
                     .with(env_filter)
                     .with(sentry::integrations::tracing::layer())

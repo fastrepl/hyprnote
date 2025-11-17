@@ -27,7 +27,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Database2PluginExt<R> for T {
                     .await
                     .unwrap()
             } else {
-                let dir_path = self.app_handle().path().app_data_dir()?;
+                let dir_path = dirs::data_dir().unwrap().join("hyprnote");
+                std::fs::create_dir_all(&dir_path)?;
                 let file_path = dir_path.join("db.sqlite");
 
                 hypr_db_core::DatabaseBuilder::default()

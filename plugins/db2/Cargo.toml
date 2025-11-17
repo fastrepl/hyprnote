@@ -24,9 +24,9 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing = { workspace = true }
 
+dirs = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true, features = ["serde_json"] }
 strum = { workspace = true, features = ["derive"] }
-
 thiserror = { workspace = true }

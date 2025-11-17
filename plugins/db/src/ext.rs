@@ -1,5 +1,4 @@
 use std::future::Future;
-use tauri::Manager;
 
 pub trait DatabasePluginExt<R: tauri::Runtime> {
     fn db_user_id(&self) -> impl Future<Output = Result<Option<String>, crate::Error>>;
@@ -36,8 +35,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
 
     fn db_local_path(&self) -> Result<String, crate::Error> {
         let v = {
-            let app = self.app_handle();
-            let dir = app.path().app_data_dir()?;
+            let dir = dirs::data_dir().unwrap().join("hyprnote");
             std::fs::create_dir_all(&dir)?;
 
             dir.join("db.sqlite").to_str().unwrap().to_string()

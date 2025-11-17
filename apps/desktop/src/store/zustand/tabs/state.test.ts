@@ -74,7 +74,7 @@ describe("State Updater Actions", () => {
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({
         id: session.id,
-        state: { editor: "raw" },
+        state: {},
       });
       expect(state.tabs[1]).toMatchObject({ type: "contacts" });
     });
@@ -110,7 +110,7 @@ describe("State Updater Actions", () => {
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
-      expect(state.tabs[1]).toMatchObject({ state: { editor: "raw" } });
+      expect(state.tabs[1]).toMatchObject({ state: {} });
       expect(useTabs.getState()).toHaveLastHistoryEntry({ id: session.id });
     });
 

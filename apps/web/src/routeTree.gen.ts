@@ -25,6 +25,7 @@ import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewTemplatesRouteImport } from './routes/_view/templates'
 import { Route as ViewTeamRouteImport } from './routes/_view/team'
+import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewRoadmapRouteImport } from './routes/_view/roadmap'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewFaqRouteImport } from './routes/_view/faq'
@@ -38,8 +39,18 @@ import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
+import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
+import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
+import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_view/solution/project-management'
+import { Route as ViewSolutionMediaRouteImport } from './routes/_view/solution/media'
+import { Route as ViewSolutionLegalRouteImport } from './routes/_view/solution/legal'
+import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solution/healthcare'
+import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
+import { Route as ViewSolutionFieldEngineeringRouteImport } from './routes/_view/solution/field-engineering'
+import { Route as ViewSolutionCustomerSuccessRouteImport } from './routes/_view/solution/customer-success'
 import { Route as ViewProductWorkflowsRouteImport } from './routes/_view/product/workflows'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
+import { Route as ViewProductOpensourceRouteImport } from './routes/_view/product/opensource'
 import { Route as ViewProductNotepadRouteImport } from './routes/_view/product/notepad'
 import { Route as ViewProductMiniAppsRouteImport } from './routes/_view/product/mini-apps'
 import { Route as ViewProductLocalAiRouteImport } from './routes/_view/product/local-ai'
@@ -137,6 +148,11 @@ const ViewTeamRoute = ViewTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewSecurityRoute = ViewSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewRoadmapRoute = ViewRoadmapRouteImport.update({
   id: '/roadmap',
   path: '/roadmap',
@@ -202,6 +218,54 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ViewSolutionSalesRoute = ViewSolutionSalesRouteImport.update({
+  id: '/solution/sales',
+  path: '/solution/sales',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewSolutionRecruitingRoute = ViewSolutionRecruitingRouteImport.update({
+  id: '/solution/recruiting',
+  path: '/solution/recruiting',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewSolutionProjectManagementRoute =
+  ViewSolutionProjectManagementRouteImport.update({
+    id: '/solution/project-management',
+    path: '/solution/project-management',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
+const ViewSolutionMediaRoute = ViewSolutionMediaRouteImport.update({
+  id: '/solution/media',
+  path: '/solution/media',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewSolutionLegalRoute = ViewSolutionLegalRouteImport.update({
+  id: '/solution/legal',
+  path: '/solution/legal',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewSolutionHealthcareRoute = ViewSolutionHealthcareRouteImport.update({
+  id: '/solution/healthcare',
+  path: '/solution/healthcare',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewSolutionGovernmentRoute = ViewSolutionGovernmentRouteImport.update({
+  id: '/solution/government',
+  path: '/solution/government',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewSolutionFieldEngineeringRoute =
+  ViewSolutionFieldEngineeringRouteImport.update({
+    id: '/solution/field-engineering',
+    path: '/solution/field-engineering',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
+const ViewSolutionCustomerSuccessRoute =
+  ViewSolutionCustomerSuccessRouteImport.update({
+    id: '/solution/customer-success',
+    path: '/solution/customer-success',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
 const ViewProductWorkflowsRoute = ViewProductWorkflowsRouteImport.update({
   id: '/product/workflows',
   path: '/product/workflows',
@@ -210,6 +274,11 @@ const ViewProductWorkflowsRoute = ViewProductWorkflowsRouteImport.update({
 const ViewProductSelfHostingRoute = ViewProductSelfHostingRouteImport.update({
   id: '/product/self-hosting',
   path: '/product/self-hosting',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewProductOpensourceRoute = ViewProductOpensourceRouteImport.update({
+  id: '/product/opensource',
+  path: '/product/opensource',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewProductNotepadRoute = ViewProductNotepadRouteImport.update({
@@ -316,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof ViewFaqRoute
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
+  '/security': typeof ViewSecurityRoute
   '/team': typeof ViewTeamRoute
   '/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
@@ -339,8 +409,18 @@ export interface FileRoutesByFullPath {
   '/product/local-ai': typeof ViewProductLocalAiRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
+  '/product/opensource': typeof ViewProductOpensourceRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
+  '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
+  '/solution/government': typeof ViewSolutionGovernmentRoute
+  '/solution/healthcare': typeof ViewSolutionHealthcareRoute
+  '/solution/legal': typeof ViewSolutionLegalRoute
+  '/solution/media': typeof ViewSolutionMediaRoute
+  '/solution/project-management': typeof ViewSolutionProjectManagementRoute
+  '/solution/recruiting': typeof ViewSolutionRecruitingRoute
+  '/solution/sales': typeof ViewSolutionSalesRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -363,6 +443,7 @@ export interface FileRoutesByTo {
   '/faq': typeof ViewFaqRoute
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
+  '/security': typeof ViewSecurityRoute
   '/team': typeof ViewTeamRoute
   '/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
@@ -386,8 +467,18 @@ export interface FileRoutesByTo {
   '/product/local-ai': typeof ViewProductLocalAiRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
+  '/product/opensource': typeof ViewProductOpensourceRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
+  '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
+  '/solution/government': typeof ViewSolutionGovernmentRoute
+  '/solution/healthcare': typeof ViewSolutionHealthcareRoute
+  '/solution/legal': typeof ViewSolutionLegalRoute
+  '/solution/media': typeof ViewSolutionMediaRoute
+  '/solution/project-management': typeof ViewSolutionProjectManagementRoute
+  '/solution/recruiting': typeof ViewSolutionRecruitingRoute
+  '/solution/sales': typeof ViewSolutionSalesRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -414,6 +505,7 @@ export interface FileRoutesById {
   '/_view/faq': typeof ViewFaqRoute
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/roadmap': typeof ViewRoadmapRoute
+  '/_view/security': typeof ViewSecurityRoute
   '/_view/team': typeof ViewTeamRoute
   '/_view/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
@@ -437,8 +529,18 @@ export interface FileRoutesById {
   '/_view/product/local-ai': typeof ViewProductLocalAiRoute
   '/_view/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/_view/product/notepad': typeof ViewProductNotepadRoute
+  '/_view/product/opensource': typeof ViewProductOpensourceRoute
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/_view/product/workflows': typeof ViewProductWorkflowsRoute
+  '/_view/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
+  '/_view/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
+  '/_view/solution/government': typeof ViewSolutionGovernmentRoute
+  '/_view/solution/healthcare': typeof ViewSolutionHealthcareRoute
+  '/_view/solution/legal': typeof ViewSolutionLegalRoute
+  '/_view/solution/media': typeof ViewSolutionMediaRoute
+  '/_view/solution/project-management': typeof ViewSolutionProjectManagementRoute
+  '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
+  '/_view/solution/sales': typeof ViewSolutionSalesRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
@@ -465,6 +567,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/pricing'
     | '/roadmap'
+    | '/security'
     | '/team'
     | '/templates'
     | '/api/templates'
@@ -488,8 +591,18 @@ export interface FileRouteTypes {
     | '/product/local-ai'
     | '/product/mini-apps'
     | '/product/notepad'
+    | '/product/opensource'
     | '/product/self-hosting'
     | '/product/workflows'
+    | '/solution/customer-success'
+    | '/solution/field-engineering'
+    | '/solution/government'
+    | '/solution/healthcare'
+    | '/solution/legal'
+    | '/solution/media'
+    | '/solution/project-management'
+    | '/solution/recruiting'
+    | '/solution/sales'
     | '/app/'
     | '/blog'
     | '/changelog'
@@ -512,6 +625,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/pricing'
     | '/roadmap'
+    | '/security'
     | '/team'
     | '/templates'
     | '/api/templates'
@@ -535,8 +649,18 @@ export interface FileRouteTypes {
     | '/product/local-ai'
     | '/product/mini-apps'
     | '/product/notepad'
+    | '/product/opensource'
     | '/product/self-hosting'
     | '/product/workflows'
+    | '/solution/customer-success'
+    | '/solution/field-engineering'
+    | '/solution/government'
+    | '/solution/healthcare'
+    | '/solution/legal'
+    | '/solution/media'
+    | '/solution/project-management'
+    | '/solution/recruiting'
+    | '/solution/sales'
     | '/app'
     | '/blog'
     | '/changelog'
@@ -562,6 +686,7 @@ export interface FileRouteTypes {
     | '/_view/faq'
     | '/_view/pricing'
     | '/_view/roadmap'
+    | '/_view/security'
     | '/_view/team'
     | '/_view/templates'
     | '/api/templates'
@@ -585,8 +710,18 @@ export interface FileRouteTypes {
     | '/_view/product/local-ai'
     | '/_view/product/mini-apps'
     | '/_view/product/notepad'
+    | '/_view/product/opensource'
     | '/_view/product/self-hosting'
     | '/_view/product/workflows'
+    | '/_view/solution/customer-success'
+    | '/_view/solution/field-engineering'
+    | '/_view/solution/government'
+    | '/_view/solution/healthcare'
+    | '/_view/solution/legal'
+    | '/_view/solution/media'
+    | '/_view/solution/project-management'
+    | '/_view/solution/recruiting'
+    | '/_view/solution/sales'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
@@ -725,6 +860,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewTeamRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/security': {
+      id: '/_view/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof ViewSecurityRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/roadmap': {
       id: '/_view/roadmap'
       path: '/roadmap'
@@ -816,6 +958,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
+    '/_view/solution/sales': {
+      id: '/_view/solution/sales'
+      path: '/solution/sales'
+      fullPath: '/solution/sales'
+      preLoaderRoute: typeof ViewSolutionSalesRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/recruiting': {
+      id: '/_view/solution/recruiting'
+      path: '/solution/recruiting'
+      fullPath: '/solution/recruiting'
+      preLoaderRoute: typeof ViewSolutionRecruitingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/project-management': {
+      id: '/_view/solution/project-management'
+      path: '/solution/project-management'
+      fullPath: '/solution/project-management'
+      preLoaderRoute: typeof ViewSolutionProjectManagementRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/media': {
+      id: '/_view/solution/media'
+      path: '/solution/media'
+      fullPath: '/solution/media'
+      preLoaderRoute: typeof ViewSolutionMediaRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/legal': {
+      id: '/_view/solution/legal'
+      path: '/solution/legal'
+      fullPath: '/solution/legal'
+      preLoaderRoute: typeof ViewSolutionLegalRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/healthcare': {
+      id: '/_view/solution/healthcare'
+      path: '/solution/healthcare'
+      fullPath: '/solution/healthcare'
+      preLoaderRoute: typeof ViewSolutionHealthcareRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/government': {
+      id: '/_view/solution/government'
+      path: '/solution/government'
+      fullPath: '/solution/government'
+      preLoaderRoute: typeof ViewSolutionGovernmentRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/field-engineering': {
+      id: '/_view/solution/field-engineering'
+      path: '/solution/field-engineering'
+      fullPath: '/solution/field-engineering'
+      preLoaderRoute: typeof ViewSolutionFieldEngineeringRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/customer-success': {
+      id: '/_view/solution/customer-success'
+      path: '/solution/customer-success'
+      fullPath: '/solution/customer-success'
+      preLoaderRoute: typeof ViewSolutionCustomerSuccessRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/product/workflows': {
       id: '/_view/product/workflows'
       path: '/product/workflows'
@@ -828,6 +1033,13 @@ declare module '@tanstack/react-router' {
       path: '/product/self-hosting'
       fullPath: '/product/self-hosting'
       preLoaderRoute: typeof ViewProductSelfHostingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/product/opensource': {
+      id: '/_view/product/opensource'
+      path: '/product/opensource'
+      fullPath: '/product/opensource'
+      preLoaderRoute: typeof ViewProductOpensourceRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/product/notepad': {
@@ -992,6 +1204,7 @@ interface ViewRouteRouteChildren {
   ViewFaqRoute: typeof ViewFaqRoute
   ViewPricingRoute: typeof ViewPricingRoute
   ViewRoadmapRoute: typeof ViewRoadmapRoute
+  ViewSecurityRoute: typeof ViewSecurityRoute
   ViewTeamRoute: typeof ViewTeamRoute
   ViewTemplatesRoute: typeof ViewTemplatesRoute
   ViewIndexRoute: typeof ViewIndexRoute
@@ -1008,8 +1221,18 @@ interface ViewRouteRouteChildren {
   ViewProductLocalAiRoute: typeof ViewProductLocalAiRoute
   ViewProductMiniAppsRoute: typeof ViewProductMiniAppsRoute
   ViewProductNotepadRoute: typeof ViewProductNotepadRoute
+  ViewProductOpensourceRoute: typeof ViewProductOpensourceRoute
   ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
   ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute
+  ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute
+  ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute
+  ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
+  ViewSolutionHealthcareRoute: typeof ViewSolutionHealthcareRoute
+  ViewSolutionLegalRoute: typeof ViewSolutionLegalRoute
+  ViewSolutionMediaRoute: typeof ViewSolutionMediaRoute
+  ViewSolutionProjectManagementRoute: typeof ViewSolutionProjectManagementRoute
+  ViewSolutionRecruitingRoute: typeof ViewSolutionRecruitingRoute
+  ViewSolutionSalesRoute: typeof ViewSolutionSalesRoute
   ViewBlogIndexRoute: typeof ViewBlogIndexRoute
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
@@ -1024,6 +1247,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewFaqRoute: ViewFaqRoute,
   ViewPricingRoute: ViewPricingRoute,
   ViewRoadmapRoute: ViewRoadmapRoute,
+  ViewSecurityRoute: ViewSecurityRoute,
   ViewTeamRoute: ViewTeamRoute,
   ViewTemplatesRoute: ViewTemplatesRoute,
   ViewIndexRoute: ViewIndexRoute,
@@ -1040,8 +1264,18 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductLocalAiRoute: ViewProductLocalAiRoute,
   ViewProductMiniAppsRoute: ViewProductMiniAppsRoute,
   ViewProductNotepadRoute: ViewProductNotepadRoute,
+  ViewProductOpensourceRoute: ViewProductOpensourceRoute,
   ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
   ViewProductWorkflowsRoute: ViewProductWorkflowsRoute,
+  ViewSolutionCustomerSuccessRoute: ViewSolutionCustomerSuccessRoute,
+  ViewSolutionFieldEngineeringRoute: ViewSolutionFieldEngineeringRoute,
+  ViewSolutionGovernmentRoute: ViewSolutionGovernmentRoute,
+  ViewSolutionHealthcareRoute: ViewSolutionHealthcareRoute,
+  ViewSolutionLegalRoute: ViewSolutionLegalRoute,
+  ViewSolutionMediaRoute: ViewSolutionMediaRoute,
+  ViewSolutionProjectManagementRoute: ViewSolutionProjectManagementRoute,
+  ViewSolutionRecruitingRoute: ViewSolutionRecruitingRoute,
+  ViewSolutionSalesRoute: ViewSolutionSalesRoute,
   ViewBlogIndexRoute: ViewBlogIndexRoute,
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,

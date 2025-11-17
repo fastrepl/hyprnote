@@ -27,9 +27,9 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   const hasTranscript = !!transcriptIds && transcriptIds.length > 0;
 
   // Track the enhanced note ID we create for auto-enhancement
-  const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<
-    string | null
-  >(null);
+  const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(
+    null,
+  );
 
   // Track which IDs we've already started tasks for (prevents infinite retries)
   const startedTasksRef = useRef<Set<string>>(new Set());

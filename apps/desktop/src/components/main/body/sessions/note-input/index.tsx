@@ -81,7 +81,7 @@ export function NoteInput({
           <Enhanced
             ref={editorRef}
             sessionId={sessionId}
-            enhancedNoteId={currentTab.enhancedNoteId}
+            enhancedNoteId={currentTab.id}
           />
         )}
         {currentTab.type === "raw" && (
@@ -104,7 +104,6 @@ function useTabShortcuts({
   currentTab: EditorView;
   handleTabChange: (view: EditorView) => void;
 }) {
-  // Alt+S: cycle through enhanced tabs
   useHotkeys(
     "alt+s",
     () => {
@@ -112,16 +111,12 @@ function useTabShortcuts({
       if (enhancedTabs.length === 0) return;
 
       if (currentTab.type === "enhanced") {
-        // Find current index and go to next
         const currentIndex = enhancedTabs.findIndex(
-          (t) =>
-            t.type === "enhanced" &&
-            t.enhancedNoteId === currentTab.enhancedNoteId,
+          (t) => t.type === "enhanced" && t.id === currentTab.id,
         );
         const nextIndex = (currentIndex + 1) % enhancedTabs.length;
         handleTabChange(enhancedTabs[nextIndex]);
       } else {
-        // Switch to first enhanced tab
         handleTabChange(enhancedTabs[0]);
       }
     },
@@ -133,7 +128,6 @@ function useTabShortcuts({
     [currentTab, editorTabs, handleTabChange],
   );
 
-  // Alt+M: switch to raw
   useHotkeys(
     "alt+m",
     () => {
@@ -150,7 +144,6 @@ function useTabShortcuts({
     [currentTab, editorTabs, handleTabChange],
   );
 
-  // Alt+T: switch to transcript
   useHotkeys(
     "alt+t",
     () => {

@@ -22,12 +22,22 @@ export function useCreateEnhancedNote() {
       // Get next position number by counting existing rows
       let existingCount = 0;
       store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
-        const rowSessionId = store.getCell("enhanced_notes", rowId, "session_id");
+        const rowSessionId = store.getCell(
+          "enhanced_notes",
+          rowId,
+          "session_id",
+        );
         if (rowSessionId === sessionId) {
           existingCount++;
         }
       });
       const nextPosition = existingCount + 1;
+
+      let title = "Summary";
+      if (templateId) {
+        const templateTitle = store.getCell("templates", templateId, "title");
+        title = templateTitle || "Summary";
+      }
 
       // Create the enhanced note row
       store.setRow("enhanced_notes", enhancedNoteId, {
@@ -36,7 +46,7 @@ export function useCreateEnhancedNote() {
         session_id: sessionId,
         content: "",
         position: nextPosition,
-        title: nextPosition === 1 ? "Summary" : `Summary ${nextPosition}`,
+        title,
         template_id: templateId,
       });
 

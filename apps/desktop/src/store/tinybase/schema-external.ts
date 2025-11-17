@@ -99,6 +99,7 @@ export const templateSchema = baseTemplateSchema.omit({ id: true }).extend({
     jsonObject(z.array(z.string())).optional(),
   ),
   sections: jsonObject(z.array(templateSectionSchema)),
+  archived: z.boolean().optional(),
 });
 
 export const chatGroupSchema = baseChatGroupSchema
@@ -275,6 +276,7 @@ export const externalTableSchemaForTinybase = {
     title: { type: "string" },
     description: { type: "string" },
     sections: { type: "string" },
+    archived: { type: "boolean" },
   } satisfies InferTinyBaseSchema<typeof templateSchema>,
   chat_groups: {
     user_id: { type: "string" },

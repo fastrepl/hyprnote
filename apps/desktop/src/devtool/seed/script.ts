@@ -13,5 +13,3 @@ const jsonSchema = z.toJSONSchema(CuratedDataSchema);
 const outputPath = path.join(__dirname, "data", "schema.gen.json");
 
 fs.writeFileSync(outputPath, JSON.stringify(jsonSchema, null, 2), "utf-8");
-
-console.log(`JSON Schema generated at: ${outputPath}`);

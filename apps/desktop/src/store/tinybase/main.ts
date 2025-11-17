@@ -22,7 +22,7 @@ import {
 
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { EMPTY_TIPTAP_DOC_STRING, md2json } from "@hypr/tiptap/shared";
+import { EMPTY_TIPTAP_DOC_STRING } from "@hypr/tiptap/shared";
 import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
@@ -399,11 +399,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         .setQueryDefinition(
           QUERIES.visibleTemplates,
           "templates",
-          ({ select }) => {
+          ({ select, where }) => {
             select("title");
             select("description");
             select("sections");
             select("created_at");
+            where((getCell) => !getCell("archived"));
           },
         )
         .setQueryDefinition(QUERIES.visibleFolders, "folders", ({ select }) => {

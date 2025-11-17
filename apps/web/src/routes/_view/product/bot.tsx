@@ -174,7 +174,7 @@ function DraggableIcon({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <div className="w-full h-full shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[24px] bg-transparent">
+      <div className="w-full h-full shadow-2xl border border-neutral-100 flex justify-center items-center rounded-3xl bg-transparent">
         <img
           src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
           alt="Hyprnote"

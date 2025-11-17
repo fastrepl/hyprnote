@@ -133,6 +133,49 @@ function startSegment(
   return segment;
 }
 
+function canExtendWithSpeakerIdentity(
+  existingSegment: ProtoSegment,
+  candidateKey: SegmentKey,
+  frame: ResolvedWordFrame,
+  lastSegmentInState: ProtoSegment | undefined,
+): boolean {
+  if (!SegmentKeyUtils.hasSpeakerIdentity(candidateKey)) {
+    return true;
+  }
+
+  if (!frame.word.isFinal) {
+    return SegmentKeyUtils.equals(existingSegment.key, candidateKey);
+  }
+
+  return (
+    lastSegmentInState !== undefined &&
+    SegmentKeyUtils.equals(lastSegmentInState.key, candidateKey)
+  );
+}
+
+function canExtendNonLastSegment(
+  existingSegment: ProtoSegment,
+  candidateKey: SegmentKey,
+  frame: ResolvedWordFrame,
+  isLastSegment: boolean,
+): boolean {
+  if (isLastSegment) {
+    return true;
+  }
+
+  if (!frame.word.isFinal) {
+    const allWordsArePartial = existingSegment.words.every(
+      (w) => !w.word.isFinal,
+    );
+
+    const hasInheritedIdentity =
+      SegmentKeyUtils.hasSpeakerIdentity(candidateKey);
+    return allWordsArePartial || hasInheritedIdentity;
+  }
+
+  return true;
+}
+
 function canExtend(
   state: SegmentationReducerState,
   existingSegment: ProtoSegment,
@@ -140,26 +183,29 @@ function canExtend(
   frame: ResolvedWordFrame,
   options?: SegmentBuilderOptions,
 ): boolean {
-  if (SegmentKeyUtils.hasSpeakerIdentity(candidateKey)) {
-    const lastSegment = state.segments[state.segments.length - 1];
-    if (
-      !lastSegment ||
-      !SegmentKeyUtils.equals(lastSegment.key, candidateKey)
-    ) {
-      return false;
-    }
+  const lastSegment = state.segments[state.segments.length - 1];
+  const isLastSegment = existingSegment === lastSegment;
+
+  if (
+    !canExtendWithSpeakerIdentity(
+      existingSegment,
+      candidateKey,
+      frame,
+      lastSegment,
+    )
+  ) {
+    return false;
   }
 
   if (
-    !frame.word.isFinal &&
-    existingSegment !== state.segments[state.segments.length - 1]
+    !canExtendNonLastSegment(
+      existingSegment,
+      candidateKey,
+      frame,
+      isLastSegment,
+    )
   ) {
-    const allWordsArePartial = existingSegment.words.every(
-      (w) => !w.word.isFinal,
-    );
-    if (!allWordsArePartial) {
-      return false;
-    }
+    return false;
   }
 
   const maxGapMs = options?.maxGapMs ?? 2000;

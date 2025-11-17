@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use tauri::{path::BaseDirectory, Manager};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::audio::import_audio;
@@ -35,7 +36,10 @@ pub async fn audio_exist<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<bool, String> {
-    let data_dir = dirs::data_dir().unwrap().join("hyprnote").join("sessions");
+    let data_dir = app
+        .path()
+        .resolve("hyprnote/sessions", BaseDirectory::Data)
+        .map_err(|e| e.to_string())?;
     let session_dir = data_dir.join(session_id);
 
     ["audio.wav", "audio.ogg"]
@@ -54,7 +58,10 @@ pub async fn audio_delete<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<(), String> {
-    let data_dir = dirs::data_dir().unwrap().join("hyprnote").join("sessions");
+    let data_dir = app
+        .path()
+        .resolve("hyprnote/sessions", BaseDirectory::Data)
+        .map_err(|e| e.to_string())?;
     let session_dir = data_dir.join(session_id);
 
     ["audio.wav", "audio.ogg"]
@@ -87,10 +94,10 @@ fn audio_import_internal<R: tauri::Runtime>(
     session_id: &str,
     source_path: &str,
 ) -> Result<PathBuf, AudioImportError> {
-    let data_dir = dirs::data_dir()
-        .ok_or_else(|| AudioImportError::PathResolver("Failed to get data directory".to_string()))?
-        .join("hyprnote")
-        .join("sessions");
+    let data_dir = app
+        .path()
+        .resolve("hyprnote/sessions", BaseDirectory::Data)
+        .map_err(|e| AudioImportError::PathResolver(e.to_string()))?;
     let session_dir = data_dir.join(session_id);
 
     std::fs::create_dir_all(&session_dir)?;
@@ -120,7 +127,10 @@ pub async fn audio_path<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<String, String> {
-    let data_dir = dirs::data_dir().unwrap().join("hyprnote").join("sessions");
+    let data_dir = app
+        .path()
+        .resolve("hyprnote/sessions", BaseDirectory::Data)
+        .map_err(|e| e.to_string())?;
     let session_dir = data_dir.join(session_id);
 
     let path = ["audio.ogg", "audio.wav"]
@@ -138,7 +148,10 @@ pub async fn audio_open<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<(), String> {
-    let data_dir = dirs::data_dir().unwrap().join("hyprnote").join("sessions");
+    let data_dir = app
+        .path()
+        .resolve("hyprnote/sessions", BaseDirectory::Data)
+        .map_err(|e| e.to_string())?;
     let session_dir = data_dir.join(session_id);
 
     app.opener()
@@ -154,7 +167,10 @@ pub async fn delete_session_folder<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     session_id: String,
 ) -> Result<(), String> {
-    let data_dir = dirs::data_dir().unwrap().join("hyprnote").join("sessions");
+    let data_dir = app
+        .path()
+        .resolve("hyprnote/sessions", BaseDirectory::Data)
+        .map_err(|e| e.to_string())?;
     let session_dir = data_dir.join(session_id);
 
     if session_dir.exists() {

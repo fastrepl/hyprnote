@@ -49,11 +49,16 @@ pub trait LocalSttPluginExt<R: Runtime> {
 
 impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     fn models_dir(&self) -> PathBuf {
-        dirs::data_dir()
-            .unwrap()
-            .join("hyprnote")
-            .join("models")
-            .join("stt")
+        use tauri::path::BaseDirectory;
+        self.path()
+            .resolve("hyprnote/models/stt", BaseDirectory::Data)
+            .unwrap_or_else(|_| {
+                dirs::data_dir()
+                    .unwrap_or_default()
+                    .join("hyprnote")
+                    .join("models")
+                    .join("stt")
+            })
     }
 
     fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend> {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use tauri::{path::BaseDirectory, Manager, Wry};
+use tauri::{Manager, Wry};
 use tokio::sync::Mutex;
 
 use hypr_llm::ModelManager;
@@ -67,9 +67,11 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(move |app, _api| {
+            use tauri::path::BaseDirectory;
+            use tauri::Manager as _;
             specta_builder.mount_events(app);
 
-            let data_dir = dirs::data_dir().unwrap().join("hyprnote");
+            let data_dir = app.path().resolve("hyprnote", BaseDirectory::Data)?;
             let models_dir = app.models_dir();
 
             // for backward compatibility

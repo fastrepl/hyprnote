@@ -1,7 +1,3 @@
-[build]
-command = "pnpm -F @hypr/web build"
-publish = "dist/client"
-
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"
 NODE_VERSION = "22"

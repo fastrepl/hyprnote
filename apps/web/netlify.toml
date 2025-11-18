@@ -1,14 +1,10 @@
 [build]
-base = "apps/web"
 command = "pnpm -F @hypr/web build"
 publish = "dist/client"
 
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"
 NODE_VERSION = "22"
-
-[functions]
-directory = ".netlify/v1/functions"
 
 [[edge_functions]]
 function = "og"

@@ -1,5 +1,4 @@
 {
-  "explorer.excludeGitIgnore": true,
   "search.useParentIgnoreFiles": true,
   "search.useIgnoreFiles": true,
   "files.watcherExclude": {

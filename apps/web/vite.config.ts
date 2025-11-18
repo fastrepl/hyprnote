@@ -11,7 +11,6 @@ import { getSitemap } from "./src/utils/sitemap";
 
 const config = defineConfig(() => ({
   plugins: [
-    netlify({ dev: { images: { enabled: true } } }),
     contentCollections(),
     viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),
@@ -34,6 +33,7 @@ const config = defineConfig(() => ({
     }),
     viteReact(),
     generateSitemap(getSitemap()),
+    netlify({ dev: { images: { enabled: true } } }),
   ],
   ssr: {
     noExternal: ["posthog-js", "@posthog/react"],

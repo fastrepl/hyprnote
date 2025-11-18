@@ -53,6 +53,7 @@ import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/produ
 import { Route as ViewProductOpensourceRouteImport } from './routes/_view/product/opensource'
 import { Route as ViewProductNotepadRouteImport } from './routes/_view/product/notepad'
 import { Route as ViewProductMiniAppsRouteImport } from './routes/_view/product/mini-apps'
+import { Route as ViewProductMemoryRouteImport } from './routes/_view/product/memory'
 import { Route as ViewProductLocalAiRouteImport } from './routes/_view/product/local-ai'
 import { Route as ViewProductExtensionsRouteImport } from './routes/_view/product/extensions'
 import { Route as ViewProductBotRouteImport } from './routes/_view/product/bot'
@@ -291,6 +292,11 @@ const ViewProductMiniAppsRoute = ViewProductMiniAppsRouteImport.update({
   path: '/product/mini-apps',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewProductMemoryRoute = ViewProductMemoryRouteImport.update({
+  id: '/product/memory',
+  path: '/product/memory',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewProductLocalAiRoute = ViewProductLocalAiRouteImport.update({
   id: '/product/local-ai',
   path: '/product/local-ai',
@@ -407,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/product/bot': typeof ViewProductBotRoute
   '/product/extensions': typeof ViewProductExtensionsRoute
   '/product/local-ai': typeof ViewProductLocalAiRoute
+  '/product/memory': typeof ViewProductMemoryRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
   '/product/opensource': typeof ViewProductOpensourceRoute
@@ -465,6 +472,7 @@ export interface FileRoutesByTo {
   '/product/bot': typeof ViewProductBotRoute
   '/product/extensions': typeof ViewProductExtensionsRoute
   '/product/local-ai': typeof ViewProductLocalAiRoute
+  '/product/memory': typeof ViewProductMemoryRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
   '/product/opensource': typeof ViewProductOpensourceRoute
@@ -527,6 +535,7 @@ export interface FileRoutesById {
   '/_view/product/bot': typeof ViewProductBotRoute
   '/_view/product/extensions': typeof ViewProductExtensionsRoute
   '/_view/product/local-ai': typeof ViewProductLocalAiRoute
+  '/_view/product/memory': typeof ViewProductMemoryRoute
   '/_view/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/_view/product/notepad': typeof ViewProductNotepadRoute
   '/_view/product/opensource': typeof ViewProductOpensourceRoute
@@ -589,6 +598,7 @@ export interface FileRouteTypes {
     | '/product/bot'
     | '/product/extensions'
     | '/product/local-ai'
+    | '/product/memory'
     | '/product/mini-apps'
     | '/product/notepad'
     | '/product/opensource'
@@ -647,6 +657,7 @@ export interface FileRouteTypes {
     | '/product/bot'
     | '/product/extensions'
     | '/product/local-ai'
+    | '/product/memory'
     | '/product/mini-apps'
     | '/product/notepad'
     | '/product/opensource'
@@ -708,6 +719,7 @@ export interface FileRouteTypes {
     | '/_view/product/bot'
     | '/_view/product/extensions'
     | '/_view/product/local-ai'
+    | '/_view/product/memory'
     | '/_view/product/mini-apps'
     | '/_view/product/notepad'
     | '/_view/product/opensource'
@@ -1056,6 +1068,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewProductMiniAppsRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/product/memory': {
+      id: '/_view/product/memory'
+      path: '/product/memory'
+      fullPath: '/product/memory'
+      preLoaderRoute: typeof ViewProductMemoryRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/product/local-ai': {
       id: '/_view/product/local-ai'
       path: '/product/local-ai'
@@ -1219,6 +1238,7 @@ interface ViewRouteRouteChildren {
   ViewProductBotRoute: typeof ViewProductBotRoute
   ViewProductExtensionsRoute: typeof ViewProductExtensionsRoute
   ViewProductLocalAiRoute: typeof ViewProductLocalAiRoute
+  ViewProductMemoryRoute: typeof ViewProductMemoryRoute
   ViewProductMiniAppsRoute: typeof ViewProductMiniAppsRoute
   ViewProductNotepadRoute: typeof ViewProductNotepadRoute
   ViewProductOpensourceRoute: typeof ViewProductOpensourceRoute
@@ -1262,6 +1282,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductBotRoute: ViewProductBotRoute,
   ViewProductExtensionsRoute: ViewProductExtensionsRoute,
   ViewProductLocalAiRoute: ViewProductLocalAiRoute,
+  ViewProductMemoryRoute: ViewProductMemoryRoute,
   ViewProductMiniAppsRoute: ViewProductMiniAppsRoute,
   ViewProductNotepadRoute: ViewProductNotepadRoute,
   ViewProductOpensourceRoute: ViewProductOpensourceRoute,

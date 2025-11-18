@@ -55,6 +55,7 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Computed version: $VERSION"
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ steps.version.outputs.version }}"
       - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:
@@ -91,7 +92,6 @@ jobs:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
-      - run: ./scripts/version.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "${{ steps.version.outputs.version }}"
       - run: |
           FEATURES_FLAG=""
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
@@ -167,6 +167,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.build.outputs.version }}"
       - uses: ./.github/actions/cn_release
         with:
           cmd: publish
@@ -179,3 +180,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: desktop_v${{ needs.build.outputs.version }}
+          tag_prefix: ""

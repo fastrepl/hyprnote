@@ -1,6 +1,6 @@
 # https://docs.netlify.com/build/configure-builds/overview/#definitions
+# We must set package="apps/web" in the UI
 [build]
-package = "apps/web"
 command = "pnpm -F @hypr/web build"
 publish = "apps/web/dist/client"
 

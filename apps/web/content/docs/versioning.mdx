@@ -12,15 +12,15 @@ and we use [doxxer](https://github.com/karlis-vagalis/doxxer) to automate the ve
 
 # Format
 
-- `1.0.0-nightly.1` -> `1.0.0-nightly.2` -> `1.0.0`
-- `1.0.0` -> `1.0.1-nightly.1` -> `1.0.1-nightly.2` -> `1.0.1`
+- `1.0.0-nightly.0` (manually tag) -> `1.0.0-nightly.1` -> `1.0.0-nightly.2` -> `1.0.0` (manually tag)
+- `1.0.1-nightly.0` (manually tag) -> `1.0.1-nightly.1` -> `1.0.1-nightly.2` -> `1.0.1` (manually tag)
 
 ```bash
-doxxer --config doxxer.desktop.toml current         # current
+doxxer --config doxxer.desktop.toml current           # current
 
-doxxer --config doxxer.desktop.toml next dev        # staging
-doxxer --config doxxer.desktop.toml next pre-patch  # nightly
-doxxer --config doxxer.desktop.toml next patch      # stable patch
-doxxer --config doxxer.desktop.toml next minor      # stable minor
-doxxer --config doxxer.desktop.toml next major      # stable major
+doxxer --config doxxer.desktop.toml next dev          # staging
+doxxer --config doxxer.desktop.toml next prerelease   # nightly (increment prerelease)
+doxxer --config doxxer.desktop.toml next patch        # stable patch
+doxxer --config doxxer.desktop.toml next minor        # stable minor
+doxxer --config doxxer.desktop.toml next major        # stable major
 ```

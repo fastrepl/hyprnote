@@ -41,13 +41,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          fetch-depth: 0
+          fetch-tags: true
       - uses: ./.github/actions/doxxer_install
       - id: version
         run: |
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             VERSION=$(doxxer --config doxxer.desktop.toml next dev)
           elif [[ "${{ inputs.channel }}" == "nightly" ]]; then
-            VERSION=$(doxxer --config doxxer.desktop.toml next pre-patch)
+            VERSION=$(doxxer --config doxxer.desktop.toml next prerelease)
           elif [[ "${{ inputs.channel }}" == "stable" ]]; then
             VERSION=$(doxxer --config doxxer.desktop.toml next patch)
           fi

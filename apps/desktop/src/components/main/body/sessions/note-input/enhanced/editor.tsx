@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useMemo, useState } from "react";
 
 import { type JSONContent, TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
-import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
+import { EMPTY_TIPTAP_DOC, isValidTiptapContent } from "@hypr/tiptap/shared";
 
 import * as main from "../../../../../../store/tinybase/main";
 
@@ -19,7 +19,12 @@ export const EnhancedEditor = forwardRef<
       const value = store.getCell("enhanced_notes", enhancedNoteId, "content");
       if (value && typeof value === "string" && value.trim()) {
         try {
-          setInitialContent(JSON.parse(value));
+          const parsed = JSON.parse(value);
+          if (isValidTiptapContent(parsed)) {
+            setInitialContent(parsed);
+          } else {
+            setInitialContent(EMPTY_TIPTAP_DOC);
+          }
         } catch {
           setInitialContent(EMPTY_TIPTAP_DOC);
         }

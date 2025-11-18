@@ -6,6 +6,7 @@ import NoteEditor, {
 } from "@hypr/tiptap/editor";
 import {
   EMPTY_TIPTAP_DOC,
+  isValidTiptapContent,
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
 
@@ -25,7 +26,12 @@ export const RawEditor = forwardRef<
       const value = store.getCell("sessions", sessionId, "raw_md");
       if (value && typeof value === "string" && value.trim()) {
         try {
-          setInitialContent(JSON.parse(value));
+          const parsed = JSON.parse(value);
+          if (isValidTiptapContent(parsed)) {
+            setInitialContent(parsed);
+          } else {
+            setInitialContent(EMPTY_TIPTAP_DOC);
+          }
         } catch {
           setInitialContent(EMPTY_TIPTAP_DOC);
         }

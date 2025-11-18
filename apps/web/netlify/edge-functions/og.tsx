@@ -1,7 +1,7 @@
 // deno-lint-ignore no-import-prefix
 import { ImageResponse } from "https://deno.land/x/og_edge@0.0.6/mod.ts";
 // deno-lint-ignore no-import-prefix
-import { z } from "npm:zod@^4";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const templateSchema = z.object({
   type: z.literal("meeting"),

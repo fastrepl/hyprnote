@@ -3880,7 +3880,7 @@ dependencies = [
 
 [[package]]
 name = "desktop"
-version = "0.0.8"
+version = "0.0.0"
 dependencies = [
  "aspasia",
  "sentry",
@@ -14429,6 +14429,7 @@ dependencies = [
  "tauri-plugin-store2",
  "tauri-specta",
  "thiserror 2.0.17",
+ "vergen-gix",
 ]
 
 [[package]]

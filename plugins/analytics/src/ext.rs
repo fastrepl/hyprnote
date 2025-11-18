@@ -21,7 +21,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
         &self,
         mut payload: hypr_analytics::AnalyticsPayload,
     ) -> Result<(), crate::Error> {
-        let app_version = self.config().version.clone();
+        let app_version = env!("VERGEN_GIT_DESCRIBE");
         let app_identifier = self.config().identifier.clone();
         let git_hash = self.get_git_hash();
         let bundle_id = self.config().identifier.clone();

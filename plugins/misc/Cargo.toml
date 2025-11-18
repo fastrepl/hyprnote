@@ -9,7 +9,7 @@ description = ""
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
-vergen-gix = { version = "1.0.0", features = ["build"] }
+vergen-gix = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 indoc = { workspace = true }

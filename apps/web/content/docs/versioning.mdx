@@ -5,11 +5,10 @@ description: How Hyprnote handles versioning for desktop releases
 
 # Overview
 
-- Before `v1.0.0`, we use `tauri.conf.json` to manage the base version, and use mix of `git tags` and `workflow inputs` to manage the release channels.
-- From `v1.0.0`, we make all version compliant with [semver](https://semver.org/), \
-using [doxxer](https://github.com/karlis-vagalis/doxxer) to automate the versioning process. (Configuration is in `doxxer.desktop.toml`)
-- All version information is stored as `git tags`, and injected to `tauri.conf.json` in build time.
-This also means `version` field in `tauri.conf.json` is not managed at all. 
+- Before `v1.0.0`, we use `tauri.conf.json` to manage the base version, and `git tags` & `workflow inputs` to manage the release channels.
+- From `v1.0.0`, all version information is stored as `git tags`, and injected to `tauri.conf.json` in build time. This also means `version` field in `tauri.conf.json` is not managed at all. 
+- Also all version are compliant with [semver](https://semver.org/), \
+and we use [doxxer](https://github.com/karlis-vagalis/doxxer) to automate the versioning process. \
 
 # Format
 

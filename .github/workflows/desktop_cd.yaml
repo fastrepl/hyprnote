@@ -12,7 +12,7 @@ on:
           - stable
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.channel }}
   cancel-in-progress: true
 env:
   CN_APPLICATION: "fastrepl/hyprnote2"

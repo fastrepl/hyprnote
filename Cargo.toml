@@ -188,6 +188,7 @@ gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3d
 graph-rs-sdk = "2.0.3"
 
 sentry = "0.42"
+vergen-gix = "1"
 
 markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }
 mdast_util_to_markdown = { git = "https://github.com/wooorm/markdown-rs.git", rev = "5c9eba146f06b2e0531a901cb586c0a877edb3ea" }

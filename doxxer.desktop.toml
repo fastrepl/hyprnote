@@ -1,0 +1,26 @@
+filter.tag = "^desktop_v"
+
+[output]
+format = "plain"
+
+[next.dev]
+prerelease.template = "{pre}.dev.{distance}"
+build_metadata.template = "{hash}"
+
+[next.pre-patch]
+prerelease.identifier = "nightly"
+prerelease.template = "{identifier}.{inc}"
+build_metadata.template = ""
+
+[next.pre-major]
+prerelease.identifier = "beta"
+prerelease.template = "{identifier}.{inc}"
+
+[next.patch]
+increment = 1
+
+[next.minor]
+increment = 1
+
+[next.major]
+increment = 1

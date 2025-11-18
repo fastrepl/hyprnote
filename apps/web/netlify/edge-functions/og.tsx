@@ -1,7 +1,8 @@
-// deno-lint-ignore no-import-prefix
+// deno-lint-ignore-file no-import-prefix
+/** @jsxImportSource https://esm.sh/react@18.2.0 */
 import { ImageResponse } from "https://deno.land/x/og_edge@0.0.6/mod.ts";
-// deno-lint-ignore no-import-prefix
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+import React from "https://esm.sh/react@18.2.0";
 
 const templateSchema = z.object({
   type: z.literal("meeting"),

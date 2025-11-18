@@ -1,3 +1,35 @@
 # https://www.robotstxt.org/robotstxt.html
+
+# Allow all major search engines
 User-agent: *
-Disallow:
+Allow: /
+
+# Block crawling of app routes (protected user areas)
+Disallow: /_view/app/
+Disallow: /app/
+
+# Block authentication and callback routes
+Disallow: /auth
+Disallow: /_view/callback/
+
+# Block API endpoints
+Disallow: /api/
+
+# Allow public content
+Allow: /blog
+Allow: /docs
+Allow: /changelog
+Allow: /pricing
+Allow: /enterprise
+Allow: /product/
+Allow: /solution/
+Allow: /legal/
+Allow: /download
+Allow: /faq
+Allow: /about
+
+# AI-specific content reference
+# AI crawlers can find detailed content at /llms.txt
+
+# Sitemap location
+Sitemap: https://hypr.com/sitemap.xml

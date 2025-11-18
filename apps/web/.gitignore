@@ -10,3 +10,4 @@ dist-ssr
 .vinxi
 .content-collections
 .netlify
+public/sitemap.xml

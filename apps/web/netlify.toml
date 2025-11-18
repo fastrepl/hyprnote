@@ -6,6 +6,10 @@ publish = "dist/client"
 VITE_APP_URL = "https://hyprnote.com"
 NODE_VERSION = "22"
 
+[[edge_functions]]
+function = "og"
+path = "/og"
+
 [images]
 # https://docs.netlify.com/build/image-cdn/overview/#remote-path
 remote_images = [

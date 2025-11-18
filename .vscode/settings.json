@@ -1,7 +1,7 @@
 {
-  "explorer.excludeGitIgnore": false,
-  "search.useParentIgnoreFiles": false,
-  "search.useIgnoreFiles": false,
+  "explorer.excludeGitIgnore": true,
+  "search.useParentIgnoreFiles": true,
+  "search.useIgnoreFiles": true,
   "files.watcherExclude": {
     "**/routeTree.gen.ts": true
   },
@@ -23,5 +23,10 @@
   "rust-analyzer.checkOnSave": true,
   "rust-analyzer.check.allTargets": true,
   "rust-analyzer.cargo.targetDir": "target/analyzer",
-  "rust-analyzer.cargo.extraEnv": { "MACOSX_DEPLOYMENT_TARGET": "14.2" }
+  "rust-analyzer.cargo.extraEnv": { "MACOSX_DEPLOYMENT_TARGET": "14.2" },
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.enablePaths": [
+    "apps/web/netlify/edge-functions"
+  ]
 }

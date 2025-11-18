@@ -3,7 +3,6 @@ import { compileMDX } from "@content-collections/mdx";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
-import semver from "semver";
 import { z } from "zod";
 
 import { VersionPlatform } from "@/scripts/versioning";
@@ -108,15 +107,11 @@ const changelog = defineCollection({
     });
 
     const version = document._meta.path.replace(/\.mdx$/, "");
-    const parsed = semver.parse(version);
+    const tag = `desktop_v${version}`;
 
     const downloads: Record<VersionPlatform, string> = {
-      "dmg-aarch64": `https://github.com/fastrepl/hyprnote/releases/download/desktop_${version}/hyprnote.dmg`,
+      "dmg-aarch64": `https://github.com/fastrepl/hyprnote/releases/download/${tag}/hyprnote.dmg`,
     };
-
-    if (!parsed) {
-      throw new Error(`invalid_version: ${version}`);
-    }
 
     return {
       ...document,

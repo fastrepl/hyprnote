@@ -3,8 +3,11 @@ import netlify from "@netlify/vite-plugin-tanstack-start";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { generateSitemap } from "tanstack-router-sitemap";
 import { defineConfig } from "vite";
 import viteTsConfigPaths from "vite-tsconfig-paths";
+
+import { getSitemap } from "./src/utils/sitemap";
 
 const config = defineConfig(() => ({
   plugins: [
@@ -29,6 +32,7 @@ const config = defineConfig(() => ({
       },
     }),
     viteReact(),
+    generateSitemap(getSitemap()),
     netlify({ dev: { images: { enabled: true } } }),
   ],
   ssr: {

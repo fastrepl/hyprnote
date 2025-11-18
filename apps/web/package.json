@@ -64,8 +64,9 @@
     "@types/semver": "^7.7.1",
     "@vitejs/plugin-react": "^5.1.1",
     "env-cmd": "^11.0.0",
-    "jsdom": "^27.2.0",
-    "netlify": "^23.11.0",
+    "jsdom": "^27.1.0",
+    "netlify": "^23.10.0",
+    "tanstack-router-sitemap": "^1.0.13",
     "typescript": "^5.9.3",
     "vite": "^7.2.2",
     "web-vitals": "^5.1.0"

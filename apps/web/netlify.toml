@@ -1,5 +1,6 @@
 # https://docs.netlify.com/build/configure-builds/overview/#definitions
 [build]
+package = "apps/web"
 command = "pnpm -F @hypr/web build"
 publish = "apps/web/dist/client"
 

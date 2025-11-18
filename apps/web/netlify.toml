@@ -1,4 +1,6 @@
 [build]
+base = "/"
+package = "apps/web"
 command = "pnpm -F @hypr/web build"
 publish = "apps/web/dist/client"
 

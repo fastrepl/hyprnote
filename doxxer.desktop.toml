@@ -8,6 +8,7 @@ prerelease.template = "{pre}.dev.{distance}"
 build_metadata.template = "{hash}"
 
 [next.prerelease]
+prerelease.identifier = "nightly"
 prerelease.template = "{identifier}.{inc}"
 build_metadata.template = ""
 

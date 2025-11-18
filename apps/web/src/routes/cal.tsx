@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { cn } from "@hypr/utils";
 
@@ -41,6 +41,14 @@ function Container({ children }: { children: React.ReactNode }) {
           >
             {children}
           </div>
+        </div>
+        <div className="mt-6 text-center">
+          <Link
+            to="/"
+            className="text-sm text-stone-600 hover:text-stone-900 transition-colors"
+          >
+            Back to home
+          </Link>
         </div>
       </div>
     </div>

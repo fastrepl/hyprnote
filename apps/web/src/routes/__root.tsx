@@ -56,27 +56,27 @@ export const TanStackDevtools =
   process.env.NODE_ENV === "production"
     ? () => null
     : lazy(() =>
-      Promise.all([
-        import("@tanstack/react-devtools"),
-        import("@tanstack/react-router-devtools"),
-        import("@tanstack/react-query-devtools"),
-      ]).then(([devtools, router, query]) => ({
-        default: (
-          props: React.ComponentProps<typeof devtools.TanStackDevtools>,
-        ) => (
-          <devtools.TanStackDevtools
-            {...props}
-            plugins={[
-              {
-                name: "Tanstack Router",
-                render: <router.TanStackRouterDevtoolsPanel />,
-              },
-              {
-                name: "Tanstack Query",
-                render: <query.ReactQueryDevtoolsPanel />,
-              },
-            ]}
-          />
-        ),
-      })),
-    );
+        Promise.all([
+          import("@tanstack/react-devtools"),
+          import("@tanstack/react-router-devtools"),
+          import("@tanstack/react-query-devtools"),
+        ]).then(([devtools, router, query]) => ({
+          default: (
+            props: React.ComponentProps<typeof devtools.TanStackDevtools>,
+          ) => (
+            <devtools.TanStackDevtools
+              {...props}
+              plugins={[
+                {
+                  name: "Tanstack Router",
+                  render: <router.TanStackRouterDevtoolsPanel />,
+                },
+                {
+                  name: "Tanstack Query",
+                  render: <query.ReactQueryDevtoolsPanel />,
+                },
+              ]}
+            />
+          ),
+        })),
+      );

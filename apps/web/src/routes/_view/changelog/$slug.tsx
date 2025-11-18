@@ -2,6 +2,7 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allChangelogs } from "content-collections";
+import semver from "semver";
 
 export const Route = createFileRoute("/_view/changelog/$slug")({
   component: Component,
@@ -13,7 +14,10 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
       throw notFound();
     }
 
-    const sortedChangelogs = [...allChangelogs].reverse();
+    const sortedChangelogs = [...allChangelogs].sort((a, b) =>
+      semver.rcompare(a.version, b.version),
+    );
+
     const currentIndex = sortedChangelogs.findIndex(
       (c) => c.slug === changelog.slug,
     );
@@ -30,6 +34,7 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
 
 function Component() {
   const { changelog, nextChangelog, prevChangelog } = Route.useLoaderData();
+
   const isLatest = nextChangelog === null;
 
   return (

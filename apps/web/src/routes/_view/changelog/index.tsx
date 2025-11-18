@@ -1,13 +1,21 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { allChangelogs, type Changelog } from "content-collections";
+import semver from "semver";
 
 export const Route = createFileRoute("/_view/changelog/")({
   component: Component,
+  loader: async () => {
+    const changelogs = [...allChangelogs].sort((a, b) =>
+      semver.rcompare(a.version, b.version),
+    );
+
+    return { changelogs };
+  },
 });
 
 function Component() {
-  const sortedChangelogs = [...allChangelogs].reverse();
+  const { changelogs } = Route.useLoaderData();
 
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white">
@@ -24,7 +32,7 @@ function Component() {
           </p>
         </header>
 
-        {sortedChangelogs.length === 0 ? (
+        {changelogs.length === 0 ? (
           <div className="text-center py-16">
             <div className="mb-6">
               <Icon
@@ -39,7 +47,7 @@ function Component() {
             <div className="absolute left-8 top-0 bottom-0 w-px bg-neutral-200 hidden sm:block" />
 
             <div className="space-y-12">
-              {sortedChangelogs.map((changelog, index) => (
+              {changelogs.map((changelog, index) => (
                 <ChangelogCard
                   key={changelog._meta.filePath}
                   changelog={changelog}

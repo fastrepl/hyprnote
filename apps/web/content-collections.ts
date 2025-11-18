@@ -3,7 +3,10 @@ import { compileMDX } from "@content-collections/mdx";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
+import semver from "semver";
 import { z } from "zod";
+
+import { VersionPlatform } from "@/scripts/versioning";
 
 function extractToc(
   content: string,
@@ -85,10 +88,7 @@ const changelog = defineCollection({
   directory: "content/changelog",
   include: "*.mdx",
   schema: z.object({
-    version: z.string(),
-    author: z.string(),
-    created: z.string(),
-    updated: z.string().optional(),
+    created: z.coerce.date(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
@@ -107,14 +107,23 @@ const changelog = defineCollection({
       ],
     });
 
-    const slug = document._meta.path.replace(/\.mdx$/, "");
-    const author = "Hyprnote Team";
+    const version = document._meta.path.replace(/\.mdx$/, "");
+    const parsed = semver.parse(version);
+
+    const downloads: Record<VersionPlatform, string> = {
+      "dmg-aarch64": `https://hyprnote.com/download/${version}?channel=stable`,
+    };
+
+    if (!parsed) {
+      throw new Error(`invalid_version: ${version}`);
+    }
 
     return {
       ...document,
       mdx,
-      slug,
-      author,
+      slug: version,
+      version,
+      downloads,
     };
   },
 });

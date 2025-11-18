@@ -27,25 +27,6 @@ tasks:
           jsonschema validate ./plugins/db/seed/schema.json ./plugins/db/seed/onboarding.json
           jsonschema validate ./plugins/db/seed/schema.json ./plugins/db/seed/dev.json
 
-  bump:
-    cmds:
-      - |
-          CURRENT_VERSION=$(grep -o '"version": "[0-9]\+\.[0-9]\+\.[0-9]\+"' apps/desktop/src-tauri/tauri.conf.json | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
-
-          MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
-          MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
-          PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
-
-          NEW_PATCH=$((PATCH + 1))
-          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
-
-          echo "Updating version from $CURRENT_VERSION to $NEW_VERSION"
-
-          perl -i -pe "s/^version = \"[0-9]+\.[0-9]+\.[0-9]+\"/version = \"$NEW_VERSION\"/ if \$. < 10" apps/desktop/src-tauri/Cargo.toml
-          perl -i -pe "s/^  \"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/  \"version\": \"$NEW_VERSION\"/ if \$. < 10" apps/desktop/src-tauri/tauri.conf.json
-
-          cargo update -p desktop
-
   i18n:
     cmds:
       - |

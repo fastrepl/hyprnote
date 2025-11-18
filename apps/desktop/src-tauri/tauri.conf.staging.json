@@ -1,5 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
+  "version": "0.0.0",
   "productName": "Hyprnote Staging",
   "mainBinaryName": "Hyprnote Staging",
   "identifier": "com.hyprnote.staging",

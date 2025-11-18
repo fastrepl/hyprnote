@@ -1,11 +1,11 @@
 # https://docs.netlify.com/build/configure-builds/overview/#definitions
 [build]
-base = "./"
+base = "/"
 command = "pnpm -F @hypr/web build"
-publish = "dist/client"
+publish = "apps/web/dist/client"
 
 [functions]
-directory = ".netlify/v1/functions"
+directory = "apps/web/.netlify/v1/functions"
 
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"

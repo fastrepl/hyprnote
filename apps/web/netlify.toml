@@ -1,3 +1,4 @@
+# https://docs.netlify.com/build/configure-builds/overview/#definitions
 [build]
 base = "./"
 command = "pnpm -F @hypr/web build"

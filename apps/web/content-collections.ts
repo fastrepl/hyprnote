@@ -111,7 +111,7 @@ const changelog = defineCollection({
     const parsed = semver.parse(version);
 
     const downloads: Record<VersionPlatform, string> = {
-      "dmg-aarch64": `https://hyprnote.com/download/${version}?channel=stable`,
+      "dmg-aarch64": `https://github.com/fastrepl/hyprnote/releases/download/desktop_${version}/hyprnote.dmg`,
     };
 
     if (!parsed) {

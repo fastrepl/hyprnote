@@ -2,6 +2,7 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allChangelogs } from "content-collections";
+import { useCallback } from "react";
 import semver from "semver";
 
 export const Route = createFileRoute("/_view/changelog/$slug")({
@@ -37,6 +38,13 @@ function Component() {
 
   const isLatest = nextChangelog === null;
 
+  const handleDownload = useCallback(() => {
+    const link = changelog.downloads["dmg-aarch64"];
+    if (link) {
+      window.open(link, "_blank");
+    }
+  }, [changelog]);
+
   return (
     <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -67,6 +75,8 @@ function Component() {
           <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">
             Version {changelog.version}
           </h1>
+
+          <button onClick={handleDownload}>download</button>
         </header>
 
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-4xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-xl prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">

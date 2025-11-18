@@ -8,7 +8,6 @@ import viteTsConfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig(() => ({
   plugins: [
-    netlify({ dev: { images: { enabled: true } } }),
     contentCollections(),
     viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),
@@ -30,6 +29,7 @@ const config = defineConfig(() => ({
       },
     }),
     viteReact(),
+    netlify({ dev: { images: { enabled: true } } }),
   ],
   ssr: {
     noExternal: ["posthog-js", "@posthog/react"],

@@ -1,5 +1,5 @@
 [build]
-base = "apps/web"
+base = "./"
 command = "pnpm -F @hypr/web build"
 publish = "dist/client"
 

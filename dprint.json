@@ -30,7 +30,8 @@
     "**/migrations/**",
     "**/tests/*.sql",
     "**/charts/**",
-    "**/schema.json"
+    "**/schema.json",
+    "**/netlify/edge-functions"
   ],
   "exec": {
     "cwd": "${configDir}",

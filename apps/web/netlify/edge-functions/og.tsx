@@ -1,3 +1,5 @@
+// deno-lint-ignore no-unused-vars no-import-prefix
+import React from "https://esm.sh/react@18.2.0";
 // deno-lint-ignore no-import-prefix
 import { ImageResponse } from "https://deno.land/x/og_edge@0.0.6/mod.ts";
 // deno-lint-ignore no-import-prefix

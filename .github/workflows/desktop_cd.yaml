@@ -167,6 +167,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.build.outputs.version }}"
       - uses: ./.github/actions/cn_release
         with:
           cmd: publish

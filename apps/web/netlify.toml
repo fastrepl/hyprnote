@@ -1,14 +1,10 @@
 [build]
 command = "pnpm -F @hypr/web build"
-publish = "dist/client"
+publish = "apps/web/dist/client"
 
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"
 NODE_VERSION = "22"
-
-[[edge_functions]]
-function = "og"
-path = "/og"
 
 [images]
 # https://docs.netlify.com/build/image-cdn/overview/#remote-path

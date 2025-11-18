@@ -133,11 +133,10 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - name: Upload DMG to hyprote-builds bucket
-        if: ${{ inputs.channel != 'staging' && matrix.platform == 'macos' }}
+      - if: ${{ inputs.channel != 'staging' && matrix.platform == 'macos' }}
         run: |
           aws s3 cp "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" \
-            "s3://hyprote-builds/desktop/${{ inputs.channel }}/${{ steps.version.outputs.version }}/" \
+            "s3://hyprote-build/desktop/${{ inputs.channel }}/${{ steps.version.outputs.version }}/" \
             --recursive \
             --exclude "*" \
             --include "*.dmg" \

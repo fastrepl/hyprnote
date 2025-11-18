@@ -90,7 +90,7 @@ function ChangelogCard({
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h2 className="text-2xl font-serif text-stone-600 group-hover:text-stone-800 transition-colors">
-                  Version {changelog.version}
+                  v{changelog.version}
                 </h2>
                 {isFirst && (
                   <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-stone-100 text-stone-700 rounded-full">

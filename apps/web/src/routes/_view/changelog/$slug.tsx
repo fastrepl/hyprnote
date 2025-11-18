@@ -73,7 +73,7 @@ function Component() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">
-            Version {changelog.version}
+            v{changelog.version}
           </h1>
 
           <button onClick={handleDownload}>download</button>

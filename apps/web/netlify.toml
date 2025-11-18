@@ -1,14 +1,17 @@
+# https://docs.netlify.com/build/configure-builds/file-based-configuration/#build-settings
 [build]
 base = "/"
 package = "apps/web"
 publish = "apps/web/dist/client"
-# https://docs.netlify.com/build/edge-functions/optional-configuration/#edge-functions-directory
-edge_functions = "apps/web/netlify/edge-functions"
 command = "pnpm -F @hypr/web build"
 
 [functions]
 # https://docs.netlify.com/build/functions/optional-configuration/?data-tab=TypeScript
 directory = "apps/web/.netlify/v1/functions"
+
+[[edge_functions]]
+path = "/og"
+function = "og"
 
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"

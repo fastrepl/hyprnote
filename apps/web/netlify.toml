@@ -1,7 +1,7 @@
 # https://docs.netlify.com/build/configure-builds/overview/#definitions
 [build]
 command = "pnpm -F @hypr/web build"
-publish = "dist/client"
+publish = "apps/web/dist/client"
 
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"

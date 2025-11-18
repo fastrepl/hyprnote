@@ -4,6 +4,9 @@ base = "./"
 command = "pnpm -F @hypr/web build"
 publish = "dist/client"
 
+[functions]
+directory = ".netlify/v1/functions"
+
 [build.environment]
 VITE_APP_URL = "https://hyprnote.com"
 NODE_VERSION = "22"

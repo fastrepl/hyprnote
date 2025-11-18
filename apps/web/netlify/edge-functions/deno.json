@@ -1,6 +1,7 @@
 {
   "lock": false,
   "compilerOptions": {
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "jsxImportSource": "https://esm.sh/react@18.2.0"
   }
 }

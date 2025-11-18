@@ -6,7 +6,7 @@
     "dev": "env-cmd --silent -f ./.env -- vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
-    "typecheck": "pnpm -F @hypr/web build && tsc --noEmit"
+    "typecheck": "pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "@hypr/ui": "workspace:*",

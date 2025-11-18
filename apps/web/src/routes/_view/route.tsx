@@ -132,6 +132,7 @@ function Header() {
                             <Link
                               key={link.to}
                               to={link.to}
+                              onClick={() => setIsProductOpen(false)}
                               className="py-2 text-sm text-neutral-700 flex items-center justify-between hover:underline decoration-dotted"
                             >
                               <span>{link.label}</span>
@@ -152,6 +153,7 @@ function Header() {
                               <Link
                                 key={link.to}
                                 to={link.to}
+                                onClick={() => setIsProductOpen(false)}
                                 className="py-2 text-sm text-neutral-700 flex items-center justify-between hover:underline decoration-dotted"
                               >
                                 <span>{link.label}</span>

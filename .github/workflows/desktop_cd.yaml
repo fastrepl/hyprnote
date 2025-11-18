@@ -136,7 +136,7 @@ jobs:
       - if: ${{ inputs.channel != 'staging' && matrix.platform == 'macos' }}
         run: |
           aws s3 cp "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" \
-            "s3://hyprote-build/desktop/${{ inputs.channel }}/${{ steps.version.outputs.version }}/" \
+            "s3://hyprnote-build/desktop/${{ inputs.channel }}/${{ steps.version.outputs.version }}/" \
             --recursive \
             --exclude "*" \
             --include "*.dmg" \

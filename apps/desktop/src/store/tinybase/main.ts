@@ -159,23 +159,30 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const localPersister2 = useCreatePersister(
     store,
     async (store) => {
-      exists("sessions", { baseDir: BaseDirectory.AppData }).then(
-        async (exists) => {
-          if (!exists) {
-            mkdir("sessions", { baseDir: BaseDirectory.AppData });
-          }
-        },
-      );
+      try {
+        const dirExists = await exists("hyprnote/sessions", {
+          baseDir: BaseDirectory.Data,
+        });
+        if (!dirExists) {
+          await mkdir("hyprnote/sessions", {
+            baseDir: BaseDirectory.Data,
+            recursive: true,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to create sessions directory:", error);
+        throw error;
+      }
 
       const persister = createLocalPersister2<Schemas>(
         store as Store,
         async (session) => {
           if (session.enhanced_md) {
             await writeTextFile(
-              `sessions/${session.id}.md`,
+              `hyprnote/sessions/${session.id}.md`,
               session.enhanced_md,
               {
-                baseDir: BaseDirectory.AppData,
+                baseDir: BaseDirectory.Data,
               },
             );
           }

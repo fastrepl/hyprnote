@@ -296,7 +296,6 @@ export function Header({
   editorTabs,
   currentTab,
   handleTabChange,
-  isInactive,
   isEditing,
   setIsEditing,
 }: {
@@ -304,20 +303,21 @@ export function Header({
   editorTabs: EditorView[];
   currentTab: EditorView;
   handleTabChange: (view: EditorView) => void;
-  isInactive: boolean;
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
 }) {
-  const isBatchProcessing = useListener((state) => sessionId in state.batch);
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const isBatchProcessing = sessionMode === "running_batch";
+  const isLiveProcessing = sessionMode === "running_active";
 
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
   }
 
   const showProgress =
-    currentTab.type === "transcript" && (isInactive || isBatchProcessing);
+    currentTab.type === "transcript" && !isLiveProcessing && isBatchProcessing;
   const showEditingControls =
-    currentTab.type === "transcript" && isInactive && !isBatchProcessing;
+    currentTab.type === "transcript" && isLiveProcessing && !isBatchProcessing;
 
   return (
     <div className="flex flex-col">

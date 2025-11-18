@@ -275,11 +275,17 @@ impl ControllerActor {
         supervisor: ActorCell,
         state: &ControllerState,
     ) -> Result<ActorRef<RecMsg>, ActorProcessingErr> {
+        use tauri::{path::BaseDirectory, Manager};
+        let app_dir = state
+            .app
+            .path()
+            .resolve("hyprnote/sessions", BaseDirectory::Data)
+            .map_err(|e| Box::new(e) as ActorProcessingErr)?;
         let (rec_ref, _) = Actor::spawn_linked(
             Some(RecorderActor::name()),
             RecorderActor,
             RecArgs {
-                app_dir: dirs::data_dir().unwrap().join("hyprnote").join("sessions"),
+                app_dir,
                 session_id: state.params.session_id.clone(),
             },
             supervisor,

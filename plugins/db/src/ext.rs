@@ -34,8 +34,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> DatabasePluginExt<R> for T {
     }
 
     fn db_local_path(&self) -> Result<String, crate::Error> {
+        use tauri::path::BaseDirectory;
         let v = {
-            let dir = dirs::data_dir().unwrap().join("hyprnote");
+            let dir = self.path().resolve("hyprnote", BaseDirectory::Data)?;
             std::fs::create_dir_all(&dir)?;
 
             dir.join("db.sqlite").to_str().unwrap().to_string()

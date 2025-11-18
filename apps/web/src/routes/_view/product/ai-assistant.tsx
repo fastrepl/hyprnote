@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_view/product/ai-assistant")({
       {
         name: "description",
         content:
-          "Ask questions and get instant answers from all your recorded conversations. Chat with your notes using AI.",
+          "AI assistant that helps you before, during, and after meetings. Prepare with research, get realtime insights, and execute workflows—all powered by local AI.",
       },
     ],
   }),
@@ -26,354 +26,439 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
-          <header className="mb-12 text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-              AI assistant for your conversations
-            </h1>
-            <p className="text-lg sm:text-xl text-neutral-600">
-              Ask questions and get instant answers from your meetings and notes
-              using local AI
+        <HeroSection />
+        <SlashSeparator />
+        <BeforeMeetingSection />
+        <SlashSeparator />
+        <DuringMeetingSection />
+        <SlashSeparator />
+        <AfterMeetingSection />
+        <SlashSeparator />
+        <CTASection />
+      </div>
+    </div>
+  );
+}
+
+function HeroSection() {
+  return (
+    <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
+      <header className="text-center max-w-4xl mx-auto">
+        <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6 flex items-center justify-center flex-wrap">
+          <span>AI assistant</span>
+          <img
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/ai-assistant.gif"
+            alt="AI assistant"
+            className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-full inline-block ml-1 mr-2 sm:mr-0"
+          />
+          <span>for your meetings</span>
+        </h1>
+        <p className="text-lg sm:text-xl text-neutral-600">
+          Prepare, engage, and follow through with AI-powered assistance
+        </p>
+        <div className="mt-8">
+          <a
+            href="https://hyprnote.com/download"
+            className={cn([
+              "inline-block px-8 py-3 text-base font-medium rounded-full",
+              "bg-linear-to-t from-stone-600 to-stone-500 text-white",
+              "hover:scale-105 active:scale-95 transition-transform",
+            ])}
+          >
+            Download for free
+          </a>
+        </div>
+      </header>
+    </div>
+  );
+}
+
+function BeforeMeetingSection() {
+  return (
+    <section id="before-meeting">
+      <div className="text-center font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
+        Before meetings
+      </div>
+
+      <div className="border-t border-neutral-100">
+        <div className="grid md:grid-cols-2">
+          <div className="p-8 border-b md:border-b-0 md:border-r border-neutral-100">
+            <Icon icon="mdi:magnify" className="text-3xl text-stone-600 mb-4" />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Deep research with chat
+            </h3>
+            <p className="text-neutral-600 mb-4 leading-relaxed">
+              Chat with your AI assistant to learn more about the people you're
+              meeting with. Search through past conversations, extract key
+              insights, and understand context before you join.
             </p>
-            <div className="mt-8">
-              <a
-                href="https://hyprnote.com/download"
-                className={cn([
-                  "inline-block px-8 py-3 text-base font-medium rounded-full",
-                  "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                  "hover:scale-105 active:scale-95 transition-transform",
-                ])}
-              >
-                Download for free
-              </a>
-            </div>
-          </header>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2">
+                <Icon
+                  icon="mdi:check"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  "What did we discuss last time with Sarah?"
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Icon
+                  icon="mdi:check"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  "What are the client's main concerns?"
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Icon
+                  icon="mdi:check"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  "Show me all action items from previous meetings"
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="p-8 border-b md:border-b-0 border-neutral-100">
+            <Icon
+              icon="mdi:file-document-edit"
+              className="text-3xl text-stone-600 mb-4"
+            />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Generate custom templates
+            </h3>
+            <p className="text-neutral-600 mb-4 leading-relaxed">
+              Create tailored meeting templates on the spot. Ask your AI
+              assistant to generate agendas, question lists, or note structures
+              specific to your meeting type.
+            </p>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2">
+                <Icon
+                  icon="mdi:check"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  "Create a customer discovery template"
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Icon
+                  icon="mdi:check"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  "Generate questions for a technical interview"
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Icon
+                  icon="mdi:check"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  "Build an agenda for our quarterly review"
+                </span>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <SlashSeparator />
-
-        <div className="px-6 py-12 lg:py-20">
-          <section className="mb-16">
-            <div className="grid md:grid-cols-3 border-t border-neutral-100">
-              <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-                <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-                  Natural Language
-                </h3>
-                <p className="text-sm text-neutral-600 leading-relaxed">
-                  Ask questions in plain English, get accurate answers
-                  instantly.
-                </p>
-              </div>
-              <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-                <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-                  Context-Aware
-                </h3>
-                <p className="text-sm text-neutral-600 leading-relaxed">
-                  AI understands your full conversation history for better
-                  answers.
-                </p>
-              </div>
-              <div className="p-6 text-left">
-                <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-                  Private & Local
-                </h3>
-                <p className="text-sm text-neutral-600 leading-relaxed">
-                  All queries processed on your device, nothing sent to cloud.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <SlashSeparator />
-
-          <section className="mb-20">
-            <h2 className="text-3xl font-serif text-stone-600 mb-8">
-              Ask anything
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-                <div className="flex items-start gap-3 mb-3">
-                  <Icon
-                    icon="mdi:message-question"
-                    className="text-xl text-blue-600 shrink-0 mt-1"
-                  />
-                  <div className="flex-1">
-                    <p className="text-neutral-700 italic">
-                      "What did Sarah say about the Q4 budget?"
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 pl-9">
-                  <Icon
-                    icon="mdi:robot"
-                    className="text-xl text-stone-600 shrink-0 mt-1"
-                  />
-                  <p className="text-sm text-neutral-600">
-                    In the meeting on Dec 5th, Sarah mentioned the Q4 budget
-                    needs to be finalized by Dec 15th and allocated $50K for
-                    marketing...
-                  </p>
-                </div>
-              </div>
-              <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-                <div className="flex items-start gap-3 mb-3">
-                  <Icon
-                    icon="mdi:message-question"
-                    className="text-xl text-blue-600 shrink-0 mt-1"
-                  />
-                  <div className="flex-1">
-                    <p className="text-neutral-700 italic">
-                      "What are all my action items this week?"
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 pl-9">
-                  <Icon
-                    icon="mdi:robot"
-                    className="text-xl text-stone-600 shrink-0 mt-1"
-                  />
-                  <p className="text-sm text-neutral-600">
-                    You have 5 action items this week: 1) Review design mockups
-                    (due Wed), 2) Schedule call with client...
-                  </p>
-                </div>
-              </div>
-              <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-                <div className="flex items-start gap-3 mb-3">
-                  <Icon
-                    icon="mdi:message-question"
-                    className="text-xl text-blue-600 shrink-0 mt-1"
-                  />
-                  <div className="flex-1">
-                    <p className="text-neutral-700 italic">
-                      "Summarize all discussions about the mobile app"
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 pl-9">
-                  <Icon
-                    icon="mdi:robot"
-                    className="text-xl text-stone-600 shrink-0 mt-1"
-                  />
-                  <p className="text-sm text-neutral-600">
-                    The mobile app has been discussed in 8 meetings. Key points:
-                    targeting Q1 launch, iOS first then Android...
-                  </p>
-                </div>
-              </div>
-              <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-                <div className="flex items-start gap-3 mb-3">
-                  <Icon
-                    icon="mdi:message-question"
-                    className="text-xl text-blue-600 shrink-0 mt-1"
-                  />
-                  <div className="flex-1">
-                    <p className="text-neutral-700 italic">
-                      "Who mentioned hiring a designer?"
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 pl-9">
-                  <Icon
-                    icon="mdi:robot"
-                    className="text-xl text-stone-600 shrink-0 mt-1"
-                  />
-                  <p className="text-sm text-neutral-600">
-                    Mike mentioned hiring a designer in the team meeting on Dec
-                    8th. He suggested starting the search in Q1...
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <SlashSeparator />
-
-          <section className="mb-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12">
-            <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
-              How your AI assistant works
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-stone-600 text-white flex items-center justify-center text-xl font-medium mx-auto mb-4">
-                  1
-                </div>
-                <h3 className="font-medium text-stone-600 mb-2">
-                  AI indexes your notes
-                </h3>
-                <p className="text-sm text-neutral-600">
-                  Local AI processes all your transcripts and summaries to
-                  understand context
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-stone-600 text-white flex items-center justify-center text-xl font-medium mx-auto mb-4">
-                  2
-                </div>
-                <h3 className="font-medium text-stone-600 mb-2">
-                  Ask in natural language
-                </h3>
-                <p className="text-sm text-neutral-600">
-                  Type questions like you would ask a colleague
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-stone-600 text-white flex items-center justify-center text-xl font-medium mx-auto mb-4">
-                  3
-                </div>
-                <h3 className="font-medium text-stone-600 mb-2">
-                  Get instant answers
-                </h3>
-                <p className="text-sm text-neutral-600">
-                  AI finds relevant information and provides accurate answers
-                  with sources
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <SlashSeparator />
-
-          <section className="mb-20">
-            <h2 className="text-3xl font-serif text-stone-600 mb-8">
-              Powerful use cases
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-                <Icon
-                  icon="mdi:clipboard-list"
-                  className="text-3xl text-stone-600 mb-4"
-                />
-                <h3 className="text-xl font-serif text-stone-600 mb-2">
-                  Track action items
-                </h3>
-                <p className="text-neutral-600">
-                  Ask for all your pending tasks across all meetings. Never let
-                  anything fall through the cracks.
-                </p>
-              </div>
-              <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-                <Icon
-                  icon="mdi:magnify"
-                  className="text-3xl text-stone-600 mb-4"
-                />
-                <h3 className="text-xl font-serif text-stone-600 mb-2">
-                  Find decisions
-                </h3>
-                <p className="text-neutral-600">
-                  Quickly locate when and why specific decisions were made, with
-                  full context.
-                </p>
-              </div>
-              <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-                <Icon
-                  icon="mdi:chart-timeline"
-                  className="text-3xl text-stone-600 mb-4"
-                />
-                <h3 className="text-xl font-serif text-stone-600 mb-2">
-                  Track topics over time
-                </h3>
-                <p className="text-neutral-600">
-                  See how discussions about a topic evolved across multiple
-                  meetings.
-                </p>
-              </div>
-              <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-                <Icon
-                  icon="mdi:account-search"
-                  className="text-3xl text-stone-600 mb-4"
-                />
-                <h3 className="text-xl font-serif text-stone-600 mb-2">
-                  Remember conversations
-                </h3>
-                <p className="text-neutral-600">
-                  Recall what someone said months ago by asking AI to search
-                  your history.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <SlashSeparator />
-
-          <section className="mb-20">
-            <div className="p-8 bg-blue-50 border-2 border-blue-200 rounded-lg text-center">
-              <Icon
-                icon="mdi:shield-lock"
-                className="text-4xl text-blue-600 mx-auto mb-4"
-              />
-              <h3 className="text-2xl font-serif text-stone-600 mb-3">
-                Private by design
-              </h3>
-              <p className="text-neutral-600 max-w-2xl mx-auto">
-                Your AI assistant runs entirely on your device using local AI.
-                Your questions, answers, and all conversation data stay private
-                on your computer.
-              </p>
-            </div>
-          </section>
+        <div className="p-8 border-t border-neutral-100">
+          <Icon
+            icon="mdi:message-question"
+            className="text-3xl text-stone-600 mb-4"
+          />
+          <h3 className="text-xl font-serif text-stone-600 mb-3">
+            Ask about past conversations
+          </h3>
+          <p className="text-neutral-600 leading-relaxed max-w-3xl">
+            Query your entire conversation history to refresh your memory. Find
+            decisions, action items, or specific topics discussed in previous
+            meetings—all in natural language.
+          </p>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        <SlashSeparator />
+function DuringMeetingSection() {
+  return (
+    <section id="during-meeting">
+      <div className="text-center font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
+        During meetings
+      </div>
 
-        <section className="py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 lg:px-0">
-          <div className="flex flex-col gap-6 items-center text-center">
-            <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
-              <img
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
-                alt="Hyprnote"
-                width={144}
-                height={144}
-                className="size-36 mx-auto rounded-[40px] border border-neutral-100"
-              />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-serif">
-              Start using your AI assistant
-            </h2>
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-              Get instant answers from all your meeting notes with Hyprnote's AI
-              assistant
+      <div className="border-t border-neutral-100">
+        <div className="grid md:grid-cols-2">
+          <div className="p-8 border-b md:border-b-0 md:border-r border-neutral-100">
+            <Icon icon="mdi:chat" className="text-3xl text-stone-600 mb-4" />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Ask questions in realtime
+            </h3>
+            <p className="text-neutral-600 leading-relaxed">
+              Type questions to your AI assistant during the meeting without
+              interrupting the conversation. Get instant answers from the
+              current transcript and past meeting context.
             </p>
-            <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <a
-                href="https://hyprnote.com/download"
-                className={cn([
-                  "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
-                  "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
-                  "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-                  "transition-all",
-                ])}
-              >
-                Download for free
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                  className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                  />
-                </svg>
-              </a>
+          </div>
+
+          <div className="p-8 border-b md:border-b-0 border-neutral-100">
+            <Icon
+              icon="mdi:lightbulb-on"
+              className="text-3xl text-stone-600 mb-4"
+            />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Realtime insights via{" "}
               <Link
-                to="/product/notepad"
-                className={cn([
-                  "px-6 h-12 flex items-center justify-center text-base sm:text-lg",
-                  "border border-neutral-300 text-stone-600 rounded-full",
-                  "hover:bg-white transition-colors",
-                ])}
+                to="/product/extensions"
+                className="text-stone-600 hover:text-stone-800 underline decoration-dotted underline-offset-2"
               >
-                Learn about Notepad
+                extensions
+              </Link>
+            </h3>
+            <p className="text-neutral-600 mb-4 leading-relaxed">
+              AI-powered extensions provide live assistance during your meeting.
+              Built on our extension framework, these tools adapt to your needs
+              in realtime.
+            </p>
+          </div>
+        </div>
+
+        <div className="border-t border-neutral-100">
+          <div className="py-8 px-6 lg:px-8">
+            <h4 className="text-lg font-serif text-stone-600 mb-6 text-center">
+              Available realtime extensions
+            </h4>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+                <Icon
+                  icon="mdi:comment-check"
+                  className="text-2xl text-stone-600 mb-3"
+                />
+                <h5 className="font-medium text-stone-700 mb-2">Suggestions</h5>
+                <p className="text-sm text-neutral-600">
+                  Get AI-generated advice and recommendations based on the
+                  conversation flow
+                </p>
+              </div>
+
+              <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+                <Icon
+                  icon="mdi:account-voice"
+                  className="text-2xl text-stone-600 mb-3"
+                />
+                <h5 className="font-medium text-stone-700 mb-2">
+                  Talk time tracking
+                </h5>
+                <p className="text-sm text-neutral-600">
+                  Monitor who's speaking and for how long to ensure balanced
+                  participation
+                </p>
+              </div>
+
+              <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+                <Icon
+                  icon="mdi:school"
+                  className="text-2xl text-stone-600 mb-3"
+                />
+                <h5 className="font-medium text-stone-700 mb-2">
+                  ELI5 explanations
+                </h5>
+                <p className="text-sm text-neutral-600">
+                  Get instant simple explanations of technical or professional
+                  jargon
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 text-center">
+              <Link
+                to="/product/extensions"
+                className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium"
+              >
+                Learn more about extensions
+                <Icon icon="mdi:arrow-right" className="text-lg" />
               </Link>
             </div>
           </div>
-        </section>
+        </div>
       </div>
-    </div>
+    </section>
+  );
+}
+
+function AfterMeetingSection() {
+  return (
+    <section id="after-meeting">
+      <div className="text-center font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
+        After meetings
+      </div>
+
+      <div className="border-t border-neutral-100">
+        <div className="grid md:grid-cols-2">
+          <div className="p-8 border-b md:border-b-0 md:border-r border-neutral-100">
+            <Icon
+              icon="mdi:workflow"
+              className="text-3xl text-stone-600 mb-4"
+            />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Execute workflows with natural language
+            </h3>
+            <p className="text-neutral-600 mb-4 leading-relaxed">
+              Describe what you want to do, and let your AI assistant handle the
+              rest. Automate follow-up tasks across your tools without manual
+              data entry.
+            </p>
+            <div className="space-y-3">
+              <div className="p-4 bg-stone-50 border border-neutral-200 rounded-lg">
+                <p className="text-sm text-neutral-700 italic mb-2">
+                  "Add a Linear ticket for the mobile UI bug we discussed and
+                  assign it to Sarah"
+                </p>
+                <p className="text-xs text-neutral-500">
+                  ✓ Creates ticket with meeting context and assigns it
+                </p>
+              </div>
+              <div className="p-4 bg-stone-50 border border-neutral-200 rounded-lg">
+                <p className="text-sm text-neutral-700 italic mb-2">
+                  "Send the summary to the #engineering channel and mark the Q4
+                  roadmap item as done"
+                </p>
+                <p className="text-xs text-neutral-500">
+                  ✓ Posts to Slack and updates project status
+                </p>
+              </div>
+              <div className="p-4 bg-stone-50 border border-neutral-200 rounded-lg">
+                <p className="text-sm text-neutral-700 italic mb-2">
+                  "Schedule follow-up meeting with the client for next week and
+                  add action items to Notion"
+                </p>
+                <p className="text-xs text-neutral-500">
+                  ✓ Creates calendar event and syncs tasks
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-8 border-b md:border-b-0 border-neutral-100">
+            <Icon icon="mdi:brain" className="text-3xl text-stone-600 mb-4" />
+            <h3 className="text-xl font-serif text-stone-600 mb-3">
+              Learns and adapts with memory
+            </h3>
+            <p className="text-neutral-600 leading-relaxed">
+              Your AI assistant builds memory from your interactions. It
+              remembers preferences, learns from edits you make to summaries,
+              and continuously improves its assistance based on your patterns.
+            </p>
+            <ul className="space-y-3 mt-4">
+              <li className="flex items-start gap-3">
+                <Icon
+                  icon="mdi:check-circle"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  Remembers your meeting preferences and formats
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Icon
+                  icon="mdi:check-circle"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  Learns from your edits to improve future summaries
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Icon
+                  icon="mdi:check-circle"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  Adapts to your workflow and tool preferences
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Icon
+                  icon="mdi:check-circle"
+                  className="text-stone-600 shrink-0 mt-0.5"
+                />
+                <span className="text-sm text-neutral-600">
+                  Builds context about your team and projects over time
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CTASection() {
+  return (
+    <section className="py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 px-4 lg:px-0">
+      <div className="flex flex-col gap-6 items-center text-center">
+        <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
+          <img
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            alt="Hyprnote"
+            width={144}
+            height={144}
+            className="size-36 mx-auto rounded-[40px] border border-neutral-100"
+          />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          Start using your AI assistant
+        </h2>
+        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          Get AI-powered help before, during, and after every meeting with
+          Hyprnote
+        </p>
+        <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <a
+            href="https://hyprnote.com/download"
+            className={cn([
+              "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+              "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+              "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+              "transition-all",
+            ])}
+          >
+            Download for free
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+              />
+            </svg>
+          </a>
+          <Link
+            to="/product/ai-notetaking"
+            className={cn([
+              "px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+              "border border-neutral-300 text-stone-600 rounded-full",
+              "hover:bg-white transition-colors",
+            ])}
+          >
+            Learn about AI Notetaking
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }

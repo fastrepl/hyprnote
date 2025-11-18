@@ -135,11 +135,10 @@ jobs:
           working-directory: ./apps/desktop
       - if: ${{ inputs.channel != 'staging' && matrix.platform == 'macos' }}
         run: |
-          aws s3 cp "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" \
-            "s3://hyprnote-build/desktop/${{ steps.version.outputs.version }}/" \
-            --recursive \
-            --exclude "*" \
-            --include "*.dmg" \
+          DMG_FILE=$(find "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" -name "*.dmg" -type f)
+          cp "$DMG_FILE" "hyprnote.dmg"
+          aws s3 cp "hyprnote.dmg" \
+            "s3://hyprnote-build/desktop/${{ steps.version.outputs.version }}/hyprnote.dmg" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:

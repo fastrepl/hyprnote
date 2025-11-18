@@ -100,3 +100,9 @@ export default function handler(req: Request) {
   // https://unpic.pics/og-edge
   return new ImageResponse(renderTemplate(params));
 }
+
+// https://docs.netlify.com/build/edge-functions/declarations/#declare-edge-functions-inline
+export const config = {
+  path: "/og",
+  cache: "manual",
+};

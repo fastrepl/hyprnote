@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - apps/desktop/**
-      - plugins/**
+      - apps/web/**
+      - packages/**
   pull_request:
     branches:
       - main
     paths:
-      - apps/desktop/**
-      - plugins/**
+      - apps/web/**
+      - packages/**
 jobs:
   ci:
     strategy:
@@ -27,12 +27,5 @@ jobs:
       - uses: ./.github/actions/pnpm_install
       - uses: denoland/setup-deno@v2
       - run: pnpm -F ui build
-      - run: pnpm -F desktop typecheck
-      - run: pnpm -F desktop test
-      - uses: ./.github/actions/install_desktop_deps
-        with:
-          target: ${{ matrix.platform }}
-      - uses: ./.github/actions/rust_install
-        with:
-          target: ${{ matrix.platform }}
-      - run: cargo check -p desktop
+      - run: pnpm -F web typecheck
+      - run: pnpm -F web test

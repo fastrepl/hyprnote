@@ -1,6 +1,6 @@
 {
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["supabase/functions/**/*"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "app.config.ts", "content-collections.ts", "vite.config.ts"],
+  "exclude": ["**/supabase/functions/**/*", "**/netlify/**/*"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

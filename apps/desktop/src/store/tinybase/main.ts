@@ -25,6 +25,7 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
+import { maybeImportFromJson } from "./importer";
 import { createLocalPersister } from "./localPersister";
 import { createLocalPersister2 } from "./localPersister2";
 import { externalTableSchemaForTinybase } from "./schema-external";
@@ -35,7 +36,7 @@ export * from "./schema-internal";
 
 export const STORE_ID = "main";
 
-const SCHEMA = {
+export const SCHEMA = {
   value: {
     ...internalSchemaForTinybase.value,
   } as const satisfies ValuesSchema,
@@ -119,6 +120,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
       const initializer = async (cb: () => void) => {
         await persister.load();
+        await maybeImportFromJson(store as Store);
         store.transaction(() => cb());
         await persister.save();
       };

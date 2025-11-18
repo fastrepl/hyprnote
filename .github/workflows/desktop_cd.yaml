@@ -55,7 +55,7 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Computed version: $VERSION"
-      - run: ./scripts/version.sh "./apps/desktop/tauri.conf.json" "${{ steps.version.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ steps.version.outputs.version }}"
       - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:

@@ -1,75 +1,107 @@
 // deno-lint-ignore no-import-prefix
 import { ImageResponse } from "https://deno.land/x/og_edge@0.0.6/mod.ts";
+// deno-lint-ignore no-import-prefix
+import { z } from "npm:zod@^4";
 
-export default function handler(req: Request) {
-  const url = new URL(req.url);
-  const title = url.searchParams.get("title") || "Hyprnote";
-  const description = url.searchParams.get("description") || "AI Meeting Notes";
+const templateSchema = z.object({
+  type: z.literal("meeting"),
+  title: z.string(),
+  headers: z.array(z.string()),
+});
 
-  return new ImageResponse(
-    (
+const OGSchema = z.discriminatedUnion("type", [templateSchema]);
+
+function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
+  const type = url.searchParams.get("type");
+  if (!type) {
+    return null;
+  }
+
+  const title = url.searchParams.get("title");
+  const headers = url.searchParams.getAll("headers");
+
+  const result = OGSchema.safeParse({ type, title, headers });
+  return result.success ? result.data : null;
+}
+
+function renderTemplate(params: z.infer<typeof templateSchema>) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        padding: "80px",
+      }}
+    >
       <div
         style={{
-          width: "100%",
-          height: "100%",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: "white",
+          borderRadius: "24px",
           padding: "80px",
+          width: "100%",
+          height: "100%",
         }}
       >
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "white",
-            borderRadius: "24px",
-            padding: "80px",
-            width: "100%",
-            height: "100%",
+            fontSize: 56,
+            fontWeight: 700,
+            color: "#1a202c",
+            marginBottom: "40px",
           }}
         >
-          <div
-            style={{
-              fontSize: 64,
-              fontWeight: 700,
-              color: "#1a202c",
-              textAlign: "center",
-              marginBottom: "24px",
-            }}
-          >
-            {title}
-          </div>
-          <div
-            style={{
-              fontSize: 32,
-              color: "#718096",
-              textAlign: "center",
-            }}
-          >
-            {description}
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              bottom: "80px",
-              fontSize: 36,
-              fontWeight: 700,
-              color: "#667eea",
-            }}
-          >
-            Hyprnote
-          </div>
+          {params.title}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {params.headers.map((header, i) => (
+            <div
+              key={i}
+              style={{
+                fontSize: 28,
+                color: "#4a5568",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#667eea",
+                  marginRight: "16px",
+                }}
+              />
+              {header}
+            </div>
+          ))}
         </div>
       </div>
-    ),
+    </div>
   );
 }
 
+export default function handler(req: Request) {
+  const url = new URL(req.url);
+  const params = parseSearchParams(url);
+
+  if (!params) {
+    return new Response(JSON.stringify({ error: "invalid_parameters" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // https://unpic.pics/og-edge
+  return new ImageResponse(renderTemplate(params));
+}
+
+// https://docs.netlify.com/build/edge-functions/declarations/#declare-edge-functions-inline
 export const config = {
   path: "/og",
   cache: "manual",

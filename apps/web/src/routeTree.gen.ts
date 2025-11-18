@@ -16,6 +16,7 @@ import { Route as JoinWaitlistRouteImport } from './routes/join-waitlist'
 import { Route as GithubRouteImport } from './routes/github'
 import { Route as FoundersRouteImport } from './routes/founders'
 import { Route as DiscordRouteImport } from './routes/discord'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CalRouteImport } from './routes/cal'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
@@ -102,6 +103,11 @@ const FoundersRoute = FoundersRouteImport.update({
 const DiscordRoute = DiscordRouteImport.update({
   id: '/discord',
   path: '/discord',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalRoute = CalRouteImport.update({
@@ -371,6 +377,7 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
+  '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
@@ -431,6 +438,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
+  '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
@@ -491,6 +499,7 @@ export interface FileRoutesById {
   '/_view': typeof ViewRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/cal': typeof CalRoute
+  '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
   '/github': typeof GithubRoute
@@ -553,6 +562,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/auth'
     | '/cal'
+    | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
@@ -613,6 +623,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/cal'
+    | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
@@ -672,6 +683,7 @@ export interface FileRouteTypes {
     | '/_view'
     | '/auth'
     | '/cal'
+    | '/contact'
     | '/discord'
     | '/founders'
     | '/github'
@@ -734,6 +746,7 @@ export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CalRoute: typeof CalRoute
+  ContactRoute: typeof ContactRoute
   DiscordRoute: typeof DiscordRoute
   FoundersRoute: typeof FoundersRoute
   GithubRoute: typeof GithubRoute
@@ -795,6 +808,13 @@ declare module '@tanstack/react-router' {
       path: '/discord'
       fullPath: '/discord'
       preLoaderRoute: typeof DiscordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cal': {
@@ -1290,6 +1310,7 @@ const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CalRoute: CalRoute,
+  ContactRoute: ContactRoute,
   DiscordRoute: DiscordRoute,
   FoundersRoute: FoundersRoute,
   GithubRoute: GithubRoute,

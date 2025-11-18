@@ -26,13 +26,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { title: "Hyprnote" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
-    scripts: [
-      {
-        src: "https://static.zdassets.com/ekr/snippet.js?key=15949e47-ed5a-4e52-846e-200dd0b8f4b9",
-        defer: true,
-      },
-    ],
   }),
+  scripts: () => [
+    {
+      src: "https://static.zdassets.com/ekr/snippet.js?key=15949e47-ed5a-4e52-846e-200dd0b8f4b9",
+      defer: true,
+    },
+  ],
   shellComponent: RootDocument,
   notFoundComponent: NotFoundDocument,
 });
@@ -56,27 +56,27 @@ export const TanStackDevtools =
   process.env.NODE_ENV === "production"
     ? () => null
     : lazy(() =>
-        Promise.all([
-          import("@tanstack/react-devtools"),
-          import("@tanstack/react-router-devtools"),
-          import("@tanstack/react-query-devtools"),
-        ]).then(([devtools, router, query]) => ({
-          default: (
-            props: React.ComponentProps<typeof devtools.TanStackDevtools>,
-          ) => (
-            <devtools.TanStackDevtools
-              {...props}
-              plugins={[
-                {
-                  name: "Tanstack Router",
-                  render: <router.TanStackRouterDevtoolsPanel />,
-                },
-                {
-                  name: "Tanstack Query",
-                  render: <query.ReactQueryDevtoolsPanel />,
-                },
-              ]}
-            />
-          ),
-        })),
-      );
+      Promise.all([
+        import("@tanstack/react-devtools"),
+        import("@tanstack/react-router-devtools"),
+        import("@tanstack/react-query-devtools"),
+      ]).then(([devtools, router, query]) => ({
+        default: (
+          props: React.ComponentProps<typeof devtools.TanStackDevtools>,
+        ) => (
+          <devtools.TanStackDevtools
+            {...props}
+            plugins={[
+              {
+                name: "Tanstack Router",
+                render: <router.TanStackRouterDevtoolsPanel />,
+              },
+              {
+                name: "Tanstack Query",
+                render: <query.ReactQueryDevtoolsPanel />,
+              },
+            ]}
+          />
+        ),
+      })),
+    );

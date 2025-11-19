@@ -13,6 +13,10 @@ tauri-plugin = { workspace = true, features = ["build"] }
 [dev-dependencies]
 specta-typescript = { workspace = true }
 
+swc_common = "16"
+swc_ecma_ast = "17"
+swc_ecma_parser = "26"
+
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
@@ -21,6 +25,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 specta = { workspace = true }
 
+futures-util = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["process"] }
-futures-util = { workspace = true }

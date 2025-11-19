@@ -5,6 +5,9 @@ mod event;
 mod ext;
 mod runner;
 
+#[cfg(test)]
+mod docs;
+
 pub use error::{Error, Result};
 pub use ext::*;
 
@@ -14,8 +17,10 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
+            commands::before_listening_started::<tauri::Wry>,
             commands::after_listening_stopped::<tauri::Wry>,
         ])
+        .typ::<config::HooksConfig>()
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -33,6 +38,11 @@ mod test {
     use super::*;
 
     #[test]
+    fn export() {
+        export_types();
+        export_docs();
+    }
+
     fn export_types() {
         make_specta_builder::<tauri::Wry>()
             .export(
@@ -43,5 +53,20 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
+    }
+
+    fn export_docs() {
+        let source_code = std::fs::read_to_string("./js/bindings.gen.ts").unwrap();
+        let hooks = docs::parse_hooks(&source_code).unwrap();
+        assert!(!hooks.is_empty());
+
+        let output_dir = std::path::Path::new("../../apps/web/content/docs/hooks");
+        std::fs::create_dir_all(output_dir).unwrap();
+
+        for hook in &hooks {
+            let filepath = output_dir.join(hook.doc_path());
+            let content = hook.doc_render();
+            std::fs::write(&filepath, content).unwrap();
+        }
     }
 }

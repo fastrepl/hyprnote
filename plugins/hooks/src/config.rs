@@ -2,14 +2,17 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// 123
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct HooksConfig {
+    /// 345
     pub version: u8,
+    /// 678
     #[serde(default)]
     pub hooks: HashMap<String, Vec<HookDefinition>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct HookDefinition {
     pub command: String,
 }

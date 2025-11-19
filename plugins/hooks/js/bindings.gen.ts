@@ -7,6 +7,14 @@
 
 
 export const commands = {
+async beforeListeningStarted(args: BeforeListeningStartedArgs) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|before_listening_started", { args }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async afterListeningStopped(args: AfterListeningStoppedArgs) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|after_listening_stopped", { args }) };
@@ -27,7 +35,35 @@ async afterListeningStopped(args: AfterListeningStoppedArgs) : Promise<Result<nu
 
 /** user-defined types **/
 
-export type AfterListeningStoppedArgs = { session_id: string }
+/**
+ * 123
+ */
+export type AfterListeningStoppedArgs = { 
+/**
+ * 345
+ */
+session_id: string }
+/**
+ * 123
+ */
+export type BeforeListeningStartedArgs = { 
+/**
+ * 345
+ */
+session_id: string }
+export type HookDefinition = { command: string }
+/**
+ * 123
+ */
+export type HooksConfig = { 
+/**
+ * 345
+ */
+version: number; 
+/**
+ * 678
+ */
+hooks?: Partial<{ [key in string]: HookDefinition[] }> }
 
 /** tauri-specta globals **/
 

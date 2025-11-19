@@ -1,23 +1,25 @@
 use std::ffi::OsString;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 pub enum HookEvent {
-    AfterListeningStopped(AfterListeningStoppedArgs),
-    BeforeListeningStarted(BeforeListeningStartedArgs),
+    #[specta(rename = "afterListeningStopped")]
+    AfterListeningStopped { args: AfterListeningStoppedArgs },
+    #[specta(rename = "beforeListeningStarted")]
+    BeforeListeningStarted { args: BeforeListeningStartedArgs },
 }
 
 impl HookEvent {
     pub fn condition_key(&self) -> &'static str {
         match self {
-            HookEvent::AfterListeningStopped(_) => "afterListeningStopped",
-            HookEvent::BeforeListeningStarted(_) => "beforeListeningStarted",
+            HookEvent::AfterListeningStopped { .. } => "afterListeningStopped",
+            HookEvent::BeforeListeningStarted { .. } => "beforeListeningStarted",
         }
     }
 
     pub fn cli_args(&self) -> Vec<OsString> {
         match self {
-            HookEvent::AfterListeningStopped(args) => args.to_cli_args(),
-            HookEvent::BeforeListeningStarted(args) => args.to_cli_args(),
+            HookEvent::AfterListeningStopped { args } => args.to_cli_args(),
+            HookEvent::BeforeListeningStarted { args } => args.to_cli_args(),
         }
     }
 }

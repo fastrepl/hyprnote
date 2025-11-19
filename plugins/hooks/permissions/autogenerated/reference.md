@@ -4,7 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
+- `allow-run-event-hooks`
 
 ## Permission Table
 
@@ -18,12 +18,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`hooks:allow-after-listening-stopped`
+`hooks:allow-run-event-hooks`
 
 </td>
 <td>
 
-Enables the after_listening_stopped command without any pre-configured scope.
+Enables the run_event_hooks command without any pre-configured scope.
 
 </td>
 </tr>
@@ -31,12 +31,12 @@ Enables the after_listening_stopped command without any pre-configured scope.
 <tr>
 <td>
 
-`hooks:deny-after-listening-stopped`
+`hooks:deny-run-event-hooks`
 
 </td>
 <td>
 
-Denies the after_listening_stopped command without any pre-configured scope.
+Denies the run_event_hooks command without any pre-configured scope.
 
 </td>
 </tr>

@@ -17,8 +17,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::before_listening_started::<tauri::Wry>,
-            commands::after_listening_stopped::<tauri::Wry>,
+            commands::run_event_hooks::<tauri::Wry>,
         ])
         .typ::<config::HooksConfig>()
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

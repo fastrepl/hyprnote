@@ -59,7 +59,7 @@ pub fn parse_hooks(source_code: &str) -> Result<Vec<HookInfo>, String> {
     let (module, fm) = parse_module(source_code)?;
     let jsdoc = JsDocExtractor::new(source_code, &fm);
     let type_docs = collect_type_docs(&module, &jsdoc);
-    Ok(extract_hooks(&module, &type_docs))
+    Ok(extract_hook_events(&module, &type_docs))
 }
 
 fn parse_module(source_code: &str) -> Result<(Module, Lrc<swc_common::SourceFile>), String> {
@@ -108,72 +108,89 @@ fn collect_type_docs(module: &Module, jsdoc: &JsDocExtractor<'_>) -> HashMap<Str
     docs
 }
 
-fn extract_hooks(module: &Module, type_docs: &HashMap<String, TypeDoc>) -> Vec<HookInfo> {
-    command_methods(module)
-        .into_iter()
-        .filter_map(|method| hook_from_method(method, type_docs))
-        .collect()
-}
-
-fn command_methods<'a>(module: &'a Module) -> Vec<&'a MethodProp> {
-    let mut methods = Vec::new();
-
+fn extract_hook_events(module: &Module, type_docs: &HashMap<String, TypeDoc>) -> Vec<HookInfo> {
     for item in &module.body {
         if let ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export)) = item {
-            if let Decl::Var(var_decl) = &export.decl {
-                for decl in &var_decl.decls {
-                    if let (Pat::Ident(ident), Some(init)) = (&decl.name, &decl.init) {
-                        if ident.id.sym == "commands" {
-                            if let Expr::Object(obj) = &**init {
-                                for prop in &obj.props {
-                                    if let PropOrSpread::Prop(prop) = prop {
-                                        if let Prop::Method(method) = &**prop {
-                                            methods.push(method);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+            if let Decl::TsTypeAlias(type_alias) = &export.decl {
+                if type_alias.id.sym == "HookEvent" {
+                    return extract_union_variants(&type_alias.type_ann, type_docs);
+                }
+            }
+        }
+    }
+
+    Vec::new()
+}
+
+fn extract_union_variants(
+    type_ann: &TsType,
+    type_docs: &HashMap<String, TypeDoc>,
+) -> Vec<HookInfo> {
+    let mut hooks = Vec::new();
+
+    if let TsType::TsUnionOrIntersectionType(TsUnionOrIntersectionType::TsUnionType(union)) =
+        type_ann
+    {
+        for variant in &union.types {
+            if let Some(hook) = extract_variant_info(variant.as_ref(), type_docs) {
+                hooks.push(hook);
+            }
+        }
+    }
+
+    hooks
+}
+
+fn extract_variant_info(
+    type_ann: &TsType,
+    type_docs: &HashMap<String, TypeDoc>,
+) -> Option<HookInfo> {
+    if let TsType::TsTypeLit(type_lit) = type_ann {
+        for member in &type_lit.members {
+            if let TsTypeElement::TsPropertySignature(prop) = member {
+                if let Expr::Ident(ident) = &*prop.key {
+                    let hook_name = ident.sym.to_string();
+
+                    let args_type_name = prop
+                        .type_ann
+                        .as_ref()
+                        .and_then(|ta| extract_args_type_name(&ta.type_ann))?;
+
+                    let (description, args) = type_docs
+                        .get(&args_type_name)
+                        .map(|doc| (doc.description.clone(), doc.args.clone()))
+                        .unwrap_or((None, Vec::new()));
+
+                    return Some(HookInfo {
+                        name: hook_name,
+                        description,
+                        args,
+                    });
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn extract_args_type_name(type_ann: &TsType) -> Option<String> {
+    if let TsType::TsTypeLit(type_lit) = type_ann {
+        for member in &type_lit.members {
+            if let TsTypeElement::TsPropertySignature(prop) = member {
+                if let Expr::Ident(ident) = &*prop.key {
+                    if ident.sym == "args" {
+                        return prop
+                            .type_ann
+                            .as_ref()
+                            .and_then(|ta| extract_type_name(&ta.type_ann));
                     }
                 }
             }
         }
     }
 
-    methods
-}
-
-fn hook_from_method(method: &MethodProp, type_docs: &HashMap<String, TypeDoc>) -> Option<HookInfo> {
-    let hook_name = if let PropName::Ident(method_name) = &method.key {
-        method_name.sym.to_string()
-    } else {
-        return None;
-    };
-
-    let (description, args) = method_arg_type_name(method)
-        .and_then(|type_name| type_docs.get(&type_name))
-        .map(|doc| (doc.description.clone(), doc.args.clone()))
-        .unwrap_or((None, Vec::new()));
-
-    Some(HookInfo {
-        name: hook_name,
-        description,
-        args,
-    })
-}
-
-fn method_arg_type_name(method: &MethodProp) -> Option<String> {
-    method
-        .function
-        .params
-        .first()
-        .and_then(|param| match &param.pat {
-            Pat::Ident(ident) => ident
-                .type_ann
-                .as_ref()
-                .and_then(|type_ann| extract_type_name(&type_ann.type_ann)),
-            _ => None,
-        })
+    None
 }
 
 fn extract_type_name(type_ann: &TsType) -> Option<String> {

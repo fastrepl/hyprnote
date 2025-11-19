@@ -14947,6 +14947,7 @@ dependencies = [
  "strum 0.26.3",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-hooks",
  "tauri-plugin-local-stt",
  "tauri-plugin-tray",
  "tauri-specta",

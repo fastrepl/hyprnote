@@ -295,22 +295,22 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the after_listening_stopped command without any pre-configured scope.",
+          "description": "Enables the run_event_hooks command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-after-listening-stopped",
-          "markdownDescription": "Enables the after_listening_stopped command without any pre-configured scope."
+          "const": "allow-run-event-hooks",
+          "markdownDescription": "Enables the run_event_hooks command without any pre-configured scope."
         },
         {
-          "description": "Denies the after_listening_stopped command without any pre-configured scope.",
+          "description": "Denies the run_event_hooks command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-after-listening-stopped",
-          "markdownDescription": "Denies the after_listening_stopped command without any pre-configured scope."
+          "const": "deny-run-event-hooks",
+          "markdownDescription": "Denies the run_event_hooks command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-run-event-hooks`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-ping`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-run-event-hooks`"
         }
       ]
     }

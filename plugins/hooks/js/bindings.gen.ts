@@ -7,17 +7,9 @@
 
 
 export const commands = {
-async beforeListeningStarted(args: BeforeListeningStartedArgs) : Promise<Result<null, string>> {
+async runEventHooks(event: HookEvent) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|before_listening_started", { args }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async afterListeningStopped(args: AfterListeningStoppedArgs) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|after_listening_stopped", { args }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|run_event_hooks", { event }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -52,6 +44,7 @@ export type BeforeListeningStartedArgs = {
  */
 session_id: string }
 export type HookDefinition = { command: string }
+export type HookEvent = { afterListeningStopped: { args: AfterListeningStoppedArgs } } | { beforeListeningStarted: { args: BeforeListeningStartedArgs } }
 /**
  * 123
  */

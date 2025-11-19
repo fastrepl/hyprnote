@@ -88,8 +88,16 @@ function renderTemplate(params: z.infer<typeof templateSchema>) {
   );
 }
 
-export default function handler(req: Request) {
+export default async function handler(req: Request) {
   const url = new URL(req.url);
+
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    return new Response("OG image generation disabled in dev", {
+      status: 503,
+      headers: { "Content-Type": "text/plain" },
+    });
+  }
+
   const params = parseSearchParams(url);
 
   if (!params) {
@@ -99,8 +107,16 @@ export default function handler(req: Request) {
     });
   }
 
-  // https://unpic.pics/og-edge
-  return new ImageResponse(renderTemplate(params));
+  try {
+    // https://unpic.pics/og-edge
+    return new ImageResponse(renderTemplate(params));
+  } catch (error) {
+    console.error("OG image generation failed:", error);
+    return new Response(JSON.stringify({ error: "image_generation_failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }
 
 // https://docs.netlify.com/build/edge-functions/declarations/#declare-edge-functions-inline

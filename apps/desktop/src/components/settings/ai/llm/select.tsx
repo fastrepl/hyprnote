@@ -14,15 +14,12 @@ import { useAuth } from "../../../../auth";
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/main";
+import { listAnthropicModels } from "../shared/list-anthropic";
 import type { ListModelsResult } from "../shared/list-common";
 import { listGoogleModels } from "../shared/list-google";
 import { listLMStudioModels } from "../shared/list-lmstudio";
 import { listOllamaModels } from "../shared/list-ollama";
-import {
-  listAnthropicModels,
-  listGenericModels,
-  listOpenAIModels,
-} from "../shared/list-openai";
+import { listGenericModels, listOpenAIModels } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
 import { HealthCheckForConnection } from "./health";

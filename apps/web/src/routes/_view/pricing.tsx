@@ -36,16 +36,11 @@ const pricingPlans: PricingPlan[] = [
       { label: "Bring Your Own Key (STT & LLM)", included: true },
       { label: "Basic Sharing (Copy, PDF)", included: true },
       { label: "All Data Local", included: true },
-      {
-        label: "Integrations",
-        included: "partial",
-        tooltip: "Available with free account signup",
-      },
-      { label: "Templates & Chat", included: false },
+      { label: "Templates & Chat", included: true },
+      { label: "Integrations", included: false },
       { label: "Cloud Services (STT & LLM)", included: false },
       { label: "Cloud Sync", included: false },
       { label: "Shareable Links", included: false },
-      { label: "Unified Billing & Access Management", included: false },
     ],
   },
   {
@@ -64,7 +59,6 @@ const pricingPlans: PricingPlan[] = [
     features: [
       { label: "Everything in Free", included: true },
       { label: "Integrations", included: true },
-      { label: "Templates & Chat", included: true },
       { label: "Cloud Services (STT & LLM)", included: true },
       {
         label: "Cloud Sync",
@@ -76,11 +70,6 @@ const pricingPlans: PricingPlan[] = [
         label: "Shareable Links",
         included: true,
         tooltip: "DocSend-like: view tracking, expiration, revocation",
-        comingSoon: true,
-      },
-      {
-        label: "Unified Billing & Access Management",
-        included: true,
         comingSoon: true,
       },
     ],
@@ -187,10 +176,10 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                     ${plan.originalPrice.monthly}
                   </span>
                 )}
-                <span className="text-neutral-600">/seat/month</span>
+                <span className="text-neutral-600">/month</span>
               </div>
               <div className="text-sm text-neutral-600">
-                or ${plan.price.yearly}/seat/year{" "}
+                or ${plan.price.yearly}/year{" "}
                 {plan.originalPrice && (
                   <span className="text-neutral-400 line-through">
                     ${plan.originalPrice.yearly}
@@ -296,6 +285,11 @@ function FAQSection() {
       question: "What's included in shareable links?",
       answer:
         "Pro users get DocsSend-like controls: track who views your notes, set expiration dates, and revoke access anytime.",
+    },
+    {
+      question: "What is unified billing?",
+      answer:
+        "Unified billing allows organizations to manage all team member subscriptions under a single invoice. Instead of individual team members paying separately, you get one consolidated bill for your entire team. This includes centralized access management, so admins can add or remove users, and handle all payments from one account.",
     },
     {
       question: "Is there a team discount?",

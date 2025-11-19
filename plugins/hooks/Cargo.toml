@@ -23,4 +23,4 @@ specta = { workspace = true }
 
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["process"] }
-tracing = { workspace = true }
+futures-util = { workspace = true }

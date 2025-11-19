@@ -7,14 +7,6 @@
 
 
 export const commands = {
-async ping(value: string | null) : Promise<Result<string | null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|ping", { value }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async afterListeningStopped(args: AfterListeningStoppedArgs) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|after_listening_stopped", { args }) };

@@ -18,12 +18,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`hooks:allow-ping`
+`hooks:allow-after-listening-stopped`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the after_listening_stopped command without any pre-configured scope.
 
 </td>
 </tr>
@@ -31,12 +31,12 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`hooks:deny-ping`
+`hooks:deny-after-listening-stopped`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the after_listening_stopped command without any pre-configured scope.
 
 </td>
 </tr>

@@ -19,29 +19,19 @@ impl HooksConfig {
         let path = Self::config_path(app)?;
 
         if !path.exists() {
-            tracing::debug!("hooks.json not found at {:?}, returning empty config", path);
             return Ok(Self::empty());
         }
 
-        let content = std::fs::read_to_string(&path).map_err(|e| {
-            tracing::error!("failed to read hooks.json from {:?}: {}", path, e);
-            crate::Error::ConfigLoad(e.to_string())
-        })?;
+        let content =
+            std::fs::read_to_string(&path).map_err(|e| crate::Error::ConfigLoad(e.to_string()))?;
 
-        let config: HooksConfig = serde_json::from_str(&content).map_err(|e| {
-            tracing::error!("failed to parse hooks.json: {}", e);
-            crate::Error::ConfigParse(e.to_string())
-        })?;
+        let config: HooksConfig =
+            serde_json::from_str(&content).map_err(|e| crate::Error::ConfigParse(e.to_string()))?;
 
         if config.version != 0 {
-            tracing::error!(
-                "unsupported hooks.json version: {} (expected 0)",
-                config.version
-            );
             return Err(crate::Error::UnsupportedVersion(config.version));
         }
 
-        tracing::debug!("loaded hooks.json with {} event types", config.hooks.len());
         Ok(config)
     }
 

@@ -14639,6 +14639,7 @@ dependencies = [
 name = "tauri-plugin-hooks"
 version = "0.1.0"
 dependencies = [
+ "futures-util",
  "serde",
  "serde_json",
  "specta",
@@ -14648,7 +14649,6 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
- "tracing",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
@@ -28,9 +28,15 @@ export function NoteInput({
   useAutoEnhance(tab);
   useAutoTitle(tab);
 
-  const handleTabChange = (view: EditorView) => {
-    updateSessionTabState(tab, { editor: view });
-  };
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
+
+  const handleTabChange = useCallback(
+    (view: EditorView) => {
+      updateSessionTabState(tabRef.current, { editor: view });
+    },
+    [updateSessionTabState],
+  );
 
   const currentTab: EditorView = useCurrentNoteTab(tab);
 

@@ -26,7 +26,7 @@ type LLMConnectionInfo = {
   apiKey: string;
 };
 
-type LLMConnectionStatus =
+export type LLMConnectionStatus =
   | { status: "pending"; reason: "missing_provider" }
   | { status: "pending"; reason: "missing_model"; providerId: ProviderId }
   | { status: "error"; reason: "provider_not_found"; providerId: string }
@@ -238,6 +238,11 @@ export const useLLMConnection = (): LLMConnectionResult => {
       status: { status: "success", providerId, isHosted: false },
     };
   }, [auth, current_llm_model, current_llm_provider, providerConfig]);
+};
+
+export const useLLMConnectionStatus = (): LLMConnectionStatus => {
+  const { status } = useLLMConnection();
+  return status;
 };
 
 const wrapWithThinkingMiddleware = (model: Exclude<LanguageModel, string>) => {

@@ -33,6 +33,8 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   );
 
   const startedTasksRef = useRef<Set<string>>(new Set());
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
 
   const enhanceTaskId = autoEnhancedNoteId
     ? createTaskId(autoEnhancedNoteId, "enhance")
@@ -54,7 +56,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   });
 
   const createAndStartEnhance = useCallback(() => {
-    if (!model || !hasTranscript) {
+    if (!hasTranscript) {
       return;
     }
 
@@ -63,17 +65,10 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
 
     setAutoEnhancedNoteId(enhancedNoteId);
 
-    updateSessionTabState(tab, {
+    updateSessionTabState(tabRef.current, {
       editor: { type: "enhanced", id: enhancedNoteId },
     });
-  }, [
-    hasTranscript,
-    model,
-    sessionId,
-    tab,
-    updateSessionTabState,
-    createEnhancedNote,
-  ]);
+  }, [hasTranscript, sessionId, updateSessionTabState, createEnhancedNote]);
 
   useEffect(() => {
     if (

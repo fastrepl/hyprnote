@@ -18,7 +18,10 @@ import { cn } from "@hypr/utils";
 import { useListener } from "../../../../../contexts/listener";
 import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
 import { useCreateEnhancedNote } from "../../../../../hooks/useEnhancedNotes";
-import { useLanguageModel } from "../../../../../hooks/useLLMConnection";
+import {
+  useLanguageModel,
+  useLLMConnectionStatus,
+} from "../../../../../hooks/useLLMConnection";
 import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
@@ -409,6 +412,7 @@ function labelForEditorView(view: EditorView): string {
 
 function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
   const model = useLanguageModel();
+  const llmStatus = useLLMConnectionStatus();
   const taskId = createTaskId(enhancedNoteId, "enhance");
   const [missingModelError, setMissingModelError] = useState<Error | null>(
     null,
@@ -460,8 +464,17 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
     }
   }, [model, missingModelError]);
 
+  const isConfigError =
+    llmStatus.status === "pending" ||
+    (llmStatus.status === "error" &&
+      (llmStatus.reason === "missing_config" ||
+        llmStatus.reason === "unauthenticated"));
+
+  const isIdleWithConfigError = enhanceTask.isIdle && isConfigError;
+
   const error = missingModelError ?? enhanceTask.error;
-  const isError = !!missingModelError || enhanceTask.isError;
+  const isError =
+    !!missingModelError || enhanceTask.isError || isIdleWithConfigError;
 
   return {
     isGenerating: enhanceTask.isGenerating,

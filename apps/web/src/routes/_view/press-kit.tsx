@@ -1,0 +1,263 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+
+import { cn } from "@hypr/utils";
+
+import { MockWindow } from "@/components/mock-window";
+
+const TITLE = "Press Kit - Hyprnote";
+const DESCRIPTION =
+  "Download Hyprnote press materials, logos, screenshots, and brand assets.";
+
+export const Route = createFileRoute("/_view/press-kit")({
+  component: Component,
+  head: () => ({
+    meta: [
+      { title: TITLE },
+      {
+        name: "description",
+        content: DESCRIPTION,
+      },
+      {
+        property: "og:title",
+        content: TITLE,
+      },
+      {
+        property: "og:description",
+        content: DESCRIPTION,
+      },
+      {
+        name: "twitter:title",
+        content: TITLE,
+      },
+      {
+        name: "twitter:description",
+        content: DESCRIPTION,
+      },
+    ],
+  }),
+});
+
+function Component() {
+  return (
+    <div
+      className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
+      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
+        {/* Hero Section */}
+        <div className="px-6 py-16 lg:py-24">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
+              Press Kit
+            </h1>
+            <p className="text-lg sm:text-xl text-neutral-600">
+              Download press materials, logos, screenshots, and learn more about
+              Hyprnote. For press inquiries, contact us at{" "}
+              <a
+                href="mailto:founders@hyprnote.com"
+                className="text-stone-600 underline hover:text-stone-700"
+              >
+                founders@hyprnote.com
+              </a>
+            </p>
+          </div>
+        </div>
+
+        {/* Finder Section */}
+        <section className="px-6 pb-16 lg:pb-24">
+          <div className="max-w-4xl mx-auto">
+            <MockWindow className="rounded-lg w-full max-w-none">
+              {/* Finder-style content area */}
+              <div className="p-8">
+                {/* Press Materials Group */}
+                <div className="mb-8">
+                  <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+                    Press Materials
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                    <FinderFolder
+                      to="/press-kit/app"
+                      folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-blue.png"
+                      label="App"
+                      description="Screenshots & app info"
+                    />
+                    <FinderFolder
+                      to="/brand"
+                      folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-red.png"
+                      label="Brand"
+                      description="Brand assets & logos"
+                    />
+                    <FinderFolder
+                      to="/about#founders"
+                      folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-purple.png"
+                      label="Founders"
+                      description="About the founders"
+                    />
+                    <FinderFolder
+                      to="/about#team"
+                      folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-yellow.png"
+                      label="Team"
+                      description="Team photos & info"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Actions Group */}
+                <div className="border-t border-neutral-100 pt-8">
+                  <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+                    Quick Actions
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                    <FinderAction
+                      href="/download/apple-silicon"
+                      label="Download"
+                      description="Get Hyprnote for macOS"
+                      download
+                      appIcon
+                    />
+                    <FinderAction
+                      href="mailto:founders@hyprnote.com"
+                      iconImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-mail.png"
+                      label="Contact"
+                      description="Reach out to founders"
+                    />
+                    <FinderAction
+                      href="https://github.com/fastrepl/hyprnote"
+                      iconImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/github.webp"
+                      label="GitHub"
+                      description="View our repository"
+                      external
+                      roundedIcon
+                    />
+                    <div className="invisible">
+                      <div className="mb-3 w-16 h-16"></div>
+                      <div className="font-medium text-stone-600">
+                        Placeholder
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Finder-style status bar */}
+              <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
+                <span className="text-xs text-neutral-500">
+                  7 items, 2 groups
+                </span>
+              </div>
+            </MockWindow>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function FinderFolder({
+  to,
+  folderImage,
+  label,
+  description,
+}: {
+  to: string;
+  folderImage: string;
+  label: string;
+  description: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className={cn([
+        "group flex flex-col items-center text-center p-4 rounded-lg",
+        "hover:bg-stone-50 transition-colors",
+        "cursor-pointer",
+      ])}
+    >
+      <div className="mb-3 w-16 h-16 flex items-center justify-center">
+        <img
+          src={folderImage}
+          alt={`${label} folder`}
+          className="w-16 h-16 group-hover:scale-110 transition-transform"
+        />
+      </div>
+      <div className="font-medium text-stone-600">{label}</div>
+    </Link>
+  );
+}
+
+function FinderAction({
+  href,
+  iconImage,
+  label,
+  description,
+  download,
+  external,
+  appIcon,
+  roundedIcon,
+}: {
+  href: string;
+  iconImage?: string;
+  label: string;
+  description: string;
+  download?: boolean;
+  external?: boolean;
+  appIcon?: boolean;
+  roundedIcon?: boolean;
+}) {
+  const content = (
+    <>
+      <div className="mb-3">
+        {appIcon ? (
+          <img
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            alt="Hyprnote"
+            className="w-16 h-16 mx-auto rounded-[20px] border border-neutral-100 group-hover:scale-110 transition-transform shadow-md"
+          />
+        ) : iconImage ? (
+          <img
+            src={iconImage}
+            alt={label}
+            className={cn([
+              "w-16 h-16 mx-auto group-hover:scale-110 transition-transform",
+              roundedIcon ? "rounded-[20px] shadow-md" : "",
+            ])}
+          />
+        ) : null}
+      </div>
+      <div className="font-medium text-stone-600">{label}</div>
+    </>
+  );
+
+  const className = cn([
+    "group flex flex-col items-center text-center p-4 rounded-lg",
+    "hover:bg-stone-50 transition-colors",
+    "cursor-pointer",
+  ]);
+
+  if (external) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+      >
+        {content}
+      </a>
+    );
+  }
+
+  if (download) {
+    return (
+      <a href={href} download className={className}>
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <a href={href} className={className}>
+      {content}
+    </a>
+  );
+}

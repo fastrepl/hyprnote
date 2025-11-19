@@ -540,6 +540,14 @@ function Footer() {
                     Pricing
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to="/press-kit"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Press Kit
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -559,17 +567,36 @@ function Footer() {
                 <li>
                   <Link
                     to="/about"
+                    search={{ section: "us" }}
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
-                    About
+                    About us
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/team"
+                    to="/about"
+                    search={{ section: "founders" }}
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Founders
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/about"
+                    search={{ section: "team" }}
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
                     Team
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/brand"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Brand
                   </Link>
                 </li>
                 <li>

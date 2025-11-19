@@ -1,0 +1,29 @@
+# Hooks 
+
+Hooks let you observe and react to the Hyprnote's lifecycle using custom scripts.
+
+# Config
+
+```bash
+vi "$HOME/Library/Application Support/hyprnote/hooks.json"
+```
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "afterListeningStopped": [{ "command": "./hooks/demo.sh" }]
+  }
+}
+```
+
+```bash
+vi "$HOME/Library/Application Support/hyprnote/hooks/demo.sh"
+chmod +x "$HOME/Library/Application Support/hyprnote/hooks/demo.sh"
+```
+
+```sh
+#!/bin/bash
+cat > /dev/null
+exit 0
+```

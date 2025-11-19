@@ -1,3 +1,5 @@
+import { getName } from "@tauri-apps/api/app";
+import { appDataDir } from "@tauri-apps/api/path";
 import { Effect, Exit } from "effect";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
@@ -202,9 +204,18 @@ export const createGeneralSlice = <
         }),
       );
 
-      hooksCommands
-        .runEventHooks({
-          beforeListeningStarted: { args: { session_id: targetSessionId } },
+      Promise.all([appDataDir(), getName().catch(() => "com.hyprnote.app")])
+        .then(([dataDirPath, appName]) => {
+          const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
+          return hooksCommands.runEventHooks({
+            beforeListeningStarted: {
+              args: {
+                resource_dir: sessionPath,
+                app_hyprnote: appName,
+                app_meeting: null,
+              },
+            },
+          });
         })
         .catch((error) => {
           console.error("[hooks] BeforeListeningStarted failed:", error);
@@ -264,9 +275,21 @@ export const createGeneralSlice = <
         },
         onSuccess: () => {
           if (sessionId) {
-            hooksCommands
-              .runEventHooks({
-                afterListeningStopped: { args: { session_id: sessionId } },
+            Promise.all([
+              appDataDir(),
+              getName().catch(() => "com.hyprnote.app"),
+            ])
+              .then(([dataDirPath, appName]) => {
+                const sessionPath = `${dataDirPath}/hyprnote/sessions/${sessionId}`;
+                return hooksCommands.runEventHooks({
+                  afterListeningStopped: {
+                    args: {
+                      resource_dir: sessionPath,
+                      app_hyprnote: appName,
+                      app_meeting: null,
+                    },
+                  },
+                });
               })
               .catch((error) => {
                 console.error("[hooks] AfterListeningStopped failed:", error);

@@ -3,6 +3,7 @@ mod config;
 mod error;
 mod event;
 mod ext;
+mod naming;
 mod runner;
 
 #[cfg(test)]

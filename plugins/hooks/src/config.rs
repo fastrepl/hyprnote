@@ -2,18 +2,20 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-/// 123
+/// Configuration for hook execution.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct HooksConfig {
-    /// 345
+    /// Configuration schema version.
     pub version: u8,
-    /// 678
+    /// Map of event names to their associated hook definitions.
     #[serde(default)]
     pub hooks: HashMap<String, Vec<HookDefinition>>,
 }
 
+/// Defines a single hook to be executed on an event.
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct HookDefinition {
+    /// Shell command to execute when the hook is triggered.
     pub command: String,
 }
 

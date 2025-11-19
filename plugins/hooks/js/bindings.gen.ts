@@ -28,33 +28,56 @@ async runEventHooks(event: HookEvent) : Promise<Result<null, string>> {
 /** user-defined types **/
 
 /**
- * 123
+ * Arguments passed to hooks triggered after listening stops.
  */
 export type AfterListeningStoppedArgs = { 
 /**
- * 345
+ * Path to the resource directory.
  */
-session_id: string }
+resource_dir: string; 
 /**
- * 123
+ * Application-specific Hyprnote data.
+ */
+app_hyprnote: string; 
+/**
+ * Optional meeting-specific data.
+ */
+app_meeting?: string | null }
+/**
+ * Arguments passed to hooks triggered before listening starts.
  */
 export type BeforeListeningStartedArgs = { 
 /**
- * 345
+ * Path to the resource directory.
  */
-session_id: string }
-export type HookDefinition = { command: string }
+resource_dir: string; 
+/**
+ * Application-specific Hyprnote data.
+ */
+app_hyprnote: string; 
+/**
+ * Optional meeting-specific data.
+ */
+app_meeting?: string | null }
+/**
+ * Defines a single hook to be executed on an event.
+ */
+export type HookDefinition = { 
+/**
+ * Shell command to execute when the hook is triggered.
+ */
+command: string }
 export type HookEvent = { afterListeningStopped: { args: AfterListeningStoppedArgs } } | { beforeListeningStarted: { args: BeforeListeningStartedArgs } }
 /**
- * 123
+ * Configuration for hook execution.
  */
 export type HooksConfig = { 
 /**
- * 345
+ * Configuration schema version.
  */
 version: number; 
 /**
- * 678
+ * Map of event names to their associated hook definitions.
  */
 hooks?: Partial<{ [key in string]: HookDefinition[] }> }
 

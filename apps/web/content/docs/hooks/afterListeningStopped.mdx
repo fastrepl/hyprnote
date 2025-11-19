@@ -1,8 +1,15 @@
 ---
 name: afterListeningStopped
-description: '123'
+description: Arguments passed to hooks triggered after listening stops.
 args:
-- name: session_id
-  description: '345'
+- name: --resource-dir
+  description: Path to the resource directory.
   type_name: string
+- name: --app-hyprnote
+  description: Application-specific Hyprnote data.
+  type_name: string
+- name: --app-meeting
+  description: Optional meeting-specific data.
+  type_name: string
+  optional: true
 ---

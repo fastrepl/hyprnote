@@ -9,6 +9,7 @@ import {
 } from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
 
+import { Image } from "@/components/image";
 import { MockWindow } from "@/components/mock-window";
 
 export const Route = createFileRoute("/_view/brand")({
@@ -82,20 +83,22 @@ function Component() {
               title="Visual Assets"
               className="rounded-lg w-full max-w-none"
             >
-              <div>
+              <div className="h-[600px]">
                 {!selectedAsset ? (
                   // Grid view - show all thumbnails in 4 columns
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-6 overflow-y-auto h-[540px] content-start">
                     {VISUAL_ASSETS.map((asset) => (
                       <button
                         key={asset.id}
                         onClick={() => setSelectedAsset(asset.id)}
-                        className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer"
+                        className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
                       >
                         <div className="mb-3 w-16 h-16 flex items-center justify-center">
-                          <img
+                          <Image
                             src={asset.url}
                             alt={asset.name}
+                            width={64}
+                            height={64}
                             className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform"
                           />
                         </div>
@@ -130,9 +133,11 @@ function Component() {
                             ])}
                           >
                             <div className="w-16 h-16 shrink-0 flex items-center justify-center overflow-hidden">
-                              <img
+                              <Image
                                 src={asset.url}
                                 alt={asset.name}
+                                width={64}
+                                height={64}
                                 className="max-w-full max-h-full object-contain"
                               />
                             </div>
@@ -172,18 +177,20 @@ function Component() {
                                 </a>
                                 <button
                                   onClick={() => setSelectedAsset(null)}
-                                  className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                                  className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
                                 >
                                   <XIcon size={16} />
                                 </button>
                               </div>
                             </div>
 
-                            <div className="p-4">
+                            <div className="p-4 overflow-y-auto">
                               {/* Image preview with max-width 400px */}
-                              <img
+                              <Image
                                 src={selected.url}
                                 alt={selected.name}
+                                width={400}
+                                height={400}
                                 className="max-w-[400px] w-full h-auto object-contain mb-6"
                               />
 

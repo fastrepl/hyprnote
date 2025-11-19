@@ -24,13 +24,15 @@ import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewTemplatesRouteImport } from './routes/_view/templates'
-import { Route as ViewTeamRouteImport } from './routes/_view/team'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewRoadmapRouteImport } from './routes/_view/roadmap'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
+import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
 import { Route as ViewFaqRouteImport } from './routes/_view/faq'
 import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
+import { Route as ViewBrandRouteImport } from './routes/_view/brand'
 import { Route as ViewAboutRouteImport } from './routes/_view/about'
+import { Route as ViewVsRouteRouteImport } from './routes/_view/vs/route'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
@@ -39,6 +41,29 @@ import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
+import { Route as ViewVsTldvRouteImport } from './routes/_view/vs/tldv'
+import { Route as ViewVsTactiqRouteImport } from './routes/_view/vs/tactiq'
+import { Route as ViewVsReflectRouteImport } from './routes/_view/vs/reflect'
+import { Route as ViewVsReadAiRouteImport } from './routes/_view/vs/read-ai'
+import { Route as ViewVsOtterRouteImport } from './routes/_view/vs/otter'
+import { Route as ViewVsObsidianRouteImport } from './routes/_view/vs/obsidian'
+import { Route as ViewVsNottaRouteImport } from './routes/_view/vs/notta'
+import { Route as ViewVsNotionRouteImport } from './routes/_view/vs/notion'
+import { Route as ViewVsNotabilityRouteImport } from './routes/_view/vs/notability'
+import { Route as ViewVsMeetilyRouteImport } from './routes/_view/vs/meetily'
+import { Route as ViewVsMeetgeekRouteImport } from './routes/_view/vs/meetgeek'
+import { Route as ViewVsJamieRouteImport } from './routes/_view/vs/jamie'
+import { Route as ViewVsGranolaRouteImport } from './routes/_view/vs/granola'
+import { Route as ViewVsGongRouteImport } from './routes/_view/vs/gong'
+import { Route as ViewVsFirefliesRouteImport } from './routes/_view/vs/fireflies'
+import { Route as ViewVsFellowRouteImport } from './routes/_view/vs/fellow'
+import { Route as ViewVsFathomRouteImport } from './routes/_view/vs/fathom'
+import { Route as ViewVsEvernoteRouteImport } from './routes/_view/vs/evernote'
+import { Route as ViewVsCluelyRouteImport } from './routes/_view/vs/cluely'
+import { Route as ViewVsCirclebackRouteImport } from './routes/_view/vs/circleback'
+import { Route as ViewVsBluedotRouteImport } from './routes/_view/vs/bluedot'
+import { Route as ViewVsBearRouteImport } from './routes/_view/vs/bear'
+import { Route as ViewVsAsideRouteImport } from './routes/_view/vs/aside'
 import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
 import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
 import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_view/solution/project-management'
@@ -60,6 +85,7 @@ import { Route as ViewProductBotRouteImport } from './routes/_view/product/bot'
 import { Route as ViewProductApiRouteImport } from './routes/_view/product/api'
 import { Route as ViewProductAiNotetakingRouteImport } from './routes/_view/product/ai-notetaking'
 import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/product/ai-assistant'
+import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit.app'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
@@ -144,11 +170,6 @@ const ViewTemplatesRoute = ViewTemplatesRouteImport.update({
   path: '/templates',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewTeamRoute = ViewTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewSecurityRoute = ViewSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -164,6 +185,11 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewPressKitRoute = ViewPressKitRouteImport.update({
+  id: '/press-kit',
+  path: '/press-kit',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewFaqRoute = ViewFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -174,9 +200,19 @@ const ViewEnterpriseRoute = ViewEnterpriseRouteImport.update({
   path: '/enterprise',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewBrandRoute = ViewBrandRouteImport.update({
+  id: '/brand',
+  path: '/brand',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewAboutRoute = ViewAboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewVsRouteRoute = ViewVsRouteRouteImport.update({
+  id: '/vs',
+  path: '/vs',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDocsRouteRoute = ViewDocsRouteRouteImport.update({
@@ -218,6 +254,121 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
+} as any)
+const ViewVsTldvRoute = ViewVsTldvRouteImport.update({
+  id: '/tldv',
+  path: '/tldv',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsTactiqRoute = ViewVsTactiqRouteImport.update({
+  id: '/tactiq',
+  path: '/tactiq',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsReflectRoute = ViewVsReflectRouteImport.update({
+  id: '/reflect',
+  path: '/reflect',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsReadAiRoute = ViewVsReadAiRouteImport.update({
+  id: '/read-ai',
+  path: '/read-ai',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsOtterRoute = ViewVsOtterRouteImport.update({
+  id: '/otter',
+  path: '/otter',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsObsidianRoute = ViewVsObsidianRouteImport.update({
+  id: '/obsidian',
+  path: '/obsidian',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsNottaRoute = ViewVsNottaRouteImport.update({
+  id: '/notta',
+  path: '/notta',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsNotionRoute = ViewVsNotionRouteImport.update({
+  id: '/notion',
+  path: '/notion',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsNotabilityRoute = ViewVsNotabilityRouteImport.update({
+  id: '/notability',
+  path: '/notability',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsMeetilyRoute = ViewVsMeetilyRouteImport.update({
+  id: '/meetily',
+  path: '/meetily',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsMeetgeekRoute = ViewVsMeetgeekRouteImport.update({
+  id: '/meetgeek',
+  path: '/meetgeek',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsJamieRoute = ViewVsJamieRouteImport.update({
+  id: '/jamie',
+  path: '/jamie',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsGranolaRoute = ViewVsGranolaRouteImport.update({
+  id: '/granola',
+  path: '/granola',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsGongRoute = ViewVsGongRouteImport.update({
+  id: '/gong',
+  path: '/gong',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsFirefliesRoute = ViewVsFirefliesRouteImport.update({
+  id: '/fireflies',
+  path: '/fireflies',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsFellowRoute = ViewVsFellowRouteImport.update({
+  id: '/fellow',
+  path: '/fellow',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsFathomRoute = ViewVsFathomRouteImport.update({
+  id: '/fathom',
+  path: '/fathom',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsEvernoteRoute = ViewVsEvernoteRouteImport.update({
+  id: '/evernote',
+  path: '/evernote',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsCluelyRoute = ViewVsCluelyRouteImport.update({
+  id: '/cluely',
+  path: '/cluely',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsCirclebackRoute = ViewVsCirclebackRouteImport.update({
+  id: '/circleback',
+  path: '/circleback',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsBluedotRoute = ViewVsBluedotRouteImport.update({
+  id: '/bluedot',
+  path: '/bluedot',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsBearRoute = ViewVsBearRouteImport.update({
+  id: '/bear',
+  path: '/bear',
+  getParentRoute: () => ViewVsRouteRoute,
+} as any)
+const ViewVsAsideRoute = ViewVsAsideRouteImport.update({
+  id: '/aside',
+  path: '/aside',
+  getParentRoute: () => ViewVsRouteRoute,
 } as any)
 const ViewSolutionSalesRoute = ViewSolutionSalesRouteImport.update({
   id: '/solution/sales',
@@ -327,6 +478,11 @@ const ViewProductAiAssistantRoute = ViewProductAiAssistantRouteImport.update({
   path: '/product/ai-assistant',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewPressKitAppRoute = ViewPressKitAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => ViewPressKitRoute,
+} as any)
 const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   id: '/legal/$slug',
   path: '/legal/$slug',
@@ -386,13 +542,15 @@ export interface FileRoutesByFullPath {
   '/youtube': typeof YoutubeRoute
   '/app': typeof ViewAppRouteRouteWithChildren
   '/docs': typeof ViewDocsRouteRouteWithChildren
+  '/vs': typeof ViewVsRouteRouteWithChildren
   '/about': typeof ViewAboutRoute
+  '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/faq': typeof ViewFaqRoute
+  '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
   '/security': typeof ViewSecurityRoute
-  '/team': typeof ViewTeamRoute
   '/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -407,6 +565,7 @@ export interface FileRoutesByFullPath {
   '/docs/$': typeof ViewDocsSplatRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
+  '/press-kit/app': typeof ViewPressKitAppRoute
   '/product/ai-assistant': typeof ViewProductAiAssistantRoute
   '/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
   '/product/api': typeof ViewProductApiRoute
@@ -428,6 +587,29 @@ export interface FileRoutesByFullPath {
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
+  '/vs/aside': typeof ViewVsAsideRoute
+  '/vs/bear': typeof ViewVsBearRoute
+  '/vs/bluedot': typeof ViewVsBluedotRoute
+  '/vs/circleback': typeof ViewVsCirclebackRoute
+  '/vs/cluely': typeof ViewVsCluelyRoute
+  '/vs/evernote': typeof ViewVsEvernoteRoute
+  '/vs/fathom': typeof ViewVsFathomRoute
+  '/vs/fellow': typeof ViewVsFellowRoute
+  '/vs/fireflies': typeof ViewVsFirefliesRoute
+  '/vs/gong': typeof ViewVsGongRoute
+  '/vs/granola': typeof ViewVsGranolaRoute
+  '/vs/jamie': typeof ViewVsJamieRoute
+  '/vs/meetgeek': typeof ViewVsMeetgeekRoute
+  '/vs/meetily': typeof ViewVsMeetilyRoute
+  '/vs/notability': typeof ViewVsNotabilityRoute
+  '/vs/notion': typeof ViewVsNotionRoute
+  '/vs/notta': typeof ViewVsNottaRoute
+  '/vs/obsidian': typeof ViewVsObsidianRoute
+  '/vs/otter': typeof ViewVsOtterRoute
+  '/vs/read-ai': typeof ViewVsReadAiRoute
+  '/vs/reflect': typeof ViewVsReflectRoute
+  '/vs/tactiq': typeof ViewVsTactiqRoute
+  '/vs/tldv': typeof ViewVsTldvRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -445,13 +627,15 @@ export interface FileRoutesByTo {
   '/linkedin': typeof LinkedinRoute
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
+  '/vs': typeof ViewVsRouteRouteWithChildren
   '/about': typeof ViewAboutRoute
+  '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/faq': typeof ViewFaqRoute
+  '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
   '/security': typeof ViewSecurityRoute
-  '/team': typeof ViewTeamRoute
   '/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -466,6 +650,7 @@ export interface FileRoutesByTo {
   '/docs/$': typeof ViewDocsSplatRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
+  '/press-kit/app': typeof ViewPressKitAppRoute
   '/product/ai-assistant': typeof ViewProductAiAssistantRoute
   '/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
   '/product/api': typeof ViewProductApiRoute
@@ -487,6 +672,29 @@ export interface FileRoutesByTo {
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
+  '/vs/aside': typeof ViewVsAsideRoute
+  '/vs/bear': typeof ViewVsBearRoute
+  '/vs/bluedot': typeof ViewVsBluedotRoute
+  '/vs/circleback': typeof ViewVsCirclebackRoute
+  '/vs/cluely': typeof ViewVsCluelyRoute
+  '/vs/evernote': typeof ViewVsEvernoteRoute
+  '/vs/fathom': typeof ViewVsFathomRoute
+  '/vs/fellow': typeof ViewVsFellowRoute
+  '/vs/fireflies': typeof ViewVsFirefliesRoute
+  '/vs/gong': typeof ViewVsGongRoute
+  '/vs/granola': typeof ViewVsGranolaRoute
+  '/vs/jamie': typeof ViewVsJamieRoute
+  '/vs/meetgeek': typeof ViewVsMeetgeekRoute
+  '/vs/meetily': typeof ViewVsMeetilyRoute
+  '/vs/notability': typeof ViewVsNotabilityRoute
+  '/vs/notion': typeof ViewVsNotionRoute
+  '/vs/notta': typeof ViewVsNottaRoute
+  '/vs/obsidian': typeof ViewVsObsidianRoute
+  '/vs/otter': typeof ViewVsOtterRoute
+  '/vs/read-ai': typeof ViewVsReadAiRoute
+  '/vs/reflect': typeof ViewVsReflectRoute
+  '/vs/tactiq': typeof ViewVsTactiqRoute
+  '/vs/tldv': typeof ViewVsTldvRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -508,13 +716,15 @@ export interface FileRoutesById {
   '/youtube': typeof YoutubeRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
   '/_view/docs': typeof ViewDocsRouteRouteWithChildren
+  '/_view/vs': typeof ViewVsRouteRouteWithChildren
   '/_view/about': typeof ViewAboutRoute
+  '/_view/brand': typeof ViewBrandRoute
   '/_view/enterprise': typeof ViewEnterpriseRoute
   '/_view/faq': typeof ViewFaqRoute
+  '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/roadmap': typeof ViewRoadmapRoute
   '/_view/security': typeof ViewSecurityRoute
-  '/_view/team': typeof ViewTeamRoute
   '/_view/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -529,6 +739,7 @@ export interface FileRoutesById {
   '/_view/docs/$': typeof ViewDocsSplatRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
+  '/_view/press-kit/app': typeof ViewPressKitAppRoute
   '/_view/product/ai-assistant': typeof ViewProductAiAssistantRoute
   '/_view/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
   '/_view/product/api': typeof ViewProductApiRoute
@@ -550,6 +761,29 @@ export interface FileRoutesById {
   '/_view/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/_view/solution/sales': typeof ViewSolutionSalesRoute
+  '/_view/vs/aside': typeof ViewVsAsideRoute
+  '/_view/vs/bear': typeof ViewVsBearRoute
+  '/_view/vs/bluedot': typeof ViewVsBluedotRoute
+  '/_view/vs/circleback': typeof ViewVsCirclebackRoute
+  '/_view/vs/cluely': typeof ViewVsCluelyRoute
+  '/_view/vs/evernote': typeof ViewVsEvernoteRoute
+  '/_view/vs/fathom': typeof ViewVsFathomRoute
+  '/_view/vs/fellow': typeof ViewVsFellowRoute
+  '/_view/vs/fireflies': typeof ViewVsFirefliesRoute
+  '/_view/vs/gong': typeof ViewVsGongRoute
+  '/_view/vs/granola': typeof ViewVsGranolaRoute
+  '/_view/vs/jamie': typeof ViewVsJamieRoute
+  '/_view/vs/meetgeek': typeof ViewVsMeetgeekRoute
+  '/_view/vs/meetily': typeof ViewVsMeetilyRoute
+  '/_view/vs/notability': typeof ViewVsNotabilityRoute
+  '/_view/vs/notion': typeof ViewVsNotionRoute
+  '/_view/vs/notta': typeof ViewVsNottaRoute
+  '/_view/vs/obsidian': typeof ViewVsObsidianRoute
+  '/_view/vs/otter': typeof ViewVsOtterRoute
+  '/_view/vs/read-ai': typeof ViewVsReadAiRoute
+  '/_view/vs/reflect': typeof ViewVsReflectRoute
+  '/_view/vs/tactiq': typeof ViewVsTactiqRoute
+  '/_view/vs/tldv': typeof ViewVsTldvRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
@@ -571,13 +805,15 @@ export interface FileRouteTypes {
     | '/youtube'
     | '/app'
     | '/docs'
+    | '/vs'
     | '/about'
+    | '/brand'
     | '/enterprise'
     | '/faq'
+    | '/press-kit'
     | '/pricing'
     | '/roadmap'
     | '/security'
-    | '/team'
     | '/templates'
     | '/api/templates'
     | '/webhook/nango'
@@ -592,6 +828,7 @@ export interface FileRouteTypes {
     | '/docs/$'
     | '/download/apple-silicon'
     | '/legal/$slug'
+    | '/press-kit/app'
     | '/product/ai-assistant'
     | '/product/ai-notetaking'
     | '/product/api'
@@ -613,6 +850,29 @@ export interface FileRouteTypes {
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/sales'
+    | '/vs/aside'
+    | '/vs/bear'
+    | '/vs/bluedot'
+    | '/vs/circleback'
+    | '/vs/cluely'
+    | '/vs/evernote'
+    | '/vs/fathom'
+    | '/vs/fellow'
+    | '/vs/fireflies'
+    | '/vs/gong'
+    | '/vs/granola'
+    | '/vs/jamie'
+    | '/vs/meetgeek'
+    | '/vs/meetily'
+    | '/vs/notability'
+    | '/vs/notion'
+    | '/vs/notta'
+    | '/vs/obsidian'
+    | '/vs/otter'
+    | '/vs/read-ai'
+    | '/vs/reflect'
+    | '/vs/tactiq'
+    | '/vs/tldv'
     | '/app/'
     | '/blog'
     | '/changelog'
@@ -630,13 +890,15 @@ export interface FileRouteTypes {
     | '/linkedin'
     | '/x'
     | '/youtube'
+    | '/vs'
     | '/about'
+    | '/brand'
     | '/enterprise'
     | '/faq'
+    | '/press-kit'
     | '/pricing'
     | '/roadmap'
     | '/security'
-    | '/team'
     | '/templates'
     | '/api/templates'
     | '/webhook/nango'
@@ -651,6 +913,7 @@ export interface FileRouteTypes {
     | '/docs/$'
     | '/download/apple-silicon'
     | '/legal/$slug'
+    | '/press-kit/app'
     | '/product/ai-assistant'
     | '/product/ai-notetaking'
     | '/product/api'
@@ -672,6 +935,29 @@ export interface FileRouteTypes {
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/sales'
+    | '/vs/aside'
+    | '/vs/bear'
+    | '/vs/bluedot'
+    | '/vs/circleback'
+    | '/vs/cluely'
+    | '/vs/evernote'
+    | '/vs/fathom'
+    | '/vs/fellow'
+    | '/vs/fireflies'
+    | '/vs/gong'
+    | '/vs/granola'
+    | '/vs/jamie'
+    | '/vs/meetgeek'
+    | '/vs/meetily'
+    | '/vs/notability'
+    | '/vs/notion'
+    | '/vs/notta'
+    | '/vs/obsidian'
+    | '/vs/otter'
+    | '/vs/read-ai'
+    | '/vs/reflect'
+    | '/vs/tactiq'
+    | '/vs/tldv'
     | '/app'
     | '/blog'
     | '/changelog'
@@ -692,13 +978,15 @@ export interface FileRouteTypes {
     | '/youtube'
     | '/_view/app'
     | '/_view/docs'
+    | '/_view/vs'
     | '/_view/about'
+    | '/_view/brand'
     | '/_view/enterprise'
     | '/_view/faq'
+    | '/_view/press-kit'
     | '/_view/pricing'
     | '/_view/roadmap'
     | '/_view/security'
-    | '/_view/team'
     | '/_view/templates'
     | '/api/templates'
     | '/webhook/nango'
@@ -713,6 +1001,7 @@ export interface FileRouteTypes {
     | '/_view/docs/$'
     | '/_view/download/apple-silicon'
     | '/_view/legal/$slug'
+    | '/_view/press-kit/app'
     | '/_view/product/ai-assistant'
     | '/_view/product/ai-notetaking'
     | '/_view/product/api'
@@ -734,6 +1023,29 @@ export interface FileRouteTypes {
     | '/_view/solution/project-management'
     | '/_view/solution/recruiting'
     | '/_view/solution/sales'
+    | '/_view/vs/aside'
+    | '/_view/vs/bear'
+    | '/_view/vs/bluedot'
+    | '/_view/vs/circleback'
+    | '/_view/vs/cluely'
+    | '/_view/vs/evernote'
+    | '/_view/vs/fathom'
+    | '/_view/vs/fellow'
+    | '/_view/vs/fireflies'
+    | '/_view/vs/gong'
+    | '/_view/vs/granola'
+    | '/_view/vs/jamie'
+    | '/_view/vs/meetgeek'
+    | '/_view/vs/meetily'
+    | '/_view/vs/notability'
+    | '/_view/vs/notion'
+    | '/_view/vs/notta'
+    | '/_view/vs/obsidian'
+    | '/_view/vs/otter'
+    | '/_view/vs/read-ai'
+    | '/_view/vs/reflect'
+    | '/_view/vs/tactiq'
+    | '/_view/vs/tldv'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
@@ -865,13 +1177,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewTemplatesRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/team': {
-      id: '/_view/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof ViewTeamRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/security': {
       id: '/_view/security'
       path: '/security'
@@ -893,6 +1198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewPricingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/press-kit': {
+      id: '/_view/press-kit'
+      path: '/press-kit'
+      fullPath: '/press-kit'
+      preLoaderRoute: typeof ViewPressKitRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/faq': {
       id: '/_view/faq'
       path: '/faq'
@@ -907,11 +1219,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewEnterpriseRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/brand': {
+      id: '/_view/brand'
+      path: '/brand'
+      fullPath: '/brand'
+      preLoaderRoute: typeof ViewBrandRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/about': {
       id: '/_view/about'
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof ViewAboutRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/vs': {
+      id: '/_view/vs'
+      path: '/vs'
+      fullPath: '/vs'
+      preLoaderRoute: typeof ViewVsRouteRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/docs': {
@@ -969,6 +1295,167 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
+    }
+    '/_view/vs/tldv': {
+      id: '/_view/vs/tldv'
+      path: '/tldv'
+      fullPath: '/vs/tldv'
+      preLoaderRoute: typeof ViewVsTldvRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/tactiq': {
+      id: '/_view/vs/tactiq'
+      path: '/tactiq'
+      fullPath: '/vs/tactiq'
+      preLoaderRoute: typeof ViewVsTactiqRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/reflect': {
+      id: '/_view/vs/reflect'
+      path: '/reflect'
+      fullPath: '/vs/reflect'
+      preLoaderRoute: typeof ViewVsReflectRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/read-ai': {
+      id: '/_view/vs/read-ai'
+      path: '/read-ai'
+      fullPath: '/vs/read-ai'
+      preLoaderRoute: typeof ViewVsReadAiRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/otter': {
+      id: '/_view/vs/otter'
+      path: '/otter'
+      fullPath: '/vs/otter'
+      preLoaderRoute: typeof ViewVsOtterRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/obsidian': {
+      id: '/_view/vs/obsidian'
+      path: '/obsidian'
+      fullPath: '/vs/obsidian'
+      preLoaderRoute: typeof ViewVsObsidianRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/notta': {
+      id: '/_view/vs/notta'
+      path: '/notta'
+      fullPath: '/vs/notta'
+      preLoaderRoute: typeof ViewVsNottaRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/notion': {
+      id: '/_view/vs/notion'
+      path: '/notion'
+      fullPath: '/vs/notion'
+      preLoaderRoute: typeof ViewVsNotionRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/notability': {
+      id: '/_view/vs/notability'
+      path: '/notability'
+      fullPath: '/vs/notability'
+      preLoaderRoute: typeof ViewVsNotabilityRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/meetily': {
+      id: '/_view/vs/meetily'
+      path: '/meetily'
+      fullPath: '/vs/meetily'
+      preLoaderRoute: typeof ViewVsMeetilyRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/meetgeek': {
+      id: '/_view/vs/meetgeek'
+      path: '/meetgeek'
+      fullPath: '/vs/meetgeek'
+      preLoaderRoute: typeof ViewVsMeetgeekRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/jamie': {
+      id: '/_view/vs/jamie'
+      path: '/jamie'
+      fullPath: '/vs/jamie'
+      preLoaderRoute: typeof ViewVsJamieRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/granola': {
+      id: '/_view/vs/granola'
+      path: '/granola'
+      fullPath: '/vs/granola'
+      preLoaderRoute: typeof ViewVsGranolaRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/gong': {
+      id: '/_view/vs/gong'
+      path: '/gong'
+      fullPath: '/vs/gong'
+      preLoaderRoute: typeof ViewVsGongRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/fireflies': {
+      id: '/_view/vs/fireflies'
+      path: '/fireflies'
+      fullPath: '/vs/fireflies'
+      preLoaderRoute: typeof ViewVsFirefliesRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/fellow': {
+      id: '/_view/vs/fellow'
+      path: '/fellow'
+      fullPath: '/vs/fellow'
+      preLoaderRoute: typeof ViewVsFellowRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/fathom': {
+      id: '/_view/vs/fathom'
+      path: '/fathom'
+      fullPath: '/vs/fathom'
+      preLoaderRoute: typeof ViewVsFathomRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/evernote': {
+      id: '/_view/vs/evernote'
+      path: '/evernote'
+      fullPath: '/vs/evernote'
+      preLoaderRoute: typeof ViewVsEvernoteRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/cluely': {
+      id: '/_view/vs/cluely'
+      path: '/cluely'
+      fullPath: '/vs/cluely'
+      preLoaderRoute: typeof ViewVsCluelyRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/circleback': {
+      id: '/_view/vs/circleback'
+      path: '/circleback'
+      fullPath: '/vs/circleback'
+      preLoaderRoute: typeof ViewVsCirclebackRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/bluedot': {
+      id: '/_view/vs/bluedot'
+      path: '/bluedot'
+      fullPath: '/vs/bluedot'
+      preLoaderRoute: typeof ViewVsBluedotRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/bear': {
+      id: '/_view/vs/bear'
+      path: '/bear'
+      fullPath: '/vs/bear'
+      preLoaderRoute: typeof ViewVsBearRouteImport
+      parentRoute: typeof ViewVsRouteRoute
+    }
+    '/_view/vs/aside': {
+      id: '/_view/vs/aside'
+      path: '/aside'
+      fullPath: '/vs/aside'
+      preLoaderRoute: typeof ViewVsAsideRouteImport
+      parentRoute: typeof ViewVsRouteRoute
     }
     '/_view/solution/sales': {
       id: '/_view/solution/sales'
@@ -1117,6 +1604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewProductAiAssistantRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/press-kit/app': {
+      id: '/_view/press-kit/app'
+      path: '/app'
+      fullPath: '/press-kit/app'
+      preLoaderRoute: typeof ViewPressKitAppRouteImport
+      parentRoute: typeof ViewPressKitRoute
+    }
     '/_view/legal/$slug': {
       id: '/_view/legal/$slug'
       path: '/legal/$slug'
@@ -1215,16 +1709,86 @@ const ViewDocsRouteRouteWithChildren = ViewDocsRouteRoute._addFileChildren(
   ViewDocsRouteRouteChildren,
 )
 
+interface ViewVsRouteRouteChildren {
+  ViewVsAsideRoute: typeof ViewVsAsideRoute
+  ViewVsBearRoute: typeof ViewVsBearRoute
+  ViewVsBluedotRoute: typeof ViewVsBluedotRoute
+  ViewVsCirclebackRoute: typeof ViewVsCirclebackRoute
+  ViewVsCluelyRoute: typeof ViewVsCluelyRoute
+  ViewVsEvernoteRoute: typeof ViewVsEvernoteRoute
+  ViewVsFathomRoute: typeof ViewVsFathomRoute
+  ViewVsFellowRoute: typeof ViewVsFellowRoute
+  ViewVsFirefliesRoute: typeof ViewVsFirefliesRoute
+  ViewVsGongRoute: typeof ViewVsGongRoute
+  ViewVsGranolaRoute: typeof ViewVsGranolaRoute
+  ViewVsJamieRoute: typeof ViewVsJamieRoute
+  ViewVsMeetgeekRoute: typeof ViewVsMeetgeekRoute
+  ViewVsMeetilyRoute: typeof ViewVsMeetilyRoute
+  ViewVsNotabilityRoute: typeof ViewVsNotabilityRoute
+  ViewVsNotionRoute: typeof ViewVsNotionRoute
+  ViewVsNottaRoute: typeof ViewVsNottaRoute
+  ViewVsObsidianRoute: typeof ViewVsObsidianRoute
+  ViewVsOtterRoute: typeof ViewVsOtterRoute
+  ViewVsReadAiRoute: typeof ViewVsReadAiRoute
+  ViewVsReflectRoute: typeof ViewVsReflectRoute
+  ViewVsTactiqRoute: typeof ViewVsTactiqRoute
+  ViewVsTldvRoute: typeof ViewVsTldvRoute
+}
+
+const ViewVsRouteRouteChildren: ViewVsRouteRouteChildren = {
+  ViewVsAsideRoute: ViewVsAsideRoute,
+  ViewVsBearRoute: ViewVsBearRoute,
+  ViewVsBluedotRoute: ViewVsBluedotRoute,
+  ViewVsCirclebackRoute: ViewVsCirclebackRoute,
+  ViewVsCluelyRoute: ViewVsCluelyRoute,
+  ViewVsEvernoteRoute: ViewVsEvernoteRoute,
+  ViewVsFathomRoute: ViewVsFathomRoute,
+  ViewVsFellowRoute: ViewVsFellowRoute,
+  ViewVsFirefliesRoute: ViewVsFirefliesRoute,
+  ViewVsGongRoute: ViewVsGongRoute,
+  ViewVsGranolaRoute: ViewVsGranolaRoute,
+  ViewVsJamieRoute: ViewVsJamieRoute,
+  ViewVsMeetgeekRoute: ViewVsMeetgeekRoute,
+  ViewVsMeetilyRoute: ViewVsMeetilyRoute,
+  ViewVsNotabilityRoute: ViewVsNotabilityRoute,
+  ViewVsNotionRoute: ViewVsNotionRoute,
+  ViewVsNottaRoute: ViewVsNottaRoute,
+  ViewVsObsidianRoute: ViewVsObsidianRoute,
+  ViewVsOtterRoute: ViewVsOtterRoute,
+  ViewVsReadAiRoute: ViewVsReadAiRoute,
+  ViewVsReflectRoute: ViewVsReflectRoute,
+  ViewVsTactiqRoute: ViewVsTactiqRoute,
+  ViewVsTldvRoute: ViewVsTldvRoute,
+}
+
+const ViewVsRouteRouteWithChildren = ViewVsRouteRoute._addFileChildren(
+  ViewVsRouteRouteChildren,
+)
+
+interface ViewPressKitRouteChildren {
+  ViewPressKitAppRoute: typeof ViewPressKitAppRoute
+}
+
+const ViewPressKitRouteChildren: ViewPressKitRouteChildren = {
+  ViewPressKitAppRoute: ViewPressKitAppRoute,
+}
+
+const ViewPressKitRouteWithChildren = ViewPressKitRoute._addFileChildren(
+  ViewPressKitRouteChildren,
+)
+
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
   ViewDocsRouteRoute: typeof ViewDocsRouteRouteWithChildren
+  ViewVsRouteRoute: typeof ViewVsRouteRouteWithChildren
   ViewAboutRoute: typeof ViewAboutRoute
+  ViewBrandRoute: typeof ViewBrandRoute
   ViewEnterpriseRoute: typeof ViewEnterpriseRoute
   ViewFaqRoute: typeof ViewFaqRoute
+  ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
   ViewRoadmapRoute: typeof ViewRoadmapRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
-  ViewTeamRoute: typeof ViewTeamRoute
   ViewTemplatesRoute: typeof ViewTemplatesRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
@@ -1262,13 +1826,15 @@ interface ViewRouteRouteChildren {
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
   ViewDocsRouteRoute: ViewDocsRouteRouteWithChildren,
+  ViewVsRouteRoute: ViewVsRouteRouteWithChildren,
   ViewAboutRoute: ViewAboutRoute,
+  ViewBrandRoute: ViewBrandRoute,
   ViewEnterpriseRoute: ViewEnterpriseRoute,
   ViewFaqRoute: ViewFaqRoute,
+  ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
   ViewRoadmapRoute: ViewRoadmapRoute,
   ViewSecurityRoute: ViewSecurityRoute,
-  ViewTeamRoute: ViewTeamRoute,
   ViewTemplatesRoute: ViewTemplatesRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,

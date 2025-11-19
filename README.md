@@ -14,7 +14,7 @@
 Hyprnote is an AI notetaking app specifically designed to take meeting notes. With Hyprnote, you can transcribe all kinds of meetings whether it be online or offline.
 
 - **Listens** to your meetings so you can only jot down important stuff
-- No bots joining your meetings - Hyprnote listens directly to sounds coming in & out of your computer
+- **No bots** joining your meetings - Hyprnote listens directly to sounds coming in & out of your computer
 - Crafts perfect **summaries** based on your memos, right after the meeting is over
 - You can run Hyprnote completely **offline** by using LM Studio or Ollama
 
@@ -27,8 +27,8 @@ brew tap fastrepl/hyprnote && brew install hyprnote --cask
 ```
 
 - [macOS](https://hyprnote.com/download) (public beta)
-- [Windows](https://github.com/fastrepl/hyprnote/issues/66) (soon)
-- [Linux](https://github.com/fastrepl/hyprnote/issues/67) (of course)
+- [Windows](https://github.com/fastrepl/hyprnote/issues/66) (q1 2026)
+- [Linux](https://github.com/fastrepl/hyprnote/issues/67) (q1 2026)
 
 ## Highlights
 

@@ -1,12 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
-import { app } from "@tauri-apps/api";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, useEffect } from "react";
 
 import { events as windowsEvents } from "@hypr/plugin-windows";
 
@@ -28,27 +26,9 @@ function Component() {
     <AuthProvider>
       <BillingProvider>
         <Outlet />
-        <Suspense>
-          <DevtoolWrapper />
-        </Suspense>
       </BillingProvider>
     </AuthProvider>
   );
-}
-
-function DevtoolWrapper() {
-  const { data: appIdentifier } = useQuery({
-    queryKey: ["appIdentifier"],
-    queryFn: () => app.getIdentifier(),
-  });
-
-  if (
-    ["com.hyprnote.dev", "com.hyprnote.staging"].includes(appIdentifier ?? "")
-  ) {
-    return <Devtool />;
-  }
-
-  return null;
 }
 
 const useNavigationEvents = () => {
@@ -84,9 +64,3 @@ export const TanStackRouterDevtools =
           ) => <res.TanStackRouterDevtools {...props} />,
         })),
       );
-
-const Devtool = lazy(() =>
-  import("../devtool/index").then(({ Devtool }) => ({
-    default: Devtool,
-  })),
-);

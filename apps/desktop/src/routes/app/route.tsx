@@ -2,8 +2,8 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 
-import { useConfigSideEffects } from "../config/use-config";
-import { ListenerProvider } from "../contexts/listener";
+import { useConfigSideEffects } from "../../config/use-config";
+import { ListenerProvider } from "../../contexts/listener";
 
 export const Route = createFileRoute("/app")({
   component: Component,

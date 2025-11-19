@@ -2,8 +2,8 @@ import { faker } from "@faker-js/faker";
 
 import { md2json } from "@hypr/tiptap/shared";
 
-import type { EnhancedNoteStorage } from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+import type { EnhancedNoteStorage } from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createEnhancedNote = (
   sessionId: string,

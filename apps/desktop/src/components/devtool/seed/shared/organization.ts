@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 
-import type { Organization } from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+import type { Organization } from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createOrganization = () => ({
   id: id(),

@@ -3,8 +3,8 @@ import { faker } from "@faker-js/faker";
 import type {
   mappingSessionParticipant,
   MappingTagSession,
-} from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+} from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createmappingSessionParticipant = (
   session_id: string,

@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 
-import type { WordStorage } from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+import type { WordStorage } from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 const selectWeighted = <T,>(choices: Array<{ weight: number; value: T }>): T =>
   faker.helpers.weightedArrayElement(choices);

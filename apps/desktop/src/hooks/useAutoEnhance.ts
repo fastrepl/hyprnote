@@ -54,7 +54,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   });
 
   const createAndStartEnhance = useCallback(() => {
-    if (!model || !hasTranscript) {
+    if (!hasTranscript) {
       return;
     }
 
@@ -68,7 +68,6 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
     });
   }, [
     hasTranscript,
-    model,
     sessionId,
     tab,
     updateSessionTabState,

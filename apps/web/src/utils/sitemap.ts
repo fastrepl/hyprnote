@@ -6,7 +6,7 @@ export type TRoutes = FileRouteTypes["fullPaths"];
 
 export function getSitemap(): Sitemap<TRoutes> {
   return {
-    siteUrl: "https://hypr.com",
+    siteUrl: "https://hyprnote.com",
     defaultPriority: 0.5,
     defaultChangeFreq: "monthly",
     routes: {
@@ -142,10 +142,6 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.6,
         changeFrequency: "monthly",
       },
-      "/team": {
-        priority: 0.6,
-        changeFrequency: "monthly",
-      },
       "/templates": {
         priority: 0.7,
         changeFrequency: "weekly",
@@ -167,7 +163,6 @@ export function getSitemap(): Sitemap<TRoutes> {
 
       "/blog/$slug": async () => {
         try {
-          // Use dynamic import with full path to avoid module resolution during config phase
           const path = await import("path");
           const url = await import("url");
           const __dirname = path.dirname(url.fileURLToPath(import.meta.url));

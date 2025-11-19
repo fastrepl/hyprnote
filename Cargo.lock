@@ -3900,6 +3900,7 @@ dependencies = [
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
+ "tauri-plugin-hooks",
  "tauri-plugin-http",
  "tauri-plugin-listener",
  "tauri-plugin-local-stt",
@@ -14632,6 +14633,19 @@ dependencies = [
  "thiserror 2.0.17",
  "toml 0.9.8",
  "url",
+]
+
+[[package]]
+name = "tauri-plugin-hooks"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
 ]
 
 [[package]]

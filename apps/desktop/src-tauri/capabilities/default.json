@@ -75,6 +75,7 @@
     "process:default",
     "local-stt:default",
     "dialog:default",
+    "hooks:default",
     "listener:default",
     "template:default",
     "notification:default",

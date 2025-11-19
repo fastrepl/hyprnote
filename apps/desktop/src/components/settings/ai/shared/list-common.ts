@@ -26,6 +26,8 @@ export const commonIgnoreKeywords = [
   "dall-e",
   "audio",
   "image",
+  "computer",
+  "robotics",
 ] as const;
 
 export const fetchJson = (url: string, headers: Record<string, string>) =>

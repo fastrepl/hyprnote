@@ -1,4 +1,5 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
@@ -74,6 +75,16 @@ export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
       });
 
       return wrapWithThinkingMiddleware(anthropicProvider(conn.modelId));
+    }
+
+    if (conn.providerId === "google_generative_ai") {
+      const googleProvider = createGoogleGenerativeAI({
+        fetch: tauriFetch,
+        baseURL: conn.baseUrl,
+        apiKey: conn.apiKey,
+      });
+
+      return wrapWithThinkingMiddleware(googleProvider(conn.modelId));
     }
 
     if (conn.providerId === "openrouter") {

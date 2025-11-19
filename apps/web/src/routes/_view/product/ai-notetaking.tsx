@@ -2,6 +2,7 @@ import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { Typewriter } from "@hypr/ui/components/ui/typewriter";
 import { cn } from "@hypr/utils";
 
 import { MockWindow } from "@/components/mock-window";
@@ -65,8 +66,51 @@ function HeroSection() {
       <div className="px-6 py-12 lg:py-20">
         <header className="mb-12 text-center max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-            AI notetaking that
-            <br className="hidden sm:inline" /> captures everything
+            <span className="inline-block mx-auto min-[680px]:hidden">
+              AI notetaking for
+              <br />
+              <span
+                className="inline-block whitespace-nowrap"
+                style={{ width: "240px", maxWidth: "100%" }}
+              >
+                your{" "}
+                <span
+                  className="inline-block relative"
+                  style={{ minWidth: "12ch" }}
+                >
+                  <span className="invisible">meetings</span>
+                  <Typewriter
+                    text={["meetings", "lectures", "thoughts"]}
+                    speed={100}
+                    deleteSpeed={50}
+                    waitTime={2000}
+                    loop={true}
+                    className="absolute left-0 top-0"
+                  />
+                </span>
+              </span>
+            </span>
+
+            <span
+              className="hidden min-[680px]:inline-block mx-auto whitespace-nowrap"
+              style={{ width: "680px", maxWidth: "100%" }}
+            >
+              AI notetaking for your{" "}
+              <span
+                className="inline-block relative"
+                style={{ minWidth: "12ch" }}
+              >
+                <span className="invisible">meetings</span>
+                <Typewriter
+                  text={["meetings", "lectures", "thoughts"]}
+                  speed={100}
+                  deleteSpeed={50}
+                  waitTime={2000}
+                  loop={true}
+                  className="absolute left-0 top-0"
+                />
+              </span>
+            </span>
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
             Record meetings or upload audio files to get instant

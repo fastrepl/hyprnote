@@ -267,6 +267,7 @@ const hooks = defineCollection({
           name: z.string(),
           type_name: z.string(),
           description: z.string(),
+          optional: z.boolean().default(false),
         }),
       )
       .optional(),

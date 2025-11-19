@@ -9,42 +9,63 @@ export function HooksList() {
   }
 
   return (
-    <div className="space-y-8 mt-8">
+    <div className="space-y-10 mt-6">
       {hooks.map((hook) => (
-        <section key={hook.slug} className="border-t pt-6">
-          <h2 id={hook.name} className="scroll-mt-20">
-            {hook.name}
-          </h2>
-          {hook.description && (
-            <p className="mt-2 text-neutral-600">{hook.description}</p>
-          )}
+        <section
+          key={hook.slug}
+          className="border-t pt-2 first:border-t-0 first:pt-0"
+        >
+          <div className="space-y-1">
+            <h2
+              id={hook.name}
+              className="scroll-mt-24 text-xl font-bold tracking-tight text-neutral-900"
+            >
+              {hook.name}
+            </h2>
+            {hook.description && (
+              <p className="text-neutral-600 leading-relaxed">
+                {hook.description}
+              </p>
+            )}
+          </div>
+
           {hook.args && hook.args.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-lg font-medium mb-2">Arguments</h3>
-              <div className="space-y-2">
+            <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50/50 px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3">
+              <h3 className="mb-2 font-mono text-[10px] font-bold uppercase leading-none tracking-wider text-neutral-500/80">
+                Arguments
+              </h3>
+              <div className="space-y-3">
                 {hook.args.map((arg) => (
                   <div
                     key={arg.name}
-                    className="border-l-2 border-neutral-200 pl-4"
+                    className="group grid grid-cols-1 gap-1.5 sm:grid-cols-[180px_1fr] sm:gap-4"
                   >
-                    <div className="font-mono text-sm">
-                      <span className="font-semibold">{arg.name}</span>
-                      <span className="text-neutral-500">
-                        {" "}
-                        : {arg.type_name}
-                      </span>
+                    <div className="flex flex-col items-start gap-1">
+                      <code className="rounded bg-white px-1.5 py-0.5 text-xs font-semibold text-neutral-900 shadow-sm ring-1 ring-neutral-200 font-mono">
+                        {arg.name}
+                      </code>
+                      <div className="flex items-center gap-1.5 px-0.5 font-mono text-[10px] text-neutral-500">
+                        <span>{arg.type_name}</span>
+                        {arg.optional && (
+                          <>
+                            <span className="h-0.5 w-0.5 rounded-full bg-neutral-300" />
+                            <span className="italic text-neutral-400">
+                              optional
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    {arg.description && (
-                      <p className="text-sm text-neutral-600 mt-1">
-                        {arg.description}
-                      </p>
-                    )}
+                    <div className="text-sm leading-relaxed text-neutral-600">
+                      {arg.description}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
-          <div className="mt-4">
+
+          <div className="mt-4 prose prose-sm prose-neutral max-w-none prose-headings:scroll-mt-24 prose-headings:font-semibold prose-p:leading-relaxed">
             <MDXContent code={hook.mdx} />
           </div>
         </section>

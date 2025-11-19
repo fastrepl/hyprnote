@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::naming::cli_flag;
 use serde::{Deserialize, Serialize};
 
 use swc_common::{sync::Lrc, FileName, SourceMap, Span};
@@ -29,12 +30,29 @@ pub struct ArgField {
     pub name: String,
     pub description: Option<String>,
     pub type_name: String,
+    #[serde(skip_serializing_if = "is_false")]
+    pub optional: bool,
 }
 
 #[derive(Debug, Clone)]
 struct TypeDoc {
     description: Option<String>,
     args: Vec<ArgField>,
+}
+
+#[derive(Debug, Clone)]
+struct TypeInfo {
+    type_name: String,
+    optional: bool,
+}
+
+impl TypeInfo {
+    fn unknown() -> Self {
+        Self {
+            type_name: "unknown".to_string(),
+            optional: false,
+        }
+    }
 }
 
 pub fn parse_hooks(source_code: &str) -> Result<Vec<HookInfo>, String> {
@@ -73,143 +91,158 @@ fn parse_module(source_code: &str) -> Result<(Module, Lrc<swc_common::SourceFile
 }
 
 fn collect_type_docs(module: &Module, jsdoc: &JsDocExtractor<'_>) -> HashMap<String, TypeDoc> {
-    let mut docs = HashMap::new();
-
-    for item in &module.body {
-        if let ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export)) = item {
-            if let Decl::TsTypeAlias(type_alias) = &export.decl {
-                let type_name = type_alias.id.sym.to_string();
-                let description = jsdoc.for_span(&export.span);
-                let args = extract_fields(type_alias.type_ann.as_ref(), jsdoc);
-
-                docs.insert(type_name, TypeDoc { description, args });
-            }
-        }
-    }
-
-    docs
+    exported_type_aliases(module)
+        .map(|(alias, span)| {
+            let type_name = alias.id.sym.to_string();
+            let description = jsdoc.for_span(&span);
+            let args = extract_fields(alias.type_ann.as_ref(), jsdoc);
+            (type_name, TypeDoc { description, args })
+        })
+        .collect()
 }
 
 fn extract_hook_events(module: &Module, type_docs: &HashMap<String, TypeDoc>) -> Vec<HookInfo> {
-    for item in &module.body {
-        if let ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export)) = item {
-            if let Decl::TsTypeAlias(type_alias) = &export.decl {
-                if type_alias.id.sym == "HookEvent" {
-                    return extract_union_variants(&type_alias.type_ann, type_docs);
-                }
-            }
-        }
-    }
-
-    Vec::new()
+    hook_union(module)
+        .map(|ty| hook_variants(ty, type_docs))
+        .unwrap_or_default()
 }
 
-fn extract_union_variants(
-    type_ann: &TsType,
-    type_docs: &HashMap<String, TypeDoc>,
-) -> Vec<HookInfo> {
-    let mut hooks = Vec::new();
-
+fn hook_variants(type_ann: &TsType, type_docs: &HashMap<String, TypeDoc>) -> Vec<HookInfo> {
     if let TsType::TsUnionOrIntersectionType(TsUnionOrIntersectionType::TsUnionType(union)) =
         type_ann
     {
-        for variant in &union.types {
-            if let Some(hook) = extract_variant_info(variant.as_ref(), type_docs) {
-                hooks.push(hook);
-            }
-        }
+        union
+            .types
+            .iter()
+            .filter_map(|variant| hook_from_variant(variant.as_ref(), type_docs))
+            .collect()
+    } else {
+        Vec::new()
     }
-
-    hooks
 }
 
-fn extract_variant_info(
-    type_ann: &TsType,
-    type_docs: &HashMap<String, TypeDoc>,
-) -> Option<HookInfo> {
-    if let TsType::TsTypeLit(type_lit) = type_ann {
-        for member in &type_lit.members {
+fn hook_from_variant(type_ann: &TsType, type_docs: &HashMap<String, TypeDoc>) -> Option<HookInfo> {
+    let type_lit = type_lit_from(type_ann)?;
+    let prop = first_property(type_lit)?;
+    let hook_name = prop_name(prop)?;
+    let args_type = prop
+        .type_ann
+        .as_ref()
+        .and_then(|ty| args_type_name(&ty.type_ann))?;
+
+    let (description, args) = type_docs
+        .get(&args_type)
+        .map(|doc| (doc.description.clone(), doc.args.clone()))
+        .unwrap_or((None, Vec::new()));
+
+    Some(HookInfo {
+        name: hook_name,
+        description,
+        args,
+    })
+}
+
+fn extract_fields(type_ann: &TsType, jsdoc: &JsDocExtractor<'_>) -> Vec<ArgField> {
+    let type_lit = match type_lit_from(type_ann) {
+        Some(lit) => lit,
+        None => return Vec::new(),
+    };
+
+    type_lit
+        .members
+        .iter()
+        .filter_map(|member| {
             if let TsTypeElement::TsPropertySignature(prop) = member {
-                if let Expr::Ident(ident) = &*prop.key {
-                    let hook_name = ident.sym.to_string();
+                let field_name = prop_name(prop)?;
+                let doc_name = cli_flag(&field_name);
+                let description = jsdoc.for_span(&prop.span);
+                let type_info = prop
+                    .type_ann
+                    .as_ref()
+                    .map(|ta| format_type(&ta.type_ann))
+                    .unwrap_or_else(TypeInfo::unknown);
 
-                    let args_type_name = prop
-                        .type_ann
-                        .as_ref()
-                        .and_then(|ta| extract_args_type_name(&ta.type_ann))?;
-
-                    let (description, args) = type_docs
-                        .get(&args_type_name)
-                        .map(|doc| (doc.description.clone(), doc.args.clone()))
-                        .unwrap_or((None, Vec::new()));
-
-                    return Some(HookInfo {
-                        name: hook_name,
-                        description,
-                        args,
-                    });
-                }
+                Some(ArgField {
+                    name: doc_name,
+                    description,
+                    type_name: type_info.type_name,
+                    optional: prop.optional || type_info.optional,
+                })
+            } else {
+                None
             }
-        }
-    }
-
-    None
+        })
+        .collect()
 }
 
-fn extract_args_type_name(type_ann: &TsType) -> Option<String> {
-    if let TsType::TsTypeLit(type_lit) = type_ann {
-        for member in &type_lit.members {
-            if let TsTypeElement::TsPropertySignature(prop) = member {
-                if let Expr::Ident(ident) = &*prop.key {
-                    if ident.sym == "args" {
-                        return prop
-                            .type_ann
-                            .as_ref()
-                            .and_then(|ta| extract_type_name(&ta.type_ann));
-                    }
-                }
+fn exported_type_aliases(module: &Module) -> impl Iterator<Item = (&TsTypeAliasDecl, Span)> + '_ {
+    module.body.iter().filter_map(|item| {
+        if let ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export)) = item {
+            if let Decl::TsTypeAlias(type_alias) = &export.decl {
+                return Some((type_alias.as_ref(), export.span));
             }
         }
-    }
-
-    None
+        None
+    })
 }
 
-fn extract_type_name(type_ann: &TsType) -> Option<String> {
+fn hook_union(module: &Module) -> Option<&TsType> {
+    exported_type_aliases(module)
+        .find(|(alias, _)| alias.id.sym.as_ref() == "HookEvent")
+        .map(|(alias, _)| alias.type_ann.as_ref())
+}
+
+fn args_type_name(type_ann: &TsType) -> Option<String> {
+    let type_lit = type_lit_from(type_ann)?;
+    let prop = property_by_name(&type_lit.members, "args")?;
+    prop.type_ann
+        .as_ref()
+        .and_then(|ta| type_name_from(&ta.type_ann))
+}
+
+fn property_by_name<'a>(
+    members: &'a [TsTypeElement],
+    name: &str,
+) -> Option<&'a TsPropertySignature> {
+    members.iter().find_map(|member| match member {
+        TsTypeElement::TsPropertySignature(prop) => match &*prop.key {
+            Expr::Ident(ident) if ident.sym.as_ref() == name => Some(prop),
+            _ => None,
+        },
+        _ => None,
+    })
+}
+
+fn first_property(type_lit: &TsTypeLit) -> Option<&TsPropertySignature> {
+    type_lit.members.iter().find_map(|member| match member {
+        TsTypeElement::TsPropertySignature(prop) => Some(prop),
+        _ => None,
+    })
+}
+
+fn prop_name(prop: &TsPropertySignature) -> Option<String> {
+    if let Expr::Ident(ident) = &*prop.key {
+        Some(ident.sym.to_string())
+    } else {
+        None
+    }
+}
+
+fn type_lit_from(type_ann: &TsType) -> Option<&TsTypeLit> {
+    match type_ann {
+        TsType::TsTypeLit(type_lit) => Some(type_lit),
+        TsType::TsParenthesizedType(paren) => type_lit_from(&paren.type_ann),
+        _ => None,
+    }
+}
+
+fn type_name_from(type_ann: &TsType) -> Option<String> {
     if let TsType::TsTypeRef(type_ref) = type_ann {
         if let TsEntityName::Ident(ident) = &type_ref.type_name {
             return Some(ident.sym.to_string());
         }
     }
     None
-}
-
-fn extract_fields(type_ann: &TsType, jsdoc: &JsDocExtractor<'_>) -> Vec<ArgField> {
-    let mut fields = Vec::new();
-
-    if let TsType::TsTypeLit(type_lit) = type_ann {
-        for member in &type_lit.members {
-            if let TsTypeElement::TsPropertySignature(prop) = member {
-                if let Expr::Ident(ident) = &*prop.key {
-                    let field_name = ident.sym.to_string();
-                    let description = jsdoc.for_span(&prop.span);
-                    let type_name = prop
-                        .type_ann
-                        .as_ref()
-                        .map(|ta| format_type(&ta.type_ann))
-                        .unwrap_or_else(|| "unknown".to_string());
-
-                    fields.push(ArgField {
-                        name: field_name,
-                        description,
-                        type_name,
-                    });
-                }
-            }
-        }
-    }
-
-    fields
 }
 
 struct JsDocExtractor<'a> {
@@ -274,21 +307,80 @@ fn format_jsdoc_content(block: &str) -> Option<String> {
     }
 }
 
-fn format_type(type_ann: &TsType) -> String {
+fn format_type(type_ann: &TsType) -> TypeInfo {
     match type_ann {
-        TsType::TsKeywordType(kw) => match kw.kind {
-            TsKeywordTypeKind::TsStringKeyword => "string".to_string(),
-            TsKeywordTypeKind::TsNumberKeyword => "number".to_string(),
-            TsKeywordTypeKind::TsBooleanKeyword => "boolean".to_string(),
-            _ => format!("{:?}", kw.kind).to_lowercase(),
-        },
+        TsType::TsKeywordType(kw) => format_keyword_type(&kw.kind),
         TsType::TsTypeRef(type_ref) => {
             if let TsEntityName::Ident(ident) = &type_ref.type_name {
-                ident.sym.to_string()
+                TypeInfo {
+                    type_name: ident.sym.to_string(),
+                    optional: false,
+                }
             } else {
-                "unknown".to_string()
+                TypeInfo::unknown()
             }
         }
-        _ => "unknown".to_string(),
+        TsType::TsUnionOrIntersectionType(TsUnionOrIntersectionType::TsUnionType(union)) => {
+            let mut parts = Vec::new();
+            let mut optional = false;
+
+            for ty in &union.types {
+                let ty_name = format_type(ty);
+
+                if matches!(ty_name.type_name.as_str(), "null" | "undefined" | "void") {
+                    optional = true;
+                    continue;
+                }
+
+                if ty_name.type_name == "unknown" {
+                    continue;
+                }
+
+                if ty_name.optional {
+                    optional = true;
+                }
+
+                if !parts.contains(&ty_name.type_name) {
+                    parts.push(ty_name.type_name);
+                }
+            }
+
+            if parts.is_empty() {
+                TypeInfo {
+                    type_name: "unknown".to_string(),
+                    optional,
+                }
+            } else {
+                TypeInfo {
+                    type_name: parts.join(" | "),
+                    optional,
+                }
+            }
+        }
+        TsType::TsParenthesizedType(paren) => format_type(&paren.type_ann),
+        _ => TypeInfo::unknown(),
     }
+}
+
+fn format_keyword_type(kind: &TsKeywordTypeKind) -> TypeInfo {
+    let name = format!("{:?}", kind)
+        .trim_start_matches("Ts")
+        .trim_end_matches("Keyword")
+        .to_lowercase();
+
+    let optional = matches!(
+        kind,
+        TsKeywordTypeKind::TsNullKeyword
+            | TsKeywordTypeKind::TsUndefinedKeyword
+            | TsKeywordTypeKind::TsVoidKeyword
+    );
+
+    TypeInfo {
+        type_name: name,
+        optional,
+    }
+}
+
+fn is_false(value: &bool) -> bool {
+    !*value
 }

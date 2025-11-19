@@ -1,5 +1,13 @@
-import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
+import { XIcon } from "lucide-react";
+import { useState } from "react";
+
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
+import { cn } from "@hypr/utils";
 
 import { MockWindow } from "@/components/mock-window";
 
@@ -7,179 +15,197 @@ export const Route = createFileRoute("/_view/brand")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Brand Guidelines - Hyprnote Press Kit" },
+      { title: "Visual Assets - Hyprnote Press Kit" },
       {
         name: "description",
-        content:
-          "Hyprnote brand guidelines, colors, typography, and usage rules.",
+        content: "Download Hyprnote logos, icons, and visual assets.",
       },
     ],
   }),
 });
 
+const VISUAL_ASSETS = [
+  {
+    id: "icon",
+    name: "Icon",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png",
+    description: "Hyprnote app icon",
+  },
+  {
+    id: "logo",
+    name: "Logo",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.png",
+    description: "Hyprnote wordmark logo",
+  },
+  {
+    id: "symbol-logo",
+    name: "Symbol + Logo",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/symbol+logo.png",
+    description: "Hyprnote icon with wordmark",
+  },
+  {
+    id: "og-image",
+    name: "OpenGraph Image",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/og-image.jpg",
+    description: "Social media preview image",
+  },
+];
+
 function Component() {
+  const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
+
+  const selected = VISUAL_ASSETS.find((asset) => asset.id === selectedAsset);
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
+        {/* Hero Section */}
+        <div className="px-6 py-16 lg:py-24">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
+              Visual Assets
+            </h1>
+            <p className="text-lg sm:text-xl text-neutral-600">
+              Download Hyprnote logos, icons, and brand assets for use in your
+              projects, articles, or presentations.
+            </p>
+          </div>
+        </div>
+
         {/* Content Section */}
-        <section className="px-6 py-8 lg:py-12">
+        <section className="px-6 pb-16 lg:pb-24">
           <div className="max-w-4xl mx-auto">
-            <MockWindow title="Brand" className="rounded-lg w-full max-w-none">
-              <div className="p-8 space-y-8">
-                {/* Logo Usage */}
-                <div>
-                  <h2 className="text-2xl font-serif text-stone-600 mb-4">
-                    Logo Usage
-                  </h2>
-                  <div className="bg-stone-50 border border-neutral-200 rounded-lg p-6">
-                    <div className="space-y-3 text-sm text-neutral-600">
-                      <div className="flex gap-2">
-                        <Icon
-                          icon="mdi:check-circle"
-                          className="text-lg text-green-600 shrink-0"
-                        />
-                        <p>Use the logos as provided without modification</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Icon
-                          icon="mdi:check-circle"
-                          className="text-lg text-green-600 shrink-0"
-                        />
-                        <p>Maintain adequate clear space around the logo</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Icon
-                          icon="mdi:check-circle"
-                          className="text-lg text-green-600 shrink-0"
-                        />
-                        <p>Use on appropriate backgrounds for visibility</p>
-                      </div>
-                      <div className="flex gap-2 mt-4">
-                        <Icon
-                          icon="mdi:close-circle"
-                          className="text-lg text-red-600 shrink-0"
-                        />
-                        <p>Do not distort, rotate, or alter the logo colors</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Icon
-                          icon="mdi:close-circle"
-                          className="text-lg text-red-600 shrink-0"
-                        />
-                        <p>
-                          Do not place the logo on busy or conflicting
-                          backgrounds
-                        </p>
-                      </div>
-                    </div>
+            <MockWindow
+              title="Visual Assets"
+              className="rounded-lg w-full max-w-none"
+            >
+              <div>
+                {!selectedAsset ? (
+                  // Grid view - show all thumbnails in 4 columns
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-6">
+                    {VISUAL_ASSETS.map((asset) => (
+                      <button
+                        key={asset.id}
+                        onClick={() => setSelectedAsset(asset.id)}
+                        className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer"
+                      >
+                        <div className="mb-3 w-16 h-16 flex items-center justify-center">
+                          <img
+                            src={asset.url}
+                            alt={asset.name}
+                            className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform"
+                          />
+                        </div>
+                        <div className="font-medium text-stone-600">
+                          {asset.name}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  // Split view with resizable panels - list view on left
+                  <ResizablePanelGroup
+                    direction="horizontal"
+                    className="h-[600px]"
+                  >
+                    <ResizablePanel
+                      defaultSize={35}
+                      minSize={25}
+                      maxSize={45}
+                      className="p-4"
+                    >
+                      <div className="h-full overflow-y-auto space-y-4">
+                        {VISUAL_ASSETS.map((asset) => (
+                          <button
+                            key={asset.id}
+                            onClick={() => setSelectedAsset(asset.id)}
+                            className={cn([
+                              "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3",
+                              asset.id === selectedAsset
+                                ? "border-stone-600 bg-stone-100"
+                                : "border-neutral-200",
+                            ])}
+                          >
+                            <div className="w-16 h-16 shrink-0 flex items-center justify-center overflow-hidden">
+                              <img
+                                src={asset.url}
+                                alt={asset.name}
+                                className="max-w-full max-h-full object-contain"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-stone-600 truncate">
+                                {asset.name}
+                              </p>
+                              <p className="text-xs text-neutral-500 truncate">
+                                {asset.description}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </ResizablePanel>
 
-                {/* Brand Colors */}
-                <div>
-                  <h2 className="text-2xl font-serif text-stone-600 mb-4">
-                    Brand Colors
-                  </h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="aspect-square bg-stone-600 rounded-lg mb-2 border border-neutral-200"></div>
-                      <p className="text-sm font-medium text-neutral-700">
-                        Stone 600
-                      </p>
-                      <p className="text-xs text-neutral-500">#57534e</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="aspect-square bg-stone-500 rounded-lg mb-2 border border-neutral-200"></div>
-                      <p className="text-sm font-medium text-neutral-700">
-                        Stone 500
-                      </p>
-                      <p className="text-xs text-neutral-500">#78716c</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="aspect-square bg-neutral-600 rounded-lg mb-2 border border-neutral-200"></div>
-                      <p className="text-sm font-medium text-neutral-700">
-                        Neutral 600
-                      </p>
-                      <p className="text-xs text-neutral-500">#525252</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="aspect-square bg-white rounded-lg mb-2 border border-neutral-200"></div>
-                      <p className="text-sm font-medium text-neutral-700">
-                        White
-                      </p>
-                      <p className="text-xs text-neutral-500">#ffffff</p>
-                    </div>
-                  </div>
-                </div>
+                    <ResizableHandle withHandle className="bg-neutral-200" />
 
-                {/* Typography */}
-                <div>
-                  <h2 className="text-2xl font-serif text-stone-600 mb-4">
-                    Typography
-                  </h2>
-                  <div className="bg-stone-50 border border-neutral-200 rounded-lg p-6 space-y-4">
-                    <div>
-                      <p className="text-sm text-neutral-500 mb-2">Headings</p>
-                      <p className="text-3xl font-serif text-stone-600">
-                        Serif Font Family
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-neutral-500 mb-2">Body Text</p>
-                      <p className="text-base text-neutral-600">
-                        Sans-serif Font Family
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                    <ResizablePanel defaultSize={65}>
+                      <div className="h-full flex flex-col">
+                        {selected && (
+                          <>
+                            {/* Header */}
+                            <div className="py-2 px-4 flex items-center justify-between mb-6 border-b border-neutral-200">
+                              <h2 className="font-medium text-stone-600">
+                                {selected.name}
+                              </h2>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={selected.url}
+                                  download
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+                                >
+                                  Download
+                                </a>
+                                <button
+                                  onClick={() => setSelectedAsset(null)}
+                                  className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                                >
+                                  <XIcon size={16} />
+                                </button>
+                              </div>
+                            </div>
 
-                {/* Voice & Tone */}
-                <div>
-                  <h2 className="text-2xl font-serif text-stone-600 mb-4">
-                    Voice & Tone
-                  </h2>
-                  <div className="bg-stone-50 border border-neutral-200 rounded-lg p-6">
-                    <ul className="space-y-3 text-sm text-neutral-600">
-                      <li className="flex gap-2">
-                        <span className="font-semibold shrink-0">
-                          Privacy-focused:
-                        </span>
-                        <span>
-                          Emphasize data privacy and local-first approach
-                        </span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="font-semibold shrink-0">
-                          Professional:
-                        </span>
-                        <span>
-                          Clear, concise, and respectful communication
-                        </span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="font-semibold shrink-0">Helpful:</span>
-                        <span>
-                          Focus on solving user problems and providing value
-                        </span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="font-semibold shrink-0">
-                          Transparent:
-                        </span>
-                        <span>Open about our processes and decisions</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+                            <div className="p-4">
+                              {/* Image preview with max-width 400px */}
+                              <img
+                                src={selected.url}
+                                alt={selected.name}
+                                className="max-w-[400px] w-full h-auto object-contain mb-6"
+                              />
+
+                              {/* Description */}
+                              <p className="text-sm text-neutral-600">
+                                {selected.description}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+                )}
               </div>
 
               {/* Status bar */}
               <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
                 <span className="text-xs text-neutral-500">
-                  Brand Guidelines
+                  {selectedAsset
+                    ? `Viewing ${selected?.name}`
+                    : `${VISUAL_ASSETS.length} visual assets`}
                 </span>
               </div>
             </MockWindow>

@@ -111,6 +111,9 @@ importers:
       '@hypr/plugin-detect':
         specifier: workspace:*
         version: link:../../plugins/detect
+      '@hypr/plugin-hooks':
+        specifier: workspace:*
+        version: link:../../plugins/hooks
       '@hypr/plugin-listener':
         specifier: workspace:*
         version: link:../../plugins/listener
@@ -1043,6 +1046,12 @@ importers:
         version: 2.9.0
 
   plugins/detect:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.0
+        version: 2.9.0
+
+  plugins/hooks:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.0

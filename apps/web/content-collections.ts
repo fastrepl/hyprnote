@@ -127,6 +127,7 @@ const docs = defineCollection({
   name: "docs",
   directory: "content/docs",
   include: "**/*.mdx",
+  exclude: "hooks/**",
   schema: z.object({
     title: z.string(),
     summary: z.string().optional(),
@@ -253,6 +254,50 @@ const templates = defineCollection({
   },
 });
 
+const hooks = defineCollection({
+  name: "hooks",
+  directory: "content/docs/hooks",
+  include: "*.mdx",
+  schema: z.object({
+    name: z.string(),
+    description: z.string(),
+    args: z
+      .array(
+        z.object({
+          name: z.string(),
+          type_name: z.string(),
+          description: z.string(),
+        }),
+      )
+      .optional(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      mdx,
+      slug,
+    };
+  },
+});
+
 export default defineConfig({
-  collections: [articles, changelog, docs, legal, templates],
+  collections: [articles, changelog, docs, legal, templates, hooks],
 });

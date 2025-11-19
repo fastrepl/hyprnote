@@ -2,6 +2,7 @@ import { Effect, Exit } from "effect";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
+import { commands as hooksCommands } from "@hypr/plugin-hooks";
 import {
   type BatchParams,
   type BatchResponse,
@@ -201,6 +202,14 @@ export const createGeneralSlice = <
         }),
       );
 
+      hooksCommands
+        .runEventHooks({
+          beforeListeningStarted: { args: { session_id: targetSessionId } },
+        })
+        .catch((error) => {
+          console.error("[hooks] BeforeListeningStarted failed:", error);
+        });
+
       yield* startSessionEffect(params);
       set((state) =>
         mutate(state, (draft) => {
@@ -237,6 +246,8 @@ export const createGeneralSlice = <
     });
   },
   stop: () => {
+    const sessionId = get().live.sessionId;
+
     const program = Effect.gen(function* () {
       yield* stopSessionEffect();
     });
@@ -251,7 +262,17 @@ export const createGeneralSlice = <
             }),
           );
         },
-        onSuccess: () => {},
+        onSuccess: () => {
+          if (sessionId) {
+            hooksCommands
+              .runEventHooks({
+                afterListeningStopped: { args: { session_id: sessionId } },
+              })
+              .catch((error) => {
+                console.error("[hooks] AfterListeningStopped failed:", error);
+              });
+          }
+        },
       });
     });
   },

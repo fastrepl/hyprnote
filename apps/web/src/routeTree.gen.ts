@@ -17,7 +17,6 @@ import { Route as GithubRouteImport } from './routes/github'
 import { Route as FoundersRouteImport } from './routes/founders'
 import { Route as DiscordRouteImport } from './routes/discord'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CalRouteImport } from './routes/cal'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
@@ -109,11 +108,6 @@ const DiscordRoute = DiscordRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CalRoute = CalRouteImport.update({
-  id: '/cal',
-  path: '/cal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -382,7 +376,6 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
-  '/cal': typeof CalRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
@@ -444,7 +437,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
-  '/cal': typeof CalRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
@@ -506,7 +498,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_view': typeof ViewRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/cal': typeof CalRoute
   '/contact': typeof ContactRoute
   '/discord': typeof DiscordRoute
   '/founders': typeof FoundersRoute
@@ -570,7 +561,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/auth'
-    | '/cal'
     | '/contact'
     | '/discord'
     | '/founders'
@@ -632,7 +622,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
-    | '/cal'
     | '/contact'
     | '/discord'
     | '/founders'
@@ -693,7 +682,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_view'
     | '/auth'
-    | '/cal'
     | '/contact'
     | '/discord'
     | '/founders'
@@ -757,7 +745,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   ViewRouteRoute: typeof ViewRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  CalRoute: typeof CalRoute
   ContactRoute: typeof ContactRoute
   DiscordRoute: typeof DiscordRoute
   FoundersRoute: typeof FoundersRoute
@@ -827,13 +814,6 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cal': {
-      id: '/cal'
-      path: '/cal'
-      fullPath: '/cal'
-      preLoaderRoute: typeof CalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1330,7 +1310,6 @@ const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  CalRoute: CalRoute,
   ContactRoute: ContactRoute,
   DiscordRoute: DiscordRoute,
   FoundersRoute: FoundersRoute,

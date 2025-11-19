@@ -29,6 +29,7 @@ hypr-vad2 = { workspace = true }
 owhisper-client = { workspace = true }
 owhisper-interface = { workspace = true }
 
+tauri-plugin-hooks = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-tray = { workspace = true }
 

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 import type { BatchParams } from "@hypr/plugin-listener";
 
@@ -34,6 +34,9 @@ export const useRunBatch = (sessionId: string) => {
   });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
 
+  const sessionTabRef = useRef(sessionTab);
+  sessionTabRef.current = sessionTab;
+
   const { conn } = useSTTConnection();
   const keywords = useKeywords(sessionId);
   const languages = useConfigValue("spoken_languages");
@@ -62,8 +65,10 @@ export const useRunBatch = (sessionId: string) => {
         return;
       }
 
-      if (sessionTab) {
-        updateSessionTabState(sessionTab, { editor: { type: "transcript" } });
+      if (sessionTabRef.current) {
+        updateSessionTabState(sessionTabRef.current, {
+          editor: { type: "transcript" },
+        });
       }
 
       const transcriptId = id();
@@ -150,7 +155,6 @@ export const useRunBatch = (sessionId: string) => {
       languages,
       runBatch,
       sessionId,
-      sessionTab,
       store,
       updateSessionTabState,
       user_id,

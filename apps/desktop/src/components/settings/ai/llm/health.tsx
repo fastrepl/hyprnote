@@ -13,21 +13,21 @@ export function HealthCheckForConnection() {
   const health = useConnectionHealth();
 
   const props = useMemo(() => {
-    if (health === "pending") {
+    if (health.status === "pending") {
       return {
         status: "pending",
         tooltip: "Checking connection...",
       };
     }
 
-    if (health === "error") {
+    if (health.status === "error") {
       return {
         status: "error",
-        tooltip: "Connection failed.",
+        tooltip: health.errorMessage || "Connection failed.",
       };
     }
 
-    if (health === "success") {
+    if (health.status === "success") {
       return {
         status: "success",
         tooltip: "Connection ready",
@@ -49,13 +49,16 @@ function useConnectionHealth() {
     staleTime: 0,
     retry: 5,
     retryDelay: 200,
-    queryFn: () =>
-      generateText({
+    queryFn: async () => {
+      const result = await generateText({
         model: model!,
         system: "If user says hi, respond with hello, without any other text.",
         prompt: "Hi",
-        maxOutputTokens: 1,
-      }),
+        // openai expect it to be at least 16
+        maxOutputTokens: 16,
+      });
+      return result;
+    },
   });
 
   useEffect(() => {
@@ -65,10 +68,23 @@ function useConnectionHealth() {
   }, [model]);
 
   if (!model) {
-    return null;
+    return { status: null, errorMessage: null };
   }
 
-  return text.status;
+  const getErrorMessage = () => {
+    if (!text.error) {
+      return null;
+    }
+
+    const error = text.error as Error;
+    const message = error.message || "Unknown error";
+    return `Connection failed: ${message}`;
+  };
+
+  return {
+    status: text.status,
+    errorMessage: getErrorMessage(),
+  };
 }
 
 export function HealthCheckForAvailability() {

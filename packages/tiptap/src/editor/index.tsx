@@ -100,7 +100,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       {
         extensions,
         editable,
-        content: initialContent || shared.EMPTY_TIPTAP_DOC,
+        content: shared.isValidTiptapContent(initialContent)
+          ? initialContent
+          : shared.EMPTY_TIPTAP_DOC,
         onCreate: ({ editor }) => {
           editor.view.dom.setAttribute("spellcheck", "false");
           editor.view.dom.setAttribute("autocomplete", "off");
@@ -129,7 +131,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         previousContentRef.current = initialContent;
         if (setContentFromOutside) {
           const { from, to } = editor.state.selection;
-          if (initialContent) {
+          if (shared.isValidTiptapContent(initialContent)) {
             editor.commands.markNewContent();
           }
 
@@ -137,7 +139,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             editor.commands.setTextSelection({ from, to });
           }
         } else if (!editor.isFocused) {
-          if (initialContent) {
+          if (shared.isValidTiptapContent(initialContent)) {
             editor.commands.setContent(initialContent, {
               parseOptions: { preserveWhitespace: "full" },
             });

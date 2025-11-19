@@ -7,6 +7,15 @@ import { getExtensions } from "./extensions";
 
 export const EMPTY_TIPTAP_DOC: JSONContent = { type: "doc", content: [] };
 
+export function isValidTiptapContent(content: unknown): content is JSONContent {
+  if (!content || typeof content !== "object") {
+    return false;
+  }
+
+  const obj = content as Record<string, unknown>;
+  return obj.type === "doc" && Array.isArray(obj.content);
+}
+
 const turndown = new TurndownService({ headingStyle: "atx" });
 
 turndown.addRule("p", {

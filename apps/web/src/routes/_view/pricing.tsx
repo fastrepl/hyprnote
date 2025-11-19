@@ -1,5 +1,5 @@
-import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { CheckCircle2, MinusCircle, XCircle } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
@@ -194,53 +194,55 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
         </div>
 
         <div className="space-y-3 flex-1">
-          {plan.features.map((feature, idx) => (
-            <div key={idx} className="flex gap-3 items-start">
-              <Icon
-                icon={
-                  feature.included === true
-                    ? "mdi:check-circle"
-                    : feature.included === "partial"
-                      ? "mdi:minus-circle"
-                      : "mdi:close-circle"
-                }
-                className={cn([
-                  "text-lg mt-0.5 shrink-0",
-                  feature.included === true
-                    ? "text-green-700"
-                    : feature.included === "partial"
-                      ? "text-yellow-600"
-                      : "text-neutral-300",
-                ])}
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn([
-                      "text-sm",
-                      feature.included === true
-                        ? "text-neutral-900"
-                        : feature.included === "partial"
-                          ? "text-neutral-700"
-                          : "text-neutral-400",
-                    ])}
-                  >
-                    {feature.label}
-                  </span>
-                  {feature.comingSoon && (
-                    <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-0.5 rounded-full">
-                      Coming Soon
+          {plan.features.map((feature, idx) => {
+            const IconComponent =
+              feature.included === true
+                ? CheckCircle2
+                : feature.included === "partial"
+                  ? MinusCircle
+                  : XCircle;
+
+            return (
+              <div key={idx} className="flex gap-3 items-start">
+                <IconComponent
+                  className={cn([
+                    "size-[18px] mt-0.5 shrink-0",
+                    feature.included === true
+                      ? "text-green-700"
+                      : feature.included === "partial"
+                        ? "text-yellow-600"
+                        : "text-neutral-300",
+                  ])}
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn([
+                        "text-sm",
+                        feature.included === true
+                          ? "text-neutral-900"
+                          : feature.included === "partial"
+                            ? "text-neutral-700"
+                            : "text-neutral-400",
+                      ])}
+                    >
+                      {feature.label}
                     </span>
+                    {feature.comingSoon && (
+                      <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-0.5 rounded-full">
+                        Coming Soon
+                      </span>
+                    )}
+                  </div>
+                  {feature.tooltip && (
+                    <div className="text-xs text-neutral-500 italic mt-0.5">
+                      {feature.tooltip}
+                    </div>
                   )}
                 </div>
-                {feature.tooltip && (
-                  <div className="text-xs text-neutral-500 italic mt-0.5">
-                    {feature.tooltip}
-                  </div>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {plan.price ? (
@@ -284,7 +286,7 @@ function FAQSection() {
     {
       question: "What's included in shareable links?",
       answer:
-        "Pro users get DocsSend-like controls: track who views your notes, set expiration dates, and revoke access anytime.",
+        "Pro users get DocSend-like controls: track who views your notes, set expiration dates, and revoke access anytime.",
     },
     {
       question: "What is unified billing?",
@@ -293,14 +295,15 @@ function FAQSection() {
     },
     {
       question: "Is there a team discount?",
-      answer: "Yes! Contact us for larger team pricing.",
+      answer:
+        "Yes! We offer discounts based on both team size (volume) and contract commitment period. The more seats you need and the longer you commit (annual, multi-year), the better the discount. Contact us to discuss custom pricing for your team.",
     },
   ];
 
   return (
     <section className="py-16 px-4 laptop:px-0 border-t border-neutral-100">
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
+        <h2 className="text-3xl font-serif text-stone-600 mb-16 text-center">
           Frequently Asked Questions
         </h2>
         <div className="space-y-6">

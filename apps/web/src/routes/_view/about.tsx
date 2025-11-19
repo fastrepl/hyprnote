@@ -1,238 +1,791 @@
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { Mail, XIcon } from "lucide-react";
+import { useState } from "react";
 
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
+
+import { Image } from "@/components/image";
+import { MockWindow } from "@/components/mock-window";
 
 export const Route = createFileRoute("/_view/about")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "About Hyprnote - Our Story" },
+      { title: "Team - Hyprnote Press Kit" },
       {
         name: "description",
-        content:
-          "Learn about Hyprnote's mission to make notetaking effortless while keeping your data private. Built by Fastrepl.",
+        content: "Meet the Hyprnote team and download team photos.",
       },
     ],
   }),
 });
 
+const founders = [
+  {
+    id: "john",
+    name: "John Jeong",
+    role: "Co-founder & CEO",
+    bio: "Building tools that help people be more productive without compromising privacy. Passionate about local-first software and AI.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png",
+    links: {
+      twitter: "https://x.com/computeless",
+      github: "https://github.com/computelesscomputer",
+      linkedin: "https://linkedin.com/in/johntopia",
+      email: "john@hyprnote.com",
+    },
+  },
+  {
+    id: "yujong",
+    name: "Yujong",
+    role: "Co-founder",
+    bio: "Focused on creating privacy-first productivity tools that respect user data and enhance workflows.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png",
+    links: {
+      twitter: "https://x.com/yujonglee",
+      github: "https://github.com/yujonglee",
+      linkedin: "https://linkedin.com/in/yujong1ee",
+      email: "yujonglee@hyprnote.com",
+    },
+  },
+];
+
+const teamPhotos = [
+  {
+    id: "john-1",
+    name: "john-1.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john-1.jpg",
+  },
+  {
+    id: "john-2",
+    name: "john-2.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john-2.jpg",
+  },
+  {
+    id: "palo-alto-1",
+    name: "palo-alto-1.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/palo-alto-1.jpg",
+  },
+  {
+    id: "palo-alto-2",
+    name: "palo-alto-2.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/palo-alto-2.jpg",
+  },
+  {
+    id: "palo-alto-3",
+    name: "palo-alto-3.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/palo-alto-3.jpg",
+  },
+  {
+    id: "palo-alto-4",
+    name: "palo-alto-4.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/palo-alto-4.jpg",
+  },
+  {
+    id: "sadang",
+    name: "sadang.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/sadang.jpg",
+  },
+  {
+    id: "yc-0",
+    name: "yc-0.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yc-0.jpg",
+  },
+  {
+    id: "yc-1",
+    name: "yc-1.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yc-1.jpg",
+  },
+  {
+    id: "yc-2",
+    name: "yc-2.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yc-2.jpg",
+  },
+  {
+    id: "yujong-1",
+    name: "yujong-1.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong-1.jpg",
+  },
+  {
+    id: "yujong-2",
+    name: "yujong-2.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong-2.jpg",
+  },
+  {
+    id: "yujong-3",
+    name: "yujong-3.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong-3.jpg",
+  },
+  {
+    id: "yujong-4",
+    name: "yujong-4.jpg",
+    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong-4.jpg",
+  },
+];
+
+type SelectedItem =
+  | { type: "story" }
+  | { type: "founder"; data: (typeof founders)[0] }
+  | { type: "photo"; data: (typeof teamPhotos)[0] };
+
 function Component() {
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <div className="px-6 py-12 lg:py-20">
-          <header className="mb-16">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
-              Making notetaking
-              <br />
-              effortless
+        {/* Hero Section */}
+        <div className="px-6 py-16 lg:py-24">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
+              About
             </h1>
-            <p className="text-xl lg:text-2xl text-neutral-600 leading-relaxed max-w-3xl">
-              We believe that capturing and organizing your conversations
-              shouldn't be a chore. That's why we built Hyprnote - a tool that
-              listens, learns, and helps you remember what matters.
+            <p className="text-lg sm:text-xl text-neutral-600">
+              Learn about Hyprnote, meet our team, and discover the story behind
+              our privacy-first note-taking platform.
             </p>
-          </header>
-
-          <section className="mb-20">
-            <h2 className="text-3xl font-serif text-stone-600 mb-8">
-              Our Mission
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="p-8 bg-stone-50 border border-neutral-200 rounded-lg">
-                <Icon
-                  icon="mdi:shield-lock"
-                  className="text-4xl text-stone-600 mb-4"
-                />
-                <h3 className="text-xl font-serif text-stone-600 mb-3">
-                  Privacy First
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  Your conversations are personal. We process everything locally
-                  on your device using on-device AI, so your data never leaves
-                  your computer.
-                </p>
-              </div>
-              <div className="p-8 bg-stone-50 border border-neutral-200 rounded-lg">
-                <Icon
-                  icon="mdi:lightning-bolt"
-                  className="text-4xl text-stone-600 mb-4"
-                />
-                <h3 className="text-xl font-serif text-stone-600 mb-3">
-                  Effortless Capture
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  Stop worrying about missing important details. Hyprnote
-                  captures both your mic and system audio, giving you complete
-                  context for every conversation.
-                </p>
-              </div>
-              <div className="p-8 bg-stone-50 border border-neutral-200 rounded-lg">
-                <Icon
-                  icon="mdi:brain"
-                  className="text-4xl text-stone-600 mb-4"
-                />
-                <h3 className="text-xl font-serif text-stone-600 mb-3">
-                  Intelligent Organization
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  AI helps you find what matters. Automatic transcription, smart
-                  summaries, and searchable notes mean you'll never lose track
-                  of important information.
-                </p>
-              </div>
-              <div className="p-8 bg-stone-50 border border-neutral-200 rounded-lg">
-                <Icon
-                  icon="mdi:tools"
-                  className="text-4xl text-stone-600 mb-4"
-                />
-                <h3 className="text-xl font-serif text-stone-600 mb-3">
-                  Built for Everyone
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  From remote workers to students, from entrepreneurs to
-                  executives - Hyprnote adapts to your workflow and helps you
-                  work smarter.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="mb-20">
-            <h2 className="text-3xl font-serif text-stone-600 mb-6">
-              Our Story
-            </h2>
-            <div className="prose prose-stone max-w-none">
-              <p className="text-lg text-neutral-600 leading-relaxed mb-4">
-                Hyprnote was born from a simple frustration: trying to take
-                notes while staying engaged in important conversations. Whether
-                it was a crucial client call, a brainstorming session with the
-                team, or an online lecture, we found ourselves constantly torn
-                between listening and writing.
-              </p>
-              <p className="text-lg text-neutral-600 leading-relaxed mb-4">
-                We looked for solutions, but everything required bots joining
-                meetings, cloud uploads, or compromising on privacy. We knew
-                there had to be a better way.
-              </p>
-              <p className="text-lg text-neutral-600 leading-relaxed">
-                That's when we started building Hyprnote - a desktop application
-                that captures audio locally, processes it with on-device AI, and
-                gives you the freedom to be fully present in your conversations
-                while never missing a detail.
-              </p>
-            </div>
-          </section>
-
-          <section className="mb-20">
-            <h2 className="text-3xl font-serif text-stone-600 mb-8">
-              What We Stand For
-            </h2>
-            <div className="space-y-6">
-              <ValueItem
-                icon="mdi:lock"
-                title="Privacy is non-negotiable"
-                description="We will never compromise on privacy. Your data belongs to you, period."
-              />
-              <ValueItem
-                icon="mdi:transparency"
-                title="Transparency in everything"
-                description="We're open about how Hyprnote works, from our tech stack to our pricing model."
-              />
-              <ValueItem
-                icon="mdi:account-group"
-                title="Community-driven development"
-                description="We build features our users actually need, guided by your feedback and requests."
-              />
-              <ValueItem
-                icon="mdi:rocket"
-                title="Continuous improvement"
-                description="We ship updates regularly and are always working to make Hyprnote better."
-              />
-            </div>
-          </section>
-
-          <section className="mb-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12">
-            <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
-              Built by Fastrepl
-            </h2>
-            <p className="text-lg text-neutral-600 text-center max-w-2xl mx-auto mb-8">
-              Hyprnote is developed by Fastrepl, a team dedicated to building
-              productivity tools that respect your privacy and enhance your
-              workflow.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link
-                to="/team"
-                className={cn([
-                  "px-6 py-3 text-base font-medium rounded-full",
-                  "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                  "hover:scale-105 active:scale-95 transition-transform",
-                ])}
-              >
-                Meet the team
-              </Link>
-              <a
-                href="https://github.com/fastrepl/hyprnote"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn([
-                  "px-6 py-3 text-base font-medium rounded-full",
-                  "border border-neutral-300 text-stone-600",
-                  "hover:bg-white transition-colors",
-                ])}
-              >
-                View on GitHub
-              </a>
-            </div>
-          </section>
-
-          <section className="text-center">
-            <h2 className="text-3xl font-serif text-stone-600 mb-4">
-              Ready to transform your notetaking?
-            </h2>
-            <p className="text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of professionals who trust Hyprnote to capture
-              their most important conversations.
-            </p>
-            <a
-              href="https://hyprnote.com/download"
-              className={cn([
-                "inline-block px-8 py-3 text-base font-medium rounded-full",
-                "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                "hover:scale-105 active:scale-95 transition-transform",
-              ])}
-            >
-              Download for free
-            </a>
-          </section>
+          </div>
         </div>
-      </div>
-    </div>
-  );
-}
 
-function ValueItem({
-  icon,
-  title,
-  description,
-}: {
-  icon: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex gap-6 items-start p-6 border border-neutral-200 rounded-lg bg-white">
-      <div className="shrink-0 w-12 h-12 rounded-lg bg-stone-100 flex items-center justify-center">
-        <Icon icon={icon} className="text-2xl text-stone-600" />
-      </div>
-      <div>
-        <h3 className="text-xl font-serif text-stone-600 mb-2">{title}</h3>
-        <p className="text-neutral-600">{description}</p>
+        {/* Main Content Section */}
+        <section className="px-6 pb-16 lg:pb-24">
+          <div className="max-w-4xl mx-auto">
+            <MockWindow title="About" className="rounded-lg w-full max-w-none">
+              <div className="h-[600px]">
+                {!selectedItem ? (
+                  // Grid view - show all items organized in groups
+                  <div className="p-8 overflow-y-auto h-[540px]">
+                    {/* Our Story Group */}
+                    <div className="mb-8">
+                      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+                        Our Story
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
+                        <button
+                          onClick={() => setSelectedItem({ type: "story" })}
+                          className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
+                        >
+                          <div className="mb-3 w-16 h-16 flex items-center justify-center">
+                            <Image
+                              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/textedit.webp"
+                              alt="Our Story"
+                              width={64}
+                              height={64}
+                              className="w-16 h-16 group-hover:scale-110 transition-transform"
+                            />
+                          </div>
+                          <div className="font-medium text-stone-600">
+                            Our Story.txt
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Founders Group */}
+                    <div className="mb-8 border-t border-neutral-100 pt-8">
+                      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+                        Founders
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
+                        {founders.map((founder) => (
+                          <button
+                            key={founder.id}
+                            onClick={() =>
+                              setSelectedItem({
+                                type: "founder",
+                                data: founder,
+                              })
+                            }
+                            className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
+                          >
+                            <div className="mb-3 w-16 h-16">
+                              <Image
+                                src={founder.image}
+                                alt={founder.name}
+                                width={64}
+                                height={64}
+                                className="w-16 h-16 rounded-full border-2 border-neutral-200 object-cover group-hover:scale-110 transition-transform"
+                              />
+                            </div>
+                            <div className="font-medium text-stone-600">
+                              {founder.name}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Team Photos Group */}
+                    <div className="border-t border-neutral-100 pt-8">
+                      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+                        Team Photos
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
+                        {teamPhotos.map((photo) => (
+                          <button
+                            key={photo.id}
+                            onClick={() =>
+                              setSelectedItem({ type: "photo", data: photo })
+                            }
+                            className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
+                          >
+                            <div className="mb-3 w-16 h-16">
+                              <Image
+                                src={photo.url}
+                                alt={photo.name}
+                                width={64}
+                                height={64}
+                                className="w-16 h-16 rounded-lg border border-neutral-200 object-cover group-hover:scale-110 transition-transform"
+                              />
+                            </div>
+                            <div className="font-medium text-stone-600 text-sm truncate w-full">
+                              {photo.name}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Split view with resizable panels
+                  <ResizablePanelGroup
+                    direction="horizontal"
+                    className="h-[600px]"
+                  >
+                    <ResizablePanel
+                      defaultSize={35}
+                      minSize={25}
+                      maxSize={45}
+                      className="p-4"
+                    >
+                      <div className="h-full overflow-y-auto">
+                        {/* Our Story in sidebar */}
+                        <div className="mb-6">
+                          <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
+                            Our Story
+                          </div>
+                          <button
+                            onClick={() => setSelectedItem({ type: "story" })}
+                            className={cn([
+                              "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3",
+                              selectedItem?.type === "story"
+                                ? "border-stone-600 bg-stone-100"
+                                : "border-neutral-200",
+                            ])}
+                          >
+                            <div className="w-12 h-12 shrink-0 flex items-center justify-center">
+                              <Image
+                                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/textedit.webp"
+                                alt="Our Story"
+                                width={48}
+                                height={48}
+                                className="w-12 h-12"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-stone-600 truncate">
+                                Our Story.txt
+                              </p>
+                            </div>
+                          </button>
+                        </div>
+
+                        {/* Founders in sidebar */}
+                        <div className="mb-6">
+                          <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
+                            Founders
+                          </div>
+                          <div className="space-y-3">
+                            {founders.map((founder) => (
+                              <button
+                                key={founder.id}
+                                onClick={() =>
+                                  setSelectedItem({
+                                    type: "founder",
+                                    data: founder,
+                                  })
+                                }
+                                className={cn([
+                                  "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3",
+                                  selectedItem?.type === "founder" &&
+                                  selectedItem.data.id === founder.id
+                                    ? "border-stone-600 bg-stone-100"
+                                    : "border-neutral-200",
+                                ])}
+                              >
+                                <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-neutral-200">
+                                  <Image
+                                    src={founder.image}
+                                    alt={founder.name}
+                                    width={48}
+                                    height={48}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-stone-600 truncate">
+                                    {founder.name}
+                                  </p>
+                                  <p className="text-xs text-neutral-500 truncate">
+                                    {founder.role}
+                                  </p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Team Photos in sidebar */}
+                        <div>
+                          <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
+                            Team Photos
+                          </div>
+                          <div className="space-y-3">
+                            {teamPhotos.map((photo) => (
+                              <button
+                                key={photo.id}
+                                onClick={() =>
+                                  setSelectedItem({
+                                    type: "photo",
+                                    data: photo,
+                                  })
+                                }
+                                className={cn([
+                                  "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3",
+                                  selectedItem?.type === "photo" &&
+                                  selectedItem.data.id === photo.id
+                                    ? "border-stone-600 bg-stone-100"
+                                    : "border-neutral-200",
+                                ])}
+                              >
+                                <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-neutral-200">
+                                  <Image
+                                    src={photo.url}
+                                    alt={photo.name}
+                                    width={48}
+                                    height={48}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-stone-600 truncate">
+                                    {photo.name}
+                                  </p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </ResizablePanel>
+
+                    <ResizableHandle withHandle className="bg-neutral-200" />
+
+                    <ResizablePanel defaultSize={65}>
+                      <div className="h-full flex flex-col">
+                        {selectedItem?.type === "story" && (
+                          <>
+                            {/* Story Header */}
+                            <div className="py-2 px-4 flex items-center justify-between mb-6 border-b border-neutral-200">
+                              <h2 className="font-medium text-stone-600">
+                                Our Story.txt
+                              </h2>
+                              <button
+                                onClick={() => setSelectedItem(null)}
+                                className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+                              >
+                                <XIcon size={16} />
+                              </button>
+                            </div>
+
+                            <div className="p-4 overflow-y-auto">
+                              <div className="prose prose-stone max-w-none">
+                                <h2 className="text-3xl font-serif text-stone-600 mb-6">
+                                  Making notetaking effortless
+                                </h2>
+                                <p className="text-lg text-neutral-600 leading-relaxed mb-6">
+                                  We believe that capturing and organizing your
+                                  conversations shouldn't be a chore. That's why
+                                  we built Hyprnote - a tool that listens,
+                                  learns, and helps you remember what matters.
+                                </p>
+
+                                <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">
+                                  Our Mission
+                                </h3>
+                                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                                  <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+                                    <Icon
+                                      icon="mdi:shield-lock"
+                                      className="text-3xl text-stone-600 mb-3"
+                                    />
+                                    <h4 className="text-lg font-serif text-stone-600 mb-2">
+                                      Privacy First
+                                    </h4>
+                                    <p className="text-sm text-neutral-600">
+                                      Your conversations are personal. We
+                                      process everything locally on your device
+                                      using on-device AI, so your data never
+                                      leaves your computer.
+                                    </p>
+                                  </div>
+                                  <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+                                    <Icon
+                                      icon="mdi:lightning-bolt"
+                                      className="text-3xl text-stone-600 mb-3"
+                                    />
+                                    <h4 className="text-lg font-serif text-stone-600 mb-2">
+                                      Effortless Capture
+                                    </h4>
+                                    <p className="text-sm text-neutral-600">
+                                      Stop worrying about missing important
+                                      details. Hyprnote captures both your mic
+                                      and system audio, giving you complete
+                                      context for every conversation.
+                                    </p>
+                                  </div>
+                                  <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+                                    <Icon
+                                      icon="mdi:brain"
+                                      className="text-3xl text-stone-600 mb-3"
+                                    />
+                                    <h4 className="text-lg font-serif text-stone-600 mb-2">
+                                      Intelligent Organization
+                                    </h4>
+                                    <p className="text-sm text-neutral-600">
+                                      AI helps you find what matters. Automatic
+                                      transcription, smart summaries, and
+                                      searchable notes mean you'll never lose
+                                      track of important information.
+                                    </p>
+                                  </div>
+                                  <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+                                    <Icon
+                                      icon="mdi:tools"
+                                      className="text-3xl text-stone-600 mb-3"
+                                    />
+                                    <h4 className="text-lg font-serif text-stone-600 mb-2">
+                                      Built for Everyone
+                                    </h4>
+                                    <p className="text-sm text-neutral-600">
+                                      From remote workers to students, from
+                                      entrepreneurs to executives - Hyprnote
+                                      adapts to your workflow and helps you work
+                                      smarter.
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">
+                                  Our Story
+                                </h3>
+                                <p className="text-base text-neutral-600 leading-relaxed mb-4">
+                                  Hyprnote was born from a simple frustration:
+                                  trying to take notes while staying engaged in
+                                  important conversations. Whether it was a
+                                  crucial client call, a brainstorming session
+                                  with the team, or an online lecture, we found
+                                  ourselves constantly torn between listening
+                                  and writing.
+                                </p>
+                                <p className="text-base text-neutral-600 leading-relaxed mb-4">
+                                  We looked for solutions, but everything
+                                  required bots joining meetings, cloud uploads,
+                                  or compromising on privacy. We knew there had
+                                  to be a better way.
+                                </p>
+                                <p className="text-base text-neutral-600 leading-relaxed mb-6">
+                                  That's when we started building Hyprnote - a
+                                  desktop application that captures audio
+                                  locally, processes it with on-device AI, and
+                                  gives you the freedom to be fully present in
+                                  your conversations while never missing a
+                                  detail.
+                                </p>
+
+                                <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">
+                                  What We Stand For
+                                </h3>
+                                <div className="space-y-4 mb-6">
+                                  <div className="flex gap-4 items-start p-4 border border-neutral-200 rounded-lg bg-white">
+                                    <Icon
+                                      icon="mdi:lock"
+                                      className="text-2xl text-stone-600 shrink-0 mt-1"
+                                    />
+                                    <div>
+                                      <h4 className="text-base font-serif text-stone-600 mb-1">
+                                        Privacy is non-negotiable
+                                      </h4>
+                                      <p className="text-sm text-neutral-600">
+                                        We will never compromise on privacy.
+                                        Your data belongs to you, period.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 items-start p-4 border border-neutral-200 rounded-lg bg-white">
+                                    <Icon
+                                      icon="mdi:transparency"
+                                      className="text-2xl text-stone-600 shrink-0 mt-1"
+                                    />
+                                    <div>
+                                      <h4 className="text-base font-serif text-stone-600 mb-1">
+                                        Transparency in everything
+                                      </h4>
+                                      <p className="text-sm text-neutral-600">
+                                        We're open about how Hyprnote works,
+                                        from our tech stack to our pricing
+                                        model.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 items-start p-4 border border-neutral-200 rounded-lg bg-white">
+                                    <Icon
+                                      icon="mdi:account-group"
+                                      className="text-2xl text-stone-600 shrink-0 mt-1"
+                                    />
+                                    <div>
+                                      <h4 className="text-base font-serif text-stone-600 mb-1">
+                                        Community-driven development
+                                      </h4>
+                                      <p className="text-sm text-neutral-600">
+                                        We build features our users actually
+                                        need, guided by your feedback and
+                                        requests.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-4 items-start p-4 border border-neutral-200 rounded-lg bg-white">
+                                    <Icon
+                                      icon="mdi:rocket"
+                                      className="text-2xl text-stone-600 shrink-0 mt-1"
+                                    />
+                                    <div>
+                                      <h4 className="text-base font-serif text-stone-600 mb-1">
+                                        Continuous improvement
+                                      </h4>
+                                      <p className="text-sm text-neutral-600">
+                                        We ship updates regularly and are always
+                                        working to make Hyprnote better.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="bg-stone-50 border border-neutral-200 rounded-lg p-6 text-center mt-8">
+                                  <h4 className="text-xl font-serif text-stone-600 mb-2">
+                                    Built by Fastrepl
+                                  </h4>
+                                  <p className="text-sm text-neutral-600 mb-4">
+                                    Hyprnote is developed by Fastrepl, a team
+                                    dedicated to building productivity tools
+                                    that respect your privacy and enhance your
+                                    workflow.
+                                  </p>
+                                  <div className="flex justify-center gap-3">
+                                    <a
+                                      href="https://github.com/fastrepl/hyprnote"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-neutral-300 text-stone-600 rounded-full hover:bg-white transition-colors"
+                                    >
+                                      <Icon
+                                        icon="mdi:github"
+                                        className="text-base"
+                                      />
+                                      <span>View on GitHub</span>
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {selectedItem?.type === "founder" && (
+                          <>
+                            {/* Founder Header */}
+                            <div className="py-2 px-4 flex items-center justify-between mb-6 border-b border-neutral-200">
+                              <h2 className="font-medium text-stone-600">
+                                {selectedItem.data.name}
+                              </h2>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={selectedItem.data.image}
+                                  download={`${selectedItem.data.name.toLowerCase().replace(" ", "-")}.png`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+                                >
+                                  Download Photo
+                                </a>
+                                <button
+                                  onClick={() => setSelectedItem(null)}
+                                  className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+                                >
+                                  <XIcon size={16} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="p-4 overflow-y-auto">
+                              {/* Image preview */}
+                              <Image
+                                src={selectedItem.data.image}
+                                alt={selectedItem.data.name}
+                                width={400}
+                                height={400}
+                                className="max-w-[400px] w-full h-auto object-cover rounded-lg mb-6"
+                              />
+
+                              {/* Info */}
+                              <div>
+                                <h3 className="text-2xl font-serif text-stone-600 mb-1">
+                                  {selectedItem.data.name}
+                                </h3>
+                                <p className="text-sm text-neutral-500 uppercase tracking-wider mb-4">
+                                  {selectedItem.data.role}
+                                </p>
+                                <p className="text-sm text-neutral-600 leading-relaxed mb-6">
+                                  {selectedItem.data.bio}
+                                </p>
+
+                                {/* Contact Links */}
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedItem.data.links.email && (
+                                    <a
+                                      href={`mailto:${selectedItem.data.links.email}`}
+                                      className="flex items-center gap-2 px-3 py-2 text-xs border border-neutral-300 text-stone-600 rounded-full hover:bg-stone-50 transition-colors"
+                                      aria-label="Email"
+                                    >
+                                      <Mail className="w-3 h-3" />
+                                      <span>Email</span>
+                                    </a>
+                                  )}
+                                  {selectedItem.data.links.twitter && (
+                                    <a
+                                      href={selectedItem.data.links.twitter}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-3 py-2 text-xs border border-neutral-300 text-stone-600 rounded-full hover:bg-stone-50 transition-colors"
+                                      aria-label="Twitter"
+                                    >
+                                      <Icon
+                                        icon="mdi:twitter"
+                                        className="text-sm"
+                                      />
+                                      <span>Twitter</span>
+                                    </a>
+                                  )}
+                                  {selectedItem.data.links.github && (
+                                    <a
+                                      href={selectedItem.data.links.github}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-3 py-2 text-xs border border-neutral-300 text-stone-600 rounded-full hover:bg-stone-50 transition-colors"
+                                      aria-label="GitHub"
+                                    >
+                                      <Icon
+                                        icon="mdi:github"
+                                        className="text-sm"
+                                      />
+                                      <span>GitHub</span>
+                                    </a>
+                                  )}
+                                  {selectedItem.data.links.linkedin && (
+                                    <a
+                                      href={selectedItem.data.links.linkedin}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-3 py-2 text-xs border border-neutral-300 text-stone-600 rounded-full hover:bg-stone-50 transition-colors"
+                                      aria-label="LinkedIn"
+                                    >
+                                      <Icon
+                                        icon="mdi:linkedin"
+                                        className="text-sm"
+                                      />
+                                      <span>LinkedIn</span>
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {selectedItem?.type === "photo" && (
+                          <>
+                            {/* Photo Header */}
+                            <div className="py-2 px-4 flex items-center justify-between mb-6 border-b border-neutral-200">
+                              <h2 className="font-medium text-stone-600">
+                                {selectedItem.data.name}
+                              </h2>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={selectedItem.data.url}
+                                  download={selectedItem.data.name}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+                                >
+                                  Download
+                                </a>
+                                <button
+                                  onClick={() => setSelectedItem(null)}
+                                  className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+                                >
+                                  <XIcon size={16} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="p-4 overflow-y-auto">
+                              {/* Image preview with max-width 400px */}
+                              <Image
+                                src={selectedItem.data.url}
+                                alt={selectedItem.data.name}
+                                width={400}
+                                height={400}
+                                className="max-w-[400px] w-full h-auto object-contain mb-6 rounded-lg"
+                              />
+
+                              {/* Description */}
+                              <p className="text-sm text-neutral-600">
+                                Team photo from the Hyprnote team.
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+                )}
+              </div>
+
+              {/* Status bar */}
+              <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
+                <span className="text-xs text-neutral-500">
+                  {selectedItem
+                    ? selectedItem.type === "founder"
+                      ? `Viewing ${selectedItem.data.name}`
+                      : selectedItem.type === "photo"
+                        ? `Viewing ${selectedItem.data.name}`
+                        : "Viewing Our Story"
+                    : `${1 + founders.length + teamPhotos.length} items, 3 groups`}
+                </span>
+              </div>
+            </MockWindow>
+          </div>
+        </section>
       </div>
     </div>
   );

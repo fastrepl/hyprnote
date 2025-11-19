@@ -43,7 +43,7 @@ function Component() {
         setOnTrigger: (callback) => setOnTrigger(() => callback),
       }}
     >
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col overflow-x-hidden">
         <Header />
         <main className="flex-1">
           <Outlet />
@@ -540,6 +540,14 @@ function Footer() {
                     Pricing
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to="/press-kit"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Press Kit
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -559,17 +567,18 @@ function Footer() {
                 <li>
                   <Link
                     to="/about"
+                    search={{ section: "us" }}
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
-                    About
+                    About us
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/team"
+                    to="/brand"
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
-                    Team
+                    Brand
                   </Link>
                 </li>
                 <li>
@@ -578,24 +587,6 @@ function Footer() {
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
                     Enterprise
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/legal/$slug"
-                    params={{ slug: "privacy" }}
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                  >
-                    Privacy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/legal/$slug"
-                    params={{ slug: "terms" }}
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                  >
-                    Terms
                   </Link>
                 </li>
               </ul>

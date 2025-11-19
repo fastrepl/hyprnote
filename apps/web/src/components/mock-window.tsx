@@ -5,11 +5,13 @@ export function MockWindow({
   showAudioIndicator,
   variant = "desktop",
   className,
+  title,
   children,
 }: {
   showAudioIndicator?: boolean;
   variant?: "desktop" | "mobile";
   className?: string;
+  title?: string;
   children: React.ReactNode;
 }) {
   const isMobile = variant === "mobile";
@@ -28,6 +30,15 @@ export function MockWindow({
           <div className="size-3 rounded-full bg-yellow-400"></div>
           <div className="size-3 rounded-full bg-green-400"></div>
         </div>
+
+        {title && (
+          <div className="flex-1 text-center">
+            <span className="text-sm text-neutral-600 font-medium">
+              {title}
+            </span>
+          </div>
+        )}
+
         {showAudioIndicator && (
           <div className="ml-auto">
             <DancingSticks

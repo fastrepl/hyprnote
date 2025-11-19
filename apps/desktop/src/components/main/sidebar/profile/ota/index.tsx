@@ -33,11 +33,7 @@ export function UpdateChecker() {
     return (
       <MenuItem
         icon={CheckCircle}
-        label={
-          currentVersion
-            ? `You're up to date (v${currentVersion})`
-            : "You're up to date"
-        }
+        label={currentVersion ? `v${currentVersion}` : "No updates available"}
         onClick={() => {}}
       />
     );

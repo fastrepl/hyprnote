@@ -1,14 +1,12 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { allChangelogs, type Changelog } from "content-collections";
-import semver from "semver";
+
+import { type ChangelogWithMeta, getChangelogList } from "@/changelog";
 
 export const Route = createFileRoute("/_view/changelog/")({
   component: Component,
   loader: async () => {
-    const changelogs = [...allChangelogs].sort((a, b) =>
-      semver.rcompare(a.version, b.version),
-    );
+    const changelogs = getChangelogList();
 
     return { changelogs };
   },
@@ -66,7 +64,7 @@ function ChangelogCard({
   changelog,
   isFirst,
 }: {
-  changelog: Changelog;
+  changelog: ChangelogWithMeta;
   isFirst: boolean;
 }) {
   return (

@@ -1,40 +1,38 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { allChangelogs } from "content-collections";
 import { useCallback } from "react";
-import semver from "semver";
+
+import { getChangelogBySlug } from "@/changelog";
 
 export const Route = createFileRoute("/_view/changelog/$slug")({
   component: Component,
   loader: async ({ params }) => {
-    const changelog = allChangelogs.find(
-      (changelog) => changelog.slug === params.slug,
-    );
+    const changelog = getChangelogBySlug(params.slug);
     if (!changelog) {
       throw notFound();
     }
 
-    const sortedChangelogs = [...allChangelogs].sort((a, b) =>
-      semver.rcompare(a.version, b.version),
-    );
+    const nextChangelog = changelog.newerSlug
+      ? (getChangelogBySlug(changelog.newerSlug) ?? null)
+      : null;
+    const prevChangelog = changelog.olderSlug
+      ? (getChangelogBySlug(changelog.olderSlug) ?? null)
+      : null;
 
-    const currentIndex = sortedChangelogs.findIndex(
-      (c) => c.slug === changelog.slug,
-    );
-    const nextChangelog =
-      currentIndex > 0 ? sortedChangelogs[currentIndex - 1] : null;
-    const prevChangelog =
-      currentIndex < sortedChangelogs.length - 1
-        ? sortedChangelogs[currentIndex + 1]
+    const beforeVersion = changelog.beforeVersion;
+    const diffUrl =
+      beforeVersion != null
+        ? `https://github.com/fastrepl/hyprnote/compare/desktop_v${beforeVersion}...desktop_v${changelog.version}`
         : null;
 
-    return { changelog, nextChangelog, prevChangelog };
+    return { changelog, nextChangelog, prevChangelog, diffUrl };
   },
 });
 
 function Component() {
-  const { changelog, nextChangelog, prevChangelog } = Route.useLoaderData();
+  const { changelog, nextChangelog, prevChangelog, diffUrl } =
+    Route.useLoaderData();
 
   const isLatest = nextChangelog === null;
 
@@ -77,6 +75,19 @@ function Component() {
           </h1>
 
           <button onClick={handleDownload}>download</button>
+          {diffUrl && (
+            <div className="mt-4">
+              <a
+                href={diffUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors"
+              >
+                <Icon icon="mdi:github" />
+                <span>View diff on GitHub</span>
+              </a>
+            </div>
+          )}
         </header>
 
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-4xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-xl prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">

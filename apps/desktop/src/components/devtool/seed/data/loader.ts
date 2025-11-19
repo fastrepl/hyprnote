@@ -2,8 +2,8 @@ import type { Tables } from "tinybase/with-schemas";
 
 import { md2json } from "@hypr/tiptap/shared";
 
-import type { Schemas } from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+import type { Schemas } from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { type CuratedData, CuratedDataSchema } from "./schema";
 
 export type { CuratedData };

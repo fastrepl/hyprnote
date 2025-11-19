@@ -3,16 +3,16 @@ import { faker } from "@faker-js/faker";
 import type {
   ChatGroup,
   ChatMessageStorage,
-} from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+} from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 
-export const createChatGroup = () => ({
+export const createChatGroup = (): { id: string; data: ChatGroup } => ({
   id: id(),
   data: {
     user_id: DEFAULT_USER_ID,
     created_at: faker.date.recent({ days: 30 }).toISOString(),
     title: faker.lorem.words({ min: 2, max: 5 }),
-  } satisfies ChatGroup,
+  },
 });
 
 export const createChatMessage = (

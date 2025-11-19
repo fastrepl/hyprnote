@@ -2,8 +2,8 @@ import { faker } from "@faker-js/faker";
 
 import { md2json } from "@hypr/tiptap/shared";
 
-import type { SessionStorage } from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+import type { SessionStorage } from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const generateTitle = () => {
   const lengthConfig = faker.helpers.weightedArrayElement([

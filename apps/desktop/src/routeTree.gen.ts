@@ -11,7 +11,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AppRouteImport } from './routes/app'
+import { Route as AppRouteRouteImport } from './routes/app/route'
+import { Route as AppDevtoolRouteImport } from './routes/app/devtool'
 import { Route as AppOnboardingIndexRouteImport } from './routes/app/onboarding/index'
 import { Route as AppSettingsLayoutRouteImport } from './routes/app/settings/_layout'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
@@ -21,7 +22,7 @@ import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layou
 const AppSettingsRouteImport = createFileRoute('/app/settings')()
 const AppMainRouteImport = createFileRoute('/app/main')()
 
-const AppRoute = AppRouteImport.update({
+const AppRouteRoute = AppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => rootRouteImport,
@@ -29,17 +30,22 @@ const AppRoute = AppRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMainRoute = AppMainRouteImport.update({
   id: '/main',
   path: '/main',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDevtoolRoute = AppDevtoolRouteImport.update({
+  id: '/devtool',
+  path: '/devtool',
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
   id: '/onboarding/',
   path: '/onboarding/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppSettingsLayoutRoute = AppSettingsLayoutRouteImport.update({
   id: '/_layout',
@@ -61,7 +67,8 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/app': typeof AppRouteWithChildren
+  '/app': typeof AppRouteRouteWithChildren
+  '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsLayoutRouteWithChildren
   '/app/onboarding': typeof AppOnboardingIndexRoute
@@ -69,14 +76,16 @@ export interface FileRoutesByFullPath {
   '/app/settings/': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRoutesByTo {
-  '/app': typeof AppRouteWithChildren
+  '/app': typeof AppRouteRouteWithChildren
+  '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainLayoutIndexRoute
   '/app/settings': typeof AppSettingsLayoutIndexRoute
   '/app/onboarding': typeof AppOnboardingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/app': typeof AppRouteWithChildren
+  '/app': typeof AppRouteRouteWithChildren
+  '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsRouteWithChildren
@@ -89,16 +98,23 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/app'
+    | '/app/devtool'
     | '/app/main'
     | '/app/settings'
     | '/app/onboarding'
     | '/app/main/'
     | '/app/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/app' | '/app/main' | '/app/settings' | '/app/onboarding'
+  to:
+    | '/app'
+    | '/app/devtool'
+    | '/app/main'
+    | '/app/settings'
+    | '/app/onboarding'
   id:
     | '__root__'
     | '/app'
+    | '/app/devtool'
     | '/app/main'
     | '/app/main/_layout'
     | '/app/settings'
@@ -109,7 +125,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AppRoute: typeof AppRouteWithChildren
+  AppRouteRoute: typeof AppRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -118,7 +134,7 @@ declare module '@tanstack/react-router' {
       id: '/app'
       path: '/app'
       fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
+      preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/settings': {
@@ -126,21 +142,28 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/app/main': {
       id: '/app/main'
       path: '/main'
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/devtool': {
+      id: '/app/devtool'
+      path: '/devtool'
+      fullPath: '/app/devtool'
+      preLoaderRoute: typeof AppDevtoolRouteImport
+      parentRoute: typeof AppRouteRoute
     }
     '/app/onboarding/': {
       id: '/app/onboarding/'
       path: '/onboarding'
       fullPath: '/app/onboarding'
       preLoaderRoute: typeof AppOnboardingIndexRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppRouteRoute
     }
     '/app/settings/_layout': {
       id: '/app/settings/_layout'
@@ -219,22 +242,26 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
   AppSettingsRouteChildren,
 )
 
-interface AppRouteChildren {
+interface AppRouteRouteChildren {
+  AppDevtoolRoute: typeof AppDevtoolRoute
   AppMainRoute: typeof AppMainRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppOnboardingIndexRoute: typeof AppOnboardingIndexRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
+const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppDevtoolRoute: AppDevtoolRoute,
   AppMainRoute: AppMainRouteWithChildren,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppOnboardingIndexRoute: AppOnboardingIndexRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
-  AppRoute: AppRouteWithChildren,
+  AppRouteRoute: AppRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -84,7 +84,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 /** user-defined types **/
 
-export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "settings" } | { type: "auth" } | { type: "chat" }
+export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "settings" } | { type: "auth" } | { type: "chat" } | { type: "devtool" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }
 export type Navigate = { path: string; search: Partial<{ [key in string]: JsonValue }> | null }

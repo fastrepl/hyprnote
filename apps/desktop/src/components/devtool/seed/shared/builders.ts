@@ -17,8 +17,8 @@ import type {
   TemplateStorage,
   Transcript,
   WordStorage,
-} from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+} from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { createCalendar } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";
 import { createEnhancedNote } from "./enhanced-note";

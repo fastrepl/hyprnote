@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 
-import type { Calendar } from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+import type { Calendar } from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createCalendar = () => {
   const template = faker.helpers.arrayElement([

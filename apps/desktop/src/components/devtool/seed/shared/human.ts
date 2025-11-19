@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 
-import type { Human } from "../../../store/tinybase/main";
-import { DEFAULT_USER_ID, id } from "../../../utils";
+import type { Human } from "../../../../store/tinybase/main";
+import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createHuman = (org_id: string, isUser = false) => {
   const sex = faker.person.sexType();

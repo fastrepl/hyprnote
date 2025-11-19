@@ -1,6 +1,7 @@
-import { PanelLeftCloseIcon } from "lucide-react";
+import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
 import { useState } from "react";
 
+import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
@@ -29,6 +30,15 @@ export function LeftSidebar() {
           "pl-[72px] bg-neutral-50",
         ])}
       >
+        {import.meta.env.DEV && (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => windowsCommands.windowShow({ type: "devtool" })}
+          >
+            <AxeIcon size={16} />
+          </Button>
+        )}
         <Button
           size="icon"
           variant="ghost"

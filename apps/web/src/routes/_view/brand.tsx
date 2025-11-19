@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { MockWindow } from "@/components/mock-window";
 
@@ -24,30 +24,10 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        {/* Hero Section */}
-        <div className="px-6 py-16 lg:py-24">
-          <div className="text-center max-w-3xl mx-auto">
-            <Link
-              to="/press-kit"
-              className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 mb-6 transition-colors"
-            >
-              <Icon icon="mdi:chevron-left" className="text-xl" />
-              <span>Back to Press Kit</span>
-            </Link>
-            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-              Brand Guidelines
-            </h1>
-            <p className="text-lg sm:text-xl text-neutral-600">
-              Our brand guidelines help maintain consistency across all Hyprnote
-              communications and materials.
-            </p>
-          </div>
-        </div>
-
         {/* Content Section */}
-        <section className="px-6 pb-16 lg:pb-24">
+        <section className="px-6 py-8 lg:py-12">
           <div className="max-w-4xl mx-auto">
-            <MockWindow className="rounded-lg w-full max-w-none">
+            <MockWindow title="Brand" className="rounded-lg w-full max-w-none">
               <div className="p-8 space-y-8">
                 {/* Logo Usage */}
                 <div>

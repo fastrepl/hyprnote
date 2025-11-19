@@ -95,26 +95,11 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        {/* Hero Section */}
-        <div className="px-6 py-16 lg:py-24">
-          <div className="text-center max-w-3xl mx-auto">
-            <Link
-              to="/press-kit"
-              className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 mb-6 transition-colors"
-            >
-              <Icon icon="mdi:chevron-left" className="text-xl" />
-              <span>Back to Press Kit</span>
-            </Link>
-            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-              About Us
-            </h1>
-            <p className="text-lg sm:text-xl text-neutral-600">
-              Meet the team behind Hyprnote and learn about our mission to make
-              notetaking effortless while keeping your data private.
-            </p>
-
+        {/* Navigation and Section Header */}
+        <div className="px-6 pt-8 lg:pt-12">
+          <div className="max-w-4xl mx-auto">
             {/* Section Navigation */}
-            <div className="flex justify-center gap-2 mt-8">
+            <div className="flex gap-2 mb-6">
               {sections.map((s) => (
                 <button
                   key={s.id}
@@ -136,40 +121,55 @@ function Component() {
 
         {/* Our Story Document */}
         {section === "us" && (
-          <section className="px-6 pb-8">
+          <section className="px-6 pb-8 lg:pb-12">
             <div className="max-w-4xl mx-auto">
-              <button
-                onClick={() => setShowStoryModal(true)}
-                className="group w-full flex items-center gap-4 p-6 bg-white border border-neutral-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all"
+              <MockWindow
+                title="About / Us"
+                className="rounded-lg w-full max-w-none"
               >
-                <div className="w-12 h-12 shrink-0 flex items-center justify-center bg-stone-50 rounded-lg border border-neutral-200 group-hover:bg-blue-50 group-hover:border-blue-300 transition-colors">
-                  <Icon
-                    icon="mdi:file-document-outline"
-                    className="text-2xl text-stone-600 group-hover:text-blue-600"
-                  />
+                <div className="p-8">
+                  <button
+                    onClick={() => setShowStoryModal(true)}
+                    className="group w-full flex items-center gap-4 p-6 bg-white border border-neutral-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all"
+                  >
+                    <div className="w-12 h-12 shrink-0 flex items-center justify-center bg-stone-50 rounded-lg border border-neutral-200 group-hover:bg-blue-50 group-hover:border-blue-300 transition-colors">
+                      <Icon
+                        icon="mdi:file-document-outline"
+                        className="text-2xl text-stone-600 group-hover:text-blue-600"
+                      />
+                    </div>
+                    <div className="text-left flex-1">
+                      <h3 className="text-lg font-medium text-stone-600 mb-1">
+                        Our Story.txt
+                      </h3>
+                      <p className="text-sm text-neutral-500">
+                        Learn about Hyprnote's journey and mission
+                      </p>
+                    </div>
+                    <Icon
+                      icon="mdi:chevron-right"
+                      className="text-2xl text-neutral-400 group-hover:text-blue-600 transition-colors"
+                    />
+                  </button>
                 </div>
-                <div className="text-left flex-1">
-                  <h3 className="text-lg font-medium text-stone-600 mb-1">
-                    Our Story.txt
-                  </h3>
-                  <p className="text-sm text-neutral-500">
-                    Learn about Hyprnote's journey and mission
-                  </p>
+
+                {/* Status bar */}
+                <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
+                  <span className="text-xs text-neutral-500">1 item</span>
                 </div>
-                <Icon
-                  icon="mdi:chevron-right"
-                  className="text-2xl text-neutral-400 group-hover:text-blue-600 transition-colors"
-                />
-              </button>
+              </MockWindow>
             </div>
           </section>
         )}
 
         {/* Founders Section */}
         {section === "founders" && (
-          <section className="px-6 pb-16 lg:pb-24">
+          <section className="px-6 pb-8 lg:pb-12">
             <div className="max-w-4xl mx-auto">
-              <MockWindow className="rounded-lg w-full max-w-none">
+              <MockWindow
+                title="About / Founders"
+                className="rounded-lg w-full max-w-none"
+              >
                 <div className="p-8">
                   {/* Founders Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
@@ -319,9 +319,12 @@ function Component() {
 
         {/* Team Section */}
         {section === "team" && (
-          <section className="px-6 pb-16 lg:pb-24">
+          <section className="px-6 pb-8 lg:pb-12">
             <div className="max-w-4xl mx-auto">
-              <MockWindow className="rounded-lg w-full max-w-none">
+              <MockWindow
+                title="About / Team"
+                className="rounded-lg w-full max-w-none"
+              >
                 <div className="p-8">
                   {/* Team Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">

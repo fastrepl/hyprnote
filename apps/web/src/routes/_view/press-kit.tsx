@@ -79,25 +79,21 @@ function Component() {
                       to="/press-kit/app"
                       folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-blue.png"
                       label="App"
-                      description="Screenshots & app info"
                     />
                     <FinderFolder
                       to="/brand"
                       folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-red.png"
                       label="Brand"
-                      description="Brand assets & logos"
                     />
                     <FinderFolder
                       to="/about#founders"
                       folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-purple.png"
                       label="Founders"
-                      description="About the founders"
                     />
                     <FinderFolder
                       to="/about#team"
                       folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-yellow.png"
                       label="Team"
-                      description="Team photos & info"
                     />
                   </div>
                 </div>
@@ -111,7 +107,6 @@ function Component() {
                     <FinderAction
                       href="/download/apple-silicon"
                       label="Download"
-                      description="Get Hyprnote for macOS"
                       download
                       appIcon
                     />
@@ -119,13 +114,11 @@ function Component() {
                       href="mailto:founders@hyprnote.com"
                       iconImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-mail.png"
                       label="Contact"
-                      description="Reach out to founders"
                     />
                     <FinderAction
                       href="https://github.com/fastrepl/hyprnote"
                       iconImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/github.webp"
                       label="GitHub"
-                      description="View our repository"
                       external
                       roundedIcon
                     />
@@ -157,12 +150,10 @@ function FinderFolder({
   to,
   folderImage,
   label,
-  description,
 }: {
   to: string;
   folderImage: string;
   label: string;
-  description: string;
 }) {
   return (
     <Link
@@ -189,7 +180,6 @@ function FinderAction({
   href,
   iconImage,
   label,
-  description,
   download,
   external,
   appIcon,
@@ -198,7 +188,6 @@ function FinderAction({
   href: string;
   iconImage?: string;
   label: string;
-  description: string;
   download?: boolean;
   external?: boolean;
   appIcon?: boolean;

@@ -15,26 +15,8 @@ pub struct HookInfo {
 
 impl HookInfo {
     pub fn doc_render(&self) -> String {
-        let mut content = String::from("---\n");
-        content.push_str(&format!("name: {}\n", self.name));
-
-        if let Some(desc) = &self.description {
-            content.push_str(&format!("description: {}\n", desc));
-        }
-
-        if !self.args.is_empty() {
-            content.push_str("args:\n");
-            for arg in &self.args {
-                content.push_str(&format!("  - name: {}\n", arg.name));
-                content.push_str(&format!("    type: {}\n", arg.type_name));
-                if let Some(desc) = &arg.description {
-                    content.push_str(&format!("    description: {}\n", desc));
-                }
-            }
-        }
-
-        content.push_str("---\n");
-        content
+        let yaml = serde_yaml::to_string(self).unwrap_or_default();
+        format!("---\n{}---\n", yaml)
     }
 
     pub fn doc_path(&self) -> String {

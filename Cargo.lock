@@ -14881,6 +14881,7 @@ dependencies = [
  "futures-util",
  "serde",
  "serde_json",
+ "serde_yaml",
  "specta",
  "specta-typescript",
  "swc_common",

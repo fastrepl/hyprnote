@@ -15,6 +15,7 @@ import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/main";
 import type { ListModelsResult } from "../shared/list-common";
+import { listGoogleModels } from "../shared/list-google";
 import { listLMStudioModels } from "../shared/list-lmstudio";
 import { listOllamaModels } from "../shared/list-ollama";
 import {
@@ -232,6 +233,9 @@ function useConfiguredMapping(): Record<
             break;
           case "openrouter":
             listModelsFunc = () => listOpenRouterModels(baseUrl, apiKey);
+            break;
+          case "google_generative_ai":
+            listModelsFunc = () => listGoogleModels(baseUrl, apiKey);
             break;
           case "ollama":
             listModelsFunc = () => listOllamaModels(baseUrl, apiKey);

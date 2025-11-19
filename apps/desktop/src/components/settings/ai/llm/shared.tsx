@@ -58,6 +58,15 @@ export const PROVIDERS = [
     requiresPro: false,
   },
   {
+    id: "google_generative_ai",
+    displayName: "Google Gemini",
+    badge: null,
+    icon: <Icon icon="simple-icons:googlegemini" width={16} />,
+    apiKey: true,
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+    requiresPro: false,
+  },
+  {
     id: "custom",
     displayName: "Custom",
     badge: null,

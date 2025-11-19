@@ -1,3 +1,4 @@
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { Effect } from "effect";
 
 export type ModelIgnoreReason =
@@ -32,14 +33,15 @@ export const commonIgnoreKeywords = [
 
 export const fetchJson = (url: string, headers: Record<string, string>) =>
   Effect.tryPromise({
-    try: () =>
-      fetch(url, { headers }).then((r) => {
-        if (!r.ok) {
-          throw new Error(`HTTP ${r.status}`);
-        }
-        return r.json();
-      }),
-    catch: () => new Error("Fetch failed"),
+    try: async () => {
+      const r = await tauriFetch(url, { method: "GET", headers });
+      if (!r.ok) {
+        const errorBody = await r.text();
+        throw new Error(`HTTP ${r.status}: ${errorBody}`);
+      }
+      return r.json();
+    },
+    catch: (e) => e,
   });
 
 export const shouldIgnoreCommonKeywords = (id: string): boolean => {

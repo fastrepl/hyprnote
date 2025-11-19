@@ -170,7 +170,7 @@ function Group({
 
   const handleTabClick = async (tab: TabKey) => {
     if (tab === "feedback") {
-      await openUrl("https://hyprnote.canny.io/feature-requests");
+      await openUrl("https://github.com/fastrepl/hyprnote/discussions");
     } else if (tab === "developers") {
       await openUrl("https://cal.com/team/hyprnote/welcome");
     } else {

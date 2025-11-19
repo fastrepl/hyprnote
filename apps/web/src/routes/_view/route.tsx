@@ -575,24 +575,6 @@ function Footer() {
                 </li>
                 <li>
                   <Link
-                    to="/about"
-                    search={{ section: "founders" }}
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                  >
-                    Founders
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/about"
-                    search={{ section: "team" }}
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                  >
-                    Team
-                  </Link>
-                </li>
-                <li>
-                  <Link
                     to="/brand"
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
@@ -605,24 +587,6 @@ function Footer() {
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
                     Enterprise
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/legal/$slug"
-                    params={{ slug: "privacy" }}
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                  >
-                    Privacy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/legal/$slug"
-                    params={{ slug: "terms" }}
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                  >
-                    Terms
                   </Link>
                 </li>
               </ul>

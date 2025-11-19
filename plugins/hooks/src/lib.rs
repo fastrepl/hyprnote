@@ -1,4 +1,5 @@
 mod commands;
+mod config;
 mod error;
 mod ext;
 
@@ -12,6 +13,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::ping::<tauri::Wry>,
+            commands::after_listening_stopped::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

@@ -14,6 +14,14 @@ async ping(value: string | null) : Promise<Result<string | null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async afterListeningStopped(args: AfterListeningStoppedArgs) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|after_listening_stopped", { args }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -27,7 +35,7 @@ async ping(value: string | null) : Promise<Result<string | null, string>> {
 
 /** user-defined types **/
 
-
+export type AfterListeningStoppedArgs = { session_id: string }
 
 /** tauri-specta globals **/
 

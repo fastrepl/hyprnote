@@ -302,7 +302,7 @@ function BrandDetailView({
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
       />
-      <ResizableHandle withHandle className="bg-neutral-200" />
+      <ResizableHandle withHandle className="bg-neutral-200 w-px" />
       <BrandDetailPanel
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}

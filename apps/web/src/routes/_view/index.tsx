@@ -372,6 +372,8 @@ function HeroSection({
                       (heroCTA.subtextLink ? (
                         <Link
                           to={heroCTA.subtextLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-neutral-500 hover:text-neutral-700 hover:underline decoration-dotted mt-4 text-sm block transition-colors"
                         >
                           {heroCTA.subtext}

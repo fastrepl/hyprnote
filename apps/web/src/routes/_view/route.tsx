@@ -567,7 +567,6 @@ function Footer() {
                 <li>
                   <Link
                     to="/about"
-                    search={{ section: "us" }}
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
                     About us

@@ -77,8 +77,8 @@ function LeftSidebar() {
   }, []);
 
   return (
-    <aside className="hidden md:block w-64 flex-shrink-0">
-      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto space-y-6 px-4 py-6">
+    <aside className="hidden md:block w-64 shrink-0">
+      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6">
         <nav className="space-y-4">
           {docsBySection.map((section) => (
             <div key={section.title}>

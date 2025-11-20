@@ -8,7 +8,7 @@ import type {
 
 import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 import type { HandlePersistCallback } from "./transcript";
-import { fixSpacingForWords } from "./transcript";
+import { fixSpacingForWords } from "./utils";
 
 export type BatchState = {
   batch: Record<

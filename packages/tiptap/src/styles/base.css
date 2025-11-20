@@ -9,7 +9,7 @@
   min-height: 100%;
 }
 
-.tiptap-normal {
+.tiptap {
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;

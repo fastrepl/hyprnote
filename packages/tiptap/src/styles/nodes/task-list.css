@@ -1,4 +1,4 @@
-.tiptap-normal {
+.tiptap {
   /* task list */
   ul[data-type="taskList"] {
     list-style: none;

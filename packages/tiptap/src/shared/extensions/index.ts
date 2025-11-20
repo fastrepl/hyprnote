@@ -1,3 +1,4 @@
+import FileHandler from "@tiptap/extension-file-handler";
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
@@ -16,7 +17,33 @@ import { SearchAndReplace } from "./search-and-replace";
 
 export type { PlaceholderFunction };
 
-export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
+export type FileHandlerConfig = {
+  onDrop?: (files: File[], editor: any, position?: number) => boolean | void;
+  onPaste?: (files: File[], editor: any) => boolean | void;
+};
+
+const AttachmentImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      attachmentId: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-attachment-id"),
+        renderHTML: (attributes) => {
+          if (!attributes.attachmentId) {
+            return {};
+          }
+          return { "data-attachment-id": attributes.attachmentId };
+        },
+      },
+    };
+  },
+});
+
+export const getExtensions = (
+  placeholderComponent?: PlaceholderFunction,
+  fileHandlerConfig?: FileHandlerConfig,
+) => [
   // https://tiptap.dev/docs/editor/extensions/functionality/starterkit
   StarterKit.configure({
     heading: { levels: [1, 2, 3] },
@@ -24,7 +51,11 @@ export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
     link: false,
     listKeymap: false,
   }),
-  Image,
+  AttachmentImage.configure({
+    inline: false,
+    allowBase64: true,
+    HTMLAttributes: { class: "tiptap-image" },
+  }),
   Underline,
   Placeholder.configure({
     placeholder:
@@ -86,6 +117,72 @@ export const getExtensions = (placeholderComponent?: PlaceholderFunction) => [
     searchResultClass: "search-result",
     disableRegex: true,
   }),
+  ...(fileHandlerConfig
+    ? [
+        FileHandler.configure({
+          allowedMimeTypes: [
+            "image/png",
+            "image/jpeg",
+            "image/gif",
+            "image/webp",
+          ],
+          onDrop: (currentEditor, files, pos) => {
+            if (fileHandlerConfig.onDrop) {
+              const result = fileHandlerConfig.onDrop(
+                files,
+                currentEditor,
+                pos,
+              );
+              if (result === false) return false;
+            }
+
+            files.forEach((file) => {
+              const fileReader = new FileReader();
+
+              fileReader.readAsDataURL(file);
+              fileReader.onload = () => {
+                currentEditor
+                  .chain()
+                  .insertContentAt(pos, {
+                    type: "image",
+                    attrs: {
+                      src: fileReader.result,
+                    },
+                  })
+                  .focus()
+                  .run();
+              };
+            });
+
+            return true;
+          },
+          onPaste: (currentEditor, files) => {
+            if (fileHandlerConfig.onPaste) {
+              const result = fileHandlerConfig.onPaste(files, currentEditor);
+              if (result === false) return false;
+            }
+
+            files.forEach((file) => {
+              const fileReader = new FileReader();
+
+              fileReader.readAsDataURL(file);
+              fileReader.onload = () => {
+                const imageNode = {
+                  type: "image",
+                  attrs: {
+                    src: fileReader.result,
+                  },
+                };
+
+                currentEditor.chain().focus().insertContent(imageNode).run();
+              };
+            });
+
+            return true;
+          },
+        }),
+      ]
+    : []),
 ];
 
 export const extensions = getExtensions();

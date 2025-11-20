@@ -1,3 +1,14 @@
+.tiptap-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tiptap-root .tiptap {
+  flex: 1 1 auto;
+  min-height: 100%;
+}
+
 .tiptap-normal {
   word-break: break-word;
   overflow-wrap: break-word;
@@ -5,6 +16,7 @@
   hyphens: auto;
   padding-bottom: 24px;
   caret-color: #374151;
+  min-height: 100%;
 
   :first-child {
     margin-top: 0;
@@ -18,5 +30,11 @@
 
   p {
     margin-bottom: 0.25rem;
+  }
+
+  .tiptap-image {
+    max-width: 240px;
+    height: auto;
+    display: block;
   }
 }

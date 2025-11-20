@@ -9,7 +9,10 @@ import {
   useCreateManager,
 } from "tinytick/ui-react";
 
-import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import {
+  getCurrentWebviewWindowLabel,
+  init as initWindowsPlugin,
+} from "@hypr/plugin-windows";
 import "@hypr/ui/globals.css";
 
 import { TaskManager } from "./components/task-manager";
@@ -81,6 +84,8 @@ function AppWithTiny() {
     </QueryClientProvider>
   );
 }
+
+initWindowsPlugin();
 
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {

@@ -3934,6 +3934,7 @@ dependencies = [
  "tauri-plugin-auth",
  "tauri-plugin-autostart",
  "tauri-plugin-cli",
+ "tauri-plugin-cli2",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-db2",
  "tauri-plugin-deep-link",
@@ -14749,6 +14750,21 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "tauri-plugin-cli2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-cli",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "vergen-gix",
 ]
 
 [[package]]

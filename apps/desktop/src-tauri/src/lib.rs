@@ -5,7 +5,6 @@ mod store;
 use ext::*;
 use store::*;
 
-use tauri_plugin_cli::CliExt;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -46,6 +45,7 @@ pub async fn main() {
 
     builder = builder
         .plugin(tauri_plugin_cli::init())
+        .plugin(tauri_plugin_cli2::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_auth::init())
@@ -90,31 +90,6 @@ pub async fn main() {
         .invoke_handler(specta_builder.invoke_handler())
         .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
-<<<<<<< ours
-||||||| ancestor
-            match app.cli().matches() {
-                Ok(matches) => {
-                    println!("{matches:?}");
-                }
-                Err(error) => {
-                    println!("failed to read CLI matches: {error}");
-                }
-            }
-
-=======
-            match app.cli().matches() {
-                Ok(matches) => {
-                    if matches.args.contains_key("help") || matches.args.contains_key("version") {
-                        std::process::exit(0);
-                    }
-                }
-                Err(error) => {
-                    eprintln!("failed to read CLI matches: {error}");
-                    std::process::exit(1);
-                }
-            }
-
->>>>>>> theirs
             let app_handle = app.handle().clone();
 
             let app_clone = app_handle.clone();

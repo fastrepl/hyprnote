@@ -12,23 +12,39 @@ export const getCurrentWebviewWindowLabel = () => {
 };
 
 export const init = () => {
-  document.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
+  const allowDropAttribute = "[data-allow-file-drop='true']";
+  const shouldAllow = (event: DragEvent) => {
+    if (!(event.target instanceof Element)) {
+      return false;
+    }
+    return Boolean(event.target.closest(allowDropAttribute));
+  };
 
-  document.addEventListener("drop", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
+  const preventUnlessAllowed = (event: DragEvent) => {
+    const allowed = shouldAllow(event);
 
-  document.addEventListener("dragenter", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
+    if (event.type === "dragover" || event.type === "drop") {
+      // Always prevent the browser's default "open file in this window"
+      // behaviour so the webview doesn't navigate away.
+      event.preventDefault();
 
-  document.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
+      // Outside allowed regions we also stop propagation so nothing else
+      // (including Tiptap) sees the event.
+      if (!allowed) {
+        event.stopPropagation();
+      }
+      return;
+    }
+
+    // For dragenter / dragleave we only block events outside allowed areas.
+    if (!allowed) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+
+  document.addEventListener("dragover", preventUnlessAllowed);
+  document.addEventListener("drop", preventUnlessAllowed);
+  document.addEventListener("dragenter", preventUnlessAllowed);
+  document.addEventListener("dragleave", preventUnlessAllowed);
 };

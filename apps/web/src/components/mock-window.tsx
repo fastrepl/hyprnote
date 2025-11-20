@@ -24,7 +24,7 @@ export function MockWindow({
         className,
       ])}
     >
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-200 bg-neutral-50">
+      <div className="relative flex items-center gap-2 px-4 py-3 border-b border-neutral-200 bg-neutral-50">
         <div className="flex gap-2">
           <div className="size-3 rounded-full bg-red-400"></div>
           <div className="size-3 rounded-full bg-yellow-400"></div>
@@ -32,7 +32,7 @@ export function MockWindow({
         </div>
 
         {title && (
-          <div className="flex-1 text-center">
+          <div className="absolute left-1/2 -translate-x-1/2">
             <span className="text-sm text-neutral-600 font-medium">
               {title}
             </span>

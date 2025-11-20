@@ -3933,6 +3933,7 @@ dependencies = [
  "tauri-plugin-analytics",
  "tauri-plugin-auth",
  "tauri-plugin-autostart",
+ "tauri-plugin-cli",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-db2",
  "tauri-plugin-deep-link",
@@ -14728,6 +14729,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "459383cebc193cdd03d1ba4acc40f2c408a7abce419d64bdcd2d745bc2886f70"
 dependencies = [
  "auto-launch",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.17",
+]
+
+[[package]]
+name = "tauri-plugin-cli"
+version = "2.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28e78fb2c09a81546bcd376d34db4bda5769270d00990daa9f0d6e7ac1107e25"
+dependencies = [
+ "clap",
+ "log",
  "serde",
  "serde_json",
  "tauri",

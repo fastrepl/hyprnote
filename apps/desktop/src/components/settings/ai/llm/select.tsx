@@ -146,12 +146,7 @@ export function SelectProviderAndModel() {
               const providerRequiresPro = providerDef?.requiresPro ?? false;
               const locked = providerRequiresPro && !billing.isPro;
 
-              const listModels = () => {
-                if (!maybeListModels || locked) {
-                  return { models: [], ignored: [] };
-                }
-                return maybeListModels();
-              };
+              const listModels = !locked ? maybeListModels : undefined;
 
               return (
                 <div className="flex-[3] min-w-0">
@@ -184,7 +179,7 @@ export function SelectProviderAndModel() {
 
 function useConfiguredMapping(): Record<
   string,
-  null | (() => Promise<ListModelsResult>)
+  undefined | (() => Promise<ListModelsResult>)
 > {
   const auth = useAuth();
   const billing = useBillingAccess();
@@ -262,7 +257,7 @@ function useConfiguredMapping(): Record<
 
         return [provider.id, listModelsFunc];
       }),
-    ) as Record<string, null | (() => Promise<ListModelsResult>)>;
+    ) as Record<string, undefined | (() => Promise<ListModelsResult>)>;
   }, [configuredProviders, auth, billing]);
 
   return mapping;

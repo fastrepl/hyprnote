@@ -209,7 +209,7 @@ async fn spawn_rx_task(
                 .params(owhisper_interface::ListenParams {
                     model: Some(args.model.clone()),
                     languages: args.languages.clone(),
-                    sample_rate: 16000,
+                    sample_rate: super::SAMPLE_RATE,
                     redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
                     keywords: args.keywords.clone(),
                     ..Default::default()

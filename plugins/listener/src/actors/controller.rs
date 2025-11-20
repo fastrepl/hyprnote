@@ -1,6 +1,5 @@
 use std::time::{Instant, SystemTime};
 
-use tauri::Manager;
 use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 

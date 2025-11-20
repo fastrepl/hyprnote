@@ -16,11 +16,13 @@ pub struct ResamplerDynamicOld<S: AsyncSource> {
     interp: dasp::interpolate::linear::Linear<f32>,
     last_sample: f32,
     seeded: bool,
+    bypass: bool,
 }
 
 impl<S: AsyncSource> ResamplerDynamicOld<S> {
     pub fn new(source: S, target_sample_rate: u32) -> Self {
         let initial_rate = source.sample_rate();
+        let bypass = initial_rate == target_sample_rate;
         Self {
             source,
             target_sample_rate,
@@ -30,6 +32,7 @@ impl<S: AsyncSource> ResamplerDynamicOld<S> {
             interp: dasp::interpolate::linear::Linear::new(0.0, 0.0),
             last_sample: 0.0,
             seeded: false,
+            bypass,
         }
     }
 
@@ -41,6 +44,7 @@ impl<S: AsyncSource> ResamplerDynamicOld<S> {
         }
 
         self.last_source_rate = new_rate;
+        self.bypass = new_rate == self.target_sample_rate;
         self.ratio = new_rate as f64 / self.target_sample_rate as f64;
         self.phase = 0.0;
         self.interp = dasp::interpolate::linear::Linear::new(self.last_sample, self.last_sample);
@@ -57,6 +61,10 @@ impl<S: AsyncSource + Unpin> Stream for ResamplerDynamicOld<S> {
 
         let inner = me.source.as_stream();
         pin_mut!(inner);
+
+        if me.bypass {
+            return inner.as_mut().poll_next(cx);
+        }
 
         if !me.seeded {
             match inner.as_mut().poll_next(cx) {

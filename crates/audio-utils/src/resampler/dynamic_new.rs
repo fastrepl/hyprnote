@@ -18,6 +18,107 @@ pub trait ResampleExtDynamicNew: AsyncSource + Sized + Unpin {
 
 impl<T> ResampleExtDynamicNew for T where T: AsyncSource + Sized + Unpin {}
 
+enum Backend {
+    Passthrough(Vec<f32>),
+    Resampler(RubatoChunkResampler<FastFixedIn<f32>, 1>),
+}
+
+impl Backend {
+    fn passthrough(capacity: usize) -> Self {
+        Self::Passthrough(Vec::with_capacity(capacity))
+    }
+
+    fn ensure_passthrough(&mut self, capacity: usize) {
+        match self {
+            Self::Passthrough(buffer) => buffer.clear(),
+            Self::Resampler(_) => *self = Self::passthrough(capacity),
+        }
+    }
+
+    fn ensure_resampler(
+        &mut self,
+        resampler: FastFixedIn<f32>,
+        output_chunk_size: usize,
+        input_block_size: usize,
+    ) {
+        match self {
+            Self::Passthrough(_) => {
+                *self = Self::Resampler(RubatoChunkResampler::new(
+                    resampler,
+                    output_chunk_size,
+                    input_block_size,
+                ));
+            }
+            Self::Resampler(driver) => {
+                driver.rebind_resampler(resampler, output_chunk_size, input_block_size)
+            }
+        }
+    }
+
+    fn push_sample(&mut self, sample: f32) {
+        match self {
+            Self::Passthrough(buffer) => buffer.push(sample),
+            Self::Resampler(driver) => driver.push_sample(sample),
+        }
+    }
+
+    fn try_yield_chunk(&mut self, chunk_size: usize, allow_partial: bool) -> Option<Vec<f32>> {
+        match self {
+            Self::Passthrough(buffer) => {
+                if buffer.len() >= chunk_size {
+                    Some(buffer.drain(..chunk_size).collect())
+                } else if allow_partial && !buffer.is_empty() {
+                    Some(buffer.drain(..).collect())
+                } else {
+                    None
+                }
+            }
+            Self::Resampler(driver) => {
+                if driver.has_full_chunk() {
+                    driver.take_full_chunk()
+                } else if allow_partial && !driver.output_is_empty() {
+                    driver.take_all_output()
+                } else {
+                    None
+                }
+            }
+        }
+    }
+
+    fn process_all_ready_blocks(&mut self) -> Result<bool, crate::Error> {
+        match self {
+            Self::Passthrough(_) => Ok(false),
+            Self::Resampler(driver) => driver.process_all_ready_blocks(),
+        }
+    }
+
+    fn drain_for_rate_change(&mut self) -> Result<bool, crate::Error> {
+        match self {
+            Self::Passthrough(buffer) => Ok(buffer.is_empty()),
+            Self::Resampler(driver) => {
+                driver.process_all_ready_blocks()?;
+                if driver.has_input() {
+                    driver.process_partial_block(true)?;
+                }
+                Ok(driver.output_is_empty())
+            }
+        }
+    }
+
+    fn drain_at_eos(&mut self) -> Result<(), crate::Error> {
+        match self {
+            Self::Passthrough(_) => Ok(()),
+            Self::Resampler(driver) => {
+                driver.process_all_ready_blocks()?;
+                if driver.has_input() {
+                    driver.process_partial_block(true)?;
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
 pub struct ResamplerDynamicNew<S>
 where
     S: AsyncSource + Unpin,
@@ -26,7 +127,7 @@ where
     target_rate: u32,
     output_chunk_size: usize,
     input_block_size: usize,
-    driver: RubatoChunkResampler<FastFixedIn<f32>, 1>,
+    backend: Backend,
     last_source_rate: u32,
     draining: bool,
 }
@@ -42,53 +143,51 @@ where
     ) -> Result<Self, crate::Error> {
         let source_rate = source.sample_rate();
         let input_block_size = output_chunk_size;
-        let ratio = target_rate as f64 / source_rate as f64;
-        let resampler = Self::create_resampler(ratio, input_block_size)?;
-        let driver = RubatoChunkResampler::new(resampler, output_chunk_size, input_block_size);
+        let backend = if source_rate == target_rate {
+            Backend::passthrough(output_chunk_size)
+        } else {
+            let ratio = target_rate as f64 / source_rate as f64;
+            Backend::Resampler(RubatoChunkResampler::new(
+                Self::create_resampler(ratio, input_block_size)?,
+                output_chunk_size,
+                input_block_size,
+            ))
+        };
         Ok(Self {
             source,
             target_rate,
             output_chunk_size,
             input_block_size,
-            driver,
+            backend,
             last_source_rate: source_rate,
             draining: false,
         })
     }
 
-    fn rebuild_resampler(&mut self, new_rate: u32) -> Result<(), crate::Error> {
-        let ratio = self.target_rate as f64 / new_rate as f64;
-        let resampler = Self::create_resampler(ratio, self.input_block_size)?;
-        self.driver
-            .rebind_resampler(resampler, self.output_chunk_size, self.input_block_size);
+    fn rebuild_backend(&mut self, new_rate: u32) -> Result<(), crate::Error> {
+        if new_rate == self.target_rate {
+            self.backend.ensure_passthrough(self.output_chunk_size);
+        } else {
+            let ratio = self.target_rate as f64 / new_rate as f64;
+            let resampler = Self::create_resampler(ratio, self.input_block_size)?;
+            self.backend
+                .ensure_resampler(resampler, self.output_chunk_size, self.input_block_size);
+        }
         self.last_source_rate = new_rate;
         Ok(())
     }
 
-    fn try_yield_chunk(&mut self) -> Option<Vec<f32>> {
-        if self.driver.has_full_chunk() {
-            self.driver.take_full_chunk()
-        } else if self.draining && !self.driver.output_is_empty() {
-            self.driver.take_all_output()
-        } else {
-            None
-        }
+    fn try_yield_chunk(&mut self, allow_partial: bool) -> Option<Vec<f32>> {
+        self.backend
+            .try_yield_chunk(self.output_chunk_size, allow_partial)
     }
 
     fn drain_for_rate_change(&mut self) -> Result<bool, crate::Error> {
-        self.driver.process_all_ready_blocks()?;
-        if self.driver.has_input() {
-            self.driver.process_partial_block(true)?;
-        }
-        Ok(self.driver.output_is_empty())
+        self.backend.drain_for_rate_change()
     }
 
     fn drain_at_eos(&mut self) -> Result<(), crate::Error> {
-        self.driver.process_all_ready_blocks()?;
-        if self.driver.has_input() {
-            self.driver.process_partial_block(true)?;
-        }
-        Ok(())
+        self.backend.drain_at_eos()
     }
 
     fn create_resampler(
@@ -116,7 +215,7 @@ where
         let me = Pin::into_inner(self);
 
         loop {
-            if let Some(chunk) = me.try_yield_chunk() {
+            if let Some(chunk) = me.try_yield_chunk(me.draining) {
                 return Poll::Ready(Some(Ok(chunk)));
             }
 
@@ -128,21 +227,14 @@ where
             if current_rate != me.last_source_rate {
                 match me.drain_for_rate_change() {
                     Ok(true) => {
-                        if let Err(err) = me.rebuild_resampler(current_rate) {
+                        if let Err(err) = me.rebuild_backend(current_rate) {
                             return Poll::Ready(Some(Err(err)));
                         }
                         continue;
                     }
                     Ok(false) => {
-                        if me.driver.has_full_chunk() {
-                            if let Some(chunk) = me.driver.take_full_chunk() {
-                                return Poll::Ready(Some(Ok(chunk)));
-                            }
-                        }
-                        if !me.driver.output_is_empty() {
-                            if let Some(chunk) = me.driver.take_all_output() {
-                                return Poll::Ready(Some(Ok(chunk)));
-                            }
+                        if let Some(chunk) = me.try_yield_chunk(true) {
+                            return Poll::Ready(Some(Ok(chunk)));
                         }
                         continue;
                     }
@@ -150,7 +242,7 @@ where
                 }
             }
 
-            match me.driver.process_all_ready_blocks() {
+            match me.backend.process_all_ready_blocks() {
                 Ok(true) => continue,
                 Ok(false) => {}
                 Err(err) => return Poll::Ready(Some(Err(err))),
@@ -164,7 +256,7 @@ where
 
             match sample_poll {
                 Poll::Ready(Some(sample)) => {
-                    me.driver.push_sample(sample);
+                    me.backend.push_sample(sample);
                 }
                 Poll::Ready(None) => {
                     if let Err(err) = me.drain_at_eos() {

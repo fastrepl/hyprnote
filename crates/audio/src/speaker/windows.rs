@@ -143,6 +143,8 @@ impl SpeakerStream {
 
                             let len = queue.len();
                             if len > 8192 {
+                                let dropped = len - 8192;
+                                tracing::warn!(dropped, "samples_dropped");
                                 queue.drain(0..(len - 8192));
                             }
                         }

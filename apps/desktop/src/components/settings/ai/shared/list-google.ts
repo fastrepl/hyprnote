@@ -2,7 +2,9 @@ import { Effect, pipe, Schema } from "effect";
 
 import {
   DEFAULT_RESULT,
+  extractMetadataMap,
   fetchJson,
+  type InputModality,
   type ListModelsResult,
   type ModelIgnoreReason,
   partition,
@@ -53,11 +55,20 @@ export async function listGoogleModels(
   return pipe(
     fetchJson(`${baseUrl}/models`, { "x-goog-api-key": apiKey }),
     Effect.andThen((json) => Schema.decodeUnknown(GoogleModelSchema)(json)),
-    Effect.map(({ models }) =>
-      partition(models, getIgnoreReasons, extractModelId),
-    ),
+    Effect.map(({ models }) => ({
+      ...partition(models, getIgnoreReasons, extractModelId),
+      metadata: extractMetadataMap(models, extractModelId, (model) => ({
+        input_modalities: getInputModalities(extractModelId(model)),
+      })),
+    })),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
   );
 }
+
+const getInputModalities = (modelId: string): InputModality[] => {
+  const normalizedId = modelId.toLowerCase();
+  const supportsMultimodal = /gemini/.test(normalizedId);
+  return supportsMultimodal ? ["text", "image"] : ["text"];
+};

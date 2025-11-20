@@ -2,7 +2,9 @@ import { Effect, pipe, Schema } from "effect";
 
 import {
   DEFAULT_RESULT,
+  extractMetadataMap,
   fetchJson,
+  type InputModality,
   type ListModelsResult,
   type ModelIgnoreReason,
   partition,
@@ -39,8 +41,8 @@ export async function listAnthropicModels(
       "anthropic-dangerous-direct-browser-access": "true",
     }),
     Effect.andThen((json) => Schema.decodeUnknown(AnthropicModelSchema)(json)),
-    Effect.map(({ data }) =>
-      partition(
+    Effect.map(({ data }) => ({
+      ...partition(
         data,
         (model) => {
           const reasons: ModelIgnoreReason[] = [];
@@ -51,9 +53,18 @@ export async function listAnthropicModels(
         },
         (model) => model.id,
       ),
-    ),
+      metadata: extractMetadataMap(
+        data,
+        (model) => model.id,
+        (model) => ({ input_modalities: getInputModalities(model.id) }),
+      ),
+    })),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
   );
 }
+
+const getInputModalities = (_modelId: string): InputModality[] => {
+  return ["text", "image"];
+};

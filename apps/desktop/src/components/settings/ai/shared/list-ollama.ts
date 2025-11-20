@@ -6,6 +6,7 @@ import {
   type IgnoredModel,
   type ListModelsResult,
   type ModelIgnoreReason,
+  type ModelMetadata,
   REQUEST_TIMEOUT,
 } from "./list-common";
 
@@ -90,6 +91,7 @@ const summarizeOllamaDetails = (
 ): ListModelsResult => {
   const supported: Array<{ name: string; isRunning: boolean }> = [];
   const ignored: IgnoredModel[] = [];
+  const metadata: Record<string, ModelMetadata> = {};
 
   for (const detail of details) {
     const hasCompletion = detail.capabilities.includes("completion");
@@ -97,6 +99,8 @@ const summarizeOllamaDetails = (
 
     if (hasCompletion && hasTools) {
       supported.push({ name: detail.name, isRunning: detail.isRunning });
+      // TODO: Seems like Ollama do not have way to know input modality.
+      metadata[detail.name] = { input_modalities: ["text"] };
     } else {
       const reasons: ModelIgnoreReason[] = [];
       if (!hasCompletion) {
@@ -119,5 +123,6 @@ const summarizeOllamaDetails = (
   return {
     models: supported.map((detail) => detail.name),
     ignored,
+    metadata,
   };
 };

@@ -2,6 +2,7 @@ import { Effect, pipe, Schema } from "effect";
 
 import {
   DEFAULT_RESULT,
+  extractMetadataMap,
   fetchJson,
   type ListModelsResult,
   type ModelIgnoreReason,
@@ -29,8 +30,8 @@ export async function listOpenAIModels(
   return pipe(
     fetchJson(`${baseUrl}/models`, { Authorization: `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
-    Effect.map(({ data }) =>
-      partition(
+    Effect.map(({ data }) => ({
+      ...partition(
         data,
         (model) => {
           const reasons: ModelIgnoreReason[] = [];
@@ -41,7 +42,12 @@ export async function listOpenAIModels(
         },
         (model) => model.id,
       ),
-    ),
+      metadata: extractMetadataMap(
+        data,
+        (model) => model.id,
+        (_model) => ({ input_modalities: ["text", "image"] }),
+      ),
+    })),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
@@ -59,8 +65,8 @@ export async function listGenericModels(
   return pipe(
     fetchJson(`${baseUrl}/models`, { Authorization: `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenAIModelSchema)(json)),
-    Effect.map(({ data }) =>
-      partition(
+    Effect.map(({ data }) => ({
+      ...partition(
         data,
         (model) => {
           const reasons: ModelIgnoreReason[] = [];
@@ -71,7 +77,12 @@ export async function listGenericModels(
         },
         (model) => model.id,
       ),
-    ),
+      metadata: extractMetadataMap(
+        data,
+        (model) => model.id,
+        () => ({ input_modalities: ["text"] }),
+      ),
+    })),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,

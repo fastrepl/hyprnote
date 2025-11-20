@@ -86,15 +86,16 @@ function Component() {
                       label="Brand"
                     />
                     <FinderFolder
-                      to="/about#founders"
+                      to="/about"
                       folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-purple.png"
-                      label="Founders"
-                    />
-                    <FinderFolder
-                      to="/about#team"
-                      folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-yellow.png"
                       label="Team"
                     />
+                    <div className="invisible">
+                      <div className="mb-3 w-16 h-16"></div>
+                      <div className="font-medium text-stone-600">
+                        Placeholder
+                      </div>
+                    </div>
                   </div>
                 </div>
 

@@ -5,6 +5,7 @@ mod store;
 use ext::*;
 use store::*;
 
+use tauri_plugin_cli::CliExt;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -44,6 +45,7 @@ pub async fn main() {
     }
 
     builder = builder
+        .plugin(tauri_plugin_cli::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_auth::init())
@@ -88,14 +90,23 @@ pub async fn main() {
         .invoke_handler(specta_builder.invoke_handler())
         .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
-            let app = app.handle().clone();
+            match app.cli().matches() {
+                Ok(matches) => {
+                    println!("{matches:?}");
+                }
+                Err(error) => {
+                    println!("failed to read CLI matches: {error}");
+                }
+            }
 
-            let app_clone = app.clone();
+            let app_handle = app.handle().clone();
+
+            let app_clone = app_handle.clone();
 
             {
                 use tauri_plugin_tray::TrayPluginExt;
-                app.create_tray_menu().unwrap();
-                app.create_app_menu().unwrap();
+                app_handle.create_tray_menu().unwrap();
+                app_handle.create_app_menu().unwrap();
             }
 
             tokio::spawn(async move {
@@ -109,7 +120,7 @@ pub async fn main() {
                 // }
             });
 
-            specta_builder.mount_events(&app);
+            specta_builder.mount_events(&app_handle);
             Ok(())
         })
         .build(tauri::generate_context!())

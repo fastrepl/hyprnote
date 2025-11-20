@@ -23,6 +23,7 @@ tauri = { workspace = true, features = ["specta", "macos-private-api", "protocol
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-autostart = { workspace = true }
+tauri-plugin-cli = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-db2 = { workspace = true }
 tauri-plugin-deep-link = { workspace = true }

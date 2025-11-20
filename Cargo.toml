@@ -92,6 +92,7 @@ tauri-build = "2.5"
 tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin = "2.5"
 tauri-plugin-autostart = "2.5"
+tauri-plugin-cli = "2.4"
 tauri-plugin-clipboard-manager = "2.3"
 tauri-plugin-deep-link = "2.4"
 tauri-plugin-dialog = "2.3"

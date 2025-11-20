@@ -73,6 +73,7 @@
     "@xstate/react": "^6.0.0",
     "@xstate/store": "^3.11.2",
     "ai": "^5.0.93",
+    "async-mutex": "^0.5.0",
     "chroma-js": "^3.1.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

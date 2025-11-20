@@ -21,7 +21,6 @@ use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, Dev
 use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
 use tauri_specta::Event;
 
-const SAMPLE_RATE: u32 = 16 * 1000;
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 
 pub enum SourceMsg {
@@ -262,19 +261,19 @@ async fn start_source_loop(
     let handle = tokio::spawn(async move {
         let mic_stream = {
             let mut mic_input = AudioInput::from_mic(mic_device.clone()).unwrap();
-            let chunk_size = chunk_size_for_stt(SAMPLE_RATE);
+            let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
             mic_input
                 .stream()
-                .resampled_chunks(SAMPLE_RATE, chunk_size)
+                .resampled_chunks(super::SAMPLE_RATE, chunk_size)
                 .unwrap()
         };
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
         let spk_stream = {
             let mut spk_input = hypr_audio::AudioInput::from_speaker();
-            let chunk_size = chunk_size_for_stt(SAMPLE_RATE);
+            let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
             spk_input
                 .stream()
-                .resampled_chunks(SAMPLE_RATE, chunk_size)
+                .resampled_chunks(super::SAMPLE_RATE, chunk_size)
                 .unwrap()
         };
 

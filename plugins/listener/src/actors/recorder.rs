@@ -59,7 +59,7 @@ impl Actor for RecorderActor {
 
         let spec = hound::WavSpec {
             channels: 1,
-            sample_rate: 16000,
+            sample_rate: super::SAMPLE_RATE,
             bits_per_sample: 32,
             sample_format: hound::SampleFormat::Float,
         };

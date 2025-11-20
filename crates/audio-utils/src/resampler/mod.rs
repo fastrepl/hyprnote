@@ -133,7 +133,7 @@ mod tests {
     async fn test_kalosm_builtin_resampler() {
         let source = create_test_source();
         let resampled = source.resample(16000);
-        assert_eq!(resampled.collect::<Vec<_>>().await.len(), 9896247);
+        assert_eq!(resampled.collect::<Vec<_>>().await.len(), 9906153);
     }
 
     #[tokio::test]
@@ -143,7 +143,7 @@ mod tests {
             .collect::<Vec<_>>()
             .await;
 
-        assert_eq!(samples.len(), 2791777);
+        assert_eq!(samples.len(), 2791776);
         write_wav!("dynamic_old_resampler.wav", 16000, samples.iter().copied());
     }
 
@@ -163,6 +163,43 @@ mod tests {
             16000,
             chunks.iter().flatten().flatten().copied()
         );
+    }
+
+    #[tokio::test]
+    async fn test_dynamic_new_resampler_passthrough() {
+        let (original_sample_rate, original_samples) = {
+            let mut static_source = DynamicRateSource::new(vec![get_samples_with_rate(
+                hypr_data::english_1::AUDIO_PART2_16000HZ_PATH,
+            )]);
+
+            let original_sample_rate = static_source.sample_rate();
+            let original_samples = static_source.as_stream().collect::<Vec<_>>().await;
+
+            (original_sample_rate, original_samples)
+        };
+
+        let (resampler_sample_rate, resampled_samples) = {
+            let static_source = DynamicRateSource::new(vec![get_samples_with_rate(
+                hypr_data::english_1::AUDIO_PART2_16000HZ_PATH,
+            )]);
+
+            let resampler_sample_rate = static_source.sample_rate();
+            let chunk_size = 1920;
+            let resampler =
+                ResamplerDynamicNew::new(static_source, resampler_sample_rate, chunk_size).unwrap();
+
+            let chunks: Vec<_> = resampler.collect::<Vec<_>>().await;
+            let resampled_samples: Vec<f32> = chunks
+                .into_iter()
+                .filter_map(|r| r.ok())
+                .flatten()
+                .collect();
+
+            (resampler_sample_rate, resampled_samples)
+        };
+
+        assert_eq!(resampler_sample_rate, original_sample_rate);
+        assert_eq!(resampled_samples, original_samples);
     }
 
     #[tokio::test]

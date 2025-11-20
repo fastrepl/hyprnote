@@ -1,117 +1,188 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import semver from "semver";
 
 import { type ChangelogWithMeta, getChangelogList } from "@/changelog";
+import { MockWindow } from "@/components/mock-window";
 
 export const Route = createFileRoute("/_view/changelog/")({
   component: Component,
   loader: async () => {
     const changelogs = getChangelogList();
-
     return { changelogs };
   },
 });
 
+type SemanticVersionGroup = {
+  baseVersion: string;
+  versions: ChangelogWithMeta[];
+};
+
+function groupBySemanticVersion(
+  changelogs: ChangelogWithMeta[],
+): SemanticVersionGroup[] {
+  const groups = new Map<string, ChangelogWithMeta[]>();
+
+  for (const changelog of changelogs) {
+    const version = semver.parse(changelog.version);
+    if (version) {
+      const baseVersion = `${version.major}.${version.minor}.${version.patch}`;
+      if (!groups.has(baseVersion)) {
+        groups.set(baseVersion, []);
+      }
+      groups.get(baseVersion)!.push(changelog);
+    }
+  }
+
+  return Array.from(groups.entries())
+    .map(([baseVersion, versions]) => ({
+      baseVersion,
+      versions,
+    }))
+    .sort((a, b) => semver.rcompare(a.baseVersion, b.baseVersion));
+}
+
 function Component() {
   const { changelogs } = Route.useLoaderData();
+  const groups = groupBySemanticVersion(changelogs);
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <header className="mb-16 text-center">
-          <div className="inline-flex items-center justify-center size-16 rounded-full bg-stone-50 border border-neutral-100 mb-6">
-            <Icon icon="mdi:update" className="text-3xl text-stone-600" />
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">
-            Changelog
-          </h1>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-            Track every update, improvement, and fix to Hyprnote
-          </p>
-        </header>
-
-        {changelogs.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="mb-6">
-              <Icon
-                icon="mdi:clipboard-text-outline"
-                className="text-6xl text-neutral-300 mx-auto"
-              />
-            </div>
-            <p className="text-neutral-500">No releases yet. Stay tuned!</p>
-          </div>
-        ) : (
-          <div className="relative">
-            <div className="absolute left-8 top-0 bottom-0 w-px bg-neutral-200 hidden sm:block" />
-
-            <div className="space-y-12">
-              {changelogs.map((changelog, index) => (
-                <ChangelogCard
-                  key={changelog._meta.filePath}
-                  changelog={changelog}
-                  isFirst={index === 0}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+    <div
+      className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
+      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
+        <HeroSection />
+        <ChangelogContentSection groups={groups} />
       </div>
     </div>
   );
 }
 
-function ChangelogCard({
-  changelog,
+function HeroSection() {
+  return (
+    <div className="px-6 py-16 lg:py-24">
+      <div className="text-center max-w-3xl mx-auto">
+        <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
+          Changelog
+        </h1>
+        <p className="text-lg sm:text-xl text-neutral-600">
+          Track every update, improvement, and fix to Hyprnote
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ChangelogContentSection({
+  groups,
+}: {
+  groups: SemanticVersionGroup[];
+}) {
+  return (
+    <section className="px-6 pb-16 lg:pb-24">
+      <div className="max-w-4xl mx-auto">
+        <MockWindow title="Changelog" className="rounded-lg w-full max-w-none">
+          <div className="h-[480px] overflow-y-auto">
+            <ChangelogGridView groups={groups} />
+          </div>
+          <ChangelogStatusBar groups={groups} />
+        </MockWindow>
+      </div>
+    </section>
+  );
+}
+
+function ChangelogGridView({ groups }: { groups: SemanticVersionGroup[] }) {
+  if (groups.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center p-8">
+        <div className="mb-6">
+          <Icon
+            icon="mdi:clipboard-text-outline"
+            className="text-6xl text-neutral-300"
+          />
+        </div>
+        <p className="text-neutral-500">No releases yet. Stay tuned!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8">
+      {groups.map((group, index) => (
+        <VersionGroup
+          key={group.baseVersion}
+          group={group}
+          isFirst={index === 0}
+        />
+      ))}
+    </div>
+  );
+}
+
+function VersionGroup({
+  group,
   isFirst,
 }: {
-  changelog: ChangelogWithMeta;
+  group: SemanticVersionGroup;
   isFirst: boolean;
 }) {
+  return (
+    <div className={isFirst ? "mb-8" : "mb-8 border-t border-neutral-100 pt-8"}>
+      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+        Version {group.baseVersion}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
+        {group.versions.map((changelog) => (
+          <VersionIcon key={changelog.slug} changelog={changelog} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VersionIcon({ changelog }: { changelog: ChangelogWithMeta }) {
+  const version = semver.parse(changelog.version);
+  const isPrerelease = version && version.prerelease.length > 0;
+  const iconUrl = isPrerelease
+    ? "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/nightly-icon.png"
+    : "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png";
+
   return (
     <Link
       to="/changelog/$slug"
       params={{ slug: changelog.slug }}
-      className="group block"
+      className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
     >
-      <article className="relative sm:pl-16">
-        <div className="absolute left-0 top-2 hidden sm:flex items-center justify-center">
-          <div className="size-16 rounded-full bg-white border-2 border-neutral-200 group-hover:border-stone-400 transition-colors flex items-center justify-center">
-            <Icon
-              icon={isFirst ? "mdi:star" : "mdi:package-variant"}
-              className="text-2xl text-stone-600 group-hover:text-stone-800 transition-colors"
-            />
-          </div>
-        </div>
-
-        <div className="border border-neutral-100 rounded-sm bg-white hover:shadow-lg hover:border-neutral-200 transition-all duration-300 p-8">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-2xl font-serif text-stone-600 group-hover:text-stone-800 transition-colors">
-                  v{changelog.version}
-                </h2>
-                {isFirst && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-stone-100 text-stone-700 rounded-full">
-                    <Icon icon="mdi:star" className="text-sm" />
-                    Latest
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <Icon
-              icon="mdi:arrow-right"
-              className="text-xl text-neutral-400 group-hover:text-stone-600 group-hover:translate-x-1 transition-all shrink-0"
-            />
-          </div>
-
-          <div className="flex items-center text-sm text-neutral-500">
-            <span className="group-hover:text-stone-600 transition-colors font-medium">
-              View release notes →
-            </span>
-          </div>
-        </div>
-      </article>
+      <div className="mb-3 w-16 h-16 flex items-center justify-center">
+        <img
+          src={iconUrl}
+          alt={`Version ${changelog.version}`}
+          width={64}
+          height={64}
+          className="w-16 h-16 group-hover:scale-110 transition-transform"
+        />
+      </div>
+      <div className="font-medium text-stone-600 text-sm">
+        v{changelog.version}
+      </div>
     </Link>
+  );
+}
+
+function ChangelogStatusBar({ groups }: { groups: SemanticVersionGroup[] }) {
+  const totalVersions = groups.reduce(
+    (sum, group) => sum + group.versions.length,
+    0,
+  );
+
+  return (
+    <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
+      <span className="text-xs text-neutral-500">
+        {totalVersions} {totalVersions === 1 ? "version" : "versions"},{" "}
+        {groups.length} {groups.length === 1 ? "group" : "groups"}
+      </span>
+    </div>
   );
 }

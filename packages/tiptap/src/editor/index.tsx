@@ -10,6 +10,7 @@ import { useDebounceCallback } from "usehooks-ts";
 
 import "../../styles.css";
 import * as shared from "../shared";
+import type { FileHandlerConfig } from "../shared/extensions";
 import type { PlaceholderFunction } from "../shared/extensions/placeholder";
 import { mention, type MentionConfig } from "./mention";
 
@@ -22,6 +23,7 @@ interface EditorProps {
   setContentFromOutside?: boolean;
   mentionConfig: MentionConfig;
   placeholderComponent?: PlaceholderFunction;
+  fileHandlerConfig?: FileHandlerConfig;
 }
 
 const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
@@ -33,6 +35,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       setContentFromOutside = false,
       mentionConfig,
       placeholderComponent,
+      fileHandlerConfig,
     },
     ref,
   ) => {
@@ -54,10 +57,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
     const extensions = useMemo(
       () => [
-        ...shared.getExtensions(placeholderComponent),
+        ...shared.getExtensions(placeholderComponent, fileHandlerConfig),
         mention(mentionConfig),
       ],
-      [mentionConfig, placeholderComponent],
+      [mentionConfig, placeholderComponent, fileHandlerConfig],
     );
 
     const editorProps: Parameters<typeof useEditor>[0]["editorProps"] = useMemo(
@@ -155,9 +158,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     }, [editor, editable]);
 
     return (
-      <div role="textbox">
-        <EditorContent editor={editor} />
-      </div>
+      <EditorContent editor={editor} className="tiptap-root" role="textbox" />
     );
   },
 );

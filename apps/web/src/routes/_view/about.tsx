@@ -557,180 +557,73 @@ function StoryDetail({ onClose }: { onClose: () => void }) {
 
       <div className="p-4 overflow-y-auto">
         <div className="prose prose-stone max-w-none">
-          <h2 className="text-3xl font-serif text-stone-600 mb-6">
-            Making notetaking effortless
+          <h2 className="text-3xl font-serif text-stone-600 mb-4">
+            How We Landed on Hyprnote
           </h2>
-          <p className="text-lg text-neutral-600 leading-relaxed mb-6">
-            We believe that capturing and organizing your conversations
-            shouldn't be a chore. That's why we built Hyprnote - a tool that
-            listens, learns, and helps you remember what matters.
+          <p className="text-base text-neutral-500 italic mb-8">
+            Our story and what we believe
+          </p>
+
+          <p className="text-base text-neutral-600 leading-relaxed mb-4">
+            Hyprnote didn't start as a note-app. We were actually building an AI
+            hardware toy for kids. It was fun, but for two people, hardware was
+            too slow and too heavy. When we stepped back, we realized the thing
+            we cared about wasn't the toy — it was helping people capture and
+            understand conversations.
+          </p>
+
+          <p className="text-base text-neutral-600 leading-relaxed mb-4">
+            At the same time, I was drowning in meetings and trying every AI
+            notetaker out there. They were slow, distracting, or shipped every
+            word to the cloud. None of them felt like something I'd trust or
+            enjoy using. That became the real beginning of Hyprnote.
+          </p>
+
+          <p className="text-base text-neutral-600 leading-relaxed mb-8">
+            We built the first version quickly. And it showed. Too many
+            features, too many ideas, no clear philosophy. Even after YC, we
+            kept moving without asking the hard questions. The product worked,
+            but it didn't feel right. So we made the hard call: stop patching,
+            start over. Burn it down and rebuild from scratch with a simple,
+            focused point of view.
           </p>
 
           <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">
-            Our Mission
-          </h3>
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-              <Icon
-                icon="mdi:shield-lock"
-                className="text-3xl text-stone-600 mb-3"
-              />
-              <h4 className="text-lg font-serif text-stone-600 mb-2">
-                Privacy First
-              </h4>
-              <p className="text-sm text-neutral-600">
-                Your conversations are personal. We process everything locally
-                on your device using on-device AI, so your data never leaves
-                your computer.
-              </p>
-            </div>
-            <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-              <Icon
-                icon="mdi:lightning-bolt"
-                className="text-3xl text-stone-600 mb-3"
-              />
-              <h4 className="text-lg font-serif text-stone-600 mb-2">
-                Effortless Capture
-              </h4>
-              <p className="text-sm text-neutral-600">
-                Stop worrying about missing important details. Hyprnote captures
-                both your mic and system audio, giving you complete context for
-                every conversation.
-              </p>
-            </div>
-            <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-              <Icon icon="mdi:brain" className="text-3xl text-stone-600 mb-3" />
-              <h4 className="text-lg font-serif text-stone-600 mb-2">
-                Intelligent Organization
-              </h4>
-              <p className="text-sm text-neutral-600">
-                AI helps you find what matters. Automatic transcription, smart
-                summaries, and searchable notes mean you'll never lose track of
-                important information.
-              </p>
-            </div>
-            <div className="p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-              <Icon icon="mdi:tools" className="text-3xl text-stone-600 mb-3" />
-              <h4 className="text-lg font-serif text-stone-600 mb-2">
-                Built for Everyone
-              </h4>
-              <p className="text-sm text-neutral-600">
-                From remote workers to students, from entrepreneurs to
-                executives - Hyprnote adapts to your workflow and helps you work
-                smarter.
-              </p>
-            </div>
-          </div>
-
-          <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">
-            Our Story
+            Our manifesto
           </h3>
           <p className="text-base text-neutral-600 leading-relaxed mb-4">
-            Hyprnote was born from a simple frustration: trying to take notes
-            while staying engaged in important conversations. Whether it was a
-            crucial client call, a brainstorming session with the team, or an
-            online lecture, we found ourselves constantly torn between listening
-            and writing.
+            We believe in the power of notetaking, not notetakers. Meetings
+            should be moments of presence. If you're not adding value, your time
+            is better spent elsewhere — for you and for your team.
           </p>
+
           <p className="text-base text-neutral-600 leading-relaxed mb-4">
-            We looked for solutions, but everything required bots joining
-            meetings, cloud uploads, or compromising on privacy. We knew there
-            had to be a better way.
+            Hyprnote exists to preserve what makes us human: conversations that
+            spark ideas and collaboration that moves work forward. We build
+            tools that amplify human agency, not replace it. No ghost bots. No
+            silent note lurkers. Just people, thinking together.
           </p>
-          <p className="text-base text-neutral-600 leading-relaxed mb-6">
-            That's when we started building Hyprnote - a desktop application
-            that captures audio locally, processes it with on-device AI, and
-            gives you the freedom to be fully present in your conversations
-            while never missing a detail.
+
+          <p className="text-base text-neutral-600 leading-relaxed mb-8">
+            We stand with those who value real connection and purposeful work.
           </p>
 
           <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">
-            What We Stand For
+            Where we are now
           </h3>
-          <div className="space-y-4 mb-6">
-            <div className="flex gap-4 items-start p-4 border border-neutral-200 rounded-lg bg-white">
-              <Icon
-                icon="mdi:lock"
-                className="text-2xl text-stone-600 shrink-0 mt-1"
-              />
-              <div>
-                <h4 className="text-base font-serif text-stone-600 mb-1">
-                  Privacy is non-negotiable
-                </h4>
-                <p className="text-sm text-neutral-600">
-                  We will never compromise on privacy. Your data belongs to you,
-                  period.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start p-4 border border-neutral-200 rounded-lg bg-white">
-              <Icon
-                icon="mdi:transparency"
-                className="text-2xl text-stone-600 shrink-0 mt-1"
-              />
-              <div>
-                <h4 className="text-base font-serif text-stone-600 mb-1">
-                  Transparency in everything
-                </h4>
-                <p className="text-sm text-neutral-600">
-                  We're open about how Hyprnote works, from our tech stack to
-                  our pricing model.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start p-4 border border-neutral-200 rounded-lg bg-white">
-              <Icon
-                icon="mdi:account-group"
-                className="text-2xl text-stone-600 shrink-0 mt-1"
-              />
-              <div>
-                <h4 className="text-base font-serif text-stone-600 mb-1">
-                  Community-driven development
-                </h4>
-                <p className="text-sm text-neutral-600">
-                  We build features our users actually need, guided by your
-                  feedback and requests.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start p-4 border border-neutral-200 rounded-lg bg-white">
-              <Icon
-                icon="mdi:rocket"
-                className="text-2xl text-stone-600 shrink-0 mt-1"
-              />
-              <div>
-                <h4 className="text-base font-serif text-stone-600 mb-1">
-                  Continuous improvement
-                </h4>
-                <p className="text-sm text-neutral-600">
-                  We ship updates regularly and are always working to make
-                  Hyprnote better.
-                </p>
-              </div>
-            </div>
-          </div>
+          <p className="text-base text-neutral-600 leading-relaxed mb-8">
+            Hyprnote today is the result of that reset. A fast, private,
+            local-first notetaker built for people like us: meeting-heavy,
+            privacy-conscious, and tired of complicated tools. It stays on your
+            device. It respects your data. And it helps you think better, not
+            attend meetings on autopilot.
+          </p>
 
-          <div className="bg-stone-50 border border-neutral-200 rounded-lg p-6 text-center mt-8">
-            <h4 className="text-xl font-serif text-stone-600 mb-2">
-              Built by Fastrepl
-            </h4>
-            <p className="text-sm text-neutral-600 mb-4">
-              Hyprnote is developed by Fastrepl, a team dedicated to building
-              productivity tools that respect your privacy and enhance your
-              workflow.
-            </p>
-            <div className="flex justify-center gap-3">
-              <a
-                href="https://github.com/fastrepl/hyprnote"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-neutral-300 text-stone-600 rounded-full hover:bg-white transition-colors"
-              >
-                <Icon icon="mdi:github" className="text-base" />
-                <span>View on GitHub</span>
-              </a>
-            </div>
-          </div>
+          <p className="text-base text-neutral-600 leading-relaxed mb-8">
+            This is how we got here: a messy start, a full rewrite, and a clear
+            belief that great work comes from humans — not from machines
+            pretending to be in the room.
+          </p>
         </div>
       </div>
     </>

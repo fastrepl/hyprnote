@@ -260,6 +260,11 @@ where
 fn process_audio_data(ctx: &mut Ctx, data: &[f32]) {
     let pushed = ctx.producer.push_slice(data);
 
+    if pushed < data.len() {
+        let dropped = data.len() - pushed;
+        tracing::warn!(dropped, "samples_dropped");
+    }
+
     if pushed > 0 {
         let should_wake = {
             let mut waker_state = ctx.waker_state.lock().unwrap();

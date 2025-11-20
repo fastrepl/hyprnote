@@ -65,9 +65,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
     const editorProps: Parameters<typeof useEditor>[0]["editorProps"] = useMemo(
       () => ({
-        attributes: {
-          class: "tiptap-normal",
-        },
         scrollThreshold: 32,
         scrollMargin: 32,
         handleKeyDown: (view, event) => {

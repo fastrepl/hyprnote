@@ -21,6 +21,7 @@
     "@tanstack/react-router": "^1.136.8",
     "@tiptap/core": "^3.10.7",
     "@tiptap/extension-bubble-menu": "^3.10.7",
+    "@tiptap/extension-file-handler": "^3.11.0",
     "@tiptap/extension-highlight": "^3.10.7",
     "@tiptap/extension-image": "^3.10.7",
     "@tiptap/extension-link": "^3.10.7",

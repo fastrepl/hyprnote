@@ -53,11 +53,12 @@ app.post("/chat/completions", requireSupabaseAuth, async (c) => {
     Array.isArray(requestBody.tools) &&
     !(typeof toolChoice === "string" && toolChoice === "none");
 
+  // https://openrouter.ai/docs/features/exacto-variant
   const modelsToUse = needsToolCalling
     ? [
-        "moonshotai/kimi-k2-0905",
+        "moonshotai/kimi-k2-0905:exacto",
         "anthropic/claude-haiku-4.5",
-        "openai/gpt-oss-120b",
+        "openai/gpt-oss-120b:exacto",
       ]
     : ["openai/chatgpt-4o-latest", "moonshotai/kimi-k2-0905"];
 

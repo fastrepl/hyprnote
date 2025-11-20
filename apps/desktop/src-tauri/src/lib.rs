@@ -90,15 +90,6 @@ pub async fn main() {
         .invoke_handler(specta_builder.invoke_handler())
         .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
-            match app.cli().matches() {
-                Ok(matches) => {
-                    println!("{matches:?}");
-                }
-                Err(error) => {
-                    println!("failed to read CLI matches: {error}");
-                }
-            }
-
             let app_handle = app.handle().clone();
 
             let app_clone = app_handle.clone();

@@ -52,6 +52,21 @@
     }
   },
   "plugins": {
+    "cli": {
+      "description": "Hyprnote",
+      "args": [
+        {
+          "name": "help",
+          "short": "h",
+          "description": "Print help information"
+        },
+        {
+          "name": "version",
+          "short": "V",
+          "description": "Print version information"
+        }
+      ]
+    },
     "deep-link": {
       "desktop": {
         "schemes": [

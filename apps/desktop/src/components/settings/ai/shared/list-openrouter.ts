@@ -2,7 +2,9 @@ import { Effect, pipe, Schema } from "effect";
 
 import {
   DEFAULT_RESULT,
+  extractMetadataMap,
   fetchJson,
+  type InputModality,
   type ListModelsResult,
   type ModelIgnoreReason,
   partition,
@@ -69,11 +71,29 @@ export async function listOpenRouterModels(
   return pipe(
     fetchJson(`${baseUrl}/models`, { Authorization: `Bearer ${apiKey}` }),
     Effect.andThen((json) => Schema.decodeUnknown(OpenRouterModelSchema)(json)),
-    Effect.map(({ data }) =>
-      partition(data, getIgnoreReasons, (model) => model.id),
-    ),
+    Effect.map(({ data }) => ({
+      ...partition(data, getIgnoreReasons, (model) => model.id),
+      metadata: extractMetadataMap(
+        data,
+        (model) => model.id,
+        (model) => ({ input_modalities: getInputModalities(model) }),
+      ),
+    })),
     Effect.timeout(REQUEST_TIMEOUT),
     Effect.catchAll(() => Effect.succeed(DEFAULT_RESULT)),
     Effect.runPromise,
   );
 }
+
+const getInputModalities = (model: OpenRouterModel): InputModality[] => {
+  const modalities = model.architecture?.input_modalities ?? [];
+
+  return [
+    ...((modalities.includes("text")
+      ? ["text"]
+      : []) satisfies InputModality[]),
+    ...((modalities.includes("image")
+      ? ["image"]
+      : []) satisfies InputModality[]),
+  ];
+};

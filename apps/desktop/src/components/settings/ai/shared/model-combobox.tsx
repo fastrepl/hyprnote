@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, CirclePlus, Eye, EyeOff } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
@@ -23,6 +22,7 @@ import {
 } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
+import { useModelMetadata } from "../../../../hooks/useModelMetadata";
 import type { ListModelsResult, ModelIgnoreReason } from "./list-common";
 
 const filterFunction = (value: string, search: string) => {
@@ -62,7 +62,7 @@ export function ModelCombobox({
   providerId: string;
   value: string;
   onChange: (value: string) => void;
-  listModels: () => Promise<ListModelsResult> | ListModelsResult;
+  listModels?: () => Promise<ListModelsResult> | ListModelsResult;
   disabled?: boolean;
   placeholder?: string;
 }) {
@@ -70,12 +70,11 @@ export function ModelCombobox({
   const [query, setQuery] = useState("");
   const [showIgnored, setShowIgnored] = useState(false);
 
-  const { data: fetchedResult, isLoading } = useQuery({
-    queryKey: ["models", providerId, listModels],
-    queryFn: listModels,
-    retry: 3,
-    retryDelay: 300,
-  });
+  const { data: fetchedResult, isLoading: isLoadingModels } = useModelMetadata(
+    providerId,
+    listModels,
+    { enabled: !disabled },
+  );
 
   const options: string[] = useMemo(
     () => fetchedResult?.models ?? [],
@@ -118,7 +117,7 @@ export function ModelCombobox({
           type="button"
           variant="outline"
           role="combobox"
-          disabled={disabled || isLoading}
+          disabled={disabled || isLoadingModels}
           aria-expanded={open}
           className={cn(["w-full justify-between font-normal bg-white"])}
         >
@@ -126,7 +125,7 @@ export function ModelCombobox({
             <span className="truncate">{value}</span>
           ) : (
             <span className="text-muted-foreground">
-              {isLoading ? "Loading models..." : placeholder}
+              {isLoadingModels ? "Loading models..." : placeholder}
             </span>
           )}
           <ChevronDown className="-mr-1 h-4 w-4 shrink-0 opacity-50" />

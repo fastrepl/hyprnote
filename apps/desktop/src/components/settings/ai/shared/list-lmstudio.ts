@@ -6,6 +6,7 @@ import {
   type IgnoredModel,
   type ListModelsResult,
   type ModelIgnoreReason,
+  type ModelMetadata,
   REQUEST_TIMEOUT,
 } from "./list-common";
 
@@ -74,6 +75,7 @@ const processLMStudioModels = (
 ): ListModelsResult => {
   const models: string[] = [];
   const ignored: IgnoredModel[] = [];
+  const metadata: Record<string, ModelMetadata> = {};
 
   for (const model of downloadedModels) {
     const reasons: ModelIgnoreReason[] = [];
@@ -91,6 +93,8 @@ const processLMStudioModels = (
 
     if (reasons.length === 0) {
       models.push(model.path);
+      // TODO: Seems like LMStudio do not have way to know input modality.
+      metadata[model.path] = { input_modalities: ["text"] };
     } else {
       ignored.push({ id: model.path, reasons });
     }
@@ -107,5 +111,5 @@ const processLMStudioModels = (
     return aLoaded ? -1 : 1;
   });
 
-  return { models, ignored };
+  return { models, ignored, metadata };
 };

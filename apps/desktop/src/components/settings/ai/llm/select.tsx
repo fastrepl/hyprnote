@@ -15,7 +15,10 @@ import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import * as main from "../../../../store/tinybase/main";
 import { listAnthropicModels } from "../shared/list-anthropic";
-import type { ListModelsResult } from "../shared/list-common";
+import {
+  type InputModality,
+  type ListModelsResult,
+} from "../shared/list-common";
 import { listGoogleModels } from "../shared/list-google";
 import { listLMStudioModels } from "../shared/list-lmstudio";
 import { listOllamaModels } from "../shared/list-ollama";
@@ -143,12 +146,7 @@ export function SelectProviderAndModel() {
               const providerRequiresPro = providerDef?.requiresPro ?? false;
               const locked = providerRequiresPro && !billing.isPro;
 
-              const listModels = () => {
-                if (!maybeListModels || locked) {
-                  return { models: [], ignored: [] };
-                }
-                return maybeListModels();
-              };
+              const listModels = !locked ? maybeListModels : undefined;
 
               return (
                 <div className="flex-[3] min-w-0">
@@ -181,7 +179,7 @@ export function SelectProviderAndModel() {
 
 function useConfiguredMapping(): Record<
   string,
-  null | (() => Promise<ListModelsResult>)
+  undefined | (() => Promise<ListModelsResult>)
 > {
   const auth = useAuth();
   const billing = useBillingAccess();
@@ -194,25 +192,35 @@ function useConfiguredMapping(): Record<
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
         if (provider.requiresPro && !billing.isPro) {
-          return [provider.id, null];
+          return [provider.id, undefined];
         }
 
         if (provider.id === "hyprnote") {
           if (!auth?.session) {
-            return [provider.id, null];
+            return [provider.id, undefined];
           }
 
-          return [provider.id, async () => ({ models: ["Auto"], ignored: [] })];
+          const result: ListModelsResult = {
+            models: ["Auto"],
+            ignored: [],
+            metadata: {
+              Auto: {
+                input_modalities: ["text", "image"] as InputModality[],
+              },
+            },
+          };
+
+          return [provider.id, async () => result];
         }
 
         const config = configuredProviders[provider.id];
 
         if (!config || !config.base_url) {
-          return [provider.id, null];
+          return [provider.id, undefined];
         }
 
         if (provider.apiKey && !config.api_key) {
-          return [provider.id, null];
+          return [provider.id, undefined];
         }
 
         const { base_url, api_key } = config;
@@ -249,7 +257,7 @@ function useConfiguredMapping(): Record<
 
         return [provider.id, listModelsFunc];
       }),
-    ) as Record<string, null | (() => Promise<ListModelsResult>)>;
+    ) as Record<string, undefined | (() => Promise<ListModelsResult>)>;
   }, [configuredProviders, auth, billing]);
 
   return mapping;

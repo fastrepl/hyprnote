@@ -11,12 +11,23 @@ export type ModelIgnoreReason =
 
 export type IgnoredModel = { id: string; reasons: ModelIgnoreReason[] };
 
+export type InputModality = "image" | "text";
+
+export type ModelMetadata = {
+  input_modalities?: InputModality[];
+};
+
 export type ListModelsResult = {
   models: string[];
   ignored: IgnoredModel[];
+  metadata: Record<string, ModelMetadata>;
 };
 
-export const DEFAULT_RESULT: ListModelsResult = { models: [], ignored: [] };
+export const DEFAULT_RESULT: ListModelsResult = {
+  models: [],
+  ignored: [],
+  metadata: {},
+};
 export const REQUEST_TIMEOUT = "5 seconds";
 
 export const commonIgnoreKeywords = [
@@ -49,20 +60,52 @@ export const shouldIgnoreCommonKeywords = (id: string): boolean => {
   return commonIgnoreKeywords.some((keyword) => lowerId.includes(keyword));
 };
 
+const hasMetadata = (metadata: ModelMetadata | undefined): boolean => {
+  if (!metadata) {
+    return false;
+  }
+  if (metadata.input_modalities && metadata.input_modalities.length > 0) {
+    return true;
+  }
+  return false;
+};
+
 export const partition = <T,>(
   items: readonly T[],
   shouldIgnore: (item: T) => ModelIgnoreReason[] | null,
   extract: (item: T) => string,
-): ListModelsResult => {
-  const result = { models: [] as string[], ignored: [] as IgnoredModel[] };
+): { models: string[]; ignored: IgnoredModel[] } => {
+  const models: string[] = [];
+  const ignored: IgnoredModel[] = [];
+
   for (const item of items) {
     const reasons = shouldIgnore(item);
+    const id = extract(item);
 
     if (!reasons || reasons.length === 0) {
-      result.models.push(extract(item));
+      models.push(id);
     } else {
-      result.ignored.push({ id: extract(item), reasons });
+      ignored.push({ id, reasons });
     }
   }
-  return result;
+
+  return { models, ignored };
+};
+
+export const extractMetadataMap = <T,>(
+  items: readonly T[],
+  extract: (item: T) => string,
+  extractMetadata: (item: T) => ModelMetadata | undefined,
+): Record<string, ModelMetadata> => {
+  const metadata: Record<string, ModelMetadata> = {};
+
+  for (const item of items) {
+    const id = extract(item);
+    const meta = extractMetadata(item);
+    if (hasMetadata(meta)) {
+      metadata[id] = meta!;
+    }
+  }
+
+  return metadata;
 };

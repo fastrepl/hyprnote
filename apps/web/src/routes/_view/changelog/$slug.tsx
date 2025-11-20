@@ -128,7 +128,7 @@ function ChangelogSplitView({
       <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
         <ChangelogSidebar changelog={changelog} allChangelogs={allChangelogs} />
       </ResizablePanel>
-      <ResizableHandle withHandle className="bg-neutral-200" />
+      <ResizableHandle withHandle className="bg-neutral-200 w-px" />
       <ResizablePanel defaultSize={65}>
         <ChangelogContent changelog={changelog} />
       </ResizablePanel>

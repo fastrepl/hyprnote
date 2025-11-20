@@ -331,7 +331,7 @@ function AboutDetailView({
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
       />
-      <ResizableHandle withHandle className="bg-neutral-200" />
+      <ResizableHandle withHandle className="bg-neutral-200 w-px" />
       <AboutDetailPanel
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}

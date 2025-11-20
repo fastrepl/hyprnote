@@ -90,6 +90,31 @@ pub async fn main() {
         .invoke_handler(specta_builder.invoke_handler())
         .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
+<<<<<<< ours
+||||||| ancestor
+            match app.cli().matches() {
+                Ok(matches) => {
+                    println!("{matches:?}");
+                }
+                Err(error) => {
+                    println!("failed to read CLI matches: {error}");
+                }
+            }
+
+=======
+            match app.cli().matches() {
+                Ok(matches) => {
+                    if matches.args.contains_key("help") || matches.args.contains_key("version") {
+                        std::process::exit(0);
+                    }
+                }
+                Err(error) => {
+                    eprintln!("failed to read CLI matches: {error}");
+                    std::process::exit(1);
+                }
+            }
+
+>>>>>>> theirs
             let app_handle = app.handle().clone();
 
             let app_clone = app_handle.clone();

@@ -7,10 +7,9 @@ pub trait TracingPluginExt<R: tauri::Runtime> {
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> TracingPluginExt<R> for T {
     fn logs_dir(&self) -> Result<PathBuf, crate::Error> {
-        use tauri::{path::BaseDirectory, Manager};
         let logs_dir = self
             .path()
-            .resolve("hyprnote", BaseDirectory::Data)
+            .resolve("hyprnote", tauri::path::BaseDirectory::Data)
             .map_err(|e| crate::Error::PathResolver(e.to_string()))?;
         let _ = std::fs::create_dir_all(&logs_dir);
         Ok(logs_dir)

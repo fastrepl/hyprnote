@@ -1,5 +1,4 @@
 use std::future::Future;
-use tauri::Manager;
 
 pub trait Database2PluginExt<R: tauri::Runtime> {
     fn init_local(&self) -> impl Future<Output = Result<(), crate::Error>>;

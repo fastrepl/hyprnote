@@ -50,6 +50,12 @@
       ]
     },
     {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [
+        { "path": "$DATA/hyprnote/**/*" }
+      ]
+    },
+    {
       "identifier": "fs:allow-write-text-file",
       "allow": [
         { "path": "$DATA/hyprnote/**/*" },

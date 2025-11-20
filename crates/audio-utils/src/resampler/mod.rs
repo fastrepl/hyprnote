@@ -178,18 +178,27 @@ mod tests {
             (original_sample_rate, original_samples)
         };
 
-        let (resampled_sample_rate, resampled_samples) = {
-            let mut static_source = DynamicRateSource::new(vec![get_samples_with_rate(
+        let (resampler_sample_rate, resampled_samples) = {
+            let static_source = DynamicRateSource::new(vec![get_samples_with_rate(
                 hypr_data::english_1::AUDIO_PART2_16000HZ_PATH,
             )]);
 
-            let resampled_sample_rate = static_source.sample_rate();
-            let resampled_samples = static_source.as_stream().collect::<Vec<_>>().await;
+            let resampler_sample_rate = static_source.sample_rate();
+            let chunk_size = 1920;
+            let resampler =
+                ResamplerDynamicNew::new(static_source, resampler_sample_rate, chunk_size).unwrap();
 
-            (resampled_sample_rate, resampled_samples)
+            let chunks: Vec<_> = resampler.collect::<Vec<_>>().await;
+            let resampled_samples: Vec<f32> = chunks
+                .into_iter()
+                .filter_map(|r| r.ok())
+                .flatten()
+                .collect();
+
+            (resampler_sample_rate, resampled_samples)
         };
 
-        assert_eq!(resampled_sample_rate, original_sample_rate);
+        assert_eq!(resampler_sample_rate, original_sample_rate);
         assert_eq!(resampled_samples, original_samples);
     }
 

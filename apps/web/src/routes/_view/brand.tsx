@@ -9,17 +9,17 @@ import {
 } from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
 
-import { Image } from "@/components/image";
 import { MockWindow } from "@/components/mock-window";
 
 export const Route = createFileRoute("/_view/brand")({
   component: Component,
   head: () => ({
     meta: [
-      { title: "Visual Assets - Hyprnote Press Kit" },
+      { title: "Brand - Hyprnote Press Kit" },
       {
         name: "description",
-        content: "Download Hyprnote logos, icons, and visual assets.",
+        content:
+          "Download Hyprnote logos, icons, and brand assets. Learn about our visual identity, typography, and color palette.",
       },
     ],
   }),
@@ -52,10 +52,73 @@ const VISUAL_ASSETS = [
   },
 ];
 
-function Component() {
-  const [selectedAsset, setSelectedAsset] = useState<string | null>(null);
+const TYPOGRAPHY = [
+  {
+    id: "primary-font",
+    name: "Inter",
+    fontFamily: "Inter",
+    description:
+      "Inter is our primary typeface for UI and body text. Clean, modern, and highly legible.",
+    preview: "The quick brown fox jumps over the lazy dog",
+    usage: "Body text, UI elements, navigation",
+  },
+  {
+    id: "display-font",
+    name: "Lora",
+    fontFamily: "Lora, serif",
+    description:
+      "Lora is our display typeface for headlines and featured text. Adds elegance and personality.",
+    preview: "The quick brown fox jumps over the lazy dog",
+    usage: "Headlines, titles, featured content",
+  },
+];
 
-  const selected = VISUAL_ASSETS.find((asset) => asset.id === selectedAsset);
+const COLORS = [
+  {
+    id: "stone-600",
+    name: "Stone 600",
+    hex: "#57534e",
+    description: "Primary text color",
+  },
+  {
+    id: "stone-500",
+    name: "Stone 500",
+    hex: "#78716c",
+    description: "Secondary text color",
+  },
+  {
+    id: "neutral-600",
+    name: "Neutral 600",
+    hex: "#525252",
+    description: "Body text",
+  },
+  {
+    id: "neutral-500",
+    name: "Neutral 500",
+    hex: "#737373",
+    description: "Muted text",
+  },
+  {
+    id: "neutral-100",
+    name: "Neutral 100",
+    hex: "#f5f5f5",
+    description: "Background, borders",
+  },
+  {
+    id: "stone-50",
+    name: "Stone 50",
+    hex: "#fafaf9",
+    description: "Light backgrounds",
+  },
+];
+
+type SelectedItem =
+  | { type: "visual"; data: (typeof VISUAL_ASSETS)[0] }
+  | { type: "typography"; data: (typeof TYPOGRAPHY)[0] }
+  | { type: "color"; data: (typeof COLORS)[0] };
+
+function Component() {
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
 
   return (
     <div
@@ -63,162 +126,579 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        {/* Hero Section */}
-        <div className="px-6 py-16 lg:py-24">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
-              Visual Assets
-            </h1>
-            <p className="text-lg sm:text-xl text-neutral-600">
-              Download Hyprnote logos, icons, and brand assets for use in your
-              projects, articles, or presentations.
+        <HeroSection />
+        <BrandContentSection
+          selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
+        />
+      </div>
+    </div>
+  );
+}
+
+function HeroSection() {
+  return (
+    <div className="px-6 py-16 lg:py-24">
+      <div className="text-center max-w-3xl mx-auto">
+        <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
+          Brand
+        </h1>
+        <p className="text-lg sm:text-xl text-neutral-600">
+          Download Hyprnote logos, icons, and brand assets. Learn about our
+          visual identity, typography, and color palette.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function BrandContentSection({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem | null;
+  setSelectedItem: (item: SelectedItem | null) => void;
+}) {
+  return (
+    <section className="px-6 pb-16 lg:pb-24">
+      <div className="max-w-4xl mx-auto">
+        <MockWindow title="Brand" className="rounded-lg w-full max-w-none">
+          <div className="h-[480px]">
+            {!selectedItem ? (
+              <BrandGridView setSelectedItem={setSelectedItem} />
+            ) : (
+              <BrandDetailView
+                selectedItem={selectedItem}
+                setSelectedItem={setSelectedItem}
+              />
+            )}
+          </div>
+
+          <BrandStatusBar selectedItem={selectedItem} />
+        </MockWindow>
+      </div>
+    </section>
+  );
+}
+
+function BrandGridView({
+  setSelectedItem,
+}: {
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <div className="p-8 overflow-y-auto h-[480px]">
+      <VisualAssetsGrid setSelectedItem={setSelectedItem} />
+      <TypographyGrid setSelectedItem={setSelectedItem} />
+      <ColorsGrid setSelectedItem={setSelectedItem} />
+    </div>
+  );
+}
+
+function VisualAssetsGrid({
+  setSelectedItem,
+}: {
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <div className="mb-8">
+      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+        Visual Assets
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
+        {VISUAL_ASSETS.map((asset) => (
+          <button
+            key={asset.id}
+            onClick={() => setSelectedItem({ type: "visual", data: asset })}
+            className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
+          >
+            <div className="mb-3 w-16 h-16 flex items-center justify-center">
+              <img
+                src={asset.url}
+                alt={asset.name}
+                className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform"
+              />
+            </div>
+            <div className="font-medium text-stone-600">{asset.name}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TypographyGrid({
+  setSelectedItem,
+}: {
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <div className="mb-8 border-t border-neutral-100 pt-8">
+      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+        Typography
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
+        {TYPOGRAPHY.map((font) => (
+          <button
+            key={font.id}
+            onClick={() => setSelectedItem({ type: "typography", data: font })}
+            className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
+          >
+            <div
+              className="mb-3 w-16 h-16 flex items-center justify-center text-3xl font-medium text-stone-600 group-hover:scale-110 transition-transform"
+              style={{ fontFamily: font.fontFamily }}
+            >
+              Aa
+            </div>
+            <div className="font-medium text-stone-600">{font.name}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ColorsGrid({
+  setSelectedItem,
+}: {
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <div className="border-t border-neutral-100 pt-8">
+      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
+        Colors
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 content-start">
+        {COLORS.map((color) => (
+          <button
+            key={color.id}
+            onClick={() => setSelectedItem({ type: "color", data: color })}
+            className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
+          >
+            <div className="mb-3 w-16 h-16 flex items-center justify-center">
+              <div
+                className="w-16 h-16 rounded-lg border border-neutral-200 group-hover:scale-110 transition-transform shadow-sm"
+                style={{ backgroundColor: color.hex }}
+              />
+            </div>
+            <div className="font-medium text-stone-600">{color.name}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BrandDetailView({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem | null) => void;
+}) {
+  return (
+    <ResizablePanelGroup direction="horizontal" className="h-[480px]">
+      <BrandSidebar
+        selectedItem={selectedItem}
+        setSelectedItem={setSelectedItem}
+      />
+      <ResizableHandle withHandle className="bg-neutral-200" />
+      <BrandDetailPanel
+        selectedItem={selectedItem}
+        setSelectedItem={setSelectedItem}
+      />
+    </ResizablePanelGroup>
+  );
+}
+
+function BrandSidebar({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
+      <div className="h-full overflow-y-auto p-4">
+        <VisualAssetsSidebar
+          selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
+        />
+        <TypographySidebar
+          selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
+        />
+        <ColorsSidebar
+          selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
+        />
+      </div>
+    </ResizablePanel>
+  );
+}
+
+function VisualAssetsSidebar({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <div className="mb-6">
+      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
+        Visual Assets
+      </div>
+      <div className="space-y-3">
+        {VISUAL_ASSETS.map((asset) => (
+          <button
+            key={asset.id}
+            onClick={() => setSelectedItem({ type: "visual", data: asset })}
+            className={cn([
+              "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
+              selectedItem?.type === "visual" &&
+              selectedItem.data.id === asset.id
+                ? "border-stone-600 bg-stone-100"
+                : "border-neutral-200",
+            ])}
+          >
+            <div className="w-12 h-12 shrink-0 flex items-center justify-center overflow-hidden">
+              <img
+                src={asset.url}
+                alt={asset.name}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-stone-600 truncate">
+                {asset.name}
+              </p>
+              <p className="text-xs text-neutral-500 truncate">
+                {asset.description}
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TypographySidebar({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <div className="mb-6">
+      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
+        Typography
+      </div>
+      <div className="space-y-3">
+        {TYPOGRAPHY.map((font) => (
+          <button
+            key={font.id}
+            onClick={() => setSelectedItem({ type: "typography", data: font })}
+            className={cn([
+              "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
+              selectedItem?.type === "typography" &&
+              selectedItem.data.id === font.id
+                ? "border-stone-600 bg-stone-100"
+                : "border-neutral-200",
+            ])}
+          >
+            <div
+              className="w-12 h-12 shrink-0 flex items-center justify-center text-2xl font-medium text-stone-600"
+              style={{ fontFamily: font.fontFamily }}
+            >
+              Aa
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-stone-600 truncate">
+                {font.name}
+              </p>
+              <p className="text-xs text-neutral-500 truncate">
+                {font.fontFamily}
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ColorsSidebar({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <div>
+      <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3 px-2">
+        Colors
+      </div>
+      <div className="space-y-3">
+        {COLORS.map((color) => (
+          <button
+            key={color.id}
+            onClick={() => setSelectedItem({ type: "color", data: color })}
+            className={cn([
+              "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
+              selectedItem?.type === "color" &&
+              selectedItem.data.id === color.id
+                ? "border-stone-600 bg-stone-100"
+                : "border-neutral-200",
+            ])}
+          >
+            <div className="w-12 h-12 shrink-0 flex items-center justify-center">
+              <div
+                className="w-10 h-10 rounded-lg border border-neutral-200 shadow-sm"
+                style={{ backgroundColor: color.hex }}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-stone-600 truncate">
+                {color.name}
+              </p>
+              <p className="text-xs text-neutral-500 truncate font-mono">
+                {color.hex}
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BrandDetailPanel({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem | null) => void;
+}) {
+  return (
+    <ResizablePanel defaultSize={65}>
+      <div className="h-full flex flex-col">
+        {selectedItem.type === "visual" && (
+          <VisualAssetDetail
+            asset={selectedItem.data}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
+        {selectedItem.type === "typography" && (
+          <TypographyDetail
+            font={selectedItem.data}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
+        {selectedItem.type === "color" && (
+          <ColorDetail
+            color={selectedItem.data}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
+      </div>
+    </ResizablePanel>
+  );
+}
+
+function VisualAssetDetail({
+  asset,
+  onClose,
+}: {
+  asset: (typeof VISUAL_ASSETS)[0];
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
+        <h2 className="font-medium text-stone-600">{asset.name}</h2>
+        <div className="flex items-center gap-2">
+          <a
+            href={asset.url}
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+          >
+            Download
+          </a>
+          <button
+            onClick={onClose}
+            className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+          >
+            <XIcon size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4 overflow-y-auto">
+        <img
+          src={asset.url}
+          alt={asset.name}
+          className="max-w-[400px] w-full h-auto object-contain mb-6"
+        />
+        <p className="text-sm text-neutral-600">{asset.description}</p>
+      </div>
+    </>
+  );
+}
+
+function TypographyDetail({
+  font,
+  onClose,
+}: {
+  font: (typeof TYPOGRAPHY)[0];
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
+        <h2 className="font-medium text-stone-600">{font.name}</h2>
+        <button
+          onClick={onClose}
+          className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+        >
+          <XIcon size={16} />
+        </button>
+      </div>
+
+      <div className="p-4 overflow-y-auto">
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Font Family
+            </h3>
+            <p
+              className="text-lg text-stone-600"
+              style={{ fontFamily: font.fontFamily }}
+            >
+              {font.fontFamily}
             </p>
           </div>
-        </div>
 
-        {/* Content Section */}
-        <section className="px-6 pb-16 lg:pb-24">
-          <div className="max-w-4xl mx-auto">
-            <MockWindow
-              title="Visual Assets"
-              className="rounded-lg w-full max-w-none"
-            >
-              <div className="h-[600px]">
-                {!selectedAsset ? (
-                  // Grid view - show all thumbnails in 4 columns
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-6 overflow-y-auto h-[540px] content-start">
-                    {VISUAL_ASSETS.map((asset) => (
-                      <button
-                        key={asset.id}
-                        onClick={() => setSelectedAsset(asset.id)}
-                        className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
-                      >
-                        <div className="mb-3 w-16 h-16 flex items-center justify-center">
-                          <Image
-                            src={asset.url}
-                            alt={asset.name}
-                            width={64}
-                            height={64}
-                            className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform"
-                          />
-                        </div>
-                        <div className="font-medium text-stone-600">
-                          {asset.name}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  // Split view with resizable panels - list view on left
-                  <ResizablePanelGroup
-                    direction="horizontal"
-                    className="h-[600px]"
-                  >
-                    <ResizablePanel
-                      defaultSize={35}
-                      minSize={25}
-                      maxSize={45}
-                      className="p-4"
-                    >
-                      <div className="h-full overflow-y-auto space-y-4">
-                        {VISUAL_ASSETS.map((asset) => (
-                          <button
-                            key={asset.id}
-                            onClick={() => setSelectedAsset(asset.id)}
-                            className={cn([
-                              "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3",
-                              asset.id === selectedAsset
-                                ? "border-stone-600 bg-stone-100"
-                                : "border-neutral-200",
-                            ])}
-                          >
-                            <div className="w-16 h-16 shrink-0 flex items-center justify-center overflow-hidden">
-                              <Image
-                                src={asset.url}
-                                alt={asset.name}
-                                width={64}
-                                height={64}
-                                className="max-w-full max-h-full object-contain"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-stone-600 truncate">
-                                {asset.name}
-                              </p>
-                              <p className="text-xs text-neutral-500 truncate">
-                                {asset.description}
-                              </p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </ResizablePanel>
-
-                    <ResizableHandle withHandle className="bg-neutral-200" />
-
-                    <ResizablePanel defaultSize={65}>
-                      <div className="h-full flex flex-col">
-                        {selected && (
-                          <>
-                            {/* Header */}
-                            <div className="py-2 px-4 flex items-center justify-between mb-6 border-b border-neutral-200">
-                              <h2 className="font-medium text-stone-600">
-                                {selected.name}
-                              </h2>
-                              <div className="flex items-center gap-2">
-                                <a
-                                  href={selected.url}
-                                  download
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
-                                >
-                                  Download
-                                </a>
-                                <button
-                                  onClick={() => setSelectedAsset(null)}
-                                  className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
-                                >
-                                  <XIcon size={16} />
-                                </button>
-                              </div>
-                            </div>
-
-                            <div className="p-4 overflow-y-auto">
-                              {/* Image preview with max-width 400px */}
-                              <Image
-                                src={selected.url}
-                                alt={selected.name}
-                                width={400}
-                                height={400}
-                                className="max-w-[400px] w-full h-auto object-contain mb-6"
-                              />
-
-                              {/* Description */}
-                              <p className="text-sm text-neutral-600">
-                                {selected.description}
-                              </p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
-                )}
-              </div>
-
-              {/* Status bar */}
-              <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
-                <span className="text-xs text-neutral-500">
-                  {selectedAsset
-                    ? `Viewing ${selected?.name}`
-                    : `${VISUAL_ASSETS.length} visual assets`}
-                </span>
-              </div>
-            </MockWindow>
+          <div>
+            <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Description
+            </h3>
+            <p className="text-sm text-neutral-600 leading-relaxed">
+              {font.description}
+            </p>
           </div>
-        </section>
+
+          <div>
+            <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Usage
+            </h3>
+            <p className="text-sm text-neutral-600">{font.usage}</p>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
+              Preview
+            </h3>
+            <div className="space-y-4 p-6 bg-stone-50 border border-neutral-200 rounded-lg">
+              <div
+                className="text-4xl text-stone-600"
+                style={{ fontFamily: font.fontFamily }}
+              >
+                {font.preview}
+              </div>
+              <div
+                className="text-2xl text-stone-600"
+                style={{ fontFamily: font.fontFamily }}
+              >
+                {font.preview}
+              </div>
+              <div
+                className="text-base text-stone-600"
+                style={{ fontFamily: font.fontFamily }}
+              >
+                {font.preview}
+              </div>
+              <div
+                className="text-sm text-stone-600"
+                style={{ fontFamily: font.fontFamily }}
+              >
+                {font.preview}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+    </>
+  );
+}
+
+function ColorDetail({
+  color,
+  onClose,
+}: {
+  color: (typeof COLORS)[0];
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
+        <h2 className="font-medium text-stone-600">{color.name}</h2>
+        <button
+          onClick={onClose}
+          className="text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+        >
+          <XIcon size={16} />
+        </button>
+      </div>
+
+      <div className="p-4 overflow-y-auto">
+        <div className="space-y-6">
+          <div>
+            <div
+              className="w-full h-48 rounded-lg border border-neutral-200 shadow-sm mb-4"
+              style={{ backgroundColor: color.hex }}
+            />
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Hex Value
+            </h3>
+            <p className="text-lg text-stone-600 font-mono">{color.hex}</p>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+              Usage
+            </h3>
+            <p className="text-sm text-neutral-600">{color.description}</p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function BrandStatusBar({
+  selectedItem,
+}: {
+  selectedItem: SelectedItem | null;
+}) {
+  const totalItems = VISUAL_ASSETS.length + TYPOGRAPHY.length + COLORS.length;
+
+  return (
+    <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
+      <span className="text-xs text-neutral-500">
+        {selectedItem
+          ? `Viewing ${selectedItem.data.name}`
+          : `${totalItems} items, 3 groups`}
+      </span>
     </div>
   );
 }

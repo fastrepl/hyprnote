@@ -45,11 +45,11 @@ export function VideoThumbnail({
             "size-16 rounded-full bg-white/90 backdrop-blur-sm",
             "flex items-center justify-center",
             "hover:bg-white hover:scale-110 transition-all duration-200",
-            "shadow-xl",
+            "shadow-xl cursor-pointer",
           ])}
           aria-label="Play video"
         >
-          <Icon icon="mdi:play" className="text-4xl text-stone-700 ml-1" />
+          <Icon icon="mdi:play" className="text-4xl text-stone-700" />
         </button>
       </div>
     </div>

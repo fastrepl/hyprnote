@@ -77,39 +77,44 @@ impl crate::Observer for Detector {
                 let callback_for_subscribe = callback.clone();
                 let detector_state_for_subscribe = detector_state.clone();
 
-                context.set_subscribe_callback(Some(Box::new(move |facility, operation, _index| {
-                    if let Some(pulse::context::subscribe::Facility::Source) = facility {
-                        if let Some(pulse::context::subscribe::Operation::Changed) = operation {
-                            if let Ok(mut state) = detector_state_for_subscribe.lock() {
-                                let mic_in_use = check_mic_in_use();
-                                
-                                if state.should_trigger(mic_in_use) {
-                                    if mic_in_use {
-                                        let cb = callback_for_subscribe.clone();
-                                        std::thread::spawn(move || {
-                                            let apps = crate::list_mic_using_apps();
-                                            tracing::info!("mic_started_detected: {:?}", apps);
-                                            
-                                            if let Ok(guard) = cb.lock() {
-                                                let event = DetectEvent::MicStarted(apps);
+                context.set_subscribe_callback(Some(Box::new(
+                    move |facility, operation, _index| {
+                        if let Some(pulse::context::subscribe::Facility::Source) = facility {
+                            if let Some(pulse::context::subscribe::Operation::Changed) = operation {
+                                if let Ok(mut state) = detector_state_for_subscribe.lock() {
+                                    let mic_in_use = check_mic_in_use();
+
+                                    if state.should_trigger(mic_in_use) {
+                                        if mic_in_use {
+                                            let cb = callback_for_subscribe.clone();
+                                            std::thread::spawn(move || {
+                                                let apps = crate::list_mic_using_apps();
+                                                tracing::info!("mic_started_detected: {:?}", apps);
+
+                                                if let Ok(guard) = cb.lock() {
+                                                    let event = DetectEvent::MicStarted(apps);
+                                                    tracing::info!(event = ?event, "detected");
+                                                    (*guard)(event);
+                                                }
+                                            });
+                                        } else {
+                                            if let Ok(guard) = callback_for_subscribe.lock() {
+                                                let event = DetectEvent::MicStopped;
                                                 tracing::info!(event = ?event, "detected");
                                                 (*guard)(event);
                                             }
-                                        });
-                                    } else {
-                                        if let Ok(guard) = callback_for_subscribe.lock() {
-                                            let event = DetectEvent::MicStopped;
-                                            tracing::info!(event = ?event, "detected");
-                                            (*guard)(event);
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                })));
+                    },
+                )));
 
-                if context.connect(None, ContextFlagSet::NOFLAGS, None).is_err() {
+                if context
+                    .connect(None, ContextFlagSet::NOFLAGS, None)
+                    .is_err()
+                {
                     tracing::error!("failed_to_connect_to_pulseaudio");
                     return;
                 }
@@ -196,7 +201,10 @@ fn check_mic_in_use() -> bool {
     let result = Arc::new(Mutex::new(false));
     let result_clone = result.clone();
 
-    if context.connect(None, ContextFlagSet::NOFLAGS, None).is_err() {
+    if context
+        .connect(None, ContextFlagSet::NOFLAGS, None)
+        .is_err()
+    {
         return false;
     }
 
@@ -223,24 +231,22 @@ fn check_mic_in_use() -> bool {
     let done = Arc::new(Mutex::new(false));
     let done_clone = done.clone();
 
-    introspector.get_source_output_info_list(move |list_result| {
-        match list_result {
-            pulse::callbacks::ListResult::Item(info) => {
-                if !info.corked {
-                    if let Ok(mut r) = result_clone.lock() {
-                        *r = true;
-                    }
+    introspector.get_source_output_info_list(move |list_result| match list_result {
+        pulse::callbacks::ListResult::Item(info) => {
+            if !info.corked {
+                if let Ok(mut r) = result_clone.lock() {
+                    *r = true;
                 }
             }
-            pulse::callbacks::ListResult::End => {
-                if let Ok(mut d) = done_clone.lock() {
-                    *d = true;
-                }
+        }
+        pulse::callbacks::ListResult::End => {
+            if let Ok(mut d) = done_clone.lock() {
+                *d = true;
             }
-            pulse::callbacks::ListResult::Error => {
-                if let Ok(mut d) = done_clone.lock() {
-                    *d = true;
-                }
+        }
+        pulse::callbacks::ListResult::Error => {
+            if let Ok(mut d) = done_clone.lock() {
+                *d = true;
             }
         }
     });

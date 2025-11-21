@@ -34,10 +34,9 @@ const BUFFER_SIZE: usize = CHUNK_SIZE * 4;
 
 impl SpeakerInput {
     pub fn new() -> Result<Self> {
-        
         let device_name = Self::find_monitor_device()?;
         let sample_rate = Self::detect_sample_rate(&device_name)?;
-        
+
         Ok(Self {
             sample_rate,
             device_name,
@@ -45,7 +44,6 @@ impl SpeakerInput {
     }
 
     fn find_monitor_device() -> Result<String> {
-        
         Ok("default".to_string())
     }
 
@@ -55,11 +53,11 @@ impl SpeakerInput {
 
         let pcm = PCM::new(device_name, Direction::Capture, false)
             .context("Failed to open PCM device")?;
-        
+
         let hwp = HwParams::any(&pcm).context("Failed to get hardware parameters")?;
-        
+
         let sample_rate = hwp.get_rate().unwrap_or(48000);
-        
+
         Ok(sample_rate)
     }
 
@@ -122,7 +120,7 @@ impl SpeakerInput {
             .context("Failed to open PCM device for capture")?;
 
         let hwp = HwParams::any(&pcm).context("Failed to get hardware parameters")?;
-        
+
         hwp.set_channels(1).context("Failed to set channels")?;
         hwp.set_rate(48000, ValueOr::Nearest)
             .context("Failed to set sample rate")?;
@@ -131,10 +129,11 @@ impl SpeakerInput {
         hwp.set_access(Access::RWInterleaved)
             .context("Failed to set access")?;
 
-        pcm.hw_params(&hwp).context("Failed to apply hardware parameters")?;
+        pcm.hw_params(&hwp)
+            .context("Failed to apply hardware parameters")?;
 
         let sample_rate = hwp.get_rate().unwrap_or(48000);
-        
+
         current_sample_rate.store(sample_rate, Ordering::Release);
         tracing::info!(sample_rate = sample_rate, "ALSA capture initialized");
 

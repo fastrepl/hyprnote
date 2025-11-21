@@ -214,7 +214,9 @@ mod tests {
             Ok(input) => input,
             Err(e) => {
                 println!("Failed to create SpeakerInput: {}", e);
-                println!("This is expected if ALSA is not configured or no audio devices are available");
+                println!(
+                    "This is expected if ALSA is not configured or no audio devices are available"
+                );
                 return;
             }
         };

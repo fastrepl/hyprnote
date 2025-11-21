@@ -87,10 +87,7 @@ impl NotificationInstance {
             window_clone.close();
         });
 
-        NOTIFICATION_MANAGER
-            .lock()
-            .unwrap()
-            .remove_notification(id);
+        NOTIFICATION_MANAGER.lock().unwrap().remove_notification(id);
     }
 }
 
@@ -121,13 +118,7 @@ impl NotificationManager {
         }
     }
 
-    fn show(
-        &mut self,
-        title: String,
-        message: String,
-        url: Option<String>,
-        timeout_seconds: f64,
-    ) {
+    fn show(&mut self, title: String, message: String, url: Option<String>, timeout_seconds: f64) {
         self.ensure_app();
 
         while self.active_notifications.len() >= self.max_notifications {
@@ -302,7 +293,8 @@ impl NotificationManager {
                     let x = geometry.x() + geometry.width() - 360 - 15;
                     let y = geometry.y()
                         + 15
-                        + (self.active_notifications.len() as i32 * (64 + self.notification_spacing));
+                        + (self.active_notifications.len() as i32
+                            * (64 + self.notification_spacing));
 
                     window.set_default_size(360, 64);
                 }

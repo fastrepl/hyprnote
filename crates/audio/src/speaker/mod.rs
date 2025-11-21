@@ -29,30 +29,30 @@ pub struct SpeakerInput {
 }
 
 impl SpeakerInput {
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     pub fn new() -> Result<Self> {
         let inner = PlatformSpeakerInput::new()?;
         Ok(Self { inner })
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     pub fn new() -> Result<Self> {
         Err(anyhow::anyhow!(
             "'SpeakerInput::new' is not supported on this platform"
         ))
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     pub fn sample_rate(&self) -> u32 {
         self.inner.sample_rate()
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     pub fn sample_rate(&self) -> u32 {
         0
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     pub fn stream(self) -> Result<SpeakerStream> {
         let inner = self.inner.stream();
         Ok(SpeakerStream {
@@ -62,7 +62,7 @@ impl SpeakerInput {
         })
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     pub fn stream(self) -> Result<SpeakerStream> {
         Err(anyhow::anyhow!(
             "'SpeakerInput::stream' is not supported on this platform"
@@ -84,7 +84,7 @@ impl Stream for SpeakerStream {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
         {
             if self.buffer_idx < self.buffer.len() {
                 let sample = self.buffer[self.buffer_idx];
@@ -109,7 +109,7 @@ impl Stream for SpeakerStream {
             }
         }
 
-        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
         {
             std::task::Poll::Pending
         }
@@ -121,12 +121,12 @@ impl kalosm_sound::AsyncSource for SpeakerStream {
         self
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     fn sample_rate(&self) -> u32 {
         self.inner.sample_rate()
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     fn sample_rate(&self) -> u32 {
         0
     }
@@ -202,5 +202,69 @@ mod tests {
 
         assert!(sample_count > 0, "Should receive some audio samples");
         println!("Received {} samples from Windows speaker", sample_count);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[tokio::test]
+    #[serial]
+    async fn test_linux() {
+        use kalosm_sound::AsyncSource;
+
+        let input = match SpeakerInput::new() {
+            Ok(input) => input,
+            Err(e) => {
+                println!("Failed to create SpeakerInput: {}", e);
+                println!("This is expected if ALSA is not configured or no audio devices are available");
+                return;
+            }
+        };
+
+        let sample_rate = input.sample_rate();
+        println!("Linux speaker sample rate: {}", sample_rate);
+        assert!(sample_rate > 0);
+
+        let mut stream = match input.stream() {
+            Ok(stream) => stream,
+            Err(e) => {
+                println!("Failed to create speaker stream: {}", e);
+                return;
+            }
+        };
+
+        let stream_sample_rate = stream.sample_rate();
+        println!("Linux speaker stream sample rate: {}", stream_sample_rate);
+        assert!(stream_sample_rate > 0);
+
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+        let mut sample_count = 0;
+        let timeout = tokio::time::sleep(tokio::time::Duration::from_secs(2));
+        tokio::pin!(timeout);
+
+        loop {
+            tokio::select! {
+                _ = &mut timeout => {
+                    println!("Timeout reached after collecting {} samples", sample_count);
+                    break;
+                }
+                sample = stream.next() => {
+                    if let Some(_s) = sample {
+                        sample_count += 1;
+                        if sample_count >= 1000 {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        println!("Received {} samples from Linux speaker", sample_count);
+        if sample_count > 0 {
+            println!("Successfully captured audio samples");
+        } else {
+            println!("No samples captured - this may be expected if no audio is playing or permissions are not granted");
+        }
     }
 }

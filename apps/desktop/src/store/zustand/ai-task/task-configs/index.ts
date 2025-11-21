@@ -44,6 +44,13 @@ export interface TaskArgsMapTransformed {
       }>;
     }>;
     template?: Pick<Template, "sections">;
+    attachments: Array<{
+      id: string;
+      fileName: string;
+      mimeType: string;
+      size: number;
+      fileUrl: string;
+    }>;
   };
   title: {
     sessionId: string;

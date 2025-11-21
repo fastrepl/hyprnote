@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 
 import NoteEditor, {
   type JSONContent,
@@ -6,6 +6,7 @@ import NoteEditor, {
 } from "@hypr/tiptap/editor";
 import {
   EMPTY_TIPTAP_DOC,
+  type FileHandlerConfig,
   isValidTiptapContent,
   type PlaceholderFunction,
 } from "@hypr/tiptap/shared";
@@ -14,8 +15,12 @@ import * as main from "../../../../../store/tinybase/main";
 
 export const RawEditor = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string }
->(({ sessionId }, ref) => {
+  {
+    sessionId: string;
+    onFilesAdded?: (files: File[], options?: { position?: number }) => void;
+    onContentChange?: (content: JSONContent) => void;
+  }
+>(({ sessionId, onFilesAdded, onContentChange }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
 
   const [initialContent, setInitialContent] =
@@ -41,12 +46,20 @@ export const RawEditor = forwardRef<
     }
   }, [store, sessionId]);
 
-  const handleChange = main.UI.useSetPartialRowCallback(
+  const saveContent = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (input: JSONContent) => ({ raw_md: JSON.stringify(input) }),
     [],
     main.STORE_ID,
+  );
+
+  const handleChange = useCallback(
+    (input: JSONContent) => {
+      saveContent(input);
+      onContentChange?.(input);
+    },
+    [saveContent, onContentChange],
   );
 
   const mentionConfig = useMemo(
@@ -59,6 +72,28 @@ export const RawEditor = forwardRef<
     [],
   );
 
+  const fileHandlerConfig = useMemo(
+    () =>
+      onFilesAdded
+        ? ({
+            onDrop: (
+              files: File[],
+              _editor: TiptapEditor,
+              position?: number,
+            ) => {
+              onFilesAdded(files, { position });
+              return false;
+            },
+            onPaste: (files: File[], editor: TiptapEditor) => {
+              const pos = editor.state.selection.from;
+              onFilesAdded(files, { position: pos });
+              return false;
+            },
+          } satisfies FileHandlerConfig)
+        : undefined,
+    [onFilesAdded],
+  );
+
   return (
     <NoteEditor
       ref={ref}
@@ -67,6 +102,7 @@ export const RawEditor = forwardRef<
       handleChange={handleChange}
       mentionConfig={mentionConfig}
       placeholderComponent={Placeholder}
+      fileHandlerConfig={fileHandlerConfig}
     />
   );
 });

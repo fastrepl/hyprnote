@@ -27,7 +27,7 @@ export function ChatSession({
   chatGroupId,
   children,
 }: ChatSessionProps) {
-  const transport = useTransport();
+  const transport = useTransport(chatGroupId);
   const store = main.UI.useStore(main.STORE_ID);
 
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -159,7 +159,7 @@ export function ChatSession({
   );
 }
 
-function useTransport() {
+function useTransport(chatGroupId?: string) {
   const registry = useToolRegistry();
   const model = useLanguageModel();
 
@@ -168,8 +168,8 @@ function useTransport() {
       return null;
     }
 
-    return new CustomChatTransport(registry, model);
-  }, [registry, model]);
+    return new CustomChatTransport(registry, model, chatGroupId);
+  }, [registry, model, chatGroupId]);
 
   return transport;
 }

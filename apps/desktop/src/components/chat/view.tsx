@@ -1,3 +1,4 @@
+import type { FileUIPart, TextUIPart } from "ai";
 import { useCallback, useRef } from "react";
 
 import type { HyprUIMessage } from "../../chat/types";
@@ -5,10 +6,16 @@ import { useShell } from "../../contexts/shell";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
+import {
+  type PersistedChatAttachment,
+  saveChatAttachment,
+} from "./attachments/storage";
 import { ChatBody } from "./body";
 import { ChatHeader } from "./header";
 import { ChatMessageInput } from "./input";
 import { ChatSession } from "./session";
+
+type MessagePart = TextUIPart | FileUIPart | HyprUIMessage["parts"][number];
 
 export function ChatView() {
   const { chat } = useShell();
@@ -38,16 +45,16 @@ export function ChatView() {
       chat_group_id: string;
       content: string;
       role: string;
-      parts: any;
-      metadata: any;
+      parts: MessagePart[];
+      metadata: { createdAt: number };
     }) => p.id,
     (p: {
       id: string;
       chat_group_id: string;
       content: string;
       role: string;
-      parts: any;
-      metadata: any;
+      parts: MessagePart[];
+      metadata: { createdAt: number };
     }) => ({
       user_id,
       chat_group_id: p.chat_group_id,
@@ -62,34 +69,45 @@ export function ChatView() {
   );
 
   const handleSendMessage = useCallback(
-    (
+    async (
       content: string,
-      parts: any[],
+      parts: MessagePart[],
+      attachments: Array<{
+        file: File;
+        persisted?: PersistedChatAttachment;
+      }>,
       sendMessage: (message: HyprUIMessage) => void,
     ) => {
       const messageId = id();
-      const uiMessage: HyprUIMessage = {
-        id: messageId,
-        role: "user",
-        parts,
-        metadata: { createdAt: Date.now() },
-      };
-
       let currentGroupId = groupId;
       if (!currentGroupId) {
         currentGroupId = id();
-        const title = content.slice(0, 50) + (content.length > 50 ? "..." : "");
+        const title = deriveChatTitle(content, parts);
         createChatGroup({ groupId: currentGroupId, title });
         setGroupId(currentGroupId);
       }
+
+      const normalizedParts = await ensurePersistedAttachmentParts(
+        parts,
+        attachments,
+        currentGroupId,
+      );
+
+      const metadata = { createdAt: Date.now() };
+      const uiMessage: HyprUIMessage = {
+        id: messageId,
+        role: "user",
+        parts: normalizedParts,
+        metadata,
+      };
 
       createChatMessage({
         id: messageId,
         chat_group_id: currentGroupId,
         content,
         role: "user",
-        parts,
-        metadata: { createdAt: Date.now() },
+        parts: normalizedParts,
+        metadata,
       });
 
       sendMessage(uiMessage);
@@ -134,8 +152,9 @@ export function ChatView() {
             />
             <ChatMessageInput
               disabled={!model || status !== "ready"}
-              onSendMessage={(content, parts) =>
-                handleSendMessage(content, parts, sendMessage)
+              chatGroupId={groupId}
+              onSendMessage={(content, parts, attachments) =>
+                handleSendMessage(content, parts, attachments, sendMessage)
               }
             />
           </>
@@ -163,4 +182,80 @@ function useStableSessionId(groupId: string | undefined) {
   }
 
   return sessionIdRef.current;
+}
+
+async function ensurePersistedAttachmentParts(
+  parts: MessagePart[],
+  attachments: Array<{
+    file: File;
+    persisted?: PersistedChatAttachment;
+  }>,
+  chatGroupId: string,
+): Promise<MessagePart[]> {
+  const needsPersistence = attachments.some(
+    (attachment) => !attachment.persisted,
+  );
+
+  if (!needsPersistence) {
+    return parts;
+  }
+
+  const newlySaved: PersistedChatAttachment[] = [];
+
+  for (const attachment of attachments) {
+    if (attachment.persisted) {
+      continue;
+    }
+    const saved = await saveChatAttachment(chatGroupId, attachment.file);
+    newlySaved.push(saved);
+  }
+
+  if (newlySaved.length === 0) {
+    return parts;
+  }
+
+  let savedIndex = 0;
+  return parts.map((part) => {
+    if (part.type !== "file") {
+      return part;
+    }
+
+    const saved = newlySaved[savedIndex++];
+    if (!saved) {
+      return part;
+    }
+
+    return {
+      type: "data-chat-file",
+      data: {
+        type: "chat-file",
+        attachmentId: saved.id,
+        filename: saved.fileName,
+        mediaType: saved.mimeType,
+        size: saved.size,
+        fileUrl: saved.fileUrl,
+      },
+    };
+  });
+}
+
+function deriveChatTitle(content: string, parts: MessagePart[]): string {
+  const fallback = "New chat";
+  const trimmedContent = content.trim();
+  const filePart = parts.find(
+    (part) => part.type === "file" || part.type === "data-chat-file",
+  );
+  const filename =
+    filePart?.type === "file"
+      ? filePart.filename
+      : filePart?.type === "data-chat-file"
+        ? filePart.data.filename
+        : undefined;
+  const baseTitle = trimmedContent || filename || fallback;
+
+  if (baseTitle.length <= 50) {
+    return baseTitle;
+  }
+
+  return `${baseTitle.slice(0, 50)}...`;
 }

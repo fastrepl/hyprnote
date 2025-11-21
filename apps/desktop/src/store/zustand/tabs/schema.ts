@@ -10,6 +10,7 @@ const baseTabSchema = z.object({
 export const editorViewSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("raw") }),
   z.object({ type: z.literal("transcript") }),
+  z.object({ type: z.literal("attachments") }),
   z.object({
     type: z.literal("enhanced"),
     id: z.string(),
@@ -25,6 +26,9 @@ export const isRawView = (view: EditorView): view is { type: "raw" } =>
 export const isTranscriptView = (
   view: EditorView,
 ): view is { type: "transcript" } => view.type === "transcript";
+export const isAttachmentsView = (
+  view: EditorView,
+): view is { type: "attachments" } => view.type === "attachments";
 
 export const tabSchema = z.discriminatedUnion("type", [
   baseTabSchema.extend({

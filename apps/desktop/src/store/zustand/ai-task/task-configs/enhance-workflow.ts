@@ -14,6 +14,7 @@ import {
   TemplateSection,
   templateSectionSchema,
 } from "../../../tinybase/schema-external";
+import { resolveSessionAttachments } from "../shared/resolve-attachments";
 import {
   addMarkdownSectionSeparators,
   trimBeforeMarker,
@@ -158,6 +159,11 @@ async function* generateSummary(params: {
 
   const validator = createValidator(args.template);
 
+  const attachmentParts =
+    args.attachments.length > 0
+      ? await resolveSessionAttachments(args.sessionId, args.attachments)
+      : [];
+
   yield* withEarlyValidationRetry(
     (retrySignal, { previousFeedback }) => {
       let enhancedPrompt = prompt;
@@ -177,10 +183,20 @@ IMPORTANT: Previous attempt failed. ${previousFeedback}`;
       retrySignal.addEventListener("abort", abortFromRetry);
 
       try {
+        const messages: Array<any> = [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: enhancedPrompt },
+              ...attachmentParts,
+            ],
+          },
+        ];
+
         const result = streamText({
           model,
           system,
-          prompt: enhancedPrompt,
+          messages,
           abortSignal: combinedController.signal,
         });
         return result.fullStream;

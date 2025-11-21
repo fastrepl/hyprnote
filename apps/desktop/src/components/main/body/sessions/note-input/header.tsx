@@ -1,4 +1,9 @@
-import { AlertCircleIcon, PlusIcon, RefreshCcwIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  PlusIcon,
+  RefreshCcwIcon,
+  UploadIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -54,6 +59,40 @@ function HeaderTab({
     >
       {children}
     </button>
+  );
+}
+
+function HeaderTabAttachments({
+  isActive,
+  onClick = () => {},
+  onUploadClick,
+}: {
+  isActive: boolean;
+  onClick?: () => void;
+  onUploadClick?: () => void;
+}) {
+  const handleUploadClick = useCallback(
+    (event: React.MouseEvent) => {
+      event.stopPropagation();
+      onUploadClick?.();
+    },
+    [onUploadClick],
+  );
+
+  return (
+    <HeaderTab isActive={isActive} onClick={onClick}>
+      <span className="flex items-center gap-1">
+        <span>Attachments</span>
+        {isActive && onUploadClick && (
+          <span
+            onClick={handleUploadClick}
+            className="inline-flex h-5 w-5 items-center justify-center rounded transition-colors cursor-pointer hover:bg-neutral-200 focus-visible:bg-neutral-200"
+          >
+            <UploadIcon size={12} />
+          </span>
+        )}
+      </span>
+    </HeaderTab>
   );
 }
 
@@ -301,6 +340,7 @@ export function Header({
   handleTabChange,
   isEditing,
   setIsEditing,
+  onUploadAttachments,
 }: {
   sessionId: string;
   editorTabs: EditorView[];
@@ -308,10 +348,28 @@ export function Header({
   handleTabChange: (view: EditorView) => void;
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
+  onUploadAttachments?: (files: File[]) => void;
 }) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const isBatchProcessing = sessionMode === "running_batch";
   const isLiveProcessing = sessionMode === "running_active";
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleAttachmentUploadClick = useCallback(() => {
+    attachmentInputRef.current?.click();
+  }, []);
+
+  const handleAttachmentInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) {
+        return;
+      }
+      onUploadAttachments?.(Array.from(files));
+      event.target.value = "";
+    },
+    [onUploadAttachments],
+  );
 
   if (editorTabs.length === 1 && editorTabs[0].type === "raw") {
     return null;
@@ -341,6 +399,21 @@ export function Header({
               );
             }
 
+            if (view.type === "attachments") {
+              return (
+                <HeaderTabAttachments
+                  key={view.type}
+                  isActive={currentTab.type === "attachments"}
+                  onClick={() => handleTabChange(view)}
+                  onUploadClick={
+                    onUploadAttachments
+                      ? handleAttachmentUploadClick
+                      : undefined
+                  }
+                />
+              );
+            }
+
             return (
               <HeaderTab
                 key={view.type}
@@ -351,10 +424,12 @@ export function Header({
               </HeaderTab>
             );
           })}
-          <CreateOtherFormatButton
-            sessionId={sessionId}
-            handleTabChange={handleTabChange}
-          />
+          {currentTab.type === "enhanced" && (
+            <CreateOtherFormatButton
+              sessionId={sessionId}
+              handleTabChange={handleTabChange}
+            />
+          )}
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
         {showEditingControls && (
@@ -365,14 +440,25 @@ export function Header({
           />
         )}
       </div>
+      <input
+        ref={attachmentInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleAttachmentInputChange}
+        aria-hidden="true"
+      />
     </div>
   );
 }
 
 export function useEditorTabs({
   sessionId,
+  shouldShowAttachments,
 }: {
   sessionId: string;
+  shouldShowAttachments: boolean;
 }): EditorView[] {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const hasTranscript = useHasTranscript(sessionId);
@@ -381,9 +467,12 @@ export function useEditorTabs({
     sessionId,
     main.STORE_ID,
   );
+  const attachmentTabs: EditorView[] = shouldShowAttachments
+    ? [{ type: "attachments" }]
+    : [];
 
   if (sessionMode === "running_active" || sessionMode === "running_batch") {
-    return [{ type: "raw" }, { type: "transcript" }];
+    return [{ type: "raw" }, { type: "transcript" }, ...attachmentTabs];
   }
 
   if (hasTranscript) {
@@ -391,10 +480,15 @@ export function useEditorTabs({
       type: "enhanced",
       id,
     }));
-    return [...enhancedTabs, { type: "raw" }, { type: "transcript" }];
+    return [
+      ...enhancedTabs,
+      { type: "raw" },
+      { type: "transcript" },
+      ...attachmentTabs,
+    ];
   }
 
-  return [{ type: "raw" }];
+  return [{ type: "raw" }, ...attachmentTabs];
 }
 
 function labelForEditorView(view: EditorView): string {
@@ -406,6 +500,9 @@ function labelForEditorView(view: EditorView): string {
   }
   if (view.type === "transcript") {
     return "Transcript";
+  }
+  if (view.type === "attachments") {
+    return "Attachments";
   }
   return "";
 }

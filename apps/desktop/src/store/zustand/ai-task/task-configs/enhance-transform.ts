@@ -1,4 +1,5 @@
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
+import { loadSessionAttachments } from "../../../../components/main/body/sessions/note-input/attachments/storage";
 import {
   buildSegments,
   type RuntimeSpeakerHint,
@@ -46,6 +47,7 @@ async function transformArgs(
 
   const sessionContext = getSessionContext(sessionId, store);
   const template = templateId ? getTemplateData(templateId, store) : undefined;
+  const attachments = await getSessionAttachments(sessionId);
 
   return {
     sessionId,
@@ -55,6 +57,7 @@ async function transformArgs(
     participants: sessionContext.participants,
     segments: sessionContext.segments,
     template,
+    attachments,
   };
 }
 
@@ -376,4 +379,20 @@ function getNumberCell(
 ): number | undefined {
   const value = store.getCell(tableId, rowId, columnId);
   return typeof value === "number" ? value : undefined;
+}
+
+async function getSessionAttachments(sessionId: string) {
+  try {
+    const loaded = await loadSessionAttachments(sessionId);
+    return loaded.map((attachment) => ({
+      id: attachment.id,
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType,
+      size: attachment.size,
+      fileUrl: attachment.fileUrl,
+    }));
+  } catch (error) {
+    console.error("[enhance-transform] failed to load attachments", error);
+    return [];
+  }
 }

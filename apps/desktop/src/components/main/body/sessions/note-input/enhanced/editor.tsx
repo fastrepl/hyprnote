@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 
 import { type JSONContent, TiptapEditor } from "@hypr/tiptap/editor";
 import NoteEditor from "@hypr/tiptap/editor";
@@ -8,8 +8,12 @@ import * as main from "../../../../../../store/tinybase/main";
 
 export const EnhancedEditor = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string; enhancedNoteId: string }
->(({ enhancedNoteId }, ref) => {
+  {
+    sessionId: string;
+    enhancedNoteId: string;
+    onContentChange?: (content: JSONContent) => void;
+  }
+>(({ enhancedNoteId, onContentChange }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
   const [initialContent, setInitialContent] =
     useState<JSONContent>(EMPTY_TIPTAP_DOC);
@@ -34,12 +38,20 @@ export const EnhancedEditor = forwardRef<
     }
   }, [store, enhancedNoteId]);
 
-  const handleChange = main.UI.useSetPartialRowCallback(
+  const saveContent = main.UI.useSetPartialRowCallback(
     "enhanced_notes",
     enhancedNoteId,
     (input: JSONContent) => ({ content: JSON.stringify(input) }),
     [],
     main.STORE_ID,
+  );
+
+  const handleChange = useCallback(
+    (input: JSONContent) => {
+      saveContent(input);
+      onContentChange?.(input);
+    },
+    [saveContent, onContentChange],
   );
 
   const mentionConfig = useMemo(

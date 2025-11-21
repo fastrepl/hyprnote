@@ -17,6 +17,8 @@ pub enum HyprMenuItem {
     TrayStart,
     TrayQuit,
     AppInfo,
+    AppCliInstall,
+    AppCliUninstall,
     AppNew,
 }
 
@@ -27,6 +29,8 @@ impl From<HyprMenuItem> for MenuId {
             HyprMenuItem::TrayStart => "hypr_tray_start",
             HyprMenuItem::TrayQuit => "hypr_tray_quit",
             HyprMenuItem::AppInfo => "hypr_app_info",
+            HyprMenuItem::AppCliInstall => "hypr_app_cli_install",
+            HyprMenuItem::AppCliUninstall => "hypr_app_cli_uninstall",
             HyprMenuItem::AppNew => "hypr_app_new",
         }
         .into()
@@ -41,6 +45,8 @@ impl From<MenuId> for HyprMenuItem {
             "hypr_tray_start" => HyprMenuItem::TrayStart,
             "hypr_tray_quit" => HyprMenuItem::TrayQuit,
             "hypr_app_info" => HyprMenuItem::AppInfo,
+            "hypr_app_cli_install" => HyprMenuItem::AppCliInstall,
+            "hypr_app_cli_uninstall" => HyprMenuItem::AppCliUninstall,
             "hypr_app_new" => HyprMenuItem::AppNew,
             _ => unreachable!(),
         }
@@ -58,6 +64,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         let app = self.app_handle();
 
         let info_item = app_info_menu(app)?;
+        let cli_item = app_cli_menu(app)?;
         let new_item = app_new_menu(app)?;
 
         if cfg!(target_os = "macos") {
@@ -67,15 +74,15 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                 if items.len() > 0 {
                     if let MenuItemKind::Submenu(submenu) = &items[0] {
                         submenu.remove_at(0)?;
+                        submenu.remove_at(0)?;
+                        submenu.prepend(&cli_item)?;
                         submenu.prepend(&info_item)?;
-                        return Ok(());
                     }
                 }
 
                 if items.len() > 1 {
                     if let MenuItemKind::Submenu(submenu) = &items[1] {
                         submenu.prepend(&new_item)?;
-                        return Ok(());
                     }
                 }
             }
@@ -163,6 +170,18 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                                 }
                             });
                     }
+                    HyprMenuItem::AppCliInstall => {
+                        use tauri_plugin_cli2::CliPluginExt;
+                        if let Ok(_) = app.plugin_cli().install_cli_to_path() {
+                            let _ = app.create_app_menu();
+                        }
+                    }
+                    HyprMenuItem::AppCliUninstall => {
+                        use tauri_plugin_cli2::CliPluginExt;
+                        if let Ok(_) = app.plugin_cli().uninstall_cli_from_path() {
+                            let _ = app.create_app_menu();
+                        }
+                    }
                     HyprMenuItem::AppNew => {
                         use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
                         if let Ok(_) = app.window_show(AppWindow::Main) {
@@ -211,6 +230,34 @@ fn app_info_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
         true,
         None::<&str>,
     )
+}
+
+fn app_cli_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
+    use tauri_plugin_cli2::CliPluginExt;
+
+    let is_installed = app
+        .plugin_cli()
+        .check_cli_status()
+        .map(|status| status.is_installed)
+        .unwrap_or(false);
+
+    if is_installed {
+        MenuItem::with_id(
+            app,
+            HyprMenuItem::AppCliUninstall,
+            "Uninstall CLI",
+            true,
+            None::<&str>,
+        )
+    } else {
+        MenuItem::with_id(
+            app,
+            HyprMenuItem::AppCliInstall,
+            "Install CLI",
+            true,
+            None::<&str>,
+        )
+    }
 }
 
 fn app_new_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {

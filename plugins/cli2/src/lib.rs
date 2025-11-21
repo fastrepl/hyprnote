@@ -6,6 +6,8 @@ mod handler;
 pub use error::{Error, Result};
 pub use ext::*;
 
+pub use tauri_plugin_cli::CliExt;
+
 const PLUGIN_NAME: &str = "cli2";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {

@@ -1,19 +1,14 @@
 use std::path::PathBuf;
 
-pub trait CliPluginExt<R: tauri::Runtime> {
-    fn handle_cli_matches(&self) -> Result<(), crate::Error>;
-    fn get_cli_symlink_path(&self) -> PathBuf;
-    fn get_cli_executable_path(&self) -> Result<PathBuf, crate::Error>;
-    fn install_cli_to_path(&self) -> Result<(), crate::Error>;
-    fn uninstall_cli_from_path(&self) -> Result<(), crate::Error>;
-    fn check_cli_status(&self) -> Result<CliStatus, crate::Error>;
+pub struct PluginCli<R: tauri::Runtime> {
+    app_handle: tauri::AppHandle<R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::CliPluginExt<R> for T {
-    fn handle_cli_matches(&self) -> Result<(), crate::Error> {
+impl<R: tauri::Runtime> PluginCli<R> {
+    pub fn handle_cli_matches(&self) -> Result<(), crate::Error> {
         use tauri_plugin_cli::CliExt;
 
-        match self.cli().matches() {
+        match self.app_handle.cli().matches() {
             Ok(matches) => {
                 if matches.args.contains_key("help") || matches.args.contains_key("version") {
                     std::process::exit(0);
@@ -28,7 +23,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::CliPluginExt<R> for T {
         Ok(())
     }
 
-    fn get_cli_symlink_path(&self) -> PathBuf {
+    pub fn get_cli_symlink_path(&self) -> PathBuf {
         #[cfg(unix)]
         {
             if let Some(home) = std::env::var_os("HOME") {
@@ -51,11 +46,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::CliPluginExt<R> for T {
         }
     }
 
-    fn get_cli_executable_path(&self) -> Result<PathBuf, crate::Error> {
+    pub fn get_cli_executable_path(&self) -> Result<PathBuf, crate::Error> {
         std::env::current_exe().map_err(|e| e.into())
     }
 
-    fn install_cli_to_path(&self) -> Result<(), crate::Error> {
+    pub fn install_cli_to_path(&self) -> Result<(), crate::Error> {
         let exe_path = self.get_cli_executable_path()?;
         let symlink_path = self.get_cli_symlink_path();
 
@@ -91,7 +86,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::CliPluginExt<R> for T {
         Ok(())
     }
 
-    fn uninstall_cli_from_path(&self) -> Result<(), crate::Error> {
+    pub fn uninstall_cli_from_path(&self) -> Result<(), crate::Error> {
         #[cfg(not(any(unix, windows)))]
         {
             return Err(crate::Error::UnsupportedPlatform);
@@ -116,7 +111,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::CliPluginExt<R> for T {
         Ok(())
     }
 
-    fn check_cli_status(&self) -> Result<CliStatus, crate::Error> {
+    pub fn check_cli_status(&self) -> Result<CliStatus, crate::Error> {
         let symlink_path = self.get_cli_symlink_path();
 
         if !symlink_path.exists() {
@@ -134,6 +129,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::CliPluginExt<R> for T {
             symlink_path: Some(symlink_path.to_string_lossy().to_string()),
             target_path: target.map(|p| p.to_string_lossy().to_string()),
         })
+    }
+}
+
+pub trait CliPluginExt<R: tauri::Runtime> {
+    fn plugin_cli(&self) -> PluginCli<R>;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> CliPluginExt<R> for T {
+    fn plugin_cli(&self) -> PluginCli<R> {
+        PluginCli {
+            app_handle: self.app_handle().clone(),
+        }
     }
 }
 

@@ -19,6 +19,7 @@ hypr-host = { workspace = true }
 tauri = { workspace = true, features = ["tray-icon", "image-png"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
+tauri-plugin-cli2 = { workspace = true }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }

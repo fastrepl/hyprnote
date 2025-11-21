@@ -1,14 +1,22 @@
+#[cfg(target_os = "macos")]
 use itertools::Itertools;
+#[cfg(target_os = "macos")]
 use std::time::Duration;
 
+#[cfg(target_os = "macos")]
 use objc2::msg_send;
 
+#[cfg(target_os = "macos")]
 use block2::RcBlock;
+#[cfg(target_os = "macos")]
 use objc2::{rc::Retained, runtime::Bool, ClassType};
+#[cfg(target_os = "macos")]
 use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType};
+#[cfg(target_os = "macos")]
 use objc2_event_kit::{
     EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore, EKParticipant,
 };
+#[cfg(target_os = "macos")]
 use objc2_foundation::{NSArray, NSDate, NSError, NSString};
 
 use hypr_calendar_interface::{
@@ -16,14 +24,19 @@ use hypr_calendar_interface::{
 };
 
 pub struct Handle {
+    #[cfg(target_os = "macos")]
     event_store: Retained<EKEventStore>,
+    #[cfg(target_os = "macos")]
     contacts_store: Retained<CNContactStore>,
+    #[cfg(target_os = "macos")]
     calendar_access_granted: bool,
+    #[cfg(target_os = "macos")]
     contacts_access_granted: bool,
 }
 
 #[allow(clippy::new_without_default)]
 impl Handle {
+    #[cfg(target_os = "macos")]
     pub fn new() -> Self {
         let event_store = unsafe { EKEventStore::new() };
         let contacts_store = unsafe { CNContactStore::new() };
@@ -41,6 +54,7 @@ impl Handle {
         handle
     }
 
+    #[cfg(target_os = "macos")]
     pub fn request_calendar_access(&mut self) {
         if self.calendar_access_granted {
             return;
@@ -62,6 +76,7 @@ impl Handle {
         }
     }
 
+    #[cfg(target_os = "macos")]
     pub fn request_contacts_access(&mut self) {
         if self.contacts_access_granted {
             return;
@@ -83,17 +98,20 @@ impl Handle {
         }
     }
 
+    #[cfg(target_os = "macos")]
     pub fn calendar_access_status(&self) -> bool {
         let status = unsafe { EKEventStore::authorizationStatusForEntityType(EKEntityType::Event) };
         matches!(status, EKAuthorizationStatus::FullAccess)
     }
 
+    #[cfg(target_os = "macos")]
     pub fn contacts_access_status(&self) -> bool {
         let status =
             unsafe { CNContactStore::authorizationStatusForEntityType(CNEntityType::Contacts) };
         matches!(status, CNAuthorizationStatus::Authorized)
     }
 
+    #[cfg(target_os = "macos")]
     fn fetch_events(&self, filter: &EventFilter) -> Retained<NSArray<EKEvent>> {
         let calendars: Retained<NSArray<EKCalendar>> = unsafe { self.event_store.calendars() }
             .into_iter()
@@ -130,6 +148,7 @@ impl Handle {
         events
     }
 
+    #[cfg(target_os = "macos")]
     fn transform_participant(&self, participant: &EKParticipant) -> Participant {
         let name = unsafe { participant.name() }
             .unwrap_or_default()
@@ -164,8 +183,30 @@ impl Handle {
 
         Participant { name, email }
     }
+
+    #[cfg(not(target_os = "macos"))]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    pub fn request_calendar_access(&mut self) {}
+
+    #[cfg(not(target_os = "macos"))]
+    pub fn request_contacts_access(&mut self) {}
+
+    #[cfg(not(target_os = "macos"))]
+    pub fn calendar_access_status(&self) -> bool {
+        false
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    pub fn contacts_access_status(&self) -> bool {
+        false
+    }
 }
 
+#[cfg(target_os = "macos")]
 impl CalendarSource for Handle {
     async fn list_calendars(&self) -> Result<Vec<Calendar>, Error> {
         if !self.calendar_access_granted {
@@ -263,6 +304,18 @@ impl CalendarSource for Handle {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
+impl CalendarSource for Handle {
+    async fn list_calendars(&self) -> Result<Vec<Calendar>, Error> {
+        Ok(Vec::new())
+    }
+
+    async fn list_events(&self, _filter: EventFilter) -> Result<Vec<Event>, Error> {
+        Ok(Vec::new())
+    }
+}
+
+#[cfg(target_os = "macos")]
 fn offset_date_time_from(date: Retained<NSDate>) -> chrono::DateTime<chrono::Utc> {
     let seconds = unsafe { date.timeIntervalSinceReferenceDate() };
 
@@ -280,7 +333,7 @@ fn offset_date_time_from(date: Retained<NSDate>) -> chrono::DateTime<chrono::Utc
     chrono::DateTime::<chrono::Utc>::from_timestamp(unix_timestamp as i64, 0).unwrap()
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
 

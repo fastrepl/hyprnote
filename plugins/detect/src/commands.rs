@@ -13,6 +13,7 @@ pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
             let _ = window.close();
         }
 
+        #[cfg(target_os = "macos")]
         if !really_quit {
             let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
         }

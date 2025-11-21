@@ -1,10 +1,10 @@
 use std::path::{Path, PathBuf};
 use tokio::task;
 
-use hypr_audio_utils::{f32_to_i16_bytes, resample_audio, source_from_path, Source};
+use hypr_audio_utils::{Source, f32_to_i16_bytes, resample_audio, source_from_path};
 use owhisper_interface::batch::Response as BatchResponse;
 
-use crate::{error::Error, ListenClientBuilder};
+use crate::{ListenClientBuilder, error::Error};
 
 // https://developers.deepgram.com/reference/speech-to-text/listen-pre-recorded
 // https://github.com/deepgram/deepgram-rust-sdk/blob/main/src/listen/rest.rs

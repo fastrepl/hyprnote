@@ -1,16 +1,16 @@
 use std::ops::{Deref, DerefMut};
 
 use ratatui::{
+    Terminal,
     crossterm::{
         cursor::Hide,
         execute,
         terminal::{
-            disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
-            LeaveAlternateScreen,
+            Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
+            enable_raw_mode,
         },
     },
     prelude::CrosstermBackend,
-    Terminal,
 };
 
 pub struct TerminalGuard {

@@ -75,6 +75,7 @@
     "tray:default",
     "auth:default",
     "analytics:default",
+    "cli2:default",
     "updater:default",
     "deep-link:default",
     "store:default",

@@ -111,6 +111,7 @@ tauri-plugin-updater = "2.9"
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
 tauri-plugin-auth = { path = "plugins/auth" }
+tauri-plugin-cli2 = { path = "plugins/cli2" }
 tauri-plugin-db = { path = "plugins/db" }
 tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-detect = { path = "plugins/detect" }
@@ -157,6 +158,7 @@ indoc = "2"
 itertools = "0.14.0"
 lazy_static = "1.5.0"
 once_cell = "1.20.3"
+open = "5"
 regex = "1.11.1"
 schemars = "0.8.21"
 serde = "1"

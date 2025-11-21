@@ -52,6 +52,15 @@
     }
   },
   "plugins": {
+    "cli": {
+      "description": "Hyprnote",
+      "args": [],
+      "subcommands": {
+        "hello": {
+          "description": "Open https://hyprnote.com"
+        }
+      }
+    },
     "deep-link": {
       "desktop": {
         "schemes": [

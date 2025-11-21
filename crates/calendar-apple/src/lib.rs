@@ -164,7 +164,6 @@ impl Handle {
 
         Participant { name, email }
     }
-
 }
 
 impl CalendarSource for Handle {

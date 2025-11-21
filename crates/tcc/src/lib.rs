@@ -12,9 +12,7 @@ pub const DENIED: isize = 1;
 pub const GRANTED: isize = 0;
 
 pub fn audio_capture_permission_status() -> isize {
-    unsafe {
-        _audio_capture_permission_status()
-    }
+    unsafe { _audio_capture_permission_status() }
 }
 
 pub fn reset_audio_capture_permission(bundle_id: impl Into<SRString>) -> bool {

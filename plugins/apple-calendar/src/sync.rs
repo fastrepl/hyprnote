@@ -369,7 +369,6 @@ fn find_potentially_rescheduled_event<'a>(
 }
 */
 
-#[cfg(target_os = "macos")]
 async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
     tauri::async_runtime::spawn_blocking(|| {
         let handle = hypr_calendar_apple::Handle::new();
@@ -384,12 +383,6 @@ async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
     .unwrap_or_default()
 }
 
-#[cfg(not(target_os = "macos"))]
-async fn list_system_calendars() -> Vec<hypr_calendar_interface::Calendar> {
-    Vec::new()
-}
-
-#[cfg(target_os = "macos")]
 async fn list_system_events_for_calendars(
     calendar_tracking_ids: Vec<String>,
 ) -> std::collections::HashMap<String, Vec<hypr_calendar_interface::Event>> {
@@ -448,13 +441,6 @@ async fn list_system_events_for_calendars(
     })
     .await
     .unwrap_or_default()
-}
-
-#[cfg(not(target_os = "macos"))]
-async fn list_system_events_for_calendars(
-    _calendar_tracking_ids: Vec<String>,
-) -> std::collections::HashMap<String, Vec<hypr_calendar_interface::Event>> {
-    std::collections::HashMap::new()
 }
 
 async fn list_db_calendars(
@@ -527,7 +513,6 @@ async fn list_db_events_with_session(
     Ok(events_with_session)
 }
 
-#[cfg(target_os = "macos")]
 async fn check_calendar_access() -> Result<(), crate::Error> {
     let calendar_access = tauri::async_runtime::spawn_blocking(|| {
         let handle = hypr_calendar_apple::Handle::new();
@@ -540,11 +525,6 @@ async fn check_calendar_access() -> Result<(), crate::Error> {
         return Err(crate::Error::CalendarAccessDenied);
     }
 
-    Ok(())
-}
-
-#[cfg(not(target_os = "macos"))]
-async fn check_calendar_access() -> Result<(), crate::Error> {
     Ok(())
 }
 

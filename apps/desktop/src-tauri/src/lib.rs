@@ -1,9 +1,11 @@
 mod commands;
 mod ext;
 mod store;
+mod subtitle;
 
 use ext::*;
 use store::*;
+use subtitle::*;
 
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 

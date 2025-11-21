@@ -18,7 +18,7 @@ impl Agc {
 impl Default for Agc {
     fn default() -> Self {
         Self {
-            agc: MonoAgc::new(0.1, 0.000001).expect("failed_to_create_agc"),
+            agc: MonoAgc::new(1e-1, 1e-6).expect("failed_to_create_agc"),
         }
     }
 }
@@ -46,12 +46,13 @@ mod tests {
     #[test]
     fn test_agc() {
         let test_params = vec![
-            (0.05, 0.000001),
-            (0.1, 0.000001),
-            (0.2, 0.000001),
-            (0.1, 0.00001),
-            (0.1, 0.0001),
-            (0.3, 0.0001),
+            (5e-1, 1e-6),
+            (5e-2, 1e-6),
+            (1e-1, 1e-6),
+            (2e-1, 1e-6),
+            (1e-1, 1e-5),
+            (1e-1, 1e-4),
+            (3e-1, 1e-4),
         ];
 
         let input_audio = rodio::Decoder::new(std::io::BufReader::new(

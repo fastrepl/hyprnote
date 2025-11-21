@@ -252,12 +252,19 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - run: |
+      - name: Download macOS DMG from S3
+        run: |
           aws s3 cp \
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.dmg" \
             "hyprnote.dmg" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      - name: Download Linux AppImage from S3 (if available)
+        if: ${{ needs.build-linux.result == 'success' }}
+        run: |
           aws s3 cp \
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.AppImage" \
             "hyprnote.AppImage" \
@@ -271,7 +278,17 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: desktop_v${{ needs.compute-version.outputs.version }}
           tag_prefix: ""
-      - uses: ncipollo/release-action@v1
+      - name: Create GitHub release with macOS only
+        if: ${{ needs.build-linux.result != 'success' }}
+        uses: ncipollo/release-action@v1
+        with:
+          tag: desktop_v${{ needs.compute-version.outputs.version }}
+          name: desktop_v${{ needs.compute-version.outputs.version }}
+          body: "https://hyprnote.com/changelog/${{ needs.compute-version.outputs.version }}"
+          artifacts: "hyprnote.dmg"
+      - name: Create GitHub release with macOS + Linux
+        if: ${{ needs.build-linux.result == 'success' }}
+        uses: ncipollo/release-action@v1
         with:
           tag: desktop_v${{ needs.compute-version.outputs.version }}
           name: desktop_v${{ needs.compute-version.outputs.version }}

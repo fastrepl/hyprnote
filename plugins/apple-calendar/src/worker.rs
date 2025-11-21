@@ -39,30 +39,27 @@ pub async fn perform_events_sync(_job: Job, ctx: Data<WorkerState>) -> Result<()
 }
 
 pub async fn monitor(state: WorkerState) -> Result<(), std::io::Error> {
-    #[cfg(target_os = "macos")]
-    {
-        use std::str::FromStr;
+    use std::str::FromStr;
 
-        apalis::prelude::Monitor::new()
-            .register({
-                WorkerBuilder::new(CALENDARS_SYNC_WORKER_NAME)
-                    .data(state.clone())
-                    .backend(apalis_cron::CronStream::new(
-                        apalis_cron::Schedule::from_str("0 */10 * * * *").unwrap(),
-                    ))
-                    .build_fn(perform_calendars_sync)
-            })
-            .register({
-                WorkerBuilder::new(EVENTS_SYNC_WORKER_NAME)
-                    .data(state)
-                    .backend(apalis_cron::CronStream::new(
-                        apalis_cron::Schedule::from_str("0 */5 * * * *").unwrap(),
-                    ))
-                    .build_fn(perform_events_sync)
-            })
-            .run()
-            .await?;
-    }
+    apalis::prelude::Monitor::new()
+        .register({
+            WorkerBuilder::new(CALENDARS_SYNC_WORKER_NAME)
+                .data(state.clone())
+                .backend(apalis_cron::CronStream::new(
+                    apalis_cron::Schedule::from_str("0 */10 * * * *").unwrap(),
+                ))
+                .build_fn(perform_calendars_sync)
+        })
+        .register({
+            WorkerBuilder::new(EVENTS_SYNC_WORKER_NAME)
+                .data(state)
+                .backend(apalis_cron::CronStream::new(
+                    apalis_cron::Schedule::from_str("0 */5 * * * *").unwrap(),
+                ))
+                .build_fn(perform_events_sync)
+        })
+        .run()
+        .await?;
 
     Ok(())
 }

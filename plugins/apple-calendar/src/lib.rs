@@ -1,6 +1,5 @@
 use std::sync::Mutex;
 
-#[cfg(target_os = "macos")]
 use tauri::Manager;
 
 mod commands;
@@ -21,7 +20,6 @@ pub struct State {
 
 const PLUGIN_NAME: &str = "apple-calendar";
 
-#[cfg(target_os = "macos")]
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
@@ -40,26 +38,18 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
 }
 
 pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
-    #[cfg(target_os = "macos")]
-    {
-        let specta_builder = make_specta_builder();
+    let specta_builder = make_specta_builder();
 
-        tauri::plugin::Builder::new(PLUGIN_NAME)
-            .invoke_handler(specta_builder.invoke_handler())
-            .setup(|app, _api| {
-                app.manage(ManagedState::default());
-                Ok(())
-            })
-            .build()
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        tauri::plugin::Builder::new(PLUGIN_NAME).build()
-    }
+    tauri::plugin::Builder::new(PLUGIN_NAME)
+        .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _api| {
+            app.manage(ManagedState::default());
+            Ok(())
+        })
+        .build()
 }
 
-#[cfg(all(test, target_os = "macos"))]
+#[cfg(test)]
 mod test {
     use super::*;
 

@@ -351,10 +351,12 @@ export function Header({
               </HeaderTab>
             );
           })}
-          <CreateOtherFormatButton
-            sessionId={sessionId}
-            handleTabChange={handleTabChange}
-          />
+          {currentTab.type === "enhanced" && (
+            <CreateOtherFormatButton
+              sessionId={sessionId}
+              handleTabChange={handleTabChange}
+            />
+          )}
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
         {showEditingControls && (

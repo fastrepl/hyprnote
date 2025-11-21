@@ -63,14 +63,18 @@ mod tests {
     #[test]
     fn test_reset_audio_capture_permission() {
         #[cfg(target_os = "macos")]
-        let result = reset_audio_capture_permission("com.hyprnote.nightly");
-        println!("reset_audio_capture_permission: {}", result);
+        {
+            let result = reset_audio_capture_permission("com.hyprnote.nightly");
+            println!("reset_audio_capture_permission: {}", result);
+        }
     }
 
     #[test]
     fn test_reset_microphone_permission() {
         #[cfg(target_os = "macos")]
-        let result = reset_microphone_permission("com.hyprnote.nightly");
-        println!("reset_microphone_permission: {}", result);
+        {
+            let result = reset_microphone_permission("com.hyprnote.nightly");
+            println!("reset_microphone_permission: {}", result);
+        }
     }
 }

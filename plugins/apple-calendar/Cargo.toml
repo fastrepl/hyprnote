@@ -17,7 +17,6 @@ specta-typescript = { workspace = true }
 tauri-plugin-db = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 
-hypr-calendar-apple = { workspace = true }
 hypr-calendar-interface = { workspace = true }
 hypr-db-user = { workspace = true }
 
@@ -36,3 +35,6 @@ uuid = { workspace = true }
 apalis = { workspace = true }
 apalis-cron = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+hypr-calendar-apple = { workspace = true }

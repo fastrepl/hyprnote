@@ -3,6 +3,13 @@ name = "notification-macos"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+macos-examples = []
+
+[[example]]
+name = "test_notification"
+required-features = ["macos-examples"]
+
 [build-dependencies]
 swift-rs = { workspace = true, features = ["build"] }
 
@@ -10,7 +17,7 @@ swift-rs = { workspace = true, features = ["build"] }
 hypr-notification-interface = { workspace = true }
 swift-rs = { workspace = true }
 
-[dev-dependencies]
+[target.'cfg(target_os = "macos")'.dev-dependencies]
 objc2 = { workspace = true }
 objc2-app-kit = { workspace = true }
 objc2-foundation = { workspace = true }

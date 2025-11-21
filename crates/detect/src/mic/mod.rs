@@ -8,6 +8,11 @@ mod windows;
 #[cfg(target_os = "windows")]
 type PlatformDetector = windows::Detector;
 
+#[cfg(target_os = "linux")]
+mod linux;
+#[cfg(target_os = "linux")]
+type PlatformDetector = linux::Detector;
+
 #[derive(Default)]
 pub struct MicDetector {
     inner: PlatformDetector,

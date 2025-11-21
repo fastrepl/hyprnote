@@ -68,14 +68,28 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
 
     #[tracing::instrument(skip_all)]
     fn calendar_access_status(&self) -> bool {
-        let handle = hypr_calendar_apple::Handle::new();
-        handle.calendar_access_status()
+        #[cfg(target_os = "macos")]
+        {
+            let handle = hypr_calendar_apple::Handle::new();
+            return handle.calendar_access_status();
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            false
+        }
     }
 
     #[tracing::instrument(skip_all)]
     fn contacts_access_status(&self) -> bool {
-        let handle = hypr_calendar_apple::Handle::new();
-        handle.contacts_access_status()
+        #[cfg(target_os = "macos")]
+        {
+            let handle = hypr_calendar_apple::Handle::new();
+            return handle.contacts_access_status();
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            false
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -91,10 +105,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
                 .args(["reset", "Calendar", &bundle_id])
                 .spawn()
                 .ok();
-        }
 
-        let mut handle = hypr_calendar_apple::Handle::new();
-        handle.request_calendar_access();
+            let mut handle = hypr_calendar_apple::Handle::new();
+            handle.request_calendar_access();
+        }
     }
 
     #[tracing::instrument(skip_all)]
@@ -110,10 +124,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
                 .args(["reset", "AddressBook", &bundle_id])
                 .spawn()
                 .ok();
-        }
 
-        let mut handle = hypr_calendar_apple::Handle::new();
-        handle.request_contacts_access();
+            let mut handle = hypr_calendar_apple::Handle::new();
+            handle.request_contacts_access();
+        }
     }
 
     #[tracing::instrument(skip_all)]

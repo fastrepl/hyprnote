@@ -10,7 +10,7 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn list_mic_using_apps() -> Vec<String> {
+pub fn list_mic_using_apps() -> Vec<InstalledApp> {
     Vec::new()
 }
 

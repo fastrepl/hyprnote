@@ -37,7 +37,7 @@
     "cwd": "${configDir}",
     "commands": [
       {
-        "command": "npx prettier --config .prettierrc --write",
+        "command": "npx prettier --config .prettierrc --ignore-path .prettierignore --write",
         "exts": ["js", "ts", "jsx", "tsx", "mjs", "mts"]
       },
       {

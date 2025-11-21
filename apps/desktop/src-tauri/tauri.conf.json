@@ -56,8 +56,14 @@
       "description": "Hyprnote",
       "args": [],
       "subcommands": {
-        "hello": {
+        "bug": {
+          "description": "Open GitHub issues page to report a bug"
+        },
+        "web": {
           "description": "Open https://hyprnote.com"
+        },
+        "changelog": {
+          "description": "Open the changelog page"
         }
       }
     },

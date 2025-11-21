@@ -10,6 +10,9 @@ pub enum Error {
 
     #[error("Could not determine home directory")]
     NoHomeDirectory,
+
+    #[error("Refusing to remove non-symlink CLI path: {0}")]
+    NonSymlinkCliPath(String),
 }
 
 impl Serialize for Error {

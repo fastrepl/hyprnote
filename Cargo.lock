@@ -14756,17 +14756,16 @@ dependencies = [
 name = "tauri-plugin-cli2"
 version = "0.1.0"
 dependencies = [
+ "open",
  "serde",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-cli",
- "tauri-plugin-opener",
  "tauri-specta",
  "thiserror 2.0.17",
  "tracing",
- "vergen-gix",
 ]
 
 [[package]]

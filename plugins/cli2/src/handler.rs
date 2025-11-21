@@ -1,6 +1,5 @@
 use tauri::AppHandle;
 use tauri_plugin_cli::Matches;
-use tauri_plugin_opener::OpenerExt;
 
 pub fn entrypoint<R: tauri::Runtime>(app: &AppHandle<R>, matches: Matches) {
     if matches.args.contains_key("help") {
@@ -22,10 +21,12 @@ pub fn entrypoint<R: tauri::Runtime>(app: &AppHandle<R>, matches: Matches) {
     }
 }
 
-fn hello<R: tauri::Runtime>(app: &AppHandle<R>) {
-    if let Err(e) = app.opener().open_url("https://hyprnote.com", None::<&str>) {
-        tracing::error!("failed_to_open_url: {}", e);
+fn hello<R: tauri::Runtime>(_app: &AppHandle<R>) {
+    match open::that("https://hyprnote.com") {
+        Ok(_) => std::process::exit(0),
+        Err(e) => {
+            tracing::error!("open_url_error: {e}");
+            std::process::exit(1);
+        }
     }
-
-    std::process::exit(0);
 }

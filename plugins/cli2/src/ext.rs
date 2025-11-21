@@ -99,8 +99,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::CliPluginExt<R> for T {
 
         let symlink_path = self.get_cli_symlink_path();
 
-        if symlink_path.exists() {
+        let metadata = match std::fs::symlink_metadata(&symlink_path) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(error) => return Err(error.into()),
+        };
+
+        if metadata.file_type().is_symlink() {
             std::fs::remove_file(&symlink_path)?;
+        } else {
+            return Err(crate::Error::NonSymlinkCliPath(
+                symlink_path.to_string_lossy().into_owned(),
+            ));
         }
 
         Ok(())

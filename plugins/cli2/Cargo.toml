@@ -9,20 +9,18 @@ description = ""
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
-vergen-gix = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
-tauri-specta = { workspace = true, features = ["derive", "typescript"] }
-
 tauri-plugin-cli = { workspace = true }
-tauri-plugin-opener = { workspace = true }
+tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
 specta = { workspace = true }
 
+open = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }

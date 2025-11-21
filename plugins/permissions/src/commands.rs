@@ -65,8 +65,16 @@ pub async fn request_microphone_permission<R: tauri::Runtime>(
 pub async fn check_system_audio_permission<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
 ) -> Result<PermissionStatus, String> {
-    let status = hypr_tcc::audio_capture_permission_status();
-    Ok(status.into())
+    #[cfg(target_os = "macos")]
+    {
+        let status = hypr_tcc::audio_capture_permission_status();
+        Ok(status.into())
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(PermissionStatus::Denied)
+    }
 }
 
 #[tauri::command]

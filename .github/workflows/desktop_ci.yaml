@@ -21,6 +21,8 @@ jobs:
         include:
           - platform: "macos"
             runner: "macos-14"
+          - platform: "linux"
+            runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4

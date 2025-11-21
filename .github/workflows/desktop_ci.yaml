@@ -21,6 +21,10 @@ jobs:
         include:
           - platform: "macos"
             runner: "macos-14"
+          - platform: "linux"
+            runner: "ubuntu-22.04"
+          - platform: "linux"
+            runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -34,5 +38,5 @@ jobs:
           target: ${{ matrix.platform }}
       - uses: ./.github/actions/rust_install
         with:
-          target: ${{ matrix.platform }}
+          platform: ${{ matrix.platform }}
       - run: cargo check -p desktop

@@ -16,10 +16,13 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
-tauri-plugin-cli = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
+
+tauri-plugin-cli = { workspace = true }
+tauri-plugin-opener = { workspace = true }
 
 serde = { workspace = true }
 specta = { workspace = true }
 
 thiserror = { workspace = true }
+tracing = { workspace = true }

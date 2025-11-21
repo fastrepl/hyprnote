@@ -25,7 +25,7 @@ Default permissions for the plugin
 </td>
 <td>
 
-Enables the check-cli-status command without any pre-configured scope.
+Enables the check_cli_status command without any pre-configured scope.
 
 </td>
 </tr>
@@ -38,7 +38,7 @@ Enables the check-cli-status command without any pre-configured scope.
 </td>
 <td>
 
-Denies the check-cli-status command without any pre-configured scope.
+Denies the check_cli_status command without any pre-configured scope.
 
 </td>
 </tr>
@@ -51,7 +51,7 @@ Denies the check-cli-status command without any pre-configured scope.
 </td>
 <td>
 
-Enables the install-cli command without any pre-configured scope.
+Enables the install_cli command without any pre-configured scope.
 
 </td>
 </tr>
@@ -64,33 +64,7 @@ Enables the install-cli command without any pre-configured scope.
 </td>
 <td>
 
-Denies the install-cli command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`cli2:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`cli2:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
+Denies the install_cli command without any pre-configured scope.
 
 </td>
 </tr>
@@ -103,7 +77,7 @@ Denies the ping command without any pre-configured scope.
 </td>
 <td>
 
-Enables the uninstall-cli command without any pre-configured scope.
+Enables the uninstall_cli command without any pre-configured scope.
 
 </td>
 </tr>
@@ -116,7 +90,7 @@ Enables the uninstall-cli command without any pre-configured scope.
 </td>
 <td>
 
-Denies the uninstall-cli command without any pre-configured scope.
+Denies the uninstall_cli command without any pre-configured scope.
 
 </td>
 </tr>

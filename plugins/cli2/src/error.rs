@@ -4,6 +4,12 @@ use serde::Serialize;
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+
+    #[error("Unsupported platform for CLI installation")]
+    UnsupportedPlatform,
+
+    #[error("Could not determine home directory")]
+    NoHomeDirectory,
 }
 
 impl Serialize for Error {

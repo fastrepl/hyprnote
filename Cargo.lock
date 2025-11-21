@@ -14762,8 +14762,10 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-cli",
+ "tauri-plugin-opener",
  "tauri-specta",
  "thiserror 2.0.17",
+ "tracing",
  "vergen-gix",
 ]
 

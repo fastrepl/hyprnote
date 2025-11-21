@@ -1,6 +1,7 @@
 mod commands;
 mod error;
 mod ext;
+mod handler;
 
 pub use error::{Error, Result};
 pub use ext::*;
@@ -24,9 +25,15 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            use tauri_plugin_cli::CliExt;
-            let matches = app.cli().matches();
-            println!("matches: {matches:?}");
+            let matches = {
+                use tauri_plugin_cli::CliExt;
+                app.cli().matches()
+            };
+
+            match matches {
+                Ok(matches) => handler::entrypoint(app, matches),
+                Err(error) => tracing::error!("cli_matches_error: {error}"),
+            }
 
             Ok(())
         })

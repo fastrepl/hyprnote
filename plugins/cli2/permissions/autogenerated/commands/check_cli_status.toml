@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-check-cli-status"
+description = "Enables the check_cli_status command without any pre-configured scope."
+commands.allow = ["check_cli_status"]
+
+[[permission]]
+identifier = "deny-check-cli-status"
+description = "Denies the check_cli_status command without any pre-configured scope."
+commands.deny = ["check_cli_status"]

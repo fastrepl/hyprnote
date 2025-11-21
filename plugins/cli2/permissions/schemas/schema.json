@@ -295,52 +295,40 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the check-cli-status command without any pre-configured scope.",
+          "description": "Enables the check_cli_status command without any pre-configured scope.",
           "type": "string",
           "const": "allow-check-cli-status",
-          "markdownDescription": "Enables the check-cli-status command without any pre-configured scope."
+          "markdownDescription": "Enables the check_cli_status command without any pre-configured scope."
         },
         {
-          "description": "Denies the check-cli-status command without any pre-configured scope.",
+          "description": "Denies the check_cli_status command without any pre-configured scope.",
           "type": "string",
           "const": "deny-check-cli-status",
-          "markdownDescription": "Denies the check-cli-status command without any pre-configured scope."
+          "markdownDescription": "Denies the check_cli_status command without any pre-configured scope."
         },
         {
-          "description": "Enables the install-cli command without any pre-configured scope.",
+          "description": "Enables the install_cli command without any pre-configured scope.",
           "type": "string",
           "const": "allow-install-cli",
-          "markdownDescription": "Enables the install-cli command without any pre-configured scope."
+          "markdownDescription": "Enables the install_cli command without any pre-configured scope."
         },
         {
-          "description": "Denies the install-cli command without any pre-configured scope.",
+          "description": "Denies the install_cli command without any pre-configured scope.",
           "type": "string",
           "const": "deny-install-cli",
-          "markdownDescription": "Denies the install-cli command without any pre-configured scope."
+          "markdownDescription": "Denies the install_cli command without any pre-configured scope."
         },
         {
-          "description": "Enables the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the uninstall-cli command without any pre-configured scope.",
+          "description": "Enables the uninstall_cli command without any pre-configured scope.",
           "type": "string",
           "const": "allow-uninstall-cli",
-          "markdownDescription": "Enables the uninstall-cli command without any pre-configured scope."
+          "markdownDescription": "Enables the uninstall_cli command without any pre-configured scope."
         },
         {
-          "description": "Denies the uninstall-cli command without any pre-configured scope.",
+          "description": "Denies the uninstall_cli command without any pre-configured scope.",
           "type": "string",
           "const": "deny-uninstall-cli",
-          "markdownDescription": "Denies the uninstall-cli command without any pre-configured scope."
+          "markdownDescription": "Denies the uninstall_cli command without any pre-configured scope."
         },
         {
           "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-install-cli`\n- `allow-uninstall-cli`\n- `allow-check-cli-status`",

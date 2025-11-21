@@ -1,4 +1,4 @@
-const COMMANDS: &[&str] = &["install-cli", "uninstall-cli", "check-cli-status"];
+const COMMANDS: &[&str] = &["install_cli", "uninstall_cli", "check_cli_status"];
 
 fn main() {
     let gitcl = vergen_gix::GixBuilder::all_git().unwrap();

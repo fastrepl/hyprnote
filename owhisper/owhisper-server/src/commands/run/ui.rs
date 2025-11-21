@@ -4,15 +4,15 @@ use std::{
 };
 
 use ratatui::{
-    Frame,
     layout::{Alignment, Constraint, Layout, Margin, Rect},
-    style::{Modifier, Style, palette::tailwind},
+    style::{palette::tailwind, Modifier, Style},
     symbols,
     text::{Line, Span},
     widgets::{
         Block, BorderType, Borders, List, ListItem, Padding, Paragraph, Scrollbar,
         ScrollbarOrientation,
     },
+    Frame,
 };
 
 use super::RunState;

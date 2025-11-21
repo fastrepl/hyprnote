@@ -12,7 +12,7 @@ use recorded::*;
 use state::*;
 use ui::*;
 
-use crate::{Server, misc::shutdown_signal};
+use crate::{misc::shutdown_signal, Server};
 
 #[derive(clap::Parser)]
 pub struct RunArgs {

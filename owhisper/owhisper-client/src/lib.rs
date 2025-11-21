@@ -2,8 +2,8 @@ mod batch;
 mod error;
 mod live;
 
-use url::UrlQuery;
 use url::form_urlencoded::Serializer;
+use url::UrlQuery;
 
 pub use batch::BatchClient;
 pub use error::Error;

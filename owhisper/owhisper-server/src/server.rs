@@ -3,20 +3,20 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
 use axum::{
-    Router,
     extract::{Request, State},
     http::{HeaderValue, StatusCode},
     middleware::Next,
     response::Response,
+    Router,
 };
 
 use axum_extra::extract::Query;
 use axum_extra::{
-    TypedHeader,
     headers::{
-        Authorization,
         authorization::{Bearer, Credentials},
+        Authorization,
     },
+    TypedHeader,
 };
 use tower::Service;
 use tower_http::trace::{self, TraceLayer};

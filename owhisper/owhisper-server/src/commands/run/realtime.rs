@@ -6,8 +6,8 @@ use owhisper_interface::stream::StreamResponse;
 use tokio::sync::mpsc;
 
 use super::{
-    AmplitudeData, RunState, TerminalGuard, TuiEvent, TuiEventSender, calculate_rms,
-    create_event_channel, draw_ui,
+    calculate_rms, create_event_channel, draw_ui, AmplitudeData, RunState, TerminalGuard, TuiEvent,
+    TuiEventSender,
 };
 
 pub async fn handle_realtime_input(

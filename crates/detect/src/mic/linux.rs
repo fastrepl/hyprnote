@@ -271,6 +271,7 @@ mod tests {
     use crate::{new_callback, Observer};
 
     #[tokio::test]
+    #[ignore = "takes 60 seconds and requires PulseAudio"]
     async fn test_detector() {
         let mut detector = Detector::default();
         detector.start(new_callback(|v| {

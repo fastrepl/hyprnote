@@ -44,6 +44,7 @@ mod tests {
     use rodio::Source;
 
     #[test]
+    #[ignore = "writes audio files to disk for manual listening"]
     fn test_agc() {
         let test_params = vec![
             (5e-1, 1e-6),

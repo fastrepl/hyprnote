@@ -299,6 +299,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore = "requires local Whisper model file"]
     fn test_whisper() {
         let mut whisper = Whisper::builder()
             .model_path(concat!(env!("CARGO_MANIFEST_DIR"), "/model.bin"))

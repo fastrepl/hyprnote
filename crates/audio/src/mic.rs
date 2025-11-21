@@ -201,6 +201,7 @@ mod tests {
     use futures_util::StreamExt;
 
     #[tokio::test]
+    #[ignore = "requires audio hardware"]
     async fn test_mic() {
         let mic = MicInput::new(None).unwrap();
         let mut stream = mic.stream();

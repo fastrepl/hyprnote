@@ -257,6 +257,7 @@ mod tests {
     use rodio::Source;
 
     #[test]
+    #[ignore = "requires local Moonshine ONNX model files"]
     fn test_transcribe() {
         let tiny_base = dirs::cache_dir()
             .unwrap()

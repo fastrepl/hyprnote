@@ -375,12 +375,12 @@ impl Pipeline {
     fn dispatch(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) {
         if let Some(cell) = registry::where_is(RecorderActor::name()) {
             let actor: ActorRef<RecMsg> = cell.into();
-            let audio_for_recording = if mode == ChannelMode::Single {
-                mic.to_vec()
+            let result = if mode == ChannelMode::Single {
+                actor.cast(RecMsg::AudioSingle(Arc::clone(&mic)))
             } else {
-                Self::mix(mic.as_ref(), spk.as_ref())
+                actor.cast(RecMsg::AudioDual(Arc::clone(&mic), Arc::clone(&spk)))
             };
-            if let Err(e) = actor.cast(RecMsg::Audio(audio_for_recording)) {
+            if let Err(e) = result {
                 tracing::error!(error = ?e, "failed_to_send_audio_to_recorder");
             }
         }
@@ -407,13 +407,6 @@ impl Pipeline {
         }
 
         self.amplitude.observe(mic, spk);
-    }
-
-    fn mix(mic: &[f32], spk: &[f32]) -> Vec<f32> {
-        mic.iter()
-            .zip(spk.iter())
-            .map(|(m, s)| (m + s).clamp(-1.0, 1.0))
-            .collect()
     }
 }
 

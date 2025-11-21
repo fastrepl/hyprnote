@@ -84,6 +84,48 @@ pub fn bytes_to_f32_samples(data: &[u8]) -> Vec<f32> {
         .collect()
 }
 
+pub fn mix_sample_f32(mic: f32, speaker: f32) -> f32 {
+    (mic + speaker).clamp(-1.0, 1.0)
+}
+
+pub fn mix_audio_f32(mic: &[f32], speaker: &[f32]) -> Vec<f32> {
+    let max_len = mic.len().max(speaker.len());
+    (0..max_len)
+        .map(|i| {
+            let m = mic.get(i).copied().unwrap_or(0.0);
+            let s = speaker.get(i).copied().unwrap_or(0.0);
+            mix_sample_f32(m, s)
+        })
+        .collect()
+}
+
+pub fn mix_audio_pcm16le(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
+    let max_len = mic.len().max(speaker.len());
+    let mut mixed = Vec::with_capacity(max_len);
+
+    let mut index = 0;
+    while index < max_len {
+        let mic_sample = if index + 1 < mic.len() {
+            i16::from_le_bytes([mic[index], mic[index + 1]])
+        } else {
+            0
+        };
+
+        let speaker_sample = if index + 1 < speaker.len() {
+            i16::from_le_bytes([speaker[index], speaker[index + 1]])
+        } else {
+            0
+        };
+
+        let mixed_sample = ((mic_sample as i32 + speaker_sample as i32) / 2) as i16;
+
+        mixed.extend_from_slice(&mixed_sample.to_le_bytes());
+        index += 2;
+    }
+
+    mixed
+}
+
 pub fn source_from_path(
     path: impl AsRef<std::path::Path>,
 ) -> Result<rodio::Decoder<std::io::BufReader<std::fs::File>>, crate::Error> {

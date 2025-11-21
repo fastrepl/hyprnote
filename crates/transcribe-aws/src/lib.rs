@@ -28,6 +28,7 @@ use aws_sdk_transcribestreaming::types::{
     AudioEvent, AudioStream, LanguageCode, MediaEncoding, TranscriptResultStream,
 };
 use aws_sdk_transcribestreaming::{config::Region, Client};
+use hypr_audio_utils::mix_audio_pcm16le;
 
 use owhisper_interface::{ListenInputChunk, ListenOutputChunk, ListenParams, Word2};
 
@@ -88,7 +89,7 @@ impl TranscribeService {
                                 }
                                 ListenInputChunk::DualAudio { mic, speaker } => {
                                     // For now, mix the dual audio channels
-                                    let mixed = mix_audio(mic, speaker);
+                                    let mixed = mix_audio_pcm16le(&mic, &speaker);
                                     if !mixed.is_empty() {
                                         if audio_tx.send(Bytes::from(mixed)).await.is_err() {
                                             break;
@@ -228,33 +229,4 @@ impl Service<Request<Body>> for TranscribeService {
             }
         })
     }
-}
-
-fn mix_audio(mic: Vec<u8>, speaker: Vec<u8>) -> Vec<u8> {
-    // Mix the two audio channels by averaging them
-    let len = mic.len().max(speaker.len());
-    let mut mixed = Vec::with_capacity(len);
-
-    for i in (0..len).step_by(2) {
-        // Process 16-bit samples (2 bytes each)
-        let mic_sample = if i + 1 < mic.len() {
-            i16::from_le_bytes([mic[i], mic[i + 1]])
-        } else {
-            0
-        };
-
-        let speaker_sample = if i + 1 < speaker.len() {
-            i16::from_le_bytes([speaker[i], speaker[i + 1]])
-        } else {
-            0
-        };
-
-        // Mix by averaging and prevent clipping
-        let mixed_sample = ((mic_sample as i32 + speaker_sample as i32) / 2) as i16;
-        let bytes = mixed_sample.to_le_bytes();
-        mixed.push(bytes[0]);
-        mixed.push(bytes[1]);
-    }
-
-    mixed
 }

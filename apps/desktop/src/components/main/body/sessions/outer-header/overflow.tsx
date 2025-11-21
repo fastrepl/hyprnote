@@ -1,8 +1,8 @@
+import { Icon } from "@iconify-icon/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   FileTextIcon,
   FolderIcon,
-  FolderOpenIcon,
   Link2Icon,
   Loader2Icon,
   MicIcon,
@@ -54,15 +54,10 @@ export function OverflowButton({ sessionId }: { sessionId: string }) {
         <Copy />
         <Folder sessionId={sessionId} setOpen={setOpen} />
         <ExportPDF />
-        {audioExists.data && (
-          <>
-            <DropdownMenuSeparator />
-            <ShowInFinder sessionId={sessionId} />
-          </>
-        )}
         <DropdownMenuSeparator />
         <Listening sessionId={sessionId} />
         <DropdownMenuSeparator />
+        {audioExists.data && <ShowInFinder sessionId={sessionId} />}
         <DeleteNote sessionId={sessionId} />
         {audioExists.data && <DeleteRecording sessionId={sessionId} />}
       </DropdownMenuContent>
@@ -140,7 +135,7 @@ function ShowInFinder({ sessionId }: { sessionId: string }) {
       {isPending ? (
         <Loader2Icon className="animate-spin" />
       ) : (
-        <FolderOpenIcon />
+        <Icon icon="ri:finder-line" />
       )}
       <span>{isPending ? "Opening..." : "Show in Finder"}</span>
     </DropdownMenuItem>

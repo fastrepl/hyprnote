@@ -375,8 +375,12 @@ impl Pipeline {
     fn dispatch(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) {
         if let Some(cell) = registry::where_is(RecorderActor::name()) {
             let actor: ActorRef<RecMsg> = cell.into();
-            let mixed = Self::mix(mic.as_ref(), spk.as_ref());
-            if let Err(e) = actor.cast(RecMsg::Audio(mixed)) {
+            let audio_for_recording = if mode == ChannelMode::Single {
+                mic.to_vec()
+            } else {
+                Self::mix(mic.as_ref(), spk.as_ref())
+            };
+            if let Err(e) = actor.cast(RecMsg::Audio(audio_for_recording)) {
                 tracing::error!(error = ?e, "failed_to_send_audio_to_recorder");
             }
         }
@@ -387,23 +391,17 @@ impl Pipeline {
         };
 
         let actor: ActorRef<ListenerMsg> = cell.into();
-        let (mic_bytes, spk_bytes) = if mode == ChannelMode::Single {
-            let mixed = Self::mix(mic.as_ref(), spk.as_ref());
-            (
-                f32_to_i16_bytes(mic.iter().copied()),
-                f32_to_i16_bytes(mixed.iter().copied()),
-            )
+
+        let result = if mode == ChannelMode::Single {
+            let audio_bytes = f32_to_i16_bytes(mic.to_vec().iter().copied());
+            actor.cast(ListenerMsg::AudioSingle(audio_bytes))
         } else {
-            (
-                f32_to_i16_bytes(mic.iter().copied()),
-                f32_to_i16_bytes(spk.iter().copied()),
-            )
+            let mic_bytes = f32_to_i16_bytes(mic.iter().copied());
+            let spk_bytes = f32_to_i16_bytes(spk.iter().copied());
+            actor.cast(ListenerMsg::AudioDual(mic_bytes, spk_bytes))
         };
 
-        if actor
-            .cast(ListenerMsg::Audio(mic_bytes, spk_bytes))
-            .is_err()
-        {
+        if result.is_err() {
             tracing::warn!(actor = ListenerActor::name(), "cast_failed");
             return;
         }

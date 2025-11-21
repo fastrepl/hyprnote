@@ -16,7 +16,8 @@ use crate::SessionEvent;
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 
 pub enum ListenerMsg {
-    Audio(Bytes, Bytes),
+    AudioSingle(Bytes),
+    AudioDual(Bytes, Bytes),
     StreamResponse(StreamResponse),
     StreamError(String),
     StreamEnded,
@@ -42,9 +43,14 @@ pub struct ListenerArgs {
 
 pub struct ListenerState {
     pub args: ListenerArgs,
-    tx: tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>,
+    tx: ChannelSender,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
+}
+
+enum ChannelSender {
+    Single(tokio::sync::mpsc::Sender<MixedMessage<Bytes, ControlMessage>>),
+    Dual(tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>),
 }
 
 pub struct ListenerActor;
@@ -98,8 +104,16 @@ impl Actor for ListenerActor {
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match message {
-            ListenerMsg::Audio(mic, spk) => {
-                let _ = state.tx.try_send(MixedMessage::Audio((mic, spk)));
+            ListenerMsg::AudioSingle(audio) => {
+                if let ChannelSender::Single(tx) = &state.tx {
+                    let _ = tx.try_send(MixedMessage::Audio(audio));
+                }
+            }
+
+            ListenerMsg::AudioDual(mic, spk) => {
+                if let ChannelSender::Dual(tx) = &state.tx {
+                    let _ = tx.try_send(MixedMessage::Audio((mic, spk)));
+                }
             }
 
             ListenerMsg::StreamResponse(mut response) => {
@@ -178,15 +192,31 @@ async fn spawn_rx_task(
     myself: ActorRef<ListenerMsg>,
 ) -> Result<
     (
-        tokio::sync::mpsc::Sender<MixedMessage<(Bytes, Bytes), ControlMessage>>,
+        ChannelSender,
         tokio::task::JoinHandle<()>,
         tokio::sync::oneshot::Sender<()>,
     ),
     ActorProcessingErr,
 > {
-    let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
-    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    if args.mode == crate::actors::ChannelMode::Single {
+        spawn_rx_task_single(args, myself).await
+    } else {
+        spawn_rx_task_dual(args, myself).await
+    }
+}
 
+fn build_listen_params(args: &ListenerArgs) -> owhisper_interface::ListenParams {
+    owhisper_interface::ListenParams {
+        model: Some(args.model.clone()),
+        languages: args.languages.clone(),
+        sample_rate: super::SAMPLE_RATE,
+        redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
+        keywords: args.keywords.clone(),
+        ..Default::default()
+    }
+}
+
+fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
     let session_offset_secs = args.session_started_at.elapsed().as_secs_f64();
     let started_unix_millis = args
         .session_started_at_unix
@@ -199,87 +229,103 @@ async fn spawn_rx_task(
         started_unix_millis,
     };
 
+    (session_offset_secs, extra)
+}
+
+async fn spawn_rx_task_single(
+    args: ListenerArgs,
+    myself: ActorRef<ListenerMsg>,
+) -> Result<
+    (
+        ChannelSender,
+        tokio::task::JoinHandle<()>,
+        tokio::sync::oneshot::Sender<()>,
+    ),
+    ActorProcessingErr,
+> {
+    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    let (session_offset_secs, extra) = build_extra(&args);
+
+    let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
+
     let rx_task = tokio::spawn(async move {
-        use crate::actors::ChannelMode;
+        let client = owhisper_client::ListenClient::builder()
+            .api_base(args.base_url.clone())
+            .api_key(args.api_key.clone())
+            .params(build_listen_params(&args))
+            .build_single();
 
-        if args.mode == ChannelMode::Single {
-            let client = owhisper_client::ListenClient::builder()
-                .api_base(args.base_url.clone())
-                .api_key(args.api_key.clone())
-                .params(owhisper_interface::ListenParams {
-                    model: Some(args.model.clone()),
-                    languages: args.languages.clone(),
-                    sample_rate: super::SAMPLE_RATE,
-                    redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
-                    keywords: args.keywords.clone(),
-                    ..Default::default()
-                })
-                .build_single();
+        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 
-            let outbound = tokio_stream::StreamExt::map(
-                tokio_stream::wrappers::ReceiverStream::new(rx),
-                |msg| match msg {
-                    MixedMessage::Audio((_mic, spk)) => MixedMessage::Audio(spk),
-                    MixedMessage::Control(c) => MixedMessage::Control(c),
-                },
-            );
+        let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
+            Ok(res) => res,
+            Err(e) => {
+                let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+                return;
+            }
+        };
+        futures_util::pin_mut!(listen_stream);
 
-            let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
-                Ok(res) => res,
-                Err(e) => {
-                    let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-                    return;
-                }
-            };
-            futures_util::pin_mut!(listen_stream);
-
-            process_stream(
-                listen_stream,
-                handle,
-                myself,
-                shutdown_rx,
-                session_offset_secs,
-                extra.clone(),
-            )
-            .await;
-        } else {
-            let client = owhisper_client::ListenClient::builder()
-                .api_base(args.base_url)
-                .api_key(args.api_key)
-                .params(owhisper_interface::ListenParams {
-                    model: Some(args.model),
-                    languages: args.languages,
-                    sample_rate: 16000,
-                    redemption_time_ms: Some(if args.onboarding { 60 } else { 400 }),
-                    keywords: args.keywords,
-                    ..Default::default()
-                })
-                .build_dual();
-
-            let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-
-            let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
-                Ok(res) => res,
-                Err(e) => {
-                    let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-                    return;
-                }
-            };
-            futures_util::pin_mut!(listen_stream);
-
-            process_stream(
-                listen_stream,
-                handle,
-                myself,
-                shutdown_rx,
-                session_offset_secs,
-                extra.clone(),
-            )
-            .await;
-        }
+        process_stream(
+            listen_stream,
+            handle,
+            myself,
+            shutdown_rx,
+            session_offset_secs,
+            extra,
+        )
+        .await;
     });
 
-    Ok((tx, rx_task, shutdown_tx))
+    Ok((ChannelSender::Single(tx), rx_task, shutdown_tx))
+}
+
+async fn spawn_rx_task_dual(
+    args: ListenerArgs,
+    myself: ActorRef<ListenerMsg>,
+) -> Result<
+    (
+        ChannelSender,
+        tokio::task::JoinHandle<()>,
+        tokio::sync::oneshot::Sender<()>,
+    ),
+    ActorProcessingErr,
+> {
+    let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    let (session_offset_secs, extra) = build_extra(&args);
+
+    let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
+
+    let rx_task = tokio::spawn(async move {
+        let client = owhisper_client::ListenClient::builder()
+            .api_base(args.base_url.clone())
+            .api_key(args.api_key.clone())
+            .params(build_listen_params(&args))
+            .build_dual();
+
+        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
+
+        let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
+            Ok(res) => res,
+            Err(e) => {
+                let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+                return;
+            }
+        };
+        futures_util::pin_mut!(listen_stream);
+
+        process_stream(
+            listen_stream,
+            handle,
+            myself,
+            shutdown_rx,
+            session_offset_secs,
+            extra,
+        )
+        .await;
+    });
+
+    Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx))
 }
 
 async fn process_stream<S, E>(

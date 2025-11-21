@@ -8,6 +8,7 @@ use axum::{
     http::{Response, StatusCode},
     response::IntoResponse,
 };
+use hypr_audio_utils::mix_audio_pcm16le;
 use std::{
     future::Future,
     pin::Pin,
@@ -71,7 +72,7 @@ impl TranscribeService {
                                     }
                                 }
                                 ListenInputChunk::DualAudio { mic, speaker } => {
-                                    let mixed = mix_audio(mic, speaker);
+                                    let mixed = mix_audio_pcm16le(&mic, &speaker);
                                     if !mixed.is_empty() {
                                         if audio_tx.send(Ok(mixed.into())).await.is_err() {
                                             break;
@@ -199,30 +200,4 @@ impl Service<Request<Body>> for TranscribeService {
             }
         })
     }
-}
-
-fn mix_audio(mic: Vec<u8>, speaker: Vec<u8>) -> Vec<u8> {
-    let len = mic.len().max(speaker.len());
-    let mut mixed = Vec::with_capacity(len);
-
-    for i in (0..len).step_by(2) {
-        let mic_sample = if i + 1 < mic.len() {
-            i16::from_le_bytes([mic[i], mic[i + 1]])
-        } else {
-            0
-        };
-
-        let speaker_sample = if i + 1 < speaker.len() {
-            i16::from_le_bytes([speaker[i], speaker[i + 1]])
-        } else {
-            0
-        };
-
-        let mixed_sample = ((mic_sample as i32 + speaker_sample as i32) / 2) as i16;
-        let bytes = mixed_sample.to_le_bytes();
-        mixed.push(bytes[0]);
-        mixed.push(bytes[1]);
-    }
-
-    mixed
 }

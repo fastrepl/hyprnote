@@ -16500,6 +16500,7 @@ name = "transcribe-aws"
 version = "0.1.0"
 dependencies = [
  "async-stream",
+ "audio-utils",
  "aws-config",
  "aws-sdk-transcribe",
  "aws-sdk-transcribestreaming",

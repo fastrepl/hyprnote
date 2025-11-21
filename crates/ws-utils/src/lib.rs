@@ -8,7 +8,7 @@ use axum::extract::ws::{Message, WebSocket};
 use futures_util::{stream::SplitStream, Stream, StreamExt};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 
-use hypr_audio_utils::bytes_to_f32_samples;
+use hypr_audio_utils::{bytes_to_f32_samples, mix_audio_f32};
 use owhisper_interface::ListenInputChunk;
 
 enum AudioProcessResult {
@@ -70,17 +70,6 @@ fn process_ws_message(message: Message, channels: Option<u32>) -> AudioProcessRe
     }
 }
 
-fn mix_audio_channels(mic: &[f32], speaker: &[f32]) -> Vec<f32> {
-    let max_len = mic.len().max(speaker.len());
-    (0..max_len)
-        .map(|i| {
-            let mic_sample = mic.get(i).copied().unwrap_or(0.0);
-            let speaker_sample = speaker.get(i).copied().unwrap_or(0.0);
-            (mic_sample + speaker_sample).clamp(-1.0, 1.0)
-        })
-        .collect()
-}
-
 pub struct WebSocketAudioSource {
     receiver: Option<SplitStream<WebSocket>>,
     sample_rate: u32,
@@ -127,7 +116,7 @@ impl Stream for WebSocketAudioSource {
                         self.buffer_idx = 0;
                     }
                     AudioProcessResult::DualSamples { mic, speaker } => {
-                        let mut mixed = mix_audio_channels(&mic, &speaker);
+                        let mut mixed = mix_audio_f32(&mic, &speaker);
                         if mixed.is_empty() {
                             continue;
                         }

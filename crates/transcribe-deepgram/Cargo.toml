@@ -12,6 +12,7 @@ dirs = { workspace = true }
 rodio = { workspace = true }
 
 [dependencies]
+hypr-audio-utils = { workspace = true }
 owhisper-config = { workspace = true }
 owhisper-interface = { workspace = true }
 

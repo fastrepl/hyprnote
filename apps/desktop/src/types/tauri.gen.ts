@@ -30,6 +30,9 @@ async setOnboardingNeeded(v: boolean) : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async getEnv(key: string) : Promise<string> {
+    return await TAURI_INVOKE("get_env", { key });
 }
 }
 

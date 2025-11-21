@@ -148,6 +148,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::parse_subtitle::<tauri::Wry>,
             commands::get_onboarding_needed::<tauri::Wry>,
             commands::set_onboarding_needed::<tauri::Wry>,
+            commands::get_env::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

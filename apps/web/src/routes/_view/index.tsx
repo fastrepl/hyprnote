@@ -1429,7 +1429,7 @@ function DetailsTabletView({
                 key={index}
                 onClick={() => setSelectedDetail(index)}
                 className={cn([
-                  "p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
+                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
                   selectedDetail === index
                     ? "bg-stone-50"
                     : "hover:bg-neutral-50",

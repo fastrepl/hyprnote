@@ -76,7 +76,7 @@ impl NotificationInstance {
         self.timeout_source = Some(source);
     }
 
-    fn dismiss_window(window: &ApplicationWindow, id: &str, user_action: bool) {
+    fn dismiss_window_inner(window: &ApplicationWindow, id: &str, user_action: bool) {
         if user_action {
             call_dismiss_handler(id.to_string());
         }
@@ -86,8 +86,11 @@ impl NotificationInstance {
         glib::timeout_add_local_once(Duration::from_millis(200), move || {
             window_clone.close();
         });
+    }
 
-        NOTIFICATION_MANAGER.lock().unwrap().remove_notification(id);
+    fn dismiss_window(window: &ApplicationWindow, id: &str, user_action: bool) {
+        Self::dismiss_window_inner(window, id, user_action);
+        NotificationManager::remove_notification_global(id);
     }
 }
 
@@ -125,7 +128,8 @@ impl NotificationManager {
             if let Some((oldest_id, notif)) = self.active_notifications.get_index(0) {
                 let oldest_id = oldest_id.clone();
                 let window = notif.window.clone();
-                NotificationInstance::dismiss_window(&window, &oldest_id, false);
+                NotificationInstance::dismiss_window_inner(&window, &oldest_id, false);
+                self.remove_notification_locked(&oldest_id);
             } else {
                 break;
             }
@@ -296,16 +300,23 @@ impl NotificationManager {
         // TODO: Reposition existing notifications once we implement a GTK4-compatible positioning strategy.
     }
 
-    fn remove_notification(&mut self, id: &str) {
+    fn remove_notification_locked(&mut self, id: &str) {
         self.active_notifications.remove(id);
         self.reposition_notifications();
+    }
+
+    fn remove_notification_global(id: &str) {
+        let mut manager = NOTIFICATION_MANAGER.lock().unwrap();
+        manager.remove_notification_locked(id);
     }
 
     fn dismiss_all(&mut self) {
         let ids: Vec<String> = self.active_notifications.keys().cloned().collect();
         for id in ids {
             if let Some(notif) = self.active_notifications.get(&id) {
-                NotificationInstance::dismiss_window(&notif.window, &id, false);
+                let window = notif.window.clone();
+                NotificationInstance::dismiss_window_inner(&window, &id, false);
+                self.remove_notification_locked(&id);
             }
         }
     }

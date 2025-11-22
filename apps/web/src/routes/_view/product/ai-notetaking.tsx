@@ -1067,6 +1067,15 @@ function SearchSection() {
           </ul>
         </div>
       </div>
+      <div className="px-6">
+        <div className="max-w-4xl mx-auto border border-neutral-200 rounded-sm overflow-hidden bg-white">
+          <img
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/search.jpg"
+            alt="Search interface"
+            className="w-full h-auto object-cover"
+          />
+        </div>
+      </div>
       <div className="pb-12 lg:pb-20 px-6">
         <div className="max-w-2xl mx-auto p-6 border border-neutral-200 rounded-sm bg-white text-center">
           <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-3">

@@ -15037,7 +15037,6 @@ dependencies = [
  "tauri-plugin-store2",
  "tauri-specta",
  "thiserror 2.0.17",
- "tokio",
  "vergen-gix",
 ]
 

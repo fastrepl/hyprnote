@@ -50,7 +50,8 @@ impl NotificationInstance {
             .reveal_child(false)
             .build();
 
-        let content = Self::build_content(title, message, url, &id, &window, on_confirm, on_dismiss);
+        let content =
+            Self::build_content(title, message, url, &id, &window, on_confirm, on_dismiss);
         revealer.set_child(Some(&content));
         window.set_child(Some(&revealer));
 
@@ -179,12 +180,12 @@ impl NotificationInstance {
                 if *is_hovered.lock().unwrap() {
                     return glib::ControlFlow::Continue;
                 }
-                
+
                 if start_time.elapsed().as_millis() >= timeout_ms as u128 {
                     Self::dismiss_window_static(&window, &id, false);
                     return glib::ControlFlow::Break;
                 }
-                
+
                 glib::ControlFlow::Continue
             }),
         );

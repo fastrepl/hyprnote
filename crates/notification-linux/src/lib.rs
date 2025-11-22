@@ -65,7 +65,10 @@ pub fn dismiss_all() {
 pub(crate) fn remove_notification(id: &str) {
     let id = id.to_string();
     glib::MainContext::default().invoke(move || {
-        NOTIFICATION_MANAGER.lock().unwrap().remove_notification(&id);
+        NOTIFICATION_MANAGER
+            .lock()
+            .unwrap()
+            .remove_notification(&id);
     });
 }
 

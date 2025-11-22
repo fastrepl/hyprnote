@@ -22,8 +22,6 @@ jobs:
           - platform: "macos"
             runner: "macos-14"
           - platform: "linux"
-            runner: "ubuntu-22.04"
-          - platform: "linux"
             runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}
     steps:
@@ -40,3 +38,4 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
       - run: cargo check -p desktop
+      - run: cargo test -p desktop

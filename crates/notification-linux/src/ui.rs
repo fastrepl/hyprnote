@@ -1,11 +1,10 @@
 use std::sync::Arc;
 
-use glib::clone;
 use gtk4::gdk::Display;
 use gtk4::prelude::*;
 use gtk4::{
     Align, Application, ApplicationWindow, Box as GtkBox, Button, CssProvider, Image, Label,
-    Orientation, Overlay, Revealer, RevealerTransitionType, StyleContext,
+    Orientation, Overlay, Revealer, RevealerTransitionType,
 };
 use indexmap::IndexMap;
 
@@ -41,8 +40,6 @@ impl NotificationInstance {
             .default_width(NOTIFICATION_WIDTH)
             .default_height(NOTIFICATION_HEIGHT)
             .build();
-
-        window.set_type_hint(gtk4::gdk::WindowTypeHint::Notification);
 
         let revealer = Revealer::builder()
             .transition_type(RevealerTransitionType::SlideLeft)
@@ -174,9 +171,11 @@ impl NotificationInstance {
         let timeout_ms = (timeout_seconds * 1000.0) as u64;
         let start_time = std::time::Instant::now();
 
-        let source = glib::timeout_add_local(
-            std::time::Duration::from_millis(100),
-            clone!(@strong id, @strong window, @strong is_hovered => move || {
+        let source = glib::timeout_add_local(std::time::Duration::from_millis(100), {
+            let id = id.clone();
+            let window = window.clone();
+            let is_hovered = is_hovered.clone();
+            move || {
                 if *is_hovered.lock().unwrap() {
                     return glib::ControlFlow::Continue;
                 }
@@ -187,8 +186,8 @@ impl NotificationInstance {
                 }
 
                 glib::ControlFlow::Continue
-            }),
-        );
+            }
+        });
 
         self.timeout_source = Some(source);
     }
@@ -220,29 +219,28 @@ impl NotificationInstance {
 
 pub struct NotificationManager {
     active_notifications: IndexMap<String, NotificationInstance>,
-    app: Option<Application>,
 }
 
 impl NotificationManager {
     pub fn new() -> Self {
         Self {
             active_notifications: IndexMap::new(),
-            app: None,
         }
     }
 
-    fn ensure_app(&mut self) {
-        if self.app.is_none() {
+    fn ensure_app(&mut self) -> Application {
+        static INIT_ONCE: std::sync::Once = std::sync::Once::new();
+        INIT_ONCE.call_once(|| {
             gtk4::init().ok();
-            let app = Application::builder()
-                .application_id("com.hyprnote.notifications")
-                .build();
-            self.setup_styles();
-            self.app = Some(app);
-        }
+            Self::setup_styles();
+        });
+
+        Application::builder()
+            .application_id("com.hyprnote.notifications")
+            .build()
     }
 
-    fn setup_styles(&self) {
+    fn setup_styles() {
         let css_provider = CssProvider::new();
         css_provider.load_from_data(
             r#"
@@ -291,7 +289,7 @@ impl NotificationManager {
         );
 
         if let Some(display) = Display::default() {
-            StyleContext::add_provider_for_display(
+            gtk4::style_context_add_provider_for_display(
                 &display,
                 &css_provider,
                 gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
@@ -308,7 +306,7 @@ impl NotificationManager {
         on_confirm: impl Fn(String) + 'static,
         on_dismiss: impl Fn(String) + 'static,
     ) {
-        self.ensure_app();
+        let app = self.ensure_app();
 
         while self.active_notifications.len() >= MAX_NOTIFICATIONS {
             if let Some((oldest_id, _)) = self.active_notifications.first() {
@@ -320,10 +318,9 @@ impl NotificationManager {
         }
 
         let id = uuid::Uuid::new_v4().to_string();
-        let app = self.app.as_ref().unwrap();
 
         let mut notif = NotificationInstance::new(
-            app,
+            &app,
             id.clone(),
             &title,
             &message,

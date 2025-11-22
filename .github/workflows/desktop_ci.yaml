@@ -41,11 +41,14 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: ${{ matrix.platform }}
-      - run: swift --version
+      - run: swift --version && clang --version
         if: matrix.platform == 'macos'
       - run: cargo check -p desktop
         if: matrix.platform == 'macos'
+        env:
+          CMAKE_C_FLAGS: ${{ matrix.platform == 'macos' && '-march=armv8.6-a+i8mm' || '' }}
+          CMAKE_CXX_FLAGS: ${{ matrix.platform == 'macos' && '-march=armv8.6-a+i8mm' || '' }}
       - run: cargo test --lib
         env:
-          CFLAGS: ${{ matrix.platform == 'macos' && '-DGGML_NO_I8MM=1' || '' }}
-          CXXFLAGS: ${{ matrix.platform == 'macos' && '-DGGML_NO_I8MM=1' || '' }}
+          CMAKE_C_FLAGS: ${{ matrix.platform == 'macos' && '-march=armv8.6-a+i8mm' || '' }}
+          CMAKE_CXX_FLAGS: ${{ matrix.platform == 'macos' && '-march=armv8.6-a+i8mm' || '' }}

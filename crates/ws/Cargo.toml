@@ -19,3 +19,6 @@ futures-util = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
 tracing = { workspace = true }
+
+[dev-dependencies]
+serde_json.workspace = true

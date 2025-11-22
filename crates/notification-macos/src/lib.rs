@@ -75,7 +75,7 @@ pub fn dismiss_all() {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
 

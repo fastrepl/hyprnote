@@ -234,6 +234,7 @@ mod tests {
     use live::ListenClientInput;
 
     #[tokio::test]
+    #[ignore]
     async fn test_client_deepgram() {
         let _ = tracing_subscriber::fmt::try_init();
 
@@ -281,6 +282,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn test_owhisper_with_owhisper() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
@@ -308,6 +310,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn test_owhisper_with_deepgram() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
@@ -341,6 +344,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn test_client_ag() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),

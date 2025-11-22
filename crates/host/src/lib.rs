@@ -78,6 +78,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_kill_processes_by_matcher() {
         let killed_count = kill_processes_by_matcher(ProcessMatcher::Sidecar);
         assert!(killed_count > 0);

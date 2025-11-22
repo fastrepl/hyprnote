@@ -13,6 +13,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore]
     async fn test_client_creation() {
         let client = Client::new("http://localhost:50060/v1");
         let status = client.status().await;

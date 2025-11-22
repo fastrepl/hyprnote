@@ -1,13 +1,14 @@
 mod ui;
 
+use std::cell::RefCell;
 use std::sync::Mutex;
-
-use once_cell::sync::Lazy;
 
 pub use hypr_notification_interface::*;
 
-static NOTIFICATION_MANAGER: Lazy<Mutex<ui::NotificationManager>> =
-    Lazy::new(|| Mutex::new(ui::NotificationManager::new()));
+thread_local! {
+    static NOTIFICATION_MANAGER: RefCell<ui::NotificationManager> =
+        RefCell::new(ui::NotificationManager::new());
+}
 
 static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
@@ -45,30 +46,33 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
     let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
 
     glib::MainContext::default().invoke(move || {
-        NOTIFICATION_MANAGER.lock().unwrap().show(
-            title,
-            message,
-            url,
-            timeout_seconds,
-            call_confirm_handler,
-            call_dismiss_handler,
-        );
+        NOTIFICATION_MANAGER.with(|manager| {
+            manager.borrow_mut().show(
+                title,
+                message,
+                url,
+                timeout_seconds,
+                call_confirm_handler,
+                call_dismiss_handler,
+            );
+        });
     });
 }
 
 pub fn dismiss_all() {
     glib::MainContext::default().invoke(|| {
-        NOTIFICATION_MANAGER.lock().unwrap().dismiss_all();
+        NOTIFICATION_MANAGER.with(|manager| {
+            manager.borrow_mut().dismiss_all();
+        });
     });
 }
 
 pub(crate) fn remove_notification(id: &str) {
     let id = id.to_string();
     glib::MainContext::default().invoke(move || {
-        NOTIFICATION_MANAGER
-            .lock()
-            .unwrap()
-            .remove_notification(&id);
+        NOTIFICATION_MANAGER.with(|manager| {
+            manager.borrow_mut().remove_notification(&id);
+        });
     });
 }
 

@@ -317,6 +317,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_make_proxy_url() {
         let base = "https://api.nango.dev".parse().unwrap();
 

@@ -66,18 +66,33 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
         Ok(())
     }
 
+    #[cfg(target_os = "macos")]
     #[tracing::instrument(skip_all)]
     fn calendar_access_status(&self) -> bool {
         let handle = hypr_calendar_apple::Handle::new();
         handle.calendar_access_status()
     }
 
+    #[cfg(not(target_os = "macos"))]
+    #[tracing::instrument(skip_all)]
+    fn calendar_access_status(&self) -> bool {
+        false
+    }
+
+    #[cfg(target_os = "macos")]
     #[tracing::instrument(skip_all)]
     fn contacts_access_status(&self) -> bool {
         let handle = hypr_calendar_apple::Handle::new();
         handle.contacts_access_status()
     }
 
+    #[cfg(not(target_os = "macos"))]
+    #[tracing::instrument(skip_all)]
+    fn contacts_access_status(&self) -> bool {
+        false
+    }
+
+    #[cfg(target_os = "macos")]
     #[tracing::instrument(skip_all)]
     fn request_calendar_access(&self) {
         use tauri_plugin_shell::ShellExt;
@@ -94,6 +109,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
         handle.request_calendar_access();
     }
 
+    #[cfg(not(target_os = "macos"))]
+    #[tracing::instrument(skip_all)]
+    fn request_calendar_access(&self) {}
+
+    #[cfg(target_os = "macos")]
     #[tracing::instrument(skip_all)]
     fn request_contacts_access(&self) {
         use tauri_plugin_shell::ShellExt;
@@ -109,6 +129,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
         let mut handle = hypr_calendar_apple::Handle::new();
         handle.request_contacts_access();
     }
+
+    #[cfg(not(target_os = "macos"))]
+    #[tracing::instrument(skip_all)]
+    fn request_contacts_access(&self) {}
 
     #[tracing::instrument(skip_all)]
     async fn start_worker(&self, user_id: impl Into<String>) -> Result<(), String> {

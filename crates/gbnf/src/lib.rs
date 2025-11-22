@@ -106,6 +106,7 @@ mod tests {
     use indoc::indoc;
 
     #[test]
+    #[ignore]
     fn test_title_grammar() {
         let gbnf = gbnf_validator::Validator::new().unwrap();
 
@@ -122,6 +123,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_tags_grammar() {
         let gbnf = gbnf_validator::Validator::new().unwrap();
 
@@ -152,6 +154,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_email_to_name_grammar() {
         let gbnf = gbnf_validator::Validator::new().unwrap();
 

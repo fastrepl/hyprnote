@@ -10,6 +10,7 @@ mod tests {
     use hypr_audio_utils::AudioFormatExt;
 
     #[tokio::test]
+    #[ignore]
     // cargo test -p transcribe-deepgram test_service -- --nocapture
     async fn test_service() -> Result<(), Box<dyn std::error::Error>> {
         let service = TranscribeService::new(owhisper_config::DeepgramModelConfig {

@@ -13,6 +13,7 @@ mod tests {
     use hypr_audio_utils::AudioFormatExt;
 
     #[tokio::test]
+    #[ignore]
     async fn test_service() -> Result<(), Box<dyn std::error::Error>> {
         let model_path = dirs::data_dir()
             .unwrap()

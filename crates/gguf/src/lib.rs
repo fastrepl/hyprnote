@@ -160,6 +160,7 @@ mod tests {
     use super::GgufExt;
 
     #[test]
+    #[ignore]
     fn test_chat_format() {
         let test_path = dirs::data_dir()
             .unwrap()

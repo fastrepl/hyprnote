@@ -42,8 +42,6 @@ impl NotificationInstance {
             .default_height(NOTIFICATION_HEIGHT)
             .build();
 
-        window.set_type_hint(gtk4::gdk::WindowTypeHint::Notification);
-
         let revealer = Revealer::builder()
             .transition_type(RevealerTransitionType::SlideLeft)
             .transition_duration(SLIDE_DURATION_MS)

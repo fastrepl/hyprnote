@@ -1,5 +1,8 @@
+#[cfg(target_os = "macos")]
 use objc2::{rc::Retained, runtime::NSObject};
+#[cfg(target_os = "macos")]
 use objc2_app_kit::{NSSharingService, NSSharingServiceNameComposeEmail};
+#[cfg(target_os = "macos")]
 use objc2_foundation::{NSArray, NSString, NSURL};
 use std::path::Path;
 
@@ -26,6 +29,7 @@ NSArray* shareItems = @[textAttributedString,tempFileURL];
 [mailShare performWithItems:shareItems];
 */
 
+#[cfg(target_os = "macos")]
 impl EmailComposer {
     /// Open email client with HTML content and optional attachments
     pub fn open_email_client(
@@ -131,7 +135,35 @@ impl EmailComposer {
     }
 }
 
-#[cfg(test)]
+#[cfg(not(target_os = "macos"))]
+impl EmailComposer {
+    pub fn open_email_client(
+        _recipients: &[&str],
+        _subject: &str,
+        _html_message: &str,
+        _attachments: &[&Path],
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        Err("Email composition is only supported on macOS".into())
+    }
+
+    pub fn create_temp_file_with_content(
+        filename: &str,
+        content: &[u8],
+    ) -> Result<std::path::PathBuf, Box<dyn std::error::Error>> {
+        use std::fs::File;
+        use std::io::Write;
+
+        let temp_dir = std::env::temp_dir();
+        let file_path = temp_dir.join(filename);
+
+        let mut file = File::create(&file_path)?;
+        file.write_all(content)?;
+
+        Ok(file_path)
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
 

@@ -7,12 +7,16 @@ on:
     paths:
       - apps/desktop/**
       - plugins/**
+      - crates/**
+      - .github/workflows/desktop_ci.yaml
   pull_request:
     branches:
       - main
     paths:
       - apps/desktop/**
       - plugins/**
+      - crates/**
+      - .github/workflows/desktop_ci.yaml
 jobs:
   ci:
     strategy:

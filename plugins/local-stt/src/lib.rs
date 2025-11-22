@@ -56,17 +56,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
         .setup(move |app, _api| {
             specta_builder.mount_events(app);
 
-            let api_key = {
-                #[cfg(not(debug_assertions))]
-                {
-                    Some(env!("AM_API_KEY").to_string())
-                }
-
-                #[cfg(debug_assertions)]
-                {
-                    option_env!("AM_API_KEY").map(|s| s.to_string())
-                }
-            };
+            let api_key = option_env!("AM_API_KEY").map(|s| s.to_string());
 
             let state = std::sync::Arc::new(tokio::sync::Mutex::new(State {
                 am_api_key: api_key,

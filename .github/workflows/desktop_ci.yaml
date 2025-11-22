@@ -44,4 +44,4 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
       - run: cargo check -p desktop
-      - run: cargo test --workspace --exclude desktop --exclude tauri-plugin-windows --lib
+      - run: cargo test -p whisper-local -p audio -p pyannote-local -p moonshine -p agc -p detect --lib

@@ -1,5 +1,6 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -601,99 +602,78 @@ function NoteshelfSection() {
 }
 
 function AdvancedSearchSection() {
+  const [selectedImage, setSelectedImage] = useState(1);
+
+  const images = [
+    {
+      id: 1,
+      url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/search-1.jpg",
+      title: "Suggestions",
+      description:
+        "Get instant search result suggestions based on recent activities",
+    },
+    {
+      id: 2,
+      url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/search-2.jpg",
+      title: "Semantic search",
+      description: "Find relevant info even without exact keywords",
+    },
+    {
+      id: 3,
+      url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/search-3.jpg",
+      title: "Filters",
+      description: "Filter out result types easily",
+    },
+  ];
+
   return (
-    <section className="bg-stone-50/30">
-      <div className="hidden sm:grid sm:grid-cols-2">
-        <div className="flex items-center p-8">
-          <div className="flex flex-col gap-4">
-            <h2 className="text-3xl font-serif text-stone-600">
+    <section className="bg-stone-50/30 relative">
+      <div
+        id="advanced-search"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
+      <div>
+        <div className="text-center">
+          <div className="py-12 px-6">
+            <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-4">
+              Coming Soon
+            </div>
+            <h2 className="text-3xl font-serif text-stone-600 mb-4">
               Advanced Search
             </h2>
-            <p className="text-base text-neutral-600 leading-relaxed">
-              Find any note, conversation, or meeting in seconds by searching
-              participant names, topics, keywords, or date ranges.
+            <p className="text-base text-neutral-600">
+              Complex queries with boolean operators and custom filters
             </p>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
-                <span className="text-neutral-600">
-                  Lightning-fast full-text search
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
-                <span className="text-neutral-600">
-                  Filter by tags, dates, and participants
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
-                <span className="text-neutral-600">
-                  Boolean operators and custom filters
-                </span>
-              </li>
-            </ul>
           </div>
-        </div>
-        <div className="flex items-center justify-center px-8 py-8 bg-stone-50/50 overflow-hidden">
-          <div className="max-w-lg w-full bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-lg">
-            <p className="text-neutral-600 text-center italic">Coming soon</p>
-          </div>
-        </div>
-      </div>
 
-      <div className="sm:hidden">
-        <div className="p-6 border-b border-neutral-100">
-          <h2 className="text-2xl font-serif text-stone-600 mb-3">
-            Advanced Search
-          </h2>
-          <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Find any note, conversation, or meeting in seconds by searching
-            participant names, topics, keywords, or date ranges.
-          </p>
-          <ul className="space-y-3">
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600 text-sm">
-                Lightning-fast full-text search
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600 text-sm">
-                Filter by tags, dates, and participants
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600 text-sm">
-                Boolean operators and custom filters
-              </span>
-            </li>
-          </ul>
-        </div>
-        <div className="px-6 pb-0 bg-stone-50/50 overflow-clip">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-lg">
-            <p className="text-neutral-600 text-center italic">Coming soon</p>
+          <div className="grid md:grid-cols-3 border-y border-neutral-100">
+            {images.map((image, index) => (
+              <button
+                key={image.id}
+                className={cn([
+                  "text-center cursor-pointer transition-colors",
+                  index < images.length - 1 && "border-r border-neutral-100",
+                  selectedImage === image.id && "bg-stone-50",
+                ])}
+                onClick={() => setSelectedImage(image.id)}
+              >
+                <div className="p-6">
+                  <h3 className="text-lg font-serif text-stone-600 mb-2">
+                    {image.title}
+                  </h3>
+                  <p className="text-sm text-neutral-600">
+                    {image.description}
+                  </p>
+                </div>
+              </button>
+            ))}
           </div>
+
+          <img
+            src={images.find((img) => img.id === selectedImage)?.url}
+            alt="Advanced search interface"
+            className="w-full h-auto object-cover"
+          />
         </div>
       </div>
     </section>

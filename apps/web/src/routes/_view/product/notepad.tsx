@@ -225,7 +225,7 @@ function AnimatedNotesDemo() {
           <div className="space-y-2">
             <h4
               className={cn([
-                "font-semibold text-stone-700 transition-opacity duration-500",
+                "text-lg font-semibold text-stone-700 transition-opacity duration-500",
                 enhancedLines >= 5 ? "opacity-100" : "opacity-0",
               ])}
             >

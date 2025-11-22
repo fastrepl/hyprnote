@@ -72,22 +72,9 @@ function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProductOpen, setIsProductOpen] = useState(false);
   const platform = usePlatform();
-  const heroContext = useHeroContext();
   const platformCTA = getPlatformCTA(platform);
   const router = useRouterState();
   const maxWidthClass = getMaxWidthClass(router.location.pathname);
-
-  const handleCTAClick = (e: React.MouseEvent) => {
-    if (platformCTA.action === "download") {
-      return;
-    }
-
-    e.preventDefault();
-    if (heroContext?.onTrigger) {
-      heroContext.onTrigger();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
 
   return (
     <>
@@ -224,12 +211,13 @@ function Header() {
                   {platformCTA.label}
                 </a>
               ) : (
-                <button
-                  onClick={handleCTAClick}
+                <Link
+                  to="/"
+                  hash="hero"
                   className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
                 >
                   {platformCTA.label}
-                </button>
+                </Link>
               )}
             </nav>
 
@@ -243,12 +231,13 @@ function Header() {
                   {platformCTA.label}
                 </a>
               ) : (
-                <button
-                  onClick={handleCTAClick}
+                <Link
+                  to="/"
+                  hash="hero"
                   className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
                 >
-                  {platformCTA.label}
-                </button>
+                  {platform === "mobile" ? "Get reminder" : platformCTA.label}
+                </Link>
               )}
               <button
                 onClick={() => setIsMenuOpen(true)}
@@ -377,17 +366,16 @@ function Header() {
                       {platformCTA.label}
                     </a>
                   ) : (
-                    <button
-                      onClick={(e) => {
-                        setIsMenuOpen(false);
-                        handleCTAClick(e);
-                      }}
+                    <Link
+                      to="/"
+                      hash="hero"
+                      onClick={() => setIsMenuOpen(false)}
                       className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
                     >
                       {platform === "mobile"
                         ? "Get reminder"
                         : platformCTA.label}
-                    </button>
+                    </Link>
                   )}
                 </div>
               </div>

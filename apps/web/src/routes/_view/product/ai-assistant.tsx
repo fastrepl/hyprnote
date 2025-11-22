@@ -75,7 +75,11 @@ function HeroSection() {
 
 function BeforeMeetingSection() {
   return (
-    <section id="before-meeting">
+    <section className="relative">
+      <div
+        id="before-meeting"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="text-center font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
         Before meetings
       </div>
@@ -189,7 +193,11 @@ function BeforeMeetingSection() {
 
 function DuringMeetingSection() {
   return (
-    <section id="during-meeting">
+    <section className="relative">
+      <div
+        id="during-meeting"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="text-center font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
         During meetings
       </div>
@@ -295,7 +303,11 @@ function DuringMeetingSection() {
 
 function AfterMeetingSection() {
   return (
-    <section id="after-meeting">
+    <section className="relative">
+      <div
+        id="after-meeting"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="text-center font-medium text-neutral-600 uppercase tracking-wide py-6 font-serif">
         After meetings
       </div>

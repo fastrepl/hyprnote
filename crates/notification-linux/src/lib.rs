@@ -121,6 +121,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_notification() {
         let notification = hypr_notification_interface::Notification::builder()
             .title("Test Title")

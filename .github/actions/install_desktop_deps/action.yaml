@@ -24,4 +24,8 @@ runs:
     - if: ${{ runner.os == 'Linux' }}
       shell: bash
       run: |
-        sudo apt-get install -y libasound2-dev pkg-config
+        sudo apt-get install -y \
+          libasound2-dev \
+          pkg-config \
+          libgraphene-1.0-dev \
+          libgtk-4-dev

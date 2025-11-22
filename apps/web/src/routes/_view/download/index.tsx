@@ -176,7 +176,7 @@ function FAQSection() {
   return (
     <section className="py-16 px-4 laptop:px-0">
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
+        <h2 className="text-3xl font-serif text-stone-600 mb-16 text-center">
           Frequently Asked Questions
         </h2>
         <div className="space-y-6">
@@ -210,9 +210,11 @@ function CTASection() {
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif">Need a team plan?</h2>
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          Need something else?
+        </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Book a call to discuss custom team pricing and enterprise solutions
+          Book a call to discuss custom solutions for your specific needs
         </p>
         <div className="pt-6">
           <Link

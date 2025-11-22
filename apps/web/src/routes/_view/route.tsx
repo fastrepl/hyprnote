@@ -43,7 +43,7 @@ function Component() {
         setOnTrigger: (callback) => setOnTrigger(() => callback),
       }}
     >
-      <div className="min-h-screen flex flex-col overflow-x-hidden">
+      <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1">
           <Outlet />
@@ -456,13 +456,12 @@ function Footer() {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <a
-                    href="/download/apple-silicon"
-                    download
+                  <Link
+                    to="/download"
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
                     Download
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <Link

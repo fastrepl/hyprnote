@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_view/product/ai-notetaking")({
 function Component() {
   return (
     <div
-      className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
+      className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen overflow-x-hidden"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
@@ -623,7 +623,7 @@ function TranscriptionSection() {
             </div>
             <div className="overflow-hidden bg-neutral-100">
               <img
-                src="https://via.placeholder.com/600x400/e5e5e5/a3a3a3?text=On-Device+Transcription"
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
                 alt="On-device transcription"
                 className="w-full h-auto object-contain"
               />

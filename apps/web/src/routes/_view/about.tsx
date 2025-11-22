@@ -10,6 +10,7 @@ import {
 } from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
 
+import { Image } from "@/components/image";
 import { MockWindow } from "@/components/mock-window";
 
 export const Route = createFileRoute("/_view/about")({
@@ -228,7 +229,7 @@ function OurStoryGrid({
           className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
         >
           <div className="mb-3 w-16 h-16 flex items-center justify-center">
-            <img
+            <Image
               src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/textedit.webp"
               alt="Our Story"
               width={64}
@@ -266,7 +267,7 @@ function FoundersGrid({
             className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
           >
             <div className="mb-3 w-16 h-16">
-              <img
+              <Image
                 src={founder.image}
                 alt={founder.name}
                 width={64}
@@ -300,7 +301,7 @@ function TeamPhotosGrid({
             className="group flex flex-col items-center text-center p-4 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer h-fit"
           >
             <div className="mb-3 w-16 h-16">
-              <img
+              <Image
                 src={photo.url}
                 alt={photo.name}
                 width={64}
@@ -389,7 +390,7 @@ function OurStorySidebar({
         ])}
       >
         <div className="w-12 h-12 shrink-0 flex items-center justify-center">
-          <img
+          <Image
             src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/textedit.webp"
             alt="Our Story"
             width={48}
@@ -438,7 +439,7 @@ function FoundersSidebar({
             ])}
           >
             <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-neutral-200">
-              <img
+              <Image
                 src={founder.image}
                 alt={founder.name}
                 width={48}
@@ -492,7 +493,7 @@ function TeamPhotosSidebar({
             ])}
           >
             <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-neutral-200">
-              <img
+              <Image
                 src={photo.url}
                 alt={photo.name}
                 width={48}
@@ -619,11 +620,31 @@ function StoryDetail({ onClose }: { onClose: () => void }) {
             attend meetings on autopilot.
           </p>
 
-          <p className="text-base text-neutral-600 leading-relaxed mb-8">
+          <p className="text-base text-neutral-600 leading-relaxed mb-2">
             This is how we got here: a messy start, a full rewrite, and a clear
             belief that great work comes from humans — not from machines
             pretending to be in the room.
           </p>
+
+          <div className="space-y-2">
+            <div>
+              <p className="text-base text-neutral-600 font-medium italic font-serif">
+                Hyprnote
+              </p>
+              <p className="text-sm text-neutral-500">John Jeong, Yujong Lee</p>
+            </div>
+
+            <div>
+              <Image
+                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/signature-dark.svg"
+                alt="Hyprnote Signature"
+                width={124}
+                height={60}
+                layout="constrained"
+                className="opacity-80 object-contain"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </>
@@ -662,7 +683,7 @@ function FounderDetail({
 
       <div className="p-4 overflow-y-auto">
         <div className="flex justify-center mb-6">
-          <img
+          <Image
             src={founder.image}
             alt={founder.name}
             width={200}
@@ -767,7 +788,7 @@ function PhotoDetail({
       </div>
 
       <div className="p-4 overflow-y-auto">
-        <img
+        <Image
           src={photo.url}
           alt={photo.name}
           className="w-full object-cover mb-6 rounded-lg"

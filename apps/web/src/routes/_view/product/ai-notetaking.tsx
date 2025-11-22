@@ -737,7 +737,7 @@ function SummariesSection() {
               </p>
             </div>
             <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
-              <MockWindow showAudioIndicator>
+              <MockWindow showAudioIndicator={enhancedLines === 0}>
                 <div className="p-6 h-[300px] overflow-hidden">
                   <div className="text-neutral-700">ui update - mobile</div>
                   <div className="text-neutral-700">api</div>

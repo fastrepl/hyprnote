@@ -13,27 +13,29 @@ use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
-    let sentry_client = sentry::init((
-        {
-            #[cfg(not(debug_assertions))]
-            {
-                env!("SENTRY_DSN")
-            }
+    let sentry_client = {
+        let dsn = option_env!("SENTRY_DSN");
 
-            #[cfg(debug_assertions)]
-            {
-                option_env!("SENTRY_DSN").unwrap_or_default()
-            }
-        },
-        sentry::ClientOptions {
-            release: sentry::release_name!(),
-            traces_sample_rate: 1.0,
-            auto_session_tracking: true,
-            ..Default::default()
-        },
-    ));
+        if let Some(dsn) = dsn {
+            let client = sentry::init((
+                dsn,
+                sentry::ClientOptions {
+                    release: sentry::release_name!(),
+                    traces_sample_rate: 1.0,
+                    auto_session_tracking: true,
+                    ..Default::default()
+                },
+            ));
 
-    let _guard = tauri_plugin_sentry::minidump::init(&sentry_client);
+            Some(client)
+        } else {
+            None
+        }
+    };
+
+    let _guard = sentry_client
+        .as_ref()
+        .map(|client| tauri_plugin_sentry::minidump::init(client));
 
     let mut builder = tauri::Builder::default();
 
@@ -61,7 +63,6 @@ pub async fn main() {
         .plugin(tauri_plugin_permissions::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_sentry::init_with_no_injection(&sentry_client))
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
@@ -79,6 +80,10 @@ pub async fn main() {
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
         ));
+
+    if let Some(client) = sentry_client.as_ref() {
+        builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(client));
+    }
 
     #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
     {

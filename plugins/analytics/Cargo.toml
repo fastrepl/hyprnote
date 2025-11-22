@@ -13,6 +13,7 @@ vergen-gix = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
+tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
 hypr-analytics = { workspace = true }

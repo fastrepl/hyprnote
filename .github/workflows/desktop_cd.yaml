@@ -21,22 +21,10 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
 
 jobs:
-  build:
-    permissions:
-      contents: write
+  compute-version:
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: "macos"
-            target: "aarch64-apple-darwin"
-            runner: "macos-14"
-    runs-on: ${{ matrix.runner }}
-    defaults:
-      run:
-        shell: bash
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,9 +43,15 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Computed version: $VERSION"
-      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ steps.version.outputs.version }}"
-      - if: ${{ inputs.channel != 'staging' }}
-        uses: ./.github/actions/cn_release
+
+  cn-draft:
+    if: ${{ inputs.channel != 'staging' }}
+    needs: compute-version
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - uses: ./.github/actions/cn_release
         with:
           cmd: draft
           app: ${{ env.CN_APPLICATION }}
@@ -65,29 +59,43 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
+
+  build-macos:
+    needs: [compute-version, cn-draft]
+    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
+    permissions:
+      contents: write
+    runs-on: macos-14
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          fetch-tags: true
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:
-          target: ${{ matrix.platform }}
+          target: macos
       - uses: ./.github/actions/rust_install
         with:
-          platform: ${{ matrix.platform }}
+          platform: macos
       - uses: ./.github/actions/pnpm_install
       - run: pnpm -F ui build
-      - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
-        run: |
-          aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/stt-${{ matrix.target }} \
+      - run: |
+          aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/stt-aarch64-apple-darwin \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - if: ${{ matrix.target == 'aarch64-apple-darwin' }}
-        run: |
-          chmod +x ./apps/desktop/src-tauri/binaries/stt-${{ matrix.target }}
+      - run: |
+          chmod +x ./apps/desktop/src-tauri/binaries/stt-aarch64-apple-darwin
           ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
       - uses: ./.github/actions/apple_cert
         id: apple-cert
-        if: ${{ matrix.platform == 'macos' }}
         with:
           apple-certificate: ${{ secrets.APPLE_CERTIFICATE }}
           apple-certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -97,7 +105,7 @@ jobs:
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
           fi
-          pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
+          pnpm -F desktop tauri build --target aarch64-apple-darwin --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false
@@ -121,7 +129,7 @@ jobs:
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
       - run: |
           mkdir -p target/release/
-          find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
+          find target/aarch64-apple-darwin/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
         working-directory: ./apps/desktop/src-tauri
       - if: ${{ inputs.channel != 'staging' }}
@@ -133,40 +141,109 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - if: ${{ inputs.channel != 'staging' && matrix.platform == 'macos' }}
+      - if: ${{ inputs.channel != 'staging' }}
         run: |
-          DMG_FILE=$(find "apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/" -name "*.dmg" -type f)
+          DMG_FILE=$(find "apps/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/" -name "*.dmg" -type f)
           cp "$DMG_FILE" "hyprnote.dmg"
           aws s3 cp "hyprnote.dmg" \
-            "s3://hyprnote-build/desktop/${{ steps.version.outputs.version }}/hyprnote.dmg" \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.dmg" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - if: ${{ inputs.channel == 'staging' && matrix.platform == 'macos' }}
+      - if: ${{ inputs.channel == 'staging' }}
         uses: actions/upload-artifact@v4
         with:
-          name: hyprnote-staging-${{ matrix.target }}
-          path: apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          name: hyprnote-staging-macos
+          path: apps/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
           retention-days: 3
-      - if: ${{ inputs.channel == 'staging' && matrix.platform == 'windows' }}
+
+  build-linux:
+    needs: [compute-version, cn-draft]
+    if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          fetch-tags: true
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
+      - uses: ./.github/actions/install_desktop_deps
+        with:
+          target: linux
+      - uses: ./.github/actions/rust_install
+        with:
+          platform: linux
+      - uses: ./.github/actions/pnpm_install
+      - run: pnpm -F ui build
+      - run: |
+          FEATURES_FLAG=""
+          if [[ "${{ inputs.channel }}" == "staging" ]]; then
+            FEATURES_FLAG="--features devtools"
+          fi
+          pnpm -F desktop tauri build --bundles appimage --target x86_64-unknown-linux-gnu --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
+        env:
+          # https://github.com/tauri-apps/tauri-action/issues/740
+          CI: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AM_API_KEY: ${{ secrets.AM_API_KEY }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          VITE_APP_URL: "https://hyprnote.com"
+          VITE_API_URL: "https://api.hyprnote.com"
+          VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
+      - run: |
+          mkdir -p target/release/
+          find target/x86_64-unknown-linux-gnu/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
+        shell: bash
+        working-directory: ./apps/desktop/src-tauri
+      - if: ${{ inputs.channel != 'staging' }}
+        uses: ./.github/actions/cn_release
+        with:
+          cmd: upload
+          app: ${{ env.CN_APPLICATION }}
+          key: ${{ secrets.CN_API_KEY }}
+          channel: ${{ env.RELEASE_CHANNEL }}
+          framework: tauri
+          working-directory: ./apps/desktop
+      - if: ${{ inputs.channel != 'staging' }}
+        run: |
+          APPIMAGE_FILE=$(find "apps/desktop/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/" -name "*.AppImage" -type f)
+          cp "$APPIMAGE_FILE" "hyprnote.AppImage"
+          aws s3 cp "hyprnote.AppImage" \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.AppImage" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      - if: ${{ inputs.channel == 'staging' }}
         uses: actions/upload-artifact@v4
         with:
-          name: hyprnote-staging-${{ matrix.target }}
-          path: |
-            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
-            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
+          name: hyprnote-staging-linux
+          path: apps/desktop/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
           retention-days: 3
+
   publish:
     if: ${{ inputs.channel != 'staging' }}
-    needs: build
+    needs: [compute-version, build-macos, build-linux]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.build.outputs.version }}"
+      - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/cn_release
         with:
           cmd: publish
@@ -175,10 +252,22 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - run: |
+      - name: Download macOS DMG from S3
+        run: |
           aws s3 cp \
-            "s3://hyprnote-build/desktop/${{ needs.build.outputs.version }}/hyprnote.dmg" \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.dmg" \
             "hyprnote.dmg" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+      - name: Download Linux AppImage from S3 (if available)
+        if: ${{ needs.build-linux.result == 'success' }}
+        run: |
+          aws s3 cp \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.AppImage" \
+            "hyprnote.AppImage" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -187,11 +276,21 @@ jobs:
       - uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_tag: desktop_v${{ needs.build.outputs.version }}
+          custom_tag: desktop_v${{ needs.compute-version.outputs.version }}
           tag_prefix: ""
-      - uses: ncipollo/release-action@v1
+      - name: Create GitHub release with macOS only
+        if: ${{ needs.build-linux.result != 'success' }}
+        uses: ncipollo/release-action@v1
         with:
-          tag: desktop_v${{ needs.build.outputs.version }}
-          name: desktop_v${{ needs.build.outputs.version }}
-          body: "https://hyprnote.com/changelog/${{ needs.build.outputs.version }}"
+          tag: desktop_v${{ needs.compute-version.outputs.version }}
+          name: desktop_v${{ needs.compute-version.outputs.version }}
+          body: "https://hyprnote.com/changelog/${{ needs.compute-version.outputs.version }}"
           artifacts: "hyprnote.dmg"
+      - name: Create GitHub release with macOS + Linux
+        if: ${{ needs.build-linux.result == 'success' }}
+        uses: ncipollo/release-action@v1
+        with:
+          tag: desktop_v${{ needs.compute-version.outputs.version }}
+          name: desktop_v${{ needs.compute-version.outputs.version }}
+          body: "https://hyprnote.com/changelog/${{ needs.compute-version.outputs.version }}"
+          artifacts: "hyprnote.dmg,hyprnote.AppImage"

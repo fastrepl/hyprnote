@@ -15,8 +15,7 @@ pub fn init() {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn init() {
-}
+pub fn init() {}
 
 #[cfg(target_os = "macos")]
 pub fn is_ready() -> bool {

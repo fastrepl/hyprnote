@@ -305,10 +305,12 @@ impl NangoProxyBuilder<'_> {
 
 fn make_proxy_url(base: &url::Url, path: impl std::fmt::Display) -> url::Url {
     let mut url = base.clone();
+    let path_str = path.to_string();
+    let path_without_query = path_str.split(&['?', '#'][..]).next().unwrap_or("");
     url.path_segments_mut()
         .unwrap()
         .push("proxy")
-        .extend(path.to_string().split('/').filter(|s| !s.is_empty()));
+        .extend(path_without_query.split('/').filter(|s| !s.is_empty()));
     url
 }
 
@@ -317,7 +319,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     fn test_make_proxy_url() {
         let base = "https://api.nango.dev".parse().unwrap();
 

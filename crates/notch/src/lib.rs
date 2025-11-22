@@ -22,8 +22,7 @@ pub fn show_notch(title: &str, description: &str, icon_name: &str) {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn show_notch(_title: &str, _description: &str, _icon_name: &str) {
-}
+pub fn show_notch(_title: &str, _description: &str, _icon_name: &str) {}
 
 #[cfg(target_os = "macos")]
 pub fn hide_notch() {
@@ -33,8 +32,7 @@ pub fn hide_notch() {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn hide_notch() {
-}
+pub fn hide_notch() {}
 
 #[cfg(target_os = "macos")]
 pub fn compact_notch() {
@@ -44,8 +42,7 @@ pub fn compact_notch() {
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn compact_notch() {
-}
+pub fn compact_notch() {}
 
 #[cfg(all(test, target_os = "macos"))]
 mod tests {}

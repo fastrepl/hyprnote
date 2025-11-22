@@ -2,7 +2,6 @@
 mod ui;
 
 use std::cell::RefCell;
-use std::sync::Mutex;
 
 pub use hypr_notification_interface::*;
 
@@ -50,33 +49,43 @@ thread_local! {
         RefCell::new(ui::NotificationManager::new());
 }
 
-static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
-static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+thread_local! {
+    static CONFIRM_CB: RefCell<Option<Box<dyn Fn(String)>>> = RefCell::new(None);
+    static DISMISS_CB: RefCell<Option<Box<dyn Fn(String)>>> = RefCell::new(None);
+}
 
 pub fn setup_notification_dismiss_handler<F>(f: F)
 where
-    F: Fn(String) + Send + Sync + 'static,
+    F: Fn(String) + 'static,
 {
-    *DISMISS_CB.lock().unwrap() = Some(Box::new(f));
+    DISMISS_CB.with(|cb| {
+        *cb.borrow_mut() = Some(Box::new(f));
+    });
 }
 
 pub fn setup_notification_confirm_handler<F>(f: F)
 where
-    F: Fn(String) + Send + Sync + 'static,
+    F: Fn(String) + 'static,
 {
-    *CONFIRM_CB.lock().unwrap() = Some(Box::new(f));
+    CONFIRM_CB.with(|cb| {
+        *cb.borrow_mut() = Some(Box::new(f));
+    });
 }
 
 fn call_confirm_handler(id: String) {
-    if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
-        cb(id);
-    }
+    CONFIRM_CB.with(|cb| {
+        if let Some(f) = cb.borrow().as_ref() {
+            f(id);
+        }
+    });
 }
 
 fn call_dismiss_handler(id: String) {
-    if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
-        cb(id);
-    }
+    DISMISS_CB.with(|cb| {
+        if let Some(f) = cb.borrow().as_ref() {
+            f(id);
+        }
+    });
 }
 
 pub fn show(notification: &hypr_notification_interface::Notification) {

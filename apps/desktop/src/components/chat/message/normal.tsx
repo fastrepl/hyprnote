@@ -1,4 +1,4 @@
-import { BrainIcon, RotateCcw } from "lucide-react";
+import { BrainIcon, PaperclipIcon, RotateCcw } from "lucide-react";
 import { Streamdown } from "streamdown";
 
 import { formatDistanceToNow } from "@hypr/utils";
@@ -70,6 +70,16 @@ function Part({ part }: { part: Part }) {
   if (part.type === "text") {
     return <Text part={part} />;
   }
+  if (part.type === "file") {
+    return <FileAttachment part={part as Extract<Part, { type: "file" }>} />;
+  }
+  if (part.type === "data-chat-file") {
+    return (
+      <ChatFileAttachment
+        part={part as Extract<Part, { type: "data-chat-file" }>}
+      />
+    );
+  }
   if (part.type === "step-start") {
     return null;
   }
@@ -136,5 +146,69 @@ function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
     <Streamdown components={components} className="px-0.5 py-1">
       {part.text}
     </Streamdown>
+  );
+}
+
+function FileAttachment({ part }: { part: Extract<Part, { type: "file" }> }) {
+  const isImage = part.mediaType?.startsWith("image/");
+  const label = part.filename ?? "Attachment";
+
+  return (
+    <div className="mt-2 flex flex-col gap-1">
+      {isImage ? (
+        <img
+          src={part.url}
+          alt={label}
+          className="max-h-64 rounded-lg border border-neutral-200 object-contain bg-white"
+        />
+      ) : null}
+      <a
+        href={part.url}
+        target="_blank"
+        rel="noreferrer"
+        download={label}
+        className="flex items-center gap-2 px-3 py-2 rounded-md border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+      >
+        <PaperclipIcon className="w-4 h-4 text-neutral-500" />
+        <span className="truncate">{label}</span>
+        <span className="text-[11px] text-neutral-400">
+          {part.mediaType?.split("/")[1]?.toUpperCase() ?? ""}
+        </span>
+      </a>
+    </div>
+  );
+}
+
+function ChatFileAttachment({
+  part,
+}: {
+  part: Extract<Part, { type: "data-chat-file" }>;
+}) {
+  const isImage = part.data.mediaType?.startsWith("image/");
+  const label = part.data.filename ?? "Attachment";
+
+  return (
+    <div className="mt-2 flex flex-col gap-1">
+      {isImage ? (
+        <img
+          src={part.data.fileUrl}
+          alt={label}
+          className="max-h-64 rounded-lg border border-neutral-200 object-contain bg-white"
+        />
+      ) : null}
+      <a
+        href={part.data.fileUrl}
+        target="_blank"
+        rel="noreferrer"
+        download={label}
+        className="flex items-center gap-2 px-3 py-2 rounded-md border border-neutral-200 bg-white text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+      >
+        <PaperclipIcon className="w-4 h-4 text-neutral-500" />
+        <span className="truncate">{label}</span>
+        <span className="text-[11px] text-neutral-400">
+          {part.data.mediaType?.split("/")[1]?.toUpperCase() ?? ""}
+        </span>
+      </a>
+    </div>
   );
 }

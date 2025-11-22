@@ -7,18 +7,25 @@ import {
 } from "ai";
 
 import { type ToolRegistry } from "../contexts/tool";
+import { resolveChatFileReferences } from "./resolve-attachments";
 import type { HyprUIMessage } from "./types";
 
 export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
   constructor(
     private registry: ToolRegistry,
     private model: LanguageModel,
+    private chatGroupId?: string,
   ) {}
 
   sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (
     options,
   ) => {
     const tools = this.registry.getTools("chat");
+
+    const resolvedMessages = await resolveChatFileReferences(
+      options.messages,
+      this.chatGroupId,
+    );
 
     const agent = new Agent({
       model: this.model,
@@ -34,7 +41,7 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
     });
 
     const result = agent.stream({
-      messages: convertToModelMessages(options.messages),
+      messages: convertToModelMessages(resolvedMessages),
     });
 
     return result.toUIMessageStream({

@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 
-import { type TiptapEditor } from "@hypr/tiptap/editor";
+import { type JSONContent, type TiptapEditor } from "@hypr/tiptap/editor";
 
 import { useAITaskTask } from "../../../../../../hooks/useAITaskTask";
 import { useLLMConnectionStatus } from "../../../../../../hooks/useLLMConnection";
@@ -11,8 +11,12 @@ import { StreamingView } from "./streaming";
 
 export const Enhanced = forwardRef<
   { editor: TiptapEditor | null },
-  { sessionId: string; enhancedNoteId: string }
->(({ sessionId, enhancedNoteId }, ref) => {
+  {
+    sessionId: string;
+    enhancedNoteId: string;
+    onContentChange?: (content: JSONContent) => void;
+  }
+>(({ sessionId, enhancedNoteId, onContentChange }, ref) => {
   const taskId = createTaskId(enhancedNoteId, "enhance");
   const llmStatus = useLLMConnectionStatus();
   const { status } = useAITaskTask(taskId, "enhance");
@@ -40,6 +44,7 @@ export const Enhanced = forwardRef<
       ref={ref}
       sessionId={sessionId}
       enhancedNoteId={enhancedNoteId}
+      onContentChange={onContentChange}
     />
   );
 });

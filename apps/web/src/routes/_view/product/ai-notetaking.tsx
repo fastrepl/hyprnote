@@ -144,7 +144,11 @@ function HeroSection() {
 
 function EditorSection() {
   return (
-    <section id="editor" className="bg-stone-50/30">
+    <section className="bg-stone-50/30 relative">
+      <div
+        id="editor"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
@@ -547,7 +551,11 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
 function TranscriptionSection() {
   return (
-    <section id="transcription" className="border-y border-neutral-100">
+    <section className="border-y border-neutral-100 relative">
+      <div
+        id="transcription"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="text-center py-12 px-4 lg:px-0">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">
           Transcription
@@ -716,12 +724,16 @@ function SummariesSection() {
   }, []);
 
   return (
-    <section id="summaries">
+    <section className="relative">
+      <div
+        id="summaries"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="text-center py-12 px-4 lg:px-0">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">
           AI summaries
         </h2>
-        <p className="text-base text-neutral-600 max-w-3xl mx-auto">
+        <p className="text-base text-neutral-600">
           Hyprnote combines your notes with transcripts to create intelligent
           summaries after your meeting ends.
         </p>
@@ -1096,7 +1108,11 @@ function SearchSection() {
 
 function SharingSection() {
   return (
-    <section id="sharing" className="py-12 lg:py-20 px-6">
+    <section className="py-12 lg:py-20 px-6 relative">
+      <div
+        id="sharing"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="max-w-5xl mx-auto text-center">
         <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-4">
           Coming Soon
@@ -1152,7 +1168,11 @@ function SharingSection() {
 
 function FloatingPanelSection() {
   return (
-    <section id="floating-panel" className="border-y border-neutral-100">
+    <section className="border-y border-neutral-100 relative">
+      <div
+        id="floating-panel"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <FloatingPanelHeader />
       <FloatingPanelContent />
     </section>

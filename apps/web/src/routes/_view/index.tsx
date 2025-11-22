@@ -284,7 +284,11 @@ function HeroSection({
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <div className="flex flex-col items-center text-center">
-        <section className="flex flex-col items-center text-center gap-12 py-24 px-4 laptop:px-0">
+        <section className="relative flex flex-col items-center text-center gap-12 py-24 px-4 laptop:px-0">
+          <div
+            id="hero"
+            className="absolute top-[-69px] h-[69px] pointer-events-none"
+          />
           <div className="space-y-6 max-w-4xl">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
               The AI notepad for <br className="block sm:hidden" />

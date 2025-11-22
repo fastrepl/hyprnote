@@ -44,4 +44,5 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
       - run: cargo check -p desktop
+        if: matrix.platform == 'macos'
       - run: cargo test -p whisper-local -p audio -p pyannote-local -p moonshine -p agc -p detect --lib

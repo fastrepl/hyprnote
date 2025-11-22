@@ -14,7 +14,17 @@ pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     let sentry_client = sentry::init((
-        option_env!("SENTRY_DSN").unwrap_or_default(),
+        {
+            #[cfg(not(debug_assertions))]
+            {
+                env!("SENTRY_DSN")
+            }
+
+            #[cfg(debug_assertions)]
+            {
+                option_env!("SENTRY_DSN").unwrap_or_default()
+            }
+        },
         sentry::ClientOptions {
             release: sentry::release_name!(),
             traces_sample_rate: 1.0,

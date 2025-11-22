@@ -56,8 +56,6 @@ hypr-network = { path = "crates/network", package = "network" }
 hypr-notch = { path = "crates/notch", package = "notch" }
 hypr-notification = { path = "crates/notification", package = "notification" }
 hypr-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }
-hypr-notification-linux = { path = "crates/notification-linux", package = "notification-linux" }
-hypr-notification-macos = { path = "crates/notification-macos", package = "notification-macos" }
 hypr-notion = { path = "crates/notion", package = "notion" }
 hypr-onnx = { path = "crates/onnx", package = "onnx" }
 hypr-openai = { path = "crates/openai", package = "openai" }

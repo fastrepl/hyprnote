@@ -1,7 +1,7 @@
 import type { Options } from '@wdio/types'
 
 export const config: Options.Testrunner = {
-  specs: ['./test/specs/**/*.ts'],
+  specs: ['./test/specs/**/*.e2e.ts'],
   exclude: [],
   maxInstances: 1,
   capabilities: [

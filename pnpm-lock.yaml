@@ -364,6 +364,9 @@ importers:
       '@wdio/cli':
         specifier: ^9.20.1
         version: 9.20.1(@types/node@24.10.1)(expect-webdriverio@5.5.0)
+      '@wdio/globals':
+        specifier: ^9.17.0
+        version: 9.17.0(expect-webdriverio@5.5.0)(webdriverio@9.20.1)
       '@wdio/local-runner':
         specifier: ^9.20.1
         version: 9.20.1(@wdio/globals@9.17.0)(webdriverio@9.20.1)

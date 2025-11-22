@@ -48,7 +48,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
             .or_insert(bundle_id.into());
 
         if !self.is_disabled()? {
-            let client = self.state::<hypr_analytics::AnalyticsClient>();
+            let client = self.state::<crate::ManagedState>();
             client
                 .event(machine_id, payload)
                 .await
@@ -78,7 +78,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
     ) -> Result<(), crate::Error> {
         if !self.is_disabled()? {
             let machine_id = hypr_host::fingerprint();
-            let client = self.state::<hypr_analytics::AnalyticsClient>();
+
+            let client = self.state::<crate::ManagedState>();
             client
                 .set_properties(machine_id, payload)
                 .await

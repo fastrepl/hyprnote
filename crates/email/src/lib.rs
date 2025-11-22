@@ -1,8 +1,5 @@
-#[cfg(target_os = "macos")]
 use objc2::{rc::Retained, runtime::NSObject};
-#[cfg(target_os = "macos")]
 use objc2_app_kit::{NSSharingService, NSSharingServiceNameComposeEmail};
-#[cfg(target_os = "macos")]
 use objc2_foundation::{NSArray, NSString, NSURL};
 use std::path::Path;
 
@@ -31,7 +28,6 @@ NSArray* shareItems = @[textAttributedString,tempFileURL];
 
 impl EmailComposer {
     /// Open email client with HTML content and optional attachments
-    #[cfg(target_os = "macos")]
     pub fn open_email_client(
         recipients: &[&str],
         subject: &str,
@@ -75,7 +71,6 @@ impl EmailComposer {
     }
 
     /// Create NSArray of NSString from slice of string references
-    #[cfg(target_os = "macos")]
     unsafe fn create_ns_string_array(
         strings: &[&str],
     ) -> Result<Retained<NSArray<NSString>>, Box<dyn std::error::Error>> {
@@ -86,7 +81,6 @@ impl EmailComposer {
     }
 
     /// Create items array with HTML content and attachments
-    #[cfg(target_os = "macos")]
     unsafe fn create_sharing_items(
         html_message: &str,
         attachments: &[&Path],
@@ -107,7 +101,6 @@ impl EmailComposer {
     }
 
     /// Create NSURL from file path
-    #[cfg(target_os = "macos")]
     unsafe fn create_file_url(path: &Path) -> Result<Retained<NSURL>, Box<dyn std::error::Error>> {
         let path_str = path.to_str().ok_or("Invalid path")?;
         let ns_path = NSString::from_str(path_str);
@@ -136,20 +129,9 @@ impl EmailComposer {
 
         Ok(file_path)
     }
-
-    /// Open email client with HTML content and optional attachments (non-macOS stub)
-    #[cfg(not(target_os = "macos"))]
-    pub fn open_email_client(
-        _recipients: &[&str],
-        _subject: &str,
-        _html_message: &str,
-        _attachments: &[&Path],
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        Err("Email composition is only supported on macOS".into())
-    }
 }
 
-#[cfg(all(target_os = "macos", test))]
+#[cfg(test)]
 mod tests {
     use super::*;
 

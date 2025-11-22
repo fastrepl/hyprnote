@@ -68,66 +68,46 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
 
     #[tracing::instrument(skip_all)]
     fn calendar_access_status(&self) -> bool {
-        #[cfg(target_os = "macos")]
-        {
-            let handle = hypr_calendar_apple::Handle::new();
-            return handle.calendar_access_status();
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            false
-        }
+        let handle = hypr_calendar_apple::Handle::new();
+        handle.calendar_access_status()
     }
 
     #[tracing::instrument(skip_all)]
     fn contacts_access_status(&self) -> bool {
-        #[cfg(target_os = "macos")]
-        {
-            let handle = hypr_calendar_apple::Handle::new();
-            return handle.contacts_access_status();
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            false
-        }
+        let handle = hypr_calendar_apple::Handle::new();
+        handle.contacts_access_status()
     }
 
     #[tracing::instrument(skip_all)]
     fn request_calendar_access(&self) {
-        #[cfg(target_os = "macos")]
-        {
-            use tauri_plugin_shell::ShellExt;
+        use tauri_plugin_shell::ShellExt;
 
-            let bundle_id = self.config().identifier.clone();
-            self.app_handle()
-                .shell()
-                .command("tccutil")
-                .args(["reset", "Calendar", &bundle_id])
-                .spawn()
-                .ok();
+        let bundle_id = self.config().identifier.clone();
+        self.app_handle()
+            .shell()
+            .command("tccutil")
+            .args(["reset", "Calendar", &bundle_id])
+            .spawn()
+            .ok();
 
-            let mut handle = hypr_calendar_apple::Handle::new();
-            handle.request_calendar_access();
-        }
+        let mut handle = hypr_calendar_apple::Handle::new();
+        handle.request_calendar_access();
     }
 
     #[tracing::instrument(skip_all)]
     fn request_contacts_access(&self) {
-        #[cfg(target_os = "macos")]
-        {
-            use tauri_plugin_shell::ShellExt;
+        use tauri_plugin_shell::ShellExt;
 
-            let bundle_id = self.config().identifier.clone();
-            self.app_handle()
-                .shell()
-                .command("tccutil")
-                .args(["reset", "AddressBook", &bundle_id])
-                .spawn()
-                .ok();
+        let bundle_id = self.config().identifier.clone();
+        self.app_handle()
+            .shell()
+            .command("tccutil")
+            .args(["reset", "AddressBook", &bundle_id])
+            .spawn()
+            .ok();
 
-            let mut handle = hypr_calendar_apple::Handle::new();
-            handle.request_contacts_access();
-        }
+        let mut handle = hypr_calendar_apple::Handle::new();
+        handle.request_contacts_access();
     }
 
     #[tracing::instrument(skip_all)]

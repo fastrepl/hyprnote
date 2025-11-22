@@ -16,7 +16,6 @@ specta-typescript = { workspace = true }
 
 [dependencies]
 hypr-audio = { workspace = true }
-hypr-tcc = { workspace = true }
 
 tauri = { workspace = true, features = ["specta", "test"] }
 tauri-plugin-shell = { workspace = true }
@@ -29,6 +28,7 @@ thiserror = { workspace = true }
 futures-util = { workspace = true }
 
 [target."cfg(target_os = \"macos\")".dependencies]
+hypr-tcc = { workspace = true }
 block2 = { workspace = true }
 objc2-av-foundation = { workspace = true }
 macos-accessibility-client = "0.0.1"

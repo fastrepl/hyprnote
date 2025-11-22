@@ -9,6 +9,7 @@ pub enum PermissionStatus {
 #[cfg(target_os = "macos")]
 use objc2_av_foundation::AVAuthorizationStatus;
 
+#[cfg(target_os = "macos")]
 impl From<isize> for PermissionStatus {
     fn from(status: isize) -> Self {
         match status {

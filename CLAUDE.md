@@ -1,1 +1,1 @@
-@.cursor/rules/simple.md
+@./AGENTS.md

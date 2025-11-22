@@ -153,7 +153,7 @@ function groupVersions(changelogs: ChangelogWithMeta[]): VersionGroup[] {
   return Array.from(groups.entries())
     .map(([baseVersion, versions]) => ({
       baseVersion,
-      versions,
+      versions: versions.sort((a, b) => semver.rcompare(a.version, b.version)),
     }))
     .sort((a, b) => semver.rcompare(a.baseVersion, b.baseVersion));
 }

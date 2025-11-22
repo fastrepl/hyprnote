@@ -14,6 +14,7 @@ required-features = ["linux-examples"]
 glib = "0.20"
 gtk4 = "0.9"
 hypr-notification-interface = { workspace = true }
+indexmap = "2.6"
 once_cell = "1.20"
 open = "5.3"
 uuid = { version = "1.11", features = ["v4"] }

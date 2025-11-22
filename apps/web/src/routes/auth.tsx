@@ -80,11 +80,11 @@ function PrivacyPolicy() {
   return (
     <p className="text-xs text-neutral-500 mt-4 text-left">
       By signing up, you agree to Hyprnote's{" "}
-      <a href="/terms" className="underline hover:text-neutral-700">
+      <a href="/legal/terms" className="underline hover:text-neutral-700">
         Terms of Service
       </a>{" "}
       and{" "}
-      <a href="/privacy" className="underline hover:text-neutral-700">
+      <a href="/legal/privacy" className="underline hover:text-neutral-700">
         Privacy Policy
       </a>
       .
@@ -225,7 +225,7 @@ function OAuthButton({
       onClick={() => oauthMutation.mutate(provider)}
       disabled={oauthMutation.isPending}
       className={cn([
-        "w-full px-4 py-2",
+        "w-full px-4 py-2 cursor-pointer",
         "border border-neutral-300",
         "rounded-lg font-medium text-neutral-700",
         "hover:bg-neutral-50",

@@ -686,7 +686,7 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
-            <img
+            <Image
               src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-bots.png"
               alt="No bots interface"
               className="w-full h-full object-contain"
@@ -706,7 +706,7 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
-            <img
+            <Image
               src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
               alt="No internet interface"
               className="w-full h-full object-contain"
@@ -730,8 +730,8 @@ function CoolStuffSection() {
             </p>
           </div>
           <div className="overflow-hidden">
-            <img
-              src="/hyprnote/no-bots.png"
+            <Image
+              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-bots.png"
               alt="No bots interface"
               className="w-full h-auto object-contain"
             />
@@ -749,7 +749,7 @@ function CoolStuffSection() {
           </div>
           <div className="overflow-hidden">
             <Image
-              src="/hyprnote/no-wifi.png"
+              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
               alt="No internet interface"
               className="w-full h-auto object-contain"
             />
@@ -1429,7 +1429,7 @@ function DetailsTabletView({
                 key={index}
                 onClick={() => setSelectedDetail(index)}
                 className={cn([
-                  "p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
+                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
                   selectedDetail === index
                     ? "bg-stone-50"
                     : "hover:bg-neutral-50",

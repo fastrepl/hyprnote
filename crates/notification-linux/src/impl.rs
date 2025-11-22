@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -9,6 +8,7 @@ use gtk4::{
     Align, Application, ApplicationWindow, Box as GtkBox, Button, CssProvider, Image, Label,
     Orientation, StyleContext, Window, WindowType,
 };
+use indexmap::IndexMap;
 use once_cell::sync::Lazy;
 
 pub use hypr_notification_interface::*;
@@ -92,7 +92,7 @@ impl NotificationInstance {
 }
 
 struct NotificationManager {
-    active_notifications: HashMap<String, NotificationInstance>,
+    active_notifications: IndexMap<String, NotificationInstance>,
     app: Option<Application>,
     max_notifications: usize,
     notification_spacing: i32,
@@ -101,7 +101,7 @@ struct NotificationManager {
 impl NotificationManager {
     fn new() -> Self {
         Self {
-            active_notifications: HashMap::new(),
+            active_notifications: IndexMap::new(),
             app: None,
             max_notifications: 5,
             notification_spacing: 10,
@@ -122,10 +122,12 @@ impl NotificationManager {
         self.ensure_app();
 
         while self.active_notifications.len() >= self.max_notifications {
-            if let Some(oldest_id) = self.active_notifications.keys().next().cloned() {
-                if let Some(notif) = self.active_notifications.get(&oldest_id) {
-                    NotificationInstance::dismiss_window(&notif.window, &oldest_id, false);
-                }
+            if let Some((oldest_id, notif)) = self.active_notifications.get_index(0) {
+                let oldest_id = oldest_id.clone();
+                let window = notif.window.clone();
+                NotificationInstance::dismiss_window(&window, &oldest_id, false);
+            } else {
+                break;
             }
         }
 
@@ -259,7 +261,7 @@ impl NotificationManager {
                 action_button.connect_clicked(move |_| {
                     call_confirm_handler(id_clone.clone());
                     let _ = open::that(&url_clone);
-                    NotificationInstance::dismiss_window(&window_clone, &id_clone, true);
+                    NotificationInstance::dismiss_window(&window_clone, &id_clone, false);
                 });
 
                 main_box.append(&action_button);
@@ -285,37 +287,13 @@ impl NotificationManager {
         window.set_child(Some(&overlay));
     }
 
-    fn position_window(&self, window: &ApplicationWindow) {
-        if let Some(display) = Display::default() {
-            if let Some(monitor) = display.monitors().item(0) {
-                if let Some(monitor) = monitor.downcast_ref::<gtk4::gdk::Monitor>() {
-                    let geometry = monitor.geometry();
-                    let x = geometry.x() + geometry.width() - 360 - 15;
-                    let y = geometry.y()
-                        + 15
-                        + (self.active_notifications.len() as i32
-                            * (64 + self.notification_spacing));
-
-                    window.set_default_size(360, 64);
-                }
-            }
-        }
+    fn position_window(&self, _window: &ApplicationWindow) {
+        // TODO: Position notifications using a GTK4-compatible mechanism (e.g. layer-shell or compositor-specific protocol).
+        // GTK4 (especially on Wayland) does not support explicit window positioning; the compositor controls placement.
     }
 
     fn reposition_notifications(&mut self) {
-        if let Some(display) = Display::default() {
-            if let Some(monitor) = display.monitors().item(0) {
-                if let Some(monitor) = monitor.downcast_ref::<gtk4::gdk::Monitor>() {
-                    let geometry = monitor.geometry();
-                    let base_x = geometry.x() + geometry.width() - 360 - 15;
-                    let base_y = geometry.y() + 15;
-
-                    for (index, notif) in self.active_notifications.values().enumerate() {
-                        let y = base_y + (index as i32 * (64 + self.notification_spacing));
-                    }
-                }
-            }
-        }
+        // TODO: Reposition existing notifications once we implement a GTK4-compatible positioning strategy.
     }
 
     fn remove_notification(&mut self, id: &str) {

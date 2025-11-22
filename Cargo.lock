@@ -9676,6 +9676,7 @@ version = "0.1.0"
 dependencies = [
  "glib 0.21.4",
  "gtk4",
+ "indexmap 2.12.0",
  "notification-interface",
  "once_cell",
  "open",

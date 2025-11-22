@@ -1,5 +1,6 @@
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRightIcon, SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Typewriter } from "@hypr/ui/components/ui/typewriter";
@@ -996,110 +997,69 @@ function SummariesSection() {
 }
 
 function SearchSection() {
+  const searchQueries = [
+    "Q3 marketing strategy discussion",
+    "client feedback on product demo",
+    "budget planning for next quarter",
+    "project timeline with Sarah",
+    "brainstorming session notes",
+  ];
+
   return (
-    <section id="search" className="bg-stone-50/30 space-y-12">
-      <div className="pt-12 lg:pt-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-serif text-stone-600 mb-4">
-            Search notes instantly by who, what, when
-          </h2>
-          <p className="text-base text-neutral-600 mb-8 max-w-3xl mx-auto">
-            Find any note, conversation, or meeting in seconds by searching
-            participant names, topics, keywords, or date ranges
-          </p>
-          <div className="grid md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto">
-            <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon
-                icon="mdi:account-search"
-                className="text-4xl text-stone-600 mb-3 mx-auto"
-              />
-              <h3 className="text-lg font-serif text-stone-600 mb-2">Who</h3>
-              <p className="text-sm text-neutral-600">
-                Search by participant or speaker names
-              </p>
-            </div>
-            <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon
-                icon="mdi:text-search"
-                className="text-4xl text-stone-600 mb-3 mx-auto"
-              />
-              <h3 className="text-lg font-serif text-stone-600 mb-2">What</h3>
-              <p className="text-sm text-neutral-600">
-                Find by keywords, topics, or content
-              </p>
-            </div>
-            <div className="p-6 border border-neutral-100 rounded-sm text-center">
-              <Icon
-                icon="mdi:calendar-search"
-                className="text-4xl text-stone-600 mb-3 mx-auto"
-              />
-              <h3 className="text-lg font-serif text-stone-600 mb-2">When</h3>
-              <p className="text-sm text-neutral-600">
-                Filter by date, time, or range
-              </p>
-            </div>
+    <section
+      className="bg-stone-50/30 bg-cover bg-center relative"
+      style={{
+        backgroundImage:
+          "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/bg-stars.jpg)",
+      }}
+    >
+      <div
+        id="search"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
+      <div className="py-20 px-6">
+        <div className="text-center space-y-12">
+          <div>
+            <h2 className="text-3xl font-serif text-stone-50 mb-4">
+              Find anything instantly
+            </h2>
+            <p className="text-base text-neutral-100">
+              Search across all your notes by participant names, topics,
+              keywords, or time—and jump straight to what matters
+            </p>
           </div>
-          <ul className="space-y-3 text-left max-w-2xl mx-auto">
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600">
-                Lightning-fast full-text search across all notes
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600">
-                Search within transcripts and summaries
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600">
-                Filter by tags, dates, and participants
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600">
-                Jump directly to relevant moments in recordings
-              </span>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div className="px-6">
-        <div className="max-w-4xl mx-auto border border-neutral-200 rounded-sm overflow-hidden bg-white">
-          <img
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/search.jpg"
-            alt="Search interface"
-            className="w-full h-auto object-cover"
-          />
-        </div>
-      </div>
-      <div className="pb-12 lg:pb-20 px-6">
-        <div className="max-w-2xl mx-auto p-6 border border-neutral-200 rounded-sm bg-white text-center">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-3">
-            Coming Soon
+
+          <div className="relative max-w-2xl mx-auto space-y-3">
+            <div className="flex items-center gap-3 px-4 py-3 border border-stone-300 rounded-full bg-white shadow-[0_4px_6px_-1px_rgba(255,255,255,0.3),0_2px_4px_-2px_rgba(255,255,255,0.3)]">
+              <SearchIcon className="text-stone-400 shrink-0 size-5" />
+              <div className="flex-1 text-left min-w-0 overflow-hidden">
+                <Typewriter
+                  text={searchQueries}
+                  speed={100}
+                  deleteSpeed={30}
+                  waitTime={2000}
+                  className="text-base sm:text-lg text-stone-600 font-light truncate block"
+                  cursorClassName="ml-1"
+                />
+              </div>
+              <Link
+                to="/product/mini-apps"
+                hash="advanced-search"
+                className="hidden sm:inline-flex px-5 h-10 items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all shrink-0"
+              >
+                Go to Advanced Search
+                <ArrowRightIcon className="size-4" />
+              </Link>
+            </div>
+            <Link
+              to="/product/mini-apps"
+              hash="advanced-search"
+              className="sm:hidden w-full px-4 h-10 inline-flex items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md active:scale-[98%] transition-all"
+            >
+              Go to Advanced Search
+              <ArrowRightIcon className="size-4" />
+            </Link>
           </div>
-          <h3 className="text-xl font-serif text-stone-600 mb-2">
-            Advanced search view
-          </h3>
-          <p className="text-sm text-neutral-600">
-            Build complex queries with boolean operators, date ranges, and
-            custom filters for powerful search capabilities.
-          </p>
         </div>
       </div>
     </section>

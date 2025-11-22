@@ -24,7 +24,7 @@ jobs:
       matrix:
         include:
           - platform: "macos"
-            runner: "macos-14"
+            runner: "macos-15"
           - platform: "linux"
             runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}

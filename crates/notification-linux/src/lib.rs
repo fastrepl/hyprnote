@@ -1,3 +1,4 @@
+#[cfg(target_os = "linux")]
 mod ui;
 
 use std::cell::RefCell;
@@ -5,6 +6,45 @@ use std::sync::Mutex;
 
 pub use hypr_notification_interface::*;
 
+#[cfg(target_os = "linux")]
+thread_local! {
+    static NOTIFICATION_MANAGER: RefCell<ui::NotificationManager> =
+        RefCell::new(ui::NotificationManager::new());
+}
+
+#[cfg(not(target_os = "linux"))]
+mod ui {
+    use indexmap::IndexMap;
+
+    pub struct NotificationManager {
+        active_notifications: IndexMap<String, ()>,
+    }
+
+    impl NotificationManager {
+        pub fn new() -> Self {
+            Self {
+                active_notifications: IndexMap::new(),
+            }
+        }
+
+        pub fn show(
+            &mut self,
+            _title: String,
+            _message: String,
+            _url: Option<String>,
+            _timeout_seconds: f64,
+            _on_confirm: impl Fn(String) + 'static,
+            _on_dismiss: impl Fn(String) + 'static,
+        ) {
+        }
+
+        pub fn remove_notification(&mut self, _id: &str) {}
+
+        pub fn dismiss_all(&mut self) {}
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
 thread_local! {
     static NOTIFICATION_MANAGER: RefCell<ui::NotificationManager> =
         RefCell::new(ui::NotificationManager::new());

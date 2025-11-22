@@ -171,26 +171,23 @@ impl NotificationInstance {
         let timeout_ms = (timeout_seconds * 1000.0) as u64;
         let start_time = std::time::Instant::now();
 
-        let source = glib::timeout_add_local(
-            std::time::Duration::from_millis(100),
-            {
-                let id = id.clone();
-                let window = window.clone();
-                let is_hovered = is_hovered.clone();
-                move || {
-                    if *is_hovered.lock().unwrap() {
-                        return glib::ControlFlow::Continue;
-                    }
-
-                    if start_time.elapsed().as_millis() >= timeout_ms as u128 {
-                        Self::dismiss_window_static(&window, &id, false);
-                        return glib::ControlFlow::Break;
-                    }
-
-                    glib::ControlFlow::Continue
+        let source = glib::timeout_add_local(std::time::Duration::from_millis(100), {
+            let id = id.clone();
+            let window = window.clone();
+            let is_hovered = is_hovered.clone();
+            move || {
+                if *is_hovered.lock().unwrap() {
+                    return glib::ControlFlow::Continue;
                 }
-            },
-        );
+
+                if start_time.elapsed().as_millis() >= timeout_ms as u128 {
+                    Self::dismiss_window_static(&window, &id, false);
+                    return glib::ControlFlow::Break;
+                }
+
+                glib::ControlFlow::Continue
+            }
+        });
 
         self.timeout_source = Some(source);
     }
@@ -237,7 +234,7 @@ impl NotificationManager {
             gtk4::init().ok();
             Self::setup_styles();
         });
-        
+
         Application::builder()
             .application_id("com.hyprnote.notifications")
             .build()

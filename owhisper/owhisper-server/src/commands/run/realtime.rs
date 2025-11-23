@@ -130,7 +130,7 @@ async fn run_audio_stream_with_stop(
     let mic_stream = {
         let mut audio_input = hypr_audio::AudioInput::from_mic(Some(device_name.clone()))?;
         let amplitude_clone = amplitude_data.clone();
-        let mut agc = hypr_agc::Agc::default();
+        let mut agc = hypr_agc::VadAgc::default();
 
         audio_input
             .stream()

@@ -932,6 +932,74 @@ describe("buildSegments", () => {
       });
     });
   });
+
+  describe("Issue #9: Partial Word Extension Edge Cases", () => {
+    test("partial words can extend segment with all partial words", () => {
+      const partialWords: WordLike[] = [
+        { text: "partial1", start_ms: 0, end_ms: 100, channel: 0, isFinal: false },
+        { text: "partial2", start_ms: 100, end_ms: 200, channel: 0, isFinal: false },
+      ];
+
+      const segments = buildSegments([], partialWords, []);
+
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words).toHaveLength(2);
+      expect(segments[0].words.map((w) => w.text)).toEqual([
+        "partial1",
+        "partial2",
+      ]);
+    });
+
+    test("partial word with speaker identity can extend segment with final words", () => {
+      const finalWords: WordLike[] = [
+        { text: "final1", start_ms: 0, end_ms: 100, channel: 0 },
+      ];
+
+      const partialWords: WordLike[] = [
+        { text: "partial1", start_ms: 100, end_ms: 200, channel: 0, isFinal: false },
+      ];
+
+      const hints: RuntimeSpeakerHint[] = [
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index", speaker_index: 0 },
+        },
+      ];
+
+      const segments = buildSegments(finalWords, partialWords, hints);
+
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words.map((w) => w.text)).toEqual([
+        "final1",
+        "partial1",
+      ]);
+    });
+
+    test("handles gap between partial words correctly", () => {
+      const partialWords: WordLike[] = [
+        { text: "partial1", start_ms: 0, end_ms: 100, channel: 0, isFinal: false },
+        { text: "partial2", start_ms: 3000, end_ms: 3100, channel: 0, isFinal: false },
+      ];
+
+      const segments = buildSegments([], partialWords, []);
+
+      expect(segments).toHaveLength(2);
+      expect(segments[0].words.map((w) => w.text)).toEqual(["partial1"]);
+      expect(segments[1].words.map((w) => w.text)).toEqual(["partial2"]);
+    });
+
+    test("anonymous segment can be extended by final words without speaker identity", () => {
+      const finalWords: WordLike[] = [
+        { text: "anon1", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "anon2", start_ms: 100, end_ms: 200, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], []);
+
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words.map((w) => w.text)).toEqual(["anon1", "anon2"]);
+    });
+  });
 });
 
 function visualizeSegments(

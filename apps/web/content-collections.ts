@@ -35,6 +35,7 @@ const articles = defineCollection({
   name: "articles",
   directory: "content/articles",
   include: "*.mdx",
+  exclude: "AGENTS.md",
   schema: z.object({
     display_title: z.string().optional(),
     meta_title: z.string(),
@@ -86,6 +87,7 @@ const changelog = defineCollection({
   name: "changelog",
   directory: "content/changelog",
   include: "*.mdx",
+  exclude: "AGENTS.md",
   schema: z.object({
     created: z.coerce.date(),
   }),
@@ -128,7 +130,7 @@ const docs = defineCollection({
   name: "docs",
   directory: "content/docs",
   include: "**/*.mdx",
-  exclude: "hooks/**",
+  exclude: ["AGENTS.md", "hooks/**"],
   schema: z.object({
     title: z.string(),
     summary: z.string().optional(),
@@ -180,6 +182,7 @@ const legal = defineCollection({
   name: "legal",
   directory: "content/legal",
   include: "*.mdx",
+  exclude: "AGENTS.md",
   schema: z.object({
     title: z.string(),
     summary: z.string(),
@@ -216,6 +219,7 @@ const templates = defineCollection({
   name: "templates",
   directory: "content/templates",
   include: "*.mdx",
+  exclude: "AGENTS.md",
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -259,6 +263,7 @@ const hooks = defineCollection({
   name: "hooks",
   directory: "content/docs/hooks",
   include: "*.mdx",
+  exclude: "AGENTS.md",
   schema: z.object({
     name: z.string(),
     description: z.string(),

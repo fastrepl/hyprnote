@@ -1,3 +1,9 @@
+# Instruction
+
+- Read through the commits, and optionally diffs, but only keep the desktop-related thing to the changelog.
+
+# Scripts
+
 1. This will give you all changelogs that we have now.
 
 ```bash

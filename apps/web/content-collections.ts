@@ -110,7 +110,8 @@ const changelog = defineCollection({
     const tag = `desktop_v${version}`;
 
     const downloads: Record<VersionPlatform, string> = {
-      "dmg-aarch64": `https://github.com/fastrepl/hyprnote/releases/download/${tag}/hyprnote.dmg`,
+      "dmg-aarch64": `https://github.com/fastrepl/hyprnote/releases/download/${tag}/hyprnote-macos-aarch64.dmg`,
+      "appimage-x86_64": `https://github.com/fastrepl/hyprnote/releases/download/${tag}/hyprnote-linux-x86_64.AppImage`,
     };
 
     return {

@@ -4,7 +4,7 @@ import { join } from "node:path";
 type VersionChannel = "stable" | "nightly" | "staging";
 
 // https://docs.crabnebula.dev/cloud/cli/upload-assets/#public-platform---public-platform
-export type VersionPlatform = "dmg-aarch64";
+export type VersionPlatform = "dmg-aarch64" | "appimage-x86_64";
 
 export type VersionDownloads = Partial<Record<VersionPlatform, string>>;
 

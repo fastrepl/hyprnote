@@ -1,20 +1,19 @@
-use std::sync::{Arc, Mutex};
+use std::cell::RefCell;
+use std::sync::Mutex;
 use std::time::Duration;
 
-use glib::clone;
-use gtk4::gdk::Display;
-use gtk4::prelude::*;
-use gtk4::{
+use gtk::prelude::*;
+use gtk::{
     Align, Application, ApplicationWindow, Box as GtkBox, Button, CssProvider, Image, Label,
-    Orientation, StyleContext, Window, WindowType,
+    Orientation, StyleContext,
 };
 use indexmap::IndexMap;
-use once_cell::sync::Lazy;
 
 pub use hypr_notification_interface::*;
 
-static NOTIFICATION_MANAGER: Lazy<Arc<Mutex<NotificationManager>>> =
-    Lazy::new(|| Arc::new(Mutex::new(NotificationManager::new())));
+thread_local! {
+    static NOTIFICATION_MANAGER: RefCell<NotificationManager> = RefCell::new(NotificationManager::new());
+}
 
 static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
@@ -69,9 +68,9 @@ impl NotificationInstance {
         let window = self.window.clone();
         let source = glib::timeout_add_seconds_local_once(
             timeout_seconds as u32,
-            clone!(@strong id, @strong window => move || {
+            move || {
                 Self::dismiss_window(&window, &id, false);
-            }),
+            },
         );
         self.timeout_source = Some(source);
     }
@@ -113,10 +112,11 @@ impl NotificationManager {
 
     fn ensure_app(&mut self) {
         if self.app.is_none() {
-            gtk4::init().ok();
-            let app = Application::builder()
-                .application_id("com.hyprnote.notifications")
-                .build();
+            gtk::init().ok();
+            let app = Application::new(
+                Some("com.hyprnote.notifications"),
+                Default::default(),
+            );
             self.app = Some(app);
         }
     }
@@ -138,15 +138,10 @@ impl NotificationManager {
         let id = uuid::Uuid::new_v4().to_string();
         let app = self.app.as_ref().unwrap();
 
-        let window = ApplicationWindow::builder()
-            .application(app)
-            .decorated(false)
-            .resizable(false)
-            .default_width(360)
-            .default_height(64)
-            .build();
-
-        window.set_type_hint(gtk4::gdk::WindowTypeHint::Notification);
+        let window = ApplicationWindow::new(app);
+        window.set_decorated(false);
+        window.set_resizable(false);
+        window.set_default_size(360, 64);
 
         self.setup_window_style(&window);
         self.create_notification_content(&window, &title, &message, url.as_deref(), &id);
@@ -161,10 +156,10 @@ impl NotificationManager {
         self.reposition_notifications();
     }
 
-    fn setup_window_style(&self, window: &ApplicationWindow) {
+    fn setup_window_style(&self, _window: &ApplicationWindow) {
         let css_provider = CssProvider::new();
         css_provider.load_from_data(
-            r#"
+            br#"
             window {
                 background-color: rgba(255, 255, 255, 0.95);
                 border-radius: 11px;
@@ -209,11 +204,11 @@ impl NotificationManager {
             "#,
         );
 
-        if let Some(display) = Display::default() {
-            StyleContext::add_provider_for_display(
-                &display,
+        if let Some(screen) = gdk::Screen::default() {
+            StyleContext::add_provider_for_screen(
+                &screen,
                 &css_provider,
-                gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
+                gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
             );
         }
     }
@@ -233,31 +228,30 @@ impl NotificationManager {
         main_box.set_margin_bottom(9);
         main_box.set_valign(Align::Center);
 
-        let icon = Image::from_icon_name("application-x-executable");
-        icon.set_pixel_size(24);
-        main_box.append(&icon);
+        let icon = Image::from_icon_name(Some("application-x-executable"), gtk::IconSize::Dnd);
+        main_box.pack_start(&icon, false, false, 0);
 
         let text_box = GtkBox::new(Orientation::Vertical, 2);
         text_box.set_hexpand(true);
 
         let title_label = Label::new(Some(title));
         title_label.set_halign(Align::Start);
-        title_label.set_ellipsize(gtk4::pango::EllipsizeMode::End);
-        title_label.add_css_class("notification-title");
-        text_box.append(&title_label);
+        title_label.set_ellipsize(pango::EllipsizeMode::End);
+        title_label.style_context().add_class("notification-title");
+        text_box.pack_start(&title_label, false, false, 0);
 
         let message_label = Label::new(Some(message));
         message_label.set_halign(Align::Start);
-        message_label.set_ellipsize(gtk4::pango::EllipsizeMode::End);
-        message_label.add_css_class("notification-message");
-        text_box.append(&message_label);
+        message_label.set_ellipsize(pango::EllipsizeMode::End);
+        message_label.style_context().add_class("notification-message");
+        text_box.pack_start(&message_label, false, false, 0);
 
-        main_box.append(&text_box);
+        main_box.pack_start(&text_box, true, true, 0);
 
         if let Some(url_str) = url {
             if !url_str.is_empty() {
                 let action_button = Button::with_label("Take Notes");
-                action_button.add_css_class("action-button");
+                action_button.style_context().add_class("action-button");
 
                 let id_clone = id.to_string();
                 let url_clone = url_str.to_string();
@@ -268,13 +262,13 @@ impl NotificationManager {
                     NotificationInstance::dismiss_window(&window_clone, &id_clone, false);
                 });
 
-                main_box.append(&action_button);
+                main_box.pack_start(&action_button, false, false, 0);
             }
         }
 
         let close_button = Button::new();
         close_button.set_label("×");
-        close_button.add_css_class("close-button");
+        close_button.style_context().add_class("close-button");
         close_button.set_valign(Align::Start);
         close_button.set_halign(Align::End);
 
@@ -284,11 +278,11 @@ impl NotificationManager {
             NotificationInstance::dismiss_window(&window_clone, &id_clone, true);
         });
 
-        let overlay = gtk4::Overlay::new();
-        overlay.set_child(Some(&main_box));
+        let overlay = gtk::Overlay::new();
+        overlay.add(&main_box);
         overlay.add_overlay(&close_button);
 
-        window.set_child(Some(&overlay));
+        window.add(&overlay);
     }
 
     fn position_window(&self, _window: &ApplicationWindow) {
@@ -301,13 +295,14 @@ impl NotificationManager {
     }
 
     fn remove_notification_locked(&mut self, id: &str) {
-        self.active_notifications.remove(id);
+        self.active_notifications.swap_remove(id);
         self.reposition_notifications();
     }
 
     fn remove_notification_global(id: &str) {
-        let mut manager = NOTIFICATION_MANAGER.lock().unwrap();
-        manager.remove_notification_locked(id);
+        NOTIFICATION_MANAGER.with(|manager| {
+            manager.borrow_mut().remove_notification_locked(id);
+        });
     }
 
     fn dismiss_all(&mut self) {
@@ -329,16 +324,17 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
     let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
 
     glib::MainContext::default().invoke(move || {
-        NOTIFICATION_MANAGER
-            .lock()
-            .unwrap()
-            .show(title, message, url, timeout_seconds);
+        NOTIFICATION_MANAGER.with(|manager| {
+            manager.borrow_mut().show(title, message, url, timeout_seconds);
+        });
     });
 }
 
 pub fn dismiss_all() {
     glib::MainContext::default().invoke(|| {
-        NOTIFICATION_MANAGER.lock().unwrap().dismiss_all();
+        NOTIFICATION_MANAGER.with(|manager| {
+            manager.borrow_mut().dismiss_all();
+        });
     });
 }
 

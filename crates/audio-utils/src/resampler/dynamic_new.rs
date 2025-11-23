@@ -130,6 +130,7 @@ where
     backend: Backend,
     last_source_rate: u32,
     draining: bool,
+    pending_sample: Option<(f32, u32)>,
 }
 
 impl<S> ResamplerDynamicNew<S>
@@ -161,6 +162,7 @@ where
             backend,
             last_source_rate: source_rate,
             draining: false,
+            pending_sample: None,
         })
     }
 
@@ -215,31 +217,33 @@ where
         let me = Pin::into_inner(self);
 
         loop {
+            if let Some((sample, new_rate)) = me.pending_sample.take() {
+                match me.drain_for_rate_change() {
+                    Ok(true) => {
+                        if let Err(err) = me.rebuild_backend(new_rate) {
+                            return Poll::Ready(Some(Err(err)));
+                        }
+                        me.backend.push_sample(sample);
+                        continue;
+                    }
+                    Ok(false) => {
+                        if let Some(chunk) = me.try_yield_chunk(true) {
+                            me.pending_sample = Some((sample, new_rate));
+                            return Poll::Ready(Some(Ok(chunk)));
+                        }
+                        me.pending_sample = Some((sample, new_rate));
+                        continue;
+                    }
+                    Err(err) => return Poll::Ready(Some(Err(err))),
+                }
+            }
+
             if let Some(chunk) = me.try_yield_chunk(me.draining) {
                 return Poll::Ready(Some(Ok(chunk)));
             }
 
             if me.draining {
                 return Poll::Ready(None);
-            }
-
-            let current_rate = me.source.sample_rate();
-            if current_rate != me.last_source_rate {
-                match me.drain_for_rate_change() {
-                    Ok(true) => {
-                        if let Err(err) = me.rebuild_backend(current_rate) {
-                            return Poll::Ready(Some(Err(err)));
-                        }
-                        continue;
-                    }
-                    Ok(false) => {
-                        if let Some(chunk) = me.try_yield_chunk(true) {
-                            return Poll::Ready(Some(Ok(chunk)));
-                        }
-                        continue;
-                    }
-                    Err(err) => return Poll::Ready(Some(Err(err))),
-                }
             }
 
             match me.backend.process_all_ready_blocks() {
@@ -254,18 +258,25 @@ where
                 inner.poll_next(cx)
             };
 
-            match sample_poll {
-                Poll::Ready(Some(sample)) => {
-                    me.backend.push_sample(sample);
-                }
+            let sample = match sample_poll {
+                Poll::Ready(Some(sample)) => sample,
                 Poll::Ready(None) => {
                     if let Err(err) = me.drain_at_eos() {
                         return Poll::Ready(Some(Err(err)));
                     }
                     me.draining = true;
+                    continue;
                 }
                 Poll::Pending => return Poll::Pending,
+            };
+
+            let current_rate = me.source.sample_rate();
+            if current_rate != me.last_source_rate {
+                me.pending_sample = Some((sample, current_rate));
+                continue;
             }
+
+            me.backend.push_sample(sample);
         }
     }
 }

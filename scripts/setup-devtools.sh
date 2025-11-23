@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -z "${BASH_VERSION:-}" ]; then
-  echo "Error: this script must be run with bash, not sh." >&2
-  echo "Try: bash \"$0\"" >&2
-  exit 1
-fi
+. "$(dirname "$0")/bash-guard.sh"
 
 set -euo pipefail
 
@@ -28,4 +24,10 @@ fi
 if ! command -v task &> /dev/null; then
   curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
   sudo apt-get install -y task
+fi
+
+if ! command -v infisical &> /dev/null; then
+  curl -1sLf 'https://artifacts-cli.infisical.com/setup.deb.sh' | sudo -E bash
+  sudo apt-get update
+  sudo apt-get install -y infisical
 fi

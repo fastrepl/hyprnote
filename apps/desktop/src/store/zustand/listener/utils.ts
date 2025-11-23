@@ -15,6 +15,12 @@ export function fixSpacingForWords(
 
     const foundAt = transcript.indexOf(trimmed, pos);
     if (foundAt === -1) {
+      console.warn("Word not found in transcript", {
+        word: trimmed,
+        transcript,
+        position: pos,
+        wordIndex: i,
+      });
       result.push(word);
       continue;
     }

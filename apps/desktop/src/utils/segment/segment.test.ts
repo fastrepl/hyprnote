@@ -844,6 +844,94 @@ describe("buildSegments", () => {
       console.error(visualizeSegments(finalWords, partialWords));
     },
   );
+
+  describe("Issue #8: Configurable Gap Threshold", () => {
+    test("uses default maxGapMs of 2000ms when not specified", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 2100, end_ms: 2200, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], []);
+      expect(segments).toHaveLength(1);
+    });
+
+    test("respects custom maxGapMs value", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 600, end_ms: 700, channel: 0 },
+      ];
+
+      const segmentsWithDefault = buildSegments(finalWords, [], []);
+      expect(segmentsWithDefault).toHaveLength(1);
+
+      const segmentsWithCustom = buildSegments(finalWords, [], [], {
+        maxGapMs: 400,
+      });
+      expect(segmentsWithCustom).toHaveLength(2);
+    });
+
+    test("allows very small maxGapMs for rapid-fire conversations", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 250, end_ms: 350, channel: 0 },
+        { text: "2", start_ms: 500, end_ms: 600, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 100 });
+      expect(segments).toHaveLength(3);
+    });
+
+    test("allows very large maxGapMs for slow conversations", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 5000, end_ms: 5100, channel: 0 },
+        { text: "2", start_ms: 10000, end_ms: 10100, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 15000 });
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words).toHaveLength(3);
+    });
+
+    test("maxGapMs of 0 allows consecutive words with no gap", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 100, end_ms: 200, channel: 0 },
+        { text: "2", start_ms: 200, end_ms: 300, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 0 });
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words).toHaveLength(3);
+    });
+
+    test("maxGapMs of 0 splits segments with any gap", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 101, end_ms: 200, channel: 0 },
+        { text: "2", start_ms: 201, end_ms: 300, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 0 });
+      expect(segments).toHaveLength(3);
+    });
+
+    test("maxGapMs applies independently to each channel", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 600, end_ms: 700, channel: 0 },
+        { text: "2", start_ms: 0, end_ms: 100, channel: 1 },
+        { text: "3", start_ms: 600, end_ms: 700, channel: 1 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 400 });
+      expect(segments).toHaveLength(4);
+      segments.forEach((segment) => {
+        expect(segment.words).toHaveLength(1);
+      });
+    });
+  });
 });
 
 function visualizeSegments(

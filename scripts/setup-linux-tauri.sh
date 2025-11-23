@@ -11,11 +11,4 @@ sudo apt-get install -y \
   libxdo-dev \
   libssl-dev \
   libayatana-appindicator3-dev \
-  librsvg2-dev \
-  libgtk-3-dev \
-  libgtk-4-dev \
-  libasound2-dev \
-  libpulse-dev \
-  libgraphene-1.0-dev \
-  pkg-config \
-  patchelf
+  librsvg2-dev

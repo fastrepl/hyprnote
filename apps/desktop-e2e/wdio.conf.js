@@ -37,7 +37,15 @@ export const config = {
 
   onPrepare: function () {
     return new Promise((resolve, reject) => {
-      tauriDriver = spawn("tauri-driver", [], {
+      // In CI, wrap tauri-driver with xvfb-run to provide a virtual display
+      // This is needed because tauri-driver initializes GTK which requires X11
+      const useXvfb = !!process.env.CI;
+      const cmd = useXvfb ? "xvfb-run" : "tauri-driver";
+      const args = useXvfb ? ["-a", "tauri-driver"] : [];
+
+      console.log(`Starting tauri-driver${useXvfb ? " with xvfb-run" : ""}...`);
+
+      tauriDriver = spawn(cmd, args, {
         stdio: ["ignore", "pipe", "pipe"],
       });
 

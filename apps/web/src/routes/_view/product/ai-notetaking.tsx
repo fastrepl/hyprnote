@@ -583,7 +583,7 @@ function TranscriptionSection() {
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
                 For Apple Silicon Macs, transcription happens entirely on your
-                device. Fast, private, and no internet required
+                device. Fast, private, and no internet required.
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -604,7 +604,7 @@ function TranscriptionSection() {
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
                 Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT,
-                TXT) to get AI summaries and insights
+                TXT) to get AI summaries and insights.
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden bg-neutral-100">
@@ -736,7 +736,7 @@ function SummariesSection() {
         </h2>
         <p className="text-base text-neutral-600">
           Hyprnote combines your notes with transcripts to create intelligent
-          summaries after your meeting ends.
+          summaries after your meeting ends
         </p>
       </div>
       <div className="border-t border-neutral-100">

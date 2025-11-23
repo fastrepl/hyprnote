@@ -1,16 +1,81 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "CI"
+  ],
+  "globalPassThroughEnv": [
+    "GITHUB_TOKEN",
+    "AM_API_KEY",
+    "POSTHOG_API_KEY",
+    "SENTRY_DSN",
+    "APPLE_*",
+    "TAURI_*",
+    "VITE_*",
+    "AWS_*"
+  ],
   "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "build/**",
+        "target/release/**",
+        "target/aarch64-apple-darwin/release/**",
+        "target/x86_64-unknown-linux-gnu/release/**"
+      ],
+      "inputs": [
+        "src/**",
+        "public/**",
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts",
+        "tailwind.config.ts",
+        "postcss.config.mjs",
+        "Cargo.toml",
+        "Cargo.lock",
+        "build.rs",
+        "tauri.conf*.json"
+      ]
+    },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "tsconfig.json",
+        "package.json"
+      ]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "inputs": [
+        "src/**",
+        "test/**",
+        "tests/**",
+        "package.json",
+        "vitest.config.ts",
+        "Cargo.toml"
+      ]
+    },
+    "lint": {
+      "dependsOn": [],
+      "outputs": [],
+      "inputs": [
+        "src/**",
+        "package.json",
+        ".eslintrc*",
+        "dprint.json"
+      ]
     },
     "dev": {
       "dependsOn": ["^build"],
       "persistent": true,
       "cache": false
-    },
-    "build": {
-      "dependsOn": ["^build"]
     },
     "tauri:dev": {
       "dependsOn": ["^build"],
@@ -18,7 +83,61 @@
       "cache": false
     },
     "tauri:build": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "outputs": [
+        "src-tauri/target/release/**",
+        "src-tauri/target/aarch64-apple-darwin/release/bundle/**",
+        "src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/**"
+      ],
+      "inputs": [
+        "src/**",
+        "src-tauri/**",
+        "!src-tauri/target/**",
+        "package.json",
+        "vite.config.ts",
+        "tauri.conf*.json"
+      ],
+      "env": [
+        "AM_API_KEY",
+        "POSTHOG_API_KEY",
+        "SENTRY_DSN",
+        "APPLE_ID",
+        "APPLE_ID_PASSWORD",
+        "APPLE_PASSWORD",
+        "APPLE_TEAM_ID",
+        "APPLE_CERTIFICATE",
+        "APPLE_CERTIFICATE_PASSWORD",
+        "APPLE_SIGNING_IDENTITY",
+        "TAURI_SIGNING_PRIVATE_KEY",
+        "TAURI_SIGNING_PRIVATE_KEY_PASSWORD",
+        "VITE_SUPABASE_URL",
+        "VITE_SUPABASE_ANON_KEY",
+        "VITE_APP_URL",
+        "VITE_API_URL",
+        "VITE_PRO_PRODUCT_ID"
+      ]
+    },
+    "cargo:check": {
+      "dependsOn": [],
+      "outputs": [],
+      "inputs": [
+        "src/**/*.rs",
+        "Cargo.toml",
+        "Cargo.lock"
+      ]
+    },
+    "cargo:build": {
+      "dependsOn": ["^cargo:build"],
+      "outputs": [
+        "target/release/**",
+        "target/debug/**"
+      ],
+      "inputs": [
+        "src/**/*.rs",
+        "Cargo.toml",
+        "Cargo.lock",
+        "build.rs"
+      ]
     }
   }
 }

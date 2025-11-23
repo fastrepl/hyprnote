@@ -28,14 +28,25 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/pnpm_install
       - uses: denoland/setup-deno@v2
-      - run: pnpm -F ui build
-      - run: pnpm -F desktop typecheck
-      - run: pnpm -F desktop test
+      - name: Setup Turborepo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .turbo
+            node_modules/.cache/turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+      - run: npx turbo build --filter=@hypr/ui
+      - run: npx turbo typecheck --filter=@hypr/desktop
+      - run: npx turbo test --filter=@hypr/desktop
       - uses: ./.github/actions/install_desktop_deps
         with:
           target: ${{ matrix.platform }}
       - uses: ./.github/actions/rust_install
         with:
           platform: ${{ matrix.platform }}
+          cache-target: debug
+          cache-base: main
       - run: cargo check -p desktop
       - run: cargo test -p desktop

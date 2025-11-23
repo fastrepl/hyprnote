@@ -1,40 +1,56 @@
 name: "Install Rust Toolchain"
-description: "Installs Rust toolchain with platform-specific targets"
+description: "Installs Rust toolchain with platform-specific targets using moonrepo/setup-rust"
 
 inputs:
   platform:
     description: "Target platform (macos, ios, android, windows, linux)"
     required: false
     default: ""
+  cache-target:
+    description: "Target profile to cache (debug or release)"
+    required: false
+    default: "debug"
+  cache-base:
+    description: "Base branch for warmup cache strategy"
+    required: false
+    default: "main"
 
 runs:
   using: "composite"
   steps:
-    - run: rustup toolchain install 1.90.0 --profile minimal --no-self-update
+    - name: Determine targets for platform
+      id: targets
       shell: bash
-    - if: inputs.platform == 'macos'
-      run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
-      shell: bash
-    - if: inputs.platform == 'ios'
-      run: rustup target add aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim
-      shell: bash
-    - if: inputs.platform == 'android'
-      run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
-      shell: bash
-    - if: inputs.platform == 'windows'
       run: |
-        rustup target add x86_64-pc-windows-msvc
-        # https://tauri.app/distribute/sign/windows/#install-trusted-signing-cli
-        cargo install trusted-signing-cli
+        TARGETS=""
+        if [[ "${{ inputs.platform }}" == "macos" ]]; then
+          TARGETS="aarch64-apple-darwin,x86_64-apple-darwin"
+        elif [[ "${{ inputs.platform }}" == "ios" ]]; then
+          TARGETS="aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim"
+        elif [[ "${{ inputs.platform }}" == "android" ]]; then
+          TARGETS="aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+        elif [[ "${{ inputs.platform }}" == "windows" ]]; then
+          TARGETS="x86_64-pc-windows-msvc"
+        elif [[ "${{ inputs.platform }}" == "linux" ]]; then
+          TARGETS="x86_64-unknown-linux-gnu,x86_64-unknown-linux-musl,aarch64-unknown-linux-gnu"
+        fi
+        echo "targets=$TARGETS" >> $GITHUB_OUTPUT
+
+    - name: Setup Rust with moonrepo/setup-rust
+      uses: moonrepo/setup-rust@v1
+      with:
+        targets: ${{ steps.targets.outputs.targets }}
+        cache: true
+        cache-target: ${{ inputs.cache-target }}
+        cache-base: ${{ inputs.cache-base }}
+        bins: ${{ inputs.platform == 'windows' && 'trusted-signing-cli' || '' }}
+        target-dirs: target,apps/desktop/src-tauri/target
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Install Linux dependencies
+      if: inputs.platform == 'linux'
       shell: bash
-    - if: inputs.platform == 'linux'
       run: |
-        rustup target add x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu
         sudo apt-get update
         sudo apt-get install -y gcc-aarch64-linux-gnu libasound2-dev
-      shell: bash
-    - uses: Swatinem/rust-cache@v2
-      with:
-        workspaces: |
-          . -> target
-          apps/desktop/src-tauri -> target

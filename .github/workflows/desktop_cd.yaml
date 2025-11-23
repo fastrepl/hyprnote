@@ -82,8 +82,19 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: macos
+          cache-target: release
+          cache-base: main
       - uses: ./.github/actions/pnpm_install
-      - run: pnpm -F ui build
+      - name: Setup Turborepo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .turbo
+            node_modules/.cache/turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+      - run: npx turbo build --filter=@hypr/ui
       - run: |
           aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/stt-aarch64-apple-darwin \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
@@ -105,7 +116,7 @@ jobs:
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
           fi
-          pnpm -F desktop tauri build --target aarch64-apple-darwin --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
+          npx turbo tauri:build --filter=@hypr/desktop -- --target aarch64-apple-darwin --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false
@@ -181,14 +192,25 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: linux
+          cache-target: release
+          cache-base: main
       - uses: ./.github/actions/pnpm_install
-      - run: pnpm -F ui build
+      - name: Setup Turborepo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .turbo
+            node_modules/.cache/turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+      - run: npx turbo build --filter=@hypr/ui
       - run: |
           FEATURES_FLAG=""
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
           fi
-          pnpm -F desktop tauri build --bundles appimage --target x86_64-unknown-linux-gnu --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
+          npx turbo tauri:build --filter=@hypr/desktop -- --bundles appimage --target x86_64-unknown-linux-gnu --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false

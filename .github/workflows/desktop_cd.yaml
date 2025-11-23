@@ -208,12 +208,10 @@ jobs:
           find target/x86_64-unknown-linux-gnu/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
         working-directory: ./apps/desktop/src-tauri
-      - name: Install tauri-driver for E2E tests
-        run: cargo install tauri-driver --version 2.0.4
-      - name: Run desktop E2E tests
-        run: pnpm -F desktop-e2e test
-        env:
-          E2E_APP_PATH: ${{ github.workspace }}/apps/desktop/src-tauri/target/x86_64-unknown-linux-gnu/release/${{ inputs.channel == 'staging' && 'hyprnote-staging' || inputs.channel == 'nightly' && 'hyprnote-nightly' || 'hyprnote' }}
+      - uses: ./.github/actions/desktop-e2e-linux
+        with:
+          channel: ${{ inputs.channel }}
+          target_triple: x86_64-unknown-linux-gnu
       - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:

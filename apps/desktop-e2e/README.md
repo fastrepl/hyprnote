@@ -46,17 +46,17 @@ The test runner will automatically:
 
 ### Testing Different Channels
 
-To test a specific channel build, set the `E2E_APP_PATH` environment variable:
+To test a specific channel build, set the `APP_BINARY_PATH` environment variable:
 
 ```bash
 # For staging build
-E2E_APP_PATH=apps/desktop/src-tauri/target/release/hyprnote-staging pnpm -F desktop-e2e test
+APP_BINARY_PATH=apps/desktop/src-tauri/target/release/hyprnote-staging pnpm -F desktop-e2e test
 
 # For nightly build
-E2E_APP_PATH=apps/desktop/src-tauri/target/release/hyprnote-nightly pnpm -F desktop-e2e test
+APP_BINARY_PATH=apps/desktop/src-tauri/target/release/hyprnote-nightly pnpm -F desktop-e2e test
 
 # For stable build
-E2E_APP_PATH=apps/desktop/src-tauri/target/release/hyprnote pnpm -F desktop-e2e test
+APP_BINARY_PATH=apps/desktop/src-tauri/target/release/hyprnote pnpm -F desktop-e2e test
 ```
 
 ## Test Structure
@@ -68,6 +68,6 @@ E2E_APP_PATH=apps/desktop/src-tauri/target/release/hyprnote pnpm -F desktop-e2e 
 
 - Tests require a release build of the application
 - The application path defaults to `../desktop/src-tauri/target/release/hyprnote-dev` for local development
-- In CI, the path is set via `E2E_APP_PATH` environment variable based on the release channel
+- In CI, the path is set via `APP_BINARY_PATH` environment variable based on the release channel
 - Tests use the Mocha framework with WebDriverIO's spec reporter
 - `tauri-driver` must be installed separately via cargo

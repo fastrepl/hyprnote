@@ -8,11 +8,11 @@ let tauriDriver;
 const defaultAppPath = resolve(
   "../desktop/src-tauri/target/release/hyprnote-dev",
 );
-const appPath = process.env.E2E_APP_PATH
-  ? resolve(process.env.E2E_APP_PATH)
+const appPath = process.env.APP_BINARY_PATH
+  ? resolve(process.env.APP_BINARY_PATH)
   : defaultAppPath;
 
-console.log("E2E app path:", appPath);
+console.log("App binary path:", appPath);
 
 export const config = {
   specs: ["./test/**/*.spec.js"],

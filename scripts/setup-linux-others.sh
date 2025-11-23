@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+. "$(dirname "$0")/bash-guard.sh"
+
 set -euo pipefail
 
 sudo apt update

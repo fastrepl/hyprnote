@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+. "$(dirname "$0")/bash-guard.sh"
+
 set -euo pipefail
 
 if ! command -v dprint &> /dev/null; then
@@ -7,8 +10,10 @@ if ! command -v dprint &> /dev/null; then
 fi
 
 if ! command -v supabase &> /dev/null; then
-  curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
-  sudo mv supabase /usr/local/bin/supabase
+  TEMP_DIR=$(mktemp -d)
+  curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz -C "$TEMP_DIR"
+  sudo mv "$TEMP_DIR/supabase" /usr/local/bin/supabase
+  rm -rf "$TEMP_DIR"
 fi
 
 if ! command -v stripe &> /dev/null; then
@@ -21,4 +26,10 @@ fi
 if ! command -v task &> /dev/null; then
   curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
   sudo apt-get install -y task
+fi
+
+if ! command -v infisical &> /dev/null; then
+  curl -1sLf 'https://artifacts-cli.infisical.com/setup.deb.sh' | sudo -E bash
+  sudo apt-get update
+  sudo apt-get install -y infisical
 fi

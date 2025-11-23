@@ -45,7 +45,7 @@ While you stay engaged in the conversation, Hyprnote captures every detail so yo
 ### From Memos to Summaries
 Once the meeting is over, Hyprnote will craft a personalized summary based on your memos — which is not mandatory. Hyprnote will still create great summaries without your notes.
 
-![offline enhancing](https://github.com/user-attachments/assets/cf28a83f-1dd5-423b-badd-a627dae7f0f3)
+![offline enhancing-1](https://github.com/user-attachments/assets/13af787b-2f6e-4877-b90f-719edc45fb75)
 
 ### Truly Local
 If you noticed the GIF above, you can see that Hyprnote works without any internet connection available. Just set up LM Studio or Ollama to operate Hyprnote in air-gapped environments!

@@ -17,3 +17,8 @@ if ! command -v stripe &> /dev/null; then
   sudo apt update
   sudo apt-get install -y stripe
 fi
+
+if ! command -v task &> /dev/null; then
+  curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
+  sudo apt-get install -y task
+fi

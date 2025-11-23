@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Reserved for non-Tauri Linux dependencies
+sudo apt update
+sudo apt-get install -y \
+  libgtk-3-dev \
+  libgtk-4-dev \
+  libasound2-dev \
+  libpulse-dev \
+  libgraphene-1.0-dev \
+  pkg-config \
+  patchelf

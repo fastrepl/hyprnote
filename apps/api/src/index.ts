@@ -8,6 +8,7 @@ import { logger } from "hono/logger";
 
 import { syncBillingForStripeEvent } from "./billing";
 import { env } from "./env";
+import { handleReleaseEvent, verifyGitHubWebhook } from "./github";
 import { listenSocketHandler } from "./listen";
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth } from "./supabase";
@@ -96,6 +97,17 @@ app.post("/webhook/stripe", verifyStripeWebhook, async (c) => {
   } catch (error) {
     console.error(error);
     return c.json({ error: "stripe_billing_sync_failed" }, 500);
+  }
+
+  return c.json({ ok: true });
+});
+
+app.post("/webhook/github", verifyGitHubWebhook, async (c) => {
+  try {
+    await handleReleaseEvent(c.var.githubEvent);
+  } catch (error) {
+    console.error(error);
+    return c.json({ error: "github_webhook_failed" }, 500);
   }
 
   return c.json({ ok: true });

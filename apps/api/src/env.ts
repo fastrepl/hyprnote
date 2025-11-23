@@ -14,6 +14,8 @@ export const env = createEnv({
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
     OPENROUTER_API_KEY: z.string().min(1),
     DEEPGRAM_API_KEY: z.string().min(1),
+    GITHUB_WEBHOOK_SECRET: z.string().min(1),
+    DEVIN_API_KEY: z.string().min(1),
   },
   runtimeEnv: Bun.env,
   emptyStringAsUndefined: true,

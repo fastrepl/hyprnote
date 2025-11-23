@@ -1,40 +1,50 @@
-name: "Install Rust Toolchain"
-description: "Installs Rust toolchain with platform-specific targets"
-
 inputs:
   platform:
-    description: "Target platform (macos, ios, android, windows, linux)"
     required: false
     default: ""
-
 runs:
   using: "composite"
   steps:
-    - run: rustup toolchain install 1.90.0 --profile minimal --no-self-update
-      shell: bash
     - if: inputs.platform == 'macos'
-      run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
-      shell: bash
+      uses: moonrepo/setup-rust@v1
+      with:
+        channel: "1.91.1"
+        targets: aarch64-apple-darwin,x86_64-apple-darwin
+        cache-target: release
     - if: inputs.platform == 'ios'
-      run: rustup target add aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim
-      shell: bash
+      uses: moonrepo/setup-rust@v1
+      with:
+        channel: "1.91.1"
+        targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
+        cache-target: release
     - if: inputs.platform == 'android'
-      run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
-      shell: bash
+      uses: moonrepo/setup-rust@v1
+      with:
+        channel: "1.91.1"
+        targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+        cache-target: release
     - if: inputs.platform == 'windows'
-      run: |
-        rustup target add x86_64-pc-windows-msvc
-        # https://tauri.app/distribute/sign/windows/#install-trusted-signing-cli
-        cargo install trusted-signing-cli
-      shell: bash
+      uses: moonrepo/setup-rust@v1
+      with:
+        channel: "1.91.1"
+        targets: x86_64-pc-windows-msvc
+        bins: trusted-signing-cli
+        cache-target: release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+    - if: inputs.platform == 'linux'
+      uses: moonrepo/setup-rust@v1
+      with:
+        channel: "1.91.1"
+        targets: x86_64-unknown-linux-gnu,x86_64-unknown-linux-musl,aarch64-unknown-linux-gnu
+        cache-target: release
     - if: inputs.platform == 'linux'
       run: |
-        rustup target add x86_64-unknown-linux-gnu x86_64-unknown-linux-musl aarch64-unknown-linux-gnu
         sudo apt-get update
         sudo apt-get install -y gcc-aarch64-linux-gnu libasound2-dev
       shell: bash
-    - uses: Swatinem/rust-cache@v2
+    - if: inputs.platform == ''
+      uses: moonrepo/setup-rust@v1
       with:
-        workspaces: |
-          . -> target
-          apps/desktop/src-tauri -> target
+        channel: "1.91.1"
+        cache-target: release

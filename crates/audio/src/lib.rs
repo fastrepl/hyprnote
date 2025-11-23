@@ -208,18 +208,18 @@ impl kalosm_sound::AsyncSource for AudioStream {
 }
 
 pub fn is_using_headphone() -> bool {
-    let headphone = {
-        #[cfg(target_os = "macos")]
-        {
-            utils::macos::is_headphone_from_default_output_device()
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            false
-        }
-    };
-
-    headphone
+    #[cfg(target_os = "macos")]
+    {
+        utils::macos::is_headphone_from_default_output_device()
+    }
+    #[cfg(target_os = "linux")]
+    {
+        utils::linux::is_headphone_from_default_output_device()
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+    {
+        false
+    }
 }
 
 #[cfg(test)]

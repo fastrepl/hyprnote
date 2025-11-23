@@ -48,6 +48,7 @@ impl DeviceMonitor {
 
             #[cfg(not(target_os = "macos"))]
             {
+                let _ = event_tx;
                 tracing::warn!("device_monitoring_unsupported");
                 let _ = stop_rx.recv();
             }

@@ -88,8 +88,9 @@ pub fn list_mic_using_apps() -> Vec<InstalledApp> {
     context.disconnect();
 
     apps = apps_rc.borrow().clone();
-    apps.sort_by(|a, b| a.name.cmp(&b.name));
+    apps.sort_by(|a, b| a.id.cmp(&b.id));
     apps.dedup_by(|a, b| a.id == b.id);
+    apps.sort_by(|a, b| a.name.cmp(&b.name));
     apps
 }
 

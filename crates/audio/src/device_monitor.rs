@@ -46,7 +46,12 @@ impl DeviceMonitor {
                 crate::device_monitor::macos::monitor(event_tx, stop_rx);
             }
 
-            #[cfg(not(target_os = "macos"))]
+            #[cfg(target_os = "linux")]
+            {
+                crate::device_monitor::linux::monitor(event_tx, stop_rx);
+            }
+
+            #[cfg(not(any(target_os = "macos", target_os = "linux")))]
             {
                 tracing::warn!("device_monitoring_unsupported");
                 let _ = stop_rx.recv();
@@ -134,6 +139,133 @@ mod macos {
         }
 
         tracing::info!("monitor_stopped");
+    }
+}
+
+#[cfg(target_os = "linux")]
+mod linux {
+    use super::*;
+    use libpulse_binding::{
+        context::{
+            subscribe::{Facility, InterestMaskSet, Operation},
+            Context, FlagSet as ContextFlagSet,
+        },
+        mainloop::threaded::Mainloop,
+        proplist::Proplist,
+    };
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    pub(super) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiver<()>) {
+        let mut proplist = Proplist::new().unwrap();
+        proplist
+            .set_str(
+                libpulse_binding::proplist::properties::APPLICATION_NAME,
+                "Hyprnote Device Monitor",
+            )
+            .unwrap();
+
+        let mainloop = Rc::new(RefCell::new(
+            Mainloop::new().expect("Failed to create PulseAudio mainloop"),
+        ));
+
+        let context = Rc::new(RefCell::new(
+            Context::new_with_proplist(&*mainloop.borrow(), "HyprnoteContext", &proplist)
+                .expect("Failed to create PulseAudio context"),
+        ));
+
+        context
+            .borrow_mut()
+            .connect(None, ContextFlagSet::NOFLAGS, None)
+            .expect("Failed to connect to PulseAudio");
+
+        mainloop.borrow_mut().lock();
+
+        mainloop
+            .borrow_mut()
+            .start()
+            .expect("Failed to start PulseAudio mainloop");
+
+        // Wait for context to be ready
+        loop {
+            match context.borrow().get_state() {
+                libpulse_binding::context::State::Ready => {
+                    tracing::info!("PulseAudio context ready");
+                    break;
+                }
+                libpulse_binding::context::State::Failed
+                | libpulse_binding::context::State::Terminated => {
+                    tracing::error!("PulseAudio context failed");
+                    mainloop.borrow_mut().unlock();
+                    return;
+                }
+                _ => {
+                    mainloop.borrow_mut().unlock();
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                    mainloop.borrow_mut().lock();
+                }
+            }
+        }
+
+        // Subscribe to sink and source events
+        context.borrow_mut().subscribe(
+            InterestMaskSet::SINK | InterestMaskSet::SOURCE | InterestMaskSet::SERVER,
+            |success| {
+                if !success {
+                    tracing::error!("Failed to subscribe to PulseAudio events");
+                }
+            },
+        );
+
+        // Set up subscription callback
+        let event_tx_for_callback = event_tx.clone();
+        context.borrow_mut().set_subscribe_callback(Some(Box::new(
+            move |facility, operation, _index| {
+                match (facility, operation) {
+                    (Some(Facility::Server), Some(Operation::Changed)) => {
+                        // Server change might indicate default device change
+                        let _ = event_tx_for_callback.send(DeviceEvent::DefaultInputChanged);
+                        let _ = event_tx_for_callback.send(DeviceEvent::DefaultOutputChanged {
+                            headphone: is_headphone_from_default_output_device(),
+                        });
+                    }
+                    (Some(Facility::Sink), Some(Operation::Changed | Operation::New)) => {
+                        // Sink change might be default output device change
+                        let _ = event_tx_for_callback.send(DeviceEvent::DefaultOutputChanged {
+                            headphone: is_headphone_from_default_output_device(),
+                        });
+                    }
+                    (Some(Facility::Source), Some(Operation::Changed | Operation::New)) => {
+                        // Source change might be default input device change
+                        let _ = event_tx_for_callback.send(DeviceEvent::DefaultInputChanged);
+                    }
+                    _ => {}
+                }
+            },
+        )));
+
+        mainloop.borrow_mut().unlock();
+
+        tracing::info!("monitor_started");
+
+        // Wait for stop signal
+        let _ = stop_rx.recv();
+
+        mainloop.borrow_mut().lock();
+        context.borrow_mut().disconnect();
+        mainloop.borrow_mut().unlock();
+
+        mainloop.borrow_mut().stop();
+
+        tracing::info!("monitor_stopped");
+    }
+
+    fn is_headphone_from_default_output_device() -> bool {
+        // On Linux, detecting headphones is more complex and requires querying
+        // PulseAudio sink port information. For now, we'll return false.
+        // This could be enhanced in the future by checking the active port's name
+        // for keywords like "headphone", "headset", etc.
+        false
     }
 }
 

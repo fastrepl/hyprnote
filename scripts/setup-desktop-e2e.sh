@@ -21,13 +21,38 @@ else
   echo "tauri-driver already installed"
 fi
 
-# Install WebKitWebDriver if not already installed
-if ! command -v WebKitWebDriver >/dev/null 2>&1; then
-  echo "Installing WebKitWebDriver..."
+# Install WebKitWebDriver package if not already installed
+if ! dpkg -l | grep -q webkit2gtk-driver; then
+  echo "Installing webkit2gtk-driver package..."
   sudo apt-get update
   sudo apt-get install -y webkit2gtk-driver
 else
-  echo "WebKitWebDriver already installed"
+  echo "webkit2gtk-driver package already installed"
+fi
+
+# Ensure WebKitWebDriver is actually callable from PATH
+if ! command -v WebKitWebDriver >/dev/null 2>&1; then
+  echo "WebKitWebDriver not on PATH, trying to locate binary from webkit2gtk-driver package..."
+  DRIVER_PATH=$(dpkg -L webkit2gtk-driver | grep -E 'WebKitWebDriver$' | head -n 1 || true)
+
+  if [[ -z "${DRIVER_PATH}" ]]; then
+    echo "Error: Could not find WebKitWebDriver binary in webkit2gtk-driver package"
+    exit 1
+  fi
+
+  echo "Found WebKitWebDriver at: ${DRIVER_PATH}"
+  echo "Creating symlink at /usr/local/bin/WebKitWebDriver (requires sudo)..."
+  sudo ln -sf "${DRIVER_PATH}" /usr/local/bin/WebKitWebDriver
+  
+  # Verify the symlink works
+  if ! command -v WebKitWebDriver >/dev/null 2>&1; then
+    echo "Error: WebKitWebDriver still not found in PATH after creating symlink"
+    exit 1
+  fi
+  
+  echo "WebKitWebDriver successfully linked to PATH"
+else
+  echo "WebKitWebDriver already available in PATH"
 fi
 
 echo "Desktop E2E test environment setup complete"

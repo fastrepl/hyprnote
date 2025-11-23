@@ -34,19 +34,37 @@ impl Default for State {
     }
 }
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
-    tauri_specta::Builder::<R>::new()
-        .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![
-            commands::set_quit_handler::<tauri::Wry>,
-            commands::reset_quit_handler::<tauri::Wry>,
-            commands::list_installed_applications::<tauri::Wry>,
-            commands::list_mic_using_applications::<tauri::Wry>,
-            commands::set_respect_do_not_disturb::<tauri::Wry>,
-            commands::set_ignored_bundle_ids::<tauri::Wry>,
-            commands::list_default_ignored_bundle_ids::<tauri::Wry>,
-        ])
-        .events(tauri_specta::collect_events![DetectEvent])
-        .error_handling(tauri_specta::ErrorHandlingMode::Result)
+    #[cfg(target_os = "macos")]
+    {
+        tauri_specta::Builder::<R>::new()
+            .plugin_name(PLUGIN_NAME)
+            .commands(tauri_specta::collect_commands![
+                commands::list_installed_applications::<tauri::Wry>,
+                commands::list_mic_using_applications::<tauri::Wry>,
+                commands::set_respect_do_not_disturb::<tauri::Wry>,
+                commands::set_ignored_bundle_ids::<tauri::Wry>,
+                commands::list_default_ignored_bundle_ids::<tauri::Wry>,
+                commands::set_quit_handler::<tauri::Wry>,
+                commands::reset_quit_handler::<tauri::Wry>,
+            ])
+            .events(tauri_specta::collect_events![DetectEvent])
+            .error_handling(tauri_specta::ErrorHandlingMode::Result)
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        tauri_specta::Builder::<R>::new()
+            .plugin_name(PLUGIN_NAME)
+            .commands(tauri_specta::collect_commands![
+                commands::list_installed_applications::<tauri::Wry>,
+                commands::list_mic_using_applications::<tauri::Wry>,
+                commands::set_respect_do_not_disturb::<tauri::Wry>,
+                commands::set_ignored_bundle_ids::<tauri::Wry>,
+                commands::list_default_ignored_bundle_ids::<tauri::Wry>,
+            ])
+            .events(tauri_specta::collect_events![DetectEvent])
+            .error_handling(tauri_specta::ErrorHandlingMode::Result)
+    }
 }
 
 pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {

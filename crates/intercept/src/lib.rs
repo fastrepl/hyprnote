@@ -1,30 +1,28 @@
+#[cfg(target_os = "macos")]
 use std::sync::Mutex;
 #[cfg(target_os = "macos")]
 use swift_rs::swift;
 
+#[cfg(target_os = "macos")]
 static QUIT_CALLBACK: Mutex<Option<Box<dyn Fn() -> bool + Send + Sync>>> = Mutex::new(None);
 
 #[cfg(target_os = "macos")]
 swift!(fn _setup_quit_handler());
 
+#[cfg(target_os = "macos")]
 pub fn setup_quit_handler<F>(callback: F)
 where
     F: Fn() -> bool + Send + Sync + 'static,
 {
-    #[cfg(target_os = "macos")]
-    {
-        *QUIT_CALLBACK.lock().unwrap() = Some(Box::new(callback));
-        unsafe {
-            _setup_quit_handler();
-        }
+    *QUIT_CALLBACK.lock().unwrap() = Some(Box::new(callback));
+    unsafe {
+        _setup_quit_handler();
     }
 }
 
+#[cfg(target_os = "macos")]
 pub fn reset_quit_handler() {
-    #[cfg(target_os = "macos")]
-    {
-        *QUIT_CALLBACK.lock().unwrap() = None;
-    }
+    *QUIT_CALLBACK.lock().unwrap() = None;
 }
 
 #[no_mangle]

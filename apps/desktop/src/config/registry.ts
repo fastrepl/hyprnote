@@ -83,7 +83,9 @@ export const CONFIG_REGISTRY = {
     key: "quit_intercept",
     default: false,
     sideEffect: async (reallyQuit: boolean, _) => {
-      await detectCommands.setQuitHandler(reallyQuit);
+      if ("setQuitHandler" in detectCommands) {
+        await (detectCommands as any).setQuitHandler(reallyQuit);
+      }
     },
   },
 

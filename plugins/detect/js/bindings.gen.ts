@@ -7,22 +7,6 @@
 
 
 export const commands = {
-async setQuitHandler(reallyQuit: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|set_quit_handler", { reallyQuit }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async resetQuitHandler() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|reset_quit_handler") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async listInstalledApplications() : Promise<Result<InstalledApp[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:detect|list_installed_applications") };

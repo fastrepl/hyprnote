@@ -1,5 +1,6 @@
 use tauri::Manager;
 
+#[cfg(target_os = "macos")]
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
@@ -13,7 +14,6 @@ pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
             let _ = window.close();
         }
 
-        #[cfg(target_os = "macos")]
         if !really_quit {
             let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
         }
@@ -24,6 +24,7 @@ pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
     Ok(())
 }
 
+#[cfg(target_os = "macos")]
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn reset_quit_handler<R: tauri::Runtime>(

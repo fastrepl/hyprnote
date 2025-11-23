@@ -29,6 +29,11 @@ type WordRow = Record<string, unknown> & {
 
 type WordWithTranscript = WordRow & { transcriptStartedAt: number };
 
+type SegmentForPayload = {
+  key: SegmentKey;
+  words: WordWithTranscript[];
+};
+
 type SegmentPayload = {
   speaker_label: string;
   start_ms: number;
@@ -214,19 +219,16 @@ function getTranscriptSegments(sessionId: string, store: MainStore) {
     ? sessionStartCandidate
     : 0;
 
-  const normalizedSegments = segments.reduce<SegmentPayload[]>(
+  const segmentsForPayload = segments as unknown as SegmentForPayload[];
+
+  const normalizedSegments = segmentsForPayload.reduce<SegmentPayload[]>(
     (acc, segment) => {
       if (segment.words.length === 0) {
         return acc;
       }
 
       acc.push(
-        toSegmentPayload(
-          segment as any,
-          sessionStartMs,
-          store,
-          speakerLabelManager,
-        ),
+        toSegmentPayload(segment, sessionStartMs, store, speakerLabelManager),
       );
       return acc;
     },
@@ -320,7 +322,7 @@ function collectSpeakerHints(
 }
 
 function toSegmentPayload(
-  segment: any,
+  segment: SegmentForPayload,
   sessionStartMs: number,
   store: MainStore,
   speakerLabelManager: SpeakerLabelManager,
@@ -338,8 +340,8 @@ function toSegmentPayload(
     speaker_label: label,
     start_ms: absoluteStartMs - sessionStartMs,
     end_ms: absoluteEndMs - sessionStartMs,
-    text: segment.words.map((word: any) => word.text).join(" "),
-    words: segment.words.map((word: any) => ({
+    text: segment.words.map((word) => word.text).join(" "),
+    words: segment.words.map((word) => ({
       text: word.text,
       start_ms: word.transcriptStartedAt + word.start_ms - sessionStartMs,
       end_ms: word.transcriptStartedAt + word.end_ms - sessionStartMs,

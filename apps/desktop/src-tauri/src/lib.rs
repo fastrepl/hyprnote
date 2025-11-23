@@ -81,6 +81,11 @@ pub async fn main() {
             Some(vec!["--background"]),
         ));
 
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.plugin(tauri_plugin_apple_calendar::init());
+    }
+
     if let Some(client) = sentry_client.as_ref() {
         builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(client));
     }

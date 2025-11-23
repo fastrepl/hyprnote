@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 
-import { buildSegments, SegmentKey, type WordLike } from ".";
+import {
+  buildSegments,
+  type RuntimeSpeakerHint,
+  SegmentKey,
+  type WordLike,
+} from ".";
 
 describe("buildSegments", () => {
   const testCases = [
@@ -936,8 +941,8 @@ describe("buildSegments", () => {
   describe("Issue #9: Partial Word Extension Edge Cases", () => {
     test("partial words can extend segment with all partial words", () => {
       const partialWords: WordLike[] = [
-        { text: "partial1", start_ms: 0, end_ms: 100, channel: 0, isFinal: false },
-        { text: "partial2", start_ms: 100, end_ms: 200, channel: 0, isFinal: false },
+        { text: "partial1", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "partial2", start_ms: 100, end_ms: 200, channel: 0 },
       ];
 
       const segments = buildSegments([], partialWords, []);
@@ -956,7 +961,7 @@ describe("buildSegments", () => {
       ];
 
       const partialWords: WordLike[] = [
-        { text: "partial1", start_ms: 100, end_ms: 200, channel: 0, isFinal: false },
+        { text: "partial1", start_ms: 100, end_ms: 200, channel: 0 },
       ];
 
       const hints: RuntimeSpeakerHint[] = [
@@ -977,8 +982,8 @@ describe("buildSegments", () => {
 
     test("handles gap between partial words correctly", () => {
       const partialWords: WordLike[] = [
-        { text: "partial1", start_ms: 0, end_ms: 100, channel: 0, isFinal: false },
-        { text: "partial2", start_ms: 3000, end_ms: 3100, channel: 0, isFinal: false },
+        { text: "partial1", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "partial2", start_ms: 3000, end_ms: 3100, channel: 0 },
       ];
 
       const segments = buildSegments([], partialWords, []);

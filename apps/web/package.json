@@ -36,6 +36,7 @@
     "drizzle-orm": "^0.44.7",
     "exa-js": "^1.10.2",
     "lucide-react": "^0.544.0",
+    "motion": "^11.18.2",
     "postgres": "^3.4.7",
     "posthog-js": "^1.295.0",
     "react": "^19.2.0",

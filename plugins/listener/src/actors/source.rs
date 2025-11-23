@@ -16,7 +16,7 @@ use crate::{
     actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, RecMsg, RecorderActor},
     SessionEvent,
 };
-use hypr_agc::Agc;
+use hypr_agc::VadAgc;
 use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
 use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
 use tauri_specta::Event;
@@ -329,8 +329,8 @@ async fn start_source_loop(
 }
 
 struct Pipeline {
-    agc_mic: Agc,
-    agc_spk: Agc,
+    agc_mic: VadAgc,
+    agc_spk: VadAgc,
     joiner: Joiner,
     amplitude: AmplitudeEmitter,
 }
@@ -338,8 +338,8 @@ struct Pipeline {
 impl Pipeline {
     fn new(app: tauri::AppHandle, session_id: String) -> Self {
         Self {
-            agc_mic: Agc::default(),
-            agc_spk: Agc::default(),
+            agc_mic: VadAgc::default(),
+            agc_spk: VadAgc::default(),
             joiner: Joiner::new(),
             amplitude: AmplitudeEmitter::new(app, session_id),
         }
@@ -347,8 +347,8 @@ impl Pipeline {
 
     fn reset(&mut self) {
         self.joiner.reset();
-        self.agc_mic = Agc::default();
-        self.agc_spk = Agc::default();
+        self.agc_mic = VadAgc::default();
+        self.agc_spk = VadAgc::default();
         self.amplitude.reset();
     }
 

@@ -3,6 +3,17 @@ import { resolve } from "node:path";
 
 let tauriDriver;
 
+// Support environment variable for app path (used in CI)
+// Falls back to dev binary for local testing
+const defaultAppPath = resolve(
+  "../desktop/src-tauri/target/release/hyprnote-dev",
+);
+const appPath = process.env.E2E_APP_PATH
+  ? resolve(process.env.E2E_APP_PATH)
+  : defaultAppPath;
+
+console.log("E2E app path:", appPath);
+
 export const config = {
   specs: ["./test/**/*.spec.js"],
   maxInstances: 1,
@@ -13,9 +24,7 @@ export const config = {
     {
       maxInstances: 1,
       "tauri:options": {
-        application: resolve(
-          "../desktop/src-tauri/target/release/hyprnote-dev",
-        ),
+        application: appPath,
       },
     },
   ],

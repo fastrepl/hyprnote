@@ -66,12 +66,9 @@ impl NotificationInstance {
 
         let id = self.id.clone();
         let window = self.window.clone();
-        let source = glib::timeout_add_seconds_local_once(
-            timeout_seconds as u32,
-            move || {
-                Self::dismiss_window(&window, &id, false);
-            },
-        );
+        let source = glib::timeout_add_seconds_local_once(timeout_seconds as u32, move || {
+            Self::dismiss_window(&window, &id, false);
+        });
         self.timeout_source = Some(source);
     }
 
@@ -113,10 +110,7 @@ impl NotificationManager {
     fn ensure_app(&mut self) {
         if self.app.is_none() {
             gtk::init().ok();
-            let app = Application::new(
-                Some("com.hyprnote.notifications"),
-                Default::default(),
-            );
+            let app = Application::new(Some("com.hyprnote.notifications"), Default::default());
             self.app = Some(app);
         }
     }
@@ -243,7 +237,9 @@ impl NotificationManager {
         let message_label = Label::new(Some(message));
         message_label.set_halign(Align::Start);
         message_label.set_ellipsize(pango::EllipsizeMode::End);
-        message_label.style_context().add_class("notification-message");
+        message_label
+            .style_context()
+            .add_class("notification-message");
         text_box.pack_start(&message_label, false, false, 0);
 
         main_box.pack_start(&text_box, true, true, 0);
@@ -325,7 +321,9 @@ pub fn show(notification: &hypr_notification_interface::Notification) {
 
     glib::MainContext::default().invoke(move || {
         NOTIFICATION_MANAGER.with(|manager| {
-            manager.borrow_mut().show(title, message, url, timeout_seconds);
+            manager
+                .borrow_mut()
+                .show(title, message, url, timeout_seconds);
         });
     });
 }

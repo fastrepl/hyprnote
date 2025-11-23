@@ -1,11 +1,18 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, SearchIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  SearchIcon,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { memo, useEffect, useState } from "react";
 
 import { Typewriter } from "@hypr/ui/components/ui/typewriter";
 import { cn } from "@hypr/utils";
 
+import { Image } from "@/components/image";
 import { MockWindow } from "@/components/mock-window";
 import { SlashSeparator } from "@/components/slash-separator";
 
@@ -154,11 +161,11 @@ function EditorSection() {
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
             <h2 className="text-3xl font-serif text-stone-600">
-              Notion-like editor with markdown support
+              Simple notetaking
             </h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Write and organize your notes with a powerful, intuitive editor
-              that supports full markdown syntax
+              Hyprnote comes with a easy-to-use text editor where you can jot
+              down stuff in markdown.
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
@@ -203,11 +210,11 @@ function EditorSection() {
       <div className="sm:hidden">
         <div className="p-6 border-b border-neutral-100">
           <h2 className="text-2xl font-serif text-stone-600 mb-3">
-            Notion-like editor with markdown support
+            Simple notetaking
           </h2>
           <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Write and organize your notes with a powerful, intuitive editor that
-            supports full markdown syntax.
+            Hyprnote comes with a easy-to-use text editor where you can jot down
+            stuff in markdown.
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
@@ -240,18 +247,11 @@ function EditorSection() {
           </ul>
         </div>
         <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
-          <div className="border border-neutral-100 rounded-t-lg shadow-lg bg-white overflow-hidden">
-            <div className="bg-neutral-100 border-b border-neutral-100 px-3 py-2 flex items-center gap-2">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                <div className="w-2 h-2 rounded-full bg-green-400"></div>
-              </div>
-            </div>
+          <MockWindow variant="mobile">
             <div className="p-6 h-[380px] overflow-hidden">
               <AnimatedMarkdownDemo isMobile />
             </div>
-          </div>
+          </MockWindow>
         </div>
       </div>
     </section>
@@ -627,7 +627,7 @@ function TranscriptionSection() {
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
                 For Apple Silicon Macs, transcription happens entirely on your
-                device. Fast, private, and no internet required
+                device. Fast, private, and no internet required.
               </p>
             </div>
             <div className="overflow-hidden bg-neutral-100">
@@ -648,7 +648,7 @@ function TranscriptionSection() {
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
                 Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT,
-                TXT) to get AI summaries and insights
+                TXT) to get AI summaries and insights.
               </p>
             </div>
             <div className="overflow-hidden bg-neutral-100">
@@ -874,14 +874,7 @@ function SummariesSection() {
               </p>
             </div>
             <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
-              <div className="border border-neutral-100 rounded-t-lg shadow-lg bg-white overflow-hidden">
-                <div className="bg-neutral-100 border-b border-neutral-100 px-3 py-2 flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                    <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                    <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                  </div>
-                </div>
+              <MockWindow variant="mobile">
                 <div className="p-6 h-[200px] overflow-hidden">
                   <div className="text-neutral-700">ui update - mobile</div>
                   <div className="text-neutral-700">api</div>
@@ -900,7 +893,7 @@ function SummariesSection() {
                     )}
                   </div>
                 </div>
-              </div>
+              </MockWindow>
             </div>
           </div>
 
@@ -915,14 +908,7 @@ function SummariesSection() {
               </p>
             </div>
             <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
-              <div className="border border-neutral-100 rounded-t-lg shadow-lg bg-white overflow-hidden">
-                <div className="bg-neutral-100 border-b border-neutral-100 px-3 py-2 flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                    <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                    <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                  </div>
-                </div>
+              <MockWindow variant="mobile">
                 <div className="p-6 space-y-4 h-[200px] overflow-hidden">
                   <div className="space-y-2">
                     <h4 className="text-lg font-semibold text-stone-700">
@@ -987,7 +973,7 @@ function SummariesSection() {
                     </ul>
                   </div>
                 </div>
-              </div>
+              </MockWindow>
             </div>
           </div>
         </div>
@@ -1066,66 +1052,937 @@ function SearchSection() {
   );
 }
 
+const CollaboratorsCell = memo(() => {
+  const [showDavid, setShowDavid] = useState(false);
+  const [davidScope, setDavidScope] = useState("Can view");
+  const [showPopover, setShowPopover] = useState(false);
+
+  const baseCollaborators = [
+    {
+      name: "Alex Johnson",
+      avatar:
+        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/alex-johnson.png",
+      scope: "Can view",
+    },
+    {
+      name: "Jessica Lee",
+      avatar:
+        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/jessica-lee.png",
+      scope: "Can edit",
+    },
+    {
+      name: "Sarah Chen",
+      avatar:
+        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/sarah-chen.png",
+      scope: "Can edit",
+    },
+    {
+      name: "Michael Park",
+      avatar:
+        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/michael-park.png",
+      scope: "Can view",
+    },
+    {
+      name: "Emily Rodriguez",
+      avatar:
+        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/emily-rodriguez.png",
+      scope: "Can edit",
+    },
+  ];
+
+  const davidKim = {
+    name: "David Kim",
+    avatar:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/david-kim.png",
+    scope: davidScope,
+  };
+
+  const collaborators = showDavid
+    ? [...baseCollaborators, davidKim]
+    : baseCollaborators;
+
+  useEffect(() => {
+    const runAnimation = () => {
+      setShowDavid(false);
+      setShowPopover(false);
+      setDavidScope("Can view");
+
+      const timer1 = setTimeout(() => setShowDavid(true), 2000);
+      const timer2 = setTimeout(() => setShowPopover(true), 4000);
+      const timer3 = setTimeout(() => {
+        setDavidScope("Can comment");
+        setShowPopover(false);
+      }, 5000);
+      const timer4 = setTimeout(() => runAnimation(), 8000);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+        clearTimeout(timer4);
+      };
+    };
+
+    const cleanup = runAnimation();
+    return cleanup;
+  }, []);
+
+  return (
+    <>
+      <div className="overflow-hidden p-4" style={{ aspectRatio: "4/3" }}>
+        <div className="h-full flex items-end">
+          <div className="w-full space-y-2">
+            <AnimatePresence>
+              {collaborators.map((person) => (
+                <motion.div
+                  key={person.name}
+                  initial={
+                    person.name === "David Kim"
+                      ? { opacity: 0, x: -100 }
+                      : false
+                  }
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="flex items-center gap-3 bg-linear-to-br from-stone-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50"
+                >
+                  <Image
+                    src={person.avatar}
+                    alt={person.name}
+                    width={32}
+                    height={32}
+                    className="rounded-full shrink-0"
+                    objectFit="cover"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-stone-700 truncate">
+                      {person.name}
+                    </div>
+                  </div>
+                  <motion.div
+                    key={`${person.name}-${person.scope}`}
+                    initial={
+                      person.name === "David Kim" &&
+                      davidScope === "Can comment"
+                        ? { scale: 1.1 }
+                        : false
+                    }
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="shrink-0 w-32 relative"
+                  >
+                    <div className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded">
+                      <span className="flex-1 truncate">{person.scope}</span>
+                      <ChevronDownIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+                    </div>
+                    <AnimatePresence>
+                      {person.name === "David Kim" && showPopover && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute bottom-full mb-1 left-0 w-32 bg-white border border-stone-200 rounded shadow-lg z-20 overflow-hidden"
+                        >
+                          <div
+                            className={cn([
+                              "flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50",
+                              davidScope === "Can view" && "bg-stone-50",
+                            ])}
+                          >
+                            <CheckIcon
+                              className={cn([
+                                "w-4 h-4",
+                                davidScope === "Can view"
+                                  ? "text-green-600"
+                                  : "text-transparent",
+                              ])}
+                            />
+                            <span>Can view</span>
+                          </div>
+                          <div
+                            className={cn([
+                              "flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50",
+                              davidScope === "Can comment" && "bg-stone-50",
+                            ])}
+                          >
+                            <CheckIcon
+                              className={cn([
+                                "w-4 h-4",
+                                davidScope === "Can comment"
+                                  ? "text-green-600"
+                                  : "text-transparent",
+                              ])}
+                            />
+                            <span>Can comment</span>
+                          </div>
+                          <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50">
+                            <CheckIcon className="w-4 h-4 text-transparent" />
+                            <span>Can edit</span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+});
+
+CollaboratorsCell.displayName = "CollaboratorsCell";
+
+const ShareLinksCell = memo(() => {
+  const [linkClicked, setLinkClicked] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
+  const [linkPermission, setLinkPermission] = useState("View only");
+  const [showLinkPopover, setShowLinkPopover] = useState(false);
+  const [slackClicked, setSlackClicked] = useState(false);
+  const [showSlackPopover, setShowSlackPopover] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState("");
+  const [sendClicked, setSendClicked] = useState(false);
+  const [showSent, setShowSent] = useState(false);
+  const [teamsClicked, setTeamsClicked] = useState(false);
+  const [showTeamsPopover, setShowTeamsPopover] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState("");
+  const [teamsSendClicked, setTeamsSendClicked] = useState(false);
+  const [teamsShowSent, setTeamsShowSent] = useState(false);
+  const [salesforceClicked, setSalesforceClicked] = useState(false);
+  const [showSalesforcePopover, setShowSalesforcePopover] = useState(false);
+  const [selectedLead, setSelectedLead] = useState("");
+  const [salesforceSendClicked, setSalesforceSendClicked] = useState(false);
+  const [salesforceShowSent, setSalesforceShowSent] = useState(false);
+
+  useEffect(() => {
+    const runAnimation = () => {
+      setLinkClicked(false);
+      setShowCopied(false);
+      setLinkPermission("View only");
+      setShowLinkPopover(false);
+      setSlackClicked(false);
+      setShowSlackPopover(false);
+      setSelectedChannel("");
+      setSendClicked(false);
+      setShowSent(false);
+      setTeamsClicked(false);
+      setShowTeamsPopover(false);
+      setSelectedTeam("");
+      setTeamsSendClicked(false);
+      setTeamsShowSent(false);
+      setSalesforceClicked(false);
+      setShowSalesforcePopover(false);
+      setSelectedLead("");
+      setSalesforceSendClicked(false);
+      setSalesforceShowSent(false);
+
+      const timer1 = setTimeout(() => setShowLinkPopover(true), 2000);
+      const timer2 = setTimeout(() => setLinkPermission("Editable"), 2500);
+      const timer3 = setTimeout(() => setShowLinkPopover(false), 2800);
+      const timer4 = setTimeout(() => setLinkClicked(true), 3300);
+      const timer5 = setTimeout(() => setShowCopied(true), 3600);
+      const timer6 = setTimeout(() => setSlackClicked(true), 4500);
+      const timer7 = setTimeout(() => setShowSlackPopover(true), 4800);
+      const timer8 = setTimeout(
+        () => setSelectedChannel("#team-meeting"),
+        5500,
+      );
+      const timer9 = setTimeout(() => setShowSlackPopover(false), 5800);
+      const timer10 = setTimeout(() => setSendClicked(true), 6100);
+      const timer11 = setTimeout(() => setShowSent(true), 6400);
+      const timer12 = setTimeout(() => setTeamsClicked(true), 7000);
+      const timer13 = setTimeout(() => setShowTeamsPopover(true), 7300);
+      const timer14 = setTimeout(() => setSelectedTeam("Design Team"), 8000);
+      const timer15 = setTimeout(() => setShowTeamsPopover(false), 8300);
+      const timer16 = setTimeout(() => setTeamsSendClicked(true), 8600);
+      const timer17 = setTimeout(() => setTeamsShowSent(true), 8900);
+      const timer18 = setTimeout(() => setSalesforceClicked(true), 9500);
+      const timer19 = setTimeout(() => setShowSalesforcePopover(true), 9800);
+      const timer20 = setTimeout(() => setSelectedLead("John Smith"), 10500);
+      const timer21 = setTimeout(() => setShowSalesforcePopover(false), 10800);
+      const timer22 = setTimeout(() => setSalesforceSendClicked(true), 11100);
+      const timer23 = setTimeout(() => setSalesforceShowSent(true), 11400);
+      const timer24 = setTimeout(() => runAnimation(), 13000);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+        clearTimeout(timer4);
+        clearTimeout(timer5);
+        clearTimeout(timer6);
+        clearTimeout(timer7);
+        clearTimeout(timer8);
+        clearTimeout(timer9);
+        clearTimeout(timer10);
+        clearTimeout(timer11);
+        clearTimeout(timer12);
+        clearTimeout(timer13);
+        clearTimeout(timer14);
+        clearTimeout(timer15);
+        clearTimeout(timer16);
+        clearTimeout(timer17);
+        clearTimeout(timer18);
+        clearTimeout(timer19);
+        clearTimeout(timer20);
+        clearTimeout(timer21);
+        clearTimeout(timer22);
+        clearTimeout(timer23);
+        clearTimeout(timer24);
+      };
+    };
+
+    const cleanup = runAnimation();
+    return cleanup;
+  }, []);
+
+  return (
+    <div
+      className="overflow-hidden p-4 flex items-center justify-center"
+      style={{ aspectRatio: "4/3" }}
+    >
+      <div className="w-full flex flex-col gap-2">
+        <motion.div
+          animate={linkClicked ? { scale: [1, 0.95, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          className={cn([
+            "bg-linear-to-br from-purple-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50 flex items-center justify-between gap-3 cursor-pointer overflow-visible relative",
+            showLinkPopover && "z-10",
+          ])}
+        >
+          <Icon icon="hugeicons:note" className="w-8 text-stone-600" />
+          <div className="flex-1 flex items-center justify-between gap-2 relative">
+            <motion.div
+              key={linkPermission}
+              initial={
+                linkPermission !== "View only" ? { scale: 1.1 } : { scale: 1 }
+              }
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded relative w-32"
+            >
+              <span className="flex-1 truncate">{linkPermission}</span>
+              <ChevronDownIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+            </motion.div>
+            <AnimatePresence>
+              {showLinkPopover && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full mt-1 left-0 w-32 bg-white border border-stone-200 rounded shadow-lg z-20 overflow-hidden"
+                >
+                  <div
+                    className={cn([
+                      "flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50",
+                      linkPermission === "Restricted" && "bg-stone-50",
+                    ])}
+                  >
+                    <CheckIcon
+                      className={cn([
+                        "w-4 h-4",
+                        linkPermission === "Restricted"
+                          ? "text-green-600"
+                          : "text-transparent",
+                      ])}
+                    />
+                    <span>Restricted</span>
+                  </div>
+                  <div
+                    className={cn([
+                      "flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50",
+                      linkPermission === "View only" && "bg-stone-50",
+                    ])}
+                  >
+                    <CheckIcon
+                      className={cn([
+                        "w-4 h-4",
+                        linkPermission === "View only"
+                          ? "text-green-600"
+                          : "text-transparent",
+                      ])}
+                    />
+                    <span>View only</span>
+                  </div>
+                  <div
+                    className={cn([
+                      "flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50",
+                      linkPermission === "Editable" && "bg-stone-50",
+                    ])}
+                  >
+                    <CheckIcon
+                      className={cn([
+                        "w-4 h-4",
+                        linkPermission === "Editable"
+                          ? "text-green-600"
+                          : "text-transparent",
+                      ])}
+                    />
+                    <span>Editable</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <motion.button
+              key={showCopied ? "copied" : "copy"}
+              animate={linkClicked ? { scale: [1, 0.95, 1] } : {}}
+              transition={{ duration: 0.3 }}
+              className={cn([
+                "w-24 px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center justify-center gap-1.5",
+                showCopied
+                  ? "bg-linear-to-t from-stone-600 to-stone-500 text-white"
+                  : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 hover:scale-105 active:scale-95",
+              ])}
+            >
+              {showCopied && <CheckIcon className="w-4 h-4 shrink-0" />}
+              <span>{showCopied ? "Copied" : "Copy"}</span>
+            </motion.button>
+          </div>
+        </motion.div>
+        <motion.div
+          animate={slackClicked ? { scale: [1, 0.95, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          className={cn([
+            "bg-linear-to-br from-green-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative",
+            showSlackPopover && "z-10",
+          ])}
+        >
+          <Icon icon="logos:slack-icon" className="w-8" />
+          <div className="flex-1 flex items-center justify-between gap-2 relative">
+            <motion.div
+              key={selectedChannel || "default"}
+              initial={selectedChannel ? { scale: 1.1 } : { scale: 1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded relative w-32"
+            >
+              <span className="flex-1 truncate">
+                {selectedChannel || "Select channel"}
+              </span>
+              <ChevronDownIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+            </motion.div>
+            <AnimatePresence>
+              {showSlackPopover && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full mt-1 left-0 w-40 bg-white border border-stone-200 rounded shadow-lg z-20 overflow-hidden"
+                >
+                  <div
+                    className={cn([
+                      "flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50",
+                      selectedChannel === "#team-meeting" && "bg-stone-50",
+                    ])}
+                  >
+                    <CheckIcon
+                      className={cn([
+                        "w-4 h-4",
+                        selectedChannel === "#team-meeting"
+                          ? "text-green-600"
+                          : "text-transparent",
+                      ])}
+                    />
+                    <span>#team-meeting</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50">
+                    <CheckIcon className="w-4 h-4 text-transparent" />
+                    <span>#marketing</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50">
+                    <CheckIcon className="w-4 h-4 text-transparent" />
+                    <span>#general</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <motion.button
+              key={showSent ? "sent" : "send"}
+              animate={sendClicked ? { scale: [1, 0.95, 1] } : {}}
+              transition={{ duration: 0.3 }}
+              className={cn([
+                "w-24 px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center justify-center",
+                showSent
+                  ? "bg-linear-to-t from-stone-600 to-stone-500 text-white"
+                  : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 hover:scale-105 active:scale-95",
+              ])}
+            >
+              {showSent ? (
+                <span className="flex items-center justify-center gap-1.5">
+                  <CheckIcon className="w-4 h-4 shrink-0" />
+                  Sent
+                </span>
+              ) : (
+                "Send"
+              )}
+            </motion.button>
+          </div>
+        </motion.div>
+        <motion.div
+          animate={teamsClicked ? { scale: [1, 0.95, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          className="bg-linear-to-br from-indigo-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative"
+        >
+          <Icon icon="logos:microsoft-teams" className="w-8" />
+          <div className="flex-1 flex items-center justify-between gap-2 relative">
+            <motion.div
+              key={selectedTeam || "default"}
+              initial={selectedTeam ? { scale: 1.1 } : { scale: 1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded relative w-32"
+            >
+              <span className="flex-1 truncate">
+                {selectedTeam || "Select team"}
+              </span>
+              <ChevronDownIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+            </motion.div>
+            <AnimatePresence>
+              {showTeamsPopover && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute bottom-full mb-1 left-0 w-32 bg-white border border-stone-200 rounded shadow-lg z-20 overflow-hidden"
+                >
+                  <div
+                    className={cn([
+                      "flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50",
+                      selectedTeam === "Design Team" && "bg-stone-50",
+                    ])}
+                  >
+                    <CheckIcon
+                      className={cn([
+                        "w-4 h-4",
+                        selectedTeam === "Design Team"
+                          ? "text-green-600"
+                          : "text-transparent",
+                      ])}
+                    />
+                    <span>Design Team</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50">
+                    <CheckIcon className="w-4 h-4 text-transparent" />
+                    <span>Engineering</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50">
+                    <CheckIcon className="w-4 h-4 text-transparent" />
+                    <span>Marketing</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <motion.button
+              key={teamsShowSent ? "sent" : "send"}
+              animate={teamsSendClicked ? { scale: [1, 0.95, 1] } : {}}
+              transition={{ duration: 0.3 }}
+              className={cn([
+                "w-24 px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center justify-center",
+                teamsShowSent
+                  ? "bg-linear-to-t from-stone-600 to-stone-500 text-white"
+                  : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 hover:scale-105 active:scale-95",
+              ])}
+            >
+              {teamsShowSent ? (
+                <span className="flex items-center justify-center gap-1.5">
+                  <CheckIcon className="w-4 h-4 shrink-0" />
+                  Sent
+                </span>
+              ) : (
+                "Send"
+              )}
+            </motion.button>
+          </div>
+        </motion.div>
+        <motion.div
+          animate={salesforceClicked ? { scale: [1, 0.95, 1] } : {}}
+          transition={{ duration: 0.3 }}
+          className="bg-linear-to-br from-cyan-50/80 to-white/80 backdrop-blur-sm rounded-lg p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer overflow-visible relative"
+        >
+          <Icon icon="logos:salesforce" className="w-8" />
+          <div className="flex-1 flex items-center justify-between gap-2 relative">
+            <motion.div
+              key={selectedLead || "default"}
+              initial={selectedLead ? { scale: 1.1 } : { scale: 1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded relative w-32"
+            >
+              <span className="flex-1 truncate">
+                {selectedLead || "Select lead"}
+              </span>
+              <ChevronDownIcon className="w-4 h-4 text-neutral-400 shrink-0" />
+            </motion.div>
+            <AnimatePresence>
+              {showSalesforcePopover && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute bottom-full mb-1 left-0 w-32 bg-white border border-stone-200 rounded shadow-lg z-20 overflow-hidden"
+                >
+                  <div
+                    className={cn([
+                      "flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50",
+                      selectedLead === "John Smith" && "bg-stone-50",
+                    ])}
+                  >
+                    <CheckIcon
+                      className={cn([
+                        "w-4 h-4",
+                        selectedLead === "John Smith"
+                          ? "text-green-600"
+                          : "text-transparent",
+                      ])}
+                    />
+                    <span>John Smith</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50">
+                    <CheckIcon className="w-4 h-4 text-transparent" />
+                    <span>Sarah Williams</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-neutral-700 hover:bg-stone-50">
+                    <CheckIcon className="w-4 h-4 text-transparent" />
+                    <span>Mike Anderson</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <motion.button
+              key={salesforceShowSent ? "synced" : "sync"}
+              animate={salesforceSendClicked ? { scale: [1, 0.95, 1] } : {}}
+              transition={{ duration: 0.3 }}
+              className={cn([
+                "w-24 px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center justify-center",
+                salesforceShowSent
+                  ? "bg-linear-to-t from-stone-600 to-stone-500 text-white"
+                  : "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 hover:scale-105 active:scale-95",
+              ])}
+            >
+              {salesforceShowSent ? (
+                <span className="flex items-center justify-center gap-1.5">
+                  <CheckIcon className="w-4 h-4 shrink-0" />
+                  Synced
+                </span>
+              ) : (
+                "Sync"
+              )}
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+});
+
+ShareLinksCell.displayName = "ShareLinksCell";
+
+const TrackProtectCell = memo(() => {
+  const [countdown, setCountdown] = useState(3);
+  const [showNote, setShowNote] = useState(true);
+  const [showShatter, setShowShatter] = useState(false);
+
+  useEffect(() => {
+    const runAnimation = () => {
+      setCountdown(3);
+      setShowNote(true);
+      setShowShatter(false);
+
+      const countdownInterval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      const shatterTimer = setTimeout(() => {
+        setShowShatter(true);
+        setShowNote(false);
+        setTimeout(() => {
+          setShowShatter(false);
+          setTimeout(() => runAnimation(), 500);
+        }, 800);
+      }, 3000);
+
+      return () => {
+        clearInterval(countdownInterval);
+        clearTimeout(shatterTimer);
+      };
+    };
+
+    const cleanup = runAnimation();
+    return cleanup;
+  }, []);
+
+  return (
+    <div
+      className="overflow-hidden bg-linear-to-br from-stone-50/30 to-stone-100/50 flex flex-col relative"
+      style={{ aspectRatio: "4/3" }}
+    >
+      <AnimatePresence>
+        {countdown > 0 && showNote && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            key={countdown}
+            className="absolute top-2 right-2 bg-stone-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-semibold text-sm z-10 border-2 border-stone-400 shadow-md"
+            style={{
+              background: `conic-linear(#57534e 0deg ${(4 - countdown) * 120}deg, #78716c ${(4 - countdown) * 120}deg 360deg)`,
+            }}
+          >
+            <div className="absolute inset-1 bg-stone-600 rounded-full flex items-center justify-center">
+              {countdown}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-1 relative">
+        <AnimatePresence>
+          {showNote && !showShatter && (
+            <motion.div
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.1 }}
+              className="bg-white p-4 relative overflow-hidden h-full"
+            >
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute text-stone-300/30 text-xs font-medium whitespace-nowrap"
+                    style={{
+                      top: `${(i * 15) % 100}%`,
+                      left: `${(i * 25) % 100}%`,
+                      transform: "rotate(-45deg)",
+                    }}
+                  >
+                    user@example.com
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-3 relative">
+                <div className="text-sm font-semibold text-stone-700">
+                  Mobile UI Update
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-stone-100 rounded w-full" />
+                  <div className="h-3 bg-stone-100 rounded w-full" />
+                  <div className="h-3 bg-stone-100 rounded w-5/6" />
+                </div>
+                <div className="text-sm font-semibold text-stone-700 mt-4">
+                  Dashboard Priority
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-stone-100 rounded w-full" />
+                  <div className="h-3 bg-stone-100 rounded w-full" />
+                  <div className="h-3 bg-stone-100 rounded w-4/5" />
+                </div>
+                <div className="text-sm font-semibold text-stone-700 mt-4">
+                  Next Steps
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-stone-100 rounded w-full" />
+                  <div className="h-3 bg-stone-100 rounded w-5/6" />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showShatter && (
+            <div className="absolute inset-0 bg-white overflow-hidden">
+              {Array.from({ length: 144 }).map((_, i) => {
+                const row = Math.floor(i / 12);
+                const col = i % 12;
+                const x = col * 8.33;
+                const y = row * 8.33;
+                const randomX = (Math.random() - 0.5) * 300;
+                const randomY = Math.random() * 400 + 200;
+                const randomRotate = (Math.random() - 0.5) * 180;
+
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{
+                      position: "absolute",
+                      left: `${x}%`,
+                      top: `${y}%`,
+                      width: "8.33%",
+                      height: "8.33%",
+                      backgroundColor: "#fff",
+                      border: "1px solid #e7e5e4",
+                    }}
+                    animate={{
+                      x: randomX,
+                      y: randomY,
+                      rotate: randomRotate,
+                      opacity: 0,
+                    }}
+                    transition={{
+                      duration: 0.8,
+                      ease: "easeIn",
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+});
+
+TrackProtectCell.displayName = "TrackProtectCell";
+
 function SharingSection() {
   return (
-    <section className="py-12 lg:py-20 px-6 relative">
+    <section className="relative">
       <div
         id="sharing"
         className="absolute top-[-69px] h-[69px] pointer-events-none"
       />
-      <div className="max-w-5xl mx-auto text-center">
+      <div className="text-center py-12 px-4 lg:px-0">
         <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-4">
           Coming Soon
         </div>
         <h2 className="text-3xl font-serif text-stone-600 mb-4">Share notes</h2>
-        <p className="text-base text-neutral-600 mb-12 max-w-3xl mx-auto">
+        <p className="text-base text-neutral-600">
           Collaborate seamlessly by sharing meeting notes, transcripts, and
-          summaries.
+          summaries with your team.
         </p>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon
-              icon="mdi:link-variant"
-              className="text-4xl text-stone-600 mb-4"
-            />
-            <h3 className="text-xl font-serif text-stone-600 mb-3">
-              Public sharing
-            </h3>
-            <p className="text-neutral-600 leading-relaxed">
-              Generate shareable links for easy distribution to anyone.
-            </p>
+      </div>
+      <div className="border-t border-neutral-100">
+        <div className="hidden sm:grid sm:grid-cols-3">
+          <div className="border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
+            <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+              <div className="flex items-center gap-3">
+                <Icon
+                  icon="mdi:account-group"
+                  className="text-3xl text-stone-600"
+                />
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Control who can access
+                </h3>
+              </div>
+              <p className="text-base text-neutral-600 leading-relaxed">
+                Invite selected people or teams to collaborate on notes with
+                granular access controls.
+              </p>
+            </div>
+            <CollaboratorsCell />
           </div>
-          <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon
-              icon="mdi:file-export"
-              className="text-4xl text-stone-600 mb-4"
-            />
-            <h3 className="text-xl font-serif text-stone-600 mb-3">
-              Export formats
-            </h3>
-            <p className="text-neutral-600 leading-relaxed">
-              Export as PDF, Markdown, or plain text for maximum flexibility.
-            </p>
+          <div className="border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
+            <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+              <div className="flex items-center gap-3">
+                <Icon
+                  icon="mdi:link-variant"
+                  className="text-3xl text-stone-600"
+                />
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Share instantly
+                </h3>
+              </div>
+              <p className="text-base text-neutral-600 leading-relaxed">
+                Send links or publish notes directly to Slack, Teams, or
+                generate public shareable links.
+              </p>
+            </div>
+            <ShareLinksCell />
           </div>
-          <div className="p-8 border border-neutral-100 rounded-sm">
-            <Icon
-              icon="mdi:account-group"
-              className="text-4xl text-stone-600 mb-4"
-            />
-            <h3 className="text-xl font-serif text-stone-600 mb-3">
-              Team sharing
-            </h3>
-            <p className="text-neutral-600 leading-relaxed">
-              Share with team members with expiration dates, watermarks, and
-              access controls for Enterprise.
-            </p>
+          <div className="flex flex-col bg-linear-to-b from-white to-stone-50/30">
+            <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+              <div className="flex items-center gap-3">
+                <Icon
+                  icon="mdi:shield-lock"
+                  className="text-3xl text-stone-600"
+                />
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Track and protect
+                </h3>
+              </div>
+              <p className="text-base text-neutral-600 leading-relaxed">
+                DocSend-like features including view tracking, expiration dates,
+                copy protection, and watermarks.
+              </p>
+            </div>
+            <TrackProtectCell />
+          </div>
+        </div>
+
+        <div className="sm:hidden">
+          <div className="border-b border-neutral-100 bg-linear-to-b from-white to-stone-50/30">
+            <div className="p-4 border-b border-neutral-100">
+              <div className="flex items-center gap-3 mb-3">
+                <Icon
+                  icon="mdi:account-group"
+                  className="text-2xl text-stone-600"
+                />
+                <h3 className="text-xl font-serif text-stone-600">
+                  Control who can access
+                </h3>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Invite selected people or teams to collaborate on notes with
+                granular access controls.
+              </p>
+            </div>
+            <CollaboratorsCell />
+          </div>
+          <div className="border-b border-neutral-100 bg-linear-to-b from-white to-stone-50/30">
+            <div className="p-4 border-b border-neutral-100">
+              <div className="flex items-center gap-3 mb-3">
+                <Icon
+                  icon="mdi:link-variant"
+                  className="text-2xl text-stone-600"
+                />
+                <h3 className="text-xl font-serif text-stone-600">
+                  Share instantly
+                </h3>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Send links or publish notes directly to Slack, Teams, or
+                generate public shareable links.
+              </p>
+            </div>
+            <ShareLinksCell />
+          </div>
+          <div className="bg-linear-to-b from-white to-stone-50/30">
+            <div className="p-4 border-b border-neutral-100">
+              <div className="flex items-center gap-3 mb-3">
+                <Icon
+                  icon="mdi:shield-lock"
+                  className="text-2xl text-stone-600"
+                />
+                <h3 className="text-xl font-serif text-stone-600">
+                  Track and protect
+                </h3>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                DocSend-like features including view tracking, expiration dates,
+                copy protection, and watermarks.
+              </p>
+            </div>
+            <TrackProtectCell />
           </div>
         </div>
       </div>
     </section>
   );
 }
-
 function FloatingPanelSection() {
   return (
     <section className="border-y border-neutral-100 relative">

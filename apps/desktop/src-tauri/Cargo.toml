@@ -66,5 +66,8 @@ tracing = { workspace = true }
 aspasia = "0.2.1"
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+tauri-plugin-apple-calendar = { workspace = true }
+
 [features]
 devtools = ["tauri/devtools"]

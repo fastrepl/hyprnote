@@ -11,6 +11,8 @@ use store::*;
 
 pub use hypr_analytics::*;
 
+pub type ManagedState = hypr_analytics::AnalyticsClient;
+
 const PLUGIN_NAME: &str = "analytics";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -31,19 +33,8 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let api_key = {
-                #[cfg(not(debug_assertions))]
-                {
-                    env!("POSTHOG_API_KEY")
-                }
+            let client = hypr_analytics::AnalyticsClient::new(option_env!("POSTHOG_API_KEY"));
 
-                #[cfg(debug_assertions)]
-                {
-                    option_env!("POSTHOG_API_KEY").unwrap_or_default()
-                }
-            };
-
-            let client = hypr_analytics::AnalyticsClient::new(api_key);
             assert!(app.manage(client));
             Ok(())
         })
@@ -75,9 +66,13 @@ mod test {
         builder.plugin(init()).build(ctx).unwrap()
     }
 
-    #[test]
-    fn test_analytics() {
+    #[tokio::test]
+    async fn test_analytics() {
         let app = create_app(tauri::test::mock_builder());
+        let result = app
+            .event(hypr_analytics::AnalyticsPayload::new("test_event").build())
+            .await;
+        assert!(result.is_ok());
 
         {
             use tauri_plugin_misc::MiscPluginExt;

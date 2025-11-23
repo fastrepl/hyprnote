@@ -14,17 +14,22 @@ import { cn } from "@hypr/utils";
 
 import * as main from "../../../../../../../store/tinybase/main";
 import { type Segment, SegmentKey } from "../../../../../../../utils/segment";
-import { defaultRenderLabelContext } from "../../../../../../../utils/segment/shared";
+import {
+  defaultRenderLabelContext,
+  SpeakerLabelManager,
+} from "../../../../../../../utils/segment/shared";
 import { Operations } from "./operations";
 
 export function SegmentHeader({
   segment,
   operations,
   sessionId,
+  speakerLabelManager,
 }: {
   segment: Segment;
   operations?: Operations;
   sessionId?: string;
+  speakerLabelManager?: SpeakerLabelManager;
 }) {
   const formatTimestamp = useCallback((ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -54,7 +59,7 @@ export function SegmentHeader({
   }, [segment.words.length, formatTimestamp]);
 
   const color = useSegmentColor(segment.key);
-  const label = useSpeakerLabel(segment.key);
+  const label = useSpeakerLabel(segment.key, speakerLabelManager);
   const participants = useSessionParticipants(sessionId);
 
   const mode =
@@ -142,16 +147,16 @@ function useSegmentColor(key: Segment["key"]) {
   }, [key]);
 }
 
-function useSpeakerLabel(key: Segment["key"]) {
+function useSpeakerLabel(key: Segment["key"], manager?: SpeakerLabelManager) {
   const store = main.UI.useStore(main.STORE_ID);
 
   return useMemo(() => {
     if (!store) {
-      return SegmentKey.renderLabel(key);
+      return SegmentKey.renderLabel(key, undefined, manager);
     }
     const ctx = defaultRenderLabelContext(store);
-    return SegmentKey.renderLabel(key, ctx);
-  }, [key, store]);
+    return SegmentKey.renderLabel(key, ctx, manager);
+  }, [key, store, manager]);
 }
 
 function useSessionParticipants(sessionId?: string) {

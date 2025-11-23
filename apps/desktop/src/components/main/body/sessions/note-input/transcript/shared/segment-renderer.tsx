@@ -4,6 +4,7 @@ import { cn } from "@hypr/utils";
 
 import { useAudioPlayer } from "../../../../../../../contexts/audio-player/provider";
 import { Segment, SegmentWord } from "../../../../../../../utils/segment";
+import { SpeakerLabelManager } from "../../../../../../../utils/segment/shared";
 import { Operations } from "./operations";
 import { SegmentHeader } from "./segment-header";
 import { getWordHighlightState } from "./utils";
@@ -16,12 +17,14 @@ export const SegmentRenderer = memo(
     offsetMs,
     operations,
     sessionId,
+    speakerLabelManager,
   }: {
     editable: boolean;
     segment: Segment;
     offsetMs: number;
     operations?: Operations;
     sessionId?: string;
+    speakerLabelManager?: SpeakerLabelManager;
   }) => {
     const { time, seek, start, audioExists } = useAudioPlayer();
     const currentMs = time.current * 1000;
@@ -42,6 +45,7 @@ export const SegmentRenderer = memo(
           segment={segment}
           operations={operations}
           sessionId={sessionId}
+          speakerLabelManager={speakerLabelManager}
         />
 
         <div
@@ -83,7 +87,8 @@ export const SegmentRenderer = memo(
       prev.segment === next.segment &&
       prev.offsetMs === next.offsetMs &&
       prev.operations === next.operations &&
-      prev.sessionId === next.sessionId
+      prev.sessionId === next.sessionId &&
+      prev.speakerLabelManager === next.speakerLabelManager
     );
   },
 );

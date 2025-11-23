@@ -9,6 +9,10 @@ import {
   Segment,
 } from "../../../../../../../utils/segment";
 import {
+  defaultRenderLabelContext,
+  SpeakerLabelManager,
+} from "../../../../../../../utils/segment/shared";
+import {
   createSegmentKey,
   segmentsShallowEqual,
   useFinalSpeakerHints,
@@ -106,6 +110,15 @@ const SegmentsList = memo(
     sessionId?: string;
     shouldScrollToEnd: boolean;
   }) => {
+    const store = main.UI.useStore(main.STORE_ID);
+    const speakerLabelManager = useMemo(() => {
+      if (!store) {
+        return new SpeakerLabelManager();
+      }
+      const ctx = defaultRenderLabelContext(store);
+      return SpeakerLabelManager.fromSegments(segments, ctx);
+    }, [segments, store]);
+
     useEffect(() => {
       if (!scrollElement || !shouldScrollToEnd) {
         return;
@@ -132,6 +145,7 @@ const SegmentsList = memo(
               offsetMs={offsetMs}
               operations={operations}
               sessionId={sessionId}
+              speakerLabelManager={speakerLabelManager}
             />
           </div>
         ))}

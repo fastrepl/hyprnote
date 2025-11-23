@@ -1,0 +1,35 @@
+name: Run Desktop E2E Tests (Linux)
+description: Run WebDriver E2E tests for the desktop application on Linux
+inputs:
+  channel:
+    description: Release channel (staging, nightly, or stable)
+    required: true
+  target_triple:
+    description: Rust target triple for the build
+    required: false
+    default: x86_64-unknown-linux-gnu
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: ./scripts/setup-desktop-e2e.sh
+    - shell: bash
+      run: |
+        # Determine binary name based on channel
+        if [[ "${{ inputs.channel }}" == "staging" ]]; then
+          BINARY_NAME="hyprnote-staging"
+        elif [[ "${{ inputs.channel }}" == "nightly" ]]; then
+          BINARY_NAME="hyprnote-nightly"
+        else
+          BINARY_NAME="hyprnote"
+        fi
+
+        # Construct full binary path
+        BINARY_PATH="${{ github.workspace }}/apps/desktop/src-tauri/target/${{ inputs.target_triple }}/release/${BINARY_NAME}"
+
+        echo "Binary path: ${BINARY_PATH}"
+        echo "APP_BINARY_PATH=${BINARY_PATH}" >> $GITHUB_ENV
+    - shell: bash
+      run: pnpm -F desktop-e2e test
+      env:
+        APP_BINARY_PATH: ${{ env.APP_BINARY_PATH }}

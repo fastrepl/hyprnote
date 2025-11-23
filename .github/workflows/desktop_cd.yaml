@@ -208,6 +208,10 @@ jobs:
           find target/x86_64-unknown-linux-gnu/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
         shell: bash
         working-directory: ./apps/desktop/src-tauri
+      - uses: ./.github/actions/desktop-e2e-linux
+        with:
+          channel: ${{ inputs.channel }}
+          target_triple: x86_64-unknown-linux-gnu
       - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:

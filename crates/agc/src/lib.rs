@@ -1,39 +1,86 @@
-use std::ops::{Deref, DerefMut};
-
 use dagc::MonoAgc;
+use earshot::{VoiceActivityDetector, VoiceActivityProfile};
+use hypr_audio_utils::f32_to_i16_samples;
 
-#[derive(Debug)]
-pub struct Agc {
+pub struct VadAgc {
     agc: MonoAgc,
+    vad: VoiceActivityDetector,
 }
 
-impl Agc {
+impl VadAgc {
     pub fn new(desired_output_rms: f32, distortion_factor: f32) -> Self {
         Self {
             agc: MonoAgc::new(desired_output_rms, distortion_factor).expect("failed_to_create_agc"),
+            vad: VoiceActivityDetector::new(VoiceActivityProfile::QUALITY),
         }
+    }
+
+    pub fn process(&mut self, samples: &mut [f32]) {
+        let frame_size = Self::choose_optimal_frame_size(samples.len());
+
+        if samples.len() <= frame_size {
+            let mut padded = samples.to_vec();
+            padded.resize(frame_size, 0.0);
+
+            let i16_samples = f32_to_i16_samples(&padded);
+            let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
+
+            self.agc.freeze_gain(!is_speech);
+            self.agc.process(samples);
+        } else {
+            for chunk in samples.chunks_mut(frame_size) {
+                let mut padded = chunk.to_vec();
+                if padded.len() < frame_size {
+                    padded.resize(frame_size, 0.0);
+                }
+
+                let i16_samples = f32_to_i16_samples(&padded);
+                let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
+
+                self.agc.freeze_gain(!is_speech);
+                self.agc.process(chunk);
+            }
+        }
+    }
+
+    // https://docs.rs/earshot/0.1.0/earshot/struct.VoiceActivityDetector.html#method.predict_16khz
+    fn choose_optimal_frame_size(len: usize) -> usize {
+        const FRAME_10MS: usize = 160;
+        const FRAME_20MS: usize = 320;
+        const FRAME_30MS: usize = 480;
+
+        if len % FRAME_30MS == 0 || len < FRAME_30MS {
+            FRAME_30MS
+        } else if len % FRAME_20MS == 0 {
+            FRAME_20MS
+        } else if len % FRAME_10MS == 0 {
+            FRAME_10MS
+        } else {
+            let remainder_30 = len % FRAME_30MS;
+            let remainder_20 = len % FRAME_20MS;
+            let remainder_10 = len % FRAME_10MS;
+
+            if remainder_30 >= remainder_20 && remainder_30 >= remainder_10 {
+                FRAME_30MS
+            } else if remainder_20 >= remainder_10 {
+                FRAME_20MS
+            } else {
+                FRAME_10MS
+            }
+        }
+    }
+
+    pub fn gain(&self) -> f32 {
+        self.agc.gain()
     }
 }
 
-impl Default for Agc {
+impl Default for VadAgc {
     fn default() -> Self {
         Self {
-            agc: MonoAgc::new(1e-1, 1e-6).expect("failed_to_create_agc"),
+            agc: MonoAgc::new(0.03, 0.0001).expect("failed_to_create_agc"),
+            vad: VoiceActivityDetector::new(VoiceActivityProfile::VERY_AGGRESSIVE),
         }
-    }
-}
-
-impl Deref for Agc {
-    type Target = MonoAgc;
-
-    fn deref(&self) -> &Self::Target {
-        &self.agc
-    }
-}
-
-impl DerefMut for Agc {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.agc
     }
 }
 
@@ -45,55 +92,35 @@ mod tests {
 
     #[test]
     fn test_agc() {
-        let test_params = vec![
-            (5e-1, 1e-6),
-            (5e-2, 1e-6),
-            (1e-1, 1e-6),
-            (2e-1, 1e-6),
-            (1e-1, 1e-5),
-            (1e-1, 1e-4),
-            (3e-1, 1e-4),
-        ];
-
         let input_audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap();
         let original_samples = input_audio.convert_samples::<f32>().collect::<Vec<_>>();
 
-        for (desired_rms, distortion_factor) in test_params {
-            let mut agc = Agc::new(desired_rms, distortion_factor);
+        let mut agc = VadAgc::default();
 
-            let filename = format!(
-                "./agc_output_rms{:.3}_dist{:.6}.wav",
-                desired_rms, distortion_factor
-            );
+        let mut processed_samples = Vec::new();
+        let chunks = original_samples.chunks(512);
 
-            let mut output_audio = hound::WavWriter::create(
-                &filename,
-                hound::WavSpec {
-                    channels: 1,
-                    sample_rate: 16000,
-                    bits_per_sample: 32,
-                    sample_format: hound::SampleFormat::Float,
-                },
-            )
-            .unwrap();
+        for chunk in chunks {
+            let mut target = chunk.to_vec();
+            agc.process(&mut target);
 
-            let mut processed_samples = Vec::new();
-            let chunks = original_samples.chunks(512);
-
-            for chunk in chunks {
-                let mut target = chunk.to_vec();
-                agc.process(&mut target);
-
-                for &sample in &target {
-                    output_audio.write_sample(sample).unwrap();
-                    processed_samples.push(sample);
-                }
+            for &sample in &target {
+                processed_samples.push(sample);
             }
+        }
 
-            output_audio.finalize().unwrap();
+        let wav = hound::WavSpec {
+            channels: 1,
+            sample_rate: 16000,
+            bits_per_sample: 32,
+            sample_format: hound::SampleFormat::Float,
+        };
+        let mut writer = hound::WavWriter::create("./test.wav", wav).unwrap();
+        for sample in processed_samples {
+            writer.write_sample(sample).unwrap();
         }
     }
 }

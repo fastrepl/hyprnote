@@ -7,6 +7,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@octokit/webhooks-types": "^7.6.1",
     "@sentry/bun": "^10.25.0",
     "@supabase/supabase-js": "^2.81.1",
     "@t3-oss/env-core": "^0.13.8",

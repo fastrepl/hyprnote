@@ -187,4 +187,82 @@ describe("transcript slice", () => {
     expect(persist).toHaveBeenCalledTimes(1);
     expect(store.getState().finalWordsMaxEndMsByChannel[0]).toBe(1500);
   });
+
+  test("auto discards partial words and hints after inactivity", () => {
+    vi.useFakeTimers();
+
+    const partial = createResponse({
+      words: defaultWords,
+      transcript: "Another problem",
+      isFinal: false,
+    });
+
+    store.getState().handleTranscriptResponse(partial);
+
+    const stateAfterFirst = store.getState();
+    const firstChannelWords = stateAfterFirst.partialWordsByChannel[0];
+    expect(firstChannelWords).toHaveLength(2);
+    expect(firstChannelWords?.map((word) => word.text)).toEqual([
+      " Another",
+      " problem",
+    ]);
+    expect(stateAfterFirst.partialHints).toHaveLength(2);
+    expect(stateAfterFirst.partialHints[0]?.wordIndex).toBe(0);
+    expect(stateAfterFirst.partialHints[1]?.wordIndex).toBe(1);
+
+    vi.advanceTimersByTime(1000);
+
+    const extendedPartial = createResponse({
+      words: [
+        ...defaultWords,
+        {
+          word: "exists",
+          punctuated_word: "exists",
+          start: 2,
+          end: 3,
+          confidence: 1,
+          speaker: 1,
+          language: "en",
+        },
+      ],
+      transcript: "Another problem exists",
+      isFinal: false,
+    });
+
+    store.getState().handleTranscriptResponse(extendedPartial);
+
+    vi.advanceTimersByTime(1000);
+
+    expect(store.getState().partialWordsByChannel[0]).toHaveLength(3);
+    expect(store.getState().partialHints).toHaveLength(3);
+
+    vi.runAllTimers();
+
+    const state = store.getState();
+    expect(Object.values(state.partialWordsByChannel).flat()).toHaveLength(0);
+    expect(state.partialHints).toHaveLength(0);
+  });
+
+  test("does not persist discarded partial words", () => {
+    vi.useFakeTimers();
+
+    const persist = vi.fn();
+    store.getState().setTranscriptPersist(persist);
+
+    const partial = createResponse({
+      words: defaultWords,
+      transcript: "Another problem",
+      isFinal: false,
+    });
+
+    store.getState().handleTranscriptResponse(partial);
+
+    vi.runAllTimers();
+
+    expect(persist).not.toHaveBeenCalled();
+
+    const state = store.getState();
+    expect(Object.values(state.partialWordsByChannel).flat()).toHaveLength(0);
+    expect(state.partialHints).toHaveLength(0);
+  });
 });

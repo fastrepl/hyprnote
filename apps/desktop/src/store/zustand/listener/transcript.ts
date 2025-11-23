@@ -39,6 +39,57 @@ export const createTranscriptSlice = <
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): TranscriptState & TranscriptActions => {
+  const partialDiscardTimeouts: Record<
+    number,
+    ReturnType<typeof setTimeout>
+  > = {};
+
+  const PARTIAL_STALE_TIMEOUT_MS = 2000;
+
+  const clearPartialDiscardTimeout = (channelIndex: number): void => {
+    const timeoutId = partialDiscardTimeouts[channelIndex];
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      delete partialDiscardTimeouts[channelIndex];
+    }
+  };
+
+  const clearAllPartialDiscardTimeouts = (): void => {
+    Object.values(partialDiscardTimeouts).forEach((timeoutId) => {
+      clearTimeout(timeoutId);
+    });
+    Object.keys(partialDiscardTimeouts).forEach((key) => {
+      delete partialDiscardTimeouts[Number(key)];
+    });
+  };
+
+  const schedulePartialDiscard = (channelIndex: number): void => {
+    clearPartialDiscardTimeout(channelIndex);
+
+    const timeoutId = setTimeout(() => {
+      const { partialWordsByChannel } = get();
+      const partialWords = partialWordsByChannel[channelIndex];
+
+      if (!partialWords || partialWords.length === 0) {
+        return;
+      }
+
+      const lastEndMs = getLastEndMs(partialWords);
+
+      set((state) =>
+        mutate(state, (draft) => {
+          draft.partialWordsByChannel[channelIndex] = [];
+          draft.partialHints = [];
+          draft.finalWordsMaxEndMsByChannel[channelIndex] = lastEndMs;
+        }),
+      );
+
+      delete partialDiscardTimeouts[channelIndex];
+    }, PARTIAL_STALE_TIMEOUT_MS);
+
+    partialDiscardTimeouts[channelIndex] = timeoutId;
+  };
+
   const handleFinalWords = (
     channelIndex: number,
     words: WordLike[],
@@ -87,6 +138,8 @@ export const createTranscriptSlice = <
       }),
     );
 
+    clearPartialDiscardTimeout(channelIndex);
+
     handlePersist?.(newWords, newHints);
   };
 
@@ -126,6 +179,8 @@ export const createTranscriptSlice = <
         draft.partialHints = [...filteredOldHints, ...hintsWithAdjustedIndices];
       }),
     );
+
+    schedulePartialDiscard(channelIndex);
   };
 
   return {
@@ -166,6 +221,8 @@ export const createTranscriptSlice = <
       if (remainingWords.length > 0) {
         handlePersist?.(remainingWords, partialHints);
       }
+
+      clearAllPartialDiscardTimeouts();
 
       set((state) =>
         mutate(state, (draft) => {

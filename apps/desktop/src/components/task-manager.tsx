@@ -1,11 +1,16 @@
 import { Channel } from "@tauri-apps/api/core";
-import { platform } from "@tauri-apps/plugin-os";
 import { useScheduleTaskRun, useSetTask } from "tinytick/ui-react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 
 import { checkForUpdate } from "./main/sidebar/profile/ota/task";
+
+function isMacOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent.toLowerCase();
+  return ua.includes("macintosh") || ua.includes("mac os x");
+}
 
 const UPDATE_CHECK_TASK_ID = "checkForUpdate";
 const UPDATE_CHECK_INTERVAL = 30 * 1000;
@@ -50,7 +55,7 @@ export function TaskManager() {
     const progressCallback = downloadProgressCallbacks.get(model);
 
     if (progressCallback) {
-      channel.onmessage = (progress) => {
+      channel.onmessage = (progress: number) => {
         progressCallback(progress);
       };
     }
@@ -59,7 +64,7 @@ export function TaskManager() {
   });
 
   useSetTask(SYNC_CALENDARS_TASK_ID, async () => {
-    if (platform() !== "macos") {
+    if (!isMacOS()) {
       return;
     }
 
@@ -79,7 +84,7 @@ export function TaskManager() {
   });
 
   useSetTask(SYNC_EVENTS_TASK_ID, async () => {
-    if (platform() !== "macos") {
+    if (!isMacOS()) {
       return;
     }
 

@@ -108,6 +108,9 @@ importers:
       '@hypr/plugin-analytics':
         specifier: workspace:*
         version: link:../../plugins/analytics
+      '@hypr/plugin-apple-calendar':
+        specifier: workspace:*
+        version: link:../../plugins/apple-calendar
       '@hypr/plugin-cli2':
         specifier: workspace:*
         version: link:../../plugins/cli2

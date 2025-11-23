@@ -56,13 +56,13 @@ impl VadAgc {
         } else if len % FRAME_10MS == 0 {
             FRAME_10MS
         } else {
-            let remainder_30 = len % FRAME_30MS;
-            let remainder_20 = len % FRAME_20MS;
-            let remainder_10 = len % FRAME_10MS;
+            let padding_30 = (FRAME_30MS - (len % FRAME_30MS)) % FRAME_30MS;
+            let padding_20 = (FRAME_20MS - (len % FRAME_20MS)) % FRAME_20MS;
+            let padding_10 = (FRAME_10MS - (len % FRAME_10MS)) % FRAME_10MS;
 
-            if remainder_30 >= remainder_20 && remainder_30 >= remainder_10 {
+            if padding_30 <= padding_20 && padding_30 <= padding_10 {
                 FRAME_30MS
-            } else if remainder_20 >= remainder_10 {
+            } else if padding_20 <= padding_10 {
                 FRAME_20MS
             } else {
                 FRAME_10MS

@@ -1,4 +1,5 @@
 import { Channel } from "@tauri-apps/api/core";
+import { platform } from "@tauri-apps/plugin-os";
 import { useScheduleTaskRun, useSetTask } from "tinytick/ui-react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
@@ -6,10 +7,20 @@ import type { SupportedSttModel } from "@hypr/plugin-local-stt";
 
 import { checkForUpdate } from "./main/sidebar/profile/ota/task";
 
-function isMacOS(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent.toLowerCase();
-  return ua.includes("macintosh") || ua.includes("mac os x");
+let cachedIsMacos: boolean | null = null;
+
+async function isMacOS(): Promise<boolean> {
+  if (cachedIsMacos !== null) return cachedIsMacos;
+
+  try {
+    const p = await platform();
+    const isMac = p === "macos";
+    cachedIsMacos = isMac;
+    return isMac;
+  } catch (err) {
+    console.error("Failed to detect platform via @tauri-apps/plugin-os", err);
+    return false;
+  }
 }
 
 const UPDATE_CHECK_TASK_ID = "checkForUpdate";
@@ -64,7 +75,7 @@ export function TaskManager() {
   });
 
   useSetTask(SYNC_CALENDARS_TASK_ID, async () => {
-    if (!isMacOS()) {
+    if (!(await isMacOS())) {
       return;
     }
 
@@ -84,7 +95,7 @@ export function TaskManager() {
   });
 
   useSetTask(SYNC_EVENTS_TASK_ID, async () => {
-    if (!isMacOS()) {
+    if (!(await isMacOS())) {
       return;
     }
 

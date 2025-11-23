@@ -1129,7 +1129,7 @@ const CollaboratorsCell = memo(() => {
 
   return (
     <>
-      <div className="overflow-hidden p-4" style={{ aspectRatio: "4/3" }}>
+      <div className="overflow-hidden p-4 sm:aspect-4/3 h-[300px] sm:h-auto">
         <div className="h-full flex items-end">
           <div className="w-full space-y-2">
             <AnimatePresence>
@@ -1339,10 +1339,7 @@ const ShareLinksCell = memo(() => {
   }, []);
 
   return (
-    <div
-      className="overflow-hidden p-4 flex items-center justify-center"
-      style={{ aspectRatio: "4/3" }}
-    >
+    <div className="overflow-hidden p-4 flex items-center justify-center sm:aspect-4/3 h-[300px] sm:h-auto">
       <div className="w-full flex flex-col gap-2">
         <motion.div
           animate={linkClicked ? { scale: [1, 0.95, 1] } : {}}
@@ -1724,10 +1721,7 @@ const TrackProtectCell = memo(() => {
   }, []);
 
   return (
-    <div
-      className="overflow-hidden bg-linear-to-br from-stone-50/30 to-stone-100/50 flex flex-col relative"
-      style={{ aspectRatio: "4/3" }}
-    >
+    <div className="overflow-hidden bg-linear-to-br from-stone-50/30 to-stone-100/50 flex flex-col relative sm:aspect-4/3 h-[300px] sm:h-auto">
       <AnimatePresence>
         {countdown > 0 && showNote && (
           <motion.div

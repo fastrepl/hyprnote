@@ -1,11 +1,11 @@
 export const config = {
-  specs: ["./test/specs/**/*.js"],
+  specs: ["./webdriver/specs/**/*.js"],
   maxInstances: 1,
   capabilities: [
     {
       maxInstances: 1,
       "tauri:options": {
-        application: "../../target/release/hyprnote",
+        application: "./src-tauri/target/release/Hyprnote Dev",
       },
     },
   ],

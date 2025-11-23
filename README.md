@@ -32,18 +32,20 @@ brew tap fastrepl/hyprnote && brew install hyprnote --cask
 
 ## Highlights
 
+### Notepad
+Hyprnote is designed to take notes easily during meetings. Just jot down stuff you think are important!
+<img width="732" height="612" alt="Screenshot 2025-11-23 at 2 38 20 PM" src="https://github.com/user-attachments/assets/268ab859-a194-484b-b895-bc640df18dd4" />
+
 ### Realtime Transcript
-Watch a live transcript update as the meeting unfolds—accurate, fast, and fully local.
-<img width="959" height="712" alt="image" src="https://github.com/user-attachments/assets/d24b8b43-a052-44cd-803e-daa3ff600a9c" />
+While you stay engaged in the conversation, Hyprnote captures every detail so you don’t have to type frantically.<img width="688" height="568" alt="Screenshot 2025-11-23 at 2 35 47 PM" src="https://github.com/user-attachments/assets/e63ce73f-1a5f-49ce-a14d-dd8ba161e5bc" />
 
 ### From Memos to Summaries
-Jot things down during your call. Hyprnote turns them into a polished meeting summary—context-aware and easy to share.
-<img width="959" height="712" alt="image" src="https://github.com/user-attachments/assets/489f9239-1a32-4217-9d74-554906687fe1" />
+Once the meeting is over, Hyprnote will 
+![offline enhancing](https://github.com/user-attachments/assets/cf28a83f-1dd5-423b-badd-a627dae7f0f3)
 
 ### Truly Local
-No internet? No problem. Hyprnote works offline by default and keeps everything on your device.
-
-![offline](https://github.com/user-attachments/assets/c6649a63-3d41-40ea-a1fd-8c0713ad91bc)
+If you noticed the GIF above, you can see that Hyprnote works without any internet connection available. Just set up LM Studio or Ollama to operate Hyprnote in air-gapped environments!
+<img width="780" height="585" alt="no-wifi" src="https://github.com/user-attachments/assets/ecf08a9e-3b6c-4fb6-ab38-0bc572f54859" />
 
 ### Bring Your Own LLM
 Prefer something custom? You can swap in your own language model:
@@ -54,20 +56,12 @@ Prefer something custom? You can swap in your own language model:
 
 Hyprnote plays nice with whatever stack you’re running.
 
-<img width="912" height="712" alt="image" src="https://github.com/user-attachments/assets/717dc39a-3359-46d6-a92f-51de56907750" />
+<img width="912" height="712" alt="Screenshot 2025-11-23 at 2 41 03 PM" src="https://github.com/user-attachments/assets/a6552c99-acbc-4d47-9d21-7f1925989344" />
 
 ### Note Templates
 Prefer a certain style? Choose from predefined templates like bullet points, agenda-based, or paragraph summary. Or create your own.
 
-<img width="959" height="712" alt="image" src="https://github.com/user-attachments/assets/d826a854-4b6f-415c-9e97-270f517c0868" />
-
-### Autonomy Selector
-Control how much freedom the AI takes:
-
-- Stick strictly to your quick notes
-- Let Hyprnote improvise and reframe based on the full conversation
-
-<img width="912" height="712" alt="image" src="https://github.com/user-attachments/assets/7de5c74f-5d99-46ec-8a5f-a38fb62bafb1" />
+Check out our [template gallery](https://hyprnote.com/templates) and add your own [here](https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/templates).
 
 ### AI Chat
 Ask follow-ups right inside your notes:

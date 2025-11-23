@@ -144,9 +144,9 @@ jobs:
       - if: ${{ inputs.channel != 'staging' }}
         run: |
           DMG_FILE=$(find "apps/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/" -name "*.dmg" -type f)
-          cp "$DMG_FILE" "hyprnote.dmg"
-          aws s3 cp "hyprnote.dmg" \
-            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.dmg" \
+          cp "$DMG_FILE" "hyprnote-macos-aarch64.dmg"
+          aws s3 cp "hyprnote-macos-aarch64.dmg" \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-aarch64.dmg" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -224,9 +224,9 @@ jobs:
       - if: ${{ inputs.channel != 'staging' }}
         run: |
           APPIMAGE_FILE=$(find "apps/desktop/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/" -name "*.AppImage" -type f)
-          cp "$APPIMAGE_FILE" "hyprnote.AppImage"
-          aws s3 cp "hyprnote.AppImage" \
-            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.AppImage" \
+          cp "$APPIMAGE_FILE" "hyprnote-linux-x86_64.AppImage"
+          aws s3 cp "hyprnote-linux-x86_64.AppImage" \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-linux-x86_64.AppImage" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -259,8 +259,8 @@ jobs:
       - name: Download macOS DMG from S3
         run: |
           aws s3 cp \
-            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.dmg" \
-            "hyprnote.dmg" \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-aarch64.dmg" \
+            "hyprnote-macos-aarch64.dmg" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -270,8 +270,8 @@ jobs:
         if: ${{ needs.build-linux.result == 'success' }}
         run: |
           aws s3 cp \
-            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote.AppImage" \
-            "hyprnote.AppImage" \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-linux-x86_64.AppImage" \
+            "hyprnote-linux-x86_64.AppImage" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
         env:
@@ -289,7 +289,7 @@ jobs:
           tag: desktop_v${{ needs.compute-version.outputs.version }}
           name: desktop_v${{ needs.compute-version.outputs.version }}
           body: "https://hyprnote.com/changelog/${{ needs.compute-version.outputs.version }}"
-          artifacts: "hyprnote.dmg"
+          artifacts: "hyprnote-macos-aarch64.dmg"
       - name: Create GitHub release with macOS + Linux
         if: ${{ needs.build-linux.result == 'success' }}
         uses: ncipollo/release-action@v1
@@ -297,4 +297,4 @@ jobs:
           tag: desktop_v${{ needs.compute-version.outputs.version }}
           name: desktop_v${{ needs.compute-version.outputs.version }}
           body: "https://hyprnote.com/changelog/${{ needs.compute-version.outputs.version }}"
-          artifacts: "hyprnote.dmg,hyprnote.AppImage"
+          artifacts: "hyprnote-macos-aarch64.dmg,hyprnote-linux-x86_64.AppImage"

@@ -1860,7 +1860,7 @@ function SharingSection() {
         </p>
       </div>
       <div className="border-t border-neutral-100">
-        <div className="hidden sm:grid sm:grid-cols-3">
+        <div className="hidden min-[1000px]:grid min-[1000px]:grid-cols-3">
           <div className="border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
             <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
               <div className="flex items-center gap-3">
@@ -1914,6 +1914,65 @@ function SharingSection() {
               </p>
             </div>
             <TrackProtectCell />
+          </div>
+        </div>
+
+        <div className="hidden sm:block min-[1000px]:hidden! overflow-x-auto">
+          <div className="flex min-w-max">
+            <div className="w-[400px] border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
+              <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="mdi:account-group"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Control who can access
+                  </h3>
+                </div>
+                <p className="text-base text-neutral-600 leading-relaxed">
+                  Invite selected people or teams to collaborate on notes with
+                  granular access controls.
+                </p>
+              </div>
+              <CollaboratorsCell />
+            </div>
+            <div className="w-[400px] border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
+              <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="mdi:link-variant"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Share instantly
+                  </h3>
+                </div>
+                <p className="text-base text-neutral-600 leading-relaxed">
+                  Send links or publish notes directly to Slack, Teams, or
+                  generate public shareable links.
+                </p>
+              </div>
+              <ShareLinksCell />
+            </div>
+            <div className="w-[400px] flex flex-col bg-linear-to-b from-white to-stone-50/30">
+              <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="mdi:shield-lock"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Track and protect
+                  </h3>
+                </div>
+                <p className="text-base text-neutral-600 leading-relaxed">
+                  DocSend-like features including view tracking, expiration
+                  dates, copy protection, and watermarks.
+                </p>
+              </div>
+              <TrackProtectCell />
+            </div>
           </div>
         </div>
 

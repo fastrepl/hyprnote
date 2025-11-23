@@ -33,3 +33,8 @@ if ! command -v infisical &> /dev/null; then
   sudo apt-get update
   sudo apt-get install -y infisical
 fi
+
+if ! command -v dasel &> /dev/null; then
+  curl -sSLf "$(curl -sSLf https://api.github.com/repos/tomwright/dasel/releases/latest | grep browser_download_url | grep linux_amd64 | grep -v .gz | cut -d\" -f 4)" -L -o dasel && chmod +x dasel
+  sudo mv ./dasel /usr/local/bin/dasel
+fi

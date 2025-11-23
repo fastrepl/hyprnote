@@ -7,12 +7,18 @@ on:
     paths:
       - apps/desktop/**
       - plugins/**
+      - crates/**
+      - Cargo.toml
+      - Cargo.lock
   pull_request:
     branches:
       - main
     paths:
       - apps/desktop/**
       - plugins/**
+      - crates/**
+      - Cargo.toml
+      - Cargo.lock
 jobs:
   ci:
     strategy:
@@ -21,6 +27,8 @@ jobs:
         include:
           - platform: "macos"
             runner: "macos-14"
+          - platform: "linux"
+            runner: "ubuntu-22.04"
           - platform: "linux"
             runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}

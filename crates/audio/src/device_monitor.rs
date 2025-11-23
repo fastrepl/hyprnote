@@ -157,34 +157,63 @@ mod linux {
     use std::rc::Rc;
 
     pub(super) fn monitor(event_tx: mpsc::Sender<DeviceEvent>, stop_rx: mpsc::Receiver<()>) {
-        let mut proplist = Proplist::new().unwrap();
-        proplist
+        let mut proplist = match Proplist::new() {
+            Some(p) => p,
+            None => {
+                tracing::error!("Failed to create PulseAudio proplist");
+                let _ = stop_rx.recv();
+                return;
+            }
+        };
+
+        if proplist
             .set_str(
                 libpulse_binding::proplist::properties::APPLICATION_NAME,
                 "Hyprnote Device Monitor",
             )
-            .unwrap();
+            .is_err()
+        {
+            tracing::error!("Failed to set PulseAudio application name");
+            let _ = stop_rx.recv();
+            return;
+        }
 
-        let mainloop = Rc::new(RefCell::new(
-            Mainloop::new().expect("Failed to create PulseAudio mainloop"),
-        ));
+        let mainloop = match Mainloop::new() {
+            Some(m) => Rc::new(RefCell::new(m)),
+            None => {
+                tracing::error!("Failed to create PulseAudio mainloop");
+                let _ = stop_rx.recv();
+                return;
+            }
+        };
 
-        let context = Rc::new(RefCell::new(
-            Context::new_with_proplist(&*mainloop.borrow(), "HyprnoteContext", &proplist)
-                .expect("Failed to create PulseAudio context"),
-        ));
+        let context =
+            match Context::new_with_proplist(&*mainloop.borrow(), "HyprnoteContext", &proplist) {
+                Some(c) => Rc::new(RefCell::new(c)),
+                None => {
+                    tracing::error!("Failed to create PulseAudio context");
+                    let _ = stop_rx.recv();
+                    return;
+                }
+            };
 
-        context
+        if let Err(e) = context
             .borrow_mut()
             .connect(None, ContextFlagSet::NOFLAGS, None)
-            .expect("Failed to connect to PulseAudio");
+        {
+            tracing::error!("Failed to connect to PulseAudio: {:?}", e);
+            let _ = stop_rx.recv();
+            return;
+        }
 
         mainloop.borrow_mut().lock();
 
-        mainloop
-            .borrow_mut()
-            .start()
-            .expect("Failed to start PulseAudio mainloop");
+        if let Err(e) = mainloop.borrow_mut().start() {
+            tracing::error!("Failed to start PulseAudio mainloop: {:?}", e);
+            mainloop.borrow_mut().unlock();
+            let _ = stop_rx.recv();
+            return;
+        }
 
         // Wait for context to be ready
         loop {

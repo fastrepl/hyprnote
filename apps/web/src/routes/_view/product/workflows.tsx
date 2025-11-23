@@ -262,7 +262,7 @@ function Component() {
                   alt="Hyprnote"
                   width={112}
                   height={112}
-                  className="size-28 rounded-[32px] border border-neutral-100"
+                  className="size-28 rounded-4xl border border-neutral-100"
                 />
               </div>
 
@@ -559,7 +559,7 @@ function DraggableIcon({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <div className="w-full h-full shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[24px] bg-white">
+      <div className="w-full h-full shadow-2xl border border-neutral-100 flex justify-center items-center rounded-3xl bg-white">
         <Image
           src={`https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/${image}`}
           alt="Integration"

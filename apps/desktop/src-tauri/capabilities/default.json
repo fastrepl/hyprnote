@@ -69,6 +69,12 @@
         { "path": "$DOWNLOAD/**/*" }
       ]
     },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [
+        { "path": "$DATA/hyprnote/**/*" }
+      ]
+    },
     "db2:default",
     "windows:default",
     "tracing:default",

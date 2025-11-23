@@ -34,17 +34,22 @@ brew tap fastrepl/hyprnote && brew install hyprnote --cask
 
 ### Notepad
 Hyprnote is designed to take notes easily during meetings. Just jot down stuff you think are important!
+
 <img width="732" height="612" alt="Screenshot 2025-11-23 at 2 38 20 PM" src="https://github.com/user-attachments/assets/268ab859-a194-484b-b895-bc640df18dd4" />
 
 ### Realtime Transcript
-While you stay engaged in the conversation, Hyprnote captures every detail so you don’t have to type frantically.<img width="688" height="568" alt="Screenshot 2025-11-23 at 2 35 47 PM" src="https://github.com/user-attachments/assets/e63ce73f-1a5f-49ce-a14d-dd8ba161e5bc" />
+While you stay engaged in the conversation, Hyprnote captures every detail so you don’t have to type frantically.
+
+<img width="688" height="568" alt="Screenshot 2025-11-23 at 2 35 47 PM" src="https://github.com/user-attachments/assets/e63ce73f-1a5f-49ce-a14d-dd8ba161e5bc" />
 
 ### From Memos to Summaries
-Once the meeting is over, Hyprnote will 
+Once the meeting is over, Hyprnote will craft a personalized summary based on your memos — which is not mandatory. Hyprnote will still create great summaries without your notes.
+
 ![offline enhancing](https://github.com/user-attachments/assets/cf28a83f-1dd5-423b-badd-a627dae7f0f3)
 
 ### Truly Local
 If you noticed the GIF above, you can see that Hyprnote works without any internet connection available. Just set up LM Studio or Ollama to operate Hyprnote in air-gapped environments!
+
 <img width="780" height="585" alt="no-wifi" src="https://github.com/user-attachments/assets/ecf08a9e-3b6c-4fb6-ab38-0bc572f54859" />
 
 ### Bring Your Own LLM

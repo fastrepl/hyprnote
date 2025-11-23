@@ -222,4 +222,25 @@ mod tests {
             chunks.iter().flatten().flatten().copied()
         );
     }
+
+    #[tokio::test]
+    async fn test_dynamic_new_rate_change_boundary() {
+        let segments = vec![
+            (vec![1.0, 2.0, 3.0, 4.0], 8000),
+            (vec![5.0, 6.0, 7.0, 8.0], 16000),
+        ];
+        let target_rate = 16000;
+        let chunk_size = 4;
+
+        let source = DynamicRateSource::new(segments);
+        let resampler = ResamplerDynamicNew::new(source, target_rate, chunk_size).unwrap();
+
+        let chunks: Vec<_> = resampler.collect().await;
+        let actual: Vec<f32> = chunks.into_iter().flatten().flatten().collect();
+
+        let expected_second_segment = vec![5.0, 6.0, 7.0, 8.0];
+        let actual_second_segment: Vec<f32> = actual.iter().rev().take(4).rev().copied().collect();
+
+        assert_eq!(expected_second_segment, actual_second_segment,);
+    }
 }

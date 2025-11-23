@@ -583,7 +583,7 @@ function TranscriptionSection() {
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
                 For Apple Silicon Macs, transcription happens entirely on your
-                device. Fast, private, and no internet required
+                device. Fast, private, and no internet required.
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -604,7 +604,7 @@ function TranscriptionSection() {
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
                 Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT,
-                TXT) to get AI summaries and insights
+                TXT) to get AI summaries and insights.
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden bg-neutral-100">
@@ -736,7 +736,7 @@ function SummariesSection() {
         </h2>
         <p className="text-base text-neutral-600">
           Hyprnote combines your notes with transcripts to create intelligent
-          summaries after your meeting ends.
+          summaries after your meeting ends
         </p>
       </div>
       <div className="border-t border-neutral-100">
@@ -1129,7 +1129,7 @@ const CollaboratorsCell = memo(() => {
 
   return (
     <>
-      <div className="overflow-hidden p-4" style={{ aspectRatio: "4/3" }}>
+      <div className="overflow-hidden p-4 sm:aspect-4/3 h-[300px] sm:h-auto">
         <div className="h-full flex items-end">
           <div className="w-full space-y-2">
             <AnimatePresence>
@@ -1339,10 +1339,7 @@ const ShareLinksCell = memo(() => {
   }, []);
 
   return (
-    <div
-      className="overflow-hidden p-4 flex items-center justify-center"
-      style={{ aspectRatio: "4/3" }}
-    >
+    <div className="overflow-hidden p-4 flex items-center justify-center sm:aspect-4/3 h-[300px] sm:h-auto">
       <div className="w-full flex flex-col gap-2">
         <motion.div
           animate={linkClicked ? { scale: [1, 0.95, 1] } : {}}
@@ -1724,10 +1721,7 @@ const TrackProtectCell = memo(() => {
   }, []);
 
   return (
-    <div
-      className="overflow-hidden bg-linear-to-br from-stone-50/30 to-stone-100/50 flex flex-col relative"
-      style={{ aspectRatio: "4/3" }}
-    >
+    <div className="overflow-hidden bg-linear-to-br from-stone-50/30 to-stone-100/50 flex flex-col relative sm:aspect-4/3 h-[300px] sm:h-auto">
       <AnimatePresence>
         {countdown > 0 && showNote && (
           <motion.div
@@ -1866,7 +1860,7 @@ function SharingSection() {
         </p>
       </div>
       <div className="border-t border-neutral-100">
-        <div className="hidden sm:grid sm:grid-cols-3">
+        <div className="hidden min-[1000px]:grid min-[1000px]:grid-cols-3">
           <div className="border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
             <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
               <div className="flex items-center gap-3">
@@ -1920,6 +1914,65 @@ function SharingSection() {
               </p>
             </div>
             <TrackProtectCell />
+          </div>
+        </div>
+
+        <div className="hidden sm:block min-[1000px]:hidden! overflow-x-auto">
+          <div className="flex min-w-max">
+            <div className="w-[400px] border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
+              <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="mdi:account-group"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Control who can access
+                  </h3>
+                </div>
+                <p className="text-base text-neutral-600 leading-relaxed">
+                  Invite selected people or teams to collaborate on notes with
+                  granular access controls.
+                </p>
+              </div>
+              <CollaboratorsCell />
+            </div>
+            <div className="w-[400px] border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
+              <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="mdi:link-variant"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Share instantly
+                  </h3>
+                </div>
+                <p className="text-base text-neutral-600 leading-relaxed">
+                  Send links or publish notes directly to Slack, Teams, or
+                  generate public shareable links.
+                </p>
+              </div>
+              <ShareLinksCell />
+            </div>
+            <div className="w-[400px] flex flex-col bg-linear-to-b from-white to-stone-50/30">
+              <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
+                <div className="flex items-center gap-3">
+                  <Icon
+                    icon="mdi:shield-lock"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Track and protect
+                  </h3>
+                </div>
+                <p className="text-base text-neutral-600 leading-relaxed">
+                  DocSend-like features including view tracking, expiration
+                  dates, copy protection, and watermarks.
+                </p>
+              </div>
+              <TrackProtectCell />
+            </div>
           </div>
         </div>
 

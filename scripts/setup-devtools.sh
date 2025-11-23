@@ -10,8 +10,10 @@ if ! command -v dprint &> /dev/null; then
 fi
 
 if ! command -v supabase &> /dev/null; then
-  curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
-  sudo mv supabase /usr/local/bin/supabase
+  TEMP_DIR=$(mktemp -d)
+  curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz -C "$TEMP_DIR"
+  sudo mv "$TEMP_DIR/supabase" /usr/local/bin/supabase
+  rm -rf "$TEMP_DIR"
 fi
 
 if ! command -v stripe &> /dev/null; then

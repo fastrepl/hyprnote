@@ -302,6 +302,23 @@ export const memories = pgTable(
   (table) => createPolicies(TABLE_MEMORIES, table.user_id),
 ).enableRLS();
 
+export const TABLE_NOTE_HISTORY = "note_history";
+export const noteHistory = pgTable(
+  TABLE_NOTE_HISTORY,
+  {
+    ...SHARED,
+    session_id: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    created_at_ms: integer("created_at_ms").notNull(),
+    transcript_id: uuid("transcript_id").references(() => transcripts.id, {
+      onDelete: "set null",
+    }),
+  },
+  (table) => createPolicies(TABLE_NOTE_HISTORY, table.user_id),
+).enableRLS();
+
 export const humanSchema = createSelectSchema(humans);
 export const organizationSchema = createSelectSchema(organizations);
 export const folderSchema = createSelectSchema(folders);
@@ -320,6 +337,7 @@ export const templateSchema = createSelectSchema(templates);
 export const chatGroupSchema = createSelectSchema(chatGroups);
 export const chatMessageSchema = createSelectSchema(chatMessages);
 export const memorySchema = createSelectSchema(memories);
+export const noteHistorySchema = createSelectSchema(noteHistory);
 
 export const providerSpeakerIndexSchema = z.object({
   speaker_index: z.number(),

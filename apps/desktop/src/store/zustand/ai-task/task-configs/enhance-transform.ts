@@ -1,3 +1,5 @@
+import * as Diff from "diff";
+
 import type { TaskArgsMap, TaskArgsMapTransformed, TaskConfig } from ".";
 import {
   buildSegments,
@@ -54,16 +56,21 @@ async function transformArgs(
     sessionData: sessionContext.sessionData,
     participants: sessionContext.participants,
     segments: sessionContext.segments,
+    noteHistory: sessionContext.noteHistory,
     template,
   };
 }
 
 function getSessionContext(sessionId: string, store: MainStore) {
+  const transcripts = collectTranscripts(sessionId, store);
+  const noteHistory = getNoteHistory(sessionId, transcripts, store);
+
   return {
     rawMd: getStringCell(store, "sessions", sessionId, "raw_md"),
     sessionData: getSessionData(sessionId, store),
     participants: getParticipants(sessionId, store),
     segments: getTranscriptSegments(sessionId, store),
+    noteHistory,
   };
 }
 
@@ -376,4 +383,149 @@ function getNumberCell(
 ): number | undefined {
   const value = store.getCell(tableId, rowId, columnId);
   return typeof value === "number" ? value : undefined;
+}
+
+type NoteHistoryEntry = {
+  content: string;
+  created_at_ms: number;
+  transcript_id?: string;
+};
+
+type TemporalNoteHistory = {
+  beforeMeeting?: string;
+  duringMeeting?: string;
+  afterMeeting?: string;
+};
+
+function getNoteHistory(
+  sessionId: string,
+  transcripts: readonly TranscriptMeta[],
+  store: MainStore,
+): TemporalNoteHistory | undefined {
+  const historyEntries: NoteHistoryEntry[] = [];
+
+  store.forEachRow("note_history", (historyId, _forEachCell) => {
+    const historySessionId = getOptionalStringCell(
+      store,
+      "note_history",
+      historyId,
+      "session_id",
+    );
+    if (historySessionId !== sessionId) {
+      return;
+    }
+
+    const content = getStringCell(store, "note_history", historyId, "content");
+    const createdAtMs = getNumberCell(
+      store,
+      "note_history",
+      historyId,
+      "created_at_ms",
+    );
+    const transcriptId = getOptionalStringCell(
+      store,
+      "note_history",
+      historyId,
+      "transcript_id",
+    );
+
+    if (content && createdAtMs !== undefined) {
+      historyEntries.push({
+        content,
+        created_at_ms: createdAtMs,
+        transcript_id: transcriptId,
+      });
+    }
+  });
+
+  if (historyEntries.length === 0) {
+    return undefined;
+  }
+
+  historyEntries.sort((a, b) => a.created_at_ms - b.created_at_ms);
+
+  if (transcripts.length === 0) {
+    const diffs = computeDiffs(historyEntries);
+    return {
+      beforeMeeting: diffs.length > 0 ? diffs.join("\n\n") : undefined,
+    };
+  }
+
+  const firstTranscriptStart = Math.min(...transcripts.map((t) => t.startedAt));
+  const lastTranscriptStart = Math.max(...transcripts.map((t) => t.startedAt));
+
+  const beforeEntries = historyEntries.filter(
+    (entry) => entry.created_at_ms < firstTranscriptStart,
+  );
+  const duringEntries = historyEntries.filter(
+    (entry) =>
+      entry.created_at_ms >= firstTranscriptStart &&
+      entry.created_at_ms <= lastTranscriptStart,
+  );
+  const afterEntries = historyEntries.filter(
+    (entry) => entry.created_at_ms > lastTranscriptStart,
+  );
+
+  const result: TemporalNoteHistory = {};
+
+  if (beforeEntries.length > 0) {
+    const diffs = computeDiffs(beforeEntries);
+    if (diffs.length > 0) {
+      result.beforeMeeting = diffs.join("\n\n");
+    }
+  }
+
+  if (duringEntries.length > 0) {
+    const diffs = computeDiffs(duringEntries);
+    if (diffs.length > 0) {
+      result.duringMeeting = diffs.join("\n\n");
+    }
+  }
+
+  if (afterEntries.length > 0) {
+    const diffs = computeDiffs(afterEntries);
+    if (diffs.length > 0) {
+      result.afterMeeting = diffs.join("\n\n");
+    }
+  }
+
+  if (!result.beforeMeeting && !result.duringMeeting && !result.afterMeeting) {
+    return undefined;
+  }
+
+  return result;
+}
+
+function computeDiffs(entries: readonly NoteHistoryEntry[]): string[] {
+  if (entries.length === 0) {
+    return [];
+  }
+
+  const diffs: string[] = [];
+
+  for (let i = 0; i < entries.length; i++) {
+    if (i === 0) {
+      if (entries[i].content.trim()) {
+        diffs.push(`Initial notes:\n${entries[i].content}`);
+      }
+    } else {
+      const prevContent = entries[i - 1].content;
+      const currentContent = entries[i].content;
+
+      const changes = Diff.diffLines(prevContent, currentContent);
+      const addedLines: string[] = [];
+
+      for (const change of changes) {
+        if (change.added) {
+          addedLines.push(change.value.trim());
+        }
+      }
+
+      if (addedLines.length > 0) {
+        diffs.push(`Added:\n${addedLines.join("\n")}`);
+      }
+    }
+  }
+
+  return diffs;
 }

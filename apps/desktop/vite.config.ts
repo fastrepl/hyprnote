@@ -24,7 +24,7 @@ export default defineConfig(() => ({
     onConsoleLog: (_, type) => {
       return type === "stderr";
     },
-    exclude: ["**/node_modules/**", "**/src-tauri/**"],
+    exclude: ["**/node_modules/**", "**/src-tauri/**", "test/**"],
   },
   ...tauri,
 }));

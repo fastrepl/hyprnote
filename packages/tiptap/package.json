@@ -39,7 +39,7 @@
     "@tiptap/static-renderer": "^3.10.7",
     "@tiptap/suggestion": "^3.10.7",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.544.0",
+    "lucide-react": "^0.552.0",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-model": "^1.25.4",
     "prosemirror-state": "^1.4.4",

@@ -53,6 +53,7 @@ impl DeviceMonitor {
 
             #[cfg(not(any(target_os = "macos", target_os = "linux")))]
             {
+                let _ = event_tx;
                 tracing::warn!("device_monitoring_unsupported");
                 let _ = stop_rx.recv();
             }
@@ -290,11 +291,7 @@ mod linux {
     }
 
     fn is_headphone_from_default_output_device() -> bool {
-        // On Linux, detecting headphones is more complex and requires querying
-        // PulseAudio sink port information. For now, we'll return false.
-        // This could be enhanced in the future by checking the active port's name
-        // for keywords like "headphone", "headset", etc.
-        false
+        crate::utils::linux::is_headphone_from_default_output_device()
     }
 }
 

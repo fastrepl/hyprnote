@@ -228,14 +228,14 @@ async fn start_source_loop(
     let stream_cancel_token = CancellationToken::new();
     st.stream_cancel_token = Some(stream_cancel_token.clone());
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
     let new_mode = if !st.onboarding && !is_using_headphone() {
         ChannelMode::Single
     } else {
         ChannelMode::Dual
     };
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     let new_mode = ChannelMode::Dual;
 
     let mode_changed = st.current_mode != new_mode;
@@ -252,7 +252,7 @@ async fn start_source_loop(
         }
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     if new_mode == ChannelMode::Single {
         st.run_task = Some(tokio::spawn(async move {}));
         return Ok(());

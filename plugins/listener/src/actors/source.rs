@@ -360,7 +360,7 @@ impl Pipeline {
 
     fn ingest_mic(&mut self, chunk: AudioChunk) {
         let mut data = chunk.data;
-        self.agc_mic.process(&mut data);
+        self.agc_mic.process_with_gate(&mut data);
         let arc = Arc::<[f32]>::from(data);
         self.joiner.push_mic(arc);
     }

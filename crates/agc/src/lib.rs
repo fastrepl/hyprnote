@@ -5,6 +5,9 @@ use hypr_audio_utils::f32_to_i16_samples;
 pub struct VadAgc {
     agc: MonoAgc,
     vad: VoiceActivityDetector,
+    gate_window: [bool; 3],
+    gate_index: usize,
+    gate_min_speech_votes: usize,
 }
 
 impl VadAgc {
@@ -12,10 +15,21 @@ impl VadAgc {
         Self {
             agc: MonoAgc::new(desired_output_rms, distortion_factor).expect("failed_to_create_agc"),
             vad: VoiceActivityDetector::new(VoiceActivityProfile::QUALITY),
+            gate_window: [false; 3],
+            gate_index: 0,
+            gate_min_speech_votes: 2,
         }
     }
 
     pub fn process(&mut self, samples: &mut [f32]) {
+        self.process_internal(samples, false);
+    }
+
+    pub fn process_with_gate(&mut self, samples: &mut [f32]) {
+        self.process_internal(samples, true);
+    }
+
+    fn process_internal(&mut self, samples: &mut [f32], gate_non_speech: bool) {
         let frame_size = Self::choose_optimal_frame_size(samples.len());
 
         if samples.len() <= frame_size {
@@ -23,10 +37,15 @@ impl VadAgc {
             padded.resize(frame_size, 0.0);
 
             let i16_samples = f32_to_i16_samples(&padded);
-            let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
+            let raw_is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
 
-            self.agc.freeze_gain(!is_speech);
+            self.agc.freeze_gain(!raw_is_speech);
             self.agc.process(samples);
+
+            let should_pass = self.gate_decision(raw_is_speech, gate_non_speech);
+            if gate_non_speech && !should_pass {
+                samples.fill(0.0);
+            }
         } else {
             for chunk in samples.chunks_mut(frame_size) {
                 let mut padded = chunk.to_vec();
@@ -35,12 +54,30 @@ impl VadAgc {
                 }
 
                 let i16_samples = f32_to_i16_samples(&padded);
-                let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
+                let raw_is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
 
-                self.agc.freeze_gain(!is_speech);
+                self.agc.freeze_gain(!raw_is_speech);
                 self.agc.process(chunk);
+
+                let should_pass = self.gate_decision(raw_is_speech, gate_non_speech);
+                if gate_non_speech && !should_pass {
+                    chunk.fill(0.0);
+                }
             }
         }
+    }
+
+    fn gate_decision(&mut self, raw_is_speech: bool, gate_non_speech: bool) -> bool {
+        if !gate_non_speech {
+            return true;
+        }
+
+        self.gate_window[self.gate_index] = raw_is_speech;
+        self.gate_index = (self.gate_index + 1) % self.gate_window.len();
+
+        let speech_votes = self.gate_window.iter().copied().filter(|&b| b).count();
+
+        speech_votes >= self.gate_min_speech_votes
     }
 
     // https://docs.rs/earshot/0.1.0/earshot/struct.VoiceActivityDetector.html#method.predict_16khz
@@ -73,6 +110,12 @@ impl VadAgc {
     pub fn gain(&self) -> f32 {
         self.agc.gain()
     }
+
+    pub fn reset(&mut self) {
+        self.vad.reset();
+        self.gate_window = [false; 3];
+        self.gate_index = 0;
+    }
 }
 
 impl Default for VadAgc {
@@ -80,6 +123,9 @@ impl Default for VadAgc {
         Self {
             agc: MonoAgc::new(0.03, 0.0001).expect("failed_to_create_agc"),
             vad: VoiceActivityDetector::new(VoiceActivityProfile::VERY_AGGRESSIVE),
+            gate_window: [false; 3],
+            gate_index: 0,
+            gate_min_speech_votes: 2,
         }
     }
 }

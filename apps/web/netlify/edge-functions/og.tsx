@@ -199,6 +199,7 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
           {/* Image */}
           <img
             src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/app/mock-hyprnote.png"
+            alt="Hyprnote Application"
             style={{
               position: "absolute",
               left: "0",

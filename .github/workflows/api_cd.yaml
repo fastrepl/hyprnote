@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-24.04-8
     timeout-minutes: 60
     concurrency: api-fly-deploy
     steps:

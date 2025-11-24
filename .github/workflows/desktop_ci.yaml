@@ -26,11 +26,11 @@ jobs:
       matrix:
         include:
           - platform: "macos"
-            runner: "macos-14"
+            runner: "macos-15"
           - platform: "linux"
-            runner: "ubuntu-22.04"
+            runner: "depot-ubuntu-22.04-8"
           - platform: "linux"
-            runner: "ubuntu-24.04"
+            runner: "depot-ubuntu-24.04-8"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4

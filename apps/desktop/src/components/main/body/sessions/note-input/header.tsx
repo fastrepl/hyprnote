@@ -384,9 +384,11 @@ export function useEditorTabs({
     main.STORE_ID,
   );
   const createEnhancedNote = useCreateEnhancedNote();
+  const ensuredDefaultRef = useRef(false);
 
   useEffect(() => {
     if (
+      ensuredDefaultRef.current ||
       !hasTranscript ||
       sessionMode === "running_active" ||
       sessionMode === "running_batch"
@@ -396,6 +398,7 @@ export function useEditorTabs({
 
     if (!enhancedNoteIds || enhancedNoteIds.length === 0) {
       createEnhancedNote(sessionId);
+      ensuredDefaultRef.current = true;
     }
   }, [
     hasTranscript,

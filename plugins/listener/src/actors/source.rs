@@ -16,6 +16,7 @@ use crate::{
     actors::{AudioChunk, ChannelMode, ListenerActor, ListenerMsg, RecMsg, RecorderActor},
     SessionEvent,
 };
+use hypr_aec::AEC;
 use hypr_agc::VadAgc;
 use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
 use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
@@ -331,6 +332,7 @@ async fn start_source_loop(
 struct Pipeline {
     agc_mic: VadAgc,
     agc_spk: VadAgc,
+    aec: Option<AEC>,
     joiner: Joiner,
     amplitude: AmplitudeEmitter,
 }
@@ -340,6 +342,7 @@ impl Pipeline {
         Self {
             agc_mic: VadAgc::default(),
             agc_spk: VadAgc::default(),
+            aec: None,
             joiner: Joiner::new(),
             amplitude: AmplitudeEmitter::new(app, session_id),
         }
@@ -349,6 +352,9 @@ impl Pipeline {
         self.joiner.reset();
         self.agc_mic = VadAgc::default();
         self.agc_spk = VadAgc::default();
+        if let Some(aec) = &mut self.aec {
+            aec.reset();
+        }
         self.amplitude.reset();
     }
 
@@ -373,12 +379,30 @@ impl Pipeline {
     }
 
     fn dispatch(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) {
+        let (processed_mic, processed_spk) = if let Some(aec) = &mut self.aec {
+            match aec.process_streaming(&mic, &spk) {
+                Ok(processed) => {
+                    let processed_arc = Arc::<[f32]>::from(processed);
+                    (processed_arc, Arc::clone(&spk))
+                }
+                Err(e) => {
+                    tracing::warn!(error = ?e, "aec_failed");
+                    (mic, spk)
+                }
+            }
+        } else {
+            (mic, spk)
+        };
+
         if let Some(cell) = registry::where_is(RecorderActor::name()) {
             let actor: ActorRef<RecMsg> = cell.into();
             let result = if mode == ChannelMode::Single {
-                actor.cast(RecMsg::AudioSingle(Arc::clone(&mic)))
+                actor.cast(RecMsg::AudioSingle(Arc::clone(&processed_mic)))
             } else {
-                actor.cast(RecMsg::AudioDual(Arc::clone(&mic), Arc::clone(&spk)))
+                actor.cast(RecMsg::AudioDual(
+                    Arc::clone(&processed_mic),
+                    Arc::clone(&processed_spk),
+                ))
             };
             if let Err(e) = result {
                 tracing::error!(error = ?e, "failed_to_send_audio_to_recorder");
@@ -393,11 +417,11 @@ impl Pipeline {
         let actor: ActorRef<ListenerMsg> = cell.into();
 
         let result = if mode == ChannelMode::Single {
-            let audio_bytes = f32_to_i16_bytes(mic.to_vec().iter().copied());
+            let audio_bytes = f32_to_i16_bytes(processed_mic.to_vec().iter().copied());
             actor.cast(ListenerMsg::AudioSingle(audio_bytes))
         } else {
-            let mic_bytes = f32_to_i16_bytes(mic.iter().copied());
-            let spk_bytes = f32_to_i16_bytes(spk.iter().copied());
+            let mic_bytes = f32_to_i16_bytes(processed_mic.iter().copied());
+            let spk_bytes = f32_to_i16_bytes(processed_spk.iter().copied());
             actor.cast(ListenerMsg::AudioDual(mic_bytes, spk_bytes))
         };
 
@@ -406,7 +430,7 @@ impl Pipeline {
             return;
         }
 
-        self.amplitude.observe(mic, spk);
+        self.amplitude.observe(processed_mic, processed_spk);
     }
 }
 

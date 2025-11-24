@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import NoteEditor from "@hypr/tiptap/editor";
-import { EMPTY_TIPTAP_DOC, type JSONContent } from "@hypr/tiptap/shared";
+import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
+import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 import "@hypr/tiptap/styles.css";
 
 import {

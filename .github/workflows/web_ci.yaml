@@ -30,6 +30,24 @@ jobs:
       - uses: denoland/setup-deno@v2
       - run: pnpm -F ui build
       - run: pnpm -F web typecheck
+      - name: Set BASE_URL to Netlify preview
+        if: github.event_name == 'pull_request'
+        run: echo "BASE_URL=https://deploy-preview-${{ github.event.pull_request.number }}--hyprnote.netlify.app" >> $GITHUB_ENV
+      - name: Wait for Netlify preview
+        if: github.event_name == 'pull_request'
+        run: |
+          url="https://deploy-preview-${{ github.event.pull_request.number }}--hyprnote.netlify.app"
+          echo "Waiting for $url to be ready..."
+          for i in {1..60}; do
+            if curl -sSf "$url" > /dev/null 2>&1; then
+              echo "Preview is ready"
+              exit 0
+            fi
+            echo "Not ready yet, sleeping... (attempt $i/60)"
+            sleep 10
+          done
+          echo "Timed out waiting for Netlify preview"
+          exit 1
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/web
       - run: pnpm -F web test

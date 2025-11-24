@@ -60,6 +60,37 @@ export const defaultRenderLabelContext = (
   };
 };
 
+export class SpeakerLabelManager {
+  private unknownSpeakerMap: Map<string, number> = new Map();
+  private nextIndex = 1;
+
+  getUnknownSpeakerNumber(key: SegmentKey): number {
+    const serialized = SegmentKey.serialize(key);
+    const existing = this.unknownSpeakerMap.get(serialized);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const newIndex = this.nextIndex;
+    this.unknownSpeakerMap.set(serialized, newIndex);
+    this.nextIndex += 1;
+    return newIndex;
+  }
+
+  static fromSegments(
+    segments: Segment[],
+    ctx?: RenderLabelContext,
+  ): SpeakerLabelManager {
+    const manager = new SpeakerLabelManager();
+    for (const segment of segments) {
+      if (!SegmentKey.isKnownSpeaker(segment.key, ctx)) {
+        manager.getUnknownSpeakerNumber(segment.key);
+      }
+    }
+    return manager;
+  }
+}
+
 export type SegmentKey = {
   readonly channel: ChannelProfile;
   readonly speaker_index?: number;
@@ -96,7 +127,26 @@ export const SegmentKey = {
     ]);
   },
 
-  renderLabel: (key: SegmentKey, ctx?: RenderLabelContext): string => {
+  isKnownSpeaker: (key: SegmentKey, ctx?: RenderLabelContext): boolean => {
+    if (key.speaker_human_id) {
+      return true;
+    }
+
+    if (ctx && key.channel === ChannelProfile.DirectMic) {
+      const selfHumanId = ctx.getSelfHumanId();
+      if (selfHumanId) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  renderLabel: (
+    key: SegmentKey,
+    ctx?: RenderLabelContext,
+    manager?: SpeakerLabelManager,
+  ): string => {
     if (ctx && key.speaker_human_id) {
       const human = ctx.getHumanName(key.speaker_human_id);
       if (human) {
@@ -110,6 +160,11 @@ export const SegmentKey = {
         const selfHuman = ctx.getHumanName(selfHumanId);
         return selfHuman ?? "You";
       }
+    }
+
+    if (manager) {
+      const speakerNumber = manager.getUnknownSpeakerNumber(key);
+      return `Speaker ${speakerNumber}`;
     }
 
     const channelLabel =

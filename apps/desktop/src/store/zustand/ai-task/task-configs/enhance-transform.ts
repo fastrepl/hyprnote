@@ -5,7 +5,10 @@ import {
   SegmentKey,
   type WordLike,
 } from "../../../../utils/segment";
-import { defaultRenderLabelContext } from "../../../../utils/segment/shared";
+import {
+  defaultRenderLabelContext,
+  SpeakerLabelManager,
+} from "../../../../utils/segment/shared";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as MainStore } from "../../../tinybase/main";
 
@@ -25,6 +28,11 @@ type WordRow = Record<string, unknown> & {
 };
 
 type WordWithTranscript = WordRow & { transcriptStartedAt: number };
+
+type SegmentForPayload = {
+  key: SegmentKey;
+  words: WordWithTranscript[];
+};
 
 type SegmentPayload = {
   speaker_label: string;
@@ -200,6 +208,9 @@ function getTranscriptSegments(sessionId: string, store: MainStore) {
   const speakerHints = collectSpeakerHints(store, wordIdToIndex);
   const segments = buildSegments(words, [], speakerHints);
 
+  const ctx = defaultRenderLabelContext(store);
+  const speakerLabelManager = SpeakerLabelManager.fromSegments(segments, ctx);
+
   const sessionStartCandidate = transcripts.reduce(
     (min, transcript) => Math.min(min, transcript.startedAt),
     Number.POSITIVE_INFINITY,
@@ -208,13 +219,17 @@ function getTranscriptSegments(sessionId: string, store: MainStore) {
     ? sessionStartCandidate
     : 0;
 
-  const normalizedSegments = segments.reduce<SegmentPayload[]>(
+  const segmentsForPayload = segments as unknown as SegmentForPayload[];
+
+  const normalizedSegments = segmentsForPayload.reduce<SegmentPayload[]>(
     (acc, segment) => {
       if (segment.words.length === 0) {
         return acc;
       }
 
-      acc.push(toSegmentPayload(segment as any, sessionStartMs, store));
+      acc.push(
+        toSegmentPayload(segment, sessionStartMs, store, speakerLabelManager),
+      );
       return acc;
     },
     [],
@@ -307,9 +322,10 @@ function collectSpeakerHints(
 }
 
 function toSegmentPayload(
-  segment: any,
+  segment: SegmentForPayload,
   sessionStartMs: number,
   store: MainStore,
+  speakerLabelManager: SpeakerLabelManager,
 ): SegmentPayload {
   const firstWord = segment.words[0];
   const lastWord = segment.words[segment.words.length - 1];
@@ -318,14 +334,14 @@ function toSegmentPayload(
   const absoluteEndMs = lastWord.transcriptStartedAt + lastWord.end_ms;
 
   const ctx = defaultRenderLabelContext(store);
-  const label = SegmentKey.renderLabel(segment.key, ctx);
+  const label = SegmentKey.renderLabel(segment.key, ctx, speakerLabelManager);
 
   return {
     speaker_label: label,
     start_ms: absoluteStartMs - sessionStartMs,
     end_ms: absoluteEndMs - sessionStartMs,
-    text: segment.words.map((word: any) => word.text).join(" "),
-    words: segment.words.map((word: any) => ({
+    text: segment.words.map((word) => word.text).join(" "),
+    words: segment.words.map((word) => ({
       text: word.text,
       start_ms: word.transcriptStartedAt + word.start_ms - sessionStartMs,
       end_ms: word.transcriptStartedAt + word.end_ms - sessionStartMs,

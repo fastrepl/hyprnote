@@ -57,7 +57,7 @@ function Component() {
 
   return (
     <div className="min-h-[calc(100vh-200px)]">
-      <div className="max-w-6xl mx-auto border-x border-neutral-100">
+      <div className="max-w-7xl mx-auto border-x border-neutral-100">
         <div className="flex items-center justify-center py-20 bg-linear-to-b from-stone-50/30 to-stone-100/30 border-b border-neutral-100">
           <div className="text-center max-w-2xl px-4">
             <h1 className="font-serif text-3xl font-medium mb-4">
@@ -70,54 +70,98 @@ function Component() {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
-          {!file ? (
-            <UploadArea
-              onFileSelect={handleFileSelect}
-              disabled={isProcessing}
-            />
-          ) : (
-            <FileInfo
-              fileName={file.name}
-              fileSize={file.size}
-              onRemove={handleRemoveFile}
-            />
-          )}
-
-          <div>
-            <h2 className="text-lg font-medium font-serif mb-4">Notes</h2>
-            <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px]">
-              <NoteEditor
-                initialContent={noteContent}
-                handleChange={setNoteContent}
-                mentionConfig={mentionConfig}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium font-serif">Transcript</h2>
-              {transcript && !user && (
-                <Link
-                  to="/auth"
-                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-                >
-                  Sign in to view full result
-                </Link>
-              )}
-            </div>
-            <TranscriptDisplay
-              transcript={user ? transcript : null}
-              isProcessing={isProcessing}
-            />
-            {transcript && !user && (
-              <div className="mt-4 p-4 bg-stone-50 border border-neutral-200 rounded-sm">
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-serif font-medium mb-2">
+                  Raw Note + Audio
+                </h2>
                 <p className="text-sm text-neutral-600">
-                  Sign in to view and save your transcription results
+                  Upload your audio and add your notes
                 </p>
               </div>
-            )}
+
+              <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-100 bg-neutral-50/50">
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                  <div className="w-3 h-3 rounded-full bg-green-400" />
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {!file ? (
+                    <UploadArea
+                      onFileSelect={handleFileSelect}
+                      disabled={isProcessing}
+                    />
+                  ) : (
+                    <FileInfo
+                      fileName={file.name}
+                      fileSize={file.size}
+                      onRemove={handleRemoveFile}
+                    />
+                  )}
+
+                  <div>
+                    <h3 className="text-sm font-medium text-neutral-700 mb-3">
+                      Your Notes
+                    </h3>
+                    <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px] bg-neutral-50/30">
+                      <NoteEditor
+                        initialContent={noteContent}
+                        handleChange={setNoteContent}
+                        mentionConfig={mentionConfig}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-serif font-medium mb-2">
+                    Final Result
+                  </h2>
+                  <p className="text-sm text-neutral-600">
+                    Combined notes with transcript
+                  </p>
+                </div>
+                {transcript && !user && (
+                  <Link
+                    to="/auth"
+                    className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+                  >
+                    Sign in
+                  </Link>
+                )}
+              </div>
+
+              <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-100 bg-neutral-50/50">
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                  <div className="w-3 h-3 rounded-full bg-green-400" />
+                </div>
+
+                <div className="p-6">
+                  <TranscriptDisplay
+                    transcript={user ? transcript : null}
+                    isProcessing={isProcessing}
+                  />
+                </div>
+              </div>
+
+              {transcript && !user && (
+                <div className="p-4 bg-stone-50 border border-neutral-200 rounded-sm">
+                  <p className="text-sm text-neutral-600">
+                    Sign in to view and save your transcription results
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

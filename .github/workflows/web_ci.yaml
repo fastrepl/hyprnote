@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           - platform: "macos"
-            runner: "macos-14"
+            runner: "macos-15"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4

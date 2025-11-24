@@ -7,6 +7,7 @@ pub struct VadAgc {
     vad: VoiceActivityDetector,
     frame_size: usize,
     vad_tail: Vec<f32>,
+    // Fail-open: treat unknown regions as speech so we don't freeze gain forever
     last_is_speech: bool,
 }
 
@@ -37,8 +38,8 @@ impl VadAgc {
             let needed = frame_size - self.vad_tail.len();
             let to_take = needed.min(samples.len());
 
-            let mut frame_f32 = Vec::with_capacity(frame_size);
-            frame_f32.extend_from_slice(&self.vad_tail);
+            let mut frame_f32 = std::mem::take(&mut self.vad_tail);
+            frame_f32.reserve(frame_size - frame_f32.len());
             frame_f32.extend_from_slice(&samples[..to_take]);
 
             if frame_f32.len() == frame_size {
@@ -50,7 +51,6 @@ impl VadAgc {
                 self.agc.process(&mut samples[..to_take]);
 
                 pos = to_take;
-                self.vad_tail.clear();
             } else {
                 self.vad_tail = frame_f32;
 
@@ -164,5 +164,36 @@ mod tests {
         for sample in processed_samples {
             writer.write_sample(sample).unwrap();
         }
+    }
+
+    #[test]
+    fn test_cross_call_framing() {
+        let input_audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+        let original_samples = input_audio.convert_samples::<f32>().collect::<Vec<_>>();
+
+        let mut agc = VadAgc::default();
+        let mut processed = Vec::new();
+        for chunk in original_samples.chunks(200) {
+            let mut target = chunk.to_vec();
+            agc.process(&mut target);
+            processed.extend_from_slice(&target);
+        }
+
+        assert_eq!(processed.len(), original_samples.len());
+
+        for &sample in &processed {
+            assert!(sample.is_finite(), "Sample is not finite");
+        }
+
+        let rms: f32 = processed.iter().map(|&s| s * s).sum::<f32>() / processed.len() as f32;
+        let rms = rms.sqrt();
+        assert!(
+            rms > 0.0 && rms < 1.0,
+            "RMS {} is out of expected range",
+            rms
+        );
     }
 }

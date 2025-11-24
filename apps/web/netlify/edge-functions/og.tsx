@@ -1,8 +1,6 @@
 // deno-lint-ignore no-import-prefix no-unused-vars
 import React from "https://esm.sh/react@18.2.0";
 // deno-lint-ignore no-import-prefix
-import { ImageResponse } from "https://deno.land/x/og_edge@0.0.6/mod.ts";
-// deno-lint-ignore no-import-prefix
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const templateSchema = z.object({
@@ -14,7 +12,6 @@ const templateSchema = z.object({
 const changelogSchema = z.object({
   type: z.literal("changelog"),
   version: z.string(),
-  isNightly: z.boolean().optional().default(false),
 });
 
 const OGSchema = z.discriminatedUnion("type", [templateSchema, changelogSchema]);
@@ -27,9 +24,8 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
 
   if (type === "changelog") {
     const version = url.searchParams.get("version");
-    const isNightly = url.searchParams.get("isNightly") === "true";
 
-    const result = OGSchema.safeParse({ type, version, isNightly });
+    const result = OGSchema.safeParse({ type, version });
     return result.success ? result.data : null;
   }
 
@@ -103,132 +99,35 @@ function renderTemplate(params: z.infer<typeof templateSchema>) {
 }
 
 function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
-  const background = params.isNightly
-    ? "linear-gradient(180deg, #03BCF1 0%, #127FE5 100%)"
-    : "linear-gradient(180deg, #A8A29E 0%, #57534E 100%)";
+  const isNightly = params.version.includes("nightly");
+
+  if (isNightly) {
+    return (
+      <div style={{width: '100%', height: '100%', position: 'relative', background: 'linear-gradient(180deg, #03BCF1 0%, #127FE5 100%), linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+          <div style={{left: 56, top: 436, position: 'absolute', color: '#FAFAF9', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex'}}>Changelog</div>
+          <div style={{left: 56, top: 513, position: 'absolute', color: '#F5F5F4', fontSize: 48, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word', display: 'flex'}}>v.{params.version}</div>
+          <div style={{left: 56.25, top: 61.12, position: 'absolute', color: '#F5F5F4', fontSize: 40, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word', display: 'flex'}}>The AI notepad for private meetings</div>
+          <div style={{left: 903, top: 55, position: 'absolute', textAlign: 'right', color: '#FAFAF9', fontSize: 50, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex'}}>Hyprnote.</div>
+          <div style={{width: 140, height: 0, left: 755, top: 87, position: 'absolute', borderTop: '2px solid #F5F5F4'}}></div>
+          <img style={{width: 462, height: 462, right: 57, bottom: -69, position: 'absolute'}} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/nightly-icon.png" />
+      </div>
+    );
+  }
 
   return (
-    <div
-      style={{
-        width: "1200px",
-        height: "630px",
-        display: "flex",
-        background,
-        position: "relative",
-      }}
-    >
-      {/* Header section */}
-      <div
-        style={{
-          position: "absolute",
-          left: "56px",
-          top: "58px",
-          right: "56px",
-          display: "flex",
-          alignItems: "center",
-          gap: "16px",
-        }}
-      >
-        {/* Left: Hyprnote Changelog */}
-        <div
-          style={{
-            fontFamily: "Lora, serif",
-            fontWeight: 700,
-            fontSize: "40px",
-            color: "#FAFAF9",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Hyprnote Changelog
-        </div>
-
-        {/* Center: Line */}
-        <div
-          style={{
-            flex: 1,
-            height: "2px",
-            background: "rgba(255, 255, 255, 0.3)",
-          }}
-        />
-
-        {/* Right: Version */}
-        <div
-          style={{
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontWeight: 400,
-            fontSize: "39px",
-            color: "#F5F5F4",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {params.version}
-        </div>
-      </div>
-
-      {/* Image section */}
-      <div
-        style={{
-          position: "absolute",
-          left: "56px",
-          top: "157px",
-          width: "1088px",
-          height: "707px",
-          display: "flex",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            position: "relative",
-          }}
-        >
-          {/* Shadow layer */}
-          <div
-            style={{
-              position: "absolute",
-              left: "22px",
-              top: "22px",
-              width: "1088px",
-              height: "707px",
-              background: "rgba(0, 0, 0, 0.15)",
-              filter: "blur(15px)",
-            }}
-          />
-          {/* Image */}
-          <img
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/app/mock-hyprnote.png"
-            alt="Hyprnote Application"
-            style={{
-              position: "absolute",
-              left: "0",
-              top: "0",
-              width: "1088px",
-              height: "707px",
-              objectFit: "cover",
-            }}
-          />
-        </div>
-      </div>
+    <div style={{width: '100%', height: '100%', position: 'relative', background: 'linear-gradient(180deg, #A8A29E 0%, #57534E 100%)', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+        <div style={{left: 56, top: 436, position: 'absolute', color: '#FAFAF9', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex'}}>Changelog</div>
+        <div style={{left: 56, top: 513, position: 'absolute', color: '#F5F5F4', fontSize: 48, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word', display: 'flex'}}>v.{params.version}</div>
+        <div style={{left: 56.25, top: 61.12, position: 'absolute', color: '#F5F5F4', fontSize: 40, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word', display: 'flex'}}>The AI notepad for private meetings</div>
+        <div style={{left: 903, top: 55, position: 'absolute', textAlign: 'right', color: '#FAFAF9', fontSize: 50, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex'}}>Hyprnote.</div>
+        <div style={{width: 140, height: 0, left: 755, top: 87, position: 'absolute', borderTop: '2px solid #F5F5F4'}}></div>
+        <img style={{width: 462, height: 462, right: 57, bottom: -69, position: 'absolute'}} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
     </div>
   );
 }
 
 export default async function handler(req: Request) {
   const url = new URL(req.url);
-
-  // Disable in development to avoid WASM loading issues
-  if (
-    url.hostname === "localhost" ||
-    url.hostname === "127.0.0.1" ||
-    Deno.env.get("CONTEXT") === "dev"
-  ) {
-    return new Response("OG image generation disabled in dev", {
-      status: 503,
-      headers: { "Content-Type": "text/plain" },
-    });
-  }
 
   const params = parseSearchParams(url);
 
@@ -240,6 +139,9 @@ export default async function handler(req: Request) {
   }
 
   try {
+    // Dynamically import ImageResponse only when needed (not in dev)
+    const { ImageResponse } = await import("https://deno.land/x/og_edge@0.0.6/mod.ts");
+
     // https://unpic.pics/og-edge
     let response;
     if (params.type === "changelog") {
@@ -283,5 +185,4 @@ export default async function handler(req: Request) {
 export const config = {
   path: "/og",
   cache: "manual",
-  excludedPath: Deno.env.get("CONTEXT") === "dev" ? "/og" : undefined,
 };

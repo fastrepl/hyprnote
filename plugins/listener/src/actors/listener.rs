@@ -242,6 +242,81 @@ fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
     (session_offset_secs, extra)
 }
 
+async fn run_single_stream(
+    args: ListenerArgs,
+    myself: ActorRef<ListenerMsg>,
+    rx: tokio::sync::mpsc::Receiver<MixedMessage<Bytes, ControlMessage>>,
+    shutdown_rx: tokio::sync::oneshot::Receiver<()>,
+    offset_secs: f64,
+    extra: Extra,
+    channel_override: Option<i32>,
+) {
+    let client = owhisper_client::ListenClient::builder()
+        .api_base(args.base_url.clone())
+        .api_key(args.api_key.clone())
+        .params(build_listen_params(&args))
+        .build_single();
+
+    let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
+
+    let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
+        Ok(res) => res,
+        Err(e) => {
+            let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+            return;
+        }
+    };
+    futures_util::pin_mut!(listen_stream);
+
+    process_stream(
+        listen_stream,
+        handle,
+        myself,
+        shutdown_rx,
+        offset_secs,
+        extra,
+        channel_override,
+    )
+    .await;
+}
+
+async fn run_dual_stream(
+    args: ListenerArgs,
+    myself: ActorRef<ListenerMsg>,
+    rx: tokio::sync::mpsc::Receiver<MixedMessage<(Bytes, Bytes), ControlMessage>>,
+    shutdown_rx: tokio::sync::oneshot::Receiver<()>,
+    offset_secs: f64,
+    extra: Extra,
+) {
+    let client = owhisper_client::ListenClient::builder()
+        .api_base(args.base_url.clone())
+        .api_key(args.api_key.clone())
+        .params(build_listen_params(&args))
+        .build_dual();
+
+    let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
+
+    let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
+        Ok(res) => res,
+        Err(e) => {
+            let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+            return;
+        }
+    };
+    futures_util::pin_mut!(listen_stream);
+
+    process_stream(
+        listen_stream,
+        handle,
+        myself,
+        shutdown_rx,
+        offset_secs,
+        extra,
+        None,
+    )
+    .await;
+}
+
 async fn spawn_rx_task_single(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
@@ -259,27 +334,10 @@ async fn spawn_rx_task_single(
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
 
     let rx_task = tokio::spawn(async move {
-        let client = owhisper_client::ListenClient::builder()
-            .api_base(args.base_url.clone())
-            .api_key(args.api_key.clone())
-            .params(build_listen_params(&args))
-            .build_single();
-
-        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-
-        let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
-            Ok(res) => res,
-            Err(e) => {
-                let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-                return;
-            }
-        };
-        futures_util::pin_mut!(listen_stream);
-
-        process_stream(
-            listen_stream,
-            handle,
+        run_single_stream(
+            args,
             myself,
+            rx,
             shutdown_rx,
             session_offset_secs,
             extra,
@@ -308,33 +366,7 @@ async fn spawn_rx_task_dual(
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
 
     let rx_task = tokio::spawn(async move {
-        let client = owhisper_client::ListenClient::builder()
-            .api_base(args.base_url.clone())
-            .api_key(args.api_key.clone())
-            .params(build_listen_params(&args))
-            .build_dual();
-
-        let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-
-        let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
-            Ok(res) => res,
-            Err(e) => {
-                let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-                return;
-            }
-        };
-        futures_util::pin_mut!(listen_stream);
-
-        process_stream(
-            listen_stream,
-            handle,
-            myself,
-            shutdown_rx,
-            session_offset_secs,
-            extra,
-            None,
-        )
-        .await;
+        run_dual_stream(args, myself, rx, shutdown_rx, session_offset_secs, extra).await;
     });
 
     Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx))
@@ -373,29 +405,10 @@ async fn spawn_rx_task_dual_split(
         let args_spk = args;
 
         let mic_task = tokio::spawn(async move {
-            let mic_client = owhisper_client::ListenClient::builder()
-                .api_base(args_mic.base_url.clone())
-                .api_key(args_mic.api_key.clone())
-                .params(build_listen_params(&args_mic))
-                .build_single();
-
-            let mic_outbound = tokio_stream::wrappers::ReceiverStream::new(mic_rx);
-
-            let (mic_stream, mic_handle) = match mic_client.from_realtime_audio(mic_outbound).await
-            {
-                Ok(res) => res,
-                Err(e) => {
-                    let _ =
-                        myself_mic.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-                    return;
-                }
-            };
-            futures_util::pin_mut!(mic_stream);
-
-            process_stream(
-                mic_stream,
-                mic_handle,
+            run_single_stream(
+                args_mic,
                 myself_mic,
+                mic_rx,
                 shutdown_rx_mic,
                 session_offset_secs,
                 extra_mic,
@@ -405,29 +418,10 @@ async fn spawn_rx_task_dual_split(
         });
 
         let spk_task = tokio::spawn(async move {
-            let spk_client = owhisper_client::ListenClient::builder()
-                .api_base(args_spk.base_url.clone())
-                .api_key(args_spk.api_key.clone())
-                .params(build_listen_params(&args_spk))
-                .build_single();
-
-            let spk_outbound = tokio_stream::wrappers::ReceiverStream::new(spk_rx);
-
-            let (spk_stream, spk_handle) = match spk_client.from_realtime_audio(spk_outbound).await
-            {
-                Ok(res) => res,
-                Err(e) => {
-                    let _ =
-                        myself_spk.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-                    return;
-                }
-            };
-            futures_util::pin_mut!(spk_stream);
-
-            process_stream(
-                spk_stream,
-                spk_handle,
+            run_single_stream(
+                args_spk,
                 myself_spk,
+                spk_rx,
                 shutdown_rx_spk,
                 session_offset_secs,
                 extra_spk,

@@ -94,6 +94,7 @@ jobs:
       - run: |
           chmod +x ./apps/desktop/src-tauri/binaries/stt-aarch64-apple-darwin
           ./scripts/sidecar.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "binaries/stt"
+      - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.dylib"
       - uses: ./.github/actions/apple_cert
         id: apple-cert
         with:
@@ -183,6 +184,7 @@ jobs:
           platform: linux
       - uses: ./.github/actions/pnpm_install
       - run: pnpm -F ui build
+      - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.so"
       - run: |
           FEATURES_FLAG=""
           if [[ "${{ inputs.channel }}" == "staging" ]]; then

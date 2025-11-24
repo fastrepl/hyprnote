@@ -143,26 +143,14 @@ mod tests {
     use rodio::Source;
 
     #[tokio::test]
-    async fn dump_continuous_vad_mask_stream() {
+    async fn test_continuous_stream_preserves_length() {
         let input_audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
         ))
         .unwrap();
 
         let original_samples: Vec<f32> = input_audio.convert_samples::<f32>().collect();
-
-        {
-            let wav = hound::WavSpec {
-                channels: 1,
-                sample_rate: 16_000,
-                bits_per_sample: 32,
-                sample_format: hound::SampleFormat::Float,
-            };
-            let mut writer = hound::WavWriter::create("./test_vad_original.wav", wav).unwrap();
-            for sample in &original_samples {
-                writer.write_sample(*sample).unwrap();
-            }
-        }
+        let original_len = original_samples.len();
 
         let chunk_size = 512;
         let chunks_iter = original_samples
@@ -170,29 +158,159 @@ mod tests {
             .map(|c| Ok::<Vec<f32>, ()>(c.to_vec()));
 
         let base_stream = stream::iter(chunks_iter);
-
         let mut vad_stream = ContinuousVadMaskStream::new(base_stream);
 
         let mut masked_samples = Vec::new();
-
         while let Some(item) = vad_stream.next().await {
-            match item {
-                Ok(chunk) => {
-                    masked_samples.extend_from_slice(&chunk);
-                }
-                Err(_) => {}
+            if let Ok(chunk) = item {
+                masked_samples.extend_from_slice(&chunk);
             }
         }
 
-        let wav = hound::WavSpec {
-            channels: 1,
-            sample_rate: 16_000,
-            bits_per_sample: 32,
-            sample_format: hound::SampleFormat::Float,
-        };
-        let mut writer = hound::WavWriter::create("./test_vad_masked.wav", wav).unwrap();
-        for sample in masked_samples {
-            writer.write_sample(sample).unwrap();
+        assert_eq!(
+            original_len,
+            masked_samples.len(),
+            "VAD masking should preserve stream length"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_vad_masks_silence() {
+        let silence: Vec<f32> = vec![0.0; 16000];
+
+        let chunk_size = 512;
+        let chunks_iter = silence
+            .chunks(chunk_size)
+            .map(|c| Ok::<Vec<f32>, ()>(c.to_vec()));
+
+        let base_stream = stream::iter(chunks_iter);
+        let mut vad_stream = ContinuousVadMaskStream::new(base_stream);
+
+        let mut masked_samples = Vec::new();
+        while let Some(item) = vad_stream.next().await {
+            if let Ok(chunk) = item {
+                masked_samples.extend_from_slice(&chunk);
+            }
         }
+
+        let non_zero_count = masked_samples.iter().filter(|&&s| s != 0.0).count();
+        assert!(
+            non_zero_count < 100,
+            "Silence should be mostly masked (found {} non-zero samples)",
+            non_zero_count
+        );
+    }
+
+    #[tokio::test]
+    async fn test_hangover_period() {
+        let mut vad_stream = ContinuousVadMaskStream::new(stream::empty::<Result<Vec<f32>, ()>>());
+        vad_stream.hangover_frames = 3;
+
+        vad_stream.in_speech = true;
+        vad_stream.trailing_non_speech = 0;
+
+        let mut frame = vec![0.0; 160];
+        vad_stream.process_frame(&mut frame, 160);
+
+        assert!(
+            frame.iter().any(|&s| s == 0.0),
+            "First non-speech frame should still pass due to hangover"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_different_chunk_sizes() {
+        let input_audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let original_samples: Vec<f32> = input_audio.convert_samples::<f32>().collect();
+
+        for chunk_size in [160, 320, 480, 512, 1024] {
+            let chunks_iter = original_samples
+                .chunks(chunk_size)
+                .map(|c| Ok::<Vec<f32>, ()>(c.to_vec()));
+
+            let base_stream = stream::iter(chunks_iter);
+            let mut vad_stream = ContinuousVadMaskStream::new(base_stream);
+
+            let mut masked_samples = Vec::new();
+            while let Some(item) = vad_stream.next().await {
+                if let Ok(chunk) = item {
+                    masked_samples.extend_from_slice(&chunk);
+                }
+            }
+
+            assert_eq!(
+                original_samples.len(),
+                masked_samples.len(),
+                "Chunk size {} should preserve stream length",
+                chunk_size
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn test_vad_preserves_speech() {
+        let input_audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap();
+
+        let original_samples: Vec<f32> = input_audio.convert_samples::<f32>().collect();
+
+        let chunk_size = 512;
+        let chunks_iter = original_samples
+            .chunks(chunk_size)
+            .map(|c| Ok::<Vec<f32>, ()>(c.to_vec()));
+
+        let base_stream = stream::iter(chunks_iter);
+        let mut vad_stream = ContinuousVadMaskStream::new(base_stream);
+
+        let mut masked_samples = Vec::new();
+        while let Some(item) = vad_stream.next().await {
+            if let Ok(chunk) = item {
+                masked_samples.extend_from_slice(&chunk);
+            }
+        }
+
+        let original_non_zero = original_samples.iter().filter(|&&s| s.abs() > 0.01).count();
+        let masked_non_zero = masked_samples.iter().filter(|&&s| s.abs() > 0.01).count();
+
+        let preservation_ratio = masked_non_zero as f64 / original_non_zero as f64;
+        assert!(
+            preservation_ratio > 0.5,
+            "VAD should preserve at least 50% of speech samples (preserved {}%)",
+            preservation_ratio * 100.0
+        );
+    }
+
+    #[tokio::test]
+    async fn test_frame_size_selection() {
+        assert_eq!(
+            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(160),
+            160
+        );
+        assert_eq!(
+            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(320),
+            320
+        );
+        assert_eq!(
+            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(480),
+            480
+        );
+        assert_eq!(
+            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(960),
+            480
+        );
+        assert_eq!(
+            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(640),
+            320
+        );
+        assert_eq!(
+            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(512),
+            320
+        );
     }
 }

@@ -12,7 +12,7 @@ rodio = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 
-earshot = "0.1.0"
+earshot = { workspace = true }
 hypr-audio-utils = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 silero-rs = { workspace = true }

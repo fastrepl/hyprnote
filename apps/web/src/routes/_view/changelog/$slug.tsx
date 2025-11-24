@@ -56,6 +56,39 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
       diffUrl,
     };
   },
+  head: ({ loaderData }) => {
+    if (!loaderData) return {};
+
+    const { changelog } = loaderData;
+    const currentVersion = semver.parse(changelog.version);
+    const isNightly = currentVersion && currentVersion.prerelease.length > 0;
+
+    const title = `Hyprnote Changelog - Version ${changelog.version}`;
+    const description = `Explore what's new in Hyprnote version ${changelog.version}${isNightly ? " (Nightly)" : ""}.`;
+    const url = `https://hyprnote.com/changelog/${changelog.slug}`;
+    const ogImageUrl = `https://hyprnote.com/og?type=changelog&version=${encodeURIComponent(changelog.version)}&isNightly=${isNightly}`;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:type", content: "article" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { property: "og:image", content: ogImageUrl },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@tryhyprnote" },
+        { name: "twitter:creator", content: "@tryhyprnote" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:url", content: url },
+        { name: "twitter:image", content: ogImageUrl },
+      ],
+    };
+  },
 });
 
 function Component() {

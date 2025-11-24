@@ -5,6 +5,9 @@ use hypr_audio_utils::f32_to_i16_samples;
 pub struct VadAgc {
     agc: MonoAgc,
     vad: VoiceActivityDetector,
+    frame_size: usize,
+    vad_tail: Vec<f32>,
+    last_is_speech: bool,
 }
 
 impl VadAgc {
@@ -12,34 +15,70 @@ impl VadAgc {
         Self {
             agc: MonoAgc::new(desired_output_rms, distortion_factor).expect("failed_to_create_agc"),
             vad: VoiceActivityDetector::new(VoiceActivityProfile::QUALITY),
+            frame_size: 0,
+            vad_tail: Vec::new(),
+            last_is_speech: true,
         }
     }
 
     pub fn process(&mut self, samples: &mut [f32]) {
-        let frame_size = Self::choose_optimal_frame_size(samples.len());
+        if samples.is_empty() {
+            return;
+        }
 
-        if samples.len() <= frame_size {
-            let mut padded = samples.to_vec();
-            padded.resize(frame_size, 0.0);
+        if self.frame_size == 0 {
+            self.frame_size = Self::choose_optimal_frame_size(samples.len());
+        }
+        let frame_size = self.frame_size;
 
-            let i16_samples = f32_to_i16_samples(&padded);
-            let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
+        let mut pos = 0;
 
-            self.agc.freeze_gain(!is_speech);
-            self.agc.process(samples);
-        } else {
-            for chunk in samples.chunks_mut(frame_size) {
-                let mut padded = chunk.to_vec();
-                if padded.len() < frame_size {
-                    padded.resize(frame_size, 0.0);
-                }
+        if !self.vad_tail.is_empty() {
+            let needed = frame_size - self.vad_tail.len();
+            let to_take = needed.min(samples.len());
 
-                let i16_samples = f32_to_i16_samples(&padded);
+            let mut frame_f32 = Vec::with_capacity(frame_size);
+            frame_f32.extend_from_slice(&self.vad_tail);
+            frame_f32.extend_from_slice(&samples[..to_take]);
+
+            if frame_f32.len() == frame_size {
+                let i16_samples = f32_to_i16_samples(&frame_f32);
                 let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
+                self.last_is_speech = is_speech;
 
                 self.agc.freeze_gain(!is_speech);
-                self.agc.process(chunk);
+                self.agc.process(&mut samples[..to_take]);
+
+                pos = to_take;
+                self.vad_tail.clear();
+            } else {
+                self.vad_tail = frame_f32;
+
+                self.agc.freeze_gain(!self.last_is_speech);
+                self.agc.process(samples);
+                return;
             }
+        }
+
+        while samples.len() - pos >= frame_size {
+            let frame = &mut samples[pos..pos + frame_size];
+
+            let i16_samples = f32_to_i16_samples(frame);
+            let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
+            self.last_is_speech = is_speech;
+
+            self.agc.freeze_gain(!is_speech);
+            self.agc.process(frame);
+
+            pos += frame_size;
+        }
+
+        if pos < samples.len() {
+            self.vad_tail.clear();
+            self.vad_tail.extend_from_slice(&samples[pos..]);
+
+            self.agc.freeze_gain(!self.last_is_speech);
+            self.agc.process(&mut samples[pos..]);
         }
     }
 
@@ -80,6 +119,9 @@ impl Default for VadAgc {
         Self {
             agc: MonoAgc::new(0.03, 0.0001).expect("failed_to_create_agc"),
             vad: VoiceActivityDetector::new(VoiceActivityProfile::VERY_AGGRESSIVE),
+            frame_size: 0,
+            vad_tail: Vec::new(),
+            last_is_speech: true,
         }
     }
 }

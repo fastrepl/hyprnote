@@ -221,14 +221,6 @@ async fn start_source_loop(
     myself: &ActorRef<SourceMsg>,
     st: &mut SourceState,
 ) -> Result<(), ActorProcessingErr> {
-    let myself2 = myself.clone();
-    let token = st.token.clone();
-    let mic_muted = st.mic_muted.clone();
-    let mic_device = st.mic_device.clone();
-
-    let stream_cancel_token = CancellationToken::new();
-    st.stream_cancel_token = Some(stream_cancel_token.clone());
-
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     let new_mode = if !st.onboarding && !is_using_headphone() {
         ChannelMode::Single
@@ -253,11 +245,92 @@ async fn start_source_loop(
         }
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     if new_mode == ChannelMode::Single {
+        start_source_loop_single(myself, st).await
+    } else {
+        start_source_loop_dual(myself, st).await
+    }
+}
+
+async fn start_source_loop_single(
+    myself: &ActorRef<SourceMsg>,
+    st: &mut SourceState,
+) -> Result<(), ActorProcessingErr> {
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+    {
         st.run_task = Some(tokio::spawn(async move {}));
         return Ok(());
     }
+
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    {
+        let myself2 = myself.clone();
+        let token = st.token.clone();
+        let mic_muted = st.mic_muted.clone();
+        let mic_device = st.mic_device.clone();
+
+        let stream_cancel_token = CancellationToken::new();
+        st.stream_cancel_token = Some(stream_cancel_token.clone());
+
+        let handle = tokio::spawn(async move {
+            let mic_stream = {
+                let mut mic_input = AudioInput::from_mic(mic_device.clone()).unwrap();
+                let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
+                mic_input
+                    .stream()
+                    .resampled_chunks(super::SAMPLE_RATE, chunk_size)
+                    .unwrap()
+            };
+
+            tokio::pin!(mic_stream);
+
+            loop {
+                tokio::select! {
+                    _ = token.cancelled() => {
+                        drop(mic_stream);
+                        myself2.stop(None);
+                        return;
+                    }
+                    _ = stream_cancel_token.cancelled() => {
+                        drop(mic_stream);
+                        return;
+                    }
+                    mic_next = mic_stream.next() => match mic_next {
+                        Some(Ok(data)) => {
+                            let output_data = if mic_muted.load(Ordering::Relaxed) {
+                                vec![0.0; data.len()]
+                            } else {
+                                data
+                            };
+                            if myself2.cast(SourceMsg::MicChunk(AudioChunk { data: output_data })).is_err() {
+                                tracing::warn!("failed_to_cast_mic_chunk");
+                            }
+                        }
+                        Some(Err(err)) => {
+                            tracing::warn!(error = ?err, "mic_resample_failed");
+                        }
+                        None => break,
+                    },
+                }
+            }
+        });
+
+        st.run_task = Some(handle);
+        Ok(())
+    }
+}
+
+async fn start_source_loop_dual(
+    myself: &ActorRef<SourceMsg>,
+    st: &mut SourceState,
+) -> Result<(), ActorProcessingErr> {
+    let myself2 = myself.clone();
+    let token = st.token.clone();
+    let mic_muted = st.mic_muted.clone();
+    let mic_device = st.mic_device.clone();
+
+    let stream_cancel_token = CancellationToken::new();
+    st.stream_cancel_token = Some(stream_cancel_token.clone());
 
     let handle = tokio::spawn(async move {
         let mic_stream = {

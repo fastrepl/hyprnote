@@ -249,7 +249,7 @@ async fn run_single_stream(
     shutdown_rx: tokio::sync::oneshot::Receiver<()>,
     offset_secs: f64,
     extra: Extra,
-    channel_override: Option<i32>,
+    channel_override: Option<(i32, i32)>,
 ) {
     let client = owhisper_client::ListenClient::builder()
         .api_base(args.base_url.clone())
@@ -412,7 +412,7 @@ async fn spawn_rx_task_dual_split(
                 shutdown_rx_mic,
                 session_offset_secs,
                 extra_mic,
-                Some(0),
+                Some((0, 2)),
             )
             .await;
         });
@@ -425,7 +425,7 @@ async fn spawn_rx_task_dual_split(
                 shutdown_rx_spk,
                 session_offset_secs,
                 extra_spk,
-                Some(1),
+                Some((1, 2)),
             )
             .await;
         });
@@ -473,7 +473,7 @@ async fn process_stream<S, E>(
     mut shutdown_rx: tokio::sync::oneshot::Receiver<()>,
     offset_secs: f64,
     extra: Extra,
-    channel_override: Option<i32>,
+    channel_override: Option<(i32, i32)>,
 ) where
     S: futures_util::Stream<Item = Result<StreamResponse, E>>,
     E: std::fmt::Debug,
@@ -509,8 +509,8 @@ async fn process_stream<S, E>(
 
                                     response.apply_offset(offset_secs);
                                     response.set_extra(&extra);
-                                    if let Some(channel_idx) = channel_override {
-                                        response.remap_channel_index(0, channel_idx);
+                                    if let Some((channel_idx, total_channels)) = channel_override {
+                                        response.set_channel_index(channel_idx, total_channels);
                                     }
 
                                     let _ = myself.send_message(ListenerMsg::StreamResponse(response));
@@ -539,8 +539,8 @@ async fn process_stream<S, E>(
                     Ok(Some(Ok(mut response))) => {
                         response.apply_offset(offset_secs);
                         response.set_extra(&extra);
-                        if let Some(channel_idx) = channel_override {
-                            response.remap_channel_index(0, channel_idx);
+                        if let Some((channel_idx, total_channels)) = channel_override {
+                            response.set_channel_index(channel_idx, total_channels);
                         }
 
                         let _ = myself.send_message(ListenerMsg::StreamResponse(response));

@@ -181,6 +181,12 @@ impl StreamResponse {
             }
         }
     }
+
+    pub fn set_channel_index(&mut self, channel_idx: i32, total_channels: i32) {
+        if let StreamResponse::TranscriptResponse { channel_index, .. } = self {
+            *channel_index = vec![channel_idx, total_channels];
+        }
+    }
 }
 
 #[cfg(test)]

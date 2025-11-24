@@ -140,17 +140,171 @@ async fn wait_for_actor_shutdown(actor_name: ractor::ActorName) {
     }
 }
 
-async fn wait_for_process_cleanup() {
+pub struct ProcessCleanupDeps<F1, F2, F3>
+where
+    F1: Fn(
+            hypr_host::ProcessMatcher,
+            u64,
+            u64,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = bool> + Send>>
+        + Send
+        + Sync,
+    F2: Fn(hypr_host::ProcessMatcher) -> u16 + Send + Sync,
+    F3: Fn(std::time::Duration) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>
+        + Send
+        + Sync,
+{
+    pub wait_for_termination: F1,
+    pub kill_processes: F2,
+    pub sleep: F3,
+}
+
+impl
+    ProcessCleanupDeps<
+        fn(
+            hypr_host::ProcessMatcher,
+            u64,
+            u64,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = bool> + Send>>,
+        fn(hypr_host::ProcessMatcher) -> u16,
+        fn(std::time::Duration) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>,
+    >
+{
+    pub fn production() -> Self {
+        Self {
+            wait_for_termination: |matcher, max_wait, interval| {
+                Box::pin(hypr_host::wait_for_processes_to_terminate(
+                    matcher, max_wait, interval,
+                ))
+            },
+            kill_processes: hypr_host::kill_processes_by_matcher,
+            sleep: |duration| Box::pin(tokio::time::sleep(duration)),
+        }
+    }
+}
+
+async fn wait_for_process_cleanup_with<F1, F2, F3>(deps: &ProcessCleanupDeps<F1, F2, F3>)
+where
+    F1: Fn(
+            hypr_host::ProcessMatcher,
+            u64,
+            u64,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = bool> + Send>>
+        + Send
+        + Sync,
+    F2: Fn(hypr_host::ProcessMatcher) -> u16 + Send + Sync,
+    F3: Fn(std::time::Duration) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>
+        + Send
+        + Sync,
+{
     let process_terminated =
-        hypr_host::wait_for_processes_to_terminate(hypr_host::ProcessMatcher::Sidecar, 5000, 100)
-            .await;
+        (deps.wait_for_termination)(hypr_host::ProcessMatcher::Sidecar, 5000, 100).await;
 
     if !process_terminated {
         tracing::warn!("external_stt_process_did_not_terminate_in_time");
-        let killed = hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+        let killed = (deps.kill_processes)(hypr_host::ProcessMatcher::Sidecar);
         if killed > 0 {
             tracing::info!("force_killed_stt_processes: {}", killed);
-            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            (deps.sleep)(std::time::Duration::from_millis(500)).await;
         }
+    }
+}
+
+async fn wait_for_process_cleanup() {
+    let deps = ProcessCleanupDeps::production();
+    wait_for_process_cleanup_with(&deps).await;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::{Arc, Mutex};
+
+    #[tokio::test]
+    async fn test_cleanup_process_terminates_gracefully() {
+        let kill_called = Arc::new(Mutex::new(false));
+        let kill_called_clone = kill_called.clone();
+
+        let deps = ProcessCleanupDeps {
+            wait_for_termination: |_, _, _| Box::pin(async { true }),
+            kill_processes: move |_| {
+                *kill_called_clone.lock().unwrap() = true;
+                0
+            },
+            sleep: |_| Box::pin(async {}),
+        };
+
+        wait_for_process_cleanup_with(&deps).await;
+
+        assert!(
+            !*kill_called.lock().unwrap(),
+            "kill_processes should not be called when process terminates gracefully"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_cleanup_process_never_terminates() {
+        let kill_called = Arc::new(Mutex::new(false));
+        let kill_called_clone = kill_called.clone();
+        let sleep_called = Arc::new(Mutex::new(false));
+        let sleep_called_clone = sleep_called.clone();
+
+        let deps = ProcessCleanupDeps {
+            wait_for_termination: |_, _, _| Box::pin(async { false }),
+            kill_processes: move |_| {
+                *kill_called_clone.lock().unwrap() = true;
+                1
+            },
+            sleep: move |_| {
+                let sleep_called = sleep_called_clone.clone();
+                Box::pin(async move {
+                    *sleep_called.lock().unwrap() = true;
+                })
+            },
+        };
+
+        wait_for_process_cleanup_with(&deps).await;
+
+        assert!(
+            *kill_called.lock().unwrap(),
+            "kill_processes should be called when process doesn't terminate"
+        );
+        assert!(
+            *sleep_called.lock().unwrap(),
+            "sleep should be called after killing processes"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_cleanup_process_kill_returns_zero() {
+        let kill_called = Arc::new(Mutex::new(false));
+        let kill_called_clone = kill_called.clone();
+        let sleep_called = Arc::new(Mutex::new(false));
+        let sleep_called_clone = sleep_called.clone();
+
+        let deps = ProcessCleanupDeps {
+            wait_for_termination: |_, _, _| Box::pin(async { false }),
+            kill_processes: move |_| {
+                *kill_called_clone.lock().unwrap() = true;
+                0
+            },
+            sleep: move |_| {
+                let sleep_called = sleep_called_clone.clone();
+                Box::pin(async move {
+                    *sleep_called.lock().unwrap() = true;
+                })
+            },
+        };
+
+        wait_for_process_cleanup_with(&deps).await;
+
+        assert!(
+            *kill_called.lock().unwrap(),
+            "kill_processes should be called when process doesn't terminate"
+        );
+        assert!(
+            !*sleep_called.lock().unwrap(),
+            "sleep should not be called when kill returns 0"
+        );
     }
 }

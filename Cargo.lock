@@ -7047,6 +7047,7 @@ dependencies = [
  "mac_address2",
  "machine-uid",
  "sysinfo 0.37.2",
+ "tokio",
 ]
 
 [[package]]

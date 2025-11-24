@@ -28,6 +28,7 @@ import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewRoadmapRouteImport } from './routes/_view/roadmap'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
+import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
 import { Route as ViewFaqRouteImport } from './routes/_view/faq'
 import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
 import { Route as ViewBrandRouteImport } from './routes/_view/brand'
@@ -93,6 +94,7 @@ import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
 import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
 import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
+import { Route as ViewAppFileTranscriptionRouteImport } from './routes/_view/app/file-transcription'
 import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
 
@@ -188,6 +190,11 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
 const ViewPressKitRoute = ViewPressKitRouteImport.update({
   id: '/press-kit',
   path: '/press-kit',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewFileTranscriptionRoute = ViewFileTranscriptionRouteImport.update({
+  id: '/file-transcription',
+  path: '/file-transcription',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewFaqRoute = ViewFaqRouteImport.update({
@@ -519,6 +526,12 @@ const ViewAppIntegrationRoute = ViewAppIntegrationRouteImport.update({
   path: '/integration',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ViewAppFileTranscriptionRoute =
+  ViewAppFileTranscriptionRouteImport.update({
+    id: '/file-transcription',
+    path: '/file-transcription',
+    getParentRoute: () => ViewAppRouteRoute,
+  } as any)
 const ViewAppCheckoutRoute = ViewAppCheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
@@ -547,6 +560,7 @@ export interface FileRoutesByFullPath {
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/faq': typeof ViewFaqRoute
+  '/file-transcription': typeof ViewFileTranscriptionRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
@@ -558,6 +572,7 @@ export interface FileRoutesByFullPath {
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
+  '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
   '/app/integration': typeof ViewAppIntegrationRoute
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
@@ -632,6 +647,7 @@ export interface FileRoutesByTo {
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/faq': typeof ViewFaqRoute
+  '/file-transcription': typeof ViewFileTranscriptionRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
@@ -643,6 +659,7 @@ export interface FileRoutesByTo {
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
+  '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
   '/app/integration': typeof ViewAppIntegrationRoute
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
@@ -721,6 +738,7 @@ export interface FileRoutesById {
   '/_view/brand': typeof ViewBrandRoute
   '/_view/enterprise': typeof ViewEnterpriseRoute
   '/_view/faq': typeof ViewFaqRoute
+  '/_view/file-transcription': typeof ViewFileTranscriptionRoute
   '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/roadmap': typeof ViewRoadmapRoute
@@ -732,6 +750,7 @@ export interface FileRoutesById {
   '/_view/': typeof ViewIndexRoute
   '/_view/app/account': typeof ViewAppAccountRoute
   '/_view/app/checkout': typeof ViewAppCheckoutRoute
+  '/_view/app/file-transcription': typeof ViewAppFileTranscriptionRoute
   '/_view/app/integration': typeof ViewAppIntegrationRoute
   '/_view/blog/$slug': typeof ViewBlogSlugRoute
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
@@ -810,6 +829,7 @@ export interface FileRouteTypes {
     | '/brand'
     | '/enterprise'
     | '/faq'
+    | '/file-transcription'
     | '/press-kit'
     | '/pricing'
     | '/roadmap'
@@ -821,6 +841,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app/account'
     | '/app/checkout'
+    | '/app/file-transcription'
     | '/app/integration'
     | '/blog/$slug'
     | '/callback/auth'
@@ -895,6 +916,7 @@ export interface FileRouteTypes {
     | '/brand'
     | '/enterprise'
     | '/faq'
+    | '/file-transcription'
     | '/press-kit'
     | '/pricing'
     | '/roadmap'
@@ -906,6 +928,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app/account'
     | '/app/checkout'
+    | '/app/file-transcription'
     | '/app/integration'
     | '/blog/$slug'
     | '/callback/auth'
@@ -983,6 +1006,7 @@ export interface FileRouteTypes {
     | '/_view/brand'
     | '/_view/enterprise'
     | '/_view/faq'
+    | '/_view/file-transcription'
     | '/_view/press-kit'
     | '/_view/pricing'
     | '/_view/roadmap'
@@ -994,6 +1018,7 @@ export interface FileRouteTypes {
     | '/_view/'
     | '/_view/app/account'
     | '/_view/app/checkout'
+    | '/_view/app/file-transcription'
     | '/_view/app/integration'
     | '/_view/blog/$slug'
     | '/_view/callback/auth'
@@ -1203,6 +1228,13 @@ declare module '@tanstack/react-router' {
       path: '/press-kit'
       fullPath: '/press-kit'
       preLoaderRoute: typeof ViewPressKitRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/file-transcription': {
+      id: '/_view/file-transcription'
+      path: '/file-transcription'
+      fullPath: '/file-transcription'
+      preLoaderRoute: typeof ViewFileTranscriptionRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/faq': {
@@ -1660,6 +1692,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppIntegrationRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
+    '/_view/app/file-transcription': {
+      id: '/_view/app/file-transcription'
+      path: '/file-transcription'
+      fullPath: '/app/file-transcription'
+      preLoaderRoute: typeof ViewAppFileTranscriptionRouteImport
+      parentRoute: typeof ViewAppRouteRoute
+    }
     '/_view/app/checkout': {
       id: '/_view/app/checkout'
       path: '/checkout'
@@ -1680,6 +1719,7 @@ declare module '@tanstack/react-router' {
 interface ViewAppRouteRouteChildren {
   ViewAppAccountRoute: typeof ViewAppAccountRoute
   ViewAppCheckoutRoute: typeof ViewAppCheckoutRoute
+  ViewAppFileTranscriptionRoute: typeof ViewAppFileTranscriptionRoute
   ViewAppIntegrationRoute: typeof ViewAppIntegrationRoute
   ViewAppIndexRoute: typeof ViewAppIndexRoute
 }
@@ -1687,6 +1727,7 @@ interface ViewAppRouteRouteChildren {
 const ViewAppRouteRouteChildren: ViewAppRouteRouteChildren = {
   ViewAppAccountRoute: ViewAppAccountRoute,
   ViewAppCheckoutRoute: ViewAppCheckoutRoute,
+  ViewAppFileTranscriptionRoute: ViewAppFileTranscriptionRoute,
   ViewAppIntegrationRoute: ViewAppIntegrationRoute,
   ViewAppIndexRoute: ViewAppIndexRoute,
 }
@@ -1785,6 +1826,7 @@ interface ViewRouteRouteChildren {
   ViewBrandRoute: typeof ViewBrandRoute
   ViewEnterpriseRoute: typeof ViewEnterpriseRoute
   ViewFaqRoute: typeof ViewFaqRoute
+  ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
   ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
   ViewRoadmapRoute: typeof ViewRoadmapRoute
@@ -1831,6 +1873,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBrandRoute: ViewBrandRoute,
   ViewEnterpriseRoute: ViewEnterpriseRoute,
   ViewFaqRoute: ViewFaqRoute,
+  ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
   ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
   ViewRoadmapRoute: ViewRoadmapRoute,

@@ -73,7 +73,13 @@ pub async fn check_system_audio_permission<R: tauri::Runtime>(
 
     #[cfg(not(target_os = "macos"))]
     {
-        Ok(PermissionStatus::Denied)
+        let mut speaker_sample_stream = hypr_audio::AudioInput::from_speaker().stream();
+        let sample = speaker_sample_stream.next().await;
+        Ok(if sample.is_some() {
+            PermissionStatus::Authorized
+        } else {
+            PermissionStatus::Denied
+        })
     }
 }
 
@@ -82,6 +88,7 @@ pub async fn check_system_audio_permission<R: tauri::Runtime>(
 pub async fn request_system_audio_permission<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
     {
         use tauri_plugin_shell::ShellExt;
 

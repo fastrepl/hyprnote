@@ -15048,6 +15048,7 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
+ "vad",
  "vad2",
  "vorbis_rs",
 ]
@@ -17311,7 +17312,9 @@ dependencies = [
 name = "vad"
 version = "0.1.0"
 dependencies = [
+ "audio-utils",
  "data",
+ "earshot",
  "futures-util",
  "hound",
  "kalosm-sound",

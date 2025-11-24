@@ -1,7 +1,9 @@
 mod continuous;
+mod continuous2;
 mod error;
 
 pub use continuous::*;
+pub use continuous2::*;
 pub use error::*;
 
 #[cfg(test)]

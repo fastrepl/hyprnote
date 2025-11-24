@@ -15,6 +15,8 @@ export const env = createEnv({
     STRIPE_YEARLY_PRICE_ID: z.string().min(1),
 
     LOOPS_KEY: z.string().min(1),
+
+    DEEPGRAM_API_KEY: z.string().min(1),
   },
 
   clientPrefix: "VITE_",

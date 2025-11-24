@@ -6,6 +6,8 @@ import {
   TranscriptDisplay,
 } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
+import { transcribeAudio } from "@/functions/transcription";
+import { uploadAudioFile } from "@/functions/upload";
 
 export const Route = createFileRoute("/_view/app/file-transcription")({
   component: Component,
@@ -18,23 +20,80 @@ function Component() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleFileSelect = (selectedFile: File) => {
+  const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
     setTranscript(null);
+    setError(null);
     setIsProcessing(true);
 
-    setTimeout(() => {
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(selectedFile);
+
+      reader.onload = async () => {
+        const base64Data = reader.result?.toString().split(",")[1];
+        if (!base64Data) {
+          setError("Failed to read file");
+          setIsProcessing(false);
+          return;
+        }
+
+        const uploadResult = await uploadAudioFile({
+          data: {
+            fileName: selectedFile.name,
+            fileType: selectedFile.type,
+            fileData: base64Data,
+          },
+        });
+
+        if ("error" in uploadResult && uploadResult.error) {
+          setError(uploadResult.message || "Failed to upload file");
+          setIsProcessing(false);
+          return;
+        }
+
+        if (!("url" in uploadResult)) {
+          setError("Failed to get upload URL");
+          setIsProcessing(false);
+          return;
+        }
+
+        const transcriptionResult = await transcribeAudio({
+          data: {
+            audioUrl: uploadResult.url,
+            fileName: selectedFile.name,
+            fileSize: selectedFile.size,
+          },
+        });
+
+        if ("error" in transcriptionResult && transcriptionResult.error) {
+          setError(transcriptionResult.message || "Failed to transcribe audio");
+          setIsProcessing(false);
+          return;
+        }
+
+        if ("transcript" in transcriptionResult) {
+          setTranscript(transcriptionResult.transcript);
+        }
+        setIsProcessing(false);
+      };
+
+      reader.onerror = () => {
+        setError("Failed to read file");
+        setIsProcessing(false);
+      };
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
       setIsProcessing(false);
-      setTranscript(
-        "This is a sample transcript. Deepgram integration will be added later.",
-      );
-    }, 2000);
+    }
   };
 
   const handleRemoveFile = () => {
     setFile(null);
     setTranscript(null);
+    setError(null);
     setIsProcessing(false);
   };
 
@@ -65,6 +124,12 @@ function Component() {
               fileSize={file.size}
               onRemove={handleRemoveFile}
             />
+          )}
+
+          {error && (
+            <div className="border border-red-200 bg-red-50 rounded-sm p-4">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
           )}
 
           <div>

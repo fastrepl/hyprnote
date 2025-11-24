@@ -9,6 +9,7 @@
     "typecheck": "pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@deepgram/sdk": "^4.11.2",
     "@hypr/ui": "workspace:*",
     "@hypr/utils": "workspace:*",
     "@iconify-icon/react": "^3.0.3",

@@ -39,6 +39,7 @@ pub struct ListenerArgs {
     pub session_started_at: Instant,
     pub session_started_at_unix: SystemTime,
     pub session_id: String,
+    pub use_dual_split_ws: bool,
 }
 
 pub struct ListenerState {
@@ -200,6 +201,8 @@ async fn spawn_rx_task(
 > {
     if args.mode == crate::actors::ChannelMode::Single {
         spawn_rx_task_single(args, myself).await
+    } else if args.use_dual_split_ws {
+        spawn_rx_task_dual_split(args, myself).await
     } else {
         spawn_rx_task_dual(args, myself).await
     }
@@ -273,6 +276,7 @@ async fn spawn_rx_task_single(
             shutdown_rx,
             session_offset_secs,
             extra,
+            None,
         )
         .await;
     });
@@ -321,11 +325,144 @@ async fn spawn_rx_task_dual(
             shutdown_rx,
             session_offset_secs,
             extra,
+            None,
         )
         .await;
     });
 
     Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx))
+}
+
+async fn spawn_rx_task_dual_split(
+    args: ListenerArgs,
+    myself: ActorRef<ListenerMsg>,
+) -> Result<
+    (
+        ChannelSender,
+        tokio::task::JoinHandle<()>,
+        tokio::sync::oneshot::Sender<()>,
+    ),
+    ActorProcessingErr,
+> {
+    let (shutdown_tx_global, shutdown_rx_global) = tokio::sync::oneshot::channel::<()>();
+    let (session_offset_secs, extra) = build_extra(&args);
+
+    let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
+
+    let rx_task = tokio::spawn(async move {
+        let (mic_tx, mic_rx) =
+            tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
+        let (spk_tx, spk_rx) =
+            tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
+
+        let (shutdown_tx_mic, shutdown_rx_mic) = tokio::sync::oneshot::channel::<()>();
+        let (shutdown_tx_spk, shutdown_rx_spk) = tokio::sync::oneshot::channel::<()>();
+
+        let myself_mic = myself.clone();
+        let myself_spk = myself.clone();
+        let extra_mic = extra.clone();
+        let extra_spk = extra;
+        let args_mic = args.clone();
+        let args_spk = args;
+
+        let mic_task = tokio::spawn(async move {
+            let mic_client = owhisper_client::ListenClient::builder()
+                .api_base(args_mic.base_url.clone())
+                .api_key(args_mic.api_key.clone())
+                .params(build_listen_params(&args_mic))
+                .build_single();
+
+            let mic_outbound = tokio_stream::wrappers::ReceiverStream::new(mic_rx);
+
+            let (mic_stream, mic_handle) = match mic_client.from_realtime_audio(mic_outbound).await
+            {
+                Ok(res) => res,
+                Err(e) => {
+                    let _ =
+                        myself_mic.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+                    return;
+                }
+            };
+            futures_util::pin_mut!(mic_stream);
+
+            process_stream(
+                mic_stream,
+                mic_handle,
+                myself_mic,
+                shutdown_rx_mic,
+                session_offset_secs,
+                extra_mic,
+                Some(0),
+            )
+            .await;
+        });
+
+        let spk_task = tokio::spawn(async move {
+            let spk_client = owhisper_client::ListenClient::builder()
+                .api_base(args_spk.base_url.clone())
+                .api_key(args_spk.api_key.clone())
+                .params(build_listen_params(&args_spk))
+                .build_single();
+
+            let spk_outbound = tokio_stream::wrappers::ReceiverStream::new(spk_rx);
+
+            let (spk_stream, spk_handle) = match spk_client.from_realtime_audio(spk_outbound).await
+            {
+                Ok(res) => res,
+                Err(e) => {
+                    let _ =
+                        myself_spk.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+                    return;
+                }
+            };
+            futures_util::pin_mut!(spk_stream);
+
+            process_stream(
+                spk_stream,
+                spk_handle,
+                myself_spk,
+                shutdown_rx_spk,
+                session_offset_secs,
+                extra_spk,
+                Some(1),
+            )
+            .await;
+        });
+
+        let forward_task = tokio::spawn(async move {
+            let mut rx = rx;
+            let mut shutdown_rx_global = shutdown_rx_global;
+
+            loop {
+                tokio::select! {
+                    _ = &mut shutdown_rx_global => {
+                        let _ = shutdown_tx_mic.send(());
+                        let _ = shutdown_tx_spk.send(());
+                        break;
+                    }
+                    msg = rx.recv() => {
+                        match msg {
+                            Some(MixedMessage::Audio((mic, spk))) => {
+                                let _ = mic_tx.try_send(MixedMessage::Audio(mic));
+                                let _ = spk_tx.try_send(MixedMessage::Audio(spk));
+                            }
+                            Some(MixedMessage::Control(ctrl)) => {
+                                let _ = mic_tx.try_send(MixedMessage::Control(ctrl.clone()));
+                                let _ = spk_tx.try_send(MixedMessage::Control(ctrl));
+                            }
+                            None => {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        let _ = tokio::join!(mic_task, spk_task, forward_task);
+    });
+
+    Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx_global))
 }
 
 async fn process_stream<S, E>(
@@ -335,6 +472,7 @@ async fn process_stream<S, E>(
     mut shutdown_rx: tokio::sync::oneshot::Receiver<()>,
     offset_secs: f64,
     extra: Extra,
+    channel_override: Option<i32>,
 ) where
     S: futures_util::Stream<Item = Result<StreamResponse, E>>,
     E: std::fmt::Debug,
@@ -370,6 +508,9 @@ async fn process_stream<S, E>(
 
                                     response.apply_offset(offset_secs);
                                     response.set_extra(&extra);
+                                    if let Some(channel_idx) = channel_override {
+                                        response.remap_channel_index(0, channel_idx);
+                                    }
 
                                     let _ = myself.send_message(ListenerMsg::StreamResponse(response));
 
@@ -397,6 +538,9 @@ async fn process_stream<S, E>(
                     Ok(Some(Ok(mut response))) => {
                         response.apply_offset(offset_secs);
                         response.set_extra(&extra);
+                        if let Some(channel_idx) = channel_override {
+                            response.remap_channel_index(0, channel_idx);
+                        }
 
                         let _ = myself.send_message(ListenerMsg::StreamResponse(response));
                     }

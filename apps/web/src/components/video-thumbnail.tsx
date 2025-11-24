@@ -31,7 +31,7 @@ export function VideoThumbnail({
         style={
           {
             "--controls": "none",
-          } as React.CSSProperties
+          } as React.CSSProperties & { [key: `--${string}`]: string }
         }
       />
 

@@ -22,7 +22,6 @@ export function StreamingView({ enhancedNoteId }: { enhancedNoteId: string }) {
     <div ref={containerRef} className="flex flex-col pb-2 space-y-1">
       <Streamdown
         components={streamdownComponents}
-        disallowedElements={["code", "pre"]}
         className={cn(["space-y-2"])}
       >
         {streamedText}

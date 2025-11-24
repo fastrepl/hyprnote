@@ -22,6 +22,8 @@ jobs:
           - platform: "macos"
             runner: "macos-15"
     runs-on: ${{ matrix.runner }}
+    env:
+      ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/pnpm_install
@@ -31,8 +33,3 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/web
       - run: pnpm -F web test
-      - uses: argos-ci/action@v1
-        if: always()
-        with:
-          token: ${{ secrets.ARGOS_TOKEN }}
-          uploadDir: apps/web/.argos

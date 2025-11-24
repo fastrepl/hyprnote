@@ -78,11 +78,20 @@ const detailsFeatures = [
     link: "/product/ai-notetaking#editor",
   },
   {
+    icon: "mdi:upload-outline",
+    title: "Upload Audio",
+    description: "Import audio files or transcripts to convert into notes",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/upload-audio.jpg",
+    link: "/product/ai-notetaking#transcription",
+  },
+  {
     icon: "mdi:account-multiple-outline",
     title: "Contacts",
     description: "Organize and manage your contacts with ease",
     image:
       "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/contacts.jpg",
+    link: "/product/mini-apps#contacts",
   },
   {
     icon: "mdi:calendar-outline",
@@ -90,13 +99,7 @@ const detailsFeatures = [
     description: "Stay on top of your schedule with integrated calendar",
     image:
       "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/calendar.jpg",
-  },
-  {
-    icon: "mdi:upload-outline",
-    title: "Upload Audio",
-    description: "Import audio files or transcripts to convert into notes",
-    comingSoon: true,
-    link: "/product/ai-notetaking#upload",
+    link: "/product/mini-apps#calendar",
   },
   {
     icon: "mdi:bookshelf",

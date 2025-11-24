@@ -75,7 +75,11 @@ function HeroSection() {
 
 function ContactsSection() {
   return (
-    <section className="bg-stone-50/30">
+    <section className="bg-stone-50/30 relative">
+      <div
+        id="contacts"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
@@ -251,7 +255,11 @@ function ContactsSection() {
 
 function CalendarSection() {
   return (
-    <section className="bg-stone-50/30">
+    <section className="bg-stone-50/30 relative">
+      <div
+        id="calendar"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
@@ -411,7 +419,11 @@ function CalendarSection() {
 
 function DailyNotesSection() {
   return (
-    <section className="bg-stone-50/30">
+    <section className="bg-stone-50/30 relative">
+      <div
+        id="daily-notes"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
@@ -509,7 +521,11 @@ function DailyNotesSection() {
 
 function NoteshelfSection() {
   return (
-    <section className="bg-stone-50/30">
+    <section className="bg-stone-50/30 relative">
+      <div
+        id="noteshelf"
+        className="absolute top-[-69px] h-[69px] pointer-events-none"
+      />
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">

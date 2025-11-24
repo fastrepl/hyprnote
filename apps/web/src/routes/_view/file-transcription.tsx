@@ -1,5 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
+import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
+import "@hypr/tiptap/styles.css";
 
 import {
   FileInfo,
@@ -19,6 +23,7 @@ function Component() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);
+  const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
@@ -37,7 +42,18 @@ function Component() {
     setFile(null);
     setTranscript(null);
     setIsProcessing(false);
+    setNoteContent(EMPTY_TIPTAP_DOC);
   };
+
+  const mentionConfig = useMemo(
+    () => ({
+      trigger: "@",
+      handleSearch: async () => {
+        return [];
+      },
+    }),
+    [],
+  );
 
   return (
     <div className="min-h-[calc(100vh-200px)]">
@@ -67,6 +83,17 @@ function Component() {
               onRemove={handleRemoveFile}
             />
           )}
+
+          <div>
+            <h2 className="text-lg font-medium font-serif mb-4">Notes</h2>
+            <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px]">
+              <NoteEditor
+                initialContent={noteContent}
+                handleChange={setNoteContent}
+                mentionConfig={mentionConfig}
+              />
+            </div>
+          </div>
 
           <div>
             <div className="flex items-center justify-between mb-4">

@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { FileInfo, TranscriptDisplay } from "@/components/transcription/transcript-display";
+import {
+  FileInfo,
+  TranscriptDisplay,
+} from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
 
 export const Route = createFileRoute("/_view/file-transcription")({
@@ -53,7 +56,10 @@ function Component() {
 
         <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
           {!file ? (
-            <UploadArea onFileSelect={handleFileSelect} disabled={isProcessing} />
+            <UploadArea
+              onFileSelect={handleFileSelect}
+              disabled={isProcessing}
+            />
           ) : (
             <FileInfo
               fileName={file.name}

@@ -43,6 +43,11 @@ export interface TaskArgsMapTransformed {
         end_ms: number;
       }>;
     }>;
+    noteHistory?: {
+      beforeMeeting?: string;
+      duringMeeting?: string;
+      afterMeeting?: string;
+    };
     template?: Pick<Template, "sections">;
   };
   title: {

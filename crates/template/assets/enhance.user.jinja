@@ -36,4 +36,24 @@ Sections to cover:
 
 {% endif %}
 
+{%- if note_history %}
+{%- if note_history.beforeMeeting %}
+
+Notes written before the meeting (research, planning):
+{{ note_history.beforeMeeting }}
+{%- endif %}
+
+{%- if note_history.duringMeeting %}
+
+Notes written during the meeting:
+{{ note_history.duringMeeting }}
+{%- endif %}
+
+{%- if note_history.afterMeeting %}
+
+Notes written after the meeting:
+{{ note_history.afterMeeting }}
+{%- endif %}
+{%- endif %}
+
 {{ segments | transcript }}

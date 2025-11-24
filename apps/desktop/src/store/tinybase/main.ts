@@ -98,6 +98,36 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             deleted: !cells,
             updated: !!cells,
           });
+
+          if (tableId === TABLE_SESSIONS && cells && "raw_md" in cells) {
+            const rawMd = store.getCell("sessions", rowId, "raw_md");
+            if (typeof rawMd === "string") {
+              const userId = store.getCell("sessions", rowId, "user_id");
+              const createdAtMs = Date.now();
+
+              let transcriptId: string | undefined;
+              store.forEachRow("transcripts", (tId, _forEachCell) => {
+                const tSessionId = store.getCell(
+                  "transcripts",
+                  tId,
+                  "session_id",
+                );
+                if (tSessionId === rowId) {
+                  transcriptId = tId;
+                }
+              });
+
+              const historyId = crypto.randomUUID();
+              store.setRow("note_history", historyId, {
+                user_id: typeof userId === "string" ? userId : DEFAULT_USER_ID,
+                created_at: new Date().toISOString(),
+                session_id: rowId,
+                content: rawMd,
+                created_at_ms: createdAtMs,
+                transcript_id: transcriptId,
+              });
+            }
+          }
         });
       });
     },

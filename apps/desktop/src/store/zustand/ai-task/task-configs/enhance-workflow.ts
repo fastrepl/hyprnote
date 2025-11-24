@@ -80,7 +80,8 @@ async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
 }
 
 async function getUserPrompt(args: TaskArgsMapTransformed["enhance"]) {
-  const { rawMd, sessionData, participants, template, segments } = args;
+  const { rawMd, sessionData, participants, template, segments, noteHistory } =
+    args;
 
   const result = await templateCommands.render("enhance.user", {
     content: rawMd,
@@ -88,6 +89,7 @@ async function getUserPrompt(args: TaskArgsMapTransformed["enhance"]) {
     participants,
     template,
     segments,
+    note_history: noteHistory,
   });
 
   if (result.status === "error") {

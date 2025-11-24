@@ -11,6 +11,7 @@ import {
   mappingSessionParticipantSchema as baseMappingSessionParticipantSchema,
   mappingTagSessionSchema as baseMappingTagSessionSchema,
   memorySchema as baseMemorySchema,
+  noteHistorySchema as baseNoteHistorySchema,
   organizationSchema as baseOrganizationSchema,
   sessionSchema as baseSessionSchema,
   speakerHintSchema as baseSpeakerHintSchema,
@@ -116,6 +117,17 @@ export const memorySchema = baseMemorySchema.omit({ id: true }).extend({
   created_at: z.string(),
 });
 
+export const noteHistorySchema = baseNoteHistorySchema
+  .omit({ id: true })
+  .extend({
+    created_at: z.string(),
+    created_at_ms: z.number(),
+    transcript_id: z.preprocess(
+      (val) => val ?? undefined,
+      z.string().optional(),
+    ),
+  });
+
 export const enhancedNoteSchema = z.object({
   user_id: z.string(),
   created_at: z.string(),
@@ -165,6 +177,7 @@ export type TemplateSection = z.infer<typeof templateSectionSchema>;
 export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export type Memory = z.infer<typeof memorySchema>;
+export type NoteHistory = z.infer<typeof noteHistorySchema>;
 export type EnhancedNote = z.infer<typeof enhancedNoteSchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
@@ -176,6 +189,7 @@ export type SpeakerHintStorage = ToStorageType<
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
 export type MemoryStorage = ToStorageType<typeof memorySchema>;
+export type NoteHistoryStorage = ToStorageType<typeof noteHistorySchema>;
 export type EnhancedNoteStorage = ToStorageType<typeof enhancedNoteSchema>;
 
 export const externalTableSchemaForTinybase = {
@@ -296,6 +310,14 @@ export const externalTableSchemaForTinybase = {
     type: { type: "string" },
     text: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof memorySchema>,
+  note_history: {
+    user_id: { type: "string" },
+    created_at: { type: "string" },
+    session_id: { type: "string" },
+    content: { type: "string" },
+    created_at_ms: { type: "number" },
+    transcript_id: { type: "string" },
+  } satisfies InferTinyBaseSchema<typeof noteHistorySchema>,
   enhanced_notes: {
     user_id: { type: "string" },
     created_at: { type: "string" },

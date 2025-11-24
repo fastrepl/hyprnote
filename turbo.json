@@ -10,7 +10,8 @@
       "cache": false
     },
     "build": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "outputs": ["storybook-static/**"]
     },
     "tauri:dev": {
       "dependsOn": ["^build"],

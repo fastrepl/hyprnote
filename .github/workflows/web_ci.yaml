@@ -28,4 +28,11 @@ jobs:
       - uses: denoland/setup-deno@v2
       - run: pnpm -F ui build
       - run: pnpm -F web typecheck
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/web
       - run: pnpm -F web test
+      - uses: argos-ci/action@v1
+        if: always()
+        with:
+          token: ${{ secrets.ARGOS_TOKEN }}
+          uploadDir: apps/web/.argos

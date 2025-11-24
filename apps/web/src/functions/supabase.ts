@@ -18,7 +18,7 @@ export const getSupabaseBrowserClient = createClientOnlyFn(() => {
 });
 
 export const getSupabaseServerClient = createServerOnlyFn(() => {
-  return createServerClient(env.SUPABASE_URL, env.SUPABASE_PUBLISHABLE_KEY, {
+  return createServerClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
         return Object.entries(getCookies()).map(([name, value]) => ({

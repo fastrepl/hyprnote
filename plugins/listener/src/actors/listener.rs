@@ -39,7 +39,6 @@ pub struct ListenerArgs {
     pub session_started_at: Instant,
     pub session_started_at_unix: SystemTime,
     pub session_id: String,
-    pub use_dual_split_ws: bool,
 }
 
 pub struct ListenerState {
@@ -188,6 +187,14 @@ impl Actor for ListenerActor {
     }
 }
 
+fn is_local_stt_base_url(base_url: &str) -> bool {
+    if let Ok(parsed) = url::Url::parse(base_url) {
+        matches!(parsed.host_str(), Some("localhost" | "127.0.0.1" | "::1"))
+    } else {
+        base_url.contains("localhost") || base_url.contains("127.0.0.1")
+    }
+}
+
 async fn spawn_rx_task(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
@@ -201,7 +208,7 @@ async fn spawn_rx_task(
 > {
     if args.mode == crate::actors::ChannelMode::Single {
         spawn_rx_task_single(args, myself).await
-    } else if args.use_dual_split_ws {
+    } else if is_local_stt_base_url(&args.base_url) {
         spawn_rx_task_dual_split(args, myself).await
     } else {
         spawn_rx_task_dual(args, myself).await

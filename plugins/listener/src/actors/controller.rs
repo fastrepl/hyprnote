@@ -326,11 +326,6 @@ impl ControllerActor {
             ChannelMode::Dual
         };
 
-        let use_dual_split_ws = std::env::var("HYPR_STT_DUAL_SPLIT_WS")
-            .ok()
-            .and_then(|v| v.parse::<bool>().ok())
-            .unwrap_or(false);
-
         let (listen_ref, _) = Actor::spawn_linked(
             Some(ListenerActor::name()),
             ListenerActor,
@@ -346,7 +341,6 @@ impl ControllerActor {
                 session_started_at: session_state.started_at_instant,
                 session_started_at_unix: session_state.started_at_system,
                 session_id: session_state.params.session_id.clone(),
-                use_dual_split_ws,
             }),
             supervisor,
         )

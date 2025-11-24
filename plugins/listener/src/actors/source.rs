@@ -339,21 +339,10 @@ struct Pipeline {
 
 impl Pipeline {
     fn new(app: tauri::AppHandle, session_id: String) -> Self {
-        let aec = match AEC::new() {
-            Ok(aec) => {
-                tracing::info!("AEC initialized successfully");
-                Some(aec)
-            }
-            Err(e) => {
-                tracing::warn!(error = ?e, "Failed to initialize AEC, continuing without it");
-                None
-            }
-        };
-
         Self {
             agc_mic: VadAgc::default(),
             agc_spk: VadAgc::default(),
-            aec,
+            aec: None,
             joiner: Joiner::new(),
             amplitude: AmplitudeEmitter::new(app, session_id),
         }
@@ -397,7 +386,7 @@ impl Pipeline {
                     (processed_arc, Arc::clone(&spk))
                 }
                 Err(e) => {
-                    tracing::warn!(error = ?e, "AEC processing failed, using original audio");
+                    tracing::warn!(error = ?e, "aec_failed");
                     (mic, spk)
                 }
             }

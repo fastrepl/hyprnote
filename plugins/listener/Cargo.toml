@@ -18,7 +18,7 @@ specta-typescript = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
-hypr-aec = { workspace = true }
+hypr-aec = { workspace = true, features = ["load-dynamic"] }
 hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }

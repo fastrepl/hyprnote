@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["load-dynamic"]
+default = []
 cuda = ["ort/cuda"]
 coreml = ["ort/coreml"]
 directml = ["ort/directml"]

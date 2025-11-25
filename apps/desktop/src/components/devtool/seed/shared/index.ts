@@ -12,7 +12,6 @@ export {
   createmappingSessionParticipant,
   createMappingTagSession,
 } from "./mapping";
-export { createMemory } from "./memory";
 export { createOrganization } from "./organization";
 export { createSession, generateEnhancedMarkdown } from "./session";
 export { createTag } from "./tag";

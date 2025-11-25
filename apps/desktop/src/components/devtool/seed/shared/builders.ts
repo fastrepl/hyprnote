@@ -10,7 +10,6 @@ import type {
   Human,
   mappingSessionParticipant,
   MappingTagSession,
-  MemoryStorage,
   Organization,
   SessionStorage,
   Tag,
@@ -29,7 +28,6 @@ import {
   createmappingSessionParticipant,
   createMappingTagSession,
 } from "./mapping";
-import { createMemory } from "./memory";
 import { createOrganization } from "./organization";
 import { createSession } from "./session";
 import { createTag } from "./tag";
@@ -385,24 +383,6 @@ export const buildChatMessages = (
   });
 
   return chat_messages;
-};
-
-export const buildMemories = (
-  type: string,
-  count: number,
-  textGenerator?: () => string,
-): Record<string, MemoryStorage> => {
-  const memories: Record<string, MemoryStorage> = {};
-
-  for (let i = 0; i < count; i++) {
-    const term = textGenerator
-      ? textGenerator()
-      : faker.word.words({ count: { min: 1, max: 2 } });
-    const memory = createMemory(type, term);
-    memories[memory.id] = memory.data;
-  }
-
-  return memories;
 };
 
 export const buildEnhancedNotesForSessions = (

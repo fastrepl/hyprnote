@@ -26,7 +26,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
   const mapping_tag_session: Tables<Schemas[0]>["mapping_tag_session"] = {};
   const chat_groups: Tables<Schemas[0]>["chat_groups"] = {};
   const chat_messages: Tables<Schemas[0]>["chat_messages"] = {};
-  const memories: Tables<Schemas[0]>["memories"] = {};
   const enhanced_notes: Tables<Schemas[0]>["enhanced_notes"] = {};
 
   const orgNameToId = new Map<string, string>();
@@ -233,16 +232,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     });
   });
 
-  data.memories.forEach((memory) => {
-    const memoryId = id();
-    memories[memoryId] = {
-      user_id: DEFAULT_USER_ID,
-      type: memory.type,
-      text: memory.text,
-      created_at: new Date().toISOString(),
-    };
-  });
-
   data.enhanced_notes.forEach((note) => {
     const enhancedNoteId = id();
     const sessionId = sessionTitleToId.get(note.session);
@@ -278,7 +267,6 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     templates,
     chat_groups,
     chat_messages,
-    memories,
     enhanced_notes,
   };
 };

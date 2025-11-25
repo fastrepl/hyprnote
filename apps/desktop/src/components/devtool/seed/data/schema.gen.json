@@ -348,25 +348,6 @@
         "additionalProperties": false
       }
     },
-    "memories": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string"
-          },
-          "text": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "type",
-          "text"
-        ],
-        "additionalProperties": false
-      }
-    },
     "enhanced_notes": {
       "type": "array",
       "items": {
@@ -415,7 +396,6 @@
     "events",
     "sessions",
     "chat_groups",
-    "memories",
     "enhanced_notes"
   ],
   "additionalProperties": false

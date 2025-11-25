@@ -5,7 +5,6 @@ import {
   AudioLines,
   Bell,
   BookText,
-  Brain,
   CalendarDays,
   ExternalLinkIcon,
   type LucideIcon,
@@ -32,7 +31,6 @@ const TAB_KEYS = [
   "notifications",
   "transcription",
   "intelligence",
-  "memory",
   "templates",
   "integrations",
   "feedback",
@@ -75,11 +73,6 @@ const TAB_CONFIG: Record<
   intelligence: {
     label: "Intelligence",
     icon: Sparkles,
-    group: 1,
-  },
-  memory: {
-    label: "Memory",
-    icon: Brain,
     group: 1,
   },
   templates: {

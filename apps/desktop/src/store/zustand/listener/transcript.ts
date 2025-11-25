@@ -16,7 +16,7 @@ export type HandlePersistCallback = (
 export type TranscriptState = {
   finalWordsMaxEndMsByChannel: Record<number, number>;
   partialWordsByChannel: WordsByChannel;
-  partialHints: RuntimeSpeakerHint[];
+  partialHintsByChannel: Record<number, RuntimeSpeakerHint[]>;
   handlePersist?: HandlePersistCallback;
 };
 
@@ -29,7 +29,7 @@ export type TranscriptActions = {
 const initialState: TranscriptState = {
   finalWordsMaxEndMsByChannel: {},
   partialWordsByChannel: {},
-  partialHints: [],
+  partialHintsByChannel: {},
   handlePersist: undefined,
 };
 
@@ -46,7 +46,7 @@ export const createTranscriptSlice = <
   ): void => {
     const {
       partialWordsByChannel,
-      partialHints,
+      partialHintsByChannel,
       handlePersist,
       finalWordsMaxEndMsByChannel,
     } = get();
@@ -83,7 +83,8 @@ export const createTranscriptSlice = <
       }
     }
 
-    const remainingPartialHints = partialHints
+    const existingPartialHints = partialHintsByChannel[channelIndex] ?? [];
+    const remainingPartialHints = existingPartialHints
       .filter((hint) => oldToNewIndex.has(hint.wordIndex))
       .map((hint) => ({
         ...hint,
@@ -93,7 +94,7 @@ export const createTranscriptSlice = <
     set((state) =>
       mutate(state, (draft) => {
         draft.partialWordsByChannel[channelIndex] = remainingPartialWords;
-        draft.partialHints = remainingPartialHints;
+        draft.partialHintsByChannel[channelIndex] = remainingPartialHints;
         draft.finalWordsMaxEndMsByChannel[channelIndex] = lastEndMs;
       }),
     );
@@ -106,7 +107,7 @@ export const createTranscriptSlice = <
     words: WordLike[],
     hints: RuntimeSpeakerHint[],
   ): void => {
-    const { partialWordsByChannel, partialHints } = get();
+    const { partialWordsByChannel, partialHintsByChannel } = get();
     const existing = partialWordsByChannel[channelIndex] ?? [];
 
     const firstStartMs = getFirstStartMs(words);
@@ -124,7 +125,8 @@ export const createTranscriptSlice = <
       wordIndex: before.length + hint.wordIndex,
     }));
 
-    const filteredOldHints = partialHints.filter((hint) => {
+    const existingHints = partialHintsByChannel[channelIndex] ?? [];
+    const filteredOldHints = existingHints.filter((hint) => {
       const word = existing[hint.wordIndex];
       return (
         word && (word.end_ms <= firstStartMs || word.start_ms >= lastEndMs)
@@ -134,7 +136,10 @@ export const createTranscriptSlice = <
     set((state) =>
       mutate(state, (draft) => {
         draft.partialWordsByChannel[channelIndex] = newWords;
-        draft.partialHints = [...filteredOldHints, ...hintsWithAdjustedIndices];
+        draft.partialHintsByChannel[channelIndex] = [
+          ...filteredOldHints,
+          ...hintsWithAdjustedIndices,
+        ];
       }),
     );
   };
@@ -171,17 +176,19 @@ export const createTranscriptSlice = <
       }
     },
     resetTranscript: () => {
-      const { partialWordsByChannel, partialHints, handlePersist } = get();
+      const { partialWordsByChannel, partialHintsByChannel, handlePersist } =
+        get();
 
       const remainingWords = Object.values(partialWordsByChannel).flat();
+      const remainingHints = Object.values(partialHintsByChannel).flat();
       if (remainingWords.length > 0) {
-        handlePersist?.(remainingWords, partialHints);
+        handlePersist?.(remainingWords, remainingHints);
       }
 
       set((state) =>
         mutate(state, (draft) => {
           draft.partialWordsByChannel = {};
-          draft.partialHints = [];
+          draft.partialHintsByChannel = {};
           draft.finalWordsMaxEndMsByChannel = {};
           draft.handlePersist = undefined;
         }),

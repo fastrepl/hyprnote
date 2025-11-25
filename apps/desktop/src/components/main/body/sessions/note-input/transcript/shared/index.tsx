@@ -32,7 +32,9 @@ export function TranscriptContainer({
   const partialWords = useListener((state) =>
     Object.values(state.partialWordsByChannel).flat(),
   );
-  const partialHints = useListener((state) => state.partialHints);
+  const partialHints = useListener((state) =>
+    Object.values(state.partialHintsByChannel).flat(),
+  );
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(

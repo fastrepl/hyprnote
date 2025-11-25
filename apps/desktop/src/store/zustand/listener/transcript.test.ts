@@ -101,9 +101,9 @@ describe("transcript slice", () => {
       " Another",
       " problem",
     ]);
-    expect(stateAfterFirst.partialHints).toHaveLength(2);
-    expect(stateAfterFirst.partialHints[0]?.wordIndex).toBe(0);
-    expect(stateAfterFirst.partialHints[1]?.wordIndex).toBe(1);
+    expect(stateAfterFirst.partialHintsByChannel[0]).toHaveLength(2);
+    expect(stateAfterFirst.partialHintsByChannel[0]?.[0]?.wordIndex).toBe(0);
+    expect(stateAfterFirst.partialHintsByChannel[0]?.[1]?.wordIndex).toBe(1);
 
     const extendedPartial = createResponse({
       words: [
@@ -132,9 +132,9 @@ describe("transcript slice", () => {
       " problem",
       " exists",
     ]);
-    expect(stateAfterSecond.partialHints).toHaveLength(3);
-    const lastPartialHint =
-      stateAfterSecond.partialHints[stateAfterSecond.partialHints.length - 1];
+    const channelHints = stateAfterSecond.partialHintsByChannel[0] ?? [];
+    expect(channelHints).toHaveLength(3);
+    const lastPartialHint = channelHints[channelHints.length - 1];
     expect(lastPartialHint?.wordIndex).toBe(2);
   });
 
@@ -230,7 +230,7 @@ describe("transcript slice", () => {
 
     const stateAfterPartial = store.getState();
     expect(stateAfterPartial.partialWordsByChannel[0]).toHaveLength(3);
-    expect(stateAfterPartial.partialHints).toHaveLength(3);
+    expect(stateAfterPartial.partialHintsByChannel[0]).toHaveLength(3);
 
     const finalResponse = createResponse({
       words: [
@@ -261,7 +261,7 @@ describe("transcript slice", () => {
 
     const stateAfterFinal = store.getState();
     const remainingPartialWords = stateAfterFinal.partialWordsByChannel[0];
-    const remainingHints = stateAfterFinal.partialHints;
+    const remainingHints = stateAfterFinal.partialHintsByChannel[0] ?? [];
 
     expect(remainingPartialWords).toHaveLength(1);
     expect(remainingPartialWords?.[0]?.text).toBe(" test");

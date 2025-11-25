@@ -1,0 +1,25 @@
+name: Devin Cargo Clippy
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger-devin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Devin Session
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          curl --request POST \
+            --url https://api.devin.ai/v1/sessions \
+            --header "Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}" \
+            --header "Content-Type: application/json" \
+            --data "{
+              \"prompt\": \"Run \\\"cargo clippy --fix\\\", and run \\\"cargo clippy\\\" again, and apply the suggested fixes.\",
+              \"title\": \"${DATE}-cargo-clippy\",
+              \"unlisted\": true,
+              \"idempotent\": true,
+              \"tags\": [\"cargo_clippy\"]
+            }"

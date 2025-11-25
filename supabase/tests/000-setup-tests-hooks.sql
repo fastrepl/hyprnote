@@ -35,6 +35,10 @@ select dbdev.install('supabase-dbdev');
 drop extension if exists "supabase-dbdev";
 create extension "supabase-dbdev";
 
+-- Install test helpers package
+select dbdev.install('basejump-supabase_test_helpers');
+create extension if not exists "basejump-supabase_test_helpers" version '0.0.6';
+
 begin;
 select plan(1);
 

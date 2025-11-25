@@ -48,6 +48,7 @@ export function StyledStreamdown({
     <Streamdown
       components={streamdownComponents}
       className={cn(["text-sm mt-1", className])}
+      isAnimating={false}
     >
       {children}
     </Streamdown>

@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Mail, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ResizableHandle,
@@ -13,8 +13,24 @@ import { cn } from "@hypr/utils";
 import { Image } from "@/components/image";
 import { MockWindow } from "@/components/mock-window";
 
+type AboutSearch = {
+  type?: "story" | "founder" | "photo";
+  id?: string;
+};
+
 export const Route = createFileRoute("/_view/about")({
   component: Component,
+  validateSearch: (search: Record<string, unknown>): AboutSearch => {
+    return {
+      type:
+        search.type === "story" ||
+        search.type === "founder" ||
+        search.type === "photo"
+          ? search.type
+          : undefined,
+      id: typeof search.id === "string" ? search.id : undefined,
+    };
+  },
   head: () => ({
     meta: [
       { title: "Team - Hyprnote Press Kit" },
@@ -136,7 +152,40 @@ type SelectedItem =
   | { type: "photo"; data: (typeof teamPhotos)[0] };
 
 function Component() {
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = Route.useSearch();
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+
+  useEffect(() => {
+    if (search.type === "story") {
+      setSelectedItem({ type: "story" });
+    } else if (search.type === "founder" && search.id) {
+      const founder = founders.find((f) => f.id === search.id);
+      if (founder) {
+        setSelectedItem({ type: "founder", data: founder });
+      }
+    } else if (search.type === "photo" && search.id) {
+      const photo = teamPhotos.find((p) => p.id === search.id);
+      if (photo) {
+        setSelectedItem({ type: "photo", data: photo });
+      }
+    } else {
+      setSelectedItem(null);
+    }
+  }, [search.type, search.id]);
+
+  const handleSetSelectedItem = (item: SelectedItem | null) => {
+    setSelectedItem(item);
+    if (item === null) {
+      navigate({ search: {} });
+    } else if (item.type === "story") {
+      navigate({ search: { type: "story" } });
+    } else if (item.type === "founder") {
+      navigate({ search: { type: "founder", id: item.data.id } });
+    } else if (item.type === "photo") {
+      navigate({ search: { type: "photo", id: item.data.id } });
+    }
+  };
 
   return (
     <div
@@ -147,7 +196,7 @@ function Component() {
         <HeroSection />
         <AboutContentSection
           selectedItem={selectedItem}
-          setSelectedItem={setSelectedItem}
+          setSelectedItem={handleSetSelectedItem}
         />
       </div>
     </div>

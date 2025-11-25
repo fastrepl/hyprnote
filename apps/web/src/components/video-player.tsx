@@ -56,7 +56,7 @@ export function VideoPlayer({
           {
             "--controls": "none",
             aspectRatio: "16/9",
-          } as React.CSSProperties
+          } as React.CSSProperties & { [key: `--${string}`]: string }
         }
       />
 

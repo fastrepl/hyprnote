@@ -383,6 +383,27 @@ export function useEditorTabs({
     sessionId,
     main.STORE_ID,
   );
+  const createEnhancedNote = useCreateEnhancedNote();
+
+  useEffect(() => {
+    if (
+      !hasTranscript ||
+      sessionMode === "running_active" ||
+      sessionMode === "running_batch"
+    ) {
+      return;
+    }
+
+    if (!enhancedNoteIds || enhancedNoteIds.length === 0) {
+      createEnhancedNote(sessionId);
+    }
+  }, [
+    hasTranscript,
+    sessionMode,
+    sessionId,
+    enhancedNoteIds?.length,
+    createEnhancedNote,
+  ]);
 
   if (sessionMode === "running_active" || sessionMode === "running_batch") {
     return [{ type: "raw" }, { type: "transcript" }];

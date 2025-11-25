@@ -78,6 +78,7 @@
     "cli2:default",
     "updater:default",
     "deep-link:default",
+    "deeplink2:default",
     "store:default",
     "process:default",
     "local-stt:default",

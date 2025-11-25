@@ -6,8 +6,6 @@ use specta::Type;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::types::NotificationSearch;
-
 #[derive(Debug, Clone, serde::Serialize, specta::Type, tauri_specta::Event)]
 pub struct DeepLinkEvent(pub DeepLink);
 
@@ -35,15 +33,9 @@ impl FromStr for DeepLink {
         let query_params: HashMap<String, String> = parsed.query_pairs().into_owned().collect();
 
         match full_path.as_str() {
-            "notification" => {
-                let key = query_params
-                    .get("key")
-                    .ok_or(crate::Error::MissingQueryParam("key".to_string()))?;
-
-                Ok(DeepLink::Notification(NotificationSearch {
-                    key: key.to_string(),
-                }))
-            }
+            "notification" => Ok(DeepLink::Notification(
+                NotificationSearch::from_query_params(&query_params)?,
+            )),
             _ => Err(crate::Error::UnknownPath(full_path)),
         }
     }

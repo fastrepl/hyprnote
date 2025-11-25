@@ -1,6 +1,9 @@
 mod error;
 mod types;
 
+#[cfg(test)]
+mod docs;
+
 pub use error::{Error, Result};
 
 const PLUGIN_NAME: &str = "deeplink2";
@@ -28,6 +31,11 @@ mod test {
     use super::*;
 
     #[test]
+    fn export() {
+        export_types();
+        export_docs();
+    }
+
     fn export_types() {
         make_specta_builder::<tauri::Wry>()
             .export(
@@ -38,5 +46,20 @@ mod test {
                 "./js/bindings.gen.ts",
             )
             .unwrap()
+    }
+
+    fn export_docs() {
+        let source_code = std::fs::read_to_string("./js/bindings.gen.ts").unwrap();
+        let deeplinks = docs::parse_deeplinks(&source_code).unwrap();
+        assert!(!deeplinks.is_empty());
+
+        let output_dir = std::path::Path::new("../../apps/web/content/docs/deeplinks");
+        std::fs::create_dir_all(output_dir).unwrap();
+
+        for deeplink in &deeplinks {
+            let filepath = output_dir.join(deeplink.doc_path());
+            let content = deeplink.doc_render();
+            std::fs::write(&filepath, content).unwrap();
+        }
     }
 }

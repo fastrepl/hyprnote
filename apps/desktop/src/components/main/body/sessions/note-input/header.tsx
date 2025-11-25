@@ -17,7 +17,10 @@ import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
 import { useAITaskTask } from "../../../../../hooks/useAITaskTask";
-import { useCreateEnhancedNote } from "../../../../../hooks/useEnhancedNotes";
+import {
+  useCreateEnhancedNote,
+  useEnsureDefaultSummary,
+} from "../../../../../hooks/useEnhancedNotes";
 import {
   useLanguageModel,
   useLLMConnectionStatus,
@@ -376,6 +379,8 @@ export function useEditorTabs({
 }: {
   sessionId: string;
 }): EditorView[] {
+  useEnsureDefaultSummary(sessionId);
+
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const hasTranscript = useHasTranscript(sessionId);
   const enhancedNoteIds = main.UI.useSliceRowIds(
@@ -383,27 +388,6 @@ export function useEditorTabs({
     sessionId,
     main.STORE_ID,
   );
-  const createEnhancedNote = useCreateEnhancedNote();
-
-  useEffect(() => {
-    if (
-      !hasTranscript ||
-      sessionMode === "running_active" ||
-      sessionMode === "running_batch"
-    ) {
-      return;
-    }
-
-    if (!enhancedNoteIds || enhancedNoteIds.length === 0) {
-      createEnhancedNote(sessionId);
-    }
-  }, [
-    hasTranscript,
-    sessionMode,
-    sessionId,
-    enhancedNoteIds?.length,
-    createEnhancedNote,
-  ]);
 
   if (sessionMode === "running_active" || sessionMode === "running_batch") {
     return [{ type: "raw" }, { type: "transcript" }];

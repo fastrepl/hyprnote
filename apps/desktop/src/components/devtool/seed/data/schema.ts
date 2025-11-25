@@ -87,11 +87,6 @@ const CuratedChatGroupSchema = z.object({
   messages: z.array(CuratedChatMessageSchema),
 });
 
-const CuratedMemorySchema = z.object({
-  type: z.string(),
-  text: z.string(),
-});
-
 const CuratedEnhancedNoteSchema = z.object({
   session: z.string(),
   content: z.string(),
@@ -111,7 +106,6 @@ export const CuratedDataSchema = z.object({
   events: z.array(CuratedEventSchema),
   sessions: z.array(CuratedSessionSchema),
   chat_groups: z.array(CuratedChatGroupSchema),
-  memories: z.array(CuratedMemorySchema),
   enhanced_notes: z.array(CuratedEnhancedNoteSchema),
 });
 

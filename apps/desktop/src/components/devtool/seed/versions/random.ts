@@ -12,7 +12,6 @@ import {
   buildEventsByHuman,
   buildFolders,
   buildHumans,
-  buildMemories,
   buildOrganizations,
   buildSessionParticipants,
   buildSessionsPerHuman,
@@ -84,8 +83,6 @@ const RANDOM_DATA = (() => {
 
   const chat_messages = buildChatMessages(chatGroupIds, { min: 3, max: 10 });
 
-  const memories = buildMemories("vocab", 8);
-
   const enhanced_notes = buildEnhancedNotesForSessions(
     sessionIds,
     templateIds,
@@ -110,7 +107,6 @@ const RANDOM_DATA = (() => {
     templates,
     chat_groups,
     chat_messages,
-    memories,
     enhanced_notes,
   } satisfies Tables<Schemas[0]>;
 })();

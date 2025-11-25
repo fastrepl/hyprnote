@@ -2834,28 +2834,6 @@
       ]
     }
   ],
-  "memories": [
-    {
-      "type": "vocab",
-      "text": "API"
-    },
-    {
-      "type": "vocab",
-      "text": "OAuth 2.0"
-    },
-    {
-      "type": "vocab",
-      "text": "Webhook"
-    },
-    {
-      "type": "vocab",
-      "text": "Salesforce"
-    },
-    {
-      "type": "vocab",
-      "text": "Slack integration"
-    }
-  ],
   "enhanced_notes": [
     {
       "session": "Q4 Strategy Meeting",

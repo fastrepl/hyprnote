@@ -10,6 +10,7 @@ import { syncBillingForStripeEvent } from "./billing";
 import { env } from "./env";
 import { handleReleaseEvent, verifyGitHubWebhook } from "./github";
 import { listenSocketHandler } from "./listen";
+import { startSlackBot } from "./slack";
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth } from "./supabase";
 
@@ -118,6 +119,8 @@ if (env.NODE_ENV === "development") {
 } else {
   app.get("/listen", requireSupabaseAuth, listenSocketHandler);
 }
+
+startSlackBot();
 
 export default {
   port: env.PORT,

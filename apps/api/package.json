@@ -9,6 +9,7 @@
   "dependencies": {
     "@octokit/webhooks-types": "^7.6.1",
     "@sentry/bun": "^10.26.0",
+    "@slack/bolt": "^4.6.0",
     "@supabase/supabase-js": "^2.84.0",
     "@t3-oss/env-core": "^0.13.8",
     "hono": "^4.10.6",

@@ -12,7 +12,7 @@ export function useCreateEnhancedNote() {
     (sessionId: string, templateId?: string) => {
       if (!store || !indexes) return null;
 
-      const normalizedTemplateId = templateId ?? undefined;
+      const normalizedTemplateId = templateId || undefined;
 
       const existingNoteIds = indexes.getSliceRowIds(
         main.INDEXES.enhancedNotesBySession,
@@ -25,7 +25,8 @@ export function useCreateEnhancedNote() {
           id,
           "template_id",
         ) as string | undefined;
-        return existingTemplateId === normalizedTemplateId;
+        const normalizedExisting = existingTemplateId || undefined;
+        return normalizedExisting === normalizedTemplateId;
       });
 
       if (existingId) return existingId;
@@ -143,6 +144,7 @@ export function useEnsureDefaultSummary(sessionId: string) {
       !hasTranscript ||
       sessionMode === "running_active" ||
       sessionMode === "running_batch" ||
+      sessionMode === "finalizing" ||
       (enhancedNoteIds && enhancedNoteIds.length > 0)
     ) {
       return;

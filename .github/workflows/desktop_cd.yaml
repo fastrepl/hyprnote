@@ -85,7 +85,7 @@ jobs:
       - uses: ./.github/actions/pnpm_install
       - uses: ./.github/actions/argmax_sdk_setup
         with:
-          api-token: ${{ secrets.ARGMAX_API_TOKEN }}
+          api-token: ${{ secrets.AM_SECRET_TOKEN }}
       - run: pnpm -F ui build
       - run: |
           aws s3 cp s3://argmax/stt apps/desktop/src-tauri/binaries/stt-aarch64-apple-darwin \

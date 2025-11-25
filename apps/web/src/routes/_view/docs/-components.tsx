@@ -15,6 +15,7 @@ import {
 import { cn } from "@hypr/utils";
 
 import { CtaCard } from "@/components/cta-card";
+import { DeeplinksList } from "@/components/deeplinks-list";
 import { HooksList } from "@/components/hooks-list";
 
 export function DocLayout({
@@ -115,6 +116,7 @@ function ArticleContent({ doc }: { doc: any }) {
           Steps,
           Tip,
           CtaCard,
+          DeeplinksList,
           HooksList,
         }}
       />

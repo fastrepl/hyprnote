@@ -40,7 +40,7 @@ const articles = defineCollection({
     display_title: z.string().optional(),
     meta_title: z.string(),
     meta_description: z.string(),
-    author: z.string(),
+    author: z.enum(["Harshika", "John Jeong", "Yujong Lee"]),
     created: z.string(),
     updated: z.string().optional(),
     coverImage: z.string().optional(),
@@ -133,6 +133,7 @@ const docs = defineCollection({
   exclude: ["AGENTS.md", "hooks/**", "deeplinks/**"],
   schema: z.object({
     title: z.string(),
+    section: z.string(),
     summary: z.string().optional(),
     category: z.string().optional(),
     author: z.string().optional(),
@@ -163,9 +164,17 @@ const docs = defineCollection({
 
     const sectionFolder = pathParts[0] || "general";
 
-    const slug = document._meta.path.replace(/\.mdx$/, "");
-
     const isIndex = fileName === "index";
+
+    const orderMatch = fileName.match(/^(\d+)\./);
+    const order = orderMatch ? parseInt(orderMatch[1], 10) : 999;
+
+    const cleanFileName = fileName.replace(/^\d+\./, "");
+    const cleanPath =
+      pathParts.length > 0
+        ? `${pathParts.join("/")}/${cleanFileName}`
+        : cleanFileName;
+    const slug = cleanPath;
 
     return {
       ...document,
@@ -173,6 +182,7 @@ const docs = defineCollection({
       slug,
       sectionFolder,
       isIndex,
+      order,
       toc,
     };
   },

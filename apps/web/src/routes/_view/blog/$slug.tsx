@@ -36,6 +36,10 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     const { article } = loaderData!;
     const url = `https://hyprnote.com/blog/${article.slug}`;
 
+    const ogImage =
+      article.coverImage ||
+      `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}`;
+
     return {
       meta: [
         { title: article.title },
@@ -44,15 +48,11 @@ export const Route = createFileRoute("/_view/blog/$slug")({
         { property: "og:description", content: article.meta_description },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        ...(article.coverImage
-          ? [{ property: "og:image", content: article.coverImage }]
-          : []),
+        { property: "og:image", content: ogImage },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: article.title },
         { name: "twitter:description", content: article.meta_description },
-        ...(article.coverImage
-          ? [{ name: "twitter:image", content: article.coverImage }]
-          : []),
+        { name: "twitter:image", content: ogImage },
         ...(article.author
           ? [{ name: "author", content: article.author }]
           : []),

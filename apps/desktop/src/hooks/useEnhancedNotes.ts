@@ -1,5 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
+import { useHasTranscript } from "../components/main/body/sessions/shared";
+import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
 
 export function useCreateEnhancedNote() {
@@ -10,19 +12,36 @@ export function useCreateEnhancedNote() {
     (sessionId: string, templateId?: string) => {
       if (!store || !indexes) return null;
 
-      const enhancedNoteId = crypto.randomUUID();
-      const now = new Date().toISOString();
-      const userId = store.getValue("user_id");
+      const normalizedTemplateId = templateId ?? undefined;
 
       const existingNoteIds = indexes.getSliceRowIds(
         main.INDEXES.enhancedNotesBySession,
         sessionId,
       );
+
+      const existingId = existingNoteIds.find((id) => {
+        const existingTemplateId = store.getCell(
+          "enhanced_notes",
+          id,
+          "template_id",
+        ) as string | undefined;
+        return existingTemplateId === normalizedTemplateId;
+      });
+
+      if (existingId) return existingId;
+
+      const enhancedNoteId = crypto.randomUUID();
+      const now = new Date().toISOString();
+      const userId = store.getValue("user_id");
       const nextPosition = existingNoteIds.length + 1;
 
       let title = "Summary";
-      if (templateId) {
-        const templateTitle = store.getCell("templates", templateId, "title");
+      if (normalizedTemplateId) {
+        const templateTitle = store.getCell(
+          "templates",
+          normalizedTemplateId,
+          "title",
+        );
         if (typeof templateTitle === "string") {
           title = templateTitle;
         }
@@ -35,7 +54,7 @@ export function useCreateEnhancedNote() {
         content: "",
         position: nextPosition,
         title,
-        template_id: templateId,
+        template_id: normalizedTemplateId,
       });
 
       return enhancedNoteId;
@@ -107,4 +126,34 @@ export function useEnhancedNote(enhancedNoteId: string) {
   );
 
   return { title, content, position, templateId };
+}
+
+export function useEnsureDefaultSummary(sessionId: string) {
+  const sessionMode = useListener((state) => state.getSessionMode(sessionId));
+  const hasTranscript = useHasTranscript(sessionId);
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    sessionId,
+    main.STORE_ID,
+  );
+  const createEnhancedNote = useCreateEnhancedNote();
+
+  useEffect(() => {
+    if (
+      !hasTranscript ||
+      sessionMode === "running_active" ||
+      sessionMode === "running_batch" ||
+      (enhancedNoteIds && enhancedNoteIds.length > 0)
+    ) {
+      return;
+    }
+
+    createEnhancedNote(sessionId);
+  }, [
+    hasTranscript,
+    sessionMode,
+    sessionId,
+    enhancedNoteIds?.length,
+    createEnhancedNote,
+  ]);
 }

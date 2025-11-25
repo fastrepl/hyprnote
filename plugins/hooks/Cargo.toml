@@ -13,9 +13,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 [dev-dependencies]
 specta-typescript = { workspace = true }
 
-swc_common = "16"
-swc_ecma_ast = "17"
-swc_ecma_parser = "26"
+hypr-docs = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }

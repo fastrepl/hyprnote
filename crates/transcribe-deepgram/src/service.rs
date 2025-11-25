@@ -111,43 +111,44 @@ impl TranscribeService {
         {
             Ok(mut deepgram_stream) => {
                 while let Some(result) = deepgram_stream.next().await {
-                    if let Ok(response) = result {
-                        if let deepgram::common::stream_response::StreamResponse::TranscriptResponse {
-                                channel,
-                                ..
-                            } = response {
-                            if let Some(first_alt) = channel.alternatives.first() {
-                                let mut words = Vec::new();
+                    if let Ok(
+                        deepgram::common::stream_response::StreamResponse::TranscriptResponse {
+                            channel,
+                            ..
+                        },
+                    ) = result
+                    {
+                        if let Some(first_alt) = channel.alternatives.first() {
+                            let mut words = Vec::new();
 
-                                if !first_alt.words.is_empty() {
-                                    for word in &first_alt.words {
-                                        words.push(Word2 {
-                                            text: word.word.clone(),
-                                            speaker: None,
-                                            confidence: Some(word.confidence as f32),
-                                            start_ms: Some((word.start * 1000.0) as u64),
-                                            end_ms: Some((word.end * 1000.0) as u64),
-                                        });
-                                    }
-                                } else if !first_alt.transcript.is_empty() {
-                                    for text in first_alt.transcript.split_whitespace() {
-                                        words.push(Word2 {
-                                            text: text.to_string(),
-                                            speaker: None,
-                                            confidence: Some(first_alt.confidence as f32),
-                                            start_ms: None,
-                                            end_ms: None,
-                                        });
-                                    }
+                            if !first_alt.words.is_empty() {
+                                for word in &first_alt.words {
+                                    words.push(Word2 {
+                                        text: word.word.clone(),
+                                        speaker: None,
+                                        confidence: Some(word.confidence as f32),
+                                        start_ms: Some((word.start * 1000.0) as u64),
+                                        end_ms: Some((word.end * 1000.0) as u64),
+                                    });
                                 }
+                            } else if !first_alt.transcript.is_empty() {
+                                for text in first_alt.transcript.split_whitespace() {
+                                    words.push(Word2 {
+                                        text: text.to_string(),
+                                        speaker: None,
+                                        confidence: Some(first_alt.confidence as f32),
+                                        start_ms: None,
+                                        end_ms: None,
+                                    });
+                                }
+                            }
 
-                                if !words.is_empty() {
-                                    let output_chunk = ListenOutputChunk { meta: None, words };
+                            if !words.is_empty() {
+                                let output_chunk = ListenOutputChunk { meta: None, words };
 
-                                    if let Ok(json) = serde_json::to_string(&output_chunk) {
-                                        if sender.send(Message::Text(json.into())).await.is_err() {
-                                            break;
-                                        }
+                                if let Ok(json) = serde_json::to_string(&output_chunk) {
+                                    if sender.send(Message::Text(json.into())).await.is_err() {
+                                        break;
                                     }
                                 }
                             }

@@ -132,7 +132,7 @@ impl Drop for RunState {
         let data_dir = owhisper_config::data_dir();
         let session_dir = data_dir.join(self.session_timestamp.to_string());
 
-        if let Err(_) = std::fs::create_dir_all(&session_dir) {
+        if std::fs::create_dir_all(&session_dir).is_err() {
             return;
         }
 

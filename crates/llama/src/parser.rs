@@ -38,11 +38,8 @@ impl StreamingParser {
         self.buffer.push_str(chunk);
         let mut responses = Vec::new();
 
-        loop {
-            match self.try_parse_next() {
-                Some(response) => responses.push(response),
-                None => break,
-            }
+        while let Some(response) = self.try_parse_next() {
+            responses.push(response);
         }
 
         if !self.buffer.is_empty() && !self.looks_like_block_start() {

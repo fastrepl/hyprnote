@@ -5,11 +5,11 @@ pub const FRAME_20MS: usize = 320;
 pub const FRAME_30MS: usize = 480;
 
 pub fn choose_optimal_frame_size(len: usize) -> usize {
-    if len >= FRAME_30MS && len % FRAME_30MS == 0 {
+    if len >= FRAME_30MS && len.is_multiple_of(FRAME_30MS) {
         FRAME_30MS
-    } else if len >= FRAME_20MS && len % FRAME_20MS == 0 {
+    } else if len >= FRAME_20MS && len.is_multiple_of(FRAME_20MS) {
         FRAME_20MS
-    } else if len >= FRAME_10MS && len % FRAME_10MS == 0 {
+    } else if len >= FRAME_10MS && len.is_multiple_of(FRAME_10MS) {
         FRAME_10MS
     } else {
         let padding_30 = (FRAME_30MS - (len % FRAME_30MS)) % FRAME_30MS;

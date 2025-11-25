@@ -148,14 +148,14 @@ async fn run_audio_stream_with_stop(
                     data.update(rms);
                 }
 
-                owhisper_interface::MixedMessage::Audio(
-                    hypr_audio_utils::f32_to_i16_bytes(samples.into_iter()).into(),
-                )
+                owhisper_interface::MixedMessage::Audio(hypr_audio_utils::f32_to_i16_bytes(
+                    samples.into_iter(),
+                ))
             })
     };
 
     let client = owhisper_client::ListenClient::builder()
-        .api_base(&format!("ws://127.0.0.1:{}/v1", port))
+        .api_base(format!("ws://127.0.0.1:{}/v1", port))
         .api_key(api_key.as_deref().unwrap_or(""))
         .params(owhisper_interface::ListenParams {
             model: Some(model),

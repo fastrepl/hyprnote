@@ -33,23 +33,17 @@ where
 }
 
 #[no_mangle]
-pub extern "C" fn rust_on_notification_confirm(id_ptr: *const c_char) {
+pub unsafe extern "C" fn rust_on_notification_confirm(id_ptr: *const c_char) {
     if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
-        let id = unsafe { CStr::from_ptr(id_ptr) }
-            .to_str()
-            .unwrap()
-            .to_string();
+        let id = CStr::from_ptr(id_ptr).to_str().unwrap().to_string();
         cb(id);
     }
 }
 
 #[no_mangle]
-pub extern "C" fn rust_on_notification_dismiss(id_ptr: *const c_char) {
+pub unsafe extern "C" fn rust_on_notification_dismiss(id_ptr: *const c_char) {
     if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
-        let id = unsafe { CStr::from_ptr(id_ptr) }
-            .to_str()
-            .unwrap()
-            .to_string();
+        let id = CStr::from_ptr(id_ptr).to_str().unwrap().to_string();
         cb(id);
     }
 }

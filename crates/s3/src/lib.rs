@@ -133,7 +133,7 @@ impl Deref for UserClient<'_> {
     type Target = Client;
 
     fn deref(&self) -> &Self::Target {
-        &self.client
+        self.client
     }
 }
 

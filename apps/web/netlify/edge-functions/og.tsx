@@ -14,7 +14,30 @@ const changelogSchema = z.object({
   version: z.string(),
 });
 
-const OGSchema = z.discriminatedUnion("type", [templateSchema, changelogSchema]);
+const blogSchema = z.object({
+  type: z.literal("blog"),
+  title: z.string(),
+  description: z.string().optional(),
+});
+
+const docsSchema = z.object({
+  type: z.literal("docs"),
+  title: z.string(),
+  description: z.string().optional(),
+});
+
+const OGSchema = z.discriminatedUnion("type", [templateSchema, changelogSchema, blogSchema, docsSchema]);
+
+function preventWidow(text: string): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= 2) return text;
+
+  const last = words.pop()!;
+  const secondLast = words.pop()!;
+  const lastChunk = `${secondLast}\u00A0${last}`;
+
+  return [...words, lastChunk].join(" ");
+}
 
 function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
   const type = url.searchParams.get("type");
@@ -26,6 +49,22 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
     const version = url.searchParams.get("version");
 
     const result = OGSchema.safeParse({ type, version });
+    return result.success ? result.data : null;
+  }
+
+  if (type === "blog") {
+    const title = url.searchParams.get("title");
+    const description = url.searchParams.get("description") || undefined;
+
+    const result = OGSchema.safeParse({ type, title, description });
+    return result.success ? result.data : null;
+  }
+
+  if (type === "docs") {
+    const title = url.searchParams.get("title");
+    const description = url.searchParams.get("description") || undefined;
+
+    const result = OGSchema.safeParse({ type, title, description });
     return result.success ? result.data : null;
   }
 
@@ -126,6 +165,38 @@ function renderChangelogTemplate(params: z.infer<typeof changelogSchema>) {
   );
 }
 
+function renderBlogTemplate(params: z.infer<typeof blogSchema>) {
+  return (
+    <div style={{width: '100%', height: '100%', position: 'relative', background: 'linear-gradient(180deg, #A8A29E 0%, #57534E 100%)', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+        <div style={{left: 56, top: 380, position: 'absolute', color: '#FAFAF9', fontSize: 52, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex', maxWidth: 700, lineHeight: 1.2}}>{preventWidow(params.title)}</div>
+        {params.description && (
+          <div style={{left: 56, top: 500, position: 'absolute', color: '#F5F5F4', fontSize: 28, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word', display: 'flex', maxWidth: 700, lineHeight: 1.4}}>{params.description}</div>
+        )}
+        <div style={{left: 56.25, top: 61.12, position: 'absolute', color: '#F5F5F4', fontSize: 40, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word', display: 'flex'}}>The AI notepad for private meetings</div>
+        <div style={{left: 903, top: 55, position: 'absolute', textAlign: 'right', color: '#FAFAF9', fontSize: 50, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex'}}>Hyprnote.</div>
+        <div style={{width: 140, height: 0, left: 755, top: 87, position: 'absolute', borderTop: '2px solid #F5F5F4'}}></div>
+        <div style={{left: 56, top: 140, position: 'absolute', color: '#FAFAF9', fontSize: 24, fontFamily: 'IBM Plex Mono', fontWeight: '400', letterSpacing: 2, textTransform: 'uppercase', display: 'flex'}}>Blog</div>
+        <img style={{width: 380, height: 380, right: 40, bottom: -40, position: 'absolute'}} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
+    </div>
+  );
+}
+
+function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
+  return (
+    <div style={{width: '100%', height: '100%', position: 'relative', background: 'linear-gradient(180deg, #A8A29E 0%, #57534E 100%)', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+        <div style={{left: 56, top: 380, position: 'absolute', color: '#FAFAF9', fontSize: 52, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex', maxWidth: 700, lineHeight: 1.2}}>{preventWidow(params.title)}</div>
+        {params.description && (
+          <div style={{left: 56, top: 500, position: 'absolute', color: '#F5F5F4', fontSize: 28, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word', display: 'flex', maxWidth: 700, lineHeight: 1.4}}>{params.description}</div>
+        )}
+        <div style={{left: 56.25, top: 61.12, position: 'absolute', color: '#F5F5F4', fontSize: 40, fontFamily: 'Lora', fontWeight: '400', wordWrap: 'break-word', display: 'flex'}}>The AI notepad for private meetings</div>
+        <div style={{left: 903, top: 55, position: 'absolute', textAlign: 'right', color: '#FAFAF9', fontSize: 50, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word', display: 'flex'}}>Hyprnote.</div>
+        <div style={{width: 140, height: 0, left: 755, top: 87, position: 'absolute', borderTop: '2px solid #F5F5F4'}}></div>
+        <div style={{left: 56, top: 140, position: 'absolute', color: '#FAFAF9', fontSize: 24, fontFamily: 'IBM Plex Mono', fontWeight: '400', letterSpacing: 2, textTransform: 'uppercase', display: 'flex'}}>Documentation</div>
+        <img style={{width: 380, height: 380, right: 40, bottom: -40, position: 'absolute'}} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
+    </div>
+  );
+}
+
 export default async function handler(req: Request) {
   const url = new URL(req.url);
 
@@ -146,27 +217,32 @@ export default async function handler(req: Request) {
     let response;
     if (params.type === "changelog") {
       response = renderChangelogTemplate(params);
+    } else if (params.type === "blog") {
+      response = renderBlogTemplate(params);
+    } else if (params.type === "docs") {
+      response = renderDocsTemplate(params);
     } else {
       response = renderTemplate(params);
     }
 
-    const fonts = params.type === "changelog"
+    const needsCustomFonts = params.type === "changelog" || params.type === "blog" || params.type === "docs";
+    const fonts = needsCustomFonts
       ? [
         {
           name: "Lora",
           data: await fetch(
             "https://fonts.gstatic.com/s/lora/v37/0QI6MX1D_JOuGQbT0gvTJPa787z5vCJG.ttf"
           ).then((res) => res.arrayBuffer()),
-          weight: 700,
-          style: "normal",
+          weight: 700 as const,
+          style: "normal" as const,
         },
         {
           name: "IBM Plex Mono",
           data: await fetch(
             "https://fonts.gstatic.com/s/ibmplexmono/v20/-F63fjptAgt5VM-kVkqdyU8n5ig.ttf"
           ).then((res) => res.arrayBuffer()),
-          weight: 400,
-          style: "normal",
+          weight: 400 as const,
+          style: "normal" as const,
         },
       ]
       : undefined;

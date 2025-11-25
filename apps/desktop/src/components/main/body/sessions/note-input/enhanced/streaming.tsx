@@ -1,5 +1,5 @@
 import { Loader2Icon } from "lucide-react";
-import { motion } from "motion/react";
+import { LayoutGroup, motion } from "motion/react";
 import { useCallback, useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
@@ -20,15 +20,22 @@ export function StreamingView({ enhancedNoteId }: { enhancedNoteId: string }) {
 
   return (
     <div ref={containerRef} className="flex flex-col pb-2 space-y-1">
-      <Streamdown
-        components={streamdownComponents}
-        className={cn(["space-y-2"])}
-        isAnimating={isGenerating}
-      >
-        {streamedText}
-      </Streamdown>
+      <LayoutGroup>
+        <motion.div layout>
+          <Streamdown
+            components={streamdownComponents}
+            className={cn(["space-y-2"])}
+          >
+            {streamedText}
+          </Streamdown>
+        </motion.div>
 
-      {isGenerating ? <Status taskId={taskId} /> : null}
+        {isGenerating && (
+          <motion.div className="sticky bottom-0 pt-1">
+            <Status taskId={taskId} />
+          </motion.div>
+        )}
+      </LayoutGroup>
     </div>
   );
 }
@@ -129,11 +136,7 @@ function Status({ taskId }: { taskId: TaskId<"enhance"> }) {
   }
 
   return (
-    <motion.button
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, layout: { duration: 0.15 } }}
+    <button
       className={cn([
         "group flex items-center justify-center w-[calc(100%-24px)] gap-3",
         "border border-neutral-200 bg-neutral-800 rounded-lg py-3 transition-colors",
@@ -153,7 +156,7 @@ function Status({ taskId }: { taskId: TaskId<"enhance"> }) {
       <span className="hidden text-xs text-neutral-50 group-hover:inline group-focus-visible:inline">
         Press to cancel
       </span>
-    </motion.button>
+    </button>
   );
 }
 

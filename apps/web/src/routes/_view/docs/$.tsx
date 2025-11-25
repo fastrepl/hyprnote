@@ -1,38 +1,47 @@
-import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 
 import { DocLayout } from "./-components";
+import { docsStructure } from "./structure";
 
 export const Route = createFileRoute("/_view/docs/$")({
   component: Component,
+  beforeLoad: ({ params }) => {
+    const splat = params._splat || "";
+    const normalizedSplat = splat.replace(/\/$/, "");
+
+    if (docsStructure.defaultPages[normalizedSplat]) {
+      throw redirect({
+        to: "/docs/$",
+        params: { _splat: docsStructure.defaultPages[normalizedSplat] },
+      });
+    }
+
+    let doc = allDocs.find((doc) => doc.slug === normalizedSplat);
+    if (!doc) {
+      doc = allDocs.find((doc) => doc.slug === `${normalizedSplat}/index`);
+    }
+
+    if (!doc) {
+      if (normalizedSplat === "about/hello-world") {
+        return;
+      }
+      throw redirect({
+        to: "/docs/$",
+        params: { _splat: "about/hello-world" },
+      });
+    }
+  },
   loader: async ({ params }) => {
     const splat = params._splat || "";
-    let doc = allDocs.find((doc) => doc.slug === splat);
+    const normalizedSplat = splat.replace(/\/$/, "");
 
+    let doc = allDocs.find((doc) => doc.slug === normalizedSplat);
     if (!doc) {
-      doc = allDocs.find((doc) => doc.slug === `${splat}/index`);
+      doc = allDocs.find((doc) => doc.slug === `${normalizedSplat}/index`);
     }
 
-    if (!doc) {
-      const pathParts = splat.split("/");
-      const firstPart = pathParts[0];
-      const sectionName =
-        firstPart.charAt(0).toUpperCase() + firstPart.slice(1);
-      const docsInSection = allDocs
-        .filter((d) => d.section === sectionName && !d.isIndex)
-        .sort((a, b) => a.order - b.order);
-
-      if (docsInSection.length > 0) {
-        throw redirect({
-          to: "/docs/$",
-          params: { _splat: docsInSection[0].slug },
-        });
-      }
-
-      throw notFound();
-    }
-
-    return { doc };
+    return { doc: doc! };
   },
   head: ({ loaderData }) => {
     const { doc } = loaderData!;

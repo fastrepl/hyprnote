@@ -7,7 +7,7 @@ import {
 import { allDocs } from "content-collections";
 import { useMemo } from "react";
 
-import { docsStructure } from "./-structure";
+import { docsStructure } from "./structure";
 
 export const Route = createFileRoute("/_view/docs")({
   component: Component,

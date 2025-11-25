@@ -1,4 +1,4 @@
-const COMMANDS: &[&str] = &["ping", "get_available_deep_links"];
+const COMMANDS: &[&str] = &[];
 
 fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();

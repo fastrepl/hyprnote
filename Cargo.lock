@@ -4154,6 +4154,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "docs"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "swc_common",
+ "swc_ecma_ast",
+ "swc_ecma_parser",
+]
+
+[[package]]
 name = "document-features"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14983,15 +14993,13 @@ dependencies = [
 name = "tauri-plugin-hooks"
 version = "0.1.0"
 dependencies = [
+ "docs",
  "futures-util",
  "serde",
  "serde_json",
  "serde_yaml",
  "specta",
  "specta-typescript",
- "swc_common",
- "swc_ecma_ast",
- "swc_ecma_parser",
  "tauri",
  "tauri-plugin",
  "tauri-specta",

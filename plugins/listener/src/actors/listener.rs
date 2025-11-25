@@ -259,7 +259,15 @@ async fn run_single_stream(
 
     let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 
-    let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
+    let mut shutdown_rx = shutdown_rx;
+    let res = tokio::select! {
+        res = client.from_realtime_audio(outbound) => res,
+        _ = &mut shutdown_rx => {
+            return;
+        }
+    };
+
+    let (listen_stream, handle) = match res {
         Ok(res) => res,
         Err(e) => {
             let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
@@ -296,7 +304,15 @@ async fn run_dual_stream(
 
     let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 
-    let (listen_stream, handle) = match client.from_realtime_audio(outbound).await {
+    let mut shutdown_rx = shutdown_rx;
+    let res = tokio::select! {
+        res = client.from_realtime_audio(outbound) => res,
+        _ = &mut shutdown_rx => {
+            return;
+        }
+    };
+
+    let (listen_stream, handle) = match res {
         Ok(res) => res,
         Err(e) => {
             let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
@@ -448,10 +464,12 @@ async fn spawn_rx_task_dual_split(
                                 let _ = spk_tx.try_send(MixedMessage::Audio(spk));
                             }
                             Some(MixedMessage::Control(ctrl)) => {
-                                let _ = mic_tx.try_send(MixedMessage::Control(ctrl.clone()));
-                                let _ = spk_tx.try_send(MixedMessage::Control(ctrl));
+                                let _ = mic_tx.send(MixedMessage::Control(ctrl.clone())).await;
+                                let _ = spk_tx.send(MixedMessage::Control(ctrl)).await;
                             }
                             None => {
+                                let _ = shutdown_tx_mic.send(());
+                                let _ = shutdown_tx_spk.send(());
                                 break;
                             }
                         }

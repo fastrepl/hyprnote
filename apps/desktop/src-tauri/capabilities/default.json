@@ -84,6 +84,7 @@
     "local-stt:default",
     "dialog:default",
     "hooks:default",
+    "importer:default",
     "listener:default",
     "template:default",
     "notification:default",

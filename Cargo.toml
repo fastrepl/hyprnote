@@ -118,6 +118,7 @@ tauri-plugin-db2 = { path = "plugins/db2" }
 tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
+tauri-plugin-importer = { path = "plugins/importer" }
 tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }

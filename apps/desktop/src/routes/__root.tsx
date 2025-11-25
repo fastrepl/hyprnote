@@ -1,17 +1,23 @@
 import {
   createRootRouteWithContext,
+  type LinkProps,
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, useEffect } from "react";
 
+import type { DeepLink } from "@hypr/plugin-deeplink2";
 import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
 import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
+
+0 as DeepLink["to"] extends NonNullable<LinkProps["to"]>
+  ? 0
+  : "DeepLink['to'] must match a valid route";
 
 export const Route = createRootRouteWithContext<Partial<Context>>()({
   component: Component,

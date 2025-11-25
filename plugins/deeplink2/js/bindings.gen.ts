@@ -7,22 +7,7 @@
 
 
 export const commands = {
-async ping() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:deeplink2|ping") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getAvailableDeepLinks() : Promise<Result<DeepLinkInfo[], string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:deeplink2|get_available_deep_links") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-}
+
 }
 
 /** user-defined events **/
@@ -40,10 +25,10 @@ deepLinkEvent: "plugin:deeplink2:deep-link-event"
 
 /** user-defined types **/
 
-export type AuthDeepLink = { action: "Callback"; access_token: string; refresh_token: string }
-export type DeepLink = { type: "Auth"; data: AuthDeepLink } | { type: "Unknown"; data: { url: string } }
+export type DeepLink = { to: "/app/onboarding"; search: OnboardingSearch }
 export type DeepLinkEvent = DeepLink
-export type DeepLinkInfo = { name: string; description: string; example: string }
+export type OnboardingSearch = { step: OnboardingStep; local?: boolean }
+export type OnboardingStep = "welcome" | "permissions"
 
 /** tauri-specta globals **/
 

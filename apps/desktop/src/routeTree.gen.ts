@@ -11,6 +11,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as NotificationRouteImport } from './routes/notification'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as AppDevtoolRouteImport } from './routes/app/devtool'
 import { Route as AppOnboardingIndexRouteImport } from './routes/app/onboarding/index'
@@ -22,6 +23,11 @@ import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layou
 const AppSettingsRouteImport = createFileRoute('/app/settings')()
 const AppMainRouteImport = createFileRoute('/app/main')()
 
+const NotificationRoute = NotificationRouteImport.update({
+  id: '/notification',
+  path: '/notification',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRouteRoute = AppRouteRouteImport.update({
   id: '/app',
   path: '/app',
@@ -68,6 +74,7 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
+  '/notification': typeof NotificationRoute
   '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsLayoutRouteWithChildren
@@ -77,6 +84,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteRouteWithChildren
+  '/notification': typeof NotificationRoute
   '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainLayoutIndexRoute
   '/app/settings': typeof AppSettingsLayoutIndexRoute
@@ -85,6 +93,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteRouteWithChildren
+  '/notification': typeof NotificationRoute
   '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/app'
+    | '/notification'
     | '/app/devtool'
     | '/app/main'
     | '/app/settings'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/app'
+    | '/notification'
     | '/app/devtool'
     | '/app/main'
     | '/app/settings'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/app'
+    | '/notification'
     | '/app/devtool'
     | '/app/main'
     | '/app/main/_layout'
@@ -126,10 +138,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
+  NotificationRoute: typeof NotificationRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/notification': {
+      id: '/notification'
+      path: '/notification'
+      fullPath: '/notification'
+      preLoaderRoute: typeof NotificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app': {
       id: '/app'
       path: '/app'
@@ -262,6 +282,7 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
+  NotificationRoute: NotificationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

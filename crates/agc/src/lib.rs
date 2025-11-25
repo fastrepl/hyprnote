@@ -1,6 +1,6 @@
 use dagc::MonoAgc;
-use earshot::{VoiceActivityDetector, VoiceActivityProfile};
 use hypr_audio_utils::f32_to_i16_samples;
+use hypr_vad3::earshot::{VoiceActivityDetector, VoiceActivityProfile};
 
 pub struct VadAgc {
     agc: MonoAgc,
@@ -28,7 +28,7 @@ impl VadAgc {
         }
 
         if self.frame_size == 0 {
-            self.frame_size = Self::choose_optimal_frame_size(samples.len());
+            self.frame_size = hypr_vad3::choose_optimal_frame_size(samples.len());
         }
         let frame_size = self.frame_size;
 
@@ -79,33 +79,6 @@ impl VadAgc {
 
             self.agc.freeze_gain(!self.last_is_speech);
             self.agc.process(&mut samples[pos..]);
-        }
-    }
-
-    // https://docs.rs/earshot/0.1.0/earshot/struct.VoiceActivityDetector.html#method.predict_16khz
-    fn choose_optimal_frame_size(len: usize) -> usize {
-        const FRAME_10MS: usize = 160;
-        const FRAME_20MS: usize = 320;
-        const FRAME_30MS: usize = 480;
-
-        if len.is_multiple_of(FRAME_30MS) || len < FRAME_30MS {
-            FRAME_30MS
-        } else if len.is_multiple_of(FRAME_20MS) {
-            FRAME_20MS
-        } else if len.is_multiple_of(FRAME_10MS) {
-            FRAME_10MS
-        } else {
-            let padding_30 = (FRAME_30MS - (len % FRAME_30MS)) % FRAME_30MS;
-            let padding_20 = (FRAME_20MS - (len % FRAME_20MS)) % FRAME_20MS;
-            let padding_10 = (FRAME_10MS - (len % FRAME_10MS)) % FRAME_10MS;
-
-            if padding_30 <= padding_20 && padding_30 <= padding_10 {
-                FRAME_30MS
-            } else if padding_20 <= padding_10 {
-                FRAME_20MS
-            } else {
-                FRAME_10MS
-            }
         }
     }
 

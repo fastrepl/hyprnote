@@ -1,5 +1,5 @@
 [package]
-name = "vad"
+name = "vad-ext"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,6 +12,8 @@ rodio = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 
+hypr-audio-utils = { workspace = true }
+hypr-vad3 = { workspace = true }
 kalosm-sound = { workspace = true, default-features = false }
 silero-rs = { workspace = true }
 

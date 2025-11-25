@@ -11,3 +11,6 @@ dist-ssr
 .content-collections
 .netlify
 public/sitemap.xml
+test-results
+playwright-report
+.argos

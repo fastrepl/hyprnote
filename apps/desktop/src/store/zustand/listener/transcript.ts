@@ -69,15 +69,26 @@ export const createTranscriptSlice = <
         wordIndex: hint.wordIndex - firstNewWordIndex,
       }));
 
-    const remainingPartialWords = (
-      partialWordsByChannel[channelIndex] ?? []
-    ).filter((word) => word.start_ms > lastEndMs);
+    const existingPartialWords = partialWordsByChannel[channelIndex] ?? [];
+    const remainingPartialWords = existingPartialWords.filter(
+      (word) => word.start_ms > lastEndMs,
+    );
 
-    const remainingPartialHints = partialHints.filter((hint) => {
-      const partialWords = partialWordsByChannel[channelIndex] ?? [];
-      const word = partialWords[hint.wordIndex];
-      return word && word.start_ms > lastEndMs;
-    });
+    const oldToNewIndex = new Map<number, number>();
+    let newIdx = 0;
+    for (let oldIdx = 0; oldIdx < existingPartialWords.length; oldIdx++) {
+      if (existingPartialWords[oldIdx].start_ms > lastEndMs) {
+        oldToNewIndex.set(oldIdx, newIdx);
+        newIdx++;
+      }
+    }
+
+    const remainingPartialHints = partialHints
+      .filter((hint) => oldToNewIndex.has(hint.wordIndex))
+      .map((hint) => ({
+        ...hint,
+        wordIndex: oldToNewIndex.get(hint.wordIndex)!,
+      }));
 
     set((state) =>
       mutate(state, (draft) => {

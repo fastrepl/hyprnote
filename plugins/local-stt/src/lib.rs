@@ -1,4 +1,4 @@
-use ractor::ActorRef;
+use ractor::{ActorCell, ActorRef};
 use ractor_supervisor::dynamic::DynamicSupervisorMsg;
 use std::collections::HashMap;
 use tauri::{Manager, Wry};
@@ -14,6 +14,7 @@ mod types;
 pub use error::*;
 pub use ext::*;
 pub use model::*;
+pub use server::supervisor::{SupervisorRef, SUPERVISOR_NAME};
 pub use server::*;
 pub use types::*;
 
@@ -25,6 +26,11 @@ pub struct State {
     pub download_task: HashMap<SupportedSttModel, (tokio::task::JoinHandle<()>, CancellationToken)>,
     pub stt_supervisor: Option<ActorRef<DynamicSupervisorMsg>>,
     pub supervisor_handle: Option<SupervisorHandle>,
+}
+
+#[derive(Default)]
+pub struct InitOptions {
+    pub parent_supervisor: Option<ActorCell>,
 }
 
 const PLUGIN_NAME: &str = "local-stt";
@@ -48,7 +54,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
-pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+pub fn init<R: tauri::Runtime>(options: InitOptions) -> tauri::plugin::TauriPlugin<R> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -67,8 +73,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             app.manage(state.clone());
 
+            let parent = options.parent_supervisor.clone();
             tauri::async_runtime::spawn(async move {
-                match server::supervisor::spawn_stt_supervisor().await {
+                match server::supervisor::spawn_stt_supervisor(parent).await {
                     Ok((supervisor, handle)) => {
                         let mut guard = state.lock().await;
                         guard.stt_supervisor = Some(supervisor);

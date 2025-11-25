@@ -3925,6 +3925,8 @@ name = "desktop"
 version = "0.0.0"
 dependencies = [
  "aspasia",
+ "ractor",
+ "ractor-supervisor",
  "sentry",
  "serde",
  "serde_json",

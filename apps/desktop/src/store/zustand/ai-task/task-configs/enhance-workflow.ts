@@ -31,7 +31,7 @@ export const enhanceWorkflow: Pick<
   transforms: [
     trimBeforeMarker("#"),
     addMarkdownSectionSeparators(),
-    smoothStream({ delayInMs: 350, chunking: "line" }),
+    smoothStream({ delayInMs: 250, chunking: "line" }),
   ],
 };
 

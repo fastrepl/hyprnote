@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           - platform: "macos"
-            runner: "macos-15"
+            runner: "macos-14"
     runs-on: ${{ matrix.runner }}
     env:
       ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}

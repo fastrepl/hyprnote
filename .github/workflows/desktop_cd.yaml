@@ -65,7 +65,7 @@ jobs:
     if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
     permissions:
       contents: write
-    runs-on: macos-15
+    runs-on: macos-14
     defaults:
       run:
         shell: bash

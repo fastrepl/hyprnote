@@ -1,6 +1,6 @@
 use dagc::MonoAgc;
-use earshot::{VoiceActivityDetector, VoiceActivityProfile};
 use hypr_audio_utils::f32_to_i16_samples;
+use hypr_vad3::earshot::{VoiceActivityDetector, VoiceActivityProfile};
 
 pub struct VadAgc {
     agc: MonoAgc,

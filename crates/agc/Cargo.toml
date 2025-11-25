@@ -13,4 +13,3 @@ hypr-audio-utils = { workspace = true }
 hypr-vad3 = { workspace = true }
 
 dagc = "0.1.1"
-earshot = { workspace = true }

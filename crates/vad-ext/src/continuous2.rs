@@ -3,9 +3,9 @@ use std::{
     task::{Context, Poll},
 };
 
-use earshot::{VoiceActivityDetector, VoiceActivityProfile};
 use futures_util::Stream;
 use hypr_audio_utils::f32_to_i16_samples;
+use hypr_vad3::earshot::{VoiceActivityDetector, VoiceActivityProfile};
 
 pub struct ContinuousVadMaskStream<S> {
     inner: S,

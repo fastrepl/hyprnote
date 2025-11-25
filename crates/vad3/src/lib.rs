@@ -1,3 +1,5 @@
+pub use earshot;
+
 pub const FRAME_10MS: usize = 160;
 pub const FRAME_20MS: usize = 320;
 pub const FRAME_30MS: usize = 480;

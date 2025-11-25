@@ -71,7 +71,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             if let Some(menu) = app.menu() {
                 let items = menu.items()?;
 
-                if items.len() > 0 {
+                if !items.is_empty() {
                     if let MenuItemKind::Submenu(submenu) = &items[0] {
                         submenu.remove_at(0)?;
                         submenu.remove_at(0)?;
@@ -119,7 +119,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                     }
                     HyprMenuItem::TrayStart => {
                         use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
-                        if let Ok(_) = app.window_show(AppWindow::Main) {
+                        if app.window_show(AppWindow::Main).is_ok() {
                             let _ = app.window_emit_navigate(
                                 AppWindow::Main,
                                 Navigate {
@@ -172,19 +172,19 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                     }
                     HyprMenuItem::AppCliInstall => {
                         use tauri_plugin_cli2::CliPluginExt;
-                        if let Ok(_) = app.plugin_cli().install_cli_to_path() {
+                        if app.plugin_cli().install_cli_to_path().is_ok() {
                             let _ = app.create_app_menu();
                         }
                     }
                     HyprMenuItem::AppCliUninstall => {
                         use tauri_plugin_cli2::CliPluginExt;
-                        if let Ok(_) = app.plugin_cli().uninstall_cli_from_path() {
+                        if app.plugin_cli().uninstall_cli_from_path().is_ok() {
                             let _ = app.create_app_menu();
                         }
                     }
                     HyprMenuItem::AppNew => {
                         use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
-                        if let Ok(_) = app.window_show(AppWindow::Main) {
+                        if app.window_show(AppWindow::Main).is_ok() {
                             let _ = app.window_emit_navigate(
                                 AppWindow::Main,
                                 Navigate {

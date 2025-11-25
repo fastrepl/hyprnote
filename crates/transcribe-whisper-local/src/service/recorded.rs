@@ -36,8 +36,8 @@ pub fn process_recorded(
         let whisper_segments = model.transcribe(&audio_f32).unwrap();
 
         for whisper_segment in whisper_segments {
-            let start_sec: f64 = segment.start + (whisper_segment.start() as f64);
-            let end_sec: f64 = segment.start + (whisper_segment.end() as f64);
+            let start_sec: f64 = segment.start + whisper_segment.start();
+            let end_sec: f64 = segment.start + whisper_segment.end();
             let start_ms = (start_sec * 1000.0) as u64;
             let end_ms = (end_sec * 1000.0) as u64;
 

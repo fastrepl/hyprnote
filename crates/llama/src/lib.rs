@@ -87,7 +87,7 @@ impl Llama {
         let mut samplers = Vec::new();
 
         if let Some(grammar) = grammar {
-            if let Some(grammar_sampler) = LlamaSampler::grammar(&model, grammar, "root") {
+            if let Some(grammar_sampler) = LlamaSampler::grammar(model, grammar, "root") {
                 samplers.push(grammar_sampler);
             }
 

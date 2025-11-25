@@ -86,7 +86,7 @@ pub async fn check_system_audio_permission<R: tauri::Runtime>(
 #[tauri::command]
 #[specta::specta]
 pub async fn request_system_audio_permission<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
+    #[allow(unused_variables)] app: tauri::AppHandle<R>,
 ) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {

@@ -227,7 +227,7 @@ impl Actor for ExternalSTTActor {
         match message {
             ExternalSTTMessage::ProcessTerminated(e) => {
                 cleanup_state(state);
-                Err(io::Error::new(io::ErrorKind::Other, e).into())
+                Err(io::Error::other(e).into())
             }
             ExternalSTTMessage::GetHealth(reply_port) => {
                 let status = match state.client.status().await {

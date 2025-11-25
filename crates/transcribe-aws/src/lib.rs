@@ -81,19 +81,19 @@ impl TranscribeService {
                         if let Ok(chunk) = serde_json::from_str::<ListenInputChunk>(&data) {
                             match chunk {
                                 ListenInputChunk::Audio { data } => {
-                                    if !data.is_empty() {
-                                        if audio_tx.send(Bytes::from(data)).await.is_err() {
-                                            break;
-                                        }
+                                    if !data.is_empty()
+                                        && audio_tx.send(Bytes::from(data)).await.is_err()
+                                    {
+                                        break;
                                     }
                                 }
                                 ListenInputChunk::DualAudio { mic, speaker } => {
                                     // For now, mix the dual audio channels
                                     let mixed = mix_audio_pcm16le(&mic, &speaker);
-                                    if !mixed.is_empty() {
-                                        if audio_tx.send(Bytes::from(mixed)).await.is_err() {
-                                            break;
-                                        }
+                                    if !mixed.is_empty()
+                                        && audio_tx.send(Bytes::from(mixed)).await.is_err()
+                                    {
+                                        break;
                                     }
                                 }
                                 ListenInputChunk::End => break,
@@ -142,44 +142,41 @@ impl TranscribeService {
             .await?;
 
         while let Some(event) = output.transcript_result_stream.recv().await? {
-            match event {
-                TranscriptResultStream::TranscriptEvent(transcript_event) => {
-                    if let Some(transcript) = transcript_event.transcript {
-                        for result in transcript.results.unwrap_or_default() {
-                            // Skip partial results for now
-                            if result.is_partial {
-                                continue;
-                            }
+            if let TranscriptResultStream::TranscriptEvent(transcript_event) = event {
+                if let Some(transcript) = transcript_event.transcript {
+                    for result in transcript.results.unwrap_or_default() {
+                        // Skip partial results for now
+                        if result.is_partial {
+                            continue;
+                        }
 
-                            if let Some(alternatives) = result.alternatives {
-                                if let Some(first) = alternatives.first() {
-                                    if let Some(text) = &first.transcript {
-                                        let mut words = Vec::new();
+                        if let Some(alternatives) = result.alternatives {
+                            if let Some(first) = alternatives.first() {
+                                if let Some(text) = &first.transcript {
+                                    let mut words = Vec::new();
 
-                                        // AWS doesn't provide word-level data in the same way
-                                        // So we'll split the transcript into words
-                                        for word_text in text.split_whitespace() {
-                                            words.push(Word2 {
-                                                text: word_text.to_string(),
-                                                speaker: None,
-                                                confidence: None,
-                                                start_ms: Some((result.start_time * 1000.0) as u64),
-                                                end_ms: Some((result.end_time * 1000.0) as u64),
-                                            });
-                                        }
+                                    // AWS doesn't provide word-level data in the same way
+                                    // So we'll split the transcript into words
+                                    for word_text in text.split_whitespace() {
+                                        words.push(Word2 {
+                                            text: word_text.to_string(),
+                                            speaker: None,
+                                            confidence: None,
+                                            start_ms: Some((result.start_time * 1000.0) as u64),
+                                            end_ms: Some((result.end_time * 1000.0) as u64),
+                                        });
+                                    }
 
-                                        if !words.is_empty() {
-                                            let output_chunk =
-                                                ListenOutputChunk { meta: None, words };
+                                    if !words.is_empty() {
+                                        let output_chunk = ListenOutputChunk { meta: None, words };
 
-                                            if let Ok(json) = serde_json::to_string(&output_chunk) {
-                                                if sender
-                                                    .send(Message::Text(json.into()))
-                                                    .await
-                                                    .is_err()
-                                                {
-                                                    break;
-                                                }
+                                        if let Ok(json) = serde_json::to_string(&output_chunk) {
+                                            if sender
+                                                .send(Message::Text(json.into()))
+                                                .await
+                                                .is_err()
+                                            {
+                                                break;
                                             }
                                         }
                                     }
@@ -188,7 +185,6 @@ impl TranscribeService {
                         }
                     }
                 }
-                _ => {}
             }
         }
 

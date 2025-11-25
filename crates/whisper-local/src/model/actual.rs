@@ -117,7 +117,7 @@ impl Whisper {
             p.set_detect_language(false);
             p.set_language(language.as_deref());
 
-            p.set_initial_prompt(&initial_prompt);
+            p.set_initial_prompt(initial_prompt);
 
             unsafe {
                 Self::suppress_beg(&mut p, &token_beg);
@@ -141,7 +141,7 @@ impl Whisper {
             p
         };
 
-        self.state.full(params, &audio[..])?;
+        self.state.full(params, audio)?;
         let num_segments = self.state.full_n_segments();
 
         let mut segments = Vec::new();
@@ -190,7 +190,7 @@ impl Whisper {
     }
 
     fn get_language(&mut self, audio: &[f32]) -> Result<Option<String>, crate::Error> {
-        if self.languages.len() == 0 {
+        if self.languages.is_empty() {
             tracing::info!("no_language_specified");
             return Ok(None);
         }
@@ -232,17 +232,12 @@ impl Whisper {
             .filter(|s| {
                 let t = s.text.trim().to_lowercase();
 
-                if s.confidence < 0.005
+                !(s.confidence < 0.005
                     || t == "you"
                     || t == "thank you"
                     || t == "you."
                     || t == "thank you."
-                    || t == "♪"
-                {
-                    false
-                } else {
-                    true
-                }
+                    || t == "♪")
             })
             .collect()
     }

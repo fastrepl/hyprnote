@@ -89,7 +89,7 @@ impl DeviceChangeWatcher {
             };
 
             match event {
-                Ok(DeviceEvent::DefaultInputChanged { .. })
+                Ok(DeviceEvent::DefaultInputChanged)
                 | Ok(DeviceEvent::DefaultOutputChanged { .. }) => {
                     tracing::info!(event = ?event, "device_event");
                     pending_change = true;

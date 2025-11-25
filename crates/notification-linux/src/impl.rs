@@ -9,8 +9,6 @@ use gtk::{
 };
 use indexmap::IndexMap;
 
-pub use hypr_notification_interface::*;
-
 thread_local! {
     static NOTIFICATION_MANAGER: RefCell<NotificationManager> = RefCell::new(NotificationManager::new());
 }
@@ -152,7 +150,7 @@ impl NotificationManager {
 
     fn setup_window_style(&self, _window: &ApplicationWindow) {
         let css_provider = CssProvider::new();
-        css_provider.load_from_data(
+        let _ = css_provider.load_from_data(
             br#"
             window {
                 background-color: rgba(255, 255, 255, 0.95);

@@ -211,7 +211,6 @@ dependencies = [
  "audio-utils",
  "dagc",
  "data",
- "earshot",
  "hound",
  "rodio",
  "vad3",
@@ -3942,6 +3941,7 @@ dependencies = [
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-db2",
  "tauri-plugin-deep-link",
+ "tauri-plugin-deeplink2",
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
@@ -4151,6 +4151,16 @@ dependencies = [
  "base64 0.21.7",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "docs"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "swc_common",
+ "swc_ecma_ast",
+ "swc_ecma_parser",
 ]
 
 [[package]]
@@ -14904,6 +14914,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-deeplink2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "tauri-plugin-detect"
 version = "0.1.0"
 dependencies = [
@@ -14967,15 +14993,13 @@ dependencies = [
 name = "tauri-plugin-hooks"
 version = "0.1.0"
 dependencies = [
+ "docs",
  "futures-util",
  "serde",
  "serde_json",
  "serde_yaml",
  "specta",
  "specta-typescript",
- "swc_common",
- "swc_ecma_ast",
- "swc_ecma_parser",
  "tauri",
  "tauri-plugin",
  "tauri-specta",
@@ -17315,7 +17339,6 @@ version = "0.1.0"
 dependencies = [
  "audio-utils",
  "data",
- "earshot",
  "futures-util",
  "hound",
  "kalosm-sound",
@@ -17340,6 +17363,9 @@ dependencies = [
 [[package]]
 name = "vad3"
 version = "0.1.0"
+dependencies = [
+ "earshot",
+]
 
 [[package]]
 name = "valuable"

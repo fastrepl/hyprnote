@@ -2,7 +2,6 @@ use super::{
     Event, GetSessionFilter, Human, ListSessionFilter, ListSessionFilterCommon,
     ListSessionFilterSpecific, Session, UserDatabase,
 };
-use uuid;
 
 impl UserDatabase {
     pub fn onboarding_session_id() -> String {
@@ -345,7 +344,7 @@ impl UserDatabase {
             "UPDATE sessions SET calendar_event_id = ? WHERE id = ?",
             (
                 event_id
-                    .map(|s| libsql::Value::Text(s))
+                    .map(libsql::Value::Text)
                     .unwrap_or(libsql::Value::Null),
                 libsql::Value::Text(session_id),
             ),

@@ -80,7 +80,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             SupportedSttModel::Whisper(model) => {
                 let model_path = self.models_dir().join(model.file_name());
 
-                for (path, expected) in [(model_path, model.model_size_bytes())] {
+                {
+                    let (path, expected) = (model_path, model.model_size_bytes());
                     if !path.exists() {
                         return Ok(false);
                     }
@@ -174,13 +175,13 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_servers(&self) -> Result<HashMap<ServerType, ServerInfo>, crate::Error> {
-        let internal_info = internal_health().await.unwrap_or_else(|| ServerInfo {
+        let internal_info = internal_health().await.unwrap_or(ServerInfo {
             url: None,
             status: ServerStatus::Unreachable,
             model: None,
         });
 
-        let external_info = external_health().await.unwrap_or_else(|| ServerInfo {
+        let external_info = external_health().await.unwrap_or(ServerInfo {
             url: None,
             status: ServerStatus::Unreachable,
             model: None,

@@ -270,7 +270,7 @@ where
                                 start: start_f64,
                                 end: start_f64 + duration_f64,
                                 confidence,
-                                speaker: speaker.clone(),
+                                speaker: speaker,
                                 punctuated_word: None,
                                 language: None,
                             })

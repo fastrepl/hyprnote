@@ -56,7 +56,7 @@ impl AppWindow {
     ) -> tauri::WebviewWindowBuilder<'a, tauri::Wry, tauri::AppHandle<tauri::Wry>> {
         use tauri::{WebviewUrl, WebviewWindow};
 
-        let mut builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App(url.into()))
+        let builder = WebviewWindow::builder(app, self.label(), WebviewUrl::App(url.into()))
             .title(self.title())
             .disable_drag_drop_handler();
 

@@ -1,0 +1,21 @@
+# https://docs.argmaxinc.com/guides/upgrading-to-pro-sdk
+# Sets up Argmax Pro SDK registry access for Swift Package Manager
+
+name: "Setup Argmax SDK"
+description: "Configure Swift Package Manager registry for Argmax Pro SDK access"
+inputs:
+  api-token:
+    description: "Argmax SECRET_API_TOKEN for SDK access"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Argmax Registry
+      shell: bash
+      run: |
+        swift package-registry set --global --scope argmaxinc https://api.argmaxinc.com/v1/sdk
+
+    - name: Authenticate with Argmax
+      shell: bash
+      run: |
+        swift package-registry login https://api.argmaxinc.com/v1/sdk/login --token "${{ inputs.api-token }}"

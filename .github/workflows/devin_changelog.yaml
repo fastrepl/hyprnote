@@ -1,0 +1,21 @@
+name: Devin Changelog
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  trigger-devin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Devin Session
+        run: |
+          curl --request POST \
+            --url https://api.devin.ai/v1/sessions \
+            --header "Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}" \
+            --header "Content-Type: application/json" \
+            --data "{
+              \"prompt\": \"Create new changelog entry for tag: ${{ github.event.release.tag_name }}, following guide at apps/web/content/changelog/AGENTS.md.\",
+              \"idempotent\": true
+            }"

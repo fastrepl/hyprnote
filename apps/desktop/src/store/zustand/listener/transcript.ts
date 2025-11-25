@@ -180,7 +180,30 @@ export const createTranscriptSlice = <
         get();
 
       const remainingWords = Object.values(partialWordsByChannel).flat();
-      const remainingHints = Object.values(partialHintsByChannel).flat();
+
+      const channelIndices = Object.keys(partialWordsByChannel)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+      const offsetByChannel = new Map<number, number>();
+      let currentOffset = 0;
+      for (const channelIndex of channelIndices) {
+        offsetByChannel.set(channelIndex, currentOffset);
+        currentOffset += partialWordsByChannel[channelIndex]?.length ?? 0;
+      }
+
+      const remainingHints: RuntimeSpeakerHint[] = [];
+      for (const channelIndex of channelIndices) {
+        const hints = partialHintsByChannel[channelIndex] ?? [];
+        const offset = offsetByChannel.get(channelIndex) ?? 0;
+        for (const hint of hints) {
+          remainingHints.push({
+            ...hint,
+            wordIndex: hint.wordIndex + offset,
+          });
+        }
+      }
+
       if (remainingWords.length > 0) {
         handlePersist?.(remainingWords, remainingHints);
       }

@@ -1,5 +1,6 @@
 [env]
 MACOSX_DEPLOYMENT_TARGET = { value = "14.2", force = true }
+TOOLCHAINS = { value = "com.apple.dt.toolchain.XcodeDefault", force = true }
 
 [target.'cfg(all(windows, target_env = "msvc"))']
 rustflags = [

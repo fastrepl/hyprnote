@@ -1,0 +1,21 @@
+name: Devin Changelog
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  trigger-devin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Devin Session
+        run: |
+          curl --request POST \
+            --url https://api.devin.ai/v1/sessions \
+            --header "Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}" \
+            --header "Content-Type: application/json" \
+            --data "{
+              \"prompt\": \"New release created for ${{ github.repository }}:\n- Tag: ${{ github.event.release.tag_name }}\n- Name: ${{ github.event.release.name || github.event.release.tag_name }}\n- Created at: ${{ github.event.release.created_at }}\n- Author: ${{ github.event.release.author.login }}\n- URL: ${{ github.event.release.html_url }}\n\n${{ github.event.release.body || 'No release notes provided.' }}\",
+              \"idempotent\": true
+            }"

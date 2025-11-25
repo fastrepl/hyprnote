@@ -214,6 +214,7 @@ dependencies = [
  "earshot",
  "hound",
  "rodio",
+ "vad3",
 ]
 
 [[package]]
@@ -15048,7 +15049,7 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
- "vad",
+ "vad-ext",
  "vad2",
  "vorbis_rs",
 ]
@@ -16676,7 +16677,7 @@ dependencies = [
  "tokio-tungstenite 0.26.2",
  "tower 0.5.2",
  "tracing",
- "vad",
+ "vad-ext",
  "ws-utils",
 ]
 
@@ -16720,7 +16721,7 @@ dependencies = [
  "tokio-util",
  "tower 0.5.2",
  "tracing",
- "vad",
+ "vad-ext",
  "whisper",
  "whisper-local",
  "ws-utils",
@@ -17309,7 +17310,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "vad"
+name = "vad-ext"
 version = "0.1.0"
 dependencies = [
  "audio-utils",
@@ -17324,6 +17325,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "vad3",
 ]
 
 [[package]]
@@ -17334,6 +17336,10 @@ dependencies = [
  "ten-vad-rs",
  "thiserror 2.0.17",
 ]
+
+[[package]]
+name = "vad3"
+version = "0.1.0"
 
 [[package]]
 name = "valuable"

@@ -16,7 +16,7 @@ impl VadAgc {
     }
 
     pub fn process(&mut self, samples: &mut [f32]) {
-        let frame_size = Self::choose_optimal_frame_size(samples.len());
+        let frame_size = hypr_vad3::choose_optimal_frame_size(samples.len());
 
         if samples.len() <= frame_size {
             let mut padded = samples.to_vec();
@@ -39,33 +39,6 @@ impl VadAgc {
 
                 self.agc.freeze_gain(!is_speech);
                 self.agc.process(chunk);
-            }
-        }
-    }
-
-    // https://docs.rs/earshot/0.1.0/earshot/struct.VoiceActivityDetector.html#method.predict_16khz
-    fn choose_optimal_frame_size(len: usize) -> usize {
-        const FRAME_10MS: usize = 160;
-        const FRAME_20MS: usize = 320;
-        const FRAME_30MS: usize = 480;
-
-        if len % FRAME_30MS == 0 || len < FRAME_30MS {
-            FRAME_30MS
-        } else if len % FRAME_20MS == 0 {
-            FRAME_20MS
-        } else if len % FRAME_10MS == 0 {
-            FRAME_10MS
-        } else {
-            let padding_30 = (FRAME_30MS - (len % FRAME_30MS)) % FRAME_30MS;
-            let padding_20 = (FRAME_20MS - (len % FRAME_20MS)) % FRAME_20MS;
-            let padding_10 = (FRAME_10MS - (len % FRAME_10MS)) % FRAME_10MS;
-
-            if padding_30 <= padding_20 && padding_30 <= padding_10 {
-                FRAME_30MS
-            } else if padding_20 <= padding_10 {
-                FRAME_20MS
-            } else {
-                FRAME_10MS
             }
         }
     }

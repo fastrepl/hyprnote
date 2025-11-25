@@ -31,38 +31,12 @@ impl<S> ContinuousVadMaskStream<S> {
         self
     }
 
-    fn choose_optimal_frame_size(len: usize) -> usize {
-        const FRAME_10MS: usize = 160;
-        const FRAME_20MS: usize = 320;
-        const FRAME_30MS: usize = 480;
-
-        if len >= FRAME_30MS && len % FRAME_30MS == 0 {
-            FRAME_30MS
-        } else if len >= FRAME_20MS && len % FRAME_20MS == 0 {
-            FRAME_20MS
-        } else if len >= FRAME_10MS && len % FRAME_10MS == 0 {
-            FRAME_10MS
-        } else {
-            let padding_30 = (FRAME_30MS - (len % FRAME_30MS)) % FRAME_30MS;
-            let padding_20 = (FRAME_20MS - (len % FRAME_20MS)) % FRAME_20MS;
-            let padding_10 = (FRAME_10MS - (len % FRAME_10MS)) % FRAME_10MS;
-
-            if padding_30 <= padding_20 && padding_30 <= padding_10 {
-                FRAME_30MS
-            } else if padding_20 <= padding_10 {
-                FRAME_20MS
-            } else {
-                FRAME_10MS
-            }
-        }
-    }
-
     fn process_chunk(&mut self, chunk: &mut [f32]) {
         if chunk.is_empty() {
             return;
         }
 
-        let frame_size = Self::choose_optimal_frame_size(chunk.len());
+        let frame_size = hypr_vad3::choose_optimal_frame_size(chunk.len());
 
         if chunk.len() <= frame_size {
             self.process_frame(chunk, frame_size);
@@ -288,29 +262,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_frame_size_selection() {
-        assert_eq!(
-            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(160),
-            160
-        );
-        assert_eq!(
-            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(320),
-            320
-        );
-        assert_eq!(
-            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(480),
-            480
-        );
-        assert_eq!(
-            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(960),
-            480
-        );
-        assert_eq!(
-            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(640),
-            320
-        );
-        assert_eq!(
-            ContinuousVadMaskStream::<()>::choose_optimal_frame_size(512),
-            320
-        );
+        assert_eq!(hypr_vad3::choose_optimal_frame_size(160), 160);
+        assert_eq!(hypr_vad3::choose_optimal_frame_size(320), 320);
+        assert_eq!(hypr_vad3::choose_optimal_frame_size(480), 480);
+        assert_eq!(hypr_vad3::choose_optimal_frame_size(960), 480);
+        assert_eq!(hypr_vad3::choose_optimal_frame_size(640), 320);
+        assert_eq!(hypr_vad3::choose_optimal_frame_size(512), 320);
     }
 }

@@ -20,7 +20,7 @@ use hypr_aec::AEC;
 use hypr_agc::VadAgc;
 use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
 use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
-use hypr_vad::VadMaskExt;
+use hypr_vad_ext::VadMaskExt;
 use tauri_specta::Event;
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);

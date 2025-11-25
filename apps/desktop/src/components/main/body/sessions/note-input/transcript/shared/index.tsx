@@ -4,6 +4,7 @@ import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../../../contexts/listener";
 import * as main from "../../../../../../../store/tinybase/main";
+import type { RuntimeSpeakerHint } from "../../../../../../../utils/segment";
 import { useAutoScroll, useScrollDetection } from "./hooks";
 import { Operations } from "./operations";
 import { RenderTranscript } from "./render-transcript";
@@ -32,9 +33,32 @@ export function TranscriptContainer({
   const partialWords = useListener((state) =>
     Object.values(state.partialWordsByChannel).flat(),
   );
-  const partialHints = useListener((state) =>
-    Object.values(state.partialHintsByChannel).flat(),
-  );
+  const partialHints = useListener((state) => {
+    const channelIndices = Object.keys(state.partialWordsByChannel)
+      .map(Number)
+      .sort((a, b) => a - b);
+
+    const offsetByChannel = new Map<number, number>();
+    let currentOffset = 0;
+    for (const channelIndex of channelIndices) {
+      offsetByChannel.set(channelIndex, currentOffset);
+      currentOffset += state.partialWordsByChannel[channelIndex]?.length ?? 0;
+    }
+
+    const reindexedHints: RuntimeSpeakerHint[] = [];
+    for (const channelIndex of channelIndices) {
+      const hints = state.partialHintsByChannel[channelIndex] ?? [];
+      const offset = offsetByChannel.get(channelIndex) ?? 0;
+      for (const hint of hints) {
+        reindexedHints.push({
+          ...hint,
+          wordIndex: hint.wordIndex + offset,
+        });
+      }
+    }
+
+    return reindexedHints;
+  });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(

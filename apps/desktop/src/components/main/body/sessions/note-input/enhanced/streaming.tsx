@@ -23,6 +23,7 @@ export function StreamingView({ enhancedNoteId }: { enhancedNoteId: string }) {
       <Streamdown
         components={streamdownComponents}
         className={cn(["space-y-2"])}
+        isAnimating={isGenerating}
       >
         {streamedText}
       </Streamdown>

@@ -7,6 +7,8 @@ import {
 import { allDocs } from "content-collections";
 import { useMemo } from "react";
 
+import { docsStructure } from "./-structure";
+
 export const Route = createFileRoute("/_view/docs")({
   component: Component,
 });
@@ -33,67 +35,51 @@ function LeftSidebar() {
   ) as string | undefined;
 
   const docsBySection = useMemo(() => {
-    const grouped = allDocs.reduce(
-      (acc, doc) => {
-        if (!acc[doc.sectionFolder]) {
-          acc[doc.sectionFolder] = {
-            title: "",
-            docs: [],
-            indexDoc: null as typeof doc | null,
-          };
-        }
+    const sectionGroups: Record<
+      string,
+      { title: string; docs: (typeof allDocs)[0][] }
+    > = {};
 
-        if (doc.isIndex) {
-          acc[doc.sectionFolder].indexDoc = doc;
-          acc[doc.sectionFolder].title = doc.title;
-        } else {
-          acc[doc.sectionFolder].docs.push(doc);
-        }
-
-        return acc;
-      },
-      {} as Record<
-        string,
-        {
-          title: string;
-          docs: typeof allDocs;
-          indexDoc: (typeof allDocs)[0] | null;
-        }
-      >,
-    );
-
-    Object.keys(grouped).forEach((folder) => {
-      if (!grouped[folder].title) {
-        grouped[folder].title = folder
-          .split("-")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ");
+    allDocs.forEach((doc) => {
+      if (doc.slug === "index" || doc.isIndex) {
+        return;
       }
+
+      const sectionName = doc.section;
+
+      if (!sectionGroups[sectionName]) {
+        sectionGroups[sectionName] = {
+          title: sectionName,
+          docs: [],
+        };
+      }
+
+      sectionGroups[sectionName].docs.push(doc);
     });
 
-    return Object.values(grouped).sort((a, b) =>
-      a.title.localeCompare(b.title),
-    );
+    Object.keys(sectionGroups).forEach((sectionName) => {
+      sectionGroups[sectionName].docs.sort((a, b) => a.order - b.order);
+    });
+
+    const sections = docsStructure.sections
+      .map((sectionId) => {
+        const sectionName =
+          sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+        return sectionGroups[sectionName];
+      })
+      .filter(Boolean);
+
+    return { sections };
   }, []);
 
   return (
     <aside className="hidden md:block w-64 shrink-0">
       <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6">
         <nav className="space-y-4">
-          {docsBySection.map((section) => (
+          {docsBySection.sections.map((section) => (
             <div key={section.title}>
               <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">
-                {section.indexDoc ? (
-                  <Link
-                    to="/docs/$"
-                    params={{ _splat: section.indexDoc.slug }}
-                    className="hover:text-stone-600 transition-colors"
-                  >
-                    {section.title}
-                  </Link>
-                ) : (
-                  section.title
-                )}
+                {section.title}
               </h3>
               <div className="space-y-0.5">
                 {section.docs.map((doc) => (

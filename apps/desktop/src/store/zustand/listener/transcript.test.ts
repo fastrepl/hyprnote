@@ -101,9 +101,9 @@ describe("transcript slice", () => {
       " Another",
       " problem",
     ]);
-    expect(stateAfterFirst.partialHints).toHaveLength(2);
-    expect(stateAfterFirst.partialHints[0]?.wordIndex).toBe(0);
-    expect(stateAfterFirst.partialHints[1]?.wordIndex).toBe(1);
+    expect(stateAfterFirst.partialHintsByChannel[0]).toHaveLength(2);
+    expect(stateAfterFirst.partialHintsByChannel[0]?.[0]?.wordIndex).toBe(0);
+    expect(stateAfterFirst.partialHintsByChannel[0]?.[1]?.wordIndex).toBe(1);
 
     const extendedPartial = createResponse({
       words: [
@@ -132,9 +132,9 @@ describe("transcript slice", () => {
       " problem",
       " exists",
     ]);
-    expect(stateAfterSecond.partialHints).toHaveLength(3);
-    const lastPartialHint =
-      stateAfterSecond.partialHints[stateAfterSecond.partialHints.length - 1];
+    const channelHints = stateAfterSecond.partialHintsByChannel[0] ?? [];
+    expect(channelHints).toHaveLength(3);
+    const lastPartialHint = channelHints[channelHints.length - 1];
     expect(lastPartialHint?.wordIndex).toBe(2);
   });
 
@@ -186,5 +186,92 @@ describe("transcript slice", () => {
     store.getState().handleTranscriptResponse(finalResponse);
     expect(persist).toHaveBeenCalledTimes(1);
     expect(store.getState().finalWordsMaxEndMsByChannel[0]).toBe(1500);
+  });
+
+  test("adjusts partial hint indices after filtering partial words", () => {
+    const persist = vi.fn();
+    store.getState().setTranscriptPersist(persist);
+
+    const partialResponse = createResponse({
+      words: [
+        {
+          word: "hello",
+          punctuated_word: "Hello",
+          start: 0,
+          end: 0.5,
+          confidence: 1,
+          speaker: 0,
+          language: "en",
+        },
+        {
+          word: "world",
+          punctuated_word: "world",
+          start: 0.5,
+          end: 1.0,
+          confidence: 1,
+          speaker: 1,
+          language: "en",
+        },
+        {
+          word: "test",
+          punctuated_word: "test",
+          start: 1.1,
+          end: 1.5,
+          confidence: 1,
+          speaker: 0,
+          language: "en",
+        },
+      ],
+      transcript: "Hello world test",
+      isFinal: false,
+    });
+
+    store.getState().handleTranscriptResponse(partialResponse);
+
+    const stateAfterPartial = store.getState();
+    expect(stateAfterPartial.partialWordsByChannel[0]).toHaveLength(3);
+    expect(stateAfterPartial.partialHintsByChannel[0]).toHaveLength(3);
+
+    const finalResponse = createResponse({
+      words: [
+        {
+          word: "hello",
+          punctuated_word: "Hello",
+          start: 0,
+          end: 0.5,
+          confidence: 1,
+          speaker: 0,
+          language: "en",
+        },
+        {
+          word: "world",
+          punctuated_word: "world",
+          start: 0.5,
+          end: 1.0,
+          confidence: 1,
+          speaker: 1,
+          language: "en",
+        },
+      ],
+      transcript: "Hello world",
+      isFinal: true,
+    });
+
+    store.getState().handleTranscriptResponse(finalResponse);
+
+    const stateAfterFinal = store.getState();
+    const remainingPartialWords = stateAfterFinal.partialWordsByChannel[0];
+    const remainingHints = stateAfterFinal.partialHintsByChannel[0] ?? [];
+
+    expect(remainingPartialWords).toHaveLength(1);
+    expect(remainingPartialWords?.[0]?.text).toBe(" test");
+
+    expect(remainingHints).toHaveLength(1);
+    expect(remainingHints[0]?.wordIndex).toBe(0);
+
+    const hintedWord =
+      remainingPartialWords?.[remainingHints[0]?.wordIndex ?? -1];
+    expect(hintedWord).toBeDefined();
+    expect(hintedWord?.text).toBe(" test");
   });
 });

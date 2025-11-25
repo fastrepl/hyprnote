@@ -98,13 +98,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AuthPluginExt<R> for T {
     fn get_from_store(&self, key: StoreKey) -> Result<Option<String>, crate::Error> {
         let store = store::get_store(self);
 
-        let v = store.get(key).and_then(|v| {
-            if let Some(s) = v.as_str() {
-                Some(s.to_string())
-            } else {
-                None
-            }
-        });
+        let v = store
+            .get(key)
+            .and_then(|v| v.as_str().map(|s| s.to_string()));
 
         Ok(v)
     }

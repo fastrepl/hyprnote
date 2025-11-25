@@ -65,18 +65,18 @@ impl TranscribeService {
                         if let Ok(chunk) = serde_json::from_str::<ListenInputChunk>(&data) {
                             match chunk {
                                 ListenInputChunk::Audio { data } => {
-                                    if !data.is_empty() {
-                                        if audio_tx.send(Ok(data.into())).await.is_err() {
-                                            break;
-                                        }
+                                    if !data.is_empty()
+                                        && audio_tx.send(Ok(data.into())).await.is_err()
+                                    {
+                                        break;
                                     }
                                 }
                                 ListenInputChunk::DualAudio { mic, speaker } => {
                                     let mixed = mix_audio_pcm16le(&mic, &speaker);
-                                    if !mixed.is_empty() {
-                                        if audio_tx.send(Ok(mixed.into())).await.is_err() {
-                                            break;
-                                        }
+                                    if !mixed.is_empty()
+                                        && audio_tx.send(Ok(mixed.into())).await.is_err()
+                                    {
+                                        break;
                                     }
                                 }
                                 ListenInputChunk::End => break,
@@ -112,48 +112,45 @@ impl TranscribeService {
             Ok(mut deepgram_stream) => {
                 while let Some(result) = deepgram_stream.next().await {
                     if let Ok(response) = result {
-                        match response {
-                            deepgram::common::stream_response::StreamResponse::TranscriptResponse {
+                        if let deepgram::common::stream_response::StreamResponse::TranscriptResponse {
                                 channel,
                                 ..
-                            } => {
-                                if let Some(first_alt) = channel.alternatives.first() {
-                                    let mut words = Vec::new();
+                            } = response {
+                            if let Some(first_alt) = channel.alternatives.first() {
+                                let mut words = Vec::new();
 
-                                    if !first_alt.words.is_empty() {
-                                        for word in &first_alt.words {
-                                            words.push(Word2 {
-                                                text: word.word.clone(),
-                                                speaker: None,
-                                                confidence: Some(word.confidence as f32),
-                                                start_ms: Some((word.start * 1000.0) as u64),
-                                                end_ms: Some((word.end * 1000.0) as u64),
-                                            });
-                                        }
-                                    } else if !first_alt.transcript.is_empty() {
-                                        for text in first_alt.transcript.split_whitespace() {
-                                            words.push(Word2 {
-                                                text: text.to_string(),
-                                                speaker: None,
-                                                confidence: Some(first_alt.confidence as f32),
-                                                start_ms: None,
-                                                end_ms: None,
-                                            });
-                                        }
+                                if !first_alt.words.is_empty() {
+                                    for word in &first_alt.words {
+                                        words.push(Word2 {
+                                            text: word.word.clone(),
+                                            speaker: None,
+                                            confidence: Some(word.confidence as f32),
+                                            start_ms: Some((word.start * 1000.0) as u64),
+                                            end_ms: Some((word.end * 1000.0) as u64),
+                                        });
                                     }
+                                } else if !first_alt.transcript.is_empty() {
+                                    for text in first_alt.transcript.split_whitespace() {
+                                        words.push(Word2 {
+                                            text: text.to_string(),
+                                            speaker: None,
+                                            confidence: Some(first_alt.confidence as f32),
+                                            start_ms: None,
+                                            end_ms: None,
+                                        });
+                                    }
+                                }
 
-                                    if !words.is_empty() {
-                                        let output_chunk = ListenOutputChunk { meta: None, words };
+                                if !words.is_empty() {
+                                    let output_chunk = ListenOutputChunk { meta: None, words };
 
-                                        if let Ok(json) = serde_json::to_string(&output_chunk) {
-                                            if sender.send(Message::Text(json.into())).await.is_err() {
-                                                break;
-                                            }
+                                    if let Ok(json) = serde_json::to_string(&output_chunk) {
+                                        if sender.send(Message::Text(json.into())).await.is_err() {
+                                            break;
                                         }
                                     }
                                 }
                             }
-                            _ => {}
                         }
                     }
                 }

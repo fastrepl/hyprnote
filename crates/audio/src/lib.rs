@@ -82,13 +82,11 @@ pub struct AudioInput {
 
 impl AudioInput {
     pub fn get_default_device_name() -> String {
-        let name = {
+        {
             let host = cpal::default_host();
             let device = host.default_input_device().unwrap();
             device.name().unwrap_or("Unknown Microphone".to_string())
-        };
-
-        name
+        }
     }
 
     pub fn sample_rate(&self) -> u32 {

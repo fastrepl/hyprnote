@@ -10,7 +10,7 @@ impl AppWindow {
         app: &AppHandle<tauri::Wry>,
         event: events::Navigate,
     ) -> Result<(), crate::Error> {
-        if let Some(_) = self.get(app) {
+        if self.get(app).is_some() {
             events::Navigate::emit_to(&event, app, self.label())?;
         }
         Ok(())

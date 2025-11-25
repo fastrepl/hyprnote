@@ -1,10 +1,8 @@
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
-use async_stream::stream;
 use tokio::sync::mpsc;
-use tracing::{error, info};
+use tracing::error;
 
 use axum::{
     extract::ws::{Message, WebSocket, WebSocketUpgrade},
@@ -16,14 +14,8 @@ mod error;
 pub use error::*;
 
 /// Configuration for the transcription service
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TranscribeConfig {}
-
-impl Default for TranscribeConfig {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 /// Message types for WebSocket communication
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,7 +51,7 @@ impl TranscribeService {
         // Task to handle incoming audio data from WebSocket
         let audio_handler = tokio::spawn(async move {
             while let Some(Ok(Message::Binary(data))) = receiver.next().await {
-                if audio_tx.send(Bytes::from(data)).await.is_err() {
+                if audio_tx.send(data).await.is_err() {
                     break;
                 }
             }
@@ -94,7 +86,7 @@ impl TranscribeService {
 
     async fn start_transcription(
         &self,
-        mut audio_rx: mpsc::Receiver<Bytes>,
+        audio_rx: mpsc::Receiver<Bytes>,
         result_tx: mpsc::Sender<WsMessage>,
     ) -> Result<(), Error> {
         Ok(())

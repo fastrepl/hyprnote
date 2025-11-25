@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use tauri::{Manager, Wry};
+use tauri::Wry;
 use tokio::sync::Mutex;
 
 use hypr_llm::ModelManager;

@@ -51,7 +51,7 @@ fn build_known_sections_grammar(sections: &[String]) -> String {
 }
 
 fn build_enhance_other_grammar(s: &Option<Vec<String>>) -> String {
-    let auto = vec![
+    let auto = [
         r##"root ::= thinking section section section section? section?"##,
         r##"section ::= header "\n\n" bline bline bline? bline? bline? "\n""##,
         r##"header ::= "# " [A-Z][^*.\n]+"##,
@@ -71,7 +71,7 @@ fn build_enhance_other_grammar(s: &Option<Vec<String>>) -> String {
 }
 
 fn build_title_grammar() -> String {
-    vec![
+    [
         r##"lowercase ::= [a-z]"##,
         r##"uppercase ::= [A-Z]"##,
         r##"number ::= [0-9]"##,
@@ -83,7 +83,7 @@ fn build_title_grammar() -> String {
 }
 
 fn build_tags_grammar() -> String {
-    vec![
+    [
         r##"root ::= "[" string ("," string ("," string ("," string)?)?)? "]""##,
         r##"string ::= "\"" tag "\"""##,
         r##"tag ::= [a-zA-Z] ([a-zA-Z0-9_-])*"##,
@@ -92,11 +92,9 @@ fn build_tags_grammar() -> String {
 }
 
 fn build_email_to_name_grammar() -> String {
-    vec![
-        r##"root ::= "{" ws "\"first_name\"" ws ":" ws string "," ws "\"last_name\"" ws ":" ws string "}" ws"##,
+    [r##"root ::= "{" ws "\"first_name\"" ws ":" ws string "," ws "\"last_name\"" ws ":" ws string "}" ws"##,
         r##"string ::= "\"" [^"\n]* "\"" ws"##,
-        r##"ws ::= [ \t\n]*"##,
-    ]
+        r##"ws ::= [ \t\n]*"##]
     .join("\n")
 }
 

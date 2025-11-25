@@ -116,19 +116,15 @@ common_derives! {
 
 common_derives! {
     #[derive(strum::AsRefStr)]
+    #[derive(Default)]
     pub enum AudioMode {
         #[serde(rename = "single")]
         #[strum(serialize = "single")]
+        #[default]
         Single,
         #[serde(rename = "dual")]
         #[strum(serialize = "dual")]
         Dual,
-    }
-}
-
-impl Default for AudioMode {
-    fn default() -> Self {
-        AudioMode::Single
     }
 }
 

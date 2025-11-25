@@ -3936,6 +3936,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-analytics",
+ "tauri-plugin-apple-calendar",
  "tauri-plugin-auth",
  "tauri-plugin-autostart",
  "tauri-plugin-cli",

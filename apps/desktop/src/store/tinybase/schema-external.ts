@@ -41,11 +41,44 @@ export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   meeting_link: z.preprocess((val) => val ?? undefined, z.string().optional()),
   description: z.preprocess((val) => val ?? undefined, z.string().optional()),
   note: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  tracking_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  provider: z.preprocess(
+    (val) => val ?? undefined,
+    z.enum(["apple", "google", "outlook"]).optional(),
+  ),
+  participants: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  is_recurring: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
+  recurrence_rule: z.preprocess(
+    (val) => val ?? undefined,
+    z.string().optional(),
+  ),
+  all_day: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
+  timezone: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  status: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  visibility: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  organizer_name: z.preprocess(
+    (val) => val ?? undefined,
+    z.string().optional(),
+  ),
+  organizer_email: z.preprocess(
+    (val) => val ?? undefined,
+    z.string().optional(),
+  ),
+  provider_url: z.preprocess((val) => val ?? undefined, z.string().optional()),
 });
 
-export const calendarSchema = baseCalendarSchema
-  .omit({ id: true })
-  .extend({ created_at: z.string() });
+export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  tracking_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  provider: z.preprocess(
+    (val) => val ?? undefined,
+    z.enum(["apple", "google", "outlook"]).optional(),
+  ),
+  selected: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
+  source: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  color: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  timezone: z.preprocess((val) => val ?? undefined, z.string().optional()),
+});
 
 export const organizationSchema = baseOrganizationSchema
   .omit({ id: true })
@@ -239,6 +272,12 @@ export const externalTableSchemaForTinybase = {
     user_id: { type: "string" },
     created_at: { type: "string" },
     name: { type: "string" },
+    tracking_id: { type: "string" },
+    provider: { type: "string" },
+    selected: { type: "boolean" },
+    source: { type: "string" },
+    color: { type: "string" },
+    timezone: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof calendarSchema>,
   events: {
     user_id: { type: "string" },
@@ -251,6 +290,18 @@ export const externalTableSchemaForTinybase = {
     meeting_link: { type: "string" },
     description: { type: "string" },
     note: { type: "string" },
+    tracking_id: { type: "string" },
+    provider: { type: "string" },
+    participants: { type: "string" },
+    is_recurring: { type: "boolean" },
+    recurrence_rule: { type: "string" },
+    all_day: { type: "boolean" },
+    timezone: { type: "string" },
+    status: { type: "string" },
+    visibility: { type: "string" },
+    organizer_name: { type: "string" },
+    organizer_email: { type: "string" },
+    provider_url: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof eventSchema>,
   mapping_session_participant: {
     user_id: { type: "string" },

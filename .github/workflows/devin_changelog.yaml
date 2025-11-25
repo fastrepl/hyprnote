@@ -16,6 +16,6 @@ jobs:
             --header "Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}" \
             --header "Content-Type: application/json" \
             --data "{
-              \"prompt\": \"New release created for ${{ github.repository }}:\n- Tag: ${{ github.event.release.tag_name }}\n- Name: ${{ github.event.release.name || github.event.release.tag_name }}\n- Created at: ${{ github.event.release.created_at }}\n- Author: ${{ github.event.release.author.login }}\n- URL: ${{ github.event.release.html_url }}\n\n${{ github.event.release.body || 'No release notes provided.' }}\",
+              \"prompt\": \"Create new changelog entry for tag: ${{ github.event.release.tag_name }}, following guide at apps/web/content/changelog/AGENTS.md.\",
               \"idempotent\": true
             }"

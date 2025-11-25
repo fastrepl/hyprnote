@@ -15036,6 +15036,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-importer"
+version = "0.1.0"
+dependencies = [
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+]
+
+[[package]]
 name = "tauri-plugin-listener"
 version = "0.1.0"
 dependencies = [

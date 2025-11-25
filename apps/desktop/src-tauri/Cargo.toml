@@ -34,6 +34,7 @@ tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = { workspace = true }
 tauri-plugin-hooks = { workspace = true }
 tauri-plugin-http = { workspace = true }
+tauri-plugin-importer = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-local-stt = { workspace = true }
 tauri-plugin-misc = { workspace = true }

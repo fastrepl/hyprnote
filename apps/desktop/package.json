@@ -35,6 +35,7 @@
     "@hypr/plugin-deeplink2": "workspace:*",
     "@hypr/plugin-detect": "workspace:*",
     "@hypr/plugin-hooks": "workspace:*",
+    "@hypr/plugin-importer": "workspace:*",
     "@hypr/plugin-listener": "workspace:*",
     "@hypr/plugin-local-stt": "workspace:*",
     "@hypr/plugin-misc": "workspace:*",

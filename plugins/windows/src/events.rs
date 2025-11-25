@@ -14,13 +14,11 @@ pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::Window
             match window.label().parse::<AppWindow>() {
                 Err(e) => tracing::warn!("window_parse_error: {:?}", e),
                 Ok(w) => {
-                    if w == AppWindow::Main {
-                        if window.hide().is_ok() {
-                            api.prevent_close();
+                    if w == AppWindow::Main && window.hide().is_ok() {
+                        api.prevent_close();
 
-                            if let Err(e) = app.handle_main_window_visibility(false) {
-                                tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
-                            }
+                        if let Err(e) = app.handle_main_window_visibility(false) {
+                            tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
                         }
                     }
                 }

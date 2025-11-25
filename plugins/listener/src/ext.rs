@@ -86,7 +86,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_state(&self) -> crate::fsm::State {
-        if let Some(_) = registry::where_is(ControllerActor::name()) {
+        if registry::where_is(ControllerActor::name()).is_some() {
             crate::fsm::State::RunningActive
         } else {
             crate::fsm::State::Inactive

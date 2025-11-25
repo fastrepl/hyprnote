@@ -224,7 +224,7 @@ impl NangoClient {
         &self,
         integration: NangoIntegration,
         connection_id: impl Into<String>,
-    ) -> NangoProxyBuilder {
+    ) -> NangoProxyBuilder<'_> {
         NangoProxyBuilder {
             nango: self,
             integration_id: integration.into(),

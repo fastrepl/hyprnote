@@ -72,7 +72,7 @@ impl Segmenter {
 
     fn pad_samples(&self, samples: &[i16]) -> Vec<i16> {
         let mut padded = samples.to_vec();
-        if samples.len() % self.window_size != 0 {
+        if !samples.len().is_multiple_of(self.window_size) {
             padded.extend(vec![
                 0;
                 self.window_size - (samples.len() % self.window_size)

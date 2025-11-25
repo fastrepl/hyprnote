@@ -145,13 +145,11 @@ impl ListenClientBuilder {
     pub(crate) fn build_request(&self, channels: u8) -> hypr_ws::client::ClientRequestBuilder {
         let uri = self.build_uri(channels).parse().unwrap();
 
-        let request = match &self.api_key {
+        match &self.api_key {
             Some(key) => hypr_ws::client::ClientRequestBuilder::new(uri)
                 .with_header("Authorization", format!("Token {}", key)),
             None => hypr_ws::client::ClientRequestBuilder::new(uri),
-        };
-
-        request
+        }
     }
 
     pub fn build_with_channels(self, channels: u8) -> ListenClient {

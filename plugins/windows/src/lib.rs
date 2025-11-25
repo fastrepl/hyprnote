@@ -10,7 +10,6 @@ pub use events::*;
 pub use ext::*;
 pub use window::*;
 
-use overlay::*;
 pub use overlay::{FakeWindowBounds, OverlayBound};
 
 const PLUGIN_NAME: &str = "windows";

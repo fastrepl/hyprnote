@@ -88,11 +88,11 @@ impl VadAgc {
         const FRAME_20MS: usize = 320;
         const FRAME_30MS: usize = 480;
 
-        if len % FRAME_30MS == 0 || len < FRAME_30MS {
+        if len.is_multiple_of(FRAME_30MS) || len < FRAME_30MS {
             FRAME_30MS
-        } else if len % FRAME_20MS == 0 {
+        } else if len.is_multiple_of(FRAME_20MS) {
             FRAME_20MS
-        } else if len % FRAME_10MS == 0 {
+        } else if len.is_multiple_of(FRAME_10MS) {
             FRAME_10MS
         } else {
             let padding_30 = (FRAME_30MS - (len % FRAME_30MS)) % FRAME_30MS;

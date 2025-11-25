@@ -51,9 +51,7 @@ impl TranscribeServiceBuilder {
     pub fn build(self) -> TranscribeService {
         TranscribeService {
             model_path: self.model_path.unwrap(),
-            connection_manager: self
-                .connection_manager
-                .unwrap_or_else(ConnectionManager::default),
+            connection_manager: self.connection_manager.unwrap_or_default(),
         }
     }
 }
@@ -136,7 +134,7 @@ async fn handle_websocket_connection(
 
     let redemption_time = params
         .redemption_time_ms
-        .map(|ms| Duration::from_millis(ms))
+        .map(Duration::from_millis)
         .unwrap_or(Duration::from_millis(400));
 
     let global_timer = GlobalTimer::new();
@@ -235,7 +233,7 @@ async fn process_transcription_stream(
                 let meta = chunk.meta();
                 let text = chunk.text().to_string();
                 let language = chunk.language().map(|s| s.to_string()).map(|s| vec![s]).unwrap_or_default();
-                let duration_f64 = chunk.duration() as f64;
+                let duration_f64 = chunk.duration();
                 let confidence = chunk.confidence() as f64;
 
                 let global_offset = global_timer.add_audio_duration(duration_f64);
@@ -264,7 +262,7 @@ async fn process_transcription_stream(
                         start: adjusted_start_f64,
                         end: adjusted_end_f64,
                         confidence,
-                        speaker: speaker.clone(),
+                        speaker: speaker,
                         punctuated_word: None,
                         language: None,
                     })

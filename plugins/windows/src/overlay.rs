@@ -101,10 +101,8 @@ pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {
             let focused = window.is_focused().unwrap_or(false);
             if !ignore && !focused {
                 // Only try to set focus if we haven't already done so for this hover state
-                if !last_focus_state {
-                    if window.set_focus().is_ok() {
-                        last_focus_state = true;
-                    }
+                if !last_focus_state && window.set_focus().is_ok() {
+                    last_focus_state = true;
                 }
             } else if ignore || focused {
                 // Reset focus state when cursor leaves or window gains focus naturally

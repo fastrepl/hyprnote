@@ -271,7 +271,7 @@ impl MockProvider {
         build_chat_completion_response(
             &request,
             || {
-                let (stream, token) = Self::build_stream(&content);
+                let (stream, token) = Self::build_stream(content);
                 state.register_token(token.clone());
                 Ok(stream)
             },

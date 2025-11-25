@@ -308,7 +308,7 @@ impl AEC {
 
             // Calculate FFT of input block
             self.calculate_fft_magnitude(
-                &self.in_buffer.data(),
+                self.in_buffer.data(),
                 &mut ctx.in_buffer_fft,
                 &mut ctx.in_block_fft,
                 &mut ctx.scratch,
@@ -317,7 +317,7 @@ impl AEC {
 
             // Calculate FFT of lpb block
             self.calculate_fft_magnitude(
-                &self.in_buffer_lpb.data(),
+                self.in_buffer_lpb.data(),
                 &mut ctx.lpb_buffer_fft,
                 &mut ctx.lpb_block_fft,
                 &mut ctx.scratch,

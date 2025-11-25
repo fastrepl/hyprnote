@@ -68,7 +68,7 @@ impl Backend {
                 if buffer.len() >= chunk_size {
                     Some(buffer.drain(..chunk_size).collect())
                 } else if allow_partial && !buffer.is_empty() {
-                    Some(buffer.drain(..).collect())
+                    Some(std::mem::take(buffer))
                 } else {
                     None
                 }

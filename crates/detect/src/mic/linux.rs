@@ -6,16 +6,9 @@ use std::time::{Duration, Instant};
 
 use crate::{BackgroundTask, DetectEvent};
 
+#[derive(Default)]
 pub struct Detector {
     background: BackgroundTask,
-}
-
-impl Default for Detector {
-    fn default() -> Self {
-        Self {
-            background: BackgroundTask::default(),
-        }
-    }
 }
 
 struct DetectorState {
@@ -97,12 +90,10 @@ impl crate::Observer for Detector {
                                                     (*guard)(event);
                                                 }
                                             });
-                                        } else {
-                                            if let Ok(guard) = callback_for_subscribe.lock() {
-                                                let event = DetectEvent::MicStopped;
-                                                tracing::info!(event = ?event, "detected");
-                                                (*guard)(event);
-                                            }
+                                        } else if let Ok(guard) = callback_for_subscribe.lock() {
+                                            let event = DetectEvent::MicStopped;
+                                            tracing::info!(event = ?event, "detected");
+                                            (*guard)(event);
                                         }
                                     }
                                 }

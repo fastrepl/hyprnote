@@ -17,6 +17,7 @@ const PLUGIN_NAME: &str = "detect";
 
 pub type SharedState = Mutex<State>;
 
+#[derive(Default)]
 pub struct State {
     #[allow(dead_code)]
     pub(crate) detector: hypr_detect::Detector,
@@ -24,15 +25,6 @@ pub struct State {
     pub(crate) respect_do_not_disturb: bool,
 }
 
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            detector: hypr_detect::Detector::default(),
-            ignored_bundle_ids: vec![],
-            respect_do_not_disturb: false,
-        }
-    }
-}
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)

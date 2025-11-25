@@ -33,13 +33,11 @@ pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
 
     let mut killed_count = 0;
 
-    for (_, process) in sys.processes() {
+    for process in sys.processes().values() {
         let process_name = process.name().to_string_lossy();
 
-        if process_name.contains(&target) {
-            if process.kill() {
-                killed_count += 1;
-            }
+        if process_name.contains(&target) && process.kill() {
+            killed_count += 1;
         }
     }
 

@@ -24,7 +24,7 @@ use {
 static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 
 fn get_client() -> &'static reqwest::Client {
-    CLIENT.get_or_init(|| reqwest::Client::new())
+    CLIENT.get_or_init(reqwest::Client::new)
 }
 
 /// Makes a request with optional range header and returns the response.
@@ -365,7 +365,7 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
         remaining_size / MAX_CONCURRENT_CHUNKS as u64,
     )
     .max(1024 * 1024);
-    let num_chunks = (remaining_size + chunk_size - 1) / chunk_size;
+    let num_chunks = remaining_size.div_ceil(chunk_size);
 
     let file = if existing_size > 0 {
         Arc::new(Mutex::new(

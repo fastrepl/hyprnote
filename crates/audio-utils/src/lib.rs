@@ -246,7 +246,9 @@ pub fn chunk_audio_file(
 
     let channels = metadata.channels.max(1) as usize;
     let frames_per_chunk = {
-        let frames = ((chunk_ms as u128).saturating_mul(metadata.sample_rate as u128) + 999) / 1000;
+        let frames = (chunk_ms as u128)
+            .saturating_mul(metadata.sample_rate as u128)
+            .div_ceil(1000);
         frames.max(1).min(usize::MAX as u128) as usize
     };
     let samples_per_chunk = frames_per_chunk

@@ -53,7 +53,7 @@ impl NotificationBuilder {
         let title = self.title.unwrap();
         let message = self.message.unwrap();
         let url = self.url.clone();
-        let timeout = self.timeout.clone();
+        let timeout = self.timeout;
 
         Notification {
             key,

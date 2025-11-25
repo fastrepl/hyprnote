@@ -156,7 +156,7 @@ fn parse_desktop_file(path: &std::path::Path) -> Option<InstalledApp> {
                     .split_whitespace()
                     .next()?
                     .split('/')
-                    .last()?
+                    .next_back()?
                     .to_string();
                 id = Some(binary);
             }

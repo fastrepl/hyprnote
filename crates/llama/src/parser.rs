@@ -21,6 +21,12 @@ pub struct StreamingParser {
     buffer: String,
 }
 
+impl Default for StreamingParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StreamingParser {
     pub fn new() -> Self {
         Self {

@@ -11,6 +11,12 @@ pub struct EmbeddingExtractor {
     session: Session,
 }
 
+impl Default for EmbeddingExtractor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EmbeddingExtractor {
     pub fn new() -> Self {
         let session = hypr_onnx::load_model_from_bytes(EMBEDDING_ONNX).unwrap();

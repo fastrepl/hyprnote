@@ -33,8 +33,11 @@ export const Route = createFileRoute("/_view/legal/")({
 
 function Component() {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div
+      className="min-h-screen bg-linear-to-b from-white via-stone-50/20 to-white"
+      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-x border-neutral-100 bg-white">
         <header className="mb-12">
           <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">
             Legal

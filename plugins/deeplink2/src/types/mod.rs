@@ -9,7 +9,7 @@ use std::str::FromStr;
 use crate::types::NotificationSearch;
 
 #[derive(Debug, Clone, serde::Serialize, specta::Type, tauri_specta::Event)]
-pub struct DeepLinkEvent(pub crate::DeepLink);
+pub struct DeepLinkEvent(pub DeepLink);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(tag = "to", content = "search")]

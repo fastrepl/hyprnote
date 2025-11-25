@@ -115,7 +115,7 @@ function renderTemplate(params: z.infer<typeof templateSchema>) {
           {params.title}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {params.headers.map((header, i) => (
+          {params.headers.map((header: string, i: number) => (
             <div
               key={i}
               style={{

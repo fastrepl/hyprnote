@@ -7,7 +7,7 @@ import {
   SearchIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 import { Typewriter } from "@hypr/ui/components/ui/typewriter";
 import { cn } from "@hypr/utils";
@@ -40,6 +40,44 @@ export const Route = createFileRoute("/_view/product/ai-notetaking")({
     ],
   }),
 });
+
+const tabs = [
+  {
+    title: "Compact Mode",
+    description:
+      "The default collapsed overlay that indicates the meeting is being listened to. Minimal and unobtrusive, staying out of your way.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-compact.jpg",
+  },
+  {
+    title: "Memos",
+    description:
+      "Take quick notes during the meeting. Jot down important points, ideas, or reminders without losing focus on the conversation.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-memos.jpg",
+  },
+  {
+    title: "Transcript",
+    description:
+      "Watch the live transcript as the conversation unfolds in real-time, so you never miss what was said during the meeting.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-transcript.jpg",
+  },
+  {
+    title: "Live Insights",
+    description:
+      "Get a rolling summary of the past 5 minutes with AI-powered suggestions. For sales calls, receive prompts for qualification questions and next steps.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-insights.jpg",
+  },
+  {
+    title: "Chat",
+    description:
+      "Ask questions and get instant answers during the meeting. Query the transcript, get clarifications, or find specific information on the fly.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-chat.jpg",
+  },
+];
 
 function Component() {
   return (
@@ -2036,6 +2074,43 @@ function SharingSection() {
     </section>
   );
 }
+const floatingPanelTabs = [
+  {
+    title: "Compact Mode",
+    description:
+      "Minimal overlay that indicates recording is active. Stays out of your way.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-compact.jpg",
+  },
+  {
+    title: "Memos",
+    description:
+      "Take quick notes during the meeting without losing focus on the conversation.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-memos.jpg",
+  },
+  {
+    title: "Transcript",
+    description:
+      "Watch the live transcript as the conversation unfolds in real-time.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-transcript.jpg",
+  },
+  {
+    title: "Live Insights",
+    description:
+      "Rolling summary of the past 5 minutes with AI suggestions and next steps.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-insights.jpg",
+  },
+  {
+    title: "Chat",
+    description: "Ask questions and get instant answers during the meeting.",
+    image:
+      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-chat.jpg",
+  },
+];
+
 function FloatingPanelSection() {
   return (
     <section className="border-y border-neutral-100 relative">
@@ -2067,10 +2142,73 @@ function FloatingPanelHeader() {
 }
 
 function FloatingPanelContent() {
+  const [selectedTab, setSelectedTab] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollToTab = (index: number) => {
+    setSelectedTab(index);
+    if (scrollRef.current) {
+      const container = scrollRef.current;
+      const scrollLeft = container.offsetWidth * index;
+      container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="border-t border-neutral-100">
+      <FloatingPanelMobile
+        scrollRef={scrollRef}
+        selectedTab={selectedTab}
+        setSelectedTab={setSelectedTab}
+        scrollToTab={scrollToTab}
+      />
+      <FloatingPanelTablet
+        selectedTab={selectedTab}
+        setSelectedTab={setSelectedTab}
+      />
       <FloatingPanelDesktop />
-      <FloatingPanelMobile />
+    </div>
+  );
+}
+
+function FloatingPanelTablet({
+  selectedTab,
+  setSelectedTab,
+}: {
+  selectedTab: number;
+  setSelectedTab: (index: number) => void;
+}) {
+  return (
+    <div className="min-[800px]:max-[1000px]:block hidden border-t border-neutral-100">
+      <div className="flex flex-col">
+        <div className="overflow-x-auto scrollbar-hide border-b border-neutral-100">
+          <div className="flex">
+            {floatingPanelTabs.map((tab, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedTab(index)}
+                className={cn([
+                  "flex flex-col items-start cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
+                  selectedTab === index ? "bg-stone-50" : "hover:bg-neutral-50",
+                ])}
+              >
+                <h3 className="text-base font-serif font-medium text-stone-600 mb-1">
+                  {tab.title}
+                </h3>
+                <p className="text-sm text-neutral-600">{tab.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="aspect-4/3">
+          <img
+            src={floatingPanelTabs[selectedTab].image}
+            alt={`${floatingPanelTabs[selectedTab].title} preview`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -2078,52 +2216,14 @@ function FloatingPanelContent() {
 function FloatingPanelDesktop() {
   const [selectedTab, setSelectedTab] = useState<number>(0);
 
-  const tabs = [
-    {
-      title: "Compact Mode",
-      description:
-        "The default collapsed overlay that indicates the meeting is being listened to. Minimal and unobtrusive, staying out of your way.",
-      image:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-compact.jpg",
-    },
-    {
-      title: "Memos",
-      description:
-        "Take quick notes during the meeting. Jot down important points, ideas, or reminders without losing focus on the conversation.",
-      image:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-memos.jpg",
-    },
-    {
-      title: "Transcript",
-      description:
-        "Watch the live transcript as the conversation unfolds in real-time, so you never miss what was said during the meeting.",
-      image:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-transcript.jpg",
-    },
-    {
-      title: "Live Insights",
-      description:
-        "Get a rolling summary of the past 5 minutes with AI-powered suggestions. For sales calls, receive prompts for qualification questions and next steps.",
-      image:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-insights.jpg",
-    },
-    {
-      title: "Chat",
-      description:
-        "Ask questions and get instant answers during the meeting. Query the transcript, get clarifications, or find specific information on the fly.",
-      image:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-chat.jpg",
-    },
-  ];
-
   return (
-    <div className="min-[800px]:grid hidden grid-cols-2">
+    <div className="min-[1000px]:grid hidden grid-cols-2 border-t border-neutral-100">
       <div
         className="border-r border-neutral-100 relative overflow-hidden"
         style={{ paddingBottom: "56.25%" }}
       >
         <div className="absolute inset-0 overflow-y-auto">
-          {tabs.map((tab, index) => (
+          {floatingPanelTabs.map((tab, index) => (
             <div
               key={index}
               onClick={() => setSelectedTab(index)}
@@ -2133,12 +2233,12 @@ function FloatingPanelDesktop() {
                 selectedTab === index ? "bg-stone-50" : "hover:bg-neutral-50",
               ])}
             >
-              <p className="text-sm text-neutral-600 leading-relaxed">
-                <span className="font-semibold text-stone-800">
+              <div>
+                <h3 className="text-base font-serif font-medium text-stone-600 mb-1">
                   {tab.title}
-                </span>{" "}
-                – {tab.description}
-              </p>
+                </h3>
+                <p className="text-sm text-neutral-600">{tab.description}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -2146,8 +2246,8 @@ function FloatingPanelDesktop() {
 
       <div className="aspect-4/3 overflow-hidden bg-neutral-100 flex items-center justify-center">
         <img
-          src={tabs[selectedTab].image}
-          alt={`${tabs[selectedTab].title} preview`}
+          src={floatingPanelTabs[selectedTab].image}
+          alt={`${floatingPanelTabs[selectedTab].title} preview`}
           className="w-full h-full object-cover"
         />
       </div>
@@ -2155,52 +2255,69 @@ function FloatingPanelDesktop() {
   );
 }
 
-function FloatingPanelMobile() {
+function FloatingPanelMobile({
+  scrollRef,
+  selectedTab,
+  setSelectedTab,
+  scrollToTab,
+}: {
+  scrollRef: React.RefObject<HTMLDivElement | null>;
+  selectedTab: number;
+  setSelectedTab: (index: number) => void;
+  scrollToTab: (index: number) => void;
+}) {
   return (
     <div className="max-[800px]:block hidden">
-      <div className="aspect-video border-b border-neutral-100 overflow-hidden bg-neutral-100">
-        <img
-          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-compact.jpg"
-          alt="Floating panel preview"
-          className="w-full h-full object-cover"
-        />
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+        onScroll={(e) => {
+          const container = e.currentTarget;
+          const scrollLeft = container.scrollLeft;
+          const itemWidth = container.offsetWidth;
+          const index = Math.round(scrollLeft / itemWidth);
+          setSelectedTab(index);
+        }}
+      >
+        <div className="flex">
+          {floatingPanelTabs.map((tab, index) => (
+            <div key={index} className="w-full shrink-0 snap-center">
+              <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
+                <div className="aspect-4/3 border-b border-neutral-100 overflow-hidden">
+                  <img
+                    src={tab.image}
+                    alt={`${tab.title} preview`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-6">
+                  <p className="text-sm text-neutral-600 leading-relaxed">
+                    <span className="font-semibold text-stone-800">
+                      {tab.title}
+                    </span>{" "}
+                    – {tab.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="p-6 border-b border-neutral-100">
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Compact Mode</span> –
-          The default collapsed overlay that indicates the meeting is being
-          listened to. Minimal and unobtrusive, staying out of your way.
-        </p>
-      </div>
-      <div className="p-6 border-b border-neutral-100">
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Memos</span> – Take
-          quick notes during the meeting. Jot down important points, ideas, or
-          reminders without losing focus on the conversation.
-        </p>
-      </div>
-      <div className="p-6 border-b border-neutral-100">
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Transcript</span> –
-          Watch the live transcript as the conversation unfolds in real-time, so
-          you never miss what was said during the meeting.
-        </p>
-      </div>
-      <div className="p-6 border-b border-neutral-100">
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Live Insights</span> –
-          Get a rolling summary of the past 5 minutes with AI-powered
-          suggestions. For sales calls, receive prompts for qualification
-          questions and next steps.
-        </p>
-      </div>
-      <div className="p-6">
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          <span className="font-semibold text-stone-800">Chat</span> – Ask
-          questions and get instant answers during the meeting. Query the
-          transcript, get clarifications, or find specific information on the
-          fly.
-        </p>
+
+      <div className="flex justify-center gap-2 py-6">
+        {tabs.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => scrollToTab(index)}
+            className={cn([
+              "h-1 rounded-full transition-all cursor-pointer",
+              selectedTab === index
+                ? "w-8 bg-stone-600"
+                : "w-8 bg-neutral-300 hover:bg-neutral-400",
+            ])}
+            aria-label={`Go to tab ${index + 1}`}
+          />
+        ))}
       </div>
     </div>
   );

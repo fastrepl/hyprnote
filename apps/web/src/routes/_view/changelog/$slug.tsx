@@ -66,7 +66,7 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
     const title = `Hyprnote Changelog - Version ${changelog.version}`;
     const description = `Explore what's new in Hyprnote version ${changelog.version}${isNightly ? " (Nightly)" : ""}.`;
     const url = `https://hyprnote.com/changelog/${changelog.slug}`;
-    const ogImageUrl = `https://hyprnote.com/og?type=changelog&version=${encodeURIComponent(changelog.version)}&isNightly=${isNightly}`;
+    const ogImageUrl = `https://hyprnote.com/og?type=changelog&version=${encodeURIComponent(changelog.version)}`;
 
     return {
       meta: [

@@ -67,7 +67,7 @@ export function AudioPlayerProvider({
   }, []);
 
   useEffect(() => {
-    if (!container) {
+    if (!container || !url) {
       return;
     }
 

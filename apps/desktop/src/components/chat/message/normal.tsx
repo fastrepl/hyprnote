@@ -132,8 +132,14 @@ function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
     },
   } as const;
 
+  const isAnimating = part.state !== "done";
+
   return (
-    <Streamdown components={components} className="px-0.5 py-1">
+    <Streamdown
+      components={components}
+      className="px-0.5 py-1"
+      isAnimating={isAnimating}
+    >
       {part.text}
     </Streamdown>
   );

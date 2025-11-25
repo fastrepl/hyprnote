@@ -64,6 +64,9 @@ serde_json = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 tracing = { workspace = true }
 
+ractor = { workspace = true }
+ractor-supervisor = { workspace = true }
+
 aspasia = "0.2.1"
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 

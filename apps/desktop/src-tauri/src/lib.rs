@@ -2,6 +2,7 @@ mod commands;
 mod ext;
 mod store;
 mod subtitle;
+mod supervisor;
 
 use ext::*;
 use store::*;
@@ -12,6 +13,12 @@ use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 #[tokio::main]
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
+
+    let (root_supervisor, _root_supervisor_handle) = match supervisor::spawn_root_supervisor().await
+    {
+        Some((supervisor, handle)) => (Some(supervisor), Some(handle)),
+        None => (None, None),
+    };
 
     let sentry_client = {
         let dsn = option_env!("SENTRY_DSN");
@@ -57,9 +64,7 @@ pub async fn main() {
         .plugin(tauri_plugin_db2::init())
         .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_hooks::init())
-        .plugin(tauri_plugin_listener::init())
         .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_local_stt::init())
         .plugin(tauri_plugin_permissions::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_deep_link::init())
@@ -77,6 +82,16 @@ pub async fn main() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_store2::init())
         .plugin(tauri_plugin_windows::init())
+        .plugin(tauri_plugin_listener::init(
+            tauri_plugin_listener::InitOptions {
+                parent_supervisor: root_supervisor.as_ref().map(|s| s.get_cell()),
+            },
+        ))
+        .plugin(tauri_plugin_local_stt::init(
+            tauri_plugin_local_stt::InitOptions {
+                parent_supervisor: root_supervisor.as_ref().map(|s| s.get_cell()),
+            },
+        ))
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),

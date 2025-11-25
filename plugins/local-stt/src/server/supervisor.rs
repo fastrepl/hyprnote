@@ -16,17 +16,26 @@ pub const INTERNAL_STT_ACTOR_NAME: &str = "internal_stt";
 pub const EXTERNAL_STT_ACTOR_NAME: &str = "external_stt";
 pub const SUPERVISOR_NAME: &str = "stt_supervisor";
 
-pub async fn spawn_stt_supervisor(
-) -> Result<(ActorRef<DynamicSupervisorMsg>, crate::SupervisorHandle), ActorProcessingErr> {
-    let options = DynamicSupervisorOptions {
+fn make_supervisor_options() -> DynamicSupervisorOptions {
+    DynamicSupervisorOptions {
         max_children: Some(1),
         max_restarts: 100,
         max_window: Duration::from_secs(60 * 3),
         reset_after: Some(Duration::from_secs(30)),
-    };
+    }
+}
+
+pub async fn spawn_stt_supervisor(
+    parent: Option<ActorCell>,
+) -> Result<(ActorRef<DynamicSupervisorMsg>, crate::SupervisorHandle), ActorProcessingErr> {
+    let options = make_supervisor_options();
 
     let (supervisor_ref, handle) =
         DynamicSupervisor::spawn(SUPERVISOR_NAME.to_string(), options).await?;
+
+    if let Some(parent_cell) = parent {
+        supervisor_ref.get_cell().link(parent_cell);
+    }
 
     Ok((supervisor_ref, handle))
 }

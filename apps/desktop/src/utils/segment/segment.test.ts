@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
 
-import { buildSegments, SegmentKey, type WordLike } from ".";
+import {
+  buildSegments,
+  type RuntimeSpeakerHint,
+  SegmentKey,
+  type WordLike,
+} from ".";
 
 describe("buildSegments", () => {
   const testCases = [
@@ -844,6 +849,162 @@ describe("buildSegments", () => {
       console.error(visualizeSegments(finalWords, partialWords));
     },
   );
+
+  describe("Issue #8: Configurable Gap Threshold", () => {
+    test("uses default maxGapMs of 2000ms when not specified", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 2100, end_ms: 2200, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], []);
+      expect(segments).toHaveLength(1);
+    });
+
+    test("respects custom maxGapMs value", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 600, end_ms: 700, channel: 0 },
+      ];
+
+      const segmentsWithDefault = buildSegments(finalWords, [], []);
+      expect(segmentsWithDefault).toHaveLength(1);
+
+      const segmentsWithCustom = buildSegments(finalWords, [], [], {
+        maxGapMs: 400,
+      });
+      expect(segmentsWithCustom).toHaveLength(2);
+    });
+
+    test("allows very small maxGapMs for rapid-fire conversations", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 250, end_ms: 350, channel: 0 },
+        { text: "2", start_ms: 500, end_ms: 600, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 100 });
+      expect(segments).toHaveLength(3);
+    });
+
+    test("allows very large maxGapMs for slow conversations", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 5000, end_ms: 5100, channel: 0 },
+        { text: "2", start_ms: 10000, end_ms: 10100, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 15000 });
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words).toHaveLength(3);
+    });
+
+    test("maxGapMs of 0 allows consecutive words with no gap", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 100, end_ms: 200, channel: 0 },
+        { text: "2", start_ms: 200, end_ms: 300, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 0 });
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words).toHaveLength(3);
+    });
+
+    test("maxGapMs of 0 splits segments with any gap", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 101, end_ms: 200, channel: 0 },
+        { text: "2", start_ms: 201, end_ms: 300, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 0 });
+      expect(segments).toHaveLength(3);
+    });
+
+    test("maxGapMs applies independently to each channel", () => {
+      const finalWords: WordLike[] = [
+        { text: "0", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "1", start_ms: 600, end_ms: 700, channel: 0 },
+        { text: "2", start_ms: 0, end_ms: 100, channel: 1 },
+        { text: "3", start_ms: 600, end_ms: 700, channel: 1 },
+      ];
+
+      const segments = buildSegments(finalWords, [], [], { maxGapMs: 400 });
+      expect(segments).toHaveLength(4);
+      segments.forEach((segment) => {
+        expect(segment.words).toHaveLength(1);
+      });
+    });
+  });
+
+  describe("Issue #9: Partial Word Extension Edge Cases", () => {
+    test("partial words can extend segment with all partial words", () => {
+      const partialWords: WordLike[] = [
+        { text: "partial1", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "partial2", start_ms: 100, end_ms: 200, channel: 0 },
+      ];
+
+      const segments = buildSegments([], partialWords, []);
+
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words).toHaveLength(2);
+      expect(segments[0].words.map((w) => w.text)).toEqual([
+        "partial1",
+        "partial2",
+      ]);
+    });
+
+    test("partial word with speaker identity can extend segment with final words", () => {
+      const finalWords: WordLike[] = [
+        { text: "final1", start_ms: 0, end_ms: 100, channel: 0 },
+      ];
+
+      const partialWords: WordLike[] = [
+        { text: "partial1", start_ms: 100, end_ms: 200, channel: 0 },
+      ];
+
+      const hints: RuntimeSpeakerHint[] = [
+        {
+          wordIndex: 0,
+          data: { type: "provider_speaker_index", speaker_index: 0 },
+        },
+      ];
+
+      const segments = buildSegments(finalWords, partialWords, hints);
+
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words.map((w) => w.text)).toEqual([
+        "final1",
+        "partial1",
+      ]);
+    });
+
+    test("handles gap between partial words correctly", () => {
+      const partialWords: WordLike[] = [
+        { text: "partial1", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "partial2", start_ms: 3000, end_ms: 3100, channel: 0 },
+      ];
+
+      const segments = buildSegments([], partialWords, []);
+
+      expect(segments).toHaveLength(2);
+      expect(segments[0].words.map((w) => w.text)).toEqual(["partial1"]);
+      expect(segments[1].words.map((w) => w.text)).toEqual(["partial2"]);
+    });
+
+    test("anonymous segment can be extended by final words without speaker identity", () => {
+      const finalWords: WordLike[] = [
+        { text: "anon1", start_ms: 0, end_ms: 100, channel: 0 },
+        { text: "anon2", start_ms: 100, end_ms: 200, channel: 0 },
+      ];
+
+      const segments = buildSegments(finalWords, [], []);
+
+      expect(segments).toHaveLength(1);
+      expect(segments[0].words.map((w) => w.text)).toEqual(["anon1", "anon2"]);
+    });
+  });
 });
 
 function visualizeSegments(

@@ -69,15 +69,26 @@ export const createTranscriptSlice = <
         wordIndex: hint.wordIndex - firstNewWordIndex,
       }));
 
-    const remainingPartialWords = (
-      partialWordsByChannel[channelIndex] ?? []
-    ).filter((word) => word.start_ms > lastEndMs);
+    const partialWords = partialWordsByChannel[channelIndex] ?? [];
+    const oldIndexToNewIndex = new Map<number, number>();
+    const remainingPartialWords: WordLike[] = [];
 
-    const remainingPartialHints = partialHints.filter((hint) => {
-      const partialWords = partialWordsByChannel[channelIndex] ?? [];
-      const word = partialWords[hint.wordIndex];
-      return word && word.start_ms > lastEndMs;
+    partialWords.forEach((word, oldIndex) => {
+      if (word.start_ms >= lastEndMs) {
+        oldIndexToNewIndex.set(oldIndex, remainingPartialWords.length);
+        remainingPartialWords.push(word);
+      }
     });
+
+    const remainingPartialHints = partialHints
+      .filter((hint) => {
+        const word = partialWords[hint.wordIndex];
+        return word && word.start_ms >= lastEndMs;
+      })
+      .map((hint) => ({
+        ...hint,
+        wordIndex: oldIndexToNewIndex.get(hint.wordIndex) ?? hint.wordIndex,
+      }));
 
     set((state) =>
       mutate(state, (draft) => {
@@ -106,7 +117,7 @@ export const createTranscriptSlice = <
       existing.filter((word) => word.start_ms >= lastEndMs),
     ];
 
-    const newWords = [...before, ...words, ...after];
+    let newWords = [...before, ...words, ...after];
 
     const hintsWithAdjustedIndices = hints.map((hint) => ({
       ...hint,
@@ -120,10 +131,31 @@ export const createTranscriptSlice = <
       );
     });
 
+    let newHints = [...filteredOldHints, ...hintsWithAdjustedIndices];
+
+    const MAX_PARTIAL_WORDS = 1000;
+    const MAX_PARTIAL_HINTS = 1000;
+
+    if (newWords.length > MAX_PARTIAL_WORDS) {
+      const excessWords = newWords.length - MAX_PARTIAL_WORDS;
+      newWords = newWords.slice(excessWords);
+
+      newHints = newHints
+        .map((hint) => ({
+          ...hint,
+          wordIndex: hint.wordIndex - excessWords,
+        }))
+        .filter((hint) => hint.wordIndex >= 0);
+    }
+
+    if (newHints.length > MAX_PARTIAL_HINTS) {
+      newHints = newHints.slice(-MAX_PARTIAL_HINTS);
+    }
+
     set((state) =>
       mutate(state, (draft) => {
         draft.partialWordsByChannel[channelIndex] = newWords;
-        draft.partialHints = [...filteredOldHints, ...hintsWithAdjustedIndices];
+        draft.partialHints = newHints;
       }),
     );
   };
@@ -148,9 +180,23 @@ export const createTranscriptSlice = <
         return;
       }
 
+      if (channelIndex < 0 || channelIndex > 255) {
+        throw new Error(
+          `Invalid channelIndex: ${channelIndex}. Must be between 0 and 255.`,
+        );
+      }
+
       const [words, hints] = transformWords(alternative, channelIndex);
       if (!words.length) {
         return;
+      }
+
+      for (let i = 1; i < words.length; i++) {
+        if (words[i].start_ms < words[i - 1].start_ms) {
+          throw new Error(
+            `Words are not properly ordered by timestamp. Word at index ${i} starts at ${words[i].start_ms}ms but previous word starts at ${words[i - 1].start_ms}ms.`,
+          );
+        }
       }
 
       if (response.is_final) {

@@ -187,4 +187,602 @@ describe("transcript slice", () => {
     expect(persist).toHaveBeenCalledTimes(1);
     expect(store.getState().finalWordsMaxEndMsByChannel[0]).toBe(1500);
   });
+
+  describe("Issue #4: Input Validation", () => {
+    test("handles undefined channelIndex gracefully", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const responseWithUndefinedChannel: StreamResponse = {
+        type: "Results",
+        start: 0,
+        duration: 0,
+        is_final: true,
+        speech_final: true,
+        from_finalize: false,
+        channel_index: [],
+        channel: {
+          alternatives: [
+            {
+              transcript: "Hello",
+              confidence: 1,
+              words: [
+                {
+                  word: "hello",
+                  punctuated_word: "Hello",
+                  start: 0,
+                  end: 0.5,
+                  confidence: 1,
+                  speaker: 0,
+                  language: "en",
+                },
+              ],
+            },
+          ],
+        },
+        metadata: {
+          request_id: "test",
+          model_info: { name: "model", version: "1", arch: "cpu" },
+          model_uuid: "model",
+        },
+      };
+
+      store.getState().handleTranscriptResponse(responseWithUndefinedChannel);
+      expect(persist).not.toHaveBeenCalled();
+    });
+
+    test("handles missing alternatives gracefully", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const responseWithNoAlternatives: StreamResponse = {
+        type: "Results",
+        start: 0,
+        duration: 0,
+        is_final: true,
+        speech_final: true,
+        from_finalize: false,
+        channel_index: [0],
+        channel: {
+          alternatives: [],
+        },
+        metadata: {
+          request_id: "test",
+          model_info: { name: "model", version: "1", arch: "cpu" },
+          model_uuid: "model",
+        },
+      };
+
+      store.getState().handleTranscriptResponse(responseWithNoAlternatives);
+      expect(persist).not.toHaveBeenCalled();
+    });
+
+    test("validates words are properly ordered by timestamp", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const responseWithUnorderedWords = createResponse({
+        words: [
+          {
+            word: "world",
+            punctuated_word: "world",
+            start: 1.5,
+            end: 2.0,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+          {
+            word: "hello",
+            punctuated_word: "Hello",
+            start: 0,
+            end: 0.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "world Hello",
+        isFinal: true,
+      });
+
+      expect(() => {
+        store.getState().handleTranscriptResponse(responseWithUnorderedWords);
+      }).toThrow();
+    });
+
+    test("handles negative channelIndex", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const responseWithNegativeChannel = createResponse({
+        words: defaultWords,
+        transcript: "Another problem",
+        isFinal: true,
+        channelIndex: -1,
+      });
+
+      expect(() => {
+        store.getState().handleTranscriptResponse(responseWithNegativeChannel);
+      }).toThrow();
+    });
+
+    test("handles excessively large channelIndex", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const responseWithLargeChannel = createResponse({
+        words: defaultWords,
+        transcript: "Another problem",
+        isFinal: true,
+        channelIndex: 1000,
+      });
+
+      expect(() => {
+        store.getState().handleTranscriptResponse(responseWithLargeChannel);
+      }).toThrow();
+    });
+  });
+
+  describe("Issue #1: Partial Hints Index Mismatch After Filtering", () => {
+    test("adjusts partial hint indices after filtering partial words", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const partialResponse1 = createResponse({
+        words: [
+          {
+            word: "hello",
+            punctuated_word: "Hello",
+            start: 0,
+            end: 0.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+          {
+            word: "world",
+            punctuated_word: "world",
+            start: 0.5,
+            end: 1.0,
+            confidence: 1,
+            speaker: 1,
+            language: "en",
+          },
+          {
+            word: "test",
+            punctuated_word: "test",
+            start: 1.0,
+            end: 1.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "Hello world test",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(partialResponse1);
+
+      const stateAfterPartial = store.getState();
+      expect(stateAfterPartial.partialWordsByChannel[0]).toHaveLength(3);
+      expect(stateAfterPartial.partialHints).toHaveLength(3);
+
+      const finalResponse = createResponse({
+        words: [
+          {
+            word: "hello",
+            punctuated_word: "Hello",
+            start: 0,
+            end: 0.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+          {
+            word: "world",
+            punctuated_word: "world",
+            start: 0.5,
+            end: 1.0,
+            confidence: 1,
+            speaker: 1,
+            language: "en",
+          },
+        ],
+        transcript: "Hello world",
+        isFinal: true,
+      });
+
+      store.getState().handleTranscriptResponse(finalResponse);
+
+      const stateAfterFinal = store.getState();
+      const remainingPartialWords = stateAfterFinal.partialWordsByChannel[0];
+      const remainingHints = stateAfterFinal.partialHints;
+
+      expect(remainingPartialWords).toHaveLength(1);
+      expect(remainingPartialWords?.[0]?.text).toBe(" test");
+
+      expect(remainingHints).toHaveLength(1);
+      expect(remainingHints[0]?.wordIndex).toBe(0);
+
+      const hintedWord =
+        remainingPartialWords?.[remainingHints[0]?.wordIndex ?? -1];
+      expect(hintedWord).toBeDefined();
+      expect(hintedWord?.text).toBe(" test");
+    });
+
+    test("handles multiple partial hints with correct index adjustment", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const partialResponse = createResponse({
+        words: [
+          {
+            word: "one",
+            punctuated_word: "One",
+            start: 0,
+            end: 0.3,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+          {
+            word: "two",
+            punctuated_word: "two",
+            start: 0.3,
+            end: 0.6,
+            confidence: 1,
+            speaker: 1,
+            language: "en",
+          },
+          {
+            word: "three",
+            punctuated_word: "three",
+            start: 0.6,
+            end: 0.9,
+            confidence: 1,
+            speaker: 2,
+            language: "en",
+          },
+          {
+            word: "four",
+            punctuated_word: "four",
+            start: 0.9,
+            end: 1.2,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "One two three four",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(partialResponse);
+
+      const finalResponse = createResponse({
+        words: [
+          {
+            word: "one",
+            punctuated_word: "One",
+            start: 0,
+            end: 0.3,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "One",
+        isFinal: true,
+      });
+
+      store.getState().handleTranscriptResponse(finalResponse);
+
+      const stateAfterFinal = store.getState();
+      const remainingPartialWords = stateAfterFinal.partialWordsByChannel[0];
+      const remainingHints = stateAfterFinal.partialHints;
+
+      expect(remainingPartialWords).toHaveLength(3);
+      expect(remainingHints).toHaveLength(3);
+
+      remainingHints.forEach((hint) => {
+        const word = remainingPartialWords?.[hint.wordIndex];
+        expect(word).toBeDefined();
+        expect(hint.wordIndex).toBeGreaterThanOrEqual(0);
+        expect(hint.wordIndex).toBeLessThan(remainingPartialWords?.length ?? 0);
+      });
+    });
+  });
+
+  describe("Issue #3: Memory Leak Prevention", () => {
+    test("limits partial words to prevent unbounded growth", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      for (let i = 0; i < 1500; i++) {
+        const partialResponse = createResponse({
+          words: [
+            {
+              word: `word${i}`,
+              punctuated_word: `Word${i}`,
+              start: i * 0.5,
+              end: i * 0.5 + 0.4,
+              confidence: 1,
+              speaker: 0,
+              language: "en",
+            },
+          ],
+          transcript: `Word${i}`,
+          isFinal: false,
+        });
+
+        store.getState().handleTranscriptResponse(partialResponse);
+      }
+
+      const state = store.getState();
+      const partialWords = state.partialWordsByChannel[0] ?? [];
+      const partialHints = state.partialHints;
+
+      expect(partialWords.length).toBeLessThanOrEqual(1000);
+      expect(partialHints.length).toBeLessThanOrEqual(1000);
+    });
+
+    test("cleans up old partial data based on time threshold", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const oldPartialResponse = createResponse({
+        words: [
+          {
+            word: "old",
+            punctuated_word: "Old",
+            start: 0,
+            end: 0.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "Old",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(oldPartialResponse);
+
+      const recentPartialResponse = createResponse({
+        words: [
+          {
+            word: "recent",
+            punctuated_word: "Recent",
+            start: 3600,
+            end: 3600.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "Recent",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(recentPartialResponse);
+
+      const state = store.getState();
+      const partialWords = state.partialWordsByChannel[0] ?? [];
+
+      expect(partialWords.length).toBeLessThanOrEqual(2);
+    });
+
+    test("clears partial data when handlePersist is set", () => {
+      const partialResponse = createResponse({
+        words: [
+          {
+            word: "test",
+            punctuated_word: "Test",
+            start: 0,
+            end: 0.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "Test",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(partialResponse);
+
+      const stateBeforePersist = store.getState();
+      expect(stateBeforePersist.partialWordsByChannel[0]).toHaveLength(1);
+
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      store.getState().resetTranscript();
+
+      const stateAfterReset = store.getState();
+      expect(stateAfterReset.partialWordsByChannel[0]).toBeUndefined();
+      expect(stateAfterReset.partialHints).toHaveLength(0);
+    });
+  });
+
+  describe("Issue #2: Race Conditions in Partial Word Management", () => {
+    test("handles out-of-order partial results without losing words", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const laterPartialResponse = createResponse({
+        words: [
+          {
+            word: "later",
+            punctuated_word: "later",
+            start: 5.0,
+            end: 5.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "later",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(laterPartialResponse);
+
+      const earlierPartialResponse = createResponse({
+        words: [
+          {
+            word: "earlier",
+            punctuated_word: "earlier",
+            start: 0.0,
+            end: 0.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "earlier",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(earlierPartialResponse);
+
+      const state = store.getState();
+      const partialWords = state.partialWordsByChannel[0] ?? [];
+
+      expect(partialWords).toHaveLength(2);
+      expect(partialWords[0]?.text).toBe(" earlier");
+      expect(partialWords[0]?.start_ms).toBe(0);
+      expect(partialWords[1]?.text).toBe(" later");
+      expect(partialWords[1]?.start_ms).toBe(5000);
+    });
+
+    test("handles overlapping partial results by keeping the latest version", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const firstPartialResponse = createResponse({
+        words: [
+          {
+            word: "hello",
+            punctuated_word: "hello",
+            start: 0.0,
+            end: 0.5,
+            confidence: 0.8,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "hello",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(firstPartialResponse);
+
+      const overlappingPartialResponse = createResponse({
+        words: [
+          {
+            word: "hello",
+            punctuated_word: "Hello",
+            start: 0.0,
+            end: 0.5,
+            confidence: 1.0,
+            speaker: 0,
+            language: "en",
+          },
+          {
+            word: "world",
+            punctuated_word: "world",
+            start: 0.5,
+            end: 1.0,
+            confidence: 1.0,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "Hello world",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(overlappingPartialResponse);
+
+      const state = store.getState();
+      const partialWords = state.partialWordsByChannel[0] ?? [];
+
+      expect(partialWords).toHaveLength(2);
+      expect(partialWords[0]?.text).toBe(" Hello");
+      expect(partialWords[1]?.text).toBe(" world");
+    });
+
+    test("preserves words with gaps when partial results arrive out of order", () => {
+      const persist = vi.fn();
+      store.getState().setTranscriptPersist(persist);
+
+      const middlePartialResponse = createResponse({
+        words: [
+          {
+            word: "middle",
+            punctuated_word: "middle",
+            start: 5.0,
+            end: 5.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "middle",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(middlePartialResponse);
+
+      const endPartialResponse = createResponse({
+        words: [
+          {
+            word: "end",
+            punctuated_word: "end",
+            start: 10.0,
+            end: 10.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "end",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(endPartialResponse);
+
+      const startPartialResponse = createResponse({
+        words: [
+          {
+            word: "start",
+            punctuated_word: "start",
+            start: 0.0,
+            end: 0.5,
+            confidence: 1,
+            speaker: 0,
+            language: "en",
+          },
+        ],
+        transcript: "start",
+        isFinal: false,
+      });
+
+      store.getState().handleTranscriptResponse(startPartialResponse);
+
+      const state = store.getState();
+      const partialWords = state.partialWordsByChannel[0] ?? [];
+
+      expect(partialWords).toHaveLength(3);
+      expect(partialWords[0]?.text).toBe(" start");
+      expect(partialWords[0]?.start_ms).toBe(0);
+      expect(partialWords[1]?.text).toBe(" middle");
+      expect(partialWords[1]?.start_ms).toBe(5000);
+      expect(partialWords[2]?.text).toBe(" end");
+      expect(partialWords[2]?.start_ms).toBe(10000);
+    });
+  });
 });

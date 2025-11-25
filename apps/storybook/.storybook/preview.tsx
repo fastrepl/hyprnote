@@ -1,7 +1,7 @@
 import type { Preview } from "@storybook/react";
 
 import "../../../packages/tiptap/styles.css";
-import "../../../packages/ui/dist/globals.css";
+import "../../../packages/ui/src/styles/globals.css";
 
 const preview: Preview = {
   parameters: {

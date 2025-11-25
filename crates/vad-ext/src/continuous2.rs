@@ -7,27 +7,49 @@ use futures_util::Stream;
 use hypr_audio_utils::f32_to_i16_samples;
 use hypr_vad3::earshot::{VoiceActivityDetector, VoiceActivityProfile};
 
+/// Wraps a `Stream<Item = Result<Vec<f32>, E>>` and zeroes out samples that are
+/// classified as non-speech by a 16 kHz VAD, with a configurable hangover.
+///
+/// - Expects 16 kHz mono PCM in `[-1.0, 1.0]`.
+/// - Never changes the length of any chunk.
+/// - Fails open: on VAD errors, audio is passed through as speech.
 pub struct ContinuousVadMaskStream<S> {
     inner: S,
     vad: VoiceActivityDetector,
+    /// Number of consecutive non-speech frames to keep as speech
+    /// after speech has ended (to avoid chopping word endings).
     hangover_frames: usize,
     trailing_non_speech: usize,
     in_speech: bool,
+    /// Scratch buffer for padding partial frames, reused across calls.
+    scratch_frame: Vec<f32>,
 }
 
 impl<S> ContinuousVadMaskStream<S> {
+    /// Construct with the default QUALITY profile and conservative hangover.
     pub fn new(inner: S) -> Self {
         Self {
             inner,
             vad: VoiceActivityDetector::new(VoiceActivityProfile::QUALITY),
             hangover_frames: 3,
             trailing_non_speech: 0,
+            // Start in speech to be conservative: better to leak a bit of
+            // initial noise than to truncate the first spoken frames.
             in_speech: true,
+            scratch_frame: Vec::new(),
         }
     }
 
+    /// Override the number of hangover frames (measured in VAD frames).
     pub fn with_hangover_frames(mut self, frames: usize) -> Self {
         self.hangover_frames = frames;
+        self
+    }
+
+    /// Optional: allow callers to change the VAD profile without changing behavior
+    /// for existing code.
+    pub fn with_profile(mut self, profile: VoiceActivityProfile) -> Self {
+        self.vad = VoiceActivityDetector::new(profile);
         self
     }
 
@@ -37,43 +59,61 @@ impl<S> ContinuousVadMaskStream<S> {
         }
 
         let frame_size = hypr_vad3::choose_optimal_frame_size(chunk.len());
+        debug_assert!(frame_size > 0, "VAD frame size must be > 0");
 
-        if chunk.len() <= frame_size {
-            self.process_frame(chunk, frame_size);
-        } else {
-            for frame in chunk.chunks_mut(frame_size) {
-                self.process_frame(frame, frame_size);
-            }
+        // `chunks_mut` yields exactly one frame when `chunk.len() <= frame_size`,
+        // and multiple frames otherwise. No need for a special-case branch.
+        for frame in chunk.chunks_mut(frame_size) {
+            self.process_frame(frame, frame_size);
         }
     }
 
-    fn process_frame(&mut self, frame: &mut [f32], frame_size: usize) {
-        let mut padded = frame.to_vec();
-        if padded.len() < frame_size {
-            padded.resize(frame_size, 0.0);
-        }
-
-        let i16_samples = f32_to_i16_samples(&padded);
-
-        let raw_is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
-
-        let is_speech = if raw_is_speech {
+    /// Internal state machine that applies hangover smoothing to the raw VAD
+    /// decision. Returns the final `is_speech` value.
+    fn smooth_vad_decision(&mut self, raw_is_speech: bool) -> bool {
+        if raw_is_speech {
+            // Fresh speech: reset hangover.
             self.in_speech = true;
             self.trailing_non_speech = 0;
             true
         } else if self.in_speech && self.trailing_non_speech < self.hangover_frames {
+            // Still treat as speech for a few frames after VAD says "no"
+            // to avoid chopping word endings or short pauses.
             self.trailing_non_speech += 1;
             true
         } else {
+            // Long enough non-speech: actually treat as silence.
             self.in_speech = false;
             self.trailing_non_speech = 0;
             false
+        }
+    }
+
+    fn process_frame(&mut self, frame: &mut [f32], frame_size: usize) {
+        if frame.is_empty() {
+            return;
+        }
+
+        // Convert to i16, padding only when needed. We always feed `frame_size`
+        // samples into the VAD (either directly or via `scratch_frame`).
+        let raw_is_speech = if frame.len() == frame_size {
+            let i16_samples = f32_to_i16_samples(frame);
+            self.vad.predict_16khz(&i16_samples).unwrap_or(true)
+        } else {
+            // Partial frame at the end of a chunk: copy + pad with zeros.
+            self.scratch_frame.clear();
+            self.scratch_frame.extend_from_slice(frame);
+            self.scratch_frame.resize(frame_size, 0.0);
+
+            let i16_samples = f32_to_i16_samples(&self.scratch_frame);
+            self.vad.predict_16khz(&i16_samples).unwrap_or(true)
         };
 
+        let is_speech = self.smooth_vad_decision(raw_is_speech);
+
+        // Mask non-speech frames by zeroing in-place.
         if !is_speech {
-            for s in frame.iter_mut() {
-                *s = 0.0;
-            }
+            frame.fill(0.0);
         }
     }
 }
@@ -98,6 +138,8 @@ where
 }
 
 pub trait VadMaskExt: Sized {
+    /// Wrap this stream with a VAD-based mask that zeros non-speech samples
+    /// but never drops or reorders audio.
     fn mask_with_vad(self) -> ContinuousVadMaskStream<Self>;
 }
 
@@ -167,6 +209,8 @@ mod tests {
             }
         }
 
+        // We should not *introduce* any non-zero samples, and the vast majority
+        // of silence should stay zero.
         let non_zero_count = masked_samples.iter().filter(|&&s| s != 0.0).count();
         assert!(
             non_zero_count < 100,
@@ -175,21 +219,46 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn test_hangover_period() {
+    #[test]
+    fn test_hangover_logic() {
+        // Use an empty inner stream; we only care about the internal state machine.
         let mut vad_stream = ContinuousVadMaskStream::new(stream::empty::<Result<Vec<f32>, ()>>());
         vad_stream.hangover_frames = 3;
 
-        vad_stream.in_speech = true;
-        vad_stream.trailing_non_speech = 0;
+        // Initial state is conservative: in_speech = true
+        assert!(vad_stream.in_speech);
+        assert_eq!(vad_stream.trailing_non_speech, 0);
 
-        let mut frame = vec![0.0; 160];
-        vad_stream.process_frame(&mut frame, 160);
+        // Simulate raw VAD decisions: T, F, F, F, F
+        // First: raw speech
+        assert!(vad_stream.smooth_vad_decision(true));
+        assert!(vad_stream.in_speech);
+        assert_eq!(vad_stream.trailing_non_speech, 0);
 
-        assert!(
-            frame.iter().any(|&s| s == 0.0),
-            "First non-speech frame should still pass due to hangover"
-        );
+        // First false: still treated as speech (hangover 1/3)
+        assert!(vad_stream.smooth_vad_decision(false));
+        assert!(vad_stream.in_speech);
+        assert_eq!(vad_stream.trailing_non_speech, 1);
+
+        // Second false: still speech (hangover 2/3)
+        assert!(vad_stream.smooth_vad_decision(false));
+        assert!(vad_stream.in_speech);
+        assert_eq!(vad_stream.trailing_non_speech, 2);
+
+        // Third false: still speech (hangover 3/3)
+        assert!(vad_stream.smooth_vad_decision(false));
+        assert!(vad_stream.in_speech);
+        assert_eq!(vad_stream.trailing_non_speech, 3);
+
+        // Fourth false: now we finally flip to non-speech
+        assert!(!vad_stream.smooth_vad_decision(false));
+        assert!(!vad_stream.in_speech);
+        assert_eq!(vad_stream.trailing_non_speech, 0);
+
+        // More false: stays non-speech
+        assert!(!vad_stream.smooth_vad_decision(false));
+        assert!(!vad_stream.in_speech);
+        assert_eq!(vad_stream.trailing_non_speech, 0);
     }
 
     #[tokio::test]
@@ -260,8 +329,9 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn test_frame_size_selection() {
+    #[test]
+    fn test_frame_size_selection() {
+        // Sanity-check assumptions about the VAD helper we're using.
         assert_eq!(hypr_vad3::choose_optimal_frame_size(160), 160);
         assert_eq!(hypr_vad3::choose_optimal_frame_size(320), 320);
         assert_eq!(hypr_vad3::choose_optimal_frame_size(480), 480);

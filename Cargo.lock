@@ -14917,7 +14917,9 @@ dependencies = [
 name = "tauri-plugin-deeplink2"
 version = "0.1.0"
 dependencies = [
+ "docs",
  "serde",
+ "serde_yaml",
  "specta",
  "specta-typescript",
  "strum 0.26.3",

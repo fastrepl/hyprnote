@@ -25,10 +25,9 @@ deepLinkEvent: "plugin:deeplink2:deep-link-event"
 
 /** user-defined types **/
 
-export type DeepLink = { to: "/app/onboarding"; search: OnboardingSearch }
+export type DeepLink = { to: "/notification"; search: NotificationSearch }
 export type DeepLinkEvent = DeepLink
-export type OnboardingSearch = { step: OnboardingStep; local?: boolean }
-export type OnboardingStep = "welcome" | "permissions"
+export type NotificationSearch = { key: string }
 
 /** tauri-specta globals **/
 

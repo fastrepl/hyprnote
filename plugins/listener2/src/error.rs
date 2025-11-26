@@ -7,19 +7,11 @@ pub enum Error {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
-    HyprAudioError(#[from] hypr_audio::Error),
+    Batch(#[from] owhisper_client::Error),
     #[error(transparent)]
-    CpalDevicesError(#[from] hypr_audio::cpal::DevicesError),
-    #[error(transparent)]
-    LocalSttError(#[from] tauri_plugin_local_stt::Error),
-    #[error("no session")]
-    NoneSession,
-    #[error("start session failed")]
-    StartSessionFailed,
-    #[error("stop session failed")]
-    StopSessionFailed,
-    #[error("actor not found {0}")]
-    ActorNotFound(String),
+    SpawnError(#[from] ractor::SpawnErr),
+    #[error("batch start failed: {0}")]
+    BatchStartFailed(String),
 }
 
 impl Serialize for Error {

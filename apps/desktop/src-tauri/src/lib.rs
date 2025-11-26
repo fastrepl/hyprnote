@@ -1,12 +1,10 @@
 mod commands;
 mod ext;
 mod store;
-mod subtitle;
 mod supervisor;
 
 use ext::*;
 use store::*;
-use subtitle::*;
 
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
@@ -87,6 +85,7 @@ pub async fn main() {
                 parent_supervisor: root_supervisor.as_ref().map(|s| s.get_cell()),
             },
         ))
+        .plugin(tauri_plugin_listener2::init())
         .plugin(tauri_plugin_local_stt::init(
             tauri_plugin_local_stt::InitOptions {
                 parent_supervisor: root_supervisor.as_ref().map(|s| s.get_cell()),
@@ -168,7 +167,6 @@ pub async fn main() {
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .commands(tauri_specta::collect_commands![
-            commands::parse_subtitle::<tauri::Wry>,
             commands::get_onboarding_needed::<tauri::Wry>,
             commands::set_onboarding_needed::<tauri::Wry>,
             commands::get_env::<tauri::Wry>,

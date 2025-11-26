@@ -126,6 +126,9 @@ importers:
       '@hypr/plugin-listener':
         specifier: workspace:*
         version: link:../../plugins/listener
+      '@hypr/plugin-listener2':
+        specifier: workspace:*
+        version: link:../../plugins/listener2
       '@hypr/plugin-local-stt':
         specifier: workspace:*
         version: link:../../plugins/local-stt
@@ -1173,6 +1176,12 @@ importers:
         version: 2.9.0
 
   plugins/listener:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.0
+        version: 2.9.0
+
+  plugins/listener2:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.0

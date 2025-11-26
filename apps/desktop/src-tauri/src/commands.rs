@@ -1,15 +1,4 @@
-use crate::{AppExt, Subtitle};
-use aspasia::TimedSubtitleFile;
-
-#[tauri::command]
-#[specta::specta]
-pub async fn parse_subtitle<R: tauri::Runtime>(
-    _app: tauri::AppHandle<R>,
-    path: String,
-) -> Result<Subtitle, String> {
-    let sub = TimedSubtitleFile::new(&path).unwrap();
-    Ok(sub.into())
-}
+use crate::AppExt;
 
 #[tauri::command]
 #[specta::specta]

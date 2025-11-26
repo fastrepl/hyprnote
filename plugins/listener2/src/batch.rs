@@ -8,7 +8,7 @@ use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SpawnErr};
 use tauri_specta::Event;
 use tokio_stream::{self as tokio_stream, StreamExt as TokioStreamExt};
 
-use crate::SessionEvent;
+use crate::BatchEvent;
 const BATCH_STREAM_TIMEOUT_SECS: u64 = 5;
 const DEFAULT_CHUNK_MS: u64 = 500;
 const DEFAULT_DELAY_MS: u64 = 20;
@@ -21,7 +21,7 @@ pub enum BatchMsg {
     StreamAudioDuration(f64),
 }
 
-type BatchStartNotifier = Arc<Mutex<Option<tokio::sync::oneshot::Sender<Result<(), String>>>>>;
+pub type BatchStartNotifier = Arc<Mutex<Option<tokio::sync::oneshot::Sender<Result<(), String>>>>>;
 
 #[derive(Clone)]
 pub struct BatchArgs {
@@ -69,7 +69,7 @@ impl BatchState {
             0.0
         };
 
-        SessionEvent::BatchResponseStreamed {
+        BatchEvent::BatchResponseStreamed {
             session_id: self.session_id.clone(),
             response,
             percentage,
@@ -79,7 +79,7 @@ impl BatchState {
     }
 
     fn emit_failure(&self, error: String) -> Result<(), ActorProcessingErr> {
-        SessionEvent::BatchFailed {
+        BatchEvent::BatchFailed {
             session_id: self.session_id.clone(),
             error,
         }

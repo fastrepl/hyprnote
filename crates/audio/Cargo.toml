@@ -3,6 +3,10 @@ name = "audio"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+mock = []
+
 [dependencies]
 anyhow = { workspace = true }
 thiserror = { workspace = true }

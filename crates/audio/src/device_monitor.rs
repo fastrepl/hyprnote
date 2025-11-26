@@ -21,6 +21,15 @@ impl DeviceMonitorHandle {
             let _ = handle.join();
         }
     }
+
+    #[cfg(any(test, feature = "mock"))]
+    pub fn noop() -> Self {
+        let (stop_tx, _stop_rx) = mpsc::channel();
+        Self {
+            stop_tx: Some(stop_tx),
+            thread_handle: None,
+        }
+    }
 }
 
 impl Drop for DeviceMonitorHandle {
@@ -63,6 +72,18 @@ impl DeviceMonitor {
             stop_tx: Some(stop_tx),
             thread_handle: Some(thread_handle),
         }
+    }
+}
+
+pub trait DeviceMonitorProvider: Send + Sync + 'static {
+    fn spawn(&self, event_tx: mpsc::Sender<DeviceEvent>) -> DeviceMonitorHandle;
+}
+
+pub struct RealDeviceMonitorProvider;
+
+impl DeviceMonitorProvider for RealDeviceMonitorProvider {
+    fn spawn(&self, event_tx: mpsc::Sender<DeviceEvent>) -> DeviceMonitorHandle {
+        DeviceMonitor::spawn(event_tx)
     }
 }
 

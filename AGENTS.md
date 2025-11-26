@@ -28,3 +28,6 @@ alwaysApply: true
 - If there are many classNames and they have conditional logic, use `cn` (import it with `import { cn } from "@hypr/utils"`). It is similar to `clsx`. Always pass an array. Split by logical grouping.
 - Use `motion/react` instead of `framer-motion`.
 
+# Linux Notifications
+- The `notification-linux` crate uses gtk3 (not gtk4) because webviewgtk4.1 links to gtk3.
+

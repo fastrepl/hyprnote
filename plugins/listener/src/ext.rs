@@ -111,11 +111,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 guard.session_supervisor = Some(supervisor_ref);
                 guard.supervisor_handle = Some(handle);
 
-                SessionEvent::RunningActive {
+                if let Err(error) = (SessionEvent::RunningActive {
                     session_id: params.session_id,
-                }
+                })
                 .emit(&guard.app)
-                .unwrap();
+                {
+                    tracing::error!(?error, "failed_to_emit_running_active");
+                }
 
                 tracing::info!("session_started");
             }
@@ -141,9 +143,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         };
 
         if let Some(session_id) = session_id.clone() {
-            SessionEvent::Finalizing { session_id }
-                .emit(&guard.app)
-                .unwrap();
+            if let Err(error) = (SessionEvent::Finalizing { session_id }).emit(&guard.app) {
+                tracing::error!(?error, "failed_to_emit_finalizing");
+            }
         }
 
         if let Some(supervisor_cell) = guard.session_supervisor.take() {
@@ -160,9 +162,9 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         }
 
         if let Some(session_id) = session_id {
-            SessionEvent::Inactive { session_id }
-                .emit(&guard.app)
-                .unwrap();
+            if let Err(error) = (SessionEvent::Inactive { session_id }).emit(&guard.app) {
+                tracing::error!(?error, "failed_to_emit_inactive");
+            }
         }
 
         tracing::info!("session_stopped");

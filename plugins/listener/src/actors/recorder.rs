@@ -165,9 +165,7 @@ impl Actor for RecorderActor {
                 &st.wav_path,
                 &temp_ogg_path,
                 VorbisEncodeSettings::default(),
-            )
-            .map_err(into_actor_err)
-            {
+            ) {
                 Ok(_) => {
                     std::fs::rename(&temp_ogg_path, &st.ogg_path)?;
                     std::fs::remove_file(&st.wav_path)?;
@@ -175,7 +173,7 @@ impl Actor for RecorderActor {
                 Err(e) => {
                     tracing::error!(error = ?e, "wav_to_ogg_failed_keeping_wav");
                     let _ = std::fs::remove_file(&temp_ogg_path);
-                    return Err(e);
+                    // Keep WAV as a fallback, but don't cause an actor failure
                 }
             }
         }

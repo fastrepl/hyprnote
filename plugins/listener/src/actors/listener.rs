@@ -126,11 +126,14 @@ impl Actor for ListenerActor {
                     crate::actors::ChannelMode::MicAndSpeaker => {}
                 }
 
-                SessionEvent::StreamResponse {
+                if let Err(error) = (SessionEvent::StreamResponse {
                     session_id: state.args.session_id.clone(),
                     response,
+                })
+                .emit(&state.args.app)
+                {
+                    tracing::error!(?error, "stream_response_emit_failed");
                 }
-                .emit(&state.args.app)?;
             }
 
             ListenerMsg::StreamStartFailed(error) => {
@@ -524,7 +527,10 @@ async fn process_stream<S, E>(
                                         response.set_channel_index(channel_idx, total_channels);
                                     }
 
-                                    let _ = myself.send_message(ListenerMsg::StreamResponse(response));
+                                    if myself.send_message(ListenerMsg::StreamResponse(response)).is_err() {
+                                        tracing::warn!("actor_gone_during_finalize");
+                                        break;
+                                    }
 
                                     if received_from_finalize {
                                         tracing::info!(from_finalize = true, "break_from_finalize");
@@ -554,7 +560,10 @@ async fn process_stream<S, E>(
                             response.set_channel_index(channel_idx, total_channels);
                         }
 
-                        let _ = myself.send_message(ListenerMsg::StreamResponse(response));
+                        if myself.send_message(ListenerMsg::StreamResponse(response)).is_err() {
+                            tracing::warn!("actor_gone_breaking_stream_loop");
+                            break;
+                        }
                     }
                     // Something went wrong while sending or receiving a websocket message. Should restart.
                     Ok(Some(Err(e))) => {

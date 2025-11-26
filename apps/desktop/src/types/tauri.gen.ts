@@ -7,14 +7,6 @@
 
 
 export const commands = {
-async parseSubtitle(path: string) : Promise<Result<Subtitle, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("parse_subtitle", { path }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
 async getOnboardingNeeded() : Promise<Result<boolean, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("get_onboarding_needed") };
@@ -46,8 +38,7 @@ async getEnv(key: string) : Promise<string> {
 
 /** user-defined types **/
 
-export type Subtitle = { tokens: Token[] }
-export type Token = { text: string; start_time: number; end_time: number }
+
 
 /** tauri-specta globals **/
 

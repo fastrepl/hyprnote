@@ -18,13 +18,136 @@ use crate::{
 };
 use hypr_aec::AEC;
 use hypr_agc::VadAgc;
-use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
+use hypr_audio::{
+    is_using_headphone, AudioInputProvider, AudioStreamProvider, DeviceEvent, DeviceMonitorHandle,
+    DeviceMonitorProvider,
+};
 use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
 use hypr_vad_ext::VadMaskExt;
 use tauri_specta::Event;
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
 const MAX_BUFFER_CHUNKS: usize = 150;
+
+pub trait EventEmitter: Send + Sync + 'static {
+    fn emit_audio_amplitude(
+        &self,
+        session_id: &str,
+        mic: u16,
+        speaker: u16,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
+}
+
+pub trait ActorRegistry: Send + Sync + 'static {
+    fn find_listener(&self) -> Option<ActorRef<ListenerMsg>>;
+    fn find_recorder(&self) -> Option<ActorRef<RecMsg>>;
+}
+
+pub trait AudioProcessor: Send + Sync + 'static {
+    fn process_mic(&mut self, data: &mut [f32]);
+    fn process_speaker(&mut self, data: &mut [f32]);
+    fn process_aec(
+        &mut self,
+        mic: &[f32],
+        spk: &[f32],
+    ) -> Result<Vec<f32>, Box<dyn std::error::Error + Send + Sync>>;
+    fn reset(&mut self);
+}
+
+pub struct TauriEventEmitter {
+    app: tauri::AppHandle,
+}
+
+impl TauriEventEmitter {
+    pub fn new(app: tauri::AppHandle) -> Self {
+        Self { app }
+    }
+}
+
+impl EventEmitter for TauriEventEmitter {
+    fn emit_audio_amplitude(
+        &self,
+        session_id: &str,
+        mic: u16,
+        speaker: u16,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        SessionEvent::AudioAmplitude {
+            session_id: session_id.to_string(),
+            mic,
+            speaker,
+        }
+        .emit(&self.app)
+        .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
+    }
+}
+
+pub struct RactorActorRegistry;
+
+impl ActorRegistry for RactorActorRegistry {
+    fn find_listener(&self) -> Option<ActorRef<ListenerMsg>> {
+        registry::where_is(ListenerActor::name()).map(|cell| cell.into())
+    }
+
+    fn find_recorder(&self) -> Option<ActorRef<RecMsg>> {
+        registry::where_is(RecorderActor::name()).map(|cell| cell.into())
+    }
+}
+
+pub struct DefaultAudioProcessor {
+    agc_mic: VadAgc,
+    agc_spk: VadAgc,
+    aec: Option<AEC>,
+}
+
+impl Default for DefaultAudioProcessor {
+    fn default() -> Self {
+        Self {
+            agc_mic: VadAgc::default(),
+            agc_spk: VadAgc::default(),
+            aec: None,
+        }
+    }
+}
+
+impl DefaultAudioProcessor {
+    pub fn with_aec(mut self) -> Self {
+        self.aec = AEC::new().ok();
+        self
+    }
+}
+
+impl AudioProcessor for DefaultAudioProcessor {
+    fn process_mic(&mut self, data: &mut [f32]) {
+        self.agc_mic.process(data);
+    }
+
+    fn process_speaker(&mut self, data: &mut [f32]) {
+        self.agc_spk.process(data);
+    }
+
+    fn process_aec(
+        &mut self,
+        mic: &[f32],
+        spk: &[f32],
+    ) -> Result<Vec<f32>, Box<dyn std::error::Error + Send + Sync>> {
+        if let Some(aec) = &mut self.aec {
+            aec.process_streaming(mic, spk)
+                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
+        } else {
+            Ok(mic.to_vec())
+        }
+    }
+
+    fn reset(&mut self) {
+        self.agc_mic = VadAgc::default();
+        self.agc_spk = VadAgc::default();
+        if let Some(aec) = &mut self.aec {
+            aec.reset();
+        }
+    }
+}
+
+pub const SOURCE_ACTOR_NAME: &str = "source";
 
 pub enum SourceMsg {
     SetMicMute(bool),
@@ -37,14 +160,30 @@ pub enum SourceMsg {
     StreamFailed(String),
 }
 
-pub struct SourceArgs {
+pub struct SourceArgs<
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+> {
     pub mic_device: Option<String>,
     pub onboarding: bool,
-    pub app: tauri::AppHandle,
     pub session_id: String,
+    pub audio_provider: Audio,
+    pub device_monitor_provider: Monitor,
+    pub event_emitter: Emitter,
+    pub actor_registry: Registry,
+    pub audio_processor: Processor,
 }
 
-pub struct SourceState {
+pub struct SourceState<
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+> {
     session_id: String,
     mic_device: Option<String>,
     onboarding: bool,
@@ -54,10 +193,50 @@ pub struct SourceState {
     _device_watcher: Option<DeviceChangeWatcher>,
     _silence_stream_tx: Option<std::sync::mpsc::Sender<()>>,
     current_mode: ChannelMode,
-    pipeline: Pipeline,
+    pipeline: Pipeline<Emitter, Registry, Processor>,
+    audio_provider: Arc<Audio>,
+    _monitor_phantom: std::marker::PhantomData<Monitor>,
 }
 
-pub struct SourceActor;
+pub struct SourceActor<
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+> {
+    _phantom: std::marker::PhantomData<(Audio, Monitor, Emitter, Registry, Processor)>,
+}
+
+impl<Audio, Monitor, Emitter, Registry, Processor>
+    SourceActor<Audio, Monitor, Emitter, Registry, Processor>
+where
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+{
+    pub fn new() -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<Audio, Monitor, Emitter, Registry, Processor> Default
+    for SourceActor<Audio, Monitor, Emitter, Registry, Processor>
+where
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 struct DeviceChangeWatcher {
     _handle: DeviceMonitorHandle,
@@ -65,10 +244,14 @@ struct DeviceChangeWatcher {
 }
 
 impl DeviceChangeWatcher {
-    fn spawn(actor: ActorRef<SourceMsg>) -> Self {
+    fn spawn<Audio: AudioInputProvider, Monitor: DeviceMonitorProvider>(
+        actor: ActorRef<SourceMsg>,
+        device_monitor_provider: &Monitor,
+        audio_provider: Arc<Audio>,
+    ) -> Self {
         let (event_tx, event_rx) = mpsc::channel();
-        let handle = DeviceMonitor::spawn(event_tx);
-        let thread = std::thread::spawn(move || Self::event_loop(event_rx, actor));
+        let handle = device_monitor_provider.spawn(event_tx);
+        let thread = std::thread::spawn(move || Self::event_loop(event_rx, actor, audio_provider));
 
         Self {
             _handle: handle,
@@ -76,7 +259,11 @@ impl DeviceChangeWatcher {
         }
     }
 
-    fn event_loop(event_rx: Receiver<DeviceEvent>, actor: ActorRef<SourceMsg>) {
+    fn event_loop<Audio: AudioInputProvider>(
+        event_rx: Receiver<DeviceEvent>,
+        actor: ActorRef<SourceMsg>,
+        audio_provider: Arc<Audio>,
+    ) {
         use std::sync::mpsc::RecvTimeoutError;
 
         let debounce_duration = Duration::from_millis(1000);
@@ -97,7 +284,7 @@ impl DeviceChangeWatcher {
                 }
                 Err(RecvTimeoutError::Timeout) => {
                     if pending_change {
-                        let new_device = AudioInput::get_default_device_name();
+                        let new_device = audio_provider.get_default_device_name();
                         let _ = actor.cast(SourceMsg::SetMicDevice(Some(new_device)));
                         pending_change = false;
                     }
@@ -108,32 +295,58 @@ impl DeviceChangeWatcher {
     }
 }
 
-impl SourceActor {
+impl<Audio, Monitor, Emitter, Registry, Processor>
+    SourceActor<Audio, Monitor, Emitter, Registry, Processor>
+where
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+{
     pub fn name() -> ActorName {
-        "source".into()
+        SOURCE_ACTOR_NAME.into()
     }
 }
 
 #[ractor::async_trait]
-impl Actor for SourceActor {
+impl<Audio, Monitor, Emitter, Registry, Processor> Actor
+    for SourceActor<Audio, Monitor, Emitter, Registry, Processor>
+where
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+{
     type Msg = SourceMsg;
-    type State = SourceState;
-    type Arguments = SourceArgs;
+    type State = SourceState<Audio, Monitor, Emitter, Registry, Processor>;
+    type Arguments = SourceArgs<Audio, Monitor, Emitter, Registry, Processor>;
 
     async fn pre_start(
         &self,
         myself: ActorRef<Self::Msg>,
         args: Self::Arguments,
     ) -> Result<Self::State, ActorProcessingErr> {
-        let device_watcher = DeviceChangeWatcher::spawn(myself.clone());
+        let audio_provider = Arc::new(args.audio_provider);
+        let device_watcher = DeviceChangeWatcher::spawn(
+            myself.clone(),
+            &args.device_monitor_provider,
+            Arc::clone(&audio_provider),
+        );
 
         let silence_stream_tx = Some(hypr_audio::AudioOutput::silence());
         let mic_device = args
             .mic_device
-            .or_else(|| Some(AudioInput::get_default_device_name()));
+            .or_else(|| Some(audio_provider.get_default_device_name()));
         tracing::info!(mic_device = ?mic_device);
 
-        let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
+        let pipeline = Pipeline::new(
+            args.event_emitter,
+            args.actor_registry,
+            args.audio_processor,
+            args.session_id.clone(),
+        );
 
         let mut st = SourceState {
             session_id: args.session_id,
@@ -146,6 +359,8 @@ impl Actor for SourceActor {
             _silence_stream_tx: silence_stream_tx,
             current_mode: ChannelMode::Dual,
             pipeline,
+            audio_provider,
+            _monitor_phantom: std::marker::PhantomData,
         };
 
         start_source_loop(&myself, &mut st).await?;
@@ -214,9 +429,15 @@ impl Actor for SourceActor {
     }
 }
 
-async fn start_source_loop(
+async fn start_source_loop<
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+>(
     myself: &ActorRef<SourceMsg>,
-    st: &mut SourceState,
+    st: &mut SourceState<Audio, Monitor, Emitter, Registry, Processor>,
 ) -> Result<(), ActorProcessingErr> {
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     let new_mode = if !st.onboarding && !is_using_headphone() {
@@ -249,9 +470,15 @@ async fn start_source_loop(
     }
 }
 
-async fn start_source_loop_single(
+async fn start_source_loop_single<
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+>(
     myself: &ActorRef<SourceMsg>,
-    st: &mut SourceState,
+    st: &mut SourceState<Audio, Monitor, Emitter, Registry, Processor>,
 ) -> Result<(), ActorProcessingErr> {
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     {
@@ -264,13 +491,14 @@ async fn start_source_loop_single(
         let myself2 = myself.clone();
         let mic_muted = st.mic_muted.clone();
         let mic_device = st.mic_device.clone();
+        let audio_provider = Arc::clone(&st.audio_provider);
 
         let stream_cancel_token = CancellationToken::new();
         st.stream_cancel_token = Some(stream_cancel_token.clone());
 
         let handle = tokio::spawn(async move {
             let mic_stream = {
-                let mut mic_input = match AudioInput::from_mic(mic_device.clone()) {
+                let mut mic_input = match audio_provider.from_mic(mic_device.clone()) {
                     Ok(input) => input,
                     Err(err) => {
                         tracing::error!(error = ?err, device = ?mic_device, "mic_open_failed");
@@ -333,20 +561,27 @@ async fn start_source_loop_single(
     }
 }
 
-async fn start_source_loop_dual(
+async fn start_source_loop_dual<
+    Audio: AudioInputProvider,
+    Monitor: DeviceMonitorProvider,
+    Emitter: EventEmitter,
+    Registry: ActorRegistry,
+    Processor: AudioProcessor,
+>(
     myself: &ActorRef<SourceMsg>,
-    st: &mut SourceState,
+    st: &mut SourceState<Audio, Monitor, Emitter, Registry, Processor>,
 ) -> Result<(), ActorProcessingErr> {
     let myself2 = myself.clone();
     let mic_muted = st.mic_muted.clone();
     let mic_device = st.mic_device.clone();
+    let audio_provider = Arc::clone(&st.audio_provider);
 
     let stream_cancel_token = CancellationToken::new();
     st.stream_cancel_token = Some(stream_cancel_token.clone());
 
     let handle = tokio::spawn(async move {
         let mic_stream = {
-            let mut mic_input = match AudioInput::from_mic(mic_device.clone()) {
+            let mut mic_input = match audio_provider.from_mic(mic_device.clone()) {
                 Ok(input) => input,
                 Err(err) => {
                     tracing::error!(error = ?err, device = ?mic_device, "mic_open_failed");
@@ -373,7 +608,7 @@ async fn start_source_loop_dual(
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
 
         let spk_stream = {
-            let mut spk_input = hypr_audio::AudioInput::from_speaker();
+            let mut spk_input = audio_provider.from_speaker();
             let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
             let spk_stream_res = spk_input
                 .stream()
@@ -448,39 +683,35 @@ async fn start_source_loop_dual(
     Ok(())
 }
 
-struct Pipeline {
-    agc_mic: VadAgc,
-    agc_spk: VadAgc,
-    aec: Option<AEC>,
+struct Pipeline<Emitter: EventEmitter, Registry: ActorRegistry, Processor: AudioProcessor> {
+    processor: Processor,
     joiner: Joiner,
-    amplitude: AmplitudeEmitter,
+    amplitude: AmplitudeEmitter<Emitter>,
     audio_buffer: AudioBuffer,
     backlog_quota: f32,
+    registry: Registry,
 }
 
-impl Pipeline {
+impl<Emitter: EventEmitter, Registry: ActorRegistry, Processor: AudioProcessor>
+    Pipeline<Emitter, Registry, Processor>
+{
     const BACKLOG_QUOTA_INCREMENT: f32 = 0.25;
     const MAX_BACKLOG_QUOTA: f32 = 2.0;
 
-    fn new(app: tauri::AppHandle, session_id: String) -> Self {
+    fn new(emitter: Emitter, registry: Registry, processor: Processor, session_id: String) -> Self {
         Self {
-            agc_mic: VadAgc::default(),
-            agc_spk: VadAgc::default(),
-            aec: None,
+            processor,
             joiner: Joiner::new(),
-            amplitude: AmplitudeEmitter::new(app, session_id),
+            amplitude: AmplitudeEmitter::new(emitter, session_id),
             audio_buffer: AudioBuffer::new(MAX_BUFFER_CHUNKS),
             backlog_quota: 0.0,
+            registry,
         }
     }
 
     fn reset(&mut self) {
         self.joiner.reset();
-        self.agc_mic = VadAgc::default();
-        self.agc_spk = VadAgc::default();
-        if let Some(aec) = &mut self.aec {
-            aec.reset();
-        }
+        self.processor.reset();
         self.amplitude.reset();
         self.audio_buffer.clear();
         self.backlog_quota = 0.0;
@@ -488,14 +719,14 @@ impl Pipeline {
 
     fn ingest_mic(&mut self, chunk: AudioChunk) {
         let mut data = chunk.data;
-        self.agc_mic.process(&mut data);
+        self.processor.process_mic(&mut data);
         let arc = Arc::<[f32]>::from(data);
         self.joiner.push_mic(arc);
     }
 
     fn ingest_speaker(&mut self, chunk: AudioChunk) {
         let mut data = chunk.data;
-        self.agc_spk.process(&mut data);
+        self.processor.process_speaker(&mut data);
         let arc = Arc::<[f32]>::from(data);
         self.joiner.push_spk(arc);
     }
@@ -507,23 +738,18 @@ impl Pipeline {
     }
 
     fn dispatch(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) {
-        let (processed_mic, processed_spk) = if let Some(aec) = &mut self.aec {
-            match aec.process_streaming(&mic, &spk) {
-                Ok(processed) => {
-                    let processed_arc = Arc::<[f32]>::from(processed);
-                    (processed_arc, Arc::clone(&spk))
-                }
-                Err(e) => {
-                    tracing::warn!(error = ?e, "aec_failed");
-                    (mic, spk)
-                }
+        let (processed_mic, processed_spk) = match self.processor.process_aec(&mic, &spk) {
+            Ok(processed) => {
+                let processed_arc = Arc::<[f32]>::from(processed);
+                (processed_arc, Arc::clone(&spk))
             }
-        } else {
-            (mic, spk)
+            Err(e) => {
+                tracing::warn!(error = ?e, "aec_failed");
+                (mic, spk)
+            }
         };
 
-        if let Some(cell) = registry::where_is(RecorderActor::name()) {
-            let actor: ActorRef<RecMsg> = cell.into();
+        if let Some(actor) = self.registry.find_recorder() {
             let result = if mode == ChannelMode::Single {
                 actor.cast(RecMsg::AudioSingle(Arc::clone(&processed_mic)))
             } else {
@@ -540,7 +766,7 @@ impl Pipeline {
         self.amplitude
             .observe(Arc::clone(&processed_mic), Arc::clone(&processed_spk));
 
-        let Some(cell) = registry::where_is(ListenerActor::name()) else {
+        let Some(actor) = self.registry.find_listener() else {
             self.audio_buffer.push(processed_mic, processed_spk, mode);
             tracing::debug!(
                 actor = ListenerActor::name(),
@@ -549,8 +775,6 @@ impl Pipeline {
             );
             return;
         };
-
-        let actor: ActorRef<ListenerMsg> = cell.into();
 
         self.flush_buffer_to_listener(&actor, mode);
 
@@ -635,18 +859,18 @@ impl AudioBuffer {
     }
 }
 
-struct AmplitudeEmitter {
-    app: tauri::AppHandle,
+struct AmplitudeEmitter<Emitter: EventEmitter> {
+    emitter: Emitter,
     session_id: String,
     last_mic: Option<Arc<[f32]>>,
     last_spk: Option<Arc<[f32]>>,
     last_emit: Instant,
 }
 
-impl AmplitudeEmitter {
-    fn new(app: tauri::AppHandle, session_id: String) -> Self {
+impl<Emitter: EventEmitter> AmplitudeEmitter<Emitter> {
+    fn new(emitter: Emitter, session_id: String) -> Self {
         Self {
-            app,
+            emitter,
             session_id,
             last_mic: None,
             last_spk: None,
@@ -678,12 +902,9 @@ impl AmplitudeEmitter {
         let mic_level = Self::amplitude_from_chunk(mic.as_ref());
         let spk_level = Self::amplitude_from_chunk(spk.as_ref());
 
-        if let Err(error) = (SessionEvent::AudioAmplitude {
-            session_id: self.session_id.clone(),
-            mic: mic_level,
-            speaker: spk_level,
-        })
-        .emit(&self.app)
+        if let Err(error) =
+            self.emitter
+                .emit_audio_amplitude(&self.session_id, mic_level, spk_level)
         {
             tracing::error!(error = ?error, "session_event_emit_failed");
         }
@@ -776,5 +997,271 @@ impl Joiner {
 
     fn should_use_silence_for_mic(&self) -> bool {
         self.spk.front().is_some() && self.mic.is_empty() && self.spk.len() > Self::MAX_LAG
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Mutex;
+
+    struct MockEventEmitter {
+        events: Arc<Mutex<Vec<(String, u16, u16)>>>,
+    }
+
+    impl MockEventEmitter {
+        fn new() -> Self {
+            Self {
+                events: Arc::new(Mutex::new(Vec::new())),
+            }
+        }
+    }
+
+    impl EventEmitter for MockEventEmitter {
+        fn emit_audio_amplitude(
+            &self,
+            session_id: &str,
+            mic: u16,
+            speaker: u16,
+        ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+            self.events
+                .lock()
+                .unwrap()
+                .push((session_id.to_string(), mic, speaker));
+            Ok(())
+        }
+    }
+
+    struct MockActorRegistry;
+
+    impl ActorRegistry for MockActorRegistry {
+        fn find_listener(&self) -> Option<ActorRef<ListenerMsg>> {
+            None
+        }
+
+        fn find_recorder(&self) -> Option<ActorRef<RecMsg>> {
+            None
+        }
+    }
+
+    struct MockAudioProcessor;
+
+    impl AudioProcessor for MockAudioProcessor {
+        fn process_mic(&mut self, _data: &mut [f32]) {}
+        fn process_speaker(&mut self, _data: &mut [f32]) {}
+        fn process_aec(
+            &mut self,
+            mic: &[f32],
+            _spk: &[f32],
+        ) -> Result<Vec<f32>, Box<dyn std::error::Error + Send + Sync>> {
+            Ok(mic.to_vec())
+        }
+        fn reset(&mut self) {}
+    }
+
+    #[test]
+    fn test_joiner_new() {
+        let joiner = Joiner::new();
+        assert!(joiner.mic.is_empty());
+        assert!(joiner.spk.is_empty());
+    }
+
+    #[test]
+    fn test_joiner_push_mic() {
+        let mut joiner = Joiner::new();
+        let data: Arc<[f32]> = Arc::from(vec![0.1, 0.2, 0.3]);
+        joiner.push_mic(data.clone());
+        assert_eq!(joiner.mic.len(), 1);
+        assert_eq!(joiner.mic.front().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn test_joiner_push_spk() {
+        let mut joiner = Joiner::new();
+        let data: Arc<[f32]> = Arc::from(vec![0.4, 0.5, 0.6]);
+        joiner.push_spk(data.clone());
+        assert_eq!(joiner.spk.len(), 1);
+        assert_eq!(joiner.spk.front().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn test_joiner_pop_pair_dual_mode() {
+        let mut joiner = Joiner::new();
+        let mic_data: Arc<[f32]> = Arc::from(vec![0.1, 0.2, 0.3]);
+        let spk_data: Arc<[f32]> = Arc::from(vec![0.4, 0.5, 0.6]);
+        joiner.push_mic(mic_data);
+        joiner.push_spk(spk_data);
+
+        let pair = joiner.pop_pair(ChannelMode::Dual);
+        assert!(pair.is_some());
+        let (mic, spk) = pair.unwrap();
+        assert_eq!(mic.len(), 3);
+        assert_eq!(spk.len(), 3);
+    }
+
+    #[test]
+    fn test_joiner_pop_pair_single_mode_with_silence() {
+        let mut joiner = Joiner::new();
+        let mic_data: Arc<[f32]> = Arc::from(vec![0.1, 0.2, 0.3]);
+        joiner.push_mic(mic_data);
+
+        let pair = joiner.pop_pair(ChannelMode::Single);
+        assert!(pair.is_some());
+        let (mic, spk) = pair.unwrap();
+        assert_eq!(mic.len(), 3);
+        assert_eq!(spk.len(), 3);
+        assert!(spk.iter().all(|&x| x == 0.0));
+    }
+
+    #[test]
+    fn test_joiner_reset() {
+        let mut joiner = Joiner::new();
+        joiner.push_mic(Arc::from(vec![0.1, 0.2]));
+        joiner.push_spk(Arc::from(vec![0.3, 0.4]));
+        joiner.reset();
+        assert!(joiner.mic.is_empty());
+        assert!(joiner.spk.is_empty());
+    }
+
+    #[test]
+    fn test_audio_buffer_new() {
+        let buffer = AudioBuffer::new(10);
+        assert!(buffer.is_empty());
+        assert_eq!(buffer.len(), 0);
+    }
+
+    #[test]
+    fn test_audio_buffer_push_pop() {
+        let mut buffer = AudioBuffer::new(10);
+        let mic: Arc<[f32]> = Arc::from(vec![0.1, 0.2]);
+        let spk: Arc<[f32]> = Arc::from(vec![0.3, 0.4]);
+        buffer.push(mic.clone(), spk.clone(), ChannelMode::Dual);
+
+        assert_eq!(buffer.len(), 1);
+        let item = buffer.pop();
+        assert!(item.is_some());
+        let (m, s, mode) = item.unwrap();
+        assert_eq!(m.len(), 2);
+        assert_eq!(s.len(), 2);
+        assert_eq!(mode, ChannelMode::Dual);
+    }
+
+    #[test]
+    fn test_audio_buffer_overflow() {
+        let mut buffer = AudioBuffer::new(3);
+        for i in 0..5 {
+            let mic: Arc<[f32]> = Arc::from(vec![i as f32]);
+            let spk: Arc<[f32]> = Arc::from(vec![i as f32]);
+            buffer.push(mic, spk, ChannelMode::Single);
+        }
+
+        assert_eq!(buffer.len(), 3);
+        let (mic, _, _) = buffer.pop().unwrap();
+        assert_eq!(mic[0], 2.0);
+    }
+
+    #[test]
+    fn test_audio_buffer_clear() {
+        let mut buffer = AudioBuffer::new(10);
+        buffer.push(
+            Arc::from(vec![0.1]),
+            Arc::from(vec![0.2]),
+            ChannelMode::Dual,
+        );
+        buffer.push(
+            Arc::from(vec![0.3]),
+            Arc::from(vec![0.4]),
+            ChannelMode::Dual,
+        );
+        buffer.clear();
+        assert!(buffer.is_empty());
+    }
+
+    #[test]
+    fn test_amplitude_emitter_amplitude_from_chunk() {
+        let chunk = vec![0.0, 0.5, -0.8, 0.3, -0.2];
+        let amplitude = AmplitudeEmitter::<MockEventEmitter>::amplitude_from_chunk(&chunk);
+        assert_eq!(amplitude, 80);
+    }
+
+    #[test]
+    fn test_amplitude_emitter_amplitude_from_silence() {
+        let chunk = vec![0.0; 100];
+        let amplitude = AmplitudeEmitter::<MockEventEmitter>::amplitude_from_chunk(&chunk);
+        assert_eq!(amplitude, 0);
+    }
+
+    #[test]
+    fn test_amplitude_emitter_amplitude_from_full_scale() {
+        let chunk = vec![1.0, -1.0, 0.5];
+        let amplitude = AmplitudeEmitter::<MockEventEmitter>::amplitude_from_chunk(&chunk);
+        assert_eq!(amplitude, 100);
+    }
+
+    #[test]
+    fn test_default_audio_processor_process_mic() {
+        let mut processor = DefaultAudioProcessor::default();
+        let mut data = vec![0.1, 0.2, 0.3];
+        processor.process_mic(&mut data);
+    }
+
+    #[test]
+    fn test_default_audio_processor_process_speaker() {
+        let mut processor = DefaultAudioProcessor::default();
+        let mut data = vec![0.1, 0.2, 0.3];
+        processor.process_speaker(&mut data);
+    }
+
+    #[test]
+    fn test_default_audio_processor_reset() {
+        let mut processor = DefaultAudioProcessor::default();
+        processor.reset();
+    }
+
+    #[test]
+    fn test_pipeline_new() {
+        let emitter = MockEventEmitter::new();
+        let registry = MockActorRegistry;
+        let processor = MockAudioProcessor;
+        let _pipeline = Pipeline::new(emitter, registry, processor, "test_session".to_string());
+    }
+
+    #[test]
+    fn test_pipeline_ingest_mic() {
+        let emitter = MockEventEmitter::new();
+        let registry = MockActorRegistry;
+        let processor = MockAudioProcessor;
+        let mut pipeline = Pipeline::new(emitter, registry, processor, "test_session".to_string());
+
+        let chunk = AudioChunk {
+            data: vec![0.1, 0.2, 0.3],
+        };
+        pipeline.ingest_mic(chunk);
+    }
+
+    #[test]
+    fn test_pipeline_ingest_speaker() {
+        let emitter = MockEventEmitter::new();
+        let registry = MockActorRegistry;
+        let processor = MockAudioProcessor;
+        let mut pipeline = Pipeline::new(emitter, registry, processor, "test_session".to_string());
+
+        let chunk = AudioChunk {
+            data: vec![0.4, 0.5, 0.6],
+        };
+        pipeline.ingest_speaker(chunk);
+    }
+
+    #[test]
+    fn test_pipeline_reset() {
+        let emitter = MockEventEmitter::new();
+        let registry = MockActorRegistry;
+        let processor = MockAudioProcessor;
+        let mut pipeline = Pipeline::new(emitter, registry, processor, "test_session".to_string());
+
+        let chunk = AudioChunk {
+            data: vec![0.1, 0.2],
+        };
+        pipeline.ingest_mic(chunk);
+        pipeline.reset();
     }
 }

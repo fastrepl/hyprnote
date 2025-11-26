@@ -18,7 +18,7 @@ use crate::{
 };
 use hypr_aec::AEC;
 use hypr_agc::VadAgc;
-use hypr_audio::{is_using_headphone, AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
+use hypr_audio::{AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
 use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
 use hypr_vad_ext::VadMaskExt;
 use tauri_specta::Event;
@@ -29,7 +29,6 @@ const MAX_BUFFER_CHUNKS: usize = 150;
 pub enum SourceMsg {
     SetMicMute(bool),
     GetMicMute(RpcReplyPort<bool>),
-    SetMicDevice(Option<String>),
     GetMicDevice(RpcReplyPort<Option<String>>),
     GetSessionId(RpcReplyPort<String>),
     MicChunk(AudioChunk),
@@ -97,8 +96,8 @@ impl DeviceChangeWatcher {
                 }
                 Err(RecvTimeoutError::Timeout) => {
                     if pending_change {
-                        let new_device = AudioInput::get_default_device_name();
-                        let _ = actor.cast(SourceMsg::SetMicDevice(Some(new_device)));
+                        tracing::info!("device_change_debounced_restarting_source");
+                        actor.stop(Some("device_change".to_string()));
                         pending_change = false;
                     }
                 }
@@ -144,7 +143,7 @@ impl Actor for SourceActor {
             stream_cancel_token: None,
             _device_watcher: Some(device_watcher),
             _silence_stream_tx: silence_stream_tx,
-            current_mode: ChannelMode::Dual,
+            current_mode: ChannelMode::MicAndSpeaker,
             pipeline,
         };
 
@@ -176,10 +175,6 @@ impl Actor for SourceActor {
                 if !reply.is_closed() {
                     let _ = reply.send(st.session_id.clone());
                 }
-            }
-            SourceMsg::SetMicDevice(_dev) => {
-                tracing::info!("device_change_triggering_restart");
-                myself.stop(Some("device_change".to_string()));
             }
             SourceMsg::MicChunk(chunk) => {
                 st.pipeline.ingest_mic(chunk);
@@ -218,15 +213,7 @@ async fn start_source_loop(
     myself: &ActorRef<SourceMsg>,
     st: &mut SourceState,
 ) -> Result<(), ActorProcessingErr> {
-    #[cfg(any(target_os = "macos", target_os = "linux"))]
-    let new_mode = if !st.onboarding && !is_using_headphone() {
-        ChannelMode::Single
-    } else {
-        ChannelMode::Dual
-    };
-
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    let new_mode = ChannelMode::Dual;
+    let new_mode = ChannelMode::determine(st.onboarding);
 
     let mode_changed = st.current_mode != new_mode;
     st.current_mode = new_mode;
@@ -235,21 +222,14 @@ async fn start_source_loop(
 
     st.pipeline.reset();
 
-    if mode_changed {
-        if let Some(cell) = registry::where_is(ListenerActor::name()) {
-            let actor: ActorRef<ListenerMsg> = cell.into();
-            let _ = actor.cast(ListenerMsg::ChangeMode(new_mode));
-        }
-    }
-
-    if new_mode == ChannelMode::Single {
-        start_source_loop_single(myself, st).await
-    } else {
-        start_source_loop_dual(myself, st).await
+    match new_mode {
+        ChannelMode::MicOnly => start_source_loop_mic_only(myself, st).await,
+        ChannelMode::SpeakerOnly => start_source_loop_speaker_only(myself, st).await,
+        ChannelMode::MicAndSpeaker => start_source_loop_mic_and_speaker(myself, st).await,
     }
 }
 
-async fn start_source_loop_single(
+async fn start_source_loop_mic_only(
     myself: &ActorRef<SourceMsg>,
     st: &mut SourceState,
 ) -> Result<(), ActorProcessingErr> {
@@ -334,7 +314,70 @@ async fn start_source_loop_single(
     }
 }
 
-async fn start_source_loop_dual(
+async fn start_source_loop_speaker_only(
+    myself: &ActorRef<SourceMsg>,
+    st: &mut SourceState,
+) -> Result<(), ActorProcessingErr> {
+    let myself2 = myself.clone();
+
+    let stream_cancel_token = CancellationToken::new();
+    st.stream_cancel_token = Some(stream_cancel_token.clone());
+
+    let handle = tokio::spawn(async move {
+        let spk_stream = {
+            let mut spk_input = hypr_audio::AudioInput::from_speaker();
+            let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
+            let spk_stream_res = spk_input
+                .stream()
+                .resampled_chunks(super::SAMPLE_RATE, chunk_size);
+
+            match spk_stream_res {
+                Ok(stream) => stream,
+                Err(err) => {
+                    tracing::error!(error = ?err, "speaker_stream_setup_failed");
+                    let _ = myself2.cast(SourceMsg::StreamFailed(
+                        "speaker_stream_setup_failed".into(),
+                    ));
+                    return;
+                }
+            }
+        };
+
+        tokio::pin!(spk_stream);
+
+        loop {
+            tokio::select! {
+                _ = stream_cancel_token.cancelled() => {
+                    drop(spk_stream);
+                    return;
+                }
+                spk_next = spk_stream.next() => match spk_next {
+                    Some(Ok(data)) => {
+                        if myself2.cast(SourceMsg::SpeakerChunk(AudioChunk { data })).is_err() {
+                            tracing::warn!("failed_to_cast_speaker_chunk");
+                            return;
+                        }
+                    }
+                    Some(Err(err)) => {
+                        tracing::error!(error = ?err, "speaker_resample_failed");
+                        let _ = myself2.cast(SourceMsg::StreamFailed("speaker_resample_failed".into()));
+                        return;
+                    }
+                    None => {
+                        tracing::error!("speaker_stream_ended");
+                        let _ = myself2.cast(SourceMsg::StreamFailed("speaker_stream_ended".into()));
+                        return;
+                    }
+                },
+            }
+        }
+    });
+
+    st.run_task = Some(handle);
+    Ok(())
+}
+
+async fn start_source_loop_mic_and_speaker(
     myself: &ActorRef<SourceMsg>,
     st: &mut SourceState,
 ) -> Result<(), ActorProcessingErr> {
@@ -527,13 +570,15 @@ impl Pipeline {
 
         if let Some(cell) = registry::where_is(RecorderActor::name()) {
             let actor: ActorRef<RecMsg> = cell.into();
-            let result = if mode == ChannelMode::Single {
-                actor.cast(RecMsg::AudioSingle(Arc::clone(&processed_mic)))
-            } else {
-                actor.cast(RecMsg::AudioDual(
+            let result = match mode {
+                ChannelMode::MicOnly => actor.cast(RecMsg::AudioSingle(Arc::clone(&processed_mic))),
+                ChannelMode::SpeakerOnly => {
+                    actor.cast(RecMsg::AudioSingle(Arc::clone(&processed_spk)))
+                }
+                ChannelMode::MicAndSpeaker => actor.cast(RecMsg::AudioDual(
                     Arc::clone(&processed_mic),
                     Arc::clone(&processed_spk),
-                ))
+                )),
             };
             if let Err(e) = result {
                 tracing::error!(error = ?e, "failed_to_send_audio_to_recorder");
@@ -585,13 +630,20 @@ impl Pipeline {
         spk: &Arc<[f32]>,
         mode: ChannelMode,
     ) {
-        let result = if mode == ChannelMode::Single {
-            let audio_bytes = f32_to_i16_bytes(mic.to_vec().iter().copied());
-            actor.cast(ListenerMsg::AudioSingle(audio_bytes))
-        } else {
-            let mic_bytes = f32_to_i16_bytes(mic.iter().copied());
-            let spk_bytes = f32_to_i16_bytes(spk.iter().copied());
-            actor.cast(ListenerMsg::AudioDual(mic_bytes, spk_bytes))
+        let result = match mode {
+            ChannelMode::MicOnly => {
+                let bytes = f32_to_i16_bytes(mic.iter().copied());
+                actor.cast(ListenerMsg::AudioSingle(bytes))
+            }
+            ChannelMode::SpeakerOnly => {
+                let bytes = f32_to_i16_bytes(spk.iter().copied());
+                actor.cast(ListenerMsg::AudioSingle(bytes))
+            }
+            ChannelMode::MicAndSpeaker => {
+                let mic_bytes = f32_to_i16_bytes(mic.iter().copied());
+                let spk_bytes = f32_to_i16_bytes(spk.iter().copied());
+                actor.cast(ListenerMsg::AudioDual(mic_bytes, spk_bytes))
+            }
         };
 
         if result.is_err() {
@@ -756,28 +808,39 @@ impl Joiner {
             return Some((self.mic.pop_front()?, self.spk.pop_front()?));
         }
 
-        if self.should_use_silence_for_speaker(mode) {
-            let mic = self.mic.pop_front()?;
-            let spk = self.get_silence(mic.len());
-            return Some((mic, spk));
-        }
-
-        if self.should_use_silence_for_mic() {
-            let spk = self.spk.pop_front()?;
-            let mic = self.get_silence(spk.len());
-            return Some((mic, spk));
+        match mode {
+            ChannelMode::MicOnly => {
+                if let Some(mic) = self.mic.pop_front() {
+                    let spk = self.get_silence(mic.len());
+                    return Some((mic, spk));
+                }
+            }
+            ChannelMode::SpeakerOnly => {
+                if let Some(spk) = self.spk.pop_front() {
+                    let mic = self.get_silence(spk.len());
+                    return Some((mic, spk));
+                }
+            }
+            ChannelMode::MicAndSpeaker => {
+                if self.mic.front().is_some()
+                    && self.spk.is_empty()
+                    && self.mic.len() > Self::MAX_LAG
+                {
+                    let mic = self.mic.pop_front()?;
+                    let spk = self.get_silence(mic.len());
+                    return Some((mic, spk));
+                }
+                if self.spk.front().is_some()
+                    && self.mic.is_empty()
+                    && self.spk.len() > Self::MAX_LAG
+                {
+                    let spk = self.spk.pop_front()?;
+                    let mic = self.get_silence(spk.len());
+                    return Some((mic, spk));
+                }
+            }
         }
 
         None
-    }
-
-    fn should_use_silence_for_speaker(&self, mode: ChannelMode) -> bool {
-        self.mic.front().is_some()
-            && self.spk.is_empty()
-            && (mode == ChannelMode::Single || self.mic.len() > Self::MAX_LAG)
-    }
-
-    fn should_use_silence_for_mic(&self) -> bool {
-        self.spk.front().is_some() && self.mic.is_empty() && self.spk.len() > Self::MAX_LAG
     }
 }

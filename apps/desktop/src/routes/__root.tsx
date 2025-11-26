@@ -7,7 +7,10 @@ import {
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { lazy, useEffect } from "react";
 
-import type { DeepLink } from "@hypr/plugin-deeplink2";
+import {
+  type DeepLink,
+  events as deeplink2Events,
+} from "@hypr/plugin-deeplink2";
 import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
@@ -41,7 +44,8 @@ const useNavigationEvents = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let unlisten: (() => void) | undefined;
+    let unlistenNavigate: (() => void) | undefined;
+    let unlistenDeepLink: (() => void) | undefined;
 
     const webview = getCurrentWebviewWindow();
 
@@ -51,11 +55,20 @@ const useNavigationEvents = () => {
         navigate({ to: payload.path, search: payload.search ?? undefined });
       })
       .then((fn) => {
-        unlisten = fn;
+        unlistenNavigate = fn;
+      });
+
+    deeplink2Events.deepLinkEvent
+      .listen(({ payload }) => {
+        navigate({ to: payload.to, search: payload.search });
+      })
+      .then((fn) => {
+        unlistenDeepLink = fn;
       });
 
     return () => {
-      unlisten?.();
+      unlistenNavigate?.();
+      unlistenDeepLink?.();
     };
   }, [navigate]);
 };

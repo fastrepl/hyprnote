@@ -14930,9 +14930,11 @@ dependencies = [
  "strum 0.26.3",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-deep-link",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
+ "tracing",
  "url",
 ]
 

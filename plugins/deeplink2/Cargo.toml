@@ -19,6 +19,7 @@ serde_yaml = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true, features = ["test"] }
+tauri-plugin-deep-link = { workspace = true }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true }
@@ -26,4 +27,5 @@ specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 
 thiserror = { workspace = true }
+tracing = { workspace = true }
 url = { workspace = true }

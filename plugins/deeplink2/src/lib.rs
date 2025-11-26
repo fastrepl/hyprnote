@@ -5,6 +5,12 @@ mod types;
 mod docs;
 
 pub use error::{Error, Result};
+pub use types::{DeepLink, DeepLinkEvent};
+
+use std::str::FromStr;
+
+use tauri_plugin_deep_link::DeepLinkExt;
+use tauri_specta::Event;
 
 const PLUGIN_NAME: &str = "deeplink2";
 
@@ -22,7 +28,30 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|_app, _api| Ok(()))
+        .setup(|app, _api| {
+            let app_handle = app.clone();
+
+            app.deep_link().on_open_url(move |event| {
+                for url in event.urls() {
+                    let url_str = url.as_str();
+                    tracing::info!(url = url_str, "deeplink_received");
+
+                    match DeepLink::from_str(url_str) {
+                        Ok(deep_link) => {
+                            tracing::info!(deep_link = ?deep_link, "deeplink_parsed");
+                            if let Err(e) = DeepLinkEvent(deep_link).emit(&app_handle) {
+                                tracing::error!(error = ?e, "deeplink_event_emit_failed");
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!(error = ?e, url = url_str, "deeplink_parse_failed");
+                        }
+                    }
+                }
+            });
+
+            Ok(())
+        })
         .build()
 }
 

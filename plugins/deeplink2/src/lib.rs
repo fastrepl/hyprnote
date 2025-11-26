@@ -82,7 +82,7 @@ mod test {
         let deeplinks = docs::parse_deeplinks(&source_code).unwrap();
         assert!(!deeplinks.is_empty());
 
-        let output_dir = std::path::Path::new("../../apps/web/content/docs/deeplinks");
+        let output_dir = std::path::Path::new("../../apps/web/content/deeplinks");
         std::fs::create_dir_all(output_dir).unwrap();
 
         for deeplink in &deeplinks {

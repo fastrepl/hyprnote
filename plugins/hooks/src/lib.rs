@@ -60,7 +60,7 @@ mod test {
         let hooks = docs::parse_hooks(&source_code).unwrap();
         assert!(!hooks.is_empty());
 
-        let output_dir = std::path::Path::new("../../apps/web/content/docs/hooks");
+        let output_dir = std::path::Path::new("../../apps/web/content/hooks");
         std::fs::create_dir_all(output_dir).unwrap();
 
         for hook in &hooks {

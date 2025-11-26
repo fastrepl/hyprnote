@@ -176,18 +176,9 @@ impl Actor for SourceActor {
                     let _ = reply.send(st.session_id.clone());
                 }
             }
-            SourceMsg::SetMicDevice(dev) => {
-                st.mic_device = dev;
-                st.pipeline.reset();
-
-                if let Some(cancel_token) = st.stream_cancel_token.take() {
-                    cancel_token.cancel();
-                }
-
-                if let Some(task) = st.run_task.take() {
-                    task.abort();
-                }
-                start_source_loop(&myself, st).await?;
+            SourceMsg::SetMicDevice(_dev) => {
+                tracing::info!("device_change_triggering_restart");
+                myself.stop(Some("device_change".to_string()));
             }
             SourceMsg::MicChunk(chunk) => {
                 st.pipeline.ingest_mic(chunk);
@@ -398,9 +389,13 @@ struct Pipeline {
     joiner: Joiner,
     amplitude: AmplitudeEmitter,
     audio_buffer: AudioBuffer,
+    backlog_quota: f32,
 }
 
 impl Pipeline {
+    const BACKLOG_QUOTA_INCREMENT: f32 = 0.25;
+    const MAX_BACKLOG_QUOTA: f32 = 2.0;
+
     fn new(app: tauri::AppHandle, session_id: String) -> Self {
         Self {
             agc_mic: VadAgc::default(),
@@ -409,6 +404,7 @@ impl Pipeline {
             joiner: Joiner::new(),
             amplitude: AmplitudeEmitter::new(app, session_id),
             audio_buffer: AudioBuffer::new(MAX_BUFFER_CHUNKS),
+            backlog_quota: 0.0,
         }
     }
 
@@ -421,6 +417,7 @@ impl Pipeline {
         }
         self.amplitude.reset();
         self.audio_buffer.clear();
+        self.backlog_quota = 0.0;
     }
 
     fn ingest_mic(&mut self, chunk: AudioChunk) {
@@ -474,6 +471,9 @@ impl Pipeline {
             }
         }
 
+        self.amplitude
+            .observe(Arc::clone(&processed_mic), Arc::clone(&processed_spk));
+
         let Some(cell) = registry::where_is(ListenerActor::name()) else {
             self.audio_buffer.push(processed_mic, processed_spk, mode);
             tracing::debug!(
@@ -489,14 +489,22 @@ impl Pipeline {
         self.flush_buffer_to_listener(&actor, mode);
 
         self.send_to_listener(&actor, &processed_mic, &processed_spk, mode);
-
-        self.amplitude.observe(processed_mic, processed_spk);
     }
 
     fn flush_buffer_to_listener(&mut self, actor: &ActorRef<ListenerMsg>, mode: ChannelMode) {
-        while let Some((mic, spk, buffered_mode)) = self.audio_buffer.pop() {
-            if buffered_mode == mode {
-                self.send_to_listener(actor, &mic, &spk, mode);
+        if !self.audio_buffer.is_empty() {
+            self.backlog_quota =
+                (self.backlog_quota + Self::BACKLOG_QUOTA_INCREMENT).min(Self::MAX_BACKLOG_QUOTA);
+
+            while self.backlog_quota >= 1.0 {
+                let Some((mic, spk, buffered_mode)) = self.audio_buffer.pop() else {
+                    break;
+                };
+
+                if buffered_mode == mode {
+                    self.send_to_listener(actor, &mic, &spk, mode);
+                    self.backlog_quota -= 1.0;
+                }
             }
         }
     }
@@ -550,6 +558,10 @@ impl AudioBuffer {
 
     fn len(&self) -> usize {
         self.buffer.len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.buffer.is_empty()
     }
 
     fn clear(&mut self) {

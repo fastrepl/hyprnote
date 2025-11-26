@@ -253,8 +253,7 @@ pub fn chunk_audio_file(
     };
     let samples_per_chunk = frames_per_chunk
         .saturating_mul(channels)
-        .max(1)
-        .min(usize::MAX);
+        .clamp(1, usize::MAX);
 
     let sample_count = samples.len();
     let frame_count = sample_count / channels;
@@ -276,5 +275,5 @@ pub fn chunk_size_for_stt(sample_rate: u32) -> usize {
     const CHUNK_MS: u32 = 120;
 
     let samples = ((sample_rate as u64) * (CHUNK_MS as u64)) / 1000;
-    samples.max(1024).min(7168) as usize
+    samples.clamp(1024, 7168) as usize
 }

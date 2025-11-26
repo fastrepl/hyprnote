@@ -262,7 +262,7 @@ async fn process_transcription_stream(
                         start: adjusted_start_f64,
                         end: adjusted_end_f64,
                         confidence,
-                        speaker: speaker,
+                        speaker,
                         punctuated_word: None,
                         language: None,
                     })

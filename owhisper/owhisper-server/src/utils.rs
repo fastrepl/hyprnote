@@ -11,11 +11,8 @@ where
         std::fs::create_dir_all(parent)?;
     }
 
-    let mut config =
-        match owhisper_config::Config::new(Some(config_path.to_str().unwrap().to_string())) {
-            Ok(config) => config,
-            Err(_) => owhisper_config::Config::default(),
-        };
+    let mut config = owhisper_config::Config::new(Some(config_path.to_str().unwrap().to_string()))
+        .unwrap_or_default();
 
     let original_json = serde_json::to_string_pretty(&config)?;
     update_fn(&mut config)?;

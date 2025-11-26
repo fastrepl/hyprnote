@@ -2,9 +2,8 @@ const LOGO: &str = include_str!("../logo/ascii.txt");
 
 pub fn print_logo() {
     println!(
-        "{}{}\n",
-        LOGO,
-        "Thank you for using OWhisper! We ♡ our users!\nBug report: https://github.com/fastrepl/hyprnote/issues/new?labels=owhisper"
+        "{}Thank you for using OWhisper! We ♡ our users!\nBug report: https://github.com/fastrepl/hyprnote/issues/new?labels=owhisper\n",
+        LOGO
     );
 }
 

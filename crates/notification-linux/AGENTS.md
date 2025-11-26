@@ -1,6 +1,6 @@
 # notification-linux
 
-- Uses gtk3 (not gtk4) because webviewgtk4.1 links to gtk3.
+- Uses gtk3 (not gtk4) because webkit2gtk-4.1 links to gtk3.
 
 ## Running the example
 

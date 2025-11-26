@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/vs/notta")({
-  component: RouteComponent,
-});
+import { createVSRoute } from "@/components/vs-template";
 
-function RouteComponent() {
-  return <div>Hello "/_view/vs/notta"!</div>;
-}
+export const Route = createFileRoute("/_view/vs/notta")(createVSRoute("notta"));

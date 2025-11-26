@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/vs/obsidian")({
-  component: RouteComponent,
-});
+import { createVSRoute } from "@/components/vs-template";
 
-function RouteComponent() {
-  return <div>Hello "/_view/vs/obsidian"!</div>;
-}
+export const Route = createFileRoute("/_view/vs/obsidian")(
+  createVSRoute("obsidian"),
+);

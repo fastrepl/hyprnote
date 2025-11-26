@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/vs/evernote")({
-  component: RouteComponent,
-});
+import { createVSRoute } from "@/components/vs-template";
 
-function RouteComponent() {
-  return <div>Hello "/_view/vs/evernote"!</div>;
-}
+export const Route = createFileRoute("/_view/vs/evernote")(
+  createVSRoute("evernote"),
+);

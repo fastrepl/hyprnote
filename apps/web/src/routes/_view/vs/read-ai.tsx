@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/vs/read-ai")({
-  component: RouteComponent,
-});
+import { createVSRoute } from "@/components/vs-template";
 
-function RouteComponent() {
-  return <div>Hello "/_view/vs/read-ai"!</div>;
-}
+export const Route = createFileRoute("/_view/vs/read-ai")(
+  createVSRoute("read-ai"),
+);

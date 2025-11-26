@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/vs/bluedot")({
-  component: RouteComponent,
-});
+import { createVSRoute } from "@/components/vs-template";
 
-function RouteComponent() {
-  return <div>Hello "/_view/vs/bluedot"!</div>;
-}
+export const Route = createFileRoute("/_view/vs/bluedot")(
+  createVSRoute("bluedot"),
+);

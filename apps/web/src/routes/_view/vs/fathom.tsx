@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_view/vs/fathom")({
-  component: RouteComponent,
-});
+import { createVSRoute } from "@/components/vs-template";
 
-function RouteComponent() {
-  return <div>Hello "/_view/vs/fathom"!</div>;
-}
+export const Route = createFileRoute("/_view/vs/fathom")(
+  createVSRoute("fathom"),
+);

@@ -151,9 +151,9 @@ pub async fn main() {
         }
     }
 
-    app.run(|app, event| {
+    app.run(move |app, event| match event {
         #[cfg(target_os = "macos")]
-        if let tauri::RunEvent::Reopen { .. } = event {
+        tauri::RunEvent::Reopen { .. } => {
             if app.get_onboarding_needed().unwrap_or(true) {
                 AppWindow::Main.hide(&app).unwrap();
                 AppWindow::Onboarding.show(&app).unwrap();
@@ -162,6 +162,13 @@ pub async fn main() {
                 AppWindow::Main.show(&app).unwrap();
             }
         }
+        tauri::RunEvent::Exit => {
+            if let Some(ref supervisor) = root_supervisor {
+                supervisor.stop(Some("app_exit".to_string()));
+            }
+            hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
+        }
+        _ => {}
     });
 }
 

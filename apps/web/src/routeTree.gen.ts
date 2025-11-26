@@ -42,6 +42,7 @@ import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
+import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
 import { Route as ViewVsTldvRouteImport } from './routes/_view/vs/tldv'
 import { Route as ViewVsTactiqRouteImport } from './routes/_view/vs/tactiq'
 import { Route as ViewVsReflectRouteImport } from './routes/_view/vs/reflect'
@@ -261,6 +262,11 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ViewAppRouteRoute,
+} as any)
+const ApiTweetIdRoute = ApiTweetIdRouteImport.update({
+  id: '/api/tweet/$id',
+  path: '/api/tweet/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ViewVsTldvRoute = ViewVsTldvRouteImport.update({
   id: '/tldv',
@@ -625,6 +631,7 @@ export interface FileRoutesByFullPath {
   '/vs/reflect': typeof ViewVsReflectRoute
   '/vs/tactiq': typeof ViewVsTactiqRoute
   '/vs/tldv': typeof ViewVsTldvRoute
+  '/api/tweet/$id': typeof ApiTweetIdRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -712,6 +719,7 @@ export interface FileRoutesByTo {
   '/vs/reflect': typeof ViewVsReflectRoute
   '/vs/tactiq': typeof ViewVsTactiqRoute
   '/vs/tldv': typeof ViewVsTldvRoute
+  '/api/tweet/$id': typeof ApiTweetIdRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
@@ -803,6 +811,7 @@ export interface FileRoutesById {
   '/_view/vs/reflect': typeof ViewVsReflectRoute
   '/_view/vs/tactiq': typeof ViewVsTactiqRoute
   '/_view/vs/tldv': typeof ViewVsTldvRoute
+  '/api/tweet/$id': typeof ApiTweetIdRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
@@ -894,6 +903,7 @@ export interface FileRouteTypes {
     | '/vs/reflect'
     | '/vs/tactiq'
     | '/vs/tldv'
+    | '/api/tweet/$id'
     | '/app/'
     | '/blog'
     | '/changelog'
@@ -981,6 +991,7 @@ export interface FileRouteTypes {
     | '/vs/reflect'
     | '/vs/tactiq'
     | '/vs/tldv'
+    | '/api/tweet/$id'
     | '/app'
     | '/blog'
     | '/changelog'
@@ -1071,6 +1082,7 @@ export interface FileRouteTypes {
     | '/_view/vs/reflect'
     | '/_view/vs/tactiq'
     | '/_view/vs/tldv'
+    | '/api/tweet/$id'
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
@@ -1093,6 +1105,7 @@ export interface RootRouteChildren {
   ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
+  ApiTweetIdRoute: typeof ApiTweetIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1327,6 +1340,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof ViewAppIndexRouteImport
       parentRoute: typeof ViewAppRouteRoute
+    }
+    '/api/tweet/$id': {
+      id: '/api/tweet/$id'
+      path: '/api/tweet/$id'
+      fullPath: '/api/tweet/$id'
+      preLoaderRoute: typeof ApiTweetIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_view/vs/tldv': {
       id: '/_view/vs/tldv'
@@ -1930,6 +1950,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
+  ApiTweetIdRoute: ApiTweetIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -190,8 +190,8 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="absolute bottom-full left-0 right-0 mb-1"
           >
-            <div className="bg-neutral-50 rounded-lg overflow-hidden shadow-lg border">
-              <div className="pt-1.5">
+            <div className="bg-neutral-50 rounded-xl overflow-hidden shadow-sm border">
+              <div className="pt-1">
                 <AnimatePresence mode="wait">
                   {currentView === "main" ? (
                     <motion.div
@@ -240,7 +240,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
         )}
       </AnimatePresence>
 
-      <div className="bg-neutral-50 rounded-lg overflow-hidden">
+      <div className="bg-neutral-50 rounded-xl overflow-hidden">
         <ProfileButton
           isExpanded={isExpanded}
           onClick={() => setIsExpanded(!isExpanded)}

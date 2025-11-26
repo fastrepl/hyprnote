@@ -143,7 +143,7 @@ function ExpandedSearch({
             "text-sm placeholder:text-sm placeholder:text-neutral-400",
             "w-full pl-9 h-full",
             query ? "pr-9" : showShortcut ? "pr-14" : "pr-4",
-            "rounded-lg bg-neutral-100 border border-transparent",
+            "rounded-xl bg-neutral-100 border border-transparent",
             "focus:outline-none focus:bg-neutral-200 focus:border-black",
           ])}
         />

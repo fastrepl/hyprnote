@@ -39,7 +39,7 @@ function TemplateList() {
         </div>
 
         {hasNoResults ? (
-          <div className="text-center py-12 text-neutral-500 bg-neutral-50 rounded-lg p-4 border border-neutral-200">
+          <div className="text-center py-12 text-neutral-500 bg-neutral-50 rounded-xl p-4 border border-neutral-200">
             <BookText size={48} className="mx-auto mb-4 text-neutral-300" />
             <p className="text-sm">
               {searchQuery.length > 0

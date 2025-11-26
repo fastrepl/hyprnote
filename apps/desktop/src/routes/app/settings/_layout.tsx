@@ -140,7 +140,7 @@ function Component() {
 
       <div className="flex-1 flex flex-col gap-1 h-full w-full overflow-hidden bg-white">
         <Header />
-        <div className="flex-1 w-full overflow-y-auto scrollbar-hide p-6 border border-neutral-200 rounded-lg">
+        <div className="flex-1 w-full overflow-y-auto scrollbar-hide p-6 border border-neutral-200 rounded-xl">
           <Outlet />
         </div>
       </div>
@@ -172,33 +172,35 @@ function Group({
   };
 
   return (
-    <div className={cn(["rounded-md bg-neutral-50", expandHeight && "flex-1"])}>
+    <div
+      className={cn([
+        "rounded-xl bg-neutral-50 py-1",
+        expandHeight && "flex-1",
+      ])}
+    >
       {includeTrafficLight && <div data-tauri-drag-region className="h-9" />}
       {tabs.map((tab) => {
         const tabInfo = info(tab);
         const Icon = tabInfo.icon;
 
         return (
-          <Button
-            key={tab}
-            variant="ghost"
-            className={cn([
-              "w-full justify-between",
-              "font-normal",
-              activeTab === tab
-                ? "bg-neutral-200 hover:bg-neutral-200"
-                : "hover:bg-neutral-100",
-            ])}
-            onClick={() => handleTabClick(tab)}
-          >
-            <div className="flex items-center gap-2">
+          <div className="px-1">
+            <Button
+              key={tab}
+              variant="ghost"
+              className={cn([
+                "w-full justify-start",
+                "font-normal",
+                activeTab === tab
+                  ? "bg-neutral-200 hover:bg-neutral-200"
+                  : "hover:bg-neutral-100",
+              ])}
+              onClick={() => handleTabClick(tab)}
+            >
               <Icon size={16} className="shrink-0" />
-              <span>{tabInfo.label}</span>
-            </div>
-            {(tab === "developers" || tab === "feedback") && (
-              <ExternalLinkIcon className="shrink-0 text-neutral-500" />
-            )}
-          </Button>
+              {tabInfo.label}
+            </Button>
+          </div>
         );
       })}
     </div>
@@ -229,7 +231,7 @@ function TopLevelHeader() {
   return (
     <header
       data-tauri-drag-region
-      className="h-9 w-full bg-neutral-50 rounded-lg flex items-center justify-center relative"
+      className="h-9 w-full bg-neutral-50 rounded-xl flex items-center justify-center relative"
     >
       <h1
         data-tauri-drag-region
@@ -269,7 +271,7 @@ function InnerHeader({
   return (
     <header
       data-tauri-drag-region
-      className="h-9 w-full bg-neutral-50 rounded-lg flex items-center justify-center px-2 relative"
+      className="h-9 w-full bg-neutral-50 rounded-xl flex items-center justify-center px-2 relative"
     >
       <div className="absolute left-2">
         <Button

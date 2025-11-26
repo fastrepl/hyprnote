@@ -6,9 +6,11 @@ description: "Learn how to use hooks in Hyprnote"
 
 # Overview
 
-Hooks let you observe and react to the Hyprnote's lifecycle using custom scripts.
+Hooks let you observe and react to Hyprnote's lifecycle using custom scripts. When certain events occur in the application (such as starting or stopping a recording session), Hyprnote can automatically execute shell commands you configure. This enables powerful automation workflows like window management, file processing, or integration with other tools.
 
 # Config
+
+The hooks configuration file is located at `$HOME/Library/Application Support/hyprnote/hooks.json` on macOS. Currently only schema version `0` is supported.
 
 ```bash
 vi "$HOME/Library/Application Support/hyprnote/hooks.json"
@@ -16,12 +18,14 @@ vi "$HOME/Library/Application Support/hyprnote/hooks.json"
 
 ```json
 {
-  "version": 1,
+  "version": 0,
   "hooks": {
     "afterListeningStopped": [{ "command": "./hooks/demo.sh" }]
   }
 }
 ```
+
+Each hook event can have multiple commands configured. When the event fires, all commands are executed in parallel. The `command` field specifies the shell command to run, and Hyprnote automatically appends CLI flags with event-specific arguments.
 
 ```bash
 vi "$HOME/Library/Application Support/hyprnote/hooks/demo.sh"
@@ -33,6 +37,47 @@ chmod +x "$HOME/Library/Application Support/hyprnote/hooks/demo.sh"
 cat > /dev/null
 exit 0
 ```
+
+# CLI Arguments
+
+Every hook command receives additional CLI flags based on the event type. For listening-related hooks, these include:
+
+- `--resource-dir`: Path to the session's resource directory
+- `--app-hyprnote`: Application identifier (e.g., `com.hyprnote.app`)
+- `--app-meeting`: Optional meeting-specific data (if available)
+
+Your scripts can parse these arguments to access session metadata, or simply ignore them if not needed.
+
+# Use Case: Window Tiling with Yabai
+
+A practical use case for hooks is automatic window management. The repository includes `scripts/yabai.sh`, a helper script for [yabai](https://github.com/koekeishiya/yabai) (a macOS tiling window manager) that positions windows on the left or right half of the screen.
+
+First, copy the script to your hooks directory and make it executable:
+
+```bash
+cp scripts/yabai.sh "$HOME/Library/Application Support/hyprnote/hooks/yabai.sh"
+chmod +x "$HOME/Library/Application Support/hyprnote/hooks/yabai.sh"
+```
+
+Then configure your hooks to automatically tile Hyprnote when recording starts and stops:
+
+```json
+{
+  "version": 0,
+  "hooks": {
+    "beforeListeningStarted": [
+      { "command": "$HOME/Library/Application Support/hyprnote/hooks/yabai.sh --app Hyprnote --position left" }
+    ],
+    "afterListeningStopped": [
+      { "command": "$HOME/Library/Application Support/hyprnote/hooks/yabai.sh --app Hyprnote --position right" }
+    ]
+  }
+}
+```
+
+With this configuration, when you start recording, Hyprnote automatically tiles to the left half of your screen (leaving room for your meeting app). When recording stops, it moves to the right half.
+
+The `yabai.sh` script accepts `--app` (the application name to find) and `--position` (`left` or `right`). It safely ignores the additional hook arguments (`--resource-dir`, `--app-hyprnote`, `--app-meeting`) that Hyprnote appends, so you can use it as-is without modification.
 
 # Available Hooks
 

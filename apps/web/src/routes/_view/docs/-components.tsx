@@ -112,6 +112,7 @@ function ArticleContent({ doc }: { doc: any }) {
           Card,
           Columns,
           Info,
+          mermaid: Mermaid,
           Mermaid,
           Note,
           Step,

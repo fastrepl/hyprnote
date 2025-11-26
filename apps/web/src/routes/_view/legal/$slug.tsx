@@ -55,7 +55,10 @@ function Component() {
             })}
           </p>
 
-          <MDXContent code={doc.mdx} components={{ Mermaid, Tweet }} />
+          <MDXContent
+            code={doc.mdx}
+            components={{ mermaid: Mermaid, Mermaid, Tweet }}
+          />
         </article>
       </div>
     </div>

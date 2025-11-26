@@ -298,6 +298,7 @@ function ArticleContent({ article }: { article: any }) {
         code={article.mdx}
         components={{
           CtaCard,
+          mermaid: Mermaid,
           Mermaid,
           Tweet,
         }}

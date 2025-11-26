@@ -3949,6 +3949,7 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-hooks",
  "tauri-plugin-http",
+ "tauri-plugin-importer",
  "tauri-plugin-listener",
  "tauri-plugin-local-stt",
  "tauri-plugin-misc",
@@ -14826,6 +14827,7 @@ version = "0.1.0"
 dependencies = [
  "open",
  "serde",
+ "serde_json",
  "specta",
  "specta-typescript",
  "tauri",

@@ -1,7 +1,22 @@
+use serde_json::Value;
 use tauri::AppHandle;
 use tauri_plugin_cli::Matches;
 
 pub fn entrypoint<R: tauri::Runtime>(app: &AppHandle<R>, matches: Matches) {
+    if let Some(arg) = matches.args.get("help") {
+        if let Value::String(help_text) = &arg.value {
+            print!("{help_text}");
+        }
+        std::process::exit(0);
+    }
+
+    if matches.args.contains_key("version") {
+        let name = &app.package_info().name;
+        let version = &app.package_info().version;
+        println!("{name} {version}");
+        std::process::exit(0);
+    }
+
     let version = app.package_info().version.to_string();
     if let Some(subcommand_matches) = matches.subcommand {
         match subcommand_matches.name.as_str() {

@@ -1,4 +1,3 @@
-use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_interface::stream::StreamResponse;
 
 #[macro_export]
@@ -31,20 +30,5 @@ common_event_derives! {
             session_id: String,
             response: StreamResponse,
         },
-        #[serde(rename = "batchStarted")]
-        BatchStarted { session_id: String },
-        #[serde(rename = "batchResponse")]
-        BatchResponse {
-            session_id: String,
-            response: BatchResponse,
-        },
-        #[serde(rename = "batchProgress")]
-        BatchResponseStreamed {
-            session_id: String,
-            response: StreamResponse,
-            percentage: f64,
-        },
-        #[serde(rename = "batchFailed")]
-        BatchFailed { session_id: String, error: String },
     }
 }

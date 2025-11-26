@@ -7,65 +7,17 @@
 
 
 export const commands = {
-async listMicrophoneDevices() : Promise<Result<string[], string>> {
+async runBatch(params: BatchParams) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|list_microphone_devices") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|run_batch", { params }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async getCurrentMicrophoneDevice() : Promise<Result<string | null, string>> {
+async parseSubtitle(path: string) : Promise<Result<Subtitle, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_current_microphone_device") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async setMicrophoneDevice(deviceName: string) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|set_microphone_device", { deviceName }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getMicMuted() : Promise<Result<boolean, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_mic_muted") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async setMicMuted(muted: boolean) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|set_mic_muted", { muted }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async startSession(params: ControllerParams) : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|start_session", { params }) };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async stopSession() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|stop_session") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async getState() : Promise<Result<string, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:listener|get_state") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|parse_subtitle", { path }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -77,9 +29,9 @@ async getState() : Promise<Result<string, string>> {
 
 
 export const events = __makeEvents__<{
-sessionEvent: SessionEvent
+batchEvent: BatchEvent
 }>({
-sessionEvent: "plugin:listener:session-event"
+batchEvent: "plugin:listener2:batch-event"
 })
 
 /** user-defined constants **/
@@ -88,8 +40,15 @@ sessionEvent: "plugin:listener:session-event"
 
 /** user-defined types **/
 
-export type ControllerParams = { session_id: string; languages: string[]; onboarding: boolean; record_enabled: boolean; model: string; base_url: string; api_key: string; keywords: string[] }
-export type SessionEvent = { type: "inactive"; session_id: string } | { type: "running_active"; session_id: string } | { type: "finalizing"; session_id: string } | { type: "audioAmplitude"; session_id: string; mic: number; speaker: number } | { type: "micMuted"; session_id: string; value: boolean } | { type: "streamResponse"; session_id: string; response: StreamResponse }
+export type BatchAlternatives = { transcript: string; confidence: number; words?: BatchWord[] }
+export type BatchChannel = { alternatives: BatchAlternatives[] }
+export type BatchEvent = { type: "batchStarted"; session_id: string } | { type: "batchResponse"; session_id: string; response: BatchResponse } | { type: "batchProgress"; session_id: string; response: StreamResponse; percentage: number } | { type: "batchFailed"; session_id: string; error: string }
+export type BatchParams = { session_id: string; provider: BatchProvider; file_path: string; model?: string | null; base_url: string; api_key: string; languages?: string[]; keywords?: string[] }
+export type BatchProvider = "deepgram" | "am"
+export type BatchResponse = { metadata: JsonValue; results: BatchResults }
+export type BatchResults = { channels: BatchChannel[] }
+export type BatchWord = { word: string; start: number; end: number; confidence: number; speaker: number | null; punctuated_word: string | null }
+export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type StreamAlternatives = { transcript: string; words: StreamWord[]; confidence: number; languages?: string[] }
 export type StreamChannel = { alternatives: StreamAlternatives[] }
 export type StreamExtra = { started_unix_millis: number }
@@ -97,6 +56,8 @@ export type StreamMetadata = { request_id: string; model_info: StreamModelInfo; 
 export type StreamModelInfo = { name: string; version: string; arch: string }
 export type StreamResponse = { type: "Results"; start: number; duration: number; is_final: boolean; speech_final: boolean; from_finalize: boolean; channel: StreamChannel; metadata: StreamMetadata; channel_index: number[] } | { type: "Metadata"; request_id: string; created: string; duration: number; channels: number } | { type: "SpeechStarted"; channel: number[]; timestamp: number } | { type: "UtteranceEnd"; channel: number[]; last_word_end: number }
 export type StreamWord = { word: string; start: number; end: number; confidence: number; speaker: number | null; punctuated_word: string | null; language: string | null }
+export type Subtitle = { tokens: Token[] }
+export type Token = { text: string; start_time: number; end_time: number }
 
 /** tauri-specta globals **/
 

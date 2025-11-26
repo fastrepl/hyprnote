@@ -53,7 +53,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::start_session::<tauri::Wry>,
             commands::stop_session::<tauri::Wry>,
             commands::get_state::<tauri::Wry>,
-            commands::run_batch::<tauri::Wry>,
         ])
         .events(tauri_specta::collect_events![SessionEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

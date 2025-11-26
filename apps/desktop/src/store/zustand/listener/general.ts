@@ -6,14 +6,17 @@ import type { StoreApi } from "zustand";
 
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
 import {
-  type BatchParams,
-  type BatchResponse,
   type ControllerParams,
   commands as listenerCommands,
   events as listenerEvents,
   type SessionEvent,
   type StreamResponse,
 } from "@hypr/plugin-listener";
+import {
+  type BatchParams,
+  commands as listener2Commands,
+  events as listener2Events,
+} from "@hypr/plugin-listener2";
 
 import { fromResult } from "../../../effect";
 import type { BatchActions, BatchState } from "./batch";
@@ -186,12 +189,6 @@ export const createGeneralSlice = <
       } else if (payload.type === "streamResponse") {
         const response = payload.response;
         get().handleTranscriptResponse(response as unknown as StreamResponse);
-      } else if (payload.type === "batchResponse") {
-        const response = payload.response;
-        get().handleBatchResponse(
-          targetSessionId,
-          response as unknown as BatchResponse,
-        );
       }
     };
 
@@ -354,9 +351,9 @@ export const createGeneralSlice = <
     };
 
     await new Promise<void>((resolve, reject) => {
-      listenerEvents.sessionEvent
+      listener2Events.batchEvent
         .listen(({ payload }) => {
-          if (!hasSessionId(payload) || payload.session_id !== sessionId) {
+          if (payload.session_id !== sessionId) {
             return;
           }
 
@@ -403,7 +400,7 @@ export const createGeneralSlice = <
         .then((fn) => {
           unlisten = fn;
 
-          listenerCommands
+          listener2Commands
             .runBatch(params)
             .then((result) => {
               if (result.status === "error") {

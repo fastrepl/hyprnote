@@ -4,7 +4,7 @@ import type {
   BatchAlternatives,
   BatchResponse,
   StreamResponse,
-} from "@hypr/plugin-listener";
+} from "@hypr/plugin-listener2";
 
 import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
 import type { HandlePersistCallback } from "./transcript";

@@ -86,6 +86,7 @@
     "hooks:default",
     "importer:default",
     "listener:default",
+    "listener2:default",
     "template:default",
     "notification:default",
     "shell:allow-open",

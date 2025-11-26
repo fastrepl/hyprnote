@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { commands as listener2Commands } from "@hypr/plugin-listener2";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -33,7 +34,6 @@ import { useRunBatch } from "../../../../../hooks/useRunBatch";
 import { useStartListening } from "../../../../../hooks/useStartListening";
 import * as main from "../../../../../store/tinybase/main";
 import { type Tab } from "../../../../../store/zustand/tabs";
-import { commands as tauriCommands } from "../../../../../types/tauri.gen";
 import { RecordingIcon, useListenButtonState } from "../shared";
 import { ActionableTooltipContent, FloatingButton } from "./shared";
 
@@ -214,7 +214,7 @@ function OptionsMenu({
           return Effect.void;
         }
 
-        return fromResult(tauriCommands.parseSubtitle(path));
+        return fromResult(listener2Commands.parseSubtitle(path));
       }
 
       if (

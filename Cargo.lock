@@ -3924,7 +3924,6 @@ dependencies = [
 name = "desktop"
 version = "0.0.0"
 dependencies = [
- "aspasia",
  "ractor",
  "ractor-supervisor",
  "sentry",
@@ -3951,6 +3950,7 @@ dependencies = [
  "tauri-plugin-http",
  "tauri-plugin-importer",
  "tauri-plugin-listener",
+ "tauri-plugin-listener2",
  "tauri-plugin-local-stt",
  "tauri-plugin-misc",
  "tauri-plugin-notification",
@@ -15093,6 +15093,29 @@ dependencies = [
  "vad-ext",
  "vad2",
  "vorbis_rs",
+]
+
+[[package]]
+name = "tauri-plugin-listener2"
+version = "0.1.0"
+dependencies = [
+ "aspasia",
+ "audio-utils",
+ "futures-util",
+ "language",
+ "owhisper-client",
+ "owhisper-interface",
+ "ractor",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
+ "tokio-stream",
+ "tracing",
 ]
 
 [[package]]

@@ -1,5 +1,3 @@
-use ractor::ActorCell;
-use ractor_supervisor::dynamic::DynamicSupervisorMsg;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -14,7 +12,7 @@ mod supervisor;
 pub use error::*;
 pub use events::*;
 pub use ext::*;
-pub use supervisor::{SupervisorHandle, SupervisorRef, SUPERVISOR_NAME};
+pub use supervisor::{session_supervisor_name, SessionContext, SessionParams};
 
 const PLUGIN_NAME: &str = "listener";
 
@@ -22,18 +20,13 @@ pub type SharedState = std::sync::Arc<Mutex<State>>;
 
 pub struct State {
     pub app: tauri::AppHandle,
-    pub listener_supervisor: Option<ractor::ActorRef<DynamicSupervisorMsg>>,
-    pub supervisor_handle: Option<SupervisorHandle>,
-}
-
-#[derive(Default)]
-pub struct InitOptions {
-    pub parent_supervisor: Option<ActorCell>,
+    pub session_supervisor: Option<ractor::ActorCell>,
+    pub supervisor_handle: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl State {
-    pub async fn get_state(&self) -> fsm::State {
-        if ractor::registry::where_is(actors::ControllerActor::name()).is_some() {
+    pub fn get_state(&self) -> fsm::State {
+        if self.session_supervisor.is_some() {
             crate::fsm::State::RunningActive
         } else {
             crate::fsm::State::Inactive
@@ -58,7 +51,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
-pub fn init(options: InitOptions) -> tauri::plugin::TauriPlugin<tauri::Wry> {
+pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     let specta_builder = make_specta_builder();
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
@@ -70,26 +63,11 @@ pub fn init(options: InitOptions) -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             let state: SharedState = std::sync::Arc::new(Mutex::new(State {
                 app: app_handle,
-                listener_supervisor: None,
+                session_supervisor: None,
                 supervisor_handle: None,
             }));
 
-            app.manage(state.clone());
-
-            let parent = options.parent_supervisor.clone();
-            tauri::async_runtime::spawn(async move {
-                match supervisor::spawn_listener_supervisor(parent).await {
-                    Ok((supervisor, handle)) => {
-                        let mut guard = state.lock().await;
-                        guard.listener_supervisor = Some(supervisor);
-                        guard.supervisor_handle = Some(handle);
-                        tracing::info!("listener_supervisor_spawned");
-                    }
-                    Err(e) => {
-                        tracing::error!("failed_to_spawn_listener_supervisor: {:?}", e);
-                    }
-                }
-            });
+            app.manage(state);
 
             Ok(())
         })

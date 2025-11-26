@@ -1,10 +1,13 @@
 use std::future::Future;
+use std::time::{Instant, SystemTime};
 
-use ractor::{call_t, concurrency, registry, Actor, ActorRef};
+use ractor::{call_t, registry, ActorRef};
+use tauri::{path::BaseDirectory, Manager};
 use tauri_specta::Event;
 
 use crate::{
-    actors::{ControllerActor, ControllerArgs, ControllerMsg, ControllerParams},
+    actors::{SourceActor, SourceMsg},
+    supervisor::{spawn_session_supervisor, SessionContext, SessionParams},
     SessionEvent,
 };
 
@@ -23,7 +26,7 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
 
     fn get_state(&self) -> impl Future<Output = crate::fsm::State>;
     fn stop_session(&self) -> impl Future<Output = ()>;
-    fn start_session(&self, params: ControllerParams) -> impl Future<Output = ()>;
+    fn start_session(&self, params: SessionParams) -> impl Future<Output = ()>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
@@ -34,15 +37,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
-        if let Some(cell) = registry::where_is(ControllerActor::name()) {
-            let actor: ActorRef<ControllerMsg> = cell.into();
-
-            match call_t!(actor, ControllerMsg::GetMicDeviceName, 500) {
+        if let Some(cell) = registry::where_is(SourceActor::name()) {
+            let actor: ActorRef<SourceMsg> = cell.into();
+            match call_t!(actor, SourceMsg::GetMicDevice, 500) {
                 Ok(device_name) => Ok(device_name),
                 Err(_) => Ok(None),
             }
         } else {
-            Err(crate::Error::ActorNotFound(ControllerActor::name()))
+            Err(crate::Error::ActorNotFound(SourceActor::name()))
         }
     }
 
@@ -51,29 +53,25 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         &self,
         device_name: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        if let Some(cell) = registry::where_is(ControllerActor::name()) {
-            let actor: ActorRef<ControllerMsg> = cell.into();
-            let _ = actor.cast(ControllerMsg::ChangeMicDevice(Some(device_name.into())));
+        if let Some(cell) = registry::where_is(SourceActor::name()) {
+            let actor: ActorRef<SourceMsg> = cell.into();
+            let _ = actor.cast(SourceMsg::SetMicDevice(Some(device_name.into())));
         }
-
         Ok(())
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_state(&self) -> crate::fsm::State {
-        if registry::where_is(ControllerActor::name()).is_some() {
-            crate::fsm::State::RunningActive
-        } else {
-            crate::fsm::State::Inactive
-        }
+        let state = self.state::<crate::SharedState>();
+        let guard = state.lock().await;
+        guard.get_state()
     }
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
-        if let Some(cell) = registry::where_is(ControllerActor::name()) {
-            let actor: ActorRef<ControllerMsg> = cell.into();
-
-            match call_t!(actor, ControllerMsg::GetMicMute, 100) {
+        if let Some(cell) = registry::where_is(SourceActor::name()) {
+            let actor: ActorRef<SourceMsg> = cell.into();
+            match call_t!(actor, SourceMsg::GetMicMute, 100) {
                 Ok(muted) => muted,
                 Err(_) => false,
             }
@@ -84,48 +82,106 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
-        if let Some(cell) = registry::where_is(ControllerActor::name()) {
-            let actor: ActorRef<ControllerMsg> = cell.into();
-            let _ = actor.cast(ControllerMsg::SetMicMute(muted));
+        if let Some(cell) = registry::where_is(SourceActor::name()) {
+            let actor: ActorRef<SourceMsg> = cell.into();
+            let _ = actor.cast(SourceMsg::SetMicMute(muted));
         }
     }
 
     #[tracing::instrument(skip_all)]
-    async fn start_session(&self, params: ControllerParams) {
+    async fn start_session(&self, params: SessionParams) {
         let state = self.state::<crate::SharedState>();
-        let guard = state.lock().await;
+        let mut guard = state.lock().await;
 
-        let _ = Actor::spawn(
-            Some(ControllerActor::name()),
-            ControllerActor,
-            ControllerArgs {
-                app: guard.app.clone(),
-                params,
-            },
-        )
-        .await;
+        if guard.session_supervisor.is_some() {
+            tracing::warn!("session_already_running");
+            return;
+        }
+
+        let app_dir = match guard
+            .app
+            .path()
+            .resolve("hyprnote/sessions", BaseDirectory::Data)
+        {
+            Ok(dir) => dir,
+            Err(e) => {
+                tracing::error!(error = ?e, "failed_to_resolve_app_dir");
+                return;
+            }
+        };
+
+        {
+            use tauri_plugin_tray::TrayPluginExt;
+            let _ = guard.app.set_start_disabled(true);
+        }
+
+        let ctx = SessionContext {
+            app: guard.app.clone(),
+            params: params.clone(),
+            app_dir,
+            started_at_instant: Instant::now(),
+            started_at_system: SystemTime::now(),
+        };
+
+        match spawn_session_supervisor(ctx).await {
+            Ok((supervisor_ref, handle)) => {
+                guard.session_supervisor = Some(supervisor_ref);
+                guard.supervisor_handle = Some(handle);
+
+                SessionEvent::RunningActive {
+                    session_id: params.session_id,
+                }
+                .emit(&guard.app)
+                .unwrap();
+
+                tracing::info!("session_started");
+            }
+            Err(e) => {
+                tracing::error!(error = ?e, "failed_to_start_session");
+
+                use tauri_plugin_tray::TrayPluginExt;
+                let _ = guard.app.set_start_disabled(false);
+            }
+        }
     }
 
     #[tracing::instrument(skip_all)]
     async fn stop_session(&self) {
-        if let Some(cell) = registry::where_is(ControllerActor::name()) {
-            let actor: ActorRef<ControllerMsg> = cell.into();
+        let state = self.state::<crate::SharedState>();
+        let mut guard = state.lock().await;
 
-            let session_id = call_t!(actor, ControllerMsg::GetSessionId, 100).ok();
+        let session_id = if let Some(cell) = registry::where_is(SourceActor::name()) {
+            let actor: ActorRef<SourceMsg> = cell.into();
+            call_t!(actor, SourceMsg::GetSessionId, 100).ok()
+        } else {
+            None
+        };
 
-            {
-                let state = self.state::<crate::SharedState>();
-                let guard = state.lock().await;
-                if let Some(session_id) = session_id.clone() {
-                    SessionEvent::Finalizing { session_id }
-                        .emit(&guard.app)
-                        .unwrap();
-                }
-            }
-
-            let _ = actor
-                .stop_and_wait(None, Some(concurrency::Duration::from_secs(10)))
-                .await;
+        if let Some(session_id) = session_id.clone() {
+            SessionEvent::Finalizing { session_id }
+                .emit(&guard.app)
+                .unwrap();
         }
+
+        if let Some(supervisor_cell) = guard.session_supervisor.take() {
+            supervisor_cell.stop(None);
+        }
+
+        if let Some(handle) = guard.supervisor_handle.take() {
+            let _ = handle.await;
+        }
+
+        {
+            use tauri_plugin_tray::TrayPluginExt;
+            let _ = guard.app.set_start_disabled(false);
+        }
+
+        if let Some(session_id) = session_id {
+            SessionEvent::Inactive { session_id }
+                .emit(&guard.app)
+                .unwrap();
+        }
+
+        tracing::info!("session_stopped");
     }
 }

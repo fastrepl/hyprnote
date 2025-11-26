@@ -34,6 +34,7 @@ pub enum SourceMsg {
     GetSessionId(RpcReplyPort<String>),
     MicChunk(AudioChunk),
     SpeakerChunk(AudioChunk),
+    StreamFailed(String),
 }
 
 pub struct SourceArgs {
@@ -188,6 +189,10 @@ impl Actor for SourceActor {
                 st.pipeline.ingest_speaker(chunk);
                 st.pipeline.flush(st.current_mode);
             }
+            SourceMsg::StreamFailed(reason) => {
+                tracing::error!(%reason, "source_stream_failed_stopping");
+                myself.stop(Some(reason));
+            }
         }
 
         Ok(())
@@ -265,12 +270,28 @@ async fn start_source_loop_single(
 
         let handle = tokio::spawn(async move {
             let mic_stream = {
-                let mut mic_input = AudioInput::from_mic(mic_device.clone()).unwrap();
+                let mut mic_input = match AudioInput::from_mic(mic_device.clone()) {
+                    Ok(input) => input,
+                    Err(err) => {
+                        tracing::error!(error = ?err, device = ?mic_device, "mic_open_failed");
+                        let _ = myself2.cast(SourceMsg::StreamFailed("mic_open_failed".into()));
+                        return;
+                    }
+                };
+
                 let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
-                mic_input
+                match mic_input
                     .stream()
                     .resampled_chunks(super::SAMPLE_RATE, chunk_size)
-                    .unwrap()
+                {
+                    Ok(stream) => stream,
+                    Err(err) => {
+                        tracing::error!(error = ?err, device = ?mic_device, "mic_stream_setup_failed");
+                        let _ =
+                            myself2.cast(SourceMsg::StreamFailed("mic_stream_setup_failed".into()));
+                        return;
+                    }
+                }
             };
 
             tokio::pin!(mic_stream);
@@ -293,9 +314,15 @@ async fn start_source_loop_single(
                             }
                         }
                         Some(Err(err)) => {
-                            tracing::warn!(error = ?err, "mic_resample_failed");
+                            tracing::error!(error = ?err, device = ?mic_device, "mic_resample_failed");
+                            let _ = myself2.cast(SourceMsg::StreamFailed("mic_resample_failed".into()));
+                            return;
                         }
-                        None => break,
+                        None => {
+                            tracing::error!(device = ?mic_device, "mic_stream_ended");
+                            let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_ended".into()));
+                            return;
+                        }
                     },
                 }
             }
@@ -319,22 +346,49 @@ async fn start_source_loop_dual(
 
     let handle = tokio::spawn(async move {
         let mic_stream = {
-            let mut mic_input = AudioInput::from_mic(mic_device.clone()).unwrap();
+            let mut mic_input = match AudioInput::from_mic(mic_device.clone()) {
+                Ok(input) => input,
+                Err(err) => {
+                    tracing::error!(error = ?err, device = ?mic_device, "mic_open_failed");
+                    let _ = myself2.cast(SourceMsg::StreamFailed("mic_open_failed".into()));
+                    return;
+                }
+            };
+
             let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
-            mic_input
+            let mic_stream_res = mic_input
                 .stream()
-                .resampled_chunks(super::SAMPLE_RATE, chunk_size)
-                .unwrap()
-                .mask_with_vad()
+                .resampled_chunks(super::SAMPLE_RATE, chunk_size);
+
+            match mic_stream_res {
+                Ok(stream) => stream.mask_with_vad(),
+                Err(err) => {
+                    tracing::error!(error = ?err, device = ?mic_device, "mic_stream_setup_failed");
+                    let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_setup_failed".into()));
+                    return;
+                }
+            }
         };
+
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+
         let spk_stream = {
             let mut spk_input = hypr_audio::AudioInput::from_speaker();
             let chunk_size = chunk_size_for_stt(super::SAMPLE_RATE);
-            spk_input
+            let spk_stream_res = spk_input
                 .stream()
-                .resampled_chunks(super::SAMPLE_RATE, chunk_size)
-                .unwrap()
+                .resampled_chunks(super::SAMPLE_RATE, chunk_size);
+
+            match spk_stream_res {
+                Ok(stream) => stream,
+                Err(err) => {
+                    tracing::error!(error = ?err, "speaker_stream_setup_failed");
+                    let _ = myself2.cast(SourceMsg::StreamFailed(
+                        "speaker_stream_setup_failed".into(),
+                    ));
+                    return;
+                }
+            }
         };
 
         tokio::pin!(mic_stream);
@@ -359,9 +413,15 @@ async fn start_source_loop_dual(
                         }
                     }
                     Some(Err(err)) => {
-                        tracing::warn!(error = ?err, "mic_resample_failed");
+                        tracing::error!(error = ?err, device = ?mic_device, "mic_resample_failed");
+                        let _ = myself2.cast(SourceMsg::StreamFailed("mic_resample_failed".into()));
+                        return;
                     }
-                    None => break,
+                    None => {
+                        tracing::error!(device = ?mic_device, "mic_stream_ended");
+                        let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_ended".into()));
+                        return;
+                    }
                 },
                 spk_next = spk_stream.next() => match spk_next {
                     Some(Ok(data)) => {
@@ -370,9 +430,15 @@ async fn start_source_loop_dual(
                         }
                     }
                     Some(Err(err)) => {
-                        tracing::warn!(error = ?err, "speaker_resample_failed");
+                        tracing::error!(error = ?err, "speaker_resample_failed");
+                        let _ = myself2.cast(SourceMsg::StreamFailed("speaker_resample_failed".into()));
+                        return;
                     }
-                    None => break,
+                    None => {
+                        tracing::error!("speaker_stream_ended");
+                        let _ = myself2.cast(SourceMsg::StreamFailed("speaker_stream_ended".into()));
+                        return;
+                    }
                 },
             }
         }

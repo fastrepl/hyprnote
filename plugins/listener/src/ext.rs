@@ -16,10 +16,6 @@ pub trait ListenerPluginExt<R: tauri::Runtime> {
     fn get_current_microphone_device(
         &self,
     ) -> impl Future<Output = Result<Option<String>, crate::Error>>;
-    fn set_microphone_device(
-        &self,
-        device_name: impl Into<String>,
-    ) -> impl Future<Output = Result<(), crate::Error>>;
 
     fn get_mic_muted(&self) -> impl Future<Output = bool>;
     fn set_mic_muted(&self, muted: bool) -> impl Future<Output = ()>;
@@ -46,18 +42,6 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         } else {
             Err(crate::Error::ActorNotFound(SourceActor::name()))
         }
-    }
-
-    #[tracing::instrument(skip_all)]
-    async fn set_microphone_device(
-        &self,
-        device_name: impl Into<String>,
-    ) -> Result<(), crate::Error> {
-        if let Some(cell) = registry::where_is(SourceActor::name()) {
-            let actor: ActorRef<SourceMsg> = cell.into();
-            let _ = actor.cast(SourceMsg::SetMicDevice(Some(device_name.into())));
-        }
-        Ok(())
     }
 
     #[tracing::instrument(skip_all)]

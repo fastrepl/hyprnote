@@ -23,7 +23,6 @@ pub enum ListenerMsg {
     StreamEnded,
     StreamTimeout(Elapsed),
     StreamStartFailed(String),
-    ChangeMode(crate::actors::ChannelMode),
 }
 
 #[derive(Clone)]
@@ -117,8 +116,14 @@ impl Actor for ListenerActor {
             }
 
             ListenerMsg::StreamResponse(mut response) => {
-                if state.args.mode == crate::actors::ChannelMode::Single {
-                    response.remap_channel_index(0, 2);
+                match state.args.mode {
+                    crate::actors::ChannelMode::MicOnly => {
+                        response.remap_channel_index(0, 2);
+                    }
+                    crate::actors::ChannelMode::SpeakerOnly => {
+                        response.remap_channel_index(1, 2);
+                    }
+                    crate::actors::ChannelMode::MicAndSpeaker => {}
                 }
 
                 SessionEvent::StreamResponse {
@@ -146,23 +151,6 @@ impl Actor for ListenerActor {
             ListenerMsg::StreamTimeout(elapsed) => {
                 tracing::info!("listen_stream_timeout: {}", elapsed);
                 myself.stop(None);
-            }
-
-            ListenerMsg::ChangeMode(new_mode) => {
-                tracing::info!(?new_mode, "listener_mode_change");
-
-                if let Some(shutdown_tx) = state.shutdown_tx.take() {
-                    let _ = shutdown_tx.send(());
-                    let _ = (&mut state.rx_task).await;
-                }
-
-                state.args.mode = new_mode;
-
-                let (tx, rx_task, shutdown_tx) =
-                    spawn_rx_task(state.args.clone(), myself.clone()).await?;
-                state.tx = tx;
-                state.rx_task = rx_task;
-                state.shutdown_tx = Some(shutdown_tx);
             }
         }
         Ok(())
@@ -206,12 +194,17 @@ async fn spawn_rx_task(
     ),
     ActorProcessingErr,
 > {
-    if args.mode == crate::actors::ChannelMode::Single {
-        spawn_rx_task_single(args, myself).await
-    } else if is_local_stt_base_url(&args.base_url) {
-        spawn_rx_task_dual_split(args, myself).await
-    } else {
-        spawn_rx_task_dual(args, myself).await
+    match args.mode {
+        crate::actors::ChannelMode::MicOnly | crate::actors::ChannelMode::SpeakerOnly => {
+            spawn_rx_task_single(args, myself).await
+        }
+        crate::actors::ChannelMode::MicAndSpeaker => {
+            if is_local_stt_base_url(&args.base_url) {
+                spawn_rx_task_dual_split(args, myself).await
+            } else {
+                spawn_rx_task_dual(args, myself).await
+            }
+        }
     }
 }
 

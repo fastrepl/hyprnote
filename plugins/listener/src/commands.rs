@@ -22,17 +22,6 @@ pub async fn get_current_microphone_device<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub async fn set_microphone_device<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    device_name: String,
-) -> Result<(), String> {
-    app.set_microphone_device(device_name)
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn get_mic_muted<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<bool, String> {
     Ok(app.get_mic_muted().await)
 }

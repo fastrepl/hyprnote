@@ -97,7 +97,7 @@ pub async fn spawn_session_supervisor(
         spawn_fn: SpawnFn::new(move |supervisor_cell, _id| {
             let ctx = ctx_listener.clone();
             async move {
-                let mode = ChannelMode::Dual;
+                let mode = ChannelMode::determine(ctx.params.onboarding);
 
                 let (actor_ref, _) = Actor::spawn_linked(
                     Some(ListenerActor::name()),

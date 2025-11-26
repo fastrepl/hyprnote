@@ -36,7 +36,7 @@ const config = defineConfig(() => ({
     netlify({ dev: { images: { enabled: true } } }),
   ],
   ssr: {
-    noExternal: ["posthog-js", "@posthog/react"],
+    noExternal: ["posthog-js", "@posthog/react", "react-tweet"],
   },
 }));
 

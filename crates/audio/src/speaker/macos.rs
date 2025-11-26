@@ -51,14 +51,6 @@ const CHUNK_SIZE: usize = 256;
 
 impl SpeakerInput {
     pub fn new() -> Result<Self> {
-        let output_device = ca::System::default_output_device()?;
-        let output_uid = output_device.uid()?;
-
-        let sub_device = cf::DictionaryOf::with_keys_values(
-            &[ca::sub_device_keys::uid()],
-            &[output_uid.as_type_ref()],
-        );
-
         let tap_desc = ca::TapDesc::with_mono_global_tap_excluding_processes(&ns::Array::new());
         let tap = tap_desc.create_process_tap()?;
 

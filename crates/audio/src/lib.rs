@@ -18,6 +18,8 @@ use cpal::traits::{DeviceTrait, HostTrait};
 use futures_util::Stream;
 pub use kalosm_sound::AsyncSource;
 
+pub const TAP_DEVICE_NAME: &str = "hypr-audio-tap";
+
 pub struct AudioOutput {}
 
 impl AudioOutput {

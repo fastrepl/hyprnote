@@ -9,6 +9,18 @@ use std::pin::Pin;
 
 use crate::AsyncSource;
 
+fn is_tap_device(name: &str) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        name.contains(crate::TAP_DEVICE_NAME)
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = name;
+        false
+    }
+}
+
 pub struct MicInput {
     #[allow(dead_code)]
     host: cpal::Host,
@@ -27,17 +39,31 @@ impl MicInput {
         cpal::default_host()
             .input_devices()
             .unwrap()
-            .map(|d| d.name().unwrap_or("Unknown Microphone".to_string()))
+            .filter_map(|d| {
+                let name = d.name().unwrap_or("Unknown Microphone".to_string());
+                if is_tap_device(&name) {
+                    None
+                } else {
+                    Some(name)
+                }
+            })
             .collect()
     }
 
     pub fn new(device_name: Option<String>) -> Result<Self, crate::Error> {
         let host = cpal::default_host();
 
-        let default_input_device = host.default_input_device();
+        let default_input_device = host
+            .default_input_device()
+            .filter(|d| !is_tap_device(&d.name().unwrap_or_default()));
+
         let input_devices: Vec<cpal::Device> = host
             .input_devices()
-            .map(|devices| devices.collect())
+            .map(|devices| {
+                devices
+                    .filter(|d| !is_tap_device(&d.name().unwrap_or_default()))
+                    .collect()
+            })
             .unwrap_or_else(|_| Vec::new());
 
         let device = match device_name {
@@ -49,9 +75,9 @@ impl MicInput {
                 .find(|d| d.name().unwrap_or_default() == name)
                 .or(default_input_device)
                 .or_else(|| {
-                    host.input_devices()
-                        .ok()
-                        .and_then(|mut devices| devices.next())
+                    host.input_devices().ok().and_then(|mut devices| {
+                        devices.find(|d| !is_tap_device(&d.name().unwrap_or_default()))
+                    })
                 })
                 .ok_or(crate::Error::NoInputDevice)?,
         };

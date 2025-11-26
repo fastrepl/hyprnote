@@ -6,7 +6,6 @@ use ractor::ActorRef;
 use ractor_supervisor::dynamic::{
     DynamicSupervisor, DynamicSupervisorMsg, DynamicSupervisorOptions,
 };
-use tauri::{AppHandle, Runtime};
 
 pub type SupervisorRef = ActorRef<DynamicSupervisorMsg>;
 pub type SupervisorHandle = tokio::task::JoinHandle<()>;
@@ -52,32 +51,4 @@ pub async fn spawn_root_supervisor() -> Option<(SupervisorRef, SupervisorHandle)
             None
         }
     }
-}
-
-pub fn monitor_supervisor<R: Runtime>(
-    app_handle: AppHandle<R>,
-    supervisor_handle: SupervisorHandle,
-    state: SupervisorState,
-) {
-    tokio::spawn(async move {
-        let result = supervisor_handle.await;
-
-        if state.is_exiting() {
-            tracing::info!("root_supervisor_stopped_during_normal_exit");
-            return;
-        }
-
-        match result {
-            Ok(()) => {
-                tracing::warn!("root_supervisor_stopped_unexpectedly");
-            }
-            Err(e) => {
-                tracing::error!("root_supervisor_panicked: {:?}", e);
-            }
-        }
-
-        tracing::info!("restarting_app_due_to_supervisor_failure");
-        app_handle.restart();
-        tracing::error!("app_handle.restart() returned unexpectedly");
-    });
 }

@@ -15,7 +15,7 @@ pub async fn main() {
 
     let supervisor_state = SupervisorState::new();
 
-    let (root_supervisor, root_supervisor_handle) = match supervisor::spawn_root_supervisor().await
+    let (root_supervisor, _root_supervisor_handle) = match supervisor::spawn_root_supervisor().await
     {
         Some((supervisor, handle)) => (Some(supervisor), Some(handle)),
         None => (None, None),
@@ -147,10 +147,6 @@ pub async fn main() {
             AppWindow::Onboarding.destroy(&app_handle).unwrap();
             AppWindow::Main.show(&app_handle).unwrap();
         }
-    }
-
-    if let Some(handle) = root_supervisor_handle {
-        supervisor::monitor_supervisor(app.handle().clone(), handle, supervisor_state.clone());
     }
 
     app.run(move |app, event| match event {

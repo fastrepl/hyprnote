@@ -132,7 +132,7 @@ const docs = defineCollection({
   name: "docs",
   directory: "content/docs",
   include: "**/*.mdx",
-  exclude: ["AGENTS.md", "hooks/**", "deeplinks/**"],
+  exclude: "AGENTS.md",
   schema: z.object({
     title: z.string(),
     section: z.string(),
@@ -273,7 +273,7 @@ const templates = defineCollection({
 
 const hooks = defineCollection({
   name: "hooks",
-  directory: "content/docs/hooks",
+  directory: "content/hooks",
   include: "*.mdx",
   exclude: "AGENTS.md",
   schema: z.object({
@@ -319,7 +319,7 @@ const hooks = defineCollection({
 
 const deeplinks = defineCollection({
   name: "deeplinks",
-  directory: "content/docs/deeplinks",
+  directory: "content/deeplinks",
   include: "*.mdx",
   exclude: "AGENTS.md",
   schema: z.object({

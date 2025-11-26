@@ -33,6 +33,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::reset_quit_handler::<tauri::Wry>,
             commands::list_installed_applications::<tauri::Wry>,
             commands::list_mic_using_applications::<tauri::Wry>,
+            commands::get_meeting_application::<tauri::Wry>,
             commands::set_respect_do_not_disturb::<tauri::Wry>,
             commands::set_ignored_bundle_ids::<tauri::Wry>,
             commands::list_default_ignored_bundle_ids::<tauri::Wry>,

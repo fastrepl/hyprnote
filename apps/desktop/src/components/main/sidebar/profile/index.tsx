@@ -202,12 +202,12 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       transition={{ duration: 0.2, ease: "easeInOut" }}
                       ref={mainViewRef}
                     >
-                      <NotificationsMenuHeader
+                      {/*<NotificationsMenuHeader
                         onClick={handleClickNotifications}
-                      />
+                      />*/}
                       <UpdateChecker />
 
-                      <div className="my-1.5 border-t border-neutral-100" />
+                      <div className="my-1 border-t border-neutral-100" />
 
                       {menuItems.map((item) => (
                         <MenuItem key={item.label} {...item} />

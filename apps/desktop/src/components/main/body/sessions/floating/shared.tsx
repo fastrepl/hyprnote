@@ -65,9 +65,13 @@ export function FloatingButton({
   return (
     <Tooltip delayDuration={tooltip.delayDuration ?? 0}>
       <TooltipTrigger asChild>
-        <span className="inline-block">{button}</span>
+        <div>{button}</div>
       </TooltipTrigger>
-      <TooltipContent side={tooltip.side ?? "top"} align={tooltip.align}>
+      <TooltipContent
+        side={tooltip.side ?? "top"}
+        align={tooltip.align}
+        className="rounded-xl pr-1.5"
+      >
         {tooltip.content}
       </TooltipContent>
     </Tooltip>

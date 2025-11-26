@@ -109,7 +109,7 @@ export function ActionableTooltipContent({
         <Button
           size="sm"
           variant="outline"
-          className="text-black"
+          className="text-black rounded-[6px]"
           onClick={action.handleClick}
         >
           {action.label}

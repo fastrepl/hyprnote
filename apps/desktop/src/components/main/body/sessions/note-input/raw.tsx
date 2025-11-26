@@ -73,18 +73,12 @@ export const RawEditor = forwardRef<
 
 const Placeholder: PlaceholderFunction = ({ node, pos }) => {
   if (node.type.name === "paragraph" && pos === 0) {
-    return <PlaceHolderInner />;
+    return (
+      <p className="text-[#e5e5e5]">
+        Take notes or press <kbd>/</kbd> for commands.
+      </p>
+    );
   }
 
   return "";
-};
-
-const PlaceHolderInner = () => {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[#e5e5e5]">
-        Take notes or press <kbd>/</kbd> for commands.
-      </span>
-    </div>
-  );
 };

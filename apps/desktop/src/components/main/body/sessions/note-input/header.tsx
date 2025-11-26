@@ -45,12 +45,12 @@ function HeaderTab({
     <button
       onClick={onClick}
       className={cn([
-        "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
+        "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200",
         isActive
-          ? ["text-neutral-900", "border-neutral-900"]
+          ? ["border-neutral-900", "text-neutral-900"]
           : [
-              "text-neutral-600",
               "border-transparent",
+              "text-neutral-600",
               "hover:text-neutral-800",
             ],
       ])}
@@ -263,6 +263,7 @@ function CreateOtherFormatButton({
             "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200",
             "text-neutral-600 hover:text-neutral-800",
             "flex items-center gap-1",
+            "border-b-2 border-transparent",
           ])}
         >
           <PlusIcon size={14} />

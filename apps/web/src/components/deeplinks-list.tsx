@@ -60,7 +60,10 @@ export function DeeplinksList() {
           )}
 
           <div className="mt-4 prose prose-sm prose-neutral max-w-none prose-headings:scroll-mt-24 prose-headings:font-semibold prose-p:leading-relaxed">
-            <MDXContent code={deeplink.mdx} components={{ Mermaid, Tweet }} />
+            <MDXContent
+              code={deeplink.mdx}
+              components={{ mermaid: Mermaid, Mermaid, Tweet }}
+            />
           </div>
         </section>
       ))}

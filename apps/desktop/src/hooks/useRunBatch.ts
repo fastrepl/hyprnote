@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 
-import type { BatchParams } from "@hypr/plugin-listener";
+import type { BatchParams } from "@hypr/plugin-listener2";
 
 import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";

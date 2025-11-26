@@ -311,6 +311,7 @@ async fn start_source_loop_single(
                             };
                             if myself2.cast(SourceMsg::MicChunk(AudioChunk { data: output_data })).is_err() {
                                 tracing::warn!("failed_to_cast_mic_chunk");
+                                return;
                             }
                         }
                         Some(Err(err)) => {
@@ -410,6 +411,7 @@ async fn start_source_loop_dual(
                         };
                         if myself2.cast(SourceMsg::MicChunk(AudioChunk { data: output_data })).is_err() {
                             tracing::warn!("failed_to_cast_mic_chunk");
+                            return;
                         }
                     }
                     Some(Err(err)) => {
@@ -427,6 +429,7 @@ async fn start_source_loop_dual(
                     Some(Ok(data)) => {
                         if myself2.cast(SourceMsg::SpeakerChunk(AudioChunk { data })).is_err() {
                             tracing::warn!("failed_to_cast_speaker_chunk");
+                            return;
                         }
                     }
                     Some(Err(err)) => {

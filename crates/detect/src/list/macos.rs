@@ -1,9 +1,6 @@
 use super::InstalledApp;
 use cidre::core_audio as ca;
 
-pub const MEETING_APP_BUNDLE_IDS: [&str; 3] =
-    ["us.zoom.xos", "Cisco-Systems.Spark", "com.microsoft.teams"];
-
 #[cfg(target_os = "macos")]
 pub fn list_installed_apps() -> Vec<InstalledApp> {
     use std::path::PathBuf;
@@ -82,15 +79,7 @@ pub fn list_mic_using_apps() -> Vec<InstalledApp> {
 
 #[cfg(target_os = "macos")]
 pub fn get_meeting_app() -> Option<InstalledApp> {
-    let mic_apps = list_mic_using_apps();
-
-    for app in mic_apps {
-        if MEETING_APP_BUNDLE_IDS.contains(&app.id.as_str()) {
-            return Some(app);
-        }
-    }
-
-    None
+    list_mic_using_apps().into_iter().next()
 }
 
 fn get_app_info(app_path: &std::path::Path) -> Option<InstalledApp> {

@@ -34,8 +34,6 @@ pub enum SourceMsg {
     GetSessionId(RpcReplyPort<String>),
     MicChunk(AudioChunk),
     SpeakerChunk(AudioChunk),
-    /// Sent by capture loops on unrecoverable failure or EOF.
-    /// Stopping this actor allows the RestForOne supervisor to restart Source, Listener, and Recorder together.
     StreamFailed(String),
 }
 

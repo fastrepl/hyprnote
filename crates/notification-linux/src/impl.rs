@@ -275,12 +275,15 @@ impl NotificationManager {
 
     fn position_window(&self, window: &Window) {
         // Position the window in the top-right corner of the screen
+        // Get screen dimensions from the root window
         if let Some(screen) = gdk::Screen::default() {
-            let screen_width = screen.width();
-            let (window_width, _) = window.size();
-            let x = screen_width - window_width - 20;
-            let y = 50;
-            window.move_(x, y);
+            if let Some(root_window) = screen.root_window() {
+                let screen_width = root_window.width();
+                let (window_width, _) = window.size();
+                let x = screen_width - window_width - 20;
+                let y = 50;
+                window.move_(x, y);
+            }
         }
     }
 

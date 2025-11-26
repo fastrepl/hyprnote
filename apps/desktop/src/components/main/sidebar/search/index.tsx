@@ -14,7 +14,7 @@ export function SearchResults() {
   const empty = !query || !results || results.totalResults === 0;
 
   return (
-    <div className="h-full rounded-md bg-neutral-50">
+    <div className="h-full rounded-xl bg-neutral-50">
       {empty ? (
         <SearchNoResults query={query} setQuery={setQuery} />
       ) : (
@@ -32,10 +32,10 @@ function SearchYesResults({
   query: string;
 }) {
   return (
-    <div className={cn(["h-full overflow-y-auto"])}>
-      <div className={cn(["px-3 py-3"])}>
-        <div className={cn(["px-2 py-2 mb-4"])}>
-          <p className={cn(["text-xs text-neutral-500 font-medium"])}>
+    <div className="h-full overflow-y-auto">
+      <div className="px-3 py-3">
+        <div className="px-2 py-2 mb-4">
+          <p className="text-xs text-neutral-500 font-medium">
             {results.totalResults} result{results.totalResults !== 1 ? "s" : ""}{" "}
             for "{query}"
           </p>
@@ -56,19 +56,15 @@ function SearchNoResults({
   setQuery: (query: string) => void;
 }) {
   return (
-    <div className={cn(["h-full flex items-center justify-center"])}>
-      <div className={cn(["text-center px-4 max-w-xs"])}>
-        <div className={cn(["flex justify-center mb-3"])}>
-          <SearchXIcon className={cn(["h-10 w-10 text-neutral-300"])} />
+    <div className="h-full flex items-center justify-center">
+      <div className="text-center px-4 max-w-xs">
+        <div className="flex justify-center mb-3">
+          <SearchXIcon className="h-10 w-10 text-neutral-300" />
         </div>
-        <p className={cn(["text-sm font-medium text-neutral-700"])}>
+        <p className="text-sm font-medium text-neutral-700">
           No results found for "{query}"
         </p>
-        <p
-          className={cn([
-            "text-xs text-neutral-500 mt-2 leading-relaxed underline",
-          ])}
-        >
+        <p className="text-xs text-neutral-500 mt-2 leading-relaxed underline">
           Help us improve search
         </p>
       </div>

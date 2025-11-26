@@ -1,9 +1,11 @@
 mod listener;
 mod recorder;
+mod session;
 mod source;
 
 pub use listener::*;
 pub use recorder::*;
+pub use session::*;
 pub use source::*;
 
 #[cfg(target_os = "macos")]

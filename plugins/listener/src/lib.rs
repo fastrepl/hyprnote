@@ -7,12 +7,10 @@ mod error;
 mod events;
 mod ext;
 pub mod fsm;
-mod supervisor;
 
 pub use error::*;
 pub use events::*;
 pub use ext::*;
-pub use supervisor::{session_supervisor_name, SessionContext, SessionParams};
 
 const PLUGIN_NAME: &str = "listener";
 

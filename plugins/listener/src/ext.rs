@@ -6,8 +6,7 @@ use tauri::{path::BaseDirectory, Manager};
 use tauri_specta::Event;
 
 use crate::{
-    actors::{SourceActor, SourceMsg},
-    supervisor::{spawn_session_supervisor, SessionContext, SessionParams},
+    actors::{spawn_session_supervisor, SessionContext, SessionParams, SourceActor, SourceMsg},
     SessionEvent,
 };
 

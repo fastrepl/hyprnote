@@ -103,12 +103,20 @@ impl NotificationManager {
         }
     }
 
-    fn ensure_gtk(&self) {
-        let _ = gtk::init();
+    fn ensure_gtk(&self) -> bool {
+        match gtk::init() {
+            Ok(_) => true,
+            Err(e) => {
+                eprintln!("[notification-linux] Failed to initialize GTK: {}", e);
+                false
+            }
+        }
     }
 
     fn show(&mut self, title: String, message: String, url: Option<String>, timeout_seconds: f64) {
-        self.ensure_gtk();
+        if !self.ensure_gtk() {
+            return;
+        }
 
         while self.active_notifications.len() >= self.max_notifications {
             if let Some((oldest_id, notif)) = self.active_notifications.get_index(0) {
@@ -275,12 +283,13 @@ impl NotificationManager {
 
     fn position_window(&self, window: &Window) {
         // Position the window in the top-right corner of the screen
-        // Get screen dimensions from the root window
+        // Use the default width we set (360) since window.size() returns 0 before realization
+        const DEFAULT_WINDOW_WIDTH: i32 = 360;
+
         if let Some(screen) = gdk::Screen::default() {
             if let Some(root_window) = screen.root_window() {
                 let screen_width = root_window.width();
-                let (window_width, _) = window.size();
-                let x = screen_width - window_width - 20;
+                let x = screen_width - DEFAULT_WINDOW_WIDTH - 20;
                 let y = 50;
                 window.move_(x, y);
             }

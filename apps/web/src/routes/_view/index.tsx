@@ -1674,7 +1674,8 @@ function ManifestoSection() {
 }
 
 function BlogSection() {
-  const sortedArticles = [...allArticles]
+  const sortedArticles = allArticles
+    .filter((a) => a.published !== false)
     .sort((a, b) => {
       const aDate = a.updated || a.created;
       const bDate = b.updated || b.created;

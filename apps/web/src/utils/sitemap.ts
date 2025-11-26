@@ -171,12 +171,14 @@ export function getSitemap(): Sitemap<TRoutes> {
             "../../.content-collections/generated/allArticles.js",
           );
           const { default: allArticles } = await import(modulePath);
-          return allArticles.map((article: any) => ({
-            path: `/blog/${article.slug}`,
-            priority: 0.7,
-            changeFrequency: "weekly" as const,
-            lastModified: article.updated || article.created,
-          }));
+          return allArticles
+            .filter((article: any) => article.published !== false)
+            .map((article: any) => ({
+              path: `/blog/${article.slug}`,
+              priority: 0.7,
+              changeFrequency: "weekly" as const,
+              lastModified: article.updated || article.created,
+            }));
         } catch (error) {
           console.warn("Failed to load blog articles for sitemap:", error);
           return [];

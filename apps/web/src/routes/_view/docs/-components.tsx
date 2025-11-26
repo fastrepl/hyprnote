@@ -17,6 +17,7 @@ import { cn } from "@hypr/utils";
 import { CtaCard } from "@/components/cta-card";
 import { DeeplinksList } from "@/components/deeplinks-list";
 import { HooksList } from "@/components/hooks-list";
+import { Mermaid, Tweet } from "@/components/mdx";
 
 export function DocLayout({
   doc,
@@ -111,10 +112,12 @@ function ArticleContent({ doc }: { doc: any }) {
           Card,
           Columns,
           Info,
+          Mermaid,
           Note,
           Step,
           Steps,
           Tip,
+          Tweet,
           CtaCard,
           DeeplinksList,
           HooksList,

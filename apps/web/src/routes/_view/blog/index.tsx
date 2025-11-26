@@ -25,7 +25,8 @@ export const Route = createFileRoute("/_view/blog/")({
 });
 
 function Component() {
-  const sortedArticles = [...allArticles].sort((a, b) => {
+  const publishedArticles = allArticles.filter((a) => a.published !== false);
+  const sortedArticles = [...publishedArticles].sort((a, b) => {
     const aDate = a.updated || a.created;
     const bDate = b.updated || b.created;
     return new Date(bDate).getTime() - new Date(aDate).getTime();

@@ -1,5 +1,6 @@
 import { defineCollection, defineConfig } from "@content-collections/core";
 import { compileMDX } from "@content-collections/mdx";
+import mdxMermaid from "mdx-mermaid";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
@@ -45,12 +46,13 @@ const articles = defineCollection({
     updated: z.string().optional(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
+    published: z.boolean().default(true),
   }),
   transform: async (document, context) => {
     const toc = extractToc(document.content);
 
     const mdx = await compileMDX(context, document, {
-      remarkPlugins: [remarkGfm],
+      remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,
         [
@@ -93,7 +95,7 @@ const changelog = defineCollection({
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
-      remarkPlugins: [remarkGfm],
+      remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,
         [
@@ -144,7 +146,7 @@ const docs = defineCollection({
     const toc = extractToc(document.content);
 
     const mdx = await compileMDX(context, document, {
-      remarkPlugins: [remarkGfm],
+      remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,
         [
@@ -200,7 +202,7 @@ const legal = defineCollection({
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
-      remarkPlugins: [remarkGfm],
+      remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,
         [
@@ -244,7 +246,7 @@ const templates = defineCollection({
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
-      remarkPlugins: [remarkGfm],
+      remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,
         [
@@ -290,7 +292,7 @@ const hooks = defineCollection({
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
-      remarkPlugins: [remarkGfm],
+      remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,
         [
@@ -335,7 +337,7 @@ const deeplinks = defineCollection({
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {
-      remarkPlugins: [remarkGfm],
+      remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,
         [

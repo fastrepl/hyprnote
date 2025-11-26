@@ -16,6 +16,7 @@ import {
   getChangelogBySlug,
   getChangelogList,
 } from "@/changelog";
+import { Mermaid, Tweet } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
 
 const ITEMS_PER_PAGE = 20;
@@ -371,7 +372,7 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
 
       <div className="flex-1 p-6 overflow-y-auto">
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4 prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3 prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-6 max-w-none">
-          <MDXContent code={changelog.mdx} />
+          <MDXContent code={changelog.mdx} components={{ Mermaid, Tweet }} />
         </article>
       </div>
     </div>

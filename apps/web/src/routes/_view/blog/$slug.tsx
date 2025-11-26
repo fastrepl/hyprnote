@@ -8,6 +8,7 @@ import { cn } from "@hypr/utils";
 
 import { CtaCard } from "@/components/cta-card";
 import { Image } from "@/components/image";
+import { Mermaid, Tweet } from "@/components/mdx";
 
 export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     }
 
     const relatedArticles = allArticles
-      .filter((a) => a.slug !== article.slug)
+      .filter((a) => a.slug !== article.slug && a.published !== false)
       .sort((a, b) => {
         const aScore = a.author === article.author ? 1 : 0;
         const bScore = b.author === article.author ? 1 : 0;
@@ -297,6 +298,8 @@ function ArticleContent({ article }: { article: any }) {
         code={article.mdx}
         components={{
           CtaCard,
+          Mermaid,
+          Tweet,
         }}
       />
     </article>

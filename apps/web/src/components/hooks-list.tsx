@@ -1,6 +1,8 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { allHooks } from "content-collections";
 
+import { Mermaid, Tweet } from "@/components/mdx";
+
 export function HooksList() {
   const hooks = allHooks.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -66,7 +68,7 @@ export function HooksList() {
           )}
 
           <div className="mt-4 prose prose-sm prose-neutral max-w-none prose-headings:scroll-mt-24 prose-headings:font-semibold prose-p:leading-relaxed">
-            <MDXContent code={hook.mdx} />
+            <MDXContent code={hook.mdx} components={{ Mermaid, Tweet }} />
           </div>
         </section>
       ))}

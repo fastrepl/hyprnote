@@ -20,7 +20,7 @@ pub use kalosm_sound::AsyncSource;
 
 pub const TAP_DEVICE_NAME: &str = "hypr-audio-tap";
 
-pub trait AudioStreamProvider: Send + 'static {
+pub trait AudioStreamProvider: 'static {
     fn stream(&mut self) -> AudioStream;
     fn device_name(&self) -> String;
     fn sample_rate(&self) -> u32;

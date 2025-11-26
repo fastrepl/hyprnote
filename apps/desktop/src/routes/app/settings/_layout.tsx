@@ -6,7 +6,6 @@ import {
   Bell,
   BookText,
   CalendarDays,
-  ExternalLinkIcon,
   type LucideIcon,
   MessageCircleQuestion,
   Plus,

@@ -25,10 +25,7 @@ import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
-import {
-  NotificationsMenuContent,
-  NotificationsMenuHeader,
-} from "./notification";
+import { NotificationsMenuContent } from "./notification";
 import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
 
@@ -141,9 +138,9 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
-  const handleClickNotifications = useCallback(() => {
-    setCurrentView("notifications");
-  }, []);
+  // const handleClickNotifications = useCallback(() => {
+  //   setCurrentView("notifications");
+  // }, []);
 
   const handleBackToMain = useCallback(() => {
     setCurrentView("main");

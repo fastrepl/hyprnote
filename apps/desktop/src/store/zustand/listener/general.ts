@@ -6,10 +6,10 @@ import type { StoreApi } from "zustand";
 
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
 import {
-  type ControllerParams,
   commands as listenerCommands,
   events as listenerEvents,
   type SessionEvent,
+  type SessionParams,
   type StreamResponse,
 } from "@hypr/plugin-listener";
 import {
@@ -48,7 +48,7 @@ export type GeneralState = {
 
 export type GeneralActions = {
   start: (
-    params: ControllerParams,
+    params: SessionParams,
     options?: { handlePersist?: HandlePersistCallback },
   ) => void;
   stop: () => void;
@@ -80,7 +80,7 @@ const listenToSessionEvents = (
     catch: (error) => error,
   });
 
-const startSessionEffect = (params: ControllerParams) =>
+const startSessionEffect = (params: SessionParams) =>
   fromResult(listenerCommands.startSession(params));
 const stopSessionEffect = () => fromResult(listenerCommands.stopSession());
 
@@ -95,7 +95,7 @@ export const createGeneralSlice = <
   get: StoreApi<T>["getState"],
 ): GeneralState & GeneralActions => ({
   ...initialState,
-  start: (params: ControllerParams, options) => {
+  start: (params: SessionParams, options) => {
     const targetSessionId = params.session_id;
 
     if (!targetSessionId) {

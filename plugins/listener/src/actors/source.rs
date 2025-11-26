@@ -24,28 +24,28 @@ use hypr_vad_ext::VadMaskExt;
 use tauri_specta::Event;
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
+const MAX_BUFFER_CHUNKS: usize = 150;
 
 pub enum SourceMsg {
     SetMicMute(bool),
     GetMicMute(RpcReplyPort<bool>),
     SetMicDevice(Option<String>),
     GetMicDevice(RpcReplyPort<Option<String>>),
-    GetMode(RpcReplyPort<ChannelMode>),
+    GetSessionId(RpcReplyPort<String>),
     MicChunk(AudioChunk),
     SpeakerChunk(AudioChunk),
 }
 
 pub struct SourceArgs {
     pub mic_device: Option<String>,
-    pub token: CancellationToken,
     pub onboarding: bool,
     pub app: tauri::AppHandle,
     pub session_id: String,
 }
 
 pub struct SourceState {
+    session_id: String,
     mic_device: Option<String>,
-    token: CancellationToken,
     onboarding: bool,
     mic_muted: Arc<AtomicBool>,
     run_task: Option<tokio::task::JoinHandle<()>>,
@@ -135,8 +135,8 @@ impl Actor for SourceActor {
         let pipeline = Pipeline::new(args.app.clone(), args.session_id.clone());
 
         let mut st = SourceState {
+            session_id: args.session_id,
             mic_device,
-            token: args.token,
             onboarding: args.onboarding,
             mic_muted: Arc::new(AtomicBool::new(false)),
             run_task: None,
@@ -171,6 +171,11 @@ impl Actor for SourceActor {
                     let _ = reply.send(st.mic_device.clone());
                 }
             }
+            SourceMsg::GetSessionId(reply) => {
+                if !reply.is_closed() {
+                    let _ = reply.send(st.session_id.clone());
+                }
+            }
             SourceMsg::SetMicDevice(dev) => {
                 st.mic_device = dev;
                 st.pipeline.reset();
@@ -183,11 +188,6 @@ impl Actor for SourceActor {
                     task.abort();
                 }
                 start_source_loop(&myself, st).await?;
-            }
-            SourceMsg::GetMode(reply) => {
-                if !reply.is_closed() {
-                    let _ = reply.send(st.current_mode);
-                }
             }
             SourceMsg::MicChunk(chunk) => {
                 st.pipeline.ingest_mic(chunk);
@@ -266,7 +266,6 @@ async fn start_source_loop_single(
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     {
         let myself2 = myself.clone();
-        let token = st.token.clone();
         let mic_muted = st.mic_muted.clone();
         let mic_device = st.mic_device.clone();
 
@@ -287,11 +286,6 @@ async fn start_source_loop_single(
 
             loop {
                 tokio::select! {
-                    _ = token.cancelled() => {
-                        drop(mic_stream);
-                        myself2.stop(None);
-                        return;
-                    }
                     _ = stream_cancel_token.cancelled() => {
                         drop(mic_stream);
                         return;
@@ -326,7 +320,6 @@ async fn start_source_loop_dual(
     st: &mut SourceState,
 ) -> Result<(), ActorProcessingErr> {
     let myself2 = myself.clone();
-    let token = st.token.clone();
     let mic_muted = st.mic_muted.clone();
     let mic_device = st.mic_device.clone();
 
@@ -358,12 +351,6 @@ async fn start_source_loop_dual(
 
         loop {
             tokio::select! {
-                _ = token.cancelled() => {
-                    drop(mic_stream);
-                    drop(spk_stream);
-                    myself2.stop(None);
-                    return;
-                }
                 _ = stream_cancel_token.cancelled() => {
                     drop(mic_stream);
                     drop(spk_stream);
@@ -410,6 +397,7 @@ struct Pipeline {
     aec: Option<AEC>,
     joiner: Joiner,
     amplitude: AmplitudeEmitter,
+    audio_buffer: AudioBuffer,
 }
 
 impl Pipeline {
@@ -420,6 +408,7 @@ impl Pipeline {
             aec: None,
             joiner: Joiner::new(),
             amplitude: AmplitudeEmitter::new(app, session_id),
+            audio_buffer: AudioBuffer::new(MAX_BUFFER_CHUNKS),
         }
     }
 
@@ -431,6 +420,7 @@ impl Pipeline {
             aec.reset();
         }
         self.amplitude.reset();
+        self.audio_buffer.clear();
     }
 
     fn ingest_mic(&mut self, chunk: AudioChunk) {
@@ -485,27 +475,85 @@ impl Pipeline {
         }
 
         let Some(cell) = registry::where_is(ListenerActor::name()) else {
-            tracing::debug!(actor = ListenerActor::name(), "unavailable");
+            self.audio_buffer.push(processed_mic, processed_spk, mode);
+            tracing::debug!(
+                actor = ListenerActor::name(),
+                buffered = self.audio_buffer.len(),
+                "listener_unavailable_buffering"
+            );
             return;
         };
 
         let actor: ActorRef<ListenerMsg> = cell.into();
 
+        self.flush_buffer_to_listener(&actor, mode);
+
+        self.send_to_listener(&actor, &processed_mic, &processed_spk, mode);
+
+        self.amplitude.observe(processed_mic, processed_spk);
+    }
+
+    fn flush_buffer_to_listener(&mut self, actor: &ActorRef<ListenerMsg>, mode: ChannelMode) {
+        while let Some((mic, spk, buffered_mode)) = self.audio_buffer.pop() {
+            if buffered_mode == mode {
+                self.send_to_listener(actor, &mic, &spk, mode);
+            }
+        }
+    }
+
+    fn send_to_listener(
+        &self,
+        actor: &ActorRef<ListenerMsg>,
+        mic: &Arc<[f32]>,
+        spk: &Arc<[f32]>,
+        mode: ChannelMode,
+    ) {
         let result = if mode == ChannelMode::Single {
-            let audio_bytes = f32_to_i16_bytes(processed_mic.to_vec().iter().copied());
+            let audio_bytes = f32_to_i16_bytes(mic.to_vec().iter().copied());
             actor.cast(ListenerMsg::AudioSingle(audio_bytes))
         } else {
-            let mic_bytes = f32_to_i16_bytes(processed_mic.iter().copied());
-            let spk_bytes = f32_to_i16_bytes(processed_spk.iter().copied());
+            let mic_bytes = f32_to_i16_bytes(mic.iter().copied());
+            let spk_bytes = f32_to_i16_bytes(spk.iter().copied());
             actor.cast(ListenerMsg::AudioDual(mic_bytes, spk_bytes))
         };
 
         if result.is_err() {
             tracing::warn!(actor = ListenerActor::name(), "cast_failed");
-            return;
         }
+    }
+}
 
-        self.amplitude.observe(processed_mic, processed_spk);
+struct AudioBuffer {
+    buffer: VecDeque<(Arc<[f32]>, Arc<[f32]>, ChannelMode)>,
+    max_size: usize,
+}
+
+impl AudioBuffer {
+    fn new(max_size: usize) -> Self {
+        Self {
+            buffer: VecDeque::new(),
+            max_size,
+        }
+    }
+
+    fn push(&mut self, mic: Arc<[f32]>, spk: Arc<[f32]>, mode: ChannelMode) {
+        if self.buffer.len() >= self.max_size {
+            self.buffer.pop_front();
+            tracing::warn!("audio_buffer_overflow");
+        }
+        self.buffer.push_back((mic, spk, mode));
+    }
+
+    fn pop(&mut self) -> Option<(Arc<[f32]>, Arc<[f32]>, ChannelMode)> {
+        self.buffer.pop_front()
+    }
+
+    fn len(&self) -> usize {
+        self.buffer.len()
+    }
+
+    fn clear(&mut self) {
+        self.buffer.clear();
     }
 }
 

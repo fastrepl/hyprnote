@@ -47,7 +47,7 @@ async setMicMuted(muted: boolean) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async startSession(params: ControllerParams) : Promise<Result<null, string>> {
+async startSession(params: SessionParams) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:listener|start_session", { params }) };
 } catch (e) {
@@ -88,8 +88,8 @@ sessionEvent: "plugin:listener:session-event"
 
 /** user-defined types **/
 
-export type ControllerParams = { session_id: string; languages: string[]; onboarding: boolean; record_enabled: boolean; model: string; base_url: string; api_key: string; keywords: string[] }
 export type SessionEvent = { type: "inactive"; session_id: string } | { type: "running_active"; session_id: string } | { type: "finalizing"; session_id: string } | { type: "audioAmplitude"; session_id: string; mic: number; speaker: number } | { type: "micMuted"; session_id: string; value: boolean } | { type: "streamResponse"; session_id: string; response: StreamResponse }
+export type SessionParams = { session_id: string; languages: string[]; onboarding: boolean; record_enabled: boolean; model: string; base_url: string; api_key: string; keywords: string[] }
 export type StreamAlternatives = { transcript: string; words: StreamWord[]; confidence: number; languages?: string[] }
 export type StreamChannel = { alternatives: StreamAlternatives[] }
 export type StreamExtra = { started_unix_millis: number }

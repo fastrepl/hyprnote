@@ -1,9 +1,7 @@
-mod controller;
 mod listener;
 mod recorder;
 mod source;
 
-pub use controller::*;
 pub use listener::*;
 pub use recorder::*;
 pub use source::*;
@@ -21,5 +19,5 @@ pub enum ChannelMode {
 
 #[derive(Clone)]
 pub struct AudioChunk {
-    data: Vec<f32>,
+    pub data: Vec<f32>,
 }

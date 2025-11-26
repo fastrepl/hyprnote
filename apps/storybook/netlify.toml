@@ -1,8 +1,9 @@
 # https://docs.netlify.com/build/configure-builds/overview/#definitions
-# We must set package="apps/storybook" in the UI
+# Base directory is set to "apps/storybook" in the Netlify UI
+# Publish path is relative to the base directory
 [build]
-command = "pnpm -F @hypr/storybook build"
-publish = "apps/storybook/storybook-static"
+command = "pnpm build"
+publish = "storybook-static"
 
 [build.environment]
 NODE_VERSION = "22"

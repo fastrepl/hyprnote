@@ -290,11 +290,13 @@ function ProfileButton({
           "transition-transform duration-300",
         ])}
       >
-        <img
-          src={profile.data ?? ""}
-          alt="Profile"
-          className="h-full w-full rounded-full"
-        />
+        {profile.data && (
+          <img
+            src={profile.data}
+            alt="Profile"
+            className="h-full w-full rounded-full"
+          />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-sm text-black truncate">{name}</div>

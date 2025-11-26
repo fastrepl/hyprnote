@@ -303,8 +303,7 @@ jobs:
           name: desktop_v${{ needs.compute-version.outputs.version }}
           body: "https://hyprnote.com/changelog/${{ needs.compute-version.outputs.version }}"
           artifacts: "hyprnote-macos-aarch64.dmg,hyprnote-linux-x86_64.AppImage"
-      - name: Trigger Devin changelog workflow
-        run: |
+      - run: |
           set -e
           curl -f -X POST \
             -H "Accept: application/vnd.github+json" \

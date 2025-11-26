@@ -15,6 +15,9 @@ use crate::SessionEvent;
 // Not too short to support non-realtime pipelines like whisper.cpp
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 
+// Timeout for establishing WS connection before actor is considered "ready"
+const WS_CONNECT_TIMEOUT: Duration = Duration::from_secs(2);
+
 pub enum ListenerMsg {
     AudioSingle(Bytes),
     AudioDual(Bytes, Bytes),
@@ -250,6 +253,7 @@ async fn run_single_stream(
     offset_secs: f64,
     extra: Extra,
     channel_override: Option<(i32, i32)>,
+    connected_tx: Option<tokio::sync::oneshot::Sender<Result<(), String>>>,
 ) {
     let client = owhisper_client::ListenClient::builder()
         .api_base(args.base_url.clone())
@@ -263,14 +267,26 @@ async fn run_single_stream(
     let res = tokio::select! {
         res = client.from_realtime_audio(outbound) => res,
         _ = &mut shutdown_rx => {
+            if let Some(tx) = connected_tx {
+                let _ = tx.send(Err("Shutdown before connection".to_string()));
+            }
             return;
         }
     };
 
     let (listen_stream, handle) = match res {
-        Ok(res) => res,
+        Ok(res) => {
+            if let Some(tx) = connected_tx {
+                let _ = tx.send(Ok(()));
+            }
+            res
+        }
         Err(e) => {
-            let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+            if let Some(tx) = connected_tx {
+                let _ = tx.send(Err(format!("{:?}", e)));
+            } else {
+                let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+            }
             return;
         }
     };
@@ -295,6 +311,7 @@ async fn run_dual_stream(
     shutdown_rx: tokio::sync::oneshot::Receiver<()>,
     offset_secs: f64,
     extra: Extra,
+    connected_tx: Option<tokio::sync::oneshot::Sender<Result<(), String>>>,
 ) {
     let client = owhisper_client::ListenClient::builder()
         .api_base(args.base_url.clone())
@@ -308,14 +325,26 @@ async fn run_dual_stream(
     let res = tokio::select! {
         res = client.from_realtime_audio(outbound) => res,
         _ = &mut shutdown_rx => {
+            if let Some(tx) = connected_tx {
+                let _ = tx.send(Err("Shutdown before connection".to_string()));
+            }
             return;
         }
     };
 
     let (listen_stream, handle) = match res {
-        Ok(res) => res,
+        Ok(res) => {
+            if let Some(tx) = connected_tx {
+                let _ = tx.send(Ok(()));
+            }
+            res
+        }
         Err(e) => {
-            let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+            if let Some(tx) = connected_tx {
+                let _ = tx.send(Err(format!("{:?}", e)));
+            } else {
+                let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
+            }
             return;
         }
     };
@@ -344,10 +373,28 @@ async fn spawn_rx_task_single(
     ),
     ActorProcessingErr,
 > {
+    spawn_rx_task_single_inner(args, myself, None).await
+}
+
+async fn spawn_rx_task_single_inner(
+    args: ListenerArgs,
+    myself: ActorRef<ListenerMsg>,
+    channel_override: Option<(i32, i32)>,
+) -> Result<
+    (
+        ChannelSender,
+        tokio::task::JoinHandle<()>,
+        tokio::sync::oneshot::Sender<()>,
+    ),
+    ActorProcessingErr,
+> {
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
     let (session_offset_secs, extra) = build_extra(&args);
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
+
+    // Channel to signal connection success/failure
+    let (connected_tx, connected_rx) = tokio::sync::oneshot::channel::<Result<(), String>>();
 
     let rx_task = tokio::spawn(async move {
         run_single_stream(
@@ -357,12 +404,42 @@ async fn spawn_rx_task_single(
             shutdown_rx,
             session_offset_secs,
             extra,
-            None,
+            channel_override,
+            Some(connected_tx),
         )
         .await;
     });
 
-    Ok((ChannelSender::Single(tx), rx_task, shutdown_tx))
+    // Wait for connection result with timeout
+    let connect_result = tokio::time::timeout(WS_CONNECT_TIMEOUT, connected_rx).await;
+
+    match connect_result {
+        Ok(Ok(Ok(()))) => {
+            // Connection succeeded
+            Ok((ChannelSender::Single(tx), rx_task, shutdown_tx))
+        }
+        Ok(Ok(Err(e))) => {
+            // Connection failed with error
+            rx_task.abort();
+            Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)))
+        }
+        Ok(Err(_)) => {
+            // Channel was dropped (task panicked or exited early)
+            rx_task.abort();
+            Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Connection task exited unexpectedly",
+            )))
+        }
+        Err(_) => {
+            // Timeout
+            rx_task.abort();
+            Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::TimedOut,
+                "WebSocket connection timed out",
+            )))
+        }
+    }
 }
 
 async fn spawn_rx_task_dual(
@@ -381,11 +458,52 @@ async fn spawn_rx_task_dual(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
 
+    // Channel to signal connection success/failure
+    let (connected_tx, connected_rx) = tokio::sync::oneshot::channel::<Result<(), String>>();
+
     let rx_task = tokio::spawn(async move {
-        run_dual_stream(args, myself, rx, shutdown_rx, session_offset_secs, extra).await;
+        run_dual_stream(
+            args,
+            myself,
+            rx,
+            shutdown_rx,
+            session_offset_secs,
+            extra,
+            Some(connected_tx),
+        )
+        .await;
     });
 
-    Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx))
+    // Wait for connection result with timeout
+    let connect_result = tokio::time::timeout(WS_CONNECT_TIMEOUT, connected_rx).await;
+
+    match connect_result {
+        Ok(Ok(Ok(()))) => {
+            // Connection succeeded
+            Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx))
+        }
+        Ok(Ok(Err(e))) => {
+            // Connection failed with error
+            rx_task.abort();
+            Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, e)))
+        }
+        Ok(Err(_)) => {
+            // Channel was dropped (task panicked or exited early)
+            rx_task.abort();
+            Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Connection task exited unexpectedly",
+            )))
+        }
+        Err(_) => {
+            // Timeout
+            rx_task.abort();
+            Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::TimedOut,
+                "WebSocket connection timed out",
+            )))
+        }
+    }
 }
 
 async fn spawn_rx_task_dual_split(
@@ -404,48 +522,119 @@ async fn spawn_rx_task_dual_split(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
 
+    let (mic_tx, mic_rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
+    let (spk_tx, spk_rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
+
+    let (shutdown_tx_mic, shutdown_rx_mic) = tokio::sync::oneshot::channel::<()>();
+    let (shutdown_tx_spk, shutdown_rx_spk) = tokio::sync::oneshot::channel::<()>();
+
+    // Channels to signal connection success/failure for each stream
+    let (mic_connected_tx, mic_connected_rx) =
+        tokio::sync::oneshot::channel::<Result<(), String>>();
+    let (spk_connected_tx, spk_connected_rx) =
+        tokio::sync::oneshot::channel::<Result<(), String>>();
+
+    let myself_mic = myself.clone();
+    let myself_spk = myself;
+    let extra_mic = extra.clone();
+    let extra_spk = extra;
+    let args_mic = args.clone();
+    let args_spk = args;
+
+    let mic_task = tokio::spawn(async move {
+        run_single_stream(
+            args_mic,
+            myself_mic,
+            mic_rx,
+            shutdown_rx_mic,
+            session_offset_secs,
+            extra_mic,
+            Some((0, 2)),
+            Some(mic_connected_tx),
+        )
+        .await;
+    });
+
+    let spk_task = tokio::spawn(async move {
+        run_single_stream(
+            args_spk,
+            myself_spk,
+            spk_rx,
+            shutdown_rx_spk,
+            session_offset_secs,
+            extra_spk,
+            Some((1, 2)),
+            Some(spk_connected_tx),
+        )
+        .await;
+    });
+
+    // Wait for both connections with timeout
+    let mic_result = tokio::time::timeout(WS_CONNECT_TIMEOUT, mic_connected_rx);
+    let spk_result = tokio::time::timeout(WS_CONNECT_TIMEOUT, spk_connected_rx);
+
+    let (mic_res, spk_res) = tokio::join!(mic_result, spk_result);
+
+    // Check mic connection result
+    match mic_res {
+        Ok(Ok(Ok(()))) => {}
+        Ok(Ok(Err(e))) => {
+            mic_task.abort();
+            spk_task.abort();
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Mic connection failed: {}", e),
+            )));
+        }
+        Ok(Err(_)) => {
+            mic_task.abort();
+            spk_task.abort();
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Mic connection task exited unexpectedly",
+            )));
+        }
+        Err(_) => {
+            mic_task.abort();
+            spk_task.abort();
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::TimedOut,
+                "Mic WebSocket connection timed out",
+            )));
+        }
+    }
+
+    // Check spk connection result
+    match spk_res {
+        Ok(Ok(Ok(()))) => {}
+        Ok(Ok(Err(e))) => {
+            mic_task.abort();
+            spk_task.abort();
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Speaker connection failed: {}", e),
+            )));
+        }
+        Ok(Err(_)) => {
+            mic_task.abort();
+            spk_task.abort();
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Speaker connection task exited unexpectedly",
+            )));
+        }
+        Err(_) => {
+            mic_task.abort();
+            spk_task.abort();
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::TimedOut,
+                "Speaker WebSocket connection timed out",
+            )));
+        }
+    }
+
+    // Both connections succeeded, spawn the forward task
     let rx_task = tokio::spawn(async move {
-        let (mic_tx, mic_rx) =
-            tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
-        let (spk_tx, spk_rx) =
-            tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
-
-        let (shutdown_tx_mic, shutdown_rx_mic) = tokio::sync::oneshot::channel::<()>();
-        let (shutdown_tx_spk, shutdown_rx_spk) = tokio::sync::oneshot::channel::<()>();
-
-        let myself_mic = myself.clone();
-        let myself_spk = myself.clone();
-        let extra_mic = extra.clone();
-        let extra_spk = extra;
-        let args_mic = args.clone();
-        let args_spk = args;
-
-        let mic_task = tokio::spawn(async move {
-            run_single_stream(
-                args_mic,
-                myself_mic,
-                mic_rx,
-                shutdown_rx_mic,
-                session_offset_secs,
-                extra_mic,
-                Some((0, 2)),
-            )
-            .await;
-        });
-
-        let spk_task = tokio::spawn(async move {
-            run_single_stream(
-                args_spk,
-                myself_spk,
-                spk_rx,
-                shutdown_rx_spk,
-                session_offset_secs,
-                extra_spk,
-                Some((1, 2)),
-            )
-            .await;
-        });
-
         let forward_task = tokio::spawn(async move {
             let mut rx = rx;
             let mut shutdown_rx_global = shutdown_rx_global;

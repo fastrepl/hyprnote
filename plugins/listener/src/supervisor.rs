@@ -8,8 +8,10 @@ use ractor_supervisor::supervisor::{Supervisor, SupervisorArguments, SupervisorO
 use ractor_supervisor::SupervisorStrategy;
 
 use crate::actors::{
-    ChannelMode, ListenerActor, ListenerArgs, RecArgs, RecorderActor, SourceActor, SourceArgs,
+    ChannelMode, DefaultAudioProcessor, ListenerActor, ListenerArgs, RactorActorRegistry, RecArgs,
+    RecorderActor, SourceActor, SourceArgs, TauriEventEmitter, SOURCE_ACTOR_NAME,
 };
+use hypr_audio::{RealAudioInputProvider, RealDeviceMonitorProvider};
 
 pub const SESSION_SUPERVISOR_PREFIX: &str = "session_supervisor_";
 
@@ -66,19 +68,23 @@ pub async fn spawn_session_supervisor(
 
     let ctx_source = ctx.clone();
     child_specs.push(ChildSpec {
-        id: SourceActor::name().to_string(),
+        id: SOURCE_ACTOR_NAME.to_string(),
         restart: Restart::Permanent,
         spawn_fn: SpawnFn::new(move |supervisor_cell, _id| {
             let ctx = ctx_source.clone();
             async move {
                 let (actor_ref, _) = Actor::spawn_linked(
-                    Some(SourceActor::name()),
-                    SourceActor,
+                    Some(SOURCE_ACTOR_NAME.into()),
+                    SourceActor::default(),
                     SourceArgs {
                         mic_device: None,
                         onboarding: ctx.params.onboarding,
-                        app: ctx.app.clone(),
                         session_id: ctx.params.session_id.clone(),
+                        audio_provider: RealAudioInputProvider,
+                        device_monitor_provider: RealDeviceMonitorProvider,
+                        event_emitter: TauriEventEmitter::new(ctx.app.clone()),
+                        actor_registry: RactorActorRegistry,
+                        audio_processor: DefaultAudioProcessor::default(),
                     },
                     supervisor_cell,
                 )

@@ -6,7 +6,7 @@ use tauri::{path::BaseDirectory, Manager};
 use tauri_specta::Event;
 
 use crate::{
-    actors::{SourceActor, SourceMsg},
+    actors::{SourceMsg, SOURCE_ACTOR_NAME},
     supervisor::{spawn_session_supervisor, SessionContext, SessionParams},
     SessionEvent,
 };
@@ -37,14 +37,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_current_microphone_device(&self) -> Result<Option<String>, crate::Error> {
-        if let Some(cell) = registry::where_is(SourceActor::name()) {
+        if let Some(cell) = registry::where_is(SOURCE_ACTOR_NAME.to_string()) {
             let actor: ActorRef<SourceMsg> = cell.into();
             match call_t!(actor, SourceMsg::GetMicDevice, 500) {
                 Ok(device_name) => Ok(device_name),
                 Err(_) => Ok(None),
             }
         } else {
-            Err(crate::Error::ActorNotFound(SourceActor::name()))
+            Err(crate::Error::ActorNotFound(SOURCE_ACTOR_NAME.to_string()))
         }
     }
 
@@ -53,7 +53,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         &self,
         device_name: impl Into<String>,
     ) -> Result<(), crate::Error> {
-        if let Some(cell) = registry::where_is(SourceActor::name()) {
+        if let Some(cell) = registry::where_is(SOURCE_ACTOR_NAME.to_string()) {
             let actor: ActorRef<SourceMsg> = cell.into();
             let _ = actor.cast(SourceMsg::SetMicDevice(Some(device_name.into())));
         }
@@ -69,7 +69,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn get_mic_muted(&self) -> bool {
-        if let Some(cell) = registry::where_is(SourceActor::name()) {
+        if let Some(cell) = registry::where_is(SOURCE_ACTOR_NAME.to_string()) {
             let actor: ActorRef<SourceMsg> = cell.into();
             match call_t!(actor, SourceMsg::GetMicMute, 100) {
                 Ok(muted) => muted,
@@ -82,7 +82,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
     #[tracing::instrument(skip_all)]
     async fn set_mic_muted(&self, muted: bool) {
-        if let Some(cell) = registry::where_is(SourceActor::name()) {
+        if let Some(cell) = registry::where_is(SOURCE_ACTOR_NAME.to_string()) {
             let actor: ActorRef<SourceMsg> = cell.into();
             let _ = actor.cast(SourceMsg::SetMicMute(muted));
         }
@@ -150,7 +150,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
         let state = self.state::<crate::SharedState>();
         let mut guard = state.lock().await;
 
-        let session_id = if let Some(cell) = registry::where_is(SourceActor::name()) {
+        let session_id = if let Some(cell) = registry::where_is(SOURCE_ACTOR_NAME.to_string()) {
             let actor: ActorRef<SourceMsg> = cell.into();
             call_t!(actor, SourceMsg::GetSessionId, 100).ok()
         } else {

@@ -1,13 +1,38 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
 use ractor::concurrency::Duration;
 use ractor::ActorRef;
 use ractor_supervisor::dynamic::{
     DynamicSupervisor, DynamicSupervisorMsg, DynamicSupervisorOptions,
 };
+use tauri::{AppHandle, Runtime};
 
 pub type SupervisorRef = ActorRef<DynamicSupervisorMsg>;
 pub type SupervisorHandle = tokio::task::JoinHandle<()>;
 
 const ROOT_SUPERVISOR_NAME: &str = "root_supervisor";
+
+#[derive(Clone)]
+pub struct SupervisorState {
+    pub is_exiting: Arc<AtomicBool>,
+}
+
+impl SupervisorState {
+    pub fn new() -> Self {
+        Self {
+            is_exiting: Arc::new(AtomicBool::new(false)),
+        }
+    }
+
+    pub fn set_exiting(&self) {
+        self.is_exiting.store(true, Ordering::SeqCst);
+    }
+
+    pub fn is_exiting(&self) -> bool {
+        self.is_exiting.load(Ordering::SeqCst)
+    }
+}
 
 pub async fn spawn_root_supervisor() -> Option<(SupervisorRef, SupervisorHandle)> {
     let options = DynamicSupervisorOptions {
@@ -27,4 +52,31 @@ pub async fn spawn_root_supervisor() -> Option<(SupervisorRef, SupervisorHandle)
             None
         }
     }
+}
+
+pub fn monitor_supervisor<R: Runtime>(
+    app_handle: AppHandle<R>,
+    supervisor_handle: SupervisorHandle,
+    state: SupervisorState,
+) {
+    tokio::spawn(async move {
+        let result = supervisor_handle.await;
+
+        if state.is_exiting() {
+            tracing::info!("root_supervisor_stopped_during_normal_exit");
+            return;
+        }
+
+        match result {
+            Ok(()) => {
+                tracing::warn!("root_supervisor_stopped_unexpectedly");
+            }
+            Err(e) => {
+                tracing::error!("root_supervisor_panicked: {:?}", e);
+            }
+        }
+
+        tracing::info!("restarting_app_due_to_supervisor_failure");
+        app_handle.restart();
+    });
 }

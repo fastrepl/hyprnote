@@ -12,11 +12,11 @@ use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
-    let (root_supervisor, _root_supervisor_handle) = match supervisor::spawn_root_supervisor().await
-    {
-        Some((supervisor, handle)) => (Some(supervisor), Some(handle)),
-        None => (None, None),
-    };
+    let (root_supervisor_ctx, root_supervisor_handle) =
+        match supervisor::spawn_root_supervisor().await {
+            Some((ctx, handle)) => (Some(ctx), Some(handle)),
+            None => (None, None),
+        };
 
     let sentry_client = {
         let dsn = option_env!("SENTRY_DSN");
@@ -84,7 +84,9 @@ pub async fn main() {
         .plugin(tauri_plugin_listener2::init())
         .plugin(tauri_plugin_local_stt::init(
             tauri_plugin_local_stt::InitOptions {
-                parent_supervisor: root_supervisor.as_ref().map(|s| s.get_cell()),
+                parent_supervisor: root_supervisor_ctx
+                    .as_ref()
+                    .map(|ctx| ctx.supervisor.get_cell()),
             },
         ))
         .plugin(tauri_plugin_autostart::init(
@@ -103,6 +105,8 @@ pub async fn main() {
     }
 
     let specta_builder = make_specta_builder();
+
+    let root_supervisor_ctx_for_run = root_supervisor_ctx.clone();
 
     let app = builder
         .invoke_handler(specta_builder.invoke_handler())
@@ -124,10 +128,11 @@ pub async fn main() {
                 if let Err(e) = app_clone.init_local().await {
                     tracing::error!("failed_to_init_local: {}", e);
                 }
-                // if let Err(e) = app_clone.init_cloud(postgres_url).await {
-                //     tracing::error!("failed_to_init_cloud: {}", e);
-                // }
             });
+
+            if let (Some(ctx), Some(handle)) = (&root_supervisor_ctx, root_supervisor_handle) {
+                supervisor::monitor_supervisor(handle, ctx.is_exiting.clone(), app_handle.clone());
+            }
 
             specta_builder.mount_events(&app_handle);
             Ok(())
@@ -158,8 +163,9 @@ pub async fn main() {
             }
         }
         tauri::RunEvent::Exit => {
-            if let Some(ref supervisor) = root_supervisor {
-                supervisor.stop(Some("app_exit".to_string()));
+            if let Some(ref ctx) = root_supervisor_ctx_for_run {
+                ctx.mark_exiting();
+                ctx.stop();
             }
             hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
         }

@@ -42,29 +42,7 @@ import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
-import { Route as ViewVsTldvRouteImport } from './routes/_view/vs/tldv'
-import { Route as ViewVsTactiqRouteImport } from './routes/_view/vs/tactiq'
-import { Route as ViewVsReflectRouteImport } from './routes/_view/vs/reflect'
-import { Route as ViewVsReadAiRouteImport } from './routes/_view/vs/read-ai'
-import { Route as ViewVsOtterRouteImport } from './routes/_view/vs/otter'
-import { Route as ViewVsObsidianRouteImport } from './routes/_view/vs/obsidian'
-import { Route as ViewVsNottaRouteImport } from './routes/_view/vs/notta'
-import { Route as ViewVsNotionRouteImport } from './routes/_view/vs/notion'
-import { Route as ViewVsNotabilityRouteImport } from './routes/_view/vs/notability'
-import { Route as ViewVsMeetilyRouteImport } from './routes/_view/vs/meetily'
-import { Route as ViewVsMeetgeekRouteImport } from './routes/_view/vs/meetgeek'
-import { Route as ViewVsJamieRouteImport } from './routes/_view/vs/jamie'
-import { Route as ViewVsGranolaRouteImport } from './routes/_view/vs/granola'
-import { Route as ViewVsGongRouteImport } from './routes/_view/vs/gong'
-import { Route as ViewVsFirefliesRouteImport } from './routes/_view/vs/fireflies'
-import { Route as ViewVsFellowRouteImport } from './routes/_view/vs/fellow'
-import { Route as ViewVsFathomRouteImport } from './routes/_view/vs/fathom'
-import { Route as ViewVsEvernoteRouteImport } from './routes/_view/vs/evernote'
-import { Route as ViewVsCluelyRouteImport } from './routes/_view/vs/cluely'
-import { Route as ViewVsCirclebackRouteImport } from './routes/_view/vs/circleback'
-import { Route as ViewVsBluedotRouteImport } from './routes/_view/vs/bluedot'
-import { Route as ViewVsBearRouteImport } from './routes/_view/vs/bear'
-import { Route as ViewVsAsideRouteImport } from './routes/_view/vs/aside'
+import { Route as ViewVsSlugRouteImport } from './routes/_view/vs/$slug'
 import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
 import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
 import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_view/solution/project-management'
@@ -262,119 +240,9 @@ const ApiTweetIdRoute = ApiTweetIdRouteImport.update({
   path: '/api/tweet/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ViewVsTldvRoute = ViewVsTldvRouteImport.update({
-  id: '/vs/tldv',
-  path: '/vs/tldv',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsTactiqRoute = ViewVsTactiqRouteImport.update({
-  id: '/vs/tactiq',
-  path: '/vs/tactiq',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsReflectRoute = ViewVsReflectRouteImport.update({
-  id: '/vs/reflect',
-  path: '/vs/reflect',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsReadAiRoute = ViewVsReadAiRouteImport.update({
-  id: '/vs/read-ai',
-  path: '/vs/read-ai',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsOtterRoute = ViewVsOtterRouteImport.update({
-  id: '/vs/otter',
-  path: '/vs/otter',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsObsidianRoute = ViewVsObsidianRouteImport.update({
-  id: '/vs/obsidian',
-  path: '/vs/obsidian',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsNottaRoute = ViewVsNottaRouteImport.update({
-  id: '/vs/notta',
-  path: '/vs/notta',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsNotionRoute = ViewVsNotionRouteImport.update({
-  id: '/vs/notion',
-  path: '/vs/notion',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsNotabilityRoute = ViewVsNotabilityRouteImport.update({
-  id: '/vs/notability',
-  path: '/vs/notability',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsMeetilyRoute = ViewVsMeetilyRouteImport.update({
-  id: '/vs/meetily',
-  path: '/vs/meetily',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsMeetgeekRoute = ViewVsMeetgeekRouteImport.update({
-  id: '/vs/meetgeek',
-  path: '/vs/meetgeek',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsJamieRoute = ViewVsJamieRouteImport.update({
-  id: '/vs/jamie',
-  path: '/vs/jamie',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsGranolaRoute = ViewVsGranolaRouteImport.update({
-  id: '/vs/granola',
-  path: '/vs/granola',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsGongRoute = ViewVsGongRouteImport.update({
-  id: '/vs/gong',
-  path: '/vs/gong',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsFirefliesRoute = ViewVsFirefliesRouteImport.update({
-  id: '/vs/fireflies',
-  path: '/vs/fireflies',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsFellowRoute = ViewVsFellowRouteImport.update({
-  id: '/vs/fellow',
-  path: '/vs/fellow',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsFathomRoute = ViewVsFathomRouteImport.update({
-  id: '/vs/fathom',
-  path: '/vs/fathom',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsEvernoteRoute = ViewVsEvernoteRouteImport.update({
-  id: '/vs/evernote',
-  path: '/vs/evernote',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsCluelyRoute = ViewVsCluelyRouteImport.update({
-  id: '/vs/cluely',
-  path: '/vs/cluely',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsCirclebackRoute = ViewVsCirclebackRouteImport.update({
-  id: '/vs/circleback',
-  path: '/vs/circleback',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsBluedotRoute = ViewVsBluedotRouteImport.update({
-  id: '/vs/bluedot',
-  path: '/vs/bluedot',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsBearRoute = ViewVsBearRouteImport.update({
-  id: '/vs/bear',
-  path: '/vs/bear',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewVsAsideRoute = ViewVsAsideRouteImport.update({
-  id: '/vs/aside',
-  path: '/vs/aside',
+const ViewVsSlugRoute = ViewVsSlugRouteImport.update({
+  id: '/vs/$slug',
+  path: '/vs/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewSolutionSalesRoute = ViewSolutionSalesRouteImport.update({
@@ -601,29 +469,7 @@ export interface FileRoutesByFullPath {
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
-  '/vs/aside': typeof ViewVsAsideRoute
-  '/vs/bear': typeof ViewVsBearRoute
-  '/vs/bluedot': typeof ViewVsBluedotRoute
-  '/vs/circleback': typeof ViewVsCirclebackRoute
-  '/vs/cluely': typeof ViewVsCluelyRoute
-  '/vs/evernote': typeof ViewVsEvernoteRoute
-  '/vs/fathom': typeof ViewVsFathomRoute
-  '/vs/fellow': typeof ViewVsFellowRoute
-  '/vs/fireflies': typeof ViewVsFirefliesRoute
-  '/vs/gong': typeof ViewVsGongRoute
-  '/vs/granola': typeof ViewVsGranolaRoute
-  '/vs/jamie': typeof ViewVsJamieRoute
-  '/vs/meetgeek': typeof ViewVsMeetgeekRoute
-  '/vs/meetily': typeof ViewVsMeetilyRoute
-  '/vs/notability': typeof ViewVsNotabilityRoute
-  '/vs/notion': typeof ViewVsNotionRoute
-  '/vs/notta': typeof ViewVsNottaRoute
-  '/vs/obsidian': typeof ViewVsObsidianRoute
-  '/vs/otter': typeof ViewVsOtterRoute
-  '/vs/read-ai': typeof ViewVsReadAiRoute
-  '/vs/reflect': typeof ViewVsReflectRoute
-  '/vs/tactiq': typeof ViewVsTactiqRoute
-  '/vs/tldv': typeof ViewVsTldvRoute
+  '/vs/$slug': typeof ViewVsSlugRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
@@ -688,29 +534,7 @@ export interface FileRoutesByTo {
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
-  '/vs/aside': typeof ViewVsAsideRoute
-  '/vs/bear': typeof ViewVsBearRoute
-  '/vs/bluedot': typeof ViewVsBluedotRoute
-  '/vs/circleback': typeof ViewVsCirclebackRoute
-  '/vs/cluely': typeof ViewVsCluelyRoute
-  '/vs/evernote': typeof ViewVsEvernoteRoute
-  '/vs/fathom': typeof ViewVsFathomRoute
-  '/vs/fellow': typeof ViewVsFellowRoute
-  '/vs/fireflies': typeof ViewVsFirefliesRoute
-  '/vs/gong': typeof ViewVsGongRoute
-  '/vs/granola': typeof ViewVsGranolaRoute
-  '/vs/jamie': typeof ViewVsJamieRoute
-  '/vs/meetgeek': typeof ViewVsMeetgeekRoute
-  '/vs/meetily': typeof ViewVsMeetilyRoute
-  '/vs/notability': typeof ViewVsNotabilityRoute
-  '/vs/notion': typeof ViewVsNotionRoute
-  '/vs/notta': typeof ViewVsNottaRoute
-  '/vs/obsidian': typeof ViewVsObsidianRoute
-  '/vs/otter': typeof ViewVsOtterRoute
-  '/vs/read-ai': typeof ViewVsReadAiRoute
-  '/vs/reflect': typeof ViewVsReflectRoute
-  '/vs/tactiq': typeof ViewVsTactiqRoute
-  '/vs/tldv': typeof ViewVsTldvRoute
+  '/vs/$slug': typeof ViewVsSlugRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
@@ -779,29 +603,7 @@ export interface FileRoutesById {
   '/_view/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/_view/solution/sales': typeof ViewSolutionSalesRoute
-  '/_view/vs/aside': typeof ViewVsAsideRoute
-  '/_view/vs/bear': typeof ViewVsBearRoute
-  '/_view/vs/bluedot': typeof ViewVsBluedotRoute
-  '/_view/vs/circleback': typeof ViewVsCirclebackRoute
-  '/_view/vs/cluely': typeof ViewVsCluelyRoute
-  '/_view/vs/evernote': typeof ViewVsEvernoteRoute
-  '/_view/vs/fathom': typeof ViewVsFathomRoute
-  '/_view/vs/fellow': typeof ViewVsFellowRoute
-  '/_view/vs/fireflies': typeof ViewVsFirefliesRoute
-  '/_view/vs/gong': typeof ViewVsGongRoute
-  '/_view/vs/granola': typeof ViewVsGranolaRoute
-  '/_view/vs/jamie': typeof ViewVsJamieRoute
-  '/_view/vs/meetgeek': typeof ViewVsMeetgeekRoute
-  '/_view/vs/meetily': typeof ViewVsMeetilyRoute
-  '/_view/vs/notability': typeof ViewVsNotabilityRoute
-  '/_view/vs/notion': typeof ViewVsNotionRoute
-  '/_view/vs/notta': typeof ViewVsNottaRoute
-  '/_view/vs/obsidian': typeof ViewVsObsidianRoute
-  '/_view/vs/otter': typeof ViewVsOtterRoute
-  '/_view/vs/read-ai': typeof ViewVsReadAiRoute
-  '/_view/vs/reflect': typeof ViewVsReflectRoute
-  '/_view/vs/tactiq': typeof ViewVsTactiqRoute
-  '/_view/vs/tldv': typeof ViewVsTldvRoute
+  '/_view/vs/$slug': typeof ViewVsSlugRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
@@ -870,29 +672,7 @@ export interface FileRouteTypes {
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/sales'
-    | '/vs/aside'
-    | '/vs/bear'
-    | '/vs/bluedot'
-    | '/vs/circleback'
-    | '/vs/cluely'
-    | '/vs/evernote'
-    | '/vs/fathom'
-    | '/vs/fellow'
-    | '/vs/fireflies'
-    | '/vs/gong'
-    | '/vs/granola'
-    | '/vs/jamie'
-    | '/vs/meetgeek'
-    | '/vs/meetily'
-    | '/vs/notability'
-    | '/vs/notion'
-    | '/vs/notta'
-    | '/vs/obsidian'
-    | '/vs/otter'
-    | '/vs/read-ai'
-    | '/vs/reflect'
-    | '/vs/tactiq'
-    | '/vs/tldv'
+    | '/vs/$slug'
     | '/api/tweet/$id'
     | '/app/'
     | '/blog'
@@ -957,29 +737,7 @@ export interface FileRouteTypes {
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/sales'
-    | '/vs/aside'
-    | '/vs/bear'
-    | '/vs/bluedot'
-    | '/vs/circleback'
-    | '/vs/cluely'
-    | '/vs/evernote'
-    | '/vs/fathom'
-    | '/vs/fellow'
-    | '/vs/fireflies'
-    | '/vs/gong'
-    | '/vs/granola'
-    | '/vs/jamie'
-    | '/vs/meetgeek'
-    | '/vs/meetily'
-    | '/vs/notability'
-    | '/vs/notion'
-    | '/vs/notta'
-    | '/vs/obsidian'
-    | '/vs/otter'
-    | '/vs/read-ai'
-    | '/vs/reflect'
-    | '/vs/tactiq'
-    | '/vs/tldv'
+    | '/vs/$slug'
     | '/api/tweet/$id'
     | '/app'
     | '/blog'
@@ -1047,29 +805,7 @@ export interface FileRouteTypes {
     | '/_view/solution/project-management'
     | '/_view/solution/recruiting'
     | '/_view/solution/sales'
-    | '/_view/vs/aside'
-    | '/_view/vs/bear'
-    | '/_view/vs/bluedot'
-    | '/_view/vs/circleback'
-    | '/_view/vs/cluely'
-    | '/_view/vs/evernote'
-    | '/_view/vs/fathom'
-    | '/_view/vs/fellow'
-    | '/_view/vs/fireflies'
-    | '/_view/vs/gong'
-    | '/_view/vs/granola'
-    | '/_view/vs/jamie'
-    | '/_view/vs/meetgeek'
-    | '/_view/vs/meetily'
-    | '/_view/vs/notability'
-    | '/_view/vs/notion'
-    | '/_view/vs/notta'
-    | '/_view/vs/obsidian'
-    | '/_view/vs/otter'
-    | '/_view/vs/read-ai'
-    | '/_view/vs/reflect'
-    | '/_view/vs/tactiq'
-    | '/_view/vs/tldv'
+    | '/_view/vs/$slug'
     | '/api/tweet/$id'
     | '/_view/app/'
     | '/_view/blog/'
@@ -1329,165 +1065,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTweetIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_view/vs/tldv': {
-      id: '/_view/vs/tldv'
-      path: '/vs/tldv'
-      fullPath: '/vs/tldv'
-      preLoaderRoute: typeof ViewVsTldvRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/tactiq': {
-      id: '/_view/vs/tactiq'
-      path: '/vs/tactiq'
-      fullPath: '/vs/tactiq'
-      preLoaderRoute: typeof ViewVsTactiqRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/reflect': {
-      id: '/_view/vs/reflect'
-      path: '/vs/reflect'
-      fullPath: '/vs/reflect'
-      preLoaderRoute: typeof ViewVsReflectRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/read-ai': {
-      id: '/_view/vs/read-ai'
-      path: '/vs/read-ai'
-      fullPath: '/vs/read-ai'
-      preLoaderRoute: typeof ViewVsReadAiRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/otter': {
-      id: '/_view/vs/otter'
-      path: '/vs/otter'
-      fullPath: '/vs/otter'
-      preLoaderRoute: typeof ViewVsOtterRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/obsidian': {
-      id: '/_view/vs/obsidian'
-      path: '/vs/obsidian'
-      fullPath: '/vs/obsidian'
-      preLoaderRoute: typeof ViewVsObsidianRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/notta': {
-      id: '/_view/vs/notta'
-      path: '/vs/notta'
-      fullPath: '/vs/notta'
-      preLoaderRoute: typeof ViewVsNottaRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/notion': {
-      id: '/_view/vs/notion'
-      path: '/vs/notion'
-      fullPath: '/vs/notion'
-      preLoaderRoute: typeof ViewVsNotionRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/notability': {
-      id: '/_view/vs/notability'
-      path: '/vs/notability'
-      fullPath: '/vs/notability'
-      preLoaderRoute: typeof ViewVsNotabilityRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/meetily': {
-      id: '/_view/vs/meetily'
-      path: '/vs/meetily'
-      fullPath: '/vs/meetily'
-      preLoaderRoute: typeof ViewVsMeetilyRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/meetgeek': {
-      id: '/_view/vs/meetgeek'
-      path: '/vs/meetgeek'
-      fullPath: '/vs/meetgeek'
-      preLoaderRoute: typeof ViewVsMeetgeekRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/jamie': {
-      id: '/_view/vs/jamie'
-      path: '/vs/jamie'
-      fullPath: '/vs/jamie'
-      preLoaderRoute: typeof ViewVsJamieRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/granola': {
-      id: '/_view/vs/granola'
-      path: '/vs/granola'
-      fullPath: '/vs/granola'
-      preLoaderRoute: typeof ViewVsGranolaRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/gong': {
-      id: '/_view/vs/gong'
-      path: '/vs/gong'
-      fullPath: '/vs/gong'
-      preLoaderRoute: typeof ViewVsGongRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/fireflies': {
-      id: '/_view/vs/fireflies'
-      path: '/vs/fireflies'
-      fullPath: '/vs/fireflies'
-      preLoaderRoute: typeof ViewVsFirefliesRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/fellow': {
-      id: '/_view/vs/fellow'
-      path: '/vs/fellow'
-      fullPath: '/vs/fellow'
-      preLoaderRoute: typeof ViewVsFellowRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/fathom': {
-      id: '/_view/vs/fathom'
-      path: '/vs/fathom'
-      fullPath: '/vs/fathom'
-      preLoaderRoute: typeof ViewVsFathomRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/evernote': {
-      id: '/_view/vs/evernote'
-      path: '/vs/evernote'
-      fullPath: '/vs/evernote'
-      preLoaderRoute: typeof ViewVsEvernoteRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/cluely': {
-      id: '/_view/vs/cluely'
-      path: '/vs/cluely'
-      fullPath: '/vs/cluely'
-      preLoaderRoute: typeof ViewVsCluelyRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/circleback': {
-      id: '/_view/vs/circleback'
-      path: '/vs/circleback'
-      fullPath: '/vs/circleback'
-      preLoaderRoute: typeof ViewVsCirclebackRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/bluedot': {
-      id: '/_view/vs/bluedot'
-      path: '/vs/bluedot'
-      fullPath: '/vs/bluedot'
-      preLoaderRoute: typeof ViewVsBluedotRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/bear': {
-      id: '/_view/vs/bear'
-      path: '/vs/bear'
-      fullPath: '/vs/bear'
-      preLoaderRoute: typeof ViewVsBearRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/vs/aside': {
-      id: '/_view/vs/aside'
-      path: '/vs/aside'
-      fullPath: '/vs/aside'
-      preLoaderRoute: typeof ViewVsAsideRouteImport
+    '/_view/vs/$slug': {
+      id: '/_view/vs/$slug'
+      path: '/vs/$slug'
+      fullPath: '/vs/$slug'
+      preLoaderRoute: typeof ViewVsSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/solution/sales': {
@@ -1803,29 +1385,7 @@ interface ViewRouteRouteChildren {
   ViewSolutionProjectManagementRoute: typeof ViewSolutionProjectManagementRoute
   ViewSolutionRecruitingRoute: typeof ViewSolutionRecruitingRoute
   ViewSolutionSalesRoute: typeof ViewSolutionSalesRoute
-  ViewVsAsideRoute: typeof ViewVsAsideRoute
-  ViewVsBearRoute: typeof ViewVsBearRoute
-  ViewVsBluedotRoute: typeof ViewVsBluedotRoute
-  ViewVsCirclebackRoute: typeof ViewVsCirclebackRoute
-  ViewVsCluelyRoute: typeof ViewVsCluelyRoute
-  ViewVsEvernoteRoute: typeof ViewVsEvernoteRoute
-  ViewVsFathomRoute: typeof ViewVsFathomRoute
-  ViewVsFellowRoute: typeof ViewVsFellowRoute
-  ViewVsFirefliesRoute: typeof ViewVsFirefliesRoute
-  ViewVsGongRoute: typeof ViewVsGongRoute
-  ViewVsGranolaRoute: typeof ViewVsGranolaRoute
-  ViewVsJamieRoute: typeof ViewVsJamieRoute
-  ViewVsMeetgeekRoute: typeof ViewVsMeetgeekRoute
-  ViewVsMeetilyRoute: typeof ViewVsMeetilyRoute
-  ViewVsNotabilityRoute: typeof ViewVsNotabilityRoute
-  ViewVsNotionRoute: typeof ViewVsNotionRoute
-  ViewVsNottaRoute: typeof ViewVsNottaRoute
-  ViewVsObsidianRoute: typeof ViewVsObsidianRoute
-  ViewVsOtterRoute: typeof ViewVsOtterRoute
-  ViewVsReadAiRoute: typeof ViewVsReadAiRoute
-  ViewVsReflectRoute: typeof ViewVsReflectRoute
-  ViewVsTactiqRoute: typeof ViewVsTactiqRoute
-  ViewVsTldvRoute: typeof ViewVsTldvRoute
+  ViewVsSlugRoute: typeof ViewVsSlugRoute
   ViewBlogIndexRoute: typeof ViewBlogIndexRoute
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
@@ -1872,29 +1432,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewSolutionProjectManagementRoute: ViewSolutionProjectManagementRoute,
   ViewSolutionRecruitingRoute: ViewSolutionRecruitingRoute,
   ViewSolutionSalesRoute: ViewSolutionSalesRoute,
-  ViewVsAsideRoute: ViewVsAsideRoute,
-  ViewVsBearRoute: ViewVsBearRoute,
-  ViewVsBluedotRoute: ViewVsBluedotRoute,
-  ViewVsCirclebackRoute: ViewVsCirclebackRoute,
-  ViewVsCluelyRoute: ViewVsCluelyRoute,
-  ViewVsEvernoteRoute: ViewVsEvernoteRoute,
-  ViewVsFathomRoute: ViewVsFathomRoute,
-  ViewVsFellowRoute: ViewVsFellowRoute,
-  ViewVsFirefliesRoute: ViewVsFirefliesRoute,
-  ViewVsGongRoute: ViewVsGongRoute,
-  ViewVsGranolaRoute: ViewVsGranolaRoute,
-  ViewVsJamieRoute: ViewVsJamieRoute,
-  ViewVsMeetgeekRoute: ViewVsMeetgeekRoute,
-  ViewVsMeetilyRoute: ViewVsMeetilyRoute,
-  ViewVsNotabilityRoute: ViewVsNotabilityRoute,
-  ViewVsNotionRoute: ViewVsNotionRoute,
-  ViewVsNottaRoute: ViewVsNottaRoute,
-  ViewVsObsidianRoute: ViewVsObsidianRoute,
-  ViewVsOtterRoute: ViewVsOtterRoute,
-  ViewVsReadAiRoute: ViewVsReadAiRoute,
-  ViewVsReflectRoute: ViewVsReflectRoute,
-  ViewVsTactiqRoute: ViewVsTactiqRoute,
-  ViewVsTldvRoute: ViewVsTldvRoute,
+  ViewVsSlugRoute: ViewVsSlugRoute,
   ViewBlogIndexRoute: ViewBlogIndexRoute,
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,

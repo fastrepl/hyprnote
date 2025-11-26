@@ -362,6 +362,54 @@ const deeplinks = defineCollection({
   },
 });
 
+const vs = defineCollection({
+  name: "vs",
+  directory: "content/vs",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    name: z.string(),
+    icon: z.string(),
+    headline: z.string(),
+    description: z.string(),
+    metaDescription: z.string(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      mdx,
+      slug,
+    };
+  },
+});
+
 export default defineConfig({
-  collections: [articles, changelog, docs, legal, templates, hooks, deeplinks],
+  collections: [
+    articles,
+    changelog,
+    docs,
+    legal,
+    templates,
+    hooks,
+    deeplinks,
+    vs,
+  ],
 });

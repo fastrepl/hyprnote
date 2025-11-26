@@ -1,61 +1,44 @@
 import { Icon } from "@iconify-icon/react";
+import { createFileRoute, notFound } from "@tanstack/react-router";
+import { allVs } from "content-collections";
 
 import { cn } from "@hypr/utils";
 
 import { SlashSeparator } from "@/components/slash-separator";
-import { competitors } from "@/data/vs-competitors";
 
-interface VSTemplateProps {
-  competitorIcon: string;
-  competitorName: string;
-  headline: string;
-  description: string;
-  metaTitle: string;
-  metaDescription: string;
-}
+export const Route = createFileRoute("/_view/vs/$slug")({
+  component: Component,
+  loader: async ({ params }) => {
+    const doc = allVs.find((doc) => doc.slug === params.slug);
+    if (!doc) {
+      throw notFound();
+    }
 
-export function createVSRoute(competitorKey: string) {
-  const competitor = competitors[competitorKey];
+    return { doc };
+  },
+  head: ({ loaderData }) => {
+    const { doc } = loaderData!;
+    const metaTitle = `Hyprnote vs ${doc.name} - Privacy-First AI Notetaking`;
 
-  if (!competitor) {
-    throw new Error(
-      `Competitor "${competitorKey}" not found in competitors data`,
-    );
-  }
-
-  const metaTitle = `Hyprnote vs ${competitor.name} - Privacy-First AI Notetaking`;
-
-  return {
-    component: () => (
-      <VSTemplate
-        competitorIcon={competitor.icon}
-        competitorName={competitor.name}
-        headline={competitor.headline}
-        description={competitor.description}
-        metaTitle={metaTitle}
-        metaDescription={competitor.metaDescription}
-      />
-    ),
-    head: () => ({
+    return {
       meta: [
         { title: metaTitle },
-        {
-          name: "description",
-          content: competitor.metaDescription,
-        },
+        { name: "description", content: doc.metaDescription },
+        { property: "og:title", content: metaTitle },
+        { property: "og:description", content: doc.metaDescription },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: `https://hyprnote.com/vs/${doc.slug}` },
+        { name: "twitter:card", content: "summary" },
+        { name: "twitter:title", content: metaTitle },
+        { name: "twitter:description", content: doc.metaDescription },
       ],
-    }),
-  };
-}
+    };
+  },
+});
 
-export function VSTemplate({
-  competitorIcon,
-  competitorName,
-  headline,
-  description,
-  metaTitle,
-  metaDescription,
-}: VSTemplateProps) {
+function Component() {
+  const { doc } = Route.useLoaderData();
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
@@ -63,10 +46,10 @@ export function VSTemplate({
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection
-          competitorIcon={competitorIcon}
-          competitorName={competitorName}
-          headline={headline}
-          description={description}
+          competitorIcon={doc.icon}
+          competitorName={doc.name}
+          headline={doc.headline}
+          description={doc.description}
         />
         <SlashSeparator />
         <PrivacySection />
@@ -81,19 +64,17 @@ export function VSTemplate({
   );
 }
 
-interface HeroSectionProps {
-  competitorIcon: string;
-  competitorName: string;
-  headline: string;
-  description: string;
-}
-
 function HeroSection({
   competitorIcon,
   competitorName,
   headline,
   description,
-}: HeroSectionProps) {
+}: {
+  competitorIcon: string;
+  competitorName: string;
+  headline: string;
+  description: string;
+}) {
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
       <header className="text-center max-w-4xl mx-auto">

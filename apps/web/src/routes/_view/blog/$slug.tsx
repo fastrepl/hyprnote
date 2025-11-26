@@ -19,7 +19,11 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     }
 
     const relatedArticles = allArticles
-      .filter((a) => a.slug !== article.slug && a.published !== false)
+      .filter(
+        (a) =>
+          a.slug !== article.slug &&
+          (import.meta.env.DEV || a.published !== false),
+      )
       .sort((a, b) => {
         const aScore = a.author === article.author ? 1 : 0;
         const bScore = b.author === article.author ? 1 : 0;

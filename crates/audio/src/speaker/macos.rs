@@ -62,22 +62,16 @@ impl SpeakerInput {
         let agg_desc = cf::DictionaryOf::with_keys_values(
             &[
                 agg_keys::is_private(),
-                agg_keys::is_stacked(),
                 agg_keys::tap_auto_start(),
                 agg_keys::name(),
-                agg_keys::main_sub_device(),
                 agg_keys::uid(),
-                agg_keys::sub_device_list(),
                 agg_keys::tap_list(),
             ],
             &[
                 cf::Boolean::value_true().as_type_ref(),
                 cf::Boolean::value_false(),
-                cf::Boolean::value_true(),
-                cf::str!(c"hypr-audio-tap"),
-                &output_uid,
+                cf::String::from_str(crate::TAP_DEVICE_NAME).as_ref(),
                 &cf::Uuid::new().to_cf_string(),
-                &cf::ArrayOf::from_slice(&[sub_device.as_ref()]),
                 &cf::ArrayOf::from_slice(&[sub_tap.as_ref()]),
             ],
         );

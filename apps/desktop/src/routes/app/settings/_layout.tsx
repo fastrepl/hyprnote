@@ -183,9 +183,8 @@ function Group({
         const Icon = tabInfo.icon;
 
         return (
-          <div className="px-1">
+          <div key={tab} className="px-1">
             <Button
-              key={tab}
               variant="ghost"
               className={cn([
                 "w-full justify-start",

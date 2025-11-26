@@ -34,6 +34,8 @@ pub enum SourceMsg {
     GetSessionId(RpcReplyPort<String>),
     MicChunk(AudioChunk),
     SpeakerChunk(AudioChunk),
+    /// Sent by capture loops on unrecoverable failure or EOF.
+    /// Stopping this actor allows the RestForOne supervisor to restart Source, Listener, and Recorder together.
     StreamFailed(String),
 }
 
@@ -273,7 +275,7 @@ async fn start_source_loop_single(
                 let mut mic_input = match AudioInput::from_mic(mic_device.clone()) {
                     Ok(input) => input,
                     Err(err) => {
-                        tracing::error!(error = ?err, "mic_open_failed");
+                        tracing::error!(error = ?err, device = ?mic_device, "mic_open_failed");
                         let _ = myself2.cast(SourceMsg::StreamFailed("mic_open_failed".into()));
                         return;
                     }
@@ -286,7 +288,7 @@ async fn start_source_loop_single(
                 {
                     Ok(stream) => stream,
                     Err(err) => {
-                        tracing::error!(error = ?err, "mic_stream_setup_failed");
+                        tracing::error!(error = ?err, device = ?mic_device, "mic_stream_setup_failed");
                         let _ =
                             myself2.cast(SourceMsg::StreamFailed("mic_stream_setup_failed".into()));
                         return;
@@ -314,12 +316,12 @@ async fn start_source_loop_single(
                             }
                         }
                         Some(Err(err)) => {
-                            tracing::error!(error = ?err, "mic_resample_failed");
+                            tracing::error!(error = ?err, device = ?mic_device, "mic_resample_failed");
                             let _ = myself2.cast(SourceMsg::StreamFailed("mic_resample_failed".into()));
                             return;
                         }
                         None => {
-                            tracing::error!("mic_stream_ended");
+                            tracing::error!(device = ?mic_device, "mic_stream_ended");
                             let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_ended".into()));
                             return;
                         }
@@ -349,7 +351,7 @@ async fn start_source_loop_dual(
             let mut mic_input = match AudioInput::from_mic(mic_device.clone()) {
                 Ok(input) => input,
                 Err(err) => {
-                    tracing::error!(error = ?err, "mic_open_failed");
+                    tracing::error!(error = ?err, device = ?mic_device, "mic_open_failed");
                     let _ = myself2.cast(SourceMsg::StreamFailed("mic_open_failed".into()));
                     return;
                 }
@@ -363,7 +365,7 @@ async fn start_source_loop_dual(
             match mic_stream_res {
                 Ok(stream) => stream.mask_with_vad(),
                 Err(err) => {
-                    tracing::error!(error = ?err, "mic_stream_setup_failed");
+                    tracing::error!(error = ?err, device = ?mic_device, "mic_stream_setup_failed");
                     let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_setup_failed".into()));
                     return;
                 }
@@ -413,12 +415,12 @@ async fn start_source_loop_dual(
                         }
                     }
                     Some(Err(err)) => {
-                        tracing::error!(error = ?err, "mic_resample_failed");
+                        tracing::error!(error = ?err, device = ?mic_device, "mic_resample_failed");
                         let _ = myself2.cast(SourceMsg::StreamFailed("mic_resample_failed".into()));
                         return;
                     }
                     None => {
-                        tracing::error!("mic_stream_ended");
+                        tracing::error!(device = ?mic_device, "mic_stream_ended");
                         let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_ended".into()));
                         return;
                     }

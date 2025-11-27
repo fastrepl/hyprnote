@@ -4,8 +4,8 @@ use std::time::Duration;
 
 use gtk::prelude::*;
 use gtk::{
-    Align, Application, ApplicationWindow, Box as GtkBox, Button, CssProvider, Image, Label,
-    Orientation, StyleContext,
+    Align, Box as GtkBox, Button, CssProvider, Image, Label, Orientation, StyleContext, Window,
+    WindowType,
 };
 use indexmap::IndexMap;
 
@@ -44,12 +44,12 @@ fn call_dismiss_handler(id: String) {
 
 struct NotificationInstance {
     id: String,
-    window: ApplicationWindow,
+    window: Window,
     timeout_source: Option<glib::SourceId>,
 }
 
 impl NotificationInstance {
-    fn new(window: ApplicationWindow, id: String) -> Self {
+    fn new(window: Window, id: String) -> Self {
         Self {
             id,
             window,
@@ -70,7 +70,7 @@ impl NotificationInstance {
         self.timeout_source = Some(source);
     }
 
-    fn dismiss_window_inner(window: &ApplicationWindow, id: &str, user_action: bool) {
+    fn dismiss_window_inner(window: &Window, id: &str, user_action: bool) {
         if user_action {
             call_dismiss_handler(id.to_string());
         }
@@ -82,7 +82,7 @@ impl NotificationInstance {
         });
     }
 
-    fn dismiss_window(window: &ApplicationWindow, id: &str, user_action: bool) {
+    fn dismiss_window(window: &Window, id: &str, user_action: bool) {
         Self::dismiss_window_inner(window, id, user_action);
         NotificationManager::remove_notification_global(id);
     }
@@ -90,7 +90,6 @@ impl NotificationInstance {
 
 struct NotificationManager {
     active_notifications: IndexMap<String, NotificationInstance>,
-    app: Option<Application>,
     max_notifications: usize,
     notification_spacing: i32,
 }
@@ -99,22 +98,25 @@ impl NotificationManager {
     fn new() -> Self {
         Self {
             active_notifications: IndexMap::new(),
-            app: None,
             max_notifications: 5,
             notification_spacing: 10,
         }
     }
 
-    fn ensure_app(&mut self) {
-        if self.app.is_none() {
-            gtk::init().ok();
-            let app = Application::new(Some("com.hyprnote.notifications"), Default::default());
-            self.app = Some(app);
+    fn ensure_gtk(&self) -> bool {
+        match gtk::init() {
+            Ok(_) => true,
+            Err(e) => {
+                eprintln!("[notification-linux] Failed to initialize GTK: {}", e);
+                false
+            }
         }
     }
 
     fn show(&mut self, title: String, message: String, url: Option<String>, timeout_seconds: f64) {
-        self.ensure_app();
+        if !self.ensure_gtk() {
+            return;
+        }
 
         while self.active_notifications.len() >= self.max_notifications {
             if let Some((oldest_id, notif)) = self.active_notifications.get_index(0) {
@@ -128,18 +130,18 @@ impl NotificationManager {
         }
 
         let id = uuid::Uuid::new_v4().to_string();
-        let app = self.app.as_ref().unwrap();
 
-        let window = ApplicationWindow::new(app);
+        let window = Window::new(WindowType::Toplevel);
         window.set_decorated(false);
         window.set_resizable(false);
         window.set_default_size(360, 64);
+        window.set_keep_above(true);
 
         self.setup_window_style(&window);
         self.create_notification_content(&window, &title, &message, url.as_deref(), &id);
         self.position_window(&window);
 
-        window.present();
+        window.show_all();
 
         let mut notif = NotificationInstance::new(window, id.clone());
         notif.start_dismiss_timer(timeout_seconds);
@@ -148,7 +150,7 @@ impl NotificationManager {
         self.reposition_notifications();
     }
 
-    fn setup_window_style(&self, _window: &ApplicationWindow) {
+    fn setup_window_style(&self, _window: &Window) {
         let css_provider = CssProvider::new();
         let _ = css_provider.load_from_data(
             br#"
@@ -207,7 +209,7 @@ impl NotificationManager {
 
     fn create_notification_content(
         &self,
-        window: &ApplicationWindow,
+        window: &Window,
         title: &str,
         message: &str,
         url: Option<&str>,
@@ -279,9 +281,19 @@ impl NotificationManager {
         window.add(&overlay);
     }
 
-    fn position_window(&self, _window: &ApplicationWindow) {
-        // TODO: Position notifications using a GTK4-compatible mechanism (e.g. layer-shell or compositor-specific protocol).
-        // GTK4 (especially on Wayland) does not support explicit window positioning; the compositor controls placement.
+    fn position_window(&self, window: &Window) {
+        // Position the window in the top-right corner of the screen
+        // Use the default width we set (360) since window.size() returns 0 before realization
+        const DEFAULT_WINDOW_WIDTH: i32 = 360;
+
+        if let Some(screen) = gdk::Screen::default() {
+            if let Some(root_window) = screen.root_window() {
+                let screen_width = root_window.width();
+                let x = screen_width - DEFAULT_WINDOW_WIDTH - 20;
+                let y = 50;
+                window.move_(x, y);
+            }
+        }
     }
 
     fn reposition_notifications(&mut self) {

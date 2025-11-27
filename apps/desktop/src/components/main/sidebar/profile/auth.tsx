@@ -137,13 +137,13 @@ export function AuthSection({
   };
 
   return (
-    <div className="px-1 py-2">
+    <div className="p-1 pt-2">
       <Button
         onClick={() => handleStartSignIn()}
         variant="default"
         className="w-full"
       >
-        <LogIn className="w-4 h-4 mr-2" />
+        <LogIn size={16} />
         Sign in
       </Button>
     </div>

@@ -36,15 +36,15 @@ export function TemplateCard({
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       className={cn([
-        "flex items-start gap-4 relative",
-        "p-4 border border-neutral-200 rounded-lg",
+        "flex items-start gap-4 relative overflow-clip",
+        "p-4 border border-neutral-200 rounded-xl",
         onClick
           ? "cursor-pointer transition-colors hover:bg-neutral-50"
           : "cursor-default",
       ])}
     >
       {isMine && (
-        <div className="absolute top-0 right-0 bg-neutral-100 text-neutral-600 text-xs font-medium px-2 py-1 rounded-bl-md rounded-tr-lg border-l border-b border-neutral-200">
+        <div className="absolute top-0 right-0 bg-neutral-100 text-neutral-600 text-xs font-medium px-2 py-1 rounded-bl-xl border-l border-b border-neutral-200">
           Made by me
         </div>
       )}

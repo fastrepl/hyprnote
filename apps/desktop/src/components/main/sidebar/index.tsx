@@ -24,10 +24,10 @@ export function LeftSidebar() {
       <header
         data-tauri-drag-region
         className={cn([
-          "flex flex-row shrink-0",
-          "flex w-full items-center justify-end h-9 py-1",
-          "rounded-lg",
-          "pl-[72px] bg-neutral-50",
+          "flex flex-row items-center justify-end",
+          "w-full h-9 py-1 pl-[72px]",
+          "shrink-0",
+          "rounded-xl bg-neutral-50",
         ])}
       >
         {import.meta.env.DEV && (

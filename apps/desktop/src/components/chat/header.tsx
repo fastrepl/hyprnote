@@ -37,7 +37,7 @@ export function ChatHeader({
       data-tauri-drag-region={chat.mode === "RightPanelOpen"}
       className={cn([
         "flex items-center justify-between px-1 border-b border-neutral-200 h-9",
-        chat.mode === "RightPanelOpen" && "border rounded-md",
+        chat.mode === "RightPanelOpen" && "border rounded-xl",
       ])}
     >
       <div className="flex items-center">

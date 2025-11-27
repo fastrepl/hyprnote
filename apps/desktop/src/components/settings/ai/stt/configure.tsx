@@ -91,7 +91,7 @@ function NonHyprProviderCard({
     <AccordionItem
       disabled={config.disabled || locked}
       value={config.id}
-      className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
+      className="rounded-xl border-2 border-dashed bg-neutral-50"
     >
       <AccordionTrigger
         className={cn([
@@ -164,7 +164,7 @@ function HyprProviderCard({
   return (
     <AccordionItem
       value={providerId}
-      className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
+      className="rounded-xl border-2 border-dashed bg-neutral-50"
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
         <div className="flex items-center gap-2">

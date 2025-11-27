@@ -50,7 +50,10 @@ export function Banner({
 
         <div className="flex flex-col gap-2 mt-1">
           {banner.primaryAction && (
-            <Button onClick={banner.primaryAction.onClick} className="w-full">
+            <Button
+              onClick={banner.primaryAction.onClick}
+              className="w-full rounded-full bg-gradient-to-t from-stone-600 to-stone-500"
+            >
               {banner.primaryAction.label}
             </Button>
           )}
@@ -58,7 +61,7 @@ export function Banner({
             <Button
               onClick={banner.secondaryAction.onClick}
               variant="outline"
-              className="w-full"
+              className="w-full rounded-full bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900"
             >
               {banner.secondaryAction.label}
             </Button>

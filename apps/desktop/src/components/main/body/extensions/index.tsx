@@ -1,6 +1,7 @@
-import { LoaderIcon, PuzzleIcon, XIcon } from "lucide-react";
+import { PuzzleIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { type PointerEvent, useEffect, useState } from "react";
+import { type PointerEvent, useCallback, useEffect, useRef } from "react";
+import { useStores } from "tinybase/ui-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -12,13 +13,15 @@ import {
 } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
 
+import { createIframeSynchronizer } from "../../../../store/tinybase/iframe-sync";
+import {
+  type Schemas,
+  type Store,
+  STORE_ID,
+} from "../../../../store/tinybase/main";
 import type { Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
-import {
-  getExtensionComponent,
-  getPanelInfoByExtensionId,
-  loadExtensionUI,
-} from "./registry";
+import { getPanelInfoByExtensionId } from "./registry";
 
 type ExtensionTab = Extract<Tab, { type: "extension" }>;
 
@@ -92,77 +95,68 @@ export function TabItemExtension({
 }
 
 export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
-  const [loadState, setLoadState] = useState<
-    "idle" | "loading" | "loaded" | "error"
-  >("idle");
-  const [, forceUpdate] = useState({});
-
-  const Component = getExtensionComponent(tab.extensionId);
+  const stores = useStores();
+  const store = stores[STORE_ID] as unknown as Store | undefined;
   const panelInfo = getPanelInfoByExtensionId(tab.extensionId);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const synchronizerRef = useRef<ReturnType<
+    typeof createIframeSynchronizer<Schemas>
+  > | null>(null);
+
+  const handleIframeLoad = useCallback(() => {
+    if (!iframeRef.current || !store) return;
+
+    if (synchronizerRef.current) {
+      synchronizerRef.current.destroy();
+    }
+
+    const synchronizer = createIframeSynchronizer<Schemas>(
+      store,
+      iframeRef.current,
+    );
+    synchronizerRef.current = synchronizer;
+    synchronizer.startSync();
+  }, [store]);
 
   useEffect(() => {
-    if (Component) {
-      setLoadState("loaded");
-      return;
-    }
-
-    if (!panelInfo?.entry_path) {
-      setLoadState("error");
-      return;
-    }
-
-    setLoadState("loading");
-    loadExtensionUI(tab.extensionId).then((success) => {
-      setLoadState(success ? "loaded" : "error");
-      if (success) {
-        forceUpdate({});
+    return () => {
+      if (synchronizerRef.current) {
+        synchronizerRef.current.destroy();
+        synchronizerRef.current = null;
       }
-    });
-  }, [tab.extensionId, Component, panelInfo?.entry_path]);
+    };
+  }, []);
 
-  if (loadState === "loading") {
-    return (
-      <StandardTabWrapper>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <LoaderIcon
-              size={48}
-              className="mx-auto text-neutral-300 mb-4 animate-spin"
-            />
-            <p className="text-neutral-500">Loading extension...</p>
-          </div>
-        </div>
-      </StandardTabWrapper>
-    );
-  }
-
-  const LoadedComponent = getExtensionComponent(tab.extensionId);
-
-  if (!LoadedComponent) {
+  if (!panelInfo?.entry_path) {
     return (
       <StandardTabWrapper>
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <PuzzleIcon size={48} className="mx-auto text-neutral-300 mb-4" />
             <p className="text-neutral-500">
-              {panelInfo
-                ? `Extension panel "${panelInfo.title}" failed to load`
-                : `Extension not found: ${tab.extensionId}`}
+              Extension not found: {tab.extensionId}
             </p>
-            {panelInfo?.entry && (
-              <p className="text-neutral-400 text-sm mt-2">
-                Entry: {panelInfo.entry}
-              </p>
-            )}
           </div>
         </div>
       </StandardTabWrapper>
     );
   }
 
+  const iframeSrc = `/app/ext-host?${new URLSearchParams({
+    extensionId: tab.extensionId,
+    entryPath: panelInfo.entry_path,
+  }).toString()}`;
+
   return (
     <StandardTabWrapper>
-      <LoadedComponent extensionId={tab.extensionId} state={tab.state} />
+      <iframe
+        ref={iframeRef}
+        src={iframeSrc}
+        onLoad={handleIframeLoad}
+        className="w-full h-full border-0"
+        sandbox="allow-scripts allow-same-origin"
+        title={`Extension: ${tab.extensionId}`}
+      />
     </StandardTabWrapper>
   );
 }

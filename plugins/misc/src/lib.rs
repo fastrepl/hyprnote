@@ -13,6 +13,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             commands::get_git_hash::<tauri::Wry>,
             commands::get_fingerprint::<tauri::Wry>,
+            commands::get_target_arch,
             commands::opinionated_md_to_html::<tauri::Wry>,
             commands::delete_session_folder::<tauri::Wry>,
             commands::parse_meeting_link::<tauri::Wry>,

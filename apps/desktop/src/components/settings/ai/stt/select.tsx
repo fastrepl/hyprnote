@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 
+import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Input } from "@hypr/ui/components/ui/input";
 import {
   Select,
@@ -219,6 +220,14 @@ function useConfiguredMapping(): Record<
     main.STORE_ID,
   );
 
+  const targetArch = useQuery({
+    queryKey: ["target-arch"],
+    queryFn: () => miscCommands.getTargetArch(),
+    staleTime: Infinity,
+  });
+
+  const isAppleSilicon = targetArch.data === "aarch64";
+
   const [p2, p3, tinyEn, smallEn] = useQueries({
     queries: [
       sttModelQueries.isDownloaded("am-parakeet-v2"),
@@ -235,17 +244,24 @@ function useConfiguredMapping(): Record<
       }
 
       if (provider.id === "hyprnote") {
+        const models = [
+          { id: "cloud", isDownloaded: billing.isPro },
+          { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },
+          { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
+        ];
+
+        if (isAppleSilicon) {
+          models.push(
+            { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
+            { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
+          );
+        }
+
         return [
           provider.id,
           {
             configured: true,
-            models: [
-              { id: "cloud", isDownloaded: billing.isPro },
-              { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
-              { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
-              { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },
-              { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
-            ],
+            models,
           },
         ];
       }

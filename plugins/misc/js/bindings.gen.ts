@@ -23,6 +23,9 @@ async getFingerprint() : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async getTargetArch() : Promise<string> {
+    return await TAURI_INVOKE("plugin:misc|get_target_arch");
+},
 async opinionatedMdToHtml(text: string) : Promise<Result<string, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:misc|opinionated_md_to_html", { text }) };

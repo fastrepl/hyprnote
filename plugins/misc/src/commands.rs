@@ -15,6 +15,12 @@ pub async fn get_git_hash<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_target_arch() -> String {
+    std::env::consts::ARCH.to_string()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn get_fingerprint<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<String, String> {

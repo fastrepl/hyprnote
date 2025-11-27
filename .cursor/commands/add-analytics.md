@@ -1,8 +1,11 @@
 - Scope: `apps/desktop/src` folder.
 - Usage:
-    - `import { commands as analyticsCommands } from "@hypr/plugin-analytics";`.
-    - `analyticsCommands.event({ event: "SOMETHING_USING_UNDERBAR", other_props_a: "1", other_props_b: 2 })`
-    - `analyticsCommands.setProperties({ set: {} })`
+  - `import { commands as analyticsCommands } from "@hypr/plugin-analytics";`.
+  - `analyticsCommands.event({ event: "SOMETHING_USING_UNDERSCORE", other_props_a: "1", other_props_b: 2 })`
+  - `analyticsCommands.setProperties({ set: {} })`
+- Notes:
+  - We use the machine's fingerprint as `distinct_id`. All other info should be placed as props.
+  - When adding `.event` or `.setProperties` call, make your best effort to not add complexity to code. It is ideal to place these calls inside the `onSuccess` callback of things like `useMutation`.
 - Resources:
-    - https://posthog.com/docs/product-analytics/person-properties.md
-    - `plugins/analytics/js/bindings.gen.ts`
+  - https://posthog.com/docs/product-analytics/person-properties.md
+  - `plugins/analytics/js/bindings.gen.ts`

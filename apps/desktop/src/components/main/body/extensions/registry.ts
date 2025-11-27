@@ -1,3 +1,4 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 import type { ComponentType } from "react";
 
 import {
@@ -20,6 +21,7 @@ const dynamicExtensionComponents: Record<
 
 const loadedPanels: Map<string, PanelInfo> = new Map();
 const extensionPanels: Map<string, PanelInfo[]> = new Map();
+const loadingExtensions: Set<string> = new Set();
 let panelsLoaded = false;
 
 export function getExtensionComponent(
@@ -105,4 +107,68 @@ export function registerExtensionComponent(
   component: ComponentType<ExtensionViewProps>,
 ): void {
   dynamicExtensionComponents[extensionId] = component;
+}
+
+export async function loadExtensionUI(extensionId: string): Promise<boolean> {
+  if (dynamicExtensionComponents[extensionId]) {
+    return true;
+  }
+
+  if (loadingExtensions.has(extensionId)) {
+    return false;
+  }
+
+  const panelInfo = getPanelInfoByExtensionId(extensionId);
+  if (!panelInfo?.entry_path) {
+    console.error(`No entry_path found for extension: ${extensionId}`);
+    return false;
+  }
+
+  loadingExtensions.add(extensionId);
+
+  try {
+    const scriptUrl = convertFileSrc(panelInfo.entry_path);
+    const response = await fetch(scriptUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch extension script: ${response.status}`);
+    }
+
+    const scriptContent = await response.text();
+
+    const previousExports = (
+      window as Window & { __hypr_panel_exports?: unknown }
+    ).__hypr_panel_exports;
+
+    const script = document.createElement("script");
+    script.textContent = scriptContent;
+    document.head.appendChild(script);
+    document.head.removeChild(script);
+
+    const exports = (
+      window as Window & {
+        __hypr_panel_exports?: { default?: ComponentType<ExtensionViewProps> };
+      }
+    ).__hypr_panel_exports;
+
+    if (exports?.default) {
+      registerExtensionComponent(extensionId, exports.default);
+      (
+        window as Window & { __hypr_panel_exports?: unknown }
+      ).__hypr_panel_exports = previousExports;
+      return true;
+    }
+
+    console.error(
+      `Extension ${extensionId} did not export a default component`,
+    );
+    (
+      window as Window & { __hypr_panel_exports?: unknown }
+    ).__hypr_panel_exports = previousExports;
+    return false;
+  } catch (err) {
+    console.error(`Failed to load extension UI for ${extensionId}:`, err);
+    return false;
+  } finally {
+    loadingExtensions.delete(extensionId);
+  }
 }

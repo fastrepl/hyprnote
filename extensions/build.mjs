@@ -45,11 +45,83 @@ async function buildExtension(name) {
         entryPoints: [entryPath],
         bundle: true,
         outfile,
-        format: "esm",
+        format: "iife",
+        globalName: "__hypr_panel_exports",
         platform: "browser",
         target: "es2020",
         jsx: "automatic",
-        external: ["react", "react-dom", "@hypr/ui", "@hypr/utils"],
+        plugins: [
+          {
+            name: "hypr-externals",
+            setup(build) {
+              build.onResolve({ filter: /^react$/ }, () => ({
+                path: "react",
+                namespace: "hypr-global",
+              }));
+              build.onResolve({ filter: /^react\/jsx-runtime$/ }, () => ({
+                path: "react/jsx-runtime",
+                namespace: "hypr-global",
+              }));
+              build.onResolve({ filter: /^react-dom$/ }, () => ({
+                path: "react-dom",
+                namespace: "hypr-global",
+              }));
+              build.onResolve({ filter: /^@hypr\/ui/ }, (args) => ({
+                path: args.path,
+                namespace: "hypr-global",
+              }));
+              build.onResolve({ filter: /^@hypr\/utils/ }, (args) => ({
+                path: args.path,
+                namespace: "hypr-global",
+              }));
+              build.onLoad(
+                { filter: /.*/, namespace: "hypr-global" },
+                (args) => {
+                  if (args.path === "react") {
+                    return {
+                      contents: "module.exports = window.__hypr_react",
+                      loader: "js",
+                    };
+                  }
+                  if (args.path === "react/jsx-runtime") {
+                    return {
+                      contents: "module.exports = window.__hypr_jsx_runtime",
+                      loader: "js",
+                    };
+                  }
+                  if (args.path === "react-dom") {
+                    return {
+                      contents: "module.exports = window.__hypr_react_dom",
+                      loader: "js",
+                    };
+                  }
+                  if (args.path.startsWith("@hypr/ui")) {
+                    const subpath = args.path
+                      .replace("@hypr/ui", "")
+                      .replace(/^\//, "");
+                    if (subpath) {
+                      return {
+                        contents: `module.exports = window.__hypr_ui["${subpath}"]`,
+                        loader: "js",
+                      };
+                    }
+                    return {
+                      contents: "module.exports = window.__hypr_ui",
+                      loader: "js",
+                    };
+                  }
+                  if (args.path.startsWith("@hypr/utils")) {
+                    return {
+                      contents: "module.exports = window.__hypr_utils",
+                      loader: "js",
+                    };
+                  }
+                  return { contents: "module.exports = {}", loader: "js" };
+                },
+              );
+            },
+          },
+        ],
         minify: false,
         sourcemap: true,
       });

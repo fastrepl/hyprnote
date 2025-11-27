@@ -17,6 +17,7 @@ import "@hypr/ui/globals.css";
 
 import { TaskManager } from "./components/task-manager";
 import { createToolRegistry } from "./contexts/tool-registry/core";
+import { initExtensionGlobals } from "./extension-globals";
 import { routeTree } from "./routeTree.gen";
 import { type Store, STORE_ID, StoreComponent } from "./store/tinybase/main";
 import { createAITaskStore } from "./store/zustand/ai-task";
@@ -86,6 +87,7 @@ function AppWithTiny() {
 }
 
 initWindowsPlugin();
+initExtensionGlobals();
 
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {

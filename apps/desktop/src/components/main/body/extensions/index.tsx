@@ -1,6 +1,6 @@
-import { PuzzleIcon, XIcon } from "lucide-react";
+import { LoaderIcon, PuzzleIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import type { PointerEvent } from "react";
+import { type PointerEvent, useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -14,7 +14,11 @@ import { cn } from "@hypr/utils";
 
 import type { Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
-import { getExtensionComponent, getPanelInfoByExtensionId } from "./registry";
+import {
+  getExtensionComponent,
+  getPanelInfoByExtensionId,
+  loadExtensionUI,
+} from "./registry";
 
 type ExtensionTab = Extract<Tab, { type: "extension" }>;
 
@@ -88,10 +92,53 @@ export function TabItemExtension({
 }
 
 export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
+  const [loadState, setLoadState] = useState<
+    "idle" | "loading" | "loaded" | "error"
+  >("idle");
+  const [, forceUpdate] = useState({});
+
   const Component = getExtensionComponent(tab.extensionId);
   const panelInfo = getPanelInfoByExtensionId(tab.extensionId);
 
-  if (!Component) {
+  useEffect(() => {
+    if (Component) {
+      setLoadState("loaded");
+      return;
+    }
+
+    if (!panelInfo?.entry_path) {
+      setLoadState("error");
+      return;
+    }
+
+    setLoadState("loading");
+    loadExtensionUI(tab.extensionId).then((success) => {
+      setLoadState(success ? "loaded" : "error");
+      if (success) {
+        forceUpdate({});
+      }
+    });
+  }, [tab.extensionId, Component, panelInfo?.entry_path]);
+
+  if (loadState === "loading") {
+    return (
+      <StandardTabWrapper>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <LoaderIcon
+              size={48}
+              className="mx-auto text-neutral-300 mb-4 animate-spin"
+            />
+            <p className="text-neutral-500">Loading extension...</p>
+          </div>
+        </div>
+      </StandardTabWrapper>
+    );
+  }
+
+  const LoadedComponent = getExtensionComponent(tab.extensionId);
+
+  if (!LoadedComponent) {
     return (
       <StandardTabWrapper>
         <div className="flex items-center justify-center h-full">
@@ -99,7 +146,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
             <PuzzleIcon size={48} className="mx-auto text-neutral-300 mb-4" />
             <p className="text-neutral-500">
               {panelInfo
-                ? `Extension panel "${panelInfo.title}" is registered but UI not loaded`
+                ? `Extension panel "${panelInfo.title}" failed to load`
                 : `Extension not found: ${tab.extensionId}`}
             </p>
             {panelInfo?.entry && (
@@ -115,7 +162,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
 
   return (
     <StandardTabWrapper>
-      <Component extensionId={tab.extensionId} state={tab.state} />
+      <LoadedComponent extensionId={tab.extensionId} state={tab.state} />
     </StandardTabWrapper>
   );
 }

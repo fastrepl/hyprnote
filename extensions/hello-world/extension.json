@@ -1,0 +1,8 @@
+{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "0.1.0",
+  "description": "A minimal example extension to validate the Deno runtime architecture",
+  "entry": "main.js",
+  "permissions": {}
+}

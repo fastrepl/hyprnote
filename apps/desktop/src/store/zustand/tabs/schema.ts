@@ -72,6 +72,11 @@ export const tabSchema = z.discriminatedUnion("type", [
   baseTabSchema.extend({
     type: z.literal("empty"),
   }),
+  baseTabSchema.extend({
+    type: z.literal("extension"),
+    extensionId: z.string(),
+    state: z.record(z.string(), z.unknown()).default({}),
+  }),
 ]);
 
 export type Tab = z.infer<typeof tabSchema>;
@@ -94,7 +99,8 @@ export type TabInput =
   | { type: "organizations"; id: string }
   | { type: "folders"; id: string | null }
   | { type: "calendars"; month: Date }
-  | { type: "empty" };
+  | { type: "empty" }
+  | { type: "extension"; extensionId: string; state?: Record<string, unknown> };
 
 export const rowIdfromTab = (tab: Tab): string => {
   switch (tab.type) {
@@ -109,6 +115,7 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "calendars":
     case "contacts":
     case "empty":
+    case "extension":
       throw new Error("invalid_resource");
     case "folders":
       if (!tab.id) {
@@ -136,6 +143,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `folders-${tab.id ?? "all"}`;
     case "empty":
       return `empty-${tab.slotId}`;
+    case "extension":
+      return `extension-${tab.extensionId}`;
   }
 };
 

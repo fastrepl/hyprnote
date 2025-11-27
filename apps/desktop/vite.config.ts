@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
+import path from "node:path";
 import { defineConfig, type UserConfig } from "vite";
 
 const host = process.env.TAURI_DEV_HOST;
@@ -12,12 +13,14 @@ export default defineConfig(() => ({
     react(),
   ],
   resolve: {
-    alias:
-      process.env.NODE_ENV === "development"
+    alias: {
+      ...(process.env.NODE_ENV === "development"
         ? {
             "@tauri-apps/plugin-updater": "/src/mocks/updater.ts",
           }
-        : {},
+        : {}),
+      "@extensions": path.resolve(__dirname, "../../extensions"),
+    },
   },
   test: {
     reporters: "default",

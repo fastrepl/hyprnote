@@ -84,7 +84,6 @@ pub(crate) fn default_ignored_bundle_ids() -> Vec<String> {
     let ides = [
         "dev.warp.Warp-Stable",
         "com.exafunction.windsurf",
-        "dev.zed.Zed",
         "com.microsoft.VSCode",
         "com.todesktop.230313mzl4w4u92",
     ];

@@ -22,6 +22,7 @@ import {
 
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
@@ -145,7 +146,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             created_at: now,
             title: "Welcome to Hyprnote",
             raw_md: "",
-            enhanced_md: "",
           });
         }
       });
@@ -176,14 +176,42 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
       const persister = createLocalPersister2<Schemas>(
         store as Store,
-        async (session) => {
-          if (session.enhanced_md) {
+        async (enhancedNote) => {
+          if (!enhancedNote.content || !enhancedNote.session_id) {
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(enhancedNote.content);
+            if (!isValidTiptapContent(parsed)) {
+              return;
+            }
+
+            const markdown = json2md(parsed);
+            const sessionDir = `hyprnote/sessions/${enhancedNote.session_id}`;
+
+            const sessionDirExists = await exists(sessionDir, {
+              baseDir: BaseDirectory.Data,
+            });
+            if (!sessionDirExists) {
+              await mkdir(sessionDir, {
+                baseDir: BaseDirectory.Data,
+                recursive: true,
+              });
+            }
+
             await writeTextFile(
-              `hyprnote/sessions/${session.id}.md`,
-              session.enhanced_md,
+              `${sessionDir}/${enhancedNote.id}.md`,
+              markdown,
               {
                 baseDir: BaseDirectory.Data,
               },
+            );
+          } catch (error) {
+            console.error(
+              "Failed to save enhanced note markdown:",
+              enhancedNote.id,
+              error,
             );
           }
         },

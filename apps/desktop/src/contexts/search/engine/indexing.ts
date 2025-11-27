@@ -16,7 +16,6 @@ export function indexSessions(db: Index, store: PersistedStore): void {
     "event_id",
     "title",
     "raw_md",
-    "enhanced_md",
     "transcript",
   ];
 
@@ -24,14 +23,33 @@ export function indexSessions(db: Index, store: PersistedStore): void {
     const row = collectCells(store, "sessions", rowId, fields);
     const title = toTrimmedString(row.title) || "Untitled";
 
+    const enhancedContent = getEnhancedContentForSession(store, rowId);
+
     void insert(db, {
       id: rowId,
       type: "session",
       title,
-      content: createSessionSearchableContent(row),
+      content: createSessionSearchableContent(row, enhancedContent),
       created_at: toNumber(row.created_at),
     });
   });
+}
+
+function getEnhancedContentForSession(
+  store: PersistedStore,
+  sessionId: string,
+): string {
+  const contents: string[] = [];
+  store.forEachRow("enhanced_notes", (rowId: string, _forEachCell) => {
+    const noteSessionId = store.getCell("enhanced_notes", rowId, "session_id");
+    if (noteSessionId === sessionId) {
+      const content = store.getCell("enhanced_notes", rowId, "content");
+      if (typeof content === "string" && content) {
+        contents.push(content);
+      }
+    }
+  });
+  return contents.join(" ");
 }
 
 export function indexHumans(db: Index, store: PersistedStore): void {

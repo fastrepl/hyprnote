@@ -128,7 +128,6 @@ export const sessions = pgTable(
     event_id: uuid("event_id"),
     title: text("title").notNull(),
     raw_md: text("raw_md").notNull(),
-    enhanced_md: text("enhanced_md").notNull(),
   },
   (table) => createPolicies(TABLE_SESSIONS, table.user_id),
 ).enableRLS();

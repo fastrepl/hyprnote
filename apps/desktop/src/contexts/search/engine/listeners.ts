@@ -25,17 +25,18 @@ export function createSessionListener(
           "created_at",
           "title",
           "raw_md",
-          "enhanced_md",
           "transcript",
         ];
         const row = collectCells(store, "sessions", rowId, fields);
         const title = toTrimmedString(row.title) || "Untitled";
 
+        const enhancedContent = getEnhancedContentForSession(store, rowId);
+
         const data: TypedDocument<Index> = {
           id: rowId,
           type: "session",
           title,
-          content: createSessionSearchableContent(row),
+          content: createSessionSearchableContent(row, enhancedContent),
           created_at: toNumber(row.created_at),
         };
 
@@ -45,6 +46,23 @@ export function createSessionListener(
       console.error("Failed to update session in search index:", error);
     }
   };
+}
+
+function getEnhancedContentForSession(
+  store: PersistedStore,
+  sessionId: string,
+): string {
+  const contents: string[] = [];
+  store.forEachRow("enhanced_notes", (rowId: string, _forEachCell) => {
+    const noteSessionId = store.getCell("enhanced_notes", rowId, "session_id");
+    if (noteSessionId === sessionId) {
+      const content = store.getCell("enhanced_notes", rowId, "content");
+      if (typeof content === "string" && content) {
+        contents.push(content);
+      }
+    }
+  });
+  return contents.join(" ");
 }
 
 export function createHumanListener(

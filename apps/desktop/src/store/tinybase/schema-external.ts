@@ -59,11 +59,13 @@ export const folderSchema = baseFolderSchema.omit({ id: true }).extend({
   ),
 });
 
-export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
-  created_at: z.string(),
-  event_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
-  folder_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
-});
+export const sessionSchema = baseSessionSchema
+  .omit({ id: true, enhanced_md: true })
+  .extend({
+    created_at: z.string(),
+    event_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
+    folder_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  });
 
 export const transcriptSchema = baseTranscriptSchema.omit({ id: true }).extend({
   created_at: z.string(),
@@ -192,7 +194,6 @@ export const externalTableSchemaForTinybase = {
     event_id: { type: "string" },
     title: { type: "string" },
     raw_md: { type: "string" },
-    enhanced_md: { type: "string" },
   } satisfies InferTinyBaseSchema<typeof sessionSchema>,
   transcripts: {
     user_id: { type: "string" },

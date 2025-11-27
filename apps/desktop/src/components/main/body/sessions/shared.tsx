@@ -75,15 +75,22 @@ export function useListenButtonState(sessionId: string) {
   const taskId = createTaskId(sessionId, "enhance");
   const { status } = useAITaskTask(taskId, "enhance");
   const generating = status === "generating";
-  const { conn: sttConnection } = useSTTConnection();
+  const { conn: sttConnection, local } = useSTTConnection();
+
+  const localServerStatus = local.data?.status ?? "unavailable";
+  const isLocalServerLoading = localServerStatus === "loading";
 
   const shouldRender = !active && !generating;
-  const isDisabled = !sttConnection || batching;
-  const warningMessage = !sttConnection
-    ? "Transcription model not available."
-    : batching
-      ? "Batch transcription in progress."
-      : "";
+  const isDisabled = !sttConnection || batching || isLocalServerLoading;
+
+  let warningMessage = "";
+  if (isLocalServerLoading) {
+    warningMessage = "Local STT server is starting up...";
+  } else if (!sttConnection) {
+    warningMessage = "Transcription model not available.";
+  } else if (batching) {
+    warningMessage = "Batch transcription in progress.";
+  }
 
   return {
     shouldRender,

@@ -76,6 +76,11 @@ impl AppWindow {
             builder = builder.decorations(false);
         }
 
+        #[cfg(target_os = "linux")]
+        {
+            builder = builder.decorations(false);
+        }
+
         builder
     }
 }

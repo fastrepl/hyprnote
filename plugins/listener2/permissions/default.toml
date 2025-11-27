@@ -1,3 +1,7 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-run-batch", "allow-parse-subtitle"]
+permissions = [
+    "allow-run-batch",
+    "allow-parse-subtitle",
+    "allow-export-to-vtt",
+]

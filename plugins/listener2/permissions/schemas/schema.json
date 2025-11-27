@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the export_to_vtt command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-export-to-vtt",
+          "markdownDescription": "Enables the export_to_vtt command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the export_to_vtt command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-export-to-vtt",
+          "markdownDescription": "Denies the export_to_vtt command without any pre-configured scope."
+        },
+        {
           "description": "Enables the parse_subtitle command without any pre-configured scope.",
           "type": "string",
           "const": "allow-parse-subtitle",
@@ -305,18 +317,6 @@
           "type": "string",
           "const": "deny-parse-subtitle",
           "markdownDescription": "Denies the parse_subtitle command without any pre-configured scope."
-        },
-        {
-          "description": "Enables the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "allow-ping",
-          "markdownDescription": "Enables the ping command without any pre-configured scope."
-        },
-        {
-          "description": "Denies the ping command without any pre-configured scope.",
-          "type": "string",
-          "const": "deny-ping",
-          "markdownDescription": "Denies the ping command without any pre-configured scope."
         },
         {
           "description": "Enables the run_batch command without any pre-configured scope.",
@@ -331,10 +331,10 @@
           "markdownDescription": "Denies the run_batch command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-run-batch`\n- `allow-parse-subtitle`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-run-batch`\n- `allow-parse-subtitle`\n- `allow-export-to-vtt`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-run-batch`\n- `allow-parse-subtitle`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-run-batch`\n- `allow-parse-subtitle`\n- `allow-export-to-vtt`"
         }
       ]
     }

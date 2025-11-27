@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node build.mjs",
-    "build:hello-world": "node build.mjs hello-world"
+    "build": "node build.mjs build",
+    "build:hello-world": "node build.mjs build hello-world",
+    "clean": "node build.mjs clean",
+    "install:dev": "node build.mjs install"
   },
   "devDependencies": {
     "@hypr/ui": "workspace:^",

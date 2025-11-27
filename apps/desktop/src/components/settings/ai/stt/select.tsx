@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useQueries, useQuery } from "@tanstack/react-query";
+import { arch } from "@tauri-apps/plugin-os";
 
-import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Input } from "@hypr/ui/components/ui/input";
 import {
   Select,
@@ -222,7 +222,7 @@ function useConfiguredMapping(): Record<
 
   const targetArch = useQuery({
     queryKey: ["target-arch"],
-    queryFn: () => miscCommands.getTargetArch(),
+    queryFn: () => arch(),
     staleTime: Infinity,
   });
 

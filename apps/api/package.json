@@ -7,6 +7,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hono/zod-openapi": "^1.1.5",
     "@sentry/bun": "^10.26.0",
     "@supabase/supabase-js": "^2.84.0",
     "@t3-oss/env-core": "^0.13.8",

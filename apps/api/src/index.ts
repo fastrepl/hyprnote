@@ -1,6 +1,6 @@
 import "./instrument";
 
-import { Hono } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { bodyLimit } from "hono/body-limit";
 import { websocket } from "hono/bun";
 import { cors } from "hono/cors";
@@ -9,10 +9,17 @@ import { logger } from "hono/logger";
 import { syncBillingForStripeEvent } from "./billing";
 import { env } from "./env";
 import { listenSocketHandler } from "./listen";
+import {
+  API_TAGS,
+  chatCompletionsRoute,
+  healthRoute,
+  listenRoute,
+  stripeWebhookRoute,
+} from "./routes";
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth } from "./supabase";
 
-const app = new Hono();
+const app = new OpenAPIHono();
 
 app.use(logger());
 app.use(bodyLimit({ maxSize: 1024 * 1024 * 5 }));
@@ -36,17 +43,19 @@ app.use("*", (c, next) => {
   return corsMiddleware(c, next);
 });
 
-app.get("/health", (c) => c.json({ status: "ok" }));
+app.openAPIRegistry.registerComponent("securitySchemes", "Bearer", {
+  type: "http",
+  scheme: "bearer",
+  description: "Supabase JWT token",
+});
+
+app.openapi(healthRoute, (c) => c.json({ status: "ok" }, 200));
+
 app.notFound((c) => c.text("not_found", 404));
 
-app.post("/chat/completions", requireSupabaseAuth, async (c) => {
-  const requestBody = await c.req.json<
-    {
-      model?: unknown;
-      tools?: unknown;
-      tool_choice?: unknown;
-    } & Record<string, unknown>
-  >();
+app.use("/chat/completions", requireSupabaseAuth);
+app.openapi(chatCompletionsRoute, async (c) => {
+  const requestBody = c.req.valid("json");
 
   const toolChoice = requestBody.tool_choice;
   const needsToolCalling =
@@ -90,22 +99,50 @@ app.post("/chat/completions", requireSupabaseAuth, async (c) => {
   });
 });
 
-app.post("/webhook/stripe", verifyStripeWebhook, async (c) => {
+app.use("/webhook/stripe", verifyStripeWebhook);
+app.openapi(stripeWebhookRoute, async (c) => {
   try {
-    await syncBillingForStripeEvent(c.var.stripeEvent);
+    const stripeEvent = c.get("stripeEvent" as never);
+    await syncBillingForStripeEvent(stripeEvent);
   } catch (error) {
     console.error(error);
     return c.json({ error: "stripe_billing_sync_failed" }, 500);
   }
 
-  return c.json({ ok: true });
+  return c.json({ ok: true }, 200);
 });
 
 if (env.NODE_ENV === "development") {
-  app.get("/listen", listenSocketHandler);
+  app.openapi(listenRoute, listenSocketHandler);
 } else {
-  app.get("/listen", requireSupabaseAuth, listenSocketHandler);
+  app.use("/listen", requireSupabaseAuth);
+  app.openapi(listenRoute, listenSocketHandler);
 }
+
+app.doc("/openapi.json", {
+  openapi: "3.0.0",
+  info: {
+    title: "Hyprnote API",
+    version: "1.0.0",
+    description:
+      "API for Hyprnote - AI-powered meeting notes application. APIs are categorized by tags: 'internal' for health checks and internal use, 'app' for endpoints used by the Hyprnote application (requires authentication), and 'webhook' for external service callbacks.",
+  },
+  tags: [
+    {
+      name: API_TAGS.INTERNAL,
+      description: "Internal endpoints for health checks and monitoring",
+    },
+    {
+      name: API_TAGS.APP,
+      description:
+        "Endpoints used by the Hyprnote application. Requires Supabase authentication.",
+    },
+    {
+      name: API_TAGS.WEBHOOK,
+      description: "Webhook endpoints for external service callbacks",
+    },
+  ],
+});
 
 export default {
   port: env.PORT,

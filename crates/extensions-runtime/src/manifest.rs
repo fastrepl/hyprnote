@@ -57,7 +57,17 @@ impl Extension {
     }
 
     pub fn ui_path(&self) -> Option<PathBuf> {
-        self.manifest.ui.as_ref().map(|ui| self.path.join(ui))
+        self.manifest.ui.as_ref().and_then(|ui| {
+            let canonical_root = self.path.canonicalize().ok()?;
+            let joined = self.path.join(ui);
+            let canonical_ui = joined.canonicalize().ok()?;
+
+            if canonical_ui.starts_with(&canonical_root) {
+                Some(canonical_ui)
+            } else {
+                None
+            }
+        })
     }
 }
 

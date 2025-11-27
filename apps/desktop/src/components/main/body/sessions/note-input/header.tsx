@@ -28,11 +28,6 @@ import {
 import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
-import {
-  buildSegments,
-  ChannelProfile,
-  type WordLike,
-} from "../../../../../utils/segment";
 import { useHasTranscript } from "../shared";
 import { EditingControls } from "./transcript/editing-controls";
 import { TranscriptionProgress } from "./transcript/progress";

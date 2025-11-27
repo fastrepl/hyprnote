@@ -90,7 +90,7 @@ export function TimelineView() {
         ref={containerRef}
         className={cn([
           "flex flex-col h-full overflow-y-auto scrollbar-hide",
-          "bg-neutral-50 rounded-lg",
+          "bg-neutral-50 rounded-xl",
         ])}
       >
         {buckets.map((bucket, index) => {

@@ -24,10 +24,10 @@ export function LeftSidebar() {
       <header
         data-tauri-drag-region
         className={cn([
-          "flex flex-row shrink-0",
-          "flex w-full items-center justify-end h-9 py-1",
-          "rounded-lg",
-          "pl-[72px] bg-neutral-50",
+          "flex flex-row items-center justify-end",
+          "w-full h-9 py-1 pl-[72px]",
+          "shrink-0",
+          "rounded-xl bg-neutral-50",
         ])}
       >
         {import.meta.env.DEV && (
@@ -48,7 +48,7 @@ export function LeftSidebar() {
         </Button>
       </header>
 
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden gap-1">
         <div className="flex-1 min-h-0 overflow-hidden relative">
           {showSearchResults ? <SearchResults /> : <TimelineView />}
           <BannerArea isProfileExpanded={isProfileExpanded} />

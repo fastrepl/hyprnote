@@ -25,10 +25,7 @@ import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import * as main from "../../../../store/tinybase/main";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
-import {
-  NotificationsMenuContent,
-  NotificationsMenuHeader,
-} from "./notification";
+import { NotificationsMenuContent } from "./notification";
 import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
 
@@ -141,9 +138,9 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
-  const handleClickNotifications = useCallback(() => {
-    setCurrentView("notifications");
-  }, []);
+  // const handleClickNotifications = useCallback(() => {
+  //   setCurrentView("notifications");
+  // }, []);
 
   const handleBackToMain = useCallback(() => {
     setCurrentView("main");
@@ -190,8 +187,8 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="absolute bottom-full left-0 right-0 mb-1"
           >
-            <div className="bg-neutral-50 rounded-lg overflow-hidden shadow-lg border">
-              <div className="pt-1.5">
+            <div className="bg-neutral-50 rounded-xl overflow-hidden shadow-sm border">
+              <div className="pt-1">
                 <AnimatePresence mode="wait">
                   {currentView === "main" ? (
                     <motion.div
@@ -202,12 +199,12 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       transition={{ duration: 0.2, ease: "easeInOut" }}
                       ref={mainViewRef}
                     >
-                      <NotificationsMenuHeader
+                      {/*<NotificationsMenuHeader
                         onClick={handleClickNotifications}
-                      />
+                      />*/}
                       <UpdateChecker />
 
-                      <div className="my-1.5 border-t border-neutral-100" />
+                      <div className="my-1 border-t border-neutral-100" />
 
                       {menuItems.map((item) => (
                         <MenuItem key={item.label} {...item} />
@@ -240,7 +237,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
         )}
       </AnimatePresence>
 
-      <div className="bg-neutral-50 rounded-lg overflow-hidden">
+      <div className="bg-neutral-50 rounded-xl overflow-hidden">
         <ProfileButton
           isExpanded={isExpanded}
           onClick={() => setIsExpanded(!isExpanded)}

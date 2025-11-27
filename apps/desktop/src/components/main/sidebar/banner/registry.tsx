@@ -32,7 +32,7 @@ export function createBannerRegistry({
         icon: <AudioLinesIcon className="size-5" />,
         title: "Missing AI model",
         description:
-          "Speech-to-text model is needed to make Hyprnote listen to your conversations",
+          "A transcription model is needed to make Hyprnote listen to your conversations.",
         primaryAction: {
           label: "Go to settings",
           onClick: onOpenSTTSettings,

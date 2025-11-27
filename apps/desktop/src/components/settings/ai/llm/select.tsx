@@ -79,7 +79,7 @@ export function SelectProviderAndModel() {
       <div
         className={cn([
           "flex flex-col gap-4",
-          "p-4 rounded-lg border border-neutral-200",
+          "p-4 rounded-xl border border-neutral-200",
           !!current_llm_provider && !!current_llm_model
             ? "bg-neutral-50"
             : "bg-red-50",

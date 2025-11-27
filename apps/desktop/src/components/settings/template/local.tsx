@@ -22,7 +22,7 @@ function UserTemplatesList({ query }: { query: string }) {
 
   if (templates.length === 0) {
     return (
-      <div className="text-center py-12 text-neutral-500 bg-neutral-50 rounded-lg p-4 border border-neutral-200">
+      <div className="text-center py-12 text-neutral-500 bg-neutral-50 rounded-xl p-4 border border-neutral-200">
         <BookText size={48} className="mx-auto mb-4 text-neutral-300" />
         <p className="text-sm">
           {query.length > 0 ? "No templates found" : "No templates yet"}

@@ -215,7 +215,7 @@ function SectionItem({
 
         <div
           className={cn(
-            "min-h-[100px] border rounded-md overflow-clip transition-colors",
+            "min-h-[100px] border rounded-xl overflow-clip transition-colors",
             isFocused
               ? "border-blue-500 ring-2 ring-primary/20"
               : "border-input",

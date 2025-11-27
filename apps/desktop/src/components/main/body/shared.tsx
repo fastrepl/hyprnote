@@ -80,26 +80,30 @@ export function TabItemBase({
         onClick={handleSelectThis}
         onMouseDown={handleMouseDown}
         className={cn([
-          "flex items-center gap-1 cursor-pointer group relative",
-          "w-48 h-full pl-2 pr-2",
-          "rounded-lg border",
+          "flex items-center gap-1 relative",
+          "w-48 h-full px-2",
+          "rounded-xl border",
+          "cursor-pointer group",
           "transition-colors duration-200",
-          active && selected
-            ? ["bg-red-50", "text-red-600", "border-red-500"]
-            : active
-              ? ["bg-red-50", "text-red-500", "border-0"]
-              : selected
-                ? ["bg-neutral-50", "text-black", "border-black"]
-                : ["bg-neutral-50", "text-neutral-500", "border-transparent"],
+          active && selected && ["bg-red-50", "text-red-600", "border-red-400"],
+          active && !selected && ["bg-red-50", "text-red-500", "border-0"],
+          !active &&
+            selected && ["bg-neutral-50", "text-black", "border-stone-400"],
+          !active &&
+            !selected && [
+              "bg-neutral-50",
+              "text-neutral-500",
+              "border-transparent",
+            ],
         ])}
       >
         <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
           <div className="flex-shrink-0 relative w-4 h-4">
             <div
-              className={cn(
+              className={cn([
                 "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
                 isHovered ? "opacity-0" : "opacity-100",
-              )}
+              ])}
             >
               {active ? (
                 <div className="relative size-2">
@@ -111,10 +115,10 @@ export function TabItemBase({
               )}
             </div>
             <div
-              className={cn(
+              className={cn([
                 "absolute inset-0 flex items-center justify-center transition-opacity duration-200",
                 isHovered ? "opacity-100" : "opacity-0",
-              )}
+              ])}
             >
               <button
                 onClick={(e) => {
@@ -123,11 +127,13 @@ export function TabItemBase({
                 }}
                 className={cn([
                   "flex items-center justify-center transition-colors",
-                  active
-                    ? "text-red-600 hover:text-red-700"
-                    : selected
-                      ? "text-neutral-700 hover:text-neutral-900"
-                      : "text-neutral-500 hover:text-neutral-700",
+                  active && "text-red-600 hover:text-red-700",
+                  !active &&
+                    selected &&
+                    "text-neutral-700 hover:text-neutral-900",
+                  !active &&
+                    !selected &&
+                    "text-neutral-500 hover:text-neutral-700",
                 ])}
               >
                 <X size={16} />

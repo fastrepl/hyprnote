@@ -5,7 +5,10 @@ import TurndownService from "turndown";
 
 import { getExtensions } from "./extensions";
 
-export const EMPTY_TIPTAP_DOC: JSONContent = { type: "doc", content: [] };
+export const EMPTY_TIPTAP_DOC: JSONContent = {
+  type: "doc",
+  content: [{ type: "paragraph" }],
+};
 
 export function isValidTiptapContent(content: unknown): content is JSONContent {
   if (!content || typeof content !== "object") {

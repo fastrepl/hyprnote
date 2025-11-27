@@ -86,7 +86,7 @@ function NonHyprProviderCard({
   return (
     <AccordionItem
       value={config.id}
-      className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
+      className="rounded-xl border-2 border-dashed bg-neutral-50"
       disabled={locked}
     >
       <AccordionTrigger
@@ -165,7 +165,7 @@ function HyprProviderCard({
   return (
     <AccordionItem
       value={providerId}
-      className={cn(["rounded-lg border-2 border-dashed bg-neutral-50"])}
+      className="rounded-xl border-2 border-dashed bg-neutral-50"
       disabled={locked}
     >
       <AccordionTrigger

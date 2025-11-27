@@ -13,10 +13,10 @@
     "withGlobalTauri": true,
     "macOSPrivateApi": true,
     "security": {
-      "assetProtocol": {
-        "enable": true,
-        "scope": ["**/*"]
-      }
+            "assetProtocol": {
+              "enable": true,
+              "scope": ["**/*", "$APPDATA/**"]
+            }
     }
   },
   "bundle": {

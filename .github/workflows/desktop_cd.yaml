@@ -168,7 +168,7 @@ jobs:
     if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
     permissions:
       contents: write
-    runs-on: macos-13
+    runs-on: macos-14
     defaults:
       run:
         shell: bash
@@ -355,8 +355,7 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - name: Download macOS Silicon DMG from S3 (if available)
-        if: ${{ needs.build-macos-silicon.result == 'success' }}
+      - if: ${{ needs.build-macos-silicon.result == 'success' }}
         run: |
           aws s3 cp \
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-aarch64.dmg" \
@@ -366,8 +365,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - name: Download macOS Intel DMG from S3 (if available)
-        if: ${{ needs.build-macos-intel.result == 'success' }}
+      - if: ${{ needs.build-macos-intel.result == 'success' }}
         run: |
           aws s3 cp \
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-x86_64.dmg" \
@@ -377,8 +375,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - name: Download Linux AppImage from S3 (if available)
-        if: ${{ needs.build-linux.result == 'success' }}
+      - if: ${{ needs.build-linux.result == 'success' }}
         run: |
           aws s3 cp \
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-linux-x86_64.AppImage" \
@@ -393,8 +390,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: desktop_v${{ needs.compute-version.outputs.version }}
           tag_prefix: ""
-      - name: Collect available artifacts
-        id: artifacts
+      - id: artifacts
         run: |
           ARTIFACTS=""
           if [[ "${{ needs.build-macos-silicon.result }}" == "success" ]]; then
@@ -419,8 +415,7 @@ jobs:
             exit 1
           fi
           echo "list=$ARTIFACTS" >> $GITHUB_OUTPUT
-      - name: Create GitHub release
-        uses: ncipollo/release-action@v1
+      - uses: ncipollo/release-action@v1
         with:
           tag: desktop_v${{ needs.compute-version.outputs.version }}
           name: desktop_v${{ needs.compute-version.outputs.version }}

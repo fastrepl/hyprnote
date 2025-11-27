@@ -6,4 +6,5 @@ export const Route = createFileRoute("/_view/app/")({
       throw redirect({ to: "/app/account" });
     }
   },
+  loader: async ({ context }) => ({ user: context.user }),
 });

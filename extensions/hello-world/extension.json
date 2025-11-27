@@ -4,5 +4,6 @@
   "version": "0.1.0",
   "description": "A minimal example extension to validate the Deno runtime architecture",
   "entry": "main.js",
+  "ui": "ui.tsx",
   "permissions": {}
 }

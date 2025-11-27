@@ -12,6 +12,9 @@ pub struct ExtensionManifest {
     pub permissions: ExtensionPermissions,
 }
 
+/// Extension permissions declaration.
+/// Note: Permissions are currently not enforced. The extension runtime runs with full capabilities.
+/// This struct is defined for future use when permission enforcement is implemented.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ExtensionPermissions {
     #[serde(default)]
@@ -32,7 +35,17 @@ impl Extension {
     pub fn load(path: PathBuf) -> crate::Result<Self> {
         let manifest_path = path.join("extension.json");
         let manifest_content = std::fs::read_to_string(&manifest_path)?;
-        let manifest: ExtensionManifest = serde_json::from_str(&manifest_content)?;
+        let manifest: ExtensionManifest = serde_json::from_str(&manifest_content)
+            .map_err(|e| crate::Error::InvalidManifest(e.to_string()))?;
+
+        let entry_path = path.join(&manifest.entry);
+        let canonical_base = path.canonicalize().map_err(|e| crate::Error::Io(e))?;
+        let canonical_entry = entry_path.canonicalize().map_err(|e| crate::Error::Io(e))?;
+        if !canonical_entry.starts_with(&canonical_base) {
+            return Err(crate::Error::InvalidManifest(
+                "entry path escapes extension directory".to_string(),
+            ));
+        }
 
         Ok(Self { manifest, path })
     }

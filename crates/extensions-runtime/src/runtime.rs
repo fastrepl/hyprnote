@@ -29,6 +29,7 @@ pub enum RuntimeRequest {
     Shutdown,
 }
 
+#[derive(Clone)]
 pub struct ExtensionsRuntime {
     sender: mpsc::Sender<RuntimeRequest>,
 }
@@ -161,11 +162,11 @@ async fn runtime_loop(mut rx: mpsc::Receiver<RuntimeRequest>) {
                 let _ = responder.send(result);
             }
             RuntimeRequest::ExecuteCode {
-                extension_id,
+                extension_id: _,
                 code,
                 responder,
             } => {
-                let result = execute_code_impl(&mut js_runtime, extension_id, code);
+                let result = execute_code_impl(&mut js_runtime, code);
                 let _ = responder.send(result);
             }
             RuntimeRequest::Shutdown => {
@@ -194,6 +195,10 @@ fn load_extension_impl(
         code
     );
 
+    // deno_core's execute_script requires a 'static script name for stack traces.
+    // We intentionally promote the extension id to 'static to satisfy this requirement.
+    // This leaks one small string per extension load, which is acceptable since extensions
+    // are loaded once and remain for the lifetime of the app.
     let script_name: &'static str = Box::leak(extension.manifest.id.clone().into_boxed_str());
     let result = js_runtime
         .execute_script(script_name, wrapper)
@@ -238,14 +243,9 @@ fn load_extension_impl(
     Ok(())
 }
 
-fn execute_code_impl(
-    js_runtime: &mut JsRuntime,
-    extension_id: String,
-    code: String,
-) -> Result<Value> {
-    let script_name: &'static str = Box::leak(extension_id.into_boxed_str());
+fn execute_code_impl(js_runtime: &mut JsRuntime, code: String) -> Result<Value> {
     let result = js_runtime
-        .execute_script(script_name, code)
+        .execute_script("<hypr:execute_code>", code)
         .map_err(|e| Error::RuntimeError(e.to_string()))?;
 
     let scope = &mut js_runtime.handle_scope();
@@ -274,12 +274,13 @@ async fn call_function_impl(
 
     let v8_args = {
         let scope = &mut js_runtime.handle_scope();
-        args.iter()
-            .map(|arg| {
-                let v8_val = serde_v8::to_v8(scope, arg).unwrap();
-                v8::Global::new(scope, v8_val)
-            })
-            .collect::<Vec<_>>()
+        let mut result = Vec::with_capacity(args.len());
+        for arg in &args {
+            let v8_val =
+                serde_v8::to_v8(scope, arg).map_err(|e| Error::RuntimeError(e.to_string()))?;
+            result.push(v8::Global::new(scope, v8_val));
+        }
+        result
     };
 
     let result = js_runtime

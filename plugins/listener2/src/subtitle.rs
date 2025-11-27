@@ -8,6 +8,13 @@ pub struct Token {
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct VttWord {
+    pub text: String,
+    pub start_ms: u64,
+    pub end_ms: u64,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct Subtitle {
     tokens: Vec<Token>,
 }

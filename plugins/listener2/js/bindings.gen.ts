@@ -22,6 +22,14 @@ async parseSubtitle(path: string) : Promise<Result<Subtitle, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async exportToVtt(sessionId: string, words: VttWord[]) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:listener2|export_to_vtt", { sessionId, words }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -58,6 +66,7 @@ export type StreamResponse = { type: "Results"; start: number; duration: number;
 export type StreamWord = { word: string; start: number; end: number; confidence: number; speaker: number | null; punctuated_word: string | null; language: string | null }
 export type Subtitle = { tokens: Token[] }
 export type Token = { text: string; start_time: number; end_time: number }
+export type VttWord = { text: string; start_ms: number; end_ms: number }
 
 /** tauri-specta globals **/
 

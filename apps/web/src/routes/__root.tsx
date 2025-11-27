@@ -7,7 +7,6 @@ import {
 import { lazy } from "react";
 
 import { NotFoundDocument } from "@/components/not-found";
-import { fetchUser } from "@/functions/auth";
 import appCss from "@/styles.css?url";
 
 interface RouterContext {
@@ -21,10 +20,6 @@ const KEYWORDS =
   "AI notepad, privacy-first AI, on-device AI, local AI, edge AI, meeting notes, personal knowledge base, AI notetaking, AI notetaker, Argmax, Deepgram, secure transcription, notepad app, notetaking app";
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async () => {
-    const user = await fetchUser();
-    return { user };
-  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },

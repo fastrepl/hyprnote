@@ -10,7 +10,6 @@ import { Header } from "@/components/header";
 
 export const Route = createFileRoute("/_view")({
   component: Component,
-  loader: async ({ context }) => ({ user: context.user }),
 });
 
 interface HeroContextType {

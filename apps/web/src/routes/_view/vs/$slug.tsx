@@ -78,9 +78,13 @@ function HeroSection({
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 px-6 py-12 lg:py-20">
       <header className="text-center max-w-4xl mx-auto">
-        <div className="flex items-center justify-center mb-8">
-          <div className="size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
-            <Icon icon={competitorIcon} className="text-[128px]" />
+        <div className="flex items-center justify-center mb-12">
+          <div className="size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent opacity-30">
+            <img
+              src={competitorIcon}
+              alt={competitorName}
+              className="size-36 rounded-[40px] border border-neutral-100"
+            />
           </div>
           <div className="text-3xl sm:text-4xl text-neutral-400 font-light pl-6 pr-8">
             vs

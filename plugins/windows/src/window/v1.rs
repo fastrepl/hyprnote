@@ -15,6 +15,8 @@ pub enum AppWindow {
     Chat,
     #[serde(rename = "devtool")]
     Devtool,
+    #[serde(rename = "control")]
+    Control,
 }
 
 impl std::fmt::Display for AppWindow {
@@ -26,6 +28,7 @@ impl std::fmt::Display for AppWindow {
             Self::Auth => write!(f, "auth"),
             Self::Chat => write!(f, "chat"),
             Self::Devtool => write!(f, "devtool"),
+            Self::Control => write!(f, "control"),
         }
     }
 }
@@ -41,6 +44,7 @@ impl std::str::FromStr for AppWindow {
             "auth" => return Ok(Self::Auth),
             "chat" => return Ok(Self::Chat),
             "devtool" => return Ok(Self::Devtool),
+            "control" => return Ok(Self::Control),
             _ => {}
         }
 
@@ -94,6 +98,7 @@ impl WindowImpl for AppWindow {
             Self::Auth => "Auth".into(),
             Self::Chat => "Chat".into(),
             Self::Devtool => "Devtool".into(),
+            Self::Control => "Control".into(),
         }
     }
 
@@ -170,6 +175,20 @@ impl WindowImpl for AppWindow {
                     .build()?;
 
                 let desired_size = LogicalSize::new(400.0, 600.0);
+                window.set_size(LogicalSize::new(1.0, 1.0))?;
+                std::thread::sleep(std::time::Duration::from_millis(10));
+                window.set_size(desired_size)?;
+                window
+            }
+            Self::Control => {
+                let window = self
+                    .window_builder(app, "/app/control")
+                    .transparent(true)
+                    .resizable(true)
+                    .min_inner_size(300.0, 200.0)
+                    .build()?;
+
+                let desired_size = LogicalSize::new(300.0, 200.0);
                 window.set_size(LogicalSize::new(1.0, 1.0))?;
                 std::thread::sleep(std::time::Duration::from_millis(10));
                 window.set_size(desired_size)?;

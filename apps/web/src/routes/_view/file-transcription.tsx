@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
@@ -10,6 +10,7 @@ import {
   TranscriptDisplay,
 } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
+import { getSupabaseBrowserClient } from "@/functions/supabase";
 
 export const Route = createFileRoute("/_view/file-transcription")({
   component: Component,
@@ -19,7 +20,29 @@ export const Route = createFileRoute("/_view/file-transcription")({
 });
 
 function Component() {
-  const { user } = Route.useRouteContext();
+  const [user, setUser] = useState<{ email?: string } | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadUser() {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const { data } = await supabase.auth.getUser();
+        if (!isMounted) return;
+        if (data.user?.email) {
+          setUser({ email: data.user.email });
+        } else {
+          setUser(null);
+        }
+      } catch {
+        if (isMounted) setUser(null);
+      }
+    }
+    loadUser();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState<string | null>(null);

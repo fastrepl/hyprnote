@@ -1,2 +1,5 @@
 .env
 .env.prod
+
+# Generated OpenAPI spec (build artifact)
+openapi.yaml

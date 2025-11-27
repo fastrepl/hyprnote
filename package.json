@@ -2,7 +2,7 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@10.21.0",
+  "packageManager": "pnpm@10.23.0",
   "devDependencies": {
     "@prettier/plugin-oxc": "^0.0.4",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",

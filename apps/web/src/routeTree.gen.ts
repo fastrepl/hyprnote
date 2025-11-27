@@ -67,6 +67,7 @@ import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/produ
 import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit.app'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
+import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
@@ -369,6 +370,11 @@ const ViewDownloadAppleSiliconRoute =
     path: '/download/apple-silicon',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewDownloadAppleIntelRoute = ViewDownloadAppleIntelRouteImport.update({
+  id: '/download/apple-intel',
+  path: '/download/apple-intel',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewDocsSplatRoute = ViewDocsSplatRouteImport.update({
   id: '/$',
   path: '/$',
@@ -445,6 +451,7 @@ export interface FileRoutesByFullPath {
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/docs/$': typeof ViewDocsSplatRoute
+  '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
@@ -510,6 +517,7 @@ export interface FileRoutesByTo {
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/docs/$': typeof ViewDocsSplatRoute
+  '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
@@ -579,6 +587,7 @@ export interface FileRoutesById {
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/docs/$': typeof ViewDocsSplatRoute
+  '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
   '/_view/press-kit/app': typeof ViewPressKitAppRoute
@@ -648,6 +657,7 @@ export interface FileRouteTypes {
     | '/callback/auth'
     | '/changelog/$slug'
     | '/docs/$'
+    | '/download/apple-intel'
     | '/download/apple-silicon'
     | '/legal/$slug'
     | '/press-kit/app'
@@ -713,6 +723,7 @@ export interface FileRouteTypes {
     | '/callback/auth'
     | '/changelog/$slug'
     | '/docs/$'
+    | '/download/apple-intel'
     | '/download/apple-silicon'
     | '/legal/$slug'
     | '/press-kit/app'
@@ -781,6 +792,7 @@ export interface FileRouteTypes {
     | '/_view/callback/auth'
     | '/_view/changelog/$slug'
     | '/_view/docs/$'
+    | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
     | '/_view/legal/$slug'
     | '/_view/press-kit/app'
@@ -1240,6 +1252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadAppleSiliconRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/download/apple-intel': {
+      id: '/_view/download/apple-intel'
+      path: '/download/apple-intel'
+      fullPath: '/download/apple-intel'
+      preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/docs/$': {
       id: '/_view/docs/$'
       path: '/$'
@@ -1362,6 +1381,7 @@ interface ViewRouteRouteChildren {
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
+  ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
   ViewLegalSlugRoute: typeof ViewLegalSlugRoute
   ViewProductAiAssistantRoute: typeof ViewProductAiAssistantRoute
@@ -1409,6 +1429,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
+  ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
   ViewLegalSlugRoute: ViewLegalSlugRoute,
   ViewProductAiAssistantRoute: ViewProductAiAssistantRoute,

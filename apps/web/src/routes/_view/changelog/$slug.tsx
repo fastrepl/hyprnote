@@ -118,7 +118,38 @@ function HeroSection({ changelog }: { changelog: ChangelogWithMeta }) {
         <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
           Version {changelog.version}
         </h1>
+        <DownloadButtons version={changelog.version} />
       </div>
+    </div>
+  );
+}
+
+function DownloadButtons({ version }: { version: string }) {
+  const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+      <a
+        href={`${baseUrl}/hyprnote-macos-aarch64.dmg`}
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-stone-900 text-white rounded-full hover:bg-stone-800 transition-colors"
+      >
+        <Icon icon="simple-icons:apple" className="text-base" />
+        <span>Apple Silicon</span>
+      </a>
+      <a
+        href={`${baseUrl}/hyprnote-macos-x86_64.dmg`}
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-stone-100 text-stone-700 border border-stone-200 rounded-full hover:bg-stone-200 transition-colors"
+      >
+        <Icon icon="simple-icons:apple" className="text-base" />
+        <span>Intel Mac</span>
+      </a>
+      <a
+        href={`${baseUrl}/hyprnote-linux-x86_64.AppImage`}
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-stone-100 text-stone-700 border border-stone-200 rounded-full hover:bg-stone-200 transition-colors"
+      >
+        <Icon icon="simple-icons:linux" className="text-base" />
+        <span>Linux</span>
+      </a>
     </div>
   );
 }

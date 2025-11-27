@@ -27,8 +27,9 @@ function Component() {
           ])}
         >
           <span>
-            Mac (Apple Silicon) features on-device speech-to-text. Other
-            platforms coming soon without on-device processing.
+            Mac (Apple Silicon) features on-device speech-to-text. Intel Mac
+            available with cloud-based transcription. Other platforms coming
+            soon.
           </span>
         </div>
 
@@ -57,8 +58,8 @@ function Component() {
                 <DownloadCard
                   iconName="simple-icons:apple"
                   spec="macOS 14.2+ (Intel)"
-                  downloadUrl="#"
-                  available={false}
+                  downloadUrl="/download/apple-intel"
+                  available={true}
                 />
                 <DownloadCard
                   iconName="simple-icons:windows"

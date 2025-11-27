@@ -8,6 +8,7 @@ import { logger } from "hono/logger";
 
 import { syncBillingForStripeEvent } from "./billing";
 import { env } from "./env";
+import type { AppBindings } from "./hono-bindings";
 import { listenSocketHandler } from "./listen";
 import { OPENAPI_CONFIG } from "./openapi-config";
 import {
@@ -19,7 +20,7 @@ import {
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth } from "./supabase";
 
-const app = new OpenAPIHono();
+const app = new OpenAPIHono<AppBindings>();
 
 app.use(logger());
 app.use(bodyLimit({ maxSize: 1024 * 1024 * 5 }));
@@ -102,7 +103,7 @@ app.openapi(chatCompletionsRoute, async (c) => {
 app.use("/webhook/stripe", verifyStripeWebhook);
 app.openapi(stripeWebhookRoute, async (c) => {
   try {
-    const stripeEvent = c.get("stripeEvent" as never);
+    const stripeEvent = c.get("stripeEvent");
     await syncBillingForStripeEvent(stripeEvent);
   } catch (error) {
     console.error(error);

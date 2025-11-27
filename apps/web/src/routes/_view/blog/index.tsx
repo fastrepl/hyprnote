@@ -78,19 +78,32 @@ function FeaturedSection({ articles }: { articles: Article[] }) {
   }
 
   const [mostRecent, ...others] = articles;
-  const displayedOthers = others.slice(0, 3);
+  const displayedOthers = others.slice(0, 4);
 
   return (
     <section className="mb-20">
       <SectionHeader title="Featured" />
-      <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
-        <FeaturedCard article={mostRecent} featured={true} />
+      <div
+        className={cn([
+          "flex flex-col gap-3",
+          "md:gap-4",
+          "lg:grid lg:grid-cols-2",
+        ])}
+      >
+        <MostRecentFeaturedCard article={mostRecent} />
         {displayedOthers.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-1">
-            {displayedOthers.map((article) => (
-              <CompactFeaturedCard
+          <div
+            className={cn([
+              "flex flex-col gap-3",
+              "md:flex-row md:gap-3",
+              "lg:flex-col",
+            ])}
+          >
+            {displayedOthers.map((article, index) => (
+              <OtherFeaturedCard
                 key={article._meta.filePath}
                 article={article}
+                className={index === 3 ? "hidden lg:block" : ""}
               />
             ))}
           </div>
@@ -130,25 +143,25 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-function FeaturedCard({
-  article,
-  featured = false,
-}: {
-  article: Article;
-  featured?: boolean;
-}) {
+function MostRecentFeaturedCard({ article }: { article: Article }) {
   const [coverImageError, setCoverImageError] = useState(false);
   const [coverImageLoaded, setCoverImageLoaded] = useState(false);
   const hasCoverImage = !coverImageError;
   const displayDate = article.updated || article.created;
+  const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
     <Link
       to="/blog/$slug"
       params={{ slug: article.slug }}
-      className="group block h-full"
+      className="group block"
     >
-      <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-xl transition-all duration-300">
+      <article
+        className={cn([
+          "h-full border border-neutral-100 rounded-sm overflow-hidden bg-white",
+          "hover:shadow-xl transition-all duration-300",
+        ])}
+      >
         {hasCoverImage && (
           <ArticleImage
             src={article.coverImage}
@@ -160,25 +173,55 @@ function FeaturedCard({
           />
         )}
 
-        <div className="p-8">
-          {featured && <FeaturedBadge />}
-
-          <h3 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-3 group-hover:text-stone-800 transition-colors line-clamp-2">
+        <div className="p-6 md:p-8">
+          <h3
+            className={cn([
+              "text-xl font-serif text-stone-600 mb-2",
+              "group-hover:text-stone-800 transition-colors line-clamp-2",
+              "md:text-2xl md:mb-3",
+            ])}
+          >
             {article.display_title}
           </h3>
 
-          <p className="text-neutral-600 leading-relaxed mb-6 line-clamp-3">
+          <p className="text-neutral-600 leading-relaxed mb-4 line-clamp-2 md:line-clamp-3">
             {article.meta_description}
           </p>
 
-          <ArticleFooter author={article.author} date={displayDate} showYear />
+          <div className="flex items-center gap-3 text-sm text-neutral-500">
+            {avatarUrl && (
+              <img
+                src={avatarUrl}
+                alt={article.author}
+                className="w-6 h-6 rounded-full object-cover"
+              />
+            )}
+            <span>{article.author}</span>
+            <span>·</span>
+            <time dateTime={displayDate}>
+              {new Date(displayDate).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </time>
+          </div>
         </div>
       </article>
     </Link>
   );
 }
 
-function CompactFeaturedCard({ article }: { article: Article }) {
+function OtherFeaturedCard({
+  article,
+  className,
+}: {
+  article: Article;
+  className?: string;
+}) {
+  const [coverImageError, setCoverImageError] = useState(false);
+  const [coverImageLoaded, setCoverImageLoaded] = useState(false);
+  const hasCoverImage = !coverImageError;
   const displayDate = article.updated || article.created;
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
@@ -186,29 +229,74 @@ function CompactFeaturedCard({ article }: { article: Article }) {
     <Link
       to="/blog/$slug"
       params={{ slug: article.slug }}
-      className="group block h-full"
+      className={cn([
+        "group block md:flex-1 md:min-w-0 lg:flex-auto",
+        className,
+      ])}
     >
-      <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-xl transition-all duration-300 p-6">
-        <h3 className="text-lg font-serif text-stone-600 mb-3 group-hover:text-stone-800 transition-colors line-clamp-2">
-          {article.display_title}
-        </h3>
-
-        <div className="flex items-center gap-3 text-sm text-neutral-500 mt-auto">
-          {avatarUrl && (
+      <article
+        className={cn([
+          "h-full border border-neutral-100 rounded-sm overflow-hidden bg-white",
+          "hover:shadow-xl transition-all duration-300",
+          "flex flex-col",
+          "lg:flex-row",
+        ])}
+      >
+        {hasCoverImage && (
+          <div
+            className={cn([
+              "aspect-40/21 shrink-0 overflow-hidden bg-stone-50",
+              "border-b border-neutral-100",
+              "lg:aspect-auto lg:w-32 lg:border-b-0 lg:border-r",
+            ])}
+          >
             <img
-              src={avatarUrl}
-              alt={article.author}
-              className="w-5 h-5 rounded-full object-cover"
+              src={article.coverImage}
+              alt={article.title}
+              className={cn([
+                "w-full h-full object-cover",
+                "group-hover:scale-105 transition-all duration-500",
+                coverImageLoaded ? "opacity-100" : "opacity-0",
+              ])}
+              onLoad={() => setCoverImageLoaded(true)}
+              onError={() => setCoverImageError(true)}
+              loading="lazy"
             />
-          )}
-          <span>{article.author}</span>
-          <span>·</span>
-          <time dateTime={displayDate}>
-            {new Date(displayDate).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-            })}
-          </time>
+          </div>
+        )}
+
+        <div
+          className={cn([
+            "flex-1 min-w-0 p-4 flex flex-col justify-center",
+            "lg:p-4",
+          ])}
+        >
+          <h3
+            className={cn([
+              "text-base font-serif text-stone-600 mb-2",
+              "group-hover:text-stone-800 transition-colors line-clamp-2",
+            ])}
+          >
+            {article.display_title}
+          </h3>
+
+          <div className="flex items-center gap-2 text-xs text-neutral-500">
+            {avatarUrl && (
+              <img
+                src={avatarUrl}
+                alt={article.author}
+                className="w-5 h-5 rounded-full object-cover"
+              />
+            )}
+            <span className="truncate">{article.author}</span>
+            <span>·</span>
+            <time dateTime={displayDate} className="shrink-0">
+              {new Date(displayDate).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              })}
+            </time>
+          </div>
         </div>
       </article>
     </Link>
@@ -257,7 +345,7 @@ function ArticleListItem({ article }: { article: Article }) {
             </div>
             <time
               dateTime={displayDate}
-              className="text-sm text-neutral-500 shrink-0"
+              className="text-sm text-neutral-500 shrink-0 font-mono"
             >
               {new Date(displayDate).toLocaleDateString("en-US", {
                 month: "short",
@@ -269,7 +357,7 @@ function ArticleListItem({ article }: { article: Article }) {
           <div className="h-px flex-1 bg-neutral-200 hidden sm:block" />
           <time
             dateTime={displayDate}
-            className="text-sm text-neutral-500 shrink-0 hidden sm:block whitespace-nowrap"
+            className="text-sm text-neutral-500 shrink-0 hidden sm:block whitespace-nowrap font-mono"
           >
             {new Date(displayDate).toLocaleDateString("en-US", {
               month: "short",
@@ -315,56 +403,6 @@ function ArticleImage({
         onError={onError}
         loading={loading}
       />
-    </div>
-  );
-}
-
-function FeaturedBadge() {
-  return (
-    <div className="inline-flex items-center gap-2 text-xs font-medium text-stone-600 bg-stone-50 px-3 py-1 rounded-full mb-4">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-      </svg>
-      Featured
-    </div>
-  );
-}
-
-function ArticleFooter({
-  author,
-  date,
-  showYear = false,
-}: {
-  author: string;
-  date: string;
-  showYear?: boolean;
-}) {
-  const avatarUrl = AUTHOR_AVATARS[author];
-
-  return (
-    <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
-      <div className="flex items-center gap-3 text-sm text-neutral-500">
-        {avatarUrl && (
-          <img
-            src={avatarUrl}
-            alt={author}
-            className="w-6 h-6 rounded-full object-cover"
-          />
-        )}
-        <span>{author}</span>
-        <span>·</span>
-        <time dateTime={date}>
-          {new Date(date).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            ...(showYear && { year: "numeric" }),
-          })}
-        </time>
-      </div>
-
-      <span className="text-sm text-neutral-500 group-hover:text-stone-600 transition-colors font-medium">
-        Read →
-      </span>
     </div>
   );
 }

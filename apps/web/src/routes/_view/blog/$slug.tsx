@@ -2,13 +2,23 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
-import { useState } from "react";
+import { motion } from "motion/react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { CtaCard } from "@/components/cta-card";
 import { Image } from "@/components/image";
 import { Mermaid, Tweet } from "@/components/mdx";
+
+const AUTHOR_AVATARS: Record<string, string> = {
+  "John Jeong":
+    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png",
+  Harshika:
+    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/harshika.jpeg",
+  "Yujong Lee":
+    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png",
+};
 
 export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
@@ -86,7 +96,12 @@ function Component() {
         <div className="flex gap-6">
           <TableOfContents toc={article.toc} />
 
-          <main className="flex-1 min-w-0 pb-6 px-4 lg:px-0 lg:py-6">
+          <main
+            className={cn([
+              "flex-1 min-w-0 pb-6 px-4 lg:px-0 lg:py-6",
+              !article.coverImage || coverImageError ? "pt-6" : "",
+            ])}
+          >
             <CoverImage
               article={article}
               hasCoverImage={hasCoverImage}
@@ -222,6 +237,8 @@ function TableOfContents({
 }
 
 function ArticleHeader({ article }: { article: any }) {
+  const avatarUrl = AUTHOR_AVATARS[article.author];
+
   return (
     <header className="mb-8 lg:mb-12">
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-600 mb-4">
@@ -232,7 +249,16 @@ function ArticleHeader({ article }: { article: any }) {
       </p>
 
       <div className="flex items-center gap-4 text-sm text-neutral-500">
-        {article.author && <span>{article.author}</span>}
+        <div className="flex items-center gap-2">
+          {avatarUrl && (
+            <img
+              src={avatarUrl}
+              alt={article.author}
+              className="w-6 h-6 rounded-full object-cover"
+            />
+          )}
+          {article.author && <span>{article.author}</span>}
+        </div>
         {article.author && <span>·</span>}
         <time dateTime={article.created}>
           {new Date(article.created).toLocaleDateString("en-US", {
@@ -277,7 +303,7 @@ function CoverImage({
   }
 
   return (
-    <div className="mb-8 lg:mb-12 -mx-4 sm:mx-0 pt-6 lg:pt-0">
+    <div className="mb-8 lg:mb-12 -mx-4 sm:mx-0 sm:pt-6">
       <Image
         src={article.coverImage}
         alt={article.title}
@@ -395,8 +421,36 @@ function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
 }
 
 function MobileCTA() {
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [lastScrollY]);
+
   return (
-    <div className="sm:hidden fixed bottom-0 left-0 right-0 border-t border-neutral-200 bg-white/95 backdrop-blur-sm p-4 z-20">
+    <motion.div
+      className="sm:hidden fixed bottom-0 left-0 right-0 border-t border-neutral-200 bg-white/95 backdrop-blur-sm p-4 z-20"
+      initial={{ y: 0 }}
+      animate={{ y: isVisible ? 0 : "100%" }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
       <a
         href="/founders"
         target="_blank"
@@ -424,7 +478,7 @@ function MobileCTA() {
           />
         </svg>
       </a>
-    </div>
+    </motion.div>
   );
 }
 

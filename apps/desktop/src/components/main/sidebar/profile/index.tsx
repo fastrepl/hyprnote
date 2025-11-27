@@ -3,6 +3,7 @@ import {
   CalendarIcon,
   ChevronUpIcon,
   FolderOpenIcon,
+  PuzzleIcon,
   SettingsIcon,
   UserIcon,
   UsersIcon,
@@ -158,11 +159,17 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
+  const handleClickExtension = useCallback(() => {
+    openNew({ type: "extension", extensionId: "hello-world" });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
   const menuItems = [
     { icon: FolderOpenIcon, label: "Folders", onClick: handleClickFolders },
     { icon: UsersIcon, label: "Contacts", onClick: handleClickContacts },
     { icon: CalendarIcon, label: "Calendar", onClick: handleClickCalendar },
     { icon: UserIcon, label: "My Profile", onClick: handleClickProfile },
+    { icon: PuzzleIcon, label: "Hello World", onClick: handleClickExtension },
     {
       icon: SettingsIcon,
       label: "Settings",

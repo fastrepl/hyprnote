@@ -710,6 +710,27 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
 
+  extensions:
+    devDependencies:
+      '@hypr/ui':
+        specifier: workspace:^
+        version: link:../packages/ui
+      '@hypr/utils':
+        specifier: workspace:^
+        version: link:../packages/utils
+      '@types/react':
+        specifier: ^19.2.7
+        version: 19.2.7
+      esbuild:
+        specifier: 0.25.11
+        version: 0.25.11
+      react:
+        specifier: ^19.2.0
+        version: 19.2.0
+      typescript:
+        specifier: ~5.6.3
+        version: 5.6.3
+
   packages/codemirror:
     dependencies:
       '@codemirror/lang-jinja':
@@ -28454,7 +28475,7 @@ snapshots:
       normalize-path: 3.0.0
       safe-stable-stringify: 2.5.0
       tslib: 2.8.1
-      typescript: 5.8.3
+      typescript: 5.9.3
 
   ts-md5@2.0.1: {}
 

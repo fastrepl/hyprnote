@@ -68,7 +68,8 @@ async getExtension(extensionId: string) : Promise<Result<ExtensionInfo, Error>> 
 /** user-defined types **/
 
 export type Error = { ExtensionNotFound: string } | { RuntimeError: string } | { InvalidManifest: string } | { Io: string }
-export type ExtensionInfo = { id: string; name: string; version: string; description: string | null; path: string; ui_path: string | null }
+export type ExtensionInfo = { id: string; name: string; version: string; api_version: string; description: string | null; path: string; panels: PanelInfo[] }
+export type PanelInfo = { id: string; title: string; entry: string; entry_path: string | null }
 
 /** tauri-specta globals **/
 

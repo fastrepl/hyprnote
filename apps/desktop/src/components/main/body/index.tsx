@@ -25,6 +25,7 @@ import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import { TabContentEvent, TabItemEvent } from "./events";
 import { TabContentExtension, TabItemExtension } from "./extensions";
+import { loadExtensionPanels } from "./extensions/registry";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
 import { Search } from "./search";
@@ -37,6 +38,10 @@ export function Body() {
       currentTab: state.currentTab,
     })),
   );
+
+  useEffect(() => {
+    loadExtensionPanels();
+  }, []);
 
   if (!currentTab) {
     return null;

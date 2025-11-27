@@ -17,9 +17,18 @@ pub struct ExtensionInfo {
     pub id: String,
     pub name: String,
     pub version: String,
+    pub api_version: String,
     pub description: Option<String>,
     pub path: String,
-    pub ui_path: Option<String>,
+    pub panels: Vec<PanelInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct PanelInfo {
+    pub id: String,
+    pub title: String,
+    pub entry: String,
+    pub entry_path: Option<String>,
 }
 
 pub struct State {

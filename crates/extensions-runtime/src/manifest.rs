@@ -1,22 +1,35 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+pub const CURRENT_API_VERSION: &str = "0.1";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExtensionManifest {
     pub id: String,
     pub name: String,
     pub version: String,
+    #[serde(default)]
     pub description: Option<String>,
+    #[serde(default = "default_api_version")]
+    pub api_version: String,
     pub entry: String,
     #[serde(default)]
-    pub ui: Option<String>,
+    pub panels: Vec<PanelDeclaration>,
     #[serde(default)]
     pub permissions: ExtensionPermissions,
 }
 
-/// Extension permissions declaration.
-/// Note: Permissions are currently not enforced. The extension runtime runs with full capabilities.
-/// This struct is defined for future use when permission enforcement is implemented.
+fn default_api_version() -> String {
+    CURRENT_API_VERSION.to_string()
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PanelDeclaration {
+    pub id: String,
+    pub title: String,
+    pub entry: String,
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ExtensionPermissions {
     #[serde(default)]
@@ -56,18 +69,26 @@ impl Extension {
         self.path.join(&self.manifest.entry)
     }
 
-    pub fn ui_path(&self) -> Option<PathBuf> {
-        self.manifest.ui.as_ref().and_then(|ui| {
-            let canonical_root = self.path.canonicalize().ok()?;
-            let joined = self.path.join(ui);
-            let canonical_ui = joined.canonicalize().ok()?;
+    pub fn panel_path(&self, panel_id: &str) -> Option<PathBuf> {
+        self.manifest
+            .panels
+            .iter()
+            .find(|p| p.id == panel_id)
+            .and_then(|panel| {
+                let canonical_root = self.path.canonicalize().ok()?;
+                let joined = self.path.join(&panel.entry);
+                let canonical_panel = joined.canonicalize().ok()?;
 
-            if canonical_ui.starts_with(&canonical_root) {
-                Some(canonical_ui)
-            } else {
-                None
-            }
-        })
+                if canonical_panel.starts_with(&canonical_root) {
+                    Some(canonical_panel)
+                } else {
+                    None
+                }
+            })
+    }
+
+    pub fn panels(&self) -> &[PanelDeclaration] {
+        &self.manifest.panels
     }
 }
 

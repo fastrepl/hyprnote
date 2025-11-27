@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use tauri::Manager;
 
-use crate::{Error, ExtensionInfo, ExtensionsPluginExt};
+use crate::{Error, ExtensionInfo, ExtensionsPluginExt, PanelInfo};
 
 #[tauri::command]
 #[specta::specta]
@@ -50,13 +50,28 @@ pub async fn list_extensions<R: tauri::Runtime>(
 
     Ok(extensions
         .into_iter()
-        .map(|ext| ExtensionInfo {
-            id: ext.manifest.id.clone(),
-            name: ext.manifest.name.clone(),
-            version: ext.manifest.version.clone(),
-            description: ext.manifest.description.clone(),
-            path: ext.path.to_string_lossy().to_string(),
-            ui_path: ext.ui_path().map(|p| p.to_string_lossy().to_string()),
+        .map(|ext| {
+            let panels = ext
+                .panels()
+                .iter()
+                .map(|p| PanelInfo {
+                    id: p.id.clone(),
+                    title: p.title.clone(),
+                    entry: p.entry.clone(),
+                    entry_path: ext
+                        .panel_path(&p.id)
+                        .map(|p| p.to_string_lossy().to_string()),
+                })
+                .collect();
+            ExtensionInfo {
+                id: ext.manifest.id.clone(),
+                name: ext.manifest.name.clone(),
+                version: ext.manifest.version.clone(),
+                api_version: ext.manifest.api_version.clone(),
+                description: ext.manifest.description.clone(),
+                path: ext.path.to_string_lossy().to_string(),
+                panels,
+            }
         })
         .collect())
 }
@@ -96,13 +111,28 @@ pub async fn get_extension<R: tauri::Runtime>(
     extensions
         .into_iter()
         .find(|ext| ext.manifest.id == extension_id)
-        .map(|ext| ExtensionInfo {
-            id: ext.manifest.id.clone(),
-            name: ext.manifest.name.clone(),
-            version: ext.manifest.version.clone(),
-            description: ext.manifest.description.clone(),
-            path: ext.path.to_string_lossy().to_string(),
-            ui_path: ext.ui_path().map(|p| p.to_string_lossy().to_string()),
+        .map(|ext| {
+            let panels = ext
+                .panels()
+                .iter()
+                .map(|p| PanelInfo {
+                    id: p.id.clone(),
+                    title: p.title.clone(),
+                    entry: p.entry.clone(),
+                    entry_path: ext
+                        .panel_path(&p.id)
+                        .map(|p| p.to_string_lossy().to_string()),
+                })
+                .collect();
+            ExtensionInfo {
+                id: ext.manifest.id.clone(),
+                name: ext.manifest.name.clone(),
+                version: ext.manifest.version.clone(),
+                api_version: ext.manifest.api_version.clone(),
+                description: ext.manifest.description.clone(),
+                path: ext.path.to_string_lossy().to_string(),
+                panels,
+            }
         })
         .ok_or_else(|| Error::ExtensionNotFound(extension_id))
 }

@@ -3,6 +3,8 @@ const COMMANDS: &[&str] = &[
     "call_function",
     "execute_code",
     "list_extensions",
+    "get_extensions_dir",
+    "get_extension",
 ];
 
 fn main() {

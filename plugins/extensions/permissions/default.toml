@@ -1,0 +1,10 @@
+[default]
+description = "Default permissions for the plugin"
+permissions = [
+    "allow-load-extension",
+    "allow-call-function",
+    "allow-execute-code",
+    "allow-list-extensions",
+    "allow-get-extensions-dir",
+    "allow-get-extension",
+]

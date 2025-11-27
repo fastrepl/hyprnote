@@ -14,7 +14,7 @@ import { cn } from "@hypr/utils";
 
 import type { Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
-import { getExtensionComponent } from "./registry";
+import { getExtensionComponent, getPanelInfoByExtensionId } from "./registry";
 
 type ExtensionTab = Extract<Tab, { type: "extension" }>;
 
@@ -89,6 +89,7 @@ export function TabItemExtension({
 
 export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
   const Component = getExtensionComponent(tab.extensionId);
+  const panelInfo = getPanelInfoByExtensionId(tab.extensionId);
 
   if (!Component) {
     return (
@@ -97,8 +98,15 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
           <div className="text-center">
             <PuzzleIcon size={48} className="mx-auto text-neutral-300 mb-4" />
             <p className="text-neutral-500">
-              Extension not found: {tab.extensionId}
+              {panelInfo
+                ? `Extension panel "${panelInfo.title}" is registered but UI not loaded`
+                : `Extension not found: ${tab.extensionId}`}
             </p>
+            {panelInfo?.entry && (
+              <p className="text-neutral-400 text-sm mt-2">
+                Entry: {panelInfo.entry}
+              </p>
+            )}
           </div>
         </div>
       </StandardTabWrapper>

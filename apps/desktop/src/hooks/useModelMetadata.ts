@@ -25,7 +25,7 @@ export function useModelMetadata(
     enabled,
     retry: 3,
     retryDelay: 300,
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 2,
   });
 
   return { data, isLoading };

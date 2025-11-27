@@ -14,7 +14,7 @@ import { cn } from "@hypr/utils";
 
 import type { Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
-import { getExtensionComponent, getPanelInfo } from "./registry";
+import { getExtensionComponent, getPanelInfoByExtensionId } from "./registry";
 
 type ExtensionTab = Extract<Tab, { type: "extension" }>;
 
@@ -89,7 +89,7 @@ export function TabItemExtension({
 
 export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
   const Component = getExtensionComponent(tab.extensionId);
-  const panelInfo = getPanelInfo(tab.extensionId);
+  const panelInfo = getPanelInfoByExtensionId(tab.extensionId);
 
   if (!Component) {
     return (
@@ -102,7 +102,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
                 ? `Extension panel "${panelInfo.title}" is registered but UI not loaded`
                 : `Extension not found: ${tab.extensionId}`}
             </p>
-            {panelInfo?.entry_path && (
+            {panelInfo?.entry && (
               <p className="text-neutral-400 text-sm mt-2">
                 Entry: {panelInfo.entry}
               </p>

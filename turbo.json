@@ -11,7 +11,7 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["storybook-static/**"]
+      "outputs": ["storybook-static/**", "*/dist/**"]
     },
     "tauri:dev": {
       "dependsOn": ["^build"],

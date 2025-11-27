@@ -13,7 +13,14 @@ async function buildExtension(name) {
     return;
   }
 
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+  let manifest;
+  try {
+    const raw = fs.readFileSync(manifestPath, "utf-8");
+    manifest = JSON.parse(raw);
+  } catch (err) {
+    console.error(`Failed to read/parse manifest ${manifestPath}:`, err);
+    return;
+  }
 
   for (const panel of manifest.panels || []) {
     const entryFile = panel.entry.replace("dist/", "").replace(".js", ".tsx");
@@ -33,18 +40,36 @@ async function buildExtension(name) {
 
     console.log(`Building ${name}/${panel.id}: ${entryFile} -> ${panel.entry}`);
 
-    await esbuild.build({
-      entryPoints: [entryPath],
-      bundle: true,
-      outfile,
-      format: "esm",
-      platform: "browser",
-      target: "es2020",
-      jsx: "automatic",
-      external: ["react", "react-dom", "@hypr/ui", "@hypr/utils"],
-      minify: false,
-      sourcemap: true,
-    });
+    try {
+      const result = await esbuild.build({
+        entryPoints: [entryPath],
+        bundle: true,
+        outfile,
+        format: "esm",
+        platform: "browser",
+        target: "es2020",
+        jsx: "automatic",
+        external: ["react", "react-dom", "@hypr/ui", "@hypr/utils"],
+        minify: false,
+        sourcemap: true,
+      });
+
+      if (result.errors && result.errors.length > 0) {
+        console.error(
+          `Failed to build panel ${panel.id} (${entryPath} -> ${outfile}):`,
+        );
+        for (const error of result.errors) {
+          console.error(error);
+        }
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(
+        `Error building panel ${panel.id} (${entryPath} -> ${outfile}):`,
+        err,
+      );
+      process.exit(1);
+    }
   }
 
   console.log(`Built extension: ${name}`);
@@ -72,7 +97,7 @@ async function buildAll() {
 }
 
 if (extensionName) {
-  buildExtension(extensionName);
+  await buildExtension(extensionName);
 } else {
-  buildAll();
+  await buildAll();
 }

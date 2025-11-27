@@ -19,6 +19,8 @@ const dynamicExtensionComponents: Record<
 > = {};
 
 const loadedPanels: Map<string, PanelInfo> = new Map();
+const extensionPanels: Map<string, PanelInfo[]> = new Map();
+let panelsLoaded = false;
 
 export function getExtensionComponent(
   extensionId: string,
@@ -64,13 +66,33 @@ export function getPanelInfo(panelId: string): PanelInfo | undefined {
   return loadedPanels.get(panelId);
 }
 
-export async function loadExtensionPanels(): Promise<void> {
-  const extensions = await listInstalledExtensions();
+export function getPanelInfoByExtensionId(
+  extensionId: string,
+): PanelInfo | undefined {
+  const panels = extensionPanels.get(extensionId);
+  return panels?.[0];
+}
 
-  for (const ext of extensions) {
-    for (const panel of ext.panels) {
-      loadedPanels.set(panel.id, panel);
+export async function loadExtensionPanels(): Promise<void> {
+  if (panelsLoaded) {
+    return;
+  }
+
+  try {
+    const extensions = await listInstalledExtensions();
+
+    for (const ext of extensions) {
+      const panels: PanelInfo[] = [];
+      for (const panel of ext.panels) {
+        loadedPanels.set(panel.id, panel);
+        panels.push(panel);
+      }
+      extensionPanels.set(ext.id, panels);
     }
+
+    panelsLoaded = true;
+  } catch (err) {
+    console.error("Failed to load extension panels:", err);
   }
 }
 

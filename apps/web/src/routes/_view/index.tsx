@@ -1171,7 +1171,7 @@ function FeaturesMobileCarousel({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
                         Coming Soon
                       </span>
                     )}
@@ -1283,7 +1283,7 @@ function FeaturesDesktopGrid() {
                 </h3>
               </div>
               {feature.comingSoon && (
-                <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
                   Coming Soon
                 </span>
               )}
@@ -1388,7 +1388,7 @@ function DetailsMobileCarousel({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
                         Coming Soon
                       </span>
                     )}
@@ -1451,7 +1451,7 @@ function DetailsTabletView({
                       {feature.title}
                     </h3>
                     {feature.comingSoon && (
-                      <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full">
+                      <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
                         Coming Soon
                       </span>
                     )}
@@ -1720,7 +1720,7 @@ function BlogSection() {
 
                 <div className="p-6 flex flex-col flex-1">
                   <h3 className="text-xl font-serif text-stone-600 mb-2 group-hover:text-stone-800 transition-colors line-clamp-2">
-                    {article.display_title}
+                    {article.display_title || article.meta_title}
                   </h3>
 
                   <p className="text-sm text-neutral-600 leading-relaxed mb-4 line-clamp-3 flex-1">

@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use crate::{Error, ExtensionsPluginExt};
+use tauri::Manager;
+
+use crate::{Error, ExtensionInfo, ExtensionsPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -36,7 +38,71 @@ pub async fn execute_code<R: tauri::Runtime>(
 #[tauri::command]
 #[specta::specta]
 pub async fn list_extensions<R: tauri::Runtime>(
-    _app: tauri::AppHandle<R>,
-) -> Result<Vec<String>, Error> {
-    Ok(vec![])
+    app: tauri::AppHandle<R>,
+) -> Result<Vec<ExtensionInfo>, Error> {
+    let extensions_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| Error::Io(e.to_string()))?
+        .join("extensions");
+
+    let extensions = hypr_extensions_runtime::discover_extensions(&extensions_dir);
+
+    Ok(extensions
+        .into_iter()
+        .map(|ext| ExtensionInfo {
+            id: ext.manifest.id.clone(),
+            name: ext.manifest.name.clone(),
+            version: ext.manifest.version.clone(),
+            description: ext.manifest.description.clone(),
+            path: ext.path.to_string_lossy().to_string(),
+            ui_path: ext.ui_path().map(|p| p.to_string_lossy().to_string()),
+        })
+        .collect())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_extensions_dir<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, Error> {
+    let extensions_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| Error::Io(e.to_string()))?
+        .join("extensions");
+
+    if !extensions_dir.exists() {
+        std::fs::create_dir_all(&extensions_dir).map_err(|e| Error::Io(e.to_string()))?;
+    }
+
+    Ok(extensions_dir.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_extension<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    extension_id: String,
+) -> Result<ExtensionInfo, Error> {
+    let extensions_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| Error::Io(e.to_string()))?
+        .join("extensions");
+
+    let extensions = hypr_extensions_runtime::discover_extensions(&extensions_dir);
+
+    extensions
+        .into_iter()
+        .find(|ext| ext.manifest.id == extension_id)
+        .map(|ext| ExtensionInfo {
+            id: ext.manifest.id.clone(),
+            name: ext.manifest.name.clone(),
+            version: ext.manifest.version.clone(),
+            description: ext.manifest.description.clone(),
+            path: ext.path.to_string_lossy().to_string(),
+            ui_path: ext.ui_path().map(|p| p.to_string_lossy().to_string()),
+        })
+        .ok_or_else(|| Error::ExtensionNotFound(extension_id))
 }

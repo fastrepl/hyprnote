@@ -9,6 +9,8 @@ pub struct ExtensionManifest {
     pub description: Option<String>,
     pub entry: String,
     #[serde(default)]
+    pub ui: Option<String>,
+    #[serde(default)]
     pub permissions: ExtensionPermissions,
 }
 
@@ -53,4 +55,32 @@ impl Extension {
     pub fn entry_path(&self) -> PathBuf {
         self.path.join(&self.manifest.entry)
     }
+
+    pub fn ui_path(&self) -> Option<PathBuf> {
+        self.manifest.ui.as_ref().map(|ui| self.path.join(ui))
+    }
+}
+
+pub fn discover_extensions(extensions_dir: &PathBuf) -> Vec<Extension> {
+    let mut extensions = Vec::new();
+
+    if !extensions_dir.exists() {
+        return extensions;
+    }
+
+    let entries = match std::fs::read_dir(extensions_dir) {
+        Ok(entries) => entries,
+        Err(_) => return extensions,
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            if let Ok(extension) = Extension::load(path) {
+                extensions.push(extension);
+            }
+        }
+    }
+
+    extensions
 }

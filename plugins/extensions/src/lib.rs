@@ -5,11 +5,22 @@ mod ext;
 pub use error::*;
 pub use ext::*;
 
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
 const PLUGIN_NAME: &str = "extensions";
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct ExtensionInfo {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub description: Option<String>,
+    pub path: String,
+    pub ui_path: Option<String>,
+}
 
 pub struct State {
     pub runtime: hypr_extensions_runtime::ExtensionsRuntime,
@@ -25,6 +36,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::call_function::<tauri::Wry>,
             commands::execute_code::<tauri::Wry>,
             commands::list_extensions::<tauri::Wry>,
+            commands::get_extensions_dir::<tauri::Wry>,
+            commands::get_extension::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

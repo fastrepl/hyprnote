@@ -1,6 +1,7 @@
 import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { TiptapEditor } from "@hypr/tiptap/editor";
 import Editor from "@hypr/tiptap/editor";
 import {
@@ -32,6 +33,7 @@ export function ChatMessageInput({
       return;
     }
 
+    analyticsCommands.event({ event: "chat_message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
   }, [disabled, onSendMessage]);

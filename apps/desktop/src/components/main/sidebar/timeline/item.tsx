@@ -1,5 +1,6 @@
 import { memo, useCallback, useMemo } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
 import { cn } from "@hypr/utils";
 
@@ -81,6 +82,7 @@ export const TimelineItemComponent = memo(
           title: title,
           created_at: new Date().toISOString(),
         });
+        analyticsCommands.event({ event: "note_created", has_event_id: true });
         const tab: TabInput = { id: sessionId, type: "sessions" };
         if (openInNewTab) {
           openNew(tab);

@@ -140,6 +140,14 @@ pub async fn main() {
         .build(tauri::generate_context!())
         .unwrap();
 
+    // Skip onboarding if ONBOARDING=0 is set
+    if std::env::var("ONBOARDING")
+        .map(|v| v == "0")
+        .unwrap_or(false)
+    {
+        app.set_onboarding_needed(false).unwrap();
+    }
+
     {
         let app_handle = app.handle().clone();
         if app.get_onboarding_needed().unwrap_or(true) {

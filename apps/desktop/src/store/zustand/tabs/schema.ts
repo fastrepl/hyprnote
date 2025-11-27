@@ -75,7 +75,7 @@ export const tabSchema = z.discriminatedUnion("type", [
   baseTabSchema.extend({
     type: z.literal("extension"),
     extensionId: z.string(),
-    state: z.record(z.unknown()).default({}),
+    state: z.record(z.string(), z.unknown()).default({}),
   }),
 ]);
 

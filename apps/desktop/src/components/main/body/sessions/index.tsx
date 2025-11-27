@@ -101,7 +101,7 @@ function TabContentNoteInner({
       floatingButton={<FloatingActionButton tab={tab} />}
     >
       <div className="flex flex-col h-full">
-        <div className="px-2">
+        <div className="pl-2 pr-1">
           {showSearchBar ? <SearchBar /> : <OuterHeader sessionId={tab.id} />}
         </div>
         <div className="mt-2 px-3 shrink-0">

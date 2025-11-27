@@ -4,21 +4,12 @@ import { commands, type ExtensionInfo } from "@hypr/plugin-extensions";
 
 import type { ExtensionViewProps } from "../../../../types/extensions";
 
-const bundledExtensionModules = import.meta.glob<{
-  default: ComponentType<ExtensionViewProps>;
-}>("@extensions/*/ui.tsx", { eager: true });
-
+// Bundled extensions are no longer included at build time.
+// Extensions are expected to be loaded at runtime via the extensions plugin.
 export const bundledExtensionComponents: Record<
   string,
   ComponentType<ExtensionViewProps>
 > = {};
-
-for (const path in bundledExtensionModules) {
-  const mod = bundledExtensionModules[path];
-  const parts = path.split("/");
-  const extensionId = parts[parts.length - 2];
-  bundledExtensionComponents[extensionId] = mod.default;
-}
 
 const dynamicExtensionComponents: Record<
   string,

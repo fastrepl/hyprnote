@@ -19,7 +19,6 @@ export default defineConfig(() => ({
             "@tauri-apps/plugin-updater": "/src/mocks/updater.ts",
           }
         : {}),
-      "@extensions": path.resolve(__dirname, "../../extensions"),
     },
   },
   test: {

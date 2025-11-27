@@ -355,7 +355,8 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
-      - name: Download macOS Silicon DMG from S3
+      - name: Download macOS Silicon DMG from S3 (if available)
+        if: ${{ needs.build-macos-silicon.result == 'success' }}
         run: |
           aws s3 cp \
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-aarch64.dmg" \
@@ -395,12 +396,27 @@ jobs:
       - name: Collect available artifacts
         id: artifacts
         run: |
-          ARTIFACTS="hyprnote-macos-aarch64.dmg"
+          ARTIFACTS=""
+          if [[ "${{ needs.build-macos-silicon.result }}" == "success" ]]; then
+            ARTIFACTS="hyprnote-macos-aarch64.dmg"
+          fi
           if [[ "${{ needs.build-macos-intel.result }}" == "success" ]]; then
-            ARTIFACTS="$ARTIFACTS,hyprnote-macos-x86_64.dmg"
+            if [[ -n "$ARTIFACTS" ]]; then
+              ARTIFACTS="$ARTIFACTS,hyprnote-macos-x86_64.dmg"
+            else
+              ARTIFACTS="hyprnote-macos-x86_64.dmg"
+            fi
           fi
           if [[ "${{ needs.build-linux.result }}" == "success" ]]; then
-            ARTIFACTS="$ARTIFACTS,hyprnote-linux-x86_64.AppImage"
+            if [[ -n "$ARTIFACTS" ]]; then
+              ARTIFACTS="$ARTIFACTS,hyprnote-linux-x86_64.AppImage"
+            else
+              ARTIFACTS="hyprnote-linux-x86_64.AppImage"
+            fi
+          fi
+          if [[ -z "$ARTIFACTS" ]]; then
+            echo "No artifacts to release" >&2
+            exit 1
           fi
           echo "list=$ARTIFACTS" >> $GITHUB_OUTPUT
       - name: Create GitHub release

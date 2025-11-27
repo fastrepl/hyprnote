@@ -62,9 +62,8 @@ function Component() {
               <button
                 disabled
                 className={cn([
-                  "inline-block px-8 py-3 text-base font-medium rounded-full",
-                  "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                  "opacity-50 cursor-not-allowed",
+                  "inline-block px-8 py-3 text-base font-medium cursor-not-allowed",
+                  "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm",
                 ])}
               >
                 Coming Soon

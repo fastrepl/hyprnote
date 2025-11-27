@@ -80,7 +80,7 @@ export function Header() {
                             >
                               <span>{link.label}</span>
                               {link.badge && (
-                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-0.5 rounded-full">
                                   {link.badge}
                                 </span>
                               )}
@@ -101,7 +101,7 @@ export function Header() {
                               >
                                 <span>{link.label}</span>
                                 {link.badge && (
-                                  <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                  <span className="text-[10px] bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-0.5 rounded-full">
                                     {link.badge}
                                   </span>
                                 )}
@@ -245,7 +245,7 @@ export function Header() {
                             >
                               <span>{link.label}</span>
                               {link.badge && (
-                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-0.5 rounded-full">
                                   {link.badge}
                                 </span>
                               )}
@@ -265,7 +265,7 @@ export function Header() {
                             >
                               <span>{link.label}</span>
                               {link.badge && (
-                                <span className="text-[10px] text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-0.5 rounded-full">
                                   {link.badge}
                                 </span>
                               )}

@@ -615,7 +615,7 @@ function TranscriptionSection() {
                     Fully on-device
                   </h3>
                 </div>
-                <div className="px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium whitespace-nowrap">
+                <div className="px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium whitespace-nowrap">
                   Apple Silicon only
                 </div>
               </div>
@@ -654,7 +654,7 @@ function TranscriptionSection() {
         <div className="sm:hidden">
           <div className="border-b border-neutral-100">
             <div className="p-6">
-              <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-3">
+              <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium mb-3">
                 Apple Silicon only
               </div>
               <div className="flex items-center gap-3 mb-3">
@@ -1888,7 +1888,7 @@ function SharingSection() {
         className="absolute top-[-69px] h-[69px] pointer-events-none"
       />
       <div className="text-center py-12 px-4 lg:px-0">
-        <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-4">
+        <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium mb-4">
           Coming Soon
         </div>
         <h2 className="text-3xl font-serif text-stone-600 mb-4">Share notes</h2>
@@ -2127,7 +2127,7 @@ function FloatingPanelSection() {
 function FloatingPanelHeader() {
   return (
     <div className="text-center py-12 px-4 lg:px-0">
-      <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-4">
+      <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium mb-4">
         Coming Soon
       </div>
       <h2 className="text-3xl font-serif text-stone-600 mb-4">

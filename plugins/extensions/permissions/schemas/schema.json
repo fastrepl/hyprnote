@@ -319,6 +319,30 @@
           "markdownDescription": "Denies the execute_code command without any pre-configured scope."
         },
         {
+          "description": "Enables the get_extension command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-extension",
+          "markdownDescription": "Enables the get_extension command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_extension command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-extension",
+          "markdownDescription": "Denies the get_extension command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_extensions_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-extensions-dir",
+          "markdownDescription": "Enables the get_extensions_dir command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_extensions_dir command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-extensions-dir",
+          "markdownDescription": "Denies the get_extensions_dir command without any pre-configured scope."
+        },
+        {
           "description": "Enables the list_extensions command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-extensions",
@@ -341,6 +365,12 @@
           "type": "string",
           "const": "deny-load-extension",
           "markdownDescription": "Denies the load_extension command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-load-extension`\n- `allow-call-function`\n- `allow-execute-code`\n- `allow-list-extensions`\n- `allow-get-extensions-dir`\n- `allow-get-extension`",
+          "type": "string",
+          "const": "default",
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-load-extension`\n- `allow-call-function`\n- `allow-execute-code`\n- `allow-list-extensions`\n- `allow-get-extensions-dir`\n- `allow-get-extension`"
         }
       ]
     }

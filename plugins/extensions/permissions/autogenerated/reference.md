@@ -1,3 +1,16 @@
+## Default Permission
+
+Default permissions for the plugin
+
+#### This default permission set includes the following:
+
+- `allow-load-extension`
+- `allow-call-function`
+- `allow-execute-code`
+- `allow-list-extensions`
+- `allow-get-extensions-dir`
+- `allow-get-extension`
+
 ## Permission Table
 
 <table>
@@ -55,6 +68,58 @@ Enables the execute_code command without any pre-configured scope.
 <td>
 
 Denies the execute_code command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`extensions:allow-get-extension`
+
+</td>
+<td>
+
+Enables the get_extension command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`extensions:deny-get-extension`
+
+</td>
+<td>
+
+Denies the get_extension command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`extensions:allow-get-extensions-dir`
+
+</td>
+<td>
+
+Enables the get_extensions_dir command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`extensions:deny-get-extensions-dir`
+
+</td>
+<td>
+
+Denies the get_extensions_dir command without any pre-configured scope.
 
 </td>
 </tr>

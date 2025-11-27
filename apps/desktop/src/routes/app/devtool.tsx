@@ -14,6 +14,7 @@ import {
   type Store as PersistedStore,
   STORE_ID as STORE_ID_PERSISTED,
 } from "../../store/tinybase/main";
+import { useTabs } from "../../store/zustand/tabs";
 
 export const Route = createFileRoute("/app/devtool")({
   component: Component,
@@ -102,6 +103,7 @@ function Component() {
         <TinyTickMonitor />
         <SeedList onSeed={handleSeed} />
         <NavigationList />
+        <ExtensionsList />
       </div>
     </div>
   );
@@ -190,5 +192,27 @@ function SeedButton({
     >
       {seed.label}
     </button>
+  );
+}
+
+function ExtensionsList() {
+  const openNew = useTabs((state) => state.openNew);
+
+  const handleOpenHelloWorld = useCallback(() => {
+    openNew({ type: "extension", extensionId: "hello-world" });
+  }, [openNew]);
+
+  return (
+    <DevtoolSection title="Extensions">
+      <nav className="flex flex-col gap-2 text-sm">
+        <button
+          type="button"
+          onClick={handleOpenHelloWorld}
+          className="pl-2 text-left hover:underline"
+        >
+          Open Hello World Extension
+        </button>
+      </nav>
+    </DevtoolSection>
   );
 }

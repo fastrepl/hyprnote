@@ -69,6 +69,7 @@
         { "path": "$DOWNLOAD/**/*" }
       ]
     },
+    "extensions:default",
     "db2:default",
     "windows:default",
     "tracing:default",

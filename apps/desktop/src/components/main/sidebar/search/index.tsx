@@ -1,7 +1,5 @@
 import { SearchXIcon } from "lucide-react";
 
-import { cn } from "@hypr/utils";
-
 import {
   type GroupedSearchResults,
   useSearch,

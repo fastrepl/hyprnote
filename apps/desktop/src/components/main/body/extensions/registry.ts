@@ -1,6 +1,10 @@
 import type { ComponentType } from "react";
 
-import { commands, type ExtensionInfo, type PanelInfo } from "@hypr/plugin-extensions";
+import {
+  commands,
+  type ExtensionInfo,
+  type PanelInfo,
+} from "@hypr/plugin-extensions";
 
 import type { ExtensionViewProps } from "../../../../types/extensions";
 

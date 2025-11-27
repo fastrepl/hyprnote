@@ -54,8 +54,16 @@ async function buildAll() {
   const entries = fs.readdirSync(process.cwd(), { withFileTypes: true });
 
   for (const entry of entries) {
-    if (entry.isDirectory() && !entry.name.startsWith(".") && entry.name !== "node_modules") {
-      const manifestPath = path.join(process.cwd(), entry.name, "extension.json");
+    if (
+      entry.isDirectory() &&
+      !entry.name.startsWith(".") &&
+      entry.name !== "node_modules"
+    ) {
+      const manifestPath = path.join(
+        process.cwd(),
+        entry.name,
+        "extension.json",
+      );
       if (fs.existsSync(manifestPath)) {
         await buildExtension(entry.name);
       }

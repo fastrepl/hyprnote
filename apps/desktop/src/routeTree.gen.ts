@@ -14,6 +14,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as NotificationRouteImport } from './routes/notification'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as AppDevtoolRouteImport } from './routes/app/devtool'
+import { Route as AppControlRouteImport } from './routes/app/control'
 import { Route as AppOnboardingIndexRouteImport } from './routes/app/onboarding/index'
 import { Route as AppSettingsLayoutRouteImport } from './routes/app/settings/_layout'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
@@ -48,6 +49,11 @@ const AppDevtoolRoute = AppDevtoolRouteImport.update({
   path: '/devtool',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppControlRoute = AppControlRouteImport.update({
+  id: '/control',
+  path: '/control',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
   id: '/onboarding/',
   path: '/onboarding/',
@@ -75,6 +81,7 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/notification': typeof NotificationRoute
+  '/app/control': typeof AppControlRoute
   '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsLayoutRouteWithChildren
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/app': typeof AppRouteRouteWithChildren
   '/notification': typeof NotificationRoute
+  '/app/control': typeof AppControlRoute
   '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainLayoutIndexRoute
   '/app/settings': typeof AppSettingsLayoutIndexRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/app': typeof AppRouteRouteWithChildren
   '/notification': typeof NotificationRoute
+  '/app/control': typeof AppControlRoute
   '/app/devtool': typeof AppDevtoolRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/app'
     | '/notification'
+    | '/app/control'
     | '/app/devtool'
     | '/app/main'
     | '/app/settings'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
   to:
     | '/app'
     | '/notification'
+    | '/app/control'
     | '/app/devtool'
     | '/app/main'
     | '/app/settings'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/app'
     | '/notification'
+    | '/app/control'
     | '/app/devtool'
     | '/app/main'
     | '/app/main/_layout'
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/devtool'
       fullPath: '/app/devtool'
       preLoaderRoute: typeof AppDevtoolRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/control': {
+      id: '/app/control'
+      path: '/control'
+      fullPath: '/app/control'
+      preLoaderRoute: typeof AppControlRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/onboarding/': {
@@ -263,6 +282,7 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 )
 
 interface AppRouteRouteChildren {
+  AppControlRoute: typeof AppControlRoute
   AppDevtoolRoute: typeof AppDevtoolRoute
   AppMainRoute: typeof AppMainRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
@@ -270,6 +290,7 @@ interface AppRouteRouteChildren {
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppControlRoute: AppControlRoute,
   AppDevtoolRoute: AppDevtoolRoute,
   AppMainRoute: AppMainRouteWithChildren,
   AppSettingsRoute: AppSettingsRouteWithChildren,

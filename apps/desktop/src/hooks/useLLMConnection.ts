@@ -72,6 +72,10 @@ export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
       const anthropicProvider = createAnthropic({
         fetch: tauriFetch,
         apiKey: conn.apiKey,
+        headers: {
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
       });
 
       return wrapWithThinkingMiddleware(anthropicProvider(conn.modelId));

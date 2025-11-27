@@ -43,14 +43,21 @@ pub async fn export_to_vtt<R: tauri::Runtime>(
 
     let cues: Vec<WebVttCue> = words
         .into_iter()
-        .map(|word| WebVttCue {
-            identifier: None,
-            text: word.text,
-            settings: None,
-            start: Moment::from(word.start_ms as i64),
-            end: Moment::from(word.end_ms as i64),
+        .map(|word| {
+            let start_i64 = i64::try_from(word.start_ms)
+                .map_err(|_| format!("start_ms {} exceeds i64::MAX", word.start_ms))?;
+            let end_i64 = i64::try_from(word.end_ms)
+                .map_err(|_| format!("end_ms {} exceeds i64::MAX", word.end_ms))?;
+
+            Ok(WebVttCue {
+                identifier: None,
+                text: word.text,
+                settings: None,
+                start: Moment::from(start_i64),
+                end: Moment::from(end_i64),
+            })
         })
-        .collect();
+        .collect::<Result<_, String>>()?;
 
     let vtt = WebVttSubtitle::builder().cues(cues).build();
     vtt.export(&vtt_path).map_err(|e| e.to_string())?;

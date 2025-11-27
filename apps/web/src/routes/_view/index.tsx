@@ -157,7 +157,6 @@ function Component() {
         <SlashSeparator />
         <TestimonialsSection />
         <SlashSeparator />
-        <FeaturesIntroSection />
         <MainFeaturesSection
           featuresScrollRef={featuresScrollRef}
           selectedFeature={selectedFeature}
@@ -643,33 +642,7 @@ Mad respect to the team. This is how you build in 2025. 🚀"
   );
 }
 
-function FeaturesIntroSection() {
-  return (
-    <section>
-      <div className="text-center py-16 px-4">
-        <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
-          <Image
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
-            alt="Hyprnote"
-            width={96}
-            height={96}
-            className="size-24 rounded-3xl border border-neutral-100"
-          />
-        </div>
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">
-          Works like charm
-        </h2>
-        <p className="text-neutral-600 max-w-lg mx-auto">
-          {
-            "Super simple and easy to use with its clean interface. And it's getting better with every update — every single week."
-          }
-        </p>
-      </div>
-    </section>
-  );
-}
-
-function CoolStuffSection() {
+export function CoolStuffSection() {
   return (
     <section>
       <div className="text-center border-b border-neutral-100">
@@ -767,7 +740,7 @@ function CoolStuffSection() {
   );
 }
 
-function HowItWorksSection() {
+export function HowItWorksSection() {
   const [typedText1, setTypedText1] = useState("");
   const [typedText2, setTypedText2] = useState("");
   const [enhancedLines, setEnhancedLines] = useState(0);
@@ -1104,7 +1077,7 @@ function HowItWorksSection() {
   );
 }
 
-function MainFeaturesSection({
+export function MainFeaturesSection({
   featuresScrollRef,
   selectedFeature,
   setSelectedFeature,
@@ -1116,7 +1089,26 @@ function MainFeaturesSection({
   scrollToFeature: (index: number) => void;
 }) {
   return (
-    <>
+    <section>
+      <div className="text-center py-16 px-4">
+        <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
+          <Image
+            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            alt="Hyprnote"
+            width={96}
+            height={96}
+            className="size-24 rounded-3xl border border-neutral-100"
+          />
+        </div>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          Works like charm
+        </h2>
+        <p className="text-neutral-600 max-w-lg mx-auto">
+          {
+            "Super simple and easy to use with its clean interface. And it's getting better with every update — every single week."
+          }
+        </p>
+      </div>
       <FeaturesMobileCarousel
         featuresScrollRef={featuresScrollRef}
         selectedFeature={selectedFeature}
@@ -1124,7 +1116,7 @@ function MainFeaturesSection({
         scrollToFeature={scrollToFeature}
       />
       <FeaturesDesktopGrid />
-    </>
+    </section>
   );
 }
 
@@ -1296,7 +1288,7 @@ function FeaturesDesktopGrid() {
   );
 }
 
-function DetailsSection({
+export function DetailsSection({
   detailsScrollRef,
   selectedDetail,
   setSelectedDetail,
@@ -1709,7 +1701,7 @@ function BlogSection() {
             >
               <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
                 {article.coverImage && (
-                  <div className="aspect-video overflow-hidden border-b border-neutral-100 bg-stone-50">
+                  <div className="aspect-40/21 overflow-hidden border-b border-neutral-100 bg-stone-50">
                     <Image
                       src={article.coverImage}
                       alt={article.display_title}
@@ -1776,7 +1768,7 @@ function BlogSection() {
   );
 }
 
-function CTASection({
+export function CTASection({
   heroInputRef,
 }: {
   heroInputRef: React.RefObject<HTMLInputElement | null>;

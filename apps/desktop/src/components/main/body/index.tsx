@@ -24,6 +24,7 @@ import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import { TabContentEvent, TabItemEvent } from "./events";
+import { TabContentExtension, TabItemExtension } from "./extensions";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
 import { Search } from "./search";
@@ -285,6 +286,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "extension") {
+    return (
+      <TabItemExtension
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -310,6 +323,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "empty") {
     return <TabContentEmpty tab={tab} />;
+  }
+  if (tab.type === "extension") {
+    return <TabContentExtension tab={tab} />;
   }
 
   return null;

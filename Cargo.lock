@@ -4125,6 +4125,7 @@ dependencies = [
  "tauri-plugin-deeplink2",
  "tauri-plugin-detect",
  "tauri-plugin-dialog",
+ "tauri-plugin-extensions",
  "tauri-plugin-fs",
  "tauri-plugin-hooks",
  "tauri-plugin-http",

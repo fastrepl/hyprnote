@@ -2,8 +2,15 @@
   "id": "hello-world",
   "name": "Hello World",
   "version": "0.1.0",
-  "description": "A minimal example extension to validate the Deno runtime architecture",
+  "api_version": "0.1",
+  "description": "A minimal example extension demonstrating Pattern A architecture",
   "entry": "main.js",
-  "ui": "ui.tsx",
+  "panels": [
+    {
+      "id": "hello-world.main",
+      "title": "Hello World",
+      "entry": "dist/ui.js"
+    }
+  ],
   "permissions": {}
 }

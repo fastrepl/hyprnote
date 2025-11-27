@@ -8,7 +8,10 @@ use deno_core::RuntimeOptions;
 use std::collections::HashMap;
 use tokio::sync::{mpsc, oneshot};
 
-deno_core::extension!(hypr_extension, ops = [op_hypr_log],);
+deno_core::extension!(
+    hypr_extension,
+    ops = [op_hypr_log, op_hypr_log_error, op_hypr_log_warn],
+);
 
 pub enum RuntimeRequest {
     CallFunction {
@@ -128,8 +131,22 @@ async fn runtime_loop(mut rx: mpsc::Receiver<RuntimeRequest>) {
             "<hypr:init>",
             r#"
             globalThis.hypr = {
-                log: (msg) => Deno.core.ops.op_hypr_log(String(msg)),
+                log: {
+                    info: (msg) => Deno.core.ops.op_hypr_log(String(msg)),
+                    error: (msg) => Deno.core.ops.op_hypr_log_error(String(msg)),
+                    warn: (msg) => Deno.core.ops.op_hypr_log_warn(String(msg)),
+                },
+                _internal: {
+                    extensionId: null,
+                },
             };
+            // Backwards compatibility
+            hypr.log.toString = () => "[object Function]";
+            const originalLog = hypr.log;
+            globalThis.hypr.log = Object.assign(
+                (msg) => Deno.core.ops.op_hypr_log(String(msg)),
+                originalLog
+            );
             "#,
         )
         .expect("Failed to initialize hypr global");
@@ -184,21 +201,35 @@ fn load_extension_impl(
     let entry_path = extension.entry_path();
     let code = std::fs::read_to_string(&entry_path)?;
 
+    let context_json = serde_json::json!({
+        "extensionId": extension.manifest.id,
+        "extensionPath": extension.path.to_string_lossy(),
+        "manifest": {
+            "id": extension.manifest.id,
+            "name": extension.manifest.name,
+            "version": extension.manifest.version,
+            "description": extension.manifest.description,
+            "apiVersion": extension.manifest.api_version,
+        }
+    });
+
     let wrapper = format!(
         r#"
         (function() {{
             const __hypr_extension = {{}};
-            {}
+            const __hypr_context = {context};
+            hypr._internal.extensionId = __hypr_context.extensionId;
+            {code}
+            if (typeof __hypr_extension.activate === 'function') {{
+                __hypr_extension.activate(__hypr_context);
+            }}
             return __hypr_extension;
         }})()
         "#,
-        code
+        context = context_json,
+        code = code
     );
 
-    // deno_core's execute_script requires a 'static script name for stack traces.
-    // We intentionally promote the extension id to 'static to satisfy this requirement.
-    // This leaks one small string per extension load, which is acceptable since extensions
-    // are loaded once and remain for the lifetime of the app.
     let script_name: &'static str = Box::leak(extension.manifest.id.clone().into_boxed_str());
     let result = js_runtime
         .execute_script(script_name, wrapper)
@@ -235,9 +266,10 @@ fn load_extension_impl(
     );
 
     tracing::info!(
-        "Loaded extension: {} v{}",
+        "Loaded extension: {} v{} (API v{})",
         extension.manifest.name,
-        extension.manifest.version
+        extension.manifest.version,
+        extension.manifest.api_version
     );
 
     Ok(())

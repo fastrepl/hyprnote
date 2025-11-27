@@ -183,6 +183,11 @@ jobs:
     permissions:
       contents: write
     runs-on: depot-ubuntu-24.04-8
+    # Use Ubuntu 22.04 container for older glibc (2.35) compatibility
+    # This ensures the AppImage works on older Linux distributions
+    # See: https://v2.tauri.app/distribute/appimage/
+    container:
+      image: ghcr.io/fastrepl/hyprnote/linux-builder:ubuntu22.04
     defaults:
       run:
         shell: bash

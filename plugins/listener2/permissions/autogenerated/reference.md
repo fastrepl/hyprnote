@@ -6,6 +6,7 @@ Default permissions for the plugin
 
 - `allow-run-batch`
 - `allow-parse-subtitle`
+- `allow-export-to-vtt`
 
 ## Permission Table
 
@@ -15,6 +16,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`listener2:allow-export-to-vtt`
+
+</td>
+<td>
+
+Enables the export_to_vtt command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`listener2:deny-export-to-vtt`
+
+</td>
+<td>
+
+Denies the export_to_vtt command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>
@@ -38,32 +65,6 @@ Enables the parse_subtitle command without any pre-configured scope.
 <td>
 
 Denies the parse_subtitle command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener2:allow-ping`
-
-</td>
-<td>
-
-Enables the ping command without any pre-configured scope.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-`listener2:deny-ping`
-
-</td>
-<td>
-
-Denies the ping command without any pre-configured scope.
 
 </td>
 </tr>

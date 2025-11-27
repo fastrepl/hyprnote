@@ -1,0 +1,236 @@
+---
+title: "Extensions"
+section: "Developers"
+description: "Learn how to create and develop extensions for Hyprnote"
+---
+
+# Overview
+
+Extensions allow you to add custom functionality to Hyprnote through panels that appear in the sidebar. Each extension can define one or more panels with custom React-based UIs that integrate seamlessly with the application.
+
+Extensions consist of two main parts: a runtime script (`main.js`) that runs in a sandboxed Deno environment, and optional UI panels (`ui.tsx`) that render React components within the Hyprnote interface.
+
+# Extension Structure
+
+A typical extension has the following structure:
+
+```
+my-extension/
+├── extension.json    # Extension manifest
+├── main.js          # Runtime script (Deno)
+├── ui.tsx           # Panel UI component (React)
+└── dist/
+    └── ui.js        # Built panel UI (generated)
+```
+
+# Manifest
+
+The `extension.json` manifest defines your extension's metadata and configuration:
+
+```json
+{
+  "id": "my-extension",
+  "name": "My Extension",
+  "version": "0.1.0",
+  "api_version": "0.1",
+  "description": "A custom extension for Hyprnote",
+  "entry": "main.js",
+  "panels": [
+    {
+      "id": "my-extension.main",
+      "title": "My Extension",
+      "entry": "dist/ui.js"
+    }
+  ],
+  "permissions": {}
+}
+```
+
+The manifest fields are:
+
+- `id`: Unique identifier for your extension (lowercase, hyphenated)
+- `name`: Display name shown in the UI
+- `version`: Semantic version of your extension
+- `api_version`: Hyprnote extension API version (currently `0.1`)
+- `description`: Brief description of what your extension does
+- `entry`: Path to the runtime script
+- `panels`: Array of panel definitions
+- `permissions`: Required permissions (reserved for future use)
+
+Each panel definition includes:
+
+- `id`: Unique panel identifier (typically `extension-id.panel-name`)
+- `title`: Display title shown in the panel tab
+- `entry`: Path to the built UI bundle
+
+# Runtime Script
+
+The runtime script (`main.js`) runs in a sandboxed Deno environment and handles extension lifecycle events:
+
+```javascript
+__hypr_extension.activate = function (context) {
+  hypr.log.info(`Activating ${context.manifest.name} v${context.manifest.version}`);
+  hypr.log.info(`Extension path: ${context.extensionPath}`);
+};
+
+__hypr_extension.deactivate = function () {
+  hypr.log.info("Deactivating extension");
+};
+
+__hypr_extension.customMethod = function (arg) {
+  hypr.log.info(`Called with: ${arg}`);
+  return `Result: ${arg}`;
+};
+```
+
+The `context` object passed to `activate` contains:
+
+- `manifest`: The parsed extension manifest
+- `extensionPath`: Absolute path to the extension directory
+
+# Panel UI
+
+Panel UIs are React components that render within the Hyprnote interface. Create a `ui.tsx` file with a default export:
+
+```tsx
+import { useState } from "react";
+import { Button } from "@hypr/ui/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@hypr/ui/components/ui/card";
+
+export interface ExtensionViewProps {
+  extensionId: string;
+  state?: Record<string, unknown>;
+}
+
+export default function MyExtensionView({ extensionId }: ExtensionViewProps) {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div className="p-4 h-full">
+      <Card>
+        <CardHeader>
+          <CardTitle>My Extension</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Counter: {count}</p>
+          <Button onClick={() => setCount((c) => c + 1)}>Increment</Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+# Available Globals
+
+Extension UIs have access to the following globals provided by Hyprnote:
+
+- `react` - React library
+- `react-dom` - React DOM library
+- `@hypr/ui` - Hyprnote UI component library (Button, Card, Input, etc.)
+- `@hypr/utils` - Hyprnote utility functions
+
+Import these as you would in a normal React application:
+
+```tsx
+import { useState, useEffect } from "react";
+import { Button } from "@hypr/ui/components/ui/button";
+import { cn } from "@hypr/utils";
+```
+
+# Building Extensions
+
+Extensions are built using the build script in the `extensions/` directory. The build process compiles TypeScript/TSX files into browser-compatible JavaScript bundles.
+
+## Commands
+
+```bash
+# Build all extensions
+pnpm -F @hypr/extensions build
+
+# Build a specific extension
+pnpm -F @hypr/extensions build:hello-world
+
+# Or using the build script directly
+node build.mjs build              # Build all
+node build.mjs build hello-world  # Build specific extension
+node build.mjs clean              # Remove all dist folders
+node build.mjs install            # Install to app data directory
+```
+
+## Build Output
+
+The build process generates:
+
+- `dist/ui.js` - Bundled panel UI (IIFE format)
+- `dist/ui.js.map` - Source map for debugging
+
+# Development Workflow
+
+Follow these steps to develop and test an extension:
+
+## 1. Create Extension Directory
+
+```bash
+mkdir extensions/my-extension
+cd extensions/my-extension
+```
+
+## 2. Create Manifest
+
+Create `extension.json` with your extension configuration.
+
+## 3. Create Runtime Script
+
+Create `main.js` with lifecycle handlers.
+
+## 4. Create Panel UI
+
+Create `ui.tsx` with your React component.
+
+## 5. Build
+
+```bash
+pnpm -F @hypr/extensions build my-extension
+```
+
+## 6. Install for Development
+
+Copy the extension to the app data directory:
+
+```bash
+# Using the build script
+pnpm -F @hypr/extensions install:dev
+
+# Or manually (macOS)
+cp -r extensions/my-extension ~/Library/Application\ Support/com.hyprnote.dev/extensions/
+
+# Linux
+cp -r extensions/my-extension ~/.local/share/com.hyprnote.dev/extensions/
+
+# Windows
+cp -r extensions/my-extension %APPDATA%/com.hyprnote.dev/extensions/
+```
+
+## 7. Test
+
+Launch Hyprnote in development mode and navigate to your extension panel.
+
+# Example: Hello World
+
+The `hello-world` extension in the repository demonstrates a complete extension with:
+
+- Extension manifest with panel definition
+- Runtime script with lifecycle handlers
+- React UI with state management and @hypr/ui components
+
+To try it:
+
+```bash
+cd extensions
+pnpm install
+pnpm build:hello-world
+pnpm install:dev
+```
+
+Then launch Hyprnote and click on a profile to see the Hello World panel.

@@ -1,11 +1,9 @@
 import type { ComponentType } from "react";
 
-import { commands, type ExtensionInfo } from "@hypr/plugin-extensions";
+import { commands, type ExtensionInfo, type PanelInfo } from "@hypr/plugin-extensions";
 
 import type { ExtensionViewProps } from "../../../../types/extensions";
 
-// Bundled extensions are no longer included at build time.
-// Extensions are expected to be loaded at runtime via the extensions plugin.
 export const bundledExtensionComponents: Record<
   string,
   ComponentType<ExtensionViewProps>
@@ -15,6 +13,8 @@ const dynamicExtensionComponents: Record<
   string,
   ComponentType<ExtensionViewProps>
 > = {};
+
+const loadedPanels: Map<string, PanelInfo> = new Map();
 
 export function getExtensionComponent(
   extensionId: string,
@@ -54,4 +54,29 @@ export async function getExtensionsDir(): Promise<string | null> {
     return result.data;
   }
   return null;
+}
+
+export function getPanelInfo(panelId: string): PanelInfo | undefined {
+  return loadedPanels.get(panelId);
+}
+
+export async function loadExtensionPanels(): Promise<void> {
+  const extensions = await listInstalledExtensions();
+
+  for (const ext of extensions) {
+    for (const panel of ext.panels) {
+      loadedPanels.set(panel.id, panel);
+    }
+  }
+}
+
+export function getLoadedPanels(): PanelInfo[] {
+  return Array.from(loadedPanels.values());
+}
+
+export function registerExtensionComponent(
+  extensionId: string,
+  component: ComponentType<ExtensionViewProps>,
+): void {
+  dynamicExtensionComponents[extensionId] = component;
 }

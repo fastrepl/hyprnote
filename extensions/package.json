@@ -3,10 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:hello-world": "node build.mjs hello-world"
+  },
   "devDependencies": {
     "@hypr/ui": "workspace:^",
     "@hypr/utils": "workspace:^",
     "@types/react": "^19.2.7",
+    "esbuild": "^0.24.0",
     "react": "^19.2.0",
     "typescript": "~5.6.3"
   }

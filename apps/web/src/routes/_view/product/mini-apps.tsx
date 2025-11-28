@@ -623,20 +623,20 @@ function AdvancedSearchSection() {
   const images = [
     {
       id: 1,
-      url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/search-1.jpg",
+      url: "/api/images/hyprnote/search-1.jpg",
       title: "Suggestions",
       description:
         "Get instant search result suggestions based on recent activities",
     },
     {
       id: 2,
-      url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/search-2.jpg",
+      url: "/api/images/hyprnote/search-2.jpg",
       title: "Semantic search",
       description: "Find relevant info even without exact keywords",
     },
     {
       id: 3,
-      url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/search-3.jpg",
+      url: "/api/images/hyprnote/search-3.jpg",
       title: "Filters",
       description: "Filter out result types easily",
     },
@@ -702,7 +702,7 @@ function CTASection() {
       <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <img
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            src="/api/images/hyprnote/icon.png"
             alt="Hyprnote"
             width={144}
             height={144}

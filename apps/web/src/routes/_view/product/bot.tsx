@@ -176,7 +176,7 @@ function DraggableIcon({
     >
       <div className="w-full h-full shadow-2xl border border-neutral-100 flex justify-center items-center rounded-3xl bg-transparent">
         <img
-          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+          src="/api/images/hyprnote/icon.png"
           alt="Hyprnote"
           className="w-[85%] h-[85%] rounded-[20px] border border-neutral-100"
           draggable={false}

@@ -62,7 +62,7 @@ function Header() {
         ])}
       >
         <Image
-          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+          src="/api/images/hyprnote/icon.png"
           alt="Hyprnote"
           width={96}
           height={96}

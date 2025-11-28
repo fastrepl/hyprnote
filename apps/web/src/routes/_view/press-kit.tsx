@@ -77,17 +77,17 @@ function Component() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                     <FinderFolder
                       to="/press-kit/app"
-                      folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-blue.png"
+                      folderImage="/api/images/icons/macos-folder-blue.png"
                       label="App"
                     />
                     <FinderFolder
                       to="/brand"
-                      folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-red.png"
+                      folderImage="/api/images/icons/macos-folder-red.png"
                       label="Brand"
                     />
                     <FinderFolder
                       to="/about"
-                      folderImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-folder-purple.png"
+                      folderImage="/api/images/icons/macos-folder-purple.png"
                       label="Team"
                     />
                     <div className="invisible">
@@ -113,12 +113,12 @@ function Component() {
                     />
                     <FinderAction
                       href="mailto:founders@hyprnote.com"
-                      iconImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/macos-mail.png"
+                      iconImage="/api/images/icons/macos-mail.png"
                       label="Contact"
                     />
                     <FinderAction
                       href="https://github.com/fastrepl/hyprnote"
-                      iconImage="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/github.webp"
+                      iconImage="/api/images/icons/github.webp"
                       label="GitHub"
                       external
                       roundedIcon
@@ -199,7 +199,7 @@ function FinderAction({
       <div className="mb-3">
         {appIcon ? (
           <img
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            src="/api/images/hyprnote/icon.png"
             alt="Hyprnote"
             className="w-16 h-16 mx-auto rounded-[20px] border border-neutral-100 group-hover:scale-110 transition-transform shadow-md"
           />

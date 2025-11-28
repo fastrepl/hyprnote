@@ -20,7 +20,7 @@ export function Footer() {
           <div>
             <Link to="/" className="inline-block mb-4">
               <img
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.svg"
+                src="/api/images/hyprnote/logo.svg"
                 alt="Hyprnote"
                 className="h-6"
               />

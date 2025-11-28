@@ -35,8 +35,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { property: "og:url", content: "https://hyprnote.com" },
       {
         property: "og:image",
-        content:
-          "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/og-image.jpg",
+        content: "/api/images/hyprnote/og-image.jpg",
       },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
@@ -48,8 +47,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: "twitter:url", content: "https://hyprnote.com" },
       {
         name: "twitter:image",
-        content:
-          "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/og-image.jpg",
+        content: "/api/images/hyprnote/og-image.jpg",
       },
     ],
     links: [{ rel: "stylesheet", href: appCss }],

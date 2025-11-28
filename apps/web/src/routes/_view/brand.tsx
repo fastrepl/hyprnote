@@ -29,25 +29,25 @@ const VISUAL_ASSETS = [
   {
     id: "icon",
     name: "Icon",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png",
+    url: "/api/images/hyprnote/icon.png",
     description: "Hyprnote app icon",
   },
   {
     id: "logo",
     name: "Logo",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/logo.png",
+    url: "/api/images/hyprnote/logo.png",
     description: "Hyprnote wordmark logo",
   },
   {
     id: "symbol-logo",
     name: "Symbol + Logo",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/symbol+logo.png",
+    url: "/api/images/hyprnote/symbol+logo.png",
     description: "Hyprnote icon with wordmark",
   },
   {
     id: "og-image",
     name: "OpenGraph Image",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/og-image.jpg",
+    url: "/api/images/hyprnote/og-image.jpg",
     description: "Social media preview image",
   },
 ];

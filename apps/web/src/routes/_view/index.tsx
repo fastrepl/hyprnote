@@ -30,8 +30,7 @@ const mainFeatures = [
     icon: "mdi:text-box-outline",
     title: "Transcript",
     description: "Realtime transcript and speaker identification",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/transcript.jpg",
+    image: "/api/images/hyprnote/transcript.jpg",
     link: "/product/ai-notetaking#transcription",
   },
   {
@@ -39,8 +38,7 @@ const mainFeatures = [
     title: "Summary",
     description:
       "Create customized summaries with templates for various formats",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/summary.jpg",
+    image: "/api/images/hyprnote/summary.jpg",
     link: "/product/ai-notetaking#summaries",
   },
   {
@@ -48,8 +46,7 @@ const mainFeatures = [
     title: "Chat",
     description:
       "Get context-aware answers in realtime, even from past meetings",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/chat.jpg",
+    image: "/api/images/hyprnote/chat.jpg",
     link: "/product/ai-assistant",
   },
   {
@@ -73,32 +70,28 @@ const detailsFeatures = [
     icon: "mdi:text-box-edit-outline",
     title: "Notion-like Editor",
     description: "Full markdown support with distraction-free writing",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/editor.jpg",
+    image: "/api/images/hyprnote/editor.jpg",
     link: "/product/ai-notetaking#editor",
   },
   {
     icon: "mdi:upload-outline",
     title: "Upload Audio",
     description: "Import audio files or transcripts to convert into notes",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/upload-audio.jpg",
+    image: "/api/images/hyprnote/upload-audio.jpg",
     link: "/product/ai-notetaking#transcription",
   },
   {
     icon: "mdi:account-multiple-outline",
     title: "Contacts",
     description: "Organize and manage your contacts with ease",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/contacts.jpg",
+    image: "/api/images/hyprnote/contacts.jpg",
     link: "/product/mini-apps#contacts",
   },
   {
     icon: "mdi:calendar-outline",
     title: "Calendar",
     description: "Stay on top of your schedule with integrated calendar",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/calendar.jpg",
+    image: "/api/images/hyprnote/calendar.jpg",
     link: "/product/mini-apps#calendar",
   },
   {
@@ -667,7 +660,7 @@ export function CoolStuffSection() {
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
             <Image
-              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-bots.png"
+              src="/api/images/hyprnote/no-bots.png"
               alt="No bots interface"
               className="w-full h-full object-contain"
             />
@@ -687,7 +680,7 @@ export function CoolStuffSection() {
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
             <Image
-              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
+              src="/api/images/hyprnote/no-wifi.png"
               alt="No internet interface"
               className="w-full h-full object-contain"
             />
@@ -711,7 +704,7 @@ export function CoolStuffSection() {
           </div>
           <div className="overflow-hidden">
             <Image
-              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-bots.png"
+              src="/api/images/hyprnote/no-bots.png"
               alt="No bots interface"
               className="w-full h-auto object-contain"
             />
@@ -729,7 +722,7 @@ export function CoolStuffSection() {
           </div>
           <div className="overflow-hidden">
             <Image
-              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
+              src="/api/images/hyprnote/no-wifi.png"
               alt="No internet interface"
               className="w-full h-auto object-contain"
             />
@@ -1093,7 +1086,7 @@ export function MainFeaturesSection({
       <div className="text-center py-16 px-4">
         <div className="mb-6 mx-auto size-28 shadow-xl border border-neutral-100 flex justify-center items-center rounded-4xl bg-transparent">
           <Image
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            src="/api/images/hyprnote/icon.png"
             alt="Hyprnote"
             width={96}
             height={96}
@@ -1260,7 +1253,7 @@ function FeaturesDesktopGrid() {
               </>
             ) : (
               <img
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+                src="/api/images/hyprnote/static.webp"
                 alt={`${feature.title} feature`}
                 className="w-full h-full object-cover"
               />
@@ -1368,7 +1361,7 @@ function DetailsMobileCarousel({
                     />
                   ) : (
                     <img
-                      src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+                      src="/api/images/hyprnote/static.webp"
                       alt={`${feature.title} feature`}
                       className="w-full h-full object-contain"
                     />
@@ -1466,7 +1459,7 @@ function DetailsTabletView({
             />
           ) : (
             <img
-              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+              src="/api/images/hyprnote/static.webp"
               alt={`${detailsFeatures[selectedDetail].title} feature`}
               className="w-full h-full object-contain"
             />
@@ -1569,7 +1562,7 @@ function DetailsDesktopView() {
             </>
           ) : (
             <img
-              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/static.webp"
+              src="/api/images/hyprnote/static.webp"
               alt={`${selectedFeature.title} feature`}
               className="w-full h-full object-contain"
             />
@@ -1586,15 +1579,13 @@ function ManifestoSection() {
         <div
           className="border border-neutral-200 p-4"
           style={{
-            backgroundImage:
-              "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/white-leather.png)",
+            backgroundImage: "url(/api/images/texture/white-leather.png)",
           }}
         >
           <div
             className="bg-stone-50 border border-neutral-200 rounded-sm p-8 sm:p-12"
             style={{
-              backgroundImage:
-                "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/paper.png)",
+              backgroundImage: "url(/api/images/texture/paper.png)",
             }}
           >
             <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">
@@ -1622,14 +1613,14 @@ function ManifestoSection() {
 
             <div className="flex gap-2 mt-12 mb-4">
               <Image
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png"
+                src="/api/images/team/john.png"
                 alt="John Jeong"
                 width={32}
                 height={32}
                 className="rounded-full object-cover border border-neutral-200"
               />
               <Image
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png"
+                src="/api/images/team/yujong.png"
                 alt="Yujong Lee"
                 width={32}
                 height={32}
@@ -1649,7 +1640,7 @@ function ManifestoSection() {
 
               <div>
                 <Image
-                  src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/signature-dark.svg"
+                  src="/api/images/hyprnote/signature-dark.svg"
                   alt="Hyprnote Signature"
                   width={124}
                   height={60}
@@ -1809,7 +1800,7 @@ export function CTASection({
       <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <Image
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            src="/api/images/hyprnote/icon.png"
             alt="Hyprnote"
             width={144}
             height={144}

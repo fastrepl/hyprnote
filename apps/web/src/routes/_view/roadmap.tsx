@@ -90,24 +90,25 @@ function useGitHubIssues() {
   return useQuery({
     queryKey: ["github-roadmap-issues"],
     queryFn: async () => {
-      const labels = ["enhancement", "Feature", "Improvement"];
-      const labelQuery = labels.join(",");
+      const roadmapLabels = ["enhancement", "feature", "improvement"];
 
       const [openResponse, closedResponse] = await Promise.all([
         fetch(
-          `https://api.github.com/repos/${GITHUB_ORG_REPO}/issues?state=open&labels=${labelQuery}&per_page=50&sort=created&direction=desc`,
+          `https://api.github.com/repos/${GITHUB_ORG_REPO}/issues?state=open&per_page=100&sort=created&direction=desc`,
         ),
         fetch(
-          `https://api.github.com/repos/${GITHUB_ORG_REPO}/issues?state=closed&labels=${labelQuery}&per_page=30&sort=updated&direction=desc`,
+          `https://api.github.com/repos/${GITHUB_ORG_REPO}/issues?state=closed&per_page=50&sort=updated&direction=desc`,
         ),
       ]);
 
       const openIssues: GitHubIssue[] = await openResponse.json();
       const closedIssues: GitHubIssue[] = await closedResponse.json();
 
-      const allIssues = [...openIssues, ...closedIssues].filter(
-        (issue) => !issue.pull_request,
-      );
+      const allIssues = [...openIssues, ...closedIssues].filter((issue) => {
+        if (issue.pull_request) return false;
+        const issueLabels = issue.labels.map((l) => l.name.toLowerCase());
+        return issueLabels.some((label) => roadmapLabels.includes(label));
+      });
 
       return allIssues.map(transformIssue);
     },
@@ -315,21 +316,18 @@ function ColumnView({
         icon="mdi:progress-clock"
         iconColor="text-blue-600"
         items={inProgress}
-        status="in-progress"
       />
       <ColumnSection
         title="Planned"
         icon="mdi:calendar-clock"
         iconColor="text-neutral-400"
         items={planned}
-        status="planned"
       />
       <ColumnSection
         title="Done"
         icon="mdi:check-circle"
         iconColor="text-green-600"
         items={done}
-        status="done"
       />
     </div>
   );
@@ -340,13 +338,11 @@ function ColumnSection({
   icon,
   iconColor,
   items,
-  status,
 }: {
   title: string;
   icon: string;
   iconColor: string;
   items: RoadmapIssue[];
-  status: RoadmapStatus;
 }) {
   const [showAll, setShowAll] = useState(false);
   const mobileLimit = 3;

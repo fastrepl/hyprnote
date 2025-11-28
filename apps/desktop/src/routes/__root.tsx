@@ -2,21 +2,17 @@ import {
   createRootRouteWithContext,
   type LinkProps,
   Outlet,
-  useNavigate,
 } from "@tanstack/react-router";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { lazy, useEffect } from "react";
+import { lazy, Suspense } from "react";
 
-import {
-  type DeepLink,
-  events as deeplink2Events,
-} from "@hypr/plugin-deeplink2";
-import { events as windowsEvents } from "@hypr/plugin-windows";
+import type { DeepLink } from "@hypr/plugin-deeplink2";
 
-import { AuthProvider } from "../auth";
-import { BillingProvider } from "../billing";
 import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
+
+// Lazy load MainAppLayout to prevent auth.tsx from being imported in iframe context.
+// This is necessary because auth.tsx creates Supabase client at module level which uses Tauri APIs.
+const MainAppLayout = lazy(() => import("../components/main-app-layout"));
 
 0 as DeepLink["to"] extends NonNullable<LinkProps["to"]>
   ? 0
@@ -39,53 +35,12 @@ function Component() {
     return <Outlet />;
   }
 
-  return <MainAppLayout />;
-}
-
-function MainAppLayout() {
-  useNavigationEvents();
-
   return (
-    <AuthProvider>
-      <BillingProvider>
-        <Outlet />
-      </BillingProvider>
-    </AuthProvider>
+    <Suspense fallback={null}>
+      <MainAppLayout />
+    </Suspense>
   );
 }
-
-const useNavigationEvents = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    let unlistenNavigate: (() => void) | undefined;
-    let unlistenDeepLink: (() => void) | undefined;
-
-    const webview = getCurrentWebviewWindow();
-
-    windowsEvents
-      .navigate(webview)
-      .listen(({ payload }) => {
-        navigate({ to: payload.path, search: payload.search ?? undefined });
-      })
-      .then((fn) => {
-        unlistenNavigate = fn;
-      });
-
-    deeplink2Events.deepLinkEvent
-      .listen(({ payload }) => {
-        navigate({ to: payload.to, search: payload.search });
-      })
-      .then((fn) => {
-        unlistenDeepLink = fn;
-      });
-
-    return () => {
-      unlistenNavigate?.();
-      unlistenDeepLink?.();
-    };
-  }, [navigate]);
-};
 
 export const TanStackRouterDevtools =
   process.env.NODE_ENV === "production"

@@ -3,7 +3,7 @@ __hypr_extension.activate = function (context) {
     `Activating ${context.manifest.name} v${context.manifest.version}`,
   );
   hypr.log.info(`Extension path: ${context.extensionPath}`);
-  hypr.log.info(`API version: ${context.manifest.apiVersion}`);
+  hypr.log.info(`API version: ${context.manifest.api_version}`);
 };
 
 __hypr_extension.deactivate = function () {

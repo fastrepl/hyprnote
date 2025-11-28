@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import * as store from "@hypr/store";
 import { useTabs } from "@hypr/tabs";
@@ -45,6 +45,18 @@ export default function CalendarExtensionView({
   const [selectedCalendars, setSelectedCalendars] = useState<Set<string>>(
     () => new Set(calendarIds),
   );
+
+  useEffect(() => {
+    setSelectedCalendars((prev) => {
+      const next = new Set(prev);
+      for (const id of calendarIds) {
+        if (!prev.has(id)) {
+          next.add(id);
+        }
+      }
+      return next;
+    });
+  }, [calendarIds]);
 
   const monthStart = startOfMonth(month);
   const startDayOfWeek = getDay(monthStart);

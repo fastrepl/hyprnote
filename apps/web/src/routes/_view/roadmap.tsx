@@ -1,11 +1,10 @@
 import { Icon } from "@iconify-icon/react";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { allRoadmaps } from "content-collections";
+import { getMDXComponent } from "mdx-bundler/client/index.js";
+import { useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
-
-import { GITHUB_ORG_REPO } from "@/queries";
 
 export const Route = createFileRoute("/_view/roadmap")({
   component: Component,
@@ -21,108 +20,42 @@ export const Route = createFileRoute("/_view/roadmap")({
   }),
 });
 
-type GitHubLabel = {
-  name: string;
-  color: string;
-};
-
-type GitHubIssue = {
-  number: number;
-  title: string;
-  body: string | null;
-  html_url: string;
-  state: "open" | "closed";
-  labels: GitHubLabel[];
-  created_at: string;
-  closed_at: string | null;
-  pull_request?: object;
-};
-
 type RoadmapStatus = "done" | "in-progress" | "todo";
 
-type RoadmapIssue = {
-  number: number;
+type RoadmapItem = {
+  slug: string;
   title: string;
-  description: string;
-  url: string;
   status: RoadmapStatus;
-  labels: GitHubLabel[];
-  createdAt: string;
+  labels: string[];
+  githubIssues: string[];
+  created: string;
+  updated?: string;
+  mdx: {
+    code: string;
+  };
 };
 
 const DEFAULT_VISIBLE_ITEMS = 5;
 
-function categorizeIssue(issue: GitHubIssue): RoadmapStatus {
-  const labelNames = issue.labels.map((l) => l.name.toLowerCase());
-
-  if (issue.state === "closed") {
-    return "done";
-  }
-
-  if (
-    labelNames.some((l) =>
-      ["in progress", "in-progress", "wip", "working"].includes(l),
-    )
-  ) {
-    return "in-progress";
-  }
-
-  return "todo";
-}
-
-function transformIssue(issue: GitHubIssue): RoadmapIssue {
-  const firstLine = issue.body?.split("\n")[0] || "";
-  const description =
-    firstLine.length > 150 ? firstLine.slice(0, 147) + "..." : firstLine;
-
-  return {
-    number: issue.number,
-    title: issue.title,
-    description: description || "No description provided.",
-    url: issue.html_url,
-    status: categorizeIssue(issue),
-    labels: issue.labels,
-    createdAt: issue.created_at,
-  };
-}
-
-function useGitHubIssues() {
-  return useQuery({
-    queryKey: ["github-roadmap-issues"],
-    queryFn: async () => {
-      const roadmapLabels = ["enhancement", "feature", "improvement"];
-
-      const [openResponse, closedResponse] = await Promise.all([
-        fetch(
-          `https://api.github.com/repos/${GITHUB_ORG_REPO}/issues?state=open&per_page=100&sort=created&direction=desc`,
-        ),
-        fetch(
-          `https://api.github.com/repos/${GITHUB_ORG_REPO}/issues?state=closed&per_page=50&sort=updated&direction=desc`,
-        ),
-      ]);
-
-      const openIssues: GitHubIssue[] = await openResponse.json();
-      const closedIssues: GitHubIssue[] = await closedResponse.json();
-
-      const allIssues = [...openIssues, ...closedIssues].filter((issue) => {
-        if (issue.pull_request) return false;
-        const issueLabels = issue.labels.map((l) => l.name.toLowerCase());
-        return issueLabels.some((label) => roadmapLabels.includes(label));
-      });
-
-      return allIssues.map(transformIssue);
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+function getRoadmapItems(): RoadmapItem[] {
+  return allRoadmaps.map((item) => ({
+    slug: item.slug,
+    title: item.title,
+    status: item.status,
+    labels: item.labels || [],
+    githubIssues: item.githubIssues || [],
+    created: item.created,
+    updated: item.updated,
+    mdx: item.mdx,
+  }));
 }
 
 function Component() {
-  const { data: issues, isLoading, error } = useGitHubIssues();
+  const items = getRoadmapItems();
 
-  const done = issues?.filter((item) => item.status === "done") ?? [];
-  const inProgress =
-    issues?.filter((item) => item.status === "in-progress") ?? [];
-  const todo = issues?.filter((item) => item.status === "todo") ?? [];
+  const done = items.filter((item) => item.status === "done");
+  const inProgress = items.filter((item) => item.status === "in-progress");
+  const todo = items.filter((item) => item.status === "todo");
 
   return (
     <div
@@ -141,33 +74,8 @@ function Component() {
             </p>
           </header>
 
-          {isLoading && (
-            <div className="flex items-center justify-center py-20">
-              <Icon
-                icon="mdi:loading"
-                className="text-4xl text-stone-400 animate-spin"
-              />
-            </div>
-          )}
-
-          {error && (
-            <div className="text-center py-20">
-              <Icon
-                icon="mdi:alert-circle-outline"
-                className="text-4xl text-red-400 mb-4"
-              />
-              <p className="text-neutral-600">
-                Failed to load roadmap. Please try again later.
-              </p>
-            </div>
-          )}
-
-          {!isLoading && !error && (
-            <>
-              <KanbanView done={done} inProgress={inProgress} todo={todo} />
-              <ColumnView done={done} inProgress={inProgress} todo={todo} />
-            </>
-          )}
+          <KanbanView done={done} inProgress={inProgress} todo={todo} />
+          <ColumnView done={done} inProgress={inProgress} todo={todo} />
 
           <div className="mt-16 bg-stone-50 border border-neutral-200 rounded-lg p-8 text-center">
             <h3 className="text-2xl font-serif text-stone-600 mb-4">
@@ -201,9 +109,9 @@ function KanbanView({
   inProgress,
   todo,
 }: {
-  done: RoadmapIssue[];
-  inProgress: RoadmapIssue[];
-  todo: RoadmapIssue[];
+  done: RoadmapItem[];
+  inProgress: RoadmapItem[];
+  todo: RoadmapItem[];
 }) {
   return (
     <div className="hidden lg:grid lg:grid-cols-3 gap-6">
@@ -242,7 +150,7 @@ function KanbanColumn({
   title: string;
   icon: string;
   iconColor: string;
-  items: RoadmapIssue[];
+  items: RoadmapItem[];
   status: RoadmapStatus;
 }) {
   const [showAll, setShowAll] = useState(false);
@@ -271,7 +179,7 @@ function KanbanColumn({
           </div>
         ) : (
           visibleItems.map((item) => (
-            <IssueCard key={item.number} item={item} compact />
+            <RoadmapCard key={item.slug} item={item} compact />
           ))
         )}
         {hasMore && (
@@ -297,9 +205,9 @@ function ColumnView({
   inProgress,
   todo,
 }: {
-  done: RoadmapIssue[];
-  inProgress: RoadmapIssue[];
-  todo: RoadmapIssue[];
+  done: RoadmapItem[];
+  inProgress: RoadmapItem[];
+  todo: RoadmapItem[];
 }) {
   return (
     <div className="lg:hidden space-y-12">
@@ -334,7 +242,7 @@ function ColumnSection({
   title: string;
   icon: string;
   iconColor: string;
-  items: RoadmapIssue[];
+  items: RoadmapItem[];
 }) {
   const [showAll, setShowAll] = useState(false);
   const mobileLimit = 3;
@@ -354,7 +262,7 @@ function ColumnSection({
       </div>
       <div className="space-y-4">
         {visibleItems.map((item) => (
-          <IssueCard key={item.number} item={item} />
+          <RoadmapCard key={item.slug} item={item} />
         ))}
         {hasMore && (
           <button
@@ -375,48 +283,45 @@ function ColumnSection({
   );
 }
 
-function IssueCard({
+function RoadmapCard({
   item,
   compact = false,
 }: {
-  item: RoadmapIssue;
+  item: RoadmapItem;
   compact?: boolean;
 }) {
+  const Component = useMemo(
+    () => getMDXComponent(item.mdx.code),
+    [item.mdx.code],
+  );
+
   return (
-    <Link
-      to={item.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
       className={cn([
-        "block p-4 border border-neutral-200 rounded-lg bg-white",
+        "block p-4 border border-neutral-200 rounded-sm bg-white",
         "hover:shadow-sm hover:border-neutral-300 transition-all",
         "group",
       ])}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <h3
             className={cn([
               "font-medium text-stone-600 group-hover:text-stone-800",
-              "transition-colors line-clamp-2",
+              "transition-colors",
               compact ? "text-sm" : "text-base",
             ])}
           >
             {item.title}
           </h3>
-          {!compact && item.description && (
-            <p className="text-neutral-500 text-sm mt-1 line-clamp-2">
-              {item.description}
-            </p>
-          )}
           {item.labels.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {item.labels.slice(0, compact ? 2 : 4).map((label) => (
                 <span
-                  key={label.name}
+                  key={label}
                   className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600"
                 >
-                  {label.name}
+                  {label}
                 </span>
               ))}
               {item.labels.length > (compact ? 2 : 4) && (
@@ -427,10 +332,47 @@ function IssueCard({
             </div>
           )}
         </div>
-        <span className="text-xs text-neutral-400 shrink-0">
-          #{item.number}
-        </span>
       </div>
-    </Link>
+      {!compact && (
+        <div className="prose prose-sm prose-stone max-w-none">
+          <Component />
+        </div>
+      )}
+      {!compact && item.githubIssues.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {item.githubIssues.map((url) => (
+            <GitHubIssuePreview key={url} url={url} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GitHubIssuePreview({ url }: { url: string }) {
+  return (
+    <div className="mt-3 pt-3 border-t border-neutral-100">
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn([
+          "flex items-center gap-2 text-sm text-stone-500",
+          "hover:text-stone-700 transition-colors",
+        ])}
+      >
+        <Icon icon="mdi:github" className="text-lg" />
+        <span>View on GitHub</span>
+        <Icon icon="mdi:open-in-new" className="text-xs" />
+      </a>
+      <div className="mt-2 rounded-sm overflow-hidden border border-neutral-200">
+        <iframe
+          src={url}
+          className="w-full h-[400px] bg-white"
+          title="GitHub Issue Preview"
+          sandbox="allow-same-origin allow-scripts"
+        />
+      </div>
+    </div>
   );
 }

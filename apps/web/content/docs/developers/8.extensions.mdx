@@ -216,6 +216,24 @@ cp -r extensions/my-extension %APPDATA%/com.hyprnote.dev/extensions/
 
 Launch Hyprnote in development mode and navigate to your extension panel.
 
+# Security Model
+
+Extension UIs run in sandboxed iframes with restricted capabilities. The security model relies on several trust boundaries and validation checks.
+
+## Script Loading
+
+When an extension panel is loaded, the parent window (main Hyprnote webview) constructs the script URL using Tauri's `convertFileSrc` API. This converts the local file path from the extension registry into a URL that the iframe can fetch. The `entry_path` originates from the trusted backend extension registry, which only includes extensions that have been explicitly installed by the user.
+
+The iframe host route validates incoming search parameters to ensure `extensionId` and `scriptUrl` are well-formed strings and that `scriptUrl` is a valid URL (rejecting potentially dangerous protocols like `javascript:`). Before executing the fetched script, the host also validates that the response content-type includes `javascript` to avoid executing non-JS payloads.
+
+## Export Validation
+
+After script execution, the host checks that the extension exported a valid React component via `__hypr_panel_exports.default`. This is a contract validation to ensure extensions conform to the expected interface, not a security boundary. Extensions that fail to export a default component will display an error rather than rendering.
+
+## Iframe Sandbox
+
+Extension iframes use the `sandbox="allow-scripts"` attribute, which restricts the iframe from accessing the parent window's DOM, making top-level navigations, or accessing same-origin storage. Extensions communicate with the parent exclusively through the TinyBase postMessage synchronizer.
+
 # Example: Hello World
 
 The `hello-world` extension in the repository demonstrates a complete extension with:

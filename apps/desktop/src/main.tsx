@@ -66,12 +66,20 @@ function App() {
   );
 }
 
+// Check if we're in an iframe context (extension host)
+const isIframeContext =
+  typeof window !== "undefined" && window.self !== window.top;
+
 function AppWithTiny() {
   const manager = useCreateManager(() => {
     return createManager().start();
   });
 
-  const isMainWindow = getCurrentWebviewWindowLabel() === "main";
+  // In iframe context, we're not the main window and shouldn't persist the store
+  // (the parent window handles persistence, iframe syncs via postMessage)
+  const isMainWindow = isIframeContext
+    ? false
+    : getCurrentWebviewWindowLabel() === "main";
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -79,13 +87,14 @@ function AppWithTiny() {
         <TinyBaseProvider>
           <App />
           <StoreComponent persist={isMainWindow} />
-          <TaskManager />
+          {!isIframeContext && <TaskManager />}
         </TinyBaseProvider>
       </TinyTickProvider>
     </QueryClientProvider>
   );
 }
 
+// Initialize plugins - the polyfill in index.html handles iframe context
 initWindowsPlugin();
 initExtensionGlobals();
 

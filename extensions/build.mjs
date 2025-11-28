@@ -129,6 +129,10 @@ async function buildExtension(name) {
                 path: args.path,
                 namespace: "hypr-global",
               }));
+              build.onResolve({ filter: /^tinybase\/ui-react$/ }, () => ({
+                path: "tinybase/ui-react",
+                namespace: "hypr-global",
+              }));
               build.onLoad(
                 { filter: /.*/, namespace: "hypr-global" },
                 (args) => {
@@ -168,6 +172,13 @@ async function buildExtension(name) {
                   if (args.path.startsWith("@hypr/utils")) {
                     return {
                       contents: "module.exports = window.__hypr_utils",
+                      loader: "js",
+                    };
+                  }
+                  if (args.path === "tinybase/ui-react") {
+                    return {
+                      contents:
+                        "module.exports = window.__hypr_tinybase_ui_react",
                       loader: "js",
                     };
                   }

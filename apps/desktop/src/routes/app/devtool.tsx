@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
-import { useStores } from "tinybase/ui-react";
+import { useRow, useStores } from "tinybase/ui-react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
@@ -100,6 +100,7 @@ function Component() {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         <TinyTickMonitor />
+        <ExtensionStateMonitor />
         <SeedList onSeed={handleSeed} />
         <NavigationList />
       </div>
@@ -119,6 +120,39 @@ function DevtoolSection({
       <h2 className="text-sm font-semibold">{title}</h2>
       {children}
     </section>
+  );
+}
+
+function ExtensionStateMonitor() {
+  const extensionState = useRow(
+    "extension_state",
+    "hello-world",
+    STORE_ID_PERSISTED,
+  ) as {
+    counter?: number;
+    last_updated?: string;
+  };
+
+  const counter = extensionState?.counter ?? 0;
+  const lastUpdated = extensionState?.last_updated;
+
+  return (
+    <DevtoolSection title="Extension State (hello-world)">
+      <div className="flex flex-col gap-2 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-white/60">Synced Counter:</span>
+          <span className="font-mono text-green-400">{counter}</span>
+        </div>
+        {lastUpdated && (
+          <div className="flex items-center gap-2">
+            <span className="text-white/60">Last Updated:</span>
+            <span className="font-mono text-white/80">
+              {new Date(lastUpdated).toLocaleTimeString()}
+            </span>
+          </div>
+        )}
+      </div>
+    </DevtoolSection>
   );
 }
 

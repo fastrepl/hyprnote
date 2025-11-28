@@ -19,26 +19,37 @@ import {
 
 import { env } from "./env";
 
-const tauriStorage: SupportedStorage = {
-  async getItem(key: string): Promise<string | null> {
-    const store = await load("auth.json");
-    const val = await store.get<string>(key);
-    return val ?? null;
-  },
-  async setItem(key: string, value: string): Promise<void> {
-    const store = await load("auth.json");
-    await store.set(key, value);
-    await store.save();
-  },
-  async removeItem(key: string): Promise<void> {
-    const store = await load("auth.json");
-    await store.delete(key);
-    await store.save();
-  },
-};
+// Check if we're in an iframe (extension host) context where Tauri APIs are not available
+const isIframeContext =
+  typeof window !== "undefined" && window.self !== window.top;
 
+// Only create Tauri storage if we're not in an iframe context
+const tauriStorage: SupportedStorage | null = isIframeContext
+  ? null
+  : {
+      async getItem(key: string): Promise<string | null> {
+        const store = await load("auth.json");
+        const val = await store.get<string>(key);
+        return val ?? null;
+      },
+      async setItem(key: string, value: string): Promise<void> {
+        const store = await load("auth.json");
+        await store.set(key, value);
+        await store.save();
+      },
+      async removeItem(key: string): Promise<void> {
+        const store = await load("auth.json");
+        await store.delete(key);
+        await store.save();
+      },
+    };
+
+// Only create Supabase client if we're not in an iframe context and have valid config
 const supabase =
-  env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY
+  !isIframeContext &&
+  env.VITE_SUPABASE_URL &&
+  env.VITE_SUPABASE_ANON_KEY &&
+  tauriStorage
     ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY, {
         auth: {
           storage: tauriStorage,

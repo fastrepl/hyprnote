@@ -16,17 +16,26 @@
     </style>
     <!-- Polyfill for __TAURI_INTERNALS__ in iframe context (extension host) -->
     <!-- This must run BEFORE any module imports to prevent Tauri API access errors -->
+    <!-- In iframe context, Tauri may inject a partial __TAURI_INTERNALS__ object, so we -->
+    <!-- always overwrite it completely to ensure all required fields are present -->
     <script>
       (function() {
         var isIframeContext = window.self !== window.top;
-        if (isIframeContext && !window.__TAURI_INTERNALS__) {
-          window.__TAURI_INTERNALS__ = {
-            _metadata: {},
-            invoke: function() { return Promise.reject(new Error("Tauri not available in iframe")); },
-            transformCallback: function() { return 0; },
-            convertFileSrc: function(path) { return path; }
-          };
-        }
+        if (!isIframeContext) return;
+
+        // Always overwrite __TAURI_INTERNALS__ in iframe context to ensure
+        // all required fields are present (Tauri may inject a partial object)
+        window.__TAURI_INTERNALS__ = {
+          _metadata: {
+            currentWindow: { label: "iframe", kind: "WebviewWindow" },
+            currentWebview: { label: "iframe", windowLabel: "iframe" },
+            windows: [],
+            webviews: []
+          },
+          invoke: function() { return Promise.reject(new Error("Tauri not available in iframe")); },
+          transformCallback: function() { return 0; },
+          convertFileSrc: function(path) { return path; }
+        };
       })();
     </script>
   </head>

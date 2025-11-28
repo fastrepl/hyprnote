@@ -401,6 +401,50 @@ const vs = defineCollection({
   },
 });
 
+const roadmap = defineCollection({
+  name: "roadmap",
+  directory: "content/roadmap",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    title: z.string(),
+    status: z.enum(["todo", "in-progress", "done"]),
+    created: z.string(),
+    updated: z.string().optional(),
+    labels: z.array(z.string()).optional(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    const githubIssueRegex =
+      /https:\/\/github\.com\/[^\/\s]+\/[^\/\s]+\/issues\/\d+/g;
+    const githubIssues = document.content.match(githubIssueRegex) || [];
+
+    return {
+      ...document,
+      mdx,
+      slug,
+      githubIssues,
+    };
+  },
+});
+
 export default defineConfig({
   collections: [
     articles,
@@ -411,5 +455,6 @@ export default defineConfig({
     hooks,
     deeplinks,
     vs,
+    roadmap,
   ],
 });

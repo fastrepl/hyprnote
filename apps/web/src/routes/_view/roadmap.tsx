@@ -38,7 +38,7 @@ type GitHubIssue = {
   pull_request?: object;
 };
 
-type RoadmapStatus = "done" | "in-progress" | "planned";
+type RoadmapStatus = "done" | "in-progress" | "todo";
 
 type RoadmapIssue = {
   number: number;
@@ -67,7 +67,7 @@ function categorizeIssue(issue: GitHubIssue): RoadmapStatus {
     return "in-progress";
   }
 
-  return "planned";
+  return "todo";
 }
 
 function transformIssue(issue: GitHubIssue): RoadmapIssue {
@@ -122,7 +122,7 @@ function Component() {
   const done = issues?.filter((item) => item.status === "done") ?? [];
   const inProgress =
     issues?.filter((item) => item.status === "in-progress") ?? [];
-  const planned = issues?.filter((item) => item.status === "planned") ?? [];
+  const todo = issues?.filter((item) => item.status === "todo") ?? [];
 
   return (
     <div
@@ -164,16 +164,8 @@ function Component() {
 
           {!isLoading && !error && (
             <>
-              <KanbanView
-                done={done}
-                inProgress={inProgress}
-                planned={planned}
-              />
-              <ColumnView
-                done={done}
-                inProgress={inProgress}
-                planned={planned}
-              />
+              <KanbanView done={done} inProgress={inProgress} todo={todo} />
+              <ColumnView done={done} inProgress={inProgress} todo={todo} />
             </>
           )}
 
@@ -207,20 +199,20 @@ function Component() {
 function KanbanView({
   done,
   inProgress,
-  planned,
+  todo,
 }: {
   done: RoadmapIssue[];
   inProgress: RoadmapIssue[];
-  planned: RoadmapIssue[];
+  todo: RoadmapIssue[];
 }) {
   return (
     <div className="hidden lg:grid lg:grid-cols-3 gap-6">
       <KanbanColumn
-        title="Done"
-        icon="mdi:check-circle"
-        iconColor="text-green-600"
-        items={done}
-        status="done"
+        title="To Do"
+        icon="mdi:calendar-clock"
+        iconColor="text-neutral-400"
+        items={todo}
+        status="todo"
       />
       <KanbanColumn
         title="In Progress"
@@ -230,11 +222,11 @@ function KanbanView({
         status="in-progress"
       />
       <KanbanColumn
-        title="Planned"
-        icon="mdi:calendar-clock"
-        iconColor="text-neutral-400"
-        items={planned}
-        status="planned"
+        title="Done"
+        icon="mdi:check-circle"
+        iconColor="text-green-600"
+        items={done}
+        status="done"
       />
     </div>
   );
@@ -265,7 +257,7 @@ function KanbanColumn({
           "border-b-2",
           status === "done" && "border-green-200",
           status === "in-progress" && "border-blue-200",
-          status === "planned" && "border-neutral-200",
+          status === "todo" && "border-neutral-200",
         ])}
       >
         <Icon icon={icon} className={cn(["text-xl", iconColor])} />
@@ -303,25 +295,25 @@ function KanbanColumn({
 function ColumnView({
   done,
   inProgress,
-  planned,
+  todo,
 }: {
   done: RoadmapIssue[];
   inProgress: RoadmapIssue[];
-  planned: RoadmapIssue[];
+  todo: RoadmapIssue[];
 }) {
   return (
     <div className="lg:hidden space-y-12">
+      <ColumnSection
+        title="To Do"
+        icon="mdi:calendar-clock"
+        iconColor="text-neutral-400"
+        items={todo}
+      />
       <ColumnSection
         title="In Progress"
         icon="mdi:progress-clock"
         iconColor="text-blue-600"
         items={inProgress}
-      />
-      <ColumnSection
-        title="Planned"
-        icon="mdi:calendar-clock"
-        iconColor="text-neutral-400"
-        items={planned}
       />
       <ColumnSection
         title="Done"

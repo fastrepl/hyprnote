@@ -20,6 +20,7 @@
     "@nangohq/node": "^0.69.14",
     "@netlify/vite-plugin-tanstack-start": "^1.2.1",
     "@posthog/react": "^1.5.0",
+    "@restatedev/restate-sdk-clients": "^1.9.1",
     "@sentry/tanstackstart-react": "^10.26.0",
     "@stripe/stripe-js": "^8.5.2",
     "@supabase/ssr": "^0.7.0",

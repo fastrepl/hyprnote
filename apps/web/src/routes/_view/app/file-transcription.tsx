@@ -1,5 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
@@ -10,7 +11,11 @@ import {
   TranscriptDisplay,
 } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
-import { transcribeAudio } from "@/functions/transcription";
+import {
+  getAudioPipelineStatus,
+  startAudioPipeline,
+  type StatusStateType,
+} from "@/functions/transcription";
 import { uploadAudioFile } from "@/functions/upload";
 
 export const Route = createFileRoute("/_view/app/file-transcription")({
@@ -22,16 +27,59 @@ export const Route = createFileRoute("/_view/app/file-transcription")({
 
 function Component() {
   const [file, setFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [pipelineId, setPipelineId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
+
+  const pipelineStatusQuery = useQuery({
+    queryKey: ["audioPipelineStatus", pipelineId],
+    queryFn: async (): Promise<StatusStateType> => {
+      if (!pipelineId) {
+        throw new Error("Missing pipelineId");
+      }
+      const res = await getAudioPipelineStatus({ data: { pipelineId } });
+      if ("error" in res && res.error) {
+        throw new Error(res.message ?? "Failed to get pipeline status");
+      }
+      if (!("status" in res) || !res.status) {
+        throw new Error("Invalid response from pipeline status");
+      }
+      return res.status;
+    },
+    enabled: !!pipelineId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      const isTerminal = status === "DONE" || status === "ERROR";
+      return isTerminal ? false : 2000;
+    },
+  });
+
+  useEffect(() => {
+    const data = pipelineStatusQuery.data;
+    if (data?.status === "DONE" && data.transcript) {
+      setTranscript(data.transcript);
+    }
+  }, [pipelineStatusQuery.data]);
+
+  const isProcessing =
+    !!pipelineId &&
+    !["DONE", "ERROR"].includes(pipelineStatusQuery.data?.status ?? "");
+
+  const errorMessage =
+    uploadError ??
+    (pipelineStatusQuery.isError && pipelineStatusQuery.error instanceof Error
+      ? pipelineStatusQuery.error.message
+      : null) ??
+    (pipelineStatusQuery.data?.status === "ERROR"
+      ? pipelineStatusQuery.data.error
+      : null);
 
   const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
     setTranscript(null);
-    setError(null);
-    setIsProcessing(true);
+    setUploadError(null);
+    setPipelineId(null);
 
     try {
       const reader = new FileReader();
@@ -40,8 +88,7 @@ function Component() {
       reader.onload = async () => {
         const base64Data = reader.result?.toString().split(",")[1];
         if (!base64Data) {
-          setError("Failed to read file");
-          setIsProcessing(false);
+          setUploadError("Failed to read file");
           return;
         }
 
@@ -54,52 +101,44 @@ function Component() {
         });
 
         if ("error" in uploadResult && uploadResult.error) {
-          setError(uploadResult.message || "Failed to upload file");
-          setIsProcessing(false);
+          setUploadError(uploadResult.message || "Failed to upload file");
           return;
         }
 
         if (!("url" in uploadResult)) {
-          setError("Failed to get upload URL");
-          setIsProcessing(false);
+          setUploadError("Failed to get upload URL");
           return;
         }
 
-        const transcriptionResult = await transcribeAudio({
+        const pipelineResult = await startAudioPipeline({
           data: {
             audioUrl: uploadResult.url,
-            fileName: selectedFile.name,
-            fileSize: selectedFile.size,
           },
         });
 
-        if ("error" in transcriptionResult && transcriptionResult.error) {
-          setError(transcriptionResult.message || "Failed to transcribe audio");
-          setIsProcessing(false);
+        if ("error" in pipelineResult && pipelineResult.error) {
+          setUploadError(pipelineResult.message || "Failed to start pipeline");
           return;
         }
 
-        if ("transcript" in transcriptionResult) {
-          setTranscript(transcriptionResult.transcript);
+        if ("pipelineId" in pipelineResult) {
+          setPipelineId(pipelineResult.pipelineId);
         }
-        setIsProcessing(false);
       };
 
       reader.onerror = () => {
-        setError("Failed to read file");
-        setIsProcessing(false);
+        setUploadError("Failed to read file");
       };
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-      setIsProcessing(false);
+      setUploadError(err instanceof Error ? err.message : "Unknown error");
     }
   };
 
   const handleRemoveFile = () => {
     setFile(null);
     setTranscript(null);
-    setError(null);
-    setIsProcessing(false);
+    setUploadError(null);
+    setPipelineId(null);
     setNoteContent(EMPTY_TIPTAP_DOC);
   };
 
@@ -128,10 +167,10 @@ function Component() {
           </div>
         </div>
 
-        {error && (
+        {errorMessage && (
           <div className="max-w-6xl mx-auto px-4 pt-8">
             <div className="border border-red-200 bg-red-50 rounded-sm p-4">
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-red-600">{errorMessage}</p>
             </div>
           </div>
         )}

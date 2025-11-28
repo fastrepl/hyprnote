@@ -19,6 +19,8 @@ export const env = createEnv({
     LOOPS_KEY: z.string().min(1),
 
     DEEPGRAM_API_KEY: z.string().min(1),
+
+    RESTATE_INGRESS_URL: z.string().min(1),
   },
 
   clientPrefix: "VITE_",

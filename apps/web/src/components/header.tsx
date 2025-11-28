@@ -1,8 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp, Menu } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
+
+function scrollToHero() {
+  const heroElement = document.getElementById("hero");
+  if (heroElement) {
+    heroElement.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
 
 function getMaxWidthClass(pathname: string): string {
   const isBlogOrDocs =
@@ -170,6 +177,7 @@ export function Header() {
                 <Link
                   to="/"
                   hash="hero"
+                  onClick={scrollToHero}
                   className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
                 >
                   {platformCTA.label}
@@ -190,6 +198,7 @@ export function Header() {
                 <Link
                   to="/"
                   hash="hero"
+                  onClick={scrollToHero}
                   className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
                 >
                   {platform === "mobile" ? "Get reminder" : platformCTA.label}
@@ -326,7 +335,10 @@ export function Header() {
                     <Link
                       to="/"
                       hash="hero"
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        scrollToHero();
+                      }}
                       className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
                     >
                       {platform === "mobile"

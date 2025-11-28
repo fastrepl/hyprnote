@@ -1,4 +1,4 @@
-import * as restate from "@restatedev/restate-sdk-cloudflare-workers";
+import * as restate from "@restatedev/restate-sdk-cloudflare-workers/fetch";
 import { z } from "zod";
 
 const RateLimitState = z.object({

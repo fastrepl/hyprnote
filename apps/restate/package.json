@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "tsc --noEmitOnError",
     "dev": "wrangler dev --port 9080",
+    "start": "wrangler dev --port 9080",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit"
   },

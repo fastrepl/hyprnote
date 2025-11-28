@@ -1,0 +1,12 @@
+# The name of your Cloudflare Worker project
+name = "hypr-restate"
+
+# Entrypoint
+main = "./src/index.ts"
+
+# Preview URLs are used to register to Restate
+preview_urls = true
+
+# Enable NodeJS compatibility (used by the SDK for the Node Buffer API)
+compatibility_date = "2025-09-23"
+compatibility_flags = ["nodejs_compat"]

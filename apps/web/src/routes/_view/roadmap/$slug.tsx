@@ -188,28 +188,18 @@ function Component() {
 
 function GitHubIssuePreview({ url }: { url: string }) {
   return (
-    <div className="border border-neutral-200 rounded-lg p-4 bg-white">
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={cn([
-          "flex items-center gap-2 text-sm text-stone-500",
-          "hover:text-stone-700 transition-colors mb-3",
-        ])}
-      >
-        <Icon icon="mdi:github" className="text-lg" />
-        <span>View on GitHub</span>
-        <Icon icon="mdi:open-in-new" className="text-xs" />
-      </a>
-      <div className="rounded-sm overflow-hidden border border-neutral-200">
-        <iframe
-          src={url}
-          className="w-full h-[400px] bg-white"
-          title="GitHub Issue Preview"
-          sandbox="allow-same-origin allow-scripts"
-        />
-      </div>
-    </div>
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn([
+        "flex items-center gap-2 px-4 py-3 border border-neutral-200 rounded-lg bg-white",
+        "text-sm text-stone-600 hover:text-stone-800 hover:border-neutral-300 transition-colors",
+      ])}
+    >
+      <Icon icon="mdi:github" className="text-lg" />
+      <span className="flex-1">{url}</span>
+      <Icon icon="mdi:open-in-new" className="text-xs text-neutral-400" />
+    </a>
   );
 }

@@ -1,7 +1,15 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { PuzzleIcon, XIcon } from "lucide-react";
+import { AlertTriangleIcon, PuzzleIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
-import { type PointerEvent, useCallback, useEffect, useRef } from "react";
+import {
+  Component,
+  type PointerEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { MergeableStore } from "tinybase";
 import { useStores } from "tinybase/ui-react";
 
@@ -22,6 +30,67 @@ import { StandardTabWrapper } from "../index";
 import { getPanelInfoByExtensionId } from "./registry";
 
 type ExtensionTab = Extract<Tab, { type: "extension" }>;
+
+interface ExtensionErrorBoundaryProps {
+  children: ReactNode;
+  extensionId: string;
+  onRetry: () => void;
+}
+
+interface ExtensionErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ExtensionErrorBoundary extends Component<
+  ExtensionErrorBoundaryProps,
+  ExtensionErrorBoundaryState
+> {
+  constructor(props: ExtensionErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ExtensionErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+    this.props.onRetry();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="max-w-md space-y-4 text-center p-4">
+            <AlertTriangleIcon
+              size={48}
+              className="mx-auto text-amber-500 mb-4"
+            />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Extension Error</h3>
+              <p className="text-sm text-neutral-500">
+                The extension "{this.props.extensionId}" encountered an error
+              </p>
+              {this.state.error && (
+                <p className="text-xs text-neutral-400 font-mono bg-neutral-100 p-2 rounded overflow-auto max-h-24">
+                  {this.state.error.message}
+                </p>
+              )}
+            </div>
+            <Button size="sm" onClick={this.handleRetry}>
+              Try again
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export function TabItemExtension({
   tab,
@@ -100,6 +169,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
   const synchronizerRef = useRef<ReturnType<
     typeof createIframeSynchronizer
   > | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   const handleIframeLoad = useCallback(() => {
     if (!iframeRef.current || !store) return;
@@ -130,6 +200,10 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
     };
   }, []);
 
+  const handleRetry = () => {
+    setRetryKey((prev) => prev + 1);
+  };
+
   if (!panelInfo?.entry_path) {
     return (
       <StandardTabWrapper>
@@ -153,14 +227,20 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
 
   return (
     <StandardTabWrapper>
-      <iframe
-        ref={iframeRef}
-        src={iframeSrc}
-        onLoad={handleIframeLoad}
-        className="w-full h-full border-0"
-        sandbox="allow-scripts"
-        title={`Extension: ${tab.extensionId}`}
-      />
+      <ExtensionErrorBoundary
+        key={retryKey}
+        extensionId={tab.extensionId}
+        onRetry={handleRetry}
+      >
+        <iframe
+          ref={iframeRef}
+          src={iframeSrc}
+          onLoad={handleIframeLoad}
+          className="w-full h-full border-0"
+          sandbox="allow-scripts"
+          title={`Extension: ${tab.extensionId}`}
+        />
+      </ExtensionErrorBoundary>
     </StandardTabWrapper>
   );
 }

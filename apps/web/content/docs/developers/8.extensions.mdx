@@ -65,7 +65,7 @@ Each panel definition includes:
 
 # Runtime Script
 
-The runtime script (`main.js`) runs in a sandboxed Deno environment and handles extension lifecycle events:
+The runtime script (`main.js`) runs in a sandboxed Deno environment and handles extension lifecycle events. The runtime provides a `hypr.log` API for logging:
 
 ```javascript
 __hypr_extension.activate = function (context) {
@@ -87,6 +87,8 @@ The `context` object passed to `activate` contains:
 
 - `manifest`: The parsed extension manifest
 - `extensionPath`: Absolute path to the extension directory
+
+The runtime script is required in the manifest but currently serves primarily for logging and future extensibility. The main extension functionality comes from the panel UI.
 
 # Panel UI
 
@@ -129,7 +131,7 @@ Extension UIs have access to the following globals provided by Hyprnote:
 
 - `react` - React library
 - `react-dom` - React DOM library
-- `@hypr/ui` - Hyprnote UI component library (Button, Card, Checkbox, Popover, etc.)
+- `@hypr/ui` - Hyprnote UI component library (Button, ButtonGroup, Card, Checkbox, Popover)
 - `@hypr/utils` - Hyprnote utility functions (cn, date-fns helpers, etc.)
 
 ## State Management
@@ -161,12 +163,10 @@ Extensions can read and write state that synchronizes with the main Hyprnote app
 Use TinyBase hooks to read from the synchronized store:
 
 ```tsx
-import { useRow, useStore } from "tinybase/ui-react";
+import { useRow } from "tinybase/ui-react";
 import * as store from "@hypr/store";
 
 function MyExtension({ extensionId }: ExtensionViewProps) {
-  const storeInstance = useStore();
-
   // Read extension-specific state
   const extensionState = useRow("extension_state", extensionId) as {
     counter?: number;
@@ -185,9 +185,14 @@ function MyExtension({ extensionId }: ExtensionViewProps) {
 Use `useSetRowCallback` to write state that syncs back to the main app:
 
 ```tsx
-import { useSetRowCallback } from "tinybase/ui-react";
+import { useRow, useSetRowCallback } from "tinybase/ui-react";
 
 function MyExtension({ extensionId }: ExtensionViewProps) {
+  const extensionState = useRow("extension_state", extensionId) as {
+    counter?: number;
+    last_updated?: string;
+  };
+
   const setExtensionState = useSetRowCallback(
     "extension_state",
     extensionId,

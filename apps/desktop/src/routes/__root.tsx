@@ -29,6 +29,20 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 });
 
 function Component() {
+  // ext-host route runs in iframe without Tauri access, so skip auth/billing providers
+  // and navigation events (which use Tauri APIs)
+  const isExtHost =
+    typeof window !== "undefined" &&
+    window.location.pathname.startsWith("/app/ext-host");
+
+  if (isExtHost) {
+    return <Outlet />;
+  }
+
+  return <MainAppLayout />;
+}
+
+function MainAppLayout() {
   useNavigationEvents();
 
   return (

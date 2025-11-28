@@ -24,7 +24,6 @@ import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
-import { Route as ViewRoadmapRouteImport } from './routes/_view/roadmap'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
@@ -34,6 +33,7 @@ import { Route as ViewBrandRouteImport } from './routes/_view/brand'
 import { Route as ViewAboutRouteImport } from './routes/_view/about'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
+import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
@@ -54,6 +54,7 @@ import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solut
 import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
 import { Route as ViewSolutionFieldEngineeringRouteImport } from './routes/_view/solution/field-engineering'
 import { Route as ViewSolutionCustomerSuccessRouteImport } from './routes/_view/solution/customer-success'
+import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
 import { Route as ViewProductWorkflowsRouteImport } from './routes/_view/product/workflows'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
 import { Route as ViewProductOpensourceRouteImport } from './routes/_view/product/opensource'
@@ -153,11 +154,6 @@ const ViewSecurityRoute = ViewSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewRoadmapRoute = ViewRoadmapRouteImport.update({
-  id: '/roadmap',
-  path: '/roadmap',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewPricingRoute = ViewPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -203,6 +199,9 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
+  id: '/roadmap/',
+  path: '/roadmap/',
 const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
   id: '/templates/',
   path: '/templates/',
@@ -306,6 +305,11 @@ const ViewSolutionCustomerSuccessRoute =
     path: '/solution/customer-success',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewRoadmapSlugRoute = ViewRoadmapSlugRouteImport.update({
+  id: '/roadmap/$slug',
+  path: '/roadmap/$slug',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewProductWorkflowsRoute = ViewProductWorkflowsRouteImport.update({
   id: '/product/workflows',
   path: '/product/workflows',
@@ -448,7 +452,6 @@ export interface FileRoutesByFullPath {
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
-  '/roadmap': typeof ViewRoadmapRoute
   '/security': typeof ViewSecurityRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -478,6 +481,7 @@ export interface FileRoutesByFullPath {
   '/product/opensource': typeof ViewProductOpensourceRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
+  '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
@@ -497,6 +501,7 @@ export interface FileRoutesByFullPath {
   '/docs/': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
+  '/roadmap': typeof ViewRoadmapIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -516,7 +521,6 @@ export interface FileRoutesByTo {
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
-  '/roadmap': typeof ViewRoadmapRoute
   '/security': typeof ViewSecurityRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -546,6 +550,7 @@ export interface FileRoutesByTo {
   '/product/opensource': typeof ViewProductOpensourceRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
+  '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
@@ -565,6 +570,7 @@ export interface FileRoutesByTo {
   '/docs': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
+  '/roadmap': typeof ViewRoadmapIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
 }
 export interface FileRoutesById {
@@ -588,7 +594,6 @@ export interface FileRoutesById {
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
   '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
-  '/_view/roadmap': typeof ViewRoadmapRoute
   '/_view/security': typeof ViewSecurityRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -618,6 +623,7 @@ export interface FileRoutesById {
   '/_view/product/opensource': typeof ViewProductOpensourceRoute
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/_view/product/workflows': typeof ViewProductWorkflowsRoute
+  '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/_view/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/_view/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/_view/solution/government': typeof ViewSolutionGovernmentRoute
@@ -637,6 +643,7 @@ export interface FileRoutesById {
   '/_view/docs/': typeof ViewDocsIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
+  '/_view/roadmap/': typeof ViewRoadmapIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
 }
 export interface FileRouteTypes {
@@ -660,7 +667,6 @@ export interface FileRouteTypes {
     | '/file-transcription'
     | '/press-kit'
     | '/pricing'
-    | '/roadmap'
     | '/security'
     | '/api/templates'
     | '/webhook/nango'
@@ -690,6 +696,7 @@ export interface FileRouteTypes {
     | '/product/opensource'
     | '/product/self-hosting'
     | '/product/workflows'
+    | '/roadmap/$slug'
     | '/solution/customer-success'
     | '/solution/field-engineering'
     | '/solution/government'
@@ -709,6 +716,7 @@ export interface FileRouteTypes {
     | '/docs/'
     | '/download'
     | '/legal'
+    | '/roadmap'
     | '/templates'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -728,7 +736,6 @@ export interface FileRouteTypes {
     | '/file-transcription'
     | '/press-kit'
     | '/pricing'
-    | '/roadmap'
     | '/security'
     | '/api/templates'
     | '/webhook/nango'
@@ -758,6 +765,7 @@ export interface FileRouteTypes {
     | '/product/opensource'
     | '/product/self-hosting'
     | '/product/workflows'
+    | '/roadmap/$slug'
     | '/solution/customer-success'
     | '/solution/field-engineering'
     | '/solution/government'
@@ -777,6 +785,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/download'
     | '/legal'
+    | '/roadmap'
     | '/templates'
   id:
     | '__root__'
@@ -799,7 +808,6 @@ export interface FileRouteTypes {
     | '/_view/file-transcription'
     | '/_view/press-kit'
     | '/_view/pricing'
-    | '/_view/roadmap'
     | '/_view/security'
     | '/api/templates'
     | '/webhook/nango'
@@ -829,6 +837,7 @@ export interface FileRouteTypes {
     | '/_view/product/opensource'
     | '/_view/product/self-hosting'
     | '/_view/product/workflows'
+    | '/_view/roadmap/$slug'
     | '/_view/solution/customer-success'
     | '/_view/solution/field-engineering'
     | '/_view/solution/government'
@@ -848,6 +857,7 @@ export interface FileRouteTypes {
     | '/_view/docs/'
     | '/_view/download/'
     | '/_view/legal/'
+    | '/_view/roadmap/'
     | '/_view/templates/'
   fileRoutesById: FileRoutesById
 }
@@ -976,13 +986,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewSecurityRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/roadmap': {
-      id: '/_view/roadmap'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof ViewRoadmapRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/pricing': {
       id: '/_view/pricing'
       path: '/pricing'
@@ -1046,6 +1049,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/roadmap/': {
+      id: '/_view/roadmap/'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof ViewRoadmapIndexRouteImport
     '/_view/templates/': {
       id: '/_view/templates/'
       path: '/templates'
@@ -1184,6 +1192,13 @@ declare module '@tanstack/react-router' {
       path: '/solution/customer-success'
       fullPath: '/solution/customer-success'
       preLoaderRoute: typeof ViewSolutionCustomerSuccessRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/roadmap/$slug': {
+      id: '/_view/roadmap/$slug'
+      path: '/roadmap/$slug'
+      fullPath: '/roadmap/$slug'
+      preLoaderRoute: typeof ViewRoadmapSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/product/workflows': {
@@ -1413,7 +1428,6 @@ interface ViewRouteRouteChildren {
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
   ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
-  ViewRoadmapRoute: typeof ViewRoadmapRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
@@ -1434,6 +1448,7 @@ interface ViewRouteRouteChildren {
   ViewProductOpensourceRoute: typeof ViewProductOpensourceRoute
   ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
   ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute
+  ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
   ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute
   ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute
   ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
@@ -1449,6 +1464,7 @@ interface ViewRouteRouteChildren {
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
   ViewLegalIndexRoute: typeof ViewLegalIndexRoute
+  ViewRoadmapIndexRoute: typeof ViewRoadmapIndexRoute
   ViewTemplatesIndexRoute: typeof ViewTemplatesIndexRoute
 }
 
@@ -1462,7 +1478,6 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
   ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
-  ViewRoadmapRoute: ViewRoadmapRoute,
   ViewSecurityRoute: ViewSecurityRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
@@ -1483,6 +1498,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductOpensourceRoute: ViewProductOpensourceRoute,
   ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
   ViewProductWorkflowsRoute: ViewProductWorkflowsRoute,
+  ViewRoadmapSlugRoute: ViewRoadmapSlugRoute,
   ViewSolutionCustomerSuccessRoute: ViewSolutionCustomerSuccessRoute,
   ViewSolutionFieldEngineeringRoute: ViewSolutionFieldEngineeringRoute,
   ViewSolutionGovernmentRoute: ViewSolutionGovernmentRoute,
@@ -1498,6 +1514,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,
   ViewLegalIndexRoute: ViewLegalIndexRoute,
+  ViewRoadmapIndexRoute: ViewRoadmapIndexRoute,
   ViewTemplatesIndexRoute: ViewTemplatesIndexRoute,
 }
 

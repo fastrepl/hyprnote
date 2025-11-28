@@ -401,6 +401,44 @@ const vs = defineCollection({
   },
 });
 
+const shortcuts = defineCollection({
+  name: "shortcuts",
+  directory: "content/shortcuts",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    category: z.string(),
+    prompt: z.string(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      mdx,
+      slug,
+    };
+  },
+});
+
 const handbook = defineCollection({
   name: "handbook",
   directory: "content/handbook",
@@ -469,6 +507,7 @@ export default defineConfig({
     docs,
     legal,
     templates,
+    shortcuts,
     hooks,
     deeplinks,
     vs,

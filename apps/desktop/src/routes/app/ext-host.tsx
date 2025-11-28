@@ -7,11 +7,43 @@ import { initExtensionGlobals } from "../../extension-globals";
 import { createParentSynchronizer } from "../../store/tinybase/iframe-sync";
 import type { ExtensionViewProps } from "../../types/extensions";
 
+type ExtHostSearch = {
+  extensionId?: string;
+  scriptUrl?: string;
+};
+
+function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "javascript:") {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export const Route = createFileRoute("/app/ext-host")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    extensionId: search.extensionId as string,
-    scriptUrl: search.scriptUrl as string,
-  }),
+  validateSearch: (search: Record<string, unknown>): ExtHostSearch => {
+    const result: ExtHostSearch = {};
+
+    const extensionId = search.extensionId;
+    if (typeof extensionId === "string" && extensionId.trim().length > 0) {
+      result.extensionId = extensionId;
+    }
+
+    const scriptUrl = search.scriptUrl;
+    if (
+      typeof scriptUrl === "string" &&
+      scriptUrl.trim().length > 0 &&
+      isValidUrl(scriptUrl)
+    ) {
+      result.scriptUrl = scriptUrl;
+    }
+
+    return result;
+  },
   component: ExtHostComponent,
 });
 
@@ -65,10 +97,17 @@ function ExtHostComponent() {
     }
 
     try {
-      // scriptUrl is already converted by parent (which has Tauri access)
       const response = await fetch(scriptUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch extension script: ${response.status}`);
+      }
+
+      const contentType =
+        response.headers.get("content-type")?.toLowerCase() ?? "";
+      if (!contentType.includes("javascript")) {
+        throw new Error(
+          `Invalid content-type for extension script: expected JavaScript, got ${contentType || "unknown"}`,
+        );
       }
 
       const scriptContent = await response.text();
@@ -104,6 +143,17 @@ function ExtHostComponent() {
       );
     }
   };
+
+  if (!extensionId) {
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <div className="text-center text-red-500">
+          <p className="font-semibold">Error loading extension</p>
+          <p className="text-sm mt-2">Missing or invalid extension ID</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

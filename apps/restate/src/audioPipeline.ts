@@ -246,7 +246,12 @@ export const audioPipeline = restate.workflow({
         const llmResult = await ctx.get<unknown>("llmResult");
         const error = await ctx.get<string>("error");
 
-        return { status, transcript, llmResult, error };
+        return {
+          status,
+          transcript: transcript ?? undefined,
+          llmResult,
+          error: error ?? undefined,
+        };
       },
     ),
   },

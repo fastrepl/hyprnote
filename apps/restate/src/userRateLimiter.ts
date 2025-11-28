@@ -1,5 +1,4 @@
 import * as restate from "@restatedev/restate-sdk-cloudflare-workers";
-import { serde } from "@restatedev/restate-sdk-zod";
 import { z } from "zod";
 
 const RateLimitState = z.object({
@@ -15,38 +14,36 @@ const CheckAndConsumeRequest = z.object({
 export const userRateLimiter = restate.object({
   name: "UserRateLimiter",
   handlers: {
-    checkAndConsume: restate.handlers.object.handler(
-      { input: serde.zod(CheckAndConsumeRequest) },
-      async (
-        ctx: restate.ObjectContext,
-        cfg: z.infer<typeof CheckAndConsumeRequest>,
-      ): Promise<void> => {
-        const now = Date.now();
+    checkAndConsume: async (
+      ctx: restate.ObjectContext,
+      cfg: { windowMs: number; maxInWindow: number },
+    ): Promise<void> => {
+      const { windowMs, maxInWindow } = CheckAndConsumeRequest.parse(cfg);
+      const now = await ctx.run("get-timestamp", () => Date.now());
 
-        const current = (await ctx.get<z.infer<typeof RateLimitState>>(
-          "state",
-        )) ?? {
-          windowStartMs: now,
-          count: 0,
-        };
+      const current = (await ctx.get<z.infer<typeof RateLimitState>>(
+        "state",
+      )) ?? {
+        windowStartMs: now,
+        count: 0,
+      };
 
-        let state = current;
+      let state = current;
 
-        if (now - state.windowStartMs >= cfg.windowMs) {
-          state = { windowStartMs: now, count: 0 };
-        }
+      if (now - state.windowStartMs >= windowMs) {
+        state = { windowStartMs: now, count: 0 };
+      }
 
-        if (state.count >= cfg.maxInWindow) {
-          ctx.set("state", state);
-          throw new restate.TerminalError("Rate limit exceeded", {
-            errorCode: 429,
-          });
-        }
-
-        state = { windowStartMs: state.windowStartMs, count: state.count + 1 };
+      if (state.count >= maxInWindow) {
         ctx.set("state", state);
-      },
-    ),
+        throw new restate.TerminalError("Rate limit exceeded", {
+          errorCode: 429,
+        });
+      }
+
+      state = { windowStartMs: state.windowStartMs, count: state.count + 1 };
+      ctx.set("state", state);
+    },
   },
 });
 

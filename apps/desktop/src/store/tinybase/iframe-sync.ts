@@ -45,25 +45,27 @@ export function createIframeSynchronizer(
 ) {
   const clientId = getUniqueId();
   let handler: ((event: MessageEvent) => void) | null = null;
+  let destroyed = false;
 
   const synchronizer = createCustomSynchronizer(
     store,
     // send: ship a message to the iframe via postMessage
     (_toClientId, requestId, message, body) => {
+      if (destroyed) {
+        return;
+      }
+
+      const contentWindow = iframe.contentWindow;
+      if (!contentWindow) {
+        return;
+      }
+
       const payload: TinybaseSyncPayload = [
         clientId,
         requestId as string | null,
         message,
         body,
       ];
-
-      const contentWindow = iframe.contentWindow;
-      if (!contentWindow) {
-        console.error(
-          "[iframe-sync] Cannot send message: iframe contentWindow is not available",
-        );
-        return;
-      }
 
       contentWindow.postMessage(
         {
@@ -90,6 +92,7 @@ export function createIframeSynchronizer(
     },
     // destroy: clean up the listener
     () => {
+      destroyed = true;
       if (handler) {
         window.removeEventListener("message", handler);
         handler = null;

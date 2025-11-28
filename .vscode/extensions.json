@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "rust-lang.rust-analyzer",
-    "dprint.dprint"
+    "dprint.dprint",
+    "denoland.vscode-deno"
   ]
 }

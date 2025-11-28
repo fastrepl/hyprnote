@@ -162,6 +162,9 @@ importers:
       '@hypr/plugin-windows':
         specifier: workspace:*
         version: link:../../plugins/windows
+      '@hypr/store':
+        specifier: workspace:*
+        version: link:../../packages/store
       '@hypr/tiptap':
         specifier: workspace:^
         version: link:../../packages/tiptap
@@ -756,26 +759,18 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0
 
-  extensions:
+  extensions/calendar:
+    dependencies:
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.1.0
     devDependencies:
-      '@hypr/ui':
-        specifier: workspace:^
-        version: link:../packages/ui
-      '@hypr/utils':
-        specifier: workspace:^
-        version: link:../packages/utils
-      '@types/react':
-        specifier: ^19.2.7
-        version: 19.2.7
-      esbuild:
-        specifier: 0.25.11
-        version: 0.25.11
-      react:
-        specifier: ^19.2.0
-        version: 19.2.0
-      typescript:
-        specifier: ~5.6.3
-        version: 5.6.3
+      tailwindcss:
+        specifier: ^3.4.0
+        version: 3.4.18(tsx@4.20.6)(yaml@2.8.1)
 
   packages/codemirror:
     dependencies:
@@ -863,6 +858,22 @@ importers:
       '@hey-api/openapi-ts':
         specifier: ^0.78.3
         version: 0.78.3(typescript@5.9.3)
+
+  packages/store:
+    dependencies:
+      '@hypr/db':
+        specifier: workspace:*
+        version: link:../db
+      tinybase:
+        specifier: ^6.7.3
+        version: 6.7.3(postgres@3.4.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(ws@8.18.3)
+      zod:
+        specifier: ^4.1.13
+        version: 4.1.13
+    devDependencies:
+      typescript:
+        specifier: ~5.8.3
+        version: 5.8.3
 
   packages/tiptap:
     dependencies:

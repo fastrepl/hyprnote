@@ -1,3 +1,5 @@
+import { type Store as PersistedStore } from "../../../store/tinybase/main";
+
 const SPACE_REGEX = /\s+/g;
 
 export function safeParseJSON(value: unknown): unknown {
@@ -109,4 +111,21 @@ export function collectCells(
     acc[field] = persistedStore.getCell(table, rowId, field);
     return acc;
   }, {});
+}
+
+export function getEnhancedContentForSession(
+  store: PersistedStore,
+  sessionId: string,
+): string {
+  const contents: string[] = [];
+  store.forEachRow("enhanced_notes", (rowId: string, _forEachCell) => {
+    const noteSessionId = store.getCell("enhanced_notes", rowId, "session_id");
+    if (noteSessionId === sessionId) {
+      const content = store.getCell("enhanced_notes", rowId, "content");
+      if (typeof content === "string" && content) {
+        contents.push(content);
+      }
+    }
+  });
+  return contents.join(" ");
 }

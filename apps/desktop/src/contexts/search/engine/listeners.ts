@@ -1,14 +1,21 @@
 import { remove, type TypedDocument, update } from "@orama/orama";
 import { RowListener } from "tinybase/with-schemas";
 
-import { Schemas } from "../../../store/tinybase/main";
-import { type Store as PersistedStore } from "../../../store/tinybase/main";
+import {
+  type Store as PersistedStore,
+  Schemas,
+} from "../../../store/tinybase/main";
 import {
   createHumanSearchableContent,
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toNumber, toTrimmedString } from "./utils";
+import {
+  collectCells,
+  getEnhancedContentForSession,
+  toNumber,
+  toTrimmedString,
+} from "./utils";
 
 export function createSessionListener(
   index: Index,
@@ -46,23 +53,6 @@ export function createSessionListener(
       console.error("Failed to update session in search index:", error);
     }
   };
-}
-
-function getEnhancedContentForSession(
-  store: PersistedStore,
-  sessionId: string,
-): string {
-  const contents: string[] = [];
-  store.forEachRow("enhanced_notes", (rowId: string, _forEachCell) => {
-    const noteSessionId = store.getCell("enhanced_notes", rowId, "session_id");
-    if (noteSessionId === sessionId) {
-      const content = store.getCell("enhanced_notes", rowId, "content");
-      if (typeof content === "string" && content) {
-        contents.push(content);
-      }
-    }
-  });
-  return contents.join(" ");
 }
 
 export function createHumanListener(

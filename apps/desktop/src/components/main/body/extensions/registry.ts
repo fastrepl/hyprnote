@@ -4,10 +4,9 @@ import type { ComponentType } from "react";
 import {
   commands,
   type ExtensionInfo,
+  type ExtensionViewProps,
   type PanelInfo,
 } from "@hypr/plugin-extensions";
-
-import type { ExtensionViewProps } from "../../../../types/extensions";
 
 export const bundledExtensionComponents: Record<
   string,

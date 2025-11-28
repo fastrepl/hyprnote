@@ -1,3 +1,4 @@
+import { CallbackUrl, createClient } from "@deepgram/sdk";
 import * as restate from "@restatedev/restate-sdk-cloudflare-workers";
 import { serde } from "@restatedev/restate-sdk-zod";
 import { z } from "zod";
@@ -78,32 +79,24 @@ async function callDeepgram(
   callbackUrl: string,
   apiKey: string,
 ): Promise<string> {
-  const res = await fetch(
-    `https://api.deepgram.com/v1/listen?callback=${encodeURIComponent(callbackUrl)}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Token ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url: audioUrl,
-        model: "nova-3",
-        smart_format: true,
-      }),
-    },
-  );
+  const deepgram = createClient(apiKey);
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Deepgram error ${res.status}: ${body}`);
+  const { result, error } =
+    await deepgram.listen.prerecorded.transcribeUrlCallback(
+      { url: audioUrl },
+      new CallbackUrl(callbackUrl),
+      { model: "nova-3", smart_format: true },
+    );
+
+  if (error) {
+    throw new Error(`Deepgram error: ${error.message}`);
   }
 
-  const json = (await res.json()) as { request_id?: string };
-  if (!json.request_id) {
+  if (!result?.request_id) {
     throw new Error("Deepgram response missing request_id");
   }
-  return json.request_id;
+
+  return result.request_id;
 }
 
 async function callLLM(

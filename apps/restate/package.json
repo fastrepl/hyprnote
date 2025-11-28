@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@deepgram/sdk": "^4.11.2",
     "@restatedev/restate-sdk-cloudflare-workers": "^1.9.1",
     "@restatedev/restate-sdk-zod": "^1.9.1",
     "zod": "^4.1.0"

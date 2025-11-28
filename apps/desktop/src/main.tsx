@@ -87,7 +87,7 @@ function AppWithTiny() {
         <TinyBaseProvider>
           <App />
           <StoreComponent persist={isMainWindow} />
-          <TaskManager />
+          {!isIframeContext && <TaskManager />}
         </TinyBaseProvider>
       </TinyTickProvider>
     </QueryClientProvider>

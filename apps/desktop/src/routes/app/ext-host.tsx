@@ -30,7 +30,6 @@ function ExtHostComponent() {
     isMountedRef.current = true;
     initExtensionGlobals();
 
-    // Create in-memory store (no persistence needed - syncs with parent)
     const store = createMergeableStore();
     storeRef.current = store;
 

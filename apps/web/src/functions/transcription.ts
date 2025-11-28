@@ -20,7 +20,7 @@ export type PipelineStatusType = z.infer<typeof PipelineStatus>;
 const StatusState = z.object({
   status: PipelineStatus,
   transcript: z.string().optional(),
-  llmResult: z.record(z.unknown()).optional(),
+  llmResult: z.unknown().optional(),
   error: z.string().optional(),
 });
 

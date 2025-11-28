@@ -21,6 +21,7 @@ export default defineConfig(() => ({
   },
   test: {
     reporters: "default",
+    environment: "jsdom",
     onConsoleLog: (_, type) => {
       return type === "stderr";
     },

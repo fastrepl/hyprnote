@@ -14,6 +14,21 @@
         background-color: transparent !important;
       }
     </style>
+    <!-- Polyfill for __TAURI_INTERNALS__ in iframe context (extension host) -->
+    <!-- This must run BEFORE any module imports to prevent Tauri API access errors -->
+    <script>
+      (function() {
+        var isIframeContext = window.self !== window.top;
+        if (isIframeContext && !window.__TAURI_INTERNALS__) {
+          window.__TAURI_INTERNALS__ = {
+            _metadata: {},
+            invoke: function() { return Promise.reject(new Error("Tauri not available in iframe")); },
+            transformCallback: function() { return 0; },
+            convertFileSrc: function(path) { return path; }
+          };
+        }
+      })();
+    </script>
   </head>
   <body spellcheck="false">
     <div id="root"></div>

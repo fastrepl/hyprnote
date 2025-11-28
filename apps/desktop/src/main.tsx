@@ -86,6 +86,7 @@ function AppWithTiny() {
   );
 }
 
+// Initialize plugins - the polyfill in index.html handles iframe context
 initWindowsPlugin();
 initExtensionGlobals();
 

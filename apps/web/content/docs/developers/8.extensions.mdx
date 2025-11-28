@@ -136,8 +136,7 @@ Extension UIs have access to the following globals provided by Hyprnote:
 
 ## State Management
 
-- `tinybase/ui-react` - TinyBase React hooks for synchronized state
-- `@hypr/store` - Access to the main app's TinyBase store
+- `tinybase/ui-react` - TinyBase React hooks for synchronized state (useRow, useStore, useSetRowCallback, etc.)
 
 ## Navigation
 
@@ -150,7 +149,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 import { useRow, useSetRowCallback, useStore } from "tinybase/ui-react";
-import * as store from "@hypr/store";
 import { useTabs } from "@hypr/tabs";
 ```
 
@@ -163,10 +161,11 @@ Extensions can read and write state that synchronizes with the main Hyprnote app
 Use TinyBase hooks to read from the synchronized store:
 
 ```tsx
-import { useRow } from "tinybase/ui-react";
-import * as store from "@hypr/store";
+import { useRow, useStore } from "tinybase/ui-react";
 
 function MyExtension({ extensionId }: ExtensionViewProps) {
+  const store = useStore();
+
   // Read extension-specific state
   const extensionState = useRow("extension_state", extensionId) as {
     counter?: number;
@@ -174,7 +173,7 @@ function MyExtension({ extensionId }: ExtensionViewProps) {
   };
 
   // Read app data (calendars, events, sessions, etc.)
-  const calendarIds = store.UI.useRowIds("calendars", store.STORE_ID);
+  const calendarIds = store?.getRowIds("calendars") ?? [];
 
   return <div>Counter: {extensionState?.counter ?? 0}</div>;
 }

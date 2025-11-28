@@ -7,6 +7,7 @@ import {
 
 import { cn } from "@hypr/utils";
 
+import { useFolder, useSession } from "../../../../hooks/tinybase";
 import * as main from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -59,8 +60,8 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
   handleCloseAll,
 }) => {
   const folders = useFolderChain(tab?.id ?? "");
-  const name = main.UI.useCell("folders", tab?.id ?? "", "name", main.STORE_ID);
-  const title = " .. / ".repeat(folders.length - 1) + name;
+  const folder = useFolder(tab?.id ?? "");
+  const title = " .. / ".repeat(folders.length - 1) + folder.name;
 
   return (
     <TabItemBase
@@ -123,7 +124,7 @@ function TabContentFolderTopLevel() {
 }
 
 function FolderCard({ folderId }: { folderId: string }) {
-  const folder = main.UI.useRow("folders", folderId, main.STORE_ID);
+  const folder = useFolder(folderId);
   const openCurrent = useTabs((state) => state.openCurrent);
 
   const childFolderIds = main.UI.useSliceRowIds(
@@ -249,7 +250,7 @@ function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
 }
 
 function FolderSessionItem({ sessionId }: { sessionId: string }) {
-  const session = main.UI.useRow("sessions", sessionId, main.STORE_ID);
+  const session = useSession(sessionId);
   const openCurrent = useTabs((state) => state.openCurrent);
 
   return (

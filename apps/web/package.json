@@ -9,9 +9,9 @@
     "test": "playwright test",
     "typecheck": "pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit"
   },
-    "dependencies": {
-      "@deepgram/sdk": "^4.11.2",
-      "@restatedev/restate-sdk-clients": "^1.4.0",
+  "dependencies": {
+    "@deepgram/sdk": "^4.11.2",
+    "@restatedev/restate-sdk-clients": "^1.4.0",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",
     "@hypr/utils": "workspace:*",

@@ -47,6 +47,7 @@ import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images.$'
 import { Route as ViewVsSlugRouteImport } from './routes/_view/vs/$slug'
+import { Route as ViewTemplatesSlugRouteImport } from './routes/_view/templates/$slug'
 import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
 import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
 import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_view/solution/project-management'
@@ -273,6 +274,11 @@ const ViewVsSlugRoute = ViewVsSlugRouteImport.update({
   path: '/vs/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewTemplatesSlugRoute = ViewTemplatesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ViewTemplatesRoute,
+} as any)
 const ViewSolutionSalesRoute = ViewSolutionSalesRouteImport.update({
   id: '/solution/sales',
   path: '/solution/sales',
@@ -473,7 +479,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
   '/security': typeof ViewSecurityRoute
-  '/templates': typeof ViewTemplatesRoute
+  '/templates': typeof ViewTemplatesRouteWithChildren
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -512,6 +518,7 @@ export interface FileRoutesByFullPath {
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
+  '/templates/$slug': typeof ViewTemplatesSlugRoute
   '/vs/$slug': typeof ViewVsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
@@ -543,7 +550,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof ViewPricingRoute
   '/roadmap': typeof ViewRoadmapRoute
   '/security': typeof ViewSecurityRoute
-  '/templates': typeof ViewTemplatesRoute
+  '/templates': typeof ViewTemplatesRouteWithChildren
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -582,6 +589,7 @@ export interface FileRoutesByTo {
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
+  '/templates/$slug': typeof ViewTemplatesSlugRoute
   '/vs/$slug': typeof ViewVsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
@@ -618,7 +626,7 @@ export interface FileRoutesById {
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/roadmap': typeof ViewRoadmapRoute
   '/_view/security': typeof ViewSecurityRoute
-  '/_view/templates': typeof ViewTemplatesRoute
+  '/_view/templates': typeof ViewTemplatesRouteWithChildren
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -657,6 +665,7 @@ export interface FileRoutesById {
   '/_view/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/_view/solution/sales': typeof ViewSolutionSalesRoute
+  '/_view/templates/$slug': typeof ViewTemplatesSlugRoute
   '/_view/vs/$slug': typeof ViewVsSlugRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
@@ -732,6 +741,7 @@ export interface FileRouteTypes {
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/sales'
+    | '/templates/$slug'
     | '/vs/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
@@ -802,6 +812,7 @@ export interface FileRouteTypes {
     | '/solution/project-management'
     | '/solution/recruiting'
     | '/solution/sales'
+    | '/templates/$slug'
     | '/vs/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
@@ -876,6 +887,7 @@ export interface FileRouteTypes {
     | '/_view/solution/project-management'
     | '/_view/solution/recruiting'
     | '/_view/solution/sales'
+    | '/_view/templates/$slug'
     | '/_view/vs/$slug'
     | '/api/images/$'
     | '/api/tweet/$id'
@@ -1173,6 +1185,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/vs/$slug'
       preLoaderRoute: typeof ViewVsSlugRouteImport
       parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/templates/$slug': {
+      id: '/_view/templates/$slug'
+      path: '/$slug'
+      fullPath: '/templates/$slug'
+      preLoaderRoute: typeof ViewTemplatesSlugRouteImport
+      parentRoute: typeof ViewTemplatesRoute
     }
     '/_view/solution/sales': {
       id: '/_view/solution/sales'
@@ -1477,6 +1496,18 @@ const ViewPressKitRouteWithChildren = ViewPressKitRoute._addFileChildren(
   ViewPressKitRouteChildren,
 )
 
+interface ViewTemplatesRouteChildren {
+  ViewTemplatesSlugRoute: typeof ViewTemplatesSlugRoute
+}
+
+const ViewTemplatesRouteChildren: ViewTemplatesRouteChildren = {
+  ViewTemplatesSlugRoute: ViewTemplatesSlugRoute,
+}
+
+const ViewTemplatesRouteWithChildren = ViewTemplatesRoute._addFileChildren(
+  ViewTemplatesRouteChildren,
+)
+
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
   ViewCompanyHandbookRouteRoute: typeof ViewCompanyHandbookRouteRouteWithChildren
@@ -1491,7 +1522,7 @@ interface ViewRouteRouteChildren {
   ViewPricingRoute: typeof ViewPricingRoute
   ViewRoadmapRoute: typeof ViewRoadmapRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
-  ViewTemplatesRoute: typeof ViewTemplatesRoute
+  ViewTemplatesRoute: typeof ViewTemplatesRouteWithChildren
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
@@ -1541,7 +1572,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewPricingRoute: ViewPricingRoute,
   ViewRoadmapRoute: ViewRoadmapRoute,
   ViewSecurityRoute: ViewSecurityRoute,
-  ViewTemplatesRoute: ViewTemplatesRoute,
+  ViewTemplatesRoute: ViewTemplatesRouteWithChildren,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,

@@ -114,8 +114,14 @@ pub async fn main() {
         .on_window_event(tauri_plugin_windows::on_window_event)
         .setup(move |app| {
             let app_handle = app.handle().clone();
-
             let app_clone = app_handle.clone();
+
+            #[cfg(any(windows, target_os = "linux"))]
+            {
+                // https://v2.tauri.app/ko/plugin/deep-linking/#desktop-1
+                use tauri_plugin_deep_link::DeepLinkExt;
+                app.deep_link().register_all()?;
+            }
 
             {
                 use tauri_plugin_tray::TrayPluginExt;

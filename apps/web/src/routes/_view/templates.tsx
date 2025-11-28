@@ -1,15 +1,32 @@
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { allTemplates } from "content-collections";
 import { useMemo, useState } from "react";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@hypr/ui/components/ui/dialog";
 import { cn } from "@hypr/utils";
 
 import { DownloadButton } from "@/components/download-button";
 import { SlashSeparator } from "@/components/slash-separator";
 
+type TemplatesSearch = {
+  category?: string;
+};
+
 export const Route = createFileRoute("/_view/templates")({
   component: Component,
+  validateSearch: (search: Record<string, unknown>): TemplatesSearch => {
+    return {
+      category:
+        typeof search.category === "string" ? search.category : undefined,
+    };
+  },
   head: () => ({
     meta: [
       { title: "Meeting Templates - Hyprnote" },
@@ -31,8 +48,18 @@ export const Route = createFileRoute("/_view/templates")({
 });
 
 function Component() {
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = Route.useSearch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<
+    (typeof allTemplates)[0] | null
+  >(null);
+
+  const selectedCategory = search.category || null;
+
+  const setSelectedCategory = (category: string | null) => {
+    navigate({ search: category ? { category } : {} });
+  };
 
   const templatesByCategory = getTemplatesByCategory();
   const categories = Object.keys(templatesByCategory);
@@ -40,12 +67,10 @@ function Component() {
   const filteredTemplates = useMemo(() => {
     let templates = allTemplates;
 
-    // Filter by category
     if (selectedCategory) {
       templates = templates.filter((t) => t.category === selectedCategory);
     }
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       templates = templates.filter(
@@ -58,20 +83,6 @@ function Component() {
 
     return templates;
   }, [searchQuery, selectedCategory]);
-
-  const filteredByCategory = useMemo(() => {
-    return filteredTemplates.reduce(
-      (acc, template) => {
-        const category = template.category;
-        if (!acc[category]) {
-          acc[category] = [];
-        }
-        acc[category].push(template);
-        return acc;
-      },
-      {} as Record<string, typeof allTemplates>,
-    );
-  }, [filteredTemplates]);
 
   return (
     <div
@@ -106,71 +117,113 @@ function Component() {
                 />
               </div>
             </div>
-
-            {/* Category Chips */}
-            <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
-              <button
-                onClick={() => setSelectedCategory(null)}
-                className={cn([
-                  "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
-                  selectedCategory === null
-                    ? "bg-stone-600 text-white"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200",
-                ])}
-              >
-                All
-              </button>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={cn([
-                    "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
-                    selectedCategory === category
-                      ? "bg-stone-600 text-white"
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200",
-                  ])}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
           </section>
         </div>
 
         <SlashSeparator />
 
-        {/* Templates List */}
+        {/* Mobile/Tablet: Horizontal scrollable categories - full width */}
+        <div className="lg:hidden border-b border-neutral-100 bg-stone-50">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className={cn([
+                "px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 border-r border-neutral-100",
+                selectedCategory === null
+                  ? "bg-stone-600 text-white"
+                  : "text-stone-600 hover:bg-stone-100",
+              ])}
+            >
+              All
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={cn([
+                  "px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 border-r border-neutral-100 last:border-r-0",
+                  selectedCategory === category
+                    ? "bg-stone-600 text-white"
+                    : "text-stone-600 hover:bg-stone-100",
+                ])}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Templates List with Sidebar */}
         <div className="px-6 py-12 lg:py-20">
-          {/* Templates List */}
-          <section>
-            {filteredTemplates.length === 0 ? (
-              <div className="text-center py-12">
-                <Icon
-                  icon="mdi:file-search"
-                  className="text-6xl text-neutral-300 mb-4 mx-auto"
-                />
-                <p className="text-neutral-600">
-                  No templates found matching your search.
-                </p>
-              </div>
-            ) : (
-              Object.entries(filteredByCategory).map(
-                ([category, templates]) => (
-                  <div key={category} className="mb-12">
-                    <h3 className="text-xl font-serif text-stone-600 mb-6 pb-2 border-b border-neutral-200">
+          {/* Desktop: Sidebar + Templates */}
+          <div className="flex gap-8">
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:block w-56 shrink-0">
+              <div className="sticky top-[85px]">
+                <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
+                  Categories
+                </h3>
+                <nav className="space-y-1">
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    className={cn([
+                      "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      selectedCategory === null
+                        ? "bg-stone-100 text-stone-800"
+                        : "text-stone-600 hover:bg-stone-50",
+                    ])}
+                  >
+                    All Templates
+                    <span className="ml-2 text-xs text-neutral-400">
+                      ({allTemplates.length})
+                    </span>
+                  </button>
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={cn([
+                        "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                        selectedCategory === category
+                          ? "bg-stone-100 text-stone-800"
+                          : "text-stone-600 hover:bg-stone-50",
+                      ])}
+                    >
                       {category}
-                    </h3>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {templates.map((template) => (
-                        <TemplateCard key={template.slug} template={template} />
-                      ))}
-                    </div>
-                  </div>
-                ),
-              )
-            )}
-          </section>
+                      <span className="ml-2 text-xs text-neutral-400">
+                        ({templatesByCategory[category].length})
+                      </span>
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </aside>
+
+            {/* Templates Grid */}
+            <section className="flex-1 min-w-0">
+              {filteredTemplates.length === 0 ? (
+                <div className="text-center py-12">
+                  <Icon
+                    icon="mdi:file-search"
+                    className="text-6xl text-neutral-300 mb-4 mx-auto"
+                  />
+                  <p className="text-neutral-600">
+                    No templates found matching your search.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredTemplates.map((template) => (
+                    <TemplateCard
+                      key={template.slug}
+                      template={template}
+                      onClick={() => setSelectedTemplate(template)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
         </div>
 
         <SlashSeparator />
@@ -194,6 +247,12 @@ function Component() {
           </div>
         </section>
       </div>
+
+      {/* Template Detail Modal */}
+      <TemplateModal
+        template={selectedTemplate}
+        onClose={() => setSelectedTemplate(null)}
+      />
     </div>
   );
 }
@@ -235,11 +294,20 @@ function getIconForTemplate(title: string): string {
   return iconMap[title] || "mdi:file-document";
 }
 
-function TemplateCard({ template }: { template: (typeof allTemplates)[0] }) {
+function TemplateCard({
+  template,
+  onClick,
+}: {
+  template: (typeof allTemplates)[0];
+  onClick: () => void;
+}) {
   const icon = getIconForTemplate(template.title);
 
   return (
-    <div className="group p-6 border border-neutral-200 rounded-lg bg-white hover:shadow-md hover:border-neutral-300 transition-all">
+    <button
+      onClick={onClick}
+      className="group p-6 border border-neutral-200 rounded-lg bg-white hover:shadow-md hover:border-neutral-300 transition-all text-left cursor-pointer"
+    >
       <div className="flex items-start gap-4 mb-4">
         <div className="shrink-0 w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center group-hover:bg-stone-200 transition-colors">
           <Icon icon={icon} className="text-xl text-stone-600" />
@@ -273,6 +341,79 @@ function TemplateCard({ template }: { template: (typeof allTemplates)[0] }) {
           )}
         </div>
       </div>
-    </div>
+    </button>
+  );
+}
+
+function TemplateModal({
+  template,
+  onClose,
+}: {
+  template: (typeof allTemplates)[0] | null;
+  onClose: () => void;
+}) {
+  if (!template) return null;
+
+  const icon = getIconForTemplate(template.title);
+
+  return (
+    <Dialog open={!!template} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-white">
+        <DialogHeader>
+          <div className="flex items-start gap-4">
+            <div className="shrink-0 w-12 h-12 rounded-lg bg-stone-100 flex items-center justify-center">
+              <Icon icon={icon} className="text-2xl text-stone-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="font-serif text-2xl text-stone-600">
+                {template.title}
+              </DialogTitle>
+              <DialogDescription className="text-sm text-neutral-500 mt-1">
+                {template.category}
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="mt-4">
+          <p className="text-neutral-600 mb-6">{template.description}</p>
+
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-stone-600 uppercase tracking-wider">
+              Template Sections
+            </h4>
+            <div className="space-y-3">
+              {template.sections.map((section, index) => (
+                <div
+                  key={section.title}
+                  className="p-4 rounded-lg bg-stone-50 border border-stone-100"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="w-6 h-6 rounded-full bg-stone-200 text-stone-600 text-xs font-medium flex items-center justify-center">
+                      {index + 1}
+                    </span>
+                    <h5 className="font-medium text-stone-700">
+                      {section.title}
+                    </h5>
+                  </div>
+                  <p className="text-sm text-neutral-600 ml-9">
+                    {section.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-neutral-200">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <DownloadButton />
+              <p className="text-sm text-neutral-500 text-center sm:text-left">
+                Download Hyprnote to use this template
+              </p>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

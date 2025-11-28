@@ -18,6 +18,7 @@ import { CtaCard } from "@/components/cta-card";
 import { DeeplinksList } from "@/components/deeplinks-list";
 import { HooksList } from "@/components/hooks-list";
 import { Mermaid, Tweet } from "@/components/mdx";
+import { OpenAPIDocs } from "@/components/openapi-docs";
 
 export function DocLayout({
   doc,
@@ -122,6 +123,7 @@ function ArticleContent({ doc }: { doc: any }) {
           CtaCard,
           DeeplinksList,
           HooksList,
+          OpenAPIDocs,
         }}
       />
     </article>

@@ -59,9 +59,12 @@ const TabItemFolderSpecific: TabItem<Extract<Tab, { type: "folders" }>> = ({
   handleCloseOthers,
   handleCloseAll,
 }) => {
-  const folders = useFolderChain(tab?.id ?? "");
-  const folder = useFolder(tab?.id ?? "");
-  const title = " .. / ".repeat(folders.length - 1) + folder.name;
+  const folderId = tab.id!;
+  const folders = useFolderChain(folderId);
+  const folder = useFolder(folderId);
+  const repeatCount = Math.max(0, folders.length - 1);
+  const name = folder.name || "Untitled";
+  const title = " .. / ".repeat(repeatCount) + name;
 
   return (
     <TabItemBase

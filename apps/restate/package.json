@@ -1,0 +1,22 @@
+{
+  "name": "@hypr/restate",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 9080",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^4.11.2",
+    "@restatedev/restate-sdk-cloudflare-workers": "^1.9.1",
+    "@restatedev/restate-sdk-zod": "^1.9.1",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240605.0",
+    "@restatedev/restate": "^1.5.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.38.0"
+  }
+}

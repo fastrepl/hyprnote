@@ -1,17 +1,14 @@
+import { format } from "date-fns";
+import { ui } from "hyprnote";
 import { useState } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
-import { format } from "@hypr/utils";
+import { DayEvent } from "./day-event";
+import { DaySession } from "./day-session";
 
-import { TabContentCalendarDayEvents } from "./day-events";
-import { TabContentCalendarDaySessions } from "./day-sessions";
+const { Button } = ui.button;
+const { Popover, PopoverContent, PopoverTrigger } = ui.popover;
 
-export function TabContentCalendarDayMore({
+export function DayMore({
   day,
   eventIds,
   sessionIds,
@@ -44,13 +41,10 @@ export function TabContentCalendarDayMore({
 
         <div className="space-y-1">
           {eventIds.map((eventId) => (
-            <TabContentCalendarDayEvents key={eventId} eventId={eventId} />
+            <DayEvent key={eventId} eventId={eventId} />
           ))}
           {sessionIds.map((sessionId) => (
-            <TabContentCalendarDaySessions
-              key={sessionId}
-              sessionId={sessionId}
-            />
+            <DaySession key={sessionId} sessionId={sessionId} />
           ))}
         </div>
       </PopoverContent>

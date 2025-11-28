@@ -28,6 +28,8 @@ pub struct PanelDeclaration {
     pub id: String,
     pub title: String,
     pub entry: String,
+    #[serde(default)]
+    pub styles: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -81,6 +83,25 @@ impl Extension {
 
                 if canonical_panel.starts_with(&canonical_root) {
                     Some(canonical_panel)
+                } else {
+                    None
+                }
+            })
+    }
+
+    pub fn panel_styles_path(&self, panel_id: &str) -> Option<PathBuf> {
+        self.manifest
+            .panels
+            .iter()
+            .find(|p| p.id == panel_id)
+            .and_then(|panel| {
+                let styles = panel.styles.as_ref()?;
+                let canonical_root = self.path.canonicalize().ok()?;
+                let joined = self.path.join(styles);
+                let canonical_styles = joined.canonicalize().ok()?;
+
+                if canonical_styles.starts_with(&canonical_root) {
+                    Some(canonical_styles)
                 } else {
                     None
                 }

@@ -1,9 +1,142 @@
 import { createClient } from "@deepgram/sdk";
+import * as clients from "@restatedev/restate-sdk-clients";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { env } from "@/env";
 import { getSupabaseServerClient } from "@/functions/supabase";
+
+const PipelineStatus = z.enum([
+  "QUEUED",
+  "TRANSCRIBING",
+  "TRANSCRIBED",
+  "LLM_RUNNING",
+  "DONE",
+  "ERROR",
+]);
+
+export type PipelineStatusType = z.infer<typeof PipelineStatus>;
+
+const StatusState = z.object({
+  status: PipelineStatus,
+  transcript: z.string().optional(),
+  llmResult: z.unknown().optional(),
+  error: z.string().optional(),
+});
+
+export type StatusStateType = z.infer<typeof StatusState>;
+
+type AudioPipeline = {
+  run: (input: {
+    userId: string;
+    audioUrl: string;
+  }) => Promise<StatusStateType>;
+  getStatus: () => Promise<StatusStateType>;
+};
+
+function getRestateClient() {
+  return clients.connect({ url: env.RESTATE_INGRESS_URL });
+}
+
+export const startAudioPipeline = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      audioUrl: z.string(),
+      pipelineId: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (!userData.user) {
+      return { error: true, message: "Unauthorized" };
+    }
+
+    const pipelineId = data.pipelineId ?? crypto.randomUUID();
+
+    try {
+      const restateClient = getRestateClient();
+      const handle = await restateClient
+        .workflowClient<AudioPipeline>({ name: "AudioPipeline" }, pipelineId)
+        .workflowSubmit({ userId: userData.user.id, audioUrl: data.audioUrl });
+
+      return {
+        success: true,
+        pipelineId,
+        invocationId: handle.invocationId,
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      return { error: true, message: errorMessage };
+    }
+  });
+
+export const getAudioPipelineStatus = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      pipelineId: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (!userData.user) {
+      return { error: true, message: "Unauthorized" };
+    }
+
+    try {
+      const restateClient = getRestateClient();
+      const status = await restateClient
+        .workflowClient<AudioPipeline>(
+          { name: "AudioPipeline" },
+          data.pipelineId,
+        )
+        .getStatus();
+
+      return {
+        success: true,
+        status,
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      return { error: true, message: errorMessage };
+    }
+  });
+
+export const getAudioPipelineResult = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      pipelineId: z.string(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (!userData.user) {
+      return { error: true, message: "Unauthorized" };
+    }
+
+    try {
+      const restateClient = getRestateClient();
+      const workflowClient = restateClient.workflowClient<AudioPipeline>(
+        { name: "AudioPipeline" },
+        data.pipelineId,
+      );
+
+      const result = await workflowClient.workflowAttach();
+
+      return {
+        success: true,
+        result,
+      };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      return { error: true, message: errorMessage };
+    }
+  });
 
 export const transcribeAudio = createServerFn({ method: "POST" })
   .inputValidator(

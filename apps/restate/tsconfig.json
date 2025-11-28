@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "nodenext",
+    "target": "esnext",
+    "lib": ["esnext"],
+    "strict": true,
+    "moduleResolution": "nodenext",
+    "types": ["@cloudflare/workers-types"],
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules", "dist", "test"]
+}

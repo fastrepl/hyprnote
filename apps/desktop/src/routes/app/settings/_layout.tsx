@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   AudioLines,
   Bell,
+  Blocks,
   BookText,
   CalendarDays,
   type LucideIcon,
@@ -32,6 +33,7 @@ const TAB_KEYS = [
   "intelligence",
   "templates",
   "integrations",
+  "extensions",
   "feedback",
   "developers",
   "account",
@@ -84,6 +86,11 @@ const TAB_CONFIG: Record<
     icon: Puzzle,
     group: 1,
     disabled: true,
+  },
+  extensions: {
+    label: "Extensions",
+    icon: Blocks,
+    group: 1,
   },
   feedback: {
     label: "Feedback",

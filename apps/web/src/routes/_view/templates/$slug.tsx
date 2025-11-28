@@ -7,21 +7,19 @@ import { DownloadButton } from "@/components/download-button";
 
 export const Route = createFileRoute("/_view/templates/$slug")({
   component: Component,
-  beforeLoad: ({ params }) => {
-    const template = allTemplates.find((t) => t.slug === params.slug);
-    if (!template) {
-      throw redirect({
-        to: "/templates",
-      });
-    }
-  },
   loader: async ({ params }) => {
-    const template = allTemplates.find((t) => t.slug === params.slug);
-    return { template: template! };
+    const template = allTemplates.find(
+      (template) => template.slug === params.slug,
+    );
+    if (!template) {
+      throw notFound();
+    }
+    return { template };
   },
   head: ({ loaderData }) => {
     const { template } = loaderData!;
     const url = `https://hyprnote.com/templates/${template.slug}`;
+
     const ogImageUrl = `https://hyprnote.com/og?type=templates&title=${encodeURIComponent(template.title)}&category=${encodeURIComponent(template.category)}${template.description ? `&description=${encodeURIComponent(template.description)}` : ""}`;
 
     return {
@@ -48,151 +46,240 @@ export const Route = createFileRoute("/_view/templates/$slug")({
   },
 });
 
-function getIconForTemplate(title: string): string {
-  const iconMap: Record<string, string> = {
-    "Daily Standup": "mdi:run-fast",
-    "Sprint Planning": "mdi:calendar-star",
-    "Sprint Retrospective": "mdi:mirror",
-    "Product Roadmap Review": "mdi:road-variant",
-    "Customer Discovery Interview": "mdi:account-search",
-    "Sales Discovery Call": "mdi:phone",
-    "Technical Design Review": "mdi:draw",
-    "Executive Briefing": "mdi:tie",
-    "Board Meeting": "mdi:office-building",
-    "Performance Review": "mdi:chart-line",
-    "Client Kickoff Meeting": "mdi:rocket-launch",
-    "Brainstorming Session": "mdi:lightbulb-on",
-    "Incident Postmortem": "mdi:alert-circle",
-    "Lecture Notes": "mdi:school",
-    "Investor Pitch Meeting": "mdi:cash-multiple",
-    "1:1 Meeting": "mdi:account-multiple",
-    "Project Kickoff": "mdi:flag",
-  };
-  return iconMap[title] || "mdi:file-document";
-}
-
 function Component() {
   const { template } = Route.useLoaderData();
-  const icon = getIconForTemplate(template.title);
 
   return (
-    <div
-      className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
-      style={{ backgroundImage: "url(/patterns/dots.svg)" }}
-    >
-      <div className="max-w-4xl mx-auto border-x border-neutral-100 bg-white">
-        <div className="px-6 py-12 lg:py-16">
-          <Link
-            to="/templates"
-            className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors text-sm mb-8"
-          >
-            <span>←</span>
-            <span>Back to templates</span>
-          </Link>
-
-          <header className="mb-12">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="shrink-0 w-14 h-14 rounded-xl bg-stone-100 flex items-center justify-center">
-                <Icon icon={icon} className="text-2xl text-stone-600" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs px-2 py-1 bg-stone-100 text-stone-600 rounded-full">
-                    {template.category}
-                  </span>
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-serif text-stone-600">
-                  {template.title}
-                </h1>
-              </div>
-            </div>
-            <p className="text-lg text-neutral-600 leading-relaxed">
-              {template.description}
-            </p>
-          </header>
-
-          <section className="mb-12">
-            <h2 className="text-xl font-serif text-stone-600 mb-4">Best for</h2>
-            <div className="flex flex-wrap gap-2">
-              {template.targets.map((target) => (
-                <span
-                  key={target}
-                  className="text-sm px-3 py-1.5 bg-stone-50 text-stone-600 rounded-full border border-stone-200"
-                >
-                  {target}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="text-xl font-serif text-stone-600 mb-4">
-              Template sections
-            </h2>
-            <div className="space-y-4">
-              {template.sections.map((section, index) => (
-                <div
-                  key={section.title}
-                  className="p-4 border border-neutral-200 rounded-lg bg-white"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="shrink-0 w-6 h-6 rounded-full bg-stone-100 text-stone-600 text-sm flex items-center justify-center">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <h3 className="font-medium text-stone-700 mb-1">
-                        {section.title}
-                      </h3>
-                      {section.description && (
-                        <p className="text-sm text-neutral-600">
-                          {section.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="text-xl font-serif text-stone-600 mb-4">
-              Template preview
-            </h2>
-            <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 max-w-none p-6 border border-neutral-200 rounded-lg bg-stone-50/50">
-              <MDXContent code={template.mdx} />
-            </article>
-          </section>
-
-          <section className="py-12 border-t border-neutral-100">
-            <div className="text-center space-y-6">
-              <h2 className="text-2xl font-serif text-stone-600">
-                Use this template in Hyprnote
-              </h2>
-              <p className="text-neutral-600 max-w-lg mx-auto">
-                Download Hyprnote and select this template to automatically
-                structure your meeting notes with AI.
-              </p>
-              <div className="flex flex-col items-center gap-4">
-                <DownloadButton />
-                <p className="text-sm text-neutral-500">
-                  Free to use. No credit card required.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <footer className="pt-8 border-t border-neutral-100">
-            <Link
-              to="/templates"
-              className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors font-medium"
-            >
-              <span>←</span>
-              <span>Browse all templates</span>
-            </Link>
-          </footer>
+    <div className="min-h-screen">
+      <div className="min-h-screen max-w-6xl mx-auto border-x border-neutral-100 bg-white">
+        <div className="flex">
+          <LeftSidebar template={template} />
+          <MainContent template={template} />
+          <RightSidebar />
         </div>
       </div>
     </div>
+  );
+}
+
+function LeftSidebar({ template }: { template: (typeof allTemplates)[0] }) {
+  return (
+    <aside className="hidden lg:block w-64 shrink-0">
+      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto px-4 pt-6 pb-18 scrollbar-hide">
+        <Link
+          to="/templates"
+          className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-6 font-serif"
+        >
+          <Icon icon="mdi:arrow-left" className="text-base" />
+          <span>Back to templates</span>
+        </Link>
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">
+              Category
+            </h3>
+            <Link
+              to="/templates"
+              search={{ category: template.category }}
+              className="text-sm text-stone-600 hover:text-stone-800 transition-colors"
+            >
+              {template.category}
+            </Link>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">
+              On this page
+            </h3>
+            <nav className="space-y-1">
+              <a
+                href="#content"
+                className="block text-sm text-neutral-500 hover:text-stone-600 py-1 transition-colors"
+              >
+                Structure
+              </a>
+              <a
+                href="#examples"
+                className="block text-sm text-neutral-500 hover:text-stone-600 py-1 transition-colors"
+              >
+                Examples
+              </a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function MainContent({ template }: { template: (typeof allTemplates)[0] }) {
+  return (
+    <main className="flex-1 min-w-0 pb-6 px-4 lg:px-8 py-6">
+      <div className="lg:hidden mb-6">
+        <Link
+          to="/templates"
+          className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors font-serif"
+        >
+          <Icon icon="mdi:arrow-left" className="text-base" />
+          <span>Back to templates</span>
+        </Link>
+      </div>
+
+      <TemplateHeader template={template} />
+      <TemplateContent template={template} />
+      <ExamplesSection />
+      <SuggestedTemplates template={template} />
+      <TemplateFooter />
+    </main>
+  );
+}
+
+function TemplateHeader({ template }: { template: (typeof allTemplates)[0] }) {
+  return (
+    <header id="overview" className="mb-8 lg:mb-12 scroll-mt-20">
+      <div className="lg:hidden mb-4">
+        <span className="text-sm text-neutral-500">{template.category}</span>
+      </div>
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-600 mb-4">
+        {template.title}
+      </h1>
+      <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed mb-6">
+        {template.description}
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        {template.targets.map((target) => (
+          <span
+            key={target}
+            className="text-sm px-3 py-1 bg-stone-50 text-stone-600 rounded-full border border-stone-100"
+          >
+            {target}
+          </span>
+        ))}
+      </div>
+    </header>
+  );
+}
+
+function TemplateContent({ template }: { template: (typeof allTemplates)[0] }) {
+  return (
+    <section id="content" className="scroll-mt-20">
+      <h2 className="text-xl font-serif text-stone-700 mb-4">Structure</h2>
+      <div className="border border-neutral-200 rounded-sm px-6 lg:px-8 pt-3 lg:pt-4 pb-6 lg:pb-8 bg-white">
+        <div className="prose prose-stone prose-headings:font-mono prose-headings:font-semibold prose-h2:text-lg prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 max-w-none">
+          <MDXContent code={template.mdx} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ExamplesSection() {
+  return (
+    <section id="examples" className="mt-12 scroll-mt-20">
+      <h2 className="text-xl font-serif text-stone-700 mb-4">Examples</h2>
+      <div className="border border-neutral-200 rounded-sm p-6 lg:p-8 bg-white">
+        <p className="text-neutral-500 text-center py-8">
+          Examples coming soon
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function SuggestedTemplates({
+  template,
+}: {
+  template: (typeof allTemplates)[0];
+}) {
+  const suggestedTemplates = allTemplates.filter(
+    (t) => t.category === template.category && t.slug !== template.slug,
+  );
+
+  if (suggestedTemplates.length === 0) return null;
+
+  return (
+    <section className="mt-12">
+      <h2 className="text-xl font-serif text-stone-700 mb-4">
+        Other {template.category} templates
+      </h2>
+      <div className="grid gap-4">
+        {suggestedTemplates.map((t) => (
+          <Link
+            key={t.slug}
+            to="/templates/$slug"
+            params={{ slug: t.slug }}
+            className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all"
+          >
+            <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
+              {t.title}
+            </h3>
+            <p className="text-sm text-neutral-600 line-clamp-2">
+              {t.description}
+            </p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TemplateFooter() {
+  return (
+    <footer className="mt-12 pt-8 border-t border-neutral-100">
+      <Link
+        to="/templates"
+        className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors font-medium"
+      >
+        <span>&larr;</span>
+        <span>View all templates</span>
+      </Link>
+    </footer>
+  );
+}
+
+function RightSidebar() {
+  return (
+    <aside className="hidden sm:block w-80 shrink-0">
+      <div className="sticky top-[69px] space-y-4 px-4 py-6">
+        <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-6 text-center">
+          <h3 className="font-serif text-lg text-stone-600 mb-3">
+            Use this template
+          </h3>
+          <p className="text-sm text-neutral-600 mb-6">
+            Download Hyprnote to use this template and get AI-powered meeting
+            notes.
+          </p>
+          <DownloadButton />
+          <p className="text-xs text-neutral-500 mt-4">
+            Free to use. No credit card required.
+          </p>
+        </div>
+
+        <div className="border border-dashed border-neutral-300 rounded-sm p-6 bg-stone-50/50 text-center">
+          <h3 className="font-serif text-lg text-stone-600 mb-3">
+            Contribute a template
+          </h3>
+          <p className="text-sm text-neutral-600 mb-6">
+            Have a template idea? Submit a PR and help the community.
+          </p>
+          <a
+            href="https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/templates"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn([
+              "group px-6 h-12 inline-flex items-center justify-center gap-2 w-fit",
+              "bg-linear-to-t from-neutral-800 to-neutral-700 text-white rounded-full",
+              "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+              "transition-all cursor-pointer text-base sm:text-lg",
+            ])}
+          >
+            <Icon icon="mdi:github" className="text-xl" />
+            Open on GitHub
+          </a>
+        </div>
+      </div>
+    </aside>
   );
 }

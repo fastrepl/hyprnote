@@ -4,6 +4,13 @@ import { useState } from "react";
 
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
+function scrollToHero() {
+  const heroElement = document.getElementById("hero");
+  if (heroElement) {
+    heroElement.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
 function getMaxWidthClass(pathname: string): string {
   const isBlogOrDocs =
     pathname.startsWith("/blog") || pathname.startsWith("/docs");
@@ -22,6 +29,7 @@ const featuresList = [
   { to: "/product/ai-assistant", label: "AI Assistant" },
   { to: "/product/mini-apps", label: "Mini Apps" },
   { to: "/product/workflows", label: "Workflows", badge: "Coming Soon" },
+  { to: "/templates", label: "Templates" },
 ];
 
 export function Header() {
@@ -170,6 +178,7 @@ export function Header() {
                 <Link
                   to="/"
                   hash="hero"
+                  onClick={scrollToHero}
                   className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
                 >
                   {platformCTA.label}
@@ -190,15 +199,17 @@ export function Header() {
                 <Link
                   to="/"
                   hash="hero"
+                  onClick={scrollToHero}
                   className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
                 >
                   {platform === "mobile" ? "Get reminder" : platformCTA.label}
                 </Link>
               )}
               <button
-                onClick={() => setIsMenuOpen(true)}
+                onClick={() => setIsMenuOpen((prev) => !prev)}
                 className="px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
-                aria-label="Open menu"
+                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={isMenuOpen}
               >
                 <Menu className="text-neutral-600" size={16} />
               </button>
@@ -325,7 +336,10 @@ export function Header() {
                     <Link
                       to="/"
                       hash="hero"
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        scrollToHero();
+                      }}
                       className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
                     >
                       {platform === "mobile"

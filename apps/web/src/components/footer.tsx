@@ -154,6 +154,14 @@ export function Footer() {
                     Press Kit
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to="/templates"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Templates
+                  </Link>
+                </li>
               </ul>
             </div>
 

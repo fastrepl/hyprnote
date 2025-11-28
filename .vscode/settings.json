@@ -26,6 +26,7 @@
   "deno.enable": true,
   "deno.lint": true,
   "deno.enablePaths": [
-    "apps/web/netlify/edge-functions"
+    "apps/web/netlify/edge-functions",
+    "extensions/shared"
   ]
 }

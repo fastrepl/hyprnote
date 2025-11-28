@@ -1,6 +1,7 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import semver from "semver";
 
@@ -9,6 +10,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
+import { useIsMobile } from "@hypr/ui/hooks/use-mobile";
 import { cn } from "@hypr/utils";
 
 import {
@@ -115,7 +117,7 @@ function HeroSection({ changelog }: { changelog: ChangelogWithMeta }) {
   return (
     <div className="px-6 py-16 lg:py-24">
       <div className="text-center max-w-3xl mx-auto">
-        <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
+        <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-600 mb-6">
           Version {changelog.version}
         </h1>
         <DownloadButtons version={changelog.version} />
@@ -161,18 +163,44 @@ function ChangelogContentSection({
   changelog: ChangelogWithMeta;
   allChangelogs: ChangelogWithMeta[];
 }) {
+  const isMobile = useIsMobile();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   return (
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
         <MockWindow
           title={`Version ${changelog.version}`}
           className="rounded-lg w-full max-w-none"
+          prefixIcons={
+            isMobile && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                aria-label="Open version list"
+              >
+                <Icon icon="mdi:menu" className="text-base text-neutral-600" />
+              </button>
+            )
+          }
         >
-          <div className="h-[600px]">
-            <ChangelogSplitView
-              changelog={changelog}
-              allChangelogs={allChangelogs}
-            />
+          <div className="h-[600px] relative">
+            {isMobile ? (
+              <>
+                <MobileSidebarDrawer
+                  open={drawerOpen}
+                  onClose={() => setDrawerOpen(false)}
+                  changelog={changelog}
+                  allChangelogs={allChangelogs}
+                />
+                <ChangelogContent changelog={changelog} />
+              </>
+            ) : (
+              <ChangelogSplitView
+                changelog={changelog}
+                allChangelogs={allChangelogs}
+              />
+            )}
           </div>
           <ChangelogStatusBar changelog={changelog} />
         </MockWindow>
@@ -201,6 +229,62 @@ function ChangelogSplitView({
   );
 }
 
+function MobileSidebarDrawer({
+  open,
+  onClose,
+  changelog,
+  allChangelogs,
+}: {
+  open: boolean;
+  onClose: () => void;
+  changelog: ChangelogWithMeta;
+  allChangelogs: ChangelogWithMeta[];
+}) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            className="absolute inset-0 z-40 bg-black/20"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+          <motion.div
+            className="absolute left-0 top-0 bottom-0 z-50 w-72 bg-white border-r border-neutral-200 shadow-lg"
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
+              <span className="text-sm font-medium text-stone-600">
+                All Versions
+              </span>
+              <button
+                onClick={onClose}
+                className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                aria-label="Close drawer"
+              >
+                <Icon icon="mdi:close" className="text-base text-neutral-600" />
+              </button>
+            </div>
+            <div className="h-[calc(100%-49px)] overflow-hidden">
+              <ChangelogSidebar
+                changelog={changelog}
+                allChangelogs={allChangelogs}
+                onNavigate={onClose}
+              />
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function groupVersions(changelogs: ChangelogWithMeta[]): VersionGroup[] {
   const groups = new Map<string, ChangelogWithMeta[]>();
 
@@ -226,9 +310,11 @@ function groupVersions(changelogs: ChangelogWithMeta[]): VersionGroup[] {
 function ChangelogSidebar({
   changelog,
   allChangelogs,
+  onNavigate,
 }: {
   changelog: ChangelogWithMeta;
   allChangelogs: ChangelogWithMeta[];
+  onNavigate?: () => void;
 }) {
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -272,6 +358,7 @@ function ChangelogSidebar({
                       key={version.slug}
                       to="/changelog/$slug"
                       params={{ slug: version.slug }}
+                      onClick={onNavigate}
                       className={cn([
                         "bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors flex items-center gap-3",
                         version.slug === changelog.slug

@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@deepgram/sdk": "^4.11.2",
-    "@restatedev/restate-sdk-clients": "^1.4.0",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",
     "@hypr/utils": "workspace:*",

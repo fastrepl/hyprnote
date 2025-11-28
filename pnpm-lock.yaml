@@ -580,9 +580,6 @@ importers:
       '@posthog/react':
         specifier: ^1.5.0
         version: 1.5.0(@types/react@19.2.7)(posthog-js@1.298.0)(react@19.2.0)
-      '@restatedev/restate-sdk-clients':
-        specifier: ^1.4.0
-        version: 1.9.1
       '@sentry/tanstackstart-react':
         specifier: ^10.26.0
         version: 10.26.0(react@19.2.0)
@@ -4720,10 +4717,6 @@ packages:
     resolution: {integrity: sha512-wwLvyg1JrrF6cSkrq7JUfEa8mZYR7PVJUnwb0LEVjYY0KoEqEt77S/jGDk5f4eXtRi7O6h3noXS4+dHVf38DFQ==}
     cpu: [x64]
     os: [linux]
-
-  '@restatedev/restate-sdk-clients@1.9.1':
-    resolution: {integrity: sha512-dOZVBDVvjK8SwgTPwMM5UYYXTU+8BHk4D9QTtDUYca/lOgVAIHoQEPy5e50UJ+/cCo6NouD9lmIC+6qKbN3dsA==}
-    engines: {node: '>= 20.19'}
 
   '@restatedev/restate-sdk-cloudflare-workers@1.9.1':
     resolution: {integrity: sha512-5fRUhsOdMurc8ynMjJeh5dsZ5mlj0pTqoyGIQKQoZ/Vj3tbyYgzPl4E6pdGvKYGQLexq3IH6QQTbK5V1v9VSrw==}
@@ -18841,10 +18834,6 @@ snapshots:
 
   '@restatedev/restate-linux-x64@1.5.5':
     optional: true
-
-  '@restatedev/restate-sdk-clients@1.9.1':
-    dependencies:
-      '@restatedev/restate-sdk-core': 1.9.1
 
   '@restatedev/restate-sdk-cloudflare-workers@1.9.1':
     dependencies:

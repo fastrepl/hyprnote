@@ -20,17 +20,19 @@ export type PipelineStatusType = z.infer<typeof PipelineStatus>;
 const StatusState = z.object({
   status: PipelineStatus,
   transcript: z.string().optional(),
-  llmResult: z.unknown().optional(),
+  llmResult: z.any().optional(),
   error: z.string().optional(),
 });
 
 export type StatusStateType = z.infer<typeof StatusState>;
 
+type StartAudioPipelineInput = {
+  userId: string;
+  audioUrl: string;
+};
+
 type AudioPipeline = {
-  run: (input: {
-    userId: string;
-    audioUrl: string;
-  }) => Promise<StatusStateType>;
+  run: (input: StartAudioPipelineInput) => Promise<StatusStateType>;
   getStatus: () => Promise<StatusStateType>;
 };
 
@@ -57,9 +59,14 @@ export const startAudioPipeline = createServerFn({ method: "POST" })
 
     try {
       const restateClient = getRestateClient();
-      const handle = await restateClient
-        .workflowClient<AudioPipeline>({ name: "AudioPipeline" }, pipelineId)
-        .workflowSubmit({ userId: userData.user.id, audioUrl: data.audioUrl });
+      const workflowClient = restateClient.workflowClient<AudioPipeline>(
+        { name: "AudioPipeline" },
+        pipelineId,
+      );
+      const handle = await (workflowClient as any).workflowSubmit({
+        userId: userData.user.id,
+        audioUrl: data.audioUrl,
+      });
 
       return {
         success: true,

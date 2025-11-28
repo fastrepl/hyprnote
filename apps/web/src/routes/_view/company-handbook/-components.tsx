@@ -169,7 +169,7 @@ function ArticleFooter() {
               Discord
             </a>
             <a
-              href="https://twitter.com/hyprnote"
+              href="https://twitter.com/tryhyprnote"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-stone-600 transition-colors"

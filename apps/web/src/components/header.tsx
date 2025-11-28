@@ -22,6 +22,7 @@ const featuresList = [
   { to: "/product/ai-assistant", label: "AI Assistant" },
   { to: "/product/mini-apps", label: "Mini Apps" },
   { to: "/product/workflows", label: "Workflows", badge: "Coming Soon" },
+  { to: "/templates", label: "Templates" },
 ];
 
 export function Header() {

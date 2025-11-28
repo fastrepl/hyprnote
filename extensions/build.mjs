@@ -129,6 +129,14 @@ async function buildExtension(name) {
                 path: args.path,
                 namespace: "hypr-global",
               }));
+              build.onResolve({ filter: /^@hypr\/store$/ }, () => ({
+                path: "@hypr/store",
+                namespace: "hypr-global",
+              }));
+              build.onResolve({ filter: /^@hypr\/tabs$/ }, () => ({
+                path: "@hypr/tabs",
+                namespace: "hypr-global",
+              }));
               build.onResolve({ filter: /^tinybase\/ui-react$/ }, () => ({
                 path: "tinybase/ui-react",
                 namespace: "hypr-global",
@@ -172,6 +180,18 @@ async function buildExtension(name) {
                   if (args.path.startsWith("@hypr/utils")) {
                     return {
                       contents: "module.exports = window.__hypr_utils",
+                      loader: "js",
+                    };
+                  }
+                  if (args.path === "@hypr/store") {
+                    return {
+                      contents: "module.exports = window.__hypr_store",
+                      loader: "js",
+                    };
+                  }
+                  if (args.path === "@hypr/tabs") {
+                    return {
+                      contents: "module.exports = window.__hypr_tabs",
                       loader: "js",
                     };
                   }

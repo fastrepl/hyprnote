@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node build.mjs build",
     "build:hello-world": "node build.mjs build hello-world",
+    "build:calendar": "node build.mjs build calendar",
     "clean": "node build.mjs clean",
     "install:dev": "node build.mjs install"
   },

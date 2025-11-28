@@ -1,6 +1,7 @@
 import { PuzzleIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { type PointerEvent, useCallback, useEffect, useRef } from "react";
+import type { MergeableStore } from "tinybase";
 import { useStores } from "tinybase/ui-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -14,11 +15,7 @@ import {
 import { cn } from "@hypr/utils";
 
 import { createIframeSynchronizer } from "../../../../store/tinybase/iframe-sync";
-import {
-  type Schemas,
-  type Store,
-  STORE_ID,
-} from "../../../../store/tinybase/main";
+import { type Store, STORE_ID } from "../../../../store/tinybase/main";
 import type { Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { getPanelInfoByExtensionId } from "./registry";
@@ -100,7 +97,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
   const panelInfo = getPanelInfoByExtensionId(tab.extensionId);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const synchronizerRef = useRef<ReturnType<
-    typeof createIframeSynchronizer<Schemas>
+    typeof createIframeSynchronizer
   > | null>(null);
 
   const handleIframeLoad = useCallback(() => {
@@ -110,8 +107,8 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
       synchronizerRef.current.destroy();
     }
 
-    const synchronizer = createIframeSynchronizer<Schemas>(
-      store,
+    const synchronizer = createIframeSynchronizer(
+      store as unknown as MergeableStore,
       iframeRef.current,
     );
     synchronizerRef.current = synchronizer;

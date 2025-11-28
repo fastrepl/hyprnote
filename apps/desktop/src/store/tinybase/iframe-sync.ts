@@ -1,6 +1,5 @@
-import { getUniqueId } from "tinybase";
+import { getUniqueId, type MergeableStore } from "tinybase";
 import { createCustomSynchronizer } from "tinybase/synchronizers";
-import type { MergeableStore, Synchronizer } from "tinybase/with-schemas";
 
 type TinybaseSyncPayload = [
   fromClientId: string,
@@ -28,20 +27,27 @@ function isTinybaseSyncEnvelope(data: unknown): data is TinybaseSyncEnvelope {
 /**
  * Creates a TinyBase synchronizer for the parent (main webview) side
  * that syncs with an iframe via postMessage.
+ *
+ * Returns the synchronizer object. Call .startSync() to begin syncing.
  */
-export function createIframeSynchronizer<Schemas extends [object, object]>(
-  store: MergeableStore<Schemas>,
+export function createIframeSynchronizer(
+  store: MergeableStore,
   iframe: HTMLIFrameElement,
   targetOrigin = "*",
-): Synchronizer<Schemas> {
+) {
   const clientId = getUniqueId();
   let handler: ((event: MessageEvent) => void) | null = null;
 
   const synchronizer = createCustomSynchronizer(
-    store as MergeableStore<[object, object]>,
+    store,
     // send: ship a message to the iframe via postMessage
     (_toClientId, requestId, message, body) => {
-      const payload: TinybaseSyncPayload = [clientId, requestId, message, body];
+      const payload: TinybaseSyncPayload = [
+        clientId,
+        requestId as string | null,
+        message,
+        body,
+      ];
 
       iframe.contentWindow?.postMessage(
         {
@@ -59,7 +65,7 @@ export function createIframeSynchronizer<Schemas extends [object, object]>(
         if (!isTinybaseSyncEnvelope(event.data)) return;
 
         const [fromClientId, requestId, message, body] = event.data.payload;
-        receive(fromClientId, requestId, message, body);
+        receive(fromClientId, requestId as string, message, body);
       };
 
       window.addEventListener("message", handler);
@@ -74,25 +80,32 @@ export function createIframeSynchronizer<Schemas extends [object, object]>(
     5, // request timeout in seconds
   );
 
-  return synchronizer as unknown as Synchronizer<Schemas>;
+  return synchronizer;
 }
 
 /**
  * Creates a TinyBase synchronizer for the iframe (extension) side
  * that syncs with the parent window via postMessage.
+ *
+ * Returns the synchronizer object. Call .startSync() to begin syncing.
  */
-export function createParentSynchronizer<Schemas extends [object, object]>(
-  store: MergeableStore<Schemas>,
+export function createParentSynchronizer(
+  store: MergeableStore,
   targetOrigin = "*",
-): Synchronizer<Schemas> {
+) {
   const clientId = getUniqueId();
   let handler: ((event: MessageEvent) => void) | null = null;
 
   const synchronizer = createCustomSynchronizer(
-    store as MergeableStore<[object, object]>,
+    store,
     // send: send messages back to parent
     (_toClientId, requestId, message, body) => {
-      const payload: TinybaseSyncPayload = [clientId, requestId, message, body];
+      const payload: TinybaseSyncPayload = [
+        clientId,
+        requestId as string | null,
+        message,
+        body,
+      ];
 
       window.parent.postMessage(
         {
@@ -110,7 +123,7 @@ export function createParentSynchronizer<Schemas extends [object, object]>(
         if (!isTinybaseSyncEnvelope(event.data)) return;
 
         const [fromClientId, requestId, message, body] = event.data.payload;
-        receive(fromClientId, requestId, message, body);
+        receive(fromClientId, requestId as string, message, body);
       };
 
       window.addEventListener("message", handler);
@@ -125,5 +138,5 @@ export function createParentSynchronizer<Schemas extends [object, object]>(
     5,
   );
 
-  return synchronizer as unknown as Synchronizer<Schemas>;
+  return synchronizer;
 }

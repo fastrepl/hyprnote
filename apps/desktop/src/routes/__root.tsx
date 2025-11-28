@@ -9,6 +9,7 @@ import type { DeepLink } from "@hypr/plugin-deeplink2";
 
 import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
+import { isExtHostPath } from "../utils/ext-host";
 
 // Lazy load MainAppLayout to prevent auth.tsx from being imported in iframe context.
 // This is necessary because auth.tsx creates Supabase client at module level which uses Tauri APIs.
@@ -25,13 +26,8 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 });
 
 function Component() {
-  // ext-host route runs in iframe without Tauri access, so skip auth/billing providers
-  // and navigation events (which use Tauri APIs)
-  // Use exact match or subpath check to avoid matching unintended routes like /app/ext-host-debug
   const isExtHost =
-    typeof window !== "undefined" &&
-    (window.location.pathname === "/app/ext-host" ||
-      window.location.pathname.startsWith("/app/ext-host/"));
+    typeof window !== "undefined" && isExtHostPath(window.location.pathname);
 
   if (isExtHost) {
     return <Outlet />;

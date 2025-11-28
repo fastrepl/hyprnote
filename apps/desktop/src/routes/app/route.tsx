@@ -4,6 +4,7 @@ import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 
 import { useConfigSideEffects } from "../../config/use-config";
 import { ListenerProvider } from "../../contexts/listener";
+import { isExtHostPath } from "../../utils/ext-host";
 
 export const Route = createFileRoute("/app")({
   component: Component,
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/app")({
 function Component() {
   const { listenerStore } = Route.useLoaderData();
   const location = useLocation();
-  const isExtHost = location.pathname.startsWith("/app/ext-host");
+  const isExtHost = isExtHostPath(location.pathname);
 
   if (isExtHost) {
     return (

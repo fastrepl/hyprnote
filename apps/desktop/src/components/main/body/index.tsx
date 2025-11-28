@@ -20,7 +20,6 @@ import {
 } from "../../../store/zustand/tabs";
 import { ChatFloatingButton } from "../../chat";
 import { useNewNote } from "../shared";
-import { TabContentCalendar, TabItemCalendar } from "./calendars";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import { TabContentEvent, TabItemEvent } from "./events";
@@ -254,19 +253,6 @@ function TabItem({
       />
     );
   }
-
-  if (tab.type === "calendars") {
-    return (
-      <TabItemCalendar
-        tab={tab}
-        tabIndex={tabIndex}
-        handleCloseThis={handleClose}
-        handleSelectThis={handleSelect}
-        handleCloseOthers={handleCloseOthers}
-        handleCloseAll={handleCloseAll}
-      />
-    );
-  }
   if (tab.type === "contacts") {
     return (
       <TabItemContact
@@ -319,9 +305,6 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "humans") {
     return <TabContentHuman tab={tab} />;
-  }
-  if (tab.type === "calendars") {
-    return <TabContentCalendar tab={tab} />;
   }
   if (tab.type === "contacts") {
     return <TabContentContact tab={tab} />;

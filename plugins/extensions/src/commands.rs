@@ -61,6 +61,9 @@ pub async fn list_extensions<R: tauri::Runtime>(
                     entry_path: ext
                         .panel_path(&p.id)
                         .map(|p| p.to_string_lossy().to_string()),
+                    styles_path: ext
+                        .panel_styles_path(&p.id)
+                        .map(|p| p.to_string_lossy().to_string()),
                 })
                 .collect();
             ExtensionInfo {
@@ -121,6 +124,9 @@ pub async fn get_extension<R: tauri::Runtime>(
                     entry: p.entry.clone(),
                     entry_path: ext
                         .panel_path(&p.id)
+                        .map(|p| p.to_string_lossy().to_string()),
+                    styles_path: ext
+                        .panel_styles_path(&p.id)
                         .map(|p| p.to_string_lossy().to_string()),
                 })
                 .collect();

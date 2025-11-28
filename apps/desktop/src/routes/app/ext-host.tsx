@@ -10,6 +10,7 @@ import type { ExtensionViewProps } from "../../types/extensions";
 type ExtHostSearch = {
   extensionId?: string;
   scriptUrl?: string;
+  stylesUrl?: string;
 };
 
 function isValidUrl(url: string): boolean {
@@ -42,13 +43,22 @@ export const Route = createFileRoute("/app/ext-host")({
       result.scriptUrl = scriptUrl;
     }
 
+    const stylesUrl = search.stylesUrl;
+    if (
+      typeof stylesUrl === "string" &&
+      stylesUrl.trim().length > 0 &&
+      isValidUrl(stylesUrl)
+    ) {
+      result.stylesUrl = stylesUrl;
+    }
+
     return result;
   },
   component: ExtHostComponent,
 });
 
 function ExtHostComponent() {
-  const { extensionId, scriptUrl } = Route.useSearch();
+  const { extensionId, scriptUrl, stylesUrl } = Route.useSearch();
   const [Component, setComponent] =
     useState<ComponentType<ExtensionViewProps> | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +71,10 @@ function ExtHostComponent() {
   useEffect(() => {
     isMountedRef.current = true;
     initExtensionGlobals();
+
+    if (stylesUrl) {
+      loadExtensionStyles();
+    }
 
     const store = createMergeableStore();
     storeRef.current = store;
@@ -89,6 +103,20 @@ function ExtHostComponent() {
       synchronizer.destroy();
     };
   }, []);
+
+  const loadExtensionStyles = async () => {
+    if (!stylesUrl) return;
+
+    try {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = stylesUrl;
+      link.dataset.extensionStyles = extensionId || "unknown";
+      document.head.appendChild(link);
+    } catch (err) {
+      console.error("[ext-host] Failed to load extension styles:", err);
+    }
+  };
 
   const loadExtensionScript = async () => {
     if (!scriptUrl) {

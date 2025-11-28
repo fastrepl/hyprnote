@@ -1,13 +1,13 @@
+import clsx from "clsx";
+import { format, getDay } from "date-fns";
+import { store } from "hyprnote";
 import { useEffect, useRef, useState } from "react";
 
-import { cn, format, getDay } from "@hypr/utils";
+import { DayEvent } from "./day-event";
+import { DayMore } from "./day-more";
+import { DaySession } from "./day-session";
 
-import * as main from "../../../../store/tinybase/main";
-import { TabContentCalendarDayEvents } from "./day-events";
-import { TabContentCalendarDayMore } from "./day-more";
-import { TabContentCalendarDaySessions } from "./day-sessions";
-
-export function TabContentCalendarDay({
+export function CalendarDay({
   day,
   isCurrentMonth,
   isFirstColumn,
@@ -24,25 +24,25 @@ export function TabContentCalendarDay({
   const contentRef = useRef<HTMLDivElement>(null);
   const [maxVisibleItems, setMaxVisibleItems] = useState(5);
 
-  const allEventIds = main.UI.useSliceRowIds(
-    main.INDEXES.eventsByDate,
+  const allEventIds = store.UI.useSliceRowIds(
+    store.INDEXES.eventsByDate,
     day,
-    main.STORE_ID,
+    store.STORE_ID,
   );
 
-  const store = main.UI.useStore(main.STORE_ID);
+  const storeInstance = store.UI.useStore(store.STORE_ID);
 
   const eventIds = allEventIds.filter((eventId) => {
-    const event = store?.getRow("events", eventId);
+    const event = storeInstance?.getRow("events", eventId);
     return (
       event?.calendar_id && selectedCalendars.has(event.calendar_id as string)
     );
   });
 
-  const sessionIds = main.UI.useSliceRowIds(
-    main.INDEXES.sessionByDateWithoutEvent,
+  const sessionIds = store.UI.useSliceRowIds(
+    store.INDEXES.sessionByDateWithoutEvent,
     day,
-    main.STORE_ID,
+    store.STORE_ID,
   );
 
   const dayNumber = format(new Date(day), "d");
@@ -50,28 +50,24 @@ export function TabContentCalendarDay({
   const dayOfWeek = getDay(new Date(day));
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-  // Measure actual available height and calculate max visible items
   useEffect(() => {
     const measureHeight = () => {
       if (cellRef.current && contentRef.current) {
         const cellHeight = cellRef.current.clientHeight;
         const contentTop = contentRef.current.offsetTop;
         const availableHeight = cellHeight - contentTop;
-        const EVENT_HEIGHT = 20; // height of each event item (h-5)
-        const SPACING = 4; // space-y-1
+        const EVENT_HEIGHT = 20;
+        const SPACING = 4;
 
-        // Calculate how many items can fit
         const itemsWithSpacing = Math.floor(
           (availableHeight + SPACING) / (EVENT_HEIGHT + SPACING),
         );
-        // Reserve space for "+x more" if needed
         setMaxVisibleItems(Math.max(1, itemsWithSpacing));
       }
     };
 
     measureHeight();
 
-    // Re-measure on window resize
     window.addEventListener("resize", measureHeight);
     return () => window.removeEventListener("resize", measureHeight);
   }, []);
@@ -99,7 +95,7 @@ export function TabContentCalendarDay({
   return (
     <div
       ref={cellRef}
-      className={cn([
+      className={clsx([
         "relative flex flex-col items-end flex-1 min-w-0 border-neutral-200 p-1 overflow-hidden",
         !isFirstColumn && "border-l",
         !isLastRow && "border-b",
@@ -107,13 +103,13 @@ export function TabContentCalendarDay({
       ])}
     >
       <div
-        className={cn([
+        className={clsx([
           "text-sm size-6 rounded-full flex items-center justify-center mb-1",
           isToday && "bg-red-500",
         ])}
       >
         <span
-          className={cn([
+          className={clsx([
             isToday && "text-white font-medium",
             !isToday && !isCurrentMonth && "text-neutral-400",
             !isToday && isCurrentMonth && isWeekend && "text-neutral-500",
@@ -127,14 +123,14 @@ export function TabContentCalendarDay({
       <div ref={contentRef} className="flex-1 w-full">
         {visibleItems.map((item) =>
           item.type === "event" ? (
-            <TabContentCalendarDayEvents key={item.id} eventId={item.id} />
+            <DayEvent key={item.id} eventId={item.id} />
           ) : (
-            <TabContentCalendarDaySessions key={item.id} sessionId={item.id} />
+            <DaySession key={item.id} sessionId={item.id} />
           ),
         )}
 
         {hiddenCount > 0 && (
-          <TabContentCalendarDayMore
+          <DayMore
             day={day}
             eventIds={hiddenEventIds}
             sessionIds={hiddenSessionIds}

@@ -1,6 +1,6 @@
-import { Checkbox } from "@hypr/ui/components/ui/checkbox";
+import { store, ui } from "hyprnote";
 
-import * as main from "../../../../store/tinybase/main";
+const { Checkbox } = ui.checkbox;
 
 export function CalendarCheckboxRow({
   id,
@@ -11,7 +11,7 @@ export function CalendarCheckboxRow({
   checked: boolean;
   onToggle: (checked: boolean) => void;
 }) {
-  const calendar = main.UI.useRow("calendars", id, main.STORE_ID);
+  const calendar = store.UI.useRow("calendars", id, store.STORE_ID);
   return (
     <div className="flex items-center space-x-2">
       <Checkbox
@@ -23,7 +23,7 @@ export function CalendarCheckboxRow({
         htmlFor={`calendar-${id}`}
         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
       >
-        {calendar?.name ?? "Untitled"}
+        {(calendar?.name as string) ?? "Untitled"}
       </label>
     </div>
   );

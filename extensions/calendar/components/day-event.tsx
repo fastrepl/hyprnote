@@ -1,34 +1,31 @@
-import { Calendar, Pen, StickyNote } from "lucide-react";
+import clsx from "clsx";
+import { format, isSameDay } from "date-fns";
+import { store, tabs, ui } from "hyprnote";
 import { useState } from "react";
 
-import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
-import { cn, format, isSameDay } from "@hypr/utils";
+import { CalendarIcon, PenIcon, StickyNoteIcon } from "./icons";
 
-import * as main from "../../../../store/tinybase/main";
-import { useTabs } from "../../../../store/zustand/tabs";
+const { Button } = ui.button;
+const { Popover, PopoverContent, PopoverTrigger } = ui.popover;
+const { useTabs } = tabs;
 
-export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
-  const event = main.UI.useRow("events", eventId, main.STORE_ID);
+export function DayEvent({ eventId }: { eventId: string }) {
+  const event = store.UI.useRow("events", eventId, store.STORE_ID);
   const [open, setOpen] = useState(false);
   const openNew = useTabs((state) => state.openNew);
 
-  const title = event?.title || "Untitled Event";
+  const title = (event?.title as string) || "Untitled Event";
 
-  const sessionIds = main.UI.useSliceRowIds(
-    main.INDEXES.sessionsByEvent,
+  const sessionIds = store.UI.useSliceRowIds(
+    store.INDEXES.sessionsByEvent,
     eventId,
-    main.STORE_ID,
+    store.STORE_ID,
   );
   const linkedSessionId = sessionIds[0];
-  const linkedSession = main.UI.useRow(
+  const linkedSession = store.UI.useRow(
     "sessions",
     linkedSessionId || "dummy",
-    main.STORE_ID,
+    store.STORE_ID,
   );
 
   const handleOpenNote = () => {
@@ -45,8 +42,8 @@ export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
     if (!event || !event.started_at || !event.ended_at) {
       return "";
     }
-    const start = new Date(event.started_at);
-    const end = new Date(event.ended_at);
+    const start = new Date(event.started_at as string);
+    const end = new Date(event.ended_at as string);
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return "";
@@ -63,12 +60,12 @@ export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className={cn([
+          className={clsx([
             "w-full justify-start px-1 text-neutral-600 h-6",
             open && "bg-neutral-100 hover:bg-neutral-100",
           ])}
         >
-          <Calendar size={12} className="text-pink-600" />
+          <CalendarIcon />
           <p className="truncate">{title}</p>
         </Button>
       </PopoverTrigger>
@@ -81,14 +78,14 @@ export function TabContentCalendarDayEvents({ eventId }: { eventId: string }) {
 
         {linkedSessionId ? (
           <Button className="w-full justify-start" onClick={handleOpenNote}>
-            <StickyNote />
+            <StickyNoteIcon />
             <p className="truncate">
-              {linkedSession?.title || "Untitled Note"}
+              {(linkedSession?.title as string) || "Untitled Note"}
             </p>
           </Button>
         ) : (
           <Button className="w-full" onClick={handleOpenNote}>
-            <Pen />
+            <PenIcon />
             Create Note
           </Button>
         )}

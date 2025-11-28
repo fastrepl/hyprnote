@@ -2,7 +2,6 @@
   "files": [],
   "references": [
     { "path": "./apps/desktop" },
-    { "path": "./extensions" },
     { "path": "./packages/ui" }
   ]
 }

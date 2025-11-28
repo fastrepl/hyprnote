@@ -64,11 +64,6 @@ export const tabSchema = z.discriminatedUnion("type", [
     type: z.literal("folders" satisfies (typeof TABLES)[number]),
     id: z.string().nullable(),
   }),
-
-  baseTabSchema.extend({
-    type: z.literal("calendars"),
-    month: z.coerce.date(),
-  }),
   baseTabSchema.extend({
     type: z.literal("empty"),
   }),
@@ -98,7 +93,6 @@ export type TabInput =
   | { type: "humans"; id: string }
   | { type: "organizations"; id: string }
   | { type: "folders"; id: string | null }
-  | { type: "calendars"; month: Date }
   | { type: "empty" }
   | { type: "extension"; extensionId: string; state?: Record<string, unknown> };
 
@@ -112,7 +106,6 @@ export const rowIdfromTab = (tab: Tab): string => {
       return tab.id;
     case "organizations":
       return tab.id;
-    case "calendars":
     case "contacts":
     case "empty":
     case "extension":
@@ -135,8 +128,6 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `humans-${tab.id}`;
     case "organizations":
       return `organizations-${tab.id}`;
-    case "calendars":
-      return `calendars-${tab.month.getFullYear()}-${tab.month.getMonth()}`;
     case "contacts":
       return `contacts`;
     case "folders":

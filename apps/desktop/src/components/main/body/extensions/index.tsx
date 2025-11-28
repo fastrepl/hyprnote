@@ -220,10 +220,14 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
   }
 
   const scriptUrl = convertFileSrc(panelInfo.entry_path);
-  const iframeSrc = `/app/ext-host?${new URLSearchParams({
+  const searchParams: Record<string, string> = {
     extensionId: tab.extensionId,
     scriptUrl: scriptUrl,
-  }).toString()}`;
+  };
+  if (panelInfo.styles_path) {
+    searchParams.stylesUrl = convertFileSrc(panelInfo.styles_path);
+  }
+  const iframeSrc = `/app/ext-host?${new URLSearchParams(searchParams).toString()}`;
 
   return (
     <StandardTabWrapper>
@@ -237,7 +241,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
           src={iframeSrc}
           onLoad={handleIframeLoad}
           className="w-full h-full border-0"
-          sandbox="allow-scripts"
+          sandbox="allow-scripts allow-same-origin"
           title={`Extension: ${tab.extensionId}`}
         />
       </ExtensionErrorBoundary>

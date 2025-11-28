@@ -1,7 +1,11 @@
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
+
+import { GITHUB_ORG_REPO } from "@/queries";
 
 export const Route = createFileRoute("/_view/roadmap")({
   component: Component,
@@ -17,86 +21,107 @@ export const Route = createFileRoute("/_view/roadmap")({
   }),
 });
 
-interface RoadmapItem {
+type GitHubLabel = {
+  name: string;
+  color: string;
+};
+
+type GitHubIssue = {
+  number: number;
+  title: string;
+  body: string | null;
+  html_url: string;
+  state: "open" | "closed";
+  labels: GitHubLabel[];
+  created_at: string;
+  closed_at: string | null;
+  pull_request?: object;
+};
+
+type RoadmapStatus = "done" | "in-progress" | "planned";
+
+type RoadmapIssue = {
+  number: number;
   title: string;
   description: string;
-  status: "shipped" | "in-progress" | "planned";
-  quarter?: string;
+  url: string;
+  status: RoadmapStatus;
+  labels: GitHubLabel[];
+  createdAt: string;
+};
+
+const DEFAULT_VISIBLE_ITEMS = 5;
+
+function categorizeIssue(issue: GitHubIssue): RoadmapStatus {
+  const labelNames = issue.labels.map((l) => l.name.toLowerCase());
+
+  if (issue.state === "closed") {
+    return "done";
+  }
+
+  if (
+    labelNames.some((l) =>
+      ["in progress", "in-progress", "wip", "working"].includes(l),
+    )
+  ) {
+    return "in-progress";
+  }
+
+  return "planned";
 }
 
-const roadmapItems: RoadmapItem[] = [
-  {
-    title: "Dual audio capture (Mic + System)",
-    description:
-      "Record both microphone and system audio simultaneously for complete context.",
-    status: "shipped",
-    quarter: "Q4 2024",
-  },
-  {
-    title: "Local AI transcription",
-    description: "On-device speech-to-text processing with complete privacy.",
-    status: "shipped",
-    quarter: "Q4 2024",
-  },
-  {
-    title: "Custom templates",
-    description:
-      "Create and use custom note templates for different meeting types.",
-    status: "shipped",
-    quarter: "Q1 2025",
-  },
-  {
-    title: "Chat with your notes",
-    description:
-      "Ask questions and get insights from your recorded conversations.",
-    status: "in-progress",
-    quarter: "Q1 2025",
-  },
-  {
-    title: "Multi-language support",
-    description: "Transcription and summaries in multiple languages.",
-    status: "in-progress",
-    quarter: "Q1 2025",
-  },
-  {
-    title: "Team workspaces",
-    description: "Collaborate and share notes with your team securely.",
-    status: "planned",
-    quarter: "Q2 2025",
-  },
-  {
-    title: "Calendar integration",
-    description: "Automatic meeting detection and note organization.",
-    status: "planned",
-    quarter: "Q2 2025",
-  },
-  {
-    title: "Action item tracking",
-    description:
-      "Automatically extract and track action items across all your meetings.",
-    status: "planned",
-    quarter: "Q2 2025",
-  },
-  {
-    title: "Mobile apps",
-    description: "Native iOS and Android apps for notetaking on the go.",
-    status: "planned",
-    quarter: "Q3 2025",
-  },
-  {
-    title: "API access",
-    description: "Integrate Hyprnote into your workflows with our API.",
-    status: "planned",
-    quarter: "Q3 2025",
-  },
-];
+function transformIssue(issue: GitHubIssue): RoadmapIssue {
+  const firstLine = issue.body?.split("\n")[0] || "";
+  const description =
+    firstLine.length > 150 ? firstLine.slice(0, 147) + "..." : firstLine;
+
+  return {
+    number: issue.number,
+    title: issue.title,
+    description: description || "No description provided.",
+    url: issue.html_url,
+    status: categorizeIssue(issue),
+    labels: issue.labels,
+    createdAt: issue.created_at,
+  };
+}
+
+function useGitHubIssues() {
+  return useQuery({
+    queryKey: ["github-roadmap-issues"],
+    queryFn: async () => {
+      const labels = ["enhancement", "Feature", "Improvement"];
+      const labelQuery = labels.join(",");
+
+      const [openResponse, closedResponse] = await Promise.all([
+        fetch(
+          `https://api.github.com/repos/${GITHUB_ORG_REPO}/issues?state=open&labels=${labelQuery}&per_page=50&sort=created&direction=desc`,
+        ),
+        fetch(
+          `https://api.github.com/repos/${GITHUB_ORG_REPO}/issues?state=closed&labels=${labelQuery}&per_page=30&sort=updated&direction=desc`,
+        ),
+      ]);
+
+      const openIssues: GitHubIssue[] = await openResponse.json();
+      const closedIssues: GitHubIssue[] = await closedResponse.json();
+
+      const allIssues = [...openIssues, ...closedIssues].filter(
+        (issue) => !issue.pull_request,
+      );
+
+      return allIssues.map(transformIssue);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
 function Component() {
-  const shipped = roadmapItems.filter((item) => item.status === "shipped");
-  const inProgress = roadmapItems.filter(
-    (item) => item.status === "in-progress",
-  );
-  const planned = roadmapItems.filter((item) => item.status === "planned");
+  const { data: issues, isLoading, error } = useGitHubIssues();
+
+  const done = issues?.filter((item) => item.status === "done") ?? [];
+  const inProgress =
+    issues?.filter((item) => item.status === "in-progress") ?? [];
+  const planned = issues?.filter((item) => item.status === "planned") ?? [];
 
   return (
     <div
@@ -105,7 +130,7 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <div className="px-6 py-12 lg:py-20">
-          <header className="mb-16 text-center">
+          <header className="mb-12 text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
               Product Roadmap
             </h1>
@@ -115,66 +140,43 @@ function Component() {
             </p>
           </header>
 
-          <div className="space-y-16">
-            {shipped.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-8">
-                  <Icon
-                    icon="mdi:check-circle"
-                    className="text-3xl text-green-600"
-                  />
-                  <h2 className="text-3xl font-serif text-stone-600">
-                    Shipped
-                  </h2>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {shipped.map((item) => (
-                    <RoadmapCard key={item.title} item={item} />
-                  ))}
-                </div>
-              </section>
-            )}
+          {isLoading && (
+            <div className="flex items-center justify-center py-20">
+              <Icon
+                icon="mdi:loading"
+                className="text-4xl text-stone-400 animate-spin"
+              />
+            </div>
+          )}
 
-            {inProgress.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-8">
-                  <Icon
-                    icon="mdi:progress-clock"
-                    className="text-3xl text-blue-600"
-                  />
-                  <h2 className="text-3xl font-serif text-stone-600">
-                    In Progress
-                  </h2>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {inProgress.map((item) => (
-                    <RoadmapCard key={item.title} item={item} />
-                  ))}
-                </div>
-              </section>
-            )}
+          {error && (
+            <div className="text-center py-20">
+              <Icon
+                icon="mdi:alert-circle-outline"
+                className="text-4xl text-red-400 mb-4"
+              />
+              <p className="text-neutral-600">
+                Failed to load roadmap. Please try again later.
+              </p>
+            </div>
+          )}
 
-            {planned.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-8">
-                  <Icon
-                    icon="mdi:calendar-clock"
-                    className="text-3xl text-neutral-400"
-                  />
-                  <h2 className="text-3xl font-serif text-stone-600">
-                    Planned
-                  </h2>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {planned.map((item) => (
-                    <RoadmapCard key={item.title} item={item} />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
+          {!isLoading && !error && (
+            <>
+              <KanbanView
+                done={done}
+                inProgress={inProgress}
+                planned={planned}
+              />
+              <ColumnView
+                done={done}
+                inProgress={inProgress}
+                planned={planned}
+              />
+            </>
+          )}
 
-          <div className="mt-20 bg-stone-50 border border-neutral-200 rounded-lg p-8 text-center">
+          <div className="mt-16 bg-stone-50 border border-neutral-200 rounded-lg p-8 text-center">
             <h3 className="text-2xl font-serif text-stone-600 mb-4">
               Have a feature request?
             </h3>
@@ -201,55 +203,246 @@ function Component() {
   );
 }
 
-function RoadmapCard({ item }: { item: RoadmapItem }) {
-  const statusConfig = {
-    shipped: {
-      bg: "bg-green-50",
-      border: "border-green-200",
-      text: "text-green-700",
-      icon: "mdi:check-circle",
-      label: "Shipped",
-    },
-    "in-progress": {
-      bg: "bg-blue-50",
-      border: "border-blue-200",
-      text: "text-blue-700",
-      icon: "mdi:progress-clock",
-      label: "In Progress",
-    },
-    planned: {
-      bg: "bg-neutral-50",
-      border: "border-neutral-200",
-      text: "text-neutral-600",
-      icon: "mdi:calendar-clock",
-      label: "Planned",
-    },
-  };
+function KanbanView({
+  done,
+  inProgress,
+  planned,
+}: {
+  done: RoadmapIssue[];
+  inProgress: RoadmapIssue[];
+  planned: RoadmapIssue[];
+}) {
+  return (
+    <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+      <KanbanColumn
+        title="Done"
+        icon="mdi:check-circle"
+        iconColor="text-green-600"
+        items={done}
+        status="done"
+      />
+      <KanbanColumn
+        title="In Progress"
+        icon="mdi:progress-clock"
+        iconColor="text-blue-600"
+        items={inProgress}
+        status="in-progress"
+      />
+      <KanbanColumn
+        title="Planned"
+        icon="mdi:calendar-clock"
+        iconColor="text-neutral-400"
+        items={planned}
+        status="planned"
+      />
+    </div>
+  );
+}
 
-  const config = statusConfig[item.status];
+function KanbanColumn({
+  title,
+  icon,
+  iconColor,
+  items,
+  status,
+}: {
+  title: string;
+  icon: string;
+  iconColor: string;
+  items: RoadmapIssue[];
+  status: RoadmapStatus;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const visibleItems = showAll ? items : items.slice(0, DEFAULT_VISIBLE_ITEMS);
+  const hasMore = items.length > DEFAULT_VISIBLE_ITEMS;
 
   return (
-    <div className="p-6 border border-neutral-200 rounded-lg bg-white hover:shadow-sm transition-shadow">
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="text-lg font-serif text-stone-600 flex-1">
-          {item.title}
-        </h3>
-        {item.quarter && (
-          <span className="text-xs text-neutral-500 ml-2">{item.quarter}</span>
-        )}
-      </div>
-      <p className="text-neutral-600 text-sm mb-4">{item.description}</p>
+    <div className="flex flex-col">
       <div
         className={cn([
-          "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium",
-          config.bg,
-          config.border,
-          config.text,
+          "flex items-center gap-2 mb-4 pb-3",
+          "border-b-2",
+          status === "done" && "border-green-200",
+          status === "in-progress" && "border-blue-200",
+          status === "planned" && "border-neutral-200",
         ])}
       >
-        <Icon icon={config.icon} />
-        <span>{config.label}</span>
+        <Icon icon={icon} className={cn(["text-xl", iconColor])} />
+        <h2 className="text-lg font-medium text-stone-600">{title}</h2>
+        <span className="text-sm text-neutral-400 ml-auto">{items.length}</span>
+      </div>
+      <div className="flex flex-col gap-3 flex-1">
+        {visibleItems.length === 0 ? (
+          <div className="text-center py-8 text-neutral-400 text-sm">
+            No items
+          </div>
+        ) : (
+          visibleItems.map((item) => (
+            <IssueCard key={item.number} item={item} compact />
+          ))
+        )}
+        {hasMore && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className={cn([
+              "text-sm text-stone-500 hover:text-stone-700",
+              "py-2 transition-colors",
+            ])}
+          >
+            {showAll
+              ? "Show less"
+              : `Show ${items.length - DEFAULT_VISIBLE_ITEMS} more`}
+          </button>
+        )}
       </div>
     </div>
+  );
+}
+
+function ColumnView({
+  done,
+  inProgress,
+  planned,
+}: {
+  done: RoadmapIssue[];
+  inProgress: RoadmapIssue[];
+  planned: RoadmapIssue[];
+}) {
+  return (
+    <div className="lg:hidden space-y-12">
+      <ColumnSection
+        title="In Progress"
+        icon="mdi:progress-clock"
+        iconColor="text-blue-600"
+        items={inProgress}
+        status="in-progress"
+      />
+      <ColumnSection
+        title="Planned"
+        icon="mdi:calendar-clock"
+        iconColor="text-neutral-400"
+        items={planned}
+        status="planned"
+      />
+      <ColumnSection
+        title="Done"
+        icon="mdi:check-circle"
+        iconColor="text-green-600"
+        items={done}
+        status="done"
+      />
+    </div>
+  );
+}
+
+function ColumnSection({
+  title,
+  icon,
+  iconColor,
+  items,
+  status,
+}: {
+  title: string;
+  icon: string;
+  iconColor: string;
+  items: RoadmapIssue[];
+  status: RoadmapStatus;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const mobileLimit = 3;
+  const visibleItems = showAll ? items : items.slice(0, mobileLimit);
+  const hasMore = items.length > mobileLimit;
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-6">
+        <Icon icon={icon} className={cn(["text-2xl", iconColor])} />
+        <h2 className="text-2xl font-serif text-stone-600">{title}</h2>
+        <span className="text-sm text-neutral-400">({items.length})</span>
+      </div>
+      <div className="space-y-4">
+        {visibleItems.map((item) => (
+          <IssueCard key={item.number} item={item} />
+        ))}
+        {hasMore && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className={cn([
+              "w-full text-sm text-stone-500 hover:text-stone-700",
+              "py-3 border border-dashed border-neutral-200 rounded-lg",
+              "hover:border-neutral-300 transition-colors",
+            ])}
+          >
+            {showAll
+              ? "Show less"
+              : `Show ${items.length - mobileLimit} more items`}
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function IssueCard({
+  item,
+  compact = false,
+}: {
+  item: RoadmapIssue;
+  compact?: boolean;
+}) {
+  return (
+    <Link
+      to={item.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn([
+        "block p-4 border border-neutral-200 rounded-lg bg-white",
+        "hover:shadow-sm hover:border-neutral-300 transition-all",
+        "group",
+      ])}
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <h3
+            className={cn([
+              "font-medium text-stone-600 group-hover:text-stone-800",
+              "transition-colors line-clamp-2",
+              compact ? "text-sm" : "text-base",
+            ])}
+          >
+            {item.title}
+          </h3>
+          {!compact && item.description && (
+            <p className="text-neutral-500 text-sm mt-1 line-clamp-2">
+              {item.description}
+            </p>
+          )}
+          {item.labels.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {item.labels.slice(0, compact ? 2 : 4).map((label) => (
+                <span
+                  key={label.name}
+                  className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600"
+                >
+                  {label.name}
+                </span>
+              ))}
+              {item.labels.length > (compact ? 2 : 4) && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500">
+                  +{item.labels.length - (compact ? 2 : 4)}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <span className="text-xs text-neutral-400 shrink-0">
+          #{item.number}
+        </span>
+      </div>
+    </Link>
   );
 }

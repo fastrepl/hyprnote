@@ -1,15 +1,9 @@
+import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { allTemplates } from "content-collections";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@hypr/ui/components/ui/dialog";
 import { cn } from "@hypr/utils";
 
 import { DownloadButton } from "@/components/download-button";
@@ -19,7 +13,7 @@ type TemplatesSearch = {
   category?: string;
 };
 
-export const Route = createFileRoute("/_view/templates")({
+export const Route = createFileRoute("/_view/templates/")({
   component: Component,
   validateSearch: (search: Record<string, unknown>): TemplatesSearch => {
     return {
@@ -60,6 +54,40 @@ function Component() {
   const setSelectedCategory = (category: string | null) => {
     navigate({ search: category ? { category } : {}, resetScroll: false });
   };
+
+  const handleTemplateClick = (template: (typeof allTemplates)[0]) => {
+    setSelectedTemplate(template);
+    window.history.pushState({}, "", `/templates/${template.slug}`);
+  };
+
+  const handleModalClose = useCallback(() => {
+    setSelectedTemplate(null);
+    const url = selectedCategory
+      ? `/templates?category=${encodeURIComponent(selectedCategory)}`
+      : "/templates";
+    window.history.pushState({}, "", url);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedTemplate) {
+        handleModalClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedTemplate, handleModalClose]);
+
+  useEffect(() => {
+    if (selectedTemplate) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedTemplate]);
 
   const templatesByCategory = getTemplatesByCategory();
   const categories = Object.keys(templatesByCategory);
@@ -107,16 +135,15 @@ function Component() {
           setSelectedCategory={setSelectedCategory}
           templatesByCategory={templatesByCategory}
           filteredTemplates={filteredTemplates}
-          setSelectedTemplate={setSelectedTemplate}
+          onTemplateClick={handleTemplateClick}
         />
         <SlashSeparator />
         <CTASection />
       </div>
 
-      <TemplateModal
-        template={selectedTemplate}
-        onClose={() => setSelectedTemplate(null)}
-      />
+      {selectedTemplate && (
+        <TemplateModal template={selectedTemplate} onClose={handleModalClose} />
+      )}
     </div>
   );
 }
@@ -241,14 +268,14 @@ function TemplatesSection({
   setSelectedCategory,
   templatesByCategory,
   filteredTemplates,
-  setSelectedTemplate,
+  onTemplateClick,
 }: {
   categories: string[];
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
   templatesByCategory: Record<string, typeof allTemplates>;
   filteredTemplates: typeof allTemplates;
-  setSelectedTemplate: (template: (typeof allTemplates)[0]) => void;
+  onTemplateClick: (template: (typeof allTemplates)[0]) => void;
 }) {
   return (
     <div className="px-6 pt-8 pb-12 lg:pt-12 lg:pb-20">
@@ -261,7 +288,7 @@ function TemplatesSection({
         />
         <TemplatesGrid
           filteredTemplates={filteredTemplates}
-          setSelectedTemplate={setSelectedTemplate}
+          onTemplateClick={onTemplateClick}
         />
       </div>
     </div>
@@ -325,10 +352,10 @@ function DesktopSidebar({
 
 function TemplatesGrid({
   filteredTemplates,
-  setSelectedTemplate,
+  onTemplateClick,
 }: {
   filteredTemplates: typeof allTemplates;
-  setSelectedTemplate: (template: (typeof allTemplates)[0]) => void;
+  onTemplateClick: (template: (typeof allTemplates)[0]) => void;
 }) {
   if (filteredTemplates.length === 0) {
     return (
@@ -353,7 +380,7 @@ function TemplatesGrid({
           <TemplateCard
             key={template.slug}
             template={template}
-            onClick={() => setSelectedTemplate(template)}
+            onClick={() => onTemplateClick(template)}
           />
         ))}
         <ContributeCard />
@@ -382,7 +409,7 @@ function TemplateCard({
           {template.description}
         </p>
       </div>
-      <div className="pt-4 border-t border-neutral-100">
+      <div className="pt-4 border-t border-neutral-100 w-full">
         <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
           For
         </div>
@@ -459,72 +486,105 @@ function TemplateModal({
   template,
   onClose,
 }: {
-  template: (typeof allTemplates)[0] | null;
+  template: (typeof allTemplates)[0];
   onClose: () => void;
 }) {
-  if (!template) return null;
-
-  const icon = getIconForTemplate(template.title);
-
   return (
-    <Dialog open={!!template} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-white">
-        <DialogHeader>
-          <div className="flex items-start gap-4">
-            <div className="shrink-0 w-12 h-12 rounded-lg bg-stone-100 flex items-center justify-center">
-              <Icon icon={icon} className="text-2xl text-stone-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <DialogTitle className="font-serif text-2xl text-stone-600">
+    <div className="fixed inset-0 z-50">
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="absolute inset-4 sm:inset-8 lg:inset-16 flex items-start justify-center overflow-y-auto">
+        <div
+          className={cn([
+            "relative w-full max-w-2xl my-8",
+            "bg-[url('/api/images/texture/white-leather.png')]",
+            "rounded-sm shadow-2xl",
+          ])}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className={cn([
+              "absolute inset-0 rounded-sm",
+              "bg-[url('/api/images/texture/paper.png')] opacity-30",
+            ])}
+          />
+          <div className="relative">
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-stone-600 hover:text-stone-800 transition-colors cursor-pointer z-10"
+            >
+              <Icon icon="mdi:close" className="text-lg" />
+            </button>
+
+            <div className="p-6 sm:p-8">
+              <div className="mb-2">
+                <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">
+                  {template.category}
+                </span>
+              </div>
+              <h2 className="font-serif text-2xl sm:text-3xl text-stone-700 mb-3">
                 {template.title}
-              </DialogTitle>
-              <DialogDescription className="text-sm text-neutral-500 mt-1">
-                {template.category}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
+              </h2>
+              <p className="text-neutral-600 mb-4">{template.description}</p>
 
-        <div className="mt-4">
-          <p className="text-neutral-600 mb-6">{template.description}</p>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {template.targets.map((target) => (
+                  <span
+                    key={target}
+                    className="text-xs px-2 py-1 bg-white/80 text-stone-600 rounded border border-stone-200/50"
+                  >
+                    {target}
+                  </span>
+                ))}
+              </div>
 
-          <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-stone-600 uppercase tracking-wider">
-              Template Sections
-            </h4>
-            <div className="space-y-3">
-              {template.sections.map((section, index) => (
-                <div
-                  key={section.title}
-                  className="p-4 rounded-lg bg-stone-50 border border-stone-100"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="w-6 h-6 rounded-full bg-stone-200 text-stone-600 text-xs font-medium flex items-center justify-center">
-                      {index + 1}
-                    </span>
-                    <h5 className="font-medium text-stone-700">
-                      {section.title}
-                    </h5>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-semibold text-stone-600 uppercase tracking-wider mb-3">
+                    Template Sections
+                  </h3>
+                  <div className="space-y-3">
+                    {template.sections.map((section, index) => (
+                      <div
+                        key={section.title}
+                        className="p-3 rounded-lg bg-white/80 border border-stone-200/50"
+                      >
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-600 text-xs font-medium flex items-center justify-center">
+                            {index + 1}
+                          </span>
+                          <h4 className="font-medium text-stone-700 text-sm">
+                            {section.title}
+                          </h4>
+                        </div>
+                        <p className="text-xs text-neutral-600 ml-8">
+                          {section.description}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-sm text-neutral-600 ml-9">
-                    {section.description}
+                </div>
+
+                <div className="prose prose-stone prose-sm prose-headings:font-serif prose-headings:font-semibold prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 prose-p:text-sm max-w-none">
+                  <MDXContent code={template.mdx} />
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-stone-200/50">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <DownloadButton />
+                  <p className="text-sm text-neutral-500 text-center sm:text-left">
+                    Download Hyprnote to use this template
                   </p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-neutral-200">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <DownloadButton />
-              <p className="text-sm text-neutral-500 text-center sm:text-left">
-                Download Hyprnote to use this template
-              </p>
+              </div>
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
 
@@ -540,27 +600,4 @@ function getTemplatesByCategory() {
     },
     {} as Record<string, typeof allTemplates>,
   );
-}
-
-function getIconForTemplate(title: string): string {
-  const iconMap: Record<string, string> = {
-    "Daily Standup": "mdi:run-fast",
-    "Sprint Planning": "mdi:calendar-star",
-    "Sprint Retrospective": "mdi:mirror",
-    "Product Roadmap Review": "mdi:road-variant",
-    "Customer Discovery Interview": "mdi:account-search",
-    "Sales Discovery Call": "mdi:phone",
-    "Technical Design Review": "mdi:draw",
-    "Executive Briefing": "mdi:tie",
-    "Board Meeting": "mdi:office-building",
-    "Performance Review": "mdi:chart-line",
-    "Client Kickoff Meeting": "mdi:rocket-launch",
-    "Brainstorming Session": "mdi:lightbulb-on",
-    "Incident Postmortem": "mdi:alert-circle",
-    "Lecture Notes": "mdi:school",
-    "Investor Pitch Meeting": "mdi:cash-multiple",
-    "1:1 Meeting": "mdi:account-multiple",
-    "Project Kickoff": "mdi:flag",
-  };
-  return iconMap[title] || "mdi:file-document";
 }

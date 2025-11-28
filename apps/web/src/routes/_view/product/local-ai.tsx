@@ -11,7 +11,18 @@ export const Route = createFileRoute("/_view/product/local-ai")({
       {
         name: "description",
         content:
-          "Powerful AI processing that runs entirely on your device. Private, fast, and offline-capable with local AI models.",
+          "Powerful AI processing that runs entirely on your device. Private, fast, and offline-capable meeting transcription and summarization with local Whisper and LLM models.",
+      },
+      { property: "og:title", content: "Local AI - Hyprnote" },
+      {
+        property: "og:description",
+        content:
+          "AI-powered meeting notes without cloud uploads. Local transcription with Whisper, on-device summarization, and complete privacy. Works offline with no usage limits.",
+      },
+      { property: "og:type", content: "website" },
+      {
+        property: "og:url",
+        content: "https://hyprnote.com/product/local-ai",
       },
     ],
   }),

@@ -22,17 +22,27 @@ export const Route = createFileRoute("/_view/templates/$slug")({
     const { template } = loaderData!;
     const url = `https://hyprnote.com/templates/${template.slug}`;
 
+    const ogImageUrl = `https://hyprnote.com/og?type=templates&title=${encodeURIComponent(template.title)}&category=${encodeURIComponent(template.category)}${template.description ? `&description=${encodeURIComponent(template.description)}` : ""}`;
+
     return {
       meta: [
-        { title: `${template.title} Template - Hyprnote` },
+        { title: `${template.title} - Meeting Template - Hyprnote` },
         { name: "description", content: template.description },
-        { property: "og:title", content: `${template.title} Template` },
+        {
+          property: "og:title",
+          content: `${template.title} - Meeting Template`,
+        },
         { property: "og:description", content: template.description },
-        { property: "og:type", content: "website" },
+        { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        { name: "twitter:card", content: "summary" },
-        { name: "twitter:title", content: `${template.title} Template` },
+        { property: "og:image", content: ogImageUrl },
+        { name: "twitter:card", content: "summary_large_image" },
+        {
+          name: "twitter:title",
+          content: `${template.title} - Meeting Template`,
+        },
         { name: "twitter:description", content: template.description },
+        { name: "twitter:image", content: ogImageUrl },
       ],
     };
   },

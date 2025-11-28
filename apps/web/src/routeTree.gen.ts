@@ -26,18 +26,21 @@ import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
+import { Route as ViewFreeRouteImport } from './routes/_view/free'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
 import { Route as ViewFaqRouteImport } from './routes/_view/faq'
 import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
 import { Route as ViewBrandRouteImport } from './routes/_view/brand'
 import { Route as ViewAboutRouteImport } from './routes/_view/about'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
+import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
-import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
+import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
+import { Route as ViewCompanyHandbookIndexRouteImport } from './routes/_view/company-handbook/index'
 import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
@@ -72,6 +75,7 @@ import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
+import { Route as ViewCompanyHandbookSplatRouteImport } from './routes/_view/company-handbook/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
 import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
 import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
@@ -164,6 +168,11 @@ const ViewPressKitRoute = ViewPressKitRouteImport.update({
   path: '/press-kit',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewFreeRoute = ViewFreeRouteImport.update({
+  id: '/free',
+  path: '/free',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewFileTranscriptionRoute = ViewFileTranscriptionRouteImport.update({
   id: '/file-transcription',
   path: '/file-transcription',
@@ -194,17 +203,25 @@ const ViewDocsRouteRoute = ViewDocsRouteRouteImport.update({
   path: '/docs',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewCompanyHandbookRouteRoute =
+  ViewCompanyHandbookRouteRouteImport.update({
+    id: '/company-handbook',
+    path: '/company-handbook',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
-  id: '/roadmap/',
-  path: '/roadmap/',
 const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
   id: '/templates/',
   path: '/templates/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
+  id: '/roadmap/',
+  path: '/roadmap/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
@@ -222,6 +239,12 @@ const ViewDocsIndexRoute = ViewDocsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ViewDocsRouteRoute,
 } as any)
+const ViewCompanyHandbookIndexRoute =
+  ViewCompanyHandbookIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ViewCompanyHandbookRouteRoute,
+  } as any)
 const ViewChangelogIndexRoute = ViewChangelogIndexRouteImport.update({
   id: '/changelog/',
   path: '/changelog/',
@@ -396,6 +419,12 @@ const ViewDocsSplatRoute = ViewDocsSplatRouteImport.update({
   path: '/$',
   getParentRoute: () => ViewDocsRouteRoute,
 } as any)
+const ViewCompanyHandbookSplatRoute =
+  ViewCompanyHandbookSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
+    getParentRoute: () => ViewCompanyHandbookRouteRoute,
+  } as any)
 const ViewChangelogSlugRoute = ViewChangelogSlugRouteImport.update({
   id: '/changelog/$slug',
   path: '/changelog/$slug',
@@ -444,12 +473,14 @@ export interface FileRoutesByFullPath {
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
   '/app': typeof ViewAppRouteRouteWithChildren
+  '/company-handbook': typeof ViewCompanyHandbookRouteRouteWithChildren
   '/docs': typeof ViewDocsRouteRouteWithChildren
   '/about': typeof ViewAboutRoute
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
   '/faq': typeof ViewFaqRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
+  '/free': typeof ViewFreeRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/security': typeof ViewSecurityRoute
@@ -464,6 +495,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
+  '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
@@ -498,6 +530,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
+  '/company-handbook/': typeof ViewCompanyHandbookIndexRoute
   '/docs/': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
@@ -519,6 +552,7 @@ export interface FileRoutesByTo {
   '/enterprise': typeof ViewEnterpriseRoute
   '/faq': typeof ViewFaqRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
+  '/free': typeof ViewFreeRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/security': typeof ViewSecurityRoute
@@ -533,6 +567,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof ViewBlogSlugRoute
   '/callback/auth': typeof ViewCallbackAuthRoute
   '/changelog/$slug': typeof ViewChangelogSlugRoute
+  '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
@@ -567,6 +602,7 @@ export interface FileRoutesByTo {
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
   '/changelog': typeof ViewChangelogIndexRoute
+  '/company-handbook': typeof ViewCompanyHandbookIndexRoute
   '/docs': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
@@ -586,12 +622,14 @@ export interface FileRoutesById {
   '/x': typeof XRoute
   '/youtube': typeof YoutubeRoute
   '/_view/app': typeof ViewAppRouteRouteWithChildren
+  '/_view/company-handbook': typeof ViewCompanyHandbookRouteRouteWithChildren
   '/_view/docs': typeof ViewDocsRouteRouteWithChildren
   '/_view/about': typeof ViewAboutRoute
   '/_view/brand': typeof ViewBrandRoute
   '/_view/enterprise': typeof ViewEnterpriseRoute
   '/_view/faq': typeof ViewFaqRoute
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
+  '/_view/free': typeof ViewFreeRoute
   '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/security': typeof ViewSecurityRoute
@@ -606,6 +644,7 @@ export interface FileRoutesById {
   '/_view/blog/$slug': typeof ViewBlogSlugRoute
   '/_view/callback/auth': typeof ViewCallbackAuthRoute
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
+  '/_view/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/_view/docs/$': typeof ViewDocsSplatRoute
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
@@ -640,6 +679,7 @@ export interface FileRoutesById {
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
   '/_view/changelog/': typeof ViewChangelogIndexRoute
+  '/_view/company-handbook/': typeof ViewCompanyHandbookIndexRoute
   '/_view/docs/': typeof ViewDocsIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
@@ -659,12 +699,14 @@ export interface FileRouteTypes {
     | '/x'
     | '/youtube'
     | '/app'
+    | '/company-handbook'
     | '/docs'
     | '/about'
     | '/brand'
     | '/enterprise'
     | '/faq'
     | '/file-transcription'
+    | '/free'
     | '/press-kit'
     | '/pricing'
     | '/security'
@@ -679,6 +721,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/callback/auth'
     | '/changelog/$slug'
+    | '/company-handbook/$'
     | '/docs/$'
     | '/download/apple-intel'
     | '/download/apple-silicon'
@@ -713,6 +756,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/blog'
     | '/changelog'
+    | '/company-handbook/'
     | '/docs/'
     | '/download'
     | '/legal'
@@ -734,6 +778,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/faq'
     | '/file-transcription'
+    | '/free'
     | '/press-kit'
     | '/pricing'
     | '/security'
@@ -748,6 +793,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/callback/auth'
     | '/changelog/$slug'
+    | '/company-handbook/$'
     | '/docs/$'
     | '/download/apple-intel'
     | '/download/apple-silicon'
@@ -782,6 +828,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/blog'
     | '/changelog'
+    | '/company-handbook'
     | '/docs'
     | '/download'
     | '/legal'
@@ -800,12 +847,14 @@ export interface FileRouteTypes {
     | '/x'
     | '/youtube'
     | '/_view/app'
+    | '/_view/company-handbook'
     | '/_view/docs'
     | '/_view/about'
     | '/_view/brand'
     | '/_view/enterprise'
     | '/_view/faq'
     | '/_view/file-transcription'
+    | '/_view/free'
     | '/_view/press-kit'
     | '/_view/pricing'
     | '/_view/security'
@@ -820,6 +869,7 @@ export interface FileRouteTypes {
     | '/_view/blog/$slug'
     | '/_view/callback/auth'
     | '/_view/changelog/$slug'
+    | '/_view/company-handbook/$'
     | '/_view/docs/$'
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
@@ -854,6 +904,7 @@ export interface FileRouteTypes {
     | '/_view/app/'
     | '/_view/blog/'
     | '/_view/changelog/'
+    | '/_view/company-handbook/'
     | '/_view/docs/'
     | '/_view/download/'
     | '/_view/legal/'
@@ -1000,6 +1051,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewPressKitRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/free': {
+      id: '/_view/free'
+      path: '/free'
+      fullPath: '/free'
+      preLoaderRoute: typeof ViewFreeRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/file-transcription': {
       id: '/_view/file-transcription'
       path: '/file-transcription'
@@ -1042,6 +1100,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDocsRouteRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/company-handbook': {
+      id: '/_view/company-handbook'
+      path: '/company-handbook'
+      fullPath: '/company-handbook'
+      preLoaderRoute: typeof ViewCompanyHandbookRouteRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/app': {
       id: '/_view/app'
       path: '/app'
@@ -1049,16 +1114,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/roadmap/': {
-      id: '/_view/roadmap/'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof ViewRoadmapIndexRouteImport
     '/_view/templates/': {
       id: '/_view/templates/'
       path: '/templates'
       fullPath: '/templates'
       preLoaderRoute: typeof ViewTemplatesIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/roadmap/': {
+      id: '/_view/roadmap/'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof ViewRoadmapIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/legal/': {
@@ -1081,6 +1148,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/docs/'
       preLoaderRoute: typeof ViewDocsIndexRouteImport
       parentRoute: typeof ViewDocsRouteRoute
+    }
+    '/_view/company-handbook/': {
+      id: '/_view/company-handbook/'
+      path: '/'
+      fullPath: '/company-handbook/'
+      preLoaderRoute: typeof ViewCompanyHandbookIndexRouteImport
+      parentRoute: typeof ViewCompanyHandbookRouteRoute
     }
     '/_view/changelog/': {
       id: '/_view/changelog/'
@@ -1320,6 +1394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDocsSplatRouteImport
       parentRoute: typeof ViewDocsRouteRoute
     }
+    '/_view/company-handbook/$': {
+      id: '/_view/company-handbook/$'
+      path: '/$'
+      fullPath: '/company-handbook/$'
+      preLoaderRoute: typeof ViewCompanyHandbookSplatRouteImport
+      parentRoute: typeof ViewCompanyHandbookRouteRoute
+    }
     '/_view/changelog/$slug': {
       id: '/_view/changelog/$slug'
       path: '/changelog/$slug'
@@ -1392,6 +1473,22 @@ const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(
   ViewAppRouteRouteChildren,
 )
 
+interface ViewCompanyHandbookRouteRouteChildren {
+  ViewCompanyHandbookSplatRoute: typeof ViewCompanyHandbookSplatRoute
+  ViewCompanyHandbookIndexRoute: typeof ViewCompanyHandbookIndexRoute
+}
+
+const ViewCompanyHandbookRouteRouteChildren: ViewCompanyHandbookRouteRouteChildren =
+  {
+    ViewCompanyHandbookSplatRoute: ViewCompanyHandbookSplatRoute,
+    ViewCompanyHandbookIndexRoute: ViewCompanyHandbookIndexRoute,
+  }
+
+const ViewCompanyHandbookRouteRouteWithChildren =
+  ViewCompanyHandbookRouteRoute._addFileChildren(
+    ViewCompanyHandbookRouteRouteChildren,
+  )
+
 interface ViewDocsRouteRouteChildren {
   ViewDocsSplatRoute: typeof ViewDocsSplatRoute
   ViewDocsIndexRoute: typeof ViewDocsIndexRoute
@@ -1420,12 +1517,14 @@ const ViewPressKitRouteWithChildren = ViewPressKitRoute._addFileChildren(
 
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
+  ViewCompanyHandbookRouteRoute: typeof ViewCompanyHandbookRouteRouteWithChildren
   ViewDocsRouteRoute: typeof ViewDocsRouteRouteWithChildren
   ViewAboutRoute: typeof ViewAboutRoute
   ViewBrandRoute: typeof ViewBrandRoute
   ViewEnterpriseRoute: typeof ViewEnterpriseRoute
   ViewFaqRoute: typeof ViewFaqRoute
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
+  ViewFreeRoute: typeof ViewFreeRoute
   ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
@@ -1470,12 +1569,14 @@ interface ViewRouteRouteChildren {
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAppRouteRoute: ViewAppRouteRouteWithChildren,
+  ViewCompanyHandbookRouteRoute: ViewCompanyHandbookRouteRouteWithChildren,
   ViewDocsRouteRoute: ViewDocsRouteRouteWithChildren,
   ViewAboutRoute: ViewAboutRoute,
   ViewBrandRoute: ViewBrandRoute,
   ViewEnterpriseRoute: ViewEnterpriseRoute,
   ViewFaqRoute: ViewFaqRoute,
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
+  ViewFreeRoute: ViewFreeRoute,
   ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
   ViewSecurityRoute: ViewSecurityRoute,

@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { type ComponentType, useEffect, useRef, useState } from "react";
 import { createMergeableStore } from "tinybase";
 import { Provider as TinyBaseProvider } from "tinybase/ui-react";
@@ -11,13 +10,13 @@ import type { ExtensionViewProps } from "../../types/extensions";
 export const Route = createFileRoute("/app/ext-host")({
   validateSearch: (search: Record<string, unknown>) => ({
     extensionId: search.extensionId as string,
-    entryPath: search.entryPath as string,
+    scriptUrl: search.scriptUrl as string,
   }),
   component: ExtHostComponent,
 });
 
 function ExtHostComponent() {
-  const { extensionId, entryPath } = Route.useSearch();
+  const { extensionId, scriptUrl } = Route.useSearch();
   const [Component, setComponent] =
     useState<ComponentType<ExtensionViewProps> | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +28,7 @@ function ExtHostComponent() {
   useEffect(() => {
     initExtensionGlobals();
 
+    // Create in-memory store (no persistence needed - syncs with parent)
     const store = createMergeableStore();
     storeRef.current = store;
 
@@ -45,13 +45,13 @@ function ExtHostComponent() {
   }, []);
 
   const loadExtensionScript = async () => {
-    if (!entryPath) {
-      setError("No entry path provided");
+    if (!scriptUrl) {
+      setError("No script URL provided");
       return;
     }
 
     try {
-      const scriptUrl = convertFileSrc(entryPath);
+      // scriptUrl is already converted by parent (which has Tauri access)
       const response = await fetch(scriptUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch extension script: ${response.status}`);

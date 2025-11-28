@@ -1,3 +1,4 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { PuzzleIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { type PointerEvent, useCallback, useEffect, useRef } from "react";
@@ -139,9 +140,10 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
     );
   }
 
+  const scriptUrl = convertFileSrc(panelInfo.entry_path);
   const iframeSrc = `/app/ext-host?${new URLSearchParams({
     extensionId: tab.extensionId,
-    entryPath: panelInfo.entry_path,
+    scriptUrl: scriptUrl,
   }).toString()}`;
 
   return (

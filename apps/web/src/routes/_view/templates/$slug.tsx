@@ -1,9 +1,10 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allTemplates } from "content-collections";
 
 import { DownloadButton } from "@/components/download-button";
+import { cn } from "@hypr/utils";
 
 export const Route = createFileRoute("/_view/templates/$slug")({
   component: Component,

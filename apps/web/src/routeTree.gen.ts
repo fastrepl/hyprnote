@@ -35,8 +35,8 @@ import { Route as ViewAboutRouteImport } from './routes/_view/about'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
-import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
+import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
@@ -214,12 +214,14 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
-  id: '/roadmap/',
-  path: '/roadmap/',
 const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
   id: '/templates/',
   path: '/templates/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
+  id: '/roadmap/',
+  path: '/roadmap/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
@@ -482,7 +484,6 @@ export interface FileRoutesByFullPath {
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/security': typeof ViewSecurityRoute
-  '/templates': typeof ViewTemplatesRouteWithChildren
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -555,7 +556,6 @@ export interface FileRoutesByTo {
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/security': typeof ViewSecurityRoute
-  '/templates': typeof ViewTemplatesRouteWithChildren
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -633,7 +633,6 @@ export interface FileRoutesById {
   '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/security': typeof ViewSecurityRoute
-  '/_view/templates': typeof ViewTemplatesRouteWithChildren
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
   '/webhook/stripe': typeof WebhookStripeRoute
@@ -1115,16 +1114,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/roadmap/': {
-      id: '/_view/roadmap/'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof ViewRoadmapIndexRouteImport
     '/_view/templates/': {
       id: '/_view/templates/'
       path: '/templates'
       fullPath: '/templates'
       preLoaderRoute: typeof ViewTemplatesIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/roadmap/': {
+      id: '/_view/roadmap/'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof ViewRoadmapIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/legal/': {
@@ -1514,18 +1515,6 @@ const ViewPressKitRouteWithChildren = ViewPressKitRoute._addFileChildren(
   ViewPressKitRouteChildren,
 )
 
-interface ViewTemplatesRouteChildren {
-  ViewTemplatesSlugRoute: typeof ViewTemplatesSlugRoute
-}
-
-const ViewTemplatesRouteChildren: ViewTemplatesRouteChildren = {
-  ViewTemplatesSlugRoute: ViewTemplatesSlugRoute,
-}
-
-const ViewTemplatesRouteWithChildren = ViewTemplatesRoute._addFileChildren(
-  ViewTemplatesRouteChildren,
-)
-
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
   ViewCompanyHandbookRouteRoute: typeof ViewCompanyHandbookRouteRouteWithChildren
@@ -1539,7 +1528,6 @@ interface ViewRouteRouteChildren {
   ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
-  ViewTemplatesRoute: typeof ViewTemplatesRouteWithChildren
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
@@ -1592,7 +1580,6 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
   ViewSecurityRoute: ViewSecurityRoute,
-  ViewTemplatesRoute: ViewTemplatesRouteWithChildren,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,

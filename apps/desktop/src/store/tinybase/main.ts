@@ -73,6 +73,22 @@ export const UI = _UI as _UI.WithSchemas<Schemas>;
 export type Store = MergeableStore<Schemas>;
 export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
 
+export const testUtils = {
+  useCreateMergeableStore,
+  useProvideStore,
+  useProvideIndexes,
+  useProvideRelationships,
+  useProvideQueries,
+  useCreateIndexes,
+  useCreateRelationships,
+  useCreateQueries,
+  createMergeableStore,
+  createIndexes,
+  createQueries,
+  createRelationships,
+  SCHEMA,
+};
+
 export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const store = useCreateMergeableStore(() =>
     createMergeableStore()

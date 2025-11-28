@@ -177,6 +177,9 @@ export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
 export type MemoryStorage = ToStorageType<typeof memorySchema>;
 export type EnhancedNoteStorage = ToStorageType<typeof enhancedNoteSchema>;
+export type HumanStorage = ToStorageType<typeof humanSchema>;
+export type OrganizationStorage = ToStorageType<typeof organizationSchema>;
+export type FolderStorage = ToStorageType<typeof folderSchema>;
 
 export const externalTableSchemaForTinybase = {
   folders: {

@@ -92,7 +92,9 @@ function ExtHostComponent() {
 
   const loadExtensionScript = async () => {
     if (!scriptUrl) {
-      setError("No script URL provided");
+      if (isMountedRef.current) {
+        setError("No script URL provided");
+      }
       return;
     }
 
@@ -130,17 +132,23 @@ function ExtHostComponent() {
       ).__hypr_panel_exports;
 
       if (exports?.default) {
-        setComponent(() => exports.default!);
-        (
-          window as Window & { __hypr_panel_exports?: unknown }
-        ).__hypr_panel_exports = previousExports;
+        if (isMountedRef.current) {
+          setComponent(() => exports.default!);
+          (
+            window as Window & { __hypr_panel_exports?: unknown }
+          ).__hypr_panel_exports = previousExports;
+        }
       } else {
-        setError("Extension did not export a default component");
+        if (isMountedRef.current) {
+          setError("Extension did not export a default component");
+        }
       }
     } catch (err) {
-      setError(
-        `Failed to load extension: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      if (isMountedRef.current) {
+        setError(
+          `Failed to load extension: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
     }
   };
 

@@ -24,7 +24,7 @@ export function VideoThumbnail({
     >
       <MuxPlayer
         playbackId={playbackId}
-        poster="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/poster-image.png"
+        poster="/api/images/hyprnote/poster-image.png"
         muted
         playsInline
         className="w-full h-full object-cover pointer-events-none aspect-video"

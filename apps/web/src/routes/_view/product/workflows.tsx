@@ -258,7 +258,7 @@ function Component() {
                 className="mb-8 mx-auto size-32 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[40px] bg-white relative z-30"
               >
                 <Image
-                  src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+                  src="/api/images/hyprnote/icon.png"
                   alt="Hyprnote"
                   width={112}
                   height={112}
@@ -376,7 +376,7 @@ function IntegrationsSection() {
               <div className="flex flex-col items-center text-center gap-3">
                 <div className="size-16 rounded-xl overflow-hidden border border-neutral-100 group-hover:scale-110 transition-transform duration-300">
                   <Image
-                    src={`https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/${integration.image}`}
+                    src={`/api/images/icons/${integration.image}`}
                     alt={integration.name}
                     width={64}
                     height={64}
@@ -561,7 +561,7 @@ function DraggableIcon({
     >
       <div className="w-full h-full shadow-2xl border border-neutral-100 flex justify-center items-center rounded-3xl bg-white">
         <Image
-          src={`https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/${image}`}
+          src={`/api/images/icons/${image}`}
           alt="Integration"
           width={Math.floor(size * 0.85)}
           height={Math.floor(size * 0.85)}

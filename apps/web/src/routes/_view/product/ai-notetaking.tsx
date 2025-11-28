@@ -46,36 +46,31 @@ const tabs = [
     title: "Compact Mode",
     description:
       "The default collapsed overlay that indicates the meeting is being listened to. Minimal and unobtrusive, staying out of your way.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-compact.jpg",
+    image: "/api/images/hyprnote/float-compact.jpg",
   },
   {
     title: "Memos",
     description:
       "Take quick notes during the meeting. Jot down important points, ideas, or reminders without losing focus on the conversation.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-memos.jpg",
+    image: "/api/images/hyprnote/float-memos.jpg",
   },
   {
     title: "Transcript",
     description:
       "Watch the live transcript as the conversation unfolds in real-time, so you never miss what was said during the meeting.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-transcript.jpg",
+    image: "/api/images/hyprnote/float-transcript.jpg",
   },
   {
     title: "Live Insights",
     description:
       "Get a rolling summary of the past 5 minutes with AI-powered suggestions. For sales calls, receive prompts for qualification questions and next steps.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-insights.jpg",
+    image: "/api/images/hyprnote/float-insights.jpg",
   },
   {
     title: "Chat",
     description:
       "Ask questions and get instant answers during the meeting. Query the transcript, get clarifications, or find specific information on the fly.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-chat.jpg",
+    image: "/api/images/hyprnote/float-chat.jpg",
   },
 ];
 
@@ -179,7 +174,7 @@ function HeroSection() {
       </div>
       <div className="relative aspect-video w-full border-t border-neutral-100 overflow-hidden">
         <img
-          src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/ai-notetaking-hero.jpg"
+          src="/api/images/hyprnote/ai-notetaking-hero.jpg"
           alt="AI notetaking in action"
           className="w-full h-full object-cover"
         />
@@ -626,7 +621,7 @@ function TranscriptionSection() {
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden">
               <img
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
+                src="/api/images/hyprnote/no-wifi.png"
                 alt="On-device transcription"
                 className="w-full h-full object-contain"
               />
@@ -670,7 +665,7 @@ function TranscriptionSection() {
             </div>
             <div className="overflow-hidden bg-neutral-100">
               <img
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/no-wifi.png"
+                src="/api/images/hyprnote/no-wifi.png"
                 alt="On-device transcription"
                 className="w-full h-auto object-contain"
               />
@@ -1033,8 +1028,7 @@ function SearchSection() {
     <section
       className="bg-stone-50/30 bg-cover bg-center relative"
       style={{
-        backgroundImage:
-          "url(https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/texture/bg-stars.jpg)",
+        backgroundImage: "url(/api/images/texture/bg-stars.jpg)",
       }}
     >
       <div
@@ -1098,40 +1092,34 @@ const CollaboratorsCell = memo(() => {
   const baseCollaborators = [
     {
       name: "Alex Johnson",
-      avatar:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/alex-johnson.png",
+      avatar: "/api/images/mock/alex-johnson.png",
       scope: "Can view",
     },
     {
       name: "Jessica Lee",
-      avatar:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/jessica-lee.png",
+      avatar: "/api/images/mock/jessica-lee.png",
       scope: "Can edit",
     },
     {
       name: "Sarah Chen",
-      avatar:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/sarah-chen.png",
+      avatar: "/api/images/mock/sarah-chen.png",
       scope: "Can edit",
     },
     {
       name: "Michael Park",
-      avatar:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/michael-park.png",
+      avatar: "/api/images/mock/michael-park.png",
       scope: "Can view",
     },
     {
       name: "Emily Rodriguez",
-      avatar:
-        "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/emily-rodriguez.png",
+      avatar: "/api/images/mock/emily-rodriguez.png",
       scope: "Can edit",
     },
   ];
 
   const davidKim = {
     name: "David Kim",
-    avatar:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/mock/david-kim.png",
+    avatar: "/api/images/mock/david-kim.png",
     scope: davidScope,
   };
 
@@ -2079,35 +2067,30 @@ const floatingPanelTabs = [
     title: "Compact Mode",
     description:
       "Minimal overlay that indicates recording is active. Stays out of your way.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-compact.jpg",
+    image: "/api/images/hyprnote/float-compact.jpg",
   },
   {
     title: "Memos",
     description:
       "Take quick notes during the meeting without losing focus on the conversation.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-memos.jpg",
+    image: "/api/images/hyprnote/float-memos.jpg",
   },
   {
     title: "Transcript",
     description:
       "Watch the live transcript as the conversation unfolds in real-time.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-transcript.jpg",
+    image: "/api/images/hyprnote/float-transcript.jpg",
   },
   {
     title: "Live Insights",
     description:
       "Rolling summary of the past 5 minutes with AI suggestions and next steps.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-insights.jpg",
+    image: "/api/images/hyprnote/float-insights.jpg",
   },
   {
     title: "Chat",
     description: "Ask questions and get instant answers during the meeting.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/float-chat.jpg",
+    image: "/api/images/hyprnote/float-chat.jpg",
   },
 ];
 
@@ -2329,7 +2312,7 @@ function CTASection() {
       <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <img
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            src="/api/images/hyprnote/icon.png"
             alt="Hyprnote"
             width={144}
             height={144}

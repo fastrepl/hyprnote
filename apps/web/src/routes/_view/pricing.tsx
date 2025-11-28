@@ -330,7 +330,7 @@ function CTASection() {
       <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <Image
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+            src="/api/images/hyprnote/icon.png"
             alt="Hyprnote"
             width={144}
             height={144}

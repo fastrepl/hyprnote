@@ -146,8 +146,8 @@ function VersionIcon({ changelog }: { changelog: ChangelogWithMeta }) {
   const version = semver.parse(changelog.version);
   const isPrerelease = version && version.prerelease.length > 0;
   const iconUrl = isPrerelease
-    ? "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/nightly-icon.png"
-    : "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png";
+    ? "/api/images/icons/nightly-icon.png"
+    : "/api/images/icons/stable-icon.png";
 
   return (
     <Link

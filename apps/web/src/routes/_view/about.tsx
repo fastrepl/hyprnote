@@ -48,8 +48,7 @@ const founders = [
     name: "John Jeong",
     role: "Chief Wisdom Seeker",
     bio: "I love designing simple and intuitive user interfaces.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png",
+    image: "/api/images/team/john.png",
     links: {
       twitter: "https://x.com/computeless",
       github: "https://github.com/computelesscomputer",
@@ -62,8 +61,7 @@ const founders = [
     name: "Yujong Lee",
     role: "Chief OSS Lover",
     bio: "I am super bullish about open-source software.",
-    image:
-      "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png",
+    image: "/api/images/team/yujong.png",
     links: {
       twitter: "https://x.com/yujonglee",
       github: "https://github.com/yujonglee",
@@ -77,72 +75,72 @@ const teamPhotos = [
   {
     id: "john-1",
     name: "john-1.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john-1.jpg",
+    url: "/api/images/team/john-1.jpg",
   },
   {
     id: "john-2",
     name: "john-2.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john-2.jpg",
+    url: "/api/images/team/john-2.jpg",
   },
   {
     id: "palo-alto-1",
     name: "palo-alto-1.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/palo-alto-1.jpg",
+    url: "/api/images/team/palo-alto-1.jpg",
   },
   {
     id: "palo-alto-2",
     name: "palo-alto-2.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/palo-alto-2.jpg",
+    url: "/api/images/team/palo-alto-2.jpg",
   },
   {
     id: "palo-alto-3",
     name: "palo-alto-3.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/palo-alto-3.jpg",
+    url: "/api/images/team/palo-alto-3.jpg",
   },
   {
     id: "palo-alto-4",
     name: "palo-alto-4.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/palo-alto-4.jpg",
+    url: "/api/images/team/palo-alto-4.jpg",
   },
   {
     id: "sadang",
     name: "sadang.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/sadang.jpg",
+    url: "/api/images/team/sadang.jpg",
   },
   {
     id: "yc-0",
     name: "yc-0.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yc-0.jpg",
+    url: "/api/images/team/yc-0.jpg",
   },
   {
     id: "yc-1",
     name: "yc-1.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yc-1.jpg",
+    url: "/api/images/team/yc-1.jpg",
   },
   {
     id: "yc-2",
     name: "yc-2.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yc-2.jpg",
+    url: "/api/images/team/yc-2.jpg",
   },
   {
     id: "yujong-1",
     name: "yujong-1.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong-1.jpg",
+    url: "/api/images/team/yujong-1.jpg",
   },
   {
     id: "yujong-2",
     name: "yujong-2.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong-2.jpg",
+    url: "/api/images/team/yujong-2.jpg",
   },
   {
     id: "yujong-3",
     name: "yujong-3.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong-3.jpg",
+    url: "/api/images/team/yujong-3.jpg",
   },
   {
     id: "yujong-4",
     name: "yujong-4.jpg",
-    url: "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong-4.jpg",
+    url: "/api/images/team/yujong-4.jpg",
   },
 ];
 
@@ -279,7 +277,7 @@ function OurStoryGrid({
         >
           <div className="mb-3 w-16 h-16 flex items-center justify-center">
             <Image
-              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/textedit.webp"
+              src="/api/images/icons/textedit.webp"
               alt="Our Story"
               width={64}
               height={64}
@@ -440,7 +438,7 @@ function OurStorySidebar({
       >
         <div className="w-12 h-12 shrink-0 flex items-center justify-center">
           <Image
-            src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/textedit.webp"
+            src="/api/images/icons/textedit.webp"
             alt="Our Story"
             width={48}
             height={48}
@@ -685,7 +683,7 @@ function StoryDetail({ onClose }: { onClose: () => void }) {
 
             <div>
               <Image
-                src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/signature-dark.svg"
+                src="/api/images/hyprnote/signature-dark.svg"
                 alt="Hyprnote Signature"
                 width={124}
                 height={60}

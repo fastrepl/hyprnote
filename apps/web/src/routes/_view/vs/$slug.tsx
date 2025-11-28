@@ -136,7 +136,7 @@ function HeroSection({
           </div>
           <div className="size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent scale-110">
             <img
-              src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/hyprnote/icon.png"
+              src="/api/images/hyprnote/icon.png"
               alt="Hyprnote"
               className="size-36 rounded-[40px] border border-neutral-100"
             />

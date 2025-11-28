@@ -2,10 +2,11 @@ import { flattenTranscript, mergeContent } from "./utils";
 
 export function createSessionSearchableContent(
   row: Record<string, unknown>,
+  enhancedContent?: string,
 ): string {
   return mergeContent([
     row.raw_md,
-    row.enhanced_md,
+    enhancedContent,
     flattenTranscript(row.transcript),
   ]);
 }

@@ -6,7 +6,12 @@ import {
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toNumber, toTrimmedString } from "./utils";
+import {
+  collectCells,
+  getEnhancedContentForSession,
+  toNumber,
+  toTrimmedString,
+} from "./utils";
 
 export function indexSessions(db: Index, store: PersistedStore): void {
   const fields = [
@@ -16,7 +21,6 @@ export function indexSessions(db: Index, store: PersistedStore): void {
     "event_id",
     "title",
     "raw_md",
-    "enhanced_md",
     "transcript",
   ];
 
@@ -24,11 +28,13 @@ export function indexSessions(db: Index, store: PersistedStore): void {
     const row = collectCells(store, "sessions", rowId, fields);
     const title = toTrimmedString(row.title) || "Untitled";
 
+    const enhancedContent = getEnhancedContentForSession(store, rowId);
+
     void insert(db, {
       id: rowId,
       type: "session",
       title,
-      content: createSessionSearchableContent(row),
+      content: createSessionSearchableContent(row, enhancedContent),
       created_at: toNumber(row.created_at),
     });
   });

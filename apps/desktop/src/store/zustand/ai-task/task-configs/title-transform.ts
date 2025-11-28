@@ -14,6 +14,15 @@ async function transformArgs(
 }
 
 function readEnhancedMarkdown(store: MainStore, sessionId: string): string {
-  const value = store.getCell("sessions", sessionId, "enhanced_md");
-  return typeof value === "string" ? value : "";
+  const contents: string[] = [];
+  store.forEachRow("enhanced_notes", (rowId, _forEachCell) => {
+    const noteSessionId = store.getCell("enhanced_notes", rowId, "session_id");
+    if (noteSessionId === sessionId) {
+      const content = store.getCell("enhanced_notes", rowId, "content");
+      if (typeof content === "string" && content) {
+        contents.push(content);
+      }
+    }
+  });
+  return contents.join("\n\n");
 }

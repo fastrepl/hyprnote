@@ -69,7 +69,6 @@ const CuratedEventSchema = z.object({
 const CuratedSessionSchema = z.object({
   title: z.string(),
   raw_md: z.string(),
-  enhanced_md: z.string(),
   folder: z.string().nullable(),
   event: z.string().nullable(),
   participants: z.array(z.string()),

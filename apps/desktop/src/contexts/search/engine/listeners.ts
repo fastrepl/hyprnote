@@ -1,14 +1,21 @@
 import { remove, type TypedDocument, update } from "@orama/orama";
 import { RowListener } from "tinybase/with-schemas";
 
-import { Schemas } from "../../../store/tinybase/main";
-import { type Store as PersistedStore } from "../../../store/tinybase/main";
+import {
+  type Store as PersistedStore,
+  Schemas,
+} from "../../../store/tinybase/main";
 import {
   createHumanSearchableContent,
   createSessionSearchableContent,
 } from "./content";
 import type { Index } from "./types";
-import { collectCells, toNumber, toTrimmedString } from "./utils";
+import {
+  collectCells,
+  getEnhancedContentForSession,
+  toNumber,
+  toTrimmedString,
+} from "./utils";
 
 export function createSessionListener(
   index: Index,
@@ -25,17 +32,18 @@ export function createSessionListener(
           "created_at",
           "title",
           "raw_md",
-          "enhanced_md",
           "transcript",
         ];
         const row = collectCells(store, "sessions", rowId, fields);
         const title = toTrimmedString(row.title) || "Untitled";
 
+        const enhancedContent = getEnhancedContentForSession(store, rowId);
+
         const data: TypedDocument<Index> = {
           id: rowId,
           type: "session",
           title,
-          content: createSessionSearchableContent(row),
+          content: createSessionSearchableContent(row, enhancedContent),
           created_at: toNumber(row.created_at),
         };
 

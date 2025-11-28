@@ -98,6 +98,18 @@ function RenderContent({ part }: { part: Part }) {
 
 function RenderSession({ sessionId }: { sessionId: string }) {
   const session = main.UI.useRow("sessions", sessionId, main.STORE_ID);
+  const enhancedNoteIds = main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    sessionId,
+    main.STORE_ID,
+  );
+  const firstEnhancedNoteId = enhancedNoteIds?.[0];
+  const enhancedNoteContent = main.UI.useCell(
+    "enhanced_notes",
+    firstEnhancedNoteId ?? "",
+    "content",
+    main.STORE_ID,
+  );
   const openNew = useTabs((state) => state.openNew);
 
   const handleClick = useCallback(() => {
@@ -112,14 +124,17 @@ function RenderSession({ sessionId }: { sessionId: string }) {
     );
   }
 
+  const displayContent =
+    typeof enhancedNoteContent === "string" && enhancedNoteContent
+      ? enhancedNoteContent
+      : session.raw_md;
+
   return (
     <div className="text-xs flex flex-col gap-1" onClick={handleClick}>
       <span className="font-medium truncate">
         {session.title || "Untitled"}
       </span>
-      <span className="text-muted-foreground truncate">
-        {session.enhanced_md ?? session.raw_md}
-      </span>
+      <span className="text-muted-foreground truncate">{displayContent}</span>
     </div>
   );
 }

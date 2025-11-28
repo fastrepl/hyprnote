@@ -27,9 +27,11 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 function Component() {
   // ext-host route runs in iframe without Tauri access, so skip auth/billing providers
   // and navigation events (which use Tauri APIs)
+  // Use exact match or subpath check to avoid matching unintended routes like /app/ext-host-debug
   const isExtHost =
     typeof window !== "undefined" &&
-    window.location.pathname.startsWith("/app/ext-host");
+    (window.location.pathname === "/app/ext-host" ||
+      window.location.pathname.startsWith("/app/ext-host/"));
 
   if (isExtHost) {
     return <Outlet />;

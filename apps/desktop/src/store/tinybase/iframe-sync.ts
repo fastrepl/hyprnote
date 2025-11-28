@@ -24,16 +24,24 @@ function isTinybaseSyncEnvelope(data: unknown): data is TinybaseSyncEnvelope {
   );
 }
 
+function isAllowedOrigin(origin: string, allowedOrigin: string): boolean {
+  return origin === allowedOrigin;
+}
+
 /**
  * Creates a TinyBase synchronizer for the parent (main webview) side
  * that syncs with an iframe via postMessage.
  *
  * Returns the synchronizer object. Call .startSync() to begin syncing.
+ *
+ * @param store - The TinyBase MergeableStore to sync
+ * @param iframe - The iframe element to sync with
+ * @param targetOrigin - The origin to use for postMessage (defaults to window.location.origin for security)
  */
 export function createIframeSynchronizer(
   store: MergeableStore,
   iframe: HTMLIFrameElement,
-  targetOrigin = "*",
+  targetOrigin: string = window.location.origin,
 ) {
   const clientId = getUniqueId();
   let handler: ((event: MessageEvent) => void) | null = null;
@@ -49,7 +57,15 @@ export function createIframeSynchronizer(
         body,
       ];
 
-      iframe.contentWindow?.postMessage(
+      const contentWindow = iframe.contentWindow;
+      if (!contentWindow) {
+        console.error(
+          "[iframe-sync] Cannot send message: iframe contentWindow is not available",
+        );
+        return;
+      }
+
+      contentWindow.postMessage(
         {
           kind: "tinybase-sync",
           payload,
@@ -62,6 +78,8 @@ export function createIframeSynchronizer(
       handler = (event: MessageEvent) => {
         // Only messages from this iframe
         if (event.source !== iframe.contentWindow) return;
+        // Validate origin for security
+        if (!isAllowedOrigin(event.origin, targetOrigin)) return;
         if (!isTinybaseSyncEnvelope(event.data)) return;
 
         const [fromClientId, requestId, message, body] = event.data.payload;
@@ -88,10 +106,13 @@ export function createIframeSynchronizer(
  * that syncs with the parent window via postMessage.
  *
  * Returns the synchronizer object. Call .startSync() to begin syncing.
+ *
+ * @param store - The TinyBase MergeableStore to sync
+ * @param targetOrigin - The origin to use for postMessage (defaults to window.location.origin for security)
  */
 export function createParentSynchronizer(
   store: MergeableStore,
-  targetOrigin = "*",
+  targetOrigin: string = window.location.origin,
 ) {
   const clientId = getUniqueId();
   let handler: ((event: MessageEvent) => void) | null = null;
@@ -120,6 +141,8 @@ export function createParentSynchronizer(
       handler = (event: MessageEvent) => {
         // Ensure this is from the parent
         if (event.source !== window.parent) return;
+        // Validate origin for security
+        if (!isAllowedOrigin(event.origin, targetOrigin)) return;
         if (!isTinybaseSyncEnvelope(event.data)) return;
 
         const [fromClientId, requestId, message, body] = event.data.payload;

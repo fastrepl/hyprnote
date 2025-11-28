@@ -113,8 +113,13 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
       iframeRef.current,
     );
     synchronizerRef.current = synchronizer;
-    synchronizer.startSync();
-  }, [store]);
+    synchronizer.startSync().catch((err) => {
+      console.error(
+        `[extensions] Failed to start sync for extension ${tab.extensionId}:`,
+        err,
+      );
+    });
+  }, [store, tab.extensionId]);
 
   useEffect(() => {
     return () => {
@@ -153,7 +158,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
         src={iframeSrc}
         onLoad={handleIframeLoad}
         className="w-full h-full border-0"
-        sandbox="allow-scripts allow-same-origin"
+        sandbox="allow-scripts"
         title={`Extension: ${tab.extensionId}`}
       />
     </StandardTabWrapper>

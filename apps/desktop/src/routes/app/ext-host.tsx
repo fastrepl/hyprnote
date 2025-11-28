@@ -24,8 +24,10 @@ function ExtHostComponent() {
   const synchronizerRef = useRef<ReturnType<
     typeof createParentSynchronizer
   > | null>(null);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
     initExtensionGlobals();
 
     // Create in-memory store (no persistence needed - syncs with parent)
@@ -35,11 +37,24 @@ function ExtHostComponent() {
     const synchronizer = createParentSynchronizer(store);
     synchronizerRef.current = synchronizer;
 
-    synchronizer.startSync().then(() => {
-      loadExtensionScript();
-    });
+    synchronizer
+      .startSync()
+      .then(() => {
+        if (isMountedRef.current) {
+          loadExtensionScript();
+        }
+      })
+      .catch((err) => {
+        console.error("[ext-host] Failed to start sync:", err);
+        if (isMountedRef.current) {
+          setError(
+            `Failed to sync with parent: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      });
 
     return () => {
+      isMountedRef.current = false;
       synchronizer.destroy();
     };
   }, []);

@@ -1,4 +1,1 @@
-export interface ExtensionViewProps {
-  extensionId: string;
-  state?: Record<string, unknown>;
-}
+export type { ExtensionViewProps } from "@hypr/plugin-extensions";

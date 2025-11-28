@@ -65,7 +65,7 @@ Each panel definition includes:
 
 # Runtime Script
 
-The runtime script (`main.js`) runs in a sandboxed Deno environment and handles extension lifecycle events:
+The runtime script (`main.js`) runs in a sandboxed Deno environment and handles extension lifecycle events. The runtime provides a `hypr.log` API for logging:
 
 ```javascript
 __hypr_extension.activate = function (context) {
@@ -87,6 +87,8 @@ The `context` object passed to `activate` contains:
 
 - `manifest`: The parsed extension manifest
 - `extensionPath`: Absolute path to the extension directory
+
+The runtime script is required in the manifest but currently serves primarily for logging and future extensibility. The main extension functionality comes from the panel UI.
 
 # Panel UI
 
@@ -125,10 +127,20 @@ export default function MyExtensionView({ extensionId }: ExtensionViewProps) {
 
 Extension UIs have access to the following globals provided by Hyprnote:
 
+## React and UI
+
 - `react` - React library
 - `react-dom` - React DOM library
-- `@hypr/ui` - Hyprnote UI component library (Button, Card, Input, etc.)
-- `@hypr/utils` - Hyprnote utility functions
+- `@hypr/ui` - Hyprnote UI component library (Button, ButtonGroup, Card, Checkbox, Popover)
+- `@hypr/utils` - Hyprnote utility functions (cn, date-fns helpers, etc.)
+
+## State Management
+
+- `tinybase/ui-react` - TinyBase React hooks for synchronized state (useRow, useStore, useSetRowCallback, etc.)
+
+## Navigation
+
+- `@hypr/tabs` - Tab management for opening new views
 
 Import these as you would in a normal React application:
 
@@ -136,6 +148,95 @@ Import these as you would in a normal React application:
 import { useState, useEffect } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
+import { useRow, useSetRowCallback, useStore } from "tinybase/ui-react";
+import { useTabs } from "@hypr/tabs";
+```
+
+# State Synchronization
+
+Extensions can read and write state that synchronizes with the main Hyprnote application using TinyBase. The synchronization happens automatically via postMessage between the iframe and parent window.
+
+## Reading State
+
+Use TinyBase hooks to read from the synchronized store:
+
+```tsx
+import { useRow, useStore } from "tinybase/ui-react";
+
+function MyExtension({ extensionId }: ExtensionViewProps) {
+  const store = useStore();
+
+  // Read extension-specific state
+  const extensionState = useRow("extension_state", extensionId) as {
+    counter?: number;
+    last_updated?: string;
+  };
+
+  // Read app data (calendars, events, sessions, etc.)
+  const calendarIds = store?.getRowIds("calendars") ?? [];
+
+  return <div>Counter: {extensionState?.counter ?? 0}</div>;
+}
+```
+
+## Writing State
+
+Use `useSetRowCallback` to write state that syncs back to the main app:
+
+```tsx
+import { useRow, useSetRowCallback } from "tinybase/ui-react";
+
+function MyExtension({ extensionId }: ExtensionViewProps) {
+  const extensionState = useRow("extension_state", extensionId) as {
+    counter?: number;
+    last_updated?: string;
+  };
+
+  const setExtensionState = useSetRowCallback(
+    "extension_state",
+    extensionId,
+    (newState: { counter: number; last_updated: string }) => newState,
+    [],
+  );
+
+  const handleIncrement = () => {
+    setExtensionState({
+      counter: (extensionState?.counter ?? 0) + 1,
+      last_updated: new Date().toISOString(),
+    });
+  };
+
+  return <Button onClick={handleIncrement}>Increment</Button>;
+}
+```
+
+# Opening Tabs
+
+Extensions can open new tabs in the main application using the `useTabs` hook:
+
+```tsx
+import { useTabs } from "@hypr/tabs";
+
+function MyExtension() {
+  const openNew = useTabs((state) => state.openNew);
+
+  const handleOpenSession = (sessionId: string) => {
+    openNew({ type: "sessions", id: sessionId });
+  };
+
+  const handleOpenCalendar = () => {
+    openNew({ type: "calendars", month: new Date() });
+  };
+
+  return (
+    <div>
+      <Button onClick={() => handleOpenSession("session-123")}>
+        Open Session
+      </Button>
+      <Button onClick={handleOpenCalendar}>Open Calendar</Button>
+    </div>
+  );
+}
 ```
 
 # Building Extensions
@@ -220,19 +321,27 @@ Launch Hyprnote in development mode and navigate to your extension panel.
 
 Extension UIs run in sandboxed iframes with restricted capabilities. The security model relies on several trust boundaries and validation checks.
 
-## Script Loading
-
-When an extension panel is loaded, the parent window (main Hyprnote webview) constructs the script URL using Tauri's `convertFileSrc` API. This converts the local file path from the extension registry into a URL that the iframe can fetch. The `entry_path` originates from the trusted backend extension registry, which only includes extensions that have been explicitly installed by the user.
-
-The iframe host route validates incoming search parameters to ensure `extensionId` and `scriptUrl` are well-formed strings and that `scriptUrl` is a valid URL (rejecting potentially dangerous protocols like `javascript:`). Before executing the fetched script, the host also validates that the response content-type includes `javascript` to avoid executing non-JS payloads.
-
-## Export Validation
-
-After script execution, the host checks that the extension exported a valid React component via `__hypr_panel_exports.default`. This is a contract validation to ensure extensions conform to the expected interface, not a security boundary. Extensions that fail to export a default component will display an error rather than rendering.
-
 ## Iframe Sandbox
 
 Extension iframes use the `sandbox="allow-scripts"` attribute, which restricts the iframe from accessing the parent window's DOM, making top-level navigations, or accessing same-origin storage. Extensions communicate with the parent exclusively through the TinyBase postMessage synchronizer.
+
+## Tauri API Isolation
+
+In iframe contexts, Tauri's `__TAURI_INTERNALS__` is polyfilled with a minimal stub that rejects all invoke calls. This prevents extensions from directly calling Tauri commands. The polyfill runs before any module imports to ensure consistent behavior.
+
+## Script Loading
+
+When an extension panel is loaded, the parent window constructs the script URL using Tauri's `convertFileSrc` API. This converts the local file path from the extension registry into a URL that the iframe can fetch. The `entry_path` originates from the trusted backend extension registry, which only includes extensions that have been explicitly installed by the user.
+
+The iframe host route validates incoming search parameters to ensure `extensionId` and `scriptUrl` are well-formed strings and that `scriptUrl` is a valid URL (rejecting potentially dangerous protocols like `javascript:`). Before executing the fetched script, the host also validates that the response content-type includes `javascript` to avoid executing non-JS payloads.
+
+## State Synchronization Security
+
+The TinyBase synchronizer uses postMessage with origin validation. Messages are only accepted from the expected origin (same as the parent window), and the message format is validated before processing. This prevents malicious iframes from injecting state into the main application.
+
+## Export Validation
+
+After script execution, the host checks that the extension exported a valid React component via `__hypr_panel_exports.default`. Extensions that fail to export a default component will display an error rather than rendering.
 
 # Example: Hello World
 
@@ -240,7 +349,8 @@ The `hello-world` extension in the repository demonstrates a complete extension 
 
 - Extension manifest with panel definition
 - Runtime script with lifecycle handlers
-- React UI with state management and @hypr/ui components
+- React UI with local and synchronized state using TinyBase
+- Usage of @hypr/ui components
 
 To try it:
 
@@ -251,4 +361,21 @@ pnpm build:hello-world
 pnpm install:dev
 ```
 
-Then launch Hyprnote and click on a profile to see the Hello World panel.
+Then launch Hyprnote with `ONBOARDING=0 pnpm -F desktop tauri dev` and click on the profile area (shows "Unknown" by default) to expand the menu, then click "Hello World" to see the extension panel.
+
+# Example: Calendar
+
+The `calendar` extension demonstrates a more complex extension that:
+
+- Reads calendar and event data from the main app's store
+- Uses the `@hypr/tabs` API to open sessions
+- Implements a full calendar UI with month navigation
+
+To try it:
+
+```bash
+cd extensions
+pnpm install
+pnpm build:calendar
+pnpm install:dev
+```

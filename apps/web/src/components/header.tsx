@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp, Menu } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 

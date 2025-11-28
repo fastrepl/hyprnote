@@ -3,8 +3,9 @@ import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allTemplates } from "content-collections";
 
-import { DownloadButton } from "@/components/download-button";
 import { cn } from "@hypr/utils";
+
+import { DownloadButton } from "@/components/download-button";
 
 export const Route = createFileRoute("/_view/templates/$slug")({
   component: Component,

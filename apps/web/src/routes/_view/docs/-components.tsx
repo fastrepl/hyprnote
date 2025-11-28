@@ -227,7 +227,7 @@ function RightSidebar({
           </nav>
         )}
 
-        <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white p-4">
+        <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-4">
           <h3 className="font-serif text-sm text-stone-600 mb-3">
             Questions about Hyprnote?
           </h3>

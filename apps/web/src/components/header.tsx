@@ -196,9 +196,10 @@ export function Header() {
                 </Link>
               )}
               <button
-                onClick={() => setIsMenuOpen(true)}
+                onClick={() => setIsMenuOpen((prev) => !prev)}
                 className="px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
-                aria-label="Open menu"
+                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={isMenuOpen}
               >
                 <Menu className="text-neutral-600" size={16} />
               </button>

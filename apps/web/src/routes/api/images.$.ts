@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 const SUPABASE_STORAGE_URL =
   "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images";
 
-const SAFE_SEGMENT = /^[A-Za-z0-9._-]+$/;
+const SAFE_SEGMENT = /^[A-Za-z0-9._+-]+$/;
 
 function sanitizePath(raw: string | undefined): string | null {
   if (!raw) return null;

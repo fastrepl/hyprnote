@@ -105,14 +105,14 @@ function Component() {
           return;
         }
 
-        if (!("url" in uploadResult)) {
-          setUploadError("Failed to get upload URL");
+        if (!("fileId" in uploadResult)) {
+          setUploadError("Failed to get file ID");
           return;
         }
 
         const pipelineResult = await startAudioPipeline({
           data: {
-            audioUrl: uploadResult.url,
+            fileId: uploadResult.fileId,
           },
         });
 

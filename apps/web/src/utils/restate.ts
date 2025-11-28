@@ -31,13 +31,13 @@ export interface DeepgramCallbackPayload {
 export async function startAudioPipeline(params: {
   pipelineId: string;
   userId: string;
-  audioUrl: string;
+  fileId: string;
 }): Promise<void> {
   const url = `${RESTATE_INGRESS_URL}/AudioPipeline/${encodeURIComponent(params.pipelineId)}/run/send`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: params.userId, audioUrl: params.audioUrl }),
+    body: JSON.stringify({ userId: params.userId, fileId: params.fileId }),
   });
   if (!res.ok) {
     throw new Error(`Failed to start pipeline: ${res.status}`);

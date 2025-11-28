@@ -175,6 +175,10 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const localPersister2 = useCreatePersister(
     store,
     async (store) => {
+      if (!persist) {
+        return undefined;
+      }
+
       try {
         const dirExists = await exists("hyprnote/sessions", {
           baseDir: BaseDirectory.Data,
@@ -207,7 +211,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
       return persister;
     },
-    [],
+    [persist],
   );
 
   useEffect(() => {

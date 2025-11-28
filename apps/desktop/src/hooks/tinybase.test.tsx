@@ -4,25 +4,12 @@ import { describe, expect, it } from "vitest";
 import {
   TinyBaseTestWrapper,
   useFolder,
-  useFoldersByParent,
   useHuman,
   useOrganization,
   useSession,
-  useSessionParticipants,
-  useSessionRawMd,
-  useSessionsByFolder,
-  useSessionTitle,
   useSetSessionRawMd,
   useSetSessionTitle,
   useTemplate,
-  useTranscriptsBySession,
-  useUserId,
-  useVisibleFolders,
-  useVisibleHumans,
-  useVisibleOrganizations,
-  useVisibleTemplates,
-  useVisibleVocabs,
-  useWordsByTranscript,
 } from "./tinybase";
 
 describe("TinyBase hooks", () => {
@@ -54,18 +41,6 @@ describe("TinyBase hooks", () => {
     });
   });
 
-  describe("useSessionTitle", () => {
-    it("returns undefined for non-existent session", () => {
-      const { result } = renderHook(() => useSessionTitle("non-existent"), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(result.current).toBeUndefined();
-    });
-  });
-
   describe("useSetSessionTitle", () => {
     it("returns a function", () => {
       const { result } = renderHook(() => useSetSessionTitle(), {
@@ -75,18 +50,6 @@ describe("TinyBase hooks", () => {
       });
 
       expect(typeof result.current).toBe("function");
-    });
-  });
-
-  describe("useSessionRawMd", () => {
-    it("returns undefined for non-existent session", () => {
-      const { result } = renderHook(() => useSessionRawMd("non-existent"), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(result.current).toBeUndefined();
     });
   });
 
@@ -158,150 +121,6 @@ describe("TinyBase hooks", () => {
       expect(result.current).toHaveProperty("description");
       expect(result.current).toHaveProperty("sections");
       expect(result.current).toHaveProperty("createdAt");
-    });
-  });
-
-  describe("useSessionParticipants", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(
-        () => useSessionParticipants("test-session"),
-        {
-          wrapper: ({ children }) => (
-            <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-          ),
-        },
-      );
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useTranscriptsBySession", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(
-        () => useTranscriptsBySession("test-session"),
-        {
-          wrapper: ({ children }) => (
-            <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-          ),
-        },
-      );
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useWordsByTranscript", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(
-        () => useWordsByTranscript("test-transcript"),
-        {
-          wrapper: ({ children }) => (
-            <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-          ),
-        },
-      );
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useSessionsByFolder", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(() => useSessionsByFolder("test-folder"), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useFoldersByParent", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(
-        () => useFoldersByParent("test-parent-folder"),
-        {
-          wrapper: ({ children }) => (
-            <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-          ),
-        },
-      );
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useVisibleTemplates", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(() => useVisibleTemplates(), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useVisibleHumans", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(() => useVisibleHumans(), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useVisibleOrganizations", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(() => useVisibleOrganizations(), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useVisibleFolders", () => {
-    it("returns an array", () => {
-      const { result } = renderHook(() => useVisibleFolders(), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(Array.isArray(result.current)).toBe(true);
-    });
-  });
-
-  describe("useVisibleVocabs", () => {
-    it("returns an object", () => {
-      const { result } = renderHook(() => useVisibleVocabs(), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(typeof result.current).toBe("object");
-    });
-  });
-
-  describe("useUserId", () => {
-    it("returns undefined when no user id is set", () => {
-      const { result } = renderHook(() => useUserId(), {
-        wrapper: ({ children }) => (
-          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
-        ),
-      });
-
-      expect(result.current).toBeUndefined();
     });
   });
 

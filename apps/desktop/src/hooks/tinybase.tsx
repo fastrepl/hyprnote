@@ -36,10 +36,6 @@ export function useSession(sessionId: string) {
   );
 }
 
-export function useSessionTitle(sessionId: string) {
-  return main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
-}
-
 export function useSetSessionTitle() {
   const store = main.UI.useStore(main.STORE_ID);
 
@@ -50,10 +46,6 @@ export function useSetSessionTitle() {
     },
     [store],
   );
-}
-
-export function useSessionRawMd(sessionId: string) {
-  return main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
 }
 
 export function useSetSessionRawMd() {
@@ -104,30 +96,6 @@ export function useOrganization(orgId: string) {
   return useMemo(() => ({ name, createdAt }), [name, createdAt]);
 }
 
-export function useSessionParticipants(sessionId: string) {
-  return main.UI.useSliceRowIds(
-    main.INDEXES.sessionParticipantsBySession,
-    sessionId,
-    main.STORE_ID,
-  );
-}
-
-export function useTranscriptsBySession(sessionId: string) {
-  return main.UI.useSliceRowIds(
-    main.INDEXES.transcriptBySession,
-    sessionId,
-    main.STORE_ID,
-  );
-}
-
-export function useWordsByTranscript(transcriptId: string) {
-  return main.UI.useSliceRowIds(
-    main.INDEXES.wordsByTranscript,
-    transcriptId,
-    main.STORE_ID,
-  );
-}
-
 export function useFolder(folderId: string) {
   const name = main.UI.useCell("folders", folderId, "name", main.STORE_ID);
   const parentFolderId = main.UI.useCell(
@@ -146,22 +114,6 @@ export function useFolder(folderId: string) {
   return useMemo(
     () => ({ name, parentFolderId, createdAt }),
     [name, parentFolderId, createdAt],
-  );
-}
-
-export function useSessionsByFolder(folderId: string) {
-  return main.UI.useSliceRowIds(
-    main.INDEXES.sessionsByFolder,
-    folderId,
-    main.STORE_ID,
-  );
-}
-
-export function useFoldersByParent(parentFolderId: string) {
-  return main.UI.useSliceRowIds(
-    main.INDEXES.foldersByParent,
-    parentFolderId,
-    main.STORE_ID,
   );
 }
 
@@ -195,33 +147,6 @@ export function useTemplate(templateId: string) {
     () => ({ title, description, sections, createdAt }),
     [title, description, sections, createdAt],
   );
-}
-
-export function useVisibleTemplates() {
-  return main.UI.useResultRowIds(main.QUERIES.visibleTemplates, main.STORE_ID);
-}
-
-export function useVisibleHumans() {
-  return main.UI.useResultRowIds(main.QUERIES.visibleHumans, main.STORE_ID);
-}
-
-export function useVisibleOrganizations() {
-  return main.UI.useResultRowIds(
-    main.QUERIES.visibleOrganizations,
-    main.STORE_ID,
-  );
-}
-
-export function useVisibleFolders() {
-  return main.UI.useResultRowIds(main.QUERIES.visibleFolders, main.STORE_ID);
-}
-
-export function useVisibleVocabs() {
-  return main.UI.useResultTable(main.QUERIES.visibleVocabs, main.STORE_ID);
-}
-
-export function useUserId() {
-  return main.UI.useValue("user_id", main.STORE_ID);
 }
 
 interface TinyBaseTestWrapperProps {

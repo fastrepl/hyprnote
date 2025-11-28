@@ -82,5 +82,9 @@ export const internalSchemaForTinybase = {
       handle: { type: "string" },
       table: { type: "string" },
     },
+    extension_state: {
+      counter: { type: "number" },
+      last_updated: { type: "string" },
+    },
   } as const satisfies TablesSchema,
 };

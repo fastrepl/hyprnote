@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 
 import { TooltipProvider } from "@hypr/ui/components/ui/tooltip";
 
@@ -14,6 +14,16 @@ export const Route = createFileRoute("/app")({
 
 function Component() {
   const { listenerStore } = Route.useLoaderData();
+  const location = useLocation();
+  const isExtHost = location.pathname.startsWith("/app/ext-host");
+
+  if (isExtHost) {
+    return (
+      <TooltipProvider>
+        <Outlet />
+      </TooltipProvider>
+    );
+  }
 
   return (
     <TooltipProvider>

@@ -1,12 +1,12 @@
+import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { allRoadmaps } from "content-collections";
-import { getMDXComponent } from "mdx-bundler/client/index.js";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
-export const Route = createFileRoute("/_view/roadmap")({
+export const Route = createFileRoute("/_view/roadmap/")({
   component: Component,
   head: () => ({
     meta: [
@@ -30,9 +30,7 @@ type RoadmapItem = {
   githubIssues: string[];
   created: string;
   updated?: string;
-  mdx: {
-    code: string;
-  };
+  mdx: string;
 };
 
 const DEFAULT_VISIBLE_ITEMS = 5;
@@ -290,13 +288,10 @@ function RoadmapCard({
   item: RoadmapItem;
   compact?: boolean;
 }) {
-  const Component = useMemo(
-    () => getMDXComponent(item.mdx.code),
-    [item.mdx.code],
-  );
-
   return (
-    <div
+    <Link
+      to="/roadmap/$slug"
+      params={{ slug: item.slug }}
       className={cn([
         "block p-4 border border-neutral-200 rounded-sm bg-white",
         "hover:shadow-sm hover:border-neutral-300 transition-all",
@@ -335,44 +330,9 @@ function RoadmapCard({
       </div>
       {!compact && (
         <div className="prose prose-sm prose-stone max-w-none">
-          <Component />
+          <MDXContent code={item.mdx} />
         </div>
       )}
-      {!compact && item.githubIssues.length > 0 && (
-        <div className="mt-4 space-y-3">
-          {item.githubIssues.map((url) => (
-            <GitHubIssuePreview key={url} url={url} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function GitHubIssuePreview({ url }: { url: string }) {
-  return (
-    <div className="mt-3 pt-3 border-t border-neutral-100">
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={cn([
-          "flex items-center gap-2 text-sm text-stone-500",
-          "hover:text-stone-700 transition-colors",
-        ])}
-      >
-        <Icon icon="mdi:github" className="text-lg" />
-        <span>View on GitHub</span>
-        <Icon icon="mdi:open-in-new" className="text-xs" />
-      </a>
-      <div className="mt-2 rounded-sm overflow-hidden border border-neutral-200">
-        <iframe
-          src={url}
-          className="w-full h-[400px] bg-white"
-          title="GitHub Issue Preview"
-          sandbox="allow-same-origin allow-scripts"
-        />
-      </div>
-    </div>
+    </Link>
   );
 }

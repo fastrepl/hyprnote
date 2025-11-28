@@ -25,7 +25,6 @@ import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewTemplatesRouteImport } from './routes/_view/templates'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
-import { Route as ViewRoadmapRouteImport } from './routes/_view/roadmap'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
@@ -35,6 +34,7 @@ import { Route as ViewBrandRouteImport } from './routes/_view/brand'
 import { Route as ViewAboutRouteImport } from './routes/_view/about'
 import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
+import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
@@ -42,6 +42,7 @@ import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog
 import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
 import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
 import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
+import { Route as ApiImagesSplatRouteImport } from './routes/api/images.$'
 import { Route as ViewVsSlugRouteImport } from './routes/_view/vs/$slug'
 import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
 import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
@@ -52,6 +53,7 @@ import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solut
 import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
 import { Route as ViewSolutionFieldEngineeringRouteImport } from './routes/_view/solution/field-engineering'
 import { Route as ViewSolutionCustomerSuccessRouteImport } from './routes/_view/solution/customer-success'
+import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
 import { Route as ViewProductWorkflowsRouteImport } from './routes/_view/product/workflows'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
 import { Route as ViewProductOpensourceRouteImport } from './routes/_view/product/opensource'
@@ -156,11 +158,6 @@ const ViewSecurityRoute = ViewSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewRoadmapRoute = ViewRoadmapRouteImport.update({
-  id: '/roadmap',
-  path: '/roadmap',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewPricingRoute = ViewPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -206,6 +203,11 @@ const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
   path: '/app',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
+  id: '/roadmap/',
+  path: '/roadmap/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
   id: '/legal/',
   path: '/legal/',
@@ -239,6 +241,11 @@ const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
 const ApiTweetIdRoute = ApiTweetIdRouteImport.update({
   id: '/api/tweet/$id',
   path: '/api/tweet/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
+  id: '/api/images/$',
+  path: '/api/images/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ViewVsSlugRoute = ViewVsSlugRouteImport.update({
@@ -294,6 +301,11 @@ const ViewSolutionCustomerSuccessRoute =
     path: '/solution/customer-success',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewRoadmapSlugRoute = ViewRoadmapSlugRouteImport.update({
+  id: '/roadmap/$slug',
+  path: '/roadmap/$slug',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewProductWorkflowsRoute = ViewProductWorkflowsRouteImport.update({
   id: '/product/workflows',
   path: '/product/workflows',
@@ -436,7 +448,6 @@ export interface FileRoutesByFullPath {
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
-  '/roadmap': typeof ViewRoadmapRoute
   '/security': typeof ViewSecurityRoute
   '/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
@@ -467,6 +478,7 @@ export interface FileRoutesByFullPath {
   '/product/opensource': typeof ViewProductOpensourceRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
+  '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
@@ -477,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
   '/vs/$slug': typeof ViewVsSlugRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/app/': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
@@ -484,6 +497,7 @@ export interface FileRoutesByFullPath {
   '/docs/': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
+  '/roadmap': typeof ViewRoadmapIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -502,7 +516,6 @@ export interface FileRoutesByTo {
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
-  '/roadmap': typeof ViewRoadmapRoute
   '/security': typeof ViewSecurityRoute
   '/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
@@ -533,6 +546,7 @@ export interface FileRoutesByTo {
   '/product/opensource': typeof ViewProductOpensourceRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
+  '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
@@ -543,6 +557,7 @@ export interface FileRoutesByTo {
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
   '/vs/$slug': typeof ViewVsSlugRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/app': typeof ViewAppIndexRoute
   '/blog': typeof ViewBlogIndexRoute
@@ -550,6 +565,7 @@ export interface FileRoutesByTo {
   '/docs': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/legal': typeof ViewLegalIndexRoute
+  '/roadmap': typeof ViewRoadmapIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -572,7 +588,6 @@ export interface FileRoutesById {
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
   '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
-  '/_view/roadmap': typeof ViewRoadmapRoute
   '/_view/security': typeof ViewSecurityRoute
   '/_view/templates': typeof ViewTemplatesRoute
   '/api/templates': typeof ApiTemplatesRoute
@@ -603,6 +618,7 @@ export interface FileRoutesById {
   '/_view/product/opensource': typeof ViewProductOpensourceRoute
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/_view/product/workflows': typeof ViewProductWorkflowsRoute
+  '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/_view/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/_view/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/_view/solution/government': typeof ViewSolutionGovernmentRoute
@@ -613,6 +629,7 @@ export interface FileRoutesById {
   '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
   '/_view/solution/sales': typeof ViewSolutionSalesRoute
   '/_view/vs/$slug': typeof ViewVsSlugRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/api/tweet/$id': typeof ApiTweetIdRoute
   '/_view/app/': typeof ViewAppIndexRoute
   '/_view/blog/': typeof ViewBlogIndexRoute
@@ -620,6 +637,7 @@ export interface FileRoutesById {
   '/_view/docs/': typeof ViewDocsIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
+  '/_view/roadmap/': typeof ViewRoadmapIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -642,7 +660,6 @@ export interface FileRouteTypes {
     | '/file-transcription'
     | '/press-kit'
     | '/pricing'
-    | '/roadmap'
     | '/security'
     | '/templates'
     | '/api/templates'
@@ -673,6 +690,7 @@ export interface FileRouteTypes {
     | '/product/opensource'
     | '/product/self-hosting'
     | '/product/workflows'
+    | '/roadmap/$slug'
     | '/solution/customer-success'
     | '/solution/field-engineering'
     | '/solution/government'
@@ -683,6 +701,7 @@ export interface FileRouteTypes {
     | '/solution/recruiting'
     | '/solution/sales'
     | '/vs/$slug'
+    | '/api/images/$'
     | '/api/tweet/$id'
     | '/app/'
     | '/blog'
@@ -690,6 +709,7 @@ export interface FileRouteTypes {
     | '/docs/'
     | '/download'
     | '/legal'
+    | '/roadmap'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -708,7 +728,6 @@ export interface FileRouteTypes {
     | '/file-transcription'
     | '/press-kit'
     | '/pricing'
-    | '/roadmap'
     | '/security'
     | '/templates'
     | '/api/templates'
@@ -739,6 +758,7 @@ export interface FileRouteTypes {
     | '/product/opensource'
     | '/product/self-hosting'
     | '/product/workflows'
+    | '/roadmap/$slug'
     | '/solution/customer-success'
     | '/solution/field-engineering'
     | '/solution/government'
@@ -749,6 +769,7 @@ export interface FileRouteTypes {
     | '/solution/recruiting'
     | '/solution/sales'
     | '/vs/$slug'
+    | '/api/images/$'
     | '/api/tweet/$id'
     | '/app'
     | '/blog'
@@ -756,6 +777,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/download'
     | '/legal'
+    | '/roadmap'
   id:
     | '__root__'
     | '/_view'
@@ -777,7 +799,6 @@ export interface FileRouteTypes {
     | '/_view/file-transcription'
     | '/_view/press-kit'
     | '/_view/pricing'
-    | '/_view/roadmap'
     | '/_view/security'
     | '/_view/templates'
     | '/api/templates'
@@ -808,6 +829,7 @@ export interface FileRouteTypes {
     | '/_view/product/opensource'
     | '/_view/product/self-hosting'
     | '/_view/product/workflows'
+    | '/_view/roadmap/$slug'
     | '/_view/solution/customer-success'
     | '/_view/solution/field-engineering'
     | '/_view/solution/government'
@@ -818,6 +840,7 @@ export interface FileRouteTypes {
     | '/_view/solution/recruiting'
     | '/_view/solution/sales'
     | '/_view/vs/$slug'
+    | '/api/images/$'
     | '/api/tweet/$id'
     | '/_view/app/'
     | '/_view/blog/'
@@ -825,6 +848,7 @@ export interface FileRouteTypes {
     | '/_view/docs/'
     | '/_view/download/'
     | '/_view/legal/'
+    | '/_view/roadmap/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -841,6 +865,7 @@ export interface RootRouteChildren {
   ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
   WebhookStripeRoute: typeof WebhookStripeRoute
+  ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
 }
 
@@ -958,13 +983,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewSecurityRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/roadmap': {
-      id: '/_view/roadmap'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof ViewRoadmapRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/pricing': {
       id: '/_view/pricing'
       path: '/pricing'
@@ -1028,6 +1046,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppRouteRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/roadmap/': {
+      id: '/_view/roadmap/'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof ViewRoadmapIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/legal/': {
       id: '/_view/legal/'
       path: '/legal'
@@ -1075,6 +1100,13 @@ declare module '@tanstack/react-router' {
       path: '/api/tweet/$id'
       fullPath: '/api/tweet/$id'
       preLoaderRoute: typeof ApiTweetIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/images/$': {
+      id: '/api/images/$'
+      path: '/api/images/$'
+      fullPath: '/api/images/$'
+      preLoaderRoute: typeof ApiImagesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_view/vs/$slug': {
@@ -1145,6 +1177,13 @@ declare module '@tanstack/react-router' {
       path: '/solution/customer-success'
       fullPath: '/solution/customer-success'
       preLoaderRoute: typeof ViewSolutionCustomerSuccessRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/roadmap/$slug': {
+      id: '/_view/roadmap/$slug'
+      path: '/roadmap/$slug'
+      fullPath: '/roadmap/$slug'
+      preLoaderRoute: typeof ViewRoadmapSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/product/workflows': {
@@ -1374,7 +1413,6 @@ interface ViewRouteRouteChildren {
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
   ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
-  ViewRoadmapRoute: typeof ViewRoadmapRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
   ViewTemplatesRoute: typeof ViewTemplatesRoute
   ViewIndexRoute: typeof ViewIndexRoute
@@ -1396,6 +1434,7 @@ interface ViewRouteRouteChildren {
   ViewProductOpensourceRoute: typeof ViewProductOpensourceRoute
   ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
   ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute
+  ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
   ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute
   ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute
   ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
@@ -1410,6 +1449,7 @@ interface ViewRouteRouteChildren {
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
   ViewLegalIndexRoute: typeof ViewLegalIndexRoute
+  ViewRoadmapIndexRoute: typeof ViewRoadmapIndexRoute
 }
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
@@ -1422,7 +1462,6 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
   ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
-  ViewRoadmapRoute: ViewRoadmapRoute,
   ViewSecurityRoute: ViewSecurityRoute,
   ViewTemplatesRoute: ViewTemplatesRoute,
   ViewIndexRoute: ViewIndexRoute,
@@ -1444,6 +1483,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductOpensourceRoute: ViewProductOpensourceRoute,
   ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
   ViewProductWorkflowsRoute: ViewProductWorkflowsRoute,
+  ViewRoadmapSlugRoute: ViewRoadmapSlugRoute,
   ViewSolutionCustomerSuccessRoute: ViewSolutionCustomerSuccessRoute,
   ViewSolutionFieldEngineeringRoute: ViewSolutionFieldEngineeringRoute,
   ViewSolutionGovernmentRoute: ViewSolutionGovernmentRoute,
@@ -1458,6 +1498,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,
   ViewLegalIndexRoute: ViewLegalIndexRoute,
+  ViewRoadmapIndexRoute: ViewRoadmapIndexRoute,
 }
 
 const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
@@ -1478,6 +1519,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,
   WebhookStripeRoute: WebhookStripeRoute,
+  ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
 }
 export const routeTree = rootRouteImport

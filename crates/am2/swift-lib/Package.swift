@@ -1,10 +1,10 @@
-// swift-tools-version:6.0
+// swift-tools-version:5.10
 
 import PackageDescription
 
 let package = Package(
   name: "swift-lib",
-  platforms: [.macOS("13.0")],
+  platforms: [.macOS(.v13)],
   products: [
     .library(
       name: "swift-lib",
@@ -15,24 +15,21 @@ let package = Package(
     .package(
       url: "https://github.com/Brendonovich/swift-rs",
       revision: "01980f981bc642a6da382cc0788f18fdd4cde6df"),
-    .package(
-      id: "argmaxinc.argmax-sdk-swift",
-      exact: "1.9.3"),
-    .package(
-      url: "https://github.com/huggingface/swift-transformers.git",
-      exact: "0.1.24")
+    .package(url: "https://github.com/argmaxinc/WhisperKit.git", exact: "0.14.1")
   ],
   targets: [
+    .binaryTarget(
+      name: "ArgmaxSDK",
+      path: "frameworks/ArgmaxSDK.xcframework"
+    ),
     .target(
       name: "swift-lib",
       dependencies: [
         .product(name: "SwiftRs", package: "swift-rs"),
-        .product(name: "Argmax", package: "argmaxinc.argmax-sdk-swift")
+        .product(name: "WhisperKit", package: "WhisperKit"),
+        "ArgmaxSDK"
       ],
-      path: "src",
-      swiftSettings: [
-        .swiftLanguageMode(.v5)
-      ]
+      path: "src"
     )
   ]
 )

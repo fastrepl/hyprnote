@@ -1,5 +1,3 @@
-name: Deploy Restate Worker
-
 on:
   workflow_dispatch:
   push:
@@ -21,26 +19,21 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-
-      - name: Build & Deploy Worker
-        uses: cloudflare/wrangler-action@v3
+      - uses: cloudflare/wrangler-action@v3
         id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/restate
+          packageManager: pnpm
           command: versions upload --message "Deployed via GitHub Actions - commit ${{ github.sha }}"
-
-      - name: Get deployment URL
-        id: get-url
+      - id: get-url
         env:
           WRANGLER_OUTPUT: ${{ steps.deploy.outputs.command-output }}
         run: |
-          URL=$(echo "$WRANGLER_OUTPUT" | awk '/Version Preview URL:/ {gsub(/.*Version Preview URL:/, ""); print $1}')
+          URL=$(echo "$WRANGLER_OUTPUT" | awk '/Version Preview URL:/ {gsub(/.*Version Preview URL: /, ""); print}')
           echo "deployment-url=$URL" >> $GITHUB_OUTPUT
-
-      - name: Register Restate deployment
-        env:
+      - env:
           RESTATE_ADMIN_URL: ${{ secrets.RESTATE_ADMIN_URL }}
           RESTATE_AUTH_TOKEN: ${{ secrets.RESTATE_AUTH_TOKEN }}
         run: npx -y @restatedev/restate deployment register -y ${{ steps.get-url.outputs.deployment-url }}

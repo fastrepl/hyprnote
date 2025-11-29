@@ -39,6 +39,14 @@ async listMicUsingApplications() : Promise<Result<InstalledApp[], string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async getMeetingApplication() : Promise<Result<InstalledApp | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:detect|get_meeting_application") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async setRespectDoNotDisturb(enabled: boolean) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:detect|set_respect_do_not_disturb", { enabled }) };

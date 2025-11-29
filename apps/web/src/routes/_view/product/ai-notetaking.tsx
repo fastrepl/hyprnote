@@ -281,7 +281,7 @@ function EditorSection() {
         </div>
         <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
           <MockWindow variant="mobile">
-            <div className="p-6 h-64 overflow-hidden">
+            <div className="p-6 h-[200px] overflow-hidden">
               <AnimatedMarkdownDemo isMobile />
             </div>
           </MockWindow>
@@ -380,15 +380,34 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [typingText, setTypingText] = useState("");
   const [isTransformed, setIsTransformed] = useState(false);
+  const [showPlaceholder, setShowPlaceholder] = useState(false);
+  const [transforming, setTransforming] = useState(false);
 
   const lines = [
-    { text: "# Meeting Notes", type: "heading" as const },
-    { text: "- Product roadmap review", type: "bullet" as const },
-    { text: "- Q4 marketing strategy", type: "bullet" as const },
-    { text: "- Budget allocation", type: "bullet" as const },
+    {
+      text: "# Meeting Notes",
+      type: "heading" as const,
+      placeholder: "Heading 1",
+    },
+    {
+      text: "- Product roadmap review",
+      type: "bullet" as const,
+      placeholder: "List",
+    },
+    {
+      text: "- Q4 marketing strategy",
+      type: "bullet" as const,
+      placeholder: "List",
+    },
+    {
+      text: "- Budget allocation",
+      type: "bullet" as const,
+      placeholder: "List",
+    },
     {
       text: "**Decision:** Launch campaign by end of month",
       type: "bold" as const,
+      placeholder: "",
     },
   ];
 
@@ -413,16 +432,33 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
         setTypingText(newText);
         charIndex++;
 
-        const shouldTransform =
+        // Check if we just typed the trigger sequence (e.g., "# " or "- ")
+        const isMarkdownTrigger =
           (currentLine.type === "heading" && newText === "# ") ||
-          (currentLine.type === "bullet" && newText === "- ") ||
-          (currentLine.type === "bold" && newText.match(/\*\*[^*]+\*\*/));
+          (currentLine.type === "bullet" && newText === "- ");
 
-        if (shouldTransform) {
+        if (isMarkdownTrigger && !isTransformed) {
+          // Show placeholder briefly, then transform
+          setShowPlaceholder(true);
+
+          timeout = setTimeout(() => {
+            setTransforming(true);
+            setTimeout(() => {
+              setIsTransformed(true);
+              setShowPlaceholder(false);
+              setTransforming(false);
+              timeout = setTimeout(typeCharacter, 60);
+            }, 200); // Transformation duration
+          }, 300); // Show placeholder duration
+        } else if (
+          currentLine.type === "bold" &&
+          newText.match(/\*\*[^*]+\*\*/)
+        ) {
           setIsTransformed(true);
+          timeout = setTimeout(typeCharacter, 60);
+        } else {
+          timeout = setTimeout(typeCharacter, 60);
         }
-
-        timeout = setTimeout(typeCharacter, 60);
       } else {
         timeout = setTimeout(() => {
           const completedElement = renderCompletedLine(currentLine, isMobile);
@@ -509,10 +545,33 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       return null;
     }
 
+    // Show placeholder state (after typing "# " or "- " but before transformation)
+    if (showPlaceholder && !isTransformed) {
+      return (
+        <div
+          className={cn([
+            "text-neutral-700 transition-all duration-200",
+            isMobile ? "text-sm" : "text-base",
+            transforming && "opacity-50",
+          ])}
+        >
+          <span className="text-neutral-400">{typingText}</span>
+          <span className="text-neutral-400 ml-2">
+            {currentLine.placeholder}
+          </span>
+          <span className="animate-pulse">|</span>
+        </div>
+      );
+    }
+
+    // Transformed state for headings
     if (currentLine.type === "heading" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "# "
       return (
-        <h1
+        <motion.h1
+          initial={{ opacity: 0, y: 2 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
           className={cn([
             "font-bold text-stone-700",
             isMobile ? "text-xl" : "text-2xl",

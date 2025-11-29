@@ -125,7 +125,7 @@ common_derives! {
     #[serde(untagged)]
     pub enum NangoGetConnectionResponse {
         #[serde(rename = "data")]
-        Ok(NangoGetConnectionResponseData),
+        Ok(Box<NangoGetConnectionResponseData>),
         #[serde(rename = "error")]
         Error { message: String },
     }
@@ -194,7 +194,7 @@ impl NangoClient {
 
         let res: NangoGetConnectionResponse = self.client.get(url).send().await?.json().await?;
         match res {
-            NangoGetConnectionResponse::Ok(data) => Ok(data),
+            NangoGetConnectionResponse::Ok(data) => Ok(*data),
             NangoGetConnectionResponse::Error { message } => Err(crate::Error::NangoError(message)),
         }
     }

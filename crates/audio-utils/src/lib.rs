@@ -211,8 +211,8 @@ where
     let output_frames = output_channels[0].len();
 
     for frame in 0..output_frames {
-        for ch in 0..channels {
-            output.push(output_channels[ch][frame]);
+        for channel in output_channels.iter().take(channels) {
+            output.push(channel[frame]);
         }
     }
 

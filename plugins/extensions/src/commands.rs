@@ -140,5 +140,5 @@ pub async fn get_extension<R: tauri::Runtime>(
                 panels,
             }
         })
-        .ok_or_else(|| Error::ExtensionNotFound(extension_id))
+        .ok_or(Error::ExtensionNotFound(extension_id))
 }

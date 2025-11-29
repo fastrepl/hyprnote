@@ -7,13 +7,13 @@ static QUIT_CALLBACK: Mutex<Option<Box<dyn Fn() -> bool + Send + Sync>>> = Mutex
 #[cfg(target_os = "macos")]
 swift!(fn _setup_quit_handler());
 
-pub fn setup_quit_handler<F>(callback: F)
+pub fn setup_quit_handler<F>(_callback: F)
 where
     F: Fn() -> bool + Send + Sync + 'static,
 {
     #[cfg(target_os = "macos")]
     {
-        *QUIT_CALLBACK.lock().unwrap() = Some(Box::new(callback));
+        *QUIT_CALLBACK.lock().unwrap() = Some(Box::new(_callback));
         unsafe {
             _setup_quit_handler();
         }

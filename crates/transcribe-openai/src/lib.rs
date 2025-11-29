@@ -72,8 +72,8 @@ impl TranscribeService {
 
     async fn start_transcription(
         &self,
-        audio_rx: mpsc::Receiver<Bytes>,
-        result_tx: mpsc::Sender<()>,
+        _audio_rx: mpsc::Receiver<Bytes>,
+        _result_tx: mpsc::Sender<()>,
     ) -> Result<(), Error> {
         Ok(())
     }

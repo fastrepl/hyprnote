@@ -279,7 +279,6 @@ async fn start_source_loop_mic_only(
             loop {
                 tokio::select! {
                     _ = stream_cancel_token.cancelled() => {
-                        drop(mic_stream);
                         return;
                     }
                     mic_next = mic_stream.next() => match mic_next {
@@ -348,7 +347,6 @@ async fn start_source_loop_speaker_only(
         loop {
             tokio::select! {
                 _ = stream_cancel_token.cancelled() => {
-                    drop(spk_stream);
                     return;
                 }
                 spk_next = spk_stream.next() => match spk_next {
@@ -441,8 +439,6 @@ async fn start_source_loop_mic_and_speaker(
         loop {
             tokio::select! {
                 _ = stream_cancel_token.cancelled() => {
-                    drop(mic_stream);
-                    drop(spk_stream);
                     return;
                 }
                 mic_next = mic_stream.next() => match mic_next {

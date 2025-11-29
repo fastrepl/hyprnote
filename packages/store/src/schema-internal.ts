@@ -76,15 +76,15 @@ export const internalSchemaForTinybase = {
       table: { type: "string" },
       updated: { type: "boolean" },
       deleted: { type: "boolean" },
-    },
+    } as const,
     electric: {
       offset: { type: "string" },
       handle: { type: "string" },
       table: { type: "string" },
-    },
+    } as const,
     extension_state: {
       counter: { type: "number" },
       last_updated: { type: "string" },
-    },
+    } as const,
   } as const satisfies TablesSchema,
 };

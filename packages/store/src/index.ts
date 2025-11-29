@@ -10,11 +10,11 @@ export * from "./shared";
 export const SCHEMA = {
   value: {
     ...internalSchemaForTinybase.value,
-  },
+  } satisfies ValuesSchema,
   table: {
     ...externalTableSchemaForTinybase,
     ...internalSchemaForTinybase.table,
-  },
+  } satisfies TablesSchema,
 } as const;
 
 export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];

@@ -187,7 +187,7 @@ export const externalTableSchemaForTinybase = {
     created_at: { type: "string" },
     name: { type: "string" },
     parent_folder_id: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof folderSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof folderSchema>,
   sessions: {
     user_id: { type: "string" },
     created_at: { type: "string" },
@@ -196,14 +196,14 @@ export const externalTableSchemaForTinybase = {
     title: { type: "string" },
     raw_md: { type: "string" },
     enhanced_md: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof sessionSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof sessionSchema>,
   transcripts: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     session_id: { type: "string" },
     started_at: { type: "number" },
     ended_at: { type: "number" },
-  } satisfies InferTinyBaseSchema<typeof transcriptSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof transcriptSchema>,
   words: {
     user_id: { type: "string" },
     created_at: { type: "string" },
@@ -213,7 +213,7 @@ export const externalTableSchemaForTinybase = {
     end_ms: { type: "number" },
     channel: { type: "number" },
     metadata: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof wordSchemaOverride>,
+  } as const satisfies InferTinyBaseSchema<typeof wordSchemaOverride>,
   speaker_hints: {
     user_id: { type: "string" },
     created_at: { type: "string" },
@@ -221,7 +221,7 @@ export const externalTableSchemaForTinybase = {
     word_id: { type: "string" },
     type: { type: "string" },
     value: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof speakerHintSchemaOverride>,
+  } as const satisfies InferTinyBaseSchema<typeof speakerHintSchemaOverride>,
   humans: {
     user_id: { type: "string" },
     created_at: { type: "string" },
@@ -232,17 +232,17 @@ export const externalTableSchemaForTinybase = {
     linkedin_username: { type: "string" },
     is_user: { type: "boolean" },
     memo: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof humanSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof humanSchema>,
   organizations: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     name: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof organizationSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof organizationSchema>,
   calendars: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     name: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof calendarSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof calendarSchema>,
   events: {
     user_id: { type: "string" },
     created_at: { type: "string" },
@@ -254,36 +254,38 @@ export const externalTableSchemaForTinybase = {
     meeting_link: { type: "string" },
     description: { type: "string" },
     note: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof eventSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof eventSchema>,
   mapping_session_participant: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     session_id: { type: "string" },
     human_id: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof mappingSessionParticipantSchema>,
+  } as const satisfies InferTinyBaseSchema<
+    typeof mappingSessionParticipantSchema
+  >,
   tags: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     name: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof tagSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof tagSchema>,
   mapping_tag_session: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     tag_id: { type: "string" },
     session_id: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof mappingTagSessionSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof mappingTagSessionSchema>,
   templates: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     title: { type: "string" },
     description: { type: "string" },
     sections: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof templateSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof templateSchema>,
   chat_groups: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     title: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof chatGroupSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof chatGroupSchema>,
   chat_messages: {
     user_id: { type: "string" },
     created_at: { type: "string" },
@@ -292,13 +294,13 @@ export const externalTableSchemaForTinybase = {
     content: { type: "string" },
     metadata: { type: "string" },
     parts: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof chatMessageSchema>,
   memories: {
     user_id: { type: "string" },
     created_at: { type: "string" },
     type: { type: "string" },
     text: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof memorySchema>,
+  } as const satisfies InferTinyBaseSchema<typeof memorySchema>,
   enhanced_notes: {
     user_id: { type: "string" },
     created_at: { type: "string" },
@@ -307,5 +309,5 @@ export const externalTableSchemaForTinybase = {
     template_id: { type: "string" },
     position: { type: "number" },
     title: { type: "string" },
-  } satisfies InferTinyBaseSchema<typeof enhancedNoteSchema>,
+  } as const satisfies InferTinyBaseSchema<typeof enhancedNoteSchema>,
 } as const satisfies TablesSchema;

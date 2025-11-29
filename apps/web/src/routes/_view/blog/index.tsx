@@ -1,8 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { allArticles, type Article } from "content-collections";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
+
+import { SlashSeparator } from "@/components/slash-separator";
 
 const AUTHOR_AVATARS: Record<string, string> = {
   "John Jeong":
@@ -13,8 +15,25 @@ const AUTHOR_AVATARS: Record<string, string> = {
     "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png",
 };
 
+const CATEGORIES = [
+  "Case Study",
+  "Hyprnote Weekly",
+  "Productivity Hack",
+  "Engineering",
+] as const;
+
+type BlogSearch = {
+  category?: string;
+};
+
 export const Route = createFileRoute("/_view/blog/")({
   component: Component,
+  validateSearch: (search: Record<string, unknown>): BlogSearch => {
+    return {
+      category:
+        typeof search.category === "string" ? search.category : undefined,
+    };
+  },
   head: () => ({
     meta: [
       { title: "Blog - Hyprnote" },
@@ -34,6 +53,9 @@ export const Route = createFileRoute("/_view/blog/")({
 });
 
 function Component() {
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = Route.useSearch();
+
   const publishedArticles = allArticles.filter(
     (a) => import.meta.env.DEV || a.published !== false,
   );
@@ -43,17 +65,79 @@ function Component() {
     return new Date(bDate).getTime() - new Date(aDate).getTime();
   });
 
+  const selectedCategory = search.category || null;
+
+  const setSelectedCategory = (category: string | null) => {
+    navigate({ search: category ? { category } : {}, resetScroll: false });
+  };
+
   const featuredArticles = sortedArticles.filter((a) => a.featured);
+
+  const articlesByCategory = useMemo(() => {
+    return sortedArticles.reduce(
+      (acc, article) => {
+        const category = article.category;
+        if (category) {
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+          acc[category].push(article);
+        }
+        return acc;
+      },
+      {} as Record<string, Article[]>,
+    );
+  }, [sortedArticles]);
+
+  const filteredArticles = useMemo(() => {
+    if (selectedCategory === "featured") {
+      return featuredArticles;
+    }
+    if (selectedCategory) {
+      return sortedArticles.filter((a) => a.category === selectedCategory);
+    }
+    return sortedArticles;
+  }, [sortedArticles, selectedCategory, featuredArticles]);
+
+  const categoriesWithCount = CATEGORIES.filter(
+    (cat) => articlesByCategory[cat]?.length,
+  );
 
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
-      <div className="px-4 sm:px-6 lg:px-8 py-16 max-w-6xl mx-auto border-x border-neutral-100 bg-white min-h-screen">
+      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white min-h-screen">
         <Header />
-        <FeaturedSection articles={featuredArticles} />
-        <AllArticlesSection articles={sortedArticles} />
+        {featuredArticles.length > 0 && (
+          <FeaturedSection articles={featuredArticles} />
+        )}
+        <SlashSeparator />
+        <MobileCategoriesSection
+          categories={categoriesWithCount}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          hasFeatured={featuredArticles.length > 0}
+        />
+        <div className="px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+          <div className="flex gap-8">
+            <DesktopSidebar
+              categories={categoriesWithCount}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              articlesByCategory={articlesByCategory}
+              featuredCount={featuredArticles.length}
+              totalArticles={sortedArticles.length}
+            />
+            <div className="flex-1 min-w-0">
+              <AllArticlesSection
+                articles={filteredArticles}
+                selectedCategory={selectedCategory}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -61,14 +145,146 @@ function Component() {
 
 function Header() {
   return (
-    <header className="mb-16 text-center">
+    <header className="py-16 text-center border-b border-neutral-100 bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">
         Blog
       </h1>
-      <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+      <p className="text-lg text-neutral-600 max-w-2xl mx-auto px-4">
         Insights, updates, and stories from the Hyprnote team
       </p>
     </header>
+  );
+}
+
+function MobileCategoriesSection({
+  categories,
+  selectedCategory,
+  setSelectedCategory,
+  hasFeatured,
+}: {
+  categories: string[];
+  selectedCategory: string | null;
+  setSelectedCategory: (category: string | null) => void;
+  hasFeatured: boolean;
+}) {
+  return (
+    <div className="lg:hidden border-b border-neutral-100 bg-stone-50">
+      <div className="flex overflow-x-auto scrollbar-hide">
+        <button
+          onClick={() => setSelectedCategory(null)}
+          className={cn([
+            "px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 border-r border-neutral-100 cursor-pointer",
+            selectedCategory === null
+              ? "bg-stone-600 text-white"
+              : "text-stone-600 hover:bg-stone-100",
+          ])}
+        >
+          All
+        </button>
+        {hasFeatured && (
+          <button
+            onClick={() => setSelectedCategory("featured")}
+            className={cn([
+              "px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 border-r border-neutral-100 cursor-pointer",
+              selectedCategory === "featured"
+                ? "bg-stone-600 text-white"
+                : "text-stone-600 hover:bg-stone-100",
+            ])}
+          >
+            Featured
+          </button>
+        )}
+        {categories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={cn([
+              "px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap shrink-0 border-r border-neutral-100 last:border-r-0 cursor-pointer",
+              selectedCategory === category
+                ? "bg-stone-600 text-white"
+                : "text-stone-600 hover:bg-stone-100",
+            ])}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DesktopSidebar({
+  categories,
+  selectedCategory,
+  setSelectedCategory,
+  articlesByCategory,
+  featuredCount,
+  totalArticles,
+}: {
+  categories: string[];
+  selectedCategory: string | null;
+  setSelectedCategory: (category: string | null) => void;
+  articlesByCategory: Record<string, Article[]>;
+  featuredCount: number;
+  totalArticles: number;
+}) {
+  return (
+    <aside className="hidden lg:block w-56 shrink-0">
+      <div className="sticky top-[85px]">
+        <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">
+          Categories
+        </h3>
+        <nav className="space-y-1">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={cn([
+              "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
+              selectedCategory === null
+                ? "bg-stone-100 text-stone-800"
+                : "text-stone-600 hover:bg-stone-50",
+            ])}
+          >
+            All Articles
+            <span className="ml-2 text-xs text-neutral-400">
+              ({totalArticles})
+            </span>
+          </button>
+          {featuredCount > 0 && (
+            <button
+              onClick={() => setSelectedCategory("featured")}
+              className={cn([
+                "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
+                selectedCategory === "featured"
+                  ? "bg-stone-100 text-stone-800"
+                  : "text-stone-600 hover:bg-stone-50",
+              ])}
+            >
+              Featured
+              <span className="ml-2 text-xs text-neutral-400">
+                ({featuredCount})
+              </span>
+            </button>
+          )}
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={cn([
+                "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
+                selectedCategory === category
+                  ? "bg-stone-100 text-stone-800"
+                  : "text-stone-600 hover:bg-stone-50",
+              ])}
+            >
+              {category}
+              <span className="ml-2 text-xs text-neutral-400">
+                ({articlesByCategory[category]?.length || 0})
+              </span>
+            </button>
+          ))}
+        </nav>
+      </div>
+    </aside>
   );
 }
 
@@ -81,8 +297,7 @@ function FeaturedSection({ articles }: { articles: Article[] }) {
   const displayedOthers = others.slice(0, 4);
 
   return (
-    <section className="mb-20">
-      <SectionHeader title="Featured" />
+    <section className="px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       <div
         className={cn([
           "flex flex-col gap-3",
@@ -113,7 +328,13 @@ function FeaturedSection({ articles }: { articles: Article[] }) {
   );
 }
 
-function AllArticlesSection({ articles }: { articles: Article[] }) {
+function AllArticlesSection({
+  articles,
+  selectedCategory,
+}: {
+  articles: Article[];
+  selectedCategory: string | null;
+}) {
   if (articles.length === 0) {
     return (
       <div className="text-center py-16">
@@ -122,9 +343,12 @@ function AllArticlesSection({ articles }: { articles: Article[] }) {
     );
   }
 
+  const title =
+    selectedCategory === "featured" ? "Featured" : selectedCategory || "All";
+
   return (
     <section>
-      <SectionHeader title="All" />
+      <SectionHeader title={title} />
       <div className="divide-y divide-neutral-100 sm:divide-y-0">
         {articles.map((article) => (
           <ArticleListItem key={article._meta.filePath} article={article} />
@@ -174,6 +398,11 @@ function MostRecentFeaturedCard({ article }: { article: Article }) {
         )}
 
         <div className="p-6 md:p-8">
+          {article.category && (
+            <span className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-2 block">
+              {article.category}
+            </span>
+          )}
           <h3
             className={cn([
               "text-xl font-serif text-stone-600 mb-2",
@@ -271,6 +500,11 @@ function OtherFeaturedCard({
             "lg:p-4",
           ])}
         >
+          {article.category && (
+            <span className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">
+              {article.category}
+            </span>
+          )}
           <h3
             className={cn([
               "text-base font-serif text-stone-600 mb-2",
@@ -316,6 +550,11 @@ function ArticleListItem({ article }: { article: Article }) {
       <article className="py-4 hover:bg-stone-50/50 transition-colors duration-200">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-3 min-w-0 sm:max-w-2xl">
+            {article.category && (
+              <span className="text-xs font-medium text-stone-500 uppercase tracking-wider shrink-0 hidden sm:inline">
+                {article.category}
+              </span>
+            )}
             <span className="text-base font-serif text-stone-600 group-hover:text-stone-800 transition-colors truncate">
               {article.title}
             </span>
@@ -334,6 +573,11 @@ function ArticleListItem({ article }: { article: Article }) {
           </div>
           <div className="flex items-center justify-between gap-3 sm:hidden">
             <div className="flex items-center gap-3">
+              {article.category && (
+                <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">
+                  {article.category}
+                </span>
+              )}
               {avatarUrl && (
                 <img
                   src={avatarUrl}

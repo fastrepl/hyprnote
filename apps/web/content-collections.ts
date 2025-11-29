@@ -47,6 +47,14 @@ const articles = defineCollection({
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
     published: z.boolean().default(true),
+    category: z
+      .enum([
+        "Case Study",
+        "Hyprnote Weekly",
+        "Productivity Hack",
+        "Engineering",
+      ])
+      .optional(),
   }),
   transform: async (document, context) => {
     const toc = extractToc(document.content);

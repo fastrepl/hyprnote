@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmitOnError",
-    "dev": "env-cmd --silent -f ./.env -- wrangler dev --port 9080",
+    "dev": "dotenvx run -f ../../.env.supabase -f .env -- wrangler dev --port 9080",
     "start": "wrangler dev --port 9080",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit"
@@ -19,7 +19,6 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240605.0",
     "@restatedev/restate": "^1.5.0",
-    "env-cmd": "^11.0.0",
     "typescript": "^5.9.3",
     "wrangler": "^4.38.0"
   }

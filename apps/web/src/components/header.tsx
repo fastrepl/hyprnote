@@ -151,16 +151,27 @@ export function Header() {
               </Link>
             </div>
 
-            <Link
-              to="/"
-              className="sm:hidden font-semibold text-2xl font-serif hover:scale-105 transition-transform"
-            >
-              <img
-                src="/api/images/hyprnote/logo.svg"
-                alt="Hyprnote"
-                className="h-6"
-              />
-            </Link>
+            <div className="sm:hidden flex items-center gap-1">
+              {isDocsPage && docsDrawer && (
+                <button
+                  onClick={() => docsDrawer.setIsOpen(true)}
+                  className="md:hidden px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
+                  aria-label="Open docs navigation"
+                >
+                  <PanelLeft className="text-neutral-600" size={16} />
+                </button>
+              )}
+              <Link
+                to="/"
+                className="font-semibold text-2xl font-serif hover:scale-105 transition-transform"
+              >
+                <img
+                  src="/api/images/hyprnote/logo.svg"
+                  alt="Hyprnote"
+                  className="h-6"
+                />
+              </Link>
+            </div>
 
             <nav className="hidden sm:flex items-center gap-2">
               <Link
@@ -190,15 +201,6 @@ export function Header() {
             </nav>
 
             <div className="sm:hidden flex items-center gap-1">
-              {isDocsPage && docsDrawer && (
-                <button
-                  onClick={() => docsDrawer.setIsOpen(true)}
-                  className="md:hidden px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
-                  aria-label="Open docs navigation"
-                >
-                  <PanelLeft className="text-neutral-600" size={16} />
-                </button>
-              )}
               {platformCTA.action === "download" ? (
                 <a
                   href="/download/apple-silicon"

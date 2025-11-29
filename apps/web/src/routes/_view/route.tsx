@@ -116,29 +116,19 @@ function MobileDocsDrawer({
   }, []);
 
   return (
-    <>
-      {/* Overlay backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-40 md:hidden"
-          onClick={onClose}
+    <div
+      className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="h-full overflow-y-auto p-4">
+        <DocsNavigation
+          sections={docsBySection.sections}
+          currentSlug={currentSlug}
+          onLinkClick={onClose}
         />
-      )}
-      {/* Drawer */}
-      <div
-        className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white border-r border-neutral-100 shadow-lg z-50 md:hidden transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="h-full overflow-y-auto p-4">
-          <DocsNavigation
-            sections={docsBySection.sections}
-            currentSlug={currentSlug}
-            onLinkClick={onClose}
-          />
-        </div>
       </div>
-    </>
+    </div>
   );
 }
 

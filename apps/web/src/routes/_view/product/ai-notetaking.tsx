@@ -1072,7 +1072,7 @@ function SearchSection() {
             <Link
               to="/product/mini-apps"
               hash="advanced-search"
-              className="sm:hidden w-full px-4 h-10 inline-flex items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md active:scale-[98%] transition-all"
+              className="sm:hidden w-full px-4 h-10 inline-flex items-center justify-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
             >
               Go to Advanced Search
               <ArrowRightIcon className="size-4" />

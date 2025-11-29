@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "dotenvx run -f ../../.env.supabase -f .env -- bun --hot src/index.ts",
+    "dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f .env -- bun --hot src/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

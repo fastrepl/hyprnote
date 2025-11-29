@@ -81,6 +81,7 @@ tasks:
   supabase-start:
     cmds:
       - curl -o supabase/config.toml https://gist.githubusercontent.com/yujonglee/c0704ebe0818621a64753d663c4fcaff/raw/b82572dfcb6ffa4d20c332a8dd7650e5b82b99c3/supabase-default.toml
+      - dasel put -f supabase/config.toml -t int -v 17 'db.major_version'
       - dasel put -f supabase/config.toml -t string -v 'http://localhost:3000' 'auth.site_url'
       - dasel put -f supabase/config.toml -t json -v '["http://localhost:3000/callback/auth"]' 'auth.additional_redirect_urls'
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t bool -v true ''auth.external.github.enabled'' || true'
@@ -199,83 +200,5 @@ tasks:
 
   stripe:
     cmds:
-      - |
-          bash <<'EOF'
-          set -euo pipefail
-
-          generated_env_file=".stripe/generated.env"
-          env_target="apps/api/.env"
-
-          cleanup() {
-            rm -f "$generated_env_file"
-          }
-          trap cleanup EXIT
-
-          mkdir -p "$(dirname "$generated_env_file")"
-
-          secret=$(stripe listen --print-secret | tr -d '\r\n')
-
-          if [ -z "$secret" ]; then
-            echo "failed to retrieve Stripe webhook secret" >&2
-            exit 1
-          fi
-
-          printf 'STRIPE_WEBHOOK_SECRET="%s"\n' "$secret" > "$generated_env_file"
-
-          if [ -s "$generated_env_file" ]; then
-            mkdir -p "$(dirname "$env_target")"
-
-            if [ ! -f "$env_target" ]; then
-              cp "$generated_env_file" "$env_target"
-            else
-              merged_env=$(mktemp)
-              awk -v new_file="$generated_env_file" '
-                BEGIN {
-                  while ((getline line < new_file) > 0) {
-                    if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) continue
-                    sep = index(line, "=")
-                    if (sep == 0) continue
-                    key = substr(line, 1, sep - 1)
-                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
-                    value = substr(line, sep + 1)
-                    new_values[key] = value
-                  }
-                  close(new_file)
-                }
-                {
-                  line = $0
-                  if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) {
-                    print line
-                    next
-                  }
-                  sep = index(line, "=")
-                  if (sep == 0) {
-                    print line
-                    next
-                  }
-                  key = substr(line, 1, sep - 1)
-                  gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
-                  if (key in new_values) {
-                    print key "=" new_values[key]
-                    used[key] = 1
-                  } else {
-                    print line
-                  }
-                }
-                END {
-                  for (key in new_values) {
-                    if (!(key in used)) {
-                      print key "=" new_values[key]
-                    }
-                  }
-                }
-              ' "$env_target" > "$merged_env"
-              mv "$merged_env" "$env_target"
-            fi
-            echo "✓ Webhook secret written to $env_target"
-          fi
-
-          rm -f "$generated_env_file"
-
-          stripe listen --skip-verify --forward-to http://localhost:8787/webhook/stripe
-          EOF
+      - stripe listen --print-secret | tr -d '\r\n' | xargs -I{} sh -c 'printf "STRIPE_WEBHOOK_SECRET=\"{}\"\n" > .env.stripe'
+      - stripe listen --skip-verify --forward-to http://localhost:8787/webhook/stripe

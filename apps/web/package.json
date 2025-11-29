@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "VITE_APP_URL=\"http://localhost:3000\" dotenvx run -f ../../.env.supabase -f .env -- vite dev --port 3000",
+    "dev": "VITE_APP_URL=\"http://localhost:3000\" dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f .env -- vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
     "test": "playwright test",

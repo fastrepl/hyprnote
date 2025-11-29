@@ -7,10 +7,10 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "dotenvx run -f ../../.env.supabase -f .env -- tauri",
+    "tauri": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f .env -- tauri",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "tauri:dev": "dotenvx run -f ../../.env.supabase -f .env -- tauri dev",
+    "tauri:dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f .env -- tauri dev",
     "tauri:build": "tauri build",
     "gen:schema": "tsx src/devtool/seed/script.ts"
   },

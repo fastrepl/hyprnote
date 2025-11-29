@@ -151,7 +151,7 @@ export function Header() {
               </Link>
             </div>
 
-            <div className="sm:hidden flex items-center gap-1">
+            <div className="sm:hidden flex items-center gap-3">
               {isDocsPage && docsDrawer && (
                 <button
                   onClick={() => docsDrawer.setIsOpen(true)}

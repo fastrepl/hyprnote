@@ -50,7 +50,16 @@ export function Header() {
           className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}
         >
           <div className="flex items-center justify-between h-full">
-            <div className="hidden sm:flex items-center gap-5">
+            <div className="flex items-center gap-5">
+              {isDocsPage && docsDrawer && (
+                <button
+                  onClick={() => docsDrawer.setIsOpen(true)}
+                  className="md:hidden px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
+                  aria-label="Open docs navigation"
+                >
+                  <PanelLeft className="text-neutral-600" size={16} />
+                </button>
+              )}
               <Link
                 to="/"
                 className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
@@ -62,7 +71,7 @@ export function Header() {
                 />
               </Link>
               <div
-                className="relative"
+                className="relative hidden sm:block"
                 onMouseEnter={() => setIsProductOpen(true)}
                 onMouseLeave={() => setIsProductOpen(false)}
               >
@@ -133,13 +142,13 @@ export function Header() {
               </Link>
               <Link
                 to="/blog"
-                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+                className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
               >
                 Blog
               </Link>
               <Link
                 to="/pricing"
-                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+                className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
               >
                 Pricing
               </Link>
@@ -148,28 +157,6 @@ export function Header() {
                 className="hidden md:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
               >
                 Enterprise
-              </Link>
-            </div>
-
-            <div className="sm:hidden flex items-center gap-3">
-              {isDocsPage && docsDrawer && (
-                <button
-                  onClick={() => docsDrawer.setIsOpen(true)}
-                  className="md:hidden px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
-                  aria-label="Open docs navigation"
-                >
-                  <PanelLeft className="text-neutral-600" size={16} />
-                </button>
-              )}
-              <Link
-                to="/"
-                className="font-semibold text-2xl font-serif hover:scale-105 transition-transform"
-              >
-                <img
-                  src="/api/images/hyprnote/logo.svg"
-                  alt="Hyprnote"
-                  className="h-6"
-                />
               </Link>
             </div>
 

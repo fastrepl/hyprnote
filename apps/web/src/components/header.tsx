@@ -1,7 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronDown, ChevronUp, Menu } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Menu,
+  PanelLeft,
+  PanelLeftClose,
+} from "lucide-react";
 import { useState } from "react";
 
+import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
 function scrollToHero() {
@@ -39,6 +46,8 @@ export function Header() {
   const platformCTA = getPlatformCTA(platform);
   const router = useRouterState();
   const maxWidthClass = getMaxWidthClass(router.location.pathname);
+  const isDocsPage = router.location.pathname.startsWith("/docs");
+  const docsDrawer = useDocsDrawer();
 
   return (
     <>
@@ -47,7 +56,24 @@ export function Header() {
           className={`${maxWidthClass} mx-auto px-4 laptop:px-0 border-x border-neutral-100 h-full`}
         >
           <div className="flex items-center justify-between h-full">
-            <div className="hidden sm:flex items-center gap-5">
+            <div className="flex items-center gap-5">
+              {isDocsPage && docsDrawer && (
+                <button
+                  onClick={() => docsDrawer.setIsOpen(!docsDrawer.isOpen)}
+                  className="md:hidden px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
+                  aria-label={
+                    docsDrawer.isOpen
+                      ? "Close docs navigation"
+                      : "Open docs navigation"
+                  }
+                >
+                  {docsDrawer.isOpen ? (
+                    <PanelLeftClose className="text-neutral-600" size={16} />
+                  ) : (
+                    <PanelLeft className="text-neutral-600" size={16} />
+                  )}
+                </button>
+              )}
               <Link
                 to="/"
                 className="font-semibold text-2xl font-serif hover:scale-105 transition-transform mr-4"
@@ -59,7 +85,7 @@ export function Header() {
                 />
               </Link>
               <div
-                className="relative"
+                className="relative hidden sm:block"
                 onMouseEnter={() => setIsProductOpen(true)}
                 onMouseLeave={() => setIsProductOpen(false)}
               >
@@ -130,13 +156,13 @@ export function Header() {
               </Link>
               <Link
                 to="/blog"
-                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+                className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
               >
                 Blog
               </Link>
               <Link
                 to="/pricing"
-                className="text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
+                className="hidden sm:block text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
               >
                 Pricing
               </Link>
@@ -147,17 +173,6 @@ export function Header() {
                 Enterprise
               </Link>
             </div>
-
-            <Link
-              to="/"
-              className="sm:hidden font-semibold text-2xl font-serif hover:scale-105 transition-transform"
-            >
-              <img
-                src="/api/images/hyprnote/logo.svg"
-                alt="Hyprnote"
-                className="h-6"
-              />
-            </Link>
 
             <nav className="hidden sm:flex items-center gap-2">
               <Link

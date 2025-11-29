@@ -132,6 +132,8 @@ impl WindowImpl for AppWindow {
                 let window = self
                     .window_builder(app, "/app/settings")
                     .resizable(true)
+                    .minimizable(true)
+                    .maximizable(true)
                     .min_inner_size(800.0, 600.0)
                     .build()?;
 

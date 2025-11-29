@@ -47,16 +47,16 @@ function Component() {
       >
         <div className="min-h-screen flex flex-col">
           <Header />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          {!isDocsPage && <Footer />}
           {isDocsPage && (
             <MobileDocsDrawer
               isOpen={isDocsDrawerOpen}
               onClose={() => setIsDocsDrawerOpen(false)}
             />
           )}
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          {!isDocsPage && <Footer />}
         </div>
       </DocsDrawerContext.Provider>
     </HeroContext.Provider>
@@ -116,25 +116,29 @@ function MobileDocsDrawer({
   }, []);
 
   return (
-    <div
-      className={`md:hidden bg-white border-b border-neutral-100 shadow-sm overflow-hidden transition-all duration-300 ease-in-out ${
-        isOpen ? "max-h-[500px]" : "max-h-0 border-b-0"
-      }`}
-    >
-      <div className="max-w-6xl mx-auto">
-        <div className="border-x border-neutral-100">
-          <div className="px-4 py-4">
-            <div className="overflow-y-auto max-h-[450px] pr-2">
-              <DocsNavigation
-                sections={docsBySection.sections}
-                currentSlug={currentSlug}
-                onLinkClick={onClose}
-              />
-            </div>
-          </div>
+    <>
+      {/* Overlay backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      {/* Drawer */}
+      <div
+        className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white border-r border-neutral-100 shadow-lg z-50 md:hidden transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="h-full overflow-y-auto p-4">
+          <DocsNavigation
+            sections={docsBySection.sections}
+            currentSlug={currentSlug}
+            onLinkClick={onClose}
+          />
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -13,12 +13,14 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../../contexts/shell";
+import { useIsLinux } from "../../../hooks/usePlatform";
 import {
   type Tab,
   uniqueIdfromTab,
   useTabs,
 } from "../../../store/zustand/tabs";
 import { ChatFloatingButton } from "../../chat";
+import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
@@ -58,6 +60,7 @@ export function Body() {
 
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
+  const isLinux = useIsLinux();
   const {
     select,
     close,
@@ -93,8 +96,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
       className={cn([
         "w-full h-9 flex items-center",
         !leftsidebar.expanded && "pl-[72px]",
+        isLinux && "pl-3",
       ])}
     >
+      {isLinux && <TrafficLights className="mr-2" />}
       {!leftsidebar.expanded && (
         <Button
           size="icon"

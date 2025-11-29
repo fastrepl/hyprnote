@@ -23,6 +23,8 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useTemplateNavigation } from "../../../components/settings/template/utils";
+import { TrafficLights } from "../../../components/window/traffic-lights";
+import { useIsLinux } from "../../../hooks/usePlatform";
 import * as main from "../../../store/tinybase/main";
 
 const TAB_KEYS = [
@@ -166,6 +168,7 @@ function Group({
   includeTrafficLight?: boolean;
 }) {
   const navigate = Route.useNavigate();
+  const isLinux = useIsLinux();
 
   const handleTabClick = async (tab: TabKey) => {
     if (tab === "feedback") {
@@ -184,7 +187,11 @@ function Group({
         expandHeight && "flex-1",
       ])}
     >
-      {includeTrafficLight && <div data-tauri-drag-region className="h-9" />}
+      {includeTrafficLight && (
+        <div data-tauri-drag-region className="h-9 flex items-center px-3">
+          {isLinux && <TrafficLights />}
+        </div>
+      )}
       {tabs.map((tab) => {
         const tabInfo = info(tab);
         const Icon = tabInfo.icon;

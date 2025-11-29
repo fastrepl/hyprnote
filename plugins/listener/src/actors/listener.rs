@@ -128,7 +128,7 @@ impl Actor for ListenerActor {
 
                 if let Err(error) = (SessionEvent::StreamResponse {
                     session_id: state.args.session_id.clone(),
-                    response,
+                    response: Box::new(response),
                 })
                 .emit(&state.args.app)
                 {

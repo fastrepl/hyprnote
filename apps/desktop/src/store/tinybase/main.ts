@@ -16,34 +16,21 @@ import {
   createQueries,
   createRelationships,
   type MergeableStore,
-  type TablesSchema,
-  ValuesSchema,
 } from "tinybase/with-schemas";
 
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
+import { SCHEMA, type Schemas } from "@hypr/store";
 import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
 import { createLocalPersister2 } from "./localPersister2";
-import { externalTableSchemaForTinybase } from "./schema-external";
-import { internalSchemaForTinybase } from "./schema-internal";
 
 export * from "./schema-external";
 export * from "./schema-internal";
 
 export const STORE_ID = "main";
-
-const SCHEMA = {
-  value: {
-    ...internalSchemaForTinybase.value,
-  } as const satisfies ValuesSchema,
-  table: {
-    ...externalTableSchemaForTinybase,
-    ...internalSchemaForTinybase.table,
-  } as const satisfies TablesSchema,
-};
 
 export const TABLES = Object.keys(
   SCHEMA.table,
@@ -71,7 +58,7 @@ const {
 
 export const UI = _UI as _UI.WithSchemas<Schemas>;
 export type Store = MergeableStore<Schemas>;
-export type Schemas = [typeof SCHEMA.table, typeof SCHEMA.value];
+export type { Schemas };
 
 export const testUtils = {
   useCreateMergeableStore,

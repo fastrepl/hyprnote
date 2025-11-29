@@ -9,7 +9,8 @@
     {
       "id": "calendar.main",
       "title": "Calendar",
-      "entry": "dist/ui.js"
+      "entry": "dist/ui.js",
+      "styles": "dist/styles.css"
     }
   ],
   "permissions": {}

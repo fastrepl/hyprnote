@@ -1,21 +1,5 @@
 {
   "name": "@hypr/extensions",
   "version": "0.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "node build.mjs build",
-    "build:hello-world": "node build.mjs build hello-world",
-    "build:calendar": "node build.mjs build calendar",
-    "clean": "node build.mjs clean",
-    "install:dev": "node build.mjs install"
-  },
-  "devDependencies": {
-    "@hypr/ui": "workspace:^",
-    "@hypr/utils": "workspace:^",
-    "@types/react": "^19.2.7",
-    "esbuild": "^0.24.0",
-    "react": "^19.2.0",
-    "typescript": "~5.6.3"
-  }
+  "private": true
 }

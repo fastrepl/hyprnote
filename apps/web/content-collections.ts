@@ -401,6 +401,149 @@ const vs = defineCollection({
   },
 });
 
+const shortcuts = defineCollection({
+  name: "shortcuts",
+  directory: "content/shortcuts",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    category: z.string(),
+    prompt: z.string(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      mdx,
+      slug,
+    };
+  },
+});
+
+const roadmap = defineCollection({
+  name: "roadmap",
+  directory: "content/roadmap",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    title: z.string(),
+    status: z.enum(["todo", "in-progress", "done"]),
+    created: z.string(),
+    updated: z.string().optional(),
+    labels: z.array(z.string()).optional(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    const githubIssueRegex =
+      /https:\/\/github\.com\/[^\/\s]+\/[^\/\s]+\/issues\/\d+/g;
+    const githubIssues = document.content.match(githubIssueRegex) || [];
+
+    return {
+      ...document,
+      mdx,
+      slug,
+      githubIssues,
+    };
+  },
+});
+
+const handbook = defineCollection({
+  name: "handbook",
+  directory: "content/handbook",
+  include: "**/*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    title: z.string(),
+    section: z.string(),
+    summary: z.string().optional(),
+    author: z.string().optional(),
+    created: z.string().optional(),
+    updated: z.string().optional(),
+  }),
+  transform: async (document, context) => {
+    const toc = extractToc(document.content);
+
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const pathParts = document._meta.path.split("/");
+    const fileName = pathParts.pop()!.replace(/\.mdx$/, "");
+
+    const sectionFolder = pathParts[0] || "general";
+
+    const isIndex = fileName === "index";
+
+    const orderMatch = fileName.match(/^(\d+)\./);
+    const order = orderMatch ? parseInt(orderMatch[1], 10) : 999;
+
+    const cleanFileName = fileName.replace(/^\d+\./, "");
+    const cleanPath =
+      pathParts.length > 0
+        ? `${pathParts.join("/")}/${cleanFileName}`
+        : cleanFileName;
+    const slug = cleanPath;
+
+    return {
+      ...document,
+      mdx,
+      slug,
+      sectionFolder,
+      isIndex,
+      order,
+      toc,
+    };
+  },
+});
+
 export default defineConfig({
   collections: [
     articles,
@@ -408,8 +551,11 @@ export default defineConfig({
     docs,
     legal,
     templates,
+    shortcuts,
     hooks,
     deeplinks,
     vs,
+    handbook,
+    roadmap,
   ],
 });

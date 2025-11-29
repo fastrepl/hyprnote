@@ -21,7 +21,7 @@ export type PipelineStatusType = z.infer<typeof PipelineStatus>;
 const StatusState = z.object({
   status: PipelineStatus,
   transcript: z.string().optional(),
-  llmResult: z.any().optional(),
+  llmResult: z.string().optional(),
   error: z.string().optional(),
 });
 
@@ -29,7 +29,7 @@ export type StatusStateType = z.infer<typeof StatusState>;
 
 type StartAudioPipelineInput = {
   userId: string;
-  audioUrl: string;
+  fileId: string;
 };
 
 // Workflow definition type matching the server-side handler signatures.
@@ -52,7 +52,7 @@ function getRestateClient() {
 export const startAudioPipeline = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
-      audioUrl: z.string(),
+      fileId: z.string(),
       pipelineId: z.string().optional(),
     }),
   )
@@ -64,6 +64,23 @@ export const startAudioPipeline = createServerFn({ method: "POST" })
       return { error: true, message: "Unauthorized" };
     }
 
+    const userId = userData.user.id;
+
+    // Validate fileId belongs to the authenticated user
+    // fileId format: {userId}/{timestamp}-{fileName}
+    const segments = data.fileId.split("/").filter(Boolean);
+    const [ownerId, ...rest] = segments;
+
+    if (
+      !ownerId ||
+      ownerId !== userId ||
+      rest.length === 0 ||
+      rest.some((s) => s === "." || s === "..")
+    ) {
+      return { error: true, message: "Invalid fileId" };
+    }
+
+    const safeFileId = `${userId}/${rest.join("/")}`;
     const pipelineId = data.pipelineId ?? crypto.randomUUID();
 
     try {
@@ -74,8 +91,8 @@ export const startAudioPipeline = createServerFn({ method: "POST" })
           pipelineId,
         );
       const handle = await workflowClient.workflowSubmit({
-        userId: userData.user.id,
-        audioUrl: data.audioUrl,
+        userId,
+        fileId: safeFileId,
       });
 
       return {

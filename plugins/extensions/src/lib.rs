@@ -29,6 +29,7 @@ pub struct PanelInfo {
     pub title: String,
     pub entry: String,
     pub entry_path: Option<String>,
+    pub styles_path: Option<String>,
 }
 
 pub struct State {

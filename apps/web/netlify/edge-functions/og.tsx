@@ -3,10 +3,17 @@ import React from "https://esm.sh/react@18.2.0";
 // deno-lint-ignore no-import-prefix
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
-const templateSchema = z.object({
+const meetingSchema = z.object({
   type: z.literal("meeting"),
   title: z.string(),
   headers: z.array(z.string()),
+});
+
+const templatesSchema = z.object({
+  type: z.literal("templates"),
+  title: z.string(),
+  category: z.string(),
+  description: z.string().optional(),
 });
 
 const changelogSchema = z.object({
@@ -29,7 +36,7 @@ const docsSchema = z.object({
   description: z.string().optional(),
 });
 
-const OGSchema = z.discriminatedUnion("type", [templateSchema, changelogSchema, blogSchema, docsSchema]);
+const OGSchema = z.discriminatedUnion("type", [meetingSchema, templatesSchema, changelogSchema, blogSchema, docsSchema]);
 
 function preventWidow(text: string): string {
   const words = text.trim().split(/\s+/);
@@ -74,6 +81,15 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
     return result.success ? result.data : null;
   }
 
+  if (type === "templates") {
+    const title = url.searchParams.get("title");
+    const category = url.searchParams.get("category");
+    const description = url.searchParams.get("description") || undefined;
+
+    const result = OGSchema.safeParse({ type, title, category, description });
+    return result.success ? result.data : null;
+  }
+
   const title = url.searchParams.get("title");
   const headers = url.searchParams.getAll("headers");
 
@@ -81,7 +97,7 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
   return result.success ? result.data : null;
 }
 
-function renderTemplate(params: z.infer<typeof templateSchema>) {
+function renderMeetingTemplate(params: z.infer<typeof meetingSchema>) {
   return (
     <div
       style={{
@@ -222,6 +238,24 @@ function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
   );
 }
 
+function renderTemplatesTemplate(params: z.infer<typeof templatesSchema>) {
+  return (
+    <div style={{ width: '100%', height: '100%', paddingLeft: 56, paddingRight: 56, paddingTop: 55, paddingBottom: 55, background: 'linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', overflow: 'hidden', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', display: 'flex' }}>
+      <div style={{ justifyContent: 'flex-start', alignItems: 'center', gap: 12, display: 'flex' }}>
+        <img style={{ width: 48, height: 48 }} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
+        <div style={{ color: '#292524', fontSize: 36, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>Meeting Templates</div>
+      </div>
+      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 12, display: 'flex' }}>
+        <div style={{ color: '#525252', fontSize: 32, fontFamily: 'IBM Plex Mono', fontWeight: '500', wordWrap: 'break-word' }}>{params.category}</div>
+        <div style={{ alignSelf: 'stretch', color: '#292524', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>{preventWidow(params.title)}</div>
+        {params.description && (
+          <div style={{ alignSelf: 'stretch', color: '#525252', fontSize: 36, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word' }}>{params.description}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default async function handler(req: Request) {
   const url = new URL(req.url);
 
@@ -246,11 +280,13 @@ export default async function handler(req: Request) {
       response = renderBlogTemplate(params);
     } else if (params.type === "docs") {
       response = renderDocsTemplate(params);
+    } else if (params.type === "templates") {
+      response = renderTemplatesTemplate(params);
     } else {
-      response = renderTemplate(params);
+      response = renderMeetingTemplate(params);
     }
 
-    const needsCustomFonts = params.type === "changelog" || params.type === "blog" || params.type === "docs";
+    const needsCustomFonts = params.type === "changelog" || params.type === "blog" || params.type === "docs" || params.type === "templates";
     const fonts = needsCustomFonts
       ? [
         {

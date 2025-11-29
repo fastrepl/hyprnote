@@ -33,9 +33,5 @@ export const uploadAudioFile = createServerFn({ method: "POST" })
       return { error: true, message: error.message };
     }
 
-    const { data: urlData } = supabase.storage
-      .from("audio-files")
-      .getPublicUrl(uploadData.path);
-
-    return { success: true, url: urlData.publicUrl };
+    return { success: true, fileId: uploadData.path };
   });

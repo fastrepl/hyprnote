@@ -28,7 +28,7 @@ common_event_derives! {
         #[serde(rename = "streamResponse")]
         StreamResponse {
             session_id: String,
-            response: StreamResponse,
+            response: Box<StreamResponse>,
         },
     }
 }

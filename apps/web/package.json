@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "VITE_APP_URL=\"http://localhost:3000\" env-cmd --silent -f ./.env -- vite dev --port 3000",
+    "dev": "VITE_APP_URL=\"http://localhost:3000\" dotenvx run -f ../../.env.supabase -f .env -- vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
     "test": "playwright test",
@@ -73,7 +73,6 @@
     "@types/react-dom": "^19.2.3",
     "@types/semver": "^7.7.1",
     "@vitejs/plugin-react": "^5.1.1",
-    "env-cmd": "^11.0.0",
     "jsdom": "^27.2.0",
     "netlify": "^23.11.1",
     "tanstack-router-sitemap": "^1.0.13",

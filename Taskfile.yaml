@@ -89,23 +89,7 @@ tasks:
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v '''' ''auth.external.github.redirect_uri'' || true'
       - dprint fmt supabase/config.toml
       - task: supabase-start:capture
-      - task: env:merge
-        vars:
-          ENV_SOURCE: ".supabase/generated.env"
-          ENV_TARGET: "apps/restate/.env"
-      - task: env:merge
-        vars:
-          ENV_SOURCE: ".supabase/generated.env"
-          ENV_TARGET: "apps/api/.env"
-      - task: env:merge
-        vars:
-          ENV_SOURCE: ".supabase/generated.env"
-          ENV_TARGET: "apps/web/.env"
-      - task: env:merge
-        vars:
-          ENV_SOURCE: ".supabase/generated.env"
-          ENV_TARGET: "apps/desktop/.env"
-      - rm -f .supabase/generated.env
+      - mv .supabase/generated.env .env.supabase
       - open http://127.0.0.1:54323
 
   supabase-start:capture:

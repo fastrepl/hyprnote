@@ -602,10 +602,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "heading" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "# "
       return (
-        <motion.h1
-          initial={{ opacity: 0, y: 2 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
+        <h1
           className={cn([
             "font-bold text-stone-700",
             isMobile ? "text-xl" : "text-2xl",
@@ -617,6 +614,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       );
     }
 
+    // Transformed state for bullets
     if (currentLine.type === "bullet" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "- "
       return (
@@ -634,6 +632,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       );
     }
 
+    // Transformed state for bold text
     if (currentLine.type === "bold" && isTransformed) {
       const parts = typingText.split(/(\*\*.*?\*\*)/g);
       return (

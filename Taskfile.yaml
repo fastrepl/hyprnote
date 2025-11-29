@@ -92,6 +92,10 @@ tasks:
       - task: env:merge
         vars:
           ENV_SOURCE: ".supabase/generated.env"
+          ENV_TARGET: "apps/restate/.env"
+      - task: env:merge
+        vars:
+          ENV_SOURCE: ".supabase/generated.env"
           ENV_TARGET: "apps/api/.env"
       - task: env:merge
         vars:

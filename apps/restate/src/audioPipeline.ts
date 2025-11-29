@@ -3,9 +3,10 @@ import * as restate from "@restatedev/restate-sdk-cloudflare-workers/fetch";
 import { serde } from "@restatedev/restate-sdk-zod";
 import { z } from "zod";
 
-import { callOpenRouter, type ChatResponse } from "./openrouter.js";
-import { createSignedUrl, deleteFile } from "./supabase.js";
-import { limiterForUser } from "./userRateLimiter.js";
+import { type Env } from "./env";
+import { callOpenRouter, type ChatResponse } from "./openrouter";
+import { createSignedUrl, deleteFile } from "./supabase";
+import { limiterForUser } from "./userRateLimiter";
 
 const StartAudioPipeline = z.object({
   userId: z.string(),
@@ -132,17 +133,7 @@ export const audioPipeline = restate.workflow({
         ctx.set("status", "QUEUED" as PipelineStatusType);
         ctx.set("fileId", req.fileId);
 
-        const env = (
-          ctx as unknown as {
-            env?: {
-              RESTATE_INGRESS_URL?: string;
-              DEEPGRAM_API_KEY?: string;
-              OPENROUTER_API_KEY?: string;
-              SUPABASE_URL?: string;
-              SUPABASE_SERVICE_ROLE_KEY?: string;
-            };
-          }
-        ).env;
+        const env = ctx.request().extraArgs[0] as Env;
 
         try {
           const limiter = limiterForUser(ctx, req.userId);
@@ -154,35 +145,15 @@ export const audioPipeline = restate.workflow({
           ctx.set("status", "TRANSCRIBING" as PipelineStatusType);
           ctx.set("userId", req.userId);
 
-          const ingressBase = env?.RESTATE_INGRESS_URL;
-          if (!ingressBase) {
-            throw new restate.TerminalError(
-              "RESTATE_INGRESS_URL env var is required for callback URL",
-            );
-          }
-
-          const deepgramApiKey = env?.DEEPGRAM_API_KEY;
-          if (!deepgramApiKey) {
-            throw new restate.TerminalError(
-              "DEEPGRAM_API_KEY env var is required",
-            );
-          }
-
-          if (!env?.SUPABASE_URL || !env?.SUPABASE_SERVICE_ROLE_KEY) {
-            throw new restate.TerminalError(
-              "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars are required",
-            );
-          }
-
           const audioUrl = await ctx.run("create-signed-url", () =>
             createSignedUrl(env, req.fileId, 3600),
           );
 
           const pipelineId = ctx.key;
-          const callbackUrl = `${ingressBase.replace(/\/+$/, "")}/AudioPipeline/${encodeURIComponent(pipelineId)}/onDeepgramResult`;
+          const callbackUrl = `${env.RESTATE_INGRESS_URL.replace(/\/+$/, "")}/AudioPipeline/${encodeURIComponent(pipelineId)}/onDeepgramResult`;
 
           const requestId = await ctx.run("deepgram", () =>
-            callDeepgram(audioUrl, callbackUrl, deepgramApiKey),
+            callDeepgram(audioUrl, callbackUrl, env.DEEPGRAM_API_KEY),
           );
           ctx.set("deepgramRequestId", requestId);
 
@@ -192,15 +163,8 @@ export const audioPipeline = restate.workflow({
 
           ctx.set("status", "LLM_RUNNING" as PipelineStatusType);
 
-          const openrouterApiKey = env?.OPENROUTER_API_KEY;
-          if (!openrouterApiKey) {
-            throw new restate.TerminalError(
-              "OPENROUTER_API_KEY env var is required",
-            );
-          }
-
           const llmResult = await ctx.run("llm", () =>
-            processTranscriptWithLLM(transcript, openrouterApiKey),
+            processTranscriptWithLLM(transcript, env.OPENROUTER_API_KEY),
           );
 
           ctx.set("llmResult", llmResult);
@@ -222,15 +186,13 @@ export const audioPipeline = restate.workflow({
 
           throw err;
         } finally {
-          if (env?.SUPABASE_URL && env?.SUPABASE_SERVICE_ROLE_KEY) {
-            try {
-              await ctx.run("cleanup-file", () => deleteFile(env, req.fileId));
-            } catch (cleanupErr) {
-              console.error(
-                "Failed to delete file after processing:",
-                cleanupErr,
-              );
-            }
+          try {
+            await ctx.run("cleanup-file", () => deleteFile(env, req.fileId));
+          } catch (cleanupErr) {
+            console.error(
+              "Failed to delete file after processing:",
+              cleanupErr,
+            );
           }
         }
       },

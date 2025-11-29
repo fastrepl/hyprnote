@@ -2,6 +2,8 @@ import { useRouteContext } from "@tanstack/react-router";
 import { useCallback } from "react";
 import { useShallow } from "zustand/shallow";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+
 import { useTabs } from "../../store/zustand/tabs";
 import { id } from "../../utils";
 
@@ -29,6 +31,8 @@ export function useNewNote({
       created_at: new Date().toISOString(),
       title: "",
     });
+
+    analyticsCommands.event({ event: "note_created", has_event_id: false });
 
     const ff = behavior === "new" ? openNew : openCurrent;
     ff({ type: "sessions", id: sessionId });

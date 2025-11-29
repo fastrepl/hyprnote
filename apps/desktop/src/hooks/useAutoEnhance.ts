@@ -1,6 +1,7 @@
 import { usePrevious } from "@uidotdev/usehooks";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { md2json } from "@hypr/tiptap/shared";
 
 import { useListener } from "../contexts/listener";
@@ -77,6 +78,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
       !startedTasksRef.current.has(autoEnhancedNoteId)
     ) {
       startedTasksRef.current.add(autoEnhancedNoteId);
+      analyticsCommands.event({ event: "summary_generated", is_auto: true });
       void enhanceTask.start({
         model,
         args: { sessionId, enhancedNoteId: autoEnhancedNoteId },

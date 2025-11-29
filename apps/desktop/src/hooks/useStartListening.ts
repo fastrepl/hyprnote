@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+
 import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
 import * as main from "../store/tinybase/main";
@@ -33,6 +35,12 @@ export function useStartListening(sessionId: string) {
       user_id: user_id ?? "",
       created_at: new Date().toISOString(),
       started_at: startedAt,
+    });
+
+    const eventId = store.getCell("sessions", sessionId, "event_id");
+    analyticsCommands.event({
+      event: "recording_started",
+      has_calendar_event: !!eventId,
     });
 
     const handlePersist: HandlePersistCallback = (words, hints) => {

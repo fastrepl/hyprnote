@@ -1,5 +1,13 @@
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import NoteEditor, {
   type JSONContent,
   type TiptapEditor,
@@ -41,12 +49,34 @@ export const RawEditor = forwardRef<
     }
   }, [store, sessionId]);
 
-  const handleChange = main.UI.useSetPartialRowCallback(
+  const persistChange = main.UI.useSetPartialRowCallback(
     "sessions",
     sessionId,
     (input: JSONContent) => ({ raw_md: JSON.stringify(input) }),
     [],
     main.STORE_ID,
+  );
+
+  const hasTrackedWriteRef = useRef(false);
+
+  const handleChange = useCallback(
+    (input: JSONContent) => {
+      persistChange(input);
+
+      if (!hasTrackedWriteRef.current) {
+        const hasContent =
+          input.content &&
+          input.content.some(
+            (node: { content?: Array<{ text?: string }> }) =>
+              node.content && node.content.some((child) => child.text?.trim()),
+          );
+        if (hasContent) {
+          hasTrackedWriteRef.current = true;
+          analyticsCommands.event({ event: "note_written", has_content: true });
+        }
+      }
+    },
+    [persistChange],
   );
 
   const mentionConfig = useMemo(

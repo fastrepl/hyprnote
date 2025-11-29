@@ -159,7 +159,7 @@ export function Footer() {
                     to="/gallery"
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
-                    Gallery
+                    Prompt Gallery
                   </Link>
                 </li>
               </ul>

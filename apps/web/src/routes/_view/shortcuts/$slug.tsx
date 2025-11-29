@@ -57,7 +57,7 @@ function Component() {
         <div className="flex">
           <LeftSidebar shortcut={shortcut} />
           <MainContent shortcut={shortcut} />
-          <RightSidebar />
+          <RightSidebar shortcut={shortcut} />
         </div>
       </div>
     </div>
@@ -213,7 +213,9 @@ function ShortcutFooter() {
   );
 }
 
-function RightSidebar() {
+function RightSidebar({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
+  const rawMdxUrl = `https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/shortcuts/${shortcut.slug}.mdx?plain=1`;
+
   return (
     <aside className="hidden sm:block w-80 shrink-0">
       <div className="sticky top-[69px] space-y-4 px-4 py-6">
@@ -230,6 +232,16 @@ function RightSidebar() {
             Free to use. No credit card required.
           </p>
         </div>
+
+        <a
+          href={rawMdxUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 px-4 py-3 border border-neutral-200 rounded-sm bg-white hover:bg-neutral-50 transition-colors text-sm text-neutral-600 hover:text-neutral-800"
+        >
+          <Icon icon="mdi:file-document-outline" className="text-lg" />
+          View raw MDX source
+        </a>
 
         <div className="border border-dashed border-neutral-300 rounded-sm p-6 bg-stone-50/50 text-center">
           <h3 className="font-serif text-lg text-stone-600 mb-3">

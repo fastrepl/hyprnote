@@ -36,7 +36,7 @@ const featuresList = [
   { to: "/product/ai-assistant", label: "AI Assistant" },
   { to: "/product/mini-apps", label: "Mini Apps" },
   { to: "/product/workflows", label: "Workflows", badge: "Coming Soon" },
-  { to: "/gallery", label: "Gallery" },
+  { to: "/gallery", label: "Prompt Gallery" },
 ];
 
 export function Header() {

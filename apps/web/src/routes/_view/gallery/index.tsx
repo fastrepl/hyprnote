@@ -28,32 +28,27 @@ export const Route = createFileRoute("/_view/gallery/")({
         typeof search.category === "string" ? search.category : undefined,
     };
   },
-  head: ({ search }) => {
-    const typeLabel =
-      search.type === "shortcut"
-        ? "Shortcuts"
-        : search.type === "template"
-          ? "Templates"
-          : "Templates & Shortcuts";
-    return {
-      meta: [
-        { title: `${typeLabel} Gallery - Hyprnote` },
-        {
-          name: "description",
-          content:
-            "Discover our library of AI meeting templates and shortcuts. Get structured summaries, extract action items, and more with Hyprnote's AI-powered tools.",
-        },
-        { property: "og:title", content: `${typeLabel} Gallery - Hyprnote` },
-        {
-          property: "og:description",
-          content:
-            "Browse our collection of AI meeting templates and shortcuts. From engineering standups to sales discovery calls, find the perfect tool for your workflow.",
-        },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://hyprnote.com/gallery" },
-      ],
-    };
-  },
+  head: () => ({
+    meta: [
+      { title: "Templates & Shortcuts Gallery - Hyprnote" },
+      {
+        name: "description",
+        content:
+          "Discover our library of AI meeting templates and shortcuts. Get structured summaries, extract action items, and more with Hyprnote's AI-powered tools.",
+      },
+      {
+        property: "og:title",
+        content: "Templates & Shortcuts Gallery - Hyprnote",
+      },
+      {
+        property: "og:description",
+        content:
+          "Browse our collection of AI meeting templates and shortcuts. From engineering standups to sales discovery calls, find the perfect tool for your workflow.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://hyprnote.com/gallery" },
+    ],
+  }),
 });
 
 type GalleryItem =

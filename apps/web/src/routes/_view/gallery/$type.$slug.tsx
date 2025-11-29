@@ -68,7 +68,6 @@ export const Route = createFileRoute("/_view/gallery/$type/$slug")({
 function Component() {
   const data = Route.useLoaderData();
   const { type, item } = data;
-  const isTemplate = type === "template";
 
   return (
     <div className="min-h-screen">
@@ -76,7 +75,7 @@ function Component() {
         <div className="flex">
           <LeftSidebar type={type} item={item} />
           <MainContent type={type} item={item} />
-          <RightSidebar type={type} />
+          <RightSidebar type={type} item={item} />
         </div>
       </div>
     </div>
@@ -158,8 +157,6 @@ function MainContent({
   type: GalleryType;
   item: (typeof allTemplates)[0] | (typeof allShortcuts)[0];
 }) {
-  const isTemplate = type === "template";
-
   return (
     <main className="flex-1 min-w-0 pb-6 px-4 lg:px-8 py-6">
       <div className="lg:hidden mb-6">
@@ -338,9 +335,16 @@ function ItemFooter({ type }: { type: GalleryType }) {
   );
 }
 
-function RightSidebar({ type }: { type: GalleryType }) {
+function RightSidebar({
+  type,
+  item,
+}: {
+  type: GalleryType;
+  item: (typeof allTemplates)[0] | (typeof allShortcuts)[0];
+}) {
   const isTemplate = type === "template";
   const contentDir = isTemplate ? "templates" : "shortcuts";
+  const rawMdxUrl = `https://github.com/fastrepl/hyprnote/blob/main/apps/web/content/${contentDir}/${item.slug}.mdx?plain=1`;
 
   return (
     <aside className="hidden sm:block w-80 shrink-0">
@@ -358,6 +362,16 @@ function RightSidebar({ type }: { type: GalleryType }) {
             Free to use. No credit card required.
           </p>
         </div>
+
+        <a
+          href={rawMdxUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 px-4 py-3 border border-neutral-200 rounded-sm bg-white hover:bg-neutral-50 transition-colors text-sm text-neutral-600 hover:text-neutral-800"
+        >
+          <Icon icon="mdi:file-document-outline" className="text-lg" />
+          View raw MDX source
+        </a>
 
         <div className="border border-dashed border-neutral-300 rounded-sm p-6 bg-stone-50/50 text-center">
           <h3 className="font-serif text-lg text-stone-600 mb-3">Contribute</h3>

@@ -1,0 +1,52 @@
+on:
+  workflow_dispatch:
+    inputs:
+      token:
+        description: "Your Infisical token"
+        required: true
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -1sLf 'https://artifacts-cli.infisical.com/setup.deb.sh' | sudo -E bash
+      - run: sudo apt-get update && sudo apt-get install -y infisical
+      - run: |
+          infisical secrets set "AM_API_KEY=${{ secrets.AM_API_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "AM_SECRET_TOKEN=${{ secrets.AM_SECRET_TOKEN }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "APPLE_CERTIFICATE=${{ secrets.APPLE_CERTIFICATE }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "APPLE_CERTIFICATE_PASSWORD=${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "APPLE_ID=${{ secrets.APPLE_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "APPLE_PASSWORD=${{ secrets.APPLE_PASSWORD }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "APPSTORE_API_KEY_ID=${{ secrets.APPSTORE_API_KEY_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "APPSTORE_API_PRIVATE_KEY=${{ secrets.APPSTORE_API_PRIVATE_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "APPSTORE_ISSUER_ID=${{ secrets.APPSTORE_ISSUER_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "ARGOS_TOKEN=${{ secrets.ARGOS_TOKEN }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "CLOUDFLARE_ACCOUNT_ID=${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "CLOUDFLARE_R2_ACCESS_KEY_ID=${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "CLOUDFLARE_R2_ENDPOINT_URL=${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "CLOUDFLARE_R2_SECRET_ACCESS_KEY=${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "CN_API_KEY=${{ secrets.CN_API_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "CN_APPLICATION=${{ secrets.CN_APPLICATION }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "DEVIN_API_KEY=${{ secrets.DEVIN_API_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "FLY_API_TOKEN=${{ secrets.FLY_API_TOKEN }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "KEYCHAIN_PASSWORD=${{ secrets.KEYCHAIN_PASSWORD }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "KEYGEN_ACCOUNT_ID=${{ secrets.KEYGEN_ACCOUNT_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "KEYGEN_VERIFY_KEY=${{ secrets.KEYGEN_VERIFY_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "NETLIFY_AUTH_TOKEN=${{ secrets.NETLIFY_AUTH_TOKEN }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "NETLIFY_SITE_ID=${{ secrets.NETLIFY_SITE_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "PORTER_APP_16472_4993=${{ secrets.PORTER_APP_16472_4993 }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "SUPABASE_ACCESS_TOKEN=${{ secrets.SUPABASE_ACCESS_TOKEN }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "SUPABASE_PROJECT_ID=${{ secrets.SUPABASE_PROJECT_ID }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "TAURI_SIGNING_PRIVATE_KEY=${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "TAURI_SIGNING_PRIVATE_KEY_PASSWORD=${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "VITE_APP_URL=${{ secrets.VITE_APP_URL }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1
+          infisical secrets set "WARPBUILD_API_KEY=${{ secrets.WARPBUILD_API_KEY }}" --path "/github" --env dev --token ${{ inputs.token }} --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1

@@ -10,7 +10,7 @@ export interface StatusState {
     | "DONE"
     | "ERROR";
   transcript?: string;
-  llmResult?: unknown;
+  llmResult?: string;
   error?: string;
 }
 

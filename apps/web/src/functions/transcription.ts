@@ -20,7 +20,7 @@ export type PipelineStatusType = z.infer<typeof PipelineStatus>;
 const StatusState = z.object({
   status: PipelineStatus,
   transcript: z.string().optional(),
-  llmResult: z.unknown().optional(),
+  llmResult: z.string().optional(),
   error: z.string().optional(),
 });
 
@@ -50,13 +50,30 @@ export const startAudioPipeline = createServerFn({ method: "POST" })
       return { error: true, message: "Unauthorized" };
     }
 
+    const userId = userData.user.id;
+
+    // Validate fileId belongs to the authenticated user
+    // fileId format: {userId}/{timestamp}-{fileName}
+    const segments = data.fileId.split("/").filter(Boolean);
+    const [ownerId, ...rest] = segments;
+
+    if (
+      !ownerId ||
+      ownerId !== userId ||
+      rest.length === 0 ||
+      rest.some((s) => s === "." || s === "..")
+    ) {
+      return { error: true, message: "Invalid fileId" };
+    }
+
+    const safeFileId = `${userId}/${rest.join("/")}`;
     const pipelineId = data.pipelineId ?? crypto.randomUUID();
 
     try {
       const restateClient = getRestateClient();
       const handle = await restateClient
         .workflowClient<AudioPipeline>({ name: "AudioPipeline" }, pipelineId)
-        .workflowSubmit({ userId: userData.user.id, fileId: data.fileId });
+        .workflowSubmit({ userId, fileId: safeFileId });
 
       return {
         success: true,

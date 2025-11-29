@@ -281,7 +281,7 @@ function EditorSection() {
         </div>
         <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
           <MockWindow variant="mobile">
-            <div className="p-6 h-[380px] overflow-hidden">
+            <div className="p-6 h-64 overflow-hidden">
               <AnimatedMarkdownDemo isMobile />
             </div>
           </MockWindow>

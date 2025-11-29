@@ -7,6 +7,7 @@ import { createContext, useContext, useState } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { DocsDrawerContext } from "@/hooks/use-docs-drawer";
 
 export const Route = createFileRoute("/_view")({
   component: Component,
@@ -27,6 +28,7 @@ function Component() {
   const router = useRouterState();
   const isDocsPage = router.location.pathname.startsWith("/docs");
   const [onTrigger, setOnTrigger] = useState<(() => void) | null>(null);
+  const [isDocsDrawerOpen, setIsDocsDrawerOpen] = useState(false);
 
   return (
     <HeroContext.Provider
@@ -35,13 +37,17 @@ function Component() {
         setOnTrigger: (callback) => setOnTrigger(() => callback),
       }}
     >
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        {!isDocsPage && <Footer />}
-      </div>
+      <DocsDrawerContext.Provider
+        value={{ isOpen: isDocsDrawerOpen, setIsOpen: setIsDocsDrawerOpen }}
+      >
+        <div className="min-h-screen flex flex-col">
+          <Header />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          {!isDocsPage && <Footer />}
+        </div>
+      </DocsDrawerContext.Provider>
     </HeroContext.Provider>
   );
 }

@@ -6,9 +6,9 @@ import {
 } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 import { X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import { DocsDrawerContext } from "@/hooks/use-docs-drawer";
+import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 
 import { docsStructure } from "./structure";
 
@@ -17,12 +17,10 @@ export const Route = createFileRoute("/_view/docs")({
 });
 
 function Component() {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const docsDrawer = useDocsDrawer();
 
   return (
-    <DocsDrawerContext.Provider
-      value={{ isOpen: isDrawerOpen, setIsOpen: setIsDrawerOpen }}
-    >
+    <>
       <div className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-[calc(100vh-4rem)]">
         <div className="max-w-6xl mx-auto border-x border-neutral-100">
           <div className="flex gap-8">
@@ -31,11 +29,13 @@ function Component() {
           </div>
         </div>
       </div>
-      <MobileDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
-    </DocsDrawerContext.Provider>
+      {docsDrawer && (
+        <MobileDrawer
+          isOpen={docsDrawer.isOpen}
+          onClose={() => docsDrawer.setIsOpen(false)}
+        />
+      )}
+    </>
   );
 }
 

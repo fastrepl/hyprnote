@@ -7,7 +7,7 @@ import {
   SearchIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { Typewriter } from "@hypr/ui/components/ui/typewriter";
 import { cn } from "@hypr/utils";
@@ -2094,6 +2094,113 @@ const floatingPanelTabs = [
   },
 ];
 
+const PROGRESS_DURATION = 5000;
+
+function useAutoProgress({
+  itemCount,
+  selectedIndex,
+  onSelect,
+  duration = PROGRESS_DURATION,
+}: {
+  itemCount: number;
+  selectedIndex: number;
+  onSelect: (index: number) => void;
+  duration?: number;
+}) {
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const startTimeRef = useRef<number>(Date.now());
+  const pausedProgressRef = useRef<number>(0);
+
+  const pause = useCallback(() => {
+    pausedProgressRef.current = progress;
+    setIsPaused(true);
+  }, [progress]);
+
+  const resume = useCallback(() => {
+    startTimeRef.current = Date.now() - pausedProgressRef.current * duration;
+    setIsPaused(false);
+  }, [duration]);
+
+  const goToIndex = useCallback(
+    (index: number) => {
+      onSelect(index);
+      setProgress(0);
+      startTimeRef.current = Date.now();
+      pausedProgressRef.current = 0;
+    },
+    [onSelect],
+  );
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTimeRef.current;
+      const newProgress = Math.min(elapsed / duration, 1);
+      setProgress(newProgress);
+
+      if (newProgress >= 1) {
+        const nextIndex = (selectedIndex + 1) % itemCount;
+        onSelect(nextIndex);
+        setProgress(0);
+        startTimeRef.current = Date.now();
+        pausedProgressRef.current = 0;
+      }
+    };
+
+    const intervalId = setInterval(animate, 50);
+    return () => clearInterval(intervalId);
+  }, [isPaused, selectedIndex, itemCount, onSelect, duration]);
+
+  useEffect(() => {
+    setProgress(0);
+    startTimeRef.current = Date.now();
+    pausedProgressRef.current = 0;
+  }, [selectedIndex]);
+
+  return { progress, isPaused, pause, resume, goToIndex };
+}
+
+function ProgressBar({
+  itemCount,
+  selectedIndex,
+  progress,
+  onSelect,
+  className,
+}: {
+  itemCount: number;
+  selectedIndex: number;
+  progress: number;
+  onSelect: (index: number) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex justify-center gap-2", className)}>
+      {Array.from({ length: itemCount }).map((_, index) => (
+        <button
+          key={index}
+          onClick={() => onSelect(index)}
+          className="h-1 w-8 rounded-full bg-neutral-200 overflow-hidden cursor-pointer"
+          aria-label={`Go to item ${index + 1}`}
+        >
+          <div
+            className="h-full bg-stone-600 transition-all duration-100"
+            style={{
+              width:
+                index < selectedIndex
+                  ? "100%"
+                  : index === selectedIndex
+                    ? `${progress * 100}%`
+                    : "0%",
+            }}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function FloatingPanelSection() {
   return (
     <section className="border-y border-neutral-100 relative">
@@ -2128,14 +2235,27 @@ function FloatingPanelContent() {
   const [selectedTab, setSelectedTab] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const scrollToTab = (index: number) => {
+  const scrollToTab = useCallback((index: number) => {
     setSelectedTab(index);
     if (scrollRef.current) {
       const container = scrollRef.current;
       const scrollLeft = container.offsetWidth * index;
       container.scrollTo({ left: scrollLeft, behavior: "smooth" });
     }
-  };
+  }, []);
+
+  const { progress, pause, resume, goToIndex } = useAutoProgress({
+    itemCount: floatingPanelTabs.length,
+    selectedIndex: selectedTab,
+    onSelect: scrollToTab,
+  });
+
+  const handleSelect = useCallback(
+    (index: number) => {
+      goToIndex(index);
+    },
+    [goToIndex],
+  );
 
   return (
     <div className="border-t border-neutral-100">
@@ -2143,33 +2263,76 @@ function FloatingPanelContent() {
         scrollRef={scrollRef}
         selectedTab={selectedTab}
         setSelectedTab={setSelectedTab}
-        scrollToTab={scrollToTab}
+        progress={progress}
+        onSelect={handleSelect}
+        onPause={pause}
+        onResume={resume}
       />
       <FloatingPanelTablet
         selectedTab={selectedTab}
-        setSelectedTab={setSelectedTab}
+        progress={progress}
+        onSelect={handleSelect}
+        onPause={pause}
+        onResume={resume}
       />
-      <FloatingPanelDesktop />
+      <FloatingPanelDesktop
+        selectedTab={selectedTab}
+        progress={progress}
+        onSelect={handleSelect}
+        onPause={pause}
+        onResume={resume}
+      />
     </div>
   );
 }
 
 function FloatingPanelTablet({
   selectedTab,
-  setSelectedTab,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
 }: {
   selectedTab: number;
-  setSelectedTab: (index: number) => void;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
 }) {
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (tabsContainerRef.current) {
+      const container = tabsContainerRef.current;
+      const selectedButton = container.children[0]?.children[
+        selectedTab
+      ] as HTMLElement;
+      if (selectedButton) {
+        selectedButton.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }
+  }, [selectedTab]);
+
   return (
-    <div className="min-[800px]:max-[1000px]:block hidden border-t border-neutral-100">
+    <div
+      className="min-[800px]:max-[1000px]:block hidden border-t border-neutral-100"
+      onMouseEnter={onPause}
+      onMouseLeave={onResume}
+    >
       <div className="flex flex-col">
-        <div className="overflow-x-auto scrollbar-hide border-b border-neutral-100">
+        <div
+          ref={tabsContainerRef}
+          className="overflow-x-auto scrollbar-hide border-b border-neutral-100"
+        >
           <div className="flex">
             {floatingPanelTabs.map((tab, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedTab(index)}
+                onClick={() => onSelect(index)}
                 className={cn([
                   "flex flex-col items-start cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
                   selectedTab === index ? "bg-stone-50" : "hover:bg-neutral-50",
@@ -2191,28 +2354,70 @@ function FloatingPanelTablet({
             className="w-full h-full object-cover"
           />
         </div>
+
+        <ProgressBar
+          itemCount={floatingPanelTabs.length}
+          selectedIndex={selectedTab}
+          progress={progress}
+          onSelect={onSelect}
+          className="py-6"
+        />
       </div>
     </div>
   );
 }
 
-function FloatingPanelDesktop() {
-  const [selectedTab, setSelectedTab] = useState<number>(0);
+function FloatingPanelDesktop({
+  selectedTab,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
+}: {
+  selectedTab: number;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
+}) {
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (tabsContainerRef.current) {
+      const selectedElement = tabsContainerRef.current.children[
+        selectedTab
+      ] as HTMLElement;
+      if (selectedElement) {
+        selectedElement.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }
+  }, [selectedTab]);
 
   return (
-    <div className="min-[1000px]:grid hidden grid-cols-2 border-t border-neutral-100">
+    <div
+      className="min-[1000px]:grid hidden grid-cols-2 border-t border-neutral-100"
+      onMouseEnter={onPause}
+      onMouseLeave={onResume}
+    >
       <div
         className="border-r border-neutral-100 relative overflow-hidden"
         style={{ paddingBottom: "56.25%" }}
       >
-        <div className="absolute inset-0 overflow-y-auto">
+        <div
+          ref={tabsContainerRef}
+          className="absolute inset-0 overflow-y-auto"
+        >
           {floatingPanelTabs.map((tab, index) => (
             <div
               key={index}
-              onClick={() => setSelectedTab(index)}
+              onClick={() => onSelect(index)}
               className={cn([
                 "p-6 cursor-pointer transition-colors",
-                index < tabs.length - 1 && "border-b border-neutral-100",
+                index < floatingPanelTabs.length - 1 &&
+                  "border-b border-neutral-100",
                 selectedTab === index ? "bg-stone-50" : "hover:bg-neutral-50",
               ])}
             >
@@ -2227,11 +2432,21 @@ function FloatingPanelDesktop() {
         </div>
       </div>
 
-      <div className="aspect-4/3 overflow-hidden bg-neutral-100 flex items-center justify-center">
-        <img
-          src={floatingPanelTabs[selectedTab].image}
-          alt={`${floatingPanelTabs[selectedTab].title} preview`}
-          className="w-full h-full object-cover"
+      <div className="flex flex-col">
+        <div className="aspect-4/3 overflow-hidden bg-neutral-100 flex items-center justify-center">
+          <img
+            src={floatingPanelTabs[selectedTab].image}
+            alt={`${floatingPanelTabs[selectedTab].title} preview`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <ProgressBar
+          itemCount={floatingPanelTabs.length}
+          selectedIndex={selectedTab}
+          progress={progress}
+          onSelect={onSelect}
+          className="py-6"
         />
       </div>
     </div>
@@ -2242,15 +2457,25 @@ function FloatingPanelMobile({
   scrollRef,
   selectedTab,
   setSelectedTab,
-  scrollToTab,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
 }: {
   scrollRef: React.RefObject<HTMLDivElement | null>;
   selectedTab: number;
   setSelectedTab: (index: number) => void;
-  scrollToTab: (index: number) => void;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
 }) {
   return (
-    <div className="max-[800px]:block hidden">
+    <div
+      className="max-[800px]:block hidden"
+      onTouchStart={onPause}
+      onTouchEnd={onResume}
+    >
       <div
         ref={scrollRef}
         className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
@@ -2287,21 +2512,13 @@ function FloatingPanelMobile({
         </div>
       </div>
 
-      <div className="flex justify-center gap-2 py-6">
-        {tabs.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollToTab(index)}
-            className={cn([
-              "h-1 rounded-full transition-all cursor-pointer",
-              selectedTab === index
-                ? "w-8 bg-stone-600"
-                : "w-8 bg-neutral-300 hover:bg-neutral-400",
-            ])}
-            aria-label={`Go to tab ${index + 1}`}
-          />
-        ))}
-      </div>
+      <ProgressBar
+        itemCount={floatingPanelTabs.length}
+        selectedIndex={selectedTab}
+        progress={progress}
+        onSelect={onSelect}
+        className="py-6"
+      />
     </div>
   );
 }

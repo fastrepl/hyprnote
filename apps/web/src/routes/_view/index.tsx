@@ -25,6 +25,113 @@ import { useHeroContext } from "./route";
 
 const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 
+const PROGRESS_DURATION = 5000;
+
+function useAutoProgress({
+  itemCount,
+  selectedIndex,
+  onSelect,
+  duration = PROGRESS_DURATION,
+}: {
+  itemCount: number;
+  selectedIndex: number;
+  onSelect: (index: number) => void;
+  duration?: number;
+}) {
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const startTimeRef = useRef<number>(Date.now());
+  const pausedProgressRef = useRef<number>(0);
+
+  const pause = useCallback(() => {
+    pausedProgressRef.current = progress;
+    setIsPaused(true);
+  }, [progress]);
+
+  const resume = useCallback(() => {
+    startTimeRef.current = Date.now() - pausedProgressRef.current * duration;
+    setIsPaused(false);
+  }, [duration]);
+
+  const goToIndex = useCallback(
+    (index: number) => {
+      onSelect(index);
+      setProgress(0);
+      startTimeRef.current = Date.now();
+      pausedProgressRef.current = 0;
+    },
+    [onSelect],
+  );
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTimeRef.current;
+      const newProgress = Math.min(elapsed / duration, 1);
+      setProgress(newProgress);
+
+      if (newProgress >= 1) {
+        const nextIndex = (selectedIndex + 1) % itemCount;
+        onSelect(nextIndex);
+        setProgress(0);
+        startTimeRef.current = Date.now();
+        pausedProgressRef.current = 0;
+      }
+    };
+
+    const intervalId = setInterval(animate, 50);
+    return () => clearInterval(intervalId);
+  }, [isPaused, selectedIndex, itemCount, onSelect, duration]);
+
+  useEffect(() => {
+    setProgress(0);
+    startTimeRef.current = Date.now();
+    pausedProgressRef.current = 0;
+  }, [selectedIndex]);
+
+  return { progress, isPaused, pause, resume, goToIndex };
+}
+
+function ProgressBar({
+  itemCount,
+  selectedIndex,
+  progress,
+  onSelect,
+  className,
+}: {
+  itemCount: number;
+  selectedIndex: number;
+  progress: number;
+  onSelect: (index: number) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex justify-center gap-2", className)}>
+      {Array.from({ length: itemCount }).map((_, index) => (
+        <button
+          key={index}
+          onClick={() => onSelect(index)}
+          className="h-1 w-8 rounded-full bg-neutral-200 overflow-hidden cursor-pointer"
+          aria-label={`Go to item ${index + 1}`}
+        >
+          <div
+            className="h-full bg-stone-600 transition-all duration-100"
+            style={{
+              width:
+                index < selectedIndex
+                  ? "100%"
+                  : index === selectedIndex
+                    ? `${progress * 100}%`
+                    : "0%",
+            }}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const mainFeatures = [
   {
     icon: "mdi:text-box-outline",
@@ -114,23 +221,49 @@ function Component() {
   const featuresScrollRef = useRef<HTMLDivElement>(null);
   const heroInputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToDetail = (index: number) => {
+  const scrollToDetail = useCallback((index: number) => {
     setSelectedDetail(index);
     if (detailsScrollRef.current) {
       const container = detailsScrollRef.current;
       const scrollLeft = container.offsetWidth * index;
       container.scrollTo({ left: scrollLeft, behavior: "smooth" });
     }
-  };
+  }, []);
 
-  const scrollToFeature = (index: number) => {
+  const scrollToFeature = useCallback((index: number) => {
     setSelectedFeature(index);
     if (featuresScrollRef.current) {
       const container = featuresScrollRef.current;
       const scrollLeft = container.offsetWidth * index;
       container.scrollTo({ left: scrollLeft, behavior: "smooth" });
     }
-  };
+  }, []);
+
+  const featuresProgress = useAutoProgress({
+    itemCount: mainFeatures.length,
+    selectedIndex: selectedFeature,
+    onSelect: scrollToFeature,
+  });
+
+  const detailsProgress = useAutoProgress({
+    itemCount: detailsFeatures.length,
+    selectedIndex: selectedDetail,
+    onSelect: scrollToDetail,
+  });
+
+  const handleFeatureSelect = useCallback(
+    (index: number) => {
+      featuresProgress.goToIndex(index);
+    },
+    [featuresProgress.goToIndex],
+  );
+
+  const handleDetailSelect = useCallback(
+    (index: number) => {
+      detailsProgress.goToIndex(index);
+    },
+    [detailsProgress.goToIndex],
+  );
 
   return (
     <main
@@ -154,14 +287,20 @@ function Component() {
           featuresScrollRef={featuresScrollRef}
           selectedFeature={selectedFeature}
           setSelectedFeature={setSelectedFeature}
-          scrollToFeature={scrollToFeature}
+          progress={featuresProgress.progress}
+          onSelect={handleFeatureSelect}
+          onPause={featuresProgress.pause}
+          onResume={featuresProgress.resume}
         />
         <SlashSeparator />
         <DetailsSection
           detailsScrollRef={detailsScrollRef}
           selectedDetail={selectedDetail}
           setSelectedDetail={setSelectedDetail}
-          scrollToDetail={scrollToDetail}
+          progress={detailsProgress.progress}
+          onSelect={handleDetailSelect}
+          onPause={detailsProgress.pause}
+          onResume={detailsProgress.resume}
         />
         <SlashSeparator />
         <GitHubOpenSource />
@@ -1074,12 +1213,18 @@ export function MainFeaturesSection({
   featuresScrollRef,
   selectedFeature,
   setSelectedFeature,
-  scrollToFeature,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
 }: {
   featuresScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedFeature: number;
   setSelectedFeature: (index: number) => void;
-  scrollToFeature: (index: number) => void;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
 }) {
   return (
     <section>
@@ -1106,7 +1251,10 @@ export function MainFeaturesSection({
         featuresScrollRef={featuresScrollRef}
         selectedFeature={selectedFeature}
         setSelectedFeature={setSelectedFeature}
-        scrollToFeature={scrollToFeature}
+        progress={progress}
+        onSelect={onSelect}
+        onPause={onPause}
+        onResume={onResume}
       />
       <FeaturesDesktopGrid />
     </section>
@@ -1117,15 +1265,25 @@ function FeaturesMobileCarousel({
   featuresScrollRef,
   selectedFeature,
   setSelectedFeature,
-  scrollToFeature,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
 }: {
   featuresScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedFeature: number;
   setSelectedFeature: (index: number) => void;
-  scrollToFeature: (index: number) => void;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
 }) {
   return (
-    <div className="max-[800px]:block hidden">
+    <div
+      className="max-[800px]:block hidden"
+      onTouchStart={onPause}
+      onTouchEnd={onResume}
+    >
       <div
         ref={featuresScrollRef}
         className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
@@ -1171,21 +1329,13 @@ function FeaturesMobileCarousel({
         </div>
       </div>
 
-      <div className="flex justify-center gap-2 py-6">
-        {mainFeatures.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollToFeature(index)}
-            className={cn([
-              "h-1 rounded-full transition-all cursor-pointer",
-              selectedFeature === index
-                ? "w-8 bg-stone-600"
-                : "w-8 bg-neutral-300 hover:bg-neutral-400",
-            ])}
-            aria-label={`Go to feature ${index + 1}`}
-          />
-        ))}
-      </div>
+      <ProgressBar
+        itemCount={mainFeatures.length}
+        selectedIndex={selectedFeature}
+        progress={progress}
+        onSelect={onSelect}
+        className="py-6"
+      />
     </div>
   );
 }
@@ -1285,12 +1435,18 @@ export function DetailsSection({
   detailsScrollRef,
   selectedDetail,
   setSelectedDetail,
-  scrollToDetail,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
 }: {
   detailsScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedDetail: number;
   setSelectedDetail: (index: number) => void;
-  scrollToDetail: (index: number) => void;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
 }) {
   return (
     <div>
@@ -1299,13 +1455,25 @@ export function DetailsSection({
         detailsScrollRef={detailsScrollRef}
         selectedDetail={selectedDetail}
         setSelectedDetail={setSelectedDetail}
-        scrollToDetail={scrollToDetail}
+        progress={progress}
+        onSelect={onSelect}
+        onPause={onPause}
+        onResume={onResume}
       />
       <DetailsTabletView
         selectedDetail={selectedDetail}
-        setSelectedDetail={setSelectedDetail}
+        progress={progress}
+        onSelect={onSelect}
+        onPause={onPause}
+        onResume={onResume}
       />
-      <DetailsDesktopView />
+      <DetailsDesktopView
+        selectedDetail={selectedDetail}
+        progress={progress}
+        onSelect={onSelect}
+        onPause={onPause}
+        onResume={onResume}
+      />
     </div>
   );
 }
@@ -1328,15 +1496,25 @@ function DetailsMobileCarousel({
   detailsScrollRef,
   selectedDetail,
   setSelectedDetail,
-  scrollToDetail,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
 }: {
   detailsScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedDetail: number;
   setSelectedDetail: (index: number) => void;
-  scrollToDetail: (index: number) => void;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
 }) {
   return (
-    <div className="max-[800px]:block hidden">
+    <div
+      className="max-[800px]:block hidden"
+      onTouchStart={onPause}
+      onTouchEnd={onResume}
+    >
       <div
         ref={detailsScrollRef}
         className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
@@ -1388,41 +1566,64 @@ function DetailsMobileCarousel({
         </div>
       </div>
 
-      <div className="flex justify-center gap-2 py-6">
-        {detailsFeatures.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollToDetail(index)}
-            className={cn([
-              "h-1 rounded-full transition-all cursor-pointer",
-              selectedDetail === index
-                ? "w-8 bg-stone-600"
-                : "w-8 bg-neutral-300 hover:bg-neutral-400",
-            ])}
-            aria-label={`Go to detail ${index + 1}`}
-          />
-        ))}
-      </div>
+      <ProgressBar
+        itemCount={detailsFeatures.length}
+        selectedIndex={selectedDetail}
+        progress={progress}
+        onSelect={onSelect}
+        className="py-6"
+      />
     </div>
   );
 }
 
 function DetailsTabletView({
   selectedDetail,
-  setSelectedDetail,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
 }: {
   selectedDetail: number;
-  setSelectedDetail: (index: number) => void;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
 }) {
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (tabsContainerRef.current) {
+      const container = tabsContainerRef.current;
+      const selectedButton = container.children[0]?.children[
+        selectedDetail
+      ] as HTMLElement;
+      if (selectedButton) {
+        selectedButton.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }
+  }, [selectedDetail]);
+
   return (
-    <div className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100">
+    <div
+      className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100"
+      onMouseEnter={onPause}
+      onMouseLeave={onResume}
+    >
       <div className="flex flex-col">
-        <div className="overflow-x-auto scrollbar-hide border-b border-neutral-100">
+        <div
+          ref={tabsContainerRef}
+          className="overflow-x-auto scrollbar-hide border-b border-neutral-100"
+        >
           <div className="flex">
             {detailsFeatures.map((feature, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedDetail(index)}
+                onClick={() => onSelect(index)}
                 className={cn([
                   "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
                   selectedDetail === index
@@ -1465,28 +1666,69 @@ function DetailsTabletView({
             />
           )}
         </div>
+
+        <ProgressBar
+          itemCount={detailsFeatures.length}
+          selectedIndex={selectedDetail}
+          progress={progress}
+          onSelect={onSelect}
+          className="py-6"
+        />
       </div>
     </div>
   );
 }
 
-function DetailsDesktopView() {
-  const [selectedDetail, setSelectedDetail] = useState<number>(0);
+function DetailsDesktopView({
+  selectedDetail,
+  progress,
+  onSelect,
+  onPause,
+  onResume,
+}: {
+  selectedDetail: number;
+  progress: number;
+  onSelect: (index: number) => void;
+  onPause: () => void;
+  onResume: () => void;
+}) {
   const [hoveredDetail, setHoveredDetail] = useState<number | null>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
   const selectedFeature =
     selectedDetail !== null ? detailsFeatures[selectedDetail] : null;
 
+  useEffect(() => {
+    if (tabsContainerRef.current) {
+      const selectedElement = tabsContainerRef.current.children[
+        selectedDetail
+      ] as HTMLElement;
+      if (selectedElement) {
+        selectedElement.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }
+  }, [selectedDetail]);
+
   return (
-    <div className="min-[1200px]:grid hidden grid-cols-2 border-t border-neutral-100">
+    <div
+      className="min-[1200px]:grid hidden grid-cols-2 border-t border-neutral-100"
+      onMouseEnter={onPause}
+      onMouseLeave={onResume}
+    >
       <div
         className="border-r border-neutral-100 relative overflow-hidden"
         style={{ paddingBottom: "56.25%" }}
       >
-        <div className="absolute inset-0 overflow-y-auto">
+        <div
+          ref={tabsContainerRef}
+          className="absolute inset-0 overflow-y-auto"
+        >
           {detailsFeatures.map((feature, index) => (
             <div
               key={index}
-              onClick={() => setSelectedDetail(index)}
+              onClick={() => onSelect(index)}
               className={cn([
                 "p-6 cursor-pointer transition-colors",
                 index < detailsFeatures.length - 1 &&
@@ -1522,51 +1764,61 @@ function DetailsDesktopView() {
         </div>
       </div>
 
-      <div
-        className="aspect-video overflow-hidden bg-neutral-100 relative group"
-        onMouseEnter={() => setHoveredDetail(selectedDetail)}
-        onMouseLeave={() => setHoveredDetail(null)}
-      >
-        {selectedFeature &&
-          (selectedFeature.image ? (
-            <>
-              <Image
-                src={selectedFeature.image}
+      <div className="flex flex-col">
+        <div
+          className="aspect-video overflow-hidden bg-neutral-100 relative group"
+          onMouseEnter={() => setHoveredDetail(selectedDetail)}
+          onMouseLeave={() => setHoveredDetail(null)}
+        >
+          {selectedFeature &&
+            (selectedFeature.image ? (
+              <>
+                <Image
+                  src={selectedFeature.image}
+                  alt={`${selectedFeature.title} feature`}
+                  className="w-full h-full object-contain"
+                />
+                {selectedFeature.link && (
+                  <div
+                    className={cn([
+                      "absolute bottom-0 left-0 right-0",
+                      "transition-all duration-300 ease-out",
+                      hoveredDetail === selectedDetail
+                        ? "translate-y-0 opacity-100"
+                        : "translate-y-full opacity-0",
+                    ])}
+                  >
+                    <Link
+                      to={selectedFeature.link}
+                      className={cn([
+                        "w-full py-4 text-xs font-mono cursor-pointer block text-center",
+                        "bg-stone-100/95 text-stone-800",
+                        "hover:bg-stone-200/95 active:bg-stone-400/95",
+                        "transition-all duration-150",
+                        "backdrop-blur-sm",
+                      ])}
+                    >
+                      Learn more
+                    </Link>
+                  </div>
+                )}
+              </>
+            ) : (
+              <img
+                src="/api/images/hyprnote/static.webp"
                 alt={`${selectedFeature.title} feature`}
                 className="w-full h-full object-contain"
               />
-              {selectedFeature.link && (
-                <div
-                  className={cn([
-                    "absolute bottom-0 left-0 right-0",
-                    "transition-all duration-300 ease-out",
-                    hoveredDetail === selectedDetail
-                      ? "translate-y-0 opacity-100"
-                      : "translate-y-full opacity-0",
-                  ])}
-                >
-                  <Link
-                    to={selectedFeature.link}
-                    className={cn([
-                      "w-full py-4 text-xs font-mono cursor-pointer block text-center",
-                      "bg-stone-100/95 text-stone-800",
-                      "hover:bg-stone-200/95 active:bg-stone-400/95",
-                      "transition-all duration-150",
-                      "backdrop-blur-sm",
-                    ])}
-                  >
-                    Learn more
-                  </Link>
-                </div>
-              )}
-            </>
-          ) : (
-            <img
-              src="/api/images/hyprnote/static.webp"
-              alt={`${selectedFeature.title} feature`}
-              className="w-full h-full object-contain"
-            />
-          ))}
+            ))}
+        </div>
+
+        <ProgressBar
+          itemCount={detailsFeatures.length}
+          selectedIndex={selectedDetail}
+          progress={progress}
+          onSelect={onSelect}
+          className="py-6"
+        />
       </div>
     </div>
   );

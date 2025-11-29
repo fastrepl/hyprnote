@@ -646,6 +646,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       );
     }
 
+    // Default typing state
     return (
       <div
         className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}

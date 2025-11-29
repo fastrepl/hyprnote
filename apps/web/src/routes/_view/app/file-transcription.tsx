@@ -38,7 +38,9 @@ function Component() {
       if (!pipelineId) {
         throw new Error("Missing pipelineId");
       }
-      const res = await getAudioPipelineStatus({ data: { pipelineId } });
+      const res = (await getAudioPipelineStatus({ data: { pipelineId } })) as
+        | { success: true; status: StatusStateType }
+        | { error: true; message?: string };
       if ("error" in res && res.error) {
         throw new Error(res.message ?? "Failed to get pipeline status");
       }
@@ -105,14 +107,14 @@ function Component() {
           return;
         }
 
-        if (!("url" in uploadResult)) {
-          setUploadError("Failed to get upload URL");
+        if (!("fileId" in uploadResult)) {
+          setUploadError("Failed to get file ID");
           return;
         }
 
         const pipelineResult = await startAudioPipeline({
           data: {
-            audioUrl: uploadResult.url,
+            fileId: uploadResult.fileId,
           },
         });
 

@@ -20,18 +20,18 @@ export type PipelineStatusType = z.infer<typeof PipelineStatus>;
 const StatusState = z.object({
   status: PipelineStatus,
   transcript: z.string().optional(),
-  llmResult: z.unknown().optional(),
+  llmResult: z.string().optional(),
   error: z.string().optional(),
 });
 
 export type StatusStateType = z.infer<typeof StatusState>;
 
 type AudioPipeline = {
-  run: (input: {
-    userId: string;
-    audioUrl: string;
-  }) => Promise<StatusStateType>;
-  getStatus: () => Promise<StatusStateType>;
+  run: (
+    ctx: unknown,
+    input: { userId: string; fileId: string },
+  ) => Promise<StatusStateType>;
+  getStatus: (ctx: unknown) => Promise<StatusStateType>;
 };
 
 function getRestateClient() {
@@ -41,7 +41,7 @@ function getRestateClient() {
 export const startAudioPipeline = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
-      audioUrl: z.string(),
+      fileId: z.string(),
       pipelineId: z.string().optional(),
     }),
   )
@@ -53,13 +53,30 @@ export const startAudioPipeline = createServerFn({ method: "POST" })
       return { error: true, message: "Unauthorized" };
     }
 
+    const userId = userData.user.id;
+
+    // Validate fileId belongs to the authenticated user
+    // fileId format: {userId}/{timestamp}-{fileName}
+    const segments = data.fileId.split("/").filter(Boolean);
+    const [ownerId, ...rest] = segments;
+
+    if (
+      !ownerId ||
+      ownerId !== userId ||
+      rest.length === 0 ||
+      rest.some((s) => s === "." || s === "..")
+    ) {
+      return { error: true, message: "Invalid fileId" };
+    }
+
+    const safeFileId = `${userId}/${rest.join("/")}`;
     const pipelineId = data.pipelineId ?? crypto.randomUUID();
 
     try {
       const restateClient = getRestateClient();
       const handle = await restateClient
         .workflowClient<AudioPipeline>({ name: "AudioPipeline" }, pipelineId)
-        .workflowSubmit({ userId: userData.user.id, audioUrl: data.audioUrl });
+        .workflowSubmit({ userId, fileId: safeFileId });
 
       return {
         success: true,

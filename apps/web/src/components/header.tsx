@@ -35,8 +35,8 @@ const featuresList = [
   { to: "/product/ai-notetaking", label: "AI Notetaking" },
   { to: "/product/ai-assistant", label: "AI Assistant" },
   { to: "/product/mini-apps", label: "Mini Apps" },
-  { to: "/product/workflows", label: "Workflows", badge: "Coming Soon" },
   { to: "/gallery", label: "Prompt Gallery" },
+  { to: "/product/workflows", label: "Workflows", badge: "Coming Soon" },
 ];
 
 export function Header() {

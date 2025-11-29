@@ -156,10 +156,10 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    to="/templates"
+                    to="/gallery"
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
-                    Templates
+                    Gallery
                   </Link>
                 </li>
               </ul>

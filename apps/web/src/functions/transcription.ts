@@ -27,8 +27,11 @@ const StatusState = z.object({
 export type StatusStateType = z.infer<typeof StatusState>;
 
 type AudioPipeline = {
-  run: (input: { userId: string; fileId: string }) => Promise<StatusStateType>;
-  getStatus: () => Promise<StatusStateType>;
+  run: (
+    ctx: unknown,
+    input: { userId: string; fileId: string },
+  ) => Promise<StatusStateType>;
+  getStatus: (ctx: unknown) => Promise<StatusStateType>;
 };
 
 function getRestateClient() {

@@ -387,22 +387,22 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     {
       text: "# Meeting Notes",
       type: "heading" as const,
-      placeholder: "Heading 1",
+      placeholder: "Enter header",
     },
     {
       text: "- Product roadmap review",
       type: "bullet" as const,
-      placeholder: "List",
+      placeholder: "Enter list item",
     },
     {
       text: "- Q4 marketing strategy",
       type: "bullet" as const,
-      placeholder: "List",
+      placeholder: "Enter list item",
     },
     {
       text: "- Budget allocation",
       type: "bullet" as const,
-      placeholder: "List",
+      placeholder: "Enter list item",
     },
     {
       text: "**Decision:** Launch campaign by end of month",
@@ -547,6 +547,43 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
     // Show placeholder state (after typing "# " or "- " but before transformation)
     if (showPlaceholder && !isTransformed) {
+      // For headings, show with larger font size
+      if (currentLine.type === "heading") {
+        return (
+          <h1
+            className={cn([
+              "font-bold transition-all duration-200",
+              isMobile ? "text-xl" : "text-2xl",
+              transforming && "opacity-50",
+            ])}
+          >
+            <span className="animate-pulse">|</span>
+            <span className="text-neutral-400">{currentLine.placeholder}</span>
+          </h1>
+        );
+      }
+
+      // For bullets, show as list item
+      if (currentLine.type === "bullet") {
+        return (
+          <ul
+            className={cn([
+              "list-disc pl-5 transition-all duration-200",
+              isMobile ? "text-sm" : "text-base",
+              transforming && "opacity-50",
+            ])}
+          >
+            <li>
+              <span className="animate-pulse">|</span>
+              <span className="text-neutral-400">
+                {currentLine.placeholder}
+              </span>
+            </li>
+          </ul>
+        );
+      }
+
+      // Default fallback (shouldn't reach here for current lines)
       return (
         <div
           className={cn([
@@ -555,11 +592,8 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
             transforming && "opacity-50",
           ])}
         >
-          <span className="text-neutral-400">
-            {typingText}
-            <span className="animate-pulse">|</span>
-            <span className="ml-0.5">{currentLine.placeholder}</span>
-          </span>
+          <span className="animate-pulse">|</span>
+          <span className="text-neutral-400">{currentLine.placeholder}</span>
         </div>
       );
     }

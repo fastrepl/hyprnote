@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -30,11 +30,21 @@ export function TranscriptContainer({
     sessionMode === "running_active" || sessionMode === "finalizing";
   const editable =
     sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
-  const partialWords = useListener((state) =>
-    Object.values(state.partialWordsByChannel).flat(),
+
+  const partialWordsByChannel = useListener(
+    (state) => state.partialWordsByChannel,
   );
-  const partialHints = useListener((state) => {
-    const channelIndices = Object.keys(state.partialWordsByChannel)
+  const partialHintsByChannel = useListener(
+    (state) => state.partialHintsByChannel,
+  );
+
+  const partialWords = useMemo(
+    () => Object.values(partialWordsByChannel).flat(),
+    [partialWordsByChannel],
+  );
+
+  const partialHints = useMemo(() => {
+    const channelIndices = Object.keys(partialWordsByChannel)
       .map(Number)
       .sort((a, b) => a - b);
 
@@ -42,12 +52,12 @@ export function TranscriptContainer({
     let currentOffset = 0;
     for (const channelIndex of channelIndices) {
       offsetByChannel.set(channelIndex, currentOffset);
-      currentOffset += state.partialWordsByChannel[channelIndex]?.length ?? 0;
+      currentOffset += partialWordsByChannel[channelIndex]?.length ?? 0;
     }
 
     const reindexedHints: RuntimeSpeakerHint[] = [];
     for (const channelIndex of channelIndices) {
-      const hints = state.partialHintsByChannel[channelIndex] ?? [];
+      const hints = partialHintsByChannel[channelIndex] ?? [];
       const offset = offsetByChannel.get(channelIndex) ?? 0;
       for (const hint of hints) {
         reindexedHints.push({
@@ -58,7 +68,7 @@ export function TranscriptContainer({
     }
 
     return reindexedHints;
-  });
+  }, [partialWordsByChannel, partialHintsByChannel]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(

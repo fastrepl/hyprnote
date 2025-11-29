@@ -1,3 +1,6 @@
+name: "Generate SHA256 Checksums"
+description: "Generate SHA-256 checksum files for build artifacts"
+
 inputs:
   files:
     description: "Newline-separated list of files to generate checksums for"

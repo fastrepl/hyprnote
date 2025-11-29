@@ -3,6 +3,7 @@ import * as restate from "@restatedev/restate-sdk-cloudflare-workers/fetch";
 import { serde } from "@restatedev/restate-sdk-zod";
 import { z } from "zod";
 
+import { callOpenRouter, type ChatResponse } from "./openrouter.js";
 import { createSignedUrl, deleteFile } from "./supabase.js";
 import { limiterForUser } from "./userRateLimiter.js";
 
@@ -100,30 +101,23 @@ async function callDeepgram(
   return result.request_id;
 }
 
-async function callLLM(
+async function processTranscriptWithLLM(
   transcript: string,
-  userId: string,
-  apiUrl: string,
-  apiKey?: string,
-): Promise<unknown> {
-  const res = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-    },
-    body: JSON.stringify({
-      user_id: userId,
-      input: transcript,
-    }),
+  apiKey: string,
+): Promise<ChatResponse> {
+  return callOpenRouter(apiKey, {
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are an AI assistant that processes audio transcripts. Analyze the transcript and provide a helpful summary or response.",
+      },
+      {
+        role: "user",
+        content: transcript,
+      },
+    ],
   });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`LLM error ${res.status}: ${body}`);
-  }
-
-  return res.json();
 }
 
 export const audioPipeline = restate.workflow({
@@ -143,8 +137,7 @@ export const audioPipeline = restate.workflow({
             env?: {
               RESTATE_INGRESS_URL?: string;
               DEEPGRAM_API_KEY?: string;
-              LLM_API_URL?: string;
-              LLM_API_KEY?: string;
+              OPENROUTER_API_KEY?: string;
               SUPABASE_URL?: string;
               SUPABASE_SERVICE_ROLE_KEY?: string;
             };
@@ -199,15 +192,15 @@ export const audioPipeline = restate.workflow({
 
           ctx.set("status", "LLM_RUNNING" as PipelineStatusType);
 
-          const llmApiUrl = env?.LLM_API_URL;
-          if (!llmApiUrl) {
-            throw new restate.TerminalError("LLM_API_URL env var is required");
+          const openrouterApiKey = env?.OPENROUTER_API_KEY;
+          if (!openrouterApiKey) {
+            throw new restate.TerminalError(
+              "OPENROUTER_API_KEY env var is required",
+            );
           }
 
-          const llmApiKey = env?.LLM_API_KEY;
-
           const llmResult = await ctx.run("llm", () =>
-            callLLM(transcript, req.userId, llmApiUrl, llmApiKey),
+            processTranscriptWithLLM(transcript, openrouterApiKey),
           );
 
           ctx.set("llmResult", llmResult);

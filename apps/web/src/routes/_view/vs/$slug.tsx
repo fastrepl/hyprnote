@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { allVs } from "content-collections";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -13,6 +13,74 @@ import {
   HowItWorksSection,
   MainFeaturesSection,
 } from "@/routes/_view/index";
+
+const PROGRESS_DURATION = 5000;
+
+function useAutoProgress({
+  itemCount,
+  selectedIndex,
+  onSelect,
+  duration = PROGRESS_DURATION,
+}: {
+  itemCount: number;
+  selectedIndex: number;
+  onSelect: (index: number) => void;
+  duration?: number;
+}) {
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const startTimeRef = useRef<number>(Date.now());
+  const pausedProgressRef = useRef<number>(0);
+
+  const pause = useCallback(() => {
+    pausedProgressRef.current = progress;
+    setIsPaused(true);
+  }, [progress]);
+
+  const resume = useCallback(() => {
+    startTimeRef.current = Date.now() - pausedProgressRef.current * duration;
+    setIsPaused(false);
+  }, [duration]);
+
+  const goToIndex = useCallback(
+    (index: number) => {
+      onSelect(index);
+      setProgress(0);
+      startTimeRef.current = Date.now();
+      pausedProgressRef.current = 0;
+    },
+    [onSelect],
+  );
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTimeRef.current;
+      const newProgress = Math.min(elapsed / duration, 1);
+      setProgress(newProgress);
+
+      if (newProgress >= 1) {
+        const nextIndex = (selectedIndex + 1) % itemCount;
+        onSelect(nextIndex);
+        setProgress(0);
+        startTimeRef.current = Date.now();
+        pausedProgressRef.current = 0;
+      }
+    };
+
+    const intervalId = setInterval(animate, 50);
+    return () => clearInterval(intervalId);
+  }, [isPaused, selectedIndex, itemCount, onSelect, duration]);
+
+  useEffect(() => {
+    setProgress(0);
+    startTimeRef.current = Date.now();
+    pausedProgressRef.current = 0;
+  }, [selectedIndex]);
+
+  return { progress, isPaused, pause, resume, goToIndex };
+}
 
 export const Route = createFileRoute("/_view/vs/$slug")({
   component: Component,
@@ -70,6 +138,28 @@ function Component() {
     }
   };
 
+  const featuresProgress = useAutoProgress({
+    itemCount: 5,
+    selectedIndex: selectedFeature,
+    onSelect: scrollToFeature,
+  });
+
+  const detailsProgress = useAutoProgress({
+    itemCount: 5,
+    selectedIndex: selectedDetail,
+    onSelect: scrollToDetail,
+  });
+
+  const handleFeatureSelect = (index: number) => {
+    featuresProgress.goToIndex(index);
+    scrollToFeature(index);
+  };
+
+  const handleDetailSelect = (index: number) => {
+    detailsProgress.goToIndex(index);
+    scrollToDetail(index);
+  };
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
@@ -91,14 +181,20 @@ function Component() {
           featuresScrollRef={featuresScrollRef}
           selectedFeature={selectedFeature}
           setSelectedFeature={setSelectedFeature}
-          scrollToFeature={scrollToFeature}
+          progress={featuresProgress.progress}
+          onSelect={handleFeatureSelect}
+          onPause={featuresProgress.pause}
+          onResume={featuresProgress.resume}
         />
         <SlashSeparator />
         <DetailsSection
           detailsScrollRef={detailsScrollRef}
           selectedDetail={selectedDetail}
           setSelectedDetail={setSelectedDetail}
-          scrollToDetail={scrollToDetail}
+          progress={detailsProgress.progress}
+          onSelect={handleDetailSelect}
+          onPause={detailsProgress.pause}
+          onResume={detailsProgress.resume}
         />
         <SlashSeparator />
         <GitHubOpenSource />

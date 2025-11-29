@@ -41,39 +41,6 @@ export const Route = createFileRoute("/_view/product/ai-notetaking")({
   }),
 });
 
-const tabs = [
-  {
-    title: "Compact Mode",
-    description:
-      "The default collapsed overlay that indicates the meeting is being listened to. Minimal and unobtrusive, staying out of your way.",
-    image: "/api/images/hyprnote/float-compact.jpg",
-  },
-  {
-    title: "Memos",
-    description:
-      "Take quick notes during the meeting. Jot down important points, ideas, or reminders without losing focus on the conversation.",
-    image: "/api/images/hyprnote/float-memos.jpg",
-  },
-  {
-    title: "Transcript",
-    description:
-      "Watch the live transcript as the conversation unfolds in real-time, so you never miss what was said during the meeting.",
-    image: "/api/images/hyprnote/float-transcript.jpg",
-  },
-  {
-    title: "Live Insights",
-    description:
-      "Get a rolling summary of the past 5 minutes with AI-powered suggestions. For sales calls, receive prompts for qualification questions and next steps.",
-    image: "/api/images/hyprnote/float-insights.jpg",
-  },
-  {
-    title: "Chat",
-    description:
-      "Ask questions and get instant answers during the meeting. Query the transcript, get clarifications, or find specific information on the fly.",
-    image: "/api/images/hyprnote/float-chat.jpg",
-  },
-];
-
 function Component() {
   return (
     <div

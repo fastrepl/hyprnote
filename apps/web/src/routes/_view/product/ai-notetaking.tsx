@@ -381,7 +381,6 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
   const [typingText, setTypingText] = useState("");
   const [isTransformed, setIsTransformed] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(false);
-  const [transforming, setTransforming] = useState(false);
 
   const lines = [
     {
@@ -418,6 +417,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
         setCurrentLineIndex(0);
         setTypingText("");
         setIsTransformed(false);
+        setShowPlaceholder(false);
       }, 2000);
       return () => clearTimeout(timeout);
     }
@@ -442,13 +442,9 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
           setShowPlaceholder(true);
 
           timeout = setTimeout(() => {
-            setTransforming(true);
-            setTimeout(() => {
-              setIsTransformed(true);
-              setShowPlaceholder(false);
-              setTransforming(false);
-              timeout = setTimeout(typeCharacter, 60);
-            }, 200); // Transformation duration
+            setIsTransformed(true);
+            setShowPlaceholder(false);
+            timeout = setTimeout(typeCharacter, 60);
           }, 300); // Show placeholder duration
         } else if (
           currentLine.type === "bold" &&
@@ -468,6 +464,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
           setTypingText("");
           setIsTransformed(false);
+          setShowPlaceholder(false);
           setCurrentLineIndex((prev) => prev + 1);
         }, 800);
       }
@@ -550,13 +547,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       // For headings, show with larger font size
       if (currentLine.type === "heading") {
         return (
-          <h1
-            className={cn([
-              "font-bold transition-all duration-200",
-              isMobile ? "text-xl" : "text-2xl",
-              transforming && "opacity-50",
-            ])}
-          >
+          <h1 className={cn(["font-bold", isMobile ? "text-xl" : "text-2xl"])}>
             <span className="animate-pulse">|</span>
             <span className="text-neutral-400">{currentLine.placeholder}</span>
           </h1>
@@ -568,9 +559,8 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
         return (
           <ul
             className={cn([
-              "list-disc pl-5 transition-all duration-200",
+              "list-disc pl-5",
               isMobile ? "text-sm" : "text-base",
-              transforming && "opacity-50",
             ])}
           >
             <li>
@@ -587,9 +577,8 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       return (
         <div
           className={cn([
-            "text-neutral-700 transition-all duration-200",
+            "text-neutral-700",
             isMobile ? "text-sm" : "text-base",
-            transforming && "opacity-50",
           ])}
         >
           <span className="animate-pulse">|</span>

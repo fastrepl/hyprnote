@@ -56,8 +56,8 @@ impl Extension {
             .map_err(|e| crate::Error::InvalidManifest(e.to_string()))?;
 
         let entry_path = path.join(&manifest.entry);
-        let canonical_base = path.canonicalize().map_err(|e| crate::Error::Io(e))?;
-        let canonical_entry = entry_path.canonicalize().map_err(|e| crate::Error::Io(e))?;
+        let canonical_base = path.canonicalize().map_err(crate::Error::Io)?;
+        let canonical_entry = entry_path.canonicalize().map_err(crate::Error::Io)?;
         if !canonical_entry.starts_with(&canonical_base) {
             return Err(crate::Error::InvalidManifest(
                 "entry path escapes extension directory".to_string(),

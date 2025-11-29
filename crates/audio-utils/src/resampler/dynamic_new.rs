@@ -20,7 +20,7 @@ impl<T> ResampleExtDynamicNew for T where T: AsyncSource + Sized + Unpin {}
 
 enum Backend {
     Passthrough(Vec<f32>),
-    Resampler(RubatoChunkResampler<FastFixedIn<f32>, 1>),
+    Resampler(Box<RubatoChunkResampler<FastFixedIn<f32>, 1>>),
 }
 
 impl Backend {
@@ -43,11 +43,11 @@ impl Backend {
     ) {
         match self {
             Self::Passthrough(_) => {
-                *self = Self::Resampler(RubatoChunkResampler::new(
+                *self = Self::Resampler(Box::new(RubatoChunkResampler::new(
                     resampler,
                     output_chunk_size,
                     input_block_size,
-                ));
+                )));
             }
             Self::Resampler(driver) => {
                 driver.rebind_resampler(resampler, output_chunk_size, input_block_size)
@@ -148,11 +148,11 @@ where
             Backend::passthrough(output_chunk_size)
         } else {
             let ratio = target_rate as f64 / source_rate as f64;
-            Backend::Resampler(RubatoChunkResampler::new(
+            Backend::Resampler(Box::new(RubatoChunkResampler::new(
                 Self::create_resampler(ratio, input_block_size)?,
                 output_chunk_size,
                 input_block_size,
-            ))
+            )))
         };
         Ok(Self {
             source,

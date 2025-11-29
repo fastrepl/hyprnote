@@ -87,8 +87,8 @@ impl TranscribeService {
     /// Start AWS Transcribe streaming
     async fn start_transcription(
         &self,
-        audio_rx: mpsc::Receiver<Bytes>,
-        result_tx: mpsc::Sender<WsMessage>,
+        _audio_rx: mpsc::Receiver<Bytes>,
+        _result_tx: mpsc::Sender<WsMessage>,
     ) -> Result<(), Error> {
         Ok(())
     }

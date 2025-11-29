@@ -14,7 +14,7 @@ const DEFAULT_CHUNK_MS: u64 = 500;
 const DEFAULT_DELAY_MS: u64 = 20;
 
 pub enum BatchMsg {
-    StreamResponse(StreamResponse),
+    StreamResponse(Box<StreamResponse>),
     StreamError(String),
     StreamEnded,
     StreamStartFailed(String),
@@ -148,14 +148,14 @@ impl Actor for BatchActor {
                 tracing::info!("batch stream response received");
 
                 let is_final = matches!(
-                    &response,
+                    response.as_ref(),
                     StreamResponse::TranscriptResponse { is_final, .. } if *is_final
                 );
 
                 if is_final {
                     let transcript_end = transcript_end_from_response(&response);
                     if let Some(end) = transcript_end {
-                        state.emit_streamed_response(response, end)?;
+                        state.emit_streamed_response(*response, end)?;
                     }
                 }
             }
@@ -359,7 +359,7 @@ async fn process_batch_stream<S, E>(
                             if is_from_finalize { " (from_finalize)" } else { "" }
                         );
 
-                        let _ = myself.send_message(BatchMsg::StreamResponse(response));
+                        let _ = myself.send_message(BatchMsg::StreamResponse(Box::new(response)));
 
                         if is_from_finalize {
                             break;

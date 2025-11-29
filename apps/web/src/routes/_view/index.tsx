@@ -102,6 +102,11 @@ const detailsFeatures = [
   },
 ];
 
+const activeDetailIndices = detailsFeatures
+  .map((f, i) => (!f.comingSoon ? i : -1))
+  .filter((i) => i !== -1);
+const DETAILS_AUTO_ADVANCE_DURATION = 5000;
+
 export const Route = createFileRoute("/_view/")({
   component: Component,
 });
@@ -1292,6 +1297,60 @@ export function DetailsSection({
   setSelectedDetail: (index: number) => void;
   scrollToDetail: (index: number) => void;
 }) {
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const progressRef = useRef(0);
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const startTime =
+      Date.now() - (progressRef.current / 100) * DETAILS_AUTO_ADVANCE_DURATION;
+    let animationId: number;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min(
+        (elapsed / DETAILS_AUTO_ADVANCE_DURATION) * 100,
+        100,
+      );
+      setProgress(newProgress);
+      progressRef.current = newProgress;
+
+      if (newProgress >= 100) {
+        const currentActiveIndex = activeDetailIndices.indexOf(selectedDetail);
+        const nextActiveIndex =
+          (currentActiveIndex + 1) % activeDetailIndices.length;
+        const nextIndex = activeDetailIndices[nextActiveIndex];
+        setSelectedDetail(nextIndex);
+        setProgress(0);
+        progressRef.current = 0;
+        if (detailsScrollRef.current) {
+          const container = detailsScrollRef.current;
+          const scrollLeft = container.offsetWidth * nextIndex;
+          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+        }
+      } else {
+        animationId = requestAnimationFrame(animate);
+      }
+    };
+
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
+  }, [selectedDetail, setSelectedDetail, detailsScrollRef, isPaused]);
+
+  const handleTabClick = (index: number) => {
+    setSelectedDetail(index);
+    setProgress(0);
+    progressRef.current = 0;
+  };
+
+  const handleScrollToDetail = (index: number) => {
+    scrollToDetail(index);
+    setProgress(0);
+    progressRef.current = 0;
+  };
+
   return (
     <div>
       <DetailsSectionHeader />
@@ -1299,11 +1358,14 @@ export function DetailsSection({
         detailsScrollRef={detailsScrollRef}
         selectedDetail={selectedDetail}
         setSelectedDetail={setSelectedDetail}
-        scrollToDetail={scrollToDetail}
+        scrollToDetail={handleScrollToDetail}
+        progress={progress}
       />
       <DetailsTabletView
         selectedDetail={selectedDetail}
-        setSelectedDetail={setSelectedDetail}
+        progress={progress}
+        onTabClick={handleTabClick}
+        onPauseChange={setIsPaused}
       />
       <DetailsDesktopView />
     </div>
@@ -1329,11 +1391,13 @@ function DetailsMobileCarousel({
   selectedDetail,
   setSelectedDetail,
   scrollToDetail,
+  progress,
 }: {
   detailsScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedDetail: number;
   setSelectedDetail: (index: number) => void;
   scrollToDetail: (index: number) => void;
+  progress: number;
 }) {
   return (
     <div className="max-[800px]:block hidden">
@@ -1389,18 +1453,25 @@ function DetailsMobileCarousel({
       </div>
 
       <div className="flex justify-center gap-2 py-6">
-        {detailsFeatures.map((_, index) => (
+        {detailsFeatures.map((feature, index) => (
           <button
             key={index}
             onClick={() => scrollToDetail(index)}
             className={cn([
-              "h-1 rounded-full transition-all cursor-pointer",
+              "h-1 rounded-full cursor-pointer overflow-hidden",
               selectedDetail === index
-                ? "w-8 bg-stone-600"
+                ? "w-8 bg-neutral-300"
                 : "w-8 bg-neutral-300 hover:bg-neutral-400",
             ])}
             aria-label={`Go to detail ${index + 1}`}
-          />
+          >
+            {selectedDetail === index && !feature.comingSoon && (
+              <div
+                className="h-full bg-stone-600 transition-none"
+                style={{ width: `${progress}%` }}
+              />
+            )}
+          </button>
         ))}
       </div>
     </div>
@@ -1409,10 +1480,14 @@ function DetailsMobileCarousel({
 
 function DetailsTabletView({
   selectedDetail,
-  setSelectedDetail,
+  progress,
+  onTabClick,
+  onPauseChange,
 }: {
   selectedDetail: number;
-  setSelectedDetail: (index: number) => void;
+  progress: number;
+  onTabClick: (index: number) => void;
+  onPauseChange: (paused: boolean) => void;
 }) {
   return (
     <div className="min-[800px]:max-[1200px]:block hidden border-t border-neutral-100">
@@ -1422,15 +1497,25 @@ function DetailsTabletView({
             {detailsFeatures.map((feature, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedDetail(index)}
+                onClick={() => onTabClick(index)}
+                onMouseEnter={() =>
+                  selectedDetail === index && onPauseChange(true)
+                }
+                onMouseLeave={() =>
+                  selectedDetail === index && onPauseChange(false)
+                }
                 className={cn([
-                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors",
-                  selectedDetail === index
-                    ? "bg-stone-50"
-                    : "hover:bg-neutral-50",
+                  "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors relative overflow-hidden",
+                  selectedDetail !== index && "hover:bg-neutral-50",
                 ])}
               >
-                <div>
+                {selectedDetail === index && !feature.comingSoon && (
+                  <div
+                    className="absolute inset-0 bg-stone-100 transition-none"
+                    style={{ width: `${progress}%` }}
+                  />
+                )}
+                <div className="relative">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <h3 className="text-base font-serif font-medium text-stone-600">
                       {feature.title}
@@ -1450,7 +1535,11 @@ function DetailsTabletView({
           </div>
         </div>
 
-        <div className="aspect-video">
+        <div
+          className="aspect-video"
+          onMouseEnter={() => onPauseChange(true)}
+          onMouseLeave={() => onPauseChange(false)}
+        >
           {detailsFeatures[selectedDetail].image ? (
             <Image
               src={detailsFeatures[selectedDetail].image}
@@ -1473,8 +1562,51 @@ function DetailsTabletView({
 function DetailsDesktopView() {
   const [selectedDetail, setSelectedDetail] = useState<number>(0);
   const [hoveredDetail, setHoveredDetail] = useState<number | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const progressRef = useRef(0);
   const selectedFeature =
     selectedDetail !== null ? detailsFeatures[selectedDetail] : null;
+
+  useEffect(() => {
+    if (isPaused) return;
+    if (detailsFeatures[selectedDetail]?.comingSoon) return;
+
+    const startTime =
+      Date.now() - (progressRef.current / 100) * DETAILS_AUTO_ADVANCE_DURATION;
+    let animationId: number;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min(
+        (elapsed / DETAILS_AUTO_ADVANCE_DURATION) * 100,
+        100,
+      );
+      setProgress(newProgress);
+      progressRef.current = newProgress;
+
+      if (newProgress >= 100) {
+        const currentActiveIndex = activeDetailIndices.indexOf(selectedDetail);
+        const nextActiveIndex =
+          (currentActiveIndex + 1) % activeDetailIndices.length;
+        const nextIndex = activeDetailIndices[nextActiveIndex];
+        setSelectedDetail(nextIndex);
+        setProgress(0);
+        progressRef.current = 0;
+      } else {
+        animationId = requestAnimationFrame(animate);
+      }
+    };
+
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
+  }, [selectedDetail, isPaused]);
+
+  const handleTabClick = (index: number) => {
+    setSelectedDetail(index);
+    setProgress(0);
+    progressRef.current = 0;
+  };
 
   return (
     <div className="min-[1200px]:grid hidden grid-cols-2 border-t border-neutral-100">
@@ -1486,36 +1618,44 @@ function DetailsDesktopView() {
           {detailsFeatures.map((feature, index) => (
             <div
               key={index}
-              onClick={() => setSelectedDetail(index)}
+              onClick={() => handleTabClick(index)}
+              onMouseEnter={() => selectedDetail === index && setIsPaused(true)}
+              onMouseLeave={() =>
+                selectedDetail === index && setIsPaused(false)
+              }
               className={cn([
-                "p-6 cursor-pointer transition-colors",
+                "p-6 cursor-pointer transition-colors relative overflow-hidden",
                 index < detailsFeatures.length - 1 &&
                   "border-b border-neutral-100",
-                selectedDetail === index
-                  ? "bg-stone-50"
-                  : "hover:bg-neutral-50",
+                selectedDetail !== index && "hover:bg-neutral-50",
               ])}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <Icon
-                    icon={feature.icon}
-                    className="text-2xl text-stone-600 mt-0.5"
-                  />
-                  <div>
-                    <h3 className="text-base font-serif font-medium text-stone-600 mb-1">
+              {selectedDetail === index && !feature.comingSoon && (
+                <div
+                  className="absolute inset-0 bg-stone-100 transition-none"
+                  style={{ width: `${progress}%` }}
+                />
+              )}
+              <div className="relative">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center gap-2">
+                    <Icon
+                      icon={feature.icon}
+                      className="text-xl text-stone-600"
+                    />
+                    <h3 className="text-base font-serif font-medium text-stone-600">
                       {feature.title}
                     </h3>
-                    <p className="text-sm text-neutral-600">
-                      {feature.description}
-                    </p>
                   </div>
+                  {feature.comingSoon && (
+                    <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full whitespace-nowrap">
+                      Coming Soon
+                    </span>
+                  )}
                 </div>
-                {feature.comingSoon && (
-                  <span className="text-xs font-medium text-neutral-500 bg-neutral-200 px-2 py-1 rounded-full whitespace-nowrap">
-                    Coming Soon
-                  </span>
-                )}
+                <p className="text-sm text-neutral-600">
+                  {feature.description}
+                </p>
               </div>
             </div>
           ))}
@@ -1524,8 +1664,14 @@ function DetailsDesktopView() {
 
       <div
         className="aspect-video overflow-hidden bg-neutral-100 relative group"
-        onMouseEnter={() => setHoveredDetail(selectedDetail)}
-        onMouseLeave={() => setHoveredDetail(null)}
+        onMouseEnter={() => {
+          setHoveredDetail(selectedDetail);
+          setIsPaused(true);
+        }}
+        onMouseLeave={() => {
+          setHoveredDetail(null);
+          setIsPaused(false);
+        }}
       >
         {selectedFeature &&
           (selectedFeature.image ? (

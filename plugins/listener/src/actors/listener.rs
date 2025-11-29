@@ -12,8 +12,8 @@ use tauri_specta::Event;
 
 use crate::SessionEvent;
 
-// Not too short to support non-realtime pipelines like whisper.cpp
 const LISTEN_STREAM_TIMEOUT: Duration = Duration::from_secs(15 * 60);
+const LISTEN_CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub enum ListenerMsg {
     AudioSingle(Bytes),
@@ -22,7 +22,6 @@ pub enum ListenerMsg {
     StreamError(String),
     StreamEnded,
     StreamTimeout(Elapsed),
-    StreamStartFailed(String),
 }
 
 #[derive(Clone)]
@@ -60,6 +59,21 @@ impl ListenerActor {
     }
 }
 
+#[derive(Debug)]
+struct ListenerInitError(String);
+
+impl std::fmt::Display for ListenerInitError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::error::Error for ListenerInitError {}
+
+fn actor_error(msg: impl Into<String>) -> ActorProcessingErr {
+    Box::new(ListenerInitError(msg.into()))
+}
+
 #[ractor::async_trait]
 impl Actor for ListenerActor {
     type Msg = ListenerMsg;
@@ -92,7 +106,6 @@ impl Actor for ListenerActor {
             let _ = shutdown_tx.send(());
             let _ = (&mut state.rx_task).await;
         }
-        // We should not call `state.rx_task.abort()` here.
         Ok(())
     }
 
@@ -134,11 +147,6 @@ impl Actor for ListenerActor {
                 {
                     tracing::error!(?error, "stream_response_emit_failed");
                 }
-            }
-
-            ListenerMsg::StreamStartFailed(error) => {
-                tracing::error!("listen_ws_connect_failed: {}", error);
-                myself.stop(Some(format!("listen_ws_connect_failed: {}", error)));
             }
 
             ListenerMsg::StreamError(error) => {
@@ -238,97 +246,6 @@ fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
     (session_offset_secs, extra)
 }
 
-async fn run_single_stream(
-    args: ListenerArgs,
-    myself: ActorRef<ListenerMsg>,
-    rx: tokio::sync::mpsc::Receiver<MixedMessage<Bytes, ControlMessage>>,
-    shutdown_rx: tokio::sync::oneshot::Receiver<()>,
-    offset_secs: f64,
-    extra: Extra,
-    channel_override: Option<(i32, i32)>,
-) {
-    let client = owhisper_client::ListenClient::builder()
-        .api_base(args.base_url.clone())
-        .api_key(args.api_key.clone())
-        .params(build_listen_params(&args))
-        .build_single();
-
-    let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-
-    let mut shutdown_rx = shutdown_rx;
-    let res = tokio::select! {
-        res = client.from_realtime_audio(outbound) => res,
-        _ = &mut shutdown_rx => {
-            return;
-        }
-    };
-
-    let (listen_stream, handle) = match res {
-        Ok(res) => res,
-        Err(e) => {
-            let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-            return;
-        }
-    };
-    futures_util::pin_mut!(listen_stream);
-
-    process_stream(
-        listen_stream,
-        handle,
-        myself,
-        shutdown_rx,
-        offset_secs,
-        extra,
-        channel_override,
-    )
-    .await;
-}
-
-async fn run_dual_stream(
-    args: ListenerArgs,
-    myself: ActorRef<ListenerMsg>,
-    rx: tokio::sync::mpsc::Receiver<MixedMessage<(Bytes, Bytes), ControlMessage>>,
-    shutdown_rx: tokio::sync::oneshot::Receiver<()>,
-    offset_secs: f64,
-    extra: Extra,
-) {
-    let client = owhisper_client::ListenClient::builder()
-        .api_base(args.base_url.clone())
-        .api_key(args.api_key.clone())
-        .params(build_listen_params(&args))
-        .build_dual();
-
-    let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
-
-    let mut shutdown_rx = shutdown_rx;
-    let res = tokio::select! {
-        res = client.from_realtime_audio(outbound) => res,
-        _ = &mut shutdown_rx => {
-            return;
-        }
-    };
-
-    let (listen_stream, handle) = match res {
-        Ok(res) => res,
-        Err(e) => {
-            let _ = myself.send_message(ListenerMsg::StreamStartFailed(format!("{:?}", e)));
-            return;
-        }
-    };
-    futures_util::pin_mut!(listen_stream);
-
-    process_stream(
-        listen_stream,
-        handle,
-        myself,
-        shutdown_rx,
-        offset_secs,
-        extra,
-        None,
-    )
-    .await;
-}
-
 async fn spawn_rx_task_single(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
@@ -345,11 +262,38 @@ async fn spawn_rx_task_single(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
 
+    let client = owhisper_client::ListenClient::builder()
+        .api_base(args.base_url.clone())
+        .api_key(args.api_key.clone())
+        .params(build_listen_params(&args))
+        .build_single();
+
+    let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
+
+    let connect_result =
+        tokio::time::timeout(LISTEN_CONNECT_TIMEOUT, client.from_realtime_audio(outbound)).await;
+
+    let (listen_stream, handle) = match connect_result {
+        Err(_elapsed) => {
+            tracing::error!(
+                timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
+                "listen_ws_connect_timeout(single)"
+            );
+            return Err(actor_error("listen_ws_connect_timeout"));
+        }
+        Ok(Err(e)) => {
+            tracing::error!(error = ?e, "listen_ws_connect_failed(single)");
+            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+        }
+        Ok(Ok(res)) => res,
+    };
+
     let rx_task = tokio::spawn(async move {
-        run_single_stream(
-            args,
+        futures_util::pin_mut!(listen_stream);
+        process_stream(
+            listen_stream,
+            handle,
             myself,
-            rx,
             shutdown_rx,
             session_offset_secs,
             extra,
@@ -377,8 +321,44 @@ async fn spawn_rx_task_dual(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
 
+    let client = owhisper_client::ListenClient::builder()
+        .api_base(args.base_url.clone())
+        .api_key(args.api_key.clone())
+        .params(build_listen_params(&args))
+        .build_dual();
+
+    let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
+
+    let connect_result =
+        tokio::time::timeout(LISTEN_CONNECT_TIMEOUT, client.from_realtime_audio(outbound)).await;
+
+    let (listen_stream, handle) = match connect_result {
+        Err(_elapsed) => {
+            tracing::error!(
+                timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
+                "listen_ws_connect_timeout(dual)"
+            );
+            return Err(actor_error("listen_ws_connect_timeout"));
+        }
+        Ok(Err(e)) => {
+            tracing::error!(error = ?e, "listen_ws_connect_failed(dual)");
+            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+        }
+        Ok(Ok(res)) => res,
+    };
+
     let rx_task = tokio::spawn(async move {
-        run_dual_stream(args, myself, rx, shutdown_rx, session_offset_secs, extra).await;
+        futures_util::pin_mut!(listen_stream);
+        process_stream(
+            listen_stream,
+            handle,
+            myself,
+            shutdown_rx,
+            session_offset_secs,
+            extra,
+            None,
+        )
+        .await;
     });
 
     Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx))
@@ -400,57 +380,101 @@ async fn spawn_rx_task_dual_split(
 
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<(Bytes, Bytes), ControlMessage>>(32);
 
+    let (mic_tx, mic_rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
+    let (spk_tx, spk_rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
+
+    let (shutdown_tx_mic, shutdown_rx_mic) = tokio::sync::oneshot::channel::<()>();
+    let (shutdown_tx_spk, shutdown_rx_spk) = tokio::sync::oneshot::channel::<()>();
+
+    let extra_mic = extra.clone();
+    let extra_spk = extra;
+
+    let mic_client = owhisper_client::ListenClient::builder()
+        .api_base(args.base_url.clone())
+        .api_key(args.api_key.clone())
+        .params(build_listen_params(&args))
+        .build_single();
+
+    let spk_client = owhisper_client::ListenClient::builder()
+        .api_base(args.base_url.clone())
+        .api_key(args.api_key.clone())
+        .params(build_listen_params(&args))
+        .build_single();
+
+    let mic_outbound = tokio_stream::wrappers::ReceiverStream::new(mic_rx);
+    let spk_outbound = tokio_stream::wrappers::ReceiverStream::new(spk_rx);
+
+    let connect_fut = async {
+        tokio::try_join!(
+            mic_client.from_realtime_audio(mic_outbound),
+            spk_client.from_realtime_audio(spk_outbound)
+        )
+    };
+
+    let connect_result = tokio::time::timeout(LISTEN_CONNECT_TIMEOUT, connect_fut).await;
+
+    let ((mic_stream, mic_handle), (spk_stream, spk_handle)) = match connect_result {
+        Err(_elapsed) => {
+            tracing::error!(
+                timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
+                "listen_ws_connect_timeout(dual_split)"
+            );
+            return Err(actor_error("listen_ws_connect_timeout"));
+        }
+        Ok(Err(e)) => {
+            tracing::error!(error = ?e, "listen_ws_connect_failed(dual_split)");
+            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+        }
+        Ok(Ok(res)) => res,
+    };
+
     let rx_task = tokio::spawn(async move {
-        let (mic_tx, mic_rx) =
-            tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
-        let (spk_tx, spk_rx) =
-            tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
-
-        let (shutdown_tx_mic, shutdown_rx_mic) = tokio::sync::oneshot::channel::<()>();
-        let (shutdown_tx_spk, shutdown_rx_spk) = tokio::sync::oneshot::channel::<()>();
-
         let myself_mic = myself.clone();
-        let myself_spk = myself.clone();
-        let extra_mic = extra.clone();
-        let extra_spk = extra;
-        let args_mic = args.clone();
-        let args_spk = args;
+        let myself_spk = myself;
 
-        let mic_task = tokio::spawn(async move {
-            run_single_stream(
-                args_mic,
+        let mic_fut = async move {
+            futures_util::pin_mut!(mic_stream);
+            process_stream(
+                mic_stream,
+                mic_handle,
                 myself_mic,
-                mic_rx,
                 shutdown_rx_mic,
                 session_offset_secs,
                 extra_mic,
                 Some((0, 2)),
             )
             .await;
-        });
+        };
 
-        let spk_task = tokio::spawn(async move {
-            run_single_stream(
-                args_spk,
+        let spk_fut = async move {
+            futures_util::pin_mut!(spk_stream);
+            process_stream(
+                spk_stream,
+                spk_handle,
                 myself_spk,
-                spk_rx,
                 shutdown_rx_spk,
                 session_offset_secs,
                 extra_spk,
                 Some((1, 2)),
             )
             .await;
-        });
+        };
 
-        let forward_task = tokio::spawn(async move {
+        let forward_fut = async move {
             let mut rx = rx;
             let mut shutdown_rx_global = shutdown_rx_global;
+            let mut shutdown_tx_mic = Some(shutdown_tx_mic);
+            let mut shutdown_tx_spk = Some(shutdown_tx_spk);
 
             loop {
                 tokio::select! {
                     _ = &mut shutdown_rx_global => {
-                        let _ = shutdown_tx_mic.send(());
-                        let _ = shutdown_tx_spk.send(());
+                        if let Some(tx) = shutdown_tx_mic.take() {
+                            let _ = tx.send(());
+                        }
+                        if let Some(tx) = shutdown_tx_spk.take() {
+                            let _ = tx.send(());
+                        }
                         break;
                     }
                     msg = rx.recv() => {
@@ -464,17 +488,21 @@ async fn spawn_rx_task_dual_split(
                                 let _ = spk_tx.send(MixedMessage::Control(ctrl)).await;
                             }
                             None => {
-                                let _ = shutdown_tx_mic.send(());
-                                let _ = shutdown_tx_spk.send(());
+                                if let Some(tx) = shutdown_tx_mic.take() {
+                                    let _ = tx.send(());
+                                }
+                                if let Some(tx) = shutdown_tx_spk.take() {
+                                    let _ = tx.send(());
+                                }
                                 break;
                             }
                         }
                     }
                 }
             }
-        });
+        };
 
-        let _ = tokio::join!(mic_task, spk_task, forward_task);
+        let _ = tokio::join!(mic_fut, spk_fut, forward_fut);
     });
 
     Ok((ChannelSender::Dual(tx), rx_task, shutdown_tx_global))
@@ -565,17 +593,14 @@ async fn process_stream<S, E>(
                             break;
                         }
                     }
-                    // Something went wrong while sending or receiving a websocket message. Should restart.
                     Ok(Some(Err(e))) => {
                         let _ = myself.send_message(ListenerMsg::StreamError(format!("{:?}", e)));
                         break;
                     }
-                     // Stream ended gracefully. Safe to stop the whole session.
                     Ok(None) => {
                         let _ = myself.send_message(ListenerMsg::StreamEnded);
                         break;
                     }
-                    // We're not hearing back any transcript. Better to stop the whole session.
                     Err(elapsed) => {
                         let _ = myself.send_message(ListenerMsg::StreamTimeout(elapsed));
                         break;

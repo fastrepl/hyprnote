@@ -108,7 +108,7 @@ impl ListenClient {
     }
 
     pub async fn from_realtime_audio(
-        &self,
+        self,
         audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
     ) -> Result<
         (
@@ -124,7 +124,7 @@ impl ListenClient {
 
 impl ListenClientDual {
     pub async fn from_realtime_audio(
-        &self,
+        self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
     ) -> Result<
         (

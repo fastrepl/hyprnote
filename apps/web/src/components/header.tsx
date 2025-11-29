@@ -1,7 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronDown, ChevronUp, Menu } from "lucide-react";
+import { ChevronDown, ChevronUp, Menu, PanelLeft } from "lucide-react";
 import { useState } from "react";
 
+import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
 function scrollToHero() {
@@ -39,6 +40,8 @@ export function Header() {
   const platformCTA = getPlatformCTA(platform);
   const router = useRouterState();
   const maxWidthClass = getMaxWidthClass(router.location.pathname);
+  const isDocsPage = router.location.pathname.startsWith("/docs");
+  const docsDrawer = useDocsDrawer();
 
   return (
     <>
@@ -187,6 +190,15 @@ export function Header() {
             </nav>
 
             <div className="sm:hidden flex items-center gap-1">
+              {isDocsPage && docsDrawer && (
+                <button
+                  onClick={() => docsDrawer.setIsOpen(true)}
+                  className="md:hidden px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
+                  aria-label="Open docs navigation"
+                >
+                  <PanelLeft className="text-neutral-600" size={16} />
+                </button>
+              )}
               {platformCTA.action === "download" ? (
                 <a
                   href="/download/apple-silicon"

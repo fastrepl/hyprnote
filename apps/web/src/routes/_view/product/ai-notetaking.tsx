@@ -281,7 +281,7 @@ function EditorSection() {
         </div>
         <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
           <MockWindow variant="mobile">
-            <div className="p-6 h-[380px] overflow-hidden">
+            <div className="p-6 h-[200px] overflow-hidden">
               <AnimatedMarkdownDemo isMobile />
             </div>
           </MockWindow>
@@ -380,15 +380,33 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [typingText, setTypingText] = useState("");
   const [isTransformed, setIsTransformed] = useState(false);
+  const [showPlaceholder, setShowPlaceholder] = useState(false);
 
   const lines = [
-    { text: "# Meeting Notes", type: "heading" as const },
-    { text: "- Product roadmap review", type: "bullet" as const },
-    { text: "- Q4 marketing strategy", type: "bullet" as const },
-    { text: "- Budget allocation", type: "bullet" as const },
+    {
+      text: "# Meeting Notes",
+      type: "heading" as const,
+      placeholder: "Enter header",
+    },
+    {
+      text: "- Product roadmap review",
+      type: "bullet" as const,
+      placeholder: "Enter list item",
+    },
+    {
+      text: "- Q4 marketing strategy",
+      type: "bullet" as const,
+      placeholder: "Enter list item",
+    },
+    {
+      text: "- Budget allocation",
+      type: "bullet" as const,
+      placeholder: "Enter list item",
+    },
     {
       text: "**Decision:** Launch campaign by end of month",
       type: "bold" as const,
+      placeholder: "",
     },
   ];
 
@@ -399,6 +417,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
         setCurrentLineIndex(0);
         setTypingText("");
         setIsTransformed(false);
+        setShowPlaceholder(false);
       }, 2000);
       return () => clearTimeout(timeout);
     }
@@ -413,16 +432,29 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
         setTypingText(newText);
         charIndex++;
 
-        const shouldTransform =
+        // Check if we just typed the trigger sequence (e.g., "# " or "- ")
+        const isMarkdownTrigger =
           (currentLine.type === "heading" && newText === "# ") ||
-          (currentLine.type === "bullet" && newText === "- ") ||
-          (currentLine.type === "bold" && newText.match(/\*\*[^*]+\*\*/));
+          (currentLine.type === "bullet" && newText === "- ");
 
-        if (shouldTransform) {
+        if (isMarkdownTrigger && !isTransformed) {
+          // Show placeholder briefly, then transform
+          setShowPlaceholder(true);
+
+          timeout = setTimeout(() => {
+            setIsTransformed(true);
+            setShowPlaceholder(false);
+            timeout = setTimeout(typeCharacter, 60);
+          }, 300); // Show placeholder duration
+        } else if (
+          currentLine.type === "bold" &&
+          newText.match(/\*\*[^*]+\*\*/)
+        ) {
           setIsTransformed(true);
+          timeout = setTimeout(typeCharacter, 60);
+        } else {
+          timeout = setTimeout(typeCharacter, 60);
         }
-
-        timeout = setTimeout(typeCharacter, 60);
       } else {
         timeout = setTimeout(() => {
           const completedElement = renderCompletedLine(currentLine, isMobile);
@@ -432,6 +464,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
           setTypingText("");
           setIsTransformed(false);
+          setShowPlaceholder(false);
           setCurrentLineIndex((prev) => prev + 1);
         }, 800);
       }
@@ -509,6 +542,52 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       return null;
     }
 
+    // Show placeholder state (after typing "# " or "- " but before transformation)
+    if (showPlaceholder && !isTransformed) {
+      // For headings, show with larger font size
+      if (currentLine.type === "heading") {
+        return (
+          <h1 className={cn(["font-bold", isMobile ? "text-xl" : "text-2xl"])}>
+            <span className="animate-pulse">|</span>
+            <span className="text-neutral-400">{currentLine.placeholder}</span>
+          </h1>
+        );
+      }
+
+      // For bullets, show as list item
+      if (currentLine.type === "bullet") {
+        return (
+          <ul
+            className={cn([
+              "list-disc pl-5",
+              isMobile ? "text-sm" : "text-base",
+            ])}
+          >
+            <li>
+              <span className="animate-pulse">|</span>
+              <span className="text-neutral-400">
+                {currentLine.placeholder}
+              </span>
+            </li>
+          </ul>
+        );
+      }
+
+      // Default fallback (shouldn't reach here for current lines)
+      return (
+        <div
+          className={cn([
+            "text-neutral-700",
+            isMobile ? "text-sm" : "text-base",
+          ])}
+        >
+          <span className="animate-pulse">|</span>
+          <span className="text-neutral-400">{currentLine.placeholder}</span>
+        </div>
+      );
+    }
+
+    // Transformed state for headings
     if (currentLine.type === "heading" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "# "
       return (
@@ -524,6 +603,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       );
     }
 
+    // Transformed state for bullets
     if (currentLine.type === "bullet" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "- "
       return (
@@ -541,6 +621,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       );
     }
 
+    // Transformed state for bold text
     if (currentLine.type === "bold" && isTransformed) {
       const parts = typingText.split(/(\*\*.*?\*\*)/g);
       return (
@@ -565,6 +646,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       );
     }
 
+    // Default typing state
     return (
       <div
         className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}

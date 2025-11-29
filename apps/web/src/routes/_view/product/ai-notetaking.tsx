@@ -558,7 +558,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
           <span className="text-neutral-400">
             {typingText}
             <span className="animate-pulse">|</span>
-            <span className="ml-2">{currentLine.placeholder}</span>
+            <span className="ml-0.5">{currentLine.placeholder}</span>
           </span>
         </div>
       );

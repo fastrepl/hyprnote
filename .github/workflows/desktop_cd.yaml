@@ -126,13 +126,13 @@ jobs:
           fi
           pnpm -F desktop tauri build --target ${{ matrix.target }} --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
         env:
+          # https://v2.tauri.app/reference/environment-variables/
           CI: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AM_API_KEY: ${{ matrix.include_am && secrets.AM_API_KEY || '' }}
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}

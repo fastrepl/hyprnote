@@ -305,6 +305,13 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: desktop_v${{ needs.compute-version.outputs.version }}
           tag_prefix: ""
+      - id: checksums
+        uses: ./.github/actions/generate_checksums
+        with:
+          files: |
+            ${{ needs.build-macos.result == 'success' && 'hyprnote-macos-aarch64.dmg' || '' }}
+            ${{ needs.build-macos.result == 'success' && 'hyprnote-macos-x86_64.dmg' || '' }}
+            ${{ needs.build-linux.result == 'success' && 'hyprnote-linux-x86_64.AppImage' || '' }}
       - id: artifacts
         run: |
           ARTIFACTS=""
@@ -321,6 +328,9 @@ jobs:
           if [[ -z "$ARTIFACTS" ]]; then
             echo "No artifacts to release" >&2
             exit 1
+          fi
+          if [[ -n "${{ steps.checksums.outputs.checksum_files }}" ]]; then
+            ARTIFACTS="$ARTIFACTS,${{ steps.checksums.outputs.checksum_files }}"
           fi
           echo "list=$ARTIFACTS" >> $GITHUB_OUTPUT
       - uses: ncipollo/release-action@v1

@@ -555,11 +555,11 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
             transforming && "opacity-50",
           ])}
         >
-          <span className="text-neutral-400">{typingText}</span>
-          <span className="text-neutral-400 ml-2">
-            {currentLine.placeholder}
+          <span className="text-neutral-400">
+            {typingText}
+            <span className="animate-pulse">|</span>
+            <span className="ml-2">{currentLine.placeholder}</span>
           </span>
-          <span className="animate-pulse">|</span>
         </div>
       );
     }

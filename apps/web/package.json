@@ -7,7 +7,8 @@
     "build": "vite build",
     "serve": "vite preview",
     "test": "playwright test",
-    "typecheck": "pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit"
+    "typecheck": "pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit",
+    "gen:agents": "node scripts/gen-agents.js"
   },
   "dependencies": {
     "@deepgram/sdk": "^4.11.2",
@@ -64,6 +65,7 @@
     "@content-collections/core": "^0.11.1",
     "@content-collections/mdx": "^0.2.2",
     "@content-collections/vite": "^0.2.7",
+    "@dotenvx/dotenvx": "^1.51.1",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/dom": "^10.4.1",

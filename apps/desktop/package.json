@@ -112,6 +112,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.51.1",
     "@faker-js/faker": "^10.1.0",
     "@tanstack/react-router-devtools": "^1.139.3",
     "@tanstack/router-plugin": "^1.139.3",

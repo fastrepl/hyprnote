@@ -6,7 +6,6 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
-import { X } from "lucide-react";
 import { createContext, useContext, useMemo, useState } from "react";
 
 import { Footer } from "@/components/footer";
@@ -118,27 +117,21 @@ function MobileDocsDrawer({
 
   return (
     <div
-      className={`md:hidden border-b border-neutral-100 bg-white overflow-hidden transition-all duration-300 ${
-        isOpen ? "max-h-[400px]" : "max-h-0"
+      className={`md:hidden bg-white border-b border-neutral-100 shadow-sm overflow-hidden transition-all duration-300 ease-in-out ${
+        isOpen ? "max-h-[500px]" : "max-h-0 border-b-0"
       }`}
     >
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex items-center justify-between py-3 border-b border-neutral-100">
-          <span className="font-semibold text-neutral-700">Documentation</span>
-          <button
-            onClick={onClose}
-            className="p-2 text-neutral-500 hover:text-neutral-700 transition-colors"
-            aria-label="Close drawer"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <div className="overflow-y-auto max-h-[350px] py-4">
-          <DocsNavigation
-            sections={docsBySection.sections}
-            currentSlug={currentSlug}
-            onLinkClick={onClose}
-          />
+      <div className="max-w-6xl mx-auto">
+        <div className="border-x border-neutral-100">
+          <div className="px-4 py-4">
+            <div className="overflow-y-auto max-h-[450px] pr-2">
+              <DocsNavigation
+                sections={docsBySection.sections}
+                currentSlug={currentSlug}
+                onLinkClick={onClose}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

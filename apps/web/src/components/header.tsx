@@ -1,5 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronDown, ChevronUp, Menu, PanelLeft } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Menu,
+  PanelLeft,
+  PanelLeftClose,
+} from "lucide-react";
 import { useState } from "react";
 
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
@@ -53,11 +59,19 @@ export function Header() {
             <div className="flex items-center gap-5">
               {isDocsPage && docsDrawer && (
                 <button
-                  onClick={() => docsDrawer.setIsOpen(true)}
+                  onClick={() => docsDrawer.setIsOpen(!docsDrawer.isOpen)}
                   className="md:hidden px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
-                  aria-label="Open docs navigation"
+                  aria-label={
+                    docsDrawer.isOpen
+                      ? "Close docs navigation"
+                      : "Open docs navigation"
+                  }
                 >
-                  <PanelLeft className="text-neutral-600" size={16} />
+                  {docsDrawer.isOpen ? (
+                    <PanelLeftClose className="text-neutral-600" size={16} />
+                  ) : (
+                    <PanelLeft className="text-neutral-600" size={16} />
+                  )}
                 </button>
               )}
               <Link

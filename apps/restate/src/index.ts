@@ -1,4 +1,4 @@
-import * as restate from "@restatedev/restate-sdk-cloudflare-workers";
+import * as restate from "@restatedev/restate-sdk-cloudflare-workers/fetch";
 
 import { audioPipeline } from "./audioPipeline.js";
 import { userRateLimiter } from "./userRateLimiter.js";

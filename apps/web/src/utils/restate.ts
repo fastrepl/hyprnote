@@ -1,5 +1,6 @@
-const RESTATE_INGRESS_URL =
-  process.env.RESTATE_INGRESS_URL ?? "http://localhost:8080";
+import { env } from "@/env";
+
+const RESTATE_INGRESS_URL = env.VITE_RESTATE_INGRESS_URL;
 
 export interface StatusState {
   status:

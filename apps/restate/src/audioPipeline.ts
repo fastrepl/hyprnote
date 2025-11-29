@@ -1,5 +1,5 @@
 import { CallbackUrl, createClient } from "@deepgram/sdk";
-import * as restate from "@restatedev/restate-sdk-cloudflare-workers";
+import * as restate from "@restatedev/restate-sdk-cloudflare-workers/fetch";
 import { serde } from "@restatedev/restate-sdk-zod";
 import { z } from "zod";
 

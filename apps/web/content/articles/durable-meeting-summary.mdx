@@ -17,9 +17,8 @@ sequenceDiagram
     participant Client as Web Client
     participant Server as TanStack Server
     participant Restate as Restate Workflow
-    participant RateLimiter as UserRateLimiter
+    participant RateLimiter as RateLimiter
     participant Deepgram as Deepgram API
-    participant LLM as LLM API
 
     Client->>Server: Upload audio file
     Server->>Server: Store file, get audioUrl
@@ -46,15 +45,9 @@ sequenceDiagram
     Deepgram->>Restate: POST /onDeepgramResult (transcript)
     Restate->>Restate: promise("deepgram-result").resolve(transcript)
     
-    Note over Restate: Status: TRANSCRIBED
-    Note over Restate: Status: LLM_RUNNING
-    
-    Restate->>LLM: POST /chat (transcript, userId)
-    LLM-->>Restate: llmResult
-    
     Note over Restate: Status: DONE
     
-    Restate-->>Server: { status: DONE, transcript, llmResult }
+    Restate-->>Server: { status: DONE, transcript }
     Server-->>Client: Pipeline complete
 ```
 

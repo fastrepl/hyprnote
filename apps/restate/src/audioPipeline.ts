@@ -4,9 +4,8 @@ import { serde } from "@restatedev/restate-sdk-zod";
 import { z } from "zod";
 
 import { type Env } from "./env";
-import { callOpenRouter, type ChatResponse } from "./openrouter";
+import { limiter } from "./services/rate-limit";
 import { createSignedUrl, deleteFile } from "./supabase";
-import { limiterForUser } from "./userRateLimiter";
 
 const StartAudioPipeline = z.object({
   userId: z.string(),
@@ -15,44 +14,26 @@ const StartAudioPipeline = z.object({
 
 export type StartAudioPipelineInput = z.infer<typeof StartAudioPipeline>;
 
-const PipelineStatus = z.enum([
-  "QUEUED",
-  "TRANSCRIBING",
-  "TRANSCRIBED",
-  "LLM_RUNNING",
-  "DONE",
-  "ERROR",
-]);
+const PipelineStatus = z.enum(["QUEUED", "TRANSCRIBING", "DONE", "ERROR"]);
 
 export type PipelineStatusType = z.infer<typeof PipelineStatus>;
 
 const StatusState = z.object({
   status: PipelineStatus,
   transcript: z.string().optional(),
-  llmResult: z.unknown().optional(),
   error: z.string().optional(),
 });
 
 export type StatusStateType = z.infer<typeof StatusState>;
 
-const DeepgramCallbackPayload = z.object({
-  metadata: z
-    .object({
-      request_id: z.string().optional(),
-    })
-    .optional(),
+const DeepgramCallback = z.object({
   results: z
     .object({
       channels: z
         .array(
           z.object({
             alternatives: z
-              .array(
-                z.object({
-                  transcript: z.string(),
-                  confidence: z.number().optional(),
-                }),
-              )
+              .array(z.object({ transcript: z.string() }))
               .optional(),
           }),
         )
@@ -61,64 +42,30 @@ const DeepgramCallbackPayload = z.object({
     .optional(),
   channel: z
     .object({
-      alternatives: z
-        .array(
-          z.object({
-            transcript: z.string(),
-            confidence: z.number().optional(),
-          }),
-        )
-        .optional(),
+      alternatives: z.array(z.object({ transcript: z.string() })).optional(),
     })
     .optional(),
 });
 
-export type DeepgramCallbackPayloadType = z.infer<
-  typeof DeepgramCallbackPayload
->;
+export type DeepgramCallbackType = z.infer<typeof DeepgramCallback>;
 
-async function callDeepgram(
+async function transcribe(
   audioUrl: string,
   callbackUrl: string,
   apiKey: string,
 ): Promise<string> {
-  const deepgram = createClient(apiKey);
-
+  const client = createClient(apiKey);
   const { result, error } =
-    await deepgram.listen.prerecorded.transcribeUrlCallback(
+    await client.listen.prerecorded.transcribeUrlCallback(
       { url: audioUrl },
       new CallbackUrl(callbackUrl),
       { model: "nova-3", smart_format: true },
     );
 
-  if (error) {
-    throw new Error(`Deepgram error: ${error.message}`);
-  }
-
-  if (!result?.request_id) {
-    throw new Error("Deepgram response missing request_id");
-  }
+  if (error) throw new Error(`Deepgram: ${error.message}`);
+  if (!result?.request_id) throw new Error("Deepgram: missing request_id");
 
   return result.request_id;
-}
-
-async function processTranscriptWithLLM(
-  transcript: string,
-  apiKey: string,
-): Promise<ChatResponse> {
-  return callOpenRouter(apiKey, {
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are an AI assistant that processes audio transcripts. Analyze the transcript and provide a helpful summary or response.",
-      },
-      {
-        role: "user",
-        content: transcript,
-      },
-    ],
-  });
 }
 
 export const audioPipeline = restate.workflow({
@@ -136,84 +83,55 @@ export const audioPipeline = restate.workflow({
         const env = ctx.request().extraArgs[0] as Env;
 
         try {
-          const limiter = limiterForUser(ctx, req.userId);
-          await limiter.checkAndConsume({
+          await limiter(ctx, req.userId).checkAndConsume({
             windowMs: 60_000,
             maxInWindow: 5,
           });
 
           ctx.set("status", "TRANSCRIBING" as PipelineStatusType);
-          ctx.set("userId", req.userId);
 
-          const audioUrl = await ctx.run("create-signed-url", () =>
+          const audioUrl = await ctx.run("signed-url", () =>
             createSignedUrl(env, req.fileId, 3600),
           );
 
-          const pipelineId = ctx.key;
-          const callbackUrl = `${env.RESTATE_INGRESS_URL.replace(/\/+$/, "")}/AudioPipeline/${encodeURIComponent(pipelineId)}/onDeepgramResult`;
+          const callbackUrl = `${env.RESTATE_INGRESS_URL.replace(/\/+$/, "")}/AudioPipeline/${encodeURIComponent(ctx.key)}/onDeepgramResult`;
 
-          const requestId = await ctx.run("deepgram", () =>
-            callDeepgram(audioUrl, callbackUrl, env.DEEPGRAM_API_KEY),
+          const requestId = await ctx.run("transcribe", () =>
+            transcribe(audioUrl, callbackUrl, env.DEEPGRAM_API_KEY),
           );
           ctx.set("deepgramRequestId", requestId);
 
           const transcript = await ctx.promise<string>("deepgram-result");
           ctx.set("transcript", transcript);
-          ctx.set("status", "TRANSCRIBED" as PipelineStatusType);
-
-          ctx.set("status", "LLM_RUNNING" as PipelineStatusType);
-
-          const llmResult = await ctx.run("llm", () =>
-            processTranscriptWithLLM(transcript, env.OPENROUTER_API_KEY),
-          );
-
-          ctx.set("llmResult", llmResult);
           ctx.set("status", "DONE" as PipelineStatusType);
 
-          return {
-            status: "DONE",
-            transcript,
-            llmResult,
-          };
+          return { status: "DONE", transcript };
         } catch (err) {
-          const message =
-            err instanceof Error
-              ? err.message
-              : "Unknown error in AudioPipeline";
-
+          const error = err instanceof Error ? err.message : "Unknown error";
           ctx.set("status", "ERROR" as PipelineStatusType);
-          ctx.set("error", message);
-
+          ctx.set("error", error);
           throw err;
         } finally {
-          try {
-            await ctx.run("cleanup-file", () => deleteFile(env, req.fileId));
-          } catch (cleanupErr) {
-            console.error(
-              "Failed to delete file after processing:",
-              cleanupErr,
-            );
-          }
+          await ctx.run("cleanup", () =>
+            deleteFile(env, req.fileId).catch(() => {}),
+          );
         }
       },
     ),
 
     onDeepgramResult: restate.handlers.workflow.shared(
-      { input: serde.zod(DeepgramCallbackPayload) },
+      { input: serde.zod(DeepgramCallback) },
       async (
         ctx: restate.WorkflowSharedContext,
-        payload: DeepgramCallbackPayloadType,
+        payload: DeepgramCallbackType,
       ): Promise<void> => {
-        const existingTranscript = await ctx.get<string>("transcript");
-        if (existingTranscript) {
-          return;
-        }
+        const existing = await ctx.get<string>("transcript");
+        if (existing !== undefined) return;
 
-        const fromResults =
-          payload.results?.channels?.[0]?.alternatives?.[0]?.transcript;
-        const fromChannel = payload.channel?.alternatives?.[0]?.transcript;
-
-        const transcript = fromResults ?? fromChannel ?? "";
+        const transcript =
+          payload.results?.channels?.[0]?.alternatives?.[0]?.transcript ??
+          payload.channel?.alternatives?.[0]?.transcript ??
+          "";
 
         ctx.promise<string>("deepgram-result").resolve(transcript);
       },
@@ -225,13 +143,11 @@ export const audioPipeline = restate.workflow({
         const status =
           (await ctx.get<PipelineStatusType>("status")) ?? "QUEUED";
         const transcript = await ctx.get<string>("transcript");
-        const llmResult = await ctx.get<unknown>("llmResult");
         const error = await ctx.get<string>("error");
 
         return {
           status,
           transcript: transcript ?? undefined,
-          llmResult,
           error: error ?? undefined,
         };
       },

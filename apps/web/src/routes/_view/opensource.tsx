@@ -101,8 +101,8 @@ function HeroSection() {
               href="https://hyprnote.com/download"
               className={cn([
                 "inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-full",
-                "border border-neutral-300 text-stone-600",
-                "hover:bg-stone-50 transition-colors",
+                "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm",
+                "hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
               ])}
             >
               Download for free

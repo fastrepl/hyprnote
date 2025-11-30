@@ -22,4 +22,5 @@ FROM node:22-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV="production"
 COPY --from=build /runtime ./
+COPY --from=build /repo/apps/bot/lib ./lib
 CMD ["node", "./lib/server.js"]

@@ -8,6 +8,7 @@ export const env = createEnv({
     GITHUB_BOT_WEBHOOK_SECRET: z.string().min(1),
     GITHUB_BOT_CLIENT_ID: z.string().min(1).optional(),
     GITHUB_BOT_CLIENT_SECRET: z.string().min(1).optional(),
+    DEVIN_API_KEY: z.string().min(1).optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

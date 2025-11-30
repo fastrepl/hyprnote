@@ -1,6 +1,9 @@
 import { ApplicationFunctionOptions, Probot } from "probot";
 
-import { registerMergeableHandlers } from "./mergeable.js";
+import {
+  registerFixMergeConflictHandler,
+  registerPrClosedHandler,
+} from "./features";
 
 export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
   if (getRouter) {
@@ -11,12 +14,6 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
     });
   }
 
-  registerMergeableHandlers(app);
-
-  app.on("issues.opened", async (context) => {
-    const issueComment = context.issue({
-      body: "Thanks for opening this issue!",
-    });
-    await context.octokit.issues.createComment(issueComment);
-  });
+  registerFixMergeConflictHandler(app);
+  registerPrClosedHandler(app);
 };

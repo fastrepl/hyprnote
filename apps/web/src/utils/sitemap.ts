@@ -72,7 +72,7 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.8,
         changeFrequency: "monthly",
       },
-      "/product/opensource": {
+      "/opensource": {
         priority: 0.8,
         changeFrequency: "monthly",
       },

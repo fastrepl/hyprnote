@@ -1,25 +1,17 @@
 {
   "compilerOptions": {
-    "incremental": true,
     "target": "es2022",
-    "module": "Node16",
-    "declaration": true,
-    "sourceMap": true,
+    "module": "ESNext",
     "outDir": "./lib",
-
-    /* Strict Type-Checking Options */
     "strict": true,
-
-    /* Additional Checks */
+    "skipLibCheck": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-
-    "moduleResolution": "Node16",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/"],
-  "compileOnSave": false
+  "include": ["src/", "test/"]
 }

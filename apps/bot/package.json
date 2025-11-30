@@ -10,15 +10,15 @@
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.8",
-    "probot": "^13.4.5",
+    "probot": "^13.4.7",
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "nock": "^14.0.5",
-    "smee-client": "^2.0.0",
-    "typescript": "^5.8.3",
-    "vitest": "^2.0.0"
+    "@types/node": "^20.19.25",
+    "nock": "^14.0.10",
+    "smee-client": "^2.0.4",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   },
   "overrides": {
     "@types/pg": "8.15.1"

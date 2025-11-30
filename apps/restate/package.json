@@ -4,8 +4,14 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmitOnError",
-    "dev": "wrangler dev --port 9080 --env-file ../../.env.supabase --env-file .env",
-    "start": "wrangler dev --port 9080",
+    "restate-server-stop": "pkill -f restate-server || true; sleep 2; rm -rf ./restate-data",
+    "gen-env-restate": "echo \"RESTATE_ADMIN_URL=http://$(dasel -f ./restate.toml -r toml 'admin.bind-address' | tr -d \"'\")\" > ../../.env.restate && echo \"RESTATE_INGRESS_URL=http://$(dasel -f ./restate.toml -r toml 'ingress.bind-address' | tr -d \"'\")\" >> ../../.env.restate",
+    "restate-server-start": "restate-server --config-file ./restate.toml",
+    "restate-server": "pnpm run restate-server-stop && pnpm run restate-server-start",
+    "wrangler-dev": "wrangler dev --port 9080 --env-file ../../.env.supabase --env-file .env --env-file ../../.env.restate",
+    "register-deployment": "sleep 5 && npx -y @restatedev/restate deployments register --environment local --use-http1.1 -y http://localhost:9080",
+    "open-admin": "open \"http://$(dasel -f ./restate.toml -r toml 'admin.bind-address' | tr -d \"'\")\"",
+    "dev": "pnpm run gen-env-restate && (pnpm run register-deployment && pnpm run open-admin) & pnpm run restate-server & pnpm run wrangler-dev",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit"
   },

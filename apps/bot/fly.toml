@@ -1,0 +1,38 @@
+# fly.toml app configuration file generated for hyprnote-bot on 2025-11-30T18:55:28+09:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'hyprnote-bot'
+primary_region = 'sjc'
+
+[build]
+dockerfile = "Dockerfile"
+
+[deploy]
+strategy = 'bluegreen'
+
+[http_service]
+internal_port = 3000
+force_https = true
+auto_stop_machines = 'stop'
+auto_start_machines = true
+min_machines_running = 1
+processes = ['app']
+
+[http_service.concurrency]
+type = 'connections'
+hard_limit = 25
+soft_limit = 20
+
+[[http_service.checks]]
+interval = '10s'
+timeout = '2s'
+grace_period = '5s'
+method = 'get'
+path = '/health'
+
+[[vm]]
+memory = '1gb'
+cpu_kind = 'shared'
+cpus = 1

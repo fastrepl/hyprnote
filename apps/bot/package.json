@@ -1,20 +1,12 @@
 {
-  "name": "@hypr/github",
+  "name": "@hypr/bot",
   "version": "1.0.0",
   "private": true,
-  "description": "GitHub app for Hyprnote",
-  "author": "Hyprnote <dev@hyprnote.com>",
-  "license": "ISC",
-  "homepage": "https://github.com/fastrepl/hyprnote",
-  "keywords": [
-    "probot",
-    "github",
-    "probot-app"
-  ],
   "scripts": {
     "build": "tsc",
+    "typecheck": "tsc --noEmit",
     "start": "probot run ./lib/index.js",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "probot": "^13.4.5"

@@ -73,6 +73,28 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  apps/bot:
+    dependencies:
+      probot:
+        specifier: ^13.4.5
+        version: 13.4.7
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.25
+      nock:
+        specifier: ^14.0.5
+        version: 14.0.10
+      smee-client:
+        specifier: ^2.0.0
+        version: 2.0.4
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.25)(jsdom@27.2.0)(lightningcss@1.30.2)
+
   apps/desktop:
     dependencies:
       '@ai-sdk/amazon-bedrock':
@@ -442,28 +464,6 @@ importers:
       webdriverio:
         specifier: ^9.20.1
         version: 9.20.1(puppeteer-core@22.15.0)
-
-  apps/github:
-    dependencies:
-      probot:
-        specifier: ^13.4.5
-        version: 13.4.7
-    devDependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.25
-      nock:
-        specifier: ^14.0.5
-        version: 14.0.10
-      smee-client:
-        specifier: ^2.0.0
-        version: 2.0.4
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@20.19.25)(jsdom@27.2.0)(lightningcss@1.30.2)
 
   apps/pro:
     dependencies:

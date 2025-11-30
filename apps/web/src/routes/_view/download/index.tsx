@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Copy } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -13,6 +13,12 @@ export const Route = createFileRoute("/_view/download/")({
 });
 
 function Component() {
+  const [isMac, setIsMac] = useState(false);
+
+  useEffect(() => {
+    setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
+  }, []);
+
   return (
     <div
       className="bg-linear-to-b from-white via-blue-50/20 to-white min-h-screen"
@@ -78,14 +84,16 @@ function Component() {
               </div>
             </div>
 
-            <div className="mb-16">
-              <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
-                Homebrew
-              </h2>
-              <div className="max-w-2xl mx-auto">
-                <HomebrewCard />
+            {isMac && (
+              <div className="mb-16">
+                <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
+                  Homebrew
+                </h2>
+                <div className="max-w-2xl mx-auto">
+                  <HomebrewCard />
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">

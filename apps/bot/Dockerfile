@@ -22,4 +22,4 @@ FROM node:22-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV="production"
 COPY --from=build /runtime ./
-CMD ["node", "node_modules/probot/bin/probot.js", "run", "./lib/index.js"]
+CMD ["node", "./lib/server.js"]

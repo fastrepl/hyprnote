@@ -1,6 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Mail, XIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import {
@@ -8,6 +9,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
+import { useIsMobile } from "@hypr/ui/hooks/use-mobile";
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
@@ -224,13 +226,44 @@ function AboutContentSection({
   selectedItem: SelectedItem | null;
   setSelectedItem: (item: SelectedItem | null) => void;
 }) {
+  const isMobile = useIsMobile();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   return (
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
-        <MockWindow title="About" className="rounded-lg w-full max-w-none">
-          <div className="h-[480px]">
+        <MockWindow
+          title="About"
+          className="rounded-lg w-full max-w-none"
+          prefixIcons={
+            isMobile &&
+            selectedItem && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                aria-label="Open navigation"
+              >
+                <Icon icon="mdi:menu" className="text-base text-neutral-600" />
+              </button>
+            )
+          }
+        >
+          <div className="h-[480px] relative">
             {!selectedItem ? (
               <AboutGridView setSelectedItem={setSelectedItem} />
+            ) : isMobile ? (
+              <>
+                <MobileSidebarDrawer
+                  open={drawerOpen}
+                  onClose={() => setDrawerOpen(false)}
+                  selectedItem={selectedItem}
+                  setSelectedItem={setSelectedItem}
+                />
+                <AboutDetailContent
+                  selectedItem={selectedItem}
+                  setSelectedItem={setSelectedItem}
+                />
+              </>
             ) : (
               <AboutDetailView
                 selectedItem={selectedItem}
@@ -385,6 +418,106 @@ function AboutDetailView({
         setSelectedItem={setSelectedItem}
       />
     </ResizablePanelGroup>
+  );
+}
+
+function MobileSidebarDrawer({
+  open,
+  onClose,
+  selectedItem,
+  setSelectedItem,
+}: {
+  open: boolean;
+  onClose: () => void;
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            className="absolute inset-0 z-40 bg-black/20"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+          <motion.div
+            className="absolute left-0 top-0 bottom-0 z-50 w-72 bg-white border-r border-neutral-200 shadow-lg"
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
+              <span className="text-sm font-medium text-stone-600">
+                Navigation
+              </span>
+              <button
+                onClick={onClose}
+                className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                aria-label="Close drawer"
+              >
+                <Icon icon="mdi:close" className="text-base text-neutral-600" />
+              </button>
+            </div>
+            <div className="h-[calc(100%-49px)] overflow-y-auto p-4">
+              <OurStorySidebar
+                selectedItem={selectedItem}
+                setSelectedItem={(item) => {
+                  setSelectedItem(item);
+                  onClose();
+                }}
+              />
+              <FoundersSidebar
+                selectedItem={selectedItem}
+                setSelectedItem={(item) => {
+                  setSelectedItem(item);
+                  onClose();
+                }}
+              />
+              <TeamPhotosSidebar
+                selectedItem={selectedItem}
+                setSelectedItem={(item) => {
+                  setSelectedItem(item);
+                  onClose();
+                }}
+              />
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function AboutDetailContent({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem | null) => void;
+}) {
+  return (
+    <div className="h-full flex flex-col">
+      {selectedItem?.type === "story" && (
+        <StoryDetail onClose={() => setSelectedItem(null)} />
+      )}
+      {selectedItem?.type === "founder" && (
+        <FounderDetail
+          founder={selectedItem.data}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
+      {selectedItem?.type === "photo" && (
+        <PhotoDetail
+          photo={selectedItem.data}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
+    </div>
   );
 }
 

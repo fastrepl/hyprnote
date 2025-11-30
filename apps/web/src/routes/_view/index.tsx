@@ -149,6 +149,8 @@ function Component() {
           heroInputRef={heroInputRef}
         />
         <SlashSeparator />
+        <FreeForeverSection />
+        <SlashSeparator />
         <HowItWorksSection />
         <SlashSeparator />
         <CoolStuffSection />
@@ -456,6 +458,22 @@ function ValuePropsGrid() {
         </p>
       </div>
     </div>
+  );
+}
+
+function FreeForeverSection() {
+  return (
+    <section className="py-16 px-6">
+      <div className="max-w-3xl mx-auto text-center">
+        <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">
+          Free forever
+        </h2>
+        <p className="text-base sm:text-lg text-neutral-600 leading-relaxed">
+          Hyprnote can theoretically be used for free forever. All core features
+          run locally on your device with no subscription required.
+        </p>
+      </div>
+    </section>
   );
 }
 

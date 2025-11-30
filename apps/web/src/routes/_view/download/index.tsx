@@ -1,5 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -76,6 +78,15 @@ function Component() {
               </div>
             </div>
 
+            <div className="mb-16">
+              <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
+                Homebrew
+              </h2>
+              <div className="max-w-2xl mx-auto">
+                <HomebrewCard />
+              </div>
+            </div>
+
             <div>
               <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
                 Mobile
@@ -101,6 +112,57 @@ function Component() {
           <SlashSeparator />
           <CTASection />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function HomebrewCard() {
+  const [copied, setCopied] = useState(false);
+  const command = "brew tap fastrepl/hyprnote && brew install hyprnote --cask";
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(command);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex flex-col items-center p-6 rounded-sm border border-neutral-100 bg-white">
+      <Icon
+        icon="simple-icons:homebrew"
+        className="text-5xl text-neutral-700 mb-4"
+      />
+      <p className="text-sm text-neutral-600 mb-4 text-center">
+        Install via Homebrew on macOS
+      </p>
+      <div className="w-full group relative">
+        <code className="flex items-center justify-between w-full px-4 py-3 bg-stone-50 border border-neutral-200 rounded-lg text-sm font-mono text-stone-700">
+          <span className="flex-1 text-center">{command}</span>
+          <button
+            onClick={handleCopy}
+            className={cn([
+              "flex items-center justify-center transition-all relative",
+              "ml-2 px-2 py-1 rounded",
+              copied
+                ? ["opacity-100 text-green-600"]
+                : [
+                    "opacity-30 group-hover:opacity-100 text-neutral-600 hover:bg-stone-100",
+                  ],
+            ])}
+          >
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Copy className="size-4" />
+            )}
+            {copied && (
+              <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-stone-800 text-white text-xs rounded whitespace-nowrap">
+                Copied!
+              </span>
+            )}
+          </button>
+        </code>
       </div>
     </div>
   );

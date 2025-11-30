@@ -30,11 +30,10 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          SECRETS_JSON: ${{ steps.secrets.outputs.secrets }}
+          SECRETS_FILE: ${{ steps.secrets.outputs.secrets_file }}
         run: |
-          printenv SECRETS_JSON > /tmp/secrets.json
-          npx wrangler secret bulk /tmp/secrets.json
-          rm /tmp/secrets.json
+          npx wrangler versions secret bulk "$SECRETS_FILE"
+          rm -f "$SECRETS_FILE"
       - uses: cloudflare/wrangler-action@v3
         id: upload
         with:

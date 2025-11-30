@@ -9,6 +9,8 @@ inputs:
 outputs:
   secrets:
     value: ${{ steps.export.outputs.secrets }}
+  secrets_file:
+    value: ${{ steps.export.outputs.secrets_file }}
 
 runs:
   using: "composite"
@@ -25,4 +27,10 @@ runs:
             --format=json \
           | jq -c 'map({(.key): .value}) | add'
         )
-        echo "secrets=$SECRETS" >> $GITHUB_OUTPUT
+        SECRET_FILE=$(mktemp)
+        printf '%s' "$SECRETS" > "$SECRET_FILE"
+        echo "::add-mask::$SECRETS"
+        {
+          echo "secrets=$SECRETS"
+          echo "secrets_file=$SECRET_FILE"
+        } >> $GITHUB_OUTPUT

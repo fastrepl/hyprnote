@@ -1,12 +1,36 @@
 {
   "name": "@hypr/github",
+  "version": "1.0.0",
   "private": true,
-  "type": "module",
+  "description": "GitHub app for Hyprnote",
+  "author": "Hyprnote <dev@hyprnote.com>",
+  "license": "ISC",
+  "homepage": "https://github.com/fastrepl/hyprnote",
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app"
+  ],
   "scripts": {
-    "dev": "probot run ./src/index.js",
-    "start": "probot run ./src/index.js"
+    "build": "tsc",
+    "start": "probot run ./lib/index.js",
+    "test": "vitest"
   },
   "dependencies": {
-    "probot": "^13.4.3"
-  }
+    "probot": "^13.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "nock": "^14.0.5",
+    "smee-client": "^2.0.0",
+    "vitest": "^2.0.0",
+    "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "@types/pg": "8.15.1"
+  },
+  "engines": {
+    "node": ">= 18"
+  },
+  "type": "module"
 }

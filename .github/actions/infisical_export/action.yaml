@@ -5,6 +5,9 @@ inputs:
     required: true
   folder:
     required: true
+  env:
+    required: false
+    default: dev
 
 outputs:
   secrets:
@@ -24,6 +27,7 @@ runs:
             --token=${{ inputs.token }} \
             --projectId=${{ inputs.project-id }} \
             --path="${{ inputs.folder }}" \
+            --env=${{ inputs.env }} \
             --format=json \
           | jq -c 'map({(.key): .value}) | add'
         )

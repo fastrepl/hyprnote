@@ -9,7 +9,9 @@ export default {
     const env = envSchema.parse(_env);
     return restate.createEndpointHandler({
       services: [audioPipeline, userRateLimiter],
-      identityKeys: [env.RESTATE_IDENTITY_KEY],
+      ...(env.RESTATE_IDENTITY_KEY
+        ? { identityKeys: [env.RESTATE_IDENTITY_KEY] }
+        : {}),
     })(request, { env });
   },
 };

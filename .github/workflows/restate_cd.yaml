@@ -31,6 +31,7 @@ jobs:
         with:
           token: ${{ secrets.INFISICAL_TOKEN }}
           project-id: ${{ secrets.INFISICAL_PROJECT_ID }}
+          env: prod
           folder: /restate
       - id: sync-secrets
         working-directory: apps/restate

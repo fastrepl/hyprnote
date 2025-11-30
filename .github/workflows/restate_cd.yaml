@@ -20,26 +20,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - uses: cloudflare/wrangler-action@v3
-        id: upload
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/restate
           packageManager: pnpm
           command: versions upload --message "commit ${{ github.sha }}"
-      - id: parse-upload
-        env:
-          WRANGLER_OUTPUT: ${{ steps.upload.outputs.command-output }}
-        run: |
-          VERSION_ID=$(echo "$WRANGLER_OUTPUT" | grep -oP 'Version ID:\s*\K[a-f0-9-]+')
-          PREVIEW_URL=$(echo "$WRANGLER_OUTPUT" | awk '/Version Preview URL:/ {gsub(/.*Version Preview URL: /, ""); print}')
-          if [ -z "$VERSION_ID" ]; then
-            echo "::error::Failed to parse version ID from wrangler output"
-            echo "$WRANGLER_OUTPUT"
-            exit 1
-          fi
-          echo "version-id=$VERSION_ID" >> $GITHUB_OUTPUT
-          echo "deployment-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
       - uses: ./.github/actions/infisical_export
         id: secrets
         with:
@@ -52,7 +38,6 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           SECRETS_FILE: ${{ steps.secrets.outputs.secrets_file }}
-          DEFAULT_DEPLOYMENT_URL: ${{ steps.parse-upload.outputs.deployment-url }}
         run: |
           set -euo pipefail
 
@@ -61,19 +46,17 @@ jobs:
           echo "$SECRET_OUTPUT"
 
           VERSION_ID=$(echo "$SECRET_OUTPUT" | grep -oP 'Created version \K[a-f0-9-]+' || true)
-          PREVIEW_URL=$(echo "$SECRET_OUTPUT" | grep -oP 'https://[^\s]+\.workers\.dev' | head -1 || true)
 
           if [ -z "$VERSION_ID" ]; then
             echo "::error::Failed to parse version ID from wrangler secret bulk output"
             exit 1
           fi
 
+          SHORT_VERSION_ID=$(echo "$VERSION_ID" | cut -c1-8)
+          DEPLOYMENT_URL="https://${SHORT_VERSION_ID}-hypr-restate.fastrepl.workers.dev"
+
           echo "version-id=$VERSION_ID" >> $GITHUB_OUTPUT
-          if [ -n "$PREVIEW_URL" ]; then
-            echo "deployment-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
-          else
-            echo "deployment-url=$DEFAULT_DEPLOYMENT_URL" >> $GITHUB_OUTPUT
-          fi
+          echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
       - working-directory: apps/restate
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

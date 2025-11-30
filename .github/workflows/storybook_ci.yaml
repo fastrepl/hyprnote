@@ -33,11 +33,14 @@ jobs:
       - name: Build Storybook
         run: pnpm -F storybook build
       - name: Install Playwright dependencies
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/storybook
       - name: Run Storybook tests and capture screenshots
         run: |
           npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
             "npx http-server ./storybook-static --port 6006 --silent" \
             "npx wait-on tcp:127.0.0.1:6006 && pnpm -F storybook test-storybook"
+        working-directory: apps/storybook
       - name: Upload screenshots to Argos
-        run: npx argos upload --token $ARGOS_TOKEN ./screenshots
+        run: pnpm exec argos upload --token $ARGOS_TOKEN ./screenshots
+        working-directory: apps/storybook

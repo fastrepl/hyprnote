@@ -413,20 +413,8 @@ function TemplateCard({
         <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
           For
         </div>
-        <div className="flex flex-wrap gap-2">
-          {template.targets.slice(0, 3).map((target) => (
-            <span
-              key={target}
-              className="text-xs px-2 py-1 bg-stone-50 text-stone-600 rounded"
-            >
-              {target}
-            </span>
-          ))}
-          {template.targets.length > 3 && (
-            <span className="text-xs px-2 py-1 text-neutral-500">
-              +{template.targets.length - 3} more
-            </span>
-          )}
+        <div className="text-sm text-stone-600">
+          {template.targets.join(", ")}
         </div>
       </div>
     </button>
@@ -529,15 +517,13 @@ function TemplateModal({
               </h2>
               <p className="text-neutral-600 mb-4">{template.description}</p>
 
-              <div className="flex flex-wrap gap-2 mb-6">
-                {template.targets.map((target) => (
-                  <span
-                    key={target}
-                    className="text-xs px-2 py-1 bg-white/80 text-stone-600 rounded border border-stone-200/50"
-                  >
-                    {target}
-                  </span>
-                ))}
+              <div className="mb-6">
+                <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                  For:{" "}
+                </span>
+                <span className="text-sm text-stone-600">
+                  {template.targets.join(", ")}
+                </span>
               </div>
 
               <div className="space-y-6">

@@ -66,29 +66,30 @@ async function terminateDevinSession(
 async function findDevinSessionForPR(
   apiKey: string,
   prUrl: string,
-  prCreatedAt: Date,
 ): Promise<DevinSession | null> {
   const limit = 100;
   let offset = 0;
   const maxIterations = 50;
 
   for (let i = 0; i < maxIterations; i++) {
-    const response = await listDevinSessions(apiKey, limit, offset);
-    const sessions = response.sessions;
+    const { sessions } = await listDevinSessions(apiKey, limit, offset);
 
     if (sessions.length === 0) {
       break;
     }
 
-    for (const session of sessions) {
-      if (session.pull_request?.url === prUrl) {
-        return session;
-      }
+    const sorted = [...sessions].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
 
-      const sessionCreatedAt = new Date(session.created_at);
-      if (sessionCreatedAt < prCreatedAt) {
-        return null;
-      }
+    const match = sorted.find((s) => s.pull_request?.url === prUrl);
+    if (match) {
+      return match;
+    }
+
+    if (sessions.length < limit) {
+      break;
     }
 
     offset += limit;
@@ -115,12 +116,11 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
 
     const pr = context.payload.pull_request;
     const prUrl = pr.html_url;
-    const prCreatedAt = new Date(pr.created_at);
 
     context.log.info(`PR closed: ${prUrl} (merged: ${pr.merged})`);
 
     try {
-      const session = await findDevinSessionForPR(apiKey, prUrl, prCreatedAt);
+      const session = await findDevinSessionForPR(apiKey, prUrl);
 
       if (!session) {
         context.log.info(`No Devin session found for PR: ${prUrl}`);

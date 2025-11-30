@@ -1,0 +1,27 @@
+{
+  "action": "created",
+  "check_run": {
+    "id": 1,
+    "name": "bot_ci",
+    "head_sha": "abc123",
+    "status": "in_progress",
+    "conclusion": null,
+    "pull_requests": [
+      {
+        "number": 123
+      }
+    ]
+  },
+  "repository": {
+    "id": 1,
+    "node_id": "MDEwOlJlcG9zaXRvcnkx",
+    "name": "testing-things",
+    "full_name": "hiimbex/testing-things",
+    "owner": {
+      "login": "hiimbex"
+    }
+  },
+  "installation": {
+    "id": 2
+  }
+}

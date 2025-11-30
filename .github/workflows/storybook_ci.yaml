@@ -35,12 +35,38 @@ jobs:
       - name: Install Playwright dependencies
         run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/storybook
-      - name: Run Storybook tests and capture screenshots
+      - name: Run Storybook test runner against static build
+        working-directory: apps/storybook
+        env:
+          CI: true
         run: |
-          npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-            "npx http-server ./storybook-static --port 6006 --silent" \
-            "npx wait-on tcp:127.0.0.1:6006 && pnpm -F storybook test-storybook"
-        working-directory: apps/storybook
+          npx http-server ./storybook-static --port 6006 --silent &
+          SERVER_PID=$!
+
+          # Wait for Storybook to be up (up to ~60s)
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:6006 > /dev/null; then
+              echo "Storybook is up"
+              break
+            fi
+            echo "Waiting for Storybook to be ready..."
+            sleep 2
+          done
+
+          # Fail fast if it never came up
+          if ! curl -fsS http://127.0.0.1:6006 > /dev/null; then
+            echo "Storybook did not start in time"
+            kill $SERVER_PID || true
+            exit 1
+          fi
+
+          pnpm test-storybook -- --ci --url http://127.0.0.1:6006
+          EXIT_CODE=$?
+
+          kill $SERVER_PID || true
+          exit $EXIT_CODE
       - name: Upload screenshots to Argos
-        run: pnpm exec argos upload --token $ARGOS_TOKEN ./screenshots
         working-directory: apps/storybook
+        env:
+          ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
+        run: pnpm exec argos upload --token "$ARGOS_TOKEN" ./screenshots

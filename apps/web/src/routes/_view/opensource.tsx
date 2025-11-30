@@ -6,7 +6,7 @@ import { cn } from "@hypr/utils";
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { SlashSeparator } from "@/components/slash-separator";
 
-export const Route = createFileRoute("/_view/product/opensource")({
+export const Route = createFileRoute("/_view/opensource")({
   component: Component,
   head: () => ({
     meta: [
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_view/product/opensource")({
       { property: "og:type", content: "website" },
       {
         property: "og:url",
-        content: "https://hyprnote.com/product/opensource",
+        content: "https://hyprnote.com/opensource",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Open Source - Hyprnote" },

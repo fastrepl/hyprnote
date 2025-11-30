@@ -46,7 +46,7 @@ impl TranscribeService {
             .or_default_provider()
             .or_else(Region::new("us-west-2"));
 
-        let shared_config = aws_config::defaults(BehaviorVersion::v2025_01_17())
+        let shared_config = aws_config::defaults(BehaviorVersion::v2025_08_07())
             .region(region_provider)
             .load()
             .await;

@@ -19,30 +19,67 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: cloudflare/wrangler-action@v3
+        id: upload
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/restate
+          packageManager: pnpm
+          command: versions upload --message "commit ${{ github.sha }}"
+      - id: parse-upload
+        env:
+          WRANGLER_OUTPUT: ${{ steps.upload.outputs.command-output }}
+        run: |
+          VERSION_ID=$(echo "$WRANGLER_OUTPUT" | grep -oP 'Version ID:\s*\K[a-f0-9-]+')
+          PREVIEW_URL=$(echo "$WRANGLER_OUTPUT" | awk '/Version Preview URL:/ {gsub(/.*Version Preview URL: /, ""); print}')
+          if [ -z "$VERSION_ID" ]; then
+            echo "::error::Failed to parse version ID from wrangler output"
+            echo "$WRANGLER_OUTPUT"
+            exit 1
+          fi
+          echo "version-id=$VERSION_ID" >> $GITHUB_OUTPUT
+          echo "deployment-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
       - uses: ./.github/actions/infisical_export
         id: secrets
         with:
           token: ${{ secrets.INFISICAL_TOKEN }}
           project-id: ${{ secrets.INFISICAL_PROJECT_ID }}
           folder: /restate
-      - id: upload
+      - id: sync-secrets
         working-directory: apps/restate
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           SECRETS_FILE: ${{ steps.secrets.outputs.secrets_file }}
+          DEFAULT_DEPLOYMENT_URL: ${{ steps.parse-upload.outputs.deployment-url }}
         run: |
-          OUTPUT=$(npx wrangler versions secret bulk "$SECRETS_FILE" --message "commit ${{ github.sha }}")
+          set -euo pipefail
+
+          SECRET_OUTPUT=$(npx wrangler versions secret bulk "$SECRETS_FILE" --message "secrets for commit ${{ github.sha }}" 2>&1)
           rm -f "$SECRETS_FILE"
-          echo "$OUTPUT"
-          echo "version-id=$(echo "$OUTPUT" | grep -oP 'Version ID:\s*\K[a-f0-9-]+')" >> $GITHUB_OUTPUT
-          echo "deployment-url=$(echo "$OUTPUT" | awk '/Version Preview URL:/ {gsub(/.*Version Preview URL: /, ""); print}')" >> $GITHUB_OUTPUT
+          echo "$SECRET_OUTPUT"
+
+          VERSION_ID=$(echo "$SECRET_OUTPUT" | grep -oP '(?<=Worker Version ID:\s)[a-f0-9-]+' || echo "$SECRET_OUTPUT" | grep -oP 'Version ID:\s*\K[a-f0-9-]+' || true)
+          PREVIEW_URL=$(echo "$SECRET_OUTPUT" | grep -oP 'https://[^\s]+\.workers\.dev' | head -1 || true)
+
+          if [ -z "$VERSION_ID" ]; then
+            echo "::error::Failed to parse version ID from wrangler secret bulk output"
+            exit 1
+          fi
+
+          echo "version-id=$VERSION_ID" >> $GITHUB_OUTPUT
+          if [ -n "$PREVIEW_URL" ]; then
+            echo "deployment-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+          else
+            echo "deployment-url=$DEFAULT_DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          fi
       - working-directory: apps/restate
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler versions deploy ${{ steps.upload.outputs.version-id }}@100% -y
+        run: npx wrangler versions deploy ${{ steps.sync-secrets.outputs.version-id }}@100% --yes
       - env:
           RESTATE_ADMIN_URL: ${{ secrets.RESTATE_ADMIN_URL }}
           RESTATE_AUTH_TOKEN: ${{ secrets.RESTATE_AUTH_TOKEN }}
-        run: npx -y @restatedev/restate deployment register -y ${{ steps.upload.outputs.deployment-url }}
+        run: npx -y @restatedev/restate deployment register -y ${{ steps.sync-secrets.outputs.deployment-url }}

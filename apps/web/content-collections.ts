@@ -46,7 +46,7 @@ const articles = defineCollection({
     updated: z.string().optional(),
     coverImage: z.string().optional(),
     featured: z.boolean().optional(),
-    published: z.boolean().default(true),
+    published: z.boolean().default(false),
     category: z
       .enum([
         "Case Study",

@@ -1,6 +1,9 @@
 import { Probot } from "probot";
 
-import { findRunningSessionForPR, terminateDevinSession } from "../devin";
+import {
+  findRunningSessionForPR,
+  terminateDevinSession,
+} from "../devin/index.js";
 
 export function registerPrClosedHandler(app: Probot): void {
   app.on("pull_request.closed", async (context) => {

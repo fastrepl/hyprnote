@@ -1,4 +1,4 @@
-import { env } from "../env";
+import { env } from "../env.js";
 
 export const DEVIN_API_BASE_URL = "https://api.devin.ai/v1";
 

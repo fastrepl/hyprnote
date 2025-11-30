@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
+    "incremental": true,
     "target": "es2022",
-    "module": "ESNext",
+    "module": "Node16",
+    "declaration": true,
+    "sourceMap": true,
     "outDir": "./lib",
     "strict": true,
     "skipLibCheck": true,
@@ -9,7 +12,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "Node16",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },

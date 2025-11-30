@@ -1,5 +1,5 @@
 // https://docs.devin.ai/api-reference/sessions/send-a-message-to-an-existing-devin-session
-import { DEVIN_API_BASE_URL, fetchFromDevin } from "./shared";
+import { DEVIN_API_BASE_URL, fetchFromDevin } from "./shared.js";
 
 export async function sendMessageToDevinSession(
   sessionId: string,

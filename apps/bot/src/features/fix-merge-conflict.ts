@@ -1,6 +1,9 @@
 import { Probot } from "probot";
 
-import { findRunningSessionForPR, sendMessageToDevinSession } from "../devin";
+import {
+  findRunningSessionForPR,
+  sendMessageToDevinSession,
+} from "../devin/index.js";
 
 export function registerFixMergeConflictHandler(app: Probot): void {
   app.on("check_suite.completed", async (context) => {

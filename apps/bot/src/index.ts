@@ -3,7 +3,7 @@ import { ApplicationFunctionOptions, Probot } from "probot";
 import {
   registerFixMergeConflictHandler,
   registerPrClosedHandler,
-} from "./features";
+} from "./features/index.js";
 
 export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
   if (getRouter) {

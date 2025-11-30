@@ -28,7 +28,7 @@ soft_limit = 20
 [[http_service.checks]]
 interval = '10s'
 timeout = '2s'
-grace_period = '5s'
+grace_period = '30s'
 method = 'get'
 path = '/health'
 

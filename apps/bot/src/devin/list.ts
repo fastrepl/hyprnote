@@ -1,5 +1,5 @@
 // https://docs.devin.ai/api-reference/sessions/list-sessions.
-import { DEVIN_API_BASE_URL, fetchFromDevin } from "./shared";
+import { DEVIN_API_BASE_URL, fetchFromDevin } from "./shared.js";
 
 const DEFAULT_PAGE_SIZE = 100;
 const MAX_PAGES = 50;

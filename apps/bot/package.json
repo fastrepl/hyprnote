@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "start": "node ./lib/server.js",
+    "start": "node ./lib/src/server.js",
     "test": "vitest run"
   },
   "dependencies": {

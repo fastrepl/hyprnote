@@ -1,7 +1,7 @@
 import { Probot, Server } from "probot";
 
-import app from ".";
-import { env } from "./env";
+import { env } from "./env.js";
+import app from "./index.js";
 
 async function start() {
   const server = new Server({

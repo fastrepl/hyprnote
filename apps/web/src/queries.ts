@@ -28,8 +28,26 @@ export function useGitHubStargazers(count: number = 100) {
     queryKey: ["github-stargazers", count],
     queryFn: async (): Promise<Stargazer[]> => {
       try {
+        const repoResponse = await fetch(
+          `https://api.github.com/repos/${ORG_REPO}`,
+          {
+            headers: {
+              Accept: "application/vnd.github.v3+json",
+            },
+          },
+        );
+        if (!repoResponse.ok) {
+          console.error(
+            `Failed to fetch repo info: ${repoResponse.status} ${repoResponse.statusText}`,
+          );
+          return [];
+        }
+        const repoData = await repoResponse.json();
+        const totalStars = repoData.stargazers_count ?? LAST_SEEN_STARS;
+        const lastPage = Math.ceil(totalStars / count);
+
         const response = await fetch(
-          `https://api.github.com/repos/${ORG_REPO}/stargazers?per_page=${count}`,
+          `https://api.github.com/repos/${ORG_REPO}/stargazers?per_page=${count}&page=${lastPage}`,
           {
             headers: {
               Accept: "application/vnd.github.v3+json",
@@ -43,10 +61,13 @@ export function useGitHubStargazers(count: number = 100) {
           return [];
         }
         const data = await response.json();
-        return data.map((user: { login: string; avatar_url: string }) => ({
-          username: user.login,
-          avatar: user.avatar_url,
-        }));
+        const stargazers = data.map(
+          (user: { login: string; avatar_url: string }) => ({
+            username: user.login,
+            avatar: user.avatar_url,
+          }),
+        );
+        return stargazers.reverse();
       } catch (error) {
         console.error("Error fetching stargazers:", error);
         return [];

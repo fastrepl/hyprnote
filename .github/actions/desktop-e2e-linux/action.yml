@@ -8,6 +8,9 @@ inputs:
     description: Rust target triple for the build
     required: false
     default: x86_64-unknown-linux-gnu
+  argos_token:
+    description: Argos CI token for uploading screenshots
+    required: false
 runs:
   using: composite
   steps:
@@ -33,3 +36,8 @@ runs:
       run: pnpm -F desktop-e2e test
       env:
         APP_BINARY_PATH: ${{ env.APP_BINARY_PATH }}
+    - name: Upload screenshots to Argos
+      if: ${{ inputs.argos_token != '' }}
+      shell: bash
+      run: pnpm -F desktop-e2e exec argos upload --token ${{ inputs.argos_token }} --build-name desktop screenshots
+      working-directory: ${{ github.workspace }}/apps/desktop-e2e

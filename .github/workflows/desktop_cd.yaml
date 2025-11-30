@@ -231,6 +231,7 @@ jobs:
         with:
           channel: ${{ inputs.channel }}
           target_triple: x86_64-unknown-linux-gnu
+          argos_token: ${{ secrets.ARGOS_TOKEN }}
       - if: ${{ inputs.channel != 'staging' }}
         uses: ./.github/actions/cn_release
         with:

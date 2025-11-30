@@ -1,0 +1,21 @@
+{
+  "action": "closed",
+  "number": 123,
+  "pull_request": {
+    "html_url": "https://github.com/example/repo/pull/123",
+    "created_at": "2024-01-01T00:00:00Z",
+    "merged": true
+  },
+  "repository": {
+    "id": 1,
+    "node_id": "MDEwOlJlcG9zaXRvcnkx",
+    "name": "testing-things",
+    "full_name": "hiimbex/testing-things",
+    "owner": {
+      "login": "hiimbex"
+    }
+  },
+  "installation": {
+    "id": 2
+  }
+}

@@ -60,7 +60,7 @@ jobs:
           rm -f "$SECRETS_FILE"
           echo "$SECRET_OUTPUT"
 
-          VERSION_ID=$(echo "$SECRET_OUTPUT" | grep -oP '(?<=Worker Version ID:\s)[a-f0-9-]+' || echo "$SECRET_OUTPUT" | grep -oP 'Version ID:\s*\K[a-f0-9-]+' || true)
+          VERSION_ID=$(echo "$SECRET_OUTPUT" | grep -oP 'Created version \K[a-f0-9-]+' || true)
           PREVIEW_URL=$(echo "$SECRET_OUTPUT" | grep -oP 'https://[^\s]+\.workers\.dev' | head -1 || true)
 
           if [ -z "$VERSION_ID" ]; then

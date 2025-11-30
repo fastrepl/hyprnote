@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "storybook dev -p 6006",
     "build": "storybook build",
-    "test": "vitest"
+    "test-storybook": "NODE_NO_WARNINGS=1 NODE_OPTIONS=--experimental-vm-modules test-storybook"
   },
   "dependencies": {
     "@hypr/tiptap": "workspace:^",
@@ -15,19 +15,16 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@argos-ci/cli": "^3.2.1",
     "@argos-ci/storybook": "^3.0.1",
-    "@playwright/test": "^1.49.1",
     "@storybook/addon-essentials": "^8.6.14",
-    "@storybook/addon-vitest": "^8.6.14",
     "@storybook/react": "^8.6.14",
     "@storybook/react-vite": "^8.6.14",
+    "@storybook/test-runner": "^0.21.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@vitest/browser": "^3.0.0",
-    "playwright": "^1.49.1",
     "storybook": "^8.6.14",
     "typescript": "~5.6.3",
-    "vite": "^6.4.1",
-    "vitest": "^3.0.0"
+    "vite": "^6.4.1"
   }
 }

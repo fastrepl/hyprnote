@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { ExternalLinkIcon, MailIcon } from "lucide-react";
 
 function getMaxWidthClass(pathname: string): string {
   const isBlogOrDocs =
@@ -58,7 +59,7 @@ export function Footer() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-4">
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
                 Product
               </h3>
               <ul className="space-y-3">
@@ -99,16 +100,17 @@ export function Footer() {
                     href="https://github.com/fastrepl/hyprnote"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
                   >
                     GitHub
+                    <ExternalLinkIcon className="size-3" />
                   </a>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-4">
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
                 Resources
               </h3>
               <ul className="space-y-3">
@@ -123,9 +125,10 @@ export function Footer() {
                 <li>
                   <a
                     href="mailto:support@hyprnote.com"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
                   >
                     Support
+                    <MailIcon className="size-3" />
                   </a>
                 </li>
                 <li>
@@ -133,9 +136,10 @@ export function Footer() {
                     href="https://github.com/fastrepl/hyprnote/discussions"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
                   >
                     Discussions
+                    <ExternalLinkIcon className="size-3" />
                   </a>
                 </li>
                 <li>
@@ -144,14 +148,6 @@ export function Footer() {
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
                     Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/press-kit"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-                  >
-                    Press Kit
                   </Link>
                 </li>
                 <li>
@@ -166,7 +162,7 @@ export function Footer() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-4">
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
                 Company
               </h3>
               <ul className="space-y-3">
@@ -196,17 +192,25 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    to="/enterprise"
+                    to="/press-kit"
                     className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
                   >
-                    Enterprise
+                    Press Kit
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/opensource"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                  >
+                    Open Source
                   </Link>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-900 mb-4">
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
                 Social
               </h3>
               <ul className="space-y-3">
@@ -215,9 +219,32 @@ export function Footer() {
                     href="/x"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
                   >
                     Twitter
+                    <ExternalLinkIcon className="size-3" />
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://bsky.app/profile/hyprnote.bsky.social"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                  >
+                    Bluesky
+                    <ExternalLinkIcon className="size-3" />
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.reddit.com/r/Hyprnote/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                  >
+                    Reddit
+                    <ExternalLinkIcon className="size-3" />
                   </a>
                 </li>
                 <li>
@@ -225,9 +252,10 @@ export function Footer() {
                     href="/discord"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
                   >
                     Discord
+                    <ExternalLinkIcon className="size-3" />
                   </a>
                 </li>
                 <li>
@@ -235,9 +263,10 @@ export function Footer() {
                     href="/youtube"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
                   >
                     YouTube
+                    <ExternalLinkIcon className="size-3" />
                   </a>
                 </li>
               </ul>

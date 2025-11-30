@@ -59,12 +59,12 @@ function Header() {
         Quick chat with founders
       </h1>
       <p className="text-lg text-stone-600 mb-8 text-center">
-        Hop on a 20 minute chat and get early access to{" "}
+        Hop on a 20 minute chat and get early access to beta features in{" "}
         <Link
           to="/pricing"
           className="underline decoration-dotted hover:text-stone-800"
         >
-          Pro
+          Hyprnote Pro
         </Link>
       </p>
     </>

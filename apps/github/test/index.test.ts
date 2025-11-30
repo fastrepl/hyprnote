@@ -1,16 +1,16 @@
 // You can import your modules
 // import index from '../src/index'
-
-import nock from "nock";
-// Requiring our app implementation
-import myProbotApp from "../src/index.js";
-import { Probot, ProbotOctokit } from "probot";
 // Requiring our fixtures
 //import payload from "./fixtures/issues.opened.json" with { "type": "json"};
 import fs from "fs";
+import nock from "nock";
 import path from "path";
+import { Probot, ProbotOctokit } from "probot";
 import { fileURLToPath } from "url";
-import { describe, beforeEach, afterEach, test, expect } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
+
+// Requiring our app implementation
+import myProbotApp from "../src/index.js";
 
 const issueCreatedBody = { body: "Thanks for opening this issue!" };
 

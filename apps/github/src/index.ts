@@ -1,4 +1,4 @@
-import { Probot, ApplicationFunctionOptions } from "probot";
+import { ApplicationFunctionOptions, Probot } from "probot";
 
 export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
   const router = getRouter!("/");

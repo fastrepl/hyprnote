@@ -26,6 +26,7 @@ function getMaxWidthClass(pathname: string): string {
 
 const productsList = [
   { to: "/product/notepad", label: "Notepad" },
+  { to: "/product/memory", label: "Memory" },
   { to: "/product/bot", label: "Bot", badge: "Coming Soon" },
   { to: "/product/api", label: "API", badge: "Coming Soon" },
   { to: "/product/extensions", label: "Extensions", badge: "Coming Soon" },

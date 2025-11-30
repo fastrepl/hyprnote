@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 
 import { DocLayout } from "./-components";
-import { docsStructure } from "./structure";
+import { docsStructure } from "./-structure";
 
 export const Route = createFileRoute("/_view/docs/$")({
   component: Component,

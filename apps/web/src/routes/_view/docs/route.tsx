@@ -7,7 +7,7 @@ import {
 import { allDocs } from "content-collections";
 import { useMemo } from "react";
 
-import { docsStructure } from "./structure";
+import { docsStructure } from "./-structure";
 
 export const Route = createFileRoute("/_view/docs")({
   component: Component,
@@ -63,11 +63,14 @@ function LeftSidebar() {
 
     const sections = docsStructure.sections
       .map((sectionId) => {
-        const sectionName =
-          sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
-        return sectionGroups[sectionName];
+        return Object.values(sectionGroups).find(
+          (group) => group.title.toLowerCase() === sectionId.toLowerCase(),
+        );
       })
-      .filter(Boolean);
+      .filter(
+        (section): section is NonNullable<typeof section> =>
+          section !== undefined,
+      );
 
     return { sections };
   }, []);
@@ -107,7 +110,7 @@ function DocsNavigation({
                 to="/docs/$"
                 params={{ _splat: doc.slug }}
                 onClick={onLinkClick}
-                className={`block px-3 py-1.5 text-sm rounded-sm transition-colors ${
+                className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
                   currentSlug === doc.slug
                     ? "bg-neutral-100 text-stone-600 font-medium"
                     : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"

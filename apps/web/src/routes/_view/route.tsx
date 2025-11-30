@@ -12,7 +12,7 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { DocsDrawerContext } from "@/hooks/use-docs-drawer";
 
-import { docsStructure } from "./docs/structure";
+import { docsStructure } from "./docs/-structure";
 
 export const Route = createFileRoute("/_view")({
   component: Component,

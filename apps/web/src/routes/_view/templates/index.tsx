@@ -401,7 +401,12 @@ function TemplateCard({
       onClick={onClick}
       className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all text-left cursor-pointer flex flex-col items-start"
     >
-      <div className="mb-4">
+      <div className="mb-4 w-full">
+        <p className="text-xs text-neutral-500 mb-2">
+          <span className="font-medium">Template</span>
+          <span className="mx-1">/</span>
+          <span>{template.category}</span>
+        </p>
         <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
           {template.title}
         </h3>

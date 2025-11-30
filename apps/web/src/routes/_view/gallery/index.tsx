@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { allShortcuts, allTemplates } from "content-collections";
 import { CircleHelp } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -243,10 +243,13 @@ function HeroSection({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="underline decoration-dotted underline-offset-2 cursor-help inline-flex items-center gap-0.5">
+                  <Link
+                    to="/templates"
+                    className="underline decoration-dotted underline-offset-2 cursor-pointer inline-flex items-center gap-0.5 hover:text-stone-800 transition-colors"
+                  >
                     templates
                     <CircleHelp className="size-3.5" />
-                  </span>
+                  </Link>
                 </TooltipTrigger>
                 <TooltipContent className="bg-stone-600 text-white rounded-full">
                   AI instructions for summarizing meetings
@@ -257,10 +260,13 @@ function HeroSection({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="underline decoration-dotted underline-offset-2 cursor-help inline-flex items-center gap-0.5">
+                  <Link
+                    to="/shortcuts"
+                    className="underline decoration-dotted underline-offset-2 cursor-pointer inline-flex items-center gap-0.5 hover:text-stone-800 transition-colors"
+                  >
                     shortcuts
                     <CircleHelp className="size-3.5" />
-                  </span>
+                  </Link>
                 </TooltipTrigger>
                 <TooltipContent className="bg-stone-600 text-white rounded-full">
                   Quick commands for the AI chat assistant
@@ -499,19 +505,13 @@ function ItemCard({ item }: { item: GalleryItem }) {
       className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all text-left cursor-pointer flex flex-col items-start"
     >
       <div className="mb-4 w-full">
-        <div className="flex items-center gap-2 mb-2">
-          <span
-            className={cn([
-              "text-xs px-2 py-0.5 rounded-full font-medium",
-              isTemplate
-                ? "bg-blue-50 text-blue-600"
-                : "bg-purple-50 text-purple-600",
-            ])}
-          >
+        <p className="text-xs text-neutral-500 mb-2">
+          <span className="font-medium">
             {isTemplate ? "Template" : "Shortcut"}
           </span>
-          <span className="text-xs text-neutral-400">{item.item.category}</span>
-        </div>
+          <span className="mx-1">/</span>
+          <span>{item.item.category}</span>
+        </p>
         <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
           {item.item.title}
         </h3>

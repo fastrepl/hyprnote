@@ -402,12 +402,11 @@ function ShortcutCard({
       className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all text-left cursor-pointer flex flex-col items-start"
     >
       <div className="mb-4 w-full">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-600">
-            Shortcut
-          </span>
-          <span className="text-xs text-neutral-400">{shortcut.category}</span>
-        </div>
+        <p className="text-xs text-neutral-500 mb-2">
+          <span className="font-medium">Shortcut</span>
+          <span className="mx-1">/</span>
+          <span>{shortcut.category}</span>
+        </p>
         <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
           {shortcut.title}
         </h3>

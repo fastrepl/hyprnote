@@ -9,14 +9,16 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "probot": "^13.4.5"
+    "@t3-oss/env-core": "^0.13.8",
+    "probot": "^13.4.5",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "nock": "^14.0.5",
     "smee-client": "^2.0.0",
-    "vitest": "^2.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^2.0.0"
   },
   "overrides": {
     "@types/pg": "8.15.1"

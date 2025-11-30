@@ -6,17 +6,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [
-    [process.env.CI ? "dot" : "list"],
-    [
-      "@argos-ci/playwright/reporter",
-      {
-        uploadToArgos: !!process.env.CI,
-        token: process.env.ARGOS_TOKEN,
-        buildName: "web",
-      },
-    ],
-  ],
+  reporter: [[process.env.CI ? "dot" : "list"]],
   use: {
     baseURL: process.env.BASE_URL || "http://localhost:3000",
     trace: "on-first-retry",

@@ -1,0 +1,34 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/storybook/**
+      - packages/ui/**
+      - packages/tiptap/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - apps/storybook/**
+      - packages/ui/**
+      - packages/tiptap/**
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "ubuntu"
+            runner: "ubuntu-latest"
+    runs-on: ${{ matrix.runner }}
+    env:
+      ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pnpm_install
+      - run: pnpm -F ui build
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/storybook
+      - run: pnpm -F storybook test

@@ -1,15 +1,5 @@
 import * as restate from "@restatedev/restate-sdk-cloudflare-workers/fetch";
 
-interface RateLimitState {
-  windowStartMs: number;
-  count: number;
-}
-
-interface RateLimitConfig {
-  windowMs: number;
-  maxInWindow: number;
-}
-
 export const rateLimiter = restate.object({
   name: "RateLimiter",
   handlers: {
@@ -28,7 +18,7 @@ export const rateLimiter = restate.object({
 
       if (current.count >= config.maxInWindow) {
         ctx.set("state", current);
-        throw new restate.TerminalError("Rate limit exceeded", {
+        throw new restate.TerminalError("rate_limit_exceeded", {
           errorCode: 429,
         });
       }
@@ -46,4 +36,14 @@ export type RateLimiter = typeof rateLimiter;
 
 export function limiter(ctx: restate.Context, key: string) {
   return ctx.objectClient<RateLimiter>(rateLimiter, key);
+}
+
+interface RateLimitState {
+  windowStartMs: number;
+  count: number;
+}
+
+interface RateLimitConfig {
+  windowMs: number;
+  maxInWindow: number;
 }

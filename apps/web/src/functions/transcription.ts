@@ -27,23 +27,20 @@ const StatusState = z.object({
 
 export type StatusStateType = z.infer<typeof StatusState>;
 
-type StartAudioPipelineInput = {
+type SttFileInput = {
   userId: string;
   fileId: string;
 };
 
 // Workflow definition type matching the server-side handler signatures.
 // The first parameter (ctx) is the Restate context, which is stripped by IngressWorkflowClient.
-type AudioPipelineDefinition = {
-  run: (
-    ctx: unknown,
-    input: StartAudioPipelineInput,
-  ) => Promise<StatusStateType>;
+type SttFileDefinition = {
+  run: (ctx: unknown, input: SttFileInput) => Promise<StatusStateType>;
   getStatus: (ctx: unknown) => Promise<StatusStateType>;
 };
 
 // Client type with workflowSubmit, workflowAttach, and other client methods
-type AudioPipelineClient = IngressWorkflowClient<AudioPipelineDefinition>;
+type SttFileClient = IngressWorkflowClient<SttFileDefinition>;
 
 function getRestateClient() {
   return clients.connect({ url: env.RESTATE_INGRESS_URL });
@@ -85,9 +82,9 @@ export const startAudioPipeline = createServerFn({ method: "POST" })
 
     try {
       const restateClient = getRestateClient();
-      const workflowClient: AudioPipelineClient =
-        restateClient.workflowClient<AudioPipelineDefinition>(
-          { name: "AudioPipeline" },
+      const workflowClient: SttFileClient =
+        restateClient.workflowClient<SttFileDefinition>(
+          { name: "SttFile" },
           pipelineId,
         );
       const handle = await workflowClient.workflowSubmit({
@@ -122,9 +119,9 @@ export const getAudioPipelineStatus = createServerFn({ method: "GET" })
 
     try {
       const restateClient = getRestateClient();
-      const workflowClient: AudioPipelineClient =
-        restateClient.workflowClient<AudioPipelineDefinition>(
-          { name: "AudioPipeline" },
+      const workflowClient: SttFileClient =
+        restateClient.workflowClient<SttFileDefinition>(
+          { name: "SttFile" },
           data.pipelineId,
         );
       const status = await workflowClient.getStatus();
@@ -155,9 +152,9 @@ export const getAudioPipelineResult = createServerFn({ method: "GET" })
 
     try {
       const restateClient = getRestateClient();
-      const workflowClient: AudioPipelineClient =
-        restateClient.workflowClient<AudioPipelineDefinition>(
-          { name: "AudioPipeline" },
+      const workflowClient: SttFileClient =
+        restateClient.workflowClient<SttFileDefinition>(
+          { name: "SttFile" },
           data.pipelineId,
         );
 

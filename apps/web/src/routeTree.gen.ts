@@ -36,8 +36,10 @@ import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
 import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
 import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
+import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
 import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
+import { Route as ViewGalleryIndexRouteImport } from './routes/_view/gallery/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewCompanyHandbookIndexRouteImport } from './routes/_view/company-handbook/index'
@@ -57,6 +59,7 @@ import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solut
 import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
 import { Route as ViewSolutionFieldEngineeringRouteImport } from './routes/_view/solution/field-engineering'
 import { Route as ViewSolutionCustomerSuccessRouteImport } from './routes/_view/solution/customer-success'
+import { Route as ViewShortcutsSlugRouteImport } from './routes/_view/shortcuts/$slug'
 import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
 import { Route as ViewProductWorkflowsRouteImport } from './routes/_view/product/workflows'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
@@ -83,6 +86,7 @@ import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integ
 import { Route as ViewAppFileTranscriptionRouteImport } from './routes/_view/app/file-transcription'
 import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
+import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
 
 const YoutubeRoute = YoutubeRouteImport.update({
   id: '/youtube',
@@ -219,6 +223,11 @@ const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
   path: '/templates/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewShortcutsIndexRoute = ViewShortcutsIndexRouteImport.update({
+  id: '/shortcuts/',
+  path: '/shortcuts/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
   id: '/roadmap/',
   path: '/roadmap/',
@@ -227,6 +236,11 @@ const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
   id: '/legal/',
   path: '/legal/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewGalleryIndexRoute = ViewGalleryIndexRouteImport.update({
+  id: '/gallery/',
+  path: '/gallery/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDownloadIndexRoute = ViewDownloadIndexRouteImport.update({
@@ -328,6 +342,11 @@ const ViewSolutionCustomerSuccessRoute =
     path: '/solution/customer-success',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewShortcutsSlugRoute = ViewShortcutsSlugRouteImport.update({
+  id: '/shortcuts/$slug',
+  path: '/shortcuts/$slug',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewRoadmapSlugRoute = ViewRoadmapSlugRouteImport.update({
   id: '/roadmap/$slug',
   path: '/roadmap/$slug',
@@ -461,6 +480,11 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
+  id: '/gallery/$type/$slug',
+  path: '/gallery/$type/$slug',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
@@ -514,6 +538,7 @@ export interface FileRoutesByFullPath {
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
+  '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
@@ -533,9 +558,12 @@ export interface FileRoutesByFullPath {
   '/company-handbook/': typeof ViewCompanyHandbookIndexRoute
   '/docs/': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
+  '/gallery': typeof ViewGalleryIndexRoute
   '/legal': typeof ViewLegalIndexRoute
   '/roadmap': typeof ViewRoadmapIndexRoute
+  '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -586,6 +614,7 @@ export interface FileRoutesByTo {
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
+  '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
@@ -605,9 +634,12 @@ export interface FileRoutesByTo {
   '/company-handbook': typeof ViewCompanyHandbookIndexRoute
   '/docs': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
+  '/gallery': typeof ViewGalleryIndexRoute
   '/legal': typeof ViewLegalIndexRoute
   '/roadmap': typeof ViewRoadmapIndexRoute
+  '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
+  '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -663,6 +695,7 @@ export interface FileRoutesById {
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/_view/product/workflows': typeof ViewProductWorkflowsRoute
   '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
+  '/_view/shortcuts/$slug': typeof ViewShortcutsSlugRoute
   '/_view/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/_view/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/_view/solution/government': typeof ViewSolutionGovernmentRoute
@@ -682,9 +715,12 @@ export interface FileRoutesById {
   '/_view/company-handbook/': typeof ViewCompanyHandbookIndexRoute
   '/_view/docs/': typeof ViewDocsIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
+  '/_view/gallery/': typeof ViewGalleryIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
   '/_view/roadmap/': typeof ViewRoadmapIndexRoute
+  '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
+  '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -740,6 +776,7 @@ export interface FileRouteTypes {
     | '/product/self-hosting'
     | '/product/workflows'
     | '/roadmap/$slug'
+    | '/shortcuts/$slug'
     | '/solution/customer-success'
     | '/solution/field-engineering'
     | '/solution/government'
@@ -759,9 +796,12 @@ export interface FileRouteTypes {
     | '/company-handbook/'
     | '/docs/'
     | '/download'
+    | '/gallery'
     | '/legal'
     | '/roadmap'
+    | '/shortcuts'
     | '/templates'
+    | '/gallery/$type/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -812,6 +852,7 @@ export interface FileRouteTypes {
     | '/product/self-hosting'
     | '/product/workflows'
     | '/roadmap/$slug'
+    | '/shortcuts/$slug'
     | '/solution/customer-success'
     | '/solution/field-engineering'
     | '/solution/government'
@@ -831,9 +872,12 @@ export interface FileRouteTypes {
     | '/company-handbook'
     | '/docs'
     | '/download'
+    | '/gallery'
     | '/legal'
     | '/roadmap'
+    | '/shortcuts'
     | '/templates'
+    | '/gallery/$type/$slug'
   id:
     | '__root__'
     | '/_view'
@@ -888,6 +932,7 @@ export interface FileRouteTypes {
     | '/_view/product/self-hosting'
     | '/_view/product/workflows'
     | '/_view/roadmap/$slug'
+    | '/_view/shortcuts/$slug'
     | '/_view/solution/customer-success'
     | '/_view/solution/field-engineering'
     | '/_view/solution/government'
@@ -907,9 +952,12 @@ export interface FileRouteTypes {
     | '/_view/company-handbook/'
     | '/_view/docs/'
     | '/_view/download/'
+    | '/_view/gallery/'
     | '/_view/legal/'
     | '/_view/roadmap/'
+    | '/_view/shortcuts/'
     | '/_view/templates/'
+    | '/_view/gallery/$type/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1121,6 +1169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewTemplatesIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/shortcuts/': {
+      id: '/_view/shortcuts/'
+      path: '/shortcuts'
+      fullPath: '/shortcuts'
+      preLoaderRoute: typeof ViewShortcutsIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/roadmap/': {
       id: '/_view/roadmap/'
       path: '/roadmap'
@@ -1133,6 +1188,13 @@ declare module '@tanstack/react-router' {
       path: '/legal'
       fullPath: '/legal'
       preLoaderRoute: typeof ViewLegalIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/gallery/': {
+      id: '/_view/gallery/'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof ViewGalleryIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/download/': {
@@ -1266,6 +1328,13 @@ declare module '@tanstack/react-router' {
       path: '/solution/customer-success'
       fullPath: '/solution/customer-success'
       preLoaderRoute: typeof ViewSolutionCustomerSuccessRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/shortcuts/$slug': {
+      id: '/_view/shortcuts/$slug'
+      path: '/shortcuts/$slug'
+      fullPath: '/shortcuts/$slug'
+      preLoaderRoute: typeof ViewShortcutsSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/roadmap/$slug': {
@@ -1450,6 +1519,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppAccountRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
+    '/_view/gallery/$type/$slug': {
+      id: '/_view/gallery/$type/$slug'
+      path: '/gallery/$type/$slug'
+      fullPath: '/gallery/$type/$slug'
+      preLoaderRoute: typeof ViewGalleryTypeSlugRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
   }
 }
 
@@ -1548,6 +1624,7 @@ interface ViewRouteRouteChildren {
   ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
   ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute
   ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
+  ViewShortcutsSlugRoute: typeof ViewShortcutsSlugRoute
   ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute
   ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute
   ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
@@ -1562,9 +1639,12 @@ interface ViewRouteRouteChildren {
   ViewBlogIndexRoute: typeof ViewBlogIndexRoute
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
+  ViewGalleryIndexRoute: typeof ViewGalleryIndexRoute
   ViewLegalIndexRoute: typeof ViewLegalIndexRoute
   ViewRoadmapIndexRoute: typeof ViewRoadmapIndexRoute
+  ViewShortcutsIndexRoute: typeof ViewShortcutsIndexRoute
   ViewTemplatesIndexRoute: typeof ViewTemplatesIndexRoute
+  ViewGalleryTypeSlugRoute: typeof ViewGalleryTypeSlugRoute
 }
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
@@ -1600,6 +1680,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
   ViewProductWorkflowsRoute: ViewProductWorkflowsRoute,
   ViewRoadmapSlugRoute: ViewRoadmapSlugRoute,
+  ViewShortcutsSlugRoute: ViewShortcutsSlugRoute,
   ViewSolutionCustomerSuccessRoute: ViewSolutionCustomerSuccessRoute,
   ViewSolutionFieldEngineeringRoute: ViewSolutionFieldEngineeringRoute,
   ViewSolutionGovernmentRoute: ViewSolutionGovernmentRoute,
@@ -1614,9 +1695,12 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBlogIndexRoute: ViewBlogIndexRoute,
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,
+  ViewGalleryIndexRoute: ViewGalleryIndexRoute,
   ViewLegalIndexRoute: ViewLegalIndexRoute,
   ViewRoadmapIndexRoute: ViewRoadmapIndexRoute,
+  ViewShortcutsIndexRoute: ViewShortcutsIndexRoute,
   ViewTemplatesIndexRoute: ViewTemplatesIndexRoute,
+  ViewGalleryTypeSlugRoute: ViewGalleryTypeSlugRoute,
 }
 
 const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(

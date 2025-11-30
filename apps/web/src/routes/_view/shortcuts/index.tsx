@@ -1,7 +1,7 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { allTemplates } from "content-collections";
+import { allShortcuts } from "content-collections";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -9,13 +9,13 @@ import { cn } from "@hypr/utils";
 import { DownloadButton } from "@/components/download-button";
 import { SlashSeparator } from "@/components/slash-separator";
 
-type TemplatesSearch = {
+type ShortcutsSearch = {
   category?: string;
 };
 
-export const Route = createFileRoute("/_view/templates/")({
+export const Route = createFileRoute("/_view/shortcuts/")({
   component: Component,
-  validateSearch: (search: Record<string, unknown>): TemplatesSearch => {
+  validateSearch: (search: Record<string, unknown>): ShortcutsSearch => {
     return {
       category:
         typeof search.category === "string" ? search.category : undefined,
@@ -23,20 +23,20 @@ export const Route = createFileRoute("/_view/templates/")({
   },
   head: () => ({
     meta: [
-      { title: "Meeting Templates - Hyprnote" },
+      { title: "AI Shortcuts - Hyprnote" },
       {
         name: "description",
         content:
-          "Discover our library of AI meeting templates. Get structured summaries for sprint planning, sales calls, 1:1s, and more. Create custom templates for your workflow.",
+          "Discover our library of AI shortcuts for meeting conversations. Extract action items, draft follow-up emails, get meeting insights, and more with quick chat commands.",
       },
-      { property: "og:title", content: "Meeting Templates - Hyprnote" },
+      { property: "og:title", content: "AI Shortcuts - Hyprnote" },
       {
         property: "og:description",
         content:
-          "Browse our collection of AI meeting templates. From engineering standups to sales discovery calls, find the perfect template for your meeting type.",
+          "Browse our collection of AI shortcuts. Quick commands for extracting insights, drafting emails, and analyzing your meeting conversations.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://hyprnote.com/templates" },
+      { property: "og:url", content: "https://hyprnote.com/shortcuts" },
     ],
   }),
 });
@@ -45,8 +45,8 @@ function Component() {
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    (typeof allTemplates)[0] | null
+  const [selectedShortcut, setSelectedShortcut] = useState<
+    (typeof allShortcuts)[0] | null
   >(null);
 
   const selectedCategory = search.category || null;
@@ -55,31 +55,31 @@ function Component() {
     navigate({ search: category ? { category } : {}, resetScroll: false });
   };
 
-  const handleTemplateClick = (template: (typeof allTemplates)[0]) => {
-    setSelectedTemplate(template);
-    window.history.pushState({}, "", `/templates/${template.slug}`);
+  const handleShortcutClick = (shortcut: (typeof allShortcuts)[0]) => {
+    setSelectedShortcut(shortcut);
+    window.history.pushState({}, "", `/shortcuts/${shortcut.slug}`);
   };
 
   const handleModalClose = useCallback(() => {
-    setSelectedTemplate(null);
+    setSelectedShortcut(null);
     const url = selectedCategory
-      ? `/templates?category=${encodeURIComponent(selectedCategory)}`
-      : "/templates";
+      ? `/shortcuts?category=${encodeURIComponent(selectedCategory)}`
+      : "/shortcuts";
     window.history.pushState({}, "", url);
   }, [selectedCategory]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && selectedTemplate) {
+      if (e.key === "Escape" && selectedShortcut) {
         handleModalClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedTemplate, handleModalClose]);
+  }, [selectedShortcut, handleModalClose]);
 
   useEffect(() => {
-    if (selectedTemplate) {
+    if (selectedShortcut) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -87,29 +87,29 @@ function Component() {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [selectedTemplate]);
+  }, [selectedShortcut]);
 
-  const templatesByCategory = getTemplatesByCategory();
-  const categories = Object.keys(templatesByCategory);
+  const shortcutsByCategory = getShortcutsByCategory();
+  const categories = Object.keys(shortcutsByCategory);
 
-  const filteredTemplates = useMemo(() => {
-    let templates = allTemplates;
+  const filteredShortcuts = useMemo(() => {
+    let shortcuts = allShortcuts;
 
     if (selectedCategory) {
-      templates = templates.filter((t) => t.category === selectedCategory);
+      shortcuts = shortcuts.filter((s) => s.category === selectedCategory);
     }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      templates = templates.filter(
-        (t) =>
-          t.title.toLowerCase().includes(query) ||
-          t.description.toLowerCase().includes(query) ||
-          t.category.toLowerCase().includes(query),
+      shortcuts = shortcuts.filter(
+        (s) =>
+          s.title.toLowerCase().includes(query) ||
+          s.description.toLowerCase().includes(query) ||
+          s.category.toLowerCase().includes(query),
       );
     }
 
-    return templates;
+    return shortcuts;
   }, [searchQuery, selectedCategory]);
 
   return (
@@ -129,20 +129,20 @@ function Component() {
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
         />
-        <TemplatesSection
+        <ShortcutsSection
           categories={categories}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
-          templatesByCategory={templatesByCategory}
-          filteredTemplates={filteredTemplates}
-          onTemplateClick={handleTemplateClick}
+          shortcutsByCategory={shortcutsByCategory}
+          filteredShortcuts={filteredShortcuts}
+          onShortcutClick={handleShortcutClick}
         />
         <SlashSeparator />
         <CTASection />
       </div>
 
-      {selectedTemplate && (
-        <TemplateModal template={selectedTemplate} onClose={handleModalClose} />
+      {selectedShortcut && (
+        <ShortcutModal shortcut={selectedShortcut} onClose={handleModalClose} />
       )}
     </div>
   );
@@ -151,7 +151,7 @@ function Component() {
 function ContributeBanner() {
   return (
     <a
-      href="https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/templates"
+      href="https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/shortcuts"
       target="_blank"
       rel="noopener noreferrer"
       className={cn([
@@ -164,7 +164,7 @@ function ContributeBanner() {
     >
       <Icon icon="mdi:github" className="text-base" />
       <span>
-        <strong>Community-driven:</strong> Have a template idea?{" "}
+        <strong>Community-driven:</strong> Have a shortcut idea?{" "}
         <span className="group-hover:underline group-hover:decoration-dotted group-hover:underline-offset-2">
           Contribute on GitHub
         </span>
@@ -185,12 +185,12 @@ function HeroSection({
       <section className="flex flex-col items-center text-center gap-8 py-24 px-4 laptop:px-0">
         <div className="space-y-6 max-w-3xl">
           <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
-            Templates
+            Shortcuts
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
-            Different conversations need different approaches. Templates are AI
-            instructions that capture best practices for each meeting type —
-            plug them in and get structured notes instantly.
+            Quick AI commands for your meeting conversations. Use shortcuts in
+            the chat assistant to extract insights, draft emails, and analyze
+            discussions instantly.
           </p>
         </div>
 
@@ -198,7 +198,7 @@ function HeroSection({
           <div className="relative flex items-center border-2 border-neutral-200 focus-within:border-stone-500 rounded-full overflow-hidden transition-all duration-200">
             <input
               type="text"
-              placeholder="Search templates..."
+              placeholder="Search shortcuts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 px-4 py-2.5 text-sm outline-none bg-white text-center placeholder:text-center"
@@ -262,20 +262,20 @@ function MobileCategoriesSection({
   );
 }
 
-function TemplatesSection({
+function ShortcutsSection({
   categories,
   selectedCategory,
   setSelectedCategory,
-  templatesByCategory,
-  filteredTemplates,
-  onTemplateClick,
+  shortcutsByCategory,
+  filteredShortcuts,
+  onShortcutClick,
 }: {
   categories: string[];
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
-  templatesByCategory: Record<string, typeof allTemplates>;
-  filteredTemplates: typeof allTemplates;
-  onTemplateClick: (template: (typeof allTemplates)[0]) => void;
+  shortcutsByCategory: Record<string, typeof allShortcuts>;
+  filteredShortcuts: typeof allShortcuts;
+  onShortcutClick: (shortcut: (typeof allShortcuts)[0]) => void;
 }) {
   return (
     <div className="px-6 pt-8 pb-12 lg:pt-12 lg:pb-20">
@@ -284,11 +284,11 @@ function TemplatesSection({
           categories={categories}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
-          templatesByCategory={templatesByCategory}
+          shortcutsByCategory={shortcutsByCategory}
         />
-        <TemplatesGrid
-          filteredTemplates={filteredTemplates}
-          onTemplateClick={onTemplateClick}
+        <ShortcutsGrid
+          filteredShortcuts={filteredShortcuts}
+          onShortcutClick={onShortcutClick}
         />
       </div>
     </div>
@@ -299,12 +299,12 @@ function DesktopSidebar({
   categories,
   selectedCategory,
   setSelectedCategory,
-  templatesByCategory,
+  shortcutsByCategory,
 }: {
   categories: string[];
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
-  templatesByCategory: Record<string, typeof allTemplates>;
+  shortcutsByCategory: Record<string, typeof allShortcuts>;
 }) {
   return (
     <aside className="hidden lg:block w-56 shrink-0">
@@ -322,9 +322,9 @@ function DesktopSidebar({
                 : "text-stone-600 hover:bg-stone-50",
             ])}
           >
-            All Templates
+            All Shortcuts
             <span className="ml-2 text-xs text-neutral-400">
-              ({allTemplates.length})
+              ({allShortcuts.length})
             </span>
           </button>
           {categories.map((category) => (
@@ -340,7 +340,7 @@ function DesktopSidebar({
             >
               {category}
               <span className="ml-2 text-xs text-neutral-400">
-                ({templatesByCategory[category].length})
+                ({shortcutsByCategory[category].length})
               </span>
             </button>
           ))}
@@ -350,14 +350,14 @@ function DesktopSidebar({
   );
 }
 
-function TemplatesGrid({
-  filteredTemplates,
-  onTemplateClick,
+function ShortcutsGrid({
+  filteredShortcuts,
+  onShortcutClick,
 }: {
-  filteredTemplates: typeof allTemplates;
-  onTemplateClick: (template: (typeof allTemplates)[0]) => void;
+  filteredShortcuts: typeof allShortcuts;
+  onShortcutClick: (shortcut: (typeof allShortcuts)[0]) => void;
 }) {
-  if (filteredTemplates.length === 0) {
+  if (filteredShortcuts.length === 0) {
     return (
       <section className="flex-1 min-w-0">
         <div className="text-center py-12">
@@ -366,7 +366,7 @@ function TemplatesGrid({
             className="text-6xl text-neutral-300 mb-4 mx-auto"
           />
           <p className="text-neutral-600">
-            No templates found matching your search.
+            No shortcuts found matching your search.
           </p>
         </div>
       </section>
@@ -376,11 +376,11 @@ function TemplatesGrid({
   return (
     <section className="flex-1 min-w-0">
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredTemplates.map((template) => (
-          <TemplateCard
-            key={template.slug}
-            template={template}
-            onClick={() => onTemplateClick(template)}
+        {filteredShortcuts.map((shortcut) => (
+          <ShortcutCard
+            key={shortcut.slug}
+            shortcut={shortcut}
+            onClick={() => onShortcutClick(shortcut)}
           />
         ))}
         <ContributeCard />
@@ -389,11 +389,11 @@ function TemplatesGrid({
   );
 }
 
-function TemplateCard({
-  template,
+function ShortcutCard({
+  shortcut,
   onClick,
 }: {
-  template: (typeof allTemplates)[0];
+  shortcut: (typeof allShortcuts)[0];
   onClick: () => void;
 }) {
   return (
@@ -403,24 +403,16 @@ function TemplateCard({
     >
       <div className="mb-4 w-full">
         <p className="text-xs text-neutral-500 mb-2">
-          <span className="font-medium">Template</span>
+          <span className="font-medium">Shortcut</span>
           <span className="mx-1">/</span>
-          <span>{template.category}</span>
+          <span>{shortcut.category}</span>
         </p>
         <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
-          {template.title}
+          {shortcut.title}
         </h3>
         <p className="text-sm text-neutral-600 line-clamp-2">
-          {template.description}
+          {shortcut.description}
         </p>
-      </div>
-      <div className="pt-4 border-t border-neutral-100 w-full">
-        <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
-          For
-        </div>
-        <div className="text-sm text-stone-600">
-          {template.targets.join(", ")}
-        </div>
       </div>
     </button>
   );
@@ -430,13 +422,13 @@ function ContributeCard() {
   return (
     <div className="p-4 border border-dashed border-neutral-300 rounded-sm bg-stone-50/50 flex flex-col items-center justify-center text-center">
       <h3 className="font-serif text-lg text-stone-600 mb-2">
-        Contribute a template
+        Contribute a shortcut
       </h3>
       <p className="text-sm text-neutral-500 mb-4">
-        Have a template idea? Submit a PR and help the community.
+        Have a shortcut idea? Submit a PR and help the community.
       </p>
       <a
-        href="https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/templates"
+        href="https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/shortcuts"
         target="_blank"
         rel="noopener noreferrer"
         className={cn([
@@ -461,8 +453,8 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Hyprnote and start using these templates to capture perfect
-          meeting notes with AI.
+          Download Hyprnote and start using these shortcuts to get instant
+          insights from your meeting conversations.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />
@@ -475,11 +467,11 @@ function CTASection() {
   );
 }
 
-function TemplateModal({
-  template,
+function ShortcutModal({
+  shortcut,
   onClose,
 }: {
-  template: (typeof allTemplates)[0];
+  shortcut: (typeof allShortcuts)[0];
   onClose: () => void;
 }) {
   return (
@@ -512,54 +504,22 @@ function TemplateModal({
             </button>
 
             <div className="p-6 sm:p-8">
-              <div className="mb-2">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-600">
+                  Shortcut
+                </span>
                 <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">
-                  {template.category}
+                  {shortcut.category}
                 </span>
               </div>
               <h2 className="font-serif text-2xl sm:text-3xl text-stone-700 mb-3">
-                {template.title}
+                {shortcut.title}
               </h2>
-              <p className="text-neutral-600 mb-4">{template.description}</p>
-
-              <div className="mb-6">
-                <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                  For:{" "}
-                </span>
-                <span className="text-sm text-stone-600">
-                  {template.targets.join(", ")}
-                </span>
-              </div>
+              <p className="text-neutral-600 mb-6">{shortcut.description}</p>
 
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-semibold text-stone-600 uppercase tracking-wider mb-3">
-                    Template Sections
-                  </h3>
-                  <div className="space-y-3">
-                    {template.sections.map((section, index) => (
-                      <div
-                        key={section.title}
-                        className="p-3 rounded-lg bg-white/80 border border-stone-200/50"
-                      >
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-600 text-xs font-medium flex items-center justify-center">
-                            {index + 1}
-                          </span>
-                          <h4 className="font-medium text-stone-700 text-sm">
-                            {section.title}
-                          </h4>
-                        </div>
-                        <p className="text-xs text-neutral-600 ml-8">
-                          {section.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="prose prose-stone prose-sm prose-headings:font-serif prose-headings:font-semibold prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 prose-p:text-sm max-w-none">
-                  <MDXContent code={template.mdx} />
+                  <MDXContent code={shortcut.mdx} />
                 </div>
               </div>
 
@@ -567,7 +527,7 @@ function TemplateModal({
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <DownloadButton />
                   <p className="text-sm text-neutral-500 text-center sm:text-left">
-                    Download Hyprnote to use this template
+                    Download Hyprnote to use this shortcut
                   </p>
                 </div>
               </div>
@@ -579,16 +539,16 @@ function TemplateModal({
   );
 }
 
-function getTemplatesByCategory() {
-  return allTemplates.reduce(
-    (acc, template) => {
-      const category = template.category;
+function getShortcutsByCategory() {
+  return allShortcuts.reduce(
+    (acc, shortcut) => {
+      const category = shortcut.category;
       if (!acc[category]) {
         acc[category] = [];
       }
-      acc[category].push(template);
+      acc[category].push(shortcut);
       return acc;
     },
-    {} as Record<string, typeof allTemplates>,
+    {} as Record<string, typeof allShortcuts>,
   );
 }

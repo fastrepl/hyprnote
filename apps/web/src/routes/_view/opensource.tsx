@@ -5,6 +5,7 @@ import { cn } from "@hypr/utils";
 
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { SlashSeparator } from "@/components/slash-separator";
+import { Stargazer, useGitHubStargazers } from "@/queries";
 
 export const Route = createFileRoute("/_view/opensource")({
   component: Component,
@@ -68,10 +69,70 @@ function Component() {
   );
 }
 
-function HeroSection() {
+function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
   return (
-    <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
-      <div className="px-6 py-12 lg:py-20">
+    <a
+      href={`https://github.com/${stargazer.username}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block size-10 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
+    >
+      <img
+        src={stargazer.avatar}
+        alt={`${stargazer.username}'s avatar`}
+        className="w-full h-full object-cover"
+        loading="lazy"
+      />
+    </a>
+  );
+}
+
+function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
+  const rows = 6;
+  const cols = Math.ceil(stargazers.length / rows);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 flex flex-col justify-center gap-1 opacity-40">
+        {Array.from({ length: rows }).map((_, rowIndex) => {
+          const startIdx = rowIndex * cols;
+          const rowStargazers = stargazers.slice(startIdx, startIdx + cols);
+          const isEvenRow = rowIndex % 2 === 0;
+
+          return (
+            <div
+              key={rowIndex}
+              className={cn(
+                "flex gap-1 pointer-events-auto",
+                isEvenRow ? "animate-scroll-left" : "animate-scroll-right",
+              )}
+              style={{
+                animationDuration: `${60 + rowIndex * 10}s`,
+              }}
+            >
+              {[...rowStargazers, ...rowStargazers].map((stargazer, idx) => (
+                <StargazerAvatar
+                  key={`${stargazer.username}-${idx}`}
+                  stargazer={stargazer}
+                />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white" />
+    </div>
+  );
+}
+
+function HeroSection() {
+  const { data: stargazers = [] } = useGitHubStargazers(100);
+
+  return (
+    <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 relative overflow-hidden">
+      {stargazers.length > 0 && <StargazersGrid stargazers={stargazers} />}
+      <div className="px-6 py-12 lg:py-20 relative z-10">
         <header className="mb-12 text-center max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
             Built in the open,

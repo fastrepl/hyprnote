@@ -146,6 +146,10 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.7,
         changeFrequency: "weekly",
       },
+      "/shortcuts": {
+        priority: 0.7,
+        changeFrequency: "weekly",
+      },
 
       "/download": {
         priority: 0.7,

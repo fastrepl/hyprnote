@@ -419,6 +419,7 @@ const shortcuts = defineCollection({
     description: z.string(),
     category: z.string(),
     prompt: z.string(),
+    targets: z.array(z.string()).optional(),
   }),
   transform: async (document, context) => {
     const mdx = await compileMDX(context, document, {

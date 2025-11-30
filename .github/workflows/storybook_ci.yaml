@@ -60,7 +60,7 @@ jobs:
             exit 1
           fi
 
-          pnpm test-storybook -- --ci --url http://127.0.0.1:6006
+          NODE_NO_WARNINGS=1 NODE_OPTIONS=--experimental-vm-modules pnpm exec test-storybook --url http://127.0.0.1:6006 --ci
           EXIT_CODE=$?
 
           kill $SERVER_PID || true

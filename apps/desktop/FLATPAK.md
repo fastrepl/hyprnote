@@ -1,0 +1,220 @@
+# Flatpak Packaging for Hyprnote
+
+This document describes how to build Hyprnote as a Flatpak and submit it to Flathub.
+
+## Overview
+
+Hyprnote uses the "build from source" strategy for Flatpak packaging, which is the preferred approach for Flathub. This means the entire application is built inside the Flatpak sandbox using vendored dependencies.
+
+## Prerequisites
+
+Install the required tools:
+
+```bash
+# Install Flatpak and flatpak-builder
+sudo apt install flatpak flatpak-builder
+
+# Add Flathub repository
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# Install GNOME runtime and SDK
+flatpak install flathub org.gnome.Platform//47 org.gnome.Sdk//47
+
+# Install SDK extensions for Rust and Node
+flatpak install flathub org.freedesktop.Sdk.Extension.rust-stable//24.08
+flatpak install flathub org.freedesktop.Sdk.Extension.node22//24.08
+```
+
+Install the flatpak-builder-tools for generating vendored dependencies:
+
+```bash
+# Clone flatpak-builder-tools
+git clone https://github.com/nickvidal/flatpak-builder-tools.git
+
+# For Node/pnpm dependencies
+pip install aiohttp toml
+
+# For Cargo dependencies
+pip install toml
+```
+
+## Generating Vendored Dependencies
+
+Before building the Flatpak, you need to generate JSON files containing all vendored dependencies. These files allow the build to proceed offline, which is required by Flathub.
+
+### Generate pnpm dependencies
+
+From the repository root:
+
+```bash
+# Generate pnpm-sources.json
+python3 flatpak-builder-tools/node/flatpak-node-generator.py pnpm \
+  -o apps/desktop/flatpak/pnpm-sources.json \
+  pnpm-lock.yaml
+```
+
+### Generate Cargo dependencies
+
+From the repository root:
+
+```bash
+# Generate cargo-sources.json
+python3 flatpak-builder-tools/cargo/flatpak-cargo-generator.py \
+  -d Cargo.lock \
+  -o apps/desktop/flatpak/cargo-sources.json
+```
+
+## Building Locally
+
+Once the vendored dependency files are generated, you can build the Flatpak locally:
+
+```bash
+# Build and install to user Flatpak
+flatpak-builder --user --install --force-clean \
+  flatpak-build-dir \
+  apps/desktop/flatpak/com.hyprnote.Hyprnote.yml
+```
+
+## Running the Flatpak
+
+After building and installing:
+
+```bash
+flatpak run com.hyprnote.Hyprnote
+```
+
+## Debugging
+
+To debug inside the Flatpak sandbox:
+
+```bash
+# Open a shell inside the sandbox
+flatpak run --devel --command=sh com.hyprnote.Hyprnote
+
+# Inside the sandbox, you can inspect /app and run the binary directly
+ls /app/bin/
+/app/bin/hyprnote
+```
+
+## Flathub Submission
+
+### Preparation Checklist
+
+Before submitting to Flathub, ensure:
+
+- [ ] The manifest builds successfully with `flatpak-builder`
+- [ ] The app runs correctly via `flatpak run com.hyprnote.Hyprnote`
+- [ ] All vendored dependencies are up to date
+- [ ] The metainfo.xml file has valid screenshots and descriptions
+- [ ] The desktop file has correct categories and keywords
+
+### Submission Process
+
+1. Fork the `flathub/flathub` repository on GitHub
+
+2. Clone your fork and checkout the `new-pr` branch:
+   ```bash
+   git clone --branch=new-pr git@github.com:YOUR_USERNAME/flathub.git
+   cd flathub
+   ```
+
+3. Create a new branch for your app:
+   ```bash
+   git checkout -b com.hyprnote.Hyprnote
+   ```
+
+4. Create the app directory and copy files:
+   ```bash
+   mkdir com.hyprnote.Hyprnote
+   cp /path/to/hyprnote/apps/desktop/flatpak/com.hyprnote.Hyprnote.yml com.hyprnote.Hyprnote/
+   cp /path/to/hyprnote/apps/desktop/flatpak/com.hyprnote.Hyprnote.desktop com.hyprnote.Hyprnote/
+   cp /path/to/hyprnote/apps/desktop/flatpak/com.hyprnote.Hyprnote.metainfo.xml com.hyprnote.Hyprnote/
+   cp /path/to/hyprnote/apps/desktop/flatpak/pnpm-sources.json com.hyprnote.Hyprnote/
+   cp /path/to/hyprnote/apps/desktop/flatpak/cargo-sources.json com.hyprnote.Hyprnote/
+   ```
+
+5. Update the manifest to use a git source instead of a local directory:
+   ```yaml
+   sources:
+     - type: git
+       url: https://github.com/fastrepl/hyprnote.git
+       tag: desktop_vX.Y.Z  # Use the release tag
+       commit: abc123...     # Include the commit hash
+   ```
+
+6. Commit and push:
+   ```bash
+   git add .
+   git commit -m "Add com.hyprnote.Hyprnote"
+   git push origin com.hyprnote.Hyprnote
+   ```
+
+7. Open a pull request from your branch to the `new-pr` branch of `flathub/flathub`
+
+8. Respond to review comments from Flathub maintainers
+
+### After Approval
+
+Once approved:
+- Flathub creates a dedicated repository: `flathub/com.hyprnote.Hyprnote`
+- You are invited as a maintainer
+- Future updates are done by pushing to that repository
+
+## Updating the Flatpak
+
+When releasing a new version:
+
+1. Update the version in `com.hyprnote.Hyprnote.metainfo.xml`
+2. Regenerate vendored dependencies if dependencies changed
+3. Update the git source tag/commit in the Flathub manifest
+4. Push changes to the Flathub app repository
+
+## File Structure
+
+```
+apps/desktop/
+  flatpak/
+    com.hyprnote.Hyprnote.yml        # Flatpak manifest
+    com.hyprnote.Hyprnote.desktop    # Desktop entry file
+    com.hyprnote.Hyprnote.metainfo.xml  # AppStream metadata
+    pnpm-sources.json                # Vendored pnpm dependencies (generated)
+    cargo-sources.json               # Vendored Cargo dependencies (generated)
+  src-tauri/
+    tauri.conf.flatpak.json          # Tauri config for Flatpak (updater disabled)
+```
+
+## Permissions
+
+The Flatpak manifest includes the following permissions:
+
+- **Display**: Wayland and X11 fallback for GUI
+- **Audio**: PulseAudio for microphone and speaker capture
+- **Network**: For cloud AI services and calendar sync
+- **Notifications**: For meeting reminders and alerts
+- **System Tray**: For background operation indicator
+- **Filesystem**: Access to Documents and Downloads folders
+
+## Troubleshooting
+
+### Build fails with missing dependencies
+
+Regenerate the vendored dependency files:
+```bash
+python3 flatpak-builder-tools/node/flatpak-node-generator.py pnpm -o apps/desktop/flatpak/pnpm-sources.json pnpm-lock.yaml
+python3 flatpak-builder-tools/cargo/flatpak-cargo-generator.py -d Cargo.lock -o apps/desktop/flatpak/cargo-sources.json
+```
+
+### Audio not working
+
+Ensure PulseAudio is running on your system. The Flatpak uses `--socket=pulseaudio` for audio access.
+
+### System tray icon not showing
+
+Some desktop environments require additional configuration for StatusNotifier support. The manifest includes `--talk-name=org.kde.StatusNotifierWatcher` for tray icon support.
+
+## References
+
+- [Tauri Flatpak Documentation](https://v2.tauri.app/distribute/flatpak/)
+- [Flathub Documentation](https://docs.flathub.org/)
+- [Flatpak Builder Tools](https://github.com/nickvidal/flatpak-builder-tools)
+- [AppStream Metainfo Guidelines](https://docs.flathub.org/docs/for-app-authors/metainfo-guidelines/)

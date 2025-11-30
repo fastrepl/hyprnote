@@ -19,6 +19,22 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/infisical_export
+        id: secrets
+        with:
+          token: ${{ secrets.INFISICAL_TOKEN }}
+          project-id: ${{ secrets.INFISICAL_PROJECT_ID }}
+          folder: /restate
+      # https://developers.cloudflare.com/workers/configuration/secrets/#via-wrangler
+      - working-directory: apps/restate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SECRETS_JSON: ${{ steps.secrets.outputs.secrets }}
+        run: |
+          printenv SECRETS_JSON > /tmp/secrets.json
+          npx wrangler secret bulk /tmp/secrets.json
+          rm /tmp/secrets.json
       - uses: cloudflare/wrangler-action@v3
         id: upload
         with:
@@ -34,17 +50,6 @@ jobs:
         run: |
           echo "version-id=$(echo "$WRANGLER_OUTPUT" | grep -oP 'Version ID:\s*\K[a-f0-9-]+')" >> $GITHUB_OUTPUT
           echo "deployment-url=$(echo "$WRANGLER_OUTPUT" | awk '/Version Preview URL:/ {gsub(/.*Version Preview URL: /, ""); print}')" >> $GITHUB_OUTPUT
-      - uses: ./.github/actions/infisical_export
-        id: secrets
-        with:
-          token: ${{ secrets.INFISICAL_TOKEN }}
-          project-id: ${{ secrets.INFISICAL_PROJECT_ID }}
-          folder: /restate
-      - working-directory: apps/restate
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: echo '${{ steps.secrets.outputs.secrets }}' | npx wrangler versions secret bulk --version-id ${{ steps.parse.outputs.version-id }}
       - working-directory: apps/restate
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

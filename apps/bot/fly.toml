@@ -9,6 +9,9 @@ primary_region = 'sjc'
 [build]
 dockerfile = "Dockerfile"
 
+[processes]
+app = "node ./lib/server.js"
+
 [deploy]
 strategy = 'bluegreen'
 

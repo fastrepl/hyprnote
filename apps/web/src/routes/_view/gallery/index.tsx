@@ -1,9 +1,15 @@
-import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { allShortcuts, allTemplates } from "content-collections";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { CircleHelp } from "lucide-react";
+import { useMemo, useState } from "react";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { DownloadButton } from "@/components/download-button";
@@ -59,7 +65,6 @@ function Component() {
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
 
   const selectedType = search.type || null;
   const selectedCategory = search.category || null;
@@ -83,49 +88,6 @@ function Component() {
       resetScroll: false,
     });
   };
-
-  const handleItemClick = (item: GalleryItem) => {
-    setSelectedItem(item);
-    window.history.pushState(
-      {},
-      "",
-      `/gallery/${item.type}/${item.type === "template" ? item.item.slug : item.item.slug}`,
-    );
-  };
-
-  const handleModalClose = useCallback(() => {
-    setSelectedItem(null);
-    const params = new URLSearchParams();
-    if (selectedType) params.set("type", selectedType);
-    if (selectedCategory) params.set("category", selectedCategory);
-    const queryString = params.toString();
-    window.history.pushState(
-      {},
-      "",
-      `/gallery${queryString ? `?${queryString}` : ""}`,
-    );
-  }, [selectedType, selectedCategory]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && selectedItem) {
-        handleModalClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedItem, handleModalClose]);
-
-  useEffect(() => {
-    if (selectedItem) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [selectedItem]);
 
   const allItems: GalleryItem[] = useMemo(() => {
     const templates: GalleryItem[] = allTemplates.map((t) => ({
@@ -225,15 +187,10 @@ function Component() {
           setSelectedCategory={setSelectedCategory}
           itemsByCategory={filteredItemsByCategory}
           filteredItems={filteredItems}
-          onItemClick={handleItemClick}
         />
         <SlashSeparator />
         <CTASection />
       </div>
-
-      {selectedItem && (
-        <ItemModal item={selectedItem} onClose={handleModalClose} />
-      )}
     </div>
   );
 }
@@ -282,9 +239,35 @@ function HeroSection({
             Gallery
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
-            Templates are AI instructions for summarizing meetings. Shortcuts
-            are quick commands for the AI chat assistant. Browse and discover
-            tools for your workflow.
+            Browse and discover{" "}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="underline decoration-dotted underline-offset-2 cursor-help inline-flex items-center gap-0.5">
+                    templates
+                    <CircleHelp className="size-3.5" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="bg-stone-600 text-white rounded-full">
+                  AI instructions for summarizing meetings
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>{" "}
+            and{" "}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="underline decoration-dotted underline-offset-2 cursor-help inline-flex items-center gap-0.5">
+                    shortcuts
+                    <CircleHelp className="size-3.5" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="bg-stone-600 text-white rounded-full">
+                  Quick commands for the AI chat assistant
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>{" "}
+            for your workflow
           </p>
         </div>
 
@@ -398,14 +381,12 @@ function GallerySection({
   setSelectedCategory,
   itemsByCategory,
   filteredItems,
-  onItemClick,
 }: {
   categories: string[];
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
   itemsByCategory: Record<string, GalleryItem[]>;
   filteredItems: GalleryItem[];
-  onItemClick: (item: GalleryItem) => void;
 }) {
   return (
     <div className="px-6 pt-8 pb-12 lg:pt-12 lg:pb-20">
@@ -417,7 +398,7 @@ function GallerySection({
           itemsByCategory={itemsByCategory}
           totalCount={filteredItems.length}
         />
-        <GalleryGrid filteredItems={filteredItems} onItemClick={onItemClick} />
+        <GalleryGrid filteredItems={filteredItems} />
       </div>
     </div>
   );
@@ -480,13 +461,7 @@ function DesktopSidebar({
   );
 }
 
-function GalleryGrid({
-  filteredItems,
-  onItemClick,
-}: {
-  filteredItems: GalleryItem[];
-  onItemClick: (item: GalleryItem) => void;
-}) {
+function GalleryGrid({ filteredItems }: { filteredItems: GalleryItem[] }) {
   if (filteredItems.length === 0) {
     return (
       <section className="flex-1 min-w-0">
@@ -507,11 +482,7 @@ function GalleryGrid({
     <section className="flex-1 min-w-0">
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredItems.map((item) => (
-          <ItemCard
-            key={`${item.type}-${item.item.slug}`}
-            item={item}
-            onClick={() => onItemClick(item)}
-          />
+          <ItemCard key={`${item.type}-${item.item.slug}`} item={item} />
         ))}
         <ContributeCard />
       </div>
@@ -519,18 +490,12 @@ function GalleryGrid({
   );
 }
 
-function ItemCard({
-  item,
-  onClick,
-}: {
-  item: GalleryItem;
-  onClick: () => void;
-}) {
+function ItemCard({ item }: { item: GalleryItem }) {
   const isTemplate = item.type === "template";
 
   return (
-    <button
-      onClick={onClick}
+    <a
+      href={`/gallery/${item.type}/${item.item.slug}`}
       className="group p-4 border border-neutral-200 rounded-sm bg-white hover:shadow-md hover:border-neutral-300 transition-all text-left cursor-pointer flex flex-col items-start"
     >
       <div className="mb-4 w-full">
@@ -554,29 +519,19 @@ function ItemCard({
           {item.item.description}
         </p>
       </div>
-      {isTemplate && "targets" in item.item && (
-        <div className="pt-4 border-t border-neutral-100 w-full">
-          <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
-            For
+      {"targets" in item.item &&
+        item.item.targets &&
+        item.item.targets.length > 0 && (
+          <div className="pt-4 border-t border-neutral-100 w-full">
+            <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
+              For
+            </div>
+            <div className="text-xs text-stone-600">
+              {item.item.targets.join(", ")}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {item.item.targets.slice(0, 3).map((target) => (
-              <span
-                key={target}
-                className="text-xs px-2 py-1 bg-stone-50 text-stone-600 rounded"
-              >
-                {target}
-              </span>
-            ))}
-            {item.item.targets.length > 3 && (
-              <span className="text-xs px-2 py-1 text-neutral-500">
-                +{item.item.targets.length - 3} more
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-    </button>
+        )}
+    </a>
   );
 }
 
@@ -624,128 +579,5 @@ function CTASection() {
         </div>
       </div>
     </section>
-  );
-}
-
-function ItemModal({
-  item,
-  onClose,
-}: {
-  item: GalleryItem;
-  onClose: () => void;
-}) {
-  const isTemplate = item.type === "template";
-
-  return (
-    <div className="fixed inset-0 z-50">
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="absolute inset-4 sm:inset-8 lg:inset-16 flex items-start justify-center overflow-y-auto">
-        <div
-          className={cn([
-            "relative w-full max-w-2xl my-8",
-            "bg-[url('/api/images/texture/white-leather.png')]",
-            "rounded-sm shadow-2xl",
-          ])}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div
-            className={cn([
-              "absolute inset-0 rounded-sm",
-              "bg-[url('/api/images/texture/paper.png')] opacity-30",
-            ])}
-          />
-          <div className="relative">
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-stone-600 hover:text-stone-800 transition-colors cursor-pointer z-10"
-            >
-              <Icon icon="mdi:close" className="text-lg" />
-            </button>
-
-            <div className="p-6 sm:p-8">
-              <div className="mb-2 flex items-center gap-2">
-                <span
-                  className={cn([
-                    "text-xs px-2 py-0.5 rounded-full font-medium",
-                    isTemplate
-                      ? "bg-blue-50 text-blue-600"
-                      : "bg-purple-50 text-purple-600",
-                  ])}
-                >
-                  {isTemplate ? "Template" : "Shortcut"}
-                </span>
-                <span className="text-xs font-medium text-stone-500 uppercase tracking-wider">
-                  {item.item.category}
-                </span>
-              </div>
-              <h2 className="font-serif text-2xl sm:text-3xl text-stone-700 mb-3">
-                {item.item.title}
-              </h2>
-              <p className="text-neutral-600 mb-4">{item.item.description}</p>
-
-              {isTemplate && "targets" in item.item && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {item.item.targets.map((target) => (
-                    <span
-                      key={target}
-                      className="text-xs px-2 py-1 bg-white/80 text-stone-600 rounded border border-stone-200/50"
-                    >
-                      {target}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="space-y-6">
-                {isTemplate && "sections" in item.item && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-stone-600 uppercase tracking-wider mb-3">
-                      Template Sections
-                    </h3>
-                    <div className="space-y-3">
-                      {item.item.sections.map((section, index) => (
-                        <div
-                          key={section.title}
-                          className="p-3 rounded-lg bg-white/80 border border-stone-200/50"
-                        >
-                          <div className="flex items-center gap-3 mb-1">
-                            <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-600 text-xs font-medium flex items-center justify-center">
-                              {index + 1}
-                            </span>
-                            <h4 className="font-medium text-stone-700 text-sm">
-                              {section.title}
-                            </h4>
-                          </div>
-                          <p className="text-xs text-neutral-600 ml-8">
-                            {section.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="prose prose-stone prose-sm prose-headings:font-serif prose-headings:font-semibold prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 prose-p:text-sm max-w-none">
-                  <MDXContent code={item.item.mdx} />
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-stone-200/50">
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <DownloadButton />
-                  <p className="text-sm text-neutral-500 text-center sm:text-left">
-                    Download Hyprnote to use this{" "}
-                    {isTemplate ? "template" : "shortcut"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

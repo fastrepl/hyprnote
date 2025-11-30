@@ -209,7 +209,7 @@ function ItemHeader({
         {item.description}
       </p>
 
-      {isTemplate && "targets" in item && (
+      {isTemplate && "targets" in item && item.targets && (
         <div className="flex flex-wrap gap-2">
           {item.targets.map((target) => (
             <span

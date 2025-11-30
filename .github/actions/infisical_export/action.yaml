@@ -1,0 +1,28 @@
+inputs:
+  token:
+    required: true
+  project-id:
+    required: true
+  folder:
+    required: true
+
+outputs:
+  secrets:
+    value: ${{ steps.export.outputs.secrets }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: ./.github/actions/infisical_install
+    - id: export
+      shell: bash
+      run: |
+        SECRETS=$(
+          infisical export \
+            --token=${{ inputs.token }} \
+            --projectId=${{ inputs.project-id }} \
+            --path="${{ inputs.folder }}" \
+            --format=json \
+          | jq -c 'map({(.key): .value}) | add'
+        )
+        echo "secrets=$SECRETS" >> $GITHUB_OUTPUT

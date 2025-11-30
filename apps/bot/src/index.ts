@@ -1,5 +1,7 @@
 import { ApplicationFunctionOptions, Probot } from "probot";
 
+import { registerMergeableHandlers } from "./mergeable.js";
+
 export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
   if (getRouter) {
     const router = getRouter("/");
@@ -8,6 +10,8 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
       res.send("OK");
     });
   }
+
+  registerMergeableHandlers(app);
 
   app.on("issues.opened", async (context) => {
     const issueComment = context.issue({

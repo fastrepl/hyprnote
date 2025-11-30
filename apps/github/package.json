@@ -1,0 +1,12 @@
+{
+  "name": "@hypr/github",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "probot run ./src/index.js",
+    "start": "probot run ./src/index.js"
+  },
+  "dependencies": {
+    "probot": "^13.4.3"
+  }
+}

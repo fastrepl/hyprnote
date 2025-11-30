@@ -26,6 +26,7 @@ import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
+import { Route as ViewOpensourceRouteImport } from './routes/_view/opensource'
 import { Route as ViewFreeRouteImport } from './routes/_view/free'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
 import { Route as ViewFaqRouteImport } from './routes/_view/faq'
@@ -63,7 +64,6 @@ import { Route as ViewShortcutsSlugRouteImport } from './routes/_view/shortcuts/
 import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
 import { Route as ViewProductWorkflowsRouteImport } from './routes/_view/product/workflows'
 import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
-import { Route as ViewProductOpensourceRouteImport } from './routes/_view/product/opensource'
 import { Route as ViewProductNotepadRouteImport } from './routes/_view/product/notepad'
 import { Route as ViewProductMiniAppsRouteImport } from './routes/_view/product/mini-apps'
 import { Route as ViewProductMemoryRouteImport } from './routes/_view/product/memory'
@@ -170,6 +170,11 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
 const ViewPressKitRoute = ViewPressKitRouteImport.update({
   id: '/press-kit',
   path: '/press-kit',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewOpensourceRoute = ViewOpensourceRouteImport.update({
+  id: '/opensource',
+  path: '/opensource',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewFreeRoute = ViewFreeRouteImport.update({
@@ -362,11 +367,6 @@ const ViewProductSelfHostingRoute = ViewProductSelfHostingRouteImport.update({
   path: '/product/self-hosting',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewProductOpensourceRoute = ViewProductOpensourceRouteImport.update({
-  id: '/product/opensource',
-  path: '/product/opensource',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewProductNotepadRoute = ViewProductNotepadRouteImport.update({
   id: '/product/notepad',
   path: '/product/notepad',
@@ -505,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof ViewFaqRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/free': typeof ViewFreeRoute
+  '/opensource': typeof ViewOpensourceRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/security': typeof ViewSecurityRoute
@@ -534,7 +535,6 @@ export interface FileRoutesByFullPath {
   '/product/memory': typeof ViewProductMemoryRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
-  '/product/opensource': typeof ViewProductOpensourceRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
@@ -581,6 +581,7 @@ export interface FileRoutesByTo {
   '/faq': typeof ViewFaqRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/free': typeof ViewFreeRoute
+  '/opensource': typeof ViewOpensourceRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/security': typeof ViewSecurityRoute
@@ -610,7 +611,6 @@ export interface FileRoutesByTo {
   '/product/memory': typeof ViewProductMemoryRoute
   '/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/product/notepad': typeof ViewProductNotepadRoute
-  '/product/opensource': typeof ViewProductOpensourceRoute
   '/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/product/workflows': typeof ViewProductWorkflowsRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
@@ -662,6 +662,7 @@ export interface FileRoutesById {
   '/_view/faq': typeof ViewFaqRoute
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
   '/_view/free': typeof ViewFreeRoute
+  '/_view/opensource': typeof ViewOpensourceRoute
   '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/security': typeof ViewSecurityRoute
@@ -691,7 +692,6 @@ export interface FileRoutesById {
   '/_view/product/memory': typeof ViewProductMemoryRoute
   '/_view/product/mini-apps': typeof ViewProductMiniAppsRoute
   '/_view/product/notepad': typeof ViewProductNotepadRoute
-  '/_view/product/opensource': typeof ViewProductOpensourceRoute
   '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
   '/_view/product/workflows': typeof ViewProductWorkflowsRoute
   '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
@@ -743,6 +743,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/file-transcription'
     | '/free'
+    | '/opensource'
     | '/press-kit'
     | '/pricing'
     | '/security'
@@ -772,7 +773,6 @@ export interface FileRouteTypes {
     | '/product/memory'
     | '/product/mini-apps'
     | '/product/notepad'
-    | '/product/opensource'
     | '/product/self-hosting'
     | '/product/workflows'
     | '/roadmap/$slug'
@@ -819,6 +819,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/file-transcription'
     | '/free'
+    | '/opensource'
     | '/press-kit'
     | '/pricing'
     | '/security'
@@ -848,7 +849,6 @@ export interface FileRouteTypes {
     | '/product/memory'
     | '/product/mini-apps'
     | '/product/notepad'
-    | '/product/opensource'
     | '/product/self-hosting'
     | '/product/workflows'
     | '/roadmap/$slug'
@@ -899,6 +899,7 @@ export interface FileRouteTypes {
     | '/_view/faq'
     | '/_view/file-transcription'
     | '/_view/free'
+    | '/_view/opensource'
     | '/_view/press-kit'
     | '/_view/pricing'
     | '/_view/security'
@@ -928,7 +929,6 @@ export interface FileRouteTypes {
     | '/_view/product/memory'
     | '/_view/product/mini-apps'
     | '/_view/product/notepad'
-    | '/_view/product/opensource'
     | '/_view/product/self-hosting'
     | '/_view/product/workflows'
     | '/_view/roadmap/$slug'
@@ -1097,6 +1097,13 @@ declare module '@tanstack/react-router' {
       path: '/press-kit'
       fullPath: '/press-kit'
       preLoaderRoute: typeof ViewPressKitRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/opensource': {
+      id: '/_view/opensource'
+      path: '/opensource'
+      fullPath: '/opensource'
+      preLoaderRoute: typeof ViewOpensourceRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/free': {
@@ -1358,13 +1365,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewProductSelfHostingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/product/opensource': {
-      id: '/_view/product/opensource'
-      path: '/product/opensource'
-      fullPath: '/product/opensource'
-      preLoaderRoute: typeof ViewProductOpensourceRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/product/notepad': {
       id: '/_view/product/notepad'
       path: '/product/notepad'
@@ -1601,6 +1601,7 @@ interface ViewRouteRouteChildren {
   ViewFaqRoute: typeof ViewFaqRoute
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
   ViewFreeRoute: typeof ViewFreeRoute
+  ViewOpensourceRoute: typeof ViewOpensourceRoute
   ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
@@ -1620,7 +1621,6 @@ interface ViewRouteRouteChildren {
   ViewProductMemoryRoute: typeof ViewProductMemoryRoute
   ViewProductMiniAppsRoute: typeof ViewProductMiniAppsRoute
   ViewProductNotepadRoute: typeof ViewProductNotepadRoute
-  ViewProductOpensourceRoute: typeof ViewProductOpensourceRoute
   ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
   ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute
   ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
@@ -1657,6 +1657,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewFaqRoute: ViewFaqRoute,
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
   ViewFreeRoute: ViewFreeRoute,
+  ViewOpensourceRoute: ViewOpensourceRoute,
   ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
   ViewSecurityRoute: ViewSecurityRoute,
@@ -1676,7 +1677,6 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductMemoryRoute: ViewProductMemoryRoute,
   ViewProductMiniAppsRoute: ViewProductMiniAppsRoute,
   ViewProductNotepadRoute: ViewProductNotepadRoute,
-  ViewProductOpensourceRoute: ViewProductOpensourceRoute,
   ViewProductSelfHostingRoute: ViewProductSelfHostingRoute,
   ViewProductWorkflowsRoute: ViewProductWorkflowsRoute,
   ViewRoadmapSlugRoute: ViewRoadmapSlugRoute,

@@ -7,12 +7,9 @@ import { cn } from "@hypr/utils";
 import { SlashSeparator } from "@/components/slash-separator";
 
 const AUTHOR_AVATARS: Record<string, string> = {
-  "John Jeong":
-    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/john.png",
-  Harshika:
-    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/harshika.jpeg",
-  "Yujong Lee":
-    "https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/team/yujong.png",
+  "John Jeong": "/api/images/team/john.png",
+  Harshika: "/api/images/team/harshika.jpeg",
+  "Yujong Lee": "/api/images/team/yujong.png",
 };
 
 const CATEGORIES = [

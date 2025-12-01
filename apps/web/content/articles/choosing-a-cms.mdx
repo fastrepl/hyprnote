@@ -4,8 +4,7 @@ meta_title: "Choosing a CMS: Sanity vs Payload vs GitHub vs Keystatic"
 meta_description: "A deep guide to choosing a CMS in 2025. Compare Git-based CMS, headless CMS like Sanity and Payload, Nextra-style frameworks, GitBook, and when you shouldn’t use a CMS at all."
 author: "John Jeong"
 created: "2025-11-28"
-coverImage: "https://hyprnote.com/og/choosing-a-cms.png"
-published: true
+published: false
 ---
 
 # Choosing a CMS in 2025: A Guide for Technical Teams
@@ -88,7 +87,7 @@ This is what we do at Hyprnote:
 Pros:
 
 - maximum **portability** (plain files last decades)  
-- works perfectly with modern frameworks (Next.js, TanStack Start, Astro) via MDX support [oai_citation:0‡Next.js](https://nextjs.org/docs/pages/guides/mdx?utm_source=chatgpt.com)  
+- works perfectly with modern frameworks (Next.js, TanStack Start, Astro) via MDX support [oai_citation:0‡Next.js](https://nextjs.org/docs/pages/guides/mdx)  
 - diffable, reviewable, scriptable  
 - no vendor lock-in, no schema migrations  
 - ideal if your writers are engineers
@@ -107,9 +106,9 @@ If your team is very technical and you’re early-stage, this is almost always t
 
 Git-based CMS tools give you a **visual editor that talks directly to your Git repo**. Your content is still Markdown/MDX/JSON/YAML in the repository, but non-technical people get a web UI.
 
-**Keystatic** is a good example of the modern version of this: it makes Markdown, JSON, and YAML content in your codebase editable via a browser UI, and syncs changes directly to GitHub or the local file system, without introducing a separate database. [oai_citation:1‡Keystatic](https://keystatic.com/?utm_source=chatgpt.com)  
+**Keystatic** is a good example of the modern version of this: it makes Markdown, JSON, and YAML content in your codebase editable via a browser UI, and syncs changes directly to GitHub or the local file system, without introducing a separate database. [oai_citation:1‡Keystatic](https://keystatic.com/)  
 
-Other players in this space include TinaCMS, Decap, etc., which a lot of devs compare as “Git-based CMS for React/Next.” [oai_citation:2‡DEV Community](https://dev.to/linkb15/top-5-git-based-cms-comparison-as-of-april-2024-4k1e?utm_source=chatgpt.com)
+Other players in this space include TinaCMS, Decap, etc., which a lot of devs compare as “Git-based CMS for React/Next.” [oai_citation:2‡DEV Community](https://dev.to/linkb15/top-5-git-based-cms-comparison-as-of-april-2024-4k1e)
 
 Pros:
 
@@ -136,32 +135,32 @@ When to use this:
 
 Headless CMS = content backend with APIs. Frontend is up to you.
 
-You define schemas, models, relationships, and the CMS exposes content via REST/GraphQL/other APIs to web, mobile, native apps, signage, whatever. [oai_citation:3‡Sanity.io](https://www.sanity.io/headless-cms?utm_source=chatgpt.com)  
+You define schemas, models, relationships, and the CMS exposes content via REST/GraphQL/other APIs to web, mobile, native apps, signage, whatever. [oai_citation:3‡Sanity.io](https://www.sanity.io/headless-cms)  
 
 ### Sanity
 
 Sanity is one of the big names here:
 
-- it offers a composable “Content Cloud” with an open-source Studio built in React/TypeScript, highly customizable, and aimed at flexible content modeling. [oai_citation:4‡Sanity.io](https://www.sanity.io/?utm_source=chatgpt.com)  
-- content is stored in their **Content Lake** as structured JSON, not HTML, so you can reuse it across multiple frontends. [oai_citation:5‡Pagepro](https://pagepro.co/blog/what-is-sanity/?utm_source=chatgpt.com)  
+- it offers a composable “Content Cloud” with an open-source Studio built in React/TypeScript, highly customizable, and aimed at flexible content modeling. [oai_citation:4‡Sanity.io](https://www.sanity.io/)  
+- content is stored in their **Content Lake** as structured JSON, not HTML, so you can reuse it across multiple frontends. [oai_citation:5‡Pagepro](https://pagepro.co/blog/what-is-sanity/)  
 - it provides real-time collaboration, visual editing, and omnichannel delivery.
 
 This is great when you have multiple frontends, lots of content types, and non-technical editors who need good UX.
 
 ### Payload
 
-Payload is a dev-first, code-first headless CMS built with Node.js, TypeScript and React, positioning itself as a Next.js-native backend framework. [oai_citation:6‡Payload](https://payloadcms.com/?utm_source=chatgpt.com)  
+Payload is a dev-first, code-first headless CMS built with Node.js, TypeScript and React, positioning itself as a Next.js-native backend framework. [oai_citation:6‡Payload](https://payloadcms.com/)  
 
 - you configure everything in TypeScript  
-- it’s open-source (MIT), self-hostable, and can double as a headless CMS, app framework, or digital asset management layer. [oai_citation:7‡GitHub](https://github.com/payloadcms/payload?utm_source=chatgpt.com)  
-- it fits naturally into a modern JS/TS stack with Next.js-based projects. [oai_citation:8‡Payload](https://payloadcms.com/docs/getting-started/what-is-payload?utm_source=chatgpt.com)  
+- it’s open-source (MIT), self-hostable, and can double as a headless CMS, app framework, or digital asset management layer. [oai_citation:7‡GitHub](https://github.com/payloadcms/payload)  
+- it fits naturally into a modern JS/TS stack with Next.js-based projects. [oai_citation:8‡Payload](https://payloadcms.com/docs/getting-started/what-is-payload)  
 
 Pros of headless CMS:
 
 - powerful **schema & content modeling**  
 - omnichannel delivery (web, mobile, internal tools)  
 - good editorial UIs, roles, workflows  
-- often built-in localization, scheduling, etc. [oai_citation:9‡Sanity.io](https://www.sanity.io/headless-cms?utm_source=chatgpt.com)  
+- often built-in localization, scheduling, etc. [oai_citation:9‡Sanity.io](https://www.sanity.io/headless-cms)  
 
 Cons:
 
@@ -181,13 +180,13 @@ Sometimes you don’t need a CMS. You need a **docs product**.
 
 ### GitBook
 
-GitBook positions itself as a documentation + knowledge base platform for technical teams, with a polished block-based editor, site customization options, and Git Sync that lets you connect to GitHub/GitLab for a docs-as-code workflow. [oai_citation:10‡GitBook](https://gitbook.com/docs?utm_source=chatgpt.com)  
+GitBook positions itself as a documentation + knowledge base platform for technical teams, with a polished block-based editor, site customization options, and Git Sync that lets you connect to GitHub/GitLab for a docs-as-code workflow. [oai_citation:10‡GitBook](https://gitbook.com/docs)  
 
 It’s very good if you want:
 
 - a hosted, beautiful docs site  
 - search, navigation, versioning, and collaboration  
-- optional Git synchronization for teams that still want Markdown in repos [oai_citation:11‡GitBook](https://gitbook.com/docs/guides/docs-best-practices/documentation-structure-tips?utm_source=chatgpt.com)  
+- optional Git synchronization for teams that still want Markdown in repos [oai_citation:11‡GitBook](https://gitbook.com/docs/guides/docs-best-practices/documentation-structure-tips)  
 
 Notion, Confluence, etc. live in the same general category (less dev-focused, more general knowledge management).
 
@@ -196,7 +195,7 @@ Pros:
 - **fastest path** to a nice-looking docs/knowledge base  
 - low setup cost, almost no infra  
 - very friendly for non-tech stakeholders  
-- often have built-in AI-assisted search/summary now [oai_citation:12‡GitBook](https://www.gitbook.com/?utm_source=chatgpt.com)  
+- often have built-in AI-assisted search/summary now [oai_citation:12‡GitBook](https://www.gitbook.com/)  
 
 Cons:
 
@@ -210,9 +209,20 @@ When to use this:
 
 ---
 
+## Summary: The Four Buckets at a Glance
+
+| Bucket | Best For | Pros | Cons | Examples |
+|--------|----------|------|------|----------|
+| **No CMS (Git + MDX)** | Technical teams, engineers writing content | Maximum portability, no vendor lock-in, diffable/reviewable, perfect IDE integration | No visual UI, non-technical users need training | Plain MDX in GitHub |
+| **Git-Based CMS** | Mixed teams needing visual UI while keeping content in Git | Content-as-code benefits + visual editing, portable files, non-engineers can edit | Extra admin app to host, tied to their config models | Keystatic, TinaCMS, Decap |
+| **Headless CMS** | Multi-channel content platforms with complex workflows | Powerful schema modeling, omnichannel delivery, great editorial UX, localization | Infrastructure complexity, proprietary content structure, migration cost | Sanity, Payload |
+| **Docs Platforms** | Teams needing polished docs/KB sites fast | Fastest setup, beautiful out-of-box, low infra cost, non-tech friendly | Limited portability, harder product integration, platform dependency | GitBook, Notion, Confluence |
+
+---
+
 ## 5. Special Case: Nextra & Friends (Frameworks, Not CMSs)
 
-Tools like **Nextra** are not CMS platforms, but content-focused frameworks built on Next.js that make it easy to build docs/blog sites with Markdown/MDX and opinionated themes. [oai_citation:13‡Nextra](https://nextra.site/docs?utm_source=chatgpt.com)  
+Tools like **Nextra** are not CMS platforms, but content-focused frameworks built on Next.js that make it easy to build docs/blog sites with Markdown/MDX and opinionated themes. [oai_citation:13‡Nextra](https://nextra.site/docs)  
 
 Think of Nextra as:
 
@@ -291,11 +301,11 @@ If I were a technical founder starting a new product today:
 - For **blog + marketing + simple docs**  
   → I’d start with **Next.js or TanStack Start + MDX + GitHub**, no CMS.  
 - When non-engineers need to edit regularly  
-  → I’d add a **Git-based CMS** like Keystatic on top. [oai_citation:14‡Keystatic](https://keystatic.com/?utm_source=chatgpt.com)  
+  → I’d add a **Git-based CMS** like Keystatic on top. [oai_citation:14‡Keystatic](https://keystatic.com/)  
 - If I ever hit real omnichannel, multi-locale complexity  
-  → I’d consider **Sanity or Payload** and accept the trade-offs. [oai_citation:15‡Next.js Templates](https://nextjstemplates.com/blog/headless-cms-nextjs?utm_source=chatgpt.com)  
+  → I’d consider **Sanity or Payload** and accept the trade-offs. [oai_citation:15‡Next.js Templates](https://nextjstemplates.com/blog/headless-cms-nextjs)  
 - For standalone internal knowledge bases  
-  → I’d probably just use **GitBook** and not overthink it. [oai_citation:16‡GitBook](https://gitbook.com/docs?utm_source=chatgpt.com)  
+  → I’d probably just use **GitBook** and not overthink it. [oai_citation:16‡GitBook](https://gitbook.com/docs)  
 
 That’s basically our philosophy behind Hyprnote’s own stack:  
 start with the simplest thing that respects **developer workflows, portability, and long-term ownership.**

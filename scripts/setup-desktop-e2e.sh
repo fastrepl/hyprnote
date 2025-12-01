@@ -30,6 +30,15 @@ else
   echo "webkit2gtk-driver package already installed"
 fi
 
+# Install desktop-file-utils for update-desktop-database (required by tauri-plugin-deep-link)
+if ! command -v update-desktop-database >/dev/null 2>&1; then
+  echo "Installing desktop-file-utils..."
+  sudo apt-get update
+  sudo apt-get install -y desktop-file-utils
+else
+  echo "update-desktop-database already available in PATH"
+fi
+
 # Ensure WebKitWebDriver is actually callable from PATH
 if ! command -v WebKitWebDriver >/dev/null 2>&1; then
   echo "WebKitWebDriver not on PATH, trying to locate binary from webkit2gtk-driver package..."

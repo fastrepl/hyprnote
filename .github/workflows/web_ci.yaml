@@ -1,3 +1,5 @@
+name: web_ci
+
 # https://github.com/tauri-apps/tauri-action/blob/3013cac/examples/test-build-only.yml
 on:
   workflow_dispatch:

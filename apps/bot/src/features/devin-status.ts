@@ -3,6 +3,7 @@ import { Probot } from "probot";
 import {
   findRunningSessionForPR,
   getDevinSessionDetail,
+  getDevinStatusPoller,
   isDevinSessionWorking,
 } from "../devin/index.js";
 import { createOrUpdateCheck, ProbotContext } from "../github/check.js";
@@ -22,13 +23,19 @@ export function registerDevinStatusHandler(app: Probot): void {
       const repo = context.payload.repository.name;
       const headSha = pr.head.sha;
       const prUrl = pr.html_url;
+      const prNumber = pr.number;
 
       context.log.info(
-        `[Devin] PR ${context.payload.action} for ${owner}/${repo}#${pr.number}`,
+        `[Devin] PR ${context.payload.action} for ${owner}/${repo}#${prNumber}`,
       );
 
+      // Skip Devin API calls during tests to avoid network requests
+      if (process.env.NODE_ENV === "test") {
+        return;
+      }
+
       try {
-        await checkDevinSession(context, owner, repo, headSha, prUrl);
+        await checkDevinSession(context, owner, repo, prNumber, headSha, prUrl);
       } catch (error) {
         context.log.error(`[Devin] Failed to check Devin session: ${error}`);
       }
@@ -40,6 +47,7 @@ async function checkDevinSession(
   context: ProbotContext,
   owner: string,
   repo: string,
+  prNumber: number,
   headSha: string,
   prUrl: string,
 ): Promise<void> {
@@ -51,6 +59,19 @@ async function checkDevinSession(
   const detail = await getDevinSessionDetail(session.session_id);
   if (!isDevinSessionWorking(detail)) {
     return;
+  }
+
+  const poller = getDevinStatusPoller();
+  if (poller) {
+    poller.trackPR({
+      owner,
+      repo,
+      prNumber,
+      prUrl,
+      headSha,
+      sessionId: session.session_id,
+      addedAt: Date.now(),
+    });
   }
 
   await createOrUpdateCheck(context, {

@@ -59,6 +59,10 @@ export const RawEditor = forwardRef<
 
   const hasTrackedWriteRef = useRef(false);
 
+  useEffect(() => {
+    hasTrackedWriteRef.current = false;
+  }, [sessionId]);
+
   const handleChange = useCallback(
     (input: JSONContent) => {
       persistChange(input);

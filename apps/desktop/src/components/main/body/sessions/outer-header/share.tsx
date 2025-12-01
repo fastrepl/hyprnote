@@ -1,7 +1,6 @@
 import { CircleMinus, SearchIcon, Share2 } from "lucide-react";
 import { useState } from "react";
 
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -101,7 +100,6 @@ export function ShareButton(_: { sessionId: string }) {
 
   const handleCopyLink = () => {
     // TODO: Implement copy link functionality
-    analyticsCommands.event({ event: "share_link_created" });
     console.log("Copy link");
   };
 

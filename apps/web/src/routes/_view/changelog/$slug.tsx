@@ -30,6 +30,7 @@ import {
 } from "@/changelog";
 import { Mermaid, Tweet } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
+import { Icon } from "@iconify-icon/react";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -226,10 +227,7 @@ function DownloadButtons({ version }: { version: string }) {
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50 transition-colors border-b border-stone-100 last:border-b-0"
                 >
-                  <Icon
-                    icon={platform.icon}
-                    className="text-lg text-stone-600"
-                  />
+                  <platform.Icon className="w-4 h-4 text-stone-600" />
                   <span className="text-sm font-medium text-stone-700">
                     {platform.label}
                   </span>
@@ -568,7 +566,7 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
               className="px-4 h-8 flex items-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
               title="View diff on GitHub"
             >
-              <Github className="w-4 h-4" />
+              <Icon icon="mdi:github" className="text-lg" />
               <span>View Diff</span>
             </a>
           )}

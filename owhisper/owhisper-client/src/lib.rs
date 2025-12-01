@@ -1,23 +1,38 @@
+mod adapter;
 mod batch;
 mod error;
 mod live;
 
+use std::marker::PhantomData;
+
 use url::form_urlencoded::Serializer;
 use url::UrlQuery;
 
+pub use adapter::{ArgmaxAdapter, DeepgramAdapter, SttAdapter};
 pub use batch::BatchClient;
 pub use error::Error;
 pub use hypr_ws;
-pub use live::{ListenClient, ListenClientDual};
+pub use live::{DualHandle, FinalizeHandle, ListenClient, ListenClientDual};
 
-#[derive(Default)]
-pub struct ListenClientBuilder {
+pub struct ListenClientBuilder<A: SttAdapter = DeepgramAdapter> {
     api_base: Option<String>,
     api_key: Option<String>,
     params: Option<owhisper_interface::ListenParams>,
+    _marker: PhantomData<A>,
 }
 
-impl ListenClientBuilder {
+impl Default for ListenClientBuilder {
+    fn default() -> Self {
+        Self {
+            api_base: None,
+            api_key: None,
+            params: None,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<A: SttAdapter> ListenClientBuilder<A> {
     pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
         self.api_base = Some(api_base.into());
         self
@@ -31,6 +46,15 @@ impl ListenClientBuilder {
     pub fn params(mut self, params: owhisper_interface::ListenParams) -> Self {
         self.params = Some(params);
         self
+    }
+
+    pub fn adapter<B: SttAdapter>(self) -> ListenClientBuilder<B> {
+        ListenClientBuilder {
+            api_base: self.api_base,
+            api_key: self.api_key,
+            params: self.params,
+            _marker: PhantomData,
+        }
     }
 
     fn listen_endpoint_url(&self) -> url::Url {
@@ -171,9 +195,15 @@ impl ListenClientBuilder {
         self.build_with_channels(1)
     }
 
-    pub fn build_dual(self) -> ListenClientDual {
-        let request = self.build_request(2);
-        ListenClientDual { request }
+    pub fn build_dual(self) -> ListenClientDual<A> {
+        let adapter = A::default();
+        let channels = if adapter.supports_native_multichannel() {
+            2
+        } else {
+            1
+        };
+        let request = self.build_request(channels);
+        ListenClientDual { adapter, request }
     }
 }
 

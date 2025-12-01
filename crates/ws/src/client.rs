@@ -5,12 +5,9 @@ use futures_util::{
     future::{pending, FutureExt},
     SinkExt, Stream, StreamExt,
 };
-use tokio_tungstenite::{
-    connect_async,
-    tungstenite::{client::IntoClientRequest, Utf8Bytes},
-};
+use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
 
-pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder};
+pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder, Utf8Bytes};
 
 #[derive(Debug)]
 enum ControlCommand {

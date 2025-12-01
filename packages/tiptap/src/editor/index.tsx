@@ -5,7 +5,6 @@ import {
   useEditor,
 } from "@tiptap/react";
 import { forwardRef, useEffect, useMemo, useRef } from "react";
-import "requestidlecallback-polyfill";
 import { useDebounceCallback } from "usehooks-ts";
 
 import "../../styles.css";
@@ -13,6 +12,16 @@ import * as shared from "../shared";
 import type { FileHandlerConfig } from "../shared/extensions";
 import type { PlaceholderFunction } from "../shared/extensions/placeholder";
 import { mention, type MentionConfig } from "./mention";
+
+const safeRequestIdleCallback =
+  typeof requestIdleCallback !== "undefined"
+    ? requestIdleCallback
+    : (cb: IdleRequestCallback) =>
+        setTimeout(
+          () =>
+            cb({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline),
+          1,
+        );
 
 export type { JSONContent, TiptapEditor };
 
@@ -47,7 +56,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           return;
         }
 
-        requestIdleCallback(() => {
+        safeRequestIdleCallback(() => {
           const content = editor.getJSON();
           handleChange(content);
         });
@@ -109,7 +118,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
           editor.view.dom.setAttribute("autocapitalize", "off");
         },
         onUpdate,
-        immediatelyRender: true,
+        immediatelyRender: false,
         shouldRerenderOnTransaction: false,
         parseOptions: { preserveWhitespace: "full" },
         editorProps,

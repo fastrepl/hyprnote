@@ -12,6 +12,6 @@ export default {
       ...(env.RESTATE_IDENTITY_KEY
         ? { identityKeys: [env.RESTATE_IDENTITY_KEY] }
         : {}),
-    })(request, { env });
+    })(request, env);
   },
 };

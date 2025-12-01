@@ -90,6 +90,7 @@ tasks:
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v '''' ''auth.external.github.redirect_uri'' || true'
       - dprint fmt supabase/config.toml
       - task: supabase-start:capture
+      - supabase migration up --local
       - mv .supabase/generated.env .env.supabase
       - open http://127.0.0.1:54323
 

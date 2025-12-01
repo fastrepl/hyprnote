@@ -31,6 +31,11 @@ function Component() {
   const [transcript, setTranscript] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const pipelineStatusQuery = useQuery({
     queryKey: ["audioPipelineStatus", pipelineId],
@@ -215,11 +220,13 @@ function Component() {
                       Your Notes
                     </h3>
                     <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px] bg-neutral-50/30">
-                      <NoteEditor
-                        initialContent={noteContent}
-                        handleChange={setNoteContent}
-                        mentionConfig={mentionConfig}
-                      />
+                      {isMounted && (
+                        <NoteEditor
+                          initialContent={noteContent}
+                          handleChange={setNoteContent}
+                          mentionConfig={mentionConfig}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>

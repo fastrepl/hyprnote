@@ -7,7 +7,7 @@ import {
 import { allHandbooks } from "content-collections";
 import { useMemo } from "react";
 
-import { handbookStructure } from "./structure";
+import { handbookStructure } from "./-structure";
 
 export const Route = createFileRoute("/_view/company-handbook")({
   component: Component,

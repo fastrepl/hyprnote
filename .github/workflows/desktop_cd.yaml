@@ -200,6 +200,7 @@ jobs:
         with:
           platform: linux
       - uses: ./.github/actions/pnpm_install
+      - uses: ./.github/actions/setup_flathub
       - run: pnpm -F ui build
       - run: ./scripts/resource.sh "./apps/desktop/${{ env.TAURI_CONF_PATH }}" "resources/libonnxruntime.so"
       - run: |

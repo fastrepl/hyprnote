@@ -16,11 +16,12 @@ const config = defineConfig(() => ({
     tailwindcss(),
     tanstackStart({
       prerender: {
-        enabled: false,
+        enabled: true,
         crawlLinks: true,
         autoStaticPathsDiscovery: true,
         filter: ({ path }) => {
           return (
+            path === "/" ||
             path.startsWith("/blog") ||
             path.startsWith("/docs") ||
             path.startsWith("/changelog") ||

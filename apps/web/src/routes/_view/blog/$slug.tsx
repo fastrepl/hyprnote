@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
   loader: async ({ params }) => {
     const article = allArticles.find((article) => article.slug === params.slug);
-    if (!article) {
+    if (!article || (!import.meta.env.DEV && article.published !== true)) {
       throw notFound();
     }
 
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_view/blog/$slug")({
       .filter(
         (a) =>
           a.slug !== article.slug &&
-          (import.meta.env.DEV || a.published !== false),
+          (import.meta.env.DEV || a.published === true),
       )
       .sort((a, b) => {
         const aScore = a.author === article.author ? 1 : 0;

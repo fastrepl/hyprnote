@@ -26,6 +26,7 @@ import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
+import { Route as ViewOssFriendsRouteImport } from './routes/_view/oss-friends'
 import { Route as ViewOpensourceRouteImport } from './routes/_view/opensource'
 import { Route as ViewFreeRouteImport } from './routes/_view/free'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
@@ -170,6 +171,11 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
 const ViewPressKitRoute = ViewPressKitRouteImport.update({
   id: '/press-kit',
   path: '/press-kit',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewOssFriendsRoute = ViewOssFriendsRouteImport.update({
+  id: '/oss-friends',
+  path: '/oss-friends',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewOpensourceRoute = ViewOpensourceRouteImport.update({
@@ -506,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
+  '/oss-friends': typeof ViewOssFriendsRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/security': typeof ViewSecurityRoute
@@ -582,6 +589,7 @@ export interface FileRoutesByTo {
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
+  '/oss-friends': typeof ViewOssFriendsRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/security': typeof ViewSecurityRoute
@@ -663,6 +671,7 @@ export interface FileRoutesById {
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
   '/_view/free': typeof ViewFreeRoute
   '/_view/opensource': typeof ViewOpensourceRoute
+  '/_view/oss-friends': typeof ViewOssFriendsRoute
   '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/security': typeof ViewSecurityRoute
@@ -744,6 +753,7 @@ export interface FileRouteTypes {
     | '/file-transcription'
     | '/free'
     | '/opensource'
+    | '/oss-friends'
     | '/press-kit'
     | '/pricing'
     | '/security'
@@ -820,6 +830,7 @@ export interface FileRouteTypes {
     | '/file-transcription'
     | '/free'
     | '/opensource'
+    | '/oss-friends'
     | '/press-kit'
     | '/pricing'
     | '/security'
@@ -900,6 +911,7 @@ export interface FileRouteTypes {
     | '/_view/file-transcription'
     | '/_view/free'
     | '/_view/opensource'
+    | '/_view/oss-friends'
     | '/_view/press-kit'
     | '/_view/pricing'
     | '/_view/security'
@@ -1097,6 +1109,13 @@ declare module '@tanstack/react-router' {
       path: '/press-kit'
       fullPath: '/press-kit'
       preLoaderRoute: typeof ViewPressKitRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/oss-friends': {
+      id: '/_view/oss-friends'
+      path: '/oss-friends'
+      fullPath: '/oss-friends'
+      preLoaderRoute: typeof ViewOssFriendsRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/opensource': {
@@ -1602,6 +1621,7 @@ interface ViewRouteRouteChildren {
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
   ViewFreeRoute: typeof ViewFreeRoute
   ViewOpensourceRoute: typeof ViewOpensourceRoute
+  ViewOssFriendsRoute: typeof ViewOssFriendsRoute
   ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
@@ -1658,6 +1678,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
   ViewFreeRoute: ViewFreeRoute,
   ViewOpensourceRoute: ViewOpensourceRoute,
+  ViewOssFriendsRoute: ViewOssFriendsRoute,
   ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
   ViewSecurityRoute: ViewSecurityRoute,

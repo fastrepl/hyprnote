@@ -1,12 +1,10 @@
 import { MDXContent } from "@content-collections/mdx/react";
+import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
-  Apple,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Github,
-  Laptop,
   Menu,
   Star,
   X,
@@ -30,7 +28,6 @@ import {
 } from "@/changelog";
 import { Mermaid, Tweet } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
-import { Icon } from "@iconify-icon/react";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -156,19 +153,19 @@ function DownloadButtons({ version }: { version: string }) {
   const platforms = [
     {
       id: "apple-silicon" as const,
-      Icon: Apple,
+      icon: "ri:apple-fill",
       label: "Apple Silicon",
       url: `${baseUrl}/hyprnote-macos-aarch64.dmg`,
     },
     {
       id: "apple-intel" as const,
-      Icon: Apple,
+      icon: "ri:apple-fill",
       label: "Intel Mac",
       url: `${baseUrl}/hyprnote-macos-x86_64.dmg`,
     },
     {
       id: "linux" as const,
-      Icon: Laptop,
+      icon: "simple-icons:linux",
       label: "Linux",
       url: `${baseUrl}/hyprnote-linux-x86_64.AppImage`,
     },
@@ -186,7 +183,7 @@ function DownloadButtons({ version }: { version: string }) {
           href={primaryPlatform.url}
           className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium"
         >
-          <primaryPlatform.Icon className="w-4 h-4" />
+          <Icon icon={primaryPlatform.icon} className="text-base" />
           <span>Download for {primaryPlatform.label}</span>
         </a>
         <div className="w-px h-7 bg-stone-400/50" />
@@ -227,7 +224,10 @@ function DownloadButtons({ version }: { version: string }) {
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50 transition-colors border-b border-stone-100 last:border-b-0"
                 >
-                  <platform.Icon className="w-4 h-4 text-stone-600" />
+                  <Icon
+                    icon={platform.icon}
+                    className="text-base text-stone-600"
+                  />
                   <span className="text-sm font-medium text-stone-700">
                     {platform.label}
                   </span>
@@ -547,12 +547,12 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
             </span>
           )}
           {prereleaseType && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded-full">
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white rounded-full">
               {prereleaseType}
             </span>
           )}
           {buildNumber && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-700 rounded-full">
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full">
               #{buildNumber}
             </span>
           )}

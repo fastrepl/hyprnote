@@ -65,6 +65,11 @@ const mainFeatures = [
   },
 ];
 
+const activeFeatureIndices = mainFeatures
+  .map((f, i) => (!f.comingSoon ? i : -1))
+  .filter((i) => i !== -1);
+const FEATURES_AUTO_ADVANCE_DURATION = 5000;
+
 const detailsFeatures = [
   {
     icon: "mdi:text-box-edit-outline",
@@ -1086,6 +1091,52 @@ export function MainFeaturesSection({
   setSelectedFeature: (index: number) => void;
   scrollToFeature: (index: number) => void;
 }) {
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef(0);
+
+  useEffect(() => {
+    const startTime =
+      Date.now() - (progressRef.current / 100) * FEATURES_AUTO_ADVANCE_DURATION;
+    let animationId: number;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min(
+        (elapsed / FEATURES_AUTO_ADVANCE_DURATION) * 100,
+        100,
+      );
+      setProgress(newProgress);
+      progressRef.current = newProgress;
+
+      if (newProgress >= 100) {
+        const currentActiveIndex =
+          activeFeatureIndices.indexOf(selectedFeature);
+        const nextActiveIndex =
+          (currentActiveIndex + 1) % activeFeatureIndices.length;
+        const nextIndex = activeFeatureIndices[nextActiveIndex];
+        setSelectedFeature(nextIndex);
+        setProgress(0);
+        progressRef.current = 0;
+        if (featuresScrollRef.current) {
+          const container = featuresScrollRef.current;
+          const scrollLeft = container.offsetWidth * nextIndex;
+          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+        }
+      } else {
+        animationId = requestAnimationFrame(animate);
+      }
+    };
+
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
+  }, [selectedFeature, setSelectedFeature, featuresScrollRef]);
+
+  const handleScrollToFeature = (index: number) => {
+    scrollToFeature(index);
+    setProgress(0);
+    progressRef.current = 0;
+  };
+
   return (
     <section>
       <div className="text-center py-16 px-4">
@@ -1111,7 +1162,8 @@ export function MainFeaturesSection({
         featuresScrollRef={featuresScrollRef}
         selectedFeature={selectedFeature}
         setSelectedFeature={setSelectedFeature}
-        scrollToFeature={scrollToFeature}
+        scrollToFeature={handleScrollToFeature}
+        progress={progress}
       />
       <FeaturesDesktopGrid />
     </section>
@@ -1123,11 +1175,13 @@ function FeaturesMobileCarousel({
   selectedFeature,
   setSelectedFeature,
   scrollToFeature,
+  progress,
 }: {
   featuresScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedFeature: number;
   setSelectedFeature: (index: number) => void;
   scrollToFeature: (index: number) => void;
+  progress: number;
 }) {
   return (
     <div className="max-[800px]:block hidden">
@@ -1177,18 +1231,25 @@ function FeaturesMobileCarousel({
       </div>
 
       <div className="flex justify-center gap-2 py-6">
-        {mainFeatures.map((_, index) => (
+        {mainFeatures.map((feature, index) => (
           <button
             key={index}
             onClick={() => scrollToFeature(index)}
             className={cn([
-              "h-1 rounded-full transition-all cursor-pointer",
+              "h-1 rounded-full cursor-pointer overflow-hidden",
               selectedFeature === index
-                ? "w-8 bg-stone-600"
+                ? "w-8 bg-neutral-300"
                 : "w-8 bg-neutral-300 hover:bg-neutral-400",
             ])}
             aria-label={`Go to feature ${index + 1}`}
-          />
+          >
+            {selectedFeature === index && !feature.comingSoon && (
+              <div
+                className="h-full bg-stone-600 transition-none"
+                style={{ width: `${progress}%` }}
+              />
+            )}
+          </button>
         ))}
       </div>
     </div>

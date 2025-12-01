@@ -492,6 +492,27 @@ const roadmap = defineCollection({
   },
 });
 
+const ossFriends = defineCollection({
+  name: "ossFriends",
+  directory: "content/oss-friends",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    name: z.string(),
+    description: z.string(),
+    href: z.string(),
+    image: z.string().optional(),
+  }),
+  transform: async (document) => {
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      slug,
+    };
+  },
+});
+
 const handbook = defineCollection({
   name: "handbook",
   directory: "content/handbook",
@@ -566,5 +587,6 @@ export default defineConfig({
     vs,
     handbook,
     roadmap,
+    ossFriends,
   ],
 });

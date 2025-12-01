@@ -229,10 +229,11 @@ function useConfiguredMapping(): Record<
 
   const isAppleSilicon = targetArch.data === "aarch64";
 
-  const [p2, p3, tinyEn, smallEn] = useQueries({
+  const [p2, p3, whisperLargeV3, tinyEn, smallEn] = useQueries({
     queries: [
       sttModelQueries.isDownloaded("am-parakeet-v2"),
       sttModelQueries.isDownloaded("am-parakeet-v3"),
+      sttModelQueries.isDownloaded("am-whisper-large-v3"),
       sttModelQueries.isDownloaded("QuantizedTinyEn"),
       sttModelQueries.isDownloaded("QuantizedSmallEn"),
     ],
@@ -255,6 +256,10 @@ function useConfiguredMapping(): Record<
           models.push(
             { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
             { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
+            {
+              id: "am-whisper-large-v3",
+              isDownloaded: whisperLargeV3.data ?? false,
+            },
           );
         }
 

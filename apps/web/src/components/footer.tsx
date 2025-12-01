@@ -17,8 +17,8 @@ export function Footer() {
       <div
         className={`${maxWidthClass} mx-auto px-4 laptop:px-0 py-12 lg:py-16 border-x border-neutral-100`}
       >
-        <div className="grid md:grid-cols-2 gap-12">
-          <div>
+        <div className="flex flex-col lg:flex-row gap-12">
+          <div className="lg:flex-1">
             <Link to="/" className="inline-block mb-4">
               <img
                 src="/api/images/hyprnote/logo.svg"
@@ -33,7 +33,7 @@ export function Footer() {
               Are you in back-to-back meetings?{" "}
               <Link
                 to="/join-waitlist"
-                className="text-neutral-600 hover:text-stone-600 transition-colors underline"
+                className="text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
               >
                 Get started
               </Link>
@@ -42,7 +42,7 @@ export function Footer() {
               <Link
                 to="/legal/$slug"
                 params={{ slug: "terms" }}
-                className="hover:text-stone-600 transition-colors underline"
+                className="hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
               >
                 Terms
               </Link>
@@ -50,14 +50,14 @@ export function Footer() {
               <Link
                 to="/legal/$slug"
                 params={{ slug: "privacy" }}
-                className="hover:text-stone-600 transition-colors underline"
+                className="hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
               >
                 Privacy
               </Link>
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 lg:flex-shrink-0">
             <div>
               <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
                 Product
@@ -66,7 +66,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/download"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Download
                   </Link>
@@ -74,7 +74,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/changelog"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Releases
                   </Link>
@@ -82,7 +82,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/roadmap"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Roadmap
                   </Link>
@@ -90,7 +90,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/docs"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Docs
                   </Link>
@@ -100,7 +100,7 @@ export function Footer() {
                     href="https://github.com/fastrepl/hyprnote"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     GitHub
                     <ExternalLinkIcon className="size-3" />
@@ -111,7 +111,7 @@ export function Footer() {
                     href="https://status.hyprnote.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     Status
                     <ExternalLinkIcon className="size-3" />
@@ -128,7 +128,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/faq"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     FAQ
                   </Link>
@@ -136,7 +136,7 @@ export function Footer() {
                 <li>
                   <a
                     href="mailto:support@hyprnote.com"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     Support
                     <MailIcon className="size-3" />
@@ -147,7 +147,7 @@ export function Footer() {
                     href="https://github.com/fastrepl/hyprnote/discussions"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     Discussions
                     <ExternalLinkIcon className="size-3" />
@@ -156,7 +156,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/pricing"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Pricing
                   </Link>
@@ -164,7 +164,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/gallery"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Prompt Gallery
                   </Link>
@@ -180,7 +180,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/blog"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Blog
                   </Link>
@@ -188,7 +188,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/about"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     About us
                   </Link>
@@ -196,7 +196,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/brand"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Brand
                   </Link>
@@ -204,7 +204,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/press-kit"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Press Kit
                   </Link>
@@ -212,9 +212,34 @@ export function Footer() {
                 <li>
                   <Link
                     to="/opensource"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
                   >
                     Open Source
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
+                Tools
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    to="/file-transcription"
+                    search={{ id: undefined }}
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
+                  >
+                    Audio Transcription
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/oss-friends"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
+                  >
+                    OSS Navigator
                   </Link>
                 </li>
               </ul>
@@ -230,7 +255,7 @@ export function Footer() {
                     href="/x"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     Twitter
                     <ExternalLinkIcon className="size-3" />
@@ -241,7 +266,7 @@ export function Footer() {
                     href="https://bsky.app/profile/hyprnote.bsky.social"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     Bluesky
                     <ExternalLinkIcon className="size-3" />
@@ -252,7 +277,7 @@ export function Footer() {
                     href="https://www.reddit.com/r/Hyprnote/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     Reddit
                     <ExternalLinkIcon className="size-3" />
@@ -263,7 +288,7 @@ export function Footer() {
                     href="/discord"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     Discord
                     <ExternalLinkIcon className="size-3" />
@@ -274,7 +299,7 @@ export function Footer() {
                     href="/youtube"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 underline decoration-dotted hover:decoration-solid"
                   >
                     YouTube
                     <ExternalLinkIcon className="size-3" />

@@ -1220,11 +1220,17 @@ function FeaturesMobileCarousel({
             <div key={index} className="w-full shrink-0 snap-center">
               <div className="border-y border-neutral-100 overflow-hidden flex flex-col">
                 <div className="aspect-video border-b border-neutral-100 overflow-hidden">
-                  {feature.image && (
+                  {feature.image ? (
                     <Image
                       src={feature.image}
                       alt={`${feature.title} feature`}
                       className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <img
+                      src="/api/images/hyprnote/static.webp"
+                      alt={`${feature.title} feature`}
+                      className="w-full h-full object-cover"
                     />
                   )}
                 </div>

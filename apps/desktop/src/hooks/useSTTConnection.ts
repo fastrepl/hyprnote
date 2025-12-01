@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
+import type { AIProviderStorage } from "@hypr/store";
 
 import { useAuth } from "../auth";
 import { ProviderId } from "../components/settings/ai/stt/shared";
@@ -21,7 +22,7 @@ export const useSTTConnection = () => {
     "ai_providers",
     current_stt_provider ?? "",
     main.STORE_ID,
-  ) as main.AIProviderStorage | undefined;
+  ) as AIProviderStorage | undefined;
 
   const isLocalModel =
     current_stt_provider === "hyprnote" &&

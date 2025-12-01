@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker";
 
+import type { SessionStorage } from "@hypr/store";
 import { md2json } from "@hypr/tiptap/shared";
 
-import type { SessionStorage } from "../../../../store/tinybase/main";
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const generateTitle = () => {

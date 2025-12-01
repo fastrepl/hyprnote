@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 
-import type { Calendar } from "../../../../store/tinybase/main";
+import type { Calendar } from "@hypr/store";
+
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createCalendar = () => {

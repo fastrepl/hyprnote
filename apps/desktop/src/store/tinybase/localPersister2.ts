@@ -1,13 +1,17 @@
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import { Session } from "./schema-external";
+import { type EnhancedNote } from "@hypr/store";
 
-// https://tinybase.org/api/persisters/functions/creation/createcustompersister
 export function createLocalPersister2<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
-  handlePersist: (session: Session & { id: string }) => Promise<void>,
+  handlePersistEnhancedNote: (
+    enhancedNote: EnhancedNote & { id: string },
+    filename: string,
+  ) => Promise<void>,
+  handleSyncToSession: (sessionId: string, content: string) => void,
 ) {
+  // https://tinybase.org/api/persisters/functions/creation/createcustompersister
   return createCustomPersister(
     store,
     async () => {
@@ -16,13 +20,40 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
     async (getContent, _changes) => {
       const [tables, _values] = getContent();
 
-      Object.entries(tables?.sessions ?? {}).forEach(([id, row]) => {
+      const promises: Promise<void>[] = [];
+      Object.entries(tables?.enhanced_notes ?? {}).forEach(([id, row]) => {
         // @ts-ignore
         row.id = id;
-        handlePersist(row as Session & { id: string });
+        const enhancedNote = row as EnhancedNote & { id: string };
+
+        let filename: string;
+        if (enhancedNote.template_id) {
+          // @ts-ignore
+          const templateTitle = store.getCell(
+            "templates",
+            enhancedNote.template_id,
+            "title",
+          ) as string | undefined;
+          const safeName = sanitizeFilename(
+            templateTitle || enhancedNote.template_id,
+          );
+          filename = `${safeName}.md`;
+        } else {
+          filename = "_summary.md";
+          if (enhancedNote.session_id) {
+            handleSyncToSession(enhancedNote.session_id, enhancedNote.content);
+          }
+        }
+
+        promises.push(handlePersistEnhancedNote(enhancedNote, filename));
       });
+      await Promise.all(promises);
     },
     (listener) => setInterval(listener, 1000),
     (interval) => clearInterval(interval),
   );
+}
+
+function sanitizeFilename(name: string): string {
+  return name.replace(/[<>:"/\\|?*]/g, "_").trim();
 }

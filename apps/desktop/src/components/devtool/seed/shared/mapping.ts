@@ -1,9 +1,7 @@
 import { faker } from "@faker-js/faker";
 
-import type {
-  mappingSessionParticipant,
-  MappingTagSession,
-} from "../../../../store/tinybase/main";
+import type { mappingSessionParticipant, MappingTagSession } from "@hypr/store";
+
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createmappingSessionParticipant = (

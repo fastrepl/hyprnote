@@ -1,7 +1,7 @@
 import { providerSpeakerIndexSchema } from "@hypr/db";
 import type { ProviderSpeakerIndexHint } from "@hypr/db";
+import type { SpeakerHintStorage } from "@hypr/store";
 
-import type { SpeakerHintStorage } from "../store/tinybase/schema-external";
 import type { RuntimeSpeakerHint } from "./segment";
 
 export type { ProviderSpeakerIndexHint };

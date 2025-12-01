@@ -1,5 +1,15 @@
 import { type ReactNode, useCallback, useMemo } from "react";
 
+import type {
+  EnhancedNoteStorage,
+  FolderStorage,
+  HumanStorage,
+  MemoryStorage,
+  OrganizationStorage,
+  SessionStorage,
+  TemplateStorage,
+} from "@hypr/store";
+
 import * as main from "../store/tinybase/main";
 
 export function useSession(sessionId: string) {
@@ -152,13 +162,13 @@ export function useTemplate(templateId: string) {
 interface TinyBaseTestWrapperProps {
   children: ReactNode;
   initialData?: {
-    sessions?: Record<string, Partial<main.SessionStorage>>;
-    humans?: Record<string, Partial<main.HumanStorage>>;
-    organizations?: Record<string, Partial<main.OrganizationStorage>>;
-    folders?: Record<string, Partial<main.FolderStorage>>;
-    templates?: Record<string, Partial<main.TemplateStorage>>;
-    memories?: Record<string, Partial<main.MemoryStorage>>;
-    enhanced_notes?: Record<string, Partial<main.EnhancedNoteStorage>>;
+    sessions?: Record<string, Partial<SessionStorage>>;
+    humans?: Record<string, Partial<HumanStorage>>;
+    organizations?: Record<string, Partial<OrganizationStorage>>;
+    folders?: Record<string, Partial<FolderStorage>>;
+    templates?: Record<string, Partial<TemplateStorage>>;
+    memories?: Record<string, Partial<MemoryStorage>>;
+    enhanced_notes?: Record<string, Partial<EnhancedNoteStorage>>;
   };
   initialValues?: {
     user_id?: string;

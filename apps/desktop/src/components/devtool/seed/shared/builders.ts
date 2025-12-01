@@ -16,7 +16,8 @@ import type {
   TemplateStorage,
   Transcript,
   WordStorage,
-} from "../../../../store/tinybase/main";
+} from "@hypr/store";
+
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { createCalendar } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";

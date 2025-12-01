@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import * as main from "../../../store/tinybase/main";
+import type { Template } from "@hypr/store";
+
 import { TemplateCard } from "./shared";
 import { useTemplateNavigation } from "./utils";
 
@@ -19,7 +20,7 @@ export function RemoteTemplates({ query }: { query: string }) {
   );
 }
 
-function TemplateList({ templates }: { templates: main.Template[] }) {
+function TemplateList({ templates }: { templates: Template[] }) {
   const { cloneAndEdit } = useTemplateNavigation();
 
   return (
@@ -51,7 +52,7 @@ function useSuggestedTemplates(query: string) {
       const response = await fetch("https://hyprnote.com/api/templates", {
         headers: { Accept: "application/json" },
       });
-      const data: main.Template[] = await response.json();
+      const data: Template[] = await response.json();
       return data;
     },
     select: (data) => {

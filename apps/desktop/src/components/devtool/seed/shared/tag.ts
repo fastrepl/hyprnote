@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 
-import type { Tag } from "../../../../store/tinybase/main";
+import type { Tag } from "@hypr/store";
+
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createTag = () => ({

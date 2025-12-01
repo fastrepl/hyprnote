@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { arch } from "@tauri-apps/plugin-os";
 
+import type { AIProviderStorage } from "@hypr/store";
 import { Input } from "@hypr/ui/components/ui/input";
 import {
   Select,
@@ -267,7 +268,7 @@ function useConfiguredMapping(): Record<
       }
 
       const config = configuredProviders[provider.id] as
-        | main.AIProviderStorage
+        | AIProviderStorage
         | undefined;
 
       if (!config) {

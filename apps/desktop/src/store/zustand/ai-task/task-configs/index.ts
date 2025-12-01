@@ -1,6 +1,8 @@
 import type { LanguageModel, TextStreamPart } from "ai";
 
-import type { Store as PersistedStore, Template } from "../../../tinybase/main";
+import type { Template } from "@hypr/store";
+
+import type { Store as PersistedStore } from "../../../tinybase/main";
 import { StreamTransform } from "../shared/transform_infra";
 import type { TaskStepInfo } from "../tasks";
 import { enhanceTransform } from "./enhance-transform";

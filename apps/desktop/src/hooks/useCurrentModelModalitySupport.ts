@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 
+import type { AIProviderStorage } from "@hypr/store";
+
 import { useAuth } from "../auth";
 import {
   type ProviderId,
@@ -27,7 +29,7 @@ export function useCurrentModelModalitySupport(): InputModality[] | null {
     "ai_providers",
     current_llm_provider ?? "",
     main.STORE_ID,
-  ) as main.AIProviderStorage | undefined;
+  ) as AIProviderStorage | undefined;
 
   const providerId = current_llm_provider as ProviderId | null;
   const providerDef = PROVIDERS.find((provider) => provider.id === providerId);

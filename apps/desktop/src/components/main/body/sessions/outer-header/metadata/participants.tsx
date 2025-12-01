@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import type { SpeakerHintStorage, Transcript } from "@hypr/store";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -131,7 +132,7 @@ function useRemoveParticipant({
 
       store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
         const hint = store.getRow("speaker_hints", hintId) as
-          | main.SpeakerHintStorage
+          | SpeakerHintStorage
           | undefined;
         if (!hint || hint.type !== "user_speaker_assignment") {
           return;
@@ -143,7 +144,7 @@ function useRemoveParticipant({
         }
 
         const transcript = store.getRow("transcripts", transcriptId) as
-          | main.Transcript
+          | Transcript
           | undefined;
         if (!transcript || transcript.session_id !== sessionId) {
           return;

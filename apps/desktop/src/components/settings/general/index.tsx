@@ -2,6 +2,8 @@ import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
+import type { General, GeneralStorage } from "@hypr/store";
+
 import { useConfigValues } from "../../../config/use-config";
 import * as main from "../../../store/tinybase/main";
 import { AppSettingsView } from "./app-settings";
@@ -19,7 +21,7 @@ export function SettingsGeneral() {
   ] as const);
 
   const setPartialValues = main.UI.useSetPartialValuesCallback(
-    (row: Partial<main.General>) =>
+    (row: Partial<General>) =>
       ({
         ...row,
         spoken_languages: row.spoken_languages
@@ -31,7 +33,7 @@ export function SettingsGeneral() {
         dismissed_banners: row.dismissed_banners
           ? JSON.stringify(row.dismissed_banners)
           : undefined,
-      }) satisfies Partial<main.GeneralStorage>,
+      }) satisfies Partial<GeneralStorage>,
     [],
     main.STORE_ID,
   );

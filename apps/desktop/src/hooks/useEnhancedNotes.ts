@@ -9,7 +9,7 @@ export function useCreateEnhancedNote() {
   const indexes = main.UI.useIndexes(main.STORE_ID);
 
   return useCallback(
-    (sessionId: string, templateId?: string) => {
+    (sessionId: string, templateId?: string, initialContent?: string) => {
       if (!store || !indexes) return null;
 
       const normalizedTemplateId = templateId || undefined;
@@ -52,7 +52,7 @@ export function useCreateEnhancedNote() {
         user_id: userId || "",
         created_at: now,
         session_id: sessionId,
-        content: "",
+        content: initialContent || "",
         position: nextPosition,
         title,
         template_id: normalizedTemplateId,
@@ -137,6 +137,12 @@ export function useEnsureDefaultSummary(sessionId: string) {
     sessionId,
     main.STORE_ID,
   );
+  const existingEnhancedMd = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "enhanced_md",
+    main.STORE_ID,
+  );
   const createEnhancedNote = useCreateEnhancedNote();
 
   useEffect(() => {
@@ -150,12 +156,17 @@ export function useEnsureDefaultSummary(sessionId: string) {
       return;
     }
 
-    createEnhancedNote(sessionId);
+    createEnhancedNote(
+      sessionId,
+      undefined,
+      existingEnhancedMd ? String(existingEnhancedMd) : undefined,
+    );
   }, [
     hasTranscript,
     sessionMode,
     sessionId,
     enhancedNoteIds?.length,
+    existingEnhancedMd,
     createEnhancedNote,
   ]);
 }

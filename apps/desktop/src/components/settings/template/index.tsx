@@ -3,6 +3,8 @@ import { BookText } from "lucide-react";
 import { useMemo, useState } from "react";
 import { createQueries } from "tinybase/with-schemas";
 
+import type { Template } from "@hypr/store";
+
 import * as main from "../../../store/tinybase/main";
 import { TemplateEditor } from "./editor";
 import { TemplateSearch } from "./search";
@@ -87,7 +89,7 @@ function TemplateList() {
   );
 }
 
-function useUserTemplates(): Array<main.Template & { id: string }> {
+function useUserTemplates(): Array<Template & { id: string }> {
   const { user_id } = main.UI.useValues(main.STORE_ID);
   const store = main.UI.useStore(main.STORE_ID);
 
@@ -127,7 +129,7 @@ function useSuggestedTemplates(query: string) {
       const response = await fetch("https://hyprnote.com/api/templates", {
         headers: { Accept: "application/json" },
       });
-      const data: main.Template[] = await response.json();
+      const data: Template[] = await response.json();
       return data;
     },
     select: (data) => {

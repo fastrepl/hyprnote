@@ -9,6 +9,7 @@ import {
   commands as localSttCommands,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
+import { type AIProvider, aiProviderSchema } from "@hypr/store";
 import {
   Accordion,
   AccordionContent,
@@ -21,7 +22,6 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
 import * as main from "../../../../store/tinybase/main";
-import { aiProviderSchema } from "../../../../store/tinybase/main";
 import {
   DOWNLOAD_MODEL_TASK_ID,
   registerDownloadProgressCallback,
@@ -69,7 +69,7 @@ function NonHyprProviderCard({
         type: "stt",
         base_url: config.baseUrl ?? "",
         api_key: "",
-      } satisfies main.AIProvider),
+      } satisfies AIProvider),
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {

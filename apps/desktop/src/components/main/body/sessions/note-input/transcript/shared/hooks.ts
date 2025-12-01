@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 
+import type { SpeakerHintStorage, Word } from "@hypr/store";
+
 import * as main from "../../../../../../../store/tinybase/main";
 import {
   buildSegments,
@@ -15,9 +17,7 @@ import {
 } from "../../../../../../../utils/segment";
 import { convertStorageHintsToRuntime } from "../../../../../../../utils/speaker-hints";
 
-export function useFinalWords(
-  transcriptId: string,
-): (main.Word & { id: string })[] {
+export function useFinalWords(transcriptId: string): (Word & { id: string })[] {
   const queryId = useWordsQuery(transcriptId);
   const resultTable = main.UI.useResultTable(queryId, main.STORE_ID);
 
@@ -28,7 +28,7 @@ export function useFinalWords(
 
     const ret = Object.entries(resultTable)
       .map(([wordId, row]) => ({
-        ...(row as unknown as main.Word),
+        ...(row as unknown as Word),
         id: wordId,
       }))
       .sort((a, b) => a.start_ms - b.start_ms);
@@ -94,10 +94,10 @@ export function useFinalSpeakerHints(
       wordIdToIndex.set(wordId, index);
     });
 
-    const storageHints: main.SpeakerHintStorage[] = [];
+    const storageHints: SpeakerHintStorage[] = [];
     speakerHintIds?.forEach((hintId) => {
       const hint = store.getRow("speaker_hints", hintId) as
-        | main.SpeakerHintStorage
+        | SpeakerHintStorage
         | undefined;
       if (hint) {
         storageHints.push(hint);

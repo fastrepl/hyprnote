@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useEffect } from "react";
 
+import { type AIProvider, aiProviderSchema } from "@hypr/store";
 import {
   Accordion,
   AccordionContent,
@@ -11,8 +12,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
-import { aiProviderSchema } from "../../../../store/tinybase/main";
-import * as main from "../../../../store/tinybase/main";
 import { FormField, StyledStreamdown, useProvider } from "../shared";
 import { ProviderId, PROVIDERS } from "./shared";
 
@@ -65,7 +64,7 @@ function NonHyprProviderCard({
         type: "llm",
         base_url: config.baseUrl ?? "",
         api_key: "",
-      } satisfies main.AIProvider),
+      } satisfies AIProvider),
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {

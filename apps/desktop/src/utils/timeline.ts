@@ -1,3 +1,4 @@
+import type { Event, Session } from "@hypr/store";
 import {
   differenceInCalendarMonths,
   differenceInDays,
@@ -5,8 +6,6 @@ import {
   isPast,
   startOfDay,
 } from "@hypr/utils";
-
-import type * as main from "../store/tinybase/main";
 
 export type TimelineEventRow = {
   started_at?: string | null;
@@ -33,8 +32,8 @@ export type SessionsWithMaybeEventTable =
   | undefined;
 
 export type TimelineItem =
-  | { type: "event"; id: string; date: string; data: main.Event }
-  | { type: "session"; id: string; date: string; data: main.Session };
+  | { type: "event"; id: string; date: string; data: Event }
+  | { type: "session"; id: string; date: string; data: Session };
 
 export type TimelinePrecision = "time" | "date";
 
@@ -175,7 +174,7 @@ export function buildTimelineBuckets({
           type: "event",
           id: eventId,
           date: format(eventStartTime, "yyyy-MM-dd"),
-          data: row as unknown as main.Event,
+          data: row as unknown as Event,
         });
         seenEvents.add(eventId);
       }
@@ -200,7 +199,7 @@ export function buildTimelineBuckets({
           type: "session",
           id: sessionId,
           date: format(date, "yyyy-MM-dd"),
-          data: row as unknown as main.Session,
+          data: row as unknown as Session,
         });
       }
     });

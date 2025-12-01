@@ -2,6 +2,8 @@ import { BookText } from "lucide-react";
 import { useMemo } from "react";
 import { createQueries } from "tinybase/with-schemas";
 
+import type { Template } from "@hypr/store";
+
 import * as main from "../../../store/tinybase/main";
 import { TemplateCard } from "./shared";
 import { normalizeTemplateWithId, useTemplateNavigation } from "./utils";
@@ -50,7 +52,7 @@ function UserTemplatesList({ query }: { query: string }) {
   );
 }
 
-function useTemplates(): Array<main.Template & { id: string }> {
+function useTemplates(): Array<Template & { id: string }> {
   const { user_id } = main.UI.useValues(main.STORE_ID);
   const store = main.UI.useStore(main.STORE_ID);
 

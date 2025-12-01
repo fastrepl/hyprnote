@@ -3,18 +3,14 @@ import { Reorder, useDragControls } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 
 import { TemplateEditor as CodeMirrorEditor } from "@hypr/codemirror/template";
+import type { TemplateSection } from "@hypr/store";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../store/tinybase/main";
+type SectionDraft = TemplateSection & { key: string };
 
-type SectionDraft = main.TemplateSection & { key: string };
-
-function createDraft(
-  section: main.TemplateSection,
-  key?: string,
-): SectionDraft {
+function createDraft(section: TemplateSection, key?: string): SectionDraft {
   return {
     key: key ?? crypto.randomUUID(),
     title: section.title,
@@ -22,14 +18,14 @@ function createDraft(
   };
 }
 
-function toSection(draft: SectionDraft): main.TemplateSection {
+function toSection(draft: SectionDraft): TemplateSection {
   return {
     title: draft.title,
     description: draft.description,
   };
 }
 
-function sameSection(draft: SectionDraft, section?: main.TemplateSection) {
+function sameSection(draft: SectionDraft, section?: TemplateSection) {
   if (!section) {
     return false;
   }
@@ -45,8 +41,8 @@ function useEditableSections({
   onChange,
 }: {
   disabled: boolean;
-  initialItems: main.TemplateSection[];
-  onChange: (items: main.TemplateSection[]) => void;
+  initialItems: TemplateSection[];
+  onChange: (items: TemplateSection[]) => void;
 }) {
   const [drafts, setDrafts] = useState<SectionDraft[]>(() =>
     initialItems.map((section) => createDraft(section)),
@@ -128,8 +124,8 @@ export function SectionsList({
   onChange,
 }: {
   disabled: boolean;
-  items: main.TemplateSection[];
-  onChange: (items: main.TemplateSection[]) => void;
+  items: TemplateSection[];
+  onChange: (items: TemplateSection[]) => void;
 }) {
   const controls = useDragControls();
   const { drafts, addSection, changeSection, deleteSection, reorderSections } =

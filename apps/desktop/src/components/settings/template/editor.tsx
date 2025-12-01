@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 
+import type { Template, TemplateStorage } from "@hypr/store";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
@@ -14,12 +15,12 @@ export function TemplateEditor({ id }: { id: string }) {
   const handleUpdate = main.UI.useSetPartialRowCallback(
     "templates",
     id,
-    (row: Partial<main.Template>) =>
+    (row: Partial<Template>) =>
       ({
         ...row,
         sections: row.sections ? JSON.stringify(row.sections) : undefined,
         targets: row.targets ? JSON.stringify(row.targets) : undefined,
-      }) satisfies Partial<main.TemplateStorage>,
+      }) satisfies Partial<TemplateStorage>,
     [id],
     main.STORE_ID,
   );

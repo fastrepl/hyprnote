@@ -2,6 +2,8 @@ import { useChat } from "@ai-sdk/react";
 import type { ChatStatus } from "ai";
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
 
+import type { ChatMessage, ChatMessageStorage } from "@hypr/store";
+
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
@@ -34,9 +36,8 @@ export function ChatSession({
 
   const createChatMessage = main.UI.useSetRowCallback(
     "chat_messages",
-    (p: Omit<main.ChatMessage, "user_id" | "created_at"> & { id: string }) =>
-      p.id,
-    (p: Omit<main.ChatMessage, "user_id" | "created_at"> & { id: string }) =>
+    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) => p.id,
+    (p: Omit<ChatMessage, "user_id" | "created_at"> & { id: string }) =>
       ({
         user_id,
         chat_group_id: p.chat_group_id,
@@ -45,7 +46,7 @@ export function ChatSession({
         role: p.role,
         metadata: JSON.stringify(p.metadata),
         parts: JSON.stringify(p.parts),
-      }) satisfies main.ChatMessageStorage,
+      }) satisfies ChatMessageStorage,
     [user_id],
     main.STORE_ID,
   );

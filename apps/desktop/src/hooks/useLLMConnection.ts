@@ -11,6 +11,8 @@ import {
 } from "ai";
 import { useMemo } from "react";
 
+import type { AIProviderStorage } from "@hypr/store";
+
 import { useAuth } from "../auth";
 import {
   type ProviderId,
@@ -143,7 +145,7 @@ export const useLLMConnection = (): LLMConnectionResult => {
     "ai_providers",
     current_llm_provider ?? "",
     main.STORE_ID,
-  ) as main.AIProviderStorage | undefined;
+  ) as AIProviderStorage | undefined;
 
   return useMemo<LLMConnectionResult>(() => {
     if (!current_llm_provider) {

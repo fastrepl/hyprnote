@@ -2,6 +2,8 @@ import { Icon } from "@iconify-icon/react";
 import { type AnyFieldApi } from "@tanstack/react-form";
 import { Streamdown } from "streamdown";
 
+import type { AIProvider } from "@hypr/store";
+import { aiProviderSchema } from "@hypr/store";
 import {
   InputGroup,
   InputGroupAddon,
@@ -60,12 +62,12 @@ export function useProvider(id: string) {
   const setProvider = main.UI.useSetPartialRowCallback(
     "ai_providers",
     id,
-    (row: Partial<main.AIProvider>) => row,
+    (row: Partial<AIProvider>) => row,
     [id],
     main.STORE_ID,
-  ) as (row: Partial<main.AIProvider>) => void;
+  ) as (row: Partial<AIProvider>) => void;
 
-  const { data } = main.aiProviderSchema.safeParse(providerRow);
+  const { data } = aiProviderSchema.safeParse(providerRow);
   return [data, setProvider] as const;
 }
 

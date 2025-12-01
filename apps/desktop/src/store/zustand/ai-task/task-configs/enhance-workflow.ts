@@ -7,13 +7,13 @@ import {
 import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
-
-import type { TaskArgsMapTransformed, TaskConfig } from ".";
 import {
   type Template,
-  TemplateSection,
+  type TemplateSection,
   templateSectionSchema,
-} from "../../../tinybase/schema-external";
+} from "@hypr/store";
+
+import type { TaskArgsMapTransformed, TaskConfig } from ".";
 import {
   addMarkdownSectionSeparators,
   trimBeforeMarker,

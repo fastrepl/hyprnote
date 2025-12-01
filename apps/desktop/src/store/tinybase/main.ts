@@ -21,14 +21,12 @@ import {
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
+import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
 import { createLocalPersister2 } from "./localPersister2";
-
-export * from "./schema-external";
-export * from "./schema-internal";
 
 export const STORE_ID = "main";
 
@@ -183,16 +181,45 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
       const persister = createLocalPersister2<Schemas>(
         store as Store,
-        async (session) => {
-          if (session.enhanced_md) {
-            await writeTextFile(
-              `hyprnote/sessions/${session.id}.md`,
-              session.enhanced_md,
-              {
+        async (enhancedNote, filename) => {
+          if (!enhancedNote.content || !enhancedNote.session_id) {
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(enhancedNote.content);
+            if (!isValidTiptapContent(parsed)) {
+              return;
+            }
+
+            const markdown = json2md(parsed);
+            const sessionDir = `hyprnote/sessions/${enhancedNote.session_id}`;
+
+            const sessionDirExists = await exists(sessionDir, {
+              baseDir: BaseDirectory.Data,
+            });
+            if (!sessionDirExists) {
+              await mkdir(sessionDir, {
                 baseDir: BaseDirectory.Data,
-              },
+                recursive: true,
+              });
+            }
+
+            await writeTextFile(`${sessionDir}/${filename}`, markdown, {
+              baseDir: BaseDirectory.Data,
+            });
+          } catch (error) {
+            console.error(
+              "Failed to save enhanced note markdown:",
+              enhancedNote.id,
+              error,
             );
           }
+        },
+        (sessionId, content) => {
+          store.setPartialRow("sessions", sessionId, {
+            enhanced_md: content,
+          });
         },
       );
 

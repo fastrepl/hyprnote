@@ -1,5 +1,12 @@
 import { useCallback } from "react";
 
+import {
+  type Template,
+  templateSchema,
+  type TemplateSection,
+  type TemplateStorage,
+} from "@hypr/store";
+
 import { Route as SettingsRoute } from "../../../routes/app/settings/_layout";
 import * as main from "../../../store/tinybase/main";
 
@@ -32,7 +39,7 @@ export function useTemplateNavigation() {
         title: p.title,
         description: p.description,
         sections: JSON.stringify(p.sections),
-      }) satisfies main.TemplateStorage,
+      }) satisfies TemplateStorage,
     [],
     main.STORE_ID,
   );
@@ -72,7 +79,7 @@ export function useTemplateNavigation() {
     (template: {
       title: string;
       description: string;
-      sections: main.TemplateSection[];
+      sections: TemplateSection[];
     }) => {
       if (!user_id) {
         return;
@@ -111,7 +118,7 @@ export function normalizeTemplateWithId(id: string, template: unknown) {
   };
 }
 
-export function normalizeTemplatePayload(template: unknown): main.Template {
+export function normalizeTemplatePayload(template: unknown): Template {
   const record = (
     template && typeof template === "object" ? template : {}
   ) as Record<string, unknown>;
@@ -125,13 +132,13 @@ export function normalizeTemplatePayload(template: unknown): main.Template {
     sections: normalizeSections(record.sections),
   };
 
-  return main.templateSchema.parse(base);
+  return templateSchema.parse(base);
 }
 
 export function filterTemplatesByQuery(
-  templates: Array<main.Template & { id: string }>,
+  templates: Array<Template & { id: string }>,
   query: string,
-): Array<main.Template & { id: string }> {
+): Array<Template & { id: string }> {
   if (!query) {
     return templates;
   }
@@ -148,7 +155,7 @@ export function filterTemplatesByQuery(
   });
 }
 
-function normalizeSections(source: unknown): main.TemplateSection[] {
+function normalizeSections(source: unknown): TemplateSection[] {
   if (typeof source === "string") {
     try {
       return normalizeSections(JSON.parse(source));
@@ -164,7 +171,7 @@ function normalizeSections(source: unknown): main.TemplateSection[] {
   return source.map((section) => normalizeSection(section));
 }
 
-function normalizeSection(section: unknown): main.TemplateSection {
+function normalizeSection(section: unknown): TemplateSection {
   const record = (
     section && typeof section === "object" ? section : {}
   ) as Record<string, unknown>;

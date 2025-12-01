@@ -1,9 +1,7 @@
 import { faker } from "@faker-js/faker";
 
-import type {
-  ChatGroup,
-  ChatMessageStorage,
-} from "../../../../store/tinybase/main";
+import type { ChatGroup, ChatMessageStorage } from "@hypr/store";
+
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
 export const createChatGroup = (): { id: string; data: ChatGroup } => ({

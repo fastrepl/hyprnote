@@ -80,6 +80,7 @@ async function checkDevinSession(
     name: CHECK_NAME,
     head_sha: headSha,
     status: "in_progress",
+    details_url: `https://app.devin.ai/sessions/${session.session_id}`,
     output: {
       title: "Devin is working",
       summary: `Devin session ${session.session_id} is currently working on this PR.`,

@@ -25,6 +25,7 @@ export async function createOrUpdateCheck(
       check_run_id: existingCheck.id,
       status: params.status,
       conclusion: params.conclusion,
+      details_url: params.details_url,
       output: params.output,
     });
   } else {

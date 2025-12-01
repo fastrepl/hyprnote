@@ -47,6 +47,7 @@ export interface OctokitLike {
         | "skipped"
         | "stale"
         | "timed_out";
+      details_url?: string;
       output: { title: string; summary: string };
     }) => Promise<unknown>;
     update: (params: {
@@ -63,6 +64,7 @@ export interface OctokitLike {
         | "skipped"
         | "stale"
         | "timed_out";
+      details_url?: string;
       output: { title: string; summary: string };
     }) => Promise<unknown>;
   };
@@ -298,23 +300,41 @@ export class DevinStatusPoller {
       try {
         const detail = await getDevinSessionDetail(pr.sessionId);
         if (detail.status_enum === DevinSessionStatus.Finished) {
-          await this.updateCheckStatus(pr, "completed", "success", {
-            title: "Devin finished",
-            summary: `Devin session ${pr.sessionId} has completed.`,
-          });
+          await this.updateCheckStatus(
+            pr,
+            "completed",
+            "success",
+            {
+              title: "Devin finished",
+              summary: `Devin session ${pr.sessionId} has completed.`,
+            },
+            pr.sessionId,
+          );
         } else if (detail.status_enum === DevinSessionStatus.Expired) {
-          await this.updateCheckStatus(pr, "completed", "cancelled", {
-            title: "Devin session expired",
-            summary: `Devin session ${pr.sessionId} has expired.`,
-          });
+          await this.updateCheckStatus(
+            pr,
+            "completed",
+            "cancelled",
+            {
+              title: "Devin session expired",
+              summary: `Devin session ${pr.sessionId} has expired.`,
+            },
+            pr.sessionId,
+          );
         } else {
           this.logger.info(
             `Session ${pr.sessionId} no longer running but status is ${detail.status_enum}`,
           );
-          await this.updateCheckStatus(pr, "completed", "neutral", {
-            title: "Devin session ended",
-            summary: `Devin session ${pr.sessionId} ended with status: ${detail.status_enum}`,
-          });
+          await this.updateCheckStatus(
+            pr,
+            "completed",
+            "neutral",
+            {
+              title: "Devin session ended",
+              summary: `Devin session ${pr.sessionId} ended with status: ${detail.status_enum}`,
+            },
+            pr.sessionId,
+          );
         }
         this.untrackPR(pr.prUrl);
       } catch (error) {
@@ -328,35 +348,59 @@ export class DevinStatusPoller {
     const detail = await getDevinSessionDetail(session.session_id);
 
     if (detail.status_enum === DevinSessionStatus.Working) {
-      await this.updateCheckStatus(pr, "in_progress", undefined, {
-        title: "Devin is working",
-        summary: `Devin session ${session.session_id} is currently working on this PR.`,
-      });
+      await this.updateCheckStatus(
+        pr,
+        "in_progress",
+        undefined,
+        {
+          title: "Devin is working",
+          summary: `Devin session ${session.session_id} is currently working on this PR.`,
+        },
+        session.session_id,
+      );
       return;
     }
 
     if (detail.status_enum === DevinSessionStatus.Blocked) {
-      await this.updateCheckStatus(pr, "in_progress", undefined, {
-        title: "Devin is blocked",
-        summary: `Devin session ${session.session_id} is blocked and waiting for input.`,
-      });
+      await this.updateCheckStatus(
+        pr,
+        "in_progress",
+        undefined,
+        {
+          title: "Devin is blocked",
+          summary: `Devin session ${session.session_id} is blocked and waiting for input.`,
+        },
+        session.session_id,
+      );
       return;
     }
 
     if (detail.status_enum === DevinSessionStatus.Finished) {
-      await this.updateCheckStatus(pr, "completed", "success", {
-        title: "Devin finished",
-        summary: `Devin session ${session.session_id} has completed.`,
-      });
+      await this.updateCheckStatus(
+        pr,
+        "completed",
+        "success",
+        {
+          title: "Devin finished",
+          summary: `Devin session ${session.session_id} has completed.`,
+        },
+        session.session_id,
+      );
       this.untrackPR(pr.prUrl);
       return;
     }
 
     if (detail.status_enum === DevinSessionStatus.Expired) {
-      await this.updateCheckStatus(pr, "completed", "cancelled", {
-        title: "Devin session expired",
-        summary: `Devin session ${session.session_id} has expired.`,
-      });
+      await this.updateCheckStatus(
+        pr,
+        "completed",
+        "cancelled",
+        {
+          title: "Devin session expired",
+          summary: `Devin session ${session.session_id} has expired.`,
+        },
+        session.session_id,
+      );
       this.untrackPR(pr.prUrl);
       return;
     }
@@ -380,6 +424,7 @@ export class DevinStatusPoller {
       | "timed_out"
       | undefined,
     output: { title: string; summary: string },
+    sessionId: string,
   ): Promise<void> {
     try {
       const octokit = await this.createOctokit();
@@ -394,6 +439,8 @@ export class DevinStatusPoller {
         (check) => check.name === CHECK_NAME,
       );
 
+      const details_url = `https://app.devin.ai/sessions/${sessionId}`;
+
       if (existingCheck) {
         await octokit.checks.update({
           owner: pr.owner,
@@ -401,6 +448,7 @@ export class DevinStatusPoller {
           check_run_id: existingCheck.id,
           status,
           conclusion: status === "completed" ? conclusion : undefined,
+          details_url,
           output,
         });
       } else {
@@ -411,6 +459,7 @@ export class DevinStatusPoller {
           head_sha: pr.headSha,
           status,
           conclusion: status === "completed" ? conclusion : undefined,
+          details_url,
           output,
         });
       }

@@ -1,0 +1,9 @@
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "pass"

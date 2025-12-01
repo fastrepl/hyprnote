@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { allHandbooks } from "content-collections";
 
 import { HandbookLayout } from "./-components";
-import { handbookStructure } from "./structure";
+import { handbookStructure } from "./-structure";
 
 export const Route = createFileRoute("/_view/company-handbook/$")({
   component: Component,

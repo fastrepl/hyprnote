@@ -22,6 +22,46 @@ pub enum ProcessMatcher {
     Sidecar,
 }
 
+pub fn has_processes_matching(matcher: &ProcessMatcher) -> bool {
+    let target = match matcher {
+        ProcessMatcher::Name(name) => name.clone(),
+        ProcessMatcher::Sidecar => "stt".to_string(),
+    };
+
+    let mut sys = sysinfo::System::new();
+    sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+
+    for (_, process) in sys.processes() {
+        let process_name = process.name().to_string_lossy();
+        if process_name.contains(&target) {
+            return true;
+        }
+    }
+
+    false
+}
+
+pub async fn wait_for_processes_to_terminate(
+    matcher: ProcessMatcher,
+    max_wait_ms: u64,
+    check_interval_ms: u64,
+) -> bool {
+    if check_interval_ms == 0 {
+        return false;
+    }
+
+    let max_iterations = max_wait_ms / check_interval_ms;
+
+    for _ in 0..max_iterations {
+        if !has_processes_matching(&matcher) {
+            return true;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(check_interval_ms)).await;
+    }
+
+    !has_processes_matching(&matcher)
+}
+
 pub fn kill_processes_by_matcher(matcher: ProcessMatcher) -> u16 {
     let target = match matcher {
         ProcessMatcher::Name(name) => name,

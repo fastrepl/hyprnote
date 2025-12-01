@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { XIcon } from "lucide-react";
+import { Menu, X, XIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
 import {
@@ -7,6 +8,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
+import { useIsMobile } from "@hypr/ui/hooks/use-mobile";
 import { cn } from "@hypr/utils";
 
 import { MockWindow } from "@/components/mock-window";
@@ -159,13 +161,44 @@ function BrandContentSection({
   selectedItem: SelectedItem | null;
   setSelectedItem: (item: SelectedItem | null) => void;
 }) {
+  const isMobile = useIsMobile();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   return (
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
-        <MockWindow title="Brand" className="rounded-lg w-full max-w-none">
-          <div className="h-[480px]">
+        <MockWindow
+          title="Brand"
+          className="rounded-lg w-full max-w-none"
+          prefixIcons={
+            isMobile &&
+            selectedItem && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                aria-label="Open navigation"
+              >
+                <Menu className="w-4 h-4 text-neutral-600" />
+              </button>
+            )
+          }
+        >
+          <div className="h-[480px] relative">
             {!selectedItem ? (
               <BrandGridView setSelectedItem={setSelectedItem} />
+            ) : isMobile ? (
+              <>
+                <MobileSidebarDrawer
+                  open={drawerOpen}
+                  onClose={() => setDrawerOpen(false)}
+                  selectedItem={selectedItem}
+                  setSelectedItem={setSelectedItem}
+                />
+                <BrandDetailContent
+                  selectedItem={selectedItem}
+                  setSelectedItem={setSelectedItem}
+                />
+              </>
             ) : (
               <BrandDetailView
                 selectedItem={selectedItem}
@@ -308,6 +341,109 @@ function BrandDetailView({
         setSelectedItem={setSelectedItem}
       />
     </ResizablePanelGroup>
+  );
+}
+
+function MobileSidebarDrawer({
+  open,
+  onClose,
+  selectedItem,
+  setSelectedItem,
+}: {
+  open: boolean;
+  onClose: () => void;
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            className="absolute inset-0 z-40 bg-black/20"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+          <motion.div
+            className="absolute left-0 top-0 bottom-0 z-50 w-72 bg-white border-r border-neutral-200 shadow-lg"
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
+              <span className="text-sm font-medium text-stone-600">
+                Navigation
+              </span>
+              <button
+                onClick={onClose}
+                className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                aria-label="Close drawer"
+              >
+                <X className="w-4 h-4 text-neutral-600" />
+              </button>
+            </div>
+            <div className="h-[calc(100%-49px)] overflow-y-auto p-4">
+              <VisualAssetsSidebar
+                selectedItem={selectedItem}
+                setSelectedItem={(item) => {
+                  setSelectedItem(item);
+                  onClose();
+                }}
+              />
+              <TypographySidebar
+                selectedItem={selectedItem}
+                setSelectedItem={(item) => {
+                  setSelectedItem(item);
+                  onClose();
+                }}
+              />
+              <ColorsSidebar
+                selectedItem={selectedItem}
+                setSelectedItem={(item) => {
+                  setSelectedItem(item);
+                  onClose();
+                }}
+              />
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function BrandDetailContent({
+  selectedItem,
+  setSelectedItem,
+}: {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem | null) => void;
+}) {
+  return (
+    <div className="h-full flex flex-col">
+      {selectedItem.type === "visual" && (
+        <VisualAssetDetail
+          asset={selectedItem.data}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
+      {selectedItem.type === "typography" && (
+        <TypographyDetail
+          font={selectedItem.data}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
+      {selectedItem.type === "color" && (
+        <ColorDetail
+          color={selectedItem.data}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
+    </div>
   );
 }
 

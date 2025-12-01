@@ -29,6 +29,11 @@ export function registerDevinStatusHandler(app: Probot): void {
         `[Devin] PR ${context.payload.action} for ${owner}/${repo}#${prNumber}`,
       );
 
+      // Skip Devin API calls during tests to avoid network requests
+      if (process.env.NODE_ENV === "test") {
+        return;
+      }
+
       try {
         await checkDevinSession(context, owner, repo, prNumber, headSha, prUrl);
       } catch (error) {

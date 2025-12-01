@@ -20,5 +20,8 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
   registerFixMergeConflictHandler(app);
   registerPrClosedHandler(app);
 
-  startDevinStatusPoller(app);
+  // Don't start the poller during tests to avoid real HTTP calls
+  if (process.env.NODE_ENV !== "test") {
+    startDevinStatusPoller(app);
+  }
 };

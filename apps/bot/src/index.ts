@@ -1,5 +1,6 @@
 import { ApplicationFunctionOptions, Probot } from "probot";
 
+import { startDevinStatusPoller } from "./devin/index.js";
 import {
   registerDevinStatusHandler,
   registerFixMergeConflictHandler,
@@ -18,4 +19,6 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
   registerDevinStatusHandler(app);
   registerFixMergeConflictHandler(app);
   registerPrClosedHandler(app);
+
+  startDevinStatusPoller(app);
 };

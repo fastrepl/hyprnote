@@ -1,6 +1,5 @@
-import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Mail, XIcon } from "lucide-react";
+import { Mail, Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
@@ -243,7 +242,7 @@ function AboutContentSection({
                 className="p-1 hover:bg-neutral-200 rounded transition-colors"
                 aria-label="Open navigation"
               >
-                <Icon icon="mdi:menu" className="text-base text-neutral-600" />
+                <Menu className="w-4 h-4 text-neutral-600" />
               </button>
             )
           }
@@ -460,7 +459,7 @@ function MobileSidebarDrawer({
                 className="p-1 hover:bg-neutral-200 rounded transition-colors"
                 aria-label="Close drawer"
               >
-                <Icon icon="mdi:close" className="text-base text-neutral-600" />
+                <X className="w-4 h-4 text-neutral-600" />
               </button>
             </div>
             <div className="h-[calc(100%-49px)] overflow-y-auto p-4">

@@ -25,6 +25,10 @@ export const Route = createFileRoute("/_view/blog/$slug")({
       throw notFound();
     }
 
+    if (!import.meta.env.DEV && article.published === false) {
+      throw notFound();
+    }
+
     const relatedArticles = allArticles
       .filter(
         (a) =>

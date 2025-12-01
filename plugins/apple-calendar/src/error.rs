@@ -8,8 +8,6 @@ pub enum Error {
     CalendarAccessDenied,
     #[error("contacts access denied")]
     ContactsAccessDenied,
-    #[error("database error: {0}")]
-    DatabaseError(#[from] hypr_db_user::Error),
 }
 
 impl Serialize for Error {
@@ -18,14 +16,5 @@ impl Serialize for Error {
         S: Serializer,
     {
         serializer.serialize_str(self.to_string().as_ref())
-    }
-}
-
-impl Error {
-    pub fn as_worker_error(&self) -> apalis::prelude::Error {
-        apalis::prelude::Error::Failed(std::sync::Arc::new(Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            self.to_string(),
-        ))))
     }
 }

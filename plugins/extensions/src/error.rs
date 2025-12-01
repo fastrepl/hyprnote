@@ -10,6 +10,8 @@ pub enum Error {
     InvalidManifest(String),
     #[error("IO error: {0}")]
     Io(String),
+    #[error("Runtime unavailable: V8 engine failed to initialize")]
+    RuntimeUnavailable,
 }
 
 impl From<hypr_extensions_runtime::Error> for Error {
@@ -26,6 +28,7 @@ impl From<hypr_extensions_runtime::Error> for Error {
             hypr_extensions_runtime::Error::ChannelRecv => {
                 Error::RuntimeError("Channel receive error".to_string())
             }
+            hypr_extensions_runtime::Error::RuntimeUnavailable => Error::RuntimeUnavailable,
         }
     }
 }

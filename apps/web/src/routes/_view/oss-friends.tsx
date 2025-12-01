@@ -4,6 +4,7 @@ import { allOssFriends } from "content-collections";
 
 import { cn } from "@hypr/utils";
 
+import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
 
 export const Route = createFileRoute("/_view/oss-friends")({
@@ -63,11 +64,30 @@ function HeroSection() {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
             OSS Friends
           </h1>
-          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto mb-8">
             Discover amazing open source projects and tools built by our friends
             in the community. We believe in the power of open source and are
             proud to be part of this ecosystem.
           </p>
+          <div className="max-w-md mx-auto">
+            <div
+              className={cn([
+                "relative flex items-center",
+                "border border-neutral-200 rounded-full bg-white",
+                "focus-within:border-stone-400 transition-colors",
+              ])}
+            >
+              <Icon
+                icon="mdi:magnify"
+                className="absolute left-4 text-xl text-neutral-400"
+              />
+              <input
+                type="text"
+                placeholder="Search projects..."
+                className="w-full px-12 py-3 rounded-full bg-transparent outline-none text-neutral-800 placeholder:text-neutral-400"
+              />
+            </div>
+          </div>
         </header>
       </div>
     </div>
@@ -76,26 +96,29 @@ function HeroSection() {
 
 function FriendsSection() {
   return (
-    <section className="px-6 py-12 lg:py-16">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {allOssFriends.map((friend) => (
+    <section>
+      <div className="grid grid-cols-3">
+        {allOssFriends.map((friend, index) => (
           <a
             key={friend.slug}
             href={friend.href}
             target="_blank"
             rel="noopener noreferrer"
             className={cn([
-              "group flex flex-col border border-neutral-200 rounded-lg bg-white overflow-hidden",
-              "hover:border-stone-400 hover:shadow-md transition-all",
+              "group flex flex-col bg-white overflow-hidden",
+              "border-b border-neutral-200",
+              index % 3 !== 2 && "border-r",
+              "hover:bg-stone-50 transition-all",
             ])}
           >
-            <div className="aspect-video bg-neutral-100 overflow-hidden">
+            <div className="aspect-40/21 bg-neutral-100 overflow-hidden">
               {friend.image ? (
-                <img
+                <Image
                   src={friend.image}
                   alt={friend.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
+                  className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                  objectFit="cover"
+                  layout="fullWidth"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -116,9 +139,19 @@ function FriendsSection() {
                   className="text-lg text-neutral-400 group-hover:text-stone-600 transition-colors shrink-0"
                 />
               </div>
-              <p className="text-sm text-neutral-600 leading-relaxed">
+              <p className="text-sm text-neutral-600 leading-relaxed mb-3">
                 {friend.description}
               </p>
+              <a
+                href={friend.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+              >
+                <Icon icon="mdi:github" className="text-sm" />
+                <span>View on GitHub</span>
+              </a>
             </div>
           </a>
         ))}

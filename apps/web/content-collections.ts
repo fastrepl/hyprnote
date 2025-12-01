@@ -502,6 +502,7 @@ const ossFriends = defineCollection({
     description: z.string(),
     href: z.string(),
     image: z.string().optional(),
+    github: z.string(),
   }),
   transform: async (document) => {
     const slug = document._meta.path.replace(/\.mdx$/, "");

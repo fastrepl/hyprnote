@@ -5,8 +5,6 @@ use tauri::Manager;
 mod commands;
 mod error;
 mod ext;
-mod sync;
-mod worker;
 
 pub use error::{Error, Result};
 pub use ext::AppleCalendarPluginExt;
@@ -31,8 +29,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::contacts_access_status::<tauri::Wry>,
             commands::request_calendar_access::<tauri::Wry>,
             commands::request_contacts_access::<tauri::Wry>,
-            commands::sync_calendars::<tauri::Wry>,
-            commands::sync_events::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

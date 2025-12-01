@@ -21,6 +21,7 @@ import {
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
+import type { EnhancedNote } from "@hypr/store";
 import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 import { format } from "@hypr/utils";
 
@@ -181,46 +182,9 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
       const persister = createLocalPersister2<Schemas>(
         store as Store,
-        async (enhancedNote, filename) => {
-          if (!enhancedNote.content || !enhancedNote.session_id) {
-            return;
-          }
-
-          try {
-            const parsed = JSON.parse(enhancedNote.content);
-            if (!isValidTiptapContent(parsed)) {
-              return;
-            }
-
-            const markdown = json2md(parsed);
-            const sessionDir = `hyprnote/sessions/${enhancedNote.session_id}`;
-
-            const sessionDirExists = await exists(sessionDir, {
-              baseDir: BaseDirectory.Data,
-            });
-            if (!sessionDirExists) {
-              await mkdir(sessionDir, {
-                baseDir: BaseDirectory.Data,
-                recursive: true,
-              });
-            }
-
-            await writeTextFile(`${sessionDir}/${filename}`, markdown, {
-              baseDir: BaseDirectory.Data,
-            });
-          } catch (error) {
-            console.error(
-              "Failed to save enhanced note markdown:",
-              enhancedNote.id,
-              error,
-            );
-          }
-        },
-        (sessionId, content) => {
-          store.setPartialRow("sessions", sessionId, {
-            enhanced_md: content,
-          });
-        },
+        saveEnhancedNoteToFile,
+        (sessionId, content) =>
+          store.setPartialRow("sessions", sessionId, { enhanced_md: content }),
       );
 
       return persister;
@@ -738,3 +702,42 @@ export const RELATIONSHIPS = {
   chatMessageToGroup: "chatMessageToGroup",
   enhancedNoteToSession: "enhancedNoteToSession",
 };
+
+async function saveEnhancedNoteToFile(
+  enhancedNote: EnhancedNote & { id: string },
+  filename: string,
+): Promise<void> {
+  if (!enhancedNote.content || !enhancedNote.session_id) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(enhancedNote.content);
+    if (!isValidTiptapContent(parsed)) {
+      return;
+    }
+
+    const markdown = json2md(parsed);
+    const sessionDir = `hyprnote/sessions/${enhancedNote.session_id}`;
+
+    const sessionDirExists = await exists(sessionDir, {
+      baseDir: BaseDirectory.Data,
+    });
+    if (!sessionDirExists) {
+      await mkdir(sessionDir, {
+        baseDir: BaseDirectory.Data,
+        recursive: true,
+      });
+    }
+
+    await writeTextFile(`${sessionDir}/${filename}`, markdown, {
+      baseDir: BaseDirectory.Data,
+    });
+  } catch (error) {
+    console.error(
+      "Failed to save enhanced note markdown:",
+      enhancedNote.id,
+      error,
+    );
+  }
+}

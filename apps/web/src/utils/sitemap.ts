@@ -126,12 +126,36 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.6,
         changeFrequency: "monthly",
       },
-      "/contact": {
-        priority: 0.7,
+      "/brand": {
+        priority: 0.5,
         changeFrequency: "monthly",
+      },
+      "/company-handbook": {
+        priority: 0.6,
+        changeFrequency: "weekly",
       },
       "/faq": {
         priority: 0.7,
+        changeFrequency: "monthly",
+      },
+      "/file-transcription": {
+        priority: 0.7,
+        changeFrequency: "monthly",
+      },
+      "/free": {
+        priority: 0.7,
+        changeFrequency: "monthly",
+      },
+      "/gallery": {
+        priority: 0.7,
+        changeFrequency: "weekly",
+      },
+      "/oss-friends": {
+        priority: 0.6,
+        changeFrequency: "monthly",
+      },
+      "/press-kit": {
+        priority: 0.5,
         changeFrequency: "monthly",
       },
       "/roadmap": {
@@ -152,6 +176,10 @@ export function getSitemap(): Sitemap<TRoutes> {
       },
 
       "/download": {
+        priority: 0.7,
+        changeFrequency: "weekly",
+      },
+      "/download/apple-intel": {
         priority: 0.7,
         changeFrequency: "weekly",
       },
@@ -251,6 +279,150 @@ export function getSitemap(): Sitemap<TRoutes> {
           }));
         } catch (error) {
           console.warn("Failed to load docs for sitemap:", error);
+          return [];
+        }
+      },
+
+      "/templates/$slug": async () => {
+        try {
+          const path = await import("path");
+          const url = await import("url");
+          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+          const modulePath = path.resolve(
+            __dirname,
+            "../../.content-collections/generated/allTemplates.js",
+          );
+          const { default: allTemplates } = await import(modulePath);
+          return allTemplates.map((template: any) => ({
+            path: `/templates/${template.slug}`,
+            priority: 0.7,
+            changeFrequency: "weekly" as const,
+          }));
+        } catch (error) {
+          console.warn("Failed to load templates for sitemap:", error);
+          return [];
+        }
+      },
+
+      "/shortcuts/$slug": async () => {
+        try {
+          const path = await import("path");
+          const url = await import("url");
+          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+          const modulePath = path.resolve(
+            __dirname,
+            "../../.content-collections/generated/allShortcuts.js",
+          );
+          const { default: allShortcuts } = await import(modulePath);
+          return allShortcuts.map((shortcut: any) => ({
+            path: `/shortcuts/${shortcut.slug}`,
+            priority: 0.7,
+            changeFrequency: "weekly" as const,
+          }));
+        } catch (error) {
+          console.warn("Failed to load shortcuts for sitemap:", error);
+          return [];
+        }
+      },
+
+      "/roadmap/$slug": async () => {
+        try {
+          const path = await import("path");
+          const url = await import("url");
+          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+          const modulePath = path.resolve(
+            __dirname,
+            "../../.content-collections/generated/allRoadmaps.js",
+          );
+          const { default: allRoadmaps } = await import(modulePath);
+          return allRoadmaps.map((roadmap: any) => ({
+            path: `/roadmap/${roadmap.slug}`,
+            priority: 0.6,
+            changeFrequency: "weekly" as const,
+            lastModified: roadmap.updated || roadmap.created,
+          }));
+        } catch (error) {
+          console.warn("Failed to load roadmap items for sitemap:", error);
+          return [];
+        }
+      },
+
+      "/vs/$slug": async () => {
+        try {
+          const path = await import("path");
+          const url = await import("url");
+          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+          const modulePath = path.resolve(
+            __dirname,
+            "../../.content-collections/generated/allVs.js",
+          );
+          const { default: allVs } = await import(modulePath);
+          return allVs.map((vs: any) => ({
+            path: `/vs/${vs.slug}`,
+            priority: 0.7,
+            changeFrequency: "monthly" as const,
+          }));
+        } catch (error) {
+          console.warn("Failed to load vs pages for sitemap:", error);
+          return [];
+        }
+      },
+
+      "/company-handbook/$": async () => {
+        try {
+          const path = await import("path");
+          const url = await import("url");
+          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+          const modulePath = path.resolve(
+            __dirname,
+            "../../.content-collections/generated/allHandbooks.js",
+          );
+          const { default: allHandbooks } = await import(modulePath);
+          return allHandbooks.map((handbook: any) => ({
+            path: `/company-handbook/${handbook.slug}`,
+            priority: 0.6,
+            changeFrequency: "weekly" as const,
+            lastModified: handbook.updated || handbook.created,
+          }));
+        } catch (error) {
+          console.warn("Failed to load handbook pages for sitemap:", error);
+          return [];
+        }
+      },
+
+      "/gallery/$type/$slug": async () => {
+        try {
+          const path = await import("path");
+          const url = await import("url");
+          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+
+          const templatesPath = path.resolve(
+            __dirname,
+            "../../.content-collections/generated/allTemplates.js",
+          );
+          const shortcutsPath = path.resolve(
+            __dirname,
+            "../../.content-collections/generated/allShortcuts.js",
+          );
+
+          const { default: allTemplates } = await import(templatesPath);
+          const { default: allShortcuts } = await import(shortcutsPath);
+
+          const templateUrls = allTemplates.map((template: any) => ({
+            path: `/gallery/template/${template.slug}`,
+            priority: 0.7,
+            changeFrequency: "weekly" as const,
+          }));
+
+          const shortcutUrls = allShortcuts.map((shortcut: any) => ({
+            path: `/gallery/shortcut/${shortcut.slug}`,
+            priority: 0.7,
+            changeFrequency: "weekly" as const,
+          }));
+
+          return [...templateUrls, ...shortcutUrls];
+        } catch (error) {
+          console.warn("Failed to load gallery items for sitemap:", error);
           return [];
         }
       },

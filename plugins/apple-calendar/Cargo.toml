@@ -14,11 +14,9 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-tauri-plugin-db = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 
 hypr-calendar-interface = { workspace = true }
-hypr-db-user = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
@@ -32,8 +30,6 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 
-apalis = { workspace = true }
-apalis-cron = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]

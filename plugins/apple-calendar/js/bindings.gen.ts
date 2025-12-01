@@ -42,22 +42,6 @@ async requestCalendarAccess() : Promise<void> {
 },
 async requestContactsAccess() : Promise<void> {
     await TAURI_INVOKE("plugin:apple-calendar|request_contacts_access");
-},
-async syncCalendars() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|sync_calendars") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async syncEvents() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|sync_events") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
 }
 }
 

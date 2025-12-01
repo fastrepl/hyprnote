@@ -150,7 +150,7 @@ function HomebrewCard() {
           <button
             onClick={handleCopy}
             className={cn([
-              "flex items-center justify-center transition-all relative",
+              "cursor-pointer flex items-center justify-center transition-all relative",
               "ml-2 px-2 py-1 rounded",
               copied
                 ? ["opacity-100 text-green-600"]

@@ -65,21 +65,6 @@ describe("bot_ci check handler", () => {
 
     nock("https://api.github.com")
       .get("/repos/hiimbex/testing-things/commits/abc123/check-runs")
-      .query({ check_name: "bot_ci" })
-      .reply(200, {
-        total_count: 1,
-        check_runs: [
-          {
-            id: 1,
-            name: "bot_ci",
-            status: "in_progress",
-            conclusion: null,
-          },
-        ],
-      });
-
-    nock("https://api.github.com")
-      .get("/repos/hiimbex/testing-things/commits/abc123/check-runs")
       .query({ check_name: "Mergeable: bot_ci" })
       .reply(200, { total_count: 0, check_runs: [] });
 
@@ -105,21 +90,6 @@ describe("bot_ci check handler", () => {
     nock("https://api.github.com")
       .post("/app/installations/2/access_tokens")
       .reply(200, { token: "test-token", permissions: { checks: "write" } });
-
-    nock("https://api.github.com")
-      .get("/repos/hiimbex/testing-things/commits/abc123/check-runs")
-      .query({ check_name: "bot_ci" })
-      .reply(200, {
-        total_count: 1,
-        check_runs: [
-          {
-            id: 1,
-            name: "bot_ci",
-            status: "completed",
-            conclusion: "success",
-          },
-        ],
-      });
 
     nock("https://api.github.com")
       .get("/repos/hiimbex/testing-things/commits/abc123/check-runs")
@@ -149,21 +119,6 @@ describe("bot_ci check handler", () => {
     nock("https://api.github.com")
       .post("/app/installations/2/access_tokens")
       .reply(200, { token: "test-token", permissions: { checks: "write" } });
-
-    nock("https://api.github.com")
-      .get("/repos/hiimbex/testing-things/commits/abc123/check-runs")
-      .query({ check_name: "bot_ci" })
-      .reply(200, {
-        total_count: 1,
-        check_runs: [
-          {
-            id: 1,
-            name: "bot_ci",
-            status: "completed",
-            conclusion: "failure",
-          },
-        ],
-      });
 
     nock("https://api.github.com")
       .get("/repos/hiimbex/testing-things/commits/abc123/check-runs")
@@ -227,21 +182,6 @@ describe("bot_ci check handler", () => {
     nock("https://api.github.com")
       .post("/app/installations/2/access_tokens")
       .reply(200, { token: "test-token", permissions: { checks: "write" } });
-
-    nock("https://api.github.com")
-      .get("/repos/hiimbex/testing-things/commits/abc123/check-runs")
-      .query({ check_name: "bot_ci" })
-      .reply(200, {
-        total_count: 1,
-        check_runs: [
-          {
-            id: 1,
-            name: "bot_ci",
-            status: "completed",
-            conclusion: "success",
-          },
-        ],
-      });
 
     nock("https://api.github.com")
       .get("/repos/hiimbex/testing-things/commits/abc123/check-runs")

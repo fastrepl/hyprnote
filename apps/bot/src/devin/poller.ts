@@ -2,13 +2,13 @@ import { Probot } from "probot";
 
 import {
   DevinSessionStatus,
-  findRunningSessionForPR,
   getDevinSessionDetail,
   listDevinSessions,
 } from "./index.js";
 
 const CHECK_NAME = "Devin";
 const DEFAULT_POLL_INTERVAL_MS = 60_000;
+const MAX_TRACKING_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface TrackedPR {
   owner: string;
@@ -240,9 +240,17 @@ export class DevinStatusPoller {
 
     this.logger.info(`Polling ${prs.length} tracked PRs`);
 
+    // Fetch running sessions once per poll cycle to avoid repeated API calls
+    const { sessions } = await listDevinSessions({ status: "running" });
+    const sessionsByPrUrl = new Map(
+      sessions
+        .filter((s) => s.pull_request?.url)
+        .map((s) => [s.pull_request!.url, s]),
+    );
+
     for (const pr of prs) {
       try {
-        await this.checkPRStatus(pr);
+        await this.checkPRStatus(pr, sessionsByPrUrl);
       } catch (error) {
         this.logger.error(
           `Failed to check status for PR ${pr.prUrl}: ${error}`,
@@ -251,18 +259,69 @@ export class DevinStatusPoller {
     }
   }
 
-  private async checkPRStatus(pr: TrackedPR): Promise<void> {
-    const session = await findRunningSessionForPR(pr.prUrl);
+  private async checkPRStatus(
+    pr: TrackedPR,
+    sessionsByPrUrl: Map<string, { session_id: string }>,
+  ): Promise<void> {
+    // Clean up old tracked PRs (older than 24 hours)
+    if (Date.now() - pr.addedAt > MAX_TRACKING_AGE_MS) {
+      this.logger.info(
+        `PR ${pr.prUrl} has been tracked for too long, untracking`,
+      );
+      this.untrackPR(pr.prUrl);
+      return;
+    }
+
+    // Verify PR is still open
+    try {
+      const octokit = await this.createOctokit();
+      const { data: pullRequest } = await octokit.pulls.get({
+        owner: pr.owner,
+        repo: pr.repo,
+        pull_number: pr.prNumber,
+      });
+
+      if (pullRequest.state !== "open") {
+        this.logger.info(`PR ${pr.prUrl} is no longer open, untracking`);
+        this.untrackPR(pr.prUrl);
+        return;
+      }
+    } catch (error) {
+      this.logger.error(`Failed to check PR state for ${pr.prUrl}: ${error}`);
+    }
+
+    // Use cached session lookup instead of making individual API calls
+    const session = sessionsByPrUrl.get(pr.prUrl);
 
     if (!session) {
-      this.logger.info(
-        `No running session found for PR ${pr.prUrl}, marking as complete`,
-      );
-      await this.updateCheckStatus(pr, "completed", "success", {
-        title: "Devin finished",
-        summary: "Devin has completed working on this PR.",
-      });
-      this.untrackPR(pr.prUrl);
+      // Verify the actual session status before marking as complete
+      try {
+        const detail = await getDevinSessionDetail(pr.sessionId);
+        if (detail.status_enum === DevinSessionStatus.Finished) {
+          await this.updateCheckStatus(pr, "completed", "success", {
+            title: "Devin finished",
+            summary: `Devin session ${pr.sessionId} has completed.`,
+          });
+        } else if (detail.status_enum === DevinSessionStatus.Expired) {
+          await this.updateCheckStatus(pr, "completed", "cancelled", {
+            title: "Devin session expired",
+            summary: `Devin session ${pr.sessionId} has expired.`,
+          });
+        } else {
+          this.logger.info(
+            `Session ${pr.sessionId} no longer running but status is ${detail.status_enum}`,
+          );
+          await this.updateCheckStatus(pr, "completed", "neutral", {
+            title: "Devin session ended",
+            summary: `Devin session ${pr.sessionId} ended with status: ${detail.status_enum}`,
+          });
+        }
+        this.untrackPR(pr.prUrl);
+      } catch (error) {
+        this.logger.error(
+          `Failed to verify session status for ${pr.sessionId}: ${error}`,
+        );
+      }
       return;
     }
 

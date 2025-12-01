@@ -6,45 +6,44 @@ runs:
   using: "composite"
   steps:
     - if: inputs.platform == 'macos'
-      uses: moonrepo/setup-rust@v1
+      uses: dtolnay/rust-toolchain@master
       with:
-        channel: "1.91.1"
+        toolchain: "1.91.1"
         targets: aarch64-apple-darwin,x86_64-apple-darwin
-        cache-target: release
     - if: inputs.platform == 'ios'
-      uses: moonrepo/setup-rust@v1
+      uses: dtolnay/rust-toolchain@master
       with:
-        channel: "1.91.1"
+        toolchain: "1.91.1"
         targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
-        cache-target: release
     - if: inputs.platform == 'android'
-      uses: moonrepo/setup-rust@v1
+      uses: dtolnay/rust-toolchain@master
       with:
-        channel: "1.91.1"
+        toolchain: "1.91.1"
         targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-        cache-target: release
     - if: inputs.platform == 'windows'
-      uses: moonrepo/setup-rust@v1
+      uses: dtolnay/rust-toolchain@master
       with:
-        channel: "1.91.1"
+        toolchain: "1.91.1"
         targets: x86_64-pc-windows-msvc
-        bins: trusted-signing-cli
-        cache-target: release
+    - if: inputs.platform == 'windows'
+      run: cargo install trusted-signing-cli
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ github.token }}
     - if: inputs.platform == 'linux'
-      uses: moonrepo/setup-rust@v1
+      uses: dtolnay/rust-toolchain@master
       with:
-        channel: "1.91.1"
+        toolchain: "1.91.1"
         targets: x86_64-unknown-linux-gnu,x86_64-unknown-linux-musl,aarch64-unknown-linux-gnu
-        cache-target: release
     - if: inputs.platform == 'linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y gcc-aarch64-linux-gnu libasound2-dev
       shell: bash
     - if: inputs.platform == ''
-      uses: moonrepo/setup-rust@v1
+      uses: dtolnay/rust-toolchain@master
       with:
-        channel: "1.91.1"
-        cache-target: release
+        toolchain: "1.91.1"
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-targets: "true"

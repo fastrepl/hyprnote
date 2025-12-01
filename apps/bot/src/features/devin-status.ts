@@ -5,7 +5,7 @@ import {
   getDevinSessionDetail,
   isDevinSessionWorking,
 } from "../devin/index.js";
-import { createOrUpdateCheck, ProbotContext } from "../lib/github-checks.js";
+import { createOrUpdateCheck, ProbotContext } from "../github/check.js";
 
 const CHECK_NAME = "Devin";
 

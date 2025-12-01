@@ -1,5 +1,5 @@
-import { Probot } from "probot";
 import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+import { Probot } from "probot";
 
 export type ProbotContext = Parameters<Parameters<Probot["on"]>[1]>[0];
 

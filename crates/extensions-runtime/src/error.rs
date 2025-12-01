@@ -20,6 +20,9 @@ pub enum Error {
 
     #[error("Channel receive error")]
     ChannelRecv,
+
+    #[error("Runtime unavailable: V8 engine failed to initialize")]
+    RuntimeUnavailable,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

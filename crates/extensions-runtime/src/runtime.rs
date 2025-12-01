@@ -6,6 +6,8 @@ use deno_core::v8;
 use deno_core::JsRuntime;
 use deno_core::RuntimeOptions;
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use tokio::sync::{mpsc, oneshot};
 
 deno_core::extension!(
@@ -35,25 +37,64 @@ pub enum RuntimeRequest {
 #[derive(Clone)]
 pub struct ExtensionsRuntime {
     sender: mpsc::Sender<RuntimeRequest>,
+    available: Arc<AtomicBool>,
 }
 
 impl ExtensionsRuntime {
     pub fn new() -> Self {
         let (tx, rx) = mpsc::channel(100);
+        let available = Arc::new(AtomicBool::new(false));
+        let available_clone = available.clone();
 
         std::thread::spawn(move || {
-            let rt = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap();
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                let rt = tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                    .expect("Failed to build tokio runtime");
 
-            rt.block_on(runtime_loop(rx));
+                available_clone.store(true, Ordering::SeqCst);
+                tracing::info!("extensions_runtime_initialized");
+
+                rt.block_on(runtime_loop(rx));
+            }));
+
+            if let Err(e) = result {
+                let panic_msg = if let Some(s) = e.downcast_ref::<&str>() {
+                    s.to_string()
+                } else if let Some(s) = e.downcast_ref::<String>() {
+                    s.clone()
+                } else {
+                    "Unknown panic".to_string()
+                };
+                tracing::error!(
+                    "extensions_runtime_failed: {}. Extensions feature will be unavailable.",
+                    panic_msg
+                );
+            }
         });
 
-        Self { sender: tx }
+        Self {
+            sender: tx,
+            available,
+        }
+    }
+
+    pub fn is_available(&self) -> bool {
+        self.available.load(Ordering::SeqCst)
+    }
+
+    fn ensure_available(&self) -> Result<()> {
+        if self.is_available() {
+            Ok(())
+        } else {
+            Err(Error::RuntimeUnavailable)
+        }
     }
 
     pub async fn load_extension(&self, extension: Extension) -> Result<()> {
+        self.ensure_available()?;
+
         let (tx, rx) = oneshot::channel();
         self.sender
             .send(RuntimeRequest::LoadExtension {
@@ -72,6 +113,8 @@ impl ExtensionsRuntime {
         function_name: &str,
         args: Vec<Value>,
     ) -> Result<Value> {
+        self.ensure_available()?;
+
         let (tx, rx) = oneshot::channel();
         self.sender
             .send(RuntimeRequest::CallFunction {
@@ -87,6 +130,8 @@ impl ExtensionsRuntime {
     }
 
     pub async fn execute_code(&self, extension_id: &str, code: &str) -> Result<Value> {
+        self.ensure_available()?;
+
         let (tx, rx) = oneshot::channel();
         self.sender
             .send(RuntimeRequest::ExecuteCode {
@@ -101,6 +146,10 @@ impl ExtensionsRuntime {
     }
 
     pub async fn shutdown(&self) -> Result<()> {
+        if !self.is_available() {
+            return Ok(());
+        }
+
         self.sender
             .send(RuntimeRequest::Shutdown)
             .await

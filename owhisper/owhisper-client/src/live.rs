@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::time::Duration;
 
 use futures_util::Stream;
@@ -6,18 +7,29 @@ use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketI
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 
-use crate::ListenClientBuilder;
+use crate::adapter::SttAdapter;
+use crate::{DeepgramAdapter, ListenClientBuilder};
 
 pub type ListenClientInput = MixedMessage<bytes::Bytes, ControlMessage>;
 pub type ListenClientDualInput = MixedMessage<(bytes::Bytes, bytes::Bytes), ControlMessage>;
 
+/// A single-channel STT client.
+///
+/// This client is generic over the adapter type, which determines how to
+/// communicate with the STT provider.
 #[derive(Clone)]
-pub struct ListenClient {
+pub struct ListenClient<A: SttAdapter = DeepgramAdapter> {
+    pub(crate) adapter: A,
     pub(crate) request: ClientRequestBuilder,
 }
 
+/// A dual-channel STT client (mic + speaker).
+///
+/// This client is generic over the adapter type, which determines how to
+/// communicate with the STT provider.
 #[derive(Clone)]
-pub struct ListenClientDual {
+pub struct ListenClientDual<A: SttAdapter = DeepgramAdapter> {
+    pub(crate) adapter: A,
     pub(crate) request: ClientRequestBuilder,
 }
 
@@ -44,7 +56,15 @@ fn interleave_audio(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
     interleaved
 }
 
-impl WebSocketIO for ListenClient {
+/// WebSocket IO wrapper for single-channel client.
+///
+/// This struct is used internally to implement the WebSocketIO trait
+/// for the ListenClient, handling message encoding/decoding.
+pub struct ListenClientIO<A: SttAdapter> {
+    _marker: PhantomData<A>,
+}
+
+impl<A: SttAdapter> WebSocketIO for ListenClientIO<A> {
     type Data = ListenClientInput;
     type Input = ListenClientInput;
     type Output = StreamResponse;
@@ -70,7 +90,16 @@ impl WebSocketIO for ListenClient {
     }
 }
 
-impl WebSocketIO for ListenClientDual {
+/// WebSocket IO wrapper for dual-channel client.
+///
+/// This struct is used internally to implement the WebSocketIO trait
+/// for the ListenClientDual, handling message encoding/decoding and
+/// audio interleaving.
+pub struct ListenClientDualIO<A: SttAdapter> {
+    _marker: PhantomData<A>,
+}
+
+impl<A: SttAdapter> WebSocketIO for ListenClientDualIO<A> {
     type Data = ListenClientDualInput;
     type Input = ListenClientInput;
     type Output = StreamResponse;
@@ -102,11 +131,22 @@ impl WebSocketIO for ListenClientDual {
     }
 }
 
-impl ListenClient {
-    pub fn builder() -> ListenClientBuilder {
+impl ListenClient<DeepgramAdapter> {
+    /// Create a new builder with the default Deepgram adapter.
+    pub fn builder() -> ListenClientBuilder<DeepgramAdapter> {
         ListenClientBuilder::default()
     }
+}
 
+impl<A: SttAdapter> ListenClient<A> {
+    /// Get a reference to the adapter.
+    pub fn adapter(&self) -> &A {
+        &self.adapter
+    }
+
+    /// Connect to the STT service and start streaming audio.
+    ///
+    /// Returns a stream of transcription responses and a handle to control the connection.
     pub async fn from_realtime_audio(
         self,
         audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
@@ -117,12 +157,20 @@ impl ListenClient {
         ),
         hypr_ws::Error,
     > {
-        let ws = websocket_client_with_keep_alive(&self.request);
-        ws.from_audio::<Self>(audio_stream).await
+        let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
+        ws.from_audio::<ListenClientIO<A>>(audio_stream).await
     }
 }
 
-impl ListenClientDual {
+impl<A: SttAdapter> ListenClientDual<A> {
+    /// Get a reference to the adapter.
+    pub fn adapter(&self) -> &A {
+        &self.adapter
+    }
+
+    /// Connect to the STT service and start streaming dual-channel audio.
+    ///
+    /// Returns a stream of transcription responses and a handle to control the connection.
     pub async fn from_realtime_audio(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
@@ -133,14 +181,22 @@ impl ListenClientDual {
         ),
         hypr_ws::Error,
     > {
-        let ws = websocket_client_with_keep_alive(&self.request);
-        ws.from_audio::<Self>(stream).await
+        let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
+        ws.from_audio::<ListenClientDualIO<A>>(stream).await
     }
 }
 
-fn websocket_client_with_keep_alive(request: &ClientRequestBuilder) -> WebSocketClient {
-    WebSocketClient::new(request.clone())
-        .with_keep_alive_message(Duration::from_secs(5), keep_alive_message())
+fn websocket_client_with_keep_alive<A: SttAdapter>(
+    request: &ClientRequestBuilder,
+    adapter: &A,
+) -> WebSocketClient {
+    let ws = WebSocketClient::new(request.clone());
+
+    if let Some((interval, message)) = adapter.keep_alive_config() {
+        ws.with_keep_alive_message(interval, message)
+    } else {
+        ws.with_keep_alive_message(Duration::from_secs(5), keep_alive_message())
+    }
 }
 
 fn keep_alive_message() -> Message {

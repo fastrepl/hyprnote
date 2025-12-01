@@ -1,162 +1,122 @@
+pub mod adapter;
 mod batch;
 mod error;
 mod live;
 
-use url::form_urlencoded::Serializer;
-use url::UrlQuery;
-
+pub use adapter::{DeepgramAdapter, SttAdapter};
 pub use batch::BatchClient;
 pub use error::Error;
 pub use hypr_ws;
 pub use live::{ListenClient, ListenClientDual};
 
-#[derive(Default)]
-pub struct ListenClientBuilder {
+/// Builder for creating STT clients.
+///
+/// The builder is generic over the adapter type, which determines how to
+/// communicate with the STT provider. By default, it uses `DeepgramAdapter`.
+///
+/// # Example
+///
+/// ```ignore
+/// // Using default Deepgram adapter
+/// let client = ListenClient::builder()
+///     .api_base("https://api.deepgram.com/v1")
+///     .api_key("your-api-key")
+///     .params(params)
+///     .build_single();
+///
+/// // Using explicit adapter
+/// let client = ListenClientBuilder::with_adapter(DeepgramAdapter::new())
+///     .api_base("https://api.deepgram.com/v1")
+///     .api_key("your-api-key")
+///     .params(params)
+///     .build_single();
+/// ```
+pub struct ListenClientBuilder<A: SttAdapter = DeepgramAdapter> {
+    adapter: A,
     api_base: Option<String>,
     api_key: Option<String>,
     params: Option<owhisper_interface::ListenParams>,
 }
 
-impl ListenClientBuilder {
+impl Default for ListenClientBuilder<DeepgramAdapter> {
+    fn default() -> Self {
+        Self {
+            adapter: DeepgramAdapter::default(),
+            api_base: None,
+            api_key: None,
+            params: None,
+        }
+    }
+}
+
+impl ListenClientBuilder<DeepgramAdapter> {
+    /// Create a new builder with the default Deepgram adapter.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<A: SttAdapter> ListenClientBuilder<A> {
+    /// Create a new builder with a specific adapter.
+    pub fn with_adapter(adapter: A) -> Self {
+        Self {
+            adapter,
+            api_base: None,
+            api_key: None,
+            params: None,
+        }
+    }
+
+    /// Set the API base URL.
     pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
         self.api_base = Some(api_base.into());
         self
     }
 
+    /// Set the API key for authentication.
     pub fn api_key(mut self, api_key: impl Into<String>) -> Self {
         self.api_key = Some(api_key.into());
         self
     }
 
+    /// Set the listen parameters.
     pub fn params(mut self, params: owhisper_interface::ListenParams) -> Self {
         self.params = Some(params);
         self
     }
 
-    fn listen_endpoint_url(&self) -> url::Url {
-        let mut url: url::Url = self
-            .api_base
-            .as_ref()
-            .expect("api_base is required")
-            .parse()
-            .expect("invalid api_base");
-
-        let mut path = url.path().to_string();
-        if !path.ends_with('/') {
-            path.push('/');
-        }
-        path.push_str("listen");
-        url.set_path(&path);
-
-        url
-    }
-
-    pub(crate) fn build_batch_url(&self) -> url::Url {
-        let params = self.params.clone().unwrap_or_default();
-        let mut url = self.listen_endpoint_url();
-
-        {
-            let mut query_pairs = url.query_pairs_mut();
-
-            append_language_query(&mut query_pairs, &params);
-
-            let model = params.model.as_deref().unwrap_or("hypr-whisper");
-            let sample_rate = params.sample_rate.to_string();
-
-            query_pairs.append_pair("model", model);
-            query_pairs.append_pair("encoding", "linear16");
-            query_pairs.append_pair("sample_rate", &sample_rate);
-            query_pairs.append_pair("diarize", "true");
-            query_pairs.append_pair("multichannel", "false");
-            query_pairs.append_pair("punctuate", "true");
-            query_pairs.append_pair("smart_format", "true");
-            query_pairs.append_pair("utterances", "true");
-            query_pairs.append_pair("numerals", "true");
-            query_pairs.append_pair("filler_words", "false");
-            query_pairs.append_pair("dictation", "false");
-            query_pairs.append_pair("paragraphs", "false");
-            query_pairs.append_pair("profanity_filter", "false");
-            query_pairs.append_pair("measurements", "false");
-            query_pairs.append_pair("topics", "false");
-            query_pairs.append_pair("sentiment", "false");
-            query_pairs.append_pair("intents", "false");
-            query_pairs.append_pair("detect_entities", "false");
-            query_pairs.append_pair("mip_opt_out", "true");
-
-            append_keyword_query(&mut query_pairs, &params);
-        }
-
-        url
+    /// Get a reference to the adapter.
+    pub fn adapter(&self) -> &A {
+        &self.adapter
     }
 
     pub(crate) fn build_url(&self, channels: u8) -> url::Url {
-        let mut params = self.params.clone().unwrap_or_default();
-        params.channels = channels;
-
-        let mut url = self.listen_endpoint_url();
-
-        {
-            let mut query_pairs = url.query_pairs_mut();
-
-            append_language_query(&mut query_pairs, &params);
-
-            let model = params.model.as_deref().unwrap_or("hypr-whisper");
-            let channel_string = channels.to_string();
-            let sample_rate = params.sample_rate.to_string();
-
-            query_pairs.append_pair("model", model);
-            query_pairs.append_pair("channels", &channel_string);
-            query_pairs.append_pair("filler_words", "false");
-            query_pairs.append_pair("interim_results", "true");
-            query_pairs.append_pair("mip_opt_out", "true");
-            query_pairs.append_pair("sample_rate", &sample_rate);
-            query_pairs.append_pair("encoding", "linear16");
-            query_pairs.append_pair("diarize", "true");
-            query_pairs.append_pair("multichannel", "true");
-            query_pairs.append_pair("punctuate", "true");
-            query_pairs.append_pair("smart_format", "true");
-            query_pairs.append_pair("vad_events", "false");
-            query_pairs.append_pair("numerals", "true");
-
-            let redemption_time = params.redemption_time_ms.unwrap_or(400).to_string();
-            query_pairs.append_pair("redemption_time_ms", &redemption_time);
-
-            append_keyword_query(&mut query_pairs, &params);
-        }
-
-        url
+        let api_base = self.api_base.as_ref().expect("api_base is required");
+        let params = self.params.clone().unwrap_or_default();
+        self.adapter.build_url(api_base, &params, channels)
     }
 
-    pub(crate) fn build_uri(&self, channels: u8) -> String {
-        let mut url = self.build_url(channels);
-
-        if let Some(host) = url.host_str() {
-            if host.contains("127.0.0.1") || host.contains("localhost") || host.contains("0.0.0.0")
-            {
-                let _ = url.set_scheme("ws");
-            } else {
-                let _ = url.set_scheme("wss");
-            }
-        }
-
-        url.to_string()
+    pub(crate) fn build_batch_url(&self) -> url::Url {
+        let api_base = self.api_base.as_ref().expect("api_base is required");
+        let params = self.params.clone().unwrap_or_default();
+        self.adapter.build_batch_url(api_base, &params)
     }
 
     pub(crate) fn build_request(&self, channels: u8) -> hypr_ws::client::ClientRequestBuilder {
-        let uri = self.build_uri(channels).parse().unwrap();
+        let url = self.build_url(channels);
+        self.adapter.build_request(url, self.api_key.as_deref())
+    }
 
-        match &self.api_key {
-            Some(key) => hypr_ws::client::ClientRequestBuilder::new(uri)
-                .with_header("Authorization", format!("Token {}", key)),
-            None => hypr_ws::client::ClientRequestBuilder::new(uri),
+    /// Build a client with the specified number of channels.
+    pub fn build_with_channels(self, channels: u8) -> ListenClient<A> {
+        let request = self.build_request(channels);
+        ListenClient {
+            adapter: self.adapter,
+            request,
         }
     }
 
-    pub fn build_with_channels(self, channels: u8) -> ListenClient {
-        let request = self.build_request(channels);
-        ListenClient { request }
-    }
-
+    /// Build a batch client for pre-recorded audio transcription.
     pub fn build_batch(self) -> BatchClient {
         let url = self.build_batch_url();
 
@@ -167,59 +127,18 @@ impl ListenClientBuilder {
         }
     }
 
-    pub fn build_single(self) -> ListenClient {
+    /// Build a single-channel client.
+    pub fn build_single(self) -> ListenClient<A> {
         self.build_with_channels(1)
     }
 
-    pub fn build_dual(self) -> ListenClientDual {
+    /// Build a dual-channel client (mic + speaker).
+    pub fn build_dual(self) -> ListenClientDual<A> {
         let request = self.build_request(2);
-        ListenClientDual { request }
-    }
-}
-
-pub(crate) fn append_language_query<'a>(
-    query_pairs: &mut Serializer<'a, UrlQuery>,
-    params: &owhisper_interface::ListenParams,
-) {
-    match params.languages.len() {
-        0 => {
-            query_pairs.append_pair("detect_language", "true");
+        ListenClientDual {
+            adapter: self.adapter,
+            request,
         }
-        1 => {
-            if let Some(language) = params.languages.first() {
-                let code = language.iso639().code();
-                query_pairs.append_pair("language", code);
-                query_pairs.append_pair("languages", code);
-            }
-        }
-        _ => {
-            query_pairs.append_pair("language", "multi");
-            for language in &params.languages {
-                let code = language.iso639().code();
-                query_pairs.append_pair("languages", code);
-            }
-        }
-    }
-}
-
-pub(crate) fn append_keyword_query<'a>(
-    query_pairs: &mut Serializer<'a, UrlQuery>,
-    params: &owhisper_interface::ListenParams,
-) {
-    if params.keywords.is_empty() {
-        return;
-    }
-
-    let use_keyterms = params
-        .model
-        .as_ref()
-        .map(|model| model.contains("nova-3"))
-        .unwrap_or(false);
-
-    let param_name = if use_keyterms { "keyterm" } else { "keywords" };
-
-    for keyword in &params.keywords {
-        query_pairs.append_pair(param_name, keyword);
     }
 }
 

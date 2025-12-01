@@ -106,6 +106,17 @@ export function Footer() {
                     <ExternalLinkIcon className="size-3" />
                   </a>
                 </li>
+                <li>
+                  <a
+                    href="https://status.hyprnote.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1"
+                  >
+                    Status
+                    <ExternalLinkIcon className="size-3" />
+                  </a>
+                </li>
               </ul>
             </div>
 

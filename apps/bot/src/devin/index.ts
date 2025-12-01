@@ -1,3 +1,4 @@
+export * from "./detail.js";
 export * from "./list.js";
 export * from "./send.js";
 export * from "./shared.js";

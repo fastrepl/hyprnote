@@ -14,6 +14,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@octokit/plugin-rest-endpoint-methods": "^17.0.0",
     "@types/node": "^20.19.25",
     "nock": "^14.0.10",
     "smee-client": "^2.0.4",

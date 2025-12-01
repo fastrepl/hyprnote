@@ -1,6 +1,7 @@
 import { ApplicationFunctionOptions, Probot } from "probot";
 
 import {
+  registerDevinStatusHandler,
   registerFixMergeConflictHandler,
   registerPrClosedHandler,
 } from "./features/index.js";
@@ -14,6 +15,7 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
     });
   }
 
+  registerDevinStatusHandler(app);
   registerFixMergeConflictHandler(app);
   registerPrClosedHandler(app);
 };

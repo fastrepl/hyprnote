@@ -1092,9 +1092,24 @@ export function MainFeaturesSection({
   scrollToFeature: (index: number) => void;
 }) {
   const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const progressRef = useRef(0);
 
+  const handleFeatureIndexChange = useCallback(
+    (nextIndex: number) => {
+      setSelectedFeature(nextIndex);
+      setProgress(0);
+      progressRef.current = 0;
+
+      const feature = mainFeatures[nextIndex];
+      setIsPaused(!!feature?.comingSoon);
+    },
+    [setSelectedFeature],
+  );
+
   useEffect(() => {
+    if (isPaused) return;
+
     const startTime =
       Date.now() - (progressRef.current / 100) * FEATURES_AUTO_ADVANCE_DURATION;
     let animationId: number;
@@ -1129,12 +1144,14 @@ export function MainFeaturesSection({
 
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
-  }, [selectedFeature, setSelectedFeature, featuresScrollRef]);
+  }, [selectedFeature, setSelectedFeature, featuresScrollRef, isPaused]);
 
   const handleScrollToFeature = (index: number) => {
     scrollToFeature(index);
     setProgress(0);
     progressRef.current = 0;
+    const feature = mainFeatures[index];
+    setIsPaused(!!feature?.comingSoon);
   };
 
   return (
@@ -1161,7 +1178,7 @@ export function MainFeaturesSection({
       <FeaturesMobileCarousel
         featuresScrollRef={featuresScrollRef}
         selectedFeature={selectedFeature}
-        setSelectedFeature={setSelectedFeature}
+        onIndexChange={handleFeatureIndexChange}
         scrollToFeature={handleScrollToFeature}
         progress={progress}
       />
@@ -1173,13 +1190,13 @@ export function MainFeaturesSection({
 function FeaturesMobileCarousel({
   featuresScrollRef,
   selectedFeature,
-  setSelectedFeature,
+  onIndexChange,
   scrollToFeature,
   progress,
 }: {
   featuresScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedFeature: number;
-  setSelectedFeature: (index: number) => void;
+  onIndexChange: (index: number) => void;
   scrollToFeature: (index: number) => void;
   progress: number;
 }) {
@@ -1193,7 +1210,9 @@ function FeaturesMobileCarousel({
           const scrollLeft = container.scrollLeft;
           const itemWidth = container.offsetWidth;
           const index = Math.round(scrollLeft / itemWidth);
-          setSelectedFeature(index);
+          if (index !== selectedFeature) {
+            onIndexChange(index);
+          }
         }}
       >
         <div className="flex">
@@ -1362,6 +1381,18 @@ export function DetailsSection({
   const [isPaused, setIsPaused] = useState(false);
   const progressRef = useRef(0);
 
+  const handleDetailIndexChange = useCallback(
+    (nextIndex: number) => {
+      setSelectedDetail(nextIndex);
+      setProgress(0);
+      progressRef.current = 0;
+
+      const feature = detailsFeatures[nextIndex];
+      setIsPaused(!!feature?.comingSoon);
+    },
+    [setSelectedDetail],
+  );
+
   useEffect(() => {
     if (isPaused) return;
 
@@ -1404,12 +1435,16 @@ export function DetailsSection({
     setSelectedDetail(index);
     setProgress(0);
     progressRef.current = 0;
+    const feature = detailsFeatures[index];
+    setIsPaused(!!feature?.comingSoon);
   };
 
   const handleScrollToDetail = (index: number) => {
     scrollToDetail(index);
     setProgress(0);
     progressRef.current = 0;
+    const feature = detailsFeatures[index];
+    setIsPaused(!!feature?.comingSoon);
   };
 
   return (
@@ -1418,7 +1453,7 @@ export function DetailsSection({
       <DetailsMobileCarousel
         detailsScrollRef={detailsScrollRef}
         selectedDetail={selectedDetail}
-        setSelectedDetail={setSelectedDetail}
+        onIndexChange={handleDetailIndexChange}
         scrollToDetail={handleScrollToDetail}
         progress={progress}
       />
@@ -1450,13 +1485,13 @@ function DetailsSectionHeader() {
 function DetailsMobileCarousel({
   detailsScrollRef,
   selectedDetail,
-  setSelectedDetail,
+  onIndexChange,
   scrollToDetail,
   progress,
 }: {
   detailsScrollRef: React.RefObject<HTMLDivElement | null>;
   selectedDetail: number;
-  setSelectedDetail: (index: number) => void;
+  onIndexChange: (index: number) => void;
   scrollToDetail: (index: number) => void;
   progress: number;
 }) {
@@ -1470,7 +1505,9 @@ function DetailsMobileCarousel({
           const scrollLeft = container.scrollLeft;
           const itemWidth = container.offsetWidth;
           const index = Math.round(scrollLeft / itemWidth);
-          setSelectedDetail(index);
+          if (index !== selectedDetail) {
+            onIndexChange(index);
+          }
         }}
       >
         <div className="flex">

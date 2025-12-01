@@ -13,9 +13,8 @@ on:
       - supabase/**
 
 jobs:
-  db-tests:
-    name: Database tests
-    runs-on: depot-ubuntu-24.04-8
+  tests:
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4

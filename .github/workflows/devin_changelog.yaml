@@ -1,21 +1,17 @@
-name: Devin Changelog
+name: devin_desktop_changelog
 
 on:
   repository_dispatch:
     types: [desktop_release]
 
 jobs:
-  trigger-devin:
+  run:
     if: startsWith(github.event.client_payload.tag, 'desktop_v1')
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Devin Session
-        run: |
-          curl --request POST \
-            --url https://api.devin.ai/v1/sessions \
-            --header "Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}" \
-            --header "Content-Type: application/json" \
-            --data "{
-              \"prompt\": \"Create new changelog entry for tag: ${{ github.event.client_payload.tag }}, following guide at apps/web/content/changelog/AGENTS.md.\",
-              \"idempotent\": true
-            }"
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/devin
+        with:
+          api_key: ${{ secrets.DEVIN_API_KEY }}
+          prompt: Create new changelog entry for tag {{ tag }}, following guide at apps/web/content/changelog/AGENTS.md.
+          vars: '{"tag": "${{ github.event.client_payload.tag }}"}'

@@ -226,10 +226,7 @@ function DownloadButtons({ version }: { version: string }) {
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50 transition-colors border-b border-stone-100 last:border-b-0"
                 >
-                  <Icon
-                    icon={platform.icon}
-                    className="text-lg text-stone-600"
-                  />
+                  <platform.Icon className="w-4 h-4 text-stone-600" />
                   <span className="text-sm font-medium text-stone-700">
                     {platform.label}
                   </span>

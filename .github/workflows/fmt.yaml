@@ -1,3 +1,5 @@
+name: fmt
+
 on:
   push:
     branches:

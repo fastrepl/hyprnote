@@ -5,6 +5,7 @@ import app from "./index.js";
 
 async function start() {
   const server = new Server({
+    webhookPath: "/webhook",
     Probot: Probot.defaults({
       appId: env.GITHUB_BOT_APP_ID,
       privateKey: env.GITHUB_BOT_PRIVATE_KEY,

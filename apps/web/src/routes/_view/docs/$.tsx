@@ -50,15 +50,21 @@ export const Route = createFileRoute("/_view/docs/$")({
 
     return {
       meta: [
-        { title: doc.title },
+        { title: `${doc.title} - Hyprnote Documentation` },
         { name: "description", content: doc.summary || doc.title },
-        { property: "og:title", content: doc.title },
+        {
+          property: "og:title",
+          content: `${doc.title} - Hyprnote Documentation`,
+        },
         { property: "og:description", content: doc.summary || doc.title },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
         { property: "og:image", content: ogImageUrl },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: doc.title },
+        {
+          name: "twitter:title",
+          content: `${doc.title} - Hyprnote Documentation`,
+        },
         { name: "twitter:description", content: doc.summary || doc.title },
         { name: "twitter:image", content: ogImageUrl },
       ],

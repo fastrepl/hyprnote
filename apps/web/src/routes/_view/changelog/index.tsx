@@ -11,6 +11,22 @@ export const Route = createFileRoute("/_view/changelog/")({
     const changelogs = getChangelogList();
     return { changelogs };
   },
+  head: () => ({
+    meta: [
+      { title: "Changelog - Hyprnote Changelog" },
+      {
+        name: "description",
+        content: "Track every update, improvement, and fix to Hyprnote",
+      },
+      { property: "og:title", content: "Changelog - Hyprnote Changelog" },
+      {
+        property: "og:description",
+        content: "Track every update, improvement, and fix to Hyprnote",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://hyprnote.com/changelog" },
+    ],
+  }),
 });
 
 type SemanticVersionGroup = {

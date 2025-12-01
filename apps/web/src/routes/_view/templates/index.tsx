@@ -23,13 +23,16 @@ export const Route = createFileRoute("/_view/templates/")({
   },
   head: () => ({
     meta: [
-      { title: "Meeting Templates - Hyprnote" },
+      { title: "Meeting Templates - Hyprnote Templates" },
       {
         name: "description",
         content:
           "Discover our library of AI meeting templates. Get structured summaries for sprint planning, sales calls, 1:1s, and more. Create custom templates for your workflow.",
       },
-      { property: "og:title", content: "Meeting Templates - Hyprnote" },
+      {
+        property: "og:title",
+        content: "Meeting Templates - Hyprnote Templates",
+      },
       {
         property: "og:description",
         content:

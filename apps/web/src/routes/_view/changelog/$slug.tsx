@@ -1,8 +1,16 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  Star,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import semver from "semver";
 
 import {
@@ -66,7 +74,7 @@ export const Route = createFileRoute("/_view/changelog/$slug")({
     const currentVersion = semver.parse(changelog.version);
     const isNightly = currentVersion && currentVersion.prerelease.length > 0;
 
-    const title = `Hyprnote Changelog - Version ${changelog.version}`;
+    const title = `Version ${changelog.version} - Hyprnote Changelog`;
     const description = `Explore what's new in Hyprnote version ${changelog.version}${isNightly ? " (Nightly)" : ""}.`;
     const url = `https://hyprnote.com/changelog/${changelog.slug}`;
     const ogImageUrl = `https://hyprnote.com/og?type=changelog&version=${encodeURIComponent(changelog.version)}`;
@@ -128,30 +136,107 @@ function HeroSection({ changelog }: { changelog: ChangelogWithMeta }) {
 
 function DownloadButtons({ version }: { version: string }) {
   const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
+  const [isOpen, setIsOpen] = useState(false);
+  const [detectedOS, setDetectedOS] = useState<
+    "apple-silicon" | "apple-intel" | "linux"
+  >("apple-silicon");
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.includes("mac")) {
+      setDetectedOS("apple-silicon");
+    } else if (userAgent.includes("linux")) {
+      setDetectedOS("linux");
+    }
+  }, []);
+
+  const platforms = [
+    {
+      id: "apple-silicon" as const,
+      icon: "ri:apple-fill",
+      label: "Apple Silicon",
+      url: `${baseUrl}/hyprnote-macos-aarch64.dmg`,
+    },
+    {
+      id: "apple-intel" as const,
+      icon: "ri:apple-fill",
+      label: "Intel Mac",
+      url: `${baseUrl}/hyprnote-macos-x86_64.dmg`,
+    },
+    {
+      id: "linux" as const,
+      icon: "simple-icons:linux",
+      label: "Linux",
+      url: `${baseUrl}/hyprnote-linux-x86_64.AppImage`,
+    },
+  ];
+
+  const primaryPlatform =
+    platforms.find((p) => p.id === detectedOS) || platforms[0];
+  const otherPlatforms = platforms.filter((p) => p.id !== detectedOS);
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-      <a
-        href={`${baseUrl}/hyprnote-macos-aarch64.dmg`}
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-stone-900 text-white rounded-full hover:bg-stone-800 transition-colors"
-      >
-        <Icon icon="simple-icons:apple" className="text-base" />
-        <span>Apple Silicon</span>
-      </a>
-      <a
-        href={`${baseUrl}/hyprnote-macos-x86_64.dmg`}
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-stone-100 text-stone-700 border border-stone-200 rounded-full hover:bg-stone-200 transition-colors"
-      >
-        <Icon icon="simple-icons:apple" className="text-base" />
-        <span>Intel Mac</span>
-      </a>
-      <a
-        href={`${baseUrl}/hyprnote-linux-x86_64.AppImage`}
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-stone-100 text-stone-700 border border-stone-200 rounded-full hover:bg-stone-200 transition-colors"
-      >
-        <Icon icon="simple-icons:linux" className="text-base" />
-        <span>Linux</span>
-      </a>
+    <div className="relative inline-block mt-6">
+      <div className="flex items-center bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all overflow-hidden">
+        <a
+          download
+          href={primaryPlatform.url}
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium"
+        >
+          <Icon icon={primaryPlatform.icon} className="text-base" />
+          <span>Download for {primaryPlatform.label}</span>
+        </a>
+        <div className="w-px h-7 bg-stone-400/50" />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
+          className="cursor-pointer px-3 pl-2.5 pr-3"
+          aria-label="Show other platforms"
+        >
+          <ChevronDown size={16} />
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+            <motion.div
+              className="absolute top-full mt-2 right-0 bg-white border border-stone-200 rounded-lg shadow-lg overflow-hidden z-50 min-w-[200px]"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.15 }}
+            >
+              {otherPlatforms.map((platform) => (
+                <a
+                  key={platform.id}
+                  download
+                  href={platform.url}
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50 transition-colors border-b border-stone-100 last:border-b-0"
+                >
+                  <Icon
+                    icon={platform.icon}
+                    className="text-base text-stone-600"
+                  />
+                  <span className="text-sm font-medium text-stone-700">
+                    {platform.label}
+                  </span>
+                </a>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -179,7 +264,7 @@ function ChangelogContentSection({
                 className="p-1 hover:bg-neutral-200 rounded transition-colors"
                 aria-label="Open version list"
               >
-                <Icon icon="mdi:menu" className="text-base text-neutral-600" />
+                <Menu className="w-4 h-4 text-neutral-600" />
               </button>
             )
           }
@@ -268,7 +353,7 @@ function MobileSidebarDrawer({
                 className="p-1 hover:bg-neutral-200 rounded transition-colors"
                 aria-label="Close drawer"
               >
-                <Icon icon="mdi:close" className="text-base text-neutral-600" />
+                <X className="w-4 h-4 text-neutral-600" />
               </button>
             </div>
             <div className="h-[calc(100%-49px)] overflow-hidden">
@@ -406,7 +491,7 @@ function ChangelogSidebar({
                   : "border-neutral-300 text-stone-600 hover:bg-stone-100 cursor-pointer",
               ])}
             >
-              <Icon icon="mdi:chevron-left" className="text-base" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
 
             <span className="text-xs text-neutral-500">
@@ -423,7 +508,7 @@ function ChangelogSidebar({
                   : "border-neutral-300 text-stone-600 hover:bg-stone-100 cursor-pointer",
               ])}
             >
-              <Icon icon="mdi:chevron-right" className="text-base" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -457,17 +542,17 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
           <h2 className="font-medium text-stone-600">{baseVersion}</h2>
           {isLatest && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-stone-100 text-stone-700 rounded-full">
-              <Icon icon="mdi:star" className="text-sm" />
+              <Star className="w-3 h-3" />
               Latest
             </span>
           )}
           {prereleaseType && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded-full">
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white rounded-full">
               {prereleaseType}
             </span>
           )}
           {buildNumber && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-neutral-100 text-neutral-700 rounded-full">
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full">
               #{buildNumber}
             </span>
           )}
@@ -481,7 +566,7 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
               className="px-4 h-8 flex items-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
               title="View diff on GitHub"
             >
-              <Icon icon="mdi:github" className="text-base" />
+              <Icon icon="mdi:github" className="text-lg" />
               <span>View Diff</span>
             </a>
           )}

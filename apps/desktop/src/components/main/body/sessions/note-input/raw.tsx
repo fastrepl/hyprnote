@@ -63,17 +63,16 @@ export const RawEditor = forwardRef<
     hasTrackedWriteRef.current = false;
   }, [sessionId]);
 
+  const hasNonEmptyText = (node?: JSONContent): boolean =>
+    !!node?.text?.trim() ||
+    !!node?.content?.some((child) => hasNonEmptyText(child));
+
   const handleChange = useCallback(
     (input: JSONContent) => {
       persistChange(input);
 
       if (!hasTrackedWriteRef.current) {
-        const hasContent =
-          input.content &&
-          input.content.some(
-            (node: { content?: Array<{ text?: string }> }) =>
-              node.content && node.content.some((child) => child.text?.trim()),
-          );
+        const hasContent = hasNonEmptyText(input);
         if (hasContent) {
           hasTrackedWriteRef.current = true;
           analyticsCommands.event({ event: "note_written", has_content: true });

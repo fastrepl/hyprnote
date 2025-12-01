@@ -7,7 +7,7 @@ import {
   SearchIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 
 import { Typewriter } from "@hypr/ui/components/ui/typewriter";
 import { cn } from "@hypr/utils";
@@ -2215,6 +2215,12 @@ function FloatingPanelContent() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
 
+  const handleTabIndexChange = useCallback((nextIndex: number) => {
+    setSelectedTab(nextIndex);
+    setProgress(0);
+    progressRef.current = 0;
+  }, []);
+
   useEffect(() => {
     if (isPaused) return;
 
@@ -2272,7 +2278,7 @@ function FloatingPanelContent() {
       <FloatingPanelMobile
         scrollRef={scrollRef}
         selectedTab={selectedTab}
-        setSelectedTab={setSelectedTab}
+        onIndexChange={handleTabIndexChange}
         scrollToTab={scrollToTab}
         progress={progress}
       />
@@ -2446,13 +2452,13 @@ function FloatingPanelDesktop() {
 function FloatingPanelMobile({
   scrollRef,
   selectedTab,
-  setSelectedTab,
+  onIndexChange,
   scrollToTab,
   progress,
 }: {
   scrollRef: React.RefObject<HTMLDivElement | null>;
   selectedTab: number;
-  setSelectedTab: (index: number) => void;
+  onIndexChange: (index: number) => void;
   scrollToTab: (index: number) => void;
   progress: number;
 }) {
@@ -2466,7 +2472,9 @@ function FloatingPanelMobile({
           const scrollLeft = container.scrollLeft;
           const itemWidth = container.offsetWidth;
           const index = Math.round(scrollLeft / itemWidth);
-          setSelectedTab(index);
+          if (index !== selectedTab) {
+            onIndexChange(index);
+          }
         }}
       >
         <div className="flex">

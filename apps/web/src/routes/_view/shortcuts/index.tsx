@@ -151,7 +151,7 @@ function Component() {
 function ContributeBanner() {
   return (
     <a
-      href="https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/shortcuts"
+      href="https://github.com/fastrepl/hyprnote/issues/new?title=Suggest%20New%20Shortcut&body=Title:%20Extract%20Action%20Items%0ACategory:%20Productivity%0ADescription:%20A%20shortcut%20to%20extract%20all%20action%20items%20from%20the%20meeting%0A%0AStructure%20(list%20of%20sections%2C%20each%20with%20a%20title%20and%20what%20to%20include):%0A-%20Action%20Items:%20List%20of%20tasks%20with%20owners%0A-%20Deadlines:%20Due%20dates%20mentioned%0A-%20Dependencies:%20Blockers%20or%20prerequisites"
       target="_blank"
       rel="noopener noreferrer"
       className={cn([
@@ -428,7 +428,7 @@ function ContributeCard() {
         Have a shortcut idea? Submit a PR and help the community.
       </p>
       <a
-        href="https://github.com/fastrepl/hyprnote/tree/main/apps/web/content/shortcuts"
+        href="https://github.com/fastrepl/hyprnote/issues/new?title=Suggest%20New%20Shortcut&body=Title:%20Extract%20Action%20Items%0ACategory:%20Productivity%0ADescription:%20A%20shortcut%20to%20extract%20all%20action%20items%20from%20the%20meeting%0A%0AStructure%20(list%20of%20sections%2C%20each%20with%20a%20title%20and%20what%20to%20include):%0A-%20Action%20Items:%20List%20of%20tasks%20with%20owners%0A-%20Deadlines:%20Due%20dates%20mentioned%0A-%20Dependencies:%20Blockers%20or%20prerequisites"
         target="_blank"
         rel="noopener noreferrer"
         className={cn([
@@ -439,7 +439,7 @@ function ContributeCard() {
         ])}
       >
         <Icon icon="mdi:github" className="text-base" />
-        Open on GitHub
+        Submit your idea
       </a>
     </div>
   );

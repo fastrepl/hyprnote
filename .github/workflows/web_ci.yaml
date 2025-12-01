@@ -17,13 +17,7 @@ on:
       - packages/**
 jobs:
   ci:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: "macos"
-            runner: "macos-14"
-    runs-on: ${{ matrix.runner }}
+    runs-on: depot-ubuntu-24.04-4
     env:
       ARGOS_TOKEN: ${{ secrets.ARGOS_TOKEN }}
     steps:
@@ -34,8 +28,7 @@ jobs:
       - run: pnpm -F web typecheck
       - uses: ./.github/actions/wait-for-netlify-preview
         if: github.event_name == 'pull_request'
-      - name: Set BASE_URL for main branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: echo "BASE_URL=https://hyprnote.netlify.app" >> "$GITHUB_ENV"
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/web

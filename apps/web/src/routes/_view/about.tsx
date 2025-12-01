@@ -1,3 +1,4 @@
+import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Mail, Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -13,7 +14,6 @@ import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 import { MockWindow } from "@/components/mock-window";
-import { Icon } from "@iconify-icon/react";
 
 type AboutSearch = {
   type?: "story" | "founder" | "photo";
@@ -26,8 +26,8 @@ export const Route = createFileRoute("/_view/about")({
     return {
       type:
         search.type === "story" ||
-          search.type === "founder" ||
-          search.type === "photo"
+        search.type === "founder" ||
+        search.type === "photo"
           ? search.type
           : undefined,
       id: typeof search.id === "string" ? search.id : undefined,
@@ -613,7 +613,7 @@ function FoundersSidebar({
             className={cn([
               "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
               selectedItem?.type === "founder" &&
-                selectedItem.data.id === founder.id
+              selectedItem.data.id === founder.id
                 ? "border-stone-600 bg-stone-100"
                 : "border-neutral-200",
             ])}
@@ -667,7 +667,7 @@ function TeamPhotosSidebar({
             className={cn([
               "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
               selectedItem?.type === "photo" &&
-                selectedItem.data.id === photo.id
+              selectedItem.data.id === photo.id
                 ? "border-stone-600 bg-stone-100"
                 : "border-neutral-200",
             ])}

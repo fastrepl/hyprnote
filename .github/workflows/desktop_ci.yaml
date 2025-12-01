@@ -20,7 +20,7 @@ on:
       - Cargo.toml
       - Cargo.lock
 jobs:
-  ci:
+  desktop_ci:
     strategy:
       fail-fast: false
       matrix:
@@ -47,3 +47,11 @@ jobs:
           platform: ${{ matrix.platform }}
       - run: cargo check -p desktop
       - run: cargo test -p desktop
+
+  ci:
+    if: always()
+    needs: [desktop_ci]
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 1
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')

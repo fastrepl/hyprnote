@@ -11,13 +11,24 @@ pub struct ArgmaxAdapter {
     inner: DeepgramAdapter,
 }
 
+impl ArgmaxAdapter {
+    fn adapt_params(params: &ListenParams) -> ListenParams {
+        let mut adapted = params.clone();
+        if let Some(first) = adapted.languages.first().cloned() {
+            adapted.languages = vec![first];
+        }
+        adapted
+    }
+}
+
 impl SttAdapter for ArgmaxAdapter {
     fn supports_native_multichannel(&self) -> bool {
         false
     }
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url {
-        self.inner.build_ws_url(api_base, params, channels)
+        let adapted = Self::adapt_params(params);
+        self.inner.build_ws_url(api_base, &adapted, channels)
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {

@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./editor": "./src/editor/index.tsx",
+    "./chat": "./src/chat/index.tsx",
     "./prompt": "./src/prompt/index.tsx",
     "./shared": "./src/shared/index.ts",
     "./styles.css": "./styles.css"

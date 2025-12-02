@@ -24,7 +24,6 @@ const safeRequestIdleCallback =
         );
 
 export type { JSONContent, TiptapEditor };
-export type { MentionConfig } from "./mention";
 
 interface EditorProps {
   handleChange?: (content: JSONContent) => void;
@@ -32,7 +31,6 @@ interface EditorProps {
   editable?: boolean;
   setContentFromOutside?: boolean;
   mentionConfig?: MentionConfig;
-  mentionConfigs?: MentionConfig[];
   placeholderComponent?: PlaceholderFunction;
   fileHandlerConfig?: FileHandlerConfig;
 }
@@ -45,7 +43,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       editable = true,
       setContentFromOutside = false,
       mentionConfig,
-      mentionConfigs,
       placeholderComponent,
       fileHandlerConfig,
     },
@@ -67,22 +64,12 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       500,
     );
 
-    const allMentionConfigs = useMemo(() => {
-      if (mentionConfigs && mentionConfigs.length > 0) {
-        return mentionConfigs;
-      }
-      if (mentionConfig) {
-        return [mentionConfig];
-      }
-      return [];
-    }, [mentionConfig, mentionConfigs]);
-
     const extensions = useMemo(
       () => [
         ...shared.getExtensions(placeholderComponent, fileHandlerConfig),
-        ...allMentionConfigs.map((config) => mention(config)),
+        ...(mentionConfig ? [mention(mentionConfig)] : []),
       ],
-      [allMentionConfigs, placeholderComponent, fileHandlerConfig],
+      [mentionConfig, placeholderComponent, fileHandlerConfig],
     );
 
     const editorProps: Parameters<typeof useEditor>[0]["editorProps"] = useMemo(

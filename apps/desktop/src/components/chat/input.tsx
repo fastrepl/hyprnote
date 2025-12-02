@@ -1,9 +1,8 @@
 import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import type { MentionConfig } from "@hypr/tiptap/editor";
-import type { TiptapEditor } from "@hypr/tiptap/editor";
-import Editor from "@hypr/tiptap/editor";
+import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
+import ChatEditor from "@hypr/tiptap/chat";
 import {
   EMPTY_TIPTAP_DOC,
   type PlaceholderFunction,
@@ -62,40 +61,31 @@ export function ChatMessageInput({
     console.log("Voice input clicked");
   }, []);
 
-  const mentionConfigs: MentionConfig[] = useMemo(
-    () => [
-      {
-        trigger: "@",
-        handleSearch: async () => [
-          { id: "123", type: "human", label: "John Doe" },
-        ],
-      },
-      {
-        trigger: "/",
-        handleSearch: async (query: string) => {
-          if (!store) {
-            return [];
-          }
+  const slashCommandConfig: SlashCommandConfig = useMemo(
+    () => ({
+      handleSearch: async (query: string) => {
+        if (!store) {
+          return [];
+        }
 
-          const results: { id: string; type: string; label: string }[] = [];
-          const lowerQuery = query.toLowerCase();
+        const results: { id: string; type: string; label: string }[] = [];
+        const lowerQuery = query.toLowerCase();
 
-          store.forEachRow("sessions", (rowId, forEachCell) => {
-            let title = "";
-            forEachCell((cellId, cell) => {
-              if (cellId === "title" && typeof cell === "string") {
-                title = cell;
-              }
-            });
-            if (title && title.toLowerCase().includes(lowerQuery)) {
-              results.push({ id: rowId, type: "session", label: title });
+        store.forEachRow("sessions", (rowId, forEachCell) => {
+          let title = "";
+          forEachCell((cellId, cell) => {
+            if (cellId === "title" && typeof cell === "string") {
+              title = cell;
             }
           });
+          if (title && title.toLowerCase().includes(lowerQuery)) {
+            results.push({ id: rowId, type: "session", label: title });
+          }
+        });
 
-          return results.slice(0, 5);
-        },
+        return results.slice(0, 5);
       },
-    ],
+    }),
     [store],
   );
 
@@ -103,12 +93,12 @@ export function ChatMessageInput({
     <Container>
       <div className="flex flex-col p-2">
         <div className="flex-1 mb-2">
-          <Editor
+          <ChatEditor
             ref={editorRef}
             editable={!disabled}
             initialContent={EMPTY_TIPTAP_DOC}
             placeholderComponent={ChatPlaceholder}
-            mentionConfigs={mentionConfigs}
+            slashCommandConfig={slashCommandConfig}
           />
         </div>
 

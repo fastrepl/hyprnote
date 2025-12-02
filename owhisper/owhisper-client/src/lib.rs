@@ -123,42 +123,6 @@ impl<A: SttAdapter> ListenClientBuilder<A> {
     }
 }
 
-pub(crate) fn append_language_query<'a>(
-    query_pairs: &mut Serializer<'a, UrlQuery>,
-    params: &owhisper_interface::ListenParams,
-) {
-    let model = params.model.as_deref().unwrap_or("");
-    let supports_multi = model.starts_with("nova-2") || model.starts_with("nova-3");
-
-    match params.languages.len() {
-        0 => {
-            query_pairs.append_pair("detect_language", "true");
-        }
-        1 => {
-            if let Some(language) = params.languages.first() {
-                let code = language.iso639().code();
-                query_pairs.append_pair("language", code);
-                query_pairs.append_pair("languages", code);
-            }
-        }
-        _ => {
-            if supports_multi {
-                query_pairs.append_pair("language", "multi");
-                for language in &params.languages {
-                    let code = language.iso639().code();
-                    query_pairs.append_pair("languages", code);
-                }
-            } else {
-                query_pairs.append_pair("detect_language", "true");
-                for language in &params.languages {
-                    let code = language.iso639().code();
-                    query_pairs.append_pair("languages", code);
-                }
-            }
-        }
-    }
-}
-
 pub(crate) fn append_keyword_query<'a>(
     query_pairs: &mut Serializer<'a, UrlQuery>,
     params: &owhisper_interface::ListenParams,

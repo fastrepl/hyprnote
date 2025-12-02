@@ -41,7 +41,12 @@ impl RealtimeSttAdapter for SonioxAdapter {
             }
         };
 
-        let model = params.model.as_deref().unwrap_or("stt-rt-preview");
+        let requested = params.model.as_deref().unwrap_or("stt-v3");
+        let model = match requested {
+            "stt-v3" => "stt-rt-v3",
+            "stt-rt-preview" => "stt-rt-v3",
+            other => other,
+        };
 
         let context = if params.keywords.is_empty() {
             None

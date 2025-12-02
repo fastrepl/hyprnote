@@ -28,6 +28,10 @@ export const displayModelId = (model: string) => {
     return "Cloud";
   }
 
+  if (model === "stt-v3") {
+    return "Soniox v3";
+  }
+
   if (model.startsWith("am-")) {
     const am = model as AmModel;
     if (am == "am-parakeet-v2") {
@@ -102,7 +106,7 @@ export const PROVIDERS = [
       <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
     ),
     baseUrl: "https://api.soniox.com",
-    models: ["stt-rt-preview"],
+    models: ["stt-v3"],
     requiresPro: false,
   },
   {

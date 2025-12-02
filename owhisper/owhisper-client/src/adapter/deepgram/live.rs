@@ -104,7 +104,7 @@ mod tests {
 
         let client = ListenClient::builder()
             .api_base("https://api.deepgram.com/v1")
-            .api_key("71557216ffdd13bff22702be5017e4852c052b7c")
+            .api_key(std::env::var("DEEPGRAM_API_KEY").expect("DEEPGRAM_API_KEY not set"))
             .params(owhisper_interface::ListenParams {
                 model: Some("nova-3".to_string()),
                 languages: vec![

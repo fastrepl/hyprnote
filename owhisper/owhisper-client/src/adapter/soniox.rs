@@ -91,6 +91,12 @@ impl SonioxAdapter {
         file_id: &str,
     ) -> Result<String, Error> {
         #[derive(Serialize)]
+        struct Context {
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            terms: Vec<String>,
+        }
+
+        #[derive(Serialize)]
         struct CreateTranscriptionRequest<'a> {
             model: &'a str,
             file_id: &'a str,
@@ -98,9 +104,19 @@ impl SonioxAdapter {
             language_hints: Vec<String>,
             enable_speaker_diarization: bool,
             enable_language_identification: bool,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            context: Option<Context>,
         }
 
         let model = params.model.as_deref().unwrap_or("stt-async-preview");
+
+        let context = if params.keywords.is_empty() {
+            None
+        } else {
+            Some(Context {
+                terms: params.keywords.clone(),
+            })
+        };
 
         let request = CreateTranscriptionRequest {
             model,
@@ -108,6 +124,7 @@ impl SonioxAdapter {
             language_hints: Self::language_hints(params),
             enable_speaker_diarization: true,
             enable_language_identification: true,
+            context,
         };
 
         let url = format!("{}/v1/transcriptions", Self::api_base_url(api_base));
@@ -370,6 +387,13 @@ impl SttAdapter for SonioxAdapter {
         };
 
         #[derive(Serialize)]
+        struct Context {
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            terms: Vec<String>,
+        }
+
+        // https://soniox.com/docs/stt/api-reference/websocket-api#configuration
+        #[derive(Serialize)]
         struct SonioxConfig<'a> {
             api_key: &'a str,
             model: &'a str,
@@ -381,9 +405,19 @@ impl SttAdapter for SonioxAdapter {
             include_nonfinal: bool,
             enable_endpoint_detection: bool,
             enable_speaker_diarization: bool,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            context: Option<Context>,
         }
 
         let model = params.model.as_deref().unwrap_or("stt-rt-preview");
+
+        let context = if params.keywords.is_empty() {
+            None
+        } else {
+            Some(Context {
+                terms: params.keywords.clone(),
+            })
+        };
 
         let cfg = SonioxConfig {
             api_key,
@@ -395,6 +429,7 @@ impl SttAdapter for SonioxAdapter {
             include_nonfinal: true,
             enable_endpoint_detection: true,
             enable_speaker_diarization: true,
+            context,
         };
 
         let json = serde_json::to_string(&cfg).unwrap();

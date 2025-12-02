@@ -5,9 +5,6 @@ mod live;
 
 use std::marker::PhantomData;
 
-use url::form_urlencoded::Serializer;
-use url::UrlQuery;
-
 pub use adapter::{ArgmaxAdapter, DeepgramAdapter, SonioxAdapter, SttAdapter};
 pub use batch::BatchClient;
 pub use error::Error;
@@ -120,26 +117,5 @@ impl<A: SttAdapter> ListenClientBuilder<A> {
             request,
             initial_message,
         }
-    }
-}
-
-pub(crate) fn append_keyword_query<'a>(
-    query_pairs: &mut Serializer<'a, UrlQuery>,
-    params: &owhisper_interface::ListenParams,
-) {
-    if params.keywords.is_empty() {
-        return;
-    }
-
-    let use_keyterms = params
-        .model
-        .as_ref()
-        .map(|model| model.contains("nova-3"))
-        .unwrap_or(false);
-
-    let param_name = if use_keyterms { "keyterm" } else { "keywords" };
-
-    for keyword in &params.keywords {
-        query_pairs.append_pair(param_name, keyword);
     }
 }

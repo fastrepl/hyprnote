@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
@@ -146,7 +147,9 @@ export function DocsSearch() {
                   <div className="text-sm font-medium">{result.meta.title}</div>
                   <div
                     className="text-xs text-muted-foreground line-clamp-2"
-                    dangerouslySetInnerHTML={{ __html: result.excerpt }}
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(result.excerpt),
+                    }}
                   />
                 </CommandItem>
               ))}

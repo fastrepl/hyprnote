@@ -252,7 +252,10 @@ mod tests {
     use crate::live::{FinalizeHandle, ListenClientInput};
     use crate::ListenClient;
 
+    // Integration test that makes real network calls to AssemblyAI.
+    // Run explicitly with: cargo test -p owhisper-client test_client -- --ignored
     #[tokio::test]
+    #[ignore]
     async fn test_client() {
         let _ = tracing_subscriber::fmt::try_init();
 

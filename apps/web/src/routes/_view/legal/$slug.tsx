@@ -2,8 +2,7 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { allLegals } from "content-collections";
 
-import { Image } from "@/components/image";
-import { Mermaid, Tweet } from "@/components/mdx";
+import { defaultMDXComponents } from "@/components/mdx";
 
 export const Route = createFileRoute("/_view/legal/$slug")({
   component: Component,
@@ -56,10 +55,7 @@ function Component() {
             })}
           </p>
 
-          <MDXContent
-            code={doc.mdx}
-            components={{ Image, img: Image, mermaid: Mermaid, Mermaid, Tweet }}
-          />
+          <MDXContent code={doc.mdx} components={defaultMDXComponents} />
         </article>
       </div>
     </div>

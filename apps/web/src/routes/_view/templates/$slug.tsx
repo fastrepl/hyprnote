@@ -6,6 +6,7 @@ import { allTemplates } from "content-collections";
 import { cn } from "@hypr/utils";
 
 import { DownloadButton } from "@/components/download-button";
+import { MDXLink } from "@/components/mdx";
 
 export const Route = createFileRoute("/_view/templates/$slug")({
   component: Component,
@@ -170,7 +171,7 @@ function TemplateContent({ template }: { template: (typeof allTemplates)[0] }) {
       <h2 className="text-xl font-serif text-stone-700 mb-4">Structure</h2>
       <div className="border border-neutral-200 rounded-sm px-6 lg:px-8 pt-3 lg:pt-4 pb-6 lg:pb-8 bg-white">
         <div className="prose prose-stone prose-headings:font-mono prose-headings:font-semibold prose-h2:text-lg prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 max-w-none">
-          <MDXContent code={template.mdx} />
+          <MDXContent code={template.mdx} components={{ a: MDXLink }} />
         </div>
       </div>
     </section>

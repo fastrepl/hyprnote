@@ -6,6 +6,7 @@ import { allShortcuts } from "content-collections";
 import { cn } from "@hypr/utils";
 
 import { DownloadButton } from "@/components/download-button";
+import { MDXLink } from "@/components/mdx";
 
 export const Route = createFileRoute("/_view/shortcuts/$slug")({
   component: Component,
@@ -155,7 +156,7 @@ function ShortcutContent({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
       <h2 className="text-xl font-serif text-stone-700 mb-4">Details</h2>
       <div className="border border-neutral-200 rounded-sm px-6 lg:px-8 pt-3 lg:pt-4 pb-6 lg:pb-8 bg-white">
         <div className="prose prose-stone prose-headings:font-mono prose-headings:font-semibold prose-h2:text-lg prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 max-w-none">
-          <MDXContent code={shortcut.mdx} />
+          <MDXContent code={shortcut.mdx} components={{ a: MDXLink }} />
         </div>
       </div>
     </section>

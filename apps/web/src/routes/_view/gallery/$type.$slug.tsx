@@ -6,6 +6,7 @@ import { allShortcuts, allTemplates } from "content-collections";
 import { cn } from "@hypr/utils";
 
 import { DownloadButton } from "@/components/download-button";
+import { MDXLink } from "@/components/mdx";
 
 type GalleryType = "template" | "shortcut";
 
@@ -269,7 +270,7 @@ function ItemContent({
         )}
 
         <div className="prose prose-stone prose-headings:font-mono prose-headings:font-semibold prose-h2:text-lg prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 max-w-none">
-          <MDXContent code={item.mdx} />
+          <MDXContent code={item.mdx} components={{ a: MDXLink }} />
         </div>
       </div>
     </section>

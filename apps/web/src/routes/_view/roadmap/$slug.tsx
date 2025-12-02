@@ -6,7 +6,7 @@ import { allRoadmaps } from "content-collections";
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
-import { Mermaid, Tweet } from "@/components/mdx";
+import { MDXLink, Mermaid, Tweet } from "@/components/mdx";
 
 export const Route = createFileRoute("/_view/roadmap/$slug")({
   component: Component,
@@ -152,6 +152,7 @@ function Component() {
             <MDXContent
               code={item.mdx}
               components={{
+                a: MDXLink,
                 Image,
                 img: Image,
                 mermaid: Mermaid,

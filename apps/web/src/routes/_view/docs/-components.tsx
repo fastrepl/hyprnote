@@ -18,7 +18,7 @@ import { CtaCard } from "@/components/cta-card";
 import { DeeplinksList } from "@/components/deeplinks-list";
 import { HooksList } from "@/components/hooks-list";
 import { Image } from "@/components/image";
-import { Mermaid, Tweet } from "@/components/mdx";
+import { MDXLink, Mermaid, Tweet } from "@/components/mdx";
 import { OpenAPIDocs } from "@/components/openapi-docs";
 
 export function DocLayout({
@@ -109,6 +109,7 @@ function ArticleContent({ doc }: { doc: any }) {
       <MDXContent
         code={doc.mdx}
         components={{
+          a: MDXLink,
           Accordion,
           Card,
           Columns,

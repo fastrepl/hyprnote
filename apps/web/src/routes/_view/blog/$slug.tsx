@@ -9,7 +9,7 @@ import { cn } from "@hypr/utils";
 import { CtaCard } from "@/components/cta-card";
 import { DownloadButton } from "@/components/download-button";
 import { Image } from "@/components/image";
-import { Callout, Mermaid, Tweet } from "@/components/mdx";
+import { Callout, MDXLink, Mermaid, Tweet } from "@/components/mdx";
 import { SlashSeparator } from "@/components/slash-separator";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
@@ -155,6 +155,7 @@ function ArticleContent({ article }: { article: any }) {
       <MDXContent
         code={article.mdx}
         components={{
+          a: MDXLink,
           Callout,
           CtaCard,
           Image,

@@ -1,7 +1,7 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { allDeeplinks } from "content-collections";
 
-import { Mermaid, Tweet } from "@/components/mdx";
+import { MDXLink, Mermaid, Tweet } from "@/components/mdx";
 
 export function DeeplinksList() {
   const deeplinks = allDeeplinks.sort((a, b) => a.path.localeCompare(b.path));
@@ -62,7 +62,7 @@ export function DeeplinksList() {
           <div className="mt-4 prose prose-sm prose-neutral max-w-none prose-headings:scroll-mt-24 prose-headings:font-semibold prose-p:leading-relaxed">
             <MDXContent
               code={deeplink.mdx}
-              components={{ mermaid: Mermaid, Mermaid, Tweet }}
+              components={{ a: MDXLink, mermaid: Mermaid, Mermaid, Tweet }}
             />
           </div>
         </section>

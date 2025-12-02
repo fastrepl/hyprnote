@@ -6,6 +6,8 @@ import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { MDXLink } from "@/components/mdx";
+
 export const Route = createFileRoute("/_view/roadmap/")({
   component: Component,
   head: () => ({
@@ -330,7 +332,7 @@ function RoadmapCard({
       </div>
       {!compact && (
         <div className="prose prose-sm prose-stone max-w-none">
-          <MDXContent code={item.mdx} />
+          <MDXContent code={item.mdx} components={{ a: MDXLink }} />
         </div>
       )}
     </Link>

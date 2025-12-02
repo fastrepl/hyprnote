@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@hypr/utils";
 
 import { DownloadButton } from "@/components/download-button";
+import { MDXLink } from "@/components/mdx";
 import { SlashSeparator } from "@/components/slash-separator";
 
 type ShortcutsSearch = {
@@ -519,7 +520,7 @@ function ShortcutModal({
 
               <div className="space-y-6">
                 <div className="prose prose-stone prose-sm prose-headings:font-serif prose-headings:font-semibold prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3 prose-p:text-neutral-600 prose-p:text-sm max-w-none">
-                  <MDXContent code={shortcut.mdx} />
+                  <MDXContent code={shortcut.mdx} components={{ a: MDXLink }} />
                 </div>
               </div>
 

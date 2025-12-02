@@ -15,6 +15,7 @@ import {
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
+import { MDXLink } from "@/components/mdx";
 
 export function HandbookLayout({
   doc,
@@ -104,6 +105,7 @@ function ArticleContent({ doc }: { doc: any }) {
       <MDXContent
         code={doc.mdx}
         components={{
+          a: MDXLink,
           Accordion,
           Card,
           Columns,

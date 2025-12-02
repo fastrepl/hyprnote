@@ -173,6 +173,15 @@ struct AssemblyAIWord {
 
 impl AssemblyAIAdapter {
     fn parse_turn(turn: TurnMessage) -> Vec<StreamResponse> {
+        tracing::debug!(
+            transcript = %turn.transcript,
+            utterance = ?turn.utterance,
+            words_len = turn.words.len(),
+            turn_is_formatted = turn.turn_is_formatted,
+            end_of_turn = turn.end_of_turn,
+            "assemblyai_turn_received"
+        );
+
         if turn.transcript.is_empty() && turn.words.is_empty() {
             return vec![];
         }
@@ -280,15 +289,18 @@ mod tests {
                 Ok(response) => match response {
                     owhisper_interface::stream::StreamResponse::TranscriptResponse {
                         channel,
+                        speech_final,
                         ..
                     } => {
-                        saw_transcript = true;
+                        let transcript = &channel.alternatives.first().unwrap().transcript;
                         println!(
-                            "Transcript: {:?}",
-                            channel.alternatives.first().unwrap().transcript
+                            "Transcript (speech_final={}): {:?}",
+                            speech_final, transcript
                         );
-                        // Break after receiving first transcript to avoid waiting for stream to end
-                        break;
+                        if !transcript.is_empty() {
+                            saw_transcript = true;
+                            break;
+                        }
                     }
                     _ => {}
                 },
@@ -299,12 +311,11 @@ mod tests {
             }
         }
 
-        // Finalize the connection
         handle.finalize().await;
 
         assert!(
             saw_transcript,
-            "expected at least one transcript from AssemblyAI"
+            "expected at least one non-empty transcript from AssemblyAI"
         );
     }
 }

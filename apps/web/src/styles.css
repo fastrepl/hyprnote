@@ -10,6 +10,12 @@
   --breakpoint-laptop: 72rem;
 }
 
+@layer base {
+  [id] {
+    scroll-margin-top: 69px;
+  }
+}
+
 @layer utilities {
   @keyframes shake {
     0%,

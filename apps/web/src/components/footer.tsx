@@ -169,6 +169,14 @@ export function Footer() {
                     Prompt Gallery
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to="/company-handbook"
+                    className="text-sm text-neutral-600 hover:text-stone-600 transition-colors underline decoration-dotted hover:decoration-solid"
+                  >
+                    Company Handbook
+                  </Link>
+                </li>
               </ul>
             </div>
 

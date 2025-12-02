@@ -364,14 +364,14 @@ function TransparencySection() {
             View source code
             <Icon icon="mdi:arrow-right" className="text-lg" />
           </a>
-          <Link
-            to="/legal/privacy-policy"
+          <a
+            href="/legal/privacy"
             className="inline-flex items-center justify-center gap-2 text-stone-600 hover:text-stone-800 font-medium"
           >
             <Icon icon="mdi:file-document" className="text-lg" />
             Read privacy policy
             <Icon icon="mdi:arrow-right" className="text-lg" />
-          </Link>
+          </a>
         </div>
       </div>
     </section>

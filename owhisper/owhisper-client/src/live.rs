@@ -1,24 +1,93 @@
+use std::pin::Pin;
 use std::time::Duration;
 
-use futures_util::Stream;
+use futures_util::{Stream, StreamExt};
 
-use hypr_ws::client::{ClientRequestBuilder, Message, WebSocketClient, WebSocketIO};
+use hypr_ws::client::{
+    ClientRequestBuilder, Message, Utf8Bytes, WebSocketClient, WebSocketHandle, WebSocketIO,
+};
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 
-use crate::ListenClientBuilder;
+use crate::{DeepgramAdapter, ListenClientBuilder, SttAdapter};
 
 pub type ListenClientInput = MixedMessage<bytes::Bytes, ControlMessage>;
 pub type ListenClientDualInput = MixedMessage<(bytes::Bytes, bytes::Bytes), ControlMessage>;
 
 #[derive(Clone)]
-pub struct ListenClient {
+pub struct ListenClient<A: SttAdapter = DeepgramAdapter> {
+    pub(crate) adapter: A,
     pub(crate) request: ClientRequestBuilder,
+    pub(crate) initial_message: Option<Message>,
 }
 
 #[derive(Clone)]
-pub struct ListenClientDual {
+pub struct ListenClientDual<A: SttAdapter> {
+    pub(crate) adapter: A,
     pub(crate) request: ClientRequestBuilder,
+    pub(crate) initial_message: Option<Message>,
+}
+
+pub struct SingleHandle {
+    inner: WebSocketHandle,
+    finalize_text: Utf8Bytes,
+}
+
+pub enum DualHandle {
+    Native {
+        inner: WebSocketHandle,
+        finalize_text: Utf8Bytes,
+    },
+    Split {
+        mic: WebSocketHandle,
+        spk: WebSocketHandle,
+        finalize_text: Utf8Bytes,
+    },
+}
+
+pub trait FinalizeHandle: Send {
+    fn finalize(&self) -> impl std::future::Future<Output = ()> + Send;
+    fn expected_finalize_count(&self) -> usize;
+}
+
+impl FinalizeHandle for SingleHandle {
+    async fn finalize(&self) {
+        self.inner
+            .finalize_with_text(self.finalize_text.clone())
+            .await
+    }
+
+    fn expected_finalize_count(&self) -> usize {
+        1
+    }
+}
+
+impl FinalizeHandle for DualHandle {
+    async fn finalize(&self) {
+        match self {
+            DualHandle::Native {
+                inner,
+                finalize_text,
+            } => inner.finalize_with_text(finalize_text.clone()).await,
+            DualHandle::Split {
+                mic,
+                spk,
+                finalize_text,
+            } => {
+                tokio::join!(
+                    mic.finalize_with_text(finalize_text.clone()),
+                    spk.finalize_with_text(finalize_text.clone())
+                );
+            }
+        }
+    }
+
+    fn expected_finalize_count(&self) -> usize {
+        match self {
+            DualHandle::Native { .. } => 1,
+            DualHandle::Split { .. } => 2,
+        }
+    }
 }
 
 fn interleave_audio(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
@@ -44,10 +113,12 @@ fn interleave_audio(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
     interleaved
 }
 
-impl WebSocketIO for ListenClient {
+pub struct ListenClientIO;
+
+impl WebSocketIO for ListenClientIO {
     type Data = ListenClientInput;
     type Input = ListenClientInput;
-    type Output = StreamResponse;
+    type Output = String;
 
     fn to_input(data: Self::Data) -> Self::Input {
         data
@@ -64,16 +135,18 @@ impl WebSocketIO for ListenClient {
 
     fn from_message(msg: Message) -> Option<Self::Output> {
         match msg {
-            Message::Text(text) => serde_json::from_str::<Self::Output>(&text).ok(),
+            Message::Text(text) => Some(text.to_string()),
             _ => None,
         }
     }
 }
 
-impl WebSocketIO for ListenClientDual {
+pub struct ListenClientDualIO;
+
+impl WebSocketIO for ListenClientDualIO {
     type Data = ListenClientDualInput;
     type Input = ListenClientInput;
-    type Output = StreamResponse;
+    type Output = String;
 
     fn to_input(data: Self::Data) -> Self::Input {
         match data {
@@ -96,57 +169,219 @@ impl WebSocketIO for ListenClientDual {
 
     fn from_message(msg: Message) -> Option<Self::Output> {
         match msg {
-            Message::Text(text) => serde_json::from_str::<Self::Output>(&text).ok(),
+            Message::Text(text) => Some(text.to_string()),
             _ => None,
         }
     }
 }
 
-impl ListenClient {
-    pub fn builder() -> ListenClientBuilder {
+impl ListenClient<DeepgramAdapter> {
+    pub fn builder() -> ListenClientBuilder<DeepgramAdapter> {
         ListenClientBuilder::default()
     }
+}
 
+impl<A: SttAdapter> ListenClient<A> {
     pub async fn from_realtime_audio(
         self,
         audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
     ) -> Result<
         (
             impl Stream<Item = Result<StreamResponse, hypr_ws::Error>>,
-            hypr_ws::client::WebSocketHandle,
+            SingleHandle,
         ),
         hypr_ws::Error,
     > {
-        let ws = websocket_client_with_keep_alive(&self.request);
-        ws.from_audio::<Self>(audio_stream).await
+        let finalize_text = extract_finalize_text(&self.adapter);
+        let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
+        let (raw_stream, inner) = ws
+            .from_audio::<ListenClientIO>(self.initial_message, audio_stream)
+            .await?;
+
+        let adapter = self.adapter;
+        let mapped_stream = raw_stream.filter_map(move |result| {
+            let adapter = adapter.clone();
+            async move {
+                match result {
+                    Ok(raw) => adapter.parse_response(&raw).map(Ok),
+                    Err(e) => Some(Err(e)),
+                }
+            }
+        });
+
+        let handle = SingleHandle {
+            inner,
+            finalize_text,
+        };
+        Ok((mapped_stream, handle))
     }
 }
 
-impl ListenClientDual {
+type DualOutputStream = Pin<Box<dyn Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send>>;
+
+impl<A: SttAdapter> ListenClientDual<A> {
     pub async fn from_realtime_audio(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    ) -> Result<
-        (
-            impl Stream<Item = Result<StreamResponse, hypr_ws::Error>>,
-            hypr_ws::client::WebSocketHandle,
-        ),
-        hypr_ws::Error,
-    > {
-        let ws = websocket_client_with_keep_alive(&self.request);
-        ws.from_audio::<Self>(stream).await
+    ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
+        if self.adapter.supports_native_multichannel() {
+            self.from_realtime_audio_native(stream).await
+        } else {
+            self.from_realtime_audio_split(stream).await
+        }
+    }
+
+    async fn from_realtime_audio_native(
+        self,
+        stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
+    ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
+        let finalize_text = extract_finalize_text(&self.adapter);
+        let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
+        let (raw_stream, inner) = ws
+            .from_audio::<ListenClientDualIO>(self.initial_message, stream)
+            .await?;
+
+        let adapter = self.adapter;
+        let mapped_stream = raw_stream.filter_map(move |result| {
+            let adapter = adapter.clone();
+            async move {
+                match result {
+                    Ok(raw) => adapter.parse_response(&raw).map(Ok),
+                    Err(e) => Some(Err(e)),
+                }
+            }
+        });
+
+        let handle = DualHandle::Native {
+            inner,
+            finalize_text,
+        };
+        Ok((Box::pin(mapped_stream), handle))
+    }
+
+    async fn from_realtime_audio_split(
+        self,
+        stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
+    ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
+        let finalize_text = extract_finalize_text(&self.adapter);
+        let (mic_tx, mic_rx) = tokio::sync::mpsc::channel::<ListenClientInput>(32);
+        let (spk_tx, spk_rx) = tokio::sync::mpsc::channel::<ListenClientInput>(32);
+
+        let mic_ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
+        let spk_ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
+
+        let mic_outbound = tokio_stream::wrappers::ReceiverStream::new(mic_rx);
+        let spk_outbound = tokio_stream::wrappers::ReceiverStream::new(spk_rx);
+
+        let mic_connect =
+            mic_ws.from_audio::<ListenClientIO>(self.initial_message.clone(), mic_outbound);
+        let spk_connect = spk_ws.from_audio::<ListenClientIO>(self.initial_message, spk_outbound);
+
+        let ((mic_raw, mic_handle), (spk_raw, spk_handle)) =
+            tokio::try_join!(mic_connect, spk_connect)?;
+
+        tokio::spawn(forward_dual_to_single(stream, mic_tx, spk_tx));
+
+        let adapter = self.adapter.clone();
+        let mic_stream = mic_raw.filter_map({
+            let adapter = adapter.clone();
+            move |result| {
+                let adapter = adapter.clone();
+                async move {
+                    match result {
+                        Ok(raw) => adapter.parse_response(&raw).map(Ok),
+                        Err(e) => Some(Err(e)),
+                    }
+                }
+            }
+        });
+
+        let spk_stream = spk_raw.filter_map({
+            let adapter = adapter.clone();
+            move |result| {
+                let adapter = adapter.clone();
+                async move {
+                    match result {
+                        Ok(raw) => adapter.parse_response(&raw).map(Ok),
+                        Err(e) => Some(Err(e)),
+                    }
+                }
+            }
+        });
+
+        let merged_stream = merge_streams_with_channel_remap(mic_stream, spk_stream);
+
+        Ok((
+            Box::pin(merged_stream),
+            DualHandle::Split {
+                mic: mic_handle,
+                spk: spk_handle,
+                finalize_text,
+            },
+        ))
     }
 }
 
-fn websocket_client_with_keep_alive(request: &ClientRequestBuilder) -> WebSocketClient {
-    WebSocketClient::new(request.clone())
-        .with_keep_alive_message(Duration::from_secs(5), keep_alive_message())
+async fn forward_dual_to_single(
+    mut stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
+    mic_tx: tokio::sync::mpsc::Sender<ListenClientInput>,
+    spk_tx: tokio::sync::mpsc::Sender<ListenClientInput>,
+) {
+    while let Some(msg) = stream.next().await {
+        match msg {
+            MixedMessage::Audio((mic, spk)) => {
+                let _ = mic_tx.try_send(MixedMessage::Audio(mic));
+                let _ = spk_tx.try_send(MixedMessage::Audio(spk));
+            }
+            MixedMessage::Control(ctrl) => {
+                let _ = mic_tx.send(MixedMessage::Control(ctrl.clone())).await;
+                let _ = spk_tx.send(MixedMessage::Control(ctrl)).await;
+            }
+        }
+    }
 }
 
-fn keep_alive_message() -> Message {
-    Message::Text(
-        serde_json::to_string(&ControlMessage::KeepAlive)
-            .unwrap()
-            .into(),
-    )
+fn merge_streams_with_channel_remap<S1, S2>(
+    mic_stream: S1,
+    spk_stream: S2,
+) -> impl Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send
+where
+    S1: Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send + 'static,
+    S2: Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send + 'static,
+{
+    let mic_mapped = mic_stream.map(|result| {
+        result.map(|mut response| {
+            response.set_channel_index(0, 2);
+            response
+        })
+    });
+
+    let spk_mapped = spk_stream.map(|result| {
+        result.map(|mut response| {
+            response.set_channel_index(1, 2);
+            response
+        })
+    });
+
+    futures_util::stream::select(mic_mapped, spk_mapped)
+}
+
+fn websocket_client_with_keep_alive<A: SttAdapter>(
+    request: &ClientRequestBuilder,
+    adapter: &A,
+) -> WebSocketClient {
+    let mut client = WebSocketClient::new(request.clone());
+
+    if let Some(keep_alive) = adapter.keep_alive_message() {
+        client = client.with_keep_alive_message(Duration::from_secs(5), keep_alive);
+    }
+
+    client
+}
+
+fn extract_finalize_text<A: SttAdapter>(adapter: &A) -> Utf8Bytes {
+    match adapter.finalize_message() {
+        Message::Text(text) => text,
+        _ => r#"{"type":"Finalize"}"#.into(),
+    }
 }

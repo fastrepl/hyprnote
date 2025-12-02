@@ -126,6 +126,7 @@ tauri-plugin-listener2 = { path = "plugins/listener2" }
 tauri-plugin-local-llm = { path = "plugins/local-llm" }
 tauri-plugin-local-stt = { path = "plugins/local-stt" }
 tauri-plugin-misc = { path = "plugins/misc" }
+tauri-plugin-network = { path = "plugins/network" }
 tauri-plugin-notification = { path = "plugins/notification" }
 tauri-plugin-permissions = { path = "plugins/permissions" }
 tauri-plugin-sfx = { path = "plugins/sfx" }

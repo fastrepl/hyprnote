@@ -31,14 +31,17 @@ runs:
   using: composite
   steps:
     - shell: bash
+      env:
+        VARS_JSON: ${{ inputs.vars }}
       run: |
         pip install -q jinja2
 
         PROMPT=$(python3 -c "
         import json
+        import os
         from jinja2 import Template
         tmpl = Template('''${{ inputs.prompt }}''')
-        vars = json.loads('''${{ inputs.vars }}''')
+        vars = json.loads(os.environ['VARS_JSON'])
         print(tmpl.render(**vars))
         ")
 

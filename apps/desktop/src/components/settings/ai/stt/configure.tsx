@@ -189,6 +189,11 @@ function HyprProviderCard({
             displayName="Parakeet v3"
             description="On-device model. English and European languages."
           />
+          <HyprProviderLocalRow
+            model="am-whisper-large-v3"
+            displayName="Whisper Large v3"
+            description="On-device model. Multilingual. Powered by Argmax."
+          />
 
           <details className="space-y-4 pt-2">
             <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">

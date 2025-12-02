@@ -28,7 +28,6 @@ export function HandbookLayout({
       <main className="flex-1 min-w-0 px-4 py-6">
         <ArticleHeader doc={doc} showSectionTitle={showSectionTitle} />
         <ArticleContent doc={doc} />
-        <ArticleFooter />
       </main>
 
       <RightSidebar toc={doc.toc} />
@@ -121,72 +120,6 @@ function ArticleContent({ doc }: { doc: any }) {
   );
 }
 
-function ArticleFooter() {
-  const currentYear = new Date().getFullYear();
-
-  return (
-    <footer className="mt-16 pt-8 border-t border-neutral-100">
-      <Link
-        to="/company-handbook"
-        className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors font-medium mb-8"
-      >
-        <span>←</span>
-        <span>Back to handbook</span>
-      </Link>
-
-      <div className="mt-8 pt-8 border-t border-neutral-100">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-neutral-500">
-          <div>
-            <span>Fastrepl © {currentYear}</span>
-            <span className="mx-2">·</span>
-            <Link
-              to="/legal/$slug"
-              params={{ slug: "terms" }}
-              className="hover:text-stone-600 transition-colors"
-            >
-              Terms
-            </Link>
-            <span className="mx-2">·</span>
-            <Link
-              to="/legal/$slug"
-              params={{ slug: "privacy" }}
-              className="hover:text-stone-600 transition-colors"
-            >
-              Privacy
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <a
-              href="https://github.com/fastrepl/hyprnote"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-stone-600 transition-colors"
-            >
-              GitHub
-            </a>
-            <a
-              href="https://discord.gg/hyprnote"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-stone-600 transition-colors"
-            >
-              Discord
-            </a>
-            <a
-              href="https://twitter.com/tryhyprnote"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-stone-600 transition-colors"
-            >
-              Twitter
-            </a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 function RightSidebar({
   toc,
 }: {
@@ -220,12 +153,10 @@ function RightSidebar({
 
         <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white p-4">
           <h3 className="font-serif text-sm text-stone-600 mb-3">
-            Questions about working here?
+            Try Hyprnote for yourself
           </h3>
-          <a
-            href="/founders"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/download"
             className={cn([
               "group px-4 h-9 flex items-center justify-center text-sm w-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
@@ -233,8 +164,8 @@ function RightSidebar({
               "transition-all",
             ])}
           >
-            Talk to us
-          </a>
+            Download for free
+          </Link>
         </div>
       </div>
     </aside>

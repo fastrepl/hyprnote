@@ -87,7 +87,7 @@ function LeftSidebar() {
                     key={doc.slug}
                     to="/company-handbook/$"
                     params={{ _splat: doc.slug }}
-                    className={`block px-3 py-1.5 text-sm rounded-sm transition-colors ${
+                    className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
                       currentSlug === doc.slug
                         ? "bg-neutral-100 text-stone-600 font-medium"
                         : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"

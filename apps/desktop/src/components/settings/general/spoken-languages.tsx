@@ -14,6 +14,11 @@ interface SpokenLanguagesViewProps {
   supportedLanguages: ISO_639_1_CODE[];
 }
 
+function getLanguageName(code: string): string {
+  const lang = LANGUAGES_ISO_639_1[code as ISO_639_1_CODE];
+  return lang?.name ?? code;
+}
+
 export function SpokenLanguagesView({
   value,
   onChange,
@@ -28,14 +33,12 @@ export function SpokenLanguagesView({
       return [];
     }
     const query = languageSearchQuery.toLowerCase();
-    return supportedLanguages
-      .filter((langCode) => {
-        const langName = LANGUAGES_ISO_639_1[langCode].name;
-        return (
-          !value.includes(langName) && langName.toLowerCase().includes(query)
-        );
-      })
-      .map((langCode) => LANGUAGES_ISO_639_1[langCode].name);
+    return supportedLanguages.filter((langCode) => {
+      const langName = LANGUAGES_ISO_639_1[langCode].name;
+      return (
+        !value.includes(langCode) && langName.toLowerCase().includes(query)
+      );
+    });
   }, [languageSearchQuery, value, supportedLanguages]);
 
   const handleLanguageKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -63,7 +66,8 @@ export function SpokenLanguagesView({
         languageSelectedIndex >= 0 &&
         languageSelectedIndex < filteredLanguages.length
       ) {
-        onChange([...value, filteredLanguages[languageSelectedIndex]]);
+        const selectedCode = filteredLanguages[languageSelectedIndex];
+        onChange([...value, selectedCode]);
         setLanguageSearchQuery("");
         setLanguageSelectedIndex(-1);
       }
@@ -90,13 +94,13 @@ export function SpokenLanguagesView({
             document.getElementById("language-search-input")?.focus()
           }
         >
-          {value.map((lang) => (
+          {value.map((code) => (
             <Badge
-              key={lang}
+              key={code}
               variant="secondary"
               className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
             >
-              {lang}
+              {getLanguageName(code)}
               <Button
                 type="button"
                 variant="ghost"
@@ -104,7 +108,7 @@ export function SpokenLanguagesView({
                 className="h-3 w-3 p-0 hover:bg-transparent ml-0.5"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onChange(value.filter((l) => l !== lang));
+                  onChange(value.filter((c) => c !== code));
                 }}
               >
                 <X className="h-2.5 w-2.5" />
@@ -147,15 +151,15 @@ export function SpokenLanguagesView({
             className="absolute top-full left-0 right-0 mt-1 flex flex-col w-full rounded border border-neutral-200 overflow-hidden bg-white shadow-md z-10 max-h-60 overflow-y-auto"
           >
             {filteredLanguages.length > 0 ? (
-              filteredLanguages.map((langName, index) => (
+              filteredLanguages.map((langCode, index) => (
                 <button
-                  key={langName}
+                  key={langCode}
                   id={`language-option-${index}`}
                   type="button"
                   role="option"
                   aria-selected={languageSelectedIndex === index}
                   onClick={() => {
-                    onChange([...value, langName]);
+                    onChange([...value, langCode]);
                     setLanguageSearchQuery("");
                     setLanguageSelectedIndex(-1);
                   }}
@@ -168,7 +172,9 @@ export function SpokenLanguagesView({
                       : "hover:bg-neutral-100",
                   ])}
                 >
-                  <span className="font-medium truncate">{langName}</span>
+                  <span className="font-medium truncate">
+                    {getLanguageName(langCode)}
+                  </span>
                 </button>
               ))
             ) : (

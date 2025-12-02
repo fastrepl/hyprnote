@@ -1,10 +1,12 @@
 mod argmax;
+mod assemblyai;
 mod deepgram;
 mod fireworks;
 mod owhisper;
 mod soniox;
 
 pub use argmax::*;
+pub use assemblyai::*;
 pub use deepgram::*;
 pub use fireworks::*;
 pub use soniox::*;

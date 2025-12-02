@@ -22,29 +22,36 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
             query_pairs.append_pair("encoding", "pcm_s16le");
             query_pairs.append_pair("format_turns", "true");
 
+            // Compute final speech_model and language_detection values
             let model = params
                 .model
                 .as_deref()
                 .unwrap_or("universal-streaming-english");
-            let speech_model = match model {
+            let mut speech_model_final = match model {
                 "multilingual" | "universal-streaming-multilingual" => {
                     "universal-streaming-multilingual"
                 }
                 _ => "universal-streaming-english",
             };
-            query_pairs.append_pair("speech_model", speech_model);
+            let mut language_detection = false;
 
             if !params.languages.is_empty() {
-                if params.languages.len() > 1 || speech_model == "universal-streaming-multilingual"
+                if params.languages.len() > 1
+                    || speech_model_final == "universal-streaming-multilingual"
                 {
-                    query_pairs.append_pair("language_detection", "true");
+                    language_detection = true;
                 } else if let Some(lang) = params.languages.first() {
                     let code = lang.iso639().code();
                     if code != "en" {
-                        query_pairs.append_pair("speech_model", "universal-streaming-multilingual");
-                        query_pairs.append_pair("language_detection", "true");
+                        speech_model_final = "universal-streaming-multilingual";
+                        language_detection = true;
                     }
                 }
+            }
+
+            query_pairs.append_pair("speech_model", speech_model_final);
+            if language_detection {
+                query_pairs.append_pair("language_detection", "true");
             }
 
             if !params.keywords.is_empty() {

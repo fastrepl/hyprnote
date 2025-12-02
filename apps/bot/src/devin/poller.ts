@@ -168,7 +168,7 @@ export class DevinStatusPoller {
     this.logger.info("Discovering existing Devin sessions with open PRs...");
 
     try {
-      const { sessions } = await listDevinSessions({ status: "running" });
+      const { sessions } = await listDevinSessions({});
 
       for (const session of sessions) {
         if (!session.pull_request?.url) {
@@ -182,9 +182,6 @@ export class DevinStatusPoller {
         }
 
         const detail = await getDevinSessionDetail(session.session_id);
-        if (detail.status_enum !== DevinSessionStatus.Working) {
-          continue;
-        }
 
         try {
           const octokit = await this.createOctokit();
@@ -198,7 +195,7 @@ export class DevinStatusPoller {
             continue;
           }
 
-          this.trackPR({
+          const trackedPR: TrackedPR = {
             owner: parsed.owner,
             repo: parsed.repo,
             prNumber: parsed.prNumber,
@@ -206,7 +203,47 @@ export class DevinStatusPoller {
             headSha: pr.head.sha,
             sessionId: session.session_id,
             addedAt: Date.now(),
-          });
+          };
+
+          if (
+            detail.status_enum === DevinSessionStatus.Working ||
+            detail.status_enum === DevinSessionStatus.Blocked
+          ) {
+            this.trackPR(trackedPR);
+          } else if (detail.status_enum === DevinSessionStatus.Finished) {
+            await this.updateCheckStatus(
+              trackedPR,
+              "completed",
+              "success",
+              {
+                title: "Devin finished",
+                summary: `Devin session ${session.session_id} has completed.`,
+              },
+              session.session_id,
+            );
+          } else if (detail.status_enum === DevinSessionStatus.Expired) {
+            await this.updateCheckStatus(
+              trackedPR,
+              "completed",
+              "cancelled",
+              {
+                title: "Devin session expired",
+                summary: `Devin session ${session.session_id} has expired.`,
+              },
+              session.session_id,
+            );
+          } else if (detail.status_enum) {
+            await this.updateCheckStatus(
+              trackedPR,
+              "completed",
+              "neutral",
+              {
+                title: "Devin session ended",
+                summary: `Devin session ${session.session_id} ended with status: ${detail.status_enum}`,
+              },
+              session.session_id,
+            );
+          }
         } catch {
           this.logger.error(`Failed to fetch PR details for ${prUrl}`);
         }

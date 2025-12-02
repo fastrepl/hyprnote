@@ -2,7 +2,6 @@ import { ApplicationFunctionOptions, Probot } from "probot";
 
 import { startDevinStatusPoller } from "./devin/index.js";
 import {
-  registerBotCiHandler,
   registerDevinStatusHandler,
   registerFixMergeConflictHandler,
   registerPrClosedHandler,
@@ -17,13 +16,10 @@ export default (app: Probot, { getRouter }: ApplicationFunctionOptions) => {
     });
   }
 
-  // Start the poller before registering handlers to avoid race conditions
-  // where handlers might call getDevinStatusPoller() before it's initialized
   if (process.env.NODE_ENV !== "test") {
     startDevinStatusPoller(app);
   }
 
-  registerBotCiHandler(app);
   registerDevinStatusHandler(app);
   registerFixMergeConflictHandler(app);
   registerPrClosedHandler(app);

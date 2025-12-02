@@ -223,7 +223,7 @@ export function Header() {
               )}
               <button
                 onClick={() => setIsMenuOpen((prev) => !prev)}
-                className="px-3 h-8 flex items-center text-sm border border-neutral-200 rounded-full hover:bg-neutral-50 active:scale-[98%] transition-all"
+                className="cursor-pointer px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
                 aria-label={isMenuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={isMenuOpen}
               >
@@ -236,12 +236,7 @@ export function Header() {
 
       {isMenuOpen && (
         <>
-          <div
-            className="fixed top-[65px] left-0 right-0 bottom-0 bg-black/20 z-40 sm:hidden animate-in fade-in duration-200"
-            onClick={() => setIsMenuOpen(false)}
-          />
-
-          <div className="fixed top-[65px] left-0 right-0 bg-white border-b border-neutral-100 shadow-lg z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-65px)] overflow-y-auto">
+          <div className="fixed top-[69px] left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto">
             <nav className={`${maxWidthClass} mx-auto px-4 py-6`}>
               <div className="space-y-6">
                 <div className="space-y-4">
@@ -332,7 +327,7 @@ export function Header() {
                   </Link>
                 </div>
 
-                <div className="pt-6 border-t border-neutral-100 space-y-3">
+                <div className="space-y-3">
                   <Link
                     to="/join-waitlist"
                     className="block w-full px-4 py-3 text-center text-sm text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"

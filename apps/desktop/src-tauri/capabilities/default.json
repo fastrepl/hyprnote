@@ -105,6 +105,7 @@
       ]
     },
     "misc:default",
+    "network:default",
     "os:default",
     "detect:default",
     "permissions:default",

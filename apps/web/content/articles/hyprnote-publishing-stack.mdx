@@ -1,0 +1,293 @@
+---
+display_title: "How We Built Hyprnote’s Publishing Stack"
+meta_title: "Hyprnote’s Publishing Stack: MDX, GitHub, and the Future of Docs"
+meta_description: "A deep dive into how Hyprnote built a future-proof publishing system using MDX, GitHub workflows, custom components, and TanStack Start—and why this approach outlives most CMS platforms."
+author: "John Jeong"
+created: "2025-12-02"
+---
+
+Most teams pick a CMS. We ended up building a publishing system.
+
+Not because we wanted to. But because every CMS we evaluated pushed us away from the way we actually work.
+
+We're a deeply technical team. We write in our IDEs. We think in Git. We move fast. We rewrite things without ceremony. We treat documentation and blog posts as part of the product, not accessories to it.
+
+So when we looked at the landscape — WYSIWYG editors, headless CMS platforms, Git-based CMS layers, hosted docs systems — every option either slowed us down or boxed us in.
+
+So we did the simplest thing: we built our publishing system the same way we build Hyprnote.
+
+This post breaks down exactly how it works, why it works, and why I expect it to outlive most CMS platforms people are betting on today.
+
+This is Part 6 of our publishing series — the final one. 1. Start With the Root: MDX + Git
+
+Everything begins with a simple rule:
+
+**Every piece of content is a file. Nothing more.**
+
+Not a record in a content lake. Not a block inside a WYSIWYG editor. Not a blob stored in a SaaS database.
+
+Just a folder of MDX files.
+
+This gives us:
+
+- perfect portability
+- diffable history
+- PR-based editorial workflow
+- easy migrations
+- infinite flexibility
+- no vendor lock-in
+- everything versioned forever
+
+It's the same model used by Vercel, Supabase, Astro, Deno, Expo, and most modern open-source developer tools.
+
+There's a reason they all use it: content ages better in plain text than in a proprietary editor.
+
+---
+
+## 2. The Framework: TanStack Start + MDX
+
+Most teams default to Next.js, but we're building on TanStack Start, because:
+
+- it's hyper-minimal
+- it's type-safe
+- it's extremely fast
+- it plays perfectly with MDX
+- it avoids the Next.js bloat and weird trade-offs
+- it mirrors how modern engineering teams think (clean routing, simple loaders, SSR-first)
+
+Using MDX inside Start gave us:
+
+- frontmatter-based metadata
+- custom components for callouts, figures, tabs, videos
+- scoped styling
+- zero-CMS layout control
+- instantaneous rebuilds
+- per-route SEO overrides
+- OG image generation that "just works"
+
+Docs, blog posts, legal pages — they're all the same format, with different components.
+
+Minimalism is a feature.
+
+---
+
+## 3. The Editorial Workflow: GitHub PRs
+
+We don't need a CMS workflow because GitHub already solved that problem at global scale:
+
+- branches = drafts
+- PRs = editorial review
+- comments = inline suggestions
+- commits = revision history
+- labels = status
+- GitHub Actions = validation
+- merge = publish
+
+It's not "content management." It's just engineering.
+
+And engineering workflows are better than every CMS workflow on the market.
+
+---
+
+## 4. The Image Pipeline: Supabase + GitHub
+
+WYSIWYG editors make image uploading easy, but they hide the backend complexity.
+
+We want the convenience and the control.
+
+So here's our stack:
+
+- GitHub drag-and-drop for inline screenshots
+- Supabase buckets for structured assets (covers, OG images, diagrams)
+- automatic CDN-level optimization
+- public URLs for MDX components
+- no proprietary storage formats
+- zero lock-in
+
+It takes seconds to add an image. And the image will still exist in 10 years.
+
+Try that with a SaaS CMS.
+
+---
+
+## 5. Custom MDX Components: Our Secret Weapon
+
+The moment content becomes code, every document becomes a canvas. We built a small but powerful set of MDX components:
+
+- `<Figure />`
+- `<Aside />`
+- `<Callout />`
+- `<CodeBlock />`
+- `<Tabs />`
+- `<Video />`
+- `<ComparisonTable />`
+- `<Grid />`
+
+These are reusable across:
+
+- blog
+- docs
+- guides
+- landing pages
+- internal playbooks
+- product updates
+
+This means the UI of our content is not dictated by a CMS. It's dictated by design.
+
+And because it's MDX, these components can become intelligent later: interactive, stateful, contextual, personalized, AI-enhanced.
+
+CMS platforms can't do that without becoming full application frameworks.
+
+---
+
+## 6. Search: Pagefind + Our Own Glue
+
+Search is one of the hardest parts of docs systems.
+
+We experimented with:
+
+- Algolia DocSearch
+- Elastic
+- Meilisearch
+- custom embeddings
+- hybrid search models
+
+We eventually settled on a layered approach:
+
+- Pagefind for ultra-fast static search
+- route-level metadata for semantic indexing
+- future: AI-powered, context-aware search embedded in Hyprnote
+
+This gives us the best trade-off between speed, control, and cost.
+
+No API keys. No rate limits. No outdated indexes.
+
+---
+
+## 7. Previews, OG Images, Analytics, and Build System
+
+This is where everything comes together:
+
+### Preview Environments
+
+Every PR spins up its own preview:
+
+- authors can see their MDX rendered
+- design can check spacing and components
+- we catch broken links immediately
+- nothing merges blind
+
+### OG Image Automation
+
+We built automatic OG generation using:
+
+- Satori
+- custom templates
+- frontmatter metadata
+- Supabase asset storage for covers
+
+Nothing is manual.
+
+### Analytics
+
+We use:
+
+- PostHog for traffic + funnels
+- custom events for reading behavior
+- lightweight client-side wrappers
+- privacy-respecting mode for docs
+
+### Build System
+
+TanStack Start + Vite gives us:
+
+- extremely fast rebuilds
+- static-friendly deployment
+- fine-grained caching
+- less surface area than Next.js
+- cleaner mental model
+
+The entire pipeline feels quiet. No noise. No abstractions. No ceremony.
+
+---
+
+## 8. Why This Stack Will Outlive Most CMS Platforms
+
+Most CMSs die in one of three ways:
+
+- company shuts down
+- pricing changes
+- ecosystem shifts
+- technical debt accumulates
+- schema migrations become impossible
+- customers hit scaling edges
+- platform pivots (e.g., Notion, Sanity, Contentful over time)
+
+But some primitives don't die:
+
+- Markdown
+- MDX
+- Git
+- the filesystem
+- SSR
+- URL routing
+- static assets
+- components
+- HTTP
+- build systems
+
+Our publishing system is built entirely on primitives that have survived 20+ years of architectural churn.
+
+No matter what happens to the FE ecosystem next — Turbo, SSR, islands, React Server Components, Deno, Bun, something totally new — content in plain text will always be readable, migratable, and alive.
+
+That's future-proofing.
+
+---
+
+## 9. The Philosophy Behind It All
+
+We built this stack around three principles:
+
+### (1) Own your content. Forever.
+
+CMS platforms want content to live inside a black box. We want content to live in a folder.
+
+### (2) Minimize moving parts. More components = more failure.
+
+Every new system is a maintenance burden. We keep our stack embarrassingly simple.
+
+### (3) Writing should feel like thinking. Not like filling out a form.
+
+Our writing environment is the same environment we code in. No mental switching. No friction.
+
+The best tools disappear. That's the bar.
+
+---
+
+## 10. Where This Goes Next
+
+We're already exploring:
+
+- AI-assisted doc generation
+- contextual, in-product help
+- interactive notebook-style tutorials
+- embedding Hyprnote's memory layer to explain concepts
+- auto-updating docs via type-level definitions
+- inline sandboxed components
+- "explain this code" buttons inside docs
+- auto-synced API references from OpenAPI schemas
+- versioned content timelines
+- docs that understand the state of your product
+
+Our publishing system isn't static. It's a foundation for the next decade of how we want to communicate with users.
+
+---
+
+This concludes the publishing series.
+
+1. [Why We Write Our Blog in an IDE](/blog/using-ide-for-writing)
+2. [Why Our CMS Is GitHub](/blog/why-our-cms-is-github)
+3. [Choosing a CMS in 2025](/blog/choosing-a-cms)
+4. [Don't Use a CMS Until You Absolutely Need One](/blog/dont-use-a-cms)
+5. [Docs Edition: What to Use for Developer Documentation](/blog/developer-documentation-tools)
+6. [How We Built Hyprnote's Publishing Stack](/blog/hyprnote-publishing-stack) (You are here)

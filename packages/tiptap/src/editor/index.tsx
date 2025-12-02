@@ -30,7 +30,7 @@ interface EditorProps {
   initialContent?: JSONContent;
   editable?: boolean;
   setContentFromOutside?: boolean;
-  mentionConfig: MentionConfig;
+  mentionConfig?: MentionConfig;
   placeholderComponent?: PlaceholderFunction;
   fileHandlerConfig?: FileHandlerConfig;
 }
@@ -67,7 +67,7 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     const extensions = useMemo(
       () => [
         ...shared.getExtensions(placeholderComponent, fileHandlerConfig),
-        mention(mentionConfig),
+        ...(mentionConfig ? [mention(mentionConfig)] : []),
       ],
       [mentionConfig, placeholderComponent, fileHandlerConfig],
     );

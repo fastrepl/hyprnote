@@ -1,8 +1,8 @@
 import { FullscreenIcon, MicIcon, PaperclipIcon, SendIcon } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import type { TiptapEditor } from "@hypr/tiptap/editor";
-import Editor from "@hypr/tiptap/editor";
+import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
+import ChatEditor from "@hypr/tiptap/chat";
 import {
   EMPTY_TIPTAP_DOC,
   type PlaceholderFunction,
@@ -11,6 +11,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../contexts/shell";
+import * as main from "../../store/tinybase/main";
 
 export function ChatMessageInput({
   onSendMessage,
@@ -20,6 +21,7 @@ export function ChatMessageInput({
   disabled?: boolean | { disabled: boolean; message?: string };
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
+  const store = main.UI.useStore(main.STORE_ID);
 
   const disabled =
     typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
@@ -59,21 +61,44 @@ export function ChatMessageInput({
     console.log("Voice input clicked");
   }, []);
 
+  const slashCommandConfig: SlashCommandConfig = useMemo(
+    () => ({
+      handleSearch: async (query: string) => {
+        if (!store) {
+          return [];
+        }
+
+        const results: { id: string; type: string; label: string }[] = [];
+        const lowerQuery = query.toLowerCase();
+
+        store.forEachRow("sessions", (rowId, forEachCell) => {
+          let title = "";
+          forEachCell((cellId, cell) => {
+            if (cellId === "title" && typeof cell === "string") {
+              title = cell;
+            }
+          });
+          if (title && title.toLowerCase().includes(lowerQuery)) {
+            results.push({ id: rowId, type: "session", label: title });
+          }
+        });
+
+        return results.slice(0, 5);
+      },
+    }),
+    [store],
+  );
+
   return (
     <Container>
       <div className="flex flex-col p-2">
         <div className="flex-1 mb-2">
-          <Editor
+          <ChatEditor
             ref={editorRef}
             editable={!disabled}
             initialContent={EMPTY_TIPTAP_DOC}
             placeholderComponent={ChatPlaceholder}
-            mentionConfig={{
-              trigger: "@",
-              handleSearch: async () => [
-                { id: "123", type: "human", label: "John Doe" },
-              ],
-            }}
+            slashCommandConfig={slashCommandConfig}
           />
         </div>
 

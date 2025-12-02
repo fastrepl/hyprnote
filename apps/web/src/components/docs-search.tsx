@@ -22,6 +22,16 @@ interface PagefindInstance {
   ) => Promise<{ results: PagefindSearchResult[] } | null>;
 }
 
+declare global {
+  interface Window {
+    pagefind?: {
+      search: (
+        query: string,
+      ) => Promise<{ results: PagefindSearchResult[] } | null>;
+    };
+  }
+}
+
 export function DocsSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PagefindResult[]>([]);
@@ -32,17 +42,31 @@ export function DocsSearch() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    async function loadPagefind() {
-      if (typeof window !== "undefined") {
-        try {
-          const pf = await import(/* @vite-ignore */ "/pagefind/pagefind.js");
-          setPagefind(pf as unknown as PagefindInstance);
-        } catch {
-          console.warn("Pagefind not available");
-        }
+    if (typeof window === "undefined") return;
+
+    if (document.querySelector("script[data-pagefind]")) {
+      if (window.pagefind) {
+        setPagefind(window.pagefind as PagefindInstance);
       }
+      return;
     }
-    loadPagefind();
+
+    const script = document.createElement("script");
+    script.src = "/pagefind/pagefind.js";
+    script.async = true;
+    script.dataset.pagefind = "true";
+
+    script.onload = () => {
+      if (window.pagefind) {
+        setPagefind(window.pagefind as PagefindInstance);
+      }
+    };
+
+    script.onerror = () => {
+      console.warn("Pagefind not available");
+    };
+
+    document.head.appendChild(script);
   }, []);
 
   useEffect(() => {

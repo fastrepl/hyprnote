@@ -39,7 +39,7 @@ impl SonioxAdapter {
         let part = reqwest::multipart::Part::bytes(file_bytes).file_name(file_name);
         let form = reqwest::multipart::Form::new().part("file", part);
 
-        let url = format!("{}/v1/files", Self::api_base_url(api_base));
+        let url = format!("https://{}/v1/files", Self::api_host(api_base));
         let response = client
             .post(&url)
             .header("Authorization", format!("Bearer {}", api_key))
@@ -97,16 +97,22 @@ impl SonioxAdapter {
             })
         };
 
+        let language_hints = params
+            .languages
+            .iter()
+            .map(|lang| lang.iso639().code().to_string())
+            .collect();
+
         let request = CreateTranscriptionRequest {
             model,
             file_id,
-            language_hints: Self::language_hints(params),
+            language_hints,
             enable_speaker_diarization: true,
             enable_language_identification: true,
             context,
         };
 
-        let url = format!("{}/v1/transcriptions", Self::api_base_url(api_base));
+        let url = format!("https://{}/v1/transcriptions", Self::api_host(api_base));
         let response = client
             .post(&url)
             .header("Authorization", format!("Bearer {}", api_key))
@@ -143,8 +149,8 @@ impl SonioxAdapter {
         }
 
         let url = format!(
-            "{}/v1/transcriptions/{}",
-            Self::api_base_url(api_base),
+            "https://{}/v1/transcriptions/{}",
+            Self::api_host(api_base),
             transcription_id
         );
 
@@ -243,8 +249,8 @@ impl SonioxAdapter {
         }
 
         let url = format!(
-            "{}/v1/transcriptions/{}/transcript",
-            Self::api_base_url(api_base),
+            "https://{}/v1/transcriptions/{}/transcript",
+            Self::api_host(api_base),
             transcription_id
         );
 

@@ -1,27 +1,29 @@
 mod batch;
 mod live;
 
-use owhisper_interface::ListenParams;
-
-pub(crate) const DEFAULT_API_BASE: &str = "https://api.soniox.com";
+pub(crate) const DEFAULT_API_HOST: &str = "api.soniox.com";
+pub(crate) const DEFAULT_WS_HOST: &str = "stt-rt.soniox.com";
 
 #[derive(Clone, Default)]
 pub struct SonioxAdapter;
 
 impl SonioxAdapter {
-    pub(crate) fn language_hints(params: &ListenParams) -> Vec<String> {
-        params
-            .languages
-            .iter()
-            .map(|lang| lang.iso639().code().to_string())
-            .collect()
+    pub(crate) fn api_host(api_base: &str) -> String {
+        if api_base.is_empty() {
+            return DEFAULT_API_HOST.to_string();
+        }
+
+        let url: url::Url = api_base.parse().expect("invalid_api_base");
+        url.host_str().unwrap_or(DEFAULT_API_HOST).to_string()
     }
 
-    pub(crate) fn api_base_url(api_base: &str) -> String {
-        if api_base.is_empty() {
-            DEFAULT_API_BASE.to_string()
+    pub(crate) fn ws_host(api_base: &str) -> String {
+        let api_host = Self::api_host(api_base);
+
+        if let Some(rest) = api_host.strip_prefix("api.") {
+            format!("stt-rt.{}", rest)
         } else {
-            api_base.trim_end_matches('/').to_string()
+            DEFAULT_WS_HOST.to_string()
         }
     }
 }

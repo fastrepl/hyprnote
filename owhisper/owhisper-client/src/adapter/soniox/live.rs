@@ -6,28 +6,17 @@ use serde::{Deserialize, Serialize};
 use super::SonioxAdapter;
 use crate::adapter::RealtimeSttAdapter;
 
+// https://soniox.com/docs/stt/rt/real-time-transcription
+// https://soniox.com/docs/stt/api-reference/websocket-api
 impl RealtimeSttAdapter for SonioxAdapter {
     fn supports_native_multichannel(&self) -> bool {
         true
     }
 
     fn build_ws_url(&self, api_base: &str, _params: &ListenParams, _channels: u8) -> url::Url {
-        let mut url: url::Url = api_base.parse().expect("invalid api_base");
-
-        match url.scheme() {
-            "http" => {
-                let _ = url.set_scheme("ws");
-            }
-            "https" => {
-                let _ = url.set_scheme("wss");
-            }
-            "ws" | "wss" => {}
-            _ => {
-                let _ = url.set_scheme("wss");
-            }
-        }
-
-        url
+        format!("wss://{}/transcribe-websocket", Self::ws_host(api_base))
+            .parse()
+            .expect("invalid_ws_url")
     }
 
     fn build_auth_header(&self, _api_key: Option<&str>) -> Option<(&'static str, String)> {
@@ -52,28 +41,6 @@ impl RealtimeSttAdapter for SonioxAdapter {
             }
         };
 
-        #[derive(Serialize)]
-        struct Context {
-            #[serde(skip_serializing_if = "Vec::is_empty")]
-            terms: Vec<String>,
-        }
-
-        #[derive(Serialize)]
-        struct SonioxConfig<'a> {
-            api_key: &'a str,
-            model: &'a str,
-            audio_format: &'a str,
-            num_channels: u8,
-            sample_rate: u32,
-            #[serde(skip_serializing_if = "Vec::is_empty")]
-            language_hints: Vec<String>,
-            include_nonfinal: bool,
-            enable_endpoint_detection: bool,
-            enable_speaker_diarization: bool,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            context: Option<Context>,
-        }
-
         let model = params.model.as_deref().unwrap_or("stt-rt-preview");
 
         let context = if params.keywords.is_empty() {
@@ -84,14 +51,19 @@ impl RealtimeSttAdapter for SonioxAdapter {
             })
         };
 
+        let language_hints = params
+            .languages
+            .iter()
+            .map(|lang| lang.iso639().code().to_string())
+            .collect();
+
         let cfg = SonioxConfig {
             api_key,
             model,
             audio_format: "pcm_s16le",
             num_channels: channels,
             sample_rate: params.sample_rate,
-            language_hints: Self::language_hints(params),
-            include_nonfinal: true,
+            language_hints,
             enable_endpoint_detection: true,
             enable_speaker_diarization: true,
             context,
@@ -102,52 +74,6 @@ impl RealtimeSttAdapter for SonioxAdapter {
     }
 
     fn parse_response(&self, raw: &str) -> Option<StreamResponse> {
-        #[derive(Deserialize)]
-        struct Token {
-            text: String,
-            #[serde(default)]
-            start_ms: Option<u64>,
-            #[serde(default)]
-            end_ms: Option<u64>,
-            #[serde(default)]
-            confidence: Option<f64>,
-            #[serde(default)]
-            is_final: Option<bool>,
-            #[serde(default)]
-            speaker: Option<SpeakerId>,
-            #[serde(default)]
-            channel: Option<u8>,
-        }
-
-        #[derive(Deserialize)]
-        #[serde(untagged)]
-        enum SpeakerId {
-            Num(i32),
-            Str(String),
-        }
-
-        impl SpeakerId {
-            fn as_i32(&self) -> Option<i32> {
-                match self {
-                    SpeakerId::Num(n) => Some(*n),
-                    SpeakerId::Str(s) => s
-                        .trim_start_matches(|c: char| !c.is_ascii_digit())
-                        .parse()
-                        .ok(),
-                }
-            }
-        }
-
-        #[derive(Deserialize)]
-        struct SonioxMessage {
-            #[serde(default)]
-            tokens: Vec<Token>,
-            #[serde(default)]
-            finished: Option<bool>,
-            #[serde(default)]
-            error: Option<String>,
-        }
-
         let msg: SonioxMessage = match serde_json::from_str(raw) {
             Ok(m) => m,
             Err(e) => {
@@ -156,8 +82,8 @@ impl RealtimeSttAdapter for SonioxAdapter {
             }
         };
 
-        if let Some(error) = msg.error {
-            tracing::error!(error = error, "soniox_error");
+        if let Some(error_msg) = &msg.error_message {
+            tracing::error!(error_code = ?msg.error_code, error_message = %error_msg, "soniox_error");
             return None;
         }
 
@@ -235,4 +161,73 @@ impl RealtimeSttAdapter for SonioxAdapter {
     fn finalize_message(&self) -> Message {
         Message::Text(r#"{"type":"finalize"}"#.into())
     }
+}
+
+#[derive(Serialize)]
+struct Context {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    terms: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct SonioxConfig<'a> {
+    api_key: &'a str,
+    model: &'a str,
+    audio_format: &'a str,
+    num_channels: u8,
+    sample_rate: u32,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    language_hints: Vec<String>,
+    enable_endpoint_detection: bool,
+    enable_speaker_diarization: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    context: Option<Context>,
+}
+
+#[derive(Deserialize)]
+struct Token {
+    text: String,
+    #[serde(default)]
+    start_ms: Option<u64>,
+    #[serde(default)]
+    end_ms: Option<u64>,
+    #[serde(default)]
+    confidence: Option<f64>,
+    #[serde(default)]
+    is_final: Option<bool>,
+    #[serde(default)]
+    speaker: Option<SpeakerId>,
+    #[serde(default)]
+    channel: Option<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum SpeakerId {
+    Num(i32),
+    Str(String),
+}
+
+impl SpeakerId {
+    fn as_i32(&self) -> Option<i32> {
+        match self {
+            SpeakerId::Num(n) => Some(*n),
+            SpeakerId::Str(s) => s
+                .trim_start_matches(|c: char| !c.is_ascii_digit())
+                .parse()
+                .ok(),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct SonioxMessage {
+    #[serde(default)]
+    tokens: Vec<Token>,
+    #[serde(default)]
+    finished: Option<bool>,
+    #[serde(default)]
+    error_code: Option<i32>,
+    #[serde(default)]
+    error_message: Option<String>,
 }

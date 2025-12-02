@@ -463,9 +463,11 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
     you can do that in the **advanced** section.`
         : providerId === "soniox"
           ? `Use [Soniox](https://soniox.com) for transcriptions.`
-          : providerId === "custom"
-            ? `We only support **Deepgram compatible** endpoints for now.`
-            : "";
+          : providerId === "fireworks"
+            ? `Use [Fireworks AI](https://fireworks.ai) for transcriptions.`
+            : providerId === "custom"
+              ? `We only support **Deepgram compatible** endpoints for now.`
+              : "";
 
   if (!content.trim()) {
     return null;

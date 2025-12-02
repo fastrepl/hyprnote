@@ -1,10 +1,12 @@
 mod argmax;
 mod deepgram;
+mod fireworks;
 mod owhisper;
 mod soniox;
 
 pub use argmax::*;
 pub use deepgram::*;
+pub use fireworks::*;
 pub use soniox::*;
 
 use std::future::Future;

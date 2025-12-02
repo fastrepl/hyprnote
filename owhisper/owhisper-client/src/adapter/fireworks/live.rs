@@ -1,0 +1,257 @@
+use hypr_ws::client::Message;
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
+use owhisper_interface::ListenParams;
+use serde::Deserialize;
+
+use super::FireworksAdapter;
+use crate::adapter::RealtimeSttAdapter;
+
+// https://docs.fireworks.ai/guides/querying-asr-models#streaming-transcription
+// https://docs.fireworks.ai/api-reference/audio-streaming-transcriptions
+impl RealtimeSttAdapter for FireworksAdapter {
+    fn supports_native_multichannel(&self) -> bool {
+        false
+    }
+
+    fn build_ws_url(&self, api_base: &str, params: &ListenParams, _channels: u8) -> url::Url {
+        let host = Self::ws_host(api_base);
+        let mut url: url::Url = format!("wss://{}/v1/audio/transcriptions/streaming", host)
+            .parse()
+            .expect("invalid_ws_url");
+
+        {
+            let mut query_pairs = url.query_pairs_mut();
+
+            query_pairs.append_pair("response_format", "verbose_json");
+            query_pairs.append_pair("timestamp_granularities", "word,segment");
+
+            if let Some(lang) = params.languages.first() {
+                query_pairs.append_pair("language", lang.iso639().code());
+            }
+        }
+
+        url
+    }
+
+    fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
+        api_key.map(|key| ("Authorization", key.to_string()))
+    }
+
+    fn keep_alive_message(&self) -> Option<Message> {
+        None
+    }
+
+    fn finalize_message(&self) -> Message {
+        Message::Text(r#"{"checkpoint_id":"final"}"#.into())
+    }
+
+    fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
+        let msg: FireworksMessage = match serde_json::from_str(raw) {
+            Ok(m) => m,
+            Err(e) => {
+                tracing::warn!(error = ?e, raw = raw, "fireworks_json_parse_failed");
+                return vec![];
+            }
+        };
+
+        if msg.checkpoint_id.is_some() {
+            return vec![];
+        }
+
+        let mut responses = Vec::new();
+
+        if !msg.segments.is_empty() {
+            for segment in msg.segments {
+                let words_to_use = if segment.words.is_empty() {
+                    &msg.words
+                } else {
+                    &segment.words
+                };
+
+                let is_final = words_to_use.iter().all(|w| w.is_final);
+
+                let words: Vec<Word> = words_to_use
+                    .iter()
+                    .map(|w| Word {
+                        word: w.word.clone(),
+                        start: w.start.unwrap_or(0.0),
+                        end: w.end.unwrap_or(0.0),
+                        confidence: w.probability.unwrap_or(1.0),
+                        speaker: None,
+                        punctuated_word: Some(w.word.clone()),
+                        language: w.language.clone(),
+                    })
+                    .collect();
+
+                let (start, duration) = if let (Some(first), Some(last)) =
+                    (words_to_use.first(), words_to_use.last())
+                {
+                    let start_secs = first.start.unwrap_or(0.0);
+                    let end_secs = last.end.unwrap_or(0.0);
+                    (start_secs, end_secs - start_secs)
+                } else {
+                    (segment.start.unwrap_or(0.0), segment.end.unwrap_or(0.0))
+                };
+
+                let channel = Channel {
+                    alternatives: vec![Alternatives {
+                        transcript: segment.text,
+                        words,
+                        confidence: 1.0,
+                        languages: vec![],
+                    }],
+                };
+
+                responses.push(StreamResponse::TranscriptResponse {
+                    is_final,
+                    speech_final: is_final,
+                    from_finalize: false,
+                    start,
+                    duration,
+                    channel,
+                    metadata: Metadata::default(),
+                    channel_index: vec![0, 1],
+                });
+            }
+        } else if !msg.text.is_empty() {
+            let is_final = msg.words.iter().all(|w| w.is_final);
+
+            let words: Vec<Word> = msg
+                .words
+                .iter()
+                .map(|w| Word {
+                    word: w.word.clone(),
+                    start: w.start.unwrap_or(0.0),
+                    end: w.end.unwrap_or(0.0),
+                    confidence: w.probability.unwrap_or(1.0),
+                    speaker: None,
+                    punctuated_word: Some(w.word.clone()),
+                    language: w.language.clone(),
+                })
+                .collect();
+
+            let (start, duration) =
+                if let (Some(first), Some(last)) = (msg.words.first(), msg.words.last()) {
+                    let start_secs = first.start.unwrap_or(0.0);
+                    let end_secs = last.end.unwrap_or(0.0);
+                    (start_secs, end_secs - start_secs)
+                } else {
+                    (0.0, 0.0)
+                };
+
+            let channel = Channel {
+                alternatives: vec![Alternatives {
+                    transcript: msg.text,
+                    words,
+                    confidence: 1.0,
+                    languages: vec![],
+                }],
+            };
+
+            responses.push(StreamResponse::TranscriptResponse {
+                is_final,
+                speech_final: is_final,
+                from_finalize: false,
+                start,
+                duration,
+                channel,
+                metadata: Metadata::default(),
+                channel_index: vec![0, 1],
+            });
+        }
+
+        responses
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct FireworksMessage {
+    #[serde(default)]
+    text: String,
+    #[serde(default)]
+    words: Vec<FireworksWord>,
+    #[serde(default)]
+    segments: Vec<Segment>,
+    #[serde(default)]
+    checkpoint_id: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Segment {
+    #[allow(dead_code)]
+    id: String,
+    text: String,
+    #[serde(default)]
+    start: Option<f64>,
+    #[serde(default)]
+    end: Option<f64>,
+    #[serde(default)]
+    words: Vec<FireworksWord>,
+}
+
+#[derive(Debug, Deserialize)]
+struct FireworksWord {
+    word: String,
+    #[serde(default)]
+    start: Option<f64>,
+    #[serde(default)]
+    end: Option<f64>,
+    #[serde(default)]
+    probability: Option<f64>,
+    #[serde(default)]
+    is_final: bool,
+    #[serde(default)]
+    language: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use futures_util::StreamExt;
+    use hypr_audio_utils::AudioFormatExt;
+
+    use super::FireworksAdapter;
+    use crate::{live::ListenClientInput, ListenClient};
+
+    #[tokio::test]
+    async fn test_client() {
+        let _ = tracing_subscriber::fmt::try_init();
+
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap()
+        .to_i16_le_chunks(16000, 512);
+
+        let input = Box::pin(tokio_stream::StreamExt::throttle(
+            audio.map(|chunk| ListenClientInput::Audio(chunk)),
+            std::time::Duration::from_millis(20),
+        ));
+        let client = ListenClient::builder()
+            .adapter::<FireworksAdapter>()
+            .api_base("https://api.fireworks.ai")
+            .api_key(std::env::var("FIREWORKS_API_KEY").unwrap_or_default())
+            .params(owhisper_interface::ListenParams {
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_single();
+
+        let (stream, _) = client.from_realtime_audio(input).await.unwrap();
+        futures_util::pin_mut!(stream);
+
+        while let Some(result) = stream.next().await {
+            match result {
+                Ok(response) => match response {
+                    owhisper_interface::stream::StreamResponse::TranscriptResponse {
+                        channel,
+                        ..
+                    } => {
+                        println!("{:?}", channel.alternatives.first().unwrap().transcript);
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
+    }
+}

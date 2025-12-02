@@ -6,7 +6,8 @@ mod live;
 use std::marker::PhantomData;
 
 pub use adapter::{
-    ArgmaxAdapter, BatchSttAdapter, DeepgramAdapter, RealtimeSttAdapter, SonioxAdapter,
+    ArgmaxAdapter, BatchSttAdapter, DeepgramAdapter, FireworksAdapter, RealtimeSttAdapter,
+    SonioxAdapter,
 };
 pub use batch::BatchClient;
 pub use error::Error;

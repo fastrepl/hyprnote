@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import { Fireworks, Groq } from "@lobehub/icons";
+import { Fireworks } from "@lobehub/icons";
 import { queryOptions } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -121,22 +121,12 @@ export const PROVIDERS = [
   },
   {
     disabled: true,
-    id: "groq",
-    displayName: "Groq",
-    badge: null,
-    icon: <Groq size={16} />,
-    baseUrl: "https://api.groq.com/v1",
-    models: ["whisper-large-v3-turbo", "whisper-large-v3"],
-    requiresPro: false,
-  },
-  {
-    disabled: true,
     id: "fireworks",
     displayName: "Fireworks",
     badge: null,
     icon: <Fireworks size={16} />,
-    baseUrl: "https://api.firework.ai/v1",
-    models: ["whisper-large-v3-turbo", "whisper-large-v3"],
+    baseUrl: "https://api.fireworks.ai",
+    models: ["Default"],
     requiresPro: false,
   },
 ] as const satisfies readonly Provider[];

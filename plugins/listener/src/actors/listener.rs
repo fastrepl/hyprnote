@@ -5,7 +5,8 @@ use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
 use owhisper_client::{
-    ArgmaxAdapter, DeepgramAdapter, FinalizeHandle, RealtimeSttAdapter, SonioxAdapter,
+    ArgmaxAdapter, DeepgramAdapter, FinalizeHandle, FireworksAdapter, RealtimeSttAdapter,
+    SonioxAdapter,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -207,6 +208,17 @@ fn is_soniox_base_url(base_url: &str) -> bool {
     }
 }
 
+fn is_fireworks_base_url(base_url: &str) -> bool {
+    if let Ok(parsed) = url::Url::parse(base_url) {
+        parsed
+            .host_str()
+            .map(|h| h.contains("fireworks.ai"))
+            .unwrap_or(false)
+    } else {
+        base_url.contains("fireworks.ai")
+    }
+}
+
 async fn spawn_rx_task(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
@@ -224,6 +236,8 @@ async fn spawn_rx_task(
                 spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
             } else if is_soniox_base_url(&args.base_url) {
                 spawn_rx_task_single_with_adapter::<SonioxAdapter>(args, myself).await
+            } else if is_fireworks_base_url(&args.base_url) {
+                spawn_rx_task_single_with_adapter::<FireworksAdapter>(args, myself).await
             } else {
                 spawn_rx_task_single_with_adapter::<DeepgramAdapter>(args, myself).await
             }
@@ -233,6 +247,8 @@ async fn spawn_rx_task(
                 spawn_rx_task_dual_with_adapter::<ArgmaxAdapter>(args, myself).await
             } else if is_soniox_base_url(&args.base_url) {
                 spawn_rx_task_dual_with_adapter::<SonioxAdapter>(args, myself).await
+            } else if is_fireworks_base_url(&args.base_url) {
+                spawn_rx_task_dual_with_adapter::<FireworksAdapter>(args, myself).await
             } else {
                 spawn_rx_task_dual_with_adapter::<DeepgramAdapter>(args, myself).await
             }

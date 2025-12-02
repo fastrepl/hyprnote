@@ -54,7 +54,7 @@ function Component() {
   const search = Route.useSearch();
 
   const publishedArticles = allArticles.filter(
-    (a) => import.meta.env.DEV || a.published !== false,
+    (a) => import.meta.env.DEV || a.published === true,
   );
   const sortedArticles = [...publishedArticles].sort((a, b) => {
     const aDate = a.updated || a.created;

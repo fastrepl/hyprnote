@@ -50,7 +50,7 @@ function Component() {
           <main className="flex-1">
             <Outlet />
           </main>
-          {!isDocsPage && <Footer />}
+          <Footer />
           {isDocsPage && (
             <MobileDocsDrawer
               isOpen={isDocsDrawerOpen}

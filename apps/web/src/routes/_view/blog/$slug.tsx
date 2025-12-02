@@ -1,5 +1,4 @@
 import { MDXContent } from "@content-collections/mdx/react";
-import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allArticles } from "content-collections";
 import { motion } from "motion/react";
@@ -8,14 +7,11 @@ import { useEffect, useState } from "react";
 import { cn } from "@hypr/utils";
 
 import { CtaCard } from "@/components/cta-card";
+import { DownloadButton } from "@/components/download-button";
 import { Image } from "@/components/image";
 import { Callout, Mermaid, Tweet } from "@/components/mdx";
-
-const AUTHOR_AVATARS: Record<string, string> = {
-  "John Jeong": "/api/images/team/john.png",
-  Harshika: "/api/images/team/harshika.jpeg",
-  "Yujong Lee": "/api/images/team/yujong.png",
-};
+import { SlashSeparator } from "@/components/slash-separator";
+import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
 export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
@@ -83,242 +79,73 @@ export const Route = createFileRoute("/_view/blog/$slug")({
 
 function Component() {
   const { article, relatedArticles } = Route.useLoaderData();
-  const [coverImageError, setCoverImageError] = useState(false);
-  const [coverImageLoaded, setCoverImageLoaded] = useState(false);
-
-  const hasCoverImage = !coverImageError;
 
   return (
-    <div
-      className="bg-linear-to-b from-white via-stone-50/20 to-white"
+    <main
+      className="flex-1 bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
-      <div className="min-h-screen max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <div className="flex gap-6">
-          <TableOfContents toc={article.toc} />
-
-          <main
-            className={cn([
-              "flex-1 min-w-0 pb-6 px-4 lg:px-0 lg:py-6",
-              !article.coverImage || coverImageError ? "pt-6" : "",
-            ])}
-          >
-            <CoverImage
-              article={article}
-              hasCoverImage={hasCoverImage}
-              coverImageLoaded={coverImageLoaded}
-              onLoad={() => setCoverImageLoaded(true)}
-              onError={() => setCoverImageError(true)}
-            />
-            <ArticleHeader article={article} />
-            <ArticleContent article={article} />
-            <RelatedArticlesMobile relatedArticles={relatedArticles} />
-            <ArticleFooter />
-          </main>
-
-          <RightSidebar relatedArticles={relatedArticles} />
+      <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
+        <HeroSection article={article} />
+        <SlashSeparator />
+        <div className="max-w-[800px] mx-auto px-4 py-8">
+          <ArticleContent article={article} />
+          <RelatedArticlesSection relatedArticles={relatedArticles} />
+          <CTASection />
         </div>
-
         <MobileCTA />
       </div>
-    </div>
+    </main>
   );
 }
 
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
-  children: TocItem[];
-}
+const AUTHOR_AVATARS: Record<string, string> = {
+  "John Jeong": "/api/images/team/john.png",
+  Harshika: "/api/images/team/harshika.jpeg",
+  "Yujong Lee": "/api/images/team/yujong.png",
+};
 
-function buildTocTree(
-  toc: Array<{ id: string; text: string; level: number }>,
-): TocItem[] {
-  const tree: TocItem[] = [];
-  const stack: TocItem[] = [];
-
-  for (const item of toc) {
-    const node: TocItem = { ...item, children: [] };
-
-    while (stack.length > 0 && stack[stack.length - 1].level >= node.level) {
-      stack.pop();
-    }
-
-    if (stack.length === 0) {
-      tree.push(node);
-    } else {
-      stack[stack.length - 1].children.push(node);
-    }
-
-    stack.push(node);
-  }
-
-  return tree;
-}
-
-function TocNode({ item, depth = 0 }: { item: TocItem; depth?: number }) {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const hasChildren = item.children.length > 0;
-
-  return (
-    <div>
-      <div className="flex items-center gap-1">
-        {hasChildren && (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              setIsExpanded(!isExpanded);
-            }}
-            className="shrink-0 w-4 h-4 flex items-center justify-center text-neutral-400 hover:text-stone-600 transition-colors"
-            aria-label={isExpanded ? "Collapse" : "Expand"}
-          >
-            <Icon
-              icon={isExpanded ? "mdi:chevron-down" : "mdi:chevron-right"}
-              className="text-xs"
-            />
-          </button>
-        )}
-        <a
-          href={`#${item.id}`}
-          className={cn([
-            "flex-1 text-sm py-1 transition-colors block truncate",
-            "hover:text-stone-600 hover:bg-neutral-50",
-            !hasChildren && "ml-2",
-            item.level === 2 && "text-neutral-400",
-            item.level === 3 && "text-neutral-400/90",
-            item.level === 4 && "text-neutral-400/80",
-          ])}
-          style={{
-            paddingLeft: hasChildren ? 0 : depth > 0 ? `${depth * 0.5}rem` : 0,
-          }}
-        >
-          {item.text}
-        </a>
-      </div>
-      {hasChildren && isExpanded && (
-        <div className="ml-2">
-          {item.children.map((child) => (
-            <TocNode key={child.id} item={child} depth={depth + 1} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TableOfContents({
-  toc,
-}: {
-  toc: Array<{ id: string; text: string; level: number }>;
-}) {
-  const tocTree = buildTocTree(toc);
-
-  return (
-    <aside className="hidden lg:block w-64 shrink-0">
-      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto px-2 pt-6 pb-18 scrollbar-hide">
-        <Link
-          to="/blog"
-          className="mx-2 inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-4 font-serif"
-        >
-          <Icon icon="mdi:arrow-left" className="text-base" />
-          <span>Back to blog</span>
-        </Link>
-
-        {tocTree.length > 0 && (
-          <nav className="space-y-1">
-            {tocTree.map((item) => (
-              <TocNode key={item.id} item={item} />
-            ))}
-          </nav>
-        )}
-      </div>
-    </aside>
-  );
-}
-
-function ArticleHeader({ article }: { article: any }) {
+function HeroSection({ article }: { article: any }) {
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
-    <header className="mb-8 lg:mb-12">
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-600 mb-4">
+    <header className="py-12 lg:py-16 text-center max-w-[800px] mx-auto px-4">
+      <Link
+        to="/blog"
+        className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8"
+      >
+        <span>←</span>
+        <span>Back to Blog</span>
+      </Link>
+
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 mb-6">
         {article.title}
       </h1>
-      <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed mb-6">
-        {article.summary}
-      </p>
 
-      <div className="flex items-center gap-4 text-sm text-neutral-500">
-        <div className="flex items-center gap-2">
+      {article.author && (
+        <div className="flex items-center justify-center gap-3 mb-2">
           {avatarUrl && (
             <img
               src={avatarUrl}
               alt={article.author}
-              className="w-6 h-6 rounded-full object-cover"
+              className="w-8 h-8 rounded-full object-cover"
             />
           )}
-          {article.author && <span>{article.author}</span>}
+          <p className="text-base text-neutral-600">{article.author}</p>
         </div>
-        {article.author && <span>·</span>}
-        <time dateTime={article.created}>
-          {new Date(article.created).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </time>
-        {article.updated && article.updated !== article.created && (
-          <>
-            <span>·</span>
-            <span className="text-neutral-400">
-              Updated{" "}
-              {new Date(article.updated).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
-          </>
-        )}
-      </div>
+      )}
+
+      <time
+        dateTime={article.created}
+        className="text-xs font-mono text-neutral-500"
+      >
+        {new Date(article.created).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}
+      </time>
     </header>
-  );
-}
-
-function CoverImage({
-  article,
-  hasCoverImage,
-  coverImageLoaded,
-  onLoad,
-  onError,
-}: {
-  article: any;
-  hasCoverImage: boolean;
-  coverImageLoaded: boolean;
-  onLoad: () => void;
-  onError: () => void;
-}) {
-  if (!article.coverImage || !hasCoverImage) {
-    return null;
-  }
-
-  return (
-    <div className="mb-8 lg:mb-12 -mx-4 sm:mx-0 sm:pt-6">
-      <Image
-        src={article.coverImage}
-        alt={article.title}
-        width={1200}
-        height={630}
-        className={cn([
-          "w-full aspect-40/21 object-cover rounded-none sm:rounded-sm border-y sm:border border-neutral-200 transition-opacity duration-300",
-          coverImageLoaded ? "opacity-100" : "opacity-0",
-        ])}
-        onLoad={onLoad}
-        onError={onError}
-        loading="eager"
-      />
-    </div>
   );
 }
 
@@ -341,7 +168,7 @@ function ArticleContent({ article }: { article: any }) {
   );
 }
 
-function RelatedArticlesMobile({
+function RelatedArticlesSection({
   relatedArticles,
 }: {
   relatedArticles: any[];
@@ -351,76 +178,68 @@ function RelatedArticlesMobile({
   }
 
   return (
-    <div className="sm:hidden mt-16 pt-8 border-t border-neutral-100">
-      <h3 className="text-xl font-serif text-stone-600 mb-6">More articles</h3>
-      <div className="space-y-4">
+    <div className="mt-16 pt-8 border-t border-neutral-100">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-serif text-stone-600">More articles</h3>
+        <Link
+          to="/blog"
+          className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
+        >
+          See all
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {relatedArticles.map((related) => (
-          <RelatedArticleCard key={related.slug} article={related} compact />
+          <RelatedArticleCard key={related.slug} article={related} />
         ))}
       </div>
     </div>
   );
 }
 
-function ArticleFooter() {
-  return (
-    <footer className="mt-16 pt-8 border-t border-neutral-100">
-      <Link
-        to="/blog"
-        className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors font-medium"
-      >
-        <span>←</span>
-        <span>View all articles</span>
-      </Link>
-    </footer>
-  );
-}
+function CTASection() {
+  const platform = usePlatform();
+  const platformCTA = getPlatformCTA(platform);
 
-function RightSidebar({ relatedArticles }: { relatedArticles: any[] }) {
   return (
-    <aside className="hidden sm:block w-80 shrink-0">
-      <div className="sticky top-[69px] space-y-4 px-4 py-6">
-        {relatedArticles.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider">
-                Recent articles
-              </h3>
-              <Link
-                to="/blog"
-                className="text-sm text-neutral-600 hover:text-stone-600 transition-colors"
-              >
-                See more
-              </Link>
-            </div>
-            <div className="space-y-4">
-              {relatedArticles.map((related) => (
-                <RelatedArticleCard key={related.slug} article={related} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-4">
-          <h3 className="font-serif text-base text-stone-600 mb-4">
-            Learn more about Hyprnote directly from the founders
-          </h3>
-          <a
-            href="/founders"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn([
-              "group px-4 h-10 flex items-center justify-center text-sm w-full",
-              "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
-              "hover:scale-[102%] active:scale-[98%]",
-              "transition-all",
-            ])}
-          >
-            Book a call
-          </a>
+    <section className="mt-16 py-16 -mx-4 px-4 bg-linear-to-t from-stone-50/30 to-stone-100/30">
+      <div className="flex flex-col gap-6 items-center text-center">
+        <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
+          <Image
+            src="/api/images/hyprnote/icon.png"
+            alt="Hyprnote"
+            width={144}
+            height={144}
+            className="size-36 mx-auto rounded-[40px] border border-neutral-100"
+          />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          Where conversations
+          <br className="sm:hidden" /> stay yours
+        </h2>
+        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          Start using Hyprnote today and bring clarity to your back-to-back
+          meetings
+        </p>
+        <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
+          {platformCTA.action === "download" ? (
+            <DownloadButton />
+          ) : (
+            <Link
+              to="/download"
+              className={cn([
+                "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+                "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
+                "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
+                "transition-all",
+              ])}
+            >
+              Download for free
+            </Link>
+          )}
         </div>
       </div>
-    </aside>
+    </section>
   );
 }
 
@@ -455,10 +274,8 @@ function MobileCTA() {
       animate={{ y: isVisible ? 0 : "100%" }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
     >
-      <a
-        href="/founders"
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        to="/download"
         className={cn([
           "group px-4 h-12 flex items-center justify-center text-base w-full",
           "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
@@ -466,59 +283,64 @@ function MobileCTA() {
           "transition-all",
         ])}
       >
-        Book a call with us
+        Download for free
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth="1.5"
           stroke="currentColor"
-          className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform"
+          className="h-5 w-5 ml-2 group-hover:translate-y-0.5 transition-transform"
         >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+            d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
           />
         </svg>
-      </a>
+      </Link>
     </motion.div>
   );
 }
 
-function RelatedArticleCard({
-  article,
-  compact = false,
-}: {
-  article: any;
-  compact?: boolean;
-}) {
+function RelatedArticleCard({ article }: { article: any }) {
+  const ogImage =
+    article.coverImage ||
+    `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}`;
+
   return (
     <Link
       to="/blog/$slug"
       params={{ slug: article.slug }}
-      className="group block p-4 border border-neutral-200 rounded-sm hover:border-neutral-200 hover:shadow-sm transition-all bg-white"
+      className="group block border border-neutral-200 rounded-sm hover:border-neutral-200 hover:shadow-sm transition-all bg-white overflow-hidden"
     >
-      <h4 className="font-serif text-sm text-stone-600 group-hover:text-stone-800 transition-colors line-clamp-2 mb-2">
-        {article.title}
-      </h4>
-      {!compact && (
+      <div className="aspect-40/21 overflow-hidden">
+        <img
+          src={ogImage}
+          alt={article.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+      </div>
+      <div className="p-4">
+        <h4 className="font-serif text-sm text-stone-600 group-hover:text-stone-800 transition-colors line-clamp-2 mb-2">
+          {article.title}
+        </h4>
         <p className="text-xs text-neutral-500 line-clamp-2 mb-2">
           {article.summary}
         </p>
-      )}
-      <time
-        dateTime={article.updated || article.created}
-        className="text-xs text-neutral-400"
-      >
-        {new Date(article.updated || article.created).toLocaleDateString(
-          "en-US",
-          {
-            month: "short",
-            day: "numeric",
-          },
-        )}
-      </time>
+        <time
+          dateTime={article.updated || article.created}
+          className="text-xs text-neutral-400"
+        >
+          {new Date(article.updated || article.created).toLocaleDateString(
+            "en-US",
+            {
+              month: "short",
+              day: "numeric",
+            },
+          )}
+        </time>
+      </div>
     </Link>
   );
 }

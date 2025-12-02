@@ -4123,6 +4123,7 @@ dependencies = [
  "tauri-plugin-listener2",
  "tauri-plugin-local-stt",
  "tauri-plugin-misc",
+ "tauri-plugin-network",
  "tauri-plugin-notification",
  "tauri-plugin-opener",
  "tauri-plugin-os",
@@ -15455,6 +15456,22 @@ dependencies = [
  "tauri-specta",
  "thiserror 2.0.17",
  "vergen-gix",
+]
+
+[[package]]
+name = "tauri-plugin-network"
+version = "0.1.0"
+dependencies = [
+ "ractor",
+ "ractor-supervisor",
+ "reqwest 0.12.24",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "tracing",
 ]
 
 [[package]]

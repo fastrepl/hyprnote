@@ -461,9 +461,11 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
     If you want to use a [Dedicated](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints)
     or [EU](https://developers.deepgram.com/reference/custom-endpoints#eu-endpoints) endpoint,
     you can do that in the **advanced** section.`
-        : providerId === "custom"
-          ? `We only support **Deepgram compatible** endpoints for now.`
-          : "";
+        : providerId === "soniox"
+          ? `Use [Soniox](https://soniox.com) for transcriptions.`
+          : providerId === "custom"
+            ? `We only support **Deepgram compatible** endpoints for now.`
+            : "";
 
   if (!content.trim()) {
     return null;

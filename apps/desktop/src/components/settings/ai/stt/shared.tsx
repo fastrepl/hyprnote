@@ -96,6 +96,17 @@ export const PROVIDERS = [
   },
   {
     disabled: false,
+    id: "soniox",
+    displayName: "Soniox",
+    icon: (
+      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
+    ),
+    baseUrl: "https://api.soniox.com",
+    models: ["stt-rt-preview"],
+    requiresPro: false,
+  },
+  {
+    disabled: false,
     id: "custom",
     displayName: "Custom",
     badge: null,

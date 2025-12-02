@@ -40,7 +40,7 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
         None
     }
 
-    fn parse_response(&self, raw: &str) -> Option<StreamResponse>;
+    fn parse_response(&self, raw: &str) -> Vec<StreamResponse>;
 }
 
 pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {

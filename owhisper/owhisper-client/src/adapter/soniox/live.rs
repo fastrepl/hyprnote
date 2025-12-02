@@ -10,7 +10,7 @@ use crate::adapter::RealtimeSttAdapter;
 // https://soniox.com/docs/stt/api-reference/websocket-api
 impl RealtimeSttAdapter for SonioxAdapter {
     fn supports_native_multichannel(&self) -> bool {
-        true
+        false
     }
 
     fn build_ws_url(&self, api_base: &str, _params: &ListenParams, _channels: u8) -> url::Url {
@@ -41,7 +41,12 @@ impl RealtimeSttAdapter for SonioxAdapter {
             }
         };
 
-        let model = params.model.as_deref().unwrap_or("stt-rt-preview");
+        let requested = params.model.as_deref().unwrap_or("stt-v3");
+        let model = match requested {
+            "stt-v3" => "stt-rt-v3",
+            "stt-rt-preview" => "stt-rt-v3",
+            other => other,
+        };
 
         let context = if params.keywords.is_empty() {
             None
@@ -73,89 +78,60 @@ impl RealtimeSttAdapter for SonioxAdapter {
         Some(Message::Text(json.into()))
     }
 
-    fn parse_response(&self, raw: &str) -> Option<StreamResponse> {
+    fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
         let msg: SonioxMessage = match serde_json::from_str(raw) {
             Ok(m) => m,
             Err(e) => {
                 tracing::warn!(error = ?e, raw = raw, "soniox_json_parse_failed");
-                return None;
+                return vec![];
             }
         };
 
         if let Some(error_msg) = &msg.error_message {
             tracing::error!(error_code = ?msg.error_code, error_message = %error_msg, "soniox_error");
-            return None;
+            return vec![];
         }
 
         let has_fin_token = msg.tokens.iter().any(|t| t.text == "<fin>");
-        let is_finished = msg.finished.unwrap_or(false) || has_fin_token;
+        let has_end_token = msg.tokens.iter().any(|t| t.text == "<end>");
+        let is_finished = msg.finished.unwrap_or(false) || has_fin_token || has_end_token;
 
         let content_tokens: Vec<_> = msg
             .tokens
-            .iter()
+            .into_iter()
             .filter(|t| t.text != "<fin>" && t.text != "<end>")
             .collect();
 
         if content_tokens.is_empty() && !is_finished {
-            return None;
+            return vec![];
         }
 
-        let all_final = content_tokens.iter().all(|t| t.is_final.unwrap_or(true));
+        let final_tokens: Vec<_> = content_tokens
+            .iter()
+            .filter(|t| t.is_final.unwrap_or(true))
+            .collect();
 
-        let mut words = Vec::with_capacity(content_tokens.len());
-        let mut transcript = String::new();
+        let non_final_tokens: Vec<_> = content_tokens
+            .iter()
+            .filter(|t| !t.is_final.unwrap_or(true))
+            .collect();
 
-        let channel_index = content_tokens.first().and_then(|t| t.channel).unwrap_or(0) as i32;
+        let mut responses = Vec::new();
 
-        for t in &content_tokens {
-            if !transcript.is_empty() && !t.text.starts_with(|c: char| c.is_ascii_punctuation()) {
-                transcript.push(' ');
-            }
-            transcript.push_str(&t.text);
-
-            let start_secs = t.start_ms.unwrap_or(0) as f64 / 1000.0;
-            let end_secs = t.end_ms.unwrap_or(0) as f64 / 1000.0;
-            let speaker = t.speaker.as_ref().and_then(|s| s.as_i32());
-
-            words.push(Word {
-                word: t.text.clone(),
-                start: start_secs,
-                end: end_secs,
-                confidence: t.confidence.unwrap_or(1.0),
-                speaker,
-                punctuated_word: Some(t.text.clone()),
-                language: None,
-            });
+        if !final_tokens.is_empty() {
+            responses.push(Self::build_response(
+                &final_tokens,
+                true,
+                is_finished,
+                has_fin_token,
+            ));
         }
 
-        let (start, duration) =
-            if let (Some(first), Some(last)) = (content_tokens.first(), content_tokens.last()) {
-                let start_secs = first.start_ms.unwrap_or(0) as f64 / 1000.0;
-                let end_secs = last.end_ms.unwrap_or(0) as f64 / 1000.0;
-                (start_secs, end_secs - start_secs)
-            } else {
-                (0.0, 0.0)
-            };
+        if !non_final_tokens.is_empty() {
+            responses.push(Self::build_response(&non_final_tokens, false, false, false));
+        }
 
-        let channel = Channel {
-            alternatives: vec![Alternatives {
-                transcript,
-                words,
-                confidence: 1.0,
-                languages: vec![],
-            }],
-        };
-
-        Some(StreamResponse::TranscriptResponse {
-            is_final: all_final || is_finished,
-            speech_final: is_finished,
-            from_finalize: has_fin_token,
-            start,
-            duration,
-            channel,
-            metadata: Metadata::default(),
-            channel_index: vec![channel_index, 1],
-        })
+        responses
     }
 
     fn finalize_message(&self) -> Message {
@@ -184,7 +160,7 @@ struct SonioxConfig<'a> {
     context: Option<Context>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Token {
     text: String,
     #[serde(default)]
@@ -197,11 +173,9 @@ struct Token {
     is_final: Option<bool>,
     #[serde(default)]
     speaker: Option<SpeakerId>,
-    #[serde(default)]
-    channel: Option<u8>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum SpeakerId {
     Num(i32),
@@ -220,7 +194,7 @@ impl SpeakerId {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct SonioxMessage {
     #[serde(default)]
     tokens: Vec<Token>,
@@ -230,4 +204,122 @@ struct SonioxMessage {
     error_code: Option<i32>,
     #[serde(default)]
     error_message: Option<String>,
+}
+
+impl SonioxAdapter {
+    fn build_response(
+        tokens: &[&Token],
+        is_final: bool,
+        speech_final: bool,
+        from_finalize: bool,
+    ) -> StreamResponse {
+        let mut words = Vec::with_capacity(tokens.len());
+        let mut transcript = String::new();
+
+        for t in tokens {
+            if t.text.trim().is_empty() {
+                transcript.push_str(&t.text);
+                continue;
+            }
+
+            transcript.push_str(&t.text);
+
+            let start_secs = t.start_ms.unwrap_or(0) as f64 / 1000.0;
+            let end_secs = t.end_ms.unwrap_or(0) as f64 / 1000.0;
+            let speaker = t.speaker.as_ref().and_then(|s| s.as_i32());
+
+            words.push(Word {
+                word: t.text.clone(),
+                start: start_secs,
+                end: end_secs,
+                confidence: t.confidence.unwrap_or(1.0),
+                speaker,
+                punctuated_word: Some(t.text.clone()),
+                language: None,
+            });
+        }
+
+        let (start, duration) = if let (Some(first), Some(last)) = (tokens.first(), tokens.last()) {
+            let start_secs = first.start_ms.unwrap_or(0) as f64 / 1000.0;
+            let end_secs = last.end_ms.unwrap_or(0) as f64 / 1000.0;
+            (start_secs, end_secs - start_secs)
+        } else {
+            (0.0, 0.0)
+        };
+
+        let channel = Channel {
+            alternatives: vec![Alternatives {
+                transcript,
+                words,
+                confidence: 1.0,
+                languages: vec![],
+            }],
+        };
+
+        StreamResponse::TranscriptResponse {
+            is_final,
+            speech_final,
+            from_finalize,
+            start,
+            duration,
+            channel,
+            metadata: Metadata::default(),
+            channel_index: vec![0, 1],
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures_util::StreamExt;
+    use hypr_audio_utils::AudioFormatExt;
+    use owhisper_interface::MixedMessage;
+
+    use super::SonioxAdapter;
+    use crate::ListenClient;
+
+    #[tokio::test]
+    async fn test_client() {
+        let _ = tracing_subscriber::fmt::try_init();
+
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap()
+        .to_i16_le_chunks(16000, 512);
+
+        let input = Box::pin(tokio_stream::StreamExt::throttle(
+            audio.map(|chunk| MixedMessage::Audio((chunk.clone(), chunk.clone()))),
+            std::time::Duration::from_millis(20),
+        ));
+
+        let client = ListenClient::builder()
+            .adapter::<SonioxAdapter>()
+            .api_base("https://api.soniox.com")
+            .api_key(std::env::var("SONIOX_API_KEY").unwrap_or_default())
+            .params(owhisper_interface::ListenParams {
+                model: Some("stt-v3".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_dual();
+
+        let (stream, _) = client.from_realtime_audio(input).await.unwrap();
+        futures_util::pin_mut!(stream);
+
+        while let Some(result) = stream.next().await {
+            match result {
+                Ok(response) => match response {
+                    owhisper_interface::stream::StreamResponse::TranscriptResponse {
+                        channel,
+                        ..
+                    } => {
+                        println!("{:?}", channel.alternatives.first().unwrap().transcript);
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
+    }
 }

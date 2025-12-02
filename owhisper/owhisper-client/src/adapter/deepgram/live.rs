@@ -74,8 +74,8 @@ impl RealtimeSttAdapter for DeepgramAdapter {
         )
     }
 
-    fn parse_response(&self, raw: &str) -> Option<StreamResponse> {
-        serde_json::from_str(raw).ok()
+    fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
+        serde_json::from_str(raw).into_iter().collect()
     }
 }
 

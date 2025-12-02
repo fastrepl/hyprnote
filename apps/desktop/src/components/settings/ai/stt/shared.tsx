@@ -28,6 +28,10 @@ export const displayModelId = (model: string) => {
     return "Cloud";
   }
 
+  if (model === "stt-v3") {
+    return "Soniox v3";
+  }
+
   if (model.startsWith("am-")) {
     const am = model as AmModel;
     if (am == "am-parakeet-v2") {
@@ -92,6 +96,17 @@ export const PROVIDERS = [
       "nova-2-automotive",
       "nova-2-atc",
     ],
+    requiresPro: false,
+  },
+  {
+    disabled: false,
+    id: "soniox",
+    displayName: "Soniox",
+    icon: (
+      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
+    ),
+    baseUrl: "https://api.soniox.com",
+    models: ["stt-v3"],
     requiresPro: false,
   },
   {

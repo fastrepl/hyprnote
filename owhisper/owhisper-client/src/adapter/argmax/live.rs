@@ -27,7 +27,7 @@ impl RealtimeSttAdapter for ArgmaxAdapter {
         self.inner.finalize_message()
     }
 
-    fn parse_response(&self, raw: &str) -> Option<StreamResponse> {
+    fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
         self.inner.parse_response(raw)
     }
 }

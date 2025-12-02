@@ -10668,6 +10668,7 @@ dependencies = [
  "owhisper-interface",
  "reqwest 0.12.24",
  "rodio",
+ "serde",
  "serde_json",
  "thiserror 2.0.17",
  "tokio",

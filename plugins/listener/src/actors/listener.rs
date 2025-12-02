@@ -4,7 +4,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
-use owhisper_client::{ArgmaxAdapter, DeepgramAdapter, FinalizeHandle, SttAdapter};
+use owhisper_client::{ArgmaxAdapter, DeepgramAdapter, FinalizeHandle, SonioxAdapter, SttAdapter};
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
@@ -194,6 +194,17 @@ fn is_local_stt_base_url(base_url: &str) -> bool {
     }
 }
 
+fn is_soniox_base_url(base_url: &str) -> bool {
+    if let Ok(parsed) = url::Url::parse(base_url) {
+        parsed
+            .host_str()
+            .map(|h| h.contains("soniox.com"))
+            .unwrap_or(false)
+    } else {
+        base_url.contains("soniox.com")
+    }
+}
+
 async fn spawn_rx_task(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
@@ -207,11 +218,19 @@ async fn spawn_rx_task(
 > {
     match args.mode {
         crate::actors::ChannelMode::MicOnly | crate::actors::ChannelMode::SpeakerOnly => {
-            spawn_rx_task_single(args, myself).await
+            if is_local_stt_base_url(&args.base_url) {
+                spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
+            } else if is_soniox_base_url(&args.base_url) {
+                spawn_rx_task_single_with_adapter::<SonioxAdapter>(args, myself).await
+            } else {
+                spawn_rx_task_single_with_adapter::<DeepgramAdapter>(args, myself).await
+            }
         }
         crate::actors::ChannelMode::MicAndSpeaker => {
             if is_local_stt_base_url(&args.base_url) {
                 spawn_rx_task_dual_with_adapter::<ArgmaxAdapter>(args, myself).await
+            } else if is_soniox_base_url(&args.base_url) {
+                spawn_rx_task_dual_with_adapter::<SonioxAdapter>(args, myself).await
             } else {
                 spawn_rx_task_dual_with_adapter::<DeepgramAdapter>(args, myself).await
             }
@@ -246,7 +265,7 @@ fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
     (session_offset_secs, extra)
 }
 
-async fn spawn_rx_task_single(
+async fn spawn_rx_task_single_with_adapter<A: SttAdapter>(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
 ) -> Result<
@@ -263,6 +282,7 @@ async fn spawn_rx_task_single(
     let (tx, rx) = tokio::sync::mpsc::channel::<MixedMessage<Bytes, ControlMessage>>(32);
 
     let client = owhisper_client::ListenClient::builder()
+        .adapter::<A>()
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
@@ -378,7 +398,7 @@ async fn process_stream<S, E, H>(
     loop {
         tokio::select! {
             _ = &mut shutdown_rx => {
-                handle.finalize_with_text(serde_json::json!({"type": "Finalize"}).to_string().into()).await;
+                handle.finalize().await;
 
                 let finalize_timeout = tokio::time::sleep(Duration::from_secs(5));
                 tokio::pin!(finalize_timeout);

@@ -67,6 +67,7 @@ impl WebSocketClient {
 
     pub async fn from_audio<T: WebSocketIO>(
         &self,
+        initial_message: Option<Message>,
         mut audio_stream: impl Stream<Item = T::Data> + Send + Unpin + 'static,
     ) -> Result<
         (
@@ -96,6 +97,14 @@ impl WebSocketClient {
         let handle = WebSocketHandle { control_tx };
 
         let _send_task = tokio::spawn(async move {
+            if let Some(msg) = initial_message {
+                if let Err(e) = ws_sender.send(msg).await {
+                    tracing::error!("ws_initial_message_failed: {:?}", e);
+                    let _ = error_tx.send(e.into());
+                    return;
+                }
+            }
+
             let mut last_outbound_at = tokio::time::Instant::now();
             loop {
                 let mut keep_alive_fut = if let Some(cfg) = keep_alive_config.as_ref() {
@@ -128,18 +137,14 @@ impl WebSocketClient {
                         }
                         last_outbound_at = tokio::time::Instant::now();
                     }
-                    Some(cmd) = control_rx.recv() => {
-                        match cmd {
-                            ControlCommand::Finalize(maybe_msg) => {
-                                if let Some(msg) = maybe_msg {
-                                    if let Err(e) = ws_sender.send(msg).await {
-                                        tracing::error!("ws_finalize_failed: {:?}", e);
-                                        let _ = error_tx.send(e.into());
-                                        break;
-                                    }
-                                    last_outbound_at = tokio::time::Instant::now();
-                                }
+                    Some(ControlCommand::Finalize(maybe_msg)) = control_rx.recv() => {
+                        if let Some(msg) = maybe_msg {
+                            if let Err(e) = ws_sender.send(msg).await {
+                                tracing::error!("ws_finalize_failed: {:?}", e);
+                                let _ = error_tx.send(e.into());
+                                break;
                             }
+                            last_outbound_at = tokio::time::Instant::now();
                         }
                     }
                     else => break,

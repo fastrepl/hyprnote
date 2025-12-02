@@ -10,6 +10,7 @@ use crate::BatchEvent;
 #[serde(rename_all = "lowercase")]
 pub enum BatchProvider {
     Deepgram,
+    Soniox,
     Am,
 }
 
@@ -123,7 +124,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                 .emit(&app)
                 .map_err(|_| crate::Error::BatchStartFailed("failed to emit event".to_string()))?;
 
-                let client = owhisper_client::BatchClient::builder()
+                let client = owhisper_client::ListenClient::builder()
                     .api_base(params.base_url.clone())
                     .api_key(params.api_key.clone())
                     .params(listen_params)
@@ -133,6 +134,36 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                 let response = client.transcribe_file(&params.file_path).await?;
 
                 tracing::info!("batch transcription completed, emitting response");
+
+                BatchEvent::BatchResponse {
+                    session_id: params.session_id.clone(),
+                    response,
+                }
+                .emit(&app)
+                .map_err(|_| crate::Error::BatchStartFailed("failed to emit event".to_string()))?;
+
+                Ok(())
+            }
+            BatchProvider::Soniox => {
+                tracing::debug!("using Soniox batch client");
+
+                BatchEvent::BatchStarted {
+                    session_id: params.session_id.clone(),
+                }
+                .emit(&app)
+                .map_err(|_| crate::Error::BatchStartFailed("failed to emit event".to_string()))?;
+
+                let client = owhisper_client::ListenClient::builder()
+                    .adapter::<owhisper_client::SonioxAdapter>()
+                    .api_base(params.base_url.clone())
+                    .api_key(params.api_key.clone())
+                    .params(listen_params)
+                    .build_batch();
+
+                tracing::debug!("transcribing file: {}", params.file_path);
+                let response = client.transcribe_file(&params.file_path).await?;
+
+                tracing::info!("Soniox batch transcription completed, emitting response");
 
                 BatchEvent::BatchResponse {
                     session_id: params.session_id.clone(),

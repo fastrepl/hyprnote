@@ -4,7 +4,9 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
-use owhisper_client::{ArgmaxAdapter, DeepgramAdapter, FinalizeHandle, SonioxAdapter, SttAdapter};
+use owhisper_client::{
+    ArgmaxAdapter, DeepgramAdapter, FinalizeHandle, RealtimeSttAdapter, SonioxAdapter,
+};
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SupervisionEvent};
@@ -265,7 +267,7 @@ fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
     (session_offset_secs, extra)
 }
 
-async fn spawn_rx_task_single_with_adapter<A: SttAdapter>(
+async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
 ) -> Result<
@@ -324,7 +326,7 @@ async fn spawn_rx_task_single_with_adapter<A: SttAdapter>(
     Ok((ChannelSender::Single(tx), rx_task, shutdown_tx))
 }
 
-async fn spawn_rx_task_dual_with_adapter<A: SttAdapter>(
+async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
 ) -> Result<

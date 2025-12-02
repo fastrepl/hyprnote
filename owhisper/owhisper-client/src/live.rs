@@ -9,20 +9,20 @@ use hypr_ws::client::{
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 
-use crate::{DeepgramAdapter, ListenClientBuilder, SttAdapter};
+use crate::{DeepgramAdapter, ListenClientBuilder, RealtimeSttAdapter};
 
 pub type ListenClientInput = MixedMessage<bytes::Bytes, ControlMessage>;
 pub type ListenClientDualInput = MixedMessage<(bytes::Bytes, bytes::Bytes), ControlMessage>;
 
 #[derive(Clone)]
-pub struct ListenClient<A: SttAdapter = DeepgramAdapter> {
+pub struct ListenClient<A: RealtimeSttAdapter = DeepgramAdapter> {
     pub(crate) adapter: A,
     pub(crate) request: ClientRequestBuilder,
     pub(crate) initial_message: Option<Message>,
 }
 
 #[derive(Clone)]
-pub struct ListenClientDual<A: SttAdapter> {
+pub struct ListenClientDual<A: RealtimeSttAdapter> {
     pub(crate) adapter: A,
     pub(crate) request: ClientRequestBuilder,
     pub(crate) initial_message: Option<Message>,
@@ -181,7 +181,7 @@ impl ListenClient<DeepgramAdapter> {
     }
 }
 
-impl<A: SttAdapter> ListenClient<A> {
+impl<A: RealtimeSttAdapter> ListenClient<A> {
     pub async fn from_realtime_audio(
         self,
         audio_stream: impl Stream<Item = ListenClientInput> + Send + Unpin + 'static,
@@ -219,7 +219,7 @@ impl<A: SttAdapter> ListenClient<A> {
 
 type DualOutputStream = Pin<Box<dyn Stream<Item = Result<StreamResponse, hypr_ws::Error>> + Send>>;
 
-impl<A: SttAdapter> ListenClientDual<A> {
+impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     pub async fn from_realtime_audio(
         self,
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
@@ -366,7 +366,7 @@ where
     futures_util::stream::select(mic_mapped, spk_mapped)
 }
 
-fn websocket_client_with_keep_alive<A: SttAdapter>(
+fn websocket_client_with_keep_alive<A: RealtimeSttAdapter>(
     request: &ClientRequestBuilder,
     adapter: &A,
 ) -> WebSocketClient {
@@ -379,7 +379,7 @@ fn websocket_client_with_keep_alive<A: SttAdapter>(
     client
 }
 
-fn extract_finalize_text<A: SttAdapter>(adapter: &A) -> Utf8Bytes {
+fn extract_finalize_text<A: RealtimeSttAdapter>(adapter: &A) -> Utf8Bytes {
     match adapter.finalize_message() {
         Message::Text(text) => text,
         _ => r#"{"type":"Finalize"}"#.into(),

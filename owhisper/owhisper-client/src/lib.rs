@@ -5,13 +5,15 @@ mod live;
 
 use std::marker::PhantomData;
 
-pub use adapter::{ArgmaxAdapter, DeepgramAdapter, SonioxAdapter, SttAdapter};
+pub use adapter::{
+    ArgmaxAdapter, BatchSttAdapter, DeepgramAdapter, RealtimeSttAdapter, SonioxAdapter,
+};
 pub use batch::BatchClient;
 pub use error::Error;
 pub use hypr_ws;
 pub use live::{DualHandle, FinalizeHandle, ListenClient, ListenClientDual};
 
-pub struct ListenClientBuilder<A: SttAdapter = DeepgramAdapter> {
+pub struct ListenClientBuilder<A: RealtimeSttAdapter = DeepgramAdapter> {
     api_base: Option<String>,
     api_key: Option<String>,
     params: Option<owhisper_interface::ListenParams>,
@@ -29,7 +31,7 @@ impl Default for ListenClientBuilder {
     }
 }
 
-impl<A: SttAdapter> ListenClientBuilder<A> {
+impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
     pub fn api_base(mut self, api_base: impl Into<String>) -> Self {
         self.api_base = Some(api_base.into());
         self
@@ -45,7 +47,7 @@ impl<A: SttAdapter> ListenClientBuilder<A> {
         self
     }
 
-    pub fn adapter<B: SttAdapter>(self) -> ListenClientBuilder<B> {
+    pub fn adapter<B: RealtimeSttAdapter>(self) -> ListenClientBuilder<B> {
         ListenClientBuilder {
             api_base: self.api_base,
             api_key: self.api_key,
@@ -91,12 +93,6 @@ impl<A: SttAdapter> ListenClientBuilder<A> {
         }
     }
 
-    pub fn build_batch(self) -> BatchClient<A> {
-        let params = self.get_params();
-        let api_base = self.get_api_base().to_string();
-        BatchClient::new(api_base, self.api_key.unwrap_or_default(), params)
-    }
-
     pub fn build_single(self) -> ListenClient<A> {
         self.build_with_channels(1)
     }
@@ -117,5 +113,13 @@ impl<A: SttAdapter> ListenClientBuilder<A> {
             request,
             initial_message,
         }
+    }
+}
+
+impl<A: RealtimeSttAdapter + BatchSttAdapter> ListenClientBuilder<A> {
+    pub fn build_batch(self) -> BatchClient<A> {
+        let params = self.get_params();
+        let api_base = self.get_api_base().to_string();
+        BatchClient::new(api_base, self.api_key.unwrap_or_default(), params)
     }
 }

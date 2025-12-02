@@ -20,7 +20,7 @@ use crate::error::Error;
 
 pub type BatchFuture<'a> = Pin<Box<dyn Future<Output = Result<BatchResponse, Error>> + Send + 'a>>;
 
-pub trait SttAdapter: Clone + Default + Send + Sync + 'static {
+pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
     fn supports_native_multichannel(&self) -> bool;
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url;
@@ -41,7 +41,9 @@ pub trait SttAdapter: Clone + Default + Send + Sync + 'static {
     }
 
     fn parse_response(&self, raw: &str) -> Option<StreamResponse>;
+}
 
+pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
         client: &'a reqwest::Client,

@@ -185,11 +185,7 @@ function HeroSection() {
 
 function EditorSection() {
   return (
-    <section className="bg-stone-50/30 relative">
-      <div
-        id="editor"
-        className="absolute top-[-69px] h-[69px] pointer-events-none"
-      />
+    <section id="editor" className="bg-stone-50/30">
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
@@ -667,11 +663,7 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
 function TranscriptionSection() {
   return (
-    <section className="border-y border-neutral-100 relative">
-      <div
-        id="transcription"
-        className="absolute top-[-69px] h-[69px] pointer-events-none"
-      />
+    <section id="transcription" className="border-y border-neutral-100">
       <div className="text-center py-12 px-4 lg:px-0">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">
           Transcription
@@ -840,11 +832,7 @@ function SummariesSection() {
   }, []);
 
   return (
-    <section className="relative">
-      <div
-        id="summaries"
-        className="absolute top-[-69px] h-[69px] pointer-events-none"
-      />
+    <section id="summaries">
       <div className="text-center py-12 px-4 lg:px-0">
         <h2 className="text-3xl font-serif text-stone-600 mb-4">
           AI summaries
@@ -1108,15 +1096,12 @@ function SearchSection() {
 
   return (
     <section
-      className="bg-stone-50/30 bg-cover bg-center relative"
+      id="search"
+      className="bg-stone-50/30 bg-cover bg-center"
       style={{
         backgroundImage: "url(/api/images/texture/bg-stars.jpg)",
       }}
     >
-      <div
-        id="search"
-        className="absolute top-[-69px] h-[69px] pointer-events-none"
-      />
       <div className="py-20 px-6">
         <div className="text-center space-y-12">
           <div>
@@ -1952,11 +1937,7 @@ TrackProtectCell.displayName = "TrackProtectCell";
 
 function SharingSection() {
   return (
-    <section className="relative">
-      <div
-        id="sharing"
-        className="absolute top-[-69px] h-[69px] pointer-events-none"
-      />
+    <section id="sharing">
       <div className="text-center py-12 px-4 lg:px-0">
         <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium mb-4">
           Coming Soon
@@ -2180,11 +2161,7 @@ const AUTO_ADVANCE_DURATION = 5000;
 
 function FloatingPanelSection() {
   return (
-    <section className="border-y border-neutral-100 relative">
-      <div
-        id="floating-panel"
-        className="absolute top-[-69px] h-[69px] pointer-events-none"
-      />
+    <section id="floating-panel" className="border-y border-neutral-100">
       <FloatingPanelHeader />
       <FloatingPanelContent />
     </section>

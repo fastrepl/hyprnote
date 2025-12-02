@@ -680,6 +680,9 @@ importers:
       '@unpic/react':
         specifier: ^1.0.1
         version: 1.0.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      cmdk:
+        specifier: 1.1.1
+        version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(@cloudflare/workers-types@4.20251128.0)(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(bun-types@1.3.3)(pg@8.16.3)(postgres@3.4.7)
@@ -804,6 +807,9 @@ importers:
       vite:
         specifier: ^7.2.4
         version: 7.2.4(@types/node@22.19.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
+      vite-plugin-pagefind:
+        specifier: ^1.0.7
+        version: 1.0.7(vite@7.2.4(@types/node@22.19.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))
       web-vitals:
         specifier: ^5.1.0
         version: 5.1.0
@@ -11982,6 +11988,9 @@ packages:
     resolution: {integrity: sha512-ua1L4OgXSBdsu1FPb7F3tYH0F48a6kxvod4pLUlGY9COeJAJQNX/sNH2IiEmsxw7lqYiAwrdHMjz1FctOsyDQg==}
     engines: {node: '>=18'}
 
+  package-manager-detector@0.2.11:
+    resolution: {integrity: sha512-BEnLolu+yuz22S56CU1SUKq3XC3PkwD5wv4ikR4MfGvnRVcmzXR9DwSlW2fEamyTPyXHomBJRzgapeuBvRNzJQ==}
+
   package-manager-detector@1.5.0:
     resolution: {integrity: sha512-uBj69dVlYe/+wxj8JOpr97XfsxH/eumMt6HqjNTmJDf/6NO9s+0uxeOneIz3AsPt2m6y9PqzDzd3ATcU17MNfw==}
 
@@ -14768,6 +14777,11 @@ packages:
     resolution: {integrity: sha512-EbKSKh+bh1E1IFxeO0pg1n4dvoOTt0UDiXMd/qn++r98+jPO1xtJilvXldeuQ8giIB5IkpjCgMleHMNEsGH6pg==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
+
+  vite-plugin-pagefind@1.0.7:
+    resolution: {integrity: sha512-BTYGhqbEsEBfG7ZIbV41HjKAKGlJcq+h819Lsq+83+bkN5mcrl0YLqbh0fx+tCvmdOZs9rfgMpKoBlyv8pcvfQ==}
+    peerDependencies:
+      vite: '>=4.0.0'
 
   vite-tsconfig-paths@5.1.4:
     resolution: {integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==}
@@ -28869,6 +28883,10 @@ snapshots:
       registry-url: 6.0.1
       semver: 7.7.3
 
+  package-manager-detector@0.2.11:
+    dependencies:
+      quansync: 0.2.11
+
   package-manager-detector@1.5.0: {}
 
   pagefind@1.4.0:
@@ -32175,6 +32193,12 @@ snapshots:
       - terser
       - tsx
       - yaml
+
+  vite-plugin-pagefind@1.0.7(vite@7.2.4(@types/node@22.19.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)):
+    dependencies:
+      colorette: 2.0.20
+      package-manager-detector: 0.2.11
+      vite: 7.2.4(@types/node@22.19.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)
 
   vite-tsconfig-paths@5.1.4(typescript@5.9.3)(vite@7.2.4(@types/node@22.19.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1)):
     dependencies:

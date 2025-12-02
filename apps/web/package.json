@@ -38,6 +38,7 @@
     "@tanstack/react-start": "^1.139.3",
     "@tanstack/router-plugin": "^1.139.3",
     "@unpic/react": "^1.0.1",
+    "cmdk": "1.1.1",
     "drizzle-orm": "^0.44.7",
     "exa-js": "^1.10.2",
     "lucide-react": "^0.544.0",
@@ -81,6 +82,7 @@
     "tanstack-router-sitemap": "^1.0.13",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
+    "vite-plugin-pagefind": "^1.0.7",
     "web-vitals": "^5.1.0"
   }
 }

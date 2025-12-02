@@ -5,6 +5,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { generateSitemap } from "tanstack-router-sitemap";
 import { defineConfig } from "vite";
+import { pagefind } from "vite-plugin-pagefind";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 
 import { getSitemap } from "./src/utils/sitemap";
@@ -36,6 +37,11 @@ const config = defineConfig(() => ({
     viteReact(),
     generateSitemap(getSitemap()),
     netlify({ dev: { images: { enabled: true } } }),
+    pagefind({
+      outputDirectory: "dist/client",
+      buildScript: "build",
+      developStrategy: "lazy",
+    }),
   ],
   ssr: {
     noExternal: ["posthog-js", "@posthog/react", "react-tweet"],

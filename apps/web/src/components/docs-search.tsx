@@ -1,185 +1,159 @@
 import { Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type {
+  Pagefind,
+  PagefindSearchFragment,
+} from "vite-plugin-pagefind/types";
 
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@hypr/ui/components/ui/command";
 import { cn } from "@hypr/utils";
 
-interface PagefindResult {
-  url: string;
-  meta: {
-    title: string;
-  };
-  excerpt: string;
-}
-
-interface PagefindSearchResult {
-  id: string;
-  data: () => Promise<PagefindResult>;
-}
-
-interface PagefindInstance {
-  search: (
-    query: string,
-  ) => Promise<{ results: PagefindSearchResult[] } | null>;
-}
-
-declare global {
-  interface Window {
-    __pagefind?: PagefindInstance;
-  }
-}
-
 export function DocsSearch() {
+  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<PagefindResult[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [results, setResults] = useState<PagefindSearchFragment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [pagefind, setPagefind] = useState<PagefindInstance | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const pagefindRef = useRef<Pagefind | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    let cancelled = false;
 
-    if (window.__pagefind) {
-      setPagefind(window.__pagefind);
-      return;
-    }
-
-    if (document.querySelector("script[data-pagefind]")) {
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.type = "module";
-    script.dataset.pagefind = "true";
-    script.textContent = `
-      import * as pagefind from "/pagefind/pagefind.js";
-      window.__pagefind = pagefind;
-      window.dispatchEvent(new Event("pagefind:loaded"));
-    `;
-
-    function onLoaded() {
-      if (window.__pagefind) {
-        setPagefind(window.__pagefind);
+    (async () => {
+      try {
+        const pagefind = (await import(
+          "/pagefind/pagefind.js"
+        )) as unknown as Pagefind;
+        if (!cancelled) pagefindRef.current = pagefind;
+      } catch {
+        // Pagefind not available in dev mode
       }
-    }
-
-    window.addEventListener("pagefind:loaded", onLoaded);
-    document.head.appendChild(script);
+    })();
 
     return () => {
-      window.removeEventListener("pagefind:loaded", onLoaded);
+      cancelled = true;
     };
   }, []);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    if (typeof window === "undefined") return;
+
+    const handler = (event: KeyboardEvent) => {
+      const isCmdK =
+        (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
+
+      const target = event.target as HTMLElement | null;
       if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        isCmdK &&
+        target &&
+        !["INPUT", "TEXTAREA"].includes(target.tagName) &&
+        !target.isContentEditable
       ) {
-        setIsOpen(false);
+        event.preventDefault();
+        setOpen((prev) => !prev);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  const handleSearch = useCallback(
-    async (searchQuery: string) => {
-      setQuery(searchQuery);
-      if (!searchQuery.trim() || !pagefind) {
+  const handleSearch = useCallback(async (value: string) => {
+    setQuery(value);
+    if (!value.trim() || !pagefindRef.current) {
+      setResults([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await pagefindRef.current.search(value);
+      if (!res?.results) {
         setResults([]);
-        setIsOpen(false);
         return;
       }
+      const data = await Promise.all(
+        res.results.slice(0, 10).map((r) => r.data()),
+      );
+      setResults(data);
+    } catch {
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-      setIsLoading(true);
-      setIsOpen(true);
-
-      try {
-        const search = await pagefind.search(searchQuery);
-        if (search && search.results) {
-          const data = await Promise.all(
-            search.results.slice(0, 8).map((r) => r.data()),
-          );
-          setResults(data);
-        }
-      } catch {
-        setResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [pagefind],
-  );
+  const handleSelect = useCallback((url: string) => {
+    setOpen(false);
+    setQuery("");
+    setResults([]);
+    window.location.assign(url);
+  }, []);
 
   return (
-    <div ref={containerRef} className="relative">
-      <div className="relative">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
-          size={16}
-        />
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => handleSearch(e.target.value)}
-          onFocus={() => query && setIsOpen(true)}
-          placeholder="Search docs..."
-          className={cn([
-            "w-full pl-9 pr-3 py-2 text-sm",
-            "bg-neutral-50 border border-neutral-200 rounded-sm",
-            "placeholder:text-neutral-400 text-neutral-700",
-            "focus:outline-none focus:ring-1 focus:ring-neutral-300 focus:border-neutral-300",
-            "transition-colors",
-          ])}
-        />
-      </div>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={cn([
+          "w-full flex items-center justify-between",
+          "px-3 py-2 text-sm",
+          "bg-neutral-50 border border-neutral-200 rounded-sm",
+          "text-neutral-500 hover:bg-neutral-100",
+          "transition-colors cursor-pointer",
+        ])}
+      >
+        <span className="flex items-center gap-2">
+          <Search size={16} className="text-neutral-400" />
+          <span>Search docs...</span>
+        </span>
+        <span className="text-[11px] rounded border border-neutral-300 px-1.5 py-0.5 text-neutral-400">
+          <span className="font-sans">&#8984;</span>K
+        </span>
+      </button>
 
-      {isOpen && (
-        <div
-          className={cn([
-            "absolute top-full left-0 right-0 mt-1 z-50",
-            "bg-white border border-neutral-200 rounded-sm shadow-lg",
-            "max-h-80 overflow-y-auto",
-          ])}
-        >
-          {isLoading ? (
-            <div className="px-4 py-3 text-sm text-neutral-500">
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput
+          placeholder="Search docs..."
+          value={query}
+          onValueChange={handleSearch}
+        />
+        <CommandList>
+          {isLoading && (
+            <div className="py-6 text-center text-sm text-muted-foreground">
               Searching...
             </div>
-          ) : results.length > 0 ? (
-            <ul>
-              {results.map((result, index) => (
-                <li key={index}>
-                  <a
-                    href={result.url}
-                    onClick={() => setIsOpen(false)}
-                    className={cn([
-                      "block px-4 py-3 hover:bg-neutral-50 transition-colors",
-                      "border-b border-neutral-100 last:border-b-0",
-                    ])}
-                  >
-                    <div className="text-sm font-medium text-neutral-800">
-                      {result.meta.title}
-                    </div>
-                    <div
-                      className="text-xs text-neutral-500 mt-1 line-clamp-2"
-                      dangerouslySetInnerHTML={{ __html: result.excerpt }}
-                    />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="px-4 py-3 text-sm text-neutral-500">
-              No results found
-            </div>
           )}
-        </div>
-      )}
-    </div>
+          {!isLoading && query && results.length === 0 && (
+            <CommandEmpty>No results found.</CommandEmpty>
+          )}
+          {!isLoading && results.length > 0 && (
+            <CommandGroup heading="Results">
+              {results.map((result) => (
+                <CommandItem
+                  key={result.url}
+                  value={`${result.meta.title} ${result.url}`}
+                  onSelect={() => handleSelect(result.url)}
+                  className="flex flex-col items-start gap-1 py-3"
+                >
+                  <div className="text-sm font-medium">{result.meta.title}</div>
+                  <div
+                    className="text-xs text-muted-foreground line-clamp-2"
+                    dangerouslySetInnerHTML={{ __html: result.excerpt }}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+        </CommandList>
+      </CommandDialog>
+    </>
   );
 }

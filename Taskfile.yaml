@@ -89,6 +89,7 @@ tasks:
     cmds:
       - bash scripts/supabase-tunnel-stop.sh
 
+  # infisical run --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/supabase" -- task supabase-start
   supabase-start:
     cmds:
       - curl -o supabase/config.toml https://gist.githubusercontent.com/yujonglee/c0704ebe0818621a64753d663c4fcaff/raw/b82572dfcb6ffa4d20c332a8dd7650e5b82b99c3/supabase-default.toml
@@ -99,6 +100,10 @@ tasks:
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GITHUB_CLIENT_ID}}'' ''auth.external.github.client_id'' || true'
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GITHUB_CLIENT_SECRET}}'' ''auth.external.github.secret'' || true'
       - '[ -n "$GITHUB_CLIENT_ID" ] && [ -n "$GITHUB_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v '''' ''auth.external.github.redirect_uri'' || true'
+      - '[ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t bool -v true ''auth.external.google.enabled'' || true'
+      - '[ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GOOGLE_CLIENT_ID}}'' ''auth.external.google.client_id'' || true'
+      - '[ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GOOGLE_CLIENT_SECRET}}'' ''auth.external.google.secret'' || true'
+      - '[ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t bool -v false ''auth.external.google.skip_nonce_check'' || true'
       - dprint fmt supabase/config.toml
       - task: supabase-start:capture
       - supabase migration up --local

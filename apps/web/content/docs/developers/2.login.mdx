@@ -1,0 +1,31 @@
+---
+title: "Login"
+section: "Developers"
+description: "Learn how to do auth stuff for Hyprnote"
+---
+
+## Supabase
+
+We use [Supabase](https://supabase.com) for authentication.
+
+### General
+
+- `task supabase-start` will start a local Supabase server and generate `.env.supabase` at the root. For more information, see [Environment Variables](https://hyprnote.com/docs/developers/env).
+
+### OAuth
+
+- It is important to set `<SUPABASE_URL>/auth/v1/callback` as redirect URI. So in dev, it should be `http://127.0.0.1:5432/auth/v1/callback`.
+
+### Github OAuth
+
+- [Official guide](https://supabase.com/docs/guides/auth/social-login/auth-github)
+- To enable `Github OAuth`, `GITHUB_CLIENT_ID=<VALUE> GITHUB_CLIENT_SECRET=<VALUE>` should be set when running `task supabase-start`.
+
+### Google OAuth
+
+- [Official guide](https://supabase.com/docs/guides/auth/social-login/auth-google)
+- To enable `Google OAuth`, `GOOGLE_CLIENT_ID=<VALUE> GOOGLE_CLIENT_SECRET=<VALUE>` should be set when running `task supabase-start`.
+
+## Web (apps/web)
+
+- `pnpm -F web dev` will start the web app. (See `apps/web/package.json` for how it consumes `.env.supabase`.)

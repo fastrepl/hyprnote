@@ -1,14 +1,7 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  Star,
-  X,
-} from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import semver from "semver";
@@ -342,7 +335,7 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">
@@ -542,13 +535,14 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
         <div className="flex items-center gap-2">
           <h2 className="font-medium text-stone-600">{baseVersion}</h2>
           {isLatest && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-stone-100 text-stone-700 rounded-full">
-              <Star className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-linear-to-t from-amber-200 to-amber-100 text-amber-900 rounded-full">
+              <Icon icon="ri:rocket-fill" className="text-xs" />
               Latest
             </span>
           )}
           {prereleaseType && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white rounded-full">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white rounded-full">
+              <Icon icon="ri:moon-fill" className="text-xs" />
               {prereleaseType}
             </span>
           )}

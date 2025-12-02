@@ -51,6 +51,14 @@ pub(crate) async fn list_mic_using_applications<R: tauri::Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub(crate) async fn get_meeting_application<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<Option<hypr_detect::InstalledApp>, String> {
+    Ok(hypr_detect::get_meeting_app())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub(crate) async fn list_default_ignored_bundle_ids<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
 ) -> Result<Vec<String>, String> {

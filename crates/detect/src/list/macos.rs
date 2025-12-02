@@ -77,6 +77,11 @@ pub fn list_mic_using_apps() -> Vec<InstalledApp> {
     out
 }
 
+#[cfg(target_os = "macos")]
+pub fn get_meeting_app() -> Option<InstalledApp> {
+    list_mic_using_apps().into_iter().next()
+}
+
 fn get_app_info(app_path: &std::path::Path) -> Option<InstalledApp> {
     let info_plist_path = app_path.join("Contents/Info.plist");
 

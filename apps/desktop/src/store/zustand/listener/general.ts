@@ -4,6 +4,7 @@ import { Effect, Exit } from "effect";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
+import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
 import {
   commands as listenerCommands,
@@ -201,15 +202,23 @@ export const createGeneralSlice = <
         }),
       );
 
-      Promise.all([appDataDir(), getName().catch(() => "com.hyprnote.app")])
-        .then(([dataDirPath, appName]) => {
+      Promise.all([
+        appDataDir(),
+        getName().catch(() => "com.hyprnote.app"),
+        detectCommands.getMeetingApplication(),
+      ])
+        .then(([dataDirPath, appName, meetingAppResult]) => {
           const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
+          const meetingApp =
+            meetingAppResult.status === "ok" && meetingAppResult.data
+              ? meetingAppResult.data.name
+              : null;
           return hooksCommands.runEventHooks({
             beforeListeningStarted: {
               args: {
                 resource_dir: sessionPath,
                 app_hyprnote: appName,
-                app_meeting: null,
+                app_meeting: meetingApp,
               },
             },
           });
@@ -275,15 +284,20 @@ export const createGeneralSlice = <
             Promise.all([
               appDataDir(),
               getName().catch(() => "com.hyprnote.app"),
+              detectCommands.getMeetingApplication(),
             ])
-              .then(([dataDirPath, appName]) => {
+              .then(([dataDirPath, appName, meetingAppResult]) => {
                 const sessionPath = `${dataDirPath}/hyprnote/sessions/${sessionId}`;
+                const meetingApp =
+                  meetingAppResult.status === "ok" && meetingAppResult.data
+                    ? meetingAppResult.data.name
+                    : null;
                 return hooksCommands.runEventHooks({
                   afterListeningStopped: {
                     args: {
                       resource_dir: sessionPath,
                       app_hyprnote: appName,
-                      app_meeting: null,
+                      app_meeting: meetingApp,
                     },
                   },
                 });

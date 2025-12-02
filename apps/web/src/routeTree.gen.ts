@@ -24,6 +24,7 @@ import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
+import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
 import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
 import { Route as ViewOssFriendsRouteImport } from './routes/_view/oss-friends'
@@ -161,6 +162,11 @@ const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
 const ViewSecurityRoute = ViewSecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewPrivacyRoute = ViewPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewPricingRoute = ViewPricingRouteImport.update({
@@ -515,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/oss-friends': typeof ViewOssFriendsRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
+  '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -592,6 +599,7 @@ export interface FileRoutesByTo {
   '/oss-friends': typeof ViewOssFriendsRoute
   '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
+  '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -674,6 +682,7 @@ export interface FileRoutesById {
   '/_view/oss-friends': typeof ViewOssFriendsRoute
   '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
+  '/_view/privacy': typeof ViewPrivacyRoute
   '/_view/security': typeof ViewSecurityRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -756,6 +765,7 @@ export interface FileRouteTypes {
     | '/oss-friends'
     | '/press-kit'
     | '/pricing'
+    | '/privacy'
     | '/security'
     | '/api/templates'
     | '/webhook/nango'
@@ -833,6 +843,7 @@ export interface FileRouteTypes {
     | '/oss-friends'
     | '/press-kit'
     | '/pricing'
+    | '/privacy'
     | '/security'
     | '/api/templates'
     | '/webhook/nango'
@@ -914,6 +925,7 @@ export interface FileRouteTypes {
     | '/_view/oss-friends'
     | '/_view/press-kit'
     | '/_view/pricing'
+    | '/_view/privacy'
     | '/_view/security'
     | '/api/templates'
     | '/webhook/nango'
@@ -1095,6 +1107,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof ViewSecurityRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/privacy': {
+      id: '/_view/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof ViewPrivacyRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/pricing': {
@@ -1624,6 +1643,7 @@ interface ViewRouteRouteChildren {
   ViewOssFriendsRoute: typeof ViewOssFriendsRoute
   ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
+  ViewPrivacyRoute: typeof ViewPrivacyRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
   ViewIndexRoute: typeof ViewIndexRoute
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
@@ -1681,6 +1701,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewOssFriendsRoute: ViewOssFriendsRoute,
   ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
+  ViewPrivacyRoute: ViewPrivacyRoute,
   ViewSecurityRoute: ViewSecurityRoute,
   ViewIndexRoute: ViewIndexRoute,
   ViewBlogSlugRoute: ViewBlogSlugRoute,

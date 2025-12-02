@@ -1,14 +1,7 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  Star,
-  X,
-} from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import semver from "semver";
@@ -255,7 +248,7 @@ function ChangelogContentSection({
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
         <MockWindow
-          title={`Version ${changelog.version}`}
+          title={isMobile ? undefined : `Version ${changelog.version}`}
           className="rounded-lg w-full max-w-none"
           prefixIcons={
             isMobile && (
@@ -342,7 +335,7 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">
@@ -519,6 +512,7 @@ function ChangelogSidebar({
 
 function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
   const { diffUrl } = Route.useLoaderData();
+  const isMobile = useIsMobile();
   const currentVersion = semver.parse(changelog.version);
   const isPrerelease = currentVersion && currentVersion.prerelease.length > 0;
   const isLatest = changelog.newerSlug === null;
@@ -541,13 +535,14 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
         <div className="flex items-center gap-2">
           <h2 className="font-medium text-stone-600">{baseVersion}</h2>
           {isLatest && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-stone-100 text-stone-700 rounded-full">
-              <Star className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-linear-to-t from-amber-200 to-amber-100 text-amber-900 rounded-full">
+              <Icon icon="ri:rocket-fill" className="text-xs" />
               Latest
             </span>
           )}
           {prereleaseType && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white rounded-full">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white rounded-full">
+              <Icon icon="ri:moon-fill" className="text-xs" />
               {prereleaseType}
             </span>
           )}
@@ -563,11 +558,15 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
               href={diffUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 h-8 flex items-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+              className={
+                isMobile
+                  ? "size-8 flex items-center justify-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+                  : "px-4 h-8 flex items-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+              }
               title="View diff on GitHub"
             >
               <Icon icon="mdi:github" className="text-lg" />
-              <span>View Diff</span>
+              {!isMobile && <span>View Diff</span>}
             </a>
           )}
         </div>

@@ -91,8 +91,9 @@ function Component() {
         <div className="max-w-[800px] mx-auto px-4 py-8">
           <ArticleContent article={article} />
           <RelatedArticlesSection relatedArticles={relatedArticles} />
-          <CTASection />
         </div>
+        <SlashSeparator />
+        <CTASection />
         <MobileCTA />
       </div>
     </main>
@@ -202,7 +203,7 @@ function CTASection() {
   const platformCTA = getPlatformCTA(platform);
 
   return (
-    <section className="mt-16 py-16 -mx-4 px-4 bg-linear-to-t from-stone-50/30 to-stone-100/30">
+    <section className="py-16 px-4 bg-linear-to-t from-stone-50/30 to-stone-100/30">
       <div className="flex flex-col gap-6 items-center text-center">
         <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
           <Image
@@ -214,12 +215,11 @@ function CTASection() {
           />
         </div>
         <h2 className="text-2xl sm:text-3xl font-serif">
-          Where conversations
-          <br className="sm:hidden" /> stay yours
+          Try Hyprnote for yourself
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Start using Hyprnote today and bring clarity to your back-to-back
-          meetings
+          The AI notepad for people in back-to-back meetings. Local-first,
+          privacy-focused, and open source.
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           {platformCTA.action === "download" ? (

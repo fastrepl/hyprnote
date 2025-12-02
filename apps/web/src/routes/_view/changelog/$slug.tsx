@@ -255,7 +255,7 @@ function ChangelogContentSection({
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
         <MockWindow
-          title={`Version ${changelog.version}`}
+          title={isMobile ? undefined : `Version ${changelog.version}`}
           className="rounded-lg w-full max-w-none"
           prefixIcons={
             isMobile && (
@@ -519,6 +519,7 @@ function ChangelogSidebar({
 
 function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
   const { diffUrl } = Route.useLoaderData();
+  const isMobile = useIsMobile();
   const currentVersion = semver.parse(changelog.version);
   const isPrerelease = currentVersion && currentVersion.prerelease.length > 0;
   const isLatest = changelog.newerSlug === null;
@@ -563,11 +564,15 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
               href={diffUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 h-8 flex items-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+              className={
+                isMobile
+                  ? "size-8 flex items-center justify-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+                  : "px-4 h-8 flex items-center gap-2 text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+              }
               title="View diff on GitHub"
             >
               <Icon icon="mdi:github" className="text-lg" />
-              <span>View Diff</span>
+              {!isMobile && <span>View Diff</span>}
             </a>
           )}
         </div>

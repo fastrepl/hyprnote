@@ -7,7 +7,6 @@ use tauri::{
 
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
-use tauri_plugin_local_stt::LocalSttPluginExt;
 use tauri_plugin_misc::MiscPluginExt;
 
 const TRAY_ID: &str = "hypr-tray";
@@ -142,17 +141,10 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         let app_name = app.package_info().name.clone();
                         let app_version = app.package_info().version.to_string();
                         let app_commit = app.get_git_hash();
-                        let app_backends = app.list_ggml_backends();
-
-                        let backends_formatted = app_backends
-                            .iter()
-                            .map(|b| format!("{:?}", b))
-                            .collect::<Vec<_>>()
-                            .join("\n");
 
                         let message = format!(
-                            "• App Name: {}\n• App Version: {}\n• SHA:\n  {}\n• Backends:\n{}",
-                            app_name, app_version, app_commit, backends_formatted
+                            "• App Name: {}\n• App Version: {}\n• SHA:\n  {}",
+                            app_name, app_version, app_commit
                         );
 
                         let app_clone = app.clone();

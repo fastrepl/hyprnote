@@ -15,9 +15,6 @@ async modelsDir() : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async listGgmlBackends() : Promise<GgmlBackend[]> {
-    return await TAURI_INVOKE("plugin:local-stt|list_ggml_backends");
-},
 async isModelDownloaded(model: SupportedSttModel) : Promise<Result<boolean, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|is_model_downloaded", { model }) };
@@ -90,7 +87,6 @@ async listSupportedLanguages(model: SupportedSttModel) : Promise<string[]> {
 /** user-defined types **/
 
 export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
-export type GgmlBackend = { kind: string; name: string; description: string; total_memory_mb: number; free_memory_mb: number }
 export type ServerInfo = { url: string | null; status: ServerStatus; model: SupportedSttModel | null }
 export type ServerStatus = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external"

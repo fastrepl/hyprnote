@@ -14,14 +14,6 @@ pub async fn models_dir<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<S
 
 #[tauri::command]
 #[specta::specta]
-pub fn list_ggml_backends<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-) -> Vec<hypr_whisper_local::GgmlBackend> {
-    app.list_ggml_backends()
-}
-
-#[tauri::command]
-#[specta::specta]
 pub async fn list_supported_models() -> Result<Vec<SttModelInfo>, String> {
     Ok(SUPPORTED_MODELS.iter().map(|m| m.info()).collect())
 }

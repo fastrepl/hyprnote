@@ -40,7 +40,6 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
             commands::models_dir::<Wry>,
-            commands::list_ggml_backends::<Wry>,
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,

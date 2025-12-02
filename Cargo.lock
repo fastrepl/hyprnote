@@ -15737,7 +15737,6 @@ dependencies = [
  "tauri-plugin-cli2",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-dialog",
- "tauri-plugin-local-stt",
  "tauri-plugin-misc",
  "tauri-plugin-windows",
  "tauri-specta",

@@ -2,7 +2,6 @@
 description = "Default permissions for the plugin"
 permissions = [
     "allow-models-dir",
-    "allow-list-ggml-backends",
     "allow-is-model-downloaded",
     "allow-is-model-downloading",
     "allow-download-model",

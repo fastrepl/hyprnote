@@ -16,7 +16,6 @@ use crate::{
 
 pub trait LocalSttPluginExt<R: Runtime> {
     fn models_dir(&self) -> PathBuf;
-    fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend>;
 
     fn get_supervisor(
         &self,
@@ -59,10 +58,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     .join("models")
                     .join("stt")
             })
-    }
-
-    fn list_ggml_backends(&self) -> Vec<hypr_whisper_local::GgmlBackend> {
-        hypr_whisper_local::list_ggml_backends()
     }
 
     async fn get_supervisor(&self) -> Result<supervisor::SupervisorRef, crate::Error> {

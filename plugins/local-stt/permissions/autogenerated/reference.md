@@ -5,7 +5,6 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-models-dir`
-- `allow-list-ggml-backends`
 - `allow-is-model-downloaded`
 - `allow-is-model-downloading`
 - `allow-download-model`

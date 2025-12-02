@@ -74,8 +74,8 @@ impl RealtimeSttAdapter for DeepgramAdapter {
         )
     }
 
-    fn parse_response(&self, raw: &str) -> Option<StreamResponse> {
-        serde_json::from_str(raw).ok()
+    fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
+        serde_json::from_str(raw).into_iter().collect()
     }
 }
 
@@ -104,7 +104,7 @@ mod tests {
 
         let client = ListenClient::builder()
             .api_base("https://api.deepgram.com/v1")
-            .api_key("71557216ffdd13bff22702be5017e4852c052b7c")
+            .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap_or_default())
             .params(owhisper_interface::ListenParams {
                 model: Some("nova-3".to_string()),
                 languages: vec![

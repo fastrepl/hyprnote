@@ -199,14 +199,13 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
             .await?;
 
         let adapter = self.adapter;
-        let mapped_stream = raw_stream.filter_map(move |result| {
+        let mapped_stream = raw_stream.flat_map(move |result| {
             let adapter = adapter.clone();
-            async move {
-                match result {
-                    Ok(raw) => adapter.parse_response(&raw).map(Ok),
-                    Err(e) => Some(Err(e)),
-                }
-            }
+            let responses: Vec<Result<StreamResponse, hypr_ws::Error>> = match result {
+                Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
+                Err(e) => vec![Err(e)],
+            };
+            futures_util::stream::iter(responses)
         });
 
         let handle = SingleHandle {
@@ -242,14 +241,13 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
             .await?;
 
         let adapter = self.adapter;
-        let mapped_stream = raw_stream.filter_map(move |result| {
+        let mapped_stream = raw_stream.flat_map(move |result| {
             let adapter = adapter.clone();
-            async move {
-                match result {
-                    Ok(raw) => adapter.parse_response(&raw).map(Ok),
-                    Err(e) => Some(Err(e)),
-                }
-            }
+            let responses: Vec<Result<StreamResponse, hypr_ws::Error>> = match result {
+                Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
+                Err(e) => vec![Err(e)],
+            };
+            futures_util::stream::iter(responses)
         });
 
         let handle = DualHandle::Native {
@@ -283,29 +281,27 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         tokio::spawn(forward_dual_to_single(stream, mic_tx, spk_tx));
 
         let adapter = self.adapter.clone();
-        let mic_stream = mic_raw.filter_map({
+        let mic_stream = mic_raw.flat_map({
             let adapter = adapter.clone();
             move |result| {
                 let adapter = adapter.clone();
-                async move {
-                    match result {
-                        Ok(raw) => adapter.parse_response(&raw).map(Ok),
-                        Err(e) => Some(Err(e)),
-                    }
-                }
+                let responses: Vec<Result<StreamResponse, hypr_ws::Error>> = match result {
+                    Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
+                    Err(e) => vec![Err(e)],
+                };
+                futures_util::stream::iter(responses)
             }
         });
 
-        let spk_stream = spk_raw.filter_map({
+        let spk_stream = spk_raw.flat_map({
             let adapter = adapter.clone();
             move |result| {
                 let adapter = adapter.clone();
-                async move {
-                    match result {
-                        Ok(raw) => adapter.parse_response(&raw).map(Ok),
-                        Err(e) => Some(Err(e)),
-                    }
-                }
+                let responses: Vec<Result<StreamResponse, hypr_ws::Error>> = match result {
+                    Ok(raw) => adapter.parse_response(&raw).into_iter().map(Ok).collect(),
+                    Err(e) => vec![Err(e)],
+                };
+                futures_util::stream::iter(responses)
             }
         });
 

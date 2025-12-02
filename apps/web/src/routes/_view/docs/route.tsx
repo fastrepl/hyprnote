@@ -7,6 +7,8 @@ import {
 import { allDocs } from "content-collections";
 import { useMemo } from "react";
 
+import { DocsSearch } from "@/components/docs-search";
+
 import { docsStructure } from "./-structure";
 
 export const Route = createFileRoute("/_view/docs")({
@@ -78,6 +80,7 @@ function LeftSidebar() {
   return (
     <aside className="hidden md:block w-64 shrink-0">
       <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6">
+        <DocsSearch />
         <DocsNavigation
           sections={docsBySection.sections}
           currentSlug={currentSlug}

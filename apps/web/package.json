@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "VITE_APP_URL=\"http://localhost:3000\" dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.restate -f .env -- vite dev --port 3000",
-    "build": "vite build",
+    "build": "vite build && pagefind --site dist/client --glob \"docs/**/*.html\"",
     "serve": "vite preview",
     "test": "playwright test",
     "typecheck": "pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit",
@@ -77,6 +77,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "jsdom": "^27.2.0",
     "netlify": "^23.11.1",
+    "pagefind": "^1.4.0",
     "tanstack-router-sitemap": "^1.0.13",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",

@@ -208,7 +208,7 @@ jobs:
           if [[ "${{ inputs.channel }}" == "staging" ]]; then
             FEATURES_FLAG="--features devtools"
           fi
-          pnpm -F desktop tauri build --bundles appimage --target x86_64-unknown-linux-gnu --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
+          pnpm -F desktop tauri build --bundles appimage,deb --target x86_64-unknown-linux-gnu --config ${{ env.TAURI_CONF_PATH }} --verbose $FEATURES_FLAG
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false
@@ -250,14 +250,26 @@ jobs:
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-linux-x86_64.AppImage" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
+          DEB_FILE=$(find "apps/desktop/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/" -name "*.deb" -type f)
+          cp "$DEB_FILE" "hyprnote-linux-x86_64.deb"
+          aws s3 cp "hyprnote-linux-x86_64.deb" \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-linux-x86_64.deb" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
       - if: ${{ inputs.channel == 'staging' }}
         uses: actions/upload-artifact@v4
         with:
-          name: hyprnote-staging-linux
+          name: hyprnote-staging-linux-appimage
           path: apps/desktop/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
+          retention-days: 3
+      - if: ${{ inputs.channel == 'staging' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyprnote-staging-linux-deb
+          path: apps/desktop/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb
           retention-days: 3
 
   publish:
@@ -299,6 +311,11 @@ jobs:
             "hyprnote-linux-x86_64.AppImage" \
             --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
             --region auto
+          aws s3 cp \
+            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-linux-x86_64.deb" \
+            "hyprnote-linux-x86_64.deb" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
@@ -314,6 +331,7 @@ jobs:
             ${{ needs.build-macos.result == 'success' && 'hyprnote-macos-aarch64.dmg' || '' }}
             ${{ needs.build-macos.result == 'success' && 'hyprnote-macos-x86_64.dmg' || '' }}
             ${{ needs.build-linux.result == 'success' && 'hyprnote-linux-x86_64.AppImage' || '' }}
+            ${{ needs.build-linux.result == 'success' && 'hyprnote-linux-x86_64.deb' || '' }}
       - id: artifacts
         run: |
           ARTIFACTS=""
@@ -322,9 +340,9 @@ jobs:
           fi
           if [[ "${{ needs.build-linux.result }}" == "success" ]]; then
             if [[ -n "$ARTIFACTS" ]]; then
-              ARTIFACTS="$ARTIFACTS,hyprnote-linux-x86_64.AppImage"
+              ARTIFACTS="$ARTIFACTS,hyprnote-linux-x86_64.AppImage,hyprnote-linux-x86_64.deb"
             else
-              ARTIFACTS="hyprnote-linux-x86_64.AppImage"
+              ARTIFACTS="hyprnote-linux-x86_64.AppImage,hyprnote-linux-x86_64.deb"
             fi
           fi
           if [[ -z "$ARTIFACTS" ]]; then

@@ -7,11 +7,9 @@ import { useEffect, useState } from "react";
 import { cn } from "@hypr/utils";
 
 import { CtaCard } from "@/components/cta-card";
-import { DownloadButton } from "@/components/download-button";
-import { Image } from "@/components/image";
 import { createMDXComponents } from "@/components/mdx";
 import { SlashSeparator } from "@/components/slash-separator";
-import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
+import { CTASection } from "@/routes/_view/index";
 
 export const Route = createFileRoute("/_view/blog/$slug")({
   component: Component,
@@ -187,51 +185,6 @@ function RelatedArticlesSection({
         ))}
       </div>
     </div>
-  );
-}
-
-function CTASection() {
-  const platform = usePlatform();
-  const platformCTA = getPlatformCTA(platform);
-
-  return (
-    <section className="py-16 px-4 bg-linear-to-t from-stone-50/30 to-stone-100/30">
-      <div className="flex flex-col gap-6 items-center text-center">
-        <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
-          <Image
-            src="/api/images/hyprnote/icon.png"
-            alt="Hyprnote"
-            width={144}
-            height={144}
-            className="size-36 mx-auto rounded-[40px] border border-neutral-100"
-          />
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-serif">
-          Try Hyprnote for yourself
-        </h2>
-        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          The AI notepad for people in back-to-back meetings. Local-first,
-          privacy-focused, and open source.
-        </p>
-        <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
-          {platformCTA.action === "download" ? (
-            <DownloadButton />
-          ) : (
-            <Link
-              to="/download"
-              className={cn([
-                "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
-                "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
-                "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
-                "transition-all",
-              ])}
-            >
-              Download for free
-            </Link>
-          )}
-        </div>
-      </div>
-    </section>
   );
 }
 

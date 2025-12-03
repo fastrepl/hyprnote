@@ -33,7 +33,7 @@ export function Footer() {
               Are you in back-to-back meetings?{" "}
               <Link
                 to="/join-waitlist"
-                className="text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+                className="text-neutral-600 hover:text-stone-600 transition-colors underline decoration-solid"
               >
                 Get started
               </Link>

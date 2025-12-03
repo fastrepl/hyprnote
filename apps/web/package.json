@@ -4,10 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "VITE_APP_URL=\"http://localhost:3000\" dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.restate -f .env -- vite dev --port 3000",
-    "build": "vite build && pagefind --site dist/client",
+    "build": "vite build && pagefind --site ./dist/client",
     "serve": "vite preview",
     "test": "playwright test",
-    "typecheck": "pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit",
+    "typecheck": "CI=true pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit",
     "gen:agents": "node scripts/gen-agents.js"
   },
   "dependencies": {
@@ -81,7 +81,6 @@
     "tanstack-router-sitemap": "^1.0.13",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
-    "vite-plugin-pagefind": "^1.0.7",
     "web-vitals": "^5.1.0"
   }
 }

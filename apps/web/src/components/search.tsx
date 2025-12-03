@@ -19,15 +19,14 @@ export function Search() {
       }
 
       try {
-        const pagefindUI = await import("/pagefind/pagefind-ui.js");
+        const pagefindPath = "/pagefind/pagefind-ui.js";
+        const pagefindUI = await import(/* @vite-ignore */ pagefindPath);
         pagefindInstance = new pagefindUI.PagefindUI({
           element: containerRef.current,
           showSubResults: true,
           showImages: false,
         });
-      } catch {
-        console.debug("Pagefind UI not available yet");
-      }
+      } catch {}
     };
 
     loadPagefind();

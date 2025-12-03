@@ -5,17 +5,12 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { generateSitemap } from "tanstack-router-sitemap";
 import { defineConfig } from "vite";
-import { pagefind } from "vite-plugin-pagefind";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 
 import { getSitemap } from "./src/utils/sitemap";
 
 const config = defineConfig(() => ({
   plugins: [
-    pagefind({
-      outputDirectory: "dist/client",
-      assetsDirectory: "public",
-    }),
     contentCollections(),
     viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { Search } from "@/components/search";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
@@ -176,6 +177,7 @@ export function Header() {
             </div>
 
             <nav className="hidden sm:flex items-center gap-2">
+              <Search />
               <Link
                 to="/join-waitlist"
                 className="px-4 h-8 flex items-center text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"

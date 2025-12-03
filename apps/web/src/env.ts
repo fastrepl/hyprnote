@@ -1,6 +1,7 @@
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
+const isCI = process.env.CI === "true";
 const isDev = process.env.NODE_ENV === "development";
 
 export const env = createEnv({
@@ -34,5 +35,5 @@ export const env = createEnv({
 
   runtimeEnv: { ...process.env, ...import.meta.env },
   emptyStringAsUndefined: true,
-  skipValidation: process.env.CI === "true",
+  skipValidation: isCI,
 });

@@ -75,7 +75,7 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
       href={`https://github.com/${stargazer.username}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="block size-10 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
+      className="block size-8 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
     >
       <img
         src={stargazer.avatar}
@@ -88,8 +88,8 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
 }
 
 function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
-  const rows = 6;
-  const cols = 20;
+  const rows = 12;
+  const cols = 32;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">

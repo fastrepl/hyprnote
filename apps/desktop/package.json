@@ -41,6 +41,7 @@
     "@hypr/plugin-listener2": "workspace:*",
     "@hypr/plugin-local-stt": "workspace:*",
     "@hypr/plugin-misc": "workspace:*",
+    "@hypr/plugin-network": "workspace:*",
     "@hypr/plugin-notification": "workspace:*",
     "@hypr/plugin-permissions": "workspace:*",
     "@hypr/plugin-template": "workspace:*",

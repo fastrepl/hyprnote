@@ -30,8 +30,12 @@ pub mod linux {
     use libpulse_binding as pulse;
     use pulse::context::{Context, FlagSet as ContextFlagSet};
     use pulse::mainloop::threaded::Mainloop;
+    use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::{Arc, Mutex};
     use std::time::Duration;
+
+    const CONNECT_TIMEOUT: Duration = Duration::from_millis(2000);
+    const QUERY_TIMEOUT: Duration = Duration::from_millis(1000);
 
     pub fn is_headphone_from_default_output_device() -> bool {
         let mut mainloop = match Mainloop::new() {
@@ -63,72 +67,73 @@ pub mod linux {
             return false;
         }
 
-        mainloop.lock();
-        loop {
-            match context.get_state() {
-                pulse::context::State::Ready => break,
-                pulse::context::State::Failed | pulse::context::State::Terminated => {
-                    mainloop.unlock();
-                    tracing::debug!("pulseaudio_context_connection_failed");
-                    return false;
-                }
-                _ => {
-                    mainloop.wait();
-                }
-            }
+        if !wait_for_context(&mut mainloop, &context, CONNECT_TIMEOUT) {
+            mainloop.stop();
+            return false;
         }
-        mainloop.unlock();
 
         let result = Arc::new(Mutex::new(false));
-        let result_clone = result.clone();
-        let done = Arc::new(Mutex::new(false));
-        let done_clone = done.clone();
+        let done = Arc::new(AtomicBool::new(false));
 
-        let introspector = context.introspect();
-        introspector.get_sink_info_by_name(
-            "@DEFAULT_SINK@",
-            move |list_result| match list_result {
-                pulse::callbacks::ListResult::Item(sink_info) => {
+        {
+            let result = result.clone();
+            let done = done.clone();
+
+            mainloop.lock();
+            let introspector = context.introspect();
+            introspector.get_sink_info_by_name("@DEFAULT_SINK@", move |list_result| {
+                if let pulse::callbacks::ListResult::Item(sink_info) = list_result {
                     if let Some(active_port) = &sink_info.active_port {
-                        let port_name = active_port.name.as_ref().map(|s| s.to_lowercase());
-                        if let Some(name) = port_name {
-                            let is_headphone = name.contains("headphone")
-                                || name.contains("headset")
-                                || name == "analog-output-headphones";
-                            if let Ok(mut r) = result_clone.lock() {
+                        if let Some(name) = active_port.name.as_ref() {
+                            let name_lower = name.to_lowercase();
+                            let is_headphone =
+                                name_lower.contains("headphone") || name_lower.contains("headset");
+                            if let Ok(mut r) = result.lock() {
                                 *r = is_headphone;
                             }
                         }
                     }
-                    if let Ok(mut d) = done_clone.lock() {
-                        *d = true;
-                    }
                 }
-                pulse::callbacks::ListResult::End => {
-                    if let Ok(mut d) = done_clone.lock() {
-                        *d = true;
-                    }
-                }
-                pulse::callbacks::ListResult::Error => {
-                    if let Ok(mut d) = done_clone.lock() {
-                        *d = true;
-                    }
-                }
-            },
-        );
-
-        for _ in 0..100 {
-            if let Ok(d) = done.lock() {
-                if *d {
-                    break;
-                }
-            }
-            std::thread::sleep(Duration::from_millis(10));
+                done.store(true, Ordering::Release);
+            });
+            mainloop.unlock();
         }
 
+        wait_for_done(&done, QUERY_TIMEOUT);
         mainloop.stop();
 
         result.lock().map(|r| *r).unwrap_or(false)
+    }
+
+    fn wait_for_context(mainloop: &mut Mainloop, context: &Context, timeout: Duration) -> bool {
+        let start = std::time::Instant::now();
+
+        loop {
+            if start.elapsed() > timeout {
+                tracing::debug!("pulseaudio_connect_timeout");
+                return false;
+            }
+
+            mainloop.lock();
+            let state = context.get_state();
+            mainloop.unlock();
+
+            match state {
+                pulse::context::State::Ready => return true,
+                pulse::context::State::Failed | pulse::context::State::Terminated => {
+                    tracing::debug!("pulseaudio_context_connection_failed");
+                    return false;
+                }
+                _ => std::thread::sleep(Duration::from_millis(10)),
+            }
+        }
+    }
+
+    fn wait_for_done(done: &AtomicBool, timeout: Duration) {
+        let start = std::time::Instant::now();
+        while !done.load(Ordering::Acquire) && start.elapsed() < timeout {
+            std::thread::sleep(Duration::from_millis(10));
+        }
     }
 }
 
@@ -143,5 +148,17 @@ pub mod test {
             "is_headphone_from_default_output_device={}",
             is_headphone_from_default_output_device()
         );
+    }
+}
+
+#[cfg(target_os = "linux")]
+#[cfg(test)]
+mod linux_test {
+    use super::linux::*;
+
+    #[test]
+    fn test_is_headphone_from_default_output_device() {
+        let result = is_headphone_from_default_output_device();
+        println!("is_headphone_from_default_output_device={}", result);
     }
 }

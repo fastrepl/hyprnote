@@ -241,4 +241,66 @@ mod tests {
 
         assert!(buffer.iter().any(|x| *x != 0.0));
     }
+
+    #[tokio::test]
+    async fn test_mic_stream_with_resampling() {
+        use hypr_audio_utils::{chunk_size_for_stt, ResampleExtDynamicNew};
+
+        let mic = MicInput::new(None).unwrap();
+        println!("mic device: {}", mic.device_name());
+        println!("mic sample_rate: {}", mic.sample_rate());
+
+        let target_rate = 16000;
+        let chunk_size = chunk_size_for_stt(target_rate);
+        println!("target_rate: {}, chunk_size: {}", target_rate, chunk_size);
+
+        let stream = mic.stream();
+        let mut resampled = stream.resampled_chunks(target_rate, chunk_size).unwrap();
+
+        let mut chunks_received = 0;
+        let mut total_samples = 0;
+
+        let timeout = tokio::time::Duration::from_secs(3);
+        let start = tokio::time::Instant::now();
+
+        while start.elapsed() < timeout {
+            tokio::select! {
+                chunk = resampled.next() => {
+                    match chunk {
+                        Some(Ok(data)) => {
+                            chunks_received += 1;
+                            total_samples += data.len();
+                            let has_nonzero = data.iter().any(|&x| x != 0.0);
+                            println!(
+                                "chunk {}: {} samples, has_nonzero={}",
+                                chunks_received, data.len(), has_nonzero
+                            );
+                            if chunks_received >= 10 {
+                                break;
+                            }
+                        }
+                        Some(Err(e)) => {
+                            panic!("resampling error: {:?}", e);
+                        }
+                        None => {
+                            panic!("stream ended unexpectedly");
+                        }
+                    }
+                }
+                _ = tokio::time::sleep(tokio::time::Duration::from_millis(500)) => {
+                    println!("timeout waiting for chunk, chunks_received={}", chunks_received);
+                }
+            }
+        }
+
+        println!(
+            "total: {} chunks, {} samples in {:?}",
+            chunks_received,
+            total_samples,
+            start.elapsed()
+        );
+        assert!(chunks_received > 0, "should receive at least one chunk");
+        assert!(total_samples > 0, "should receive samples");
+    }
+
 }

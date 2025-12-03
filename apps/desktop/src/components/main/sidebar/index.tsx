@@ -7,6 +7,8 @@ import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
 import { useShell } from "../../../contexts/shell";
+import { useIsLinux } from "../../../hooks/usePlatform";
+import { TrafficLights } from "../../window/traffic-lights";
 import { BannerArea } from "./banner";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";
@@ -16,6 +18,7 @@ export function LeftSidebar() {
   const { leftsidebar } = useShell();
   const { query } = useSearch();
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
+  const isLinux = useIsLinux();
 
   const showSearchResults = query.trim() !== "";
 
@@ -24,28 +27,32 @@ export function LeftSidebar() {
       <header
         data-tauri-drag-region
         className={cn([
-          "flex flex-row items-center justify-end",
-          "w-full h-9 py-1 pl-[72px]",
+          "flex flex-row items-center",
+          "w-full h-9 py-1",
+          isLinux ? "pl-3 justify-between" : "pl-[72px] justify-end",
           "shrink-0",
           "rounded-xl bg-neutral-50",
         ])}
       >
-        {import.meta.env.DEV && (
+        {isLinux && <TrafficLights />}
+        <div className="flex items-center">
+          {import.meta.env.DEV && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => windowsCommands.windowShow({ type: "devtool" })}
+            >
+              <AxeIcon size={16} />
+            </Button>
+          )}
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => windowsCommands.windowShow({ type: "devtool" })}
+            onClick={leftsidebar.toggleExpanded}
           >
-            <AxeIcon size={16} />
+            <PanelLeftCloseIcon size={16} />
           </Button>
-        )}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={leftsidebar.toggleExpanded}
-        >
-          <PanelLeftCloseIcon size={16} />
-        </Button>
+        </div>
       </header>
 
       <div className="flex flex-col flex-1 overflow-hidden gap-1">

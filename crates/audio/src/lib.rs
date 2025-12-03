@@ -222,7 +222,7 @@ pub fn is_using_headphone() -> bool {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
     use rodio::{
         cpal::SampleRate,

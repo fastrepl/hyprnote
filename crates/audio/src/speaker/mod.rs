@@ -135,14 +135,14 @@ impl kalosm_sound::AsyncSource for SpeakerStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::play_sine_for_sec;
-
     use serial_test::serial;
 
     #[cfg(target_os = "macos")]
     #[tokio::test]
     #[serial]
     async fn test_macos() {
+        use crate::play_sine_for_sec;
+
         let input = SpeakerInput::new().unwrap();
         let mut stream = input.stream().unwrap();
 
@@ -215,7 +215,7 @@ mod tests {
             Err(e) => {
                 println!("Failed to create SpeakerInput: {}", e);
                 println!(
-                    "This is expected if ALSA is not configured or no audio devices are available"
+                    "This is expected if PulseAudio is not running or no audio devices are available"
                 );
                 return;
             }
@@ -263,10 +263,9 @@ mod tests {
         }
 
         println!("Received {} samples from Linux speaker", sample_count);
-        if sample_count > 0 {
-            println!("Successfully captured audio samples");
-        } else {
-            println!("No samples captured - this may be expected if no audio is playing or permissions are not granted");
-        }
+        assert!(
+            sample_count > 0,
+            "Should receive audio samples from speaker monitor"
+        );
     }
 }

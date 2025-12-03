@@ -117,7 +117,7 @@ function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
           </div>
         ))}
       </div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,white_0%,white_20%,transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_center,white_0%,white_30%,transparent_70%)]" />
     </div>
   );
 }

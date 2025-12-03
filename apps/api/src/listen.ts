@@ -2,24 +2,24 @@ import type { Handler } from "hono";
 import { upgradeWebSocket } from "hono/bun";
 
 import {
-  buildDeepgramUrl,
-  DeepgramProxyConnection,
+  createProxyFromRequest,
   normalizeWsData,
-} from "./deepgram";
+  WsProxyConnection,
+} from "./stt";
 
 export const listenSocketHandler: Handler = async (c, next) => {
   const clientUrl = new URL(c.req.url, "http://localhost");
-  const deepgramUrl = buildDeepgramUrl(clientUrl).toString();
 
-  const connection = new DeepgramProxyConnection(deepgramUrl);
+  let connection: WsProxyConnection;
   try {
+    connection = createProxyFromRequest(clientUrl, c.req.raw.headers);
     await connection.preconnectUpstream();
   } catch (error) {
     console.error("Failed to establish upstream connection", error);
     const detail =
-      error instanceof Error ? error.message : "upstream_unavailable";
+      error instanceof Error ? error.message : "upstream_connect_failed";
     const status = detail === "upstream_connect_timeout" ? 504 : 502;
-    return c.json({ error: "upstream_unavailable", detail }, status);
+    return c.json({ error: "upstream_connect_failed", detail }, status);
   }
 
   const handler = upgradeWebSocket(() => {

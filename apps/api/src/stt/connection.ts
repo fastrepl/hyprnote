@@ -1,17 +1,27 @@
 import type { ServerWebSocket, WebSocketOptions } from "bun";
 
-import { env } from "./env";
+import {
+  getPayloadSize,
+  normalizeWsData,
+  payloadIsControlMessage,
+  type WsPayload,
+} from "./utils";
 
 const DEFAULT_CLOSE_CODE = 1011;
 const UPSTREAM_ERROR_TIMEOUT = 1000;
 const UPSTREAM_CONNECT_TIMEOUT = 5000;
 const MAX_PENDING_QUEUE_BYTES = 5 * 1024 * 1024; // 5 MiB
-const TEXT_ENCODER = new TextEncoder();
 
 type QueuedPayload = { payload: WsPayload; size: number };
 
-// https://developers.deepgram.com/docs/lower-level-websockets
-export class DeepgramProxyConnection {
+export type WsProxyOptions = {
+  headers?: Record<string, string>;
+  controlMessageTypes?: ReadonlySet<string>;
+};
+
+const DEFAULT_CONTROL_MESSAGE_TYPES = new Set<string>();
+
+export class WsProxyConnection {
   private upstream?: InstanceType<typeof WebSocket>;
   private upstreamReady = false;
   private shuttingDown = false;
@@ -25,7 +35,17 @@ export class DeepgramProxyConnection {
   private upstreamReadyResolve: (() => void) | null = null;
   private upstreamReadyReject: ((error: Error) => void) | null = null;
 
-  constructor(private deepgramUrl: string) {}
+  private readonly headers?: Record<string, string>;
+  private readonly controlMessageTypes: ReadonlySet<string>;
+
+  constructor(
+    private upstreamUrl: string,
+    options: WsProxyOptions = {},
+  ) {
+    this.headers = options.headers;
+    this.controlMessageTypes =
+      options.controlMessageTypes ?? DEFAULT_CONTROL_MESSAGE_TYPES;
+  }
 
   private clearErrorTimeout() {
     if (this.upstreamErrorTimeout) {
@@ -80,18 +100,17 @@ export class DeepgramProxyConnection {
       return;
     }
 
-    const wsOptions: WebSocketOptions = {
-      headers: {
-        Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
-      },
-    };
+    const wsOptions: WebSocketOptions =
+      this.headers && Object.keys(this.headers).length > 0
+        ? { headers: this.headers }
+        : {};
 
     this.upstream = new (globalThis.WebSocket as {
       new (
         url: string | URL,
         options?: WebSocketOptions,
       ): InstanceType<typeof WebSocket>;
-    })(this.deepgramUrl, wsOptions);
+    })(this.upstreamUrl, wsOptions);
 
     this.upstream.binaryType = "arraybuffer";
     this.setupUpstreamHandlers();
@@ -324,7 +343,10 @@ export class DeepgramProxyConnection {
       return;
     }
 
-    const isControlPayload = payloadIsControlMessage(payload);
+    const isControlPayload = payloadIsControlMessage(
+      payload,
+      this.controlMessageTypes,
+    );
 
     if (!this.upstreamReady) {
       this.enqueuePendingPayload(payload, isControlPayload);
@@ -360,85 +382,3 @@ export class DeepgramProxyConnection {
     this.pendingBytes += size;
   }
 }
-
-export const buildDeepgramUrl = (incomingUrl: URL) => {
-  const target = new URL("wss://api.deepgram.com/v1/listen");
-
-  incomingUrl.searchParams.forEach((value, key) => {
-    target.searchParams.set(key, value);
-  });
-  target.searchParams.set("model", "nova-3-general");
-  target.searchParams.set("mip_opt_out", "false");
-
-  return target;
-};
-
-export type WsPayload = string | Uint8Array;
-
-// https://bun.com/docs/runtime/http/websockets
-export const normalizeWsData = async (
-  data: unknown,
-): Promise<WsPayload | null> => {
-  if (typeof data === "string") {
-    return data;
-  }
-
-  if (data instanceof Uint8Array) {
-    return cloneBinaryPayload(data);
-  }
-
-  if (data instanceof ArrayBuffer) {
-    return new Uint8Array(data);
-  }
-
-  if (ArrayBuffer.isView(data)) {
-    return cloneBinaryPayload(data);
-  }
-
-  if (typeof Blob !== "undefined" && data instanceof Blob) {
-    const arrayBuffer = await data.arrayBuffer();
-    return new Uint8Array(arrayBuffer);
-  }
-
-  return null;
-};
-
-const cloneBinaryPayload = (input: ArrayBuffer | ArrayBufferView) => {
-  const view =
-    input instanceof ArrayBuffer
-      ? new Uint8Array(input)
-      : new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-  const copy = new Uint8Array(view.byteLength);
-  copy.set(view);
-  return copy;
-};
-
-const getPayloadSize = (payload: WsPayload) => {
-  if (typeof payload === "string") {
-    return TEXT_ENCODER.encode(payload).byteLength;
-  }
-  return payload.byteLength;
-};
-
-const CONTROL_MESSAGE_TYPES = new Set(["KeepAlive", "CloseStream", "Finalize"]);
-
-const payloadIsControlMessage = (payload: WsPayload) => {
-  if (typeof payload !== "string") {
-    return false;
-  }
-
-  try {
-    const parsed = JSON.parse(payload);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      CONTROL_MESSAGE_TYPES.has(parsed.type)
-    ) {
-      return true;
-    }
-  } catch {
-    // ignore parse errors
-  }
-
-  return false;
-};

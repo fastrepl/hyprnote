@@ -46,7 +46,7 @@ export const Route = createFileRoute("/_view/docs/$")({
   head: ({ loaderData }) => {
     const { doc } = loaderData!;
     const url = `https://hyprnote.com/docs/${doc.slug}`;
-    const ogImageUrl = `https://hyprnote.com/og?type=docs&title=${encodeURIComponent(doc.title)}&section=${encodeURIComponent(doc.section)}${doc.summary ? `&description=${encodeURIComponent(doc.summary)}` : ""}`;
+    const ogImageUrl = `https://hyprnote.com/og?type=docs&title=${encodeURIComponent(doc.title)}&section=${encodeURIComponent(doc.section)}${doc.summary ? `&description=${encodeURIComponent(doc.summary)}` : ""}&v=1`;
 
     return {
       meta: [

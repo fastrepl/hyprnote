@@ -5,6 +5,7 @@ import {
   useMatchRoute,
 } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
+import { useEffect, useRef } from "react";
 
 import { getDocsBySection } from "./-structure";
 
@@ -53,6 +54,17 @@ function DocsNavigation({
   currentSlug: string | undefined;
   onLinkClick?: () => void;
 }) {
+  const activeLinkRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    if (activeLinkRef.current) {
+      activeLinkRef.current.scrollIntoView({
+        behavior: "instant",
+        block: "center",
+      });
+    }
+  }, [currentSlug]);
+
   return (
     <nav className="space-y-4">
       {sections.map((section) => (
@@ -61,21 +73,25 @@ function DocsNavigation({
             {section.title}
           </h3>
           <div className="space-y-0.5">
-            {section.docs.map((doc) => (
-              <Link
-                key={doc.slug}
-                to="/docs/$"
-                params={{ _splat: doc.slug }}
-                onClick={onLinkClick}
-                className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
-                  currentSlug === doc.slug
-                    ? "bg-neutral-100 text-stone-600 font-medium"
-                    : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"
-                }`}
-              >
-                {doc.title}
-              </Link>
-            ))}
+            {section.docs.map((doc) => {
+              const isActive = currentSlug === doc.slug;
+              return (
+                <Link
+                  key={doc.slug}
+                  to="/docs/$"
+                  params={{ _splat: doc.slug }}
+                  onClick={onLinkClick}
+                  ref={isActive ? activeLinkRef : undefined}
+                  className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
+                    isActive
+                      ? "bg-neutral-100 text-stone-600 font-medium"
+                      : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"
+                  }`}
+                >
+                  {doc.title}
+                </Link>
+              );
+            })}
           </div>
         </div>
       ))}

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { z } from "zod";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
@@ -8,12 +8,13 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Permissions } from "../../../components/onboarding/permissions";
 import type { OnboardingNext } from "../../../components/onboarding/shared";
 import { Welcome } from "../../../components/onboarding/welcome";
+import { useIsLinux } from "../../../hooks/usePlatform";
 import { commands } from "../../../types/tauri.gen";
 
-const STEPS = ["welcome", "permissions"] as const;
+const ALL_STEPS = ["welcome", "permissions"] as const;
 
 const validateSearch = z.object({
-  step: z.enum(STEPS).default("welcome"),
+  step: z.enum(ALL_STEPS).default("welcome"),
   local: z.boolean().default(false),
 });
 
@@ -52,12 +53,20 @@ function useOnboarding() {
   const navigate = useNavigate();
   const search: OnboardingSearch = Route.useSearch();
   const { step, local } = search;
+  const isLinux = useIsLinux();
 
-  const previous = STEPS?.[STEPS.indexOf(step) - 1] as
-    | (typeof STEPS)[number]
+  const steps = useMemo(() => {
+    if (isLinux) {
+      return ALL_STEPS.filter((s) => s !== "permissions");
+    }
+    return [...ALL_STEPS];
+  }, [isLinux]);
+
+  const previous = steps?.[steps.indexOf(step) - 1] as
+    | (typeof ALL_STEPS)[number]
     | undefined;
-  const next = STEPS?.[STEPS.indexOf(step) + 1] as
-    | (typeof STEPS)[number]
+  const next = steps?.[steps.indexOf(step) + 1] as
+    | (typeof ALL_STEPS)[number]
     | undefined;
 
   const goPrevious = useCallback(() => {

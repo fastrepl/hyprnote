@@ -163,11 +163,15 @@ function Component() {
       const founder = founders.find((f) => f.id === search.id);
       if (founder) {
         setSelectedItem({ type: "founder", data: founder });
+      } else {
+        setSelectedItem(null);
       }
     } else if (search.type === "photo" && search.id) {
       const photo = teamPhotos.find((p) => p.id === search.id);
       if (photo) {
         setSelectedItem({ type: "photo", data: photo });
+      } else {
+        setSelectedItem(null);
       }
     } else {
       setSelectedItem(null);
@@ -177,13 +181,19 @@ function Component() {
   const handleSetSelectedItem = (item: SelectedItem | null) => {
     setSelectedItem(item);
     if (item === null) {
-      navigate({ search: {} });
+      navigate({ search: {}, resetScroll: false });
     } else if (item.type === "story") {
-      navigate({ search: { type: "story" } });
+      navigate({ search: { type: "story" }, resetScroll: false });
     } else if (item.type === "founder") {
-      navigate({ search: { type: "founder", id: item.data.id } });
+      navigate({
+        search: { type: "founder", id: item.data.id },
+        resetScroll: false,
+      });
     } else if (item.type === "photo") {
-      navigate({ search: { type: "photo", id: item.data.id } });
+      navigate({
+        search: { type: "photo", id: item.data.id },
+        resetScroll: false,
+      });
     }
   };
 

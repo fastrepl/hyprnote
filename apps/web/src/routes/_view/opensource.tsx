@@ -142,20 +142,20 @@ function HeroSection() {
             freedom to inspect, modify, and contribute.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <DownloadButton />
             <a
               href="https://github.com/fastrepl/hyprnote"
               target="_blank"
               rel="noopener noreferrer"
               className={cn([
                 "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium rounded-full",
-                "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm",
-                "hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
+                "bg-linear-to-t from-neutral-800 to-neutral-700 text-white",
+                "hover:scale-105 active:scale-95 transition-transform",
               ])}
             >
               <Icon icon="mdi:github" className="text-lg" />
               View on GitHub
             </a>
+            <DownloadButton />
           </div>
         </header>
       </div>

@@ -1932,6 +1932,10 @@ function BlogSection() {
 
       <div className="grid gap-4 md:grid-cols-3 px-4">
         {sortedArticles.map((article) => {
+          const ogImage =
+            article.coverImage ||
+            `https://hyprnote.com/og?type=blog&title=${encodeURIComponent(article.title)}${article.author ? `&author=${encodeURIComponent(article.author)}` : ""}${article.created ? `&date=${encodeURIComponent(new Date(article.created).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}` : ""}`;
+
           return (
             <Link
               key={article._meta.filePath}
@@ -1940,15 +1944,13 @@ function BlogSection() {
               className="group block h-full"
             >
               <article className="h-full border border-neutral-100 rounded-sm overflow-hidden bg-white hover:shadow-lg transition-all duration-300 flex flex-col">
-                {article.coverImage && (
-                  <div className="aspect-40/21 overflow-hidden border-b border-neutral-100 bg-stone-50">
-                    <Image
-                      src={article.coverImage}
-                      alt={article.display_title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                    />
-                  </div>
-                )}
+                <div className="aspect-40/21 overflow-hidden border-b border-neutral-100 bg-stone-50">
+                  <img
+                    src={ogImage}
+                    alt={article.display_title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                  />
+                </div>
 
                 <div className="p-6 flex flex-col flex-1">
                   <h3 className="text-xl font-serif text-stone-600 mb-2 group-hover:text-stone-800 transition-colors line-clamp-2">

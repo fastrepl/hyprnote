@@ -1,4 +1,5 @@
 import {
+  AuthRetryableFetchError,
   createClient,
   processLock,
   type Session,
@@ -7,6 +8,7 @@ import {
 } from "@supabase/supabase-js";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { load } from "@tauri-apps/plugin-store";
 import {
@@ -18,6 +20,26 @@ import {
 } from "react";
 
 import { env } from "./env";
+
+const isLocalAuthServer = (url: string | undefined): boolean => {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+};
+
+const clearAuthStorage = async (): Promise<void> => {
+  try {
+    const store = await load("auth.json");
+    await store.clear();
+    await store.save();
+  } catch {
+    // Ignore storage errors
+  }
+};
 
 // Check if we're in an iframe (extension host) context where Tauri APIs are not available
 const isIframeContext =
@@ -51,9 +73,12 @@ const supabase =
   env.VITE_SUPABASE_ANON_KEY &&
   tauriStorage
     ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY, {
+        global: {
+          fetch: tauriFetch,
+        },
         auth: {
           storage: tauriStorage,
-          autoRefreshToken: true,
+          autoRefreshToken: false,
           persistSession: true,
           detectSessionInUrl: false,
           lock: processLock,
@@ -73,6 +98,7 @@ const AuthContext = createContext<{
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [serverReachable, setServerReachable] = useState(true);
 
   const handleAuthCallback = async (url: string) => {
     if (!supabase) {
@@ -96,6 +122,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (res.error) {
       console.error(res.error);
+    } else {
+      setServerReachable(true);
+      supabase.auth.startAutoRefresh();
     }
   };
 
@@ -106,30 +135,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const appWindow = getCurrentWindow();
 
-    appWindow.listen("tauri://focus", () => {
-      supabase.auth.startAutoRefresh();
+    const unlistenFocus = appWindow.listen("tauri://focus", () => {
+      if (serverReachable) {
+        supabase.auth.startAutoRefresh();
+      }
     });
-    appWindow.listen("tauri://blur", () => {
+    const unlistenBlur = appWindow.listen("tauri://blur", () => {
       supabase.auth.stopAutoRefresh();
     });
 
     onOpenUrl(([url]) => {
       handleAuthCallback(url);
     });
-  }, []);
+
+    return () => {
+      unlistenFocus.then((fn) => fn());
+      unlistenBlur.then((fn) => fn());
+    };
+  }, [serverReachable]);
 
   useEffect(() => {
     if (!supabase) {
       return;
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+    const initSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          if (
+            error instanceof AuthRetryableFetchError &&
+            isLocalAuthServer(env.VITE_SUPABASE_URL)
+          ) {
+            await clearAuthStorage();
+            setServerReachable(false);
+            setSession(null);
+            return;
+          }
+        }
+        if (data.session) {
+          setSession(data.session);
+          setServerReachable(true);
+          supabase.auth.startAutoRefresh();
+        }
+      } catch (e) {
+        if (
+          e instanceof AuthRetryableFetchError &&
+          isLocalAuthServer(env.VITE_SUPABASE_URL)
+        ) {
+          await clearAuthStorage();
+          setServerReachable(false);
+          setSession(null);
+        }
+      }
+    };
+
+    initSession();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "TOKEN_REFRESHED" && !session) {
+        if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
+          clearAuthStorage();
+          setServerReachable(false);
+        }
+      }
       setSession(session);
     });
 
@@ -148,9 +219,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error(error);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        if (error instanceof AuthRetryableFetchError) {
+          await clearAuthStorage();
+          setSession(null);
+          return;
+        }
+        console.error(error);
+      }
+    } catch (e) {
+      if (e instanceof AuthRetryableFetchError) {
+        await clearAuthStorage();
+        setSession(null);
+      }
     }
   };
 

@@ -117,7 +117,7 @@ export const PROVIDERS = [
     disabled: false,
     id: "assemblyai",
     displayName: "AssemblyAI",
-    icon: <AssemblyAI size={16} />,
+    icon: <AssemblyAI size={12} />,
     baseUrl: "https://api.assemblyai.com",
     models: ["universal"],
     requiresPro: false,

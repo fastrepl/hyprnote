@@ -69,7 +69,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
 
 function LinksGrid() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 lg:flex-shrink-0">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 lg:shrink-0">
       <ProductLinks />
       <ResourcesLinks />
       <CompanyLinks />

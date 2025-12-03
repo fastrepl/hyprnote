@@ -12,4 +12,8 @@ sudo apt-get install -y \
   libpulse-dev \
   libgraphene-1.0-dev \
   pkg-config \
-  patchelf
+  patchelf \
+  cmake \
+  curl
+
+curl -fsSL https://get.pnpm.io/install.sh | sh -

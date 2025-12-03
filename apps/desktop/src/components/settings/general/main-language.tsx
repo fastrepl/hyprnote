@@ -10,7 +10,11 @@ import {
 
 type ISO_639_1_CODE = keyof typeof LANGUAGES_ISO_639_1;
 
-export function MainLanguageView(_: {
+export function MainLanguageView({
+  value,
+  onChange,
+  supportedLanguages,
+}: {
   value: string;
   onChange: (value: string) => void;
   supportedLanguages: ISO_639_1_CODE[];
@@ -23,12 +27,16 @@ export function MainLanguageView(_: {
           Language for summaries, chats, and AI-generated responses
         </p>
       </div>
-      <Select value="English" disabled>
+      <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-40 shadow-none focus:ring-0 focus:ring-offset-0">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="max-h-[250px] overflow-auto">
-          <SelectItem value="English">English</SelectItem>
+          {supportedLanguages.map((code) => (
+            <SelectItem key={code} value={code}>
+              {LANGUAGES_ISO_639_1[code].name}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

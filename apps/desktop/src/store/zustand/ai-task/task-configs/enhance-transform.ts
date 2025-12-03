@@ -54,16 +54,23 @@ async function transformArgs(
 
   const sessionContext = getSessionContext(sessionId, store);
   const template = templateId ? getTemplateData(templateId, store) : undefined;
+  const language = getLanguage(store);
 
   return {
     sessionId,
     enhancedNoteId,
     rawMd: sessionContext.rawMd,
+    language,
     sessionData: sessionContext.sessionData,
     participants: sessionContext.participants,
     segments: sessionContext.segments,
     template,
   };
+}
+
+function getLanguage(store: MainStore): string {
+  const value = store.getValue("ai_language");
+  return typeof value === "string" && value.length > 0 ? value : "en";
 }
 
 function getSessionContext(sessionId: string, store: MainStore) {

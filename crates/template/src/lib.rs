@@ -74,6 +74,8 @@ pub const POSTPROCESS_TRANSCRIPT_SYSTEM_TPL: &str =
 #[cfg(not(debug_assertions))]
 pub const POSTPROCESS_TRANSCRIPT_USER_TPL: &str =
     include_str!("../assets/postprocess_transcript.user.jinja");
+#[cfg(not(debug_assertions))]
+pub const LANGUAGE_PARTIAL_TPL: &str = include_str!("../assets/_language.partial.jinja");
 
 static GLOBAL_ENV: OnceLock<minijinja::Environment<'static>> = OnceLock::new();
 
@@ -128,6 +130,8 @@ fn init_environment() -> minijinja::Environment<'static> {
             POSTPROCESS_TRANSCRIPT_USER_TPL,
         )
         .unwrap();
+        env.add_template("_language.partial", LANGUAGE_PARTIAL_TPL)
+            .unwrap();
     }
 
     {

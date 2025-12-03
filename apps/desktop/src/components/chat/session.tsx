@@ -1,7 +1,8 @@
 import { useChat } from "@ai-sdk/react";
 import type { ChatStatus } from "ai";
-import { type ReactNode, useEffect, useMemo, useRef } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
+import { commands as templateCommands } from "@hypr/plugin-template";
 import type { ChatMessage, ChatMessageStorage } from "@hypr/store";
 
 import { CustomChatTransport } from "../../chat/transport";
@@ -163,14 +164,27 @@ export function ChatSession({
 function useTransport() {
   const registry = useToolRegistry();
   const model = useLanguageModel();
+  const language = main.UI.useValue("ai_language", main.STORE_ID) ?? "en";
+  const [systemPrompt, setSystemPrompt] = useState<string | undefined>();
+
+  useEffect(() => {
+    templateCommands
+      .render("chat.system", { language })
+      .then((result) => {
+        if (result.status === "ok") {
+          setSystemPrompt(result.data);
+        }
+      })
+      .catch(console.error);
+  }, [language]);
 
   const transport = useMemo(() => {
     if (!model) {
       return null;
     }
 
-    return new CustomChatTransport(registry, model);
-  }, [registry, model]);
+    return new CustomChatTransport(registry, model, systemPrompt);
+  }, [registry, model, systemPrompt]);
 
   return transport;
 }

@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "VITE_APP_URL=\"http://localhost:3000\" dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.restate -f .env -- vite dev --port 3000",
-    "build": "vite build && pagefind --site ./dist/client",
+    "build": "vite build && cp public/sitemap.xml dist/client/sitemap.xml && pagefind --site ./dist/client",
     "serve": "vite preview",
     "test": "playwright test",
     "typecheck": "CI=true pnpm -F @hypr/web build && tsc --project tsconfig.json --noEmit",

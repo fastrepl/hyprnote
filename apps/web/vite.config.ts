@@ -15,6 +15,9 @@ const config = defineConfig(() => ({
     viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),
     tanstackStart({
+      sitemap: {
+        host: "https://hyprnote.com",
+      },
       prerender: {
         enabled: true,
         crawlLinks: true,

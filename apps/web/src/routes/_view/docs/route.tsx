@@ -5,9 +5,8 @@ import {
   useMatchRoute,
 } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
-import { useMemo } from "react";
 
-import { docsStructure } from "./-structure";
+import { getDocsBySection } from "./-structure";
 
 export const Route = createFileRoute("/_view/docs")({
   component: Component,
@@ -34,54 +33,12 @@ function LeftSidebar() {
     match && typeof match !== "boolean" ? match._splat : undefined
   ) as string | undefined;
 
-  const docsBySection = useMemo(() => {
-    const sectionGroups: Record<
-      string,
-      { title: string; docs: (typeof allDocs)[0][] }
-    > = {};
-
-    allDocs.forEach((doc) => {
-      if (doc.slug === "index" || doc.isIndex) {
-        return;
-      }
-
-      const sectionName = doc.section;
-
-      if (!sectionGroups[sectionName]) {
-        sectionGroups[sectionName] = {
-          title: sectionName,
-          docs: [],
-        };
-      }
-
-      sectionGroups[sectionName].docs.push(doc);
-    });
-
-    Object.keys(sectionGroups).forEach((sectionName) => {
-      sectionGroups[sectionName].docs.sort((a, b) => a.order - b.order);
-    });
-
-    const sections = docsStructure.sections
-      .map((sectionId) => {
-        return Object.values(sectionGroups).find(
-          (group) => group.title.toLowerCase() === sectionId.toLowerCase(),
-        );
-      })
-      .filter(
-        (section): section is NonNullable<typeof section> =>
-          section !== undefined,
-      );
-
-    return { sections };
-  }, []);
+  const { sections } = getDocsBySection();
 
   return (
     <aside className="hidden md:block w-64 shrink-0">
       <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6">
-        <DocsNavigation
-          sections={docsBySection.sections}
-          currentSlug={currentSlug}
-        />
+        <DocsNavigation sections={sections} currentSlug={currentSlug} />
       </div>
     </aside>
   );

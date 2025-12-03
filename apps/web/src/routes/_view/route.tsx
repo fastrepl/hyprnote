@@ -6,13 +6,13 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { DocsDrawerContext } from "@/hooks/use-docs-drawer";
 
-import { docsStructure } from "./docs/-structure";
+import { getDocsBySection } from "./docs/-structure";
 
 export const Route = createFileRoute("/_view")({
   component: Component,
@@ -77,43 +77,7 @@ function MobileDocsDrawer({
     match && typeof match !== "boolean" ? match._splat : undefined
   ) as string | undefined;
 
-  const docsBySection = useMemo(() => {
-    const sectionGroups: Record<
-      string,
-      { title: string; docs: (typeof allDocs)[0][] }
-    > = {};
-
-    allDocs.forEach((doc) => {
-      if (doc.slug === "index" || doc.isIndex) {
-        return;
-      }
-
-      const sectionName = doc.section;
-
-      if (!sectionGroups[sectionName]) {
-        sectionGroups[sectionName] = {
-          title: sectionName,
-          docs: [],
-        };
-      }
-
-      sectionGroups[sectionName].docs.push(doc);
-    });
-
-    Object.keys(sectionGroups).forEach((sectionName) => {
-      sectionGroups[sectionName].docs.sort((a, b) => a.order - b.order);
-    });
-
-    const sections = docsStructure.sections
-      .map((sectionId) => {
-        const sectionName =
-          sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
-        return sectionGroups[sectionName];
-      })
-      .filter(Boolean);
-
-    return { sections };
-  }, []);
+  const { sections } = getDocsBySection();
 
   return (
     <div
@@ -123,7 +87,7 @@ function MobileDocsDrawer({
     >
       <div className="h-full overflow-y-auto p-4">
         <DocsNavigation
-          sections={docsBySection.sections}
+          sections={sections}
           currentSlug={currentSlug}
           onLinkClick={onClose}
         />
@@ -155,7 +119,7 @@ function DocsNavigation({
                 to="/docs/$"
                 params={{ _splat: doc.slug }}
                 onClick={onLinkClick}
-                className={`block px-3 py-1.5 text-sm rounded-sm transition-colors ${
+                className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
                   currentSlug === doc.slug
                     ? "bg-neutral-100 text-stone-600 font-medium"
                     : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"

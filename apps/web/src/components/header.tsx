@@ -10,6 +10,7 @@ import { useState } from "react";
 
 import { Search } from "@/components/search";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
+import { useHandbookDrawer } from "@/hooks/use-handbook-drawer";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
 function scrollToHero() {
@@ -49,7 +50,10 @@ export function Header() {
   const router = useRouterState();
   const maxWidthClass = getMaxWidthClass(router.location.pathname);
   const isDocsPage = router.location.pathname.startsWith("/docs");
+  const isHandbookPage =
+    router.location.pathname.startsWith("/company-handbook");
   const docsDrawer = useDocsDrawer();
+  const handbookDrawer = useHandbookDrawer();
 
   return (
     <>
@@ -60,7 +64,9 @@ export function Header() {
           <div className="flex items-center justify-between h-full">
             <LeftNav
               isDocsPage={isDocsPage}
+              isHandbookPage={isHandbookPage}
               docsDrawer={docsDrawer}
+              handbookDrawer={handbookDrawer}
               setIsMenuOpen={setIsMenuOpen}
               isProductOpen={isProductOpen}
               setIsProductOpen={setIsProductOpen}
@@ -72,6 +78,7 @@ export function Header() {
               isMenuOpen={isMenuOpen}
               setIsMenuOpen={setIsMenuOpen}
               docsDrawer={docsDrawer}
+              handbookDrawer={handbookDrawer}
             />
           </div>
         </div>
@@ -92,22 +99,28 @@ export function Header() {
 
 function LeftNav({
   isDocsPage,
+  isHandbookPage,
   docsDrawer,
+  handbookDrawer,
   setIsMenuOpen,
   isProductOpen,
   setIsProductOpen,
 }: {
   isDocsPage: boolean;
+  isHandbookPage: boolean;
   docsDrawer: ReturnType<typeof useDocsDrawer>;
+  handbookDrawer: ReturnType<typeof useHandbookDrawer>;
   setIsMenuOpen: (open: boolean) => void;
   isProductOpen: boolean;
   setIsProductOpen: (open: boolean) => void;
 }) {
   return (
     <div className="flex items-center gap-4">
-      <DocsDrawerButton
+      <DrawerButton
         isDocsPage={isDocsPage}
+        isHandbookPage={isHandbookPage}
         docsDrawer={docsDrawer}
+        handbookDrawer={handbookDrawer}
         setIsMenuOpen={setIsMenuOpen}
       />
       <Logo />
@@ -120,37 +133,68 @@ function LeftNav({
   );
 }
 
-function DocsDrawerButton({
+function DrawerButton({
   isDocsPage,
+  isHandbookPage,
   docsDrawer,
+  handbookDrawer,
   setIsMenuOpen,
 }: {
   isDocsPage: boolean;
+  isHandbookPage: boolean;
   docsDrawer: ReturnType<typeof useDocsDrawer>;
+  handbookDrawer: ReturnType<typeof useHandbookDrawer>;
   setIsMenuOpen: (open: boolean) => void;
 }) {
-  if (!isDocsPage || !docsDrawer) return null;
-
-  return (
-    <button
-      onClick={() => {
-        if (!docsDrawer.isOpen) {
-          setIsMenuOpen(false);
+  if (isDocsPage && docsDrawer) {
+    return (
+      <button
+        onClick={() => {
+          if (!docsDrawer.isOpen) {
+            setIsMenuOpen(false);
+          }
+          docsDrawer.setIsOpen(!docsDrawer.isOpen);
+        }}
+        className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+        aria-label={
+          docsDrawer.isOpen ? "Close docs navigation" : "Open docs navigation"
         }
-        docsDrawer.setIsOpen(!docsDrawer.isOpen);
-      }}
-      className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
-      aria-label={
-        docsDrawer.isOpen ? "Close docs navigation" : "Open docs navigation"
-      }
-    >
-      {docsDrawer.isOpen ? (
-        <PanelLeftClose className="text-neutral-600" size={16} />
-      ) : (
-        <PanelLeft className="text-neutral-600" size={16} />
-      )}
-    </button>
-  );
+      >
+        {docsDrawer.isOpen ? (
+          <PanelLeftClose className="text-neutral-600" size={16} />
+        ) : (
+          <PanelLeft className="text-neutral-600" size={16} />
+        )}
+      </button>
+    );
+  }
+
+  if (isHandbookPage && handbookDrawer) {
+    return (
+      <button
+        onClick={() => {
+          if (!handbookDrawer.isOpen) {
+            setIsMenuOpen(false);
+          }
+          handbookDrawer.setIsOpen(!handbookDrawer.isOpen);
+        }}
+        className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
+        aria-label={
+          handbookDrawer.isOpen
+            ? "Close handbook navigation"
+            : "Open handbook navigation"
+        }
+      >
+        {handbookDrawer.isOpen ? (
+          <PanelLeftClose className="text-neutral-600" size={16} />
+        ) : (
+          <PanelLeft className="text-neutral-600" size={16} />
+        )}
+      </button>
+    );
+  }
+
+  return null;
 }
 
 function Logo() {
@@ -301,20 +345,27 @@ function MobileNav({
   isMenuOpen,
   setIsMenuOpen,
   docsDrawer,
+  handbookDrawer,
 }: {
   platform: string;
   platformCTA: ReturnType<typeof getPlatformCTA>;
   isMenuOpen: boolean;
   setIsMenuOpen: (open: boolean) => void;
   docsDrawer: ReturnType<typeof useDocsDrawer>;
+  handbookDrawer: ReturnType<typeof useHandbookDrawer>;
 }) {
   return (
     <div className="sm:hidden flex items-center gap-2">
       <CTAButton platformCTA={platformCTA} platform={platform} mobile />
       <button
         onClick={() => {
-          if (!isMenuOpen && docsDrawer) {
-            docsDrawer.setIsOpen(false);
+          if (!isMenuOpen) {
+            if (docsDrawer) {
+              docsDrawer.setIsOpen(false);
+            }
+            if (handbookDrawer) {
+              handbookDrawer.setIsOpen(false);
+            }
           }
           setIsMenuOpen(!isMenuOpen);
         }}

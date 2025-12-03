@@ -5,13 +5,16 @@ import {
   useMatchRoute,
   useRouterState,
 } from "@tanstack/react-router";
-import { allDocs } from "content-collections";
-import { createContext, useContext, useState } from "react";
+import { allDocs, allHandbooks } from "content-collections";
+import { createContext, useContext, useMemo, useRef, useState } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { DocsDrawerContext } from "@/hooks/use-docs-drawer";
+import { HandbookDrawerContext } from "@/hooks/use-handbook-drawer";
 
+import { handbookStructure } from "./company-handbook/-structure";
 import { getDocsBySection } from "./docs/-structure";
 
 export const Route = createFileRoute("/_view")({
@@ -32,8 +35,11 @@ export function useHeroContext() {
 function Component() {
   const router = useRouterState();
   const isDocsPage = router.location.pathname.startsWith("/docs");
+  const isHandbookPage =
+    router.location.pathname.startsWith("/company-handbook");
   const [onTrigger, setOnTrigger] = useState<(() => void) | null>(null);
   const [isDocsDrawerOpen, setIsDocsDrawerOpen] = useState(false);
+  const [isHandbookDrawerOpen, setIsHandbookDrawerOpen] = useState(false);
 
   return (
     <HeroContext.Provider
@@ -45,19 +51,32 @@ function Component() {
       <DocsDrawerContext.Provider
         value={{ isOpen: isDocsDrawerOpen, setIsOpen: setIsDocsDrawerOpen }}
       >
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          <Footer />
-          {isDocsPage && (
-            <MobileDocsDrawer
-              isOpen={isDocsDrawerOpen}
-              onClose={() => setIsDocsDrawerOpen(false)}
-            />
-          )}
-        </div>
+        <HandbookDrawerContext.Provider
+          value={{
+            isOpen: isHandbookDrawerOpen,
+            setIsOpen: setIsHandbookDrawerOpen,
+          }}
+        >
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <Outlet />
+            </main>
+            <Footer />
+            {isDocsPage && (
+              <MobileDocsDrawer
+                isOpen={isDocsDrawerOpen}
+                onClose={() => setIsDocsDrawerOpen(false)}
+              />
+            )}
+            {isHandbookPage && (
+              <MobileHandbookDrawer
+                isOpen={isHandbookDrawerOpen}
+                onClose={() => setIsHandbookDrawerOpen(false)}
+              />
+            )}
+          </div>
+        </HandbookDrawerContext.Provider>
       </DocsDrawerContext.Provider>
     </HeroContext.Provider>
   );
@@ -78,6 +97,7 @@ function MobileDocsDrawer({
   ) as string | undefined;
 
   const { sections } = getDocsBySection();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
     <div
@@ -85,52 +105,88 @@ function MobileDocsDrawer({
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="h-full overflow-y-auto p-4">
-        <DocsNavigation
+      <div ref={scrollContainerRef} className="h-full overflow-y-auto p-4">
+        <SidebarNavigation
           sections={sections}
           currentSlug={currentSlug}
           onLinkClick={onClose}
+          scrollContainerRef={scrollContainerRef}
+          linkTo="/docs/$"
         />
       </div>
     </div>
   );
 }
 
-function DocsNavigation({
-  sections,
-  currentSlug,
-  onLinkClick,
+function MobileHandbookDrawer({
+  isOpen,
+  onClose,
 }: {
-  sections: { title: string; docs: (typeof allDocs)[0][] }[];
-  currentSlug: string | undefined;
-  onLinkClick?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }) {
+  const matchRoute = useMatchRoute();
+  const match = matchRoute({ to: "/company-handbook/$", fuzzy: true });
+
+  const currentSlug = (
+    match && typeof match !== "boolean" ? match._splat : undefined
+  ) as string | undefined;
+
+  const handbooksBySection = useMemo(() => {
+    const sectionGroups: Record<
+      string,
+      { title: string; docs: (typeof allHandbooks)[0][] }
+    > = {};
+
+    allHandbooks.forEach((doc) => {
+      if (doc.slug === "index" || doc.isIndex) {
+        return;
+      }
+
+      const sectionName = doc.section;
+
+      if (!sectionGroups[sectionName]) {
+        sectionGroups[sectionName] = {
+          title: sectionName,
+          docs: [],
+        };
+      }
+
+      sectionGroups[sectionName].docs.push(doc);
+    });
+
+    Object.keys(sectionGroups).forEach((sectionName) => {
+      sectionGroups[sectionName].docs.sort((a, b) => a.order - b.order);
+    });
+
+    const sections = handbookStructure.sections
+      .map((sectionId) => {
+        const sectionName =
+          sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+        return sectionGroups[sectionName];
+      })
+      .filter(Boolean);
+
+    return { sections };
+  }, []);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   return (
-    <nav className="space-y-4">
-      {sections.map((section) => (
-        <div key={section.title}>
-          <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">
-            {section.title}
-          </h3>
-          <div className="space-y-0.5">
-            {section.docs.map((doc) => (
-              <Link
-                key={doc.slug}
-                to="/docs/$"
-                params={{ _splat: doc.slug }}
-                onClick={onLinkClick}
-                className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
-                  currentSlug === doc.slug
-                    ? "bg-neutral-100 text-stone-600 font-medium"
-                    : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"
-                }`}
-              >
-                {doc.title}
-              </Link>
-            ))}
-          </div>
-        </div>
-      ))}
-    </nav>
+    <div
+      className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div ref={scrollContainerRef} className="h-full overflow-y-auto p-4">
+        <SidebarNavigation
+          sections={handbooksBySection.sections}
+          currentSlug={currentSlug}
+          onLinkClick={onClose}
+          scrollContainerRef={scrollContainerRef}
+          linkTo="/company-handbook/$"
+        />
+      </div>
+    </div>
   );
 }

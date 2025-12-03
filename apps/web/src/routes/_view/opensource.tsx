@@ -88,7 +88,7 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
 }
 
 function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
-  const rows = 12;
+  const rows = 16;
   const cols = 32;
 
   return (

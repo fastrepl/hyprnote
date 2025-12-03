@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { cn } from "@hypr/utils";
 
+import { DownloadButton } from "@/components/download-button";
 import { GitHubOpenSource } from "@/components/github-open-source";
 import { SlashSeparator } from "@/components/slash-separator";
 import { Stargazer, useGitHubStargazers } from "@/queries";
@@ -141,28 +142,19 @@ function HeroSection() {
             freedom to inspect, modify, and contribute.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <DownloadButton />
             <a
               href="https://github.com/fastrepl/hyprnote"
               target="_blank"
               rel="noopener noreferrer"
               className={cn([
                 "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium rounded-full",
-                "bg-linear-to-t from-neutral-800 to-neutral-700 text-white",
-                "hover:scale-105 active:scale-95 transition-transform",
-              ])}
-            >
-              <Icon icon="mdi:github" className="text-lg" />
-              View on GitHub
-            </a>
-            <a
-              href="https://hyprnote.com/download"
-              className={cn([
-                "inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-full",
                 "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 shadow-sm",
                 "hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all",
               ])}
             >
-              Download for free
+              <Icon icon="mdi:github" className="text-lg" />
+              View on GitHub
             </a>
           </div>
         </header>
@@ -521,16 +513,7 @@ function CTASection() {
           today.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="https://hyprnote.com/download"
-            className={cn([
-              "px-8 py-3 text-base font-medium rounded-full",
-              "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-              "hover:scale-105 active:scale-95 transition-transform",
-            ])}
-          >
-            Download for free
-          </a>
+          <DownloadButton />
           <Link
             to="/product/local-ai"
             className={cn([

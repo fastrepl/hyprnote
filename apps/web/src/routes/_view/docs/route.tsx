@@ -62,7 +62,7 @@ function DocsNavigation({
   sections: { title: string; docs: (typeof allDocs)[0][] }[];
   currentSlug: string | undefined;
   onLinkClick?: () => void;
-  scrollContainerRef?: React.RefObject<HTMLDivElement>;
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   const activeLinkRef = useRef<HTMLAnchorElement>(null);
 

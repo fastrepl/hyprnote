@@ -1,6 +1,7 @@
 mod argmax;
 mod assemblyai;
 mod deepgram;
+mod deepgram_compat;
 mod fireworks;
 mod owhisper;
 mod soniox;

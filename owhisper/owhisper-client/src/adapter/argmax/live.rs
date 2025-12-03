@@ -2,8 +2,10 @@ use hypr_ws::client::Message;
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::ListenParams;
 
-use super::ArgmaxAdapter;
+use crate::adapter::deepgram_compat::build_listen_ws_url;
 use crate::adapter::RealtimeSttAdapter;
+
+use super::{keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy, ArgmaxAdapter};
 
 impl RealtimeSttAdapter for ArgmaxAdapter {
     fn supports_native_multichannel(&self) -> bool {
@@ -11,24 +13,37 @@ impl RealtimeSttAdapter for ArgmaxAdapter {
     }
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url {
-        let adapted = Self::adapt_params(params);
-        self.inner.build_ws_url(api_base, &adapted, channels)
+        build_listen_ws_url(
+            api_base,
+            params,
+            channels,
+            &ArgmaxLanguageStrategy,
+            &ArgmaxKeywordStrategy,
+        )
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
-        self.inner.build_auth_header(api_key)
+        api_key.map(|key| ("Authorization", format!("Token {}", key)))
     }
 
     fn keep_alive_message(&self) -> Option<Message> {
-        self.inner.keep_alive_message()
+        Some(Message::Text(
+            serde_json::to_string(&owhisper_interface::ControlMessage::KeepAlive)
+                .unwrap()
+                .into(),
+        ))
     }
 
     fn finalize_message(&self) -> Message {
-        self.inner.finalize_message()
+        Message::Text(
+            serde_json::to_string(&owhisper_interface::ControlMessage::Finalize)
+                .unwrap()
+                .into(),
+        )
     }
 
     fn parse_response(&self, raw: &str) -> Vec<StreamResponse> {
-        self.inner.parse_response(raw)
+        serde_json::from_str(raw).into_iter().collect()
     }
 }
 

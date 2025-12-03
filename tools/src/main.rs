@@ -79,10 +79,18 @@ fn list_windows() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn truncate(s: &str, max_len: usize) -> String {
-    if s.len() > max_len {
-        format!("{}...", &s[..max_len - 3])
-    } else {
-        s.to_string()
+    if max_len < 3 {
+        return s.to_string();
+    }
+
+    let char_count = s.chars().count();
+    if char_count <= max_len {
+        return s.to_string();
+    }
+
+    match s.char_indices().nth(max_len - 3) {
+        Some((idx, _)) => format!("{}...", &s[..idx]),
+        None => s.to_string(),
     }
 }
 

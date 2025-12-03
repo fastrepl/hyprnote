@@ -117,7 +117,6 @@ function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
           </div>
         ))}
       </div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_center,white_0%,white_30%,transparent_70%)]" />
     </div>
   );
 }
@@ -129,7 +128,8 @@ function HeroSection() {
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 relative overflow-hidden">
       {stargazers.length > 0 && <StargazersGrid stargazers={stargazers} />}
       <div className="px-6 py-12 lg:py-20 relative z-10">
-        <header className="mb-12 text-center max-w-4xl mx-auto">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_800px_400px_at_50%_50%,white_0%,rgba(255,255,255,0.8)_40%,transparent_70%)] pointer-events-none" />
+        <header className="mb-12 text-center max-w-4xl mx-auto relative">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
             Built in the open,
             <br />

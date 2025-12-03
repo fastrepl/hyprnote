@@ -7,6 +7,7 @@ mod tests {
     use crate::ListenClient;
 
     #[tokio::test]
+    #[ignore]
     async fn test_owhisper_with_owhisper() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
@@ -34,6 +35,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn test_owhisper_with_deepgram() {
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),

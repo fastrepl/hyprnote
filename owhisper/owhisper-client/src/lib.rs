@@ -9,8 +9,8 @@ pub(crate) mod test_utils;
 use std::marker::PhantomData;
 
 pub use adapter::{
-    ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter, FireworksAdapter,
-    RealtimeSttAdapter, SonioxAdapter,
+    is_local_host, AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
+    FireworksAdapter, RealtimeSttAdapter, SonioxAdapter,
 };
 pub use batch::BatchClient;
 pub use error::Error;

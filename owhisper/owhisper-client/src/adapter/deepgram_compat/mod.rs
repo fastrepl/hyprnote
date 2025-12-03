@@ -9,26 +9,45 @@ pub use url::UrlQuery;
 
 use owhisper_interface::ListenParams;
 
-pub fn listen_endpoint_url(api_base: &str) -> url::Url {
+pub fn listen_endpoint_url(api_base: &str) -> (url::Url, Vec<(String, String)>) {
     let mut url: url::Url = api_base.parse().expect("invalid_api_base");
-
-    let mut path = url.path().to_string();
-    if !path.ends_with('/') {
-        path.push('/');
-    }
-    path.push_str("listen");
-    url.set_path(&path);
-
-    url
+    let existing_params = super::extract_query_params(&url);
+    url.set_query(None);
+    super::append_path_if_missing(&mut url, "/listen");
+    (url, existing_params)
 }
 
-pub fn set_scheme_from_host(url: &mut url::Url) {
-    if let Some(host) = url.host_str() {
-        if host.contains("127.0.0.1") || host.contains("localhost") || host.contains("0.0.0.0") {
-            let _ = url.set_scheme("ws");
-        } else {
-            let _ = url.set_scheme("wss");
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_listen_endpoint_url_appends_listen() {
+        let (url, params) = listen_endpoint_url("https://api.deepgram.com/v1");
+        assert_eq!(url.as_str(), "https://api.deepgram.com/v1/listen");
+        assert!(params.is_empty());
+    }
+
+    #[test]
+    fn test_listen_endpoint_url_preserves_query_params() {
+        let (url, params) = listen_endpoint_url("https://api.hyprnote.com/v1?provider=deepgram");
+        assert_eq!(url.as_str(), "https://api.hyprnote.com/v1/listen");
+        assert_eq!(params, vec![("provider".into(), "deepgram".into())]);
+    }
+
+    #[test]
+    fn test_listen_endpoint_url_no_double_listen() {
+        let (url, params) =
+            listen_endpoint_url("https://api.hyprnote.com/listen?provider=deepgram");
+        assert_eq!(url.as_str(), "https://api.hyprnote.com/listen");
+        assert_eq!(params, vec![("provider".into(), "deepgram".into())]);
+    }
+
+    #[test]
+    fn test_listen_endpoint_url_no_double_listen_with_trailing_slash() {
+        let (url, params) = listen_endpoint_url("https://api.hyprnote.com/listen/");
+        assert_eq!(url.as_str(), "https://api.hyprnote.com/listen/");
+        assert!(params.is_empty());
     }
 }
 
@@ -43,10 +62,14 @@ where
     L: LanguageQueryStrategy,
     K: KeywordQueryStrategy,
 {
-    let mut url = listen_endpoint_url(api_base);
+    let (mut url, existing_params) = listen_endpoint_url(api_base);
 
     {
         let mut query_pairs = url.query_pairs_mut();
+
+        for (key, value) in &existing_params {
+            query_pairs.append_pair(key, value);
+        }
 
         lang_strategy.append_language_query(&mut query_pairs, params);
 
@@ -74,7 +97,7 @@ where
         keyword_strategy.append_keyword_query(&mut query_pairs, params);
     }
 
-    set_scheme_from_host(&mut url);
+    super::set_scheme_from_host(&mut url);
 
     url
 }
@@ -89,10 +112,14 @@ where
     L: LanguageQueryStrategy,
     K: KeywordQueryStrategy,
 {
-    let mut url = listen_endpoint_url(api_base);
+    let (mut url, existing_params) = listen_endpoint_url(api_base);
 
     {
         let mut query_pairs = url.query_pairs_mut();
+
+        for (key, value) in &existing_params {
+            query_pairs.append_pair(key, value);
+        }
 
         lang_strategy.append_language_query(&mut query_pairs, params);
 

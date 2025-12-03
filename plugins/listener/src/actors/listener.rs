@@ -5,8 +5,8 @@ use futures_util::StreamExt;
 use tokio::time::error::Elapsed;
 
 use owhisper_client::{
-    ArgmaxAdapter, DeepgramAdapter, FinalizeHandle, FireworksAdapter, RealtimeSttAdapter,
-    SonioxAdapter,
+    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FinalizeHandle,
+    FireworksAdapter, RealtimeSttAdapter, SonioxAdapter,
 };
 use owhisper_interface::stream::{Extra, StreamResponse};
 use owhisper_interface::{ControlMessage, MixedMessage};
@@ -189,36 +189,6 @@ impl Actor for ListenerActor {
     }
 }
 
-fn is_local_stt_base_url(base_url: &str) -> bool {
-    if let Ok(parsed) = url::Url::parse(base_url) {
-        matches!(parsed.host_str(), Some("localhost" | "127.0.0.1" | "::1"))
-    } else {
-        base_url.contains("localhost") || base_url.contains("127.0.0.1")
-    }
-}
-
-fn is_soniox_base_url(base_url: &str) -> bool {
-    if let Ok(parsed) = url::Url::parse(base_url) {
-        parsed
-            .host_str()
-            .map(|h| h.contains("soniox.com"))
-            .unwrap_or(false)
-    } else {
-        base_url.contains("soniox.com")
-    }
-}
-
-fn is_fireworks_base_url(base_url: &str) -> bool {
-    if let Ok(parsed) = url::Url::parse(base_url) {
-        parsed
-            .host_str()
-            .map(|h| h.contains("fireworks.ai"))
-            .unwrap_or(false)
-    } else {
-        base_url.contains("fireworks.ai")
-    }
-}
-
 async fn spawn_rx_task(
     args: ListenerArgs,
     myself: ActorRef<ListenerMsg>,
@@ -230,28 +200,41 @@ async fn spawn_rx_task(
     ),
     ActorProcessingErr,
 > {
-    match args.mode {
-        crate::actors::ChannelMode::MicOnly | crate::actors::ChannelMode::SpeakerOnly => {
-            if is_local_stt_base_url(&args.base_url) {
-                spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
-            } else if is_soniox_base_url(&args.base_url) {
-                spawn_rx_task_single_with_adapter::<SonioxAdapter>(args, myself).await
-            } else if is_fireworks_base_url(&args.base_url) {
-                spawn_rx_task_single_with_adapter::<FireworksAdapter>(args, myself).await
-            } else {
-                spawn_rx_task_single_with_adapter::<DeepgramAdapter>(args, myself).await
-            }
+    let (adapter_kind, base_url) =
+        AdapterKind::from_url_and_languages(&args.base_url, &args.languages);
+    let args = ListenerArgs { base_url, ..args };
+    let is_dual = matches!(args.mode, crate::actors::ChannelMode::MicAndSpeaker);
+
+    match (adapter_kind, is_dual) {
+        (AdapterKind::Argmax, false) => {
+            spawn_rx_task_single_with_adapter::<ArgmaxAdapter>(args, myself).await
         }
-        crate::actors::ChannelMode::MicAndSpeaker => {
-            if is_local_stt_base_url(&args.base_url) {
-                spawn_rx_task_dual_with_adapter::<ArgmaxAdapter>(args, myself).await
-            } else if is_soniox_base_url(&args.base_url) {
-                spawn_rx_task_dual_with_adapter::<SonioxAdapter>(args, myself).await
-            } else if is_fireworks_base_url(&args.base_url) {
-                spawn_rx_task_dual_with_adapter::<FireworksAdapter>(args, myself).await
-            } else {
-                spawn_rx_task_dual_with_adapter::<DeepgramAdapter>(args, myself).await
-            }
+        (AdapterKind::Argmax, true) => {
+            spawn_rx_task_dual_with_adapter::<ArgmaxAdapter>(args, myself).await
+        }
+        (AdapterKind::Soniox, false) => {
+            spawn_rx_task_single_with_adapter::<SonioxAdapter>(args, myself).await
+        }
+        (AdapterKind::Soniox, true) => {
+            spawn_rx_task_dual_with_adapter::<SonioxAdapter>(args, myself).await
+        }
+        (AdapterKind::Fireworks, false) => {
+            spawn_rx_task_single_with_adapter::<FireworksAdapter>(args, myself).await
+        }
+        (AdapterKind::Fireworks, true) => {
+            spawn_rx_task_dual_with_adapter::<FireworksAdapter>(args, myself).await
+        }
+        (AdapterKind::Deepgram, false) => {
+            spawn_rx_task_single_with_adapter::<DeepgramAdapter>(args, myself).await
+        }
+        (AdapterKind::Deepgram, true) => {
+            spawn_rx_task_dual_with_adapter::<DeepgramAdapter>(args, myself).await
+        }
+        (AdapterKind::AssemblyAI, false) => {
+            spawn_rx_task_single_with_adapter::<AssemblyAIAdapter>(args, myself).await
+        }
+        (AdapterKind::AssemblyAI, true) => {
+            spawn_rx_task_dual_with_adapter::<AssemblyAIAdapter>(args, myself).await
         }
     }
 }

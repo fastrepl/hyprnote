@@ -14,9 +14,16 @@ impl RealtimeSttAdapter for SonioxAdapter {
     }
 
     fn build_ws_url(&self, api_base: &str, _params: &ListenParams, _channels: u8) -> url::Url {
-        format!("wss://{}/transcribe-websocket", Self::ws_host(api_base))
-            .parse()
-            .expect("invalid_ws_url")
+        let (mut url, existing_params) = Self::build_ws_url_from_base(api_base);
+
+        if !existing_params.is_empty() {
+            let mut query_pairs = url.query_pairs_mut();
+            for (key, value) in &existing_params {
+                query_pairs.append_pair(key, value);
+            }
+        }
+
+        url
     }
 
     fn build_auth_header(&self, _api_key: Option<&str>) -> Option<(&'static str, String)> {

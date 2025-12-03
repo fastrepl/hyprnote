@@ -14,13 +14,14 @@ impl RealtimeSttAdapter for FireworksAdapter {
     }
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, _channels: u8) -> url::Url {
-        let host = Self::ws_host(api_base);
-        let mut url: url::Url = format!("wss://{}/v1/audio/transcriptions/streaming", host)
-            .parse()
-            .expect("invalid_ws_url");
+        let (mut url, existing_params) = Self::build_ws_url_from_base(api_base);
 
         {
             let mut query_pairs = url.query_pairs_mut();
+
+            for (key, value) in &existing_params {
+                query_pairs.append_pair(key, value);
+            }
 
             query_pairs.append_pair("response_format", "verbose_json");
             query_pairs.append_pair("timestamp_granularities", "word,segment");

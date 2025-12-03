@@ -14,10 +14,14 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
     }
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, _channels: u8) -> url::Url {
-        let mut url = Self::streaming_ws_url(api_base);
+        let (mut url, existing_params) = Self::streaming_ws_url(api_base);
 
         {
             let mut query_pairs = url.query_pairs_mut();
+
+            for (key, value) in &existing_params {
+                query_pairs.append_pair(key, value);
+            }
 
             let sample_rate = params.sample_rate.to_string();
             query_pairs.append_pair("sample_rate", &sample_rate);

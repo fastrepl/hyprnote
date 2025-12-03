@@ -58,3 +58,91 @@ pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {
         file_path: P,
     ) -> BatchFuture<'a>;
 }
+
+pub fn set_scheme_from_host(url: &mut url::Url) {
+    if let Some(host) = url.host_str() {
+        if is_local_host(host) {
+            let _ = url.set_scheme("ws");
+        } else {
+            let _ = url.set_scheme("wss");
+        }
+    }
+}
+
+pub fn is_local_host(host: &str) -> bool {
+    host == "127.0.0.1" || host == "localhost" || host == "0.0.0.0" || host == "::1"
+}
+
+pub fn extract_query_params(url: &url::Url) -> Vec<(String, String)> {
+    url.query_pairs()
+        .map(|(k, v)| (k.into_owned(), v.into_owned()))
+        .collect()
+}
+
+pub fn append_path_if_missing(url: &mut url::Url, suffix: &str) {
+    let path = url.path().to_string();
+    if !path.ends_with(suffix) && !path.ends_with(&format!("{}/", suffix)) {
+        let mut new_path = path;
+        if !new_path.ends_with('/') {
+            new_path.push('/');
+        }
+        new_path.push_str(suffix.trim_start_matches('/'));
+        url.set_path(&new_path);
+    }
+}
+
+pub(crate) fn host_matches(base_url: &str, predicate: impl Fn(&str) -> bool) -> bool {
+    url::Url::parse(base_url)
+        .ok()
+        .and_then(|u| u.host_str().map(&predicate))
+        .unwrap_or(false)
+}
+
+fn is_local_stt_host(base_url: &str) -> bool {
+    host_matches(base_url, is_local_host)
+}
+
+fn is_hyprnote_cloud_host(base_url: &str) -> bool {
+    host_matches(base_url, |h| h.contains("hyprnote.com"))
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AdapterKind {
+    Argmax,
+    Soniox,
+    Fireworks,
+    Deepgram,
+    AssemblyAI,
+}
+
+impl AdapterKind {
+    pub fn from_url_and_languages(
+        base_url: &str,
+        languages: &[hypr_language::Language],
+    ) -> (Self, String) {
+        if is_hyprnote_cloud_host(base_url) {
+            let (kind, provider_str) = if DeepgramAdapter::is_supported_languages(languages) {
+                (Self::Deepgram, "deepgram")
+            } else {
+                (Self::Soniox, "soniox")
+            };
+
+            let modified_url = if base_url.contains('?') {
+                format!("{}&provider={}", base_url, provider_str)
+            } else {
+                format!("{}?provider={}", base_url, provider_str)
+            };
+            (kind, modified_url)
+        } else if is_local_stt_host(base_url) {
+            (Self::Argmax, base_url.to_string())
+        } else if AssemblyAIAdapter::is_host(base_url) {
+            (Self::AssemblyAI, base_url.to_string())
+        } else if SonioxAdapter::is_host(base_url) {
+            (Self::Soniox, base_url.to_string())
+        } else if FireworksAdapter::is_host(base_url) {
+            (Self::Fireworks, base_url.to_string())
+        } else {
+            (Self::Deepgram, base_url.to_string())
+        }
+    }
+}

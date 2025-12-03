@@ -7,35 +7,40 @@ import { usePlatform } from "@/hooks/use-platform";
 export function DownloadButton() {
   const platform = usePlatform();
 
-  const getIcon = () => {
+  const getPlatformData = () => {
     switch (platform) {
       case "mac":
-        return "mdi:apple";
+        return {
+          icon: "mdi:apple",
+          label: "Download for Mac",
+          href: "/download/apple-silicon",
+        };
       case "windows":
-        return "mdi:microsoft-windows";
+        return {
+          icon: "mdi:microsoft-windows",
+          label: "Download for Windows",
+          href: "/download/windows",
+        };
       case "linux":
-        return "mdi:linux";
+        return {
+          icon: "mdi:linux",
+          label: "Download for Linux",
+          href: "/download/linux",
+        };
       default:
-        return "mdi:apple";
+        return {
+          icon: "mdi:apple",
+          label: "Download for Mac",
+          href: "/download/apple-silicon",
+        };
     }
   };
 
-  const getLabel = () => {
-    switch (platform) {
-      case "mac":
-        return "Download for Mac";
-      case "windows":
-        return "Download for Windows";
-      case "linux":
-        return "Download for Linux";
-      default:
-        return "Download for Mac";
-    }
-  };
+  const { icon, label, href } = getPlatformData();
 
   return (
     <a
-      href="/download/apple-silicon"
+      href={href}
       download
       className={cn([
         "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
@@ -44,8 +49,8 @@ export function DownloadButton() {
         "transition-all",
       ])}
     >
-      <Icon icon={getIcon()} className="text-xl mr-2" />
-      {getLabel()}
+      <Icon icon={icon} className="text-xl mr-2" />
+      {label}
     </a>
   );
 }

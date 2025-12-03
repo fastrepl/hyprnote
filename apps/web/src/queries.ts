@@ -44,10 +44,16 @@ export function useGitHubStargazers(count: number = 100) {
         }
         const repoData = await repoResponse.json();
         const totalStars = repoData.stargazers_count ?? LAST_SEEN_STARS;
-        const lastPage = Math.ceil(totalStars / count);
+
+        if (totalStars === 0) {
+          return [];
+        }
+
+        const perPage = Math.min(count, 100);
+        const lastPage = Math.ceil(totalStars / perPage);
 
         const response = await fetch(
-          `https://api.github.com/repos/${ORG_REPO}/stargazers?per_page=${count}&page=${lastPage}`,
+          `https://api.github.com/repos/${ORG_REPO}/stargazers?per_page=${perPage}&page=${lastPage}`,
           {
             headers: {
               Accept: "application/vnd.github.v3+json",

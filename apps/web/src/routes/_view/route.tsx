@@ -1,11 +1,10 @@
 import {
   createFileRoute,
-  Link,
   Outlet,
   useMatchRoute,
   useRouterState,
 } from "@tanstack/react-router";
-import { allDocs, allHandbooks } from "content-collections";
+import { allHandbooks } from "content-collections";
 import { createContext, useContext, useMemo, useRef, useState } from "react";
 
 import { Footer } from "@/components/footer";

@@ -134,10 +134,6 @@ export function getSitemap(): Sitemap<TRoutes> {
         priority: 0.6,
         changeFrequency: "weekly",
       },
-      "/faq": {
-        priority: 0.7,
-        changeFrequency: "monthly",
-      },
       "/file-transcription": {
         priority: 0.7,
         changeFrequency: "monthly",

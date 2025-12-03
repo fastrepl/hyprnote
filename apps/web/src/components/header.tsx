@@ -599,6 +599,7 @@ function MobileMenuCTAs({
     <div className="space-y-3">
       <Link
         to="/join-waitlist"
+        onClick={() => setIsMenuOpen(false)}
         className="block w-full px-4 py-3 text-center text-sm text-neutral-700 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
       >
         Get started

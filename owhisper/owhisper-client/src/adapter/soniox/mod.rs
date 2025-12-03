@@ -4,6 +4,7 @@ mod live;
 pub(crate) const DEFAULT_API_HOST: &str = "api.soniox.com";
 pub(crate) const DEFAULT_WS_HOST: &str = "stt-rt.soniox.com";
 
+// https://soniox.com/docs/stt/supported-languages
 #[derive(Clone, Default)]
 pub struct SonioxAdapter;
 

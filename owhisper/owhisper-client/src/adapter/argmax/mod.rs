@@ -3,6 +3,7 @@ mod keywords;
 mod language;
 mod live;
 
+// https://github.com/argmaxinc/WhisperKit
 #[derive(Clone, Default)]
 pub struct ArgmaxAdapter;
 

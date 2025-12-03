@@ -4,6 +4,7 @@ mod live;
 pub(crate) const DEFAULT_API_HOST: &str = "api.fireworks.ai";
 const WS_PATH: &str = "/v1/audio/transcriptions/streaming";
 
+// https://docs.fireworks.ai/guides/querying-asr-models
 #[derive(Clone, Default)]
 pub struct FireworksAdapter;
 

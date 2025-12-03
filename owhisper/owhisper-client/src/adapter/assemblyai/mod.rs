@@ -1,6 +1,7 @@
 mod batch;
 mod live;
 
+// https://www.assemblyai.com/docs/getting-started/supported-languages
 #[derive(Clone, Default)]
 pub struct AssemblyAIAdapter;
 

@@ -3,6 +3,7 @@ mod keywords;
 mod language;
 mod live;
 
+// https://developers.deepgram.com/docs/models-languages-overview
 const SUPPORTED_LANGUAGES: &[&str] = &[
     "en", "es", "fr", "de", "hi", "ru", "pt", "ja", "it", "nl", "ko", "zh", "pl", "tr", "uk", "sv",
     "da", "fi", "no", "id", "ms", "th", "vi", "ta", "tl",

@@ -1,29 +1,25 @@
 import type { ServerWebSocket, WebSocketOptions } from "bun";
 
-import { env } from "./env";
+import {
+  getPayloadSize,
+  normalizeWsData,
+  payloadIsControlMessage,
+  type WsPayload,
+} from "./utils";
 
 const DEFAULT_CLOSE_CODE = 1011;
 const UPSTREAM_ERROR_TIMEOUT = 1000;
 const UPSTREAM_CONNECT_TIMEOUT = 5000;
 const MAX_PENDING_QUEUE_BYTES = 5 * 1024 * 1024; // 5 MiB
-const TEXT_ENCODER = new TextEncoder();
 
-export type WsPayload = string | Uint8Array;
 type QueuedPayload = { payload: WsPayload; size: number };
-
-export const UPSTREAM_URL_HEADER = "x-owh-upstream-url";
-export const UPSTREAM_AUTH_HEADER = "x-owh-upstream-auth";
 
 export type WsProxyOptions = {
   headers?: Record<string, string>;
   controlMessageTypes?: ReadonlySet<string>;
 };
 
-const DEFAULT_CONTROL_MESSAGE_TYPES = new Set([
-  "KeepAlive",
-  "CloseStream",
-  "Finalize",
-]);
+const DEFAULT_CONTROL_MESSAGE_TYPES = new Set<string>();
 
 export class WsProxyConnection {
   private upstream?: InstanceType<typeof WebSocket>;
@@ -386,113 +382,3 @@ export class WsProxyConnection {
     this.pendingBytes += size;
   }
 }
-
-export const buildDeepgramUrl = (incomingUrl: URL) => {
-  const target = new URL("wss://api.deepgram.com/v1/listen");
-
-  incomingUrl.searchParams.forEach((value, key) => {
-    target.searchParams.set(key, value);
-  });
-  target.searchParams.set("model", "nova-3-general");
-  target.searchParams.set("mip_opt_out", "false");
-
-  return target;
-};
-
-export const createDeepgramProxy = (incomingUrl: URL): WsProxyConnection => {
-  const target = buildDeepgramUrl(incomingUrl);
-  return new WsProxyConnection(target.toString(), {
-    headers: {
-      Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
-    },
-    controlMessageTypes: DEFAULT_CONTROL_MESSAGE_TYPES,
-  });
-};
-
-export function createProxyFromRequest(
-  incomingUrl: URL,
-  reqHeaders: Headers,
-): WsProxyConnection {
-  const upstreamOverride = reqHeaders.get(UPSTREAM_URL_HEADER);
-  const rawAuth = reqHeaders.get(UPSTREAM_AUTH_HEADER);
-
-  if (upstreamOverride) {
-    const url = new URL(upstreamOverride);
-    const headers =
-      rawAuth && rawAuth.length > 0 ? { Authorization: rawAuth } : undefined;
-
-    return new WsProxyConnection(url.toString(), {
-      headers,
-    });
-  }
-
-  return createDeepgramProxy(incomingUrl);
-}
-
-export const normalizeWsData = async (
-  data: unknown,
-): Promise<WsPayload | null> => {
-  if (typeof data === "string") {
-    return data;
-  }
-
-  if (data instanceof Uint8Array) {
-    return cloneBinaryPayload(data);
-  }
-
-  if (data instanceof ArrayBuffer) {
-    return new Uint8Array(data);
-  }
-
-  if (ArrayBuffer.isView(data)) {
-    return cloneBinaryPayload(data);
-  }
-
-  if (typeof Blob !== "undefined" && data instanceof Blob) {
-    const arrayBuffer = await data.arrayBuffer();
-    return new Uint8Array(arrayBuffer);
-  }
-
-  return null;
-};
-
-const cloneBinaryPayload = (input: ArrayBuffer | ArrayBufferView) => {
-  const view =
-    input instanceof ArrayBuffer
-      ? new Uint8Array(input)
-      : new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-  const copy = new Uint8Array(view.byteLength);
-  copy.set(view);
-  return copy;
-};
-
-const getPayloadSize = (payload: WsPayload) => {
-  if (typeof payload === "string") {
-    return TEXT_ENCODER.encode(payload).byteLength;
-  }
-  return payload.byteLength;
-};
-
-const payloadIsControlMessage = (
-  payload: WsPayload,
-  controlMessageTypes: ReadonlySet<string>,
-) => {
-  if (typeof payload !== "string") {
-    return false;
-  }
-
-  try {
-    const parsed = JSON.parse(payload);
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      controlMessageTypes.has(parsed.type)
-    ) {
-      return true;
-    }
-  } catch {
-    // ignore parse errors
-  }
-
-  return false;
-};

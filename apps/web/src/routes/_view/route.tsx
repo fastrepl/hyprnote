@@ -107,7 +107,10 @@ function MobileDocsDrawer({
         paddingLeft: "env(safe-area-inset-left)",
       }}
     >
-      <div ref={scrollContainerRef} className="h-full overflow-y-auto p-4">
+      <div
+        ref={scrollContainerRef}
+        className="h-full overflow-y-auto scrollbar-hide p-4"
+      >
         <SidebarNavigation
           sections={sections}
           currentSlug={currentSlug}
@@ -183,7 +186,10 @@ function MobileHandbookDrawer({
         paddingLeft: "env(safe-area-inset-left)",
       }}
     >
-      <div ref={scrollContainerRef} className="h-full overflow-y-auto p-4">
+      <div
+        ref={scrollContainerRef}
+        className="h-full overflow-y-auto scrollbar-hide p-4"
+      >
         <SidebarNavigation
           sections={handbooksBySection.sections}
           currentSlug={currentSlug}

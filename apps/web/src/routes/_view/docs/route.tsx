@@ -35,11 +35,19 @@ function LeftSidebar() {
   ) as string | undefined;
 
   const { sections } = getDocsBySection();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
     <aside className="hidden md:block w-64 shrink-0">
-      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6">
-        <DocsNavigation sections={sections} currentSlug={currentSlug} />
+      <div
+        ref={scrollContainerRef}
+        className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6"
+      >
+        <DocsNavigation
+          sections={sections}
+          currentSlug={currentSlug}
+          scrollContainerRef={scrollContainerRef}
+        />
       </div>
     </aside>
   );
@@ -49,21 +57,32 @@ function DocsNavigation({
   sections,
   currentSlug,
   onLinkClick,
+  scrollContainerRef,
 }: {
   sections: { title: string; docs: (typeof allDocs)[0][] }[];
   currentSlug: string | undefined;
   onLinkClick?: () => void;
+  scrollContainerRef?: React.RefObject<HTMLDivElement>;
 }) {
   const activeLinkRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
-    if (activeLinkRef.current) {
-      activeLinkRef.current.scrollIntoView({
-        behavior: "instant",
-        block: "center",
-      });
+    if (activeLinkRef.current && scrollContainerRef?.current) {
+      const container = scrollContainerRef.current;
+      const activeLink = activeLinkRef.current;
+
+      const containerRect = container.getBoundingClientRect();
+      const linkRect = activeLink.getBoundingClientRect();
+
+      const scrollTop =
+        activeLink.offsetTop -
+        container.offsetTop -
+        containerRect.height / 2 +
+        linkRect.height / 2;
+
+      container.scrollTop = scrollTop;
     }
-  }, [currentSlug]);
+  }, [currentSlug, scrollContainerRef]);
 
   return (
     <nav className="space-y-4">

@@ -31,13 +31,16 @@ async isModelDownloading(model: SupportedSttModel) : Promise<Result<boolean, str
     else return { status: "error", error: e  as any };
 }
 },
-async downloadModel(model: SupportedSttModel, channel: TAURI_CHANNEL<number>) : Promise<Result<null, string>> {
+async downloadModel(model: SupportedSttModel) : Promise<Result<null, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|download_model", { model, channel }) };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:local-stt|download_model", { model }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async cancelDownload(model: SupportedSttModel) : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:local-stt|cancel_download", { model });
 },
 async getServers() : Promise<Result<Partial<{ [key in ServerType]: ServerInfo }>, string>> {
     try {
@@ -79,6 +82,11 @@ async listSupportedLanguages(model: SupportedSttModel) : Promise<string[]> {
 /** user-defined events **/
 
 
+export const events = __makeEvents__<{
+downloadProgressPayload: DownloadProgressPayload
+}>({
+downloadProgressPayload: "plugin:local-stt:download-progress-payload"
+})
 
 /** user-defined constants **/
 
@@ -87,12 +95,12 @@ async listSupportedLanguages(model: SupportedSttModel) : Promise<string[]> {
 /** user-defined types **/
 
 export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3"
+export type DownloadProgressPayload = { model: SupportedSttModel; progress: number }
 export type ServerInfo = { url: string | null; status: ServerStatus; model: SupportedSttModel | null }
 export type ServerStatus = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external"
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }
 export type SupportedSttModel = WhisperModel | AmModel
-export type TAURI_CHANNEL<TSend> = null
 export type WhisperModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
 
 /** tauri-specta globals **/

@@ -3,10 +3,10 @@ import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useState } from "react";
-import { useManager } from "tinytick/ui-react";
 
 import {
   commands as localSttCommands,
+  events as localSttEvents,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
 import { type AIProvider, aiProviderSchema } from "@hypr/store";
@@ -22,11 +22,6 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
 import * as main from "../../../../store/tinybase/main";
-import {
-  DOWNLOAD_MODEL_TASK_ID,
-  registerDownloadProgressCallback,
-  unregisterDownloadProgressCallback,
-} from "../../../task-manager";
 import { FormField, StyledStreamdown, useProvider } from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
@@ -284,6 +279,7 @@ function LocalModelAction({
   isDownloaded,
   showProgress,
   progress,
+  hasError,
   onOpen,
   onDownload,
   onCancel,
@@ -291,6 +287,7 @@ function LocalModelAction({
   isDownloaded: boolean;
   showProgress: boolean;
   progress: number;
+  hasError: boolean;
   onOpen: () => void;
   onDownload: () => void;
   onCancel: () => void;
@@ -298,8 +295,11 @@ function LocalModelAction({
   return (
     <Button
       size="sm"
-      className="w-[110px] relative overflow-hidden group"
-      variant={isDownloaded ? "outline" : "default"}
+      className={cn([
+        "w-[110px] relative overflow-hidden group",
+        hasError && "border-red-500",
+      ])}
+      variant={isDownloaded ? "outline" : hasError ? "destructive" : "default"}
       onClick={isDownloaded ? onOpen : showProgress ? onCancel : onDownload}
     >
       {showProgress && (
@@ -309,12 +309,15 @@ function LocalModelAction({
         />
       )}
       {isDownloaded ? (
-        <>
-          <div className="relative z-10 flex items-center gap-1">
-            <Icon icon="mdi:folder-open" size={16} />
-            <span>Show Model</span>
-          </div>
-        </>
+        <div className="relative z-10 flex items-center gap-1">
+          <Icon icon="mdi:folder-open" size={16} />
+          <span>Show Model</span>
+        </div>
+      ) : hasError ? (
+        <div className="relative z-10 flex items-center gap-2">
+          <Icon icon="mdi:alert-circle" size={16} />
+          <span>Retry</span>
+        </div>
       ) : showProgress ? (
         <>
           <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
@@ -347,8 +350,14 @@ function HyprProviderLocalRow({
 }) {
   const handleSelectModel = useSafeSelectModel();
 
-  const { progress, isDownloaded, showProgress, handleDownload, handleCancel } =
-    useLocalModelDownload(model, handleSelectModel);
+  const {
+    progress,
+    hasError,
+    isDownloaded,
+    showProgress,
+    handleDownload,
+    handleCancel,
+  } = useLocalModelDownload(model, handleSelectModel);
 
   const handleOpen = () =>
     localSttCommands.modelsDir().then((result) => {
@@ -368,6 +377,7 @@ function HyprProviderLocalRow({
         isDownloaded={isDownloaded}
         showProgress={showProgress}
         progress={progress}
+        hasError={hasError}
         onOpen={handleOpen}
         onDownload={handleDownload}
         onCancel={handleCancel}
@@ -380,71 +390,73 @@ function useLocalModelDownload(
   model: SupportedSttModel,
   onDownloadComplete?: (model: SupportedSttModel) => void,
 ) {
-  const manager = useManager();
   const [progress, setProgress] = useState<number>(0);
-  const [taskRunId, setTaskRunId] = useState<string | null>(null);
+  const [isStarting, setIsStarting] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const isDownloaded = useQuery(sttModelQueries.isDownloaded(model));
   const isDownloading = useQuery(sttModelQueries.isDownloading(model));
 
+  const showProgress =
+    !isDownloaded.data && (isStarting || (isDownloading.data ?? false));
+
   useEffect(() => {
-    registerDownloadProgressCallback(model, setProgress);
+    if (isDownloading.data) {
+      setIsStarting(false);
+    }
+  }, [isDownloading.data]);
+
+  useEffect(() => {
+    const unlisten = localSttEvents.downloadProgressPayload.listen((event) => {
+      if (event.payload.model === model) {
+        if (event.payload.progress < 0) {
+          setHasError(true);
+          setIsStarting(false);
+          setProgress(0);
+        } else {
+          setHasError(false);
+          const next = Math.max(0, Math.min(100, event.payload.progress));
+          setProgress(next);
+        }
+      }
+    });
+
     return () => {
-      unregisterDownloadProgressCallback(model);
+      unlisten.then((fn) => fn());
     };
   }, [model]);
 
   useEffect(() => {
-    if (isDownloaded.data && taskRunId) {
-      setTaskRunId(null);
+    if (isDownloaded.data && progress > 0) {
       setProgress(0);
       onDownloadComplete?.(model);
     }
-  }, [isDownloaded.data, taskRunId, onDownloadComplete]);
-
-  useEffect(() => {
-    const isNotDownloading = !isDownloading.data;
-    const isNotDownloaded = !isDownloaded.data;
-    if (
-      isNotDownloading &&
-      isNotDownloaded &&
-      taskRunId &&
-      !isDownloading.isLoading
-    ) {
-      setTaskRunId(null);
-      setProgress(0);
-    }
-  }, [
-    isDownloading.data,
-    isDownloading.isLoading,
-    isDownloaded.data,
-    taskRunId,
-  ]);
+  }, [isDownloaded.data, model, onDownloadComplete, progress]);
 
   const handleDownload = () => {
-    if (!manager || isDownloaded.data) {
+    if (isDownloaded.data || isDownloading.data || isStarting) {
       return;
     }
-    const runId = manager.scheduleTaskRun(DOWNLOAD_MODEL_TASK_ID, model);
-    if (runId) {
-      setTaskRunId(runId);
-      setProgress(0);
-    }
+    setHasError(false);
+    setIsStarting(true);
+    setProgress(0);
+    localSttCommands.downloadModel(model).then((result) => {
+      if (result.status === "error") {
+        setHasError(true);
+        setIsStarting(false);
+      }
+    });
   };
 
   const handleCancel = () => {
-    if (!manager || !taskRunId) {
-      return;
-    }
-    manager.delTaskRun(taskRunId);
-    setTaskRunId(null);
+    localSttCommands.cancelDownload(model);
+    setIsStarting(false);
     setProgress(0);
   };
 
-  const showProgress = !isDownloaded.data && taskRunId !== null;
-
   return {
     progress,
+    hasError,
     isDownloaded: isDownloaded.data ?? false,
     showProgress,
     handleDownload,

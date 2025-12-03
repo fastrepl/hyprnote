@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use tauri::ipc::Channel;
 
 use crate::{
     server::ServerType, LocalSttPluginExt, ServerInfo, SttModelInfo, SupportedSttModel,
@@ -43,11 +42,17 @@ pub async fn is_model_downloading<R: tauri::Runtime>(
 pub async fn download_model<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     model: SupportedSttModel,
-    channel: Channel<i8>,
 ) -> Result<(), String> {
-    app.download_model(model, channel)
-        .await
-        .map_err(|e| e.to_string())
+    app.download_model(model).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn cancel_download<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    model: SupportedSttModel,
+) -> bool {
+    app.cancel_download(model).await
 }
 
 #[tauri::command]

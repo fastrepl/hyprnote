@@ -8,6 +8,7 @@ Default permissions for the plugin
 - `allow-is-model-downloaded`
 - `allow-is-model-downloading`
 - `allow-download-model`
+- `allow-cancel-download`
 - `allow-start-server`
 - `allow-stop-server`
 - `allow-get-servers`
@@ -22,6 +23,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`local-stt:allow-cancel-download`
+
+</td>
+<td>
+
+Enables the cancel_download command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-cancel-download`
+
+</td>
+<td>
+
+Denies the cancel_download command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

@@ -43,11 +43,15 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::is_model_downloaded::<Wry>,
             commands::is_model_downloading::<Wry>,
             commands::download_model::<Wry>,
+            commands::cancel_download::<Wry>,
             commands::get_servers::<Wry>,
             commands::start_server::<Wry>,
             commands::stop_server::<Wry>,
             commands::list_supported_models,
             commands::list_supported_languages,
+        ])
+        .events(tauri_specta::collect_events![
+            types::DownloadProgressPayload,
         ])
         .typ::<hypr_whisper_local_model::WhisperModel>()
         .error_handling(tauri_specta::ErrorHandlingMode::Result)

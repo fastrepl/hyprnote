@@ -1,9 +1,10 @@
 use std::{collections::HashMap, future::Future, path::PathBuf, sync::Arc};
 
 use ractor::{call_t, registry, ActorRef};
+use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
-use tauri::{ipc::Channel, Manager, Runtime};
+use tauri::{Manager, Runtime};
 use tauri_plugin_shell::ShellExt;
 
 use hypr_download_interface::DownloadProgress;
@@ -12,6 +13,7 @@ use hypr_file::download_file_parallel_cancellable;
 use crate::{
     model::SupportedSttModel,
     server::{external, internal, supervisor, ServerInfo, ServerStatus, ServerType},
+    types::DownloadProgressPayload,
 };
 
 pub trait LocalSttPluginExt<R: Runtime> {
@@ -36,8 +38,8 @@ pub trait LocalSttPluginExt<R: Runtime> {
     fn download_model(
         &self,
         model: SupportedSttModel,
-        channel: Channel<i8>,
     ) -> impl Future<Output = Result<(), crate::Error>>;
+    fn cancel_download(&self, model: SupportedSttModel) -> impl Future<Output = bool>;
 
     fn is_model_downloading(&self, model: &SupportedSttModel) -> impl Future<Output = bool>;
     fn is_model_downloaded(
@@ -191,11 +193,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     }
 
     #[tracing::instrument(skip_all)]
-    async fn download_model(
-        &self,
-        model: SupportedSttModel,
-        channel: Channel<i8>,
-    ) -> Result<(), crate::Error> {
+    async fn download_model(&self, model: SupportedSttModel) -> Result<(), crate::Error> {
         {
             let existing = {
                 let state = self.state::<crate::SharedState>();
@@ -204,14 +202,16 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             };
 
             if let Some((existing_task, existing_token)) = existing {
-                // Cancel the download and wait for task to finish
                 existing_token.cancel();
                 let _ = existing_task.await;
             }
         }
 
-        let create_progress_callback = |channel: Channel<i8>| {
+        let state_for_cleanup = self.state::<crate::SharedState>().inner().clone();
+        let app_handle = self.app_handle().clone();
+        let create_progress_callback = move |model: SupportedSttModel| {
             let last_progress = std::sync::Arc::new(std::sync::Mutex::new(0i8));
+            let app = app_handle.clone();
 
             move |progress: DownloadProgress| {
                 let mut last = last_progress.lock().unwrap();
@@ -219,7 +219,11 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 match progress {
                     DownloadProgress::Started => {
                         *last = 0;
-                        let _ = channel.send(0);
+                        let _ = DownloadProgressPayload {
+                            model: model.clone(),
+                            progress: 0,
+                        }
+                        .emit(&app);
                     }
                     DownloadProgress::Progress(downloaded, total_size) => {
                         let percent = (downloaded as f64 / total_size as f64) * 100.0;
@@ -227,46 +231,77 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                         if current > *last {
                             *last = current;
-                            let _ = channel.send(current);
+                            let _ = DownloadProgressPayload {
+                                model: model.clone(),
+                                progress: current,
+                            }
+                            .emit(&app);
                         }
                     }
                     DownloadProgress::Finished => {
                         *last = 100;
-                        let _ = channel.send(100);
+                        let _ = DownloadProgressPayload {
+                            model: model.clone(),
+                            progress: 100,
+                        }
+                        .emit(&app);
                     }
                 }
             }
         };
 
+        let app_handle_for_error = self.app_handle().clone();
         match model.clone() {
             SupportedSttModel::Am(m) => {
                 let tar_path = self.models_dir().join(format!("{}.tar", m.model_dir()));
                 let final_path = self.models_dir();
                 let cancellation_token = CancellationToken::new();
                 let token_clone = cancellation_token.clone();
+                let model_for_task = model.clone();
+                let state_clone = state_for_cleanup.clone();
+                let model_for_cleanup = model.clone();
 
                 let task = tokio::spawn(async move {
-                    let callback = create_progress_callback(channel.clone());
+                    let callback = create_progress_callback(model_for_task.clone());
 
-                    if let Err(e) = download_file_parallel_cancellable(
+                    let result = download_file_parallel_cancellable(
                         m.tar_url(),
                         &tar_path,
                         callback,
                         Some(token_clone),
                     )
-                    .await
-                    {
+                    .await;
+
+                    let cleanup = || async {
+                        let mut s = state_clone.lock().await;
+                        s.download_task.remove(&model_for_cleanup);
+                    };
+
+                    if let Err(e) = result {
                         if !matches!(e, hypr_file::Error::Cancelled) {
                             tracing::error!("model_download_error: {}", e);
-                            let _ = channel.send(-1);
+                            let _ = DownloadProgressPayload {
+                                model: model_for_task.clone(),
+                                progress: -1,
+                            }
+                            .emit(&app_handle_for_error);
                         }
+                        cleanup().await;
                         return;
                     }
 
                     if let Err(e) = m.tar_verify_and_unpack(&tar_path, &final_path) {
                         tracing::error!("model_unpack_error: {}", e);
-                        let _ = channel.send(-1);
+                        let _ = DownloadProgressPayload {
+                            model: model_for_task.clone(),
+                            progress: -1,
+                        }
+                        .emit(&app_handle_for_error);
+                        cleanup().await;
+                        return;
                     }
+
+                    cleanup().await;
                 });
 
                 {
@@ -282,32 +317,66 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                 let model_path = self.models_dir().join(m.file_name());
                 let cancellation_token = CancellationToken::new();
                 let token_clone = cancellation_token.clone();
+                let model_for_task = model.clone();
+                let state_clone = state_for_cleanup.clone();
+                let model_for_cleanup = model.clone();
 
                 let task = tokio::spawn(async move {
-                    let callback = create_progress_callback(channel.clone());
+                    let callback = create_progress_callback(model_for_task.clone());
 
-                    if let Err(e) = download_file_parallel_cancellable(
+                    let result = download_file_parallel_cancellable(
                         m.model_url(),
                         &model_path,
                         callback,
                         Some(token_clone),
                     )
-                    .await
-                    {
+                    .await;
+
+                    let cleanup = || async {
+                        let mut s = state_clone.lock().await;
+                        s.download_task.remove(&model_for_cleanup);
+                    };
+
+                    if let Err(e) = result {
                         if !matches!(e, hypr_file::Error::Cancelled) {
                             tracing::error!("model_download_error: {}", e);
-                            let _ = channel.send(-1);
+                            let _ = DownloadProgressPayload {
+                                model: model_for_task.clone(),
+                                progress: -1,
+                            }
+                            .emit(&app_handle_for_error);
                         }
+                        cleanup().await;
                         return;
                     }
 
-                    let checksum = hypr_file::calculate_file_checksum(&model_path).unwrap();
+                    let checksum = match hypr_file::calculate_file_checksum(&model_path) {
+                        Ok(c) => c,
+                        Err(e) => {
+                            tracing::error!("model_checksum_error: {}", e);
+                            let _ = DownloadProgressPayload {
+                                model: model_for_task.clone(),
+                                progress: -1,
+                            }
+                            .emit(&app_handle_for_error);
+                            cleanup().await;
+                            return;
+                        }
+                    };
 
                     if checksum != m.checksum() {
                         tracing::error!("model_download_error: checksum mismatch");
                         std::fs::remove_file(&model_path).unwrap();
-                        let _ = channel.send(-1);
+                        let _ = DownloadProgressPayload {
+                            model: model_for_task.clone(),
+                            progress: -1,
+                        }
+                        .emit(&app_handle_for_error);
+                        cleanup().await;
+                        return;
                     }
+
+                    cleanup().await;
                 });
 
                 {
@@ -319,6 +388,23 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
                 Ok(())
             }
+        }
+    }
+
+    #[tracing::instrument(skip_all)]
+    async fn cancel_download(&self, model: SupportedSttModel) -> bool {
+        let existing = {
+            let state = self.state::<crate::SharedState>();
+            let mut s = state.lock().await;
+            s.download_task.remove(&model)
+        };
+
+        if let Some((task, token)) = existing {
+            token.cancel();
+            let _ = task.await;
+            true
+        } else {
+            false
         }
     }
 

@@ -89,36 +89,33 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
 
 function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
   const rows = 6;
-  const cols = Math.ceil(stargazers.length / rows);
+  const cols = 20;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute inset-0 flex flex-col justify-center gap-1 opacity-40">
-        {Array.from({ length: rows }).map((_, rowIndex) => {
-          const startIdx = rowIndex * cols;
-          const rowStargazers = stargazers.slice(startIdx, startIdx + cols);
-          const isEvenRow = rowIndex % 2 === 0;
+      <div className="absolute inset-0 flex flex-col justify-center gap-1 opacity-40 px-4">
+        {Array.from({ length: rows }).map((_, rowIndex) => (
+          <div key={rowIndex} className="flex gap-1 justify-center">
+            {Array.from({ length: cols }).map((_, colIndex) => {
+              const index = (rowIndex * cols + colIndex) % stargazers.length;
+              const stargazer = stargazers[index];
+              const delay = (rowIndex * cols + colIndex) * 0.05;
 
-          return (
-            <div
-              key={rowIndex}
-              className={cn(
-                "flex gap-1 pointer-events-auto",
-                isEvenRow ? "animate-scroll-left" : "animate-scroll-right",
-              )}
-              style={{
-                animationDuration: `${60 + rowIndex * 10}s`,
-              }}
-            >
-              {[...rowStargazers, ...rowStargazers].map((stargazer, idx) => (
-                <StargazerAvatar
-                  key={`${stargazer.username}-${idx}`}
-                  stargazer={stargazer}
-                />
-              ))}
-            </div>
-          );
-        })}
+              return (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className="pointer-events-auto animate-fade-in-out"
+                  style={{
+                    animationDelay: `${delay}s`,
+                    animationDuration: "3s",
+                  }}
+                >
+                  <StargazerAvatar stargazer={stargazer} />
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white" />
       <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white" />

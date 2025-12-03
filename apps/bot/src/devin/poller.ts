@@ -211,35 +211,38 @@ export class DevinStatusPoller {
           ) {
             this.trackPR(trackedPR);
           } else if (detail.status_enum === DevinSessionStatus.Finished) {
+            const sessionUrl = `https://app.devin.ai/sessions/${session.session_id}`;
             await this.updateCheckStatus(
               trackedPR,
               "completed",
               "success",
               {
                 title: "Devin finished",
-                summary: `Devin session ${session.session_id} has completed.`,
+                summary: `Devin session has completed.\n\nView session: ${sessionUrl}`,
               },
               session.session_id,
             );
           } else if (detail.status_enum === DevinSessionStatus.Expired) {
+            const sessionUrl = `https://app.devin.ai/sessions/${session.session_id}`;
             await this.updateCheckStatus(
               trackedPR,
               "completed",
               "cancelled",
               {
                 title: "Devin session expired",
-                summary: `Devin session ${session.session_id} has expired.`,
+                summary: `Devin session has expired.\n\nView session: ${sessionUrl}`,
               },
               session.session_id,
             );
           } else if (detail.status_enum) {
+            const sessionUrl = `https://app.devin.ai/sessions/${session.session_id}`;
             await this.updateCheckStatus(
               trackedPR,
               "completed",
               "neutral",
               {
                 title: "Devin session ended",
-                summary: `Devin session ${session.session_id} ended with status: ${detail.status_enum}`,
+                summary: `Devin session ended with status: ${detail.status_enum}\n\nView session: ${sessionUrl}`,
               },
               session.session_id,
             );
@@ -336,6 +339,7 @@ export class DevinStatusPoller {
       // Verify the actual session status before marking as complete
       try {
         const detail = await getDevinSessionDetail(pr.sessionId);
+        const sessionUrl = `https://app.devin.ai/sessions/${pr.sessionId}`;
         if (detail.status_enum === DevinSessionStatus.Finished) {
           await this.updateCheckStatus(
             pr,
@@ -343,7 +347,7 @@ export class DevinStatusPoller {
             "success",
             {
               title: "Devin finished",
-              summary: `Devin session ${pr.sessionId} has completed.`,
+              summary: `Devin session has completed.\n\nView session: ${sessionUrl}`,
             },
             pr.sessionId,
           );
@@ -354,7 +358,7 @@ export class DevinStatusPoller {
             "cancelled",
             {
               title: "Devin session expired",
-              summary: `Devin session ${pr.sessionId} has expired.`,
+              summary: `Devin session has expired.\n\nView session: ${sessionUrl}`,
             },
             pr.sessionId,
           );
@@ -368,7 +372,7 @@ export class DevinStatusPoller {
             "neutral",
             {
               title: "Devin session ended",
-              summary: `Devin session ${pr.sessionId} ended with status: ${detail.status_enum}`,
+              summary: `Devin session ended with status: ${detail.status_enum}\n\nView session: ${sessionUrl}`,
             },
             pr.sessionId,
           );
@@ -383,6 +387,7 @@ export class DevinStatusPoller {
     }
 
     const detail = await getDevinSessionDetail(session.session_id);
+    const sessionUrl = `https://app.devin.ai/sessions/${session.session_id}`;
 
     if (detail.status_enum === DevinSessionStatus.Working) {
       await this.updateCheckStatus(
@@ -391,7 +396,7 @@ export class DevinStatusPoller {
         undefined,
         {
           title: "Devin is working",
-          summary: `Devin session ${session.session_id} is currently working on this PR.`,
+          summary: `Devin session is currently working on this PR.\n\nView session: ${sessionUrl}`,
         },
         session.session_id,
       );
@@ -405,7 +410,7 @@ export class DevinStatusPoller {
         undefined,
         {
           title: "Devin is blocked",
-          summary: `Devin session ${session.session_id} is blocked and waiting for input.`,
+          summary: `Devin session is blocked and waiting for input.\n\nView session: ${sessionUrl}`,
         },
         session.session_id,
       );
@@ -419,7 +424,7 @@ export class DevinStatusPoller {
         "success",
         {
           title: "Devin finished",
-          summary: `Devin session ${session.session_id} has completed.`,
+          summary: `Devin session has completed.\n\nView session: ${sessionUrl}`,
         },
         session.session_id,
       );
@@ -434,7 +439,7 @@ export class DevinStatusPoller {
         "cancelled",
         {
           title: "Devin session expired",
-          summary: `Devin session ${session.session_id} has expired.`,
+          summary: `Devin session has expired.\n\nView session: ${sessionUrl}`,
         },
         session.session_id,
       );

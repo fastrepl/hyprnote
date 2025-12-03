@@ -1,10 +1,11 @@
 import { Probot } from "probot";
 
 import {
+  DevinSessionStatus,
   findRunningSessionForPR,
   getDevinSessionDetail,
   getDevinStatusPoller,
-  isDevinSessionWorking,
+  isDevinSessionActive,
 } from "../devin/index.js";
 import { createOrUpdateCheck, ProbotContext } from "../github/check.js";
 
@@ -57,7 +58,7 @@ async function checkDevinSession(
   }
 
   const detail = await getDevinSessionDetail(session.session_id);
-  if (!isDevinSessionWorking(detail)) {
+  if (!isDevinSessionActive(detail)) {
     return;
   }
 
@@ -74,16 +75,21 @@ async function checkDevinSession(
     });
   }
 
+  const sessionUrl = `https://app.devin.ai/sessions/${session.session_id}`;
+  const isBlocked = detail.status_enum === DevinSessionStatus.Blocked;
+
   await createOrUpdateCheck(context, {
     owner,
     repo,
     name: CHECK_NAME,
     head_sha: headSha,
     status: "in_progress",
-    details_url: `https://app.devin.ai/sessions/${session.session_id}`,
+    details_url: sessionUrl,
     output: {
-      title: "Devin is working",
-      summary: `Devin session ${session.session_id} is currently working on this PR.`,
+      title: isBlocked ? "Devin is blocked" : "Devin is working",
+      summary: isBlocked
+        ? `Devin session is blocked and waiting for input.\n\nView session: ${sessionUrl}`
+        : `Devin session is currently working on this PR.\n\nView session: ${sessionUrl}`,
     },
   });
 }

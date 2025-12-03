@@ -45,3 +45,10 @@ export async function getDevinSessionDetail(
 export function isDevinSessionWorking(detail: DevinSessionDetail): boolean {
   return detail.status_enum === DevinSessionStatus.Working;
 }
+
+export function isDevinSessionActive(detail: DevinSessionDetail): boolean {
+  return (
+    detail.status_enum === DevinSessionStatus.Working ||
+    detail.status_enum === DevinSessionStatus.Blocked
+  );
+}

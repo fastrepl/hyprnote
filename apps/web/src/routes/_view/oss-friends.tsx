@@ -97,8 +97,8 @@ function HeroSection() {
 function FriendsSection() {
   return (
     <section>
-      <div className="grid grid-cols-3">
-        {allOssFriends.map((friend, index) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-200">
+        {allOssFriends.map((friend) => (
           <a
             key={friend.slug}
             href={friend.href}
@@ -106,8 +106,6 @@ function FriendsSection() {
             rel="noopener noreferrer"
             className={cn([
               "group flex flex-col bg-white overflow-hidden",
-              "border-b border-neutral-200",
-              index % 3 !== 2 && "border-r",
               "hover:bg-stone-50 transition-all",
             ])}
           >

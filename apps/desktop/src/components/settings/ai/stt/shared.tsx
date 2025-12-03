@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import { Fireworks } from "@lobehub/icons";
+import { AssemblyAI, Fireworks } from "@lobehub/icons";
 import { queryOptions } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -30,6 +30,10 @@ export const displayModelId = (model: string) => {
 
   if (model === "stt-v3") {
     return "Soniox v3";
+  }
+
+  if (model === "universal") {
+    return "Universal";
   }
 
   if (model.startsWith("am-")) {
@@ -107,6 +111,15 @@ export const PROVIDERS = [
     ),
     baseUrl: "https://api.soniox.com",
     models: ["stt-v3"],
+    requiresPro: false,
+  },
+  {
+    disabled: false,
+    id: "assemblyai",
+    displayName: "AssemblyAI",
+    icon: <AssemblyAI size={20} />,
+    baseUrl: "https://api.assemblyai.com",
+    models: ["universal"],
     requiresPro: false,
   },
   {

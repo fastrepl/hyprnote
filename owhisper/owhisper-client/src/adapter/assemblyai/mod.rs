@@ -12,6 +12,12 @@ impl AssemblyAIAdapter {
                 .expect("invalid_default_ws_url");
         }
 
+        if api_base.contains(".eu.") || api_base.ends_with("-eu") {
+            return "wss://streaming.eu.assemblyai.com/v3/ws"
+                .parse()
+                .expect("invalid_eu_ws_url");
+        }
+
         let mut url: url::Url = api_base.parse().expect("invalid_api_base");
 
         let mut path = url.path().to_string();

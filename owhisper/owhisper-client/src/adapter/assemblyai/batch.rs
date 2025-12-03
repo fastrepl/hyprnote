@@ -13,6 +13,12 @@ use super::AssemblyAIAdapter;
 use crate::adapter::{BatchFuture, BatchSttAdapter};
 use crate::error::Error;
 
+// API
+// https://www.assemblyai.com/docs/api-reference/transcripts/submit.md
+// https://www.assemblyai.com/docs/api-reference/transcripts/get.md
+// Model & Language
+// https://www.assemblyai.com/docs/pre-recorded-audio/select-the-speech-model.md
+// https://www.assemblyai.com/docs/pre-recorded-audio/supported-languages.md
 impl BatchSttAdapter for AssemblyAIAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,

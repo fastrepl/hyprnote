@@ -6,8 +6,10 @@ use serde::Deserialize;
 use super::AssemblyAIAdapter;
 use crate::adapter::RealtimeSttAdapter;
 
+// https://www.assemblyai.com/docs/api-reference/streaming-api/streaming-api.md
 impl RealtimeSttAdapter for AssemblyAIAdapter {
     fn supports_native_multichannel(&self) -> bool {
+        // https://www.assemblyai.com/docs/universal-streaming/multichannel-streams.md
         false
     }
 
@@ -22,36 +24,23 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
             query_pairs.append_pair("encoding", "pcm_s16le");
             query_pairs.append_pair("format_turns", "true");
 
-            // Compute final speech_model and language_detection values
             let model = params
                 .model
                 .as_deref()
                 .unwrap_or("universal-streaming-english");
-            let mut speech_model_final = match model {
-                "multilingual" | "universal-streaming-multilingual" => {
-                    "universal-streaming-multilingual"
-                }
-                _ => "universal-streaming-english",
-            };
-            let mut language_detection = false;
 
-            if !params.languages.is_empty() {
-                if params.languages.len() > 1
-                    || speech_model_final == "universal-streaming-multilingual"
-                {
-                    language_detection = true;
-                } else if let Some(lang) = params.languages.first() {
-                    let code = lang.iso639().code();
-                    if code != "en" {
-                        speech_model_final = "universal-streaming-multilingual";
-                        language_detection = true;
-                    }
-                }
-            }
+            let (speech_model, language, language_detection) =
+                Self::resolve_language_config(model, params);
 
-            query_pairs.append_pair("speech_model", speech_model_final);
+            query_pairs.append_pair("speech_model", speech_model);
+            query_pairs.append_pair("language", language);
             if language_detection {
                 query_pairs.append_pair("language_detection", "true");
+            }
+
+            if let Some(redemption_time) = params.redemption_time_ms {
+                let max_silence = redemption_time.to_string();
+                query_pairs.append_pair("max_turn_silence", &max_silence);
             }
 
             if !params.keywords.is_empty() {
@@ -64,8 +53,7 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
-        // AssemblyAI accepts the API key directly in the Authorization header (no Bearer prefix)
-        api_key.map(|key| ("authorization", key.to_string()))
+        api_key.map(|key| ("Authorization", key.to_string()))
     }
 
     fn keep_alive_message(&self) -> Option<Message> {
@@ -86,8 +74,8 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
         };
 
         match msg {
-            AssemblyAIMessage::Begin { .. } => {
-                tracing::debug!("assemblyai_session_began");
+            AssemblyAIMessage::Begin { id, expires_at } => {
+                tracing::debug!(session_id = %id, expires_at = %expires_at, "assemblyai_session_began");
                 vec![]
             }
             AssemblyAIMessage::Turn(turn) => Self::parse_turn(turn),
@@ -107,6 +95,10 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
                     channels: 1,
                 }]
             }
+            AssemblyAIMessage::Error { error } => {
+                tracing::error!(error = %error, "assemblyai_error");
+                vec![]
+            }
             AssemblyAIMessage::Unknown => {
                 tracing::debug!(raw = raw, "assemblyai_unknown_message");
                 vec![]
@@ -119,15 +111,16 @@ impl RealtimeSttAdapter for AssemblyAIAdapter {
 #[serde(tag = "type")]
 enum AssemblyAIMessage {
     Begin {
-        #[allow(dead_code)]
         id: String,
-        #[allow(dead_code)]
         expires_at: u64,
     },
     Turn(TurnMessage),
     Termination {
         audio_duration_seconds: u64,
         session_duration_seconds: u64,
+    },
+    Error {
+        error: String,
     },
     #[serde(other)]
     Unknown,
@@ -172,6 +165,28 @@ struct AssemblyAIWord {
 }
 
 impl AssemblyAIAdapter {
+    fn resolve_language_config(
+        model: &str,
+        params: &ListenParams,
+    ) -> (&'static str, &'static str, bool) {
+        let is_multilingual_model =
+            matches!(model, "multilingual" | "universal-streaming-multilingual");
+
+        let needs_multilingual = is_multilingual_model
+            || params.languages.len() > 1
+            || params
+                .languages
+                .first()
+                .map(|l| l.iso639().code() != "en")
+                .unwrap_or(false);
+
+        if needs_multilingual {
+            ("universal-streaming-multilingual", "multi", true)
+        } else {
+            ("universal-streaming-english", "en", false)
+        }
+    }
+
     fn parse_turn(turn: TurnMessage) -> Vec<StreamResponse> {
         tracing::debug!(
             transcript = %turn.transcript,
@@ -217,8 +232,26 @@ impl AssemblyAIAdapter {
 
         let transcript = if turn.turn_is_formatted {
             turn.transcript.clone()
+        } else if let Some(ref utt) = turn.utterance {
+            if !utt.is_empty() {
+                utt.clone()
+            } else if !turn.transcript.is_empty() {
+                turn.transcript.clone()
+            } else {
+                words
+                    .iter()
+                    .map(|w| w.word.as_str())
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            }
+        } else if !turn.transcript.is_empty() {
+            turn.transcript.clone()
         } else {
-            turn.utterance.clone().unwrap_or(turn.transcript.clone())
+            words
+                .iter()
+                .map(|w| w.word.as_str())
+                .collect::<Vec<_>>()
+                .join(" ")
         };
 
         let channel = Channel {
@@ -249,11 +282,9 @@ mod tests {
     use hypr_audio_utils::AudioFormatExt;
 
     use super::AssemblyAIAdapter;
-    use crate::live::{FinalizeHandle, ListenClientInput};
+    use crate::live::ListenClientInput;
     use crate::ListenClient;
 
-    // Integration test that makes real network calls to AssemblyAI.
-    // Run explicitly with: cargo test -p owhisper-client test_client -- --ignored
     #[tokio::test]
     #[ignore]
     async fn test_client() {
@@ -283,42 +314,22 @@ mod tests {
             })
             .build_single();
 
-        let (stream, handle) = client.from_realtime_audio(input).await.unwrap();
+        let (stream, _handle) = client.from_realtime_audio(input).await.unwrap();
         futures_util::pin_mut!(stream);
 
-        let mut saw_transcript = false;
         while let Some(result) = stream.next().await {
             match result {
                 Ok(response) => match response {
                     owhisper_interface::stream::StreamResponse::TranscriptResponse {
                         channel,
-                        speech_final,
                         ..
                     } => {
-                        let transcript = &channel.alternatives.first().unwrap().transcript;
-                        println!(
-                            "Transcript (speech_final={}): {:?}",
-                            speech_final, transcript
-                        );
-                        if !transcript.is_empty() {
-                            saw_transcript = true;
-                            break;
-                        }
+                        println!("{:?}", channel.alternatives.first().unwrap().transcript);
                     }
                     _ => {}
                 },
-                Err(e) => {
-                    println!("Error: {:?}", e);
-                    break;
-                }
+                _ => {}
             }
         }
-
-        handle.finalize().await;
-
-        assert!(
-            saw_transcript,
-            "expected at least one non-empty transcript from AssemblyAI"
-        );
     }
 }

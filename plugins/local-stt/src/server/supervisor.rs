@@ -125,10 +125,6 @@ pub async fn stop_stt_server(
         ServerType::External => wait_for_actor_shutdown(ExternalSTTActor::name()).await,
     }
 
-    if matches!(server_type, ServerType::External) {
-        wait_for_process_cleanup().await;
-    }
-
     Ok(())
 }
 
@@ -146,20 +142,5 @@ async fn wait_for_actor_shutdown(actor_name: ractor::ActorName) {
             break;
         }
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-    }
-}
-
-async fn wait_for_process_cleanup() {
-    let process_terminated =
-        hypr_host::wait_for_processes_to_terminate(hypr_host::ProcessMatcher::Sidecar, 5000, 100)
-            .await;
-
-    if !process_terminated {
-        tracing::warn!("external_stt_process_did_not_terminate_in_time");
-        let killed = hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
-        if killed > 0 {
-            tracing::info!("force_killed_stt_processes: {}", killed);
-            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-        }
     }
 }

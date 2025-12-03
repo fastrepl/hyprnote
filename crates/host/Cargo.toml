@@ -7,4 +7,3 @@ edition = "2021"
 mac_address2 = "2.0.2"
 machine-uid = "0.5.4"
 sysinfo = { workspace = true }
-tokio = { workspace = true, features = ["time"] }

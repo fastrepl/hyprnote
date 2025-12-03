@@ -50,7 +50,6 @@ function Component() {
   const [selectedFeature, setSelectedFeature] = useState(0);
   const detailsScrollRef = useRef<HTMLDivElement>(null);
   const featuresScrollRef = useRef<HTMLDivElement>(null);
-  const heroInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToDetail = (index: number) => {
     setSelectedDetail(index);
@@ -103,7 +102,7 @@ function Component() {
         <SlashSeparator />
         <GitHubOpenSource />
         <SlashSeparator />
-        <CTASection heroInputRef={heroInputRef} />
+        <CTASection />
       </div>
     </div>
   );

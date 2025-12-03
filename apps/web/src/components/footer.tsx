@@ -153,12 +153,12 @@ function ResourcesLinks() {
       </h3>
       <ul className="space-y-3">
         <li>
-          <Link
-            to="/faq"
+          <a
+            href="/docs/faq"
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             FAQ
-          </Link>
+          </a>
         </li>
         <li>
           <a

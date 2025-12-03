@@ -316,7 +316,11 @@ export default async function handler(req: Request) {
       ]
       : undefined;
 
-    return new ImageResponse(response, { fonts });
+    const imageResponse = new ImageResponse(response, { fonts });
+    imageResponse.headers.set("Netlify-CDN-Cache-Control", "public, s-maxage=31536000");
+    imageResponse.headers.set("Cache-Control", "public, max-age=31536000, immutable");
+    imageResponse.headers.set("Netlify-Vary", "query");
+    return imageResponse;
   } catch (error) {
     console.error("OG image generation failed:", error);
     return new Response(JSON.stringify({ error: "image_generation_failed" }), {

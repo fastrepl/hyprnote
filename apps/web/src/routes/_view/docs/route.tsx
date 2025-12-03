@@ -1,11 +1,7 @@
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useMatchRoute,
-} from "@tanstack/react-router";
-import { allDocs } from "content-collections";
-import { useEffect, useRef } from "react";
+import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
+import { useRef } from "react";
+
+import { SidebarNavigation } from "@/components/sidebar-navigation";
 
 import { getDocsBySection } from "./-structure";
 
@@ -43,79 +39,13 @@ function LeftSidebar() {
         ref={scrollContainerRef}
         className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6"
       >
-        <DocsNavigation
+        <SidebarNavigation
           sections={sections}
           currentSlug={currentSlug}
           scrollContainerRef={scrollContainerRef}
+          linkTo="/docs/$"
         />
       </div>
     </aside>
-  );
-}
-
-function DocsNavigation({
-  sections,
-  currentSlug,
-  onLinkClick,
-  scrollContainerRef,
-}: {
-  sections: { title: string; docs: (typeof allDocs)[0][] }[];
-  currentSlug: string | undefined;
-  onLinkClick?: () => void;
-  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
-}) {
-  const activeLinkRef = useRef<HTMLAnchorElement>(null);
-
-  useEffect(() => {
-    if (activeLinkRef.current && scrollContainerRef?.current) {
-      const container = scrollContainerRef.current;
-      const activeLink = activeLinkRef.current;
-
-      requestAnimationFrame(() => {
-        const containerRect = container.getBoundingClientRect();
-        const linkRect = activeLink.getBoundingClientRect();
-
-        const scrollTop =
-          activeLink.offsetTop -
-          container.offsetTop -
-          containerRect.height / 2 +
-          linkRect.height / 2;
-
-        container.scrollTop = scrollTop;
-      });
-    }
-  }, [currentSlug, scrollContainerRef]);
-
-  return (
-    <nav className="space-y-4">
-      {sections.map((section) => (
-        <div key={section.title}>
-          <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">
-            {section.title}
-          </h3>
-          <div className="space-y-0.5">
-            {section.docs.map((doc) => {
-              const isActive = currentSlug === doc.slug;
-              return (
-                <Link
-                  key={doc.slug}
-                  to="/docs/$"
-                  params={{ _splat: doc.slug }}
-                  onClick={onLinkClick}
-                  ref={isActive ? activeLinkRef : undefined}
-                  className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
-                    isActive
-                      ? "bg-neutral-100 text-stone-600 font-medium"
-                      : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"
-                  }`}
-                >
-                  {doc.title}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </nav>
   );
 }

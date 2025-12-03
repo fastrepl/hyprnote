@@ -2,10 +2,45 @@ import { Icon } from "@iconify-icon/react";
 
 import { cn } from "@hypr/utils";
 
+import { usePlatform } from "@/hooks/use-platform";
+
 export function DownloadButton() {
+  const platform = usePlatform();
+
+  const getPlatformData = () => {
+    switch (platform) {
+      case "mac":
+        return {
+          icon: "mdi:apple",
+          label: "Download for Mac",
+          href: "/download/apple-silicon",
+        };
+      case "windows":
+        return {
+          icon: "mdi:microsoft-windows",
+          label: "Download for Windows",
+          href: "/download/windows",
+        };
+      case "linux":
+        return {
+          icon: "mdi:linux",
+          label: "Download for Linux",
+          href: "/download/linux",
+        };
+      default:
+        return {
+          icon: "mdi:apple",
+          label: "Download for Mac",
+          href: "/download/apple-silicon",
+        };
+    }
+  };
+
+  const { icon, label, href } = getPlatformData();
+
   return (
     <a
-      href="/download/apple-silicon"
+      href={href}
       download
       className={cn([
         "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
@@ -14,8 +49,8 @@ export function DownloadButton() {
         "transition-all",
       ])}
     >
-      <Icon icon="mdi:apple" className="text-xl mr-2" />
-      Download for Mac
+      <Icon icon={icon} className="text-xl mr-2" />
+      {label}
     </a>
   );
 }

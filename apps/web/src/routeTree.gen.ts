@@ -76,6 +76,8 @@ import { Route as ViewProductAiNotetakingRouteImport } from './routes/_view/prod
 import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/product/ai-assistant'
 import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit.app'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
+import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
+import { Route as ViewDownloadLinuxRouteImport } from './routes/_view/download/linux'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
@@ -428,6 +430,16 @@ const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   path: '/legal/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewDownloadWindowsRoute = ViewDownloadWindowsRouteImport.update({
+  id: '/download/windows',
+  path: '/download/windows',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDownloadLinuxRoute = ViewDownloadLinuxRouteImport.update({
+  id: '/download/linux',
+  path: '/download/linux',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewDownloadAppleSiliconRoute =
   ViewDownloadAppleSiliconRouteImport.update({
     id: '/download/apple-silicon',
@@ -531,6 +543,8 @@ export interface FileRoutesByFullPath {
   '/docs/$': typeof ViewDocsSplatRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
+  '/download/linux': typeof ViewDownloadLinuxRoute
+  '/download/windows': typeof ViewDownloadWindowsRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
   '/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -608,6 +622,8 @@ export interface FileRoutesByTo {
   '/docs/$': typeof ViewDocsSplatRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
+  '/download/linux': typeof ViewDownloadLinuxRoute
+  '/download/windows': typeof ViewDownloadWindowsRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
   '/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -690,6 +706,8 @@ export interface FileRoutesById {
   '/_view/docs/$': typeof ViewDocsSplatRoute
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
+  '/_view/download/linux': typeof ViewDownloadLinuxRoute
+  '/_view/download/windows': typeof ViewDownloadWindowsRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
   '/_view/press-kit/app': typeof ViewPressKitAppRoute
   '/_view/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -772,6 +790,8 @@ export interface FileRouteTypes {
     | '/docs/$'
     | '/download/apple-intel'
     | '/download/apple-silicon'
+    | '/download/linux'
+    | '/download/windows'
     | '/legal/$slug'
     | '/press-kit/app'
     | '/product/ai-assistant'
@@ -849,6 +869,8 @@ export interface FileRouteTypes {
     | '/docs/$'
     | '/download/apple-intel'
     | '/download/apple-silicon'
+    | '/download/linux'
+    | '/download/windows'
     | '/legal/$slug'
     | '/press-kit/app'
     | '/product/ai-assistant'
@@ -930,6 +952,8 @@ export interface FileRouteTypes {
     | '/_view/docs/$'
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
+    | '/_view/download/linux'
+    | '/_view/download/windows'
     | '/_view/legal/$slug'
     | '/_view/press-kit/app'
     | '/_view/product/ai-assistant'
@@ -1461,6 +1485,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewLegalSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/download/windows': {
+      id: '/_view/download/windows'
+      path: '/download/windows'
+      fullPath: '/download/windows'
+      preLoaderRoute: typeof ViewDownloadWindowsRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/download/linux': {
+      id: '/_view/download/linux'
+      path: '/download/linux'
+      fullPath: '/download/linux'
+      preLoaderRoute: typeof ViewDownloadLinuxRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/download/apple-silicon': {
       id: '/_view/download/apple-silicon'
       path: '/download/apple-silicon'
@@ -1631,6 +1669,8 @@ interface ViewRouteRouteChildren {
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
   ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
+  ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute
+  ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
   ViewLegalSlugRoute: typeof ViewLegalSlugRoute
   ViewProductAiAssistantRoute: typeof ViewProductAiAssistantRoute
   ViewProductAiNotetakingRoute: typeof ViewProductAiNotetakingRoute
@@ -1688,6 +1728,8 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
   ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
+  ViewDownloadLinuxRoute: ViewDownloadLinuxRoute,
+  ViewDownloadWindowsRoute: ViewDownloadWindowsRoute,
   ViewLegalSlugRoute: ViewLegalSlugRoute,
   ViewProductAiAssistantRoute: ViewProductAiAssistantRoute,
   ViewProductAiNotetakingRoute: ViewProductAiNotetakingRoute,

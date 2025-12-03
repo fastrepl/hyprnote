@@ -7,7 +7,6 @@ import { lazy, Suspense } from "react";
 
 import type { DeepLink } from "@hypr/plugin-deeplink2";
 
-import { ErrorComponent, NotFoundComponent } from "../components/control";
 import type { Context } from "../types";
 import { isExtHostPath } from "../utils/ext-host";
 
@@ -21,8 +20,6 @@ const MainAppLayout = lazy(() => import("../components/main-app-layout"));
 
 export const Route = createRootRouteWithContext<Partial<Context>>()({
   component: Component,
-  errorComponent: ErrorComponent,
-  notFoundComponent: NotFoundComponent,
 });
 
 function Component() {

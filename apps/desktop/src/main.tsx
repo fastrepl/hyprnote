@@ -15,6 +15,7 @@ import {
 } from "@hypr/plugin-windows";
 import "@hypr/ui/globals.css";
 
+import { ErrorComponent, NotFoundComponent } from "./components/control";
 import { TaskManager } from "./components/task-manager";
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import { initExtensionGlobals } from "./extension-globals";
@@ -28,7 +29,12 @@ const toolRegistry = createToolRegistry();
 const listenerStore = createListenerStore();
 const queryClient = new QueryClient();
 
-const router = createRouter({ routeTree, context: undefined });
+const router = createRouter({
+  routeTree,
+  context: undefined,
+  defaultErrorComponent: ErrorComponent,
+  defaultNotFoundComponent: NotFoundComponent,
+});
 
 declare module "@tanstack/react-router" {
   interface Register {

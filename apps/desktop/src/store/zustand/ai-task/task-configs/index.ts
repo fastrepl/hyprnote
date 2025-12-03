@@ -22,6 +22,7 @@ export interface TaskArgsMapTransformed {
     sessionId: string;
     enhancedNoteId: string;
     rawMd: string;
+    language: string;
     sessionData: {
       title: string;
       started_at?: string;
@@ -50,6 +51,7 @@ export interface TaskArgsMapTransformed {
   title: {
     sessionId: string;
     enhancedMd: string;
+    language: string;
   };
 }
 

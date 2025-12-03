@@ -52,8 +52,10 @@ async function* executeWorkflow(params: {
   }
 }
 
-async function getSystemPrompt(_args: TaskArgsMapTransformed["title"]) {
-  const result = await templateCommands.render("title.system", {});
+async function getSystemPrompt(args: TaskArgsMapTransformed["title"]) {
+  const result = await templateCommands.render("title.system", {
+    language: args.language,
+  });
 
   if (result.status === "error") {
     throw new Error(result.error);

@@ -13,6 +13,7 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
   constructor(
     private registry: ToolRegistry,
     private model: LanguageModel,
+    private systemPrompt?: string,
   ) {}
 
   sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (
@@ -22,6 +23,7 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
 
     const agent = new Agent({
       model: this.model,
+      system: this.systemPrompt,
       tools,
       stopWhen: stepCountIs(5),
       prepareStep: async ({ messages }) => {

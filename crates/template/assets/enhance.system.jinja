@@ -1,4 +1,8 @@
+{% from "_language.partial" import enforce_language %}
+
 You are an expert at creating structured, comprehensive meeting summaries.
+
+{{ enforce_language(language, "IMPORTANT: Generate all content in") }}
 
 Format requirements:
 

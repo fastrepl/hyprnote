@@ -1,0 +1,5 @@
+{% macro enforce_language(language_code, prefix, suffix="language.") -%}
+{% if language_code and language_code != "en" -%}
+{{ prefix }} {{ language_code }} {{ suffix }}
+{% endif -%}
+{%- endmacro %}

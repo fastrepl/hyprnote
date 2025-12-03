@@ -70,6 +70,7 @@ async function* executeWorkflow(params: {
 async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
   const result = await templateCommands.render("enhance.system", {
     hasTemplate: !!args.template,
+    language: args.language,
   });
 
   if (result.status === "error") {

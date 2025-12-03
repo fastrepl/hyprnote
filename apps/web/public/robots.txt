@@ -32,4 +32,4 @@ Allow: /about
 # AI crawlers can find detailed content at /llms.txt
 
 # Sitemap location
-Sitemap: https://hypr.com/sitemap.xml
+Sitemap: https://hyprnote.com/sitemap.xml

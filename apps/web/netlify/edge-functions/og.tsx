@@ -269,7 +269,7 @@ export default async function handler(req: Request) {
   }
 
   try {
-    // Dynamically import ImageResponse only when needed (not in dev)
+    // deno-lint-ignore no-import-prefix
     const { ImageResponse } = await import("https://deno.land/x/og_edge@0.0.6/mod.ts");
 
     // https://unpic.pics/og-edge

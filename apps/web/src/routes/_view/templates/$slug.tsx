@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_view/templates/$slug")({
     const { template } = loaderData!;
     const url = `https://hyprnote.com/templates/${template.slug}`;
 
-    const ogImageUrl = `https://hyprnote.com/og?type=templates&title=${encodeURIComponent(template.title)}&category=${encodeURIComponent(template.category)}${template.description ? `&description=${encodeURIComponent(template.description)}` : ""}`;
+    const ogImageUrl = `https://hyprnote.com/og?type=templates&title=${encodeURIComponent(template.title)}&category=${encodeURIComponent(template.category)}${template.description ? `&description=${encodeURIComponent(template.description)}` : ""}&v=1`;
 
     return {
       meta: [

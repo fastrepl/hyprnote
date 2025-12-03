@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_view/shortcuts/$slug")({
     const { shortcut } = loaderData!;
     const url = `https://hyprnote.com/shortcuts/${shortcut.slug}`;
 
-    const ogImageUrl = `https://hyprnote.com/og?type=shortcuts&title=${encodeURIComponent(shortcut.title)}&category=${encodeURIComponent(shortcut.category)}${shortcut.description ? `&description=${encodeURIComponent(shortcut.description)}` : ""}`;
+    const ogImageUrl = `https://hyprnote.com/og?type=shortcuts&title=${encodeURIComponent(shortcut.title)}&category=${encodeURIComponent(shortcut.category)}${shortcut.description ? `&description=${encodeURIComponent(shortcut.description)}` : ""}&v=1`;
 
     return {
       meta: [

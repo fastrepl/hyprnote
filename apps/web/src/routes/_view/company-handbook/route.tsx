@@ -1,11 +1,8 @@
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useMatchRoute,
-} from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { allHandbooks } from "content-collections";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+
+import { SidebarNavigation } from "@/components/sidebar-navigation";
 
 import { handbookStructure } from "./-structure";
 
@@ -72,34 +69,20 @@ function LeftSidebar() {
     return { sections };
   }, []);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   return (
     <aside className="hidden md:block w-64 shrink-0">
-      <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6">
-        <nav className="space-y-4">
-          {handbooksBySection.sections.map((section) => (
-            <div key={section.title}>
-              <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">
-                {section.title}
-              </h3>
-              <div className="space-y-0.5">
-                {section.docs.map((doc) => (
-                  <Link
-                    key={doc.slug}
-                    to="/company-handbook/$"
-                    params={{ _splat: doc.slug }}
-                    className={`block pl-5 pr-3 py-1.5 text-sm rounded-sm transition-colors ${
-                      currentSlug === doc.slug
-                        ? "bg-neutral-100 text-stone-600 font-medium"
-                        : "text-neutral-600 hover:text-stone-600 hover:bg-neutral-50"
-                    }`}
-                  >
-                    {doc.title}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
+      <div
+        ref={scrollContainerRef}
+        className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto scrollbar-hide space-y-6 px-4 py-6"
+      >
+        <SidebarNavigation
+          sections={handbooksBySection.sections}
+          currentSlug={currentSlug}
+          scrollContainerRef={scrollContainerRef}
+          linkTo="/company-handbook/$"
+        />
       </div>
     </aside>
   );

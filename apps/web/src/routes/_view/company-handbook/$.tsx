@@ -44,7 +44,11 @@ export const Route = createFileRoute("/_view/company-handbook/$")({
     return { doc: doc! };
   },
   head: ({ loaderData }) => {
-    const { doc } = loaderData!;
+    const doc = loaderData?.doc;
+    if (!doc) {
+      return { meta: [] };
+    }
+
     const url = `https://hyprnote.com/company-handbook/${doc.slug}`;
 
     return {

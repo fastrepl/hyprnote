@@ -71,16 +71,18 @@ function DocsNavigation({
       const container = scrollContainerRef.current;
       const activeLink = activeLinkRef.current;
 
-      const containerRect = container.getBoundingClientRect();
-      const linkRect = activeLink.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        const containerRect = container.getBoundingClientRect();
+        const linkRect = activeLink.getBoundingClientRect();
 
-      const scrollTop =
-        activeLink.offsetTop -
-        container.offsetTop -
-        containerRect.height / 2 +
-        linkRect.height / 2;
+        const scrollTop =
+          activeLink.offsetTop -
+          container.offsetTop -
+          containerRect.height / 2 +
+          linkRect.height / 2;
 
-      container.scrollTop = scrollTop;
+        container.scrollTop = scrollTop;
+      });
     }
   }, [currentSlug, scrollContainerRef]);
 

@@ -278,31 +278,13 @@ impl AssemblyAIAdapter {
 
 #[cfg(test)]
 mod tests {
-    use futures_util::StreamExt;
-    use hypr_audio_utils::AudioFormatExt;
-
     use super::AssemblyAIAdapter;
-    use crate::live::ListenClientInput;
+    use crate::test_utils::{run_dual_test, run_single_test};
     use crate::ListenClient;
 
     #[tokio::test]
     #[ignore]
-    async fn test_client() {
-        let _ = tracing_subscriber::fmt::try_init();
-
-        // AssemblyAI requires audio chunks between 50ms and 1000ms
-        // Using 1600 samples at 16kHz = 100ms per chunk
-        let audio = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 1600);
-
-        let input = Box::pin(tokio_stream::StreamExt::throttle(
-            audio.map(|chunk| ListenClientInput::Audio(chunk)),
-            std::time::Duration::from_millis(100),
-        ));
-
+    async fn test_build_single() {
         let client = ListenClient::builder()
             .adapter::<AssemblyAIAdapter>()
             .api_base("wss://streaming.assemblyai.com")
@@ -314,22 +296,23 @@ mod tests {
             })
             .build_single();
 
-        let (stream, _handle) = client.from_realtime_audio(input).await.unwrap();
-        futures_util::pin_mut!(stream);
+        run_single_test(client, "assemblyai").await;
+    }
 
-        while let Some(result) = stream.next().await {
-            match result {
-                Ok(response) => match response {
-                    owhisper_interface::stream::StreamResponse::TranscriptResponse {
-                        channel,
-                        ..
-                    } => {
-                        println!("{:?}", channel.alternatives.first().unwrap().transcript);
-                    }
-                    _ => {}
-                },
-                _ => {}
-            }
-        }
+    #[tokio::test]
+    #[ignore]
+    async fn test_build_dual() {
+        let client = ListenClient::builder()
+            .adapter::<AssemblyAIAdapter>()
+            .api_base("wss://streaming.assemblyai.com")
+            .api_key(std::env::var("ASSEMBLYAI_API_KEY").expect("ASSEMBLYAI_API_KEY not set"))
+            .params(owhisper_interface::ListenParams {
+                model: Some("universal-streaming-english".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_dual();
+
+        run_dual_test(client, "assemblyai").await;
     }
 }

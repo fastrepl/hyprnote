@@ -3,6 +3,9 @@ mod batch;
 mod error;
 mod live;
 
+#[cfg(test)]
+pub(crate) mod test_utils;
+
 use std::marker::PhantomData;
 
 pub use adapter::{

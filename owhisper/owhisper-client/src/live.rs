@@ -381,3 +381,79 @@ fn extract_finalize_text<A: RealtimeSttAdapter>(adapter: &A) -> Utf8Bytes {
         _ => r#"{"type":"Finalize"}"#.into(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::{DeepgramAdapter, ListenClient, SonioxAdapter};
+
+    fn proxy_base() -> String {
+        std::env::var("PROXY_URL").unwrap_or_else(|_| "localhost:8787".to_string())
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_proxy_deepgram_single() {
+        let client = ListenClient::builder()
+            .adapter::<DeepgramAdapter>()
+            .api_base(&format!("http://{}", proxy_base()))
+            .params(owhisper_interface::ListenParams {
+                model: Some("nova-3".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_single();
+
+        run_single_test(client, "proxy-deepgram").await;
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_proxy_deepgram_dual() {
+        let client = ListenClient::builder()
+            .adapter::<DeepgramAdapter>()
+            .api_base(&format!("http://{}", proxy_base()))
+            .params(owhisper_interface::ListenParams {
+                model: Some("nova-3".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_dual();
+
+        run_dual_test(client, "proxy-deepgram").await;
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_proxy_soniox_single() {
+        let client = ListenClient::builder()
+            .adapter::<SonioxAdapter>()
+            .api_base(&format!("http://{}", proxy_base()))
+            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
+            .params(owhisper_interface::ListenParams {
+                model: Some("stt-v3".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_single();
+
+        run_single_test(client, "proxy-soniox").await;
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_proxy_soniox_dual() {
+        let client = ListenClient::builder()
+            .adapter::<SonioxAdapter>()
+            .api_base(&format!("http://{}", proxy_base()))
+            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
+            .params(owhisper_interface::ListenParams {
+                model: Some("stt-v3".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_dual();
+
+        run_dual_test(client, "proxy-soniox").await;
+    }
+}

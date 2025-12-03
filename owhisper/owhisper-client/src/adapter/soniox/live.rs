@@ -271,32 +271,34 @@ impl SonioxAdapter {
 
 #[cfg(test)]
 mod tests {
-    use futures_util::StreamExt;
-    use hypr_audio_utils::AudioFormatExt;
-    use owhisper_interface::MixedMessage;
-
     use super::SonioxAdapter;
+    use crate::test_utils::{run_dual_test, run_single_test};
     use crate::ListenClient;
 
     #[tokio::test]
-    async fn test_client() {
-        let _ = tracing_subscriber::fmt::try_init();
-
-        let audio = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 512);
-
-        let input = Box::pin(tokio_stream::StreamExt::throttle(
-            audio.map(|chunk| MixedMessage::Audio((chunk.clone(), chunk.clone()))),
-            std::time::Duration::from_millis(20),
-        ));
-
+    #[ignore]
+    async fn test_build_single() {
         let client = ListenClient::builder()
             .adapter::<SonioxAdapter>()
             .api_base("https://api.soniox.com")
-            .api_key(std::env::var("SONIOX_API_KEY").unwrap_or_default())
+            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
+            .params(owhisper_interface::ListenParams {
+                model: Some("stt-v3".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_single();
+
+        run_single_test(client, "soniox").await;
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_build_dual() {
+        let client = ListenClient::builder()
+            .adapter::<SonioxAdapter>()
+            .api_base("https://api.soniox.com")
+            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
             .params(owhisper_interface::ListenParams {
                 model: Some("stt-v3".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],
@@ -304,22 +306,6 @@ mod tests {
             })
             .build_dual();
 
-        let (stream, _) = client.from_realtime_audio(input).await.unwrap();
-        futures_util::pin_mut!(stream);
-
-        while let Some(result) = stream.next().await {
-            match result {
-                Ok(response) => match response {
-                    owhisper_interface::stream::StreamResponse::TranscriptResponse {
-                        channel,
-                        ..
-                    } => {
-                        println!("{:?}", channel.alternatives.first().unwrap().transcript);
-                    }
-                    _ => {}
-                },
-                _ => {}
-            }
-        }
+        run_dual_test(client, "soniox").await;
     }
 }

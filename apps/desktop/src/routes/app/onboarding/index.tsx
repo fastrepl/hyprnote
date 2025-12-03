@@ -62,12 +62,14 @@ function useOnboarding() {
     return [...ALL_STEPS];
   }, [isLinux]);
 
-  const previous = steps?.[steps.indexOf(step) - 1] as
-    | (typeof ALL_STEPS)[number]
-    | undefined;
-  const next = steps?.[steps.indexOf(step) + 1] as
-    | (typeof ALL_STEPS)[number]
-    | undefined;
+  const stepIndex = steps.indexOf(step);
+
+  const previous = stepIndex > 0 ? steps[stepIndex - 1] : undefined;
+
+  const next =
+    stepIndex >= 0 && stepIndex < steps.length - 1
+      ? steps[stepIndex + 1]
+      : undefined;
 
   const goPrevious = useCallback(() => {
     if (!previous) {

@@ -1,0 +1,22 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/api/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - apps/api/**
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pnpm_install
+      - uses: ./.github/actions/bun_install
+      - run: pnpm -F @hypr/api typecheck
+      - run: pnpm -F @hypr/api test
+

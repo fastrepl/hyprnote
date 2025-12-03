@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f .env -- bun --hot src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.5",

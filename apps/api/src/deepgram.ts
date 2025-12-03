@@ -8,10 +8,24 @@ const UPSTREAM_CONNECT_TIMEOUT = 5000;
 const MAX_PENDING_QUEUE_BYTES = 5 * 1024 * 1024; // 5 MiB
 const TEXT_ENCODER = new TextEncoder();
 
+export type WsPayload = string | Uint8Array;
 type QueuedPayload = { payload: WsPayload; size: number };
 
-// https://developers.deepgram.com/docs/lower-level-websockets
-export class DeepgramProxyConnection {
+export const UPSTREAM_URL_HEADER = "x-owh-upstream-url";
+export const UPSTREAM_AUTH_HEADER = "x-owh-upstream-auth";
+
+export type WsProxyOptions = {
+  headers?: Record<string, string>;
+  controlMessageTypes?: ReadonlySet<string>;
+};
+
+const DEFAULT_CONTROL_MESSAGE_TYPES = new Set([
+  "KeepAlive",
+  "CloseStream",
+  "Finalize",
+]);
+
+export class WsProxyConnection {
   private upstream?: InstanceType<typeof WebSocket>;
   private upstreamReady = false;
   private shuttingDown = false;
@@ -25,7 +39,17 @@ export class DeepgramProxyConnection {
   private upstreamReadyResolve: (() => void) | null = null;
   private upstreamReadyReject: ((error: Error) => void) | null = null;
 
-  constructor(private deepgramUrl: string) {}
+  private readonly headers?: Record<string, string>;
+  private readonly controlMessageTypes: ReadonlySet<string>;
+
+  constructor(
+    private upstreamUrl: string,
+    options: WsProxyOptions = {},
+  ) {
+    this.headers = options.headers;
+    this.controlMessageTypes =
+      options.controlMessageTypes ?? DEFAULT_CONTROL_MESSAGE_TYPES;
+  }
 
   private clearErrorTimeout() {
     if (this.upstreamErrorTimeout) {
@@ -80,18 +104,17 @@ export class DeepgramProxyConnection {
       return;
     }
 
-    const wsOptions: WebSocketOptions = {
-      headers: {
-        Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
-      },
-    };
+    const wsOptions: WebSocketOptions =
+      this.headers && Object.keys(this.headers).length > 0
+        ? { headers: this.headers }
+        : {};
 
     this.upstream = new (globalThis.WebSocket as {
       new (
         url: string | URL,
         options?: WebSocketOptions,
       ): InstanceType<typeof WebSocket>;
-    })(this.deepgramUrl, wsOptions);
+    })(this.upstreamUrl, wsOptions);
 
     this.upstream.binaryType = "arraybuffer";
     this.setupUpstreamHandlers();
@@ -324,7 +347,10 @@ export class DeepgramProxyConnection {
       return;
     }
 
-    const isControlPayload = payloadIsControlMessage(payload);
+    const isControlPayload = payloadIsControlMessage(
+      payload,
+      this.controlMessageTypes,
+    );
 
     if (!this.upstreamReady) {
       this.enqueuePendingPayload(payload, isControlPayload);
@@ -373,9 +399,36 @@ export const buildDeepgramUrl = (incomingUrl: URL) => {
   return target;
 };
 
-export type WsPayload = string | Uint8Array;
+export const createDeepgramProxy = (incomingUrl: URL): WsProxyConnection => {
+  const target = buildDeepgramUrl(incomingUrl);
+  return new WsProxyConnection(target.toString(), {
+    headers: {
+      Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
+    },
+    controlMessageTypes: DEFAULT_CONTROL_MESSAGE_TYPES,
+  });
+};
 
-// https://bun.com/docs/runtime/http/websockets
+export function createProxyFromRequest(
+  incomingUrl: URL,
+  reqHeaders: Headers,
+): WsProxyConnection {
+  const upstreamOverride = reqHeaders.get(UPSTREAM_URL_HEADER);
+  const rawAuth = reqHeaders.get(UPSTREAM_AUTH_HEADER);
+
+  if (upstreamOverride) {
+    const url = new URL(upstreamOverride);
+    const headers =
+      rawAuth && rawAuth.length > 0 ? { Authorization: rawAuth } : undefined;
+
+    return new WsProxyConnection(url.toString(), {
+      headers,
+    });
+  }
+
+  return createDeepgramProxy(incomingUrl);
+}
+
 export const normalizeWsData = async (
   data: unknown,
 ): Promise<WsPayload | null> => {
@@ -420,9 +473,10 @@ const getPayloadSize = (payload: WsPayload) => {
   return payload.byteLength;
 };
 
-const CONTROL_MESSAGE_TYPES = new Set(["KeepAlive", "CloseStream", "Finalize"]);
-
-const payloadIsControlMessage = (payload: WsPayload) => {
+const payloadIsControlMessage = (
+  payload: WsPayload,
+  controlMessageTypes: ReadonlySet<string>,
+) => {
   if (typeof payload !== "string") {
     return false;
   }
@@ -432,7 +486,7 @@ const payloadIsControlMessage = (payload: WsPayload) => {
     if (
       typeof parsed === "object" &&
       parsed !== null &&
-      CONTROL_MESSAGE_TYPES.has(parsed.type)
+      controlMessageTypes.has(parsed.type)
     ) {
       return true;
     }

@@ -1,17 +1,11 @@
 import type { Handler } from "hono";
 import { upgradeWebSocket } from "hono/bun";
 
-import {
-  buildDeepgramUrl,
-  DeepgramProxyConnection,
-  normalizeWsData,
-} from "./deepgram";
+import { createProxyFromRequest, normalizeWsData } from "./deepgram";
 
 export const listenSocketHandler: Handler = async (c, next) => {
   const clientUrl = new URL(c.req.url, "http://localhost");
-  const deepgramUrl = buildDeepgramUrl(clientUrl).toString();
-
-  const connection = new DeepgramProxyConnection(deepgramUrl);
+  const connection = createProxyFromRequest(clientUrl, c.req.raw.headers);
   try {
     await connection.preconnectUpstream();
   } catch (error) {

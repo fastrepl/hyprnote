@@ -5,7 +5,7 @@ import {
   createProxyFromRequest,
   normalizeWsData,
   WsProxyConnection,
-} from "./deepgram";
+} from "./stt";
 
 export const listenSocketHandler: Handler = async (c, next) => {
   const clientUrl = new URL(c.req.url, "http://localhost");

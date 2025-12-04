@@ -1,7 +1,9 @@
+mod batch;
 mod live;
 
 pub(crate) const DEFAULT_API_HOST: &str = "api.gladia.io";
 pub(crate) const WS_PATH: &str = "/v2/live";
+const API_BASE: &str = "https://api.gladia.io/v2";
 
 #[derive(Clone, Default)]
 pub struct GladiaAdapter;
@@ -52,6 +54,15 @@ impl GladiaAdapter {
             .expect("invalid_ws_url");
         (url, existing_params)
     }
+
+    pub(crate) fn batch_api_url(api_base: &str) -> url::Url {
+        if api_base.is_empty() {
+            return API_BASE.parse().expect("invalid_default_api_url");
+        }
+
+        let url: url::Url = api_base.parse().expect("invalid_api_base");
+        url
+    }
 }
 
 #[cfg(test)]
@@ -97,5 +108,25 @@ mod tests {
                 input
             );
         }
+    }
+
+    #[test]
+    fn test_is_host() {
+        assert!(GladiaAdapter::is_host("https://api.gladia.io"));
+        assert!(GladiaAdapter::is_host("https://api.gladia.io/v2"));
+        assert!(!GladiaAdapter::is_host("https://api.deepgram.com"));
+        assert!(!GladiaAdapter::is_host("https://api.assemblyai.com"));
+    }
+
+    #[test]
+    fn test_batch_api_url_empty_uses_default() {
+        let url = GladiaAdapter::batch_api_url("");
+        assert_eq!(url.as_str(), "https://api.gladia.io/v2");
+    }
+
+    #[test]
+    fn test_batch_api_url_custom() {
+        let url = GladiaAdapter::batch_api_url("https://custom.gladia.io/v2");
+        assert_eq!(url.as_str(), "https://custom.gladia.io/v2");
     }
 }

@@ -147,7 +147,7 @@ function HeroSection() {
               target="_blank"
               rel="noopener noreferrer"
               className={cn([
-                "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium rounded-full",
+                "inline-flex items-center justify-center gap-2 px-8 py-3 font-medium rounded-full",
                 "bg-linear-to-t from-neutral-800 to-neutral-700 text-white",
                 "hover:scale-105 active:scale-95 transition-transform",
               ])}

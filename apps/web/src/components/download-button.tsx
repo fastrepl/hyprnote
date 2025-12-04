@@ -43,7 +43,7 @@ export function DownloadButton() {
       href={href}
       download
       className={cn([
-        "group px-6 h-12 flex items-center justify-center text-base sm:text-lg",
+        "group px-6 h-12 flex items-center justify-center",
         "bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full",
         "shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%]",
         "transition-all",

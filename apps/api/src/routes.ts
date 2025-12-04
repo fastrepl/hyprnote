@@ -20,7 +20,18 @@ export const API_TAGS = {
   INTERNAL: "internal",
   APP: "app",
   WEBHOOK: "webhook",
+  PUBLIC: "public",
 } as const;
+
+const GITHUB_ORG_REPO = "fastrepl/hyprnote";
+
+interface StargazerCache {
+  data: { username: string; avatar: string }[];
+  timestamp: number;
+}
+
+let stargazerCache: StargazerCache | null = null;
+const CACHE_TTL_MS = 1000 * 60 * 60;
 
 const HealthResponseSchema = z.object({
   status: z.string(),
@@ -31,17 +42,15 @@ const ChatCompletionMessageSchema = z.object({
   content: z.string(),
 });
 
-const ChatCompletionRequestSchema = z
-  .object({
-    model: z.string().optional(),
-    messages: z.array(ChatCompletionMessageSchema),
-    tools: z.array(z.unknown()).optional(),
-    tool_choice: z.union([z.string(), z.object({})]).optional(),
-    stream: z.boolean().optional(),
-    temperature: z.number().optional(),
-    max_tokens: z.number().optional(),
-  })
-  .passthrough();
+const ChatCompletionRequestSchema = z.looseObject({
+  model: z.string().optional(),
+  messages: z.array(ChatCompletionMessageSchema),
+  tools: z.array(z.unknown()).optional(),
+  tool_choice: z.union([z.string(), z.object({})]).optional(),
+  stream: z.boolean().optional(),
+  temperature: z.number().optional(),
+  max_tokens: z.number().optional(),
+});
 
 const WebhookSuccessSchema = z.object({
   ok: z.boolean(),
@@ -335,5 +344,120 @@ routes.get(
   async (c, next) => {
     const { listenSocketHandler } = await import("./listen");
     return listenSocketHandler(c, next);
+  },
+);
+
+const StargazersResponseSchema = z.object({
+  stargazers: z.array(
+    z.object({
+      username: z.string(),
+      avatar: z.string(),
+    }),
+  ),
+});
+
+routes.get(
+  "/stargazers",
+  describeRoute({
+    tags: [API_TAGS.PUBLIC],
+    summary: "Get GitHub stargazers",
+    description:
+      "Returns the most recent GitHub stargazers for the Hyprnote repository. Results are cached for 1 hour.",
+    responses: {
+      200: {
+        description: "List of stargazers",
+        content: {
+          "application/json": {
+            schema: resolver(StargazersResponseSchema),
+          },
+        },
+      },
+      500: {
+        description: "Failed to fetch stargazers from GitHub",
+        content: {
+          "application/json": {
+            schema: resolver(z.object({ error: z.string() })),
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    const now = Date.now();
+
+    if (stargazerCache && now - stargazerCache.timestamp < CACHE_TTL_MS) {
+      return c.json({ stargazers: stargazerCache.data }, 200);
+    }
+
+    const githubToken = process.env.GITHUB_TOKEN;
+    const githubHeaders: Record<string, string> = {
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "Hyprnote-API",
+    };
+    if (githubToken) {
+      githubHeaders["Authorization"] = `token ${githubToken}`;
+    }
+
+    try {
+      const repoResponse = await fetch(
+        `https://api.github.com/repos/${GITHUB_ORG_REPO}`,
+        { headers: githubHeaders },
+      );
+
+      if (!repoResponse.ok) {
+        throw new Error(`Failed to fetch repo info: ${repoResponse.status}`);
+      }
+
+      const repoData = await repoResponse.json();
+      const totalStars = repoData.stargazers_count ?? 0;
+
+      if (totalStars === 0) {
+        return c.json({ stargazers: [] }, 200);
+      }
+
+      const count = 512;
+      const perPage = 100;
+      const numPages = Math.ceil(Math.min(count, totalStars) / perPage);
+      const lastPage = Math.ceil(totalStars / perPage);
+      const startPage = Math.max(1, lastPage - numPages + 1);
+
+      const fetchPromises = [];
+      for (let page = startPage; page <= lastPage; page++) {
+        fetchPromises.push(
+          fetch(
+            `https://api.github.com/repos/${GITHUB_ORG_REPO}/stargazers?per_page=${perPage}&page=${page}`,
+            { headers: githubHeaders },
+          ),
+        );
+      }
+
+      const responses = await Promise.all(fetchPromises);
+      const allStargazers: { username: string; avatar: string }[] = [];
+
+      for (const response of responses) {
+        if (!response.ok) continue;
+        const data = await response.json();
+        for (const user of data) {
+          allStargazers.push({
+            username: user.login,
+            avatar: user.avatar_url,
+          });
+        }
+      }
+
+      const result = allStargazers.reverse().slice(0, count);
+
+      stargazerCache = {
+        data: result,
+        timestamp: now,
+      };
+
+      return c.json({ stargazers: result }, 200);
+    } catch {
+      if (stargazerCache) {
+        return c.json({ stargazers: stargazerCache.data }, 200);
+      }
+      return c.json({ error: "Failed to fetch stargazers" }, 500);
+    }
   },
 );

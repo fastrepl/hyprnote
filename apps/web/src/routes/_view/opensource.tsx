@@ -76,7 +76,7 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
       href={`https://github.com/${stargazer.username}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="block size-8 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
+      className="block size-14 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
     >
       <img
         src={stargazer.avatar}
@@ -89,8 +89,8 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
 }
 
 function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
-  const rows = 16;
-  const cols = 32;
+  const rows = 10;
+  const cols = 20;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -100,7 +100,7 @@ function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
             {Array.from({ length: cols }).map((_, colIndex) => {
               const index = (rowIndex * cols + colIndex) % stargazers.length;
               const stargazer = stargazers[index];
-              const delay = (rowIndex * cols + colIndex) * 0.05;
+              const delay = Math.random() * 3;
 
               return (
                 <div
@@ -123,7 +123,7 @@ function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
 }
 
 function HeroSection() {
-  const { data: stargazers = [] } = useGitHubStargazers(500);
+  const { data: stargazers = [] } = useGitHubStargazers();
 
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 relative overflow-hidden">
@@ -147,7 +147,7 @@ function HeroSection() {
               target="_blank"
               rel="noopener noreferrer"
               className={cn([
-                "inline-flex items-center justify-center gap-2 px-8 py-3 text-base font-medium rounded-full",
+                "inline-flex items-center justify-center gap-2 px-8 py-3 font-medium rounded-full",
                 "bg-linear-to-t from-neutral-800 to-neutral-700 text-white",
                 "hover:scale-105 active:scale-95 transition-transform",
               ])}

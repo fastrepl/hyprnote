@@ -8,9 +8,13 @@ import {
   type WsPayload,
 } from "./utils";
 
+// WebSocket close code 1011: server encountered an unexpected condition
 const DEFAULT_CLOSE_CODE = 1011;
-const UPSTREAM_ERROR_TIMEOUT = 1000;
-const UPSTREAM_CONNECT_TIMEOUT = 5000;
+// Grace period (ms) before closing connection after upstream error event
+const UPSTREAM_ERROR_GRACE_MS = 1000;
+// Maximum time (ms) to wait for upstream WebSocket to connect
+const UPSTREAM_CONNECT_TIMEOUT_MS = 5000;
+// Maximum bytes allowed in pending message queues before triggering backpressure
 const MAX_PENDING_QUEUE_BYTES = 5 * 1024 * 1024; // 5 MiB
 
 type QueuedPayload = { payload: WsPayload; size: number };
@@ -66,7 +70,7 @@ export class WsProxyConnection {
       if (!this.shuttingDown) {
         this.closeConnections(DEFAULT_CLOSE_CODE, "upstream_error");
       }
-    }, UPSTREAM_ERROR_TIMEOUT);
+    }, UPSTREAM_ERROR_GRACE_MS);
   }
 
   private resolveUpstreamReadyWaiters() {
@@ -319,7 +323,7 @@ export class WsProxyConnection {
     });
   }
 
-  async preconnectUpstream(timeoutMs = UPSTREAM_CONNECT_TIMEOUT) {
+  async preconnectUpstream(timeoutMs = UPSTREAM_CONNECT_TIMEOUT_MS) {
     this.ensureUpstreamSocket();
     let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
 

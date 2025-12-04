@@ -181,6 +181,7 @@ export class WsProxyConnection {
     this.upstreamReadyPromise = null;
     this.upstreamReadyResolve = null;
     this.upstreamReadyReject = null;
+    this.hasTransformedFirst = false;
   }
 
   private flushPendingMessages() {

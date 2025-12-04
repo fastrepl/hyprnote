@@ -5,6 +5,9 @@ mod deepgram_compat;
 mod fireworks;
 mod owhisper;
 mod soniox;
+mod url_builder;
+
+pub use url_builder::QueryParamBuilder;
 
 pub use argmax::*;
 pub use assemblyai::*;

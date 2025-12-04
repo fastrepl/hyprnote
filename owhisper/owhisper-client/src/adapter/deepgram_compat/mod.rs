@@ -9,6 +9,8 @@ pub use url::UrlQuery;
 
 use owhisper_interface::ListenParams;
 
+use super::url_builder::QueryParamBuilder;
+
 pub fn listen_endpoint_url(api_base: &str) -> (url::Url, Vec<(String, String)>) {
     let mut url: url::Url = api_base.parse().expect("invalid_api_base");
     let existing_params = super::extract_query_params(&url);
@@ -64,36 +66,26 @@ where
 {
     let (mut url, existing_params) = listen_endpoint_url(api_base);
 
+    let mut builder = QueryParamBuilder::new();
+    for (key, value) in &existing_params {
+        builder.add(key, value);
+    }
+
+    builder
+        .add_common_listen_params(params, channels)
+        .add_bool("interim_results", true)
+        .add_bool("multichannel", true)
+        .add_bool("vad_events", false)
+        .add(
+            "redemption_time_ms",
+            params.redemption_time_ms.unwrap_or(400),
+        );
+
+    builder.apply_to(&mut url);
+
     {
         let mut query_pairs = url.query_pairs_mut();
-
-        for (key, value) in &existing_params {
-            query_pairs.append_pair(key, value);
-        }
-
         lang_strategy.append_language_query(&mut query_pairs, params);
-
-        let model = params.model.as_deref().unwrap_or("hypr-whisper");
-        let channel_string = channels.to_string();
-        let sample_rate = params.sample_rate.to_string();
-
-        query_pairs.append_pair("model", model);
-        query_pairs.append_pair("channels", &channel_string);
-        query_pairs.append_pair("filler_words", "false");
-        query_pairs.append_pair("interim_results", "true");
-        query_pairs.append_pair("mip_opt_out", "true");
-        query_pairs.append_pair("sample_rate", &sample_rate);
-        query_pairs.append_pair("encoding", "linear16");
-        query_pairs.append_pair("diarize", "true");
-        query_pairs.append_pair("multichannel", "true");
-        query_pairs.append_pair("punctuate", "true");
-        query_pairs.append_pair("smart_format", "true");
-        query_pairs.append_pair("vad_events", "false");
-        query_pairs.append_pair("numerals", "true");
-
-        let redemption_time = params.redemption_time_ms.unwrap_or(400).to_string();
-        query_pairs.append_pair("redemption_time_ms", &redemption_time);
-
         keyword_strategy.append_keyword_query(&mut query_pairs, params);
     }
 
@@ -114,38 +106,38 @@ where
 {
     let (mut url, existing_params) = listen_endpoint_url(api_base);
 
+    let mut builder = QueryParamBuilder::new();
+    for (key, value) in &existing_params {
+        builder.add(key, value);
+    }
+
+    let model = params.model.as_deref().unwrap_or("hypr-whisper");
+    builder
+        .add("model", model)
+        .add("encoding", "linear16")
+        .add("sample_rate", params.sample_rate)
+        .add_bool("diarize", true)
+        .add_bool("multichannel", false)
+        .add_bool("punctuate", true)
+        .add_bool("smart_format", true)
+        .add_bool("utterances", true)
+        .add_bool("numerals", true)
+        .add_bool("filler_words", false)
+        .add_bool("dictation", false)
+        .add_bool("paragraphs", false)
+        .add_bool("profanity_filter", false)
+        .add_bool("measurements", false)
+        .add_bool("topics", false)
+        .add_bool("sentiment", false)
+        .add_bool("intents", false)
+        .add_bool("detect_entities", false)
+        .add_bool("mip_opt_out", true);
+
+    builder.apply_to(&mut url);
+
     {
         let mut query_pairs = url.query_pairs_mut();
-
-        for (key, value) in &existing_params {
-            query_pairs.append_pair(key, value);
-        }
-
         lang_strategy.append_language_query(&mut query_pairs, params);
-
-        let model = params.model.as_deref().unwrap_or("hypr-whisper");
-        let sample_rate = params.sample_rate.to_string();
-
-        query_pairs.append_pair("model", model);
-        query_pairs.append_pair("encoding", "linear16");
-        query_pairs.append_pair("sample_rate", &sample_rate);
-        query_pairs.append_pair("diarize", "true");
-        query_pairs.append_pair("multichannel", "false");
-        query_pairs.append_pair("punctuate", "true");
-        query_pairs.append_pair("smart_format", "true");
-        query_pairs.append_pair("utterances", "true");
-        query_pairs.append_pair("numerals", "true");
-        query_pairs.append_pair("filler_words", "false");
-        query_pairs.append_pair("dictation", "false");
-        query_pairs.append_pair("paragraphs", "false");
-        query_pairs.append_pair("profanity_filter", "false");
-        query_pairs.append_pair("measurements", "false");
-        query_pairs.append_pair("topics", "false");
-        query_pairs.append_pair("sentiment", "false");
-        query_pairs.append_pair("intents", "false");
-        query_pairs.append_pair("detect_entities", "false");
-        query_pairs.append_pair("mip_opt_out", "true");
-
         keyword_strategy.append_keyword_query(&mut query_pairs, params);
     }
 

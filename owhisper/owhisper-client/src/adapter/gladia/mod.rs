@@ -42,8 +42,12 @@ impl GladiaAdapter {
         } else {
             "wss"
         };
+        let host_with_port = match parsed.port() {
+            Some(port) => format!("{host}:{port}"),
+            None => host.to_string(),
+        };
 
-        let url: url::Url = format!("{scheme}://{host}{WS_PATH}")
+        let url: url::Url = format!("{scheme}://{host_with_port}{WS_PATH}")
             .parse()
             .expect("invalid_ws_url");
         (url, existing_params)
@@ -61,6 +65,11 @@ mod tests {
             (
                 "https://api.gladia.io",
                 "wss://api.gladia.io/v2/live",
+                vec![],
+            ),
+            (
+                "https://api.gladia.io:8443",
+                "wss://api.gladia.io:8443/v2/live",
                 vec![],
             ),
             (

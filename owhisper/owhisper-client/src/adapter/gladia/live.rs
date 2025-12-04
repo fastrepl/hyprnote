@@ -59,7 +59,11 @@ impl RealtimeSttAdapter for GladiaAdapter {
             } else {
                 "https"
             };
-            format!("{scheme}://{host}/v2/live")
+            let host_with_port = match parsed.port() {
+                Some(port) => format!("{host}:{port}"),
+                None => host.to_string(),
+            };
+            format!("{scheme}://{host_with_port}/v2/live")
         };
 
         let language_config = if params.languages.is_empty() {
@@ -344,6 +348,10 @@ impl GladiaAdapter {
         };
 
         let channel_idx = utterance.channel.unwrap_or(0);
+        // channel_index format: [channel_idx, total_channels]
+        // Gladia returns channel index in utterance.channel (0-based)
+        // Total channels is not provided in transcript response, so we infer from channel_idx
+        let total_channels = (channel_idx + 1).max(1);
 
         vec![StreamResponse::TranscriptResponse {
             is_final,
@@ -353,7 +361,7 @@ impl GladiaAdapter {
             duration,
             channel,
             metadata: Metadata::default(),
-            channel_index: vec![channel_idx, 1],
+            channel_index: vec![channel_idx, total_channels],
         }]
     }
 }

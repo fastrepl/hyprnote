@@ -326,3 +326,29 @@ impl GladiaAdapter {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_gladia_batch_transcription() {
+        let api_key = std::env::var("GLADIA_API_KEY").expect("GLADIA_API_KEY not set");
+        let client = reqwest::Client::new();
+        let adapter = GladiaAdapter::default();
+        let params = ListenParams::default();
+
+        let audio_path = std::path::PathBuf::from(hypr_data::english_1::AUDIO_PATH);
+
+        let result = adapter
+            .transcribe_file(&client, "", &api_key, &params, &audio_path)
+            .await
+            .expect("transcription failed");
+
+        assert!(!result.results.channels.is_empty());
+        assert!(!result.results.channels[0].alternatives.is_empty());
+        assert!(!result.results.channels[0].alternatives[0].transcript.is_empty());
+        assert!(!result.results.channels[0].alternatives[0].words.is_empty());
+    }
+}

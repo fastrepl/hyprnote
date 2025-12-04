@@ -14,6 +14,16 @@ export const UPSTREAM_AUTH_HEADER = "x-owh-upstream-auth";
 
 export type SttProvider = "deepgram" | "assemblyai" | "soniox";
 
+const VALID_PROVIDERS: readonly SttProvider[] = [
+  "deepgram",
+  "assemblyai",
+  "soniox",
+];
+
+function isValidProvider(provider: string): provider is SttProvider {
+  return VALID_PROVIDERS.includes(provider as SttProvider);
+}
+
 export function createProxyFromRequest(
   incomingUrl: URL,
   reqHeaders: Headers,
@@ -43,8 +53,17 @@ export function createProxyFromRequest(
     });
   }
 
-  const provider =
-    (incomingUrl.searchParams.get("provider") as SttProvider) || "deepgram";
+  const providerParam = incomingUrl.searchParams.get("provider");
+
+  if (providerParam && !isValidProvider(providerParam)) {
+    throw new Error(
+      `Unknown STT provider: ${providerParam} (valid: ${VALID_PROVIDERS.join(", ")})`,
+    );
+  }
+
+  const provider: SttProvider = isValidProvider(providerParam ?? "")
+    ? providerParam
+    : "deepgram";
 
   switch (provider) {
     case "assemblyai":
@@ -52,7 +71,6 @@ export function createProxyFromRequest(
     case "soniox":
       return createSonioxProxy();
     case "deepgram":
-    default:
       return createDeepgramProxy(incomingUrl);
   }
 }

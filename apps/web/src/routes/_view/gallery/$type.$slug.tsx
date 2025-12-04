@@ -40,7 +40,8 @@ export const Route = createFileRoute("/_view/gallery/$type/$slug")({
     const typeLabel = type === "template" ? "Template" : "Shortcut";
     const url = `https://hyprnote.com/gallery/${type}/${item.slug}`;
 
-    const ogImageUrl = `https://hyprnote.com/og?type=gallery&title=${encodeURIComponent(item.title)}&category=${encodeURIComponent(item.category)}${item.description ? `&description=${encodeURIComponent(item.description)}` : ""}&v=1`;
+    const ogType = type === "template" ? "templates" : "shortcuts";
+    const ogImageUrl = `https://hyprnote.com/og?type=${ogType}&title=${encodeURIComponent(item.title)}&category=${encodeURIComponent(item.category)}${item.description ? `&description=${encodeURIComponent(item.description)}` : ""}&v=1`;
 
     return {
       meta: [

@@ -97,8 +97,8 @@ function HeroSection() {
 function FriendsSection() {
   return (
     <section>
-      <div className="grid grid-cols-3">
-        {allOssFriends.map((friend, index) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-200">
+        {allOssFriends.map((friend) => (
           <a
             key={friend.slug}
             href={friend.href}
@@ -106,28 +106,17 @@ function FriendsSection() {
             rel="noopener noreferrer"
             className={cn([
               "group flex flex-col bg-white overflow-hidden",
-              "border-b border-neutral-200",
-              index % 3 !== 2 && "border-r",
               "hover:bg-stone-50 transition-all",
             ])}
           >
             <div className="aspect-40/21 bg-neutral-100 overflow-hidden">
-              {friend.image ? (
-                <Image
-                  src={friend.image}
-                  alt={friend.name}
-                  className="w-full h-full group-hover:scale-105 transition-transform duration-300"
-                  objectFit="cover"
-                  layout="fullWidth"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Icon
-                    icon="mdi:open-source-initiative"
-                    className="text-4xl text-neutral-300"
-                  />
-                </div>
-              )}
+              <Image
+                src={friend.image || "/api/images/hyprnote/default-cover.jpg"}
+                alt={friend.name}
+                className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                objectFit="cover"
+                layout="fullWidth"
+              />
             </div>
             <div className="p-4 flex-1 flex flex-col">
               <div className="flex items-start justify-between gap-2 mb-2">

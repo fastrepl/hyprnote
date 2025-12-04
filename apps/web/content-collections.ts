@@ -245,6 +245,7 @@ const templates = defineCollection({
     description: z.string(),
     category: z.string(),
     targets: z.array(z.string()),
+    banner: z.string().optional(),
     sections: z.array(
       z.object({
         title: z.string(),
@@ -409,6 +410,50 @@ const vs = defineCollection({
   },
 });
 
+const integrations = defineCollection({
+  name: "integrations",
+  directory: "content/integrations",
+  include: "**/*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    platform: z.string(),
+    icon: z.string(),
+    headline: z.string(),
+    description: z.string(),
+    metaDescription: z.string(),
+    features: z.array(z.string()).optional(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const pathParts = document._meta.path.split("/");
+    const fileName = pathParts.pop()!.replace(/\.mdx$/, "");
+    const category = pathParts[0] || "general";
+    const slug = fileName;
+
+    return {
+      ...document,
+      mdx,
+      slug,
+      category,
+    };
+  },
+});
+
 const shortcuts = defineCollection({
   name: "shortcuts",
   directory: "content/shortcuts",
@@ -419,6 +464,7 @@ const shortcuts = defineCollection({
     description: z.string(),
     category: z.string(),
     prompt: z.string(),
+    banner: z.string().optional(),
     targets: z.array(z.string()).optional(),
   }),
   transform: async (document, context) => {
@@ -586,6 +632,7 @@ export default defineConfig({
     hooks,
     deeplinks,
     vs,
+    integrations,
     handbook,
     roadmap,
     ossFriends,

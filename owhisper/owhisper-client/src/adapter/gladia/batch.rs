@@ -348,7 +348,9 @@ mod tests {
 
         assert!(!result.results.channels.is_empty());
         assert!(!result.results.channels[0].alternatives.is_empty());
-        assert!(!result.results.channels[0].alternatives[0].transcript.is_empty());
+        assert!(!result.results.channels[0].alternatives[0]
+            .transcript
+            .is_empty());
         assert!(!result.results.channels[0].alternatives[0].words.is_empty());
     }
 }

@@ -2,6 +2,7 @@ mod adapter;
 mod batch;
 mod error;
 mod live;
+pub(crate) mod polling;
 
 #[cfg(test)]
 pub(crate) mod test_utils;

@@ -1,5 +1,4 @@
 use std::path::Path;
-use std::time::Duration;
 
 use owhisper_interface::batch::{
     Alternatives as BatchAlternatives, Channel as BatchChannel, Response as BatchResponse,
@@ -11,9 +10,7 @@ use serde::{Deserialize, Serialize};
 use super::SonioxAdapter;
 use crate::adapter::{BatchFuture, BatchSttAdapter};
 use crate::error::Error;
-
-const POLL_INTERVAL: Duration = Duration::from_secs(2);
-const MAX_POLL_ATTEMPTS: u32 = 300;
+use crate::polling::{poll_until, PollingConfig, PollingResult};
 
 impl SonioxAdapter {
     async fn upload_file(
@@ -159,53 +156,46 @@ impl SonioxAdapter {
             transcription_id
         );
 
-        for attempt in 0..MAX_POLL_ATTEMPTS {
-            let response = client
-                .get(&url)
-                .header("Authorization", format!("Bearer {}", api_key))
-                .send()
-                .await?;
+        let config =
+            PollingConfig::default().with_timeout_error("transcription timed out".to_string());
 
-            let status = response.status();
-            if !status.is_success() {
-                let body = response.text().await.unwrap_or_default();
-                return Err(Error::UnexpectedStatus { status, body });
-            }
+        poll_until(
+            || async {
+                let response = client
+                    .get(&url)
+                    .header("Authorization", format!("Bearer {}", api_key))
+                    .send()
+                    .await?;
 
-            let transcription: TranscriptionResponse = response.json().await?;
-
-            match transcription.status.as_str() {
-                "completed" => return Ok(()),
-                "error" => {
-                    let error_msg = transcription
-                        .error_message
-                        .unwrap_or_else(|| "unknown error".to_string());
-                    return Err(Error::AudioProcessing(format!(
-                        "transcription failed: {}",
-                        error_msg
-                    )));
+                let status = response.status();
+                if !status.is_success() {
+                    let body = response.text().await.unwrap_or_default();
+                    return Err(Error::UnexpectedStatus { status, body });
                 }
-                "queued" | "processing" => {
-                    tracing::debug!(
-                        attempt = attempt,
-                        status = transcription.status,
-                        "polling transcription status"
-                    );
-                    tokio::time::sleep(POLL_INTERVAL).await;
-                }
-                unknown => {
-                    return Err(Error::AudioProcessing(format!(
+
+                let transcription: TranscriptionResponse = response.json().await?;
+
+                match transcription.status.as_str() {
+                    "completed" => Ok(PollingResult::Complete(())),
+                    "error" => {
+                        let error_msg = transcription
+                            .error_message
+                            .unwrap_or_else(|| "unknown error".to_string());
+                        Ok(PollingResult::Failed(format!(
+                            "transcription failed: {}",
+                            error_msg
+                        )))
+                    }
+                    "queued" | "processing" => Ok(PollingResult::Continue),
+                    unknown => Ok(PollingResult::Failed(format!(
                         "unexpected transcription status: {}",
                         unknown
-                    )));
+                    ))),
                 }
-            }
-        }
-
-        Err(Error::AudioProcessing(format!(
-            "transcription timed out after {} attempts",
-            MAX_POLL_ATTEMPTS
-        )))
+            },
+            config,
+        )
+        .await
     }
 
     async fn get_transcript(

@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use super::AssemblyAIAdapter;
 use crate::adapter::{BatchFuture, BatchSttAdapter};
 use crate::error::Error;
+use crate::polling::{poll_until, PollingConfig, PollingResult};
 
 // API
 // https://www.assemblyai.com/docs/api-reference/transcripts/submit.md
@@ -172,54 +173,46 @@ impl AssemblyAIAdapter {
         let transcript_id = create_result.id;
 
         let poll_url = format!("{}/transcript/{}", base_url, transcript_id);
-        let mut poll_count = 0;
-        let max_polls = 300;
 
-        loop {
-            if poll_count >= max_polls {
-                return Err(Error::AudioProcessing(
-                    "transcription timed out".to_string(),
-                ));
-            }
+        let config = PollingConfig::default()
+            .with_interval(Duration::from_secs(3))
+            .with_timeout_error("transcription timed out".to_string());
 
-            tokio::time::sleep(Duration::from_secs(3)).await;
-            poll_count += 1;
+        poll_until(
+            || async {
+                let poll_response = client
+                    .get(&poll_url)
+                    .header("Authorization", api_key)
+                    .send()
+                    .await?;
 
-            let poll_response = client
-                .get(&poll_url)
-                .header("Authorization", api_key)
-                .send()
-                .await?;
-
-            let poll_status = poll_response.status();
-            if !poll_status.is_success() {
-                return Err(Error::UnexpectedStatus {
-                    status: poll_status,
-                    body: poll_response.text().await.unwrap_or_default(),
-                });
-            }
-
-            let result: TranscriptResponse = poll_response.json().await?;
-
-            match result.status.as_str() {
-                "completed" => {
-                    return Ok(Self::convert_to_batch_response(result));
+                let poll_status = poll_response.status();
+                if !poll_status.is_success() {
+                    return Err(Error::UnexpectedStatus {
+                        status: poll_status,
+                        body: poll_response.text().await.unwrap_or_default(),
+                    });
                 }
-                "error" => {
-                    let error_msg = result.error.unwrap_or_else(|| "unknown error".to_string());
-                    return Err(Error::AudioProcessing(format!(
-                        "transcription failed: {}",
-                        error_msg
-                    )));
+
+                let result: TranscriptResponse = poll_response.json().await?;
+
+                match result.status.as_str() {
+                    "completed" => Ok(PollingResult::Complete(Self::convert_to_batch_response(
+                        result,
+                    ))),
+                    "error" => {
+                        let error_msg = result.error.unwrap_or_else(|| "unknown error".to_string());
+                        Ok(PollingResult::Failed(format!(
+                            "transcription failed: {}",
+                            error_msg
+                        )))
+                    }
+                    _ => Ok(PollingResult::Continue),
                 }
-                "queued" | "processing" => {
-                    continue;
-                }
-                _ => {
-                    continue;
-                }
-            }
-        }
+            },
+            config,
+        )
+        .await
     }
 
     fn convert_to_batch_response(response: TranscriptResponse) -> BatchResponse {

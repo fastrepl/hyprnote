@@ -12,7 +12,7 @@ import { logger } from "hono/logger";
 import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
 import { API_TAGS, routes } from "./routes";
-import { sentryMiddleware } from "./sentry";
+import { sentryMiddleware } from "./sentry/middleware";
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth } from "./supabase";
 

@@ -29,6 +29,9 @@ export const normalizeWsData = async (
   return null;
 };
 
+// Clone binary data to ensure ownership - WebSocket message buffers may be
+// reused or invalidated after the event handler returns, so we copy the data
+// to prevent use-after-free issues when the payload is queued for later use.
 const cloneBinaryPayload = (input: ArrayBuffer | ArrayBufferView) => {
   const view =
     input instanceof ArrayBuffer

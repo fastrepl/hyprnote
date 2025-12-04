@@ -1,0 +1,101 @@
+mod live;
+
+pub(crate) const DEFAULT_API_HOST: &str = "api.gladia.io";
+pub(crate) const WS_PATH: &str = "/v2/live";
+
+#[derive(Clone, Default)]
+pub struct GladiaAdapter;
+
+impl GladiaAdapter {
+    pub fn is_supported_languages(_languages: &[hypr_language::Language]) -> bool {
+        true
+    }
+
+    pub fn is_host(base_url: &str) -> bool {
+        super::host_matches(base_url, Self::is_gladia_host)
+    }
+
+    pub(crate) fn is_gladia_host(host: &str) -> bool {
+        host.contains("gladia.io")
+    }
+
+    pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
+        if api_base.is_empty() {
+            return (
+                format!("wss://{}{}", DEFAULT_API_HOST, WS_PATH)
+                    .parse()
+                    .expect("invalid_default_ws_url"),
+                Vec::new(),
+            );
+        }
+
+        if let Some(proxy_result) = super::build_proxy_ws_url(api_base) {
+            return proxy_result;
+        }
+
+        let parsed: url::Url = api_base.parse().expect("invalid_api_base");
+        let existing_params = super::extract_query_params(&parsed);
+
+        let host = parsed.host_str().unwrap_or(DEFAULT_API_HOST);
+        let scheme = if super::is_local_host(host) {
+            "ws"
+        } else {
+            "wss"
+        };
+        let host_with_port = match parsed.port() {
+            Some(port) => format!("{host}:{port}"),
+            None => host.to_string(),
+        };
+
+        let url: url::Url = format!("{scheme}://{host_with_port}{WS_PATH}")
+            .parse()
+            .expect("invalid_ws_url");
+        (url, existing_params)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_ws_url_from_base() {
+        let cases = [
+            ("", "wss://api.gladia.io/v2/live", vec![]),
+            (
+                "https://api.gladia.io",
+                "wss://api.gladia.io/v2/live",
+                vec![],
+            ),
+            (
+                "https://api.gladia.io:8443",
+                "wss://api.gladia.io:8443/v2/live",
+                vec![],
+            ),
+            (
+                "https://api.hyprnote.com?provider=gladia",
+                "wss://api.hyprnote.com/listen",
+                vec![("provider", "gladia")],
+            ),
+            (
+                "http://localhost:8787/listen?provider=gladia",
+                "ws://localhost:8787/listen",
+                vec![("provider", "gladia")],
+            ),
+        ];
+
+        for (input, expected_url, expected_params) in cases {
+            let (url, params) = GladiaAdapter::build_ws_url_from_base(input);
+            assert_eq!(url.as_str(), expected_url, "input: {}", input);
+            assert_eq!(
+                params,
+                expected_params
+                    .into_iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect::<Vec<_>>(),
+                "input: {}",
+                input
+            );
+        }
+    }
+}

@@ -72,7 +72,9 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
     fn build_request(&self, adapter: &A, channels: u8) -> hypr_ws::client::ClientRequestBuilder {
         let params = self.get_params();
         let api_base = append_provider_param(self.get_api_base(), adapter.provider_name());
-        let url = adapter.build_ws_url(&api_base, &params, channels);
+        let url = adapter
+            .build_ws_url_with_api_key(&api_base, &params, channels, self.api_key.as_deref())
+            .unwrap_or_else(|| adapter.build_ws_url(&api_base, &params, channels));
         let uri = url.to_string().parse().unwrap();
 
         let mut request = hypr_ws::client::ClientRequestBuilder::new(uri);

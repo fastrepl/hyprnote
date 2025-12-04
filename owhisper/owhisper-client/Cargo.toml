@@ -15,6 +15,7 @@ futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json", "multipart"] }
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
+ureq = { version = "2", features = ["json"] }
 
 bytes = { workspace = true }
 serde = { workspace = true }

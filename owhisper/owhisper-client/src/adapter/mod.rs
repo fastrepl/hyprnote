@@ -3,6 +3,7 @@ mod assemblyai;
 mod deepgram;
 mod deepgram_compat;
 mod fireworks;
+mod gladia;
 mod owhisper;
 pub mod parsing;
 mod soniox;
@@ -14,6 +15,7 @@ pub use argmax::*;
 pub use assemblyai::*;
 pub use deepgram::*;
 pub use fireworks::*;
+pub use gladia::*;
 pub use soniox::*;
 
 use std::future::Future;
@@ -35,6 +37,16 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
     fn supports_native_multichannel(&self) -> bool;
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url;
+
+    fn build_ws_url_with_api_key(
+        &self,
+        api_base: &str,
+        params: &ListenParams,
+        channels: u8,
+        _api_key: Option<&str>,
+    ) -> Option<url::Url> {
+        Some(self.build_ws_url(api_base, params, channels))
+    }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)>;
 

@@ -188,7 +188,7 @@ export class WsProxyConnection {
     this.hasTransformedFirst = false;
   }
 
-  private flushPendingMessages() {
+  private flushUpstreamQueue() {
     if (
       !this.upstream ||
       !this.upstreamReady ||
@@ -221,7 +221,7 @@ export class WsProxyConnection {
     }
   }
 
-  private flushDownstreamMessages() {
+  private flushDownstreamQueue() {
     if (
       !this.clientSocket ||
       this.clientSocket.readyState !== WebSocket.OPEN ||
@@ -274,8 +274,8 @@ export class WsProxyConnection {
     this.upstream.addEventListener("open", () => {
       this.upstreamReady = true;
       this.resolveUpstreamReadyWaiters();
-      this.flushPendingMessages();
-      this.flushDownstreamMessages();
+      this.flushUpstreamQueue();
+      this.flushDownstreamQueue();
     });
 
     this.upstream.addEventListener("message", async (event) => {
@@ -356,12 +356,12 @@ export class WsProxyConnection {
   initializeUpstream(clientWs: ServerWebSocket<unknown>) {
     // Set clientSocket BEFORE ensureUpstreamSocket to prevent race condition:
     // If upstream becomes ready during ensureUpstreamSocket(), the open handler
-    // will call flushDownstreamMessages() which needs clientSocket to be set.
+    // will call flushDownstreamQueue() which needs clientSocket to be set.
     this.clientSocket = clientWs;
     this.ensureUpstreamSocket();
     if (this.upstreamReady) {
-      this.flushPendingMessages();
-      this.flushDownstreamMessages();
+      this.flushUpstreamQueue();
+      this.flushDownstreamQueue();
     }
   }
 

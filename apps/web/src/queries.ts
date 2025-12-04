@@ -24,15 +24,57 @@ export interface Stargazer {
 }
 
 async function fetchStargazersFromGitHub(): Promise<Stargazer[]> {
-  const response = await fetch(
+  const firstResponse = await fetch(
     `https://api.github.com/repos/${ORG_REPO}/stargazers?per_page=100`,
   );
-  if (!response.ok) return [];
-  const data = await response.json();
-  return data.map((user: { login: string; avatar_url: string }) => ({
-    username: user.login,
-    avatar: user.avatar_url,
-  }));
+  if (!firstResponse.ok) return [];
+
+  const linkHeader = firstResponse.headers.get("Link");
+  if (!linkHeader) {
+    const data = await firstResponse.json();
+    return data.map((user: { login: string; avatar_url: string }) => ({
+      username: user.login,
+      avatar: user.avatar_url,
+    }));
+  }
+
+  const lastMatch = linkHeader.match(/<([^>]+)>;\s*rel="last"/);
+  if (!lastMatch) {
+    const data = await firstResponse.json();
+    return data.map((user: { login: string; avatar_url: string }) => ({
+      username: user.login,
+      avatar: user.avatar_url,
+    }));
+  }
+
+  const lastPageUrl = new URL(lastMatch[1]);
+  const lastPage = parseInt(lastPageUrl.searchParams.get("page") || "1", 10);
+  const secondLastPage = Math.max(1, lastPage - 1);
+
+  const [lastResponse, secondLastResponse] = await Promise.all([
+    fetch(lastPageUrl.toString()),
+    lastPage > 1
+      ? fetch(
+          `https://api.github.com/repos/${ORG_REPO}/stargazers?per_page=100&page=${secondLastPage}`,
+        )
+      : Promise.resolve(null),
+  ]);
+
+  if (!lastResponse.ok) return [];
+
+  const lastData = await lastResponse.json();
+  const secondLastData = secondLastResponse?.ok
+    ? await secondLastResponse.json()
+    : [];
+
+  const combined = [...secondLastData, ...lastData];
+  return combined
+    .reverse()
+    .slice(0, 200)
+    .map((user: { login: string; avatar_url: string }) => ({
+      username: user.login,
+      avatar: user.avatar_url,
+    }));
 }
 
 export function useGitHubStargazers() {

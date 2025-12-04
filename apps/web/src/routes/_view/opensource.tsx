@@ -76,7 +76,7 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
       href={`https://github.com/${stargazer.username}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="block size-8 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
+      className="block size-14 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
     >
       <img
         src={stargazer.avatar}
@@ -89,8 +89,8 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
 }
 
 function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
-  const rows = 16;
-  const cols = 32;
+  const rows = 10;
+  const cols = 20;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -100,7 +100,7 @@ function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
             {Array.from({ length: cols }).map((_, colIndex) => {
               const index = (rowIndex * cols + colIndex) % stargazers.length;
               const stargazer = stargazers[index];
-              const delay = (rowIndex * cols + colIndex) * 0.05;
+              const delay = Math.random() * 3;
 
               return (
                 <div

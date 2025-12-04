@@ -3,6 +3,7 @@ mod assemblyai;
 mod deepgram;
 mod deepgram_compat;
 mod fireworks;
+mod gladia;
 mod owhisper;
 pub mod parsing;
 mod soniox;
@@ -14,6 +15,7 @@ pub use argmax::*;
 pub use assemblyai::*;
 pub use deepgram::*;
 pub use fireworks::*;
+pub use gladia::*;
 pub use soniox::*;
 
 use std::future::Future;

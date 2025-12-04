@@ -389,15 +389,19 @@ routes.get(
       return c.json({ stargazers: stargazerCache.data }, 200);
     }
 
+    const githubToken = process.env.GITHUB_TOKEN;
+    const githubHeaders: Record<string, string> = {
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "Hyprnote-API",
+    };
+    if (githubToken) {
+      githubHeaders["Authorization"] = `token ${githubToken}`;
+    }
+
     try {
       const repoResponse = await fetch(
         `https://api.github.com/repos/${GITHUB_ORG_REPO}`,
-        {
-          headers: {
-            Accept: "application/vnd.github.v3+json",
-            "User-Agent": "Hyprnote-API",
-          },
-        },
+        { headers: githubHeaders },
       );
 
       if (!repoResponse.ok) {
@@ -422,12 +426,7 @@ routes.get(
         fetchPromises.push(
           fetch(
             `https://api.github.com/repos/${GITHUB_ORG_REPO}/stargazers?per_page=${perPage}&page=${page}`,
-            {
-              headers: {
-                Accept: "application/vnd.github.v3+json",
-                "User-Agent": "Hyprnote-API",
-              },
-            },
+            { headers: githubHeaders },
           ),
         );
       }

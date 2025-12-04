@@ -4,6 +4,7 @@ mod deepgram;
 mod deepgram_compat;
 mod fireworks;
 mod gladia;
+mod openai;
 mod owhisper;
 pub mod parsing;
 mod soniox;
@@ -16,6 +17,7 @@ pub use assemblyai::*;
 pub use deepgram::*;
 pub use fireworks::*;
 pub use gladia::*;
+pub use openai::*;
 pub use soniox::*;
 
 use std::future::Future;
@@ -164,6 +166,7 @@ pub enum AdapterKind {
     Fireworks,
     Deepgram,
     AssemblyAI,
+    OpenAI,
 }
 
 impl AdapterKind {
@@ -182,6 +185,8 @@ impl AdapterKind {
             Self::Soniox
         } else if FireworksAdapter::is_host(base_url) {
             Self::Fireworks
+        } else if OpenAIAdapter::is_host(base_url) {
+            Self::OpenAI
         } else {
             Self::Deepgram
         }

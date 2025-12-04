@@ -65,11 +65,16 @@ async fn do_transcribe_file(
     params: &ListenParams,
     file_path: PathBuf,
 ) -> Result<BatchResponse, Error> {
+    let fallback_name = match file_path.extension().and_then(|e| e.to_str()) {
+        Some(ext) => format!("audio.{}", ext),
+        None => "audio".to_string(),
+    };
+
     let file_name = file_path
         .file_name()
         .and_then(|n| n.to_str())
-        .unwrap_or("audio.wav")
-        .to_string();
+        .map(ToOwned::to_owned)
+        .unwrap_or(fallback_name);
 
     let file_bytes = tokio::fs::read(&file_path)
         .await
@@ -133,33 +138,34 @@ fn mime_type_from_extension(path: &Path) -> &'static str {
     }
 }
 
+fn strip_punctuation(s: &str) -> String {
+    s.trim_matches(|c: char| c.is_ascii_punctuation())
+        .to_string()
+}
+
 fn convert_response(response: OpenAIVerboseResponse) -> BatchResponse {
     let words: Vec<Word> = if !response.words.is_empty() {
         response
             .words
             .into_iter()
-            .map(|w| Word {
-                word: w.word.clone(),
-                start: w.start,
-                end: w.end,
-                confidence: 1.0,
-                speaker: None,
-                punctuated_word: Some(w.word),
+            .map(|w| {
+                let normalized = strip_punctuation(&w.word);
+                Word {
+                    word: if normalized.is_empty() {
+                        w.word.clone()
+                    } else {
+                        normalized
+                    },
+                    start: w.start,
+                    end: w.end,
+                    confidence: 1.0,
+                    speaker: None,
+                    punctuated_word: Some(w.word),
+                }
             })
             .collect()
     } else {
-        response
-            .segments
-            .into_iter()
-            .map(|s| Word {
-                word: s.text.trim().to_string(),
-                start: s.start,
-                end: s.end,
-                confidence: 1.0,
-                speaker: None,
-                punctuated_word: Some(s.text.trim().to_string()),
-            })
-            .collect()
+        Vec::new()
     };
 
     let alternatives = Alternatives {

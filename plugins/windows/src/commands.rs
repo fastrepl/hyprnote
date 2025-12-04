@@ -123,3 +123,19 @@ pub fn reset_app_icon() -> Result<(), String> {
 pub fn get_available_icons() -> Vec<AppIcon> {
     AppIcon::all()
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_build_channel(app: tauri::AppHandle) -> String {
+    let identifier = &app.config().identifier;
+
+    if identifier.contains("nightly") {
+        "nightly".to_string()
+    } else if identifier.contains("stable") {
+        "stable".to_string()
+    } else if identifier.contains("staging") {
+        "staging".to_string()
+    } else {
+        "dev".to_string()
+    }
+}

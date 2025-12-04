@@ -1,10 +1,16 @@
-import { type AppIcon } from "@hypr/plugin-windows";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+  type AppIcon,
+  commands as windowsCommands,
+} from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 
 import darkIcon from "../../../assets/icons/dark.png";
 import lightIcon from "../../../assets/icons/light.png";
 import nightlyIcon from "../../../assets/icons/nightly.png";
 import proIcon from "../../../assets/icons/pro.png";
+import { useBillingAccess } from "../../../billing";
 
 const ICON_OPTIONS: { value: AppIcon; label: string; icon: string }[] = [
   { value: "dark", label: "Dark", icon: darkIcon },
@@ -13,12 +19,61 @@ const ICON_OPTIONS: { value: AppIcon; label: string; icon: string }[] = [
   { value: "pro", label: "Pro", icon: proIcon },
 ];
 
+type BuildChannel = "nightly" | "stable" | "staging" | "dev";
+
+function getAvailableIconsForTier(
+  channel: BuildChannel,
+  isPro: boolean,
+): AppIcon[] {
+  if (channel === "nightly") {
+    return ["nightly"];
+  }
+
+  if (isPro) {
+    return ["dark", "light", "nightly", "pro"];
+  }
+
+  return ["dark", "light"];
+}
+
 interface AppIconSettingsProps {
   value: AppIcon;
   onChange: (value: AppIcon) => void;
 }
 
 export function AppIconSettings({ value, onChange }: AppIconSettingsProps) {
+  const [channel, setChannel] = useState<BuildChannel>("dev");
+  const { isPro } = useBillingAccess();
+
+  useEffect(() => {
+    windowsCommands.getBuildChannel().then((ch) => {
+      setChannel(ch as BuildChannel);
+    });
+  }, []);
+
+  const availableIcons = useMemo(
+    () => getAvailableIconsForTier(channel, isPro),
+    [channel, isPro],
+  );
+
+  const visibleOptions = useMemo(
+    () => ICON_OPTIONS.filter((opt) => availableIcons.includes(opt.value)),
+    [availableIcons],
+  );
+
+  useEffect(() => {
+    if (!availableIcons.includes(value)) {
+      const defaultIcon = availableIcons[0];
+      if (defaultIcon) {
+        onChange(defaultIcon);
+      }
+    }
+  }, [availableIcons, value, onChange]);
+
+  if (visibleOptions.length <= 1) {
+    return null;
+  }
+
   return (
     <div>
       <h2 className="font-semibold mb-4">App Icon</h2>
@@ -26,7 +81,7 @@ export function AppIconSettings({ value, onChange }: AppIconSettingsProps) {
         Choose your preferred app icon style. Changes apply immediately.
       </p>
       <div className="grid grid-cols-4 gap-3">
-        {ICON_OPTIONS.map((option) => (
+        {visibleOptions.map((option) => (
           <button
             key={option.value}
             type="button"

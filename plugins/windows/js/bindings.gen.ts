@@ -81,6 +81,9 @@ async resetAppIcon() : Promise<Result<null, string>> {
 },
 async getAvailableIcons() : Promise<AppIcon[]> {
     return await TAURI_INVOKE("plugin:windows|get_available_icons");
+},
+async getBuildChannel() : Promise<string> {
+    return await TAURI_INVOKE("plugin:windows|get_build_channel");
 }
 }
 

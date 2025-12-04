@@ -59,6 +59,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::set_app_icon,
             commands::reset_app_icon,
             commands::get_available_icons,
+            commands::get_build_channel,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

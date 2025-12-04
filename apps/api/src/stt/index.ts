@@ -22,7 +22,19 @@ export function createProxyFromRequest(
   const rawAuth = reqHeaders.get(UPSTREAM_AUTH_HEADER);
 
   if (upstreamOverride) {
-    const url = new URL(upstreamOverride);
+    let url: URL;
+    try {
+      url = new URL(upstreamOverride);
+    } catch {
+      throw new Error(`Invalid upstream URL: ${upstreamOverride}`);
+    }
+
+    if (url.protocol !== "wss:" && url.protocol !== "ws:") {
+      throw new Error(
+        `Invalid upstream URL protocol: ${url.protocol} (expected ws: or wss:)`,
+      );
+    }
+
     const headers =
       rawAuth && rawAuth.length > 0 ? { Authorization: rawAuth } : undefined;
 

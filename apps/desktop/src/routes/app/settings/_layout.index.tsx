@@ -4,7 +4,6 @@ import { SettingsAccount } from "../../../components/settings/account";
 import { LLM } from "../../../components/settings/ai/llm";
 import { STT } from "../../../components/settings/ai/stt";
 import { SettingsCalendar } from "../../../components/settings/calendar";
-import { SettingsExtensions } from "../../../components/settings/extensions";
 import { SettingsGeneral } from "../../../components/settings/general";
 import { SettingsIntegrations } from "../../../components/settings/integrations";
 import { SettingsNotifications } from "../../../components/settings/notification";
@@ -24,7 +23,6 @@ function Component() {
       {search.tab === "intelligence" && <LLM />}
       {search.tab === "notifications" && <SettingsNotifications />}
       {search.tab === "integrations" && <SettingsIntegrations />}
-      {search.tab === "extensions" && <SettingsExtensions />}
       {search.tab === "account" && <SettingsAccount />}
     </>
   );

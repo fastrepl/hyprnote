@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { AlertTriangleIcon, PuzzleIcon, XIcon } from "lucide-react";
+import { AlertTriangleIcon, BlocksIcon, PuzzleIcon, XIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import {
   Component,
@@ -21,15 +21,87 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@hypr/ui/components/ui/context-menu";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@hypr/ui/components/ui/resizable";
 import { cn } from "@hypr/utils";
 
 import { createIframeSynchronizer } from "../../../../store/tinybase/iframe-sync";
 import { type Store, STORE_ID } from "../../../../store/tinybase/main";
-import type { Tab } from "../../../../store/zustand/tabs";
+import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
+import { type TabItem, TabItemBase } from "../shared";
+import { ExtensionDetailsColumn } from "./details";
+import { ExtensionsListColumn } from "./list";
 import { getPanelInfoByExtensionId } from "./registry";
 
 type ExtensionTab = Extract<Tab, { type: "extension" }>;
+type ExtensionsTab = Extract<Tab, { type: "extensions" }>;
+
+export const TabItemExtensions: TabItem<ExtensionsTab> = ({
+  tab,
+  tabIndex,
+  handleCloseThis,
+  handleSelectThis,
+  handleCloseOthers,
+  handleCloseAll,
+}) => {
+  return (
+    <TabItemBase
+      icon={<BlocksIcon className="w-4 h-4" />}
+      title={"Extensions"}
+      selected={tab.active}
+      tabIndex={tabIndex}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
+    />
+  );
+};
+
+export function TabContentExtensions({ tab }: { tab: ExtensionsTab }) {
+  return (
+    <StandardTabWrapper>
+      <ExtensionsView tab={tab} />
+    </StandardTabWrapper>
+  );
+}
+
+function ExtensionsView({ tab }: { tab: ExtensionsTab }) {
+  const updateExtensionsTabState = useTabs(
+    (state) => state.updateExtensionsTabState,
+  );
+
+  const { selectedExtension } = tab.state;
+
+  const setSelectedExtension = useCallback(
+    (value: string | null) => {
+      updateExtensionsTabState(tab, {
+        ...tab.state,
+        selectedExtension: value,
+      });
+    },
+    [updateExtensionsTabState, tab],
+  );
+
+  return (
+    <ResizablePanelGroup direction="horizontal" className="h-full">
+      <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
+        <ExtensionsListColumn
+          selectedExtension={selectedExtension}
+          setSelectedExtension={setSelectedExtension}
+        />
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={70} minSize={50}>
+        <ExtensionDetailsColumn selectedExtensionId={selectedExtension} />
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+}
 
 interface ExtensionErrorBoundaryProps {
   children: ReactNode;

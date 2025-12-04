@@ -79,6 +79,16 @@ export const tabSchema = z.discriminatedUnion("type", [
       }),
   }),
   baseTabSchema.extend({
+    type: z.literal("extensions"),
+    state: z
+      .object({
+        selectedExtension: z.string().nullable().default(null),
+      })
+      .default({
+        selectedExtension: null,
+      }),
+  }),
+  baseTabSchema.extend({
     type: z.literal("events" satisfies (typeof TABLES)[number]),
     id: z.string(),
   }),
@@ -137,6 +147,12 @@ export type TabInput =
         selectedChatShortcut?: string | null;
       };
     }
+  | {
+      type: "extensions";
+      state?: {
+        selectedExtension?: string | null;
+      };
+    }
   | { type: "events"; id: string }
   | { type: "humans"; id: string }
   | { type: "organizations"; id: string }
@@ -158,6 +174,7 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "templates":
     case "prompts":
     case "chat_shortcuts":
+    case "extensions":
     case "empty":
     case "extension":
       throw new Error("invalid_resource");
@@ -187,6 +204,8 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `prompts`;
     case "chat_shortcuts":
       return `chat_shortcuts`;
+    case "extensions":
+      return `extensions`;
     case "folders":
       return `folders-${tab.id ?? "all"}`;
     case "empty":

@@ -26,7 +26,12 @@ import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import { TabContentEvent, TabItemEvent } from "./events";
-import { TabContentExtension, TabItemExtension } from "./extensions";
+import {
+  TabContentExtension,
+  TabContentExtensions,
+  TabItemExtension,
+  TabItemExtensions,
+} from "./extensions";
 import { loadExtensionPanels } from "./extensions/registry";
 import { TabContentFolder, TabItemFolder } from "./folders";
 import { TabContentHuman, TabItemHuman } from "./humans";
@@ -332,6 +337,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "extensions") {
+    return (
+      <TabItemExtensions
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -366,6 +383,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "extension") {
     return <TabContentExtension tab={tab} />;
+  }
+  if (tab.type === "extensions") {
+    return <TabContentExtensions tab={tab} />;
   }
 
   return null;

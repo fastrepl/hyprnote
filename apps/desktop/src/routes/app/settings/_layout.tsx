@@ -3,7 +3,6 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   AudioLines,
   Bell,
-  Blocks,
   CalendarDays,
   type LucideIcon,
   MessageCircleQuestion,
@@ -27,7 +26,6 @@ const TAB_KEYS = [
   "transcription",
   "intelligence",
   "integrations",
-  "extensions",
   "feedback",
   "developers",
   "account",
@@ -75,11 +73,6 @@ const TAB_CONFIG: Record<
     icon: Puzzle,
     group: 1,
     disabled: true,
-  },
-  extensions: {
-    label: "Extensions",
-    icon: Blocks,
-    group: 1,
   },
   feedback: {
     label: "Feedback",

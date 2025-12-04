@@ -77,7 +77,10 @@ mod tests {
         assert_eq!(url.as_str(), "wss://api.openai.com/v1/realtime");
         assert_eq!(
             params,
-            vec![("model".to_string(), "gpt-4o-mini-realtime-preview".to_string())]
+            vec![(
+                "model".to_string(),
+                "gpt-4o-mini-realtime-preview".to_string()
+            )]
         );
     }
 

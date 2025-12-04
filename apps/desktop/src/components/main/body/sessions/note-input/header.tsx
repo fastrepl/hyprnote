@@ -1,7 +1,6 @@
 import { AlertCircleIcon, PlusIcon, RefreshCcwIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { md2json } from "@hypr/tiptap/shared";
 import {
   Popover,
@@ -27,6 +26,7 @@ import {
 } from "../../../../../hooks/useLLMConnection";
 import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
+import { useTabs } from "../../../../../store/zustand/tabs";
 import { type EditorView } from "../../../../../store/zustand/tabs/schema";
 import { useHasTranscript } from "../shared";
 import { EditingControls } from "./transcript/editing-controls";
@@ -202,6 +202,7 @@ function CreateOtherFormatButton({
   );
   const createEnhancedNote = useCreateEnhancedNote();
   const model = useLanguageModel();
+  const openNew = useTabs((state) => state.openNew);
 
   const store = main.UI.useStore(main.STORE_ID);
   const taskId = createTaskId(pendingNote?.id || "placeholder", "enhance");
@@ -273,20 +274,31 @@ function CreateOtherFormatButton({
       <PopoverContent className="w-64" align="start">
         <div className="flex flex-col gap-2">
           {Object.entries(templates).length > 0 ? (
-            Object.entries(templates).map(([templateId, template]) => (
+            <>
+              {Object.entries(templates).map(([templateId, template]) => (
+                <TemplateButton
+                  key={templateId}
+                  onClick={() => handleTemplateClick(templateId)}
+                >
+                  {template.title}
+                </TemplateButton>
+              ))}
               <TemplateButton
-                key={templateId}
-                onClick={() => handleTemplateClick(templateId)}
+                className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
+                onClick={() => {
+                  setOpen(false);
+                  openNew({ type: "templates" });
+                }}
               >
-                {template.title}
+                Manage templates
               </TemplateButton>
-            ))
+            </>
           ) : (
             <TemplateButton
               className="italic text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50"
               onClick={() => {
                 setOpen(false);
-                handleGoToTemplates();
+                openNew({ type: "templates" });
               }}
             >
               Create templates
@@ -490,21 +502,6 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
     error,
     onRegenerate,
   };
-}
-
-function handleGoToTemplates() {
-  windowsCommands
-    .windowShow({ type: "settings" })
-    .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-    .then(() =>
-      windowsCommands.windowEmitNavigate(
-        { type: "settings" },
-        {
-          path: "/app/settings",
-          search: { tab: "templates" },
-        },
-      ),
-    );
 }
 
 function TemplateButton({

@@ -2856,5 +2856,22 @@
       "template": null,
       "title": "Partnership Economics"
     }
+  ],
+  "chat_shortcuts": [
+    {
+      "content": "Summarize this meeting"
+    },
+    {
+      "content": "Extract action items"
+    },
+    {
+      "content": "Who were the participants?"
+    },
+    {
+      "content": "What are the key decisions made?"
+    },
+    {
+      "content": "Generate follow-up email"
+    }
   ]
 }

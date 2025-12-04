@@ -15,6 +15,9 @@
     "react-dom": "^19.2"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.18.6",
+    "@codemirror/lang-jinja": "^6.0.0",
+    "@codemirror/lint": "^6.8.5",
     "@codemirror/state": "^6.5.2",
     "@codemirror/view": "^6.38.8",
     "@floating-ui/dom": "^1.7.4",

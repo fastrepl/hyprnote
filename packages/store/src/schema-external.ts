@@ -5,6 +5,7 @@ import {
   calendarSchema as baseCalendarSchema,
   chatGroupSchema as baseChatGroupSchema,
   chatMessageSchema as baseChatMessageSchema,
+  chatShortcutSchema as baseChatShortcutSchema,
   eventSchema as baseEventSchema,
   folderSchema as baseFolderSchema,
   humanSchema as baseHumanSchema,
@@ -116,6 +117,10 @@ export const memorySchema = baseMemorySchema.omit({ id: true }).extend({
   created_at: z.string(),
 });
 
+export const chatShortcutSchema = baseChatShortcutSchema
+  .omit({ id: true })
+  .extend({ created_at: z.string() });
+
 export const enhancedNoteSchema = z.object({
   user_id: z.string(),
   created_at: z.string(),
@@ -124,6 +129,13 @@ export const enhancedNoteSchema = z.object({
   template_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
   position: z.number(),
   title: z.preprocess((val) => val ?? undefined, z.string().optional()),
+});
+
+export const promptSchema = z.object({
+  user_id: z.string(),
+  created_at: z.string(),
+  task_type: z.string(),
+  content: z.string(),
 });
 
 export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
@@ -165,7 +177,9 @@ export type TemplateSection = z.infer<typeof templateSectionSchema>;
 export type ChatGroup = z.infer<typeof chatGroupSchema>;
 export type ChatMessage = z.infer<typeof chatMessageSchema>;
 export type Memory = z.infer<typeof memorySchema>;
+export type ChatShortcut = z.infer<typeof chatShortcutSchema>;
 export type EnhancedNote = z.infer<typeof enhancedNoteSchema>;
+export type Prompt = z.infer<typeof promptSchema>;
 
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
@@ -180,6 +194,8 @@ export type EnhancedNoteStorage = ToStorageType<typeof enhancedNoteSchema>;
 export type HumanStorage = ToStorageType<typeof humanSchema>;
 export type OrganizationStorage = ToStorageType<typeof organizationSchema>;
 export type FolderStorage = ToStorageType<typeof folderSchema>;
+export type PromptStorage = ToStorageType<typeof promptSchema>;
+export type ChatShortcutStorage = ToStorageType<typeof chatShortcutSchema>;
 
 export const externalTableSchemaForTinybase = {
   folders: {
@@ -212,6 +228,7 @@ export const externalTableSchemaForTinybase = {
     start_ms: { type: "number" },
     end_ms: { type: "number" },
     channel: { type: "number" },
+    speaker: { type: "string" },
     metadata: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof wordSchemaOverride>,
   speaker_hints: {
@@ -310,4 +327,15 @@ export const externalTableSchemaForTinybase = {
     position: { type: "number" },
     title: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof enhancedNoteSchema>,
+  prompts: {
+    user_id: { type: "string" },
+    created_at: { type: "string" },
+    task_type: { type: "string" },
+    content: { type: "string" },
+  } as const satisfies InferTinyBaseSchema<typeof promptSchema>,
+  chat_shortcuts: {
+    user_id: { type: "string" },
+    created_at: { type: "string" },
+    content: { type: "string" },
+  } as const satisfies InferTinyBaseSchema<typeof chatShortcutSchema>,
 } as const satisfies TablesSchema;

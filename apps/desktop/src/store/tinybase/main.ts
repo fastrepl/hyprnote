@@ -410,6 +410,15 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             select("created_at");
           },
         )
+        .setQueryDefinition(
+          QUERIES.visibleChatShortcuts,
+          "chat_shortcuts",
+          ({ select }) => {
+            select("user_id");
+            select("content");
+            select("created_at");
+          },
+        )
         .setQueryDefinition(QUERIES.visibleFolders, "folders", ({ select }) => {
           select("name");
           select("parent_folder_id");
@@ -605,6 +614,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         "enhanced_notes",
         "session_id",
         "position",
+      )
+      .setIndexDefinition(
+        INDEXES.enhancedNotesByTemplate,
+        "enhanced_notes",
+        "template_id",
+        "created_at",
       ),
   );
 
@@ -650,6 +665,7 @@ export const QUERIES = {
   visibleOrganizations: "visibleOrganizations",
   visibleHumans: "visibleHumans",
   visibleTemplates: "visibleTemplates",
+  visibleChatShortcuts: "visibleChatShortcuts",
   visibleFolders: "visibleFolders",
   visibleVocabs: "visibleVocabs",
   llmProviders: "llmProviders",
@@ -683,6 +699,7 @@ export const INDEXES = {
   chatMessagesByGroup: "chatMessagesByGroup",
   sessionsByHuman: "sessionsByHuman",
   enhancedNotesBySession: "enhancedNotesBySession",
+  enhancedNotesByTemplate: "enhancedNotesByTemplate",
 };
 
 export const RELATIONSHIPS = {

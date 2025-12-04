@@ -1,31 +1,24 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
-  ArrowLeft,
   AudioLines,
   Bell,
   Blocks,
-  BookText,
   CalendarDays,
   type LucideIcon,
   MessageCircleQuestion,
-  Plus,
   Puzzle,
   Settings2,
   Sparkles,
-  Trash2,
   UserIcon,
 } from "lucide-react";
-import { useCallback } from "react";
 import { z } from "zod";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { useTemplateNavigation } from "../../../components/settings/template/utils";
 import { TrafficLights } from "../../../components/window/traffic-lights";
 import { useIsLinux } from "../../../hooks/usePlatform";
-import * as main from "../../../store/tinybase/main";
 
 const TAB_KEYS = [
   "general",
@@ -33,7 +26,6 @@ const TAB_KEYS = [
   "notifications",
   "transcription",
   "intelligence",
-  "templates",
   "integrations",
   "extensions",
   "feedback",
@@ -78,11 +70,6 @@ const TAB_CONFIG: Record<
     icon: Sparkles,
     group: 1,
   },
-  templates: {
-    label: "Templates",
-    icon: BookText,
-    group: 1,
-  },
   integrations: {
     label: "Integrations",
     icon: Puzzle,
@@ -117,7 +104,6 @@ const DEFAULT_TAB = (getEnabledTabs()[0] ?? TAB_KEYS[0]) as TabKey;
 
 const validateSearch = z.object({
   tab: z.enum(TAB_KEYS).default(DEFAULT_TAB),
-  templateId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/app/settings/_layout")({
@@ -222,23 +208,11 @@ function Group({
 const info = (tab: TabKey) => TAB_CONFIG[tab];
 
 function Header() {
-  const search = Route.useSearch();
-  const { goToList } = useTemplateNavigation();
-
-  return (
-    <>
-      {search.tab === "templates" && search.templateId ? (
-        <InnerHeader templateId={search.templateId} onBack={goToList} />
-      ) : (
-        <TopLevelHeader />
-      )}
-    </>
-  );
+  return <TopLevelHeader />;
 }
 
 function TopLevelHeader() {
   const search = Route.useSearch();
-  const { createAndEdit } = useTemplateNavigation();
 
   return (
     <header
@@ -251,84 +225,6 @@ function TopLevelHeader() {
       >
         {info(search.tab).label}
       </h1>
-      {search.tab === "templates" && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-2 h-7 w-7"
-          onClick={createAndEdit}
-        >
-          <Plus size={16} />
-        </Button>
-      )}
     </header>
   );
-}
-
-function InnerHeader({
-  templateId,
-  onBack,
-}: {
-  templateId: string;
-  onBack: () => void;
-}) {
-  const value = main.UI.useCell(
-    "templates",
-    templateId,
-    "title",
-    main.STORE_ID,
-  );
-  const handleDelete = useDeleteTemplate(templateId);
-
-  return (
-    <header
-      data-tauri-drag-region
-      className="h-9 w-full bg-neutral-50 rounded-xl flex items-center justify-center px-2 relative"
-    >
-      <div className="absolute left-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          className="h-7 w-7"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="flex items-center justify-center gap-2 max-w-md">
-        <h1 className="text-sm font-semibold cursor-pointer hover:text-neutral-600 transition-colors truncate">
-          {value || "Untitled"}
-        </h1>
-      </div>
-
-      <div className="absolute right-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={handleDelete}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </div>
-    </header>
-  );
-}
-
-function useDeleteTemplate(templateId: string) {
-  const handleDeleteRow = main.UI.useDelRowCallback(
-    "templates",
-    templateId,
-    main.STORE_ID,
-  );
-
-  const navigate = Route.useNavigate();
-
-  const handleDelete = useCallback(() => {
-    handleDeleteRow();
-    navigate({ search: { tab: "templates" } });
-  }, [handleDeleteRow, navigate]);
-
-  return handleDelete;
 }

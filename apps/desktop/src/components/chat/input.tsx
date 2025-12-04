@@ -21,7 +21,14 @@ export function ChatMessageInput({
   disabled?: boolean | { disabled: boolean; message?: string };
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const store = main.UI.useStore(main.STORE_ID);
+  const chatShortcuts = main.UI.useResultTable(
+    main.QUERIES.visibleChatShortcuts,
+    main.STORE_ID,
+  );
+  const sessions = main.UI.useResultTable(
+    main.QUERIES.sessionsWithMaybeEvent,
+    main.STORE_ID,
+  );
 
   const disabled =
     typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
@@ -64,20 +71,30 @@ export function ChatMessageInput({
   const slashCommandConfig: SlashCommandConfig = useMemo(
     () => ({
       handleSearch: async (query: string) => {
-        if (!store) {
-          return [];
-        }
-
-        const results: { id: string; type: string; label: string }[] = [];
+        const results: {
+          id: string;
+          type: string;
+          label: string;
+          content?: string;
+        }[] = [];
         const lowerQuery = query.toLowerCase();
 
-        store.forEachRow("sessions", (rowId, forEachCell) => {
-          let title = "";
-          forEachCell((cellId, cell) => {
-            if (cellId === "title" && typeof cell === "string") {
-              title = cell;
-            }
-          });
+        Object.entries(chatShortcuts).forEach(([rowId, row]) => {
+          const content = row.content as string | undefined;
+          if (content && content.toLowerCase().includes(lowerQuery)) {
+            const label =
+              content.length > 40 ? content.slice(0, 40) + "..." : content;
+            results.push({
+              id: rowId,
+              type: "chat_shortcut",
+              label,
+              content,
+            });
+          }
+        });
+
+        Object.entries(sessions).forEach(([rowId, row]) => {
+          const title = row.title as string | undefined;
           if (title && title.toLowerCase().includes(lowerQuery)) {
             results.push({ id: rowId, type: "session", label: title });
           }
@@ -86,7 +103,7 @@ export function ChatMessageInput({
         return results.slice(0, 5);
       },
     }),
-    [store],
+    [chatShortcuts, sessions],
   );
 
   return (

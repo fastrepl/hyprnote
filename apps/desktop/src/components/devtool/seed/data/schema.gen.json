@@ -384,6 +384,21 @@
         ],
         "additionalProperties": false
       }
+    },
+    "chat_shortcuts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [
@@ -396,7 +411,8 @@
     "events",
     "sessions",
     "chat_groups",
-    "enhanced_notes"
+    "enhanced_notes",
+    "chat_shortcuts"
   ],
   "additionalProperties": false
 }

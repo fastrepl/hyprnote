@@ -302,6 +302,27 @@ export const memories = pgTable(
   (table) => createPolicies(TABLE_MEMORIES, table.user_id),
 ).enableRLS();
 
+export const TABLE_CHAT_SHORTCUTS = "chat_shortcuts";
+export const chatShortcuts = pgTable(
+  TABLE_CHAT_SHORTCUTS,
+  {
+    ...SHARED,
+    content: text("content").notNull(),
+  },
+  (table) => createPolicies(TABLE_CHAT_SHORTCUTS, table.user_id),
+).enableRLS();
+
+export const TABLE_PROMPTS = "prompts";
+export const prompts = pgTable(
+  TABLE_PROMPTS,
+  {
+    ...SHARED,
+    task_type: text("task_type").notNull(),
+    content: text("content").notNull(),
+  },
+  (table) => createPolicies(TABLE_PROMPTS, table.user_id),
+).enableRLS();
+
 export const humanSchema = createSelectSchema(humans);
 export const organizationSchema = createSelectSchema(organizations);
 export const folderSchema = createSelectSchema(folders);
@@ -320,6 +341,8 @@ export const templateSchema = createSelectSchema(templates);
 export const chatGroupSchema = createSelectSchema(chatGroups);
 export const chatMessageSchema = createSelectSchema(chatMessages);
 export const memorySchema = createSelectSchema(memories);
+export const chatShortcutSchema = createSelectSchema(chatShortcuts);
+export const promptSchema = createSelectSchema(prompts);
 
 export const providerSpeakerIndexSchema = z.object({
   speaker_index: z.number(),

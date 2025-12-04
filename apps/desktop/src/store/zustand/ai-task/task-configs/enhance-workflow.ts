@@ -14,6 +14,8 @@ import {
 } from "@hypr/store";
 
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
+import type { Store } from "../../../tinybase/main";
+import { getCustomPrompt } from "../../../tinybase/prompts";
 import {
   addMarkdownSectionSeparators,
   trimBeforeMarker,
@@ -40,14 +42,16 @@ async function* executeWorkflow(params: {
   args: TaskArgsMapTransformed["enhance"];
   onProgress: (step: any) => void;
   signal: AbortSignal;
+  store: Store;
 }) {
-  const { model, args, onProgress, signal } = params;
+  const { model, args, onProgress, signal, store } = params;
 
   const sections = await generateTemplateIfNeeded({
     model,
     args,
     onProgress,
     signal,
+    store,
   });
   const argsWithTemplate = {
     ...args,
@@ -55,7 +59,7 @@ async function* executeWorkflow(params: {
   };
 
   const system = await getSystemPrompt(argsWithTemplate);
-  const prompt = await getUserPrompt(argsWithTemplate);
+  const prompt = await getUserPrompt(argsWithTemplate, store);
 
   yield* generateSummary({
     model,
@@ -80,16 +84,30 @@ async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
   return result.data;
 }
 
-async function getUserPrompt(args: TaskArgsMapTransformed["enhance"]) {
+async function getUserPrompt(
+  args: TaskArgsMapTransformed["enhance"],
+  store: Store,
+) {
   const { rawMd, sessionData, participants, template, segments } = args;
 
-  const result = await templateCommands.render("enhance.user", {
+  const ctx = {
     content: rawMd,
     session: sessionData,
     participants,
     template,
     segments,
-  });
+  };
+
+  const customPrompt = getCustomPrompt(store, "enhance");
+  if (customPrompt) {
+    const result = await templateCommands.renderCustom(customPrompt, ctx);
+    if (result.status === "error") {
+      throw new Error(result.error);
+    }
+    return result.data;
+  }
+
+  const result = await templateCommands.render("enhance.user", ctx);
 
   if (result.status === "error") {
     throw new Error(result.error);
@@ -103,14 +121,15 @@ async function generateTemplateIfNeeded(params: {
   args: TaskArgsMapTransformed["enhance"];
   onProgress: (step: any) => void;
   signal: AbortSignal;
+  store: Store;
 }): Promise<Array<TemplateSection> | undefined> {
-  const { model, args, onProgress, signal } = params;
+  const { model, args, onProgress, signal, store } = params;
 
   if (!args.template) {
     onProgress({ type: "analyzing" });
 
     const schema = z.object({ sections: z.array(templateSectionSchema) });
-    const userPrompt = await getUserPrompt(args);
+    const userPrompt = await getUserPrompt(args, store);
 
     try {
       const template = await generateObject({

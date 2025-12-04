@@ -19,6 +19,7 @@ export interface MentionItem {
   id: string;
   type: string;
   label: string;
+  content?: string;
 }
 
 // https://github.com/ueberdosis/tiptap/blob/main/demos/src/Nodes/Mention/React/MentionList.jsx
@@ -146,6 +147,29 @@ const suggestion = (
   return {
     char: config.trigger,
     pluginKey: new PluginKey(`mention-${config.trigger}`),
+    command: ({ editor, range, props }) => {
+      const item = props as MentionItem;
+      if (item.content) {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertContent(item.content)
+          .run();
+      } else {
+        editor
+          .chain()
+          .focus()
+          .insertContentAt(range, [
+            {
+              type: `mention-${config.trigger}`,
+              attrs: { id: item.id, type: item.type, label: item.label },
+            },
+            { type: "text", text: " " },
+          ])
+          .run();
+      }
+    },
     items: async ({ query }) => {
       if (!query || query.length < 1) {
         loading = false;

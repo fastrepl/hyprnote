@@ -1,13 +1,18 @@
+import { MessageSquareIcon, SettingsIcon, SparklesIcon } from "lucide-react";
 import { useCallback } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
+
+import { useTabs } from "../../../store/zustand/tabs";
 
 export function ChatBodyEmpty({
   isModelConfigured = true,
 }: {
   isModelConfigured?: boolean;
 }) {
+  const openNew = useTabs((state) => state.openNew);
+
   const handleGoToSettings = useCallback(() => {
     windowsCommands
       .windowShow({ type: "settings" })
@@ -22,6 +27,14 @@ export function ChatBodyEmpty({
         ),
       );
   }, []);
+
+  const handleOpenChatShortcuts = useCallback(() => {
+    openNew({ type: "chat_shortcuts" });
+  }, [openNew]);
+
+  const handleOpenPrompts = useCallback(() => {
+    openNew({ type: "prompts" });
+  }, [openNew]);
 
   const quickActions = [
     "Make a 1-paragraph summary",
@@ -90,6 +103,29 @@ export function ChatBodyEmpty({
                 {action}
               </button>
             ))}
+          </div>
+          <div className="flex gap-2 pt-2 border-t border-neutral-200 mt-1">
+            <button
+              onClick={handleOpenChatShortcuts}
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+            >
+              <MessageSquareIcon size={12} />
+              <span>Shortcuts</span>
+            </button>
+            <button
+              onClick={handleOpenPrompts}
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+            >
+              <SparklesIcon size={12} />
+              <span>Prompts</span>
+            </button>
+            <button
+              onClick={handleGoToSettings}
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+            >
+              <SettingsIcon size={12} />
+              <span>Settings</span>
+            </button>
           </div>
         </div>
       </div>

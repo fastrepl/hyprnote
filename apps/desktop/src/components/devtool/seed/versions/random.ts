@@ -8,6 +8,7 @@ import {
   buildCalendars,
   buildChatGroups,
   buildChatMessages,
+  buildChatShortcuts,
   buildEnhancedNotesForSessions,
   buildEventsByHuman,
   buildFolders,
@@ -92,6 +93,8 @@ const RANDOM_DATA = (() => {
     },
   );
 
+  const chat_shortcuts = buildChatShortcuts(5);
+
   return {
     organizations,
     humans,
@@ -108,6 +111,7 @@ const RANDOM_DATA = (() => {
     chat_groups,
     chat_messages,
     enhanced_notes,
+    chat_shortcuts,
   } satisfies Tables<Schemas[0]>;
 })();
 

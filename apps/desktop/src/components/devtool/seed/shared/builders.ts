@@ -4,6 +4,7 @@ import type {
   Calendar,
   ChatGroup,
   ChatMessageStorage,
+  ChatShortcutStorage,
   EnhancedNoteStorage,
   Event,
   Folder,
@@ -21,6 +22,7 @@ import type {
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { createCalendar } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";
+import { createChatShortcut } from "./chat-shortcut";
 import { createEnhancedNote } from "./enhanced-note";
 import { createEvent } from "./event";
 import { createFolder } from "./folder";
@@ -413,4 +415,17 @@ export const buildEnhancedNotesForSessions = (
   });
 
   return enhanced_notes;
+};
+
+export const buildChatShortcuts = (
+  count: number,
+): Record<string, ChatShortcutStorage> => {
+  const chat_shortcuts: Record<string, ChatShortcutStorage> = {};
+
+  for (let i = 0; i < count; i++) {
+    const shortcut = createChatShortcut();
+    chat_shortcuts[shortcut.id] = shortcut.data;
+  }
+
+  return chat_shortcuts;
 };

@@ -8,7 +8,6 @@ import { SettingsExtensions } from "../../../components/settings/extensions";
 import { SettingsGeneral } from "../../../components/settings/general";
 import { SettingsIntegrations } from "../../../components/settings/integrations";
 import { SettingsNotifications } from "../../../components/settings/notification";
-import { SettingsTemplates } from "../../../components/settings/template";
 
 export const Route = createFileRoute("/app/settings/_layout/")({
   component: Component,
@@ -26,7 +25,6 @@ function Component() {
       {search.tab === "notifications" && <SettingsNotifications />}
       {search.tab === "integrations" && <SettingsIntegrations />}
       {search.tab === "extensions" && <SettingsExtensions />}
-      {search.tab === "templates" && <SettingsTemplates />}
       {search.tab === "account" && <SettingsAccount />}
     </>
   );

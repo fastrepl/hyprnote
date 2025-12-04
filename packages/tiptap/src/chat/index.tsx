@@ -17,7 +17,7 @@ export type { MentionConfig };
 export interface SlashCommandConfig {
   handleSearch: (
     query: string,
-  ) => Promise<{ id: string; type: string; label: string }[]>;
+  ) => Promise<{ id: string; type: string; label: string; content?: string }[]>;
 }
 
 interface ChatEditorProps {

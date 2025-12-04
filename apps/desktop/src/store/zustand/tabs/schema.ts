@@ -49,6 +49,36 @@ export const tabSchema = z.discriminatedUnion("type", [
       }),
   }),
   baseTabSchema.extend({
+    type: z.literal("templates"),
+    state: z
+      .object({
+        selectedTemplate: z.string().nullable().default(null),
+      })
+      .default({
+        selectedTemplate: null,
+      }),
+  }),
+  baseTabSchema.extend({
+    type: z.literal("prompts"),
+    state: z
+      .object({
+        selectedTask: z.string().nullable().default(null),
+      })
+      .default({
+        selectedTask: null,
+      }),
+  }),
+  baseTabSchema.extend({
+    type: z.literal("chat_shortcuts"),
+    state: z
+      .object({
+        selectedChatShortcut: z.string().nullable().default(null),
+      })
+      .default({
+        selectedChatShortcut: null,
+      }),
+  }),
+  baseTabSchema.extend({
     type: z.literal("events" satisfies (typeof TABLES)[number]),
     id: z.string(),
   }),
@@ -89,6 +119,24 @@ export type TabInput =
         selectedPerson?: string | null;
       };
     }
+  | {
+      type: "templates";
+      state?: {
+        selectedTemplate?: string | null;
+      };
+    }
+  | {
+      type: "prompts";
+      state?: {
+        selectedTask?: string | null;
+      };
+    }
+  | {
+      type: "chat_shortcuts";
+      state?: {
+        selectedChatShortcut?: string | null;
+      };
+    }
   | { type: "events"; id: string }
   | { type: "humans"; id: string }
   | { type: "organizations"; id: string }
@@ -107,6 +155,9 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "organizations":
       return tab.id;
     case "contacts":
+    case "templates":
+    case "prompts":
+    case "chat_shortcuts":
     case "empty":
     case "extension":
       throw new Error("invalid_resource");
@@ -130,6 +181,12 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `organizations-${tab.id}`;
     case "contacts":
       return `contacts`;
+    case "templates":
+      return `templates`;
+    case "prompts":
+      return `prompts`;
+    case "chat_shortcuts":
+      return `chat_shortcuts`;
     case "folders":
       return `folders-${tab.id ?? "all"}`;
     case "empty":

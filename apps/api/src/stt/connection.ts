@@ -349,6 +349,9 @@ export class WsProxyConnection {
   }
 
   initializeUpstream(clientWs: ServerWebSocket<unknown>) {
+    // Set clientSocket BEFORE ensureUpstreamSocket to prevent race condition:
+    // If upstream becomes ready during ensureUpstreamSocket(), the open handler
+    // will call flushDownstreamMessages() which needs clientSocket to be set.
     this.clientSocket = clientWs;
     this.ensureUpstreamSocket();
     if (this.upstreamReady) {

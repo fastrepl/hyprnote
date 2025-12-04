@@ -287,40 +287,16 @@ impl AssemblyAIAdapter {
 #[cfg(test)]
 mod tests {
     use super::AssemblyAIAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
-    use crate::ListenClient;
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .adapter::<AssemblyAIAdapter>()
-            .api_base("wss://streaming.assemblyai.com")
-            .api_key(std::env::var("ASSEMBLYAI_API_KEY").expect("ASSEMBLYAI_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                model: Some("universal-streaming-english".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single();
-
-        run_single_test(client, "assemblyai").await;
-    }
-
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_dual() {
-        let client = ListenClient::builder()
-            .adapter::<AssemblyAIAdapter>()
-            .api_base("wss://streaming.assemblyai.com")
-            .api_key(std::env::var("ASSEMBLYAI_API_KEY").expect("ASSEMBLYAI_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                model: Some("universal-streaming-english".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_dual();
-
-        run_dual_test(client, "assemblyai").await;
+    crate::adapter_integration_tests! {
+        adapter: AssemblyAIAdapter,
+        provider: "assemblyai",
+        api_base: "wss://streaming.assemblyai.com",
+        api_key_env: "ASSEMBLYAI_API_KEY",
+        params: owhisper_interface::ListenParams {
+            model: Some("universal-streaming-english".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
     }
 }

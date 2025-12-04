@@ -277,40 +277,16 @@ impl SonioxAdapter {
 #[cfg(test)]
 mod tests {
     use super::SonioxAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
-    use crate::ListenClient;
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .adapter::<SonioxAdapter>()
-            .api_base("https://api.soniox.com")
-            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                model: Some("stt-v3".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single();
-
-        run_single_test(client, "soniox").await;
-    }
-
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_dual() {
-        let client = ListenClient::builder()
-            .adapter::<SonioxAdapter>()
-            .api_base("https://api.soniox.com")
-            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                model: Some("stt-v3".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_dual();
-
-        run_dual_test(client, "soniox").await;
+    crate::adapter_integration_tests! {
+        adapter: SonioxAdapter,
+        provider: "soniox",
+        api_base: "https://api.soniox.com",
+        api_key_env: "SONIOX_API_KEY",
+        params: owhisper_interface::ListenParams {
+            model: Some("stt-v3".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
     }
 }

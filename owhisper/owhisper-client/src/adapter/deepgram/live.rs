@@ -55,38 +55,17 @@ impl RealtimeSttAdapter for DeepgramAdapter {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::{run_dual_test, run_single_test};
-    use crate::ListenClient;
+    use super::DeepgramAdapter;
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .api_base("https://api.deepgram.com/v1")
-            .api_key(std::env::var("DEEPGRAM_API_KEY").expect("DEEPGRAM_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                model: Some("nova-3".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single();
-
-        run_single_test(client, "deepgram").await;
-    }
-
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_dual() {
-        let client = ListenClient::builder()
-            .api_base("https://api.deepgram.com/v1")
-            .api_key(std::env::var("DEEPGRAM_API_KEY").expect("DEEPGRAM_API_KEY not set"))
-            .params(owhisper_interface::ListenParams {
-                model: Some("nova-3".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_dual();
-
-        run_dual_test(client, "deepgram").await;
+    crate::adapter_integration_tests! {
+        adapter: DeepgramAdapter,
+        provider: "deepgram",
+        api_base: "https://api.deepgram.com/v1",
+        api_key_env: "DEEPGRAM_API_KEY",
+        params: owhisper_interface::ListenParams {
+            model: Some("nova-3".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
     }
 }

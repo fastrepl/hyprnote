@@ -54,40 +54,16 @@ impl RealtimeSttAdapter for ArgmaxAdapter {
 #[cfg(test)]
 mod tests {
     use super::ArgmaxAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
-    use crate::ListenClient;
 
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_single() {
-        let client = ListenClient::builder()
-            .adapter::<ArgmaxAdapter>()
-            .api_base("ws://localhost:50060/v1")
-            .api_key("")
-            .params(owhisper_interface::ListenParams {
-                model: Some("large-v3-v20240930_626MB".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single();
-
-        run_single_test(client, "argmax").await;
-    }
-
-    #[tokio::test]
-    #[ignore]
-    async fn test_build_dual() {
-        let client = ListenClient::builder()
-            .adapter::<ArgmaxAdapter>()
-            .api_base("ws://localhost:50060/v1")
-            .api_key("")
-            .params(owhisper_interface::ListenParams {
-                model: Some("large-v3-v20240930_626MB".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_dual();
-
-        run_dual_test(client, "argmax").await;
+    crate::adapter_integration_tests! {
+        adapter: ArgmaxAdapter,
+        provider: "argmax",
+        api_base: "ws://localhost:50060/v1",
+        api_key_env: "",
+        params: owhisper_interface::ListenParams {
+            model: Some("large-v3-v20240930_626MB".to_string()),
+            languages: vec![hypr_language::ISO639::En.into()],
+            ..Default::default()
+        }
     }
 }

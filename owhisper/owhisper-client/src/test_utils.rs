@@ -8,6 +8,55 @@ use owhisper_interface::MixedMessage;
 use crate::live::{FinalizeHandle, ListenClientDualInput, ListenClientInput};
 use crate::{ListenClient, ListenClientDual, RealtimeSttAdapter};
 
+#[macro_export]
+macro_rules! adapter_integration_tests {
+    (
+        adapter: $adapter:ty,
+        provider: $provider:expr,
+        api_base: $api_base:expr,
+        api_key_env: $api_key_env:expr,
+        params: $params:expr
+    ) => {
+        #[tokio::test]
+        #[ignore]
+        async fn test_build_single() {
+            let api_key = if $api_key_env.is_empty() {
+                String::new()
+            } else {
+                std::env::var($api_key_env).expect(concat!($api_key_env, " not set"))
+            };
+
+            let client = $crate::ListenClient::builder()
+                .adapter::<$adapter>()
+                .api_base($api_base)
+                .api_key(api_key)
+                .params($params)
+                .build_single();
+
+            $crate::test_utils::run_single_test(client, $provider).await;
+        }
+
+        #[tokio::test]
+        #[ignore]
+        async fn test_build_dual() {
+            let api_key = if $api_key_env.is_empty() {
+                String::new()
+            } else {
+                std::env::var($api_key_env).expect(concat!($api_key_env, " not set"))
+            };
+
+            let client = $crate::ListenClient::builder()
+                .adapter::<$adapter>()
+                .api_base($api_base)
+                .api_key(api_key)
+                .params($params)
+                .build_dual();
+
+            $crate::test_utils::run_dual_test(client, $provider).await;
+        }
+    };
+}
+
 fn timeout_secs() -> u64 {
     std::env::var("TEST_TIMEOUT_SECS")
         .ok()

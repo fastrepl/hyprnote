@@ -1,6 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { allOssFriends } from "content-collections";
+import { useMemo, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -40,15 +41,27 @@ export const Route = createFileRoute("/_view/oss-friends")({
 });
 
 function Component() {
+  const [search, setSearch] = useState("");
+
+  const filteredFriends = useMemo(() => {
+    if (!search.trim()) return allOssFriends;
+    const query = search.toLowerCase();
+    return allOssFriends.filter(
+      (friend) =>
+        friend.name.toLowerCase().includes(query) ||
+        friend.description.toLowerCase().includes(query),
+    );
+  }, [search]);
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        <HeroSection />
+        <HeroSection search={search} onSearchChange={setSearch} />
         <SlashSeparator />
-        <FriendsSection />
+        <FriendsSection friends={filteredFriends} />
         <SlashSeparator />
         <JoinSection />
       </div>
@@ -56,7 +69,13 @@ function Component() {
   );
 }
 
-function HeroSection() {
+function HeroSection({
+  search,
+  onSearchChange,
+}: {
+  search: string;
+  onSearchChange: (value: string) => void;
+}) {
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <div className="px-6 py-12 lg:py-20">
@@ -84,6 +103,8 @@ function HeroSection() {
               <input
                 type="text"
                 placeholder="Search projects..."
+                value={search}
+                onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full px-12 py-3 rounded-full bg-transparent outline-none text-neutral-800 placeholder:text-neutral-400"
               />
             </div>
@@ -94,11 +115,11 @@ function HeroSection() {
   );
 }
 
-function FriendsSection() {
+function FriendsSection({ friends }: { friends: typeof allOssFriends }) {
   return (
     <section>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-200">
-        {allOssFriends.map((friend) => (
+        {friends.map((friend) => (
           <a
             key={friend.slug}
             href={friend.href}

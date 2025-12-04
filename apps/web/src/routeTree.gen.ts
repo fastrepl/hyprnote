@@ -26,7 +26,6 @@ import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
-import { Route as ViewPressKitRouteImport } from './routes/_view/press-kit'
 import { Route as ViewOssFriendsRouteImport } from './routes/_view/oss-friends'
 import { Route as ViewOpensourceRouteImport } from './routes/_view/opensource'
 import { Route as ViewFreeRouteImport } from './routes/_view/free'
@@ -40,6 +39,7 @@ import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
 import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
 import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
 import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
+import { Route as ViewPressKitIndexRouteImport } from './routes/_view/press-kit/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
 import { Route as ViewGalleryIndexRouteImport } from './routes/_view/gallery/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
@@ -74,7 +74,7 @@ import { Route as ViewProductBotRouteImport } from './routes/_view/product/bot'
 import { Route as ViewProductApiRouteImport } from './routes/_view/product/api'
 import { Route as ViewProductAiNotetakingRouteImport } from './routes/_view/product/ai-notetaking'
 import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/product/ai-assistant'
-import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit.app'
+import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit/app'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
 import { Route as ViewDownloadLinuxRouteImport } from './routes/_view/download/linux'
@@ -89,6 +89,7 @@ import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integ
 import { Route as ViewAppFileTranscriptionRouteImport } from './routes/_view/app/file-transcription'
 import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
 import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
+import { Route as ViewIntegrationsCategorySlugRouteImport } from './routes/_view/integrations/$category.$slug'
 import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
 
 const YoutubeRoute = YoutubeRouteImport.update({
@@ -175,11 +176,6 @@ const ViewPricingRoute = ViewPricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewPressKitRoute = ViewPressKitRouteImport.update({
-  id: '/press-kit',
-  path: '/press-kit',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewOssFriendsRoute = ViewOssFriendsRouteImport.update({
   id: '/oss-friends',
   path: '/oss-friends',
@@ -244,6 +240,11 @@ const ViewShortcutsIndexRoute = ViewShortcutsIndexRouteImport.update({
 const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
   id: '/roadmap/',
   path: '/roadmap/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewPressKitIndexRoute = ViewPressKitIndexRouteImport.update({
+  id: '/press-kit/',
+  path: '/press-kit/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
@@ -421,9 +422,9 @@ const ViewProductAiAssistantRoute = ViewProductAiAssistantRouteImport.update({
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewPressKitAppRoute = ViewPressKitAppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => ViewPressKitRoute,
+  id: '/press-kit/app',
+  path: '/press-kit/app',
+  getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   id: '/legal/$slug',
@@ -498,6 +499,12 @@ const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => ViewAppRouteRoute,
 } as any)
+const ViewIntegrationsCategorySlugRoute =
+  ViewIntegrationsCategorySlugRouteImport.update({
+    id: '/integrations/$category/$slug',
+    path: '/integrations/$category/$slug',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
 const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
   id: '/gallery/$type/$slug',
   path: '/gallery/$type/$slug',
@@ -524,7 +531,6 @@ export interface FileRoutesByFullPath {
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
   '/oss-friends': typeof ViewOssFriendsRoute
-  '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
@@ -581,10 +587,12 @@ export interface FileRoutesByFullPath {
   '/download': typeof ViewDownloadIndexRoute
   '/gallery': typeof ViewGalleryIndexRoute
   '/legal': typeof ViewLegalIndexRoute
+  '/press-kit': typeof ViewPressKitIndexRoute
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
+  '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -603,7 +611,6 @@ export interface FileRoutesByTo {
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
   '/oss-friends': typeof ViewOssFriendsRoute
-  '/press-kit': typeof ViewPressKitRouteWithChildren
   '/pricing': typeof ViewPricingRoute
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
@@ -660,10 +667,12 @@ export interface FileRoutesByTo {
   '/download': typeof ViewDownloadIndexRoute
   '/gallery': typeof ViewGalleryIndexRoute
   '/legal': typeof ViewLegalIndexRoute
+  '/press-kit': typeof ViewPressKitIndexRoute
   '/roadmap': typeof ViewRoadmapIndexRoute
   '/shortcuts': typeof ViewShortcutsIndexRoute
   '/templates': typeof ViewTemplatesIndexRoute
   '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
+  '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -687,7 +696,6 @@ export interface FileRoutesById {
   '/_view/free': typeof ViewFreeRoute
   '/_view/opensource': typeof ViewOpensourceRoute
   '/_view/oss-friends': typeof ViewOssFriendsRoute
-  '/_view/press-kit': typeof ViewPressKitRouteWithChildren
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/privacy': typeof ViewPrivacyRoute
   '/_view/security': typeof ViewSecurityRoute
@@ -744,10 +752,12 @@ export interface FileRoutesById {
   '/_view/download/': typeof ViewDownloadIndexRoute
   '/_view/gallery/': typeof ViewGalleryIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
+  '/_view/press-kit/': typeof ViewPressKitIndexRoute
   '/_view/roadmap/': typeof ViewRoadmapIndexRoute
   '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
   '/_view/templates/': typeof ViewTemplatesIndexRoute
   '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
+  '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -771,7 +781,6 @@ export interface FileRouteTypes {
     | '/free'
     | '/opensource'
     | '/oss-friends'
-    | '/press-kit'
     | '/pricing'
     | '/privacy'
     | '/security'
@@ -828,10 +837,12 @@ export interface FileRouteTypes {
     | '/download'
     | '/gallery'
     | '/legal'
+    | '/press-kit'
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
     | '/gallery/$type/$slug'
+    | '/integrations/$category/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -850,7 +861,6 @@ export interface FileRouteTypes {
     | '/free'
     | '/opensource'
     | '/oss-friends'
-    | '/press-kit'
     | '/pricing'
     | '/privacy'
     | '/security'
@@ -907,10 +917,12 @@ export interface FileRouteTypes {
     | '/download'
     | '/gallery'
     | '/legal'
+    | '/press-kit'
     | '/roadmap'
     | '/shortcuts'
     | '/templates'
     | '/gallery/$type/$slug'
+    | '/integrations/$category/$slug'
   id:
     | '__root__'
     | '/_view'
@@ -933,7 +945,6 @@ export interface FileRouteTypes {
     | '/_view/free'
     | '/_view/opensource'
     | '/_view/oss-friends'
-    | '/_view/press-kit'
     | '/_view/pricing'
     | '/_view/privacy'
     | '/_view/security'
@@ -990,10 +1001,12 @@ export interface FileRouteTypes {
     | '/_view/download/'
     | '/_view/gallery/'
     | '/_view/legal/'
+    | '/_view/press-kit/'
     | '/_view/roadmap/'
     | '/_view/shortcuts/'
     | '/_view/templates/'
     | '/_view/gallery/$type/$slug'
+    | '/_view/integrations/$category/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1135,13 +1148,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewPricingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/press-kit': {
-      id: '/_view/press-kit'
-      path: '/press-kit'
-      fullPath: '/press-kit'
-      preLoaderRoute: typeof ViewPressKitRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/oss-friends': {
       id: '/_view/oss-friends'
       path: '/oss-friends'
@@ -1231,6 +1237,13 @@ declare module '@tanstack/react-router' {
       path: '/roadmap'
       fullPath: '/roadmap'
       preLoaderRoute: typeof ViewRoadmapIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/press-kit/': {
+      id: '/_view/press-kit/'
+      path: '/press-kit'
+      fullPath: '/press-kit'
+      preLoaderRoute: typeof ViewPressKitIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/legal/': {
@@ -1473,10 +1486,10 @@ declare module '@tanstack/react-router' {
     }
     '/_view/press-kit/app': {
       id: '/_view/press-kit/app'
-      path: '/app'
+      path: '/press-kit/app'
       fullPath: '/press-kit/app'
       preLoaderRoute: typeof ViewPressKitAppRouteImport
-      parentRoute: typeof ViewPressKitRoute
+      parentRoute: typeof ViewRouteRoute
     }
     '/_view/legal/$slug': {
       id: '/_view/legal/$slug'
@@ -1576,6 +1589,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewAppAccountRouteImport
       parentRoute: typeof ViewAppRouteRoute
     }
+    '/_view/integrations/$category/$slug': {
+      id: '/_view/integrations/$category/$slug'
+      path: '/integrations/$category/$slug'
+      fullPath: '/integrations/$category/$slug'
+      preLoaderRoute: typeof ViewIntegrationsCategorySlugRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/gallery/$type/$slug': {
       id: '/_view/gallery/$type/$slug'
       path: '/gallery/$type/$slug'
@@ -1636,18 +1656,6 @@ const ViewDocsRouteRouteWithChildren = ViewDocsRouteRoute._addFileChildren(
   ViewDocsRouteRouteChildren,
 )
 
-interface ViewPressKitRouteChildren {
-  ViewPressKitAppRoute: typeof ViewPressKitAppRoute
-}
-
-const ViewPressKitRouteChildren: ViewPressKitRouteChildren = {
-  ViewPressKitAppRoute: ViewPressKitAppRoute,
-}
-
-const ViewPressKitRouteWithChildren = ViewPressKitRoute._addFileChildren(
-  ViewPressKitRouteChildren,
-)
-
 interface ViewRouteRouteChildren {
   ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
   ViewCompanyHandbookRouteRoute: typeof ViewCompanyHandbookRouteRouteWithChildren
@@ -1659,7 +1667,6 @@ interface ViewRouteRouteChildren {
   ViewFreeRoute: typeof ViewFreeRoute
   ViewOpensourceRoute: typeof ViewOpensourceRoute
   ViewOssFriendsRoute: typeof ViewOssFriendsRoute
-  ViewPressKitRoute: typeof ViewPressKitRouteWithChildren
   ViewPricingRoute: typeof ViewPricingRoute
   ViewPrivacyRoute: typeof ViewPrivacyRoute
   ViewSecurityRoute: typeof ViewSecurityRoute
@@ -1672,6 +1679,7 @@ interface ViewRouteRouteChildren {
   ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute
   ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
   ViewLegalSlugRoute: typeof ViewLegalSlugRoute
+  ViewPressKitAppRoute: typeof ViewPressKitAppRoute
   ViewProductAiAssistantRoute: typeof ViewProductAiAssistantRoute
   ViewProductAiNotetakingRoute: typeof ViewProductAiNotetakingRoute
   ViewProductApiRoute: typeof ViewProductApiRoute
@@ -1701,10 +1709,12 @@ interface ViewRouteRouteChildren {
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
   ViewGalleryIndexRoute: typeof ViewGalleryIndexRoute
   ViewLegalIndexRoute: typeof ViewLegalIndexRoute
+  ViewPressKitIndexRoute: typeof ViewPressKitIndexRoute
   ViewRoadmapIndexRoute: typeof ViewRoadmapIndexRoute
   ViewShortcutsIndexRoute: typeof ViewShortcutsIndexRoute
   ViewTemplatesIndexRoute: typeof ViewTemplatesIndexRoute
   ViewGalleryTypeSlugRoute: typeof ViewGalleryTypeSlugRoute
+  ViewIntegrationsCategorySlugRoute: typeof ViewIntegrationsCategorySlugRoute
 }
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
@@ -1718,7 +1728,6 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewFreeRoute: ViewFreeRoute,
   ViewOpensourceRoute: ViewOpensourceRoute,
   ViewOssFriendsRoute: ViewOssFriendsRoute,
-  ViewPressKitRoute: ViewPressKitRouteWithChildren,
   ViewPricingRoute: ViewPricingRoute,
   ViewPrivacyRoute: ViewPrivacyRoute,
   ViewSecurityRoute: ViewSecurityRoute,
@@ -1731,6 +1740,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewDownloadLinuxRoute: ViewDownloadLinuxRoute,
   ViewDownloadWindowsRoute: ViewDownloadWindowsRoute,
   ViewLegalSlugRoute: ViewLegalSlugRoute,
+  ViewPressKitAppRoute: ViewPressKitAppRoute,
   ViewProductAiAssistantRoute: ViewProductAiAssistantRoute,
   ViewProductAiNotetakingRoute: ViewProductAiNotetakingRoute,
   ViewProductApiRoute: ViewProductApiRoute,
@@ -1760,10 +1770,12 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,
   ViewGalleryIndexRoute: ViewGalleryIndexRoute,
   ViewLegalIndexRoute: ViewLegalIndexRoute,
+  ViewPressKitIndexRoute: ViewPressKitIndexRoute,
   ViewRoadmapIndexRoute: ViewRoadmapIndexRoute,
   ViewShortcutsIndexRoute: ViewShortcutsIndexRoute,
   ViewTemplatesIndexRoute: ViewTemplatesIndexRoute,
   ViewGalleryTypeSlugRoute: ViewGalleryTypeSlugRoute,
+  ViewIntegrationsCategorySlugRoute: ViewIntegrationsCategorySlugRoute,
 }
 
 const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(

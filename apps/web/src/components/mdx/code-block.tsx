@@ -1,46 +1,30 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
-import { type ComponentPropsWithoutRef, useState } from "react";
+import { type ComponentPropsWithoutRef, useRef, useState } from "react";
 
 export function CodeBlock({
   children,
   ...props
 }: ComponentPropsWithoutRef<"pre">) {
   const [copied, setCopied] = useState(false);
+  const preRef = useRef<HTMLPreElement>(null);
 
   const handleCopy = async () => {
-    const codeElement =
-      (props as any).ref?.current?.querySelector("code") ||
-      document.querySelector("pre code");
+    const textToCopy = preRef.current?.textContent ?? "";
 
-    let textToCopy = "";
+    if (!textToCopy) return;
 
-    if (
-      typeof children === "object" &&
-      children !== null &&
-      "props" in children
-    ) {
-      const codeChildren = (children as any).props?.children;
-      if (typeof codeChildren === "string") {
-        textToCopy = codeChildren;
-      }
-    }
-
-    if (!textToCopy && codeElement) {
-      textToCopy = codeElement.textContent || "";
-    }
-
-    if (textToCopy) {
-      await navigator.clipboard.writeText(textToCopy);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    await navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <div className="relative group">
-      <pre {...props}>{children}</pre>
+      <pre ref={preRef} {...props}>
+        {children}
+      </pre>
       <button
         type="button"
         onClick={handleCopy}

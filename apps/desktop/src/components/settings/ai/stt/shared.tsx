@@ -36,6 +36,10 @@ export const displayModelId = (model: string) => {
     return "Universal";
   }
 
+  if (model === "solaria-1") {
+    return "Solaria 1";
+  }
+
   if (model.startsWith("am-")) {
     const am = model as AmModel;
     if (am == "am-parakeet-v2") {
@@ -120,6 +124,17 @@ export const PROVIDERS = [
     icon: <AssemblyAI size={12} />,
     baseUrl: "https://api.assemblyai.com",
     models: ["universal"],
+    requiresPro: false,
+  },
+  {
+    disabled: false,
+    id: "gladia",
+    displayName: "Gladia",
+    icon: (
+      <img src="/assets/gladia.jpeg" alt="Gladia" className="size-5 rounded" />
+    ),
+    baseUrl: "https://api.gladia.io",
+    models: ["solaria-1"],
     requiresPro: false,
   },
   {

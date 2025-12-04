@@ -477,11 +477,13 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
           ? `Use [Soniox](https://soniox.com) for transcriptions.`
           : providerId === "assemblyai"
             ? `Use [AssemblyAI](https://www.assemblyai.com) for transcriptions.`
-            : providerId === "fireworks"
-              ? `Use [Fireworks AI](https://fireworks.ai) for transcriptions.`
-              : providerId === "custom"
-                ? `We only support **Deepgram compatible** endpoints for now.`
-                : "";
+            : providerId === "gladia"
+              ? `Use [Gladia](https://www.gladia.io) for transcriptions.`
+              : providerId === "fireworks"
+                ? `Use [Fireworks AI](https://fireworks.ai) for transcriptions.`
+                : providerId === "custom"
+                  ? `We only support **Deepgram compatible** endpoints for now.`
+                  : "";
 
   if (!content.trim()) {
     return null;

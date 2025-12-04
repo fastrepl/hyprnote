@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ResizableHandle,
@@ -13,8 +13,24 @@ import { cn } from "@hypr/utils";
 
 import { MockWindow } from "@/components/mock-window";
 
+type BrandSearch = {
+  type?: "visual" | "typography" | "color";
+  id?: string;
+};
+
 export const Route = createFileRoute("/_view/brand")({
   component: Component,
+  validateSearch: (search: Record<string, unknown>): BrandSearch => {
+    return {
+      type:
+        search.type === "visual" ||
+        search.type === "typography" ||
+        search.type === "color"
+          ? search.type
+          : undefined,
+      id: typeof search.id === "string" ? search.id : undefined,
+    };
+  },
   head: () => ({
     meta: [
       { title: "Brand - Hyprnote Press Kit" },
@@ -120,7 +136,58 @@ type SelectedItem =
   | { type: "color"; data: (typeof COLORS)[0] };
 
 function Component() {
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = Route.useSearch();
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+
+  useEffect(() => {
+    if (search.type === "visual" && search.id) {
+      const asset = VISUAL_ASSETS.find((a) => a.id === search.id);
+      if (asset) {
+        setSelectedItem({ type: "visual", data: asset });
+      } else {
+        setSelectedItem(null);
+      }
+    } else if (search.type === "typography" && search.id) {
+      const font = TYPOGRAPHY.find((f) => f.id === search.id);
+      if (font) {
+        setSelectedItem({ type: "typography", data: font });
+      } else {
+        setSelectedItem(null);
+      }
+    } else if (search.type === "color" && search.id) {
+      const color = COLORS.find((c) => c.id === search.id);
+      if (color) {
+        setSelectedItem({ type: "color", data: color });
+      } else {
+        setSelectedItem(null);
+      }
+    } else {
+      setSelectedItem(null);
+    }
+  }, [search.type, search.id]);
+
+  const handleSetSelectedItem = (item: SelectedItem | null) => {
+    setSelectedItem(item);
+    if (item === null) {
+      navigate({ search: {}, resetScroll: false });
+    } else if (item.type === "visual") {
+      navigate({
+        search: { type: "visual", id: item.data.id },
+        resetScroll: false,
+      });
+    } else if (item.type === "typography") {
+      navigate({
+        search: { type: "typography", id: item.data.id },
+        resetScroll: false,
+      });
+    } else if (item.type === "color") {
+      navigate({
+        search: { type: "color", id: item.data.id },
+        resetScroll: false,
+      });
+    }
+  };
 
   return (
     <div
@@ -131,7 +198,7 @@ function Component() {
         <HeroSection />
         <BrandContentSection
           selectedItem={selectedItem}
-          setSelectedItem={setSelectedItem}
+          setSelectedItem={handleSetSelectedItem}
         />
       </div>
     </div>

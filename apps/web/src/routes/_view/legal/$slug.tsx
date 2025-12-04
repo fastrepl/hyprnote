@@ -15,7 +15,11 @@ export const Route = createFileRoute("/_view/legal/$slug")({
     return { doc };
   },
   head: ({ loaderData }) => {
-    const { doc } = loaderData!;
+    if (!loaderData?.doc) {
+      return { meta: [] };
+    }
+
+    const { doc } = loaderData;
     const url = `https://hyprnote.com/legal/${doc.slug}`;
 
     return {

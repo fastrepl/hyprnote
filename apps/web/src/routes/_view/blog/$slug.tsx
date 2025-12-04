@@ -45,7 +45,11 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     return { article, relatedArticles };
   },
   head: ({ loaderData }) => {
-    const { article } = loaderData!;
+    if (!loaderData?.article) {
+      return { meta: [] };
+    }
+
+    const { article } = loaderData;
     const url = `https://hyprnote.com/blog/${article.slug}`;
 
     const ogImage =

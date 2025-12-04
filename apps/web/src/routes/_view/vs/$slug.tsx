@@ -25,7 +25,11 @@ export const Route = createFileRoute("/_view/vs/$slug")({
     return { doc };
   },
   head: ({ loaderData }) => {
-    const { doc } = loaderData!;
+    if (!loaderData?.doc) {
+      return { meta: [] };
+    }
+
+    const { doc } = loaderData;
     const metaTitle = `Hyprnote vs ${doc.name} - Privacy-First AI Notetaking`;
 
     return {

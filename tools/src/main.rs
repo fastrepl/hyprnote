@@ -61,9 +61,11 @@ fn list_windows() -> Result<(), Box<dyn std::error::Error>> {
     println!("{}", "-".repeat(88));
 
     for window in windows {
-        let id = window.id();
-        let title = window.title();
-        let app_name = window.app_name();
+        let Ok(id) = window.id() else { continue };
+        let Ok(title) = window.title() else { continue };
+        let Ok(app_name) = window.app_name() else {
+            continue;
+        };
 
         if !title.is_empty() {
             println!(
@@ -98,8 +100,8 @@ fn screenshot(name: &str, output: &PathBuf) -> Result<(), Box<dyn std::error::Er
     let windows = Window::all()?;
 
     let matching_window = windows.into_iter().find(|w| {
-        let title = w.title().to_lowercase();
-        let app_name = w.app_name().to_lowercase();
+        let title = w.title().unwrap_or_default().to_lowercase();
+        let app_name = w.app_name().unwrap_or_default().to_lowercase();
         let search = name.to_lowercase();
         title.contains(&search) || app_name.contains(&search)
     });

@@ -4,39 +4,96 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 import * as main from "../../../../store/tinybase/main";
+import {
+  DangerZone,
+  ResourceDetailEmpty,
+  ResourcePreviewHeader,
+} from "../resource-list";
+
+type WebShortcut = {
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  targets?: string[];
+  prompt: string;
+};
 
 export function ChatShortcutDetailsColumn({
-  selectedChatShortcutId,
-  setSelectedChatShortcut,
+  isWebMode,
+  selectedMineId,
+  selectedWebShortcut,
+  setSelectedMineId,
+  handleCloneShortcut,
 }: {
-  selectedChatShortcutId: string | null;
-  setSelectedChatShortcut: (id: string | null) => void;
+  isWebMode: boolean;
+  selectedMineId: string | null;
+  selectedWebShortcut: WebShortcut | null;
+  setSelectedMineId: (id: string | null) => void;
+  handleCloneShortcut: (shortcut: WebShortcut) => void;
 }) {
-  if (!selectedChatShortcutId) {
+  if (isWebMode) {
+    if (!selectedWebShortcut) {
+      return <ResourceDetailEmpty message="Select a shortcut to preview" />;
+    }
     return (
-      <div className="h-full flex items-center justify-center">
-        <p className="text-sm text-neutral-500">
-          Select a shortcut to view or edit
-        </p>
-      </div>
+      <WebShortcutPreview
+        shortcut={selectedWebShortcut}
+        onClone={handleCloneShortcut}
+      />
     );
   }
 
+  if (!selectedMineId) {
+    return <ResourceDetailEmpty message="Select a shortcut to view or edit" />;
+  }
+
   return (
-    <ChatShortcutDetails
-      key={selectedChatShortcutId}
-      id={selectedChatShortcutId}
-      setSelectedChatShortcut={setSelectedChatShortcut}
+    <ChatShortcutForm
+      key={selectedMineId}
+      id={selectedMineId}
+      setSelectedMineId={setSelectedMineId}
     />
   );
 }
 
-function ChatShortcutDetails({
+function WebShortcutPreview({
+  shortcut,
+  onClone,
+}: {
+  shortcut: WebShortcut;
+  onClone: (shortcut: WebShortcut) => void;
+}) {
+  return (
+    <div className="flex flex-col h-full">
+      <ResourcePreviewHeader
+        title={shortcut.title}
+        description={shortcut.description}
+        category={shortcut.category}
+        targets={shortcut.targets}
+        onClone={() => onClone(shortcut)}
+      />
+
+      <div className="flex-1 p-6">
+        <h3 className="text-sm font-medium text-neutral-600 mb-3">
+          Prompt Content
+        </h3>
+        <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+          <p className="text-sm text-neutral-700 whitespace-pre-wrap">
+            {shortcut.prompt}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatShortcutForm({
   id,
-  setSelectedChatShortcut,
+  setSelectedMineId,
 }: {
   id: string;
-  setSelectedChatShortcut: (id: string | null) => void;
+  setSelectedMineId: (id: string | null) => void;
 }) {
   const content = main.UI.useCell(
     "chat_shortcuts",
@@ -70,8 +127,8 @@ function ChatShortcutDetails({
 
   const handleDeleteClick = useCallback(() => {
     handleDelete();
-    setSelectedChatShortcut(null);
-  }, [handleDelete, setSelectedChatShortcut]);
+    setSelectedMineId(null);
+  }, [handleDelete, setSelectedMineId]);
 
   const hasChanges = localValue !== (content || "");
 
@@ -103,30 +160,12 @@ function ChatShortcutDetails({
       </div>
 
       <div className="p-6 border-t border-neutral-200">
-        <div className="border border-red-200 rounded-lg overflow-hidden">
-          <div className="bg-red-50 px-4 py-3 border-b border-red-200">
-            <h3 className="text-sm font-semibold text-red-900">Danger Zone</h3>
-          </div>
-          <div className="bg-white p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-neutral-900">
-                  Delete this shortcut
-                </p>
-                <p className="text-xs text-neutral-500 mt-1">
-                  This action cannot be undone
-                </p>
-              </div>
-              <Button
-                onClick={handleDeleteClick}
-                variant="destructive"
-                size="sm"
-              >
-                Delete Shortcut
-              </Button>
-            </div>
-          </div>
-        </div>
+        <DangerZone
+          title="Delete this shortcut"
+          description="This action cannot be undone"
+          buttonLabel="Delete Shortcut"
+          onAction={handleDeleteClick}
+        />
       </div>
     </div>
   );

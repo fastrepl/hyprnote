@@ -52,10 +52,13 @@ export const tabSchema = z.discriminatedUnion("type", [
     type: z.literal("templates"),
     state: z
       .object({
-        selectedTemplate: z.string().nullable().default(null),
+        isWebMode: z.boolean().optional(),
+        selectedMineId: z.string().nullable().default(null),
+        selectedWebIndex: z.number().nullable().default(null),
       })
       .default({
-        selectedTemplate: null,
+        selectedMineId: null,
+        selectedWebIndex: null,
       }),
   }),
   baseTabSchema.extend({
@@ -72,10 +75,13 @@ export const tabSchema = z.discriminatedUnion("type", [
     type: z.literal("chat_shortcuts"),
     state: z
       .object({
-        selectedChatShortcut: z.string().nullable().default(null),
+        isWebMode: z.boolean().optional(),
+        selectedMineId: z.string().nullable().default(null),
+        selectedWebIndex: z.number().nullable().default(null),
       })
       .default({
-        selectedChatShortcut: null,
+        selectedMineId: null,
+        selectedWebIndex: null,
       }),
   }),
   baseTabSchema.extend({
@@ -132,7 +138,9 @@ export type TabInput =
   | {
       type: "templates";
       state?: {
-        selectedTemplate?: string | null;
+        isWebMode?: boolean;
+        selectedMineId?: string | null;
+        selectedWebIndex?: number | null;
       };
     }
   | {
@@ -144,7 +152,9 @@ export type TabInput =
   | {
       type: "chat_shortcuts";
       state?: {
-        selectedChatShortcut?: string | null;
+        isWebMode?: boolean;
+        selectedMineId?: string | null;
+        selectedWebIndex?: number | null;
       };
     }
   | {

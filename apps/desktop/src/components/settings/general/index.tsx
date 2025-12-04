@@ -2,10 +2,12 @@ import { LANGUAGES_ISO_639_1 } from "@huggingface/languages";
 import { useForm } from "@tanstack/react-form";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
+import type { AppIcon } from "@hypr/plugin-windows";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
 import * as main from "../../../store/tinybase/main";
+import { AppIconSettings } from "./app-icon";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
 import { Permissions } from "./permissions";
@@ -19,6 +21,7 @@ export function SettingsGeneral() {
     "telemetry_consent",
     "ai_language",
     "spoken_languages",
+    "app_icon",
   ] as const);
 
   const setPartialValues = main.UI.useSetPartialValuesCallback(
@@ -47,6 +50,7 @@ export function SettingsGeneral() {
       telemetry_consent: value.telemetry_consent,
       ai_language: value.ai_language,
       spoken_languages: value.spoken_languages,
+      app_icon: value.app_icon as AppIcon,
     },
     listeners: {
       onChange: ({ formApi }) => {
@@ -146,6 +150,15 @@ export function SettingsGeneral() {
           </form.Field>
         </div>
       </div>
+
+      <form.Field name="app_icon">
+        {(field) => (
+          <AppIconSettings
+            value={field.state.value}
+            onChange={(val) => field.handleChange(val)}
+          />
+        )}
+      </form.Field>
 
       <Permissions />
     </div>

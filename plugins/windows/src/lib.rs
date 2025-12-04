@@ -2,12 +2,14 @@ mod commands;
 mod errors;
 mod events;
 mod ext;
+mod icon;
 mod overlay;
 mod window;
 
 pub use errors::*;
 pub use events::*;
 pub use ext::*;
+pub use icon::*;
 pub use window::*;
 
 pub use overlay::{FakeWindowBounds, OverlayBound};
@@ -54,6 +56,9 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::window_is_exists,
             commands::set_fake_window_bounds,
             commands::remove_fake_window,
+            commands::set_app_icon,
+            commands::reset_app_icon,
+            commands::get_available_icons,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

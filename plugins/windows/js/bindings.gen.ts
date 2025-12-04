@@ -62,6 +62,25 @@ async removeFakeWindow(name: string) : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async setAppIcon(iconType: AppIcon) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|set_app_icon", { iconType }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async resetAppIcon() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:windows|reset_app_icon") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getAvailableIcons() : Promise<AppIcon[]> {
+    return await TAURI_INVOKE("plugin:windows|get_available_icons");
 }
 }
 
@@ -84,6 +103,7 @@ windowDestroyed: "plugin:windows:window-destroyed"
 
 /** user-defined types **/
 
+export type AppIcon = "dark" | "light" | "nightly" | "pro"
 export type AppWindow = { type: "onboarding" } | { type: "main" } | { type: "settings" } | { type: "auth" } | { type: "chat" } | { type: "devtool" } | { type: "control" }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type MainWindowState = { left_sidebar_expanded: boolean | null; right_panel_expanded: boolean | null }

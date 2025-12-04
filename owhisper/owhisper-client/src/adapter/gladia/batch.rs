@@ -73,7 +73,7 @@ struct FileInfo {
     audio_duration: Option<f64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 struct TranscriptResult {
     #[serde(default)]
     metadata: Option<ResultMetadata>,
@@ -87,7 +87,7 @@ struct ResultMetadata {
     audio_duration: Option<f64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 struct Transcription {
     #[serde(default)]
     full_transcript: Option<String>,
@@ -185,18 +185,10 @@ impl GladiaAdapter {
             .map(|l| l.iso639().code().to_string())
             .collect();
 
-        let language_config = if languages.is_empty() {
-            None
-        } else {
-            Some(LanguageConfig {
-                languages,
-                code_switching: if params.languages.len() > 1 {
-                    Some(true)
-                } else {
-                    None
-                },
-            })
-        };
+        let language_config = (!languages.is_empty()).then(|| LanguageConfig {
+            languages,
+            code_switching: (params.languages.len() > 1).then_some(true),
+        });
 
         let transcript_request = TranscriptRequest {
             audio_url: upload_result.audio_url,
@@ -270,15 +262,8 @@ impl GladiaAdapter {
     }
 
     fn convert_to_batch_response(response: TranscriptResponse) -> BatchResponse {
-        let result = response.result.unwrap_or(TranscriptResult {
-            metadata: None,
-            transcription: None,
-        });
-
-        let transcription = result.transcription.unwrap_or(Transcription {
-            full_transcript: None,
-            utterances: Vec::new(),
-        });
+        let result = response.result.unwrap_or_default();
+        let transcription = result.transcription.unwrap_or_default();
 
         let words: Vec<BatchWord> = transcription
             .utterances

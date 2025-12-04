@@ -10,9 +10,37 @@ use super::GladiaAdapter;
 use crate::adapter::parsing::WordBuilder;
 use crate::adapter::RealtimeSttAdapter;
 
-fn session_channels() -> &'static Mutex<HashMap<String, u8>> {
-    static SESSION_CHANNELS: OnceLock<Mutex<HashMap<String, u8>>> = OnceLock::new();
-    SESSION_CHANNELS.get_or_init(|| Mutex::new(HashMap::new()))
+struct SessionChannels;
+
+impl SessionChannels {
+    fn store() -> &'static Mutex<HashMap<String, u8>> {
+        static SESSION_CHANNELS: OnceLock<Mutex<HashMap<String, u8>>> = OnceLock::new();
+        SESSION_CHANNELS.get_or_init(|| Mutex::new(HashMap::new()))
+    }
+
+    fn insert(session_id: String, channels: u8) {
+        if let Ok(mut map) = Self::store().lock() {
+            map.insert(session_id, channels);
+        }
+    }
+
+    fn get(session_id: &str) -> Option<u8> {
+        Self::store()
+            .lock()
+            .ok()
+            .and_then(|map| map.get(session_id).copied())
+    }
+
+    fn remove(session_id: &str) -> Option<u8> {
+        Self::store()
+            .lock()
+            .ok()
+            .and_then(|mut map| map.remove(session_id))
+    }
+
+    fn get_or_infer(session_id: &str, channel_idx: i32) -> u8 {
+        Self::get(session_id).unwrap_or_else(|| (channel_idx + 1).max(1) as u8)
+    }
 }
 
 impl RealtimeSttAdapter for GladiaAdapter {
@@ -56,41 +84,17 @@ impl RealtimeSttAdapter for GladiaAdapter {
         }
 
         let key = api_key?;
+        let post_url = Self::build_http_url(api_base);
 
-        let post_url = if api_base.is_empty() {
-            "https://api.gladia.io/v2/live".to_string()
-        } else {
-            let parsed: url::Url = api_base.parse().ok()?;
-            let host = parsed.host_str().unwrap_or("api.gladia.io");
-            let scheme = if crate::adapter::is_local_host(host) {
-                "http"
-            } else {
-                "https"
-            };
-            let host_with_port = match parsed.port() {
-                Some(port) => format!("{host}:{port}"),
-                None => host.to_string(),
-            };
-            format!("{scheme}://{host_with_port}/v2/live")
-        };
+        let language_config = (!params.languages.is_empty()).then(|| LanguageConfig {
+            languages: params
+                .languages
+                .iter()
+                .map(|l| l.iso639().code().to_string())
+                .collect(),
+        });
 
-        let language_config = if params.languages.is_empty() {
-            None
-        } else {
-            Some(LanguageConfig {
-                languages: params
-                    .languages
-                    .iter()
-                    .map(|l| l.iso639().code().to_string())
-                    .collect(),
-            })
-        };
-
-        let custom_vocabulary = if params.keywords.is_empty() {
-            None
-        } else {
-            Some(params.keywords.clone())
-        };
+        let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
 
         let body = GladiaConfig {
             encoding: "wav/pcm",
@@ -104,39 +108,30 @@ impl RealtimeSttAdapter for GladiaAdapter {
             }),
         };
 
-        let body_json = match serde_json::to_value(&body) {
-            Ok(v) => v,
-            Err(e) => {
+        let body_json = serde_json::to_value(&body)
+            .map_err(|e| {
                 tracing::error!(error = ?e, "gladia_init_serialize_failed");
-                return None;
-            }
-        };
+            })
+            .ok()?;
 
-        let resp = match ureq::post(&post_url)
+        let resp = ureq::post(post_url.as_str())
             .set("x-gladia-key", key)
             .set("Content-Type", "application/json")
             .send_json(body_json)
-        {
-            Ok(r) => r,
-            Err(e) => {
+            .map_err(|e| {
                 tracing::error!(error = ?e, "gladia_init_request_failed");
-                return None;
-            }
-        };
+            })
+            .ok()?;
 
-        let init: InitResponse = match resp.into_json() {
-            Ok(r) => r,
-            Err(e) => {
+        let init: InitResponse = resp
+            .into_json()
+            .map_err(|e| {
                 tracing::error!(error = ?e, "gladia_init_parse_failed");
-                return None;
-            }
-        };
+            })
+            .ok()?;
 
         tracing::debug!(session_id = %init.id, url = %init.url, channels = channels, "gladia_session_initialized");
-
-        if let Ok(mut map) = session_channels().lock() {
-            map.insert(init.id.clone(), channels);
-        }
+        SessionChannels::insert(init.id.clone(), channels);
 
         url::Url::parse(&init.url).ok()
     }
@@ -178,14 +173,10 @@ impl RealtimeSttAdapter for GladiaAdapter {
                 vec![]
             }
             GladiaMessage::EndSession { id } => {
-                let channels = session_channels()
-                    .lock()
-                    .ok()
-                    .and_then(|mut map| map.remove(&id))
-                    .unwrap_or_else(|| {
-                        tracing::warn!(session_id = %id, "gladia_session_channels_not_found");
-                        1
-                    });
+                let channels = SessionChannels::remove(&id).unwrap_or_else(|| {
+                    tracing::warn!(session_id = %id, "gladia_session_channels_not_found");
+                    1
+                });
                 tracing::debug!(session_id = %id, channels = channels, "gladia_session_ended");
                 vec![StreamResponse::TerminalResponse {
                     request_id: id,
@@ -371,14 +362,7 @@ impl GladiaAdapter {
         };
 
         let channel_idx = utterance.channel.unwrap_or(0);
-        let total_channels = session_channels()
-            .lock()
-            .ok()
-            .and_then(|map| map.get(&session_id).copied())
-            .unwrap_or_else(|| {
-                // Fallback: infer from channel_idx if session not found
-                (channel_idx + 1).max(1) as u8
-            });
+        let total_channels = SessionChannels::get_or_infer(&session_id, channel_idx);
 
         vec![StreamResponse::TranscriptResponse {
             is_final,

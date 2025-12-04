@@ -13,6 +13,7 @@ owhisper-interface = { workspace = true }
 
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json", "multipart"] }
+ureq = { version = "2", features = ["json"] }
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
 

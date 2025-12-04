@@ -29,34 +29,49 @@ impl RealtimeSttAdapter for GladiaAdapter {
         url
     }
 
-    fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)> {
-        api_key.map(|key| ("x-gladia-key", key.to_string()))
-    }
-
-    fn keep_alive_message(&self) -> Option<Message> {
-        None
-    }
-
-    fn initial_message(
+    fn build_ws_url_with_api_key(
         &self,
-        _api_key: Option<&str>,
+        api_base: &str,
         params: &ListenParams,
         channels: u8,
-    ) -> Option<Message> {
+        api_key: Option<&str>,
+    ) -> Option<url::Url> {
+        if let Some(proxy_result) = crate::adapter::build_proxy_ws_url(api_base) {
+            let (mut url, existing_params) = proxy_result;
+            if !existing_params.is_empty() {
+                let mut query_pairs = url.query_pairs_mut();
+                for (key, value) in &existing_params {
+                    query_pairs.append_pair(key, value);
+                }
+            }
+            return Some(url);
+        }
+
+        let key = api_key?;
+
+        let post_url = if api_base.is_empty() {
+            "https://api.gladia.io/v2/live".to_string()
+        } else {
+            let parsed: url::Url = api_base.parse().ok()?;
+            let host = parsed.host_str().unwrap_or("api.gladia.io");
+            let scheme = if crate::adapter::is_local_host(host) {
+                "http"
+            } else {
+                "https"
+            };
+            format!("{scheme}://{host}/v2/live")
+        };
+
         let language_config = if params.languages.is_empty() {
             None
-        } else if params.languages.len() == 1 {
-            Some(LanguageConfig::Single(
-                params.languages[0].iso639().code().to_string(),
-            ))
         } else {
-            Some(LanguageConfig::CodeSwitching(CodeSwitchingConfig {
+            Some(LanguageConfig {
                 languages: params
                     .languages
                     .iter()
                     .map(|l| l.iso639().code().to_string())
                     .collect(),
-            }))
+            })
         };
 
         let custom_vocabulary = if params.keywords.is_empty() {
@@ -65,7 +80,7 @@ impl RealtimeSttAdapter for GladiaAdapter {
             Some(params.keywords.clone())
         };
 
-        let cfg = GladiaConfig {
+        let body = GladiaConfig {
             encoding: "wav/pcm",
             sample_rate: params.sample_rate,
             bit_depth: 16,
@@ -77,8 +92,53 @@ impl RealtimeSttAdapter for GladiaAdapter {
             }),
         };
 
-        let json = serde_json::to_string(&cfg).unwrap();
-        Some(Message::Text(json.into()))
+        let body_json = match serde_json::to_value(&body) {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::error!(error = ?e, "gladia_init_serialize_failed");
+                return None;
+            }
+        };
+
+        let resp = match ureq::post(&post_url)
+            .set("x-gladia-key", key)
+            .set("Content-Type", "application/json")
+            .send_json(body_json)
+        {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::error!(error = ?e, "gladia_init_request_failed");
+                return None;
+            }
+        };
+
+        let init: InitResponse = match resp.into_json() {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::error!(error = ?e, "gladia_init_parse_failed");
+                return None;
+            }
+        };
+
+        tracing::debug!(session_id = %init.id, url = %init.url, "gladia_session_initialized");
+        url::Url::parse(&init.url).ok()
+    }
+
+    fn build_auth_header(&self, _api_key: Option<&str>) -> Option<(&'static str, String)> {
+        None
+    }
+
+    fn keep_alive_message(&self) -> Option<Message> {
+        None
+    }
+
+    fn initial_message(
+        &self,
+        _api_key: Option<&str>,
+        _params: &ListenParams,
+        _channels: u8,
+    ) -> Option<Message> {
+        None
     }
 
     fn finalize_message(&self) -> Message {
@@ -140,20 +200,19 @@ struct GladiaConfig<'a> {
 }
 
 #[derive(Serialize)]
-#[serde(untagged)]
-enum LanguageConfig {
-    Single(String),
-    CodeSwitching(CodeSwitchingConfig),
-}
-
-#[derive(Serialize)]
-struct CodeSwitchingConfig {
+struct LanguageConfig {
     languages: Vec<String>,
 }
 
 #[derive(Serialize)]
 struct MessagesConfig {
     receive_partial_transcripts: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct InitResponse {
+    id: String,
+    url: String,
 }
 
 #[derive(Debug, Deserialize)]

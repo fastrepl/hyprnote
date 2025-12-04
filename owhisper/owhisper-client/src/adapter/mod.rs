@@ -38,6 +38,16 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url;
 
+    fn build_ws_url_with_api_key(
+        &self,
+        api_base: &str,
+        params: &ListenParams,
+        channels: u8,
+        _api_key: Option<&str>,
+    ) -> Option<url::Url> {
+        Some(self.build_ws_url(api_base, params, channels))
+    }
+
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)>;
 
     fn keep_alive_message(&self) -> Option<Message>;

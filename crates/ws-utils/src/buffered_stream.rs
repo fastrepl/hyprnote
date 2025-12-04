@@ -83,7 +83,7 @@ impl<S: SampleSource + Unpin> Stream for BufferedAudioStream<S> {
             match self.source.poll_samples(cx) {
                 Poll::Ready(Some(samples)) => {
                     if samples.is_empty() {
-                        return Poll::Pending;
+                        continue;
                     }
                     self.buffer.push_samples(samples);
                 }

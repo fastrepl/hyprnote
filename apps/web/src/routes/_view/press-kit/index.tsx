@@ -8,7 +8,7 @@ const TITLE = "Press Kit - Hyprnote";
 const DESCRIPTION =
   "Download Hyprnote press materials, logos, screenshots, and brand assets.";
 
-export const Route = createFileRoute("/_view/press-kit")({
+export const Route = createFileRoute("/_view/press-kit/")({
   component: Component,
   head: () => ({
     meta: [
@@ -44,7 +44,6 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
-        {/* Hero Section */}
         <div className="px-6 py-16 lg:py-24">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600 mb-6">
@@ -63,13 +62,10 @@ function Component() {
           </div>
         </div>
 
-        {/* Finder Section */}
         <section className="px-6 pb-16 lg:pb-24">
           <div className="max-w-4xl mx-auto">
             <MockWindow className="rounded-lg w-full max-w-none">
-              {/* Finder-style content area */}
               <div className="p-8">
-                {/* Press Materials Group */}
                 <div className="mb-8">
                   <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
                     Press Materials
@@ -99,7 +95,6 @@ function Component() {
                   </div>
                 </div>
 
-                {/* Quick Actions Group */}
                 <div className="border-t border-neutral-100 pt-8">
                   <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
                     Quick Actions
@@ -133,7 +128,6 @@ function Component() {
                 </div>
               </div>
 
-              {/* Finder-style status bar */}
               <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
                 <span className="text-xs text-neutral-500">
                   7 items, 2 groups

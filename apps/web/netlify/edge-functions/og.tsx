@@ -16,6 +16,13 @@ const templatesSchema = z.object({
   description: z.string().optional(),
 });
 
+const shortcutsSchema = z.object({
+  type: z.literal("shortcuts"),
+  title: z.string(),
+  category: z.string(),
+  description: z.string().optional(),
+});
+
 const changelogSchema = z.object({
   type: z.literal("changelog"),
   version: z.string(),
@@ -36,7 +43,7 @@ const docsSchema = z.object({
   description: z.string().optional(),
 });
 
-const OGSchema = z.discriminatedUnion("type", [meetingSchema, templatesSchema, changelogSchema, blogSchema, docsSchema]);
+const OGSchema = z.discriminatedUnion("type", [meetingSchema, templatesSchema, shortcutsSchema, changelogSchema, blogSchema, docsSchema]);
 
 function preventWidow(text: string): string {
   const words = text.trim().split(/\s+/);
@@ -82,6 +89,15 @@ function parseSearchParams(url: URL): z.infer<typeof OGSchema> | null {
   }
 
   if (type === "templates") {
+    const title = url.searchParams.get("title");
+    const category = url.searchParams.get("category");
+    const description = url.searchParams.get("description") || undefined;
+
+    const result = OGSchema.safeParse({ type, title, category, description });
+    return result.success ? result.data : null;
+  }
+
+  if (type === "shortcuts") {
     const title = url.searchParams.get("title");
     const category = url.searchParams.get("category");
     const description = url.searchParams.get("description") || undefined;
@@ -220,40 +236,49 @@ function renderBlogTemplate(params: z.infer<typeof blogSchema>) {
   );
 }
 
-function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
+function renderGenericTemplate({ headerText, category, title, description }: { headerText: string; category: string; title: string; description?: string }) {
   return (
-    <div style={{ width: '100%', height: '100%', paddingLeft: 56, paddingRight: 56, paddingTop: 55, paddingBottom: 55, background: 'linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', overflow: 'hidden', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', display: 'flex' }}>
+    <div style={{ width: '100%', height: '100%', padding: 55, background: 'linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', overflow: 'hidden', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', display: 'flex' }}>
       <div style={{ justifyContent: 'flex-start', alignItems: 'center', gap: 12, display: 'flex' }}>
         <img style={{ width: 48, height: 48 }} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
-        <div style={{ color: '#292524', fontSize: 36, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>Hyprnote Docs</div>
+        <div style={{ color: '#292524', fontSize: 36, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>{headerText}</div>
       </div>
       <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 12, display: 'flex' }}>
-        <div style={{ color: '#525252', fontSize: 32, fontFamily: 'IBM Plex Mono', fontWeight: '500', wordWrap: 'break-word' }}>{params.section}</div>
-        <div style={{ alignSelf: 'stretch', color: '#292524', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>{preventWidow(params.title)}</div>
-        {params.description && (
-          <div style={{ alignSelf: 'stretch', color: '#525252', fontSize: 36, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word' }}>{params.description}</div>
+        <div style={{ color: '#525252', fontSize: 32, fontFamily: 'IBM Plex Mono', fontWeight: '500', wordWrap: 'break-word' }}>{category}</div>
+        <div style={{ alignSelf: 'stretch', color: '#292524', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>{preventWidow(title)}</div>
+        {description && (
+          <div style={{ alignSelf: 'stretch', color: '#525252', fontSize: 36, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word' }}>{description}</div>
         )}
       </div>
     </div>
   );
 }
 
+function renderDocsTemplate(params: z.infer<typeof docsSchema>) {
+  return renderGenericTemplate({
+    headerText: 'Hyprnote / Docs',
+    category: params.section,
+    title: params.title,
+    description: params.description,
+  });
+}
+
 function renderTemplatesTemplate(params: z.infer<typeof templatesSchema>) {
-  return (
-    <div style={{ width: '100%', height: '100%', paddingLeft: 56, paddingRight: 56, paddingTop: 55, paddingBottom: 55, background: 'linear-gradient(0deg, #FAFAF9 0%, #E7E5E4 100%)', overflow: 'hidden', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start', display: 'flex' }}>
-      <div style={{ justifyContent: 'flex-start', alignItems: 'center', gap: 12, display: 'flex' }}>
-        <img style={{ width: 48, height: 48 }} src="https://ijoptyyjrfqwaqhyxkxj.supabase.co/storage/v1/object/public/public_images/icons/stable-icon.png" />
-        <div style={{ color: '#292524', fontSize: 36, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>Meeting Templates</div>
-      </div>
-      <div style={{ alignSelf: 'stretch', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: 12, display: 'flex' }}>
-        <div style={{ color: '#525252', fontSize: 32, fontFamily: 'IBM Plex Mono', fontWeight: '500', wordWrap: 'break-word' }}>{params.category}</div>
-        <div style={{ alignSelf: 'stretch', color: '#292524', fontSize: 60, fontFamily: 'Lora', fontWeight: '700', wordWrap: 'break-word' }}>{preventWidow(params.title)}</div>
-        {params.description && (
-          <div style={{ alignSelf: 'stretch', color: '#525252', fontSize: 36, fontFamily: 'IBM Plex Mono', fontWeight: '400', wordWrap: 'break-word' }}>{params.description}</div>
-        )}
-      </div>
-    </div>
-  );
+  return renderGenericTemplate({
+    headerText: 'Hyprnote / Meeting Templates',
+    category: params.category,
+    title: params.title,
+    description: params.description,
+  });
+}
+
+function renderShortcutsTemplate(params: z.infer<typeof shortcutsSchema>) {
+  return renderGenericTemplate({
+    headerText: 'Hyprnote / Shortcuts',
+    category: params.category,
+    title: params.title,
+    description: params.description,
+  });
 }
 
 export default async function handler(req: Request) {
@@ -282,11 +307,13 @@ export default async function handler(req: Request) {
       response = renderDocsTemplate(params);
     } else if (params.type === "templates") {
       response = renderTemplatesTemplate(params);
+    } else if (params.type === "shortcuts") {
+      response = renderShortcutsTemplate(params);
     } else {
       response = renderMeetingTemplate(params);
     }
 
-    const needsCustomFonts = params.type === "changelog" || params.type === "blog" || params.type === "docs" || params.type === "templates";
+    const needsCustomFonts = params.type === "changelog" || params.type === "blog" || params.type === "docs" || params.type === "templates" || params.type === "shortcuts";
     const fonts = needsCustomFonts
       ? [
         {

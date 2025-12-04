@@ -12,7 +12,7 @@
     "test": "vitest run",
     "tauri:dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f .env -- tauri dev",
     "tauri:build": "tauri build",
-    "gen:schema": "tsx src/devtool/seed/script.ts"
+    "gen:schema": "tsx src/components/devtool/seed/script.ts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^3.0.57",

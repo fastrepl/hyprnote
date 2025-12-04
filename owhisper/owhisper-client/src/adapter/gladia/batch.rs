@@ -284,13 +284,16 @@ impl GladiaAdapter {
             .utterances
             .iter()
             .flat_map(|u| {
-                u.words.iter().map(|w| BatchWord {
-                    word: w.word.trim().to_string(),
-                    start: w.start,
-                    end: w.end,
-                    confidence: w.confidence,
-                    speaker: u.speaker,
-                    punctuated_word: Some(w.word.clone()),
+                u.words.iter().map(|w| {
+                    let trimmed = w.word.trim().to_string();
+                    BatchWord {
+                        word: trimmed.clone(),
+                        start: w.start,
+                        end: w.end,
+                        confidence: w.confidence,
+                        speaker: u.speaker,
+                        punctuated_word: Some(trimmed),
+                    }
                 })
             })
             .collect();

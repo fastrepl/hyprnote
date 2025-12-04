@@ -245,6 +245,7 @@ const templates = defineCollection({
     description: z.string(),
     category: z.string(),
     targets: z.array(z.string()),
+    banner: z.string().optional(),
     sections: z.array(
       z.object({
         title: z.string(),
@@ -463,6 +464,7 @@ const shortcuts = defineCollection({
     description: z.string(),
     category: z.string(),
     prompt: z.string(),
+    banner: z.string().optional(),
     targets: z.array(z.string()).optional(),
   }),
   transform: async (document, context) => {

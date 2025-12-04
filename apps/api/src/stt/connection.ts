@@ -274,11 +274,18 @@ export class WsProxyConnection {
     });
 
     this.upstream.addEventListener("message", async (event) => {
-      const payload = await normalizeWsData(event.data);
-      if (!payload) {
-        return;
+      try {
+        const payload = await normalizeWsData(event.data);
+        if (!payload) {
+          return;
+        }
+        this.forwardDownstreamPayload(payload);
+      } catch (error) {
+        Sentry.captureException(error, {
+          tags: { operation: "upstream_message_normalize" },
+        });
+        this.closeConnections(DEFAULT_CLOSE_CODE, "message_normalize_failed");
       }
-      this.forwardDownstreamPayload(payload);
     });
 
     this.upstream.addEventListener("close", (event) => {

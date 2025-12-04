@@ -15,7 +15,7 @@ import {
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
-import { MDXLink } from "@/components/mdx";
+import { CodeBlock, MDXLink } from "@/components/mdx";
 
 export function HandbookLayout({
   doc,
@@ -113,6 +113,7 @@ function ArticleContent({ doc }: { doc: any }) {
           img: Image,
           Info,
           Note,
+          pre: CodeBlock,
           Step,
           Steps,
           Tip,

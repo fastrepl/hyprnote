@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
+
 use hypr_ws::client::Message;
 use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
@@ -6,6 +9,11 @@ use serde::{Deserialize, Serialize};
 use super::GladiaAdapter;
 use crate::adapter::parsing::WordBuilder;
 use crate::adapter::RealtimeSttAdapter;
+
+fn session_channels() -> &'static Mutex<HashMap<String, u8>> {
+    static SESSION_CHANNELS: OnceLock<Mutex<HashMap<String, u8>>> = OnceLock::new();
+    SESSION_CHANNELS.get_or_init(|| Mutex::new(HashMap::new()))
+}
 
 impl RealtimeSttAdapter for GladiaAdapter {
     fn provider_name(&self) -> &'static str {
@@ -124,7 +132,12 @@ impl RealtimeSttAdapter for GladiaAdapter {
             }
         };
 
-        tracing::debug!(session_id = %init.id, url = %init.url, "gladia_session_initialized");
+        tracing::debug!(session_id = %init.id, url = %init.url, channels = channels, "gladia_session_initialized");
+
+        if let Ok(mut map) = session_channels().lock() {
+            map.insert(init.id.clone(), channels);
+        }
+
         url::Url::parse(&init.url).ok()
     }
 
@@ -165,12 +178,20 @@ impl RealtimeSttAdapter for GladiaAdapter {
                 vec![]
             }
             GladiaMessage::EndSession { id } => {
-                tracing::debug!(session_id = %id, "gladia_session_ended");
+                let channels = session_channels()
+                    .lock()
+                    .ok()
+                    .and_then(|mut map| map.remove(&id))
+                    .unwrap_or_else(|| {
+                        tracing::warn!(session_id = %id, "gladia_session_channels_not_found");
+                        1
+                    });
+                tracing::debug!(session_id = %id, channels = channels, "gladia_session_ended");
                 vec![StreamResponse::TerminalResponse {
                     request_id: id,
                     created: String::new(),
                     duration: 0.0,
-                    channels: 1,
+                    channels: channels.into(),
                 }]
             }
             GladiaMessage::SpeechStart { .. } => vec![],
@@ -304,6 +325,7 @@ struct GladiaWord {
 
 impl GladiaAdapter {
     fn parse_transcript(msg: TranscriptMessage) -> Vec<StreamResponse> {
+        let session_id = msg.session_id;
         let data = msg.data;
         let utterance = data.utterance;
 
@@ -311,6 +333,7 @@ impl GladiaAdapter {
             transcript = %utterance.text,
             is_final = data.is_final,
             channel = ?utterance.channel,
+            session_id = %session_id,
             "gladia_transcript_received"
         );
 
@@ -348,10 +371,14 @@ impl GladiaAdapter {
         };
 
         let channel_idx = utterance.channel.unwrap_or(0);
-        // channel_index format: [channel_idx, total_channels]
-        // Gladia returns channel index in utterance.channel (0-based)
-        // Total channels is not provided in transcript response, so we infer from channel_idx
-        let total_channels = (channel_idx + 1).max(1);
+        let total_channels = session_channels()
+            .lock()
+            .ok()
+            .and_then(|map| map.get(&session_id).copied())
+            .unwrap_or_else(|| {
+                // Fallback: infer from channel_idx if session not found
+                (channel_idx + 1).max(1) as u8
+            });
 
         vec![StreamResponse::TranscriptResponse {
             is_final,
@@ -361,7 +388,7 @@ impl GladiaAdapter {
             duration,
             channel,
             metadata: Metadata::default(),
-            channel_index: vec![channel_idx, total_channels],
+            channel_index: vec![channel_idx, total_channels as i32],
         }]
     }
 }

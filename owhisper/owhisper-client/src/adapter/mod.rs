@@ -26,6 +26,8 @@ use crate::error::Error;
 pub type BatchFuture<'a> = Pin<Box<dyn Future<Output = Result<BatchResponse, Error>> + Send + 'a>>;
 
 pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
+    fn provider_name(&self) -> &'static str;
+
     fn supports_native_multichannel(&self) -> bool;
 
     fn build_ws_url(&self, api_base: &str, params: &ListenParams, channels: u8) -> url::Url;
@@ -102,8 +104,22 @@ fn is_local_stt_host(base_url: &str) -> bool {
     host_matches(base_url, is_local_host)
 }
 
-fn is_hyprnote_cloud_host(base_url: &str) -> bool {
+pub fn is_hyprnote_cloud_host(base_url: &str) -> bool {
     host_matches(base_url, |h| h.contains("hyprnote.com"))
+}
+
+pub fn append_provider_param(base_url: &str, provider: &str) -> String {
+    if !is_hyprnote_cloud_host(base_url) {
+        return base_url.to_string();
+    }
+
+    match url::Url::parse(base_url) {
+        Ok(mut url) => {
+            url.query_pairs_mut().append_pair("provider", provider);
+            url.to_string()
+        }
+        Err(_) => base_url.to_string(),
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -116,33 +132,23 @@ pub enum AdapterKind {
 }
 
 impl AdapterKind {
-    pub fn from_url_and_languages(
-        base_url: &str,
-        languages: &[hypr_language::Language],
-    ) -> (Self, String) {
+    pub fn from_url_and_languages(base_url: &str, languages: &[hypr_language::Language]) -> Self {
         if is_hyprnote_cloud_host(base_url) {
-            let (kind, provider_str) = if DeepgramAdapter::is_supported_languages(languages) {
-                (Self::Deepgram, "deepgram")
+            if DeepgramAdapter::is_supported_languages(languages) {
+                Self::Deepgram
             } else {
-                (Self::Soniox, "soniox")
-            };
-
-            let modified_url = if base_url.contains('?') {
-                format!("{}&provider={}", base_url, provider_str)
-            } else {
-                format!("{}?provider={}", base_url, provider_str)
-            };
-            (kind, modified_url)
+                Self::Soniox
+            }
         } else if is_local_stt_host(base_url) {
-            (Self::Argmax, base_url.to_string())
+            Self::Argmax
         } else if AssemblyAIAdapter::is_host(base_url) {
-            (Self::AssemblyAI, base_url.to_string())
+            Self::AssemblyAI
         } else if SonioxAdapter::is_host(base_url) {
-            (Self::Soniox, base_url.to_string())
+            Self::Soniox
         } else if FireworksAdapter::is_host(base_url) {
-            (Self::Fireworks, base_url.to_string())
+            Self::Fireworks
         } else {
-            (Self::Deepgram, base_url.to_string())
+            Self::Deepgram
         }
     }
 }

@@ -9,6 +9,10 @@ use crate::adapter::RealtimeSttAdapter;
 // https://docs.fireworks.ai/guides/querying-asr-models#streaming-transcription
 // https://docs.fireworks.ai/api-reference/audio-streaming-transcriptions
 impl RealtimeSttAdapter for FireworksAdapter {
+    fn provider_name(&self) -> &'static str {
+        "fireworks"
+    }
+
     fn supports_native_multichannel(&self) -> bool {
         false
     }

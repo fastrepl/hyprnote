@@ -9,6 +9,10 @@ use crate::adapter::RealtimeSttAdapter;
 // https://soniox.com/docs/stt/rt/real-time-transcription
 // https://soniox.com/docs/stt/api-reference/websocket-api
 impl RealtimeSttAdapter for SonioxAdapter {
+    fn provider_name(&self) -> &'static str {
+        "soniox"
+    }
+
     fn supports_native_multichannel(&self) -> bool {
         false
     }

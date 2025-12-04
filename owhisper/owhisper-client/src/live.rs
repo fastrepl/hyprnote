@@ -429,7 +429,6 @@ mod tests {
         let client = ListenClient::builder()
             .adapter::<SonioxAdapter>()
             .api_base(&format!("http://{}", proxy_base()))
-            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
             .params(owhisper_interface::ListenParams {
                 model: Some("stt-v3".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],
@@ -446,7 +445,6 @@ mod tests {
         let client = ListenClient::builder()
             .adapter::<SonioxAdapter>()
             .api_base(&format!("http://{}", proxy_base()))
-            .api_key(std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set"))
             .params(owhisper_interface::ListenParams {
                 model: Some("stt-v3".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],

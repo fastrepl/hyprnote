@@ -8,6 +8,10 @@ use crate::adapter::RealtimeSttAdapter;
 
 // https://www.assemblyai.com/docs/api-reference/streaming-api/streaming-api.md
 impl RealtimeSttAdapter for AssemblyAIAdapter {
+    fn provider_name(&self) -> &'static str {
+        "assemblyai"
+    }
+
     fn supports_native_multichannel(&self) -> bool {
         // https://www.assemblyai.com/docs/universal-streaming/multichannel-streams.md
         false

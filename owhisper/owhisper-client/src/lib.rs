@@ -9,8 +9,8 @@ pub(crate) mod test_utils;
 use std::marker::PhantomData;
 
 pub use adapter::{
-    is_local_host, AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
-    FireworksAdapter, RealtimeSttAdapter, SonioxAdapter,
+    append_provider_param, is_local_host, AdapterKind, ArgmaxAdapter, AssemblyAIAdapter,
+    BatchSttAdapter, DeepgramAdapter, FireworksAdapter, RealtimeSttAdapter, SonioxAdapter,
 };
 pub use batch::BatchClient;
 pub use error::Error;
@@ -70,7 +70,8 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
 
     fn build_request(&self, adapter: &A, channels: u8) -> hypr_ws::client::ClientRequestBuilder {
         let params = self.get_params();
-        let url = adapter.build_ws_url(self.get_api_base(), &params, channels);
+        let api_base = append_provider_param(self.get_api_base(), adapter.provider_name());
+        let url = adapter.build_ws_url(&api_base, &params, channels);
         let uri = url.to_string().parse().unwrap();
 
         let mut request = hypr_ws::client::ClientRequestBuilder::new(uri);

@@ -8,6 +8,10 @@ use crate::adapter::RealtimeSttAdapter;
 use super::{keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy, ArgmaxAdapter};
 
 impl RealtimeSttAdapter for ArgmaxAdapter {
+    fn provider_name(&self) -> &'static str {
+        "argmax"
+    }
+
     fn supports_native_multichannel(&self) -> bool {
         false
     }

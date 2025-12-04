@@ -10,6 +10,10 @@ use super::{
 };
 
 impl RealtimeSttAdapter for DeepgramAdapter {
+    fn provider_name(&self) -> &'static str {
+        "deepgram"
+    }
+
     fn supports_native_multichannel(&self) -> bool {
         true
     }

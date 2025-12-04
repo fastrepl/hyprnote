@@ -110,22 +110,13 @@ function FriendsSection() {
             ])}
           >
             <div className="aspect-40/21 bg-neutral-100 overflow-hidden">
-              {friend.image ? (
-                <Image
-                  src={friend.image}
-                  alt={friend.name}
-                  className="w-full h-full group-hover:scale-105 transition-transform duration-300"
-                  objectFit="cover"
-                  layout="fullWidth"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Icon
-                    icon="mdi:open-source-initiative"
-                    className="text-4xl text-neutral-300"
-                  />
-                </div>
-              )}
+              <Image
+                src={friend.image || "/api/images/hyprnote/default-cover.jpg"}
+                alt={friend.name}
+                className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                objectFit="cover"
+                layout="fullWidth"
+              />
             </div>
             <div className="p-4 flex-1 flex flex-col">
               <div className="flex items-start justify-between gap-2 mb-2">

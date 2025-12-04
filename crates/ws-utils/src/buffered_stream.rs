@@ -47,6 +47,27 @@ impl Default for SampleBuffer {
     }
 }
 
+/// A source of audio samples for use with [`BufferedAudioStream`].
+///
+/// # Contract
+///
+/// Implementations must follow these rules:
+///
+/// - Return `Poll::Ready(Some(samples))` only when `samples` is **non-empty**.
+///   Returning an empty `Vec` violates this contract and may cause busy-looping.
+///
+/// - Return `Poll::Pending` when no samples are currently available but the
+///   stream is not finished. The implementation **must** register the waker
+///   from `cx` before returning `Pending` to ensure the task will be woken.
+///
+/// - Return `Poll::Ready(None)` to signal end of stream.
+///
+/// # Why empty samples are problematic
+///
+/// If an implementation returns `Ready(Some(vec![]))`, the wrapper will loop
+/// and call `poll_samples` again immediately. If the implementation keeps
+/// returning empty samples without ever returning `Pending`, this creates a
+/// busy-loop that can starve other tasks on the executor.
 pub trait SampleSource {
     fn poll_samples(&mut self, cx: &mut Context<'_>) -> Poll<Option<Vec<f32>>>;
 }
@@ -82,6 +103,10 @@ impl<S: SampleSource + Unpin> Stream for BufferedAudioStream<S> {
 
             match self.source.poll_samples(cx) {
                 Poll::Ready(Some(samples)) => {
+                    debug_assert!(
+                        !samples.is_empty(),
+                        "SampleSource returned empty Vec; this violates the trait contract and may cause busy-looping"
+                    );
                     if samples.is_empty() {
                         continue;
                     }

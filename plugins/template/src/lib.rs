@@ -11,7 +11,10 @@ const PLUGIN_NAME: &str = "template";
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
-        .commands(tauri_specta::collect_commands![commands::render::<Wry>,])
+        .commands(tauri_specta::collect_commands![
+            commands::render::<Wry>,
+            commands::render_custom::<Wry>,
+        ])
         .typ::<hypr_gbnf::Grammar>()
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

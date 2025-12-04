@@ -14,6 +14,14 @@ async render(name: Template, ctx: Partial<{ [key in string]: JsonValue }>) : Pro
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async renderCustom(templateContent: string, ctx: Partial<{ [key in string]: JsonValue }>) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:template|render_custom", { templateContent, ctx }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

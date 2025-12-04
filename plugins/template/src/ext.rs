@@ -4,6 +4,12 @@ pub trait TemplatePluginExt<R: tauri::Runtime> {
         name: hypr_template::Template,
         ctx: serde_json::Map<String, serde_json::Value>,
     ) -> Result<String, String>;
+
+    fn render_custom(
+        &self,
+        template_content: &str,
+        ctx: serde_json::Map<String, serde_json::Value>,
+    ) -> Result<String, String>;
 }
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> TemplatePluginExt<R> for T {
@@ -14,6 +20,17 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> TemplatePluginExt<R> for T {
         ctx: serde_json::Map<String, serde_json::Value>,
     ) -> Result<String, String> {
         hypr_template::render(name, &ctx)
+            .map(|s| s.trim().to_string())
+            .map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn render_custom(
+        &self,
+        template_content: &str,
+        ctx: serde_json::Map<String, serde_json::Value>,
+    ) -> Result<String, String> {
+        hypr_template::render_custom(template_content, &ctx)
             .map(|s| s.trim().to_string())
             .map_err(|e| e.to_string())
     }

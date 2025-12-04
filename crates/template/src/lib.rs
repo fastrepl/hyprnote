@@ -170,6 +170,15 @@ pub fn render(
     }
 }
 
+pub fn render_custom(
+    template_content: &str,
+    ctx: &serde_json::Map<String, serde_json::Value>,
+) -> Result<String, crate::Error> {
+    let env = get_environment();
+    let tpl = env.template_from_str(template_content)?;
+    tpl.render(ctx).map_err(Into::into)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

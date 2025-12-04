@@ -133,10 +133,10 @@ impl WebSocketIO for ListenClientIO {
         }
     }
 
-    fn from_message(msg: Message) -> Option<Self::Output> {
+    fn decode(msg: Message) -> Result<Self::Output, hypr_ws::client::DecodeError> {
         match msg {
-            Message::Text(text) => Some(text.to_string()),
-            _ => None,
+            Message::Text(text) => Ok(text.to_string()),
+            _ => Err(hypr_ws::client::DecodeError::UnsupportedType),
         }
     }
 }
@@ -167,10 +167,10 @@ impl WebSocketIO for ListenClientDualIO {
         }
     }
 
-    fn from_message(msg: Message) -> Option<Self::Output> {
+    fn decode(msg: Message) -> Result<Self::Output, hypr_ws::client::DecodeError> {
         match msg {
-            Message::Text(text) => Some(text.to_string()),
-            _ => None,
+            Message::Text(text) => Ok(text.to_string()),
+            _ => Err(hypr_ws::client::DecodeError::UnsupportedType),
         }
     }
 }
@@ -194,7 +194,7 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
     > {
         let finalize_text = extract_finalize_text(&self.adapter);
         let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
-        let (raw_stream, inner) = ws
+        let (raw_stream, inner, _send_task) = ws
             .from_audio::<ListenClientIO>(self.initial_message, audio_stream)
             .await?;
 
@@ -236,7 +236,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
         let finalize_text = extract_finalize_text(&self.adapter);
         let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
-        let (raw_stream, inner) = ws
+        let (raw_stream, inner, _send_task) = ws
             .from_audio::<ListenClientDualIO>(self.initial_message, stream)
             .await?;
 
@@ -275,7 +275,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
             mic_ws.from_audio::<ListenClientIO>(self.initial_message.clone(), mic_outbound);
         let spk_connect = spk_ws.from_audio::<ListenClientIO>(self.initial_message, spk_outbound);
 
-        let ((mic_raw, mic_handle), (spk_raw, spk_handle)) =
+        let ((mic_raw, mic_handle, _mic_send_task), (spk_raw, spk_handle, _spk_send_task)) =
             tokio::try_join!(mic_connect, spk_connect)?;
 
         tokio::spawn(forward_dual_to_single(stream, mic_tx, spk_tx));

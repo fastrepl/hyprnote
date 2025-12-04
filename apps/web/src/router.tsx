@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/tanstackstart-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
@@ -23,6 +24,20 @@ export function getRouter() {
       );
     },
   });
+
+  if (!router.isServer) {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      sendDefaultPii: true,
+      integrations: [
+        Sentry.tanstackRouterBrowserTracingIntegration(router),
+        Sentry.replayIntegration(),
+      ],
+      tracesSampleRate: 1.0,
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+    });
+  }
 
   setupRouterSsrQueryIntegration({ router, queryClient });
 

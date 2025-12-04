@@ -20,7 +20,6 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ViewRouteRouteImport } from './routes/_view/route'
 import { Route as ViewIndexRouteImport } from './routes/_view/index'
-import { Route as WebhookStripeRouteImport } from './routes/webhook/stripe'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
@@ -145,11 +144,6 @@ const ViewIndexRoute = ViewIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ViewRouteRoute,
-} as any)
-const WebhookStripeRoute = WebhookStripeRouteImport.update({
-  id: '/webhook/stripe',
-  path: '/webhook/stripe',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const WebhookNangoRoute = WebhookNangoRouteImport.update({
   id: '/webhook/nango',
@@ -537,7 +531,6 @@ export interface FileRoutesByFullPath {
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
-  '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
@@ -617,7 +610,6 @@ export interface FileRoutesByTo {
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
-  '/webhook/stripe': typeof WebhookStripeRoute
   '/': typeof ViewIndexRoute
   '/app/account': typeof ViewAppAccountRoute
   '/app/checkout': typeof ViewAppCheckoutRoute
@@ -702,7 +694,6 @@ export interface FileRoutesById {
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
-  '/webhook/stripe': typeof WebhookStripeRoute
   '/_view/': typeof ViewIndexRoute
   '/_view/app/account': typeof ViewAppAccountRoute
   '/_view/app/checkout': typeof ViewAppCheckoutRoute
@@ -787,7 +778,6 @@ export interface FileRouteTypes {
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
-    | '/webhook/stripe'
     | '/'
     | '/app/account'
     | '/app/checkout'
@@ -867,7 +857,6 @@ export interface FileRouteTypes {
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
-    | '/webhook/stripe'
     | '/'
     | '/app/account'
     | '/app/checkout'
@@ -951,7 +940,6 @@ export interface FileRouteTypes {
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
-    | '/webhook/stripe'
     | '/_view/'
     | '/_view/app/account'
     | '/_view/app/checkout'
@@ -1022,7 +1010,6 @@ export interface RootRouteChildren {
   ApiShortcutsRoute: typeof ApiShortcutsRoute
   ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
-  WebhookStripeRoute: typeof WebhookStripeRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiTweetIdRoute: typeof ApiTweetIdRoute
 }
@@ -1105,13 +1092,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof ViewIndexRouteImport
       parentRoute: typeof ViewRouteRoute
-    }
-    '/webhook/stripe': {
-      id: '/webhook/stripe'
-      path: '/webhook/stripe'
-      fullPath: '/webhook/stripe'
-      preLoaderRoute: typeof WebhookStripeRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/webhook/nango': {
       id: '/webhook/nango'
@@ -1804,7 +1784,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShortcutsRoute: ApiShortcutsRoute,
   ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,
-  WebhookStripeRoute: WebhookStripeRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
 }

@@ -61,9 +61,11 @@ export function createProxyFromRequest(
     );
   }
 
-  const provider: SttProvider = isValidProvider(providerParam ?? "")
-    ? providerParam
-    : "deepgram";
+  // After validation above, providerParam is either null or a valid SttProvider
+  const provider: SttProvider =
+    providerParam && isValidProvider(providerParam)
+      ? providerParam
+      : "deepgram";
 
   switch (provider) {
     case "assemblyai":

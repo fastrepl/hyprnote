@@ -1,4 +1,14 @@
+//! Utilities for WebSocket-based audio streaming.
+//!
+//! This crate provides shared abstractions for audio buffering, sample sources,
+//! and connection management used by WebSocket audio clients.
+
+mod audio;
+mod buffered_stream;
 mod manager;
+
+pub use audio::AudioSamples;
+pub use buffered_stream::{BufferedAudioStream, SampleBuffer, SampleSource};
 pub use manager::*;
 
 use std::pin::Pin;

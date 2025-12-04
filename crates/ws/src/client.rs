@@ -7,17 +7,12 @@ use futures_util::{
 };
 use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
 
+pub use crate::config::{ConnectionConfig, KeepAliveConfig, RetryConfig};
 pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder, Utf8Bytes};
 
 #[derive(Debug)]
 enum ControlCommand {
     Finalize(Option<Message>),
-}
-
-#[derive(Clone)]
-struct KeepAliveConfig {
-    interval: std::time::Duration,
-    message: Message,
 }
 
 #[derive(Clone)]
@@ -27,10 +22,42 @@ pub struct WebSocketHandle {
 
 impl WebSocketHandle {
     pub async fn finalize_with_text(&self, text: Utf8Bytes) {
-        let _ = self
+        if self
             .control_tx
-            .send(ControlCommand::Finalize(Some(Message::Text(text))));
+            .send(ControlCommand::Finalize(Some(Message::Text(text))))
+            .is_err()
+        {
+            tracing::warn!("control channel closed, cannot send finalize command");
+        }
     }
+}
+
+pub struct SendTask {
+    handle: tokio::task::JoinHandle<Result<(), crate::Error>>,
+}
+
+impl SendTask {
+    pub async fn wait(self) -> Result<(), crate::Error> {
+        match self.handle.await {
+            Ok(result) => result,
+            Err(join_err) if join_err.is_panic() => {
+                std::panic::resume_unwind(join_err.into_panic());
+            }
+            Err(join_err) => {
+                tracing::error!("send task cancelled: {:?}", join_err);
+                Err(crate::Error::UnexpectedClose)
+            }
+        }
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum DecodeError {
+    #[error("unsupported message type")]
+    UnsupportedType,
+
+    #[error("deserialization failed: {0}")]
+    DeserializationError(#[from] serde_json::Error),
 }
 
 pub trait WebSocketIO: Send + 'static {
@@ -40,12 +67,13 @@ pub trait WebSocketIO: Send + 'static {
 
     fn to_input(data: Self::Data) -> Self::Input;
     fn to_message(input: Self::Input) -> Message;
-    fn from_message(msg: Message) -> Option<Self::Output>;
+    fn decode(msg: Message) -> Result<Self::Output, DecodeError>;
 }
 
 pub struct WebSocketClient {
     request: ClientRequestBuilder,
     keep_alive: Option<KeepAliveConfig>,
+    config: ConnectionConfig,
 }
 
 impl WebSocketClient {
@@ -53,7 +81,18 @@ impl WebSocketClient {
         Self {
             request,
             keep_alive: None,
+            config: ConnectionConfig::default(),
         }
+    }
+
+    pub fn with_config(mut self, config: ConnectionConfig) -> Self {
+        self.config = config;
+        self
+    }
+
+    pub fn with_keep_alive(mut self, config: KeepAliveConfig) -> Self {
+        self.keep_alive = Some(config);
+        self
     }
 
     pub fn with_keep_alive_message(
@@ -73,15 +112,18 @@ impl WebSocketClient {
         (
             impl Stream<Item = Result<T::Output, crate::Error>>,
             WebSocketHandle,
+            SendTask,
         ),
         crate::Error,
     > {
         let keep_alive_config = self.keep_alive.clone();
+        let close_grace_period = self.config.close_grace_period;
+        let retry_config = self.config.retry_config.clone();
         let ws_stream = (|| self.try_connect(self.request.clone()))
             .retry(
                 ConstantBuilder::default()
-                    .with_max_times(5)
-                    .with_delay(std::time::Duration::from_millis(500)),
+                    .with_max_times(retry_config.max_attempts)
+                    .with_delay(retry_config.delay),
             )
             .when(|e| {
                 tracing::error!("ws_connect_failed: {:?}", e);
@@ -96,12 +138,16 @@ impl WebSocketClient {
         let (error_tx, mut error_rx) = tokio::sync::mpsc::unbounded_channel::<crate::Error>();
         let handle = WebSocketHandle { control_tx };
 
-        let _send_task = tokio::spawn(async move {
+        let send_task = tokio::spawn(async move {
             if let Some(msg) = initial_message {
                 if let Err(e) = ws_sender.send(msg).await {
                     tracing::error!("ws_initial_message_failed: {:?}", e);
-                    let _ = error_tx.send(e.into());
-                    return;
+                    if error_tx.send(e.into()).is_err() {
+                        tracing::warn!("output stream already closed, cannot propagate error");
+                    }
+                    return Err(crate::Error::DataSend {
+                        context: "initial message".to_string(),
+                    });
                 }
             }
 
@@ -120,7 +166,9 @@ impl WebSocketClient {
                         if let Some(cfg) = keep_alive_config.as_ref() {
                             if let Err(e) = ws_sender.send(cfg.message.clone()).await {
                                 tracing::error!("ws_keepalive_failed: {:?}", e);
-                                let _ = error_tx.send(e.into());
+                                if error_tx.send(e.into()).is_err() {
+                                    tracing::warn!("output stream already closed, cannot propagate keepalive error");
+                                }
                                 break;
                             }
                             last_outbound_at = tokio::time::Instant::now();
@@ -132,7 +180,9 @@ impl WebSocketClient {
 
                         if let Err(e) = ws_sender.send(msg).await {
                             tracing::error!("ws_send_failed: {:?}", e);
-                            let _ = error_tx.send(e.into());
+                            if error_tx.send(e.into()).is_err() {
+                                tracing::warn!("output stream already closed, cannot propagate send error");
+                            }
                             break;
                         }
                         last_outbound_at = tokio::time::Instant::now();
@@ -141,7 +191,9 @@ impl WebSocketClient {
                         if let Some(msg) = maybe_msg {
                             if let Err(e) = ws_sender.send(msg).await {
                                 tracing::error!("ws_finalize_failed: {:?}", e);
-                                let _ = error_tx.send(e.into());
+                                if error_tx.send(e.into()).is_err() {
+                                    tracing::warn!("output stream already closed, cannot propagate finalize error");
+                                }
                                 break;
                             }
                             last_outbound_at = tokio::time::Instant::now();
@@ -151,11 +203,15 @@ impl WebSocketClient {
                 }
             }
 
-            // Wait 5 seconds before closing the connection
-            // TODO: This might not be enough to ensure receiving remaining transcripts from the server.
-            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-            let _ = ws_sender.close().await;
+            tracing::debug!("draining remaining messages before close");
+            tokio::time::sleep(close_grace_period).await;
+            if let Err(e) = ws_sender.close().await {
+                tracing::debug!("ws_close_failed: {:?}", e);
+            }
+            Ok(())
         });
+
+        let send_task_handle = SendTask { handle: send_task };
 
         let output_stream = async_stream::stream! {
             loop {
@@ -163,24 +219,16 @@ impl WebSocketClient {
                     Some(msg_result) = ws_receiver.next() => {
                         match msg_result {
                             Ok(msg) => {
-                                let is_text = matches!(msg, Message::Text(_));
-                                let is_binary = matches!(msg, Message::Binary(_));
-                                let text_preview = if let Message::Text(ref t) = msg {
-                                    Some(t.to_string())
-                                } else {
-                                    None
-                                };
-
                                 match msg {
                                     Message::Text(_) | Message::Binary(_) => {
-                                        if let Some(output) = T::from_message(msg) {
-                                            yield Ok(output);
-                                        } else if is_text {
-                                            if let Some(text) = text_preview {
-                                                tracing::warn!("ws_message_parse_failed: {}", text);
+                                        match T::decode(msg) {
+                                            Ok(output) => yield Ok(output),
+                                            Err(DecodeError::UnsupportedType) => {
+                                                tracing::debug!("ws_message_unsupported_type");
                                             }
-                                        } else if is_binary {
-                                            tracing::warn!("ws_binary_message_parse_failed");
+                                            Err(DecodeError::DeserializationError(e)) => {
+                                                tracing::warn!("ws_message_parse_failed: {}", e);
+                                            }
                                         }
                                     },
                                     Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => continue,
@@ -207,7 +255,7 @@ impl WebSocketClient {
             }
         };
 
-        Ok((output_stream, handle))
+        Ok((output_stream, handle, send_task_handle))
     }
 
     async fn try_connect(
@@ -219,12 +267,17 @@ impl WebSocketClient {
         >,
         crate::Error,
     > {
-        let req = req.into_client_request().unwrap();
+        let req = req
+            .into_client_request()
+            .map_err(|e| crate::Error::InvalidRequest(e.to_string()))?;
 
         tracing::info!("connect_async: {:?}", req.uri());
 
-        let (ws_stream, _) =
-            tokio::time::timeout(std::time::Duration::from_secs(8), connect_async(req)).await??;
+        let timeout_duration = self.config.connect_timeout;
+        let (ws_stream, _) = tokio::time::timeout(timeout_duration, connect_async(req))
+            .await
+            .map_err(|e| crate::Error::timeout(e, timeout_duration))?
+            .map_err(crate::Error::Connection)?;
 
         Ok(ws_stream)
     }

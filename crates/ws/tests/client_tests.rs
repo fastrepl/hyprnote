@@ -6,7 +6,7 @@ use tokio_tungstenite::{
     accept_async,
     tungstenite::{protocol::Message, ClientRequestBuilder},
 };
-use ws::client::{WebSocketClient, WebSocketIO};
+use ws::client::{DecodeError, WebSocketClient, WebSocketIO};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 struct TestMessage {
@@ -29,10 +29,12 @@ impl WebSocketIO for TestIO {
         Message::Text(serde_json::to_string(&input).unwrap().into())
     }
 
-    fn from_message(msg: Message) -> Option<Self::Output> {
+    fn decode(msg: Message) -> Result<Self::Output, DecodeError> {
         match msg {
-            Message::Text(text) => serde_json::from_str(&text).ok(),
-            _ => None,
+            Message::Text(text) => {
+                serde_json::from_str(&text).map_err(DecodeError::DeserializationError)
+            }
+            _ => Err(DecodeError::UnsupportedType),
         }
     }
 }
@@ -98,7 +100,7 @@ async fn test_basic_echo() {
     ];
 
     let stream = futures_util::stream::iter(messages.clone());
-    let (output, _handle) = client.from_audio::<TestIO>(None, stream).await.unwrap();
+    let (output, _handle, _send_task) = client.from_audio::<TestIO>(None, stream).await.unwrap();
 
     let received = collect_messages::<TestIO>(output, 2).await;
     assert_eq!(received, messages);
@@ -115,7 +117,7 @@ async fn test_finalize() {
         text: "initial".to_string(),
         count: 1,
     }]);
-    let (output, handle) = client.from_audio::<TestIO>(None, stream).await.unwrap();
+    let (output, handle, _send_task) = client.from_audio::<TestIO>(None, stream).await.unwrap();
 
     let final_msg = TestMessage {
         text: "final".to_string(),
@@ -169,7 +171,7 @@ async fn test_keep_alive() {
     );
 
     let stream = futures_util::stream::pending::<TestMessage>();
-    let (output, _handle) = client.from_audio::<TestIO>(None, stream).await.unwrap();
+    let (output, _handle, _send_task) = client.from_audio::<TestIO>(None, stream).await.unwrap();
 
     let received = collect_messages::<TestIO>(output, 1).await;
     assert_eq!(received[0].text, "done");
@@ -216,7 +218,7 @@ async fn test_retry() {
         text: "retry_test".to_string(),
         count: 1,
     }]);
-    let (output, _handle) = client.from_audio::<TestIO>(None, stream).await.unwrap();
+    let (output, _handle, _send_task) = client.from_audio::<TestIO>(None, stream).await.unwrap();
 
     let received = collect_messages::<TestIO>(output, 1).await;
     assert_eq!(received[0].text, "retry_test");

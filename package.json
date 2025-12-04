@@ -4,16 +4,21 @@
   },
   "packageManager": "pnpm@10.24.0",
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.34.0",
-    "@prettier/plugin-oxc": "^0.0.4",
+    "@dotenvx/dotenvx": "^1.51.1",
+    "@prettier/plugin-oxc": "0.0.5",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "esbuild": "0.25.11",
-    "prettier": "^3.6.2",
-    "turbo": "^2.6.1"
+    "prettier": "3.6.2",
+    "turbo": "2.6.1"
   },
   "pnpm": {
     "overrides": {
-      "esbuild": "0.25.11"
+      "esbuild": "0.25.11",
+      "@swc/core": "1.5.7",
+      "chokidar": "4.0.1",
+      "semver": "7.6.3",
+      "hosted-git-info@^6": "7.0.2",
+      "@wdio/logger": "8.28.0"
     }
   }
 }

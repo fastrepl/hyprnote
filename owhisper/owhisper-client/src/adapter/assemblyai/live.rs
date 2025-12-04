@@ -1,9 +1,10 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
 use serde::Deserialize;
 
 use super::AssemblyAIAdapter;
+use crate::adapter::parsing::{calculate_time_span, ms_to_secs, WordBuilder};
 use crate::adapter::RealtimeSttAdapter;
 
 // https://www.assemblyai.com/docs/api-reference/streaming-api/streaming-api.md
@@ -213,30 +214,20 @@ impl AssemblyAIAdapter {
         let speech_final = turn.end_of_turn;
         let from_finalize = false;
 
-        let words: Vec<Word> = turn
+        let words: Vec<_> = turn
             .words
             .iter()
             .map(|w| {
-                let start_secs = w.start as f64 / 1000.0;
-                let end_secs = w.end as f64 / 1000.0;
-
-                Word {
-                    word: w.text.clone(),
-                    start: start_secs,
-                    end: end_secs,
-                    confidence: w.confidence,
-                    speaker: None,
-                    punctuated_word: Some(w.text.clone()),
-                    language: turn.language_code.clone(),
-                }
+                WordBuilder::new(&w.text)
+                    .start(ms_to_secs(w.start))
+                    .end(ms_to_secs(w.end))
+                    .confidence(w.confidence)
+                    .language(turn.language_code.clone())
+                    .build()
             })
             .collect();
 
-        let (start, duration) = if let (Some(first), Some(last)) = (words.first(), words.last()) {
-            (first.start, last.end - first.start)
-        } else {
-            (0.0, 0.0)
-        };
+        let (start, duration) = calculate_time_span(&words);
 
         let transcript = if turn.turn_is_formatted {
             turn.transcript.clone()

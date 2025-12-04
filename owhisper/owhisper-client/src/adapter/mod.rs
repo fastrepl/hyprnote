@@ -4,6 +4,7 @@ mod deepgram;
 mod deepgram_compat;
 mod fireworks;
 mod owhisper;
+pub mod parsing;
 mod soniox;
 mod url_builder;
 

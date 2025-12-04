@@ -1,9 +1,10 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
 use serde::{Deserialize, Serialize};
 
 use super::SonioxAdapter;
+use crate::adapter::parsing::{ms_to_secs_opt, WordBuilder};
 use crate::adapter::RealtimeSttAdapter;
 
 // https://soniox.com/docs/stt/rt/real-time-transcription
@@ -229,24 +230,23 @@ impl SonioxAdapter {
 
             transcript.push_str(&t.text);
 
-            let start_secs = t.start_ms.unwrap_or(0) as f64 / 1000.0;
-            let end_secs = t.end_ms.unwrap_or(0) as f64 / 1000.0;
+            let start_secs = ms_to_secs_opt(t.start_ms);
+            let end_secs = ms_to_secs_opt(t.end_ms);
             let speaker = t.speaker.as_ref().and_then(|s| s.as_i32());
 
-            words.push(Word {
-                word: t.text.clone(),
-                start: start_secs,
-                end: end_secs,
-                confidence: t.confidence.unwrap_or(1.0),
-                speaker,
-                punctuated_word: Some(t.text.clone()),
-                language: None,
-            });
+            words.push(
+                WordBuilder::new(&t.text)
+                    .start(start_secs)
+                    .end(end_secs)
+                    .confidence(t.confidence.unwrap_or(1.0))
+                    .speaker(speaker)
+                    .build(),
+            );
         }
 
         let (start, duration) = if let (Some(first), Some(last)) = (tokens.first(), tokens.last()) {
-            let start_secs = first.start_ms.unwrap_or(0) as f64 / 1000.0;
-            let end_secs = last.end_ms.unwrap_or(0) as f64 / 1000.0;
+            let start_secs = ms_to_secs_opt(first.start_ms);
+            let end_secs = ms_to_secs_opt(last.end_ms);
             (start_secs, end_secs - start_secs)
         } else {
             (0.0, 0.0)

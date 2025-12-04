@@ -23,12 +23,7 @@ impl GladiaAdapter {
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
         if api_base.is_empty() {
-            return (
-                format!("wss://{}{}", DEFAULT_API_HOST, WS_PATH)
-                    .parse()
-                    .expect("invalid_default_ws_url"),
-                Vec::new(),
-            );
+            return (Self::default_ws_url(), Vec::new());
         }
 
         if let Some(proxy_result) = super::build_proxy_ws_url(api_base) {
@@ -37,22 +32,47 @@ impl GladiaAdapter {
 
         let parsed: url::Url = api_base.parse().expect("invalid_api_base");
         let existing_params = super::extract_query_params(&parsed);
+        let url = Self::build_url_with_scheme(&parsed, WS_PATH, true);
+        (url, existing_params)
+    }
 
+    pub(crate) fn build_http_url(api_base: &str) -> url::Url {
+        if api_base.is_empty() {
+            return Self::default_http_url();
+        }
+
+        let parsed: url::Url = api_base.parse().expect("invalid_api_base");
+        Self::build_url_with_scheme(&parsed, WS_PATH, false)
+    }
+
+    fn build_url_with_scheme(parsed: &url::Url, path: &str, use_ws: bool) -> url::Url {
         let host = parsed.host_str().unwrap_or(DEFAULT_API_HOST);
-        let scheme = if super::is_local_host(host) {
-            "ws"
-        } else {
-            "wss"
+        let is_local = super::is_local_host(host);
+        let scheme = match (use_ws, is_local) {
+            (true, true) => "ws",
+            (true, false) => "wss",
+            (false, true) => "http",
+            (false, false) => "https",
         };
         let host_with_port = match parsed.port() {
             Some(port) => format!("{host}:{port}"),
             None => host.to_string(),
         };
-
-        let url: url::Url = format!("{scheme}://{host_with_port}{WS_PATH}")
+        format!("{scheme}://{host_with_port}{path}")
             .parse()
-            .expect("invalid_ws_url");
-        (url, existing_params)
+            .expect("invalid_url")
+    }
+
+    fn default_ws_url() -> url::Url {
+        format!("wss://{}{}", DEFAULT_API_HOST, WS_PATH)
+            .parse()
+            .expect("invalid_default_ws_url")
+    }
+
+    fn default_http_url() -> url::Url {
+        format!("https://{}{}", DEFAULT_API_HOST, WS_PATH)
+            .parse()
+            .expect("invalid_default_http_url")
     }
 
     pub(crate) fn batch_api_url(api_base: &str) -> url::Url {
@@ -60,8 +80,7 @@ impl GladiaAdapter {
             return API_BASE.parse().expect("invalid_default_api_url");
         }
 
-        let url: url::Url = api_base.parse().expect("invalid_api_base");
-        url
+        api_base.parse().expect("invalid_api_base")
     }
 }
 

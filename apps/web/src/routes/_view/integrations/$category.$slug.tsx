@@ -27,7 +27,11 @@ export const Route = createFileRoute("/_view/integrations/$category/$slug")({
     return { doc };
   },
   head: ({ loaderData }) => {
-    const { doc } = loaderData!;
+    if (!loaderData?.doc) {
+      return { meta: [] };
+    }
+
+    const { doc } = loaderData;
     const metaTitle = `${doc.platform} ${doc.slug.charAt(0).toUpperCase() + doc.slug.slice(1).replace(/-/g, " ")} - Hyprnote`;
 
     return {

@@ -18,7 +18,11 @@ export const Route = createFileRoute("/_view/roadmap/$slug")({
     return { item };
   },
   head: ({ loaderData }) => {
-    const { item } = loaderData!;
+    if (!loaderData?.item) {
+      return { meta: [] };
+    }
+
+    const { item } = loaderData;
     const url = `https://hyprnote.com/roadmap/${item.slug}`;
 
     return {

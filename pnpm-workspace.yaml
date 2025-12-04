@@ -3,3 +3,5 @@ packages:
   - "packages/*"
   - "plugins/*"
   - "extensions/*"
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade

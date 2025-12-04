@@ -18,10 +18,15 @@ export const buildDeepgramUrl = (incomingUrl: URL) => {
 };
 
 export const createDeepgramProxy = (incomingUrl: URL): WsProxyConnection => {
+  const apiKey = env.DEEPGRAM_API_KEY;
+  if (!apiKey) {
+    throw new Error("DEEPGRAM_API_KEY not configured");
+  }
+
   const target = buildDeepgramUrl(incomingUrl);
   return new WsProxyConnection(target.toString(), {
     headers: {
-      Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
+      Authorization: `Token ${apiKey}`,
     },
     controlMessageTypes: CONTROL_MESSAGE_TYPES,
   });

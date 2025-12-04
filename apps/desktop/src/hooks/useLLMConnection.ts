@@ -20,6 +20,7 @@ import {
 } from "../components/settings/ai/llm/shared";
 import { env } from "../env";
 import * as main from "../store/tinybase/main";
+import { tracedFetch } from "../utils/traced-fetch";
 
 type LLMConnectionInfo = {
   providerId: ProviderId;
@@ -56,7 +57,7 @@ export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
 
     if (conn.providerId === "hyprnote") {
       const hyprnoteProvider = createOpenAICompatible({
-        fetch: tauriFetch,
+        fetch: tracedFetch,
         name: "hyprnote",
         baseURL: conn.baseUrl,
         apiKey: conn.apiKey,

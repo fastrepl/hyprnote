@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/bun";
 import { createMiddleware } from "hono/factory";
 import Stripe from "stripe";
 
@@ -31,7 +32,9 @@ export const verifyStripeWebhook = createMiddleware<{
     c.set("stripeEvent", event);
     await next();
   } catch (err) {
-    console.error(err);
+    Sentry.captureException(err, {
+      tags: { webhook: "stripe", step: "signature_verification" },
+    });
     const message = err instanceof Error ? err.message : "unknown_error";
     return c.text(message, 400);
   }

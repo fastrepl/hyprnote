@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.5",
-    "@posthog/ai": "^1.6.0",
+    "@posthog/ai": "^7.2.0",
     "@scalar/hono-api-reference": "^0.5.184",
     "@sentry/bun": "^10.28.0",
     "@supabase/supabase-js": "^2.86.0",

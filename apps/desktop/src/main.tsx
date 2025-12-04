@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode, useMemo } from "react";
@@ -18,6 +19,7 @@ import "@hypr/ui/globals.css";
 import { ErrorComponent, NotFoundComponent } from "./components/control";
 import { TaskManager } from "./components/task-manager";
 import { createToolRegistry } from "./contexts/tool-registry/core";
+import { env } from "./env";
 import { initExtensionGlobals } from "./extension-globals";
 import { routeTree } from "./routeTree.gen";
 import { type Store, STORE_ID, StoreComponent } from "./store/tinybase/main";
@@ -72,9 +74,17 @@ function App() {
   );
 }
 
-// Check if we're in an iframe context (extension host)
 const isIframeContext =
   typeof window !== "undefined" && window.self !== window.top;
+
+if (!isIframeContext && env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: env.VITE_SENTRY_DSN,
+    environment: import.meta.env.MODE,
+    tracePropagationTargets: [env.VITE_API_URL],
+    integrations: [Sentry.browserTracingIntegration()],
+  });
+}
 
 function AppWithTiny() {
   const manager = useCreateManager(() => {

@@ -1,6 +1,7 @@
 import "./instrument";
 
 import { apiReference } from "@scalar/hono-api-reference";
+import * as Sentry from "@sentry/bun";
 import { Hono } from "hono";
 import { openAPISpecs } from "hono-openapi";
 import { bodyLimit } from "hono/body-limit";
@@ -11,11 +12,13 @@ import { logger } from "hono/logger";
 import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
 import { API_TAGS, routes } from "./routes";
+import { sentryMiddleware } from "./sentry";
 import { verifyStripeWebhook } from "./stripe";
 import { requireSupabaseAuth } from "./supabase";
 
 const app = new Hono<AppBindings>();
 
+app.use(sentryMiddleware);
 app.use(logger());
 app.use(bodyLimit({ maxSize: 1024 * 1024 * 5 }));
 
@@ -27,6 +30,8 @@ const corsMiddleware = cors({
     "apikey",
     "content-type",
     "user-agent",
+    "sentry-trace",
+    "baggage",
   ],
   allowMethods: ["GET", "POST", "OPTIONS"],
 });
@@ -46,6 +51,13 @@ if (env.NODE_ENV !== "development") {
 }
 
 app.route("/", routes);
+
+app.onError((err, c) => {
+  Sentry.captureException(err, {
+    extra: { path: c.req.path, method: c.req.method },
+  });
+  return c.json({ error: "internal_server_error" }, 500);
+});
 
 app.notFound((c) => c.text("not_found", 404));
 

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/bun";
 import type { ServerWebSocket, WebSocketOptions } from "bun";
 
 import {
@@ -134,7 +135,10 @@ export class WsProxyConnection {
     try {
       socket.close(code, reason);
     } catch (error) {
-      console.error(error);
+      Sentry.captureException(error, {
+        tags: { operation: "socket_close" },
+        level: "warning",
+      });
     }
   }
 
@@ -156,11 +160,7 @@ export class WsProxyConnection {
       this.clientSocket &&
       this.clientSocket.readyState !== WebSocket.CLOSED
     ) {
-      try {
-        this.safeCloseSocket(this.clientSocket, validCode, reason);
-      } catch (error) {
-        console.error(error);
-      }
+      this.safeCloseSocket(this.clientSocket, validCode, reason);
     }
 
     if (
@@ -207,7 +207,9 @@ export class WsProxyConnection {
       try {
         this.upstream.send(queued.payload);
       } catch (error) {
-        console.error(error);
+        Sentry.captureException(error, {
+          tags: { operation: "upstream_send_flush" },
+        });
         this.closeConnections(DEFAULT_CLOSE_CODE, "upstream_send_failed");
         break;
       }
@@ -244,11 +246,17 @@ export class WsProxyConnection {
     try {
       const sendResult = this.clientSocket.send(payload);
       if (!sendResult) {
-        console.warn("downstream send backpressure detected");
+        Sentry.addBreadcrumb({
+          category: "websocket",
+          message: "downstream send backpressure detected",
+          level: "warning",
+        });
         this.closeConnections(DEFAULT_CLOSE_CODE, "downstream_backpressure");
       }
     } catch (error) {
-      console.error(error);
+      Sentry.captureException(error, {
+        tags: { operation: "downstream_send" },
+      });
       this.closeConnections(DEFAULT_CLOSE_CODE, "downstream_send_failed");
     }
   }
@@ -290,7 +298,10 @@ export class WsProxyConnection {
     });
 
     this.upstream.addEventListener("error", (error) => {
-      console.error(error);
+      Sentry.captureException(
+        error instanceof Error ? error : new Error("upstream_websocket_error"),
+        { tags: { operation: "upstream_error" } },
+      );
       if (!this.upstreamReady) {
         this.rejectUpstreamReadyWaiters(
           error instanceof Error ? error : new Error("upstream_error"),
@@ -368,7 +379,7 @@ export class WsProxyConnection {
     try {
       this.upstream.send(finalPayload);
     } catch (error) {
-      console.error(error);
+      Sentry.captureException(error, { tags: { operation: "upstream_send" } });
       this.closeConnections(DEFAULT_CLOSE_CODE, "upstream_send_failed");
     }
   }
@@ -376,13 +387,23 @@ export class WsProxyConnection {
   private enqueuePendingPayload(payload: WsPayload, isControlPayload = false) {
     const size = getPayloadSize(payload);
     if (size > MAX_PENDING_QUEUE_BYTES) {
-      console.warn("payload exceeded queue budget");
+      Sentry.addBreadcrumb({
+        category: "websocket",
+        message: "payload exceeded queue budget",
+        level: "warning",
+        data: { size },
+      });
       this.closeConnections(DEFAULT_CLOSE_CODE, "payload_too_large");
       return;
     }
 
     if (this.pendingBytes + size > MAX_PENDING_QUEUE_BYTES) {
-      console.warn("pending queue budget exceeded");
+      Sentry.addBreadcrumb({
+        category: "websocket",
+        message: "pending queue budget exceeded",
+        level: "warning",
+        data: { pendingBytes: this.pendingBytes, newSize: size },
+      });
       this.closeConnections(DEFAULT_CLOSE_CODE, "backpressure_limit");
       return;
     }

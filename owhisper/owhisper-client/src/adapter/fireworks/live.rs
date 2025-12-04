@@ -1,9 +1,10 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
 use serde::Deserialize;
 
 use super::FireworksAdapter;
+use crate::adapter::parsing::WordBuilder;
 use crate::adapter::RealtimeSttAdapter;
 
 // https://docs.fireworks.ai/guides/querying-asr-models#streaming-transcription
@@ -75,16 +76,15 @@ impl RealtimeSttAdapter for FireworksAdapter {
 
                 let is_final = words_to_use.iter().all(|w| w.is_final);
 
-                let words: Vec<Word> = words_to_use
+                let words: Vec<_> = words_to_use
                     .iter()
-                    .map(|w| Word {
-                        word: w.word.clone(),
-                        start: w.start.unwrap_or(0.0),
-                        end: w.end.unwrap_or(0.0),
-                        confidence: w.probability.unwrap_or(1.0),
-                        speaker: None,
-                        punctuated_word: Some(w.word.clone()),
-                        language: w.language.clone(),
+                    .map(|w| {
+                        WordBuilder::new(&w.word)
+                            .start(w.start.unwrap_or(0.0))
+                            .end(w.end.unwrap_or(0.0))
+                            .confidence(w.probability.unwrap_or(1.0))
+                            .language(w.language.clone())
+                            .build()
                     })
                     .collect();
 
@@ -121,17 +121,16 @@ impl RealtimeSttAdapter for FireworksAdapter {
         } else if !msg.text.is_empty() {
             let is_final = msg.words.iter().all(|w| w.is_final);
 
-            let words: Vec<Word> = msg
+            let words: Vec<_> = msg
                 .words
                 .iter()
-                .map(|w| Word {
-                    word: w.word.clone(),
-                    start: w.start.unwrap_or(0.0),
-                    end: w.end.unwrap_or(0.0),
-                    confidence: w.probability.unwrap_or(1.0),
-                    speaker: None,
-                    punctuated_word: Some(w.word.clone()),
-                    language: w.language.clone(),
+                .map(|w| {
+                    WordBuilder::new(&w.word)
+                        .start(w.start.unwrap_or(0.0))
+                        .end(w.end.unwrap_or(0.0))
+                        .confidence(w.probability.unwrap_or(1.0))
+                        .language(w.language.clone())
+                        .build()
                 })
                 .collect();
 

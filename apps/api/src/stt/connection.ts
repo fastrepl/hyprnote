@@ -17,6 +17,7 @@ type QueuedPayload = { payload: WsPayload; size: number };
 export type WsProxyOptions = {
   headers?: Record<string, string>;
   controlMessageTypes?: ReadonlySet<string>;
+  transformFirstMessage?: (payload: WsPayload) => WsPayload;
 };
 
 const DEFAULT_CONTROL_MESSAGE_TYPES = new Set<string>();
@@ -37,6 +38,8 @@ export class WsProxyConnection {
 
   private readonly headers?: Record<string, string>;
   private readonly controlMessageTypes: ReadonlySet<string>;
+  private readonly transformFirstMessage?: (payload: WsPayload) => WsPayload;
+  private hasTransformedFirst = false;
 
   constructor(
     private upstreamUrl: string,
@@ -45,6 +48,7 @@ export class WsProxyConnection {
     this.headers = options.headers;
     this.controlMessageTypes =
       options.controlMessageTypes ?? DEFAULT_CONTROL_MESSAGE_TYPES;
+    this.transformFirstMessage = options.transformFirstMessage;
   }
 
   private clearErrorTimeout() {
@@ -343,18 +347,26 @@ export class WsProxyConnection {
       return;
     }
 
+    let finalPayload = payload;
+    if (!this.hasTransformedFirst && this.transformFirstMessage) {
+      finalPayload = this.transformFirstMessage(payload);
+      this.hasTransformedFirst = true;
+    } else if (!this.hasTransformedFirst) {
+      this.hasTransformedFirst = true;
+    }
+
     const isControlPayload = payloadIsControlMessage(
-      payload,
+      finalPayload,
       this.controlMessageTypes,
     );
 
     if (!this.upstreamReady) {
-      this.enqueuePendingPayload(payload, isControlPayload);
+      this.enqueuePendingPayload(finalPayload, isControlPayload);
       return;
     }
 
     try {
-      this.upstream.send(payload);
+      this.upstream.send(finalPayload);
     } catch (error) {
       console.error(error);
       this.closeConnections(DEFAULT_CLOSE_CODE, "upstream_send_failed");

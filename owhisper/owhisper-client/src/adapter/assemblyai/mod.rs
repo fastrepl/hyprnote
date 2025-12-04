@@ -27,6 +27,10 @@ impl AssemblyAIAdapter {
             );
         }
 
+        if let Some(proxy_result) = super::build_proxy_ws_url(api_base) {
+            return proxy_result;
+        }
+
         if api_base.contains(".eu.") || api_base.ends_with("-eu") {
             return (
                 "wss://streaming.eu.assemblyai.com/v3/ws"
@@ -70,26 +74,25 @@ mod tests {
     }
 
     #[test]
-    fn test_streaming_ws_url_preserves_query_params() {
-        let (url, params) =
-            AssemblyAIAdapter::streaming_ws_url("https://api.hyprnote.com/v1?provider=assemblyai");
-        assert_eq!(url.as_str(), "wss://api.hyprnote.com/v1/v3/ws");
-        assert_eq!(params, vec![("provider".into(), "assemblyai".into())]);
-    }
-
-    #[test]
-    fn test_streaming_ws_url_no_double_v3_ws() {
-        let (url, params) = AssemblyAIAdapter::streaming_ws_url(
-            "https://api.hyprnote.com/v3/ws?provider=assemblyai",
-        );
-        assert_eq!(url.as_str(), "wss://api.hyprnote.com/v3/ws");
-        assert_eq!(params, vec![("provider".into(), "assemblyai".into())]);
-    }
-
-    #[test]
     fn test_streaming_ws_url_empty_uses_default() {
         let (url, params) = AssemblyAIAdapter::streaming_ws_url("");
         assert_eq!(url.as_str(), "wss://streaming.assemblyai.com/v3/ws");
         assert!(params.is_empty());
+    }
+
+    #[test]
+    fn test_streaming_ws_url_proxy() {
+        let (url, params) =
+            AssemblyAIAdapter::streaming_ws_url("https://api.hyprnote.com?provider=assemblyai");
+        assert_eq!(url.as_str(), "wss://api.hyprnote.com/listen");
+        assert_eq!(params, vec![("provider".into(), "assemblyai".into())]);
+    }
+
+    #[test]
+    fn test_streaming_ws_url_localhost() {
+        let (url, params) =
+            AssemblyAIAdapter::streaming_ws_url("http://localhost:8787?provider=assemblyai");
+        assert_eq!(url.as_str(), "ws://localhost:8787/listen");
+        assert_eq!(params, vec![("provider".into(), "assemblyai".into())]);
     }
 }

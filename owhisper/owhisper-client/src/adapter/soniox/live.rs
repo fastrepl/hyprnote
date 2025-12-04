@@ -44,13 +44,7 @@ impl RealtimeSttAdapter for SonioxAdapter {
         params: &ListenParams,
         channels: u8,
     ) -> Option<Message> {
-        let api_key = match api_key {
-            Some(key) => key,
-            None => {
-                tracing::warn!("soniox_api_key_missing");
-                return None;
-            }
-        };
+        let api_key = api_key.unwrap_or("");
 
         let requested = params.model.as_deref().unwrap_or("stt-v3");
         let model = match requested {

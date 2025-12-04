@@ -51,22 +51,17 @@ impl SonioxAdapter {
             );
         }
 
+        if let Some(proxy_result) = super::build_proxy_ws_url(api_base) {
+            return proxy_result;
+        }
+
         let parsed: url::Url = api_base.parse().expect("invalid_api_base");
-        let host = parsed.host_str().unwrap_or(DEFAULT_API_HOST);
         let existing_params = super::extract_query_params(&parsed);
 
-        if Self::is_soniox_host(host) {
-            let url: url::Url = format!("wss://{}{}", Self::ws_host(api_base), WS_PATH)
-                .parse()
-                .expect("invalid_ws_url");
-            (url, existing_params)
-        } else {
-            let mut url = parsed;
-            url.set_query(None);
-            super::append_path_if_missing(&mut url, WS_PATH);
-            super::set_scheme_from_host(&mut url);
-            (url, existing_params)
-        }
+        let url: url::Url = format!("wss://{}{}", Self::ws_host(api_base), WS_PATH)
+            .parse()
+            .expect("invalid_ws_url");
+        (url, existing_params)
     }
 }
 
@@ -75,37 +70,43 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_build_ws_url_from_base_empty() {
-        let (url, params) = SonioxAdapter::build_ws_url_from_base("");
-        assert_eq!(url.as_str(), "wss://stt-rt.soniox.com/transcribe-websocket");
-        assert!(params.is_empty());
-    }
+    fn test_build_ws_url_from_base() {
+        let cases = [
+            ("", "wss://stt-rt.soniox.com/transcribe-websocket", vec![]),
+            (
+                "https://api.soniox.com",
+                "wss://stt-rt.soniox.com/transcribe-websocket",
+                vec![],
+            ),
+            (
+                "https://api.hyprnote.com?provider=soniox",
+                "wss://api.hyprnote.com/listen",
+                vec![("provider", "soniox")],
+            ),
+            (
+                "https://api.hyprnote.com/listen?provider=soniox",
+                "wss://api.hyprnote.com/listen",
+                vec![("provider", "soniox")],
+            ),
+            (
+                "http://localhost:8787/listen?provider=soniox",
+                "ws://localhost:8787/listen",
+                vec![("provider", "soniox")],
+            ),
+        ];
 
-    #[test]
-    fn test_build_ws_url_from_base_soniox() {
-        let (url, params) = SonioxAdapter::build_ws_url_from_base("https://api.soniox.com");
-        assert_eq!(url.as_str(), "wss://stt-rt.soniox.com/transcribe-websocket");
-        assert!(params.is_empty());
-    }
-
-    #[test]
-    fn test_build_ws_url_from_base_proxy() {
-        let (url, params) = SonioxAdapter::build_ws_url_from_base(
-            "https://api.hyprnote.com/listen?provider=soniox",
-        );
-        assert_eq!(
-            url.as_str(),
-            "wss://api.hyprnote.com/listen/transcribe-websocket"
-        );
-        assert_eq!(params, vec![("provider".into(), "soniox".into())]);
-    }
-
-    #[test]
-    fn test_build_ws_url_from_base_proxy_no_double_path() {
-        let (url, params) = SonioxAdapter::build_ws_url_from_base(
-            "https://api.hyprnote.com/transcribe-websocket?provider=soniox",
-        );
-        assert_eq!(url.as_str(), "wss://api.hyprnote.com/transcribe-websocket");
-        assert_eq!(params, vec![("provider".into(), "soniox".into())]);
+        for (input, expected_url, expected_params) in cases {
+            let (url, params) = SonioxAdapter::build_ws_url_from_base(input);
+            assert_eq!(url.as_str(), expected_url, "input: {}", input);
+            assert_eq!(
+                params,
+                expected_params
+                    .into_iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect::<Vec<_>>(),
+                "input: {}",
+                input
+            );
+        }
     }
 }

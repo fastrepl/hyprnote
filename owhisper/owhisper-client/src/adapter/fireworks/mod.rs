@@ -56,26 +56,21 @@ impl FireworksAdapter {
             return default_url();
         }
 
+        if let Some(proxy_result) = super::build_proxy_ws_url(api_base) {
+            return proxy_result;
+        }
+
         let parsed: url::Url = match api_base.parse() {
             Ok(u) => u,
             Err(_) => return default_url(),
         };
 
-        let host = parsed.host_str().unwrap_or(DEFAULT_API_HOST);
         let existing_params = super::extract_query_params(&parsed);
 
-        if Self::is_fireworks_host(host) {
-            let url: url::Url = format!("wss://{}{}", Self::ws_host(api_base), WS_PATH)
-                .parse()
-                .expect("invalid_ws_url");
-            (url, existing_params)
-        } else {
-            let mut url = parsed;
-            url.set_query(None);
-            super::append_path_if_missing(&mut url, WS_PATH);
-            super::set_scheme_from_host(&mut url);
-            (url, existing_params)
-        }
+        let url: url::Url = format!("wss://{}{}", Self::ws_host(api_base), WS_PATH)
+            .parse()
+            .expect("invalid_ws_url");
+        (url, existing_params)
     }
 }
 
@@ -108,22 +103,16 @@ mod tests {
         let (url, params) = FireworksAdapter::build_ws_url_from_base(
             "https://api.hyprnote.com/listen?provider=fireworks",
         );
-        assert_eq!(
-            url.as_str(),
-            "wss://api.hyprnote.com/listen/v1/audio/transcriptions/streaming"
-        );
+        assert_eq!(url.as_str(), "wss://api.hyprnote.com/listen");
         assert_eq!(params, vec![("provider".into(), "fireworks".into())]);
     }
 
     #[test]
-    fn test_build_ws_url_from_base_proxy_no_double_path() {
+    fn test_build_ws_url_from_base_localhost() {
         let (url, params) = FireworksAdapter::build_ws_url_from_base(
-            "https://api.hyprnote.com/v1/audio/transcriptions/streaming?provider=fireworks",
+            "http://localhost:8787/listen?provider=fireworks",
         );
-        assert_eq!(
-            url.as_str(),
-            "wss://api.hyprnote.com/v1/audio/transcriptions/streaming"
-        );
+        assert_eq!(url.as_str(), "ws://localhost:8787/listen");
         assert_eq!(params, vec![("provider".into(), "fireworks".into())]);
     }
 }

@@ -385,7 +385,7 @@ fn extract_finalize_text<A: RealtimeSttAdapter>(adapter: &A) -> Utf8Bytes {
 #[cfg(test)]
 mod tests {
     use crate::test_utils::{run_dual_test, run_single_test};
-    use crate::{DeepgramAdapter, ListenClient, SonioxAdapter};
+    use crate::{AssemblyAIAdapter, DeepgramAdapter, ListenClient, SonioxAdapter};
 
     fn proxy_base() -> String {
         std::env::var("PROXY_URL").unwrap_or_else(|_| "localhost:8787".to_string())
@@ -453,5 +453,37 @@ mod tests {
             .build_dual();
 
         run_dual_test(client, "proxy-soniox").await;
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_proxy_assemblyai_single() {
+        let client = ListenClient::builder()
+            .adapter::<AssemblyAIAdapter>()
+            .api_base(&format!("http://{}", proxy_base()))
+            .params(owhisper_interface::ListenParams {
+                model: Some("universal-streaming-english".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_single();
+
+        run_single_test(client, "proxy-assemblyai").await;
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_proxy_assemblyai_dual() {
+        let client = ListenClient::builder()
+            .adapter::<AssemblyAIAdapter>()
+            .api_base(&format!("http://{}", proxy_base()))
+            .params(owhisper_interface::ListenParams {
+                model: Some("universal-streaming-english".to_string()),
+                languages: vec![hypr_language::ISO639::En.into()],
+                ..Default::default()
+            })
+            .build_dual();
+
+        run_dual_test(client, "proxy-assemblyai").await;
     }
 }

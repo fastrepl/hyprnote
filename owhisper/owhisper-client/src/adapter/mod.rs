@@ -108,11 +108,30 @@ pub fn is_hyprnote_cloud_host(base_url: &str) -> bool {
     host_matches(base_url, |h| h.contains("hyprnote.com"))
 }
 
-pub fn append_provider_param(base_url: &str, provider: &str) -> String {
-    if !is_hyprnote_cloud_host(base_url) {
-        return base_url.to_string();
+pub fn build_proxy_ws_url(api_base: &str) -> Option<(url::Url, Vec<(String, String)>)> {
+    const PROXY_PATH: &str = "/listen";
+
+    if api_base.is_empty() {
+        return None;
     }
 
+    let parsed: url::Url = api_base.parse().ok()?;
+    let host = parsed.host_str()?;
+
+    if !host.contains("hyprnote.com") && !is_local_host(host) {
+        return None;
+    }
+
+    let existing_params = extract_query_params(&parsed);
+    let mut url = parsed;
+    url.set_query(None);
+    url.set_path(PROXY_PATH);
+    set_scheme_from_host(&mut url);
+
+    Some((url, existing_params))
+}
+
+pub fn append_provider_param(base_url: &str, provider: &str) -> String {
     match url::Url::parse(base_url) {
         Ok(mut url) => {
             url.query_pairs_mut().append_pair("provider", provider);
@@ -149,6 +168,83 @@ impl AdapterKind {
             Self::Fireworks
         } else {
             Self::Deepgram
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_proxy_ws_url() {
+        let cases: &[(&str, Option<(&str, Vec<(&str, &str)>)>)] = &[
+            ("", None),
+            ("https://api.deepgram.com", None),
+            ("https://api.soniox.com", None),
+            ("https://api.fireworks.ai", None),
+            ("https://api.assemblyai.com", None),
+            (
+                "https://api.hyprnote.com?provider=soniox",
+                Some((
+                    "wss://api.hyprnote.com/listen",
+                    vec![("provider", "soniox")],
+                )),
+            ),
+            (
+                "https://api.hyprnote.com/listen?provider=deepgram",
+                Some((
+                    "wss://api.hyprnote.com/listen",
+                    vec![("provider", "deepgram")],
+                )),
+            ),
+            (
+                "https://api.hyprnote.com/some/path?provider=fireworks",
+                Some((
+                    "wss://api.hyprnote.com/listen",
+                    vec![("provider", "fireworks")],
+                )),
+            ),
+            (
+                "http://localhost:8787?provider=soniox",
+                Some(("ws://localhost:8787/listen", vec![("provider", "soniox")])),
+            ),
+            (
+                "http://localhost:8787/listen?provider=deepgram",
+                Some(("ws://localhost:8787/listen", vec![("provider", "deepgram")])),
+            ),
+            (
+                "http://127.0.0.1:8787?provider=assemblyai",
+                Some((
+                    "ws://127.0.0.1:8787/listen",
+                    vec![("provider", "assemblyai")],
+                )),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let result = build_proxy_ws_url(input);
+            match (result, expected) {
+                (None, None) => {}
+                (Some((url, params)), Some((expected_url, expected_params))) => {
+                    assert_eq!(url.as_str(), *expected_url, "input: {}", input);
+                    assert_eq!(
+                        params,
+                        expected_params
+                            .iter()
+                            .map(|(k, v)| (k.to_string(), v.to_string()))
+                            .collect::<Vec<_>>(),
+                        "input: {}",
+                        input
+                    );
+                }
+                (result, expected) => {
+                    panic!(
+                        "input: {}, expected: {:?}, got: {:?}",
+                        input, expected, result
+                    );
+                }
+            }
         }
     }
 }

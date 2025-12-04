@@ -123,7 +123,7 @@ function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
 }
 
 function HeroSection() {
-  const { data: stargazers = [] } = useGitHubStargazers(500);
+  const { data: stargazers = [] } = useGitHubStargazers();
 
   return (
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 relative overflow-hidden">

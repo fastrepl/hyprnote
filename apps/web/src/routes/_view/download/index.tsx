@@ -70,14 +70,14 @@ function Component() {
                   available={true}
                 />
                 <DownloadCard
-                  iconName="simple-icons:windows"
-                  spec="Windows 10+"
-                  downloadUrl="#"
-                  available={false}
+                  iconName="simple-icons:linux"
+                  spec="Linux"
+                  downloadUrl="/download/linux"
+                  available={true}
                 />
                 <DownloadCard
-                  iconName="simple-icons:linux"
-                  spec="Ubuntu, Debian"
+                  iconName="simple-icons:windows"
+                  spec="Windows"
                   downloadUrl="#"
                   available={false}
                 />

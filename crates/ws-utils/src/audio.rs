@@ -16,7 +16,7 @@ impl AudioSamples {
     pub fn is_empty(&self) -> bool {
         match self {
             AudioSamples::Mono(s) => s.is_empty(),
-            AudioSamples::Stereo { left, .. } => left.is_empty(),
+            AudioSamples::Stereo { left, right } => left.is_empty() && right.is_empty(),
         }
     }
 }

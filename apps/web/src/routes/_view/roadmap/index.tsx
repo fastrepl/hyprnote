@@ -6,6 +6,9 @@ import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
+import { DownloadButton } from "@/components/download-button";
+import { GithubStars } from "@/components/github-stars";
+import { Image } from "@/components/image";
 import { MDXLink } from "@/components/mdx";
 
 export const Route = createFileRoute("/_view/roadmap/")({
@@ -77,27 +80,32 @@ function Component() {
           <KanbanView done={done} inProgress={inProgress} todo={todo} />
           <ColumnView done={done} inProgress={inProgress} todo={todo} />
 
-          <div className="mt-16 bg-stone-50 border border-neutral-200 rounded-lg p-8 text-center">
-            <h3 className="text-2xl font-serif text-stone-600 mb-4">
-              Have a feature request?
-            </h3>
-            <p className="text-neutral-600 mb-6">
-              We'd love to hear your ideas. Join our community and share your
-              thoughts.
-            </p>
-            <a
-              href="https://github.com/fastrepl/hyprnote/discussions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn([
-                "inline-block px-6 py-3 text-base font-medium rounded-full",
-                "bg-linear-to-t from-stone-600 to-stone-500 text-white",
-                "hover:scale-105 active:scale-95 transition-transform",
-              ])}
-            >
-              Share feedback
-            </a>
-          </div>
+          <section className="mt-16 py-16 bg-linear-to-t from-stone-50/30 to-stone-100/30 -mx-6 px-6">
+            <div className="flex flex-col gap-6 items-center text-center">
+              <div className="mb-4 size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent">
+                <Image
+                  src="/api/images/hyprnote/icon.png"
+                  alt="Hyprnote"
+                  width={144}
+                  height={144}
+                  className="size-36 mx-auto rounded-[40px] border border-neutral-100"
+                />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-serif">
+                Have a feature request?
+              </h2>
+              <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+                We'd love to hear your ideas. Join our community and share your
+                thoughts.
+              </p>
+              <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <DownloadButton />
+                <div className="hidden sm:block">
+                  <GithubStars />
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -305,7 +313,7 @@ function RoadmapCard({
           <h3
             className={cn([
               "font-medium text-stone-600 group-hover:text-stone-800",
-              "transition-colors",
+              "transition-colors break-words",
               compact ? "text-sm" : "text-base",
             ])}
           >
@@ -331,7 +339,7 @@ function RoadmapCard({
         </div>
       </div>
       {!compact && (
-        <div className="prose prose-sm prose-stone max-w-none">
+        <div className="prose prose-sm prose-stone max-w-none break-words">
           <MDXContent code={item.mdx} components={{ a: MDXLink }} />
         </div>
       )}

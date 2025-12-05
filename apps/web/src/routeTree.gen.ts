@@ -77,6 +77,8 @@ import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/produ
 import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit/app'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
 import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
+import { Route as ViewDownloadLinuxDebRouteImport } from './routes/_view/download/linux-deb'
+import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/download/linux-appimage'
 import { Route as ViewDownloadLinuxRouteImport } from './routes/_view/download/linux'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
@@ -436,6 +438,17 @@ const ViewDownloadWindowsRoute = ViewDownloadWindowsRouteImport.update({
   path: '/download/windows',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewDownloadLinuxDebRoute = ViewDownloadLinuxDebRouteImport.update({
+  id: '/download/linux-deb',
+  path: '/download/linux-deb',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewDownloadLinuxAppimageRoute =
+  ViewDownloadLinuxAppimageRouteImport.update({
+    id: '/download/linux-appimage',
+    path: '/download/linux-appimage',
+    getParentRoute: () => ViewRouteRoute,
+  } as any)
 const ViewDownloadLinuxRoute = ViewDownloadLinuxRouteImport.update({
   id: '/download/linux',
   path: '/download/linux',
@@ -550,6 +563,8 @@ export interface FileRoutesByFullPath {
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/download/linux': typeof ViewDownloadLinuxRoute
+  '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
+  '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
@@ -630,6 +645,8 @@ export interface FileRoutesByTo {
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/download/linux': typeof ViewDownloadLinuxRoute
+  '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
+  '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
@@ -715,6 +732,8 @@ export interface FileRoutesById {
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/download/linux': typeof ViewDownloadLinuxRoute
+  '/_view/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
+  '/_view/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/_view/download/windows': typeof ViewDownloadWindowsRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
   '/_view/press-kit/app': typeof ViewPressKitAppRoute
@@ -800,6 +819,8 @@ export interface FileRouteTypes {
     | '/download/apple-intel'
     | '/download/apple-silicon'
     | '/download/linux'
+    | '/download/linux-appimage'
+    | '/download/linux-deb'
     | '/download/windows'
     | '/legal/$slug'
     | '/press-kit/app'
@@ -880,6 +901,8 @@ export interface FileRouteTypes {
     | '/download/apple-intel'
     | '/download/apple-silicon'
     | '/download/linux'
+    | '/download/linux-appimage'
+    | '/download/linux-deb'
     | '/download/windows'
     | '/legal/$slug'
     | '/press-kit/app'
@@ -964,6 +987,8 @@ export interface FileRouteTypes {
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
     | '/_view/download/linux'
+    | '/_view/download/linux-appimage'
+    | '/_view/download/linux-deb'
     | '/_view/download/windows'
     | '/_view/legal/$slug'
     | '/_view/press-kit/app'
@@ -1505,6 +1530,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadWindowsRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/download/linux-deb': {
+      id: '/_view/download/linux-deb'
+      path: '/download/linux-deb'
+      fullPath: '/download/linux-deb'
+      preLoaderRoute: typeof ViewDownloadLinuxDebRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/download/linux-appimage': {
+      id: '/_view/download/linux-appimage'
+      path: '/download/linux-appimage'
+      fullPath: '/download/linux-appimage'
+      preLoaderRoute: typeof ViewDownloadLinuxAppimageRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/download/linux': {
       id: '/_view/download/linux'
       path: '/download/linux'
@@ -1677,6 +1716,8 @@ interface ViewRouteRouteChildren {
   ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
   ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute
+  ViewDownloadLinuxAppimageRoute: typeof ViewDownloadLinuxAppimageRoute
+  ViewDownloadLinuxDebRoute: typeof ViewDownloadLinuxDebRoute
   ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
   ViewLegalSlugRoute: typeof ViewLegalSlugRoute
   ViewPressKitAppRoute: typeof ViewPressKitAppRoute
@@ -1738,6 +1779,8 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
   ViewDownloadLinuxRoute: ViewDownloadLinuxRoute,
+  ViewDownloadLinuxAppimageRoute: ViewDownloadLinuxAppimageRoute,
+  ViewDownloadLinuxDebRoute: ViewDownloadLinuxDebRoute,
   ViewDownloadWindowsRoute: ViewDownloadWindowsRoute,
   ViewLegalSlugRoute: ViewLegalSlugRoute,
   ViewPressKitAppRoute: ViewPressKitAppRoute,

@@ -56,7 +56,7 @@ function Component() {
               <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
                 Desktop
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DownloadCard
                   iconName="simple-icons:apple"
                   spec="macOS 14.2+ (Apple Silicon)"
@@ -70,16 +70,28 @@ function Component() {
                   available={true}
                 />
                 <DownloadCard
-                  iconName="simple-icons:linux"
-                  spec="Linux"
-                  downloadUrl="/download/linux"
-                  available={true}
-                />
-                <DownloadCard
                   iconName="simple-icons:windows"
                   spec="Windows"
                   downloadUrl="#"
                   available={false}
+                />
+              </div>
+
+              <h2 className="text-2xl font-serif tracking-tight mb-6 mt-16 text-center">
+                Linux
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <DownloadCard
+                  iconName="simple-icons:linux"
+                  spec="Linux (AppImage)"
+                  downloadUrl="/download/linux-appimage"
+                  available={true}
+                />
+                <DownloadCard
+                  iconName="simple-icons:linux"
+                  spec="Linux (.deb)"
+                  downloadUrl="/download/linux-deb"
+                  available={true}
                 />
               </div>
             </div>

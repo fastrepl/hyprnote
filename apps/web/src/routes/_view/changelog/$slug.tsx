@@ -128,10 +128,12 @@ function HeroSection({ changelog }: { changelog: ChangelogWithMeta }) {
 }
 
 function DownloadButtons({ version }: { version: string }) {
-  const baseUrl = `https://github.com/fastrepl/hyprnote/releases/download/desktop_v${version}`;
+  const isNightly = version.includes("-nightly");
+  const channel = isNightly ? "nightly" : "stable";
+  const baseUrl = `https://desktop2.hyprnote.com/download/${version}`;
   const [isOpen, setIsOpen] = useState(false);
   const [detectedOS, setDetectedOS] = useState<
-    "apple-silicon" | "apple-intel" | "linux"
+    "apple-silicon" | "apple-intel" | "linux-appimage" | "linux-deb"
   >("apple-silicon");
 
   useEffect(() => {
@@ -139,7 +141,7 @@ function DownloadButtons({ version }: { version: string }) {
     if (userAgent.includes("mac")) {
       setDetectedOS("apple-silicon");
     } else if (userAgent.includes("linux")) {
-      setDetectedOS("linux");
+      setDetectedOS("linux-appimage");
     }
   }, []);
 
@@ -148,19 +150,25 @@ function DownloadButtons({ version }: { version: string }) {
       id: "apple-silicon" as const,
       icon: "ri:apple-fill",
       label: "Apple Silicon",
-      url: `${baseUrl}/hyprnote-macos-aarch64.dmg`,
+      url: `${baseUrl}/dmg-aarch64?channel=${channel}`,
     },
     {
       id: "apple-intel" as const,
       icon: "ri:apple-fill",
       label: "Intel Mac",
-      url: `${baseUrl}/hyprnote-macos-x86_64.dmg`,
+      url: `${baseUrl}/dmg-x86_64?channel=${channel}`,
     },
     {
-      id: "linux" as const,
+      id: "linux-appimage" as const,
       icon: "simple-icons:linux",
-      label: "Linux",
-      url: `${baseUrl}/hyprnote-linux-x86_64.AppImage`,
+      label: "Linux (AppImage)",
+      url: `${baseUrl}/appimage-x86_64?channel=${channel}`,
+    },
+    {
+      id: "linux-deb" as const,
+      icon: "simple-icons:linux",
+      label: "Linux (.deb)",
+      url: `${baseUrl}/deb-x86_64?channel=${channel}`,
     },
   ];
 

@@ -8,6 +8,75 @@ use owhisper_interface::MixedMessage;
 use crate::live::{FinalizeHandle, ListenClientDualInput, ListenClientInput};
 use crate::{ListenClient, ListenClientDual, RealtimeSttAdapter};
 
+#[macro_export]
+macro_rules! define_realtime_e2e_tests {
+    (
+        adapter = $adapter:ty,
+        provider = $provider:expr,
+        env_key = $env_key:expr,
+        base = $base:expr
+    ) => {
+        #[tokio::test]
+        #[ignore]
+        async fn test_build_single() {
+            let client = $crate::ListenClient::builder()
+                .adapter::<$adapter>()
+                .api_base($base)
+                .api_key(std::env::var($env_key).expect(concat!($env_key, " not set")))
+                .params(owhisper_interface::ListenParams::default())
+                .build_single();
+
+            $crate::test_utils::run_single_test(client, $provider).await;
+        }
+
+        #[tokio::test]
+        #[ignore]
+        async fn test_build_dual() {
+            let client = $crate::ListenClient::builder()
+                .adapter::<$adapter>()
+                .api_base($base)
+                .api_key(std::env::var($env_key).expect(concat!($env_key, " not set")))
+                .params(owhisper_interface::ListenParams::default())
+                .build_dual();
+
+            $crate::test_utils::run_dual_test(client, $provider).await;
+        }
+    };
+    (
+        adapter = $adapter:ty,
+        provider = $provider:expr,
+        env_key = $env_key:expr,
+        base = $base:expr,
+        params = $params:expr
+    ) => {
+        #[tokio::test]
+        #[ignore]
+        async fn test_build_single() {
+            let client = $crate::ListenClient::builder()
+                .adapter::<$adapter>()
+                .api_base($base)
+                .api_key(std::env::var($env_key).expect(concat!($env_key, " not set")))
+                .params($params)
+                .build_single();
+
+            $crate::test_utils::run_single_test(client, $provider).await;
+        }
+
+        #[tokio::test]
+        #[ignore]
+        async fn test_build_dual() {
+            let client = $crate::ListenClient::builder()
+                .adapter::<$adapter>()
+                .api_base($base)
+                .api_key(std::env::var($env_key).expect(concat!($env_key, " not set")))
+                .params($params)
+                .build_dual();
+
+            $crate::test_utils::run_dual_test(client, $provider).await;
+        }
+    };
+}
+
 fn timeout_secs() -> u64 {
     std::env::var("TEST_TIMEOUT_SECS")
         .ok()

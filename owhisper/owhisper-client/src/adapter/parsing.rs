@@ -1,4 +1,4 @@
-use owhisper_interface::stream::Word;
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse, Word};
 
 pub fn parse_speaker_id(value: &str) -> Option<usize> {
     if let Ok(n) = value.parse::<usize>() {
@@ -42,6 +42,132 @@ pub fn calculate_time_span<T: HasTimeSpan>(words: &[T]) -> (f64, f64) {
             (start, end - start)
         }
         _ => (0.0, 0.0),
+    }
+}
+
+pub fn build_transcript_response(
+    transcript: String,
+    words: Vec<Word>,
+    is_final: bool,
+    speech_final: bool,
+    from_finalize: bool,
+    languages: Vec<String>,
+    channel_index: Vec<i32>,
+) -> StreamResponse {
+    let (start, duration) = calculate_time_span(&words);
+
+    let channel = Channel {
+        alternatives: vec![Alternatives {
+            transcript,
+            words,
+            confidence: 1.0,
+            languages,
+        }],
+    };
+
+    StreamResponse::TranscriptResponse {
+        is_final,
+        speech_final,
+        from_finalize,
+        start,
+        duration,
+        channel,
+        metadata: Metadata::default(),
+        channel_index,
+    }
+}
+
+pub struct TranscriptResponseBuilder {
+    transcript: String,
+    words: Vec<Word>,
+    is_final: bool,
+    speech_final: bool,
+    from_finalize: bool,
+    languages: Vec<String>,
+    channel_index: Vec<i32>,
+    start: Option<f64>,
+    duration: Option<f64>,
+}
+
+impl TranscriptResponseBuilder {
+    pub fn new(transcript: impl Into<String>) -> Self {
+        Self {
+            transcript: transcript.into(),
+            words: Vec::new(),
+            is_final: false,
+            speech_final: false,
+            from_finalize: false,
+            languages: Vec::new(),
+            channel_index: vec![0],
+            start: None,
+            duration: None,
+        }
+    }
+
+    pub fn words(mut self, words: Vec<Word>) -> Self {
+        self.words = words;
+        self
+    }
+
+    pub fn is_final(mut self, is_final: bool) -> Self {
+        self.is_final = is_final;
+        self
+    }
+
+    pub fn speech_final(mut self, speech_final: bool) -> Self {
+        self.speech_final = speech_final;
+        self
+    }
+
+    pub fn from_finalize(mut self, from_finalize: bool) -> Self {
+        self.from_finalize = from_finalize;
+        self
+    }
+
+    pub fn languages(mut self, languages: Vec<String>) -> Self {
+        self.languages = languages;
+        self
+    }
+
+    pub fn channel_index(mut self, channel_index: Vec<i32>) -> Self {
+        self.channel_index = channel_index;
+        self
+    }
+
+    pub fn start(mut self, start: f64) -> Self {
+        self.start = Some(start);
+        self
+    }
+
+    pub fn duration(mut self, duration: f64) -> Self {
+        self.duration = Some(duration);
+        self
+    }
+
+    pub fn build(self) -> StreamResponse {
+        let (computed_start, computed_duration) = calculate_time_span(&self.words);
+        let start = self.start.unwrap_or(computed_start);
+        let duration = self.duration.unwrap_or(computed_duration);
+
+        let channel = Channel {
+            alternatives: vec![Alternatives {
+                transcript: self.transcript,
+                words: self.words,
+                confidence: 1.0,
+                languages: self.languages,
+            }],
+        };
+
+        StreamResponse::TranscriptResponse {
+            is_final: self.is_final,
+            speech_final: self.speech_final,
+            from_finalize: self.from_finalize,
+            start,
+            duration,
+            channel,
+            metadata: Metadata::default(),
+            channel_index: self.channel_index,
+        }
     }
 }
 

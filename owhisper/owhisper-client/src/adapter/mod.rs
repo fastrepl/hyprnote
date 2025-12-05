@@ -1,9 +1,11 @@
 mod argmax;
 mod assemblyai;
+pub mod audio;
 mod deepgram;
 mod deepgram_compat;
 mod fireworks;
 mod gladia;
+pub mod http;
 mod openai;
 mod owhisper;
 pub mod parsing;

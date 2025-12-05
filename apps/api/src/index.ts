@@ -51,6 +51,7 @@ app.use("/webhook/stripe", verifyStripeWebhook);
 
 if (env.NODE_ENV !== "development") {
   app.use("/listen", loadTestOverride, supabaseAuthMiddleware);
+  app.use("/transcribe", loadTestOverride, supabaseAuthMiddleware);
 }
 
 app.route("/", routes);

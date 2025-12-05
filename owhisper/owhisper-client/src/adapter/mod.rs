@@ -166,6 +166,7 @@ pub enum AdapterKind {
     Fireworks,
     Deepgram,
     AssemblyAI,
+    OpenAI,
 }
 
 impl AdapterKind {
@@ -184,6 +185,8 @@ impl AdapterKind {
             Self::Soniox
         } else if FireworksAdapter::is_host(base_url) {
             Self::Fireworks
+        } else if OpenAIAdapter::is_host(base_url) {
+            Self::OpenAI
         } else {
             Self::Deepgram
         }

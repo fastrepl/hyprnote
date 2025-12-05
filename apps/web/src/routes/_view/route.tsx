@@ -95,6 +95,7 @@ function MobileDocsDrawer({
       }`}
       style={{
         paddingLeft: "env(safe-area-inset-left)",
+        paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
       <div
@@ -174,6 +175,7 @@ function MobileHandbookDrawer({
       }`}
       style={{
         paddingLeft: "env(safe-area-inset-left)",
+        paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
       <div

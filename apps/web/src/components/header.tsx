@@ -432,7 +432,10 @@ function MobileMenu({
         className="fixed inset-0 z-40 sm:hidden"
         onClick={() => setIsMenuOpen(false)}
       />
-      <div className="fixed top-[69px] left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto">
+      <div
+        className="fixed top-[69px] left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         <nav className={`${maxWidthClass} mx-auto px-4 py-6`}>
           <div className="space-y-6">
             <MobileMenuLinks

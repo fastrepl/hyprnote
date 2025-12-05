@@ -1,5 +1,5 @@
-import { env } from "../env";
-import type { BatchParams, BatchResponse } from "./batch-types";
+import { env } from "../../env";
+import type { BatchParams, BatchResponse } from "../batch-types";
 
 const DEEPGRAM_BATCH_URL = "https://api.deepgram.com/v1/listen";
 

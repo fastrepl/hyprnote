@@ -1,7 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use hypr_audio_utils::{f32_to_i16_bytes, resample_audio, source_from_path, Source};
 use owhisper_interface::batch::{
     Alternatives as BatchAlternatives, Channel as BatchChannel, Response as BatchResponse,
     Results as BatchResults, Word as BatchWord,
@@ -10,6 +9,8 @@ use owhisper_interface::ListenParams;
 use serde::{Deserialize, Serialize};
 
 use super::AssemblyAIAdapter;
+use crate::adapter::audio::decode_audio_to_bytes;
+use crate::adapter::http::ensure_success;
 use crate::adapter::{BatchFuture, BatchSttAdapter};
 use crate::error::Error;
 use crate::polling::{poll_until, PollingConfig, PollingResult};
@@ -123,14 +124,7 @@ impl AssemblyAIAdapter {
             .send()
             .await?;
 
-        let upload_status = upload_response.status();
-        if !upload_status.is_success() {
-            return Err(Error::UnexpectedStatus {
-                status: upload_status,
-                body: upload_response.text().await.unwrap_or_default(),
-            });
-        }
-
+        let upload_response = ensure_success(upload_response).await?;
         let upload_result: UploadResponse = upload_response.json().await?;
 
         let language_code = params
@@ -161,14 +155,7 @@ impl AssemblyAIAdapter {
             .send()
             .await?;
 
-        let create_status = create_response.status();
-        if !create_status.is_success() {
-            return Err(Error::UnexpectedStatus {
-                status: create_status,
-                body: create_response.text().await.unwrap_or_default(),
-            });
-        }
-
+        let create_response = ensure_success(create_response).await?;
         let create_result: TranscriptResponse = create_response.json().await?;
         let transcript_id = create_result.id;
 
@@ -186,14 +173,7 @@ impl AssemblyAIAdapter {
                     .send()
                     .await?;
 
-                let poll_status = poll_response.status();
-                if !poll_status.is_success() {
-                    return Err(Error::UnexpectedStatus {
-                        status: poll_status,
-                        body: poll_response.text().await.unwrap_or_default(),
-                    });
-                }
-
+                let poll_response = ensure_success(poll_response).await?;
                 let result: TranscriptResponse = poll_response.json().await?;
 
                 match result.status.as_str() {
@@ -258,43 +238,4 @@ impl AssemblyAIAdapter {
             },
         }
     }
-}
-
-async fn decode_audio_to_bytes(path: PathBuf) -> Result<bytes::Bytes, Error> {
-    tokio::task::spawn_blocking(move || -> Result<bytes::Bytes, Error> {
-        let decoder =
-            source_from_path(&path).map_err(|err| Error::AudioProcessing(err.to_string()))?;
-
-        let channels = decoder.channels().max(1);
-        let sample_rate = decoder.sample_rate();
-
-        let samples = resample_audio(decoder, sample_rate)
-            .map_err(|err| Error::AudioProcessing(err.to_string()))?;
-
-        let samples = if channels == 1 {
-            samples
-        } else {
-            let channels_usize = channels as usize;
-            let mut mono = Vec::with_capacity(samples.len() / channels_usize);
-            for frame in samples.chunks(channels_usize) {
-                if frame.is_empty() {
-                    continue;
-                }
-                let sum: f32 = frame.iter().copied().sum();
-                mono.push(sum / frame.len() as f32);
-            }
-            mono
-        };
-
-        if samples.is_empty() {
-            return Err(Error::AudioProcessing(
-                "audio file contains no samples".to_string(),
-            ));
-        }
-
-        let bytes = f32_to_i16_bytes(samples.into_iter());
-
-        Ok(bytes)
-    })
-    .await?
 }

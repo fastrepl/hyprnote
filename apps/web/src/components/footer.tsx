@@ -1,5 +1,27 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ExternalLinkIcon, MailIcon } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  ExternalLinkIcon,
+  MailIcon,
+} from "lucide-react";
+import { useState } from "react";
+
+const vsList = [
+  { slug: "otter", name: "Otter.ai" },
+  { slug: "granola", name: "Granola" },
+  { slug: "fireflies", name: "Fireflies" },
+  { slug: "fathom", name: "Fathom" },
+  { slug: "notion", name: "Notion" },
+  { slug: "obsidian", name: "Obsidian" },
+];
+
+const platformsList = [
+  { to: "/download/apple-silicon", label: "macOS (Apple Silicon)" },
+  { to: "/download/apple-intel", label: "macOS (Intel)" },
+  { to: "/download/windows", label: "Windows" },
+  { to: "/download/linux", label: "Linux" },
+];
 
 function getMaxWidthClass(pathname: string): string {
   const isBlogOrDocs =
@@ -146,6 +168,9 @@ function ProductLinks() {
 }
 
 function ResourcesLinks() {
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [isPlatformsOpen, setIsPlatformsOpen] = useState(false);
+
   return (
     <div>
       <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
@@ -179,6 +204,111 @@ function ResourcesLinks() {
             Discussions
             <ExternalLinkIcon className="size-3" />
           </a>
+        </li>
+        <li
+          className="relative"
+          onMouseEnter={() => setIsCompareOpen(true)}
+          onMouseLeave={() => setIsCompareOpen(false)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) {
+              setIsCompareOpen(false);
+            }
+          }}
+        >
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={isCompareOpen}
+            aria-controls="compare-menu"
+            onClick={() => setIsCompareOpen(!isCompareOpen)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsCompareOpen(!isCompareOpen);
+              }
+            }}
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
+          >
+            Compare
+            {isCompareOpen ? (
+              <ChevronUp className="size-3" />
+            ) : (
+              <ChevronDown className="size-3" />
+            )}
+          </button>
+          {isCompareOpen && (
+            <div
+              id="compare-menu"
+              role="menu"
+              className="absolute bottom-full left-0 pb-2 w-40 z-50"
+            >
+              <div className="bg-white border border-neutral-200 rounded-sm shadow-lg py-2">
+                {vsList.map((item) => (
+                  <Link
+                    key={item.slug}
+                    to="/vs/$slug"
+                    params={{ slug: item.slug }}
+                    role="menuitem"
+                    className="block px-3 py-1.5 text-sm text-neutral-600 hover:text-stone-600 hover:bg-neutral-50 transition-colors"
+                  >
+                    vs {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </li>
+        <li
+          className="relative"
+          onMouseEnter={() => setIsPlatformsOpen(true)}
+          onMouseLeave={() => setIsPlatformsOpen(false)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) {
+              setIsPlatformsOpen(false);
+            }
+          }}
+        >
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={isPlatformsOpen}
+            aria-controls="platforms-menu"
+            onClick={() => setIsPlatformsOpen(!isPlatformsOpen)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsPlatformsOpen(!isPlatformsOpen);
+              }
+            }}
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
+          >
+            Platforms
+            {isPlatformsOpen ? (
+              <ChevronUp className="size-3" />
+            ) : (
+              <ChevronDown className="size-3" />
+            )}
+          </button>
+          {isPlatformsOpen && (
+            <div
+              id="platforms-menu"
+              role="menu"
+              className="absolute bottom-full left-0 pb-2 w-48 z-50"
+            >
+              <div className="bg-white border border-neutral-200 rounded-sm shadow-lg py-2">
+                {platformsList.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    role="menuitem"
+                    className="block px-3 py-1.5 text-sm text-neutral-600 hover:text-stone-600 hover:bg-neutral-50 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </li>
         <li>
           <Link

@@ -23,7 +23,14 @@ pub struct ListenClientBuilder<A: RealtimeSttAdapter = DeepgramAdapter> {
     api_base: Option<String>,
     api_key: Option<String>,
     params: Option<owhisper_interface::ListenParams>,
+    trace_headers: Option<TraceHeaders>,
     _marker: PhantomData<A>,
+}
+
+#[derive(Clone, Default)]
+pub struct TraceHeaders {
+    pub sentry_trace: Option<String>,
+    pub baggage: Option<String>,
 }
 
 impl Default for ListenClientBuilder {
@@ -32,6 +39,7 @@ impl Default for ListenClientBuilder {
             api_base: None,
             api_key: None,
             params: None,
+            trace_headers: None,
             _marker: PhantomData,
         }
     }
@@ -53,11 +61,17 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         self
     }
 
+    pub fn trace_headers(mut self, headers: TraceHeaders) -> Self {
+        self.trace_headers = Some(headers);
+        self
+    }
+
     pub fn adapter<B: RealtimeSttAdapter>(self) -> ListenClientBuilder<B> {
         ListenClientBuilder {
             api_base: self.api_base,
             api_key: self.api_key,
             params: self.params,
+            trace_headers: self.trace_headers,
             _marker: PhantomData,
         }
     }
@@ -84,6 +98,15 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
             adapter.build_auth_header(self.api_key.as_deref())
         {
             request = request.with_header(header_name, header_value);
+        }
+
+        if let Some(ref trace_headers) = self.trace_headers {
+            if let Some(ref sentry_trace) = trace_headers.sentry_trace {
+                request = request.with_header("sentry-trace", sentry_trace.clone());
+            }
+            if let Some(ref baggage) = trace_headers.baggage {
+                request = request.with_header("baggage", baggage.clone());
+            }
         }
 
         request

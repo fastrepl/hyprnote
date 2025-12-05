@@ -56,6 +56,10 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
 
     fn finalize_message(&self) -> Message;
 
+    fn audio_to_message(&self, audio: bytes::Bytes) -> Message {
+        Message::Binary(audio)
+    }
+
     fn initial_message(
         &self,
         _api_key: Option<&str>,

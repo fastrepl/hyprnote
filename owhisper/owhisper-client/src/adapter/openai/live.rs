@@ -16,9 +16,8 @@ impl RealtimeSttAdapter for OpenAIAdapter {
         false
     }
 
-    fn build_ws_url(&self, api_base: &str, params: &ListenParams, _channels: u8) -> url::Url {
-        let (mut url, existing_params) =
-            Self::build_ws_url_from_base(api_base, params.model.as_deref());
+    fn build_ws_url(&self, api_base: &str, _params: &ListenParams, _channels: u8) -> url::Url {
+        let (mut url, existing_params) = Self::build_ws_url_from_base(api_base);
 
         if !existing_params.is_empty() {
             let mut query_pairs = url.query_pairs_mut();
@@ -38,6 +37,16 @@ impl RealtimeSttAdapter for OpenAIAdapter {
         None
     }
 
+    fn audio_to_message(&self, audio: bytes::Bytes) -> Message {
+        use base64::Engine;
+        let base64_audio = base64::engine::general_purpose::STANDARD.encode(&audio);
+        let event = InputAudioBufferAppend {
+            event_type: "input_audio_buffer.append".to_string(),
+            audio: base64_audio,
+        };
+        Message::Text(serde_json::to_string(&event).unwrap().into())
+    }
+
     fn initial_message(
         &self,
         _api_key: Option<&str>,
@@ -49,7 +58,10 @@ impl RealtimeSttAdapter for OpenAIAdapter {
             .first()
             .map(|l| l.iso639().code().to_string());
 
-        let model = params.model.as_deref().unwrap_or(super::DEFAULT_MODEL);
+        let model = params
+            .model
+            .as_deref()
+            .unwrap_or(super::DEFAULT_TRANSCRIPTION_MODEL);
 
         let session_config = SessionUpdateEvent {
             event_type: "session.update".to_string(),
@@ -59,7 +71,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                     input: Some(AudioInputConfig {
                         format: Some(AudioFormat {
                             format_type: "audio/pcm".to_string(),
-                            rate: 24000,
+                            rate: params.sample_rate,
                         }),
                         transcription: Some(TranscriptionConfig {
                             model: model.to_string(),
@@ -78,6 +90,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
         };
 
         let json = serde_json::to_string(&session_config).ok()?;
+        tracing::debug!(payload = %json, "openai_session_update_payload");
         Some(Message::Text(json.into()))
     }
 
@@ -112,6 +125,14 @@ impl RealtimeSttAdapter for OpenAIAdapter {
             }
             OpenAIEvent::InputAudioBufferCleared => {
                 tracing::debug!("openai_audio_buffer_cleared");
+                vec![]
+            }
+            OpenAIEvent::InputAudioBufferSpeechStarted { item_id } => {
+                tracing::debug!(item_id = %item_id, "openai_speech_started");
+                vec![]
+            }
+            OpenAIEvent::InputAudioBufferSpeechStopped { item_id } => {
+                tracing::debug!(item_id = %item_id, "openai_speech_stopped");
                 vec![]
             }
             OpenAIEvent::ConversationItemInputAudioTranscriptionCompleted {
@@ -227,6 +248,13 @@ struct TurnDetection {
 }
 
 #[derive(Debug, Serialize)]
+struct InputAudioBufferAppend {
+    #[serde(rename = "type")]
+    event_type: String,
+    audio: String,
+}
+
+#[derive(Debug, Serialize)]
 struct InputAudioBufferCommit {
     #[serde(rename = "type")]
     event_type: String,
@@ -243,6 +271,10 @@ enum OpenAIEvent {
     InputAudioBufferCommitted { item_id: String },
     #[serde(rename = "input_audio_buffer.cleared")]
     InputAudioBufferCleared,
+    #[serde(rename = "input_audio_buffer.speech_started")]
+    InputAudioBufferSpeechStarted { item_id: String },
+    #[serde(rename = "input_audio_buffer.speech_stopped")]
+    InputAudioBufferSpeechStopped { item_id: String },
     #[serde(rename = "conversation.item.input_audio_transcription.completed")]
     ConversationItemInputAudioTranscriptionCompleted {
         item_id: String,
@@ -321,8 +353,10 @@ impl OpenAIAdapter {
 #[cfg(test)]
 mod tests {
     use super::OpenAIAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
+    use crate::test_utils::{run_dual_test_with_rate, run_single_test_with_rate};
     use crate::ListenClient;
+
+    const OPENAI_SAMPLE_RATE: u32 = 24000;
 
     #[tokio::test]
     #[ignore]
@@ -334,11 +368,12 @@ mod tests {
             .params(owhisper_interface::ListenParams {
                 model: Some("gpt-4o-transcribe".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],
+                sample_rate: OPENAI_SAMPLE_RATE,
                 ..Default::default()
             })
             .build_single();
 
-        run_single_test(client, "openai").await;
+        run_single_test_with_rate(client, "openai", OPENAI_SAMPLE_RATE).await;
     }
 
     #[tokio::test]
@@ -351,10 +386,11 @@ mod tests {
             .params(owhisper_interface::ListenParams {
                 model: Some("gpt-4o-transcribe".to_string()),
                 languages: vec![hypr_language::ISO639::En.into()],
+                sample_rate: OPENAI_SAMPLE_RATE,
                 ..Default::default()
             })
             .build_dual();
 
-        run_dual_test(client, "openai").await;
+        run_dual_test_with_rate(client, "openai", OPENAI_SAMPLE_RATE).await;
     }
 }

@@ -3,7 +3,7 @@ mod live;
 
 pub(crate) const DEFAULT_WS_HOST: &str = "api.openai.com";
 pub(crate) const WS_PATH: &str = "/v1/realtime";
-pub(crate) const DEFAULT_MODEL: &str = "gpt-4o-transcribe";
+pub(crate) const DEFAULT_TRANSCRIPTION_MODEL: &str = "gpt-4o-transcribe";
 
 #[derive(Clone, Default)]
 pub struct OpenAIAdapter;
@@ -21,17 +21,13 @@ impl OpenAIAdapter {
         host.contains("openai.com")
     }
 
-    pub(crate) fn build_ws_url_from_base(
-        api_base: &str,
-        model: Option<&str>,
-    ) -> (url::Url, Vec<(String, String)>) {
+    pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
         if api_base.is_empty() {
-            let model = model.unwrap_or(DEFAULT_MODEL);
             return (
                 format!("wss://{}{}", DEFAULT_WS_HOST, WS_PATH)
                     .parse()
                     .expect("invalid_default_ws_url"),
-                vec![("model".to_string(), model.to_string())],
+                vec![("intent".to_string(), "transcription".to_string())],
             );
         }
 
@@ -42,9 +38,8 @@ impl OpenAIAdapter {
         let parsed: url::Url = api_base.parse().expect("invalid_api_base");
         let mut existing_params = super::extract_query_params(&parsed);
 
-        if !existing_params.iter().any(|(k, _)| k == "model") {
-            let model = model.unwrap_or(DEFAULT_MODEL);
-            existing_params.push(("model".to_string(), model.to_string()));
+        if !existing_params.iter().any(|(k, _)| k == "intent") {
+            existing_params.push(("intent".to_string(), "transcription".to_string()));
         }
 
         let host = parsed.host_str().unwrap_or(DEFAULT_WS_HOST);
@@ -64,32 +59,18 @@ mod tests {
 
     #[test]
     fn test_build_ws_url_from_base_empty() {
-        let (url, params) = OpenAIAdapter::build_ws_url_from_base("", None);
+        let (url, params) = OpenAIAdapter::build_ws_url_from_base("");
         assert_eq!(url.as_str(), "wss://api.openai.com/v1/realtime");
         assert_eq!(
             params,
-            vec![("model".to_string(), "gpt-4o-transcribe".to_string())]
-        );
-    }
-
-    #[test]
-    fn test_build_ws_url_from_base_with_model() {
-        let (url, params) =
-            OpenAIAdapter::build_ws_url_from_base("", Some("gpt-4o-mini-realtime-preview"));
-        assert_eq!(url.as_str(), "wss://api.openai.com/v1/realtime");
-        assert_eq!(
-            params,
-            vec![(
-                "model".to_string(),
-                "gpt-4o-mini-realtime-preview".to_string()
-            )]
+            vec![("intent".to_string(), "transcription".to_string())]
         );
     }
 
     #[test]
     fn test_build_ws_url_from_base_proxy() {
         let (url, params) =
-            OpenAIAdapter::build_ws_url_from_base("https://api.hyprnote.com?provider=openai", None);
+            OpenAIAdapter::build_ws_url_from_base("https://api.hyprnote.com?provider=openai");
         assert_eq!(url.as_str(), "wss://api.hyprnote.com/listen");
         assert_eq!(params, vec![("provider".to_string(), "openai".to_string())]);
     }
@@ -97,7 +78,7 @@ mod tests {
     #[test]
     fn test_build_ws_url_from_base_localhost() {
         let (url, params) =
-            OpenAIAdapter::build_ws_url_from_base("http://localhost:8787?provider=openai", None);
+            OpenAIAdapter::build_ws_url_from_base("http://localhost:8787?provider=openai");
         assert_eq!(url.as_str(), "ws://localhost:8787/listen");
         assert_eq!(params, vec![("provider".to_string(), "openai".to_string())]);
     }

@@ -273,34 +273,39 @@ fn build_extra(args: &ListenerArgs) -> (f64, Extra) {
 fn build_trace_headers(args: &ListenerArgs, provider_name: &str) -> TraceHeaders {
     let mut trace_headers = TraceHeaders::default();
 
-    sentry::configure_scope(|scope| {
-        scope.set_tag("session_id", &args.session_id);
-        scope.set_tag("stt_provider", provider_name);
-        scope.set_tag("channel_mode", format!("{:?}", args.mode));
-        scope.set_tag("model", &args.model);
-        scope.set_tag(
-            "languages",
-            args.languages
-                .iter()
-                .map(|l| l.iso639().code())
-                .collect::<Vec<_>>()
-                .join(","),
-        );
-        scope.set_tag("onboarding", args.onboarding.to_string());
-
-        if let Some(span) = scope.get_span() {
-            trace_headers.sentry_trace = span
-                .iter_headers()
-                .find(|(k, _)| *k == "sentry-trace")
-                .map(|(_, v)| v.to_string())
-                .filter(|s| !s.is_empty());
-            trace_headers.baggage = span
-                .iter_headers()
-                .find(|(k, _)| *k == "baggage")
-                .map(|(_, v)| v.to_string())
-                .filter(|s| !s.is_empty());
-        }
-    });
+    sentry::with_scope(
+        |scope| {
+            scope.set_tag("session_id", &args.session_id);
+            scope.set_tag("stt_provider", provider_name);
+            scope.set_tag("channel_mode", format!("{:?}", args.mode));
+            scope.set_tag("model", &args.model);
+            scope.set_tag(
+                "languages",
+                args.languages
+                    .iter()
+                    .map(|l| l.iso639().code())
+                    .collect::<Vec<_>>()
+                    .join(","),
+            );
+            scope.set_tag("onboarding", args.onboarding.to_string());
+        },
+        || {
+            sentry::configure_scope(|scope| {
+                if let Some(span) = scope.get_span() {
+                    trace_headers.sentry_trace = span
+                        .iter_headers()
+                        .find(|(k, _)| *k == "sentry-trace")
+                        .map(|(_, v)| v.to_string())
+                        .filter(|s| !s.is_empty());
+                    trace_headers.baggage = span
+                        .iter_headers()
+                        .find(|(k, _)| *k == "baggage")
+                        .map(|(_, v)| v.to_string())
+                        .filter(|s| !s.is_empty());
+                }
+            });
+        },
+    );
 
     trace_headers
 }

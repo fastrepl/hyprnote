@@ -20,24 +20,11 @@ export const listenSocketHandler: Handler = async (c, next) => {
     return Sentry.startSpan(
       { name: `WebSocket /listen ${provider}`, op: "websocket.server" },
       async () => {
-        Sentry.addBreadcrumb({
-          category: "websocket",
-          message: `Starting WebSocket connection for provider: ${provider}`,
-          level: "info",
-          data: { provider },
-        });
-
         let connection: WsProxyConnection;
         try {
           connection = createProxyFromRequest(clientUrl, c.req.raw.headers);
           await connection.preconnectUpstream();
           Metrics.websocketConnected(provider);
-          Sentry.addBreadcrumb({
-            category: "websocket",
-            message: "Upstream STT service connected",
-            level: "info",
-            data: { provider },
-          });
         } catch (error) {
           Sentry.addBreadcrumb({
             category: "websocket",
@@ -60,12 +47,6 @@ export const listenSocketHandler: Handler = async (c, next) => {
           return {
             onOpen(_event, ws) {
               connection.initializeUpstream(ws.raw);
-              Sentry.addBreadcrumb({
-                category: "websocket",
-                message: "Client WebSocket opened",
-                level: "info",
-                data: { provider },
-              });
             },
             async onMessage(event) {
               const payload = await normalizeWsData(event.data);
@@ -78,12 +59,6 @@ export const listenSocketHandler: Handler = async (c, next) => {
               const code = event?.code ?? 1000;
               const reason = event?.reason || "client_closed";
               connection.closeConnections(code, reason);
-              Sentry.addBreadcrumb({
-                category: "websocket",
-                message: "Client WebSocket closed",
-                level: "info",
-                data: { provider, code, reason },
-              });
               Metrics.websocketDisconnected(
                 provider,
                 performance.now() - connectionStartTime,

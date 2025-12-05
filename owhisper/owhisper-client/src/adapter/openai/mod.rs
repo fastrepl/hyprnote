@@ -2,6 +2,7 @@ mod live;
 
 pub(crate) const DEFAULT_WS_HOST: &str = "api.openai.com";
 pub(crate) const WS_PATH: &str = "/v1/realtime";
+pub(crate) const DEFAULT_MODEL: &str = "gpt-4o-transcribe";
 
 #[derive(Clone, Default)]
 pub struct OpenAIAdapter;
@@ -24,7 +25,7 @@ impl OpenAIAdapter {
         model: Option<&str>,
     ) -> (url::Url, Vec<(String, String)>) {
         if api_base.is_empty() {
-            let model = model.unwrap_or("gpt-4o-transcribe");
+            let model = model.unwrap_or(DEFAULT_MODEL);
             return (
                 format!("wss://{}{}", DEFAULT_WS_HOST, WS_PATH)
                     .parse()
@@ -41,7 +42,7 @@ impl OpenAIAdapter {
         let mut existing_params = super::extract_query_params(&parsed);
 
         if !existing_params.iter().any(|(k, _)| k == "model") {
-            let model = model.unwrap_or("gpt-4o-transcribe");
+            let model = model.unwrap_or(DEFAULT_MODEL);
             existing_params.push(("model".to_string(), model.to_string()));
         }
 

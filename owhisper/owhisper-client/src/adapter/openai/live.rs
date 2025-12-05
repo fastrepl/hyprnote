@@ -49,6 +49,8 @@ impl RealtimeSttAdapter for OpenAIAdapter {
             .first()
             .map(|l| l.iso639().code().to_string());
 
+        let model = params.model.as_deref().unwrap_or(super::DEFAULT_MODEL);
+
         let session_config = SessionUpdateEvent {
             event_type: "session.update".to_string(),
             session: SessionConfig {
@@ -60,7 +62,7 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                             rate: 24000,
                         }),
                         transcription: Some(TranscriptionConfig {
-                            model: "gpt-4o-transcribe".to_string(),
+                            model: model.to_string(),
                             language,
                         }),
                         turn_detection: Some(TurnDetection {

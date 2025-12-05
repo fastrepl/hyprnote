@@ -58,8 +58,8 @@ llm.post(
       Array.isArray(requestBody.tools) &&
       !(typeof toolChoice === "string" && toolChoice === "none");
 
-    span.setAttribute("chat.tool_calling", needsToolCalling);
-    span.setAttribute("chat.streaming", requestBody.stream ?? false);
+    span?.setAttribute("chat.tool_calling", needsToolCalling);
+    span?.setAttribute("chat.streaming", requestBody.stream ?? false);
 
     const {
       model: _ignoredModel,
@@ -76,7 +76,7 @@ llm.post(
 
     try {
       const createParams = {
-        model: "",
+        model: "openrouter/auto",
         messages,
         tools,
         tool_choice,
@@ -96,7 +96,6 @@ llm.post(
         );
 
         Metrics.upstreamLatency("openrouter", performance.now() - startTime);
-        Metrics.chatCompletion(true, 200);
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
@@ -108,7 +107,9 @@ llm.post(
               }
               controller.enqueue(encoder.encode("data: [DONE]\n\n"));
               controller.close();
+              Metrics.chatCompletion(true, 200);
             } catch (error) {
+              Metrics.chatCompletion(true, 500);
               Sentry.captureException(error, {
                 tags: { streaming: true },
               });

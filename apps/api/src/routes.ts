@@ -101,8 +101,8 @@ routes.post(
       Array.isArray(requestBody.tools) &&
       !(typeof toolChoice === "string" && toolChoice === "none");
 
-    span.setAttribute("chat.tool_calling", needsToolCalling);
-    span.setAttribute("chat.streaming", requestBody.stream ?? false);
+    span?.setAttribute("chat.tool_calling", needsToolCalling);
+    span?.setAttribute("chat.streaming", requestBody.stream ?? false);
 
     const {
       model: _ignoredModel,
@@ -119,7 +119,7 @@ routes.post(
 
     try {
       const createParams = {
-        model: "",
+        model: "openrouter/auto",
         messages,
         tools,
         tool_choice,
@@ -139,7 +139,6 @@ routes.post(
         );
 
         Metrics.upstreamLatency("openrouter", performance.now() - startTime);
-        Metrics.chatCompletion(true, 200);
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
@@ -151,7 +150,9 @@ routes.post(
               }
               controller.enqueue(encoder.encode("data: [DONE]\n\n"));
               controller.close();
+              Metrics.chatCompletion(true, 200);
             } catch (error) {
+              Metrics.chatCompletion(true, 500);
               Sentry.captureException(error, {
                 tags: { streaming: true },
               });
@@ -237,7 +238,7 @@ routes.post(
 
     const stripeEvent = c.get("stripeEvent");
     const span = c.get("sentrySpan");
-    span.setAttribute("stripe.event_type", stripeEvent.type);
+    span?.setAttribute("stripe.event_type", stripeEvent.type);
 
     try {
       await syncBillingForStripeEvent(stripeEvent);

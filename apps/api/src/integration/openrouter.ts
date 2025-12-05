@@ -15,7 +15,7 @@ const MODELS = {
     "anthropic/claude-haiku-4.5",
     "openai/gpt-oss-120b:exacto",
   ],
-  default: ["moonshotai/kimi-k2-0905", "openai/gpt-5.1-chat"],
+  default: ["moonshotai/kimi-k2-0905", "openai/gpt-5.1-chat-latest"],
 } as const;
 
 export function getModels(needsToolCalling: boolean): string[] {

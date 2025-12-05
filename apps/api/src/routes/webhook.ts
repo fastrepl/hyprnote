@@ -63,7 +63,7 @@ webhook.post(
 
     const stripeEvent = c.get("stripeEvent");
     const span = c.get("sentrySpan");
-    span.setAttribute("stripe.event_type", stripeEvent.type);
+    span?.setAttribute("stripe.event_type", stripeEvent.type);
 
     try {
       await syncBillingForStripeEvent(stripeEvent);

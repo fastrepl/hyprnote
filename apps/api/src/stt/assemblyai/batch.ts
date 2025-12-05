@@ -1,4 +1,4 @@
-import { env } from "../env";
+import { env } from "../../env";
 import type {
   BatchAlternatives,
   BatchChannel,
@@ -6,7 +6,7 @@ import type {
   BatchResponse,
   BatchResults,
   BatchWord,
-} from "./batch-types";
+} from "../batch-types";
 
 const ASSEMBLYAI_API_URL = "https://api.assemblyai.com/v2";
 const POLL_INTERVAL_MS = 3000;

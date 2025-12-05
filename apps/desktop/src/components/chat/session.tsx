@@ -8,6 +8,7 @@ import type { ChatMessage, ChatMessageStorage } from "@hypr/store";
 import { CustomChatTransport } from "../../chat/transport";
 import type { HyprUIMessage } from "../../chat/types";
 import { useToolRegistry } from "../../contexts/tool";
+import { useSession } from "../../hooks/tinybase";
 import { useLanguageModel } from "../../hooks/useLLMConnection";
 import * as main from "../../store/tinybase/main";
 import { id } from "../../utils";
@@ -15,6 +16,7 @@ import { id } from "../../utils";
 interface ChatSessionProps {
   sessionId: string;
   chatGroupId?: string;
+  attachedSessionId?: string;
   children: (props: {
     messages: HyprUIMessage[];
     sendMessage: (message: HyprUIMessage) => void;
@@ -28,9 +30,10 @@ interface ChatSessionProps {
 export function ChatSession({
   sessionId,
   chatGroupId,
+  attachedSessionId,
   children,
 }: ChatSessionProps) {
-  const transport = useTransport();
+  const transport = useTransport(attachedSessionId);
   const store = main.UI.useStore(main.STORE_ID);
 
   const { user_id } = main.UI.useValues(main.STORE_ID);
@@ -161,22 +164,89 @@ export function ChatSession({
   );
 }
 
-function useTransport() {
+function useTransport(attachedSessionId?: string) {
   const registry = useToolRegistry();
   const model = useLanguageModel();
+  const store = main.UI.useStore(main.STORE_ID);
   const language = main.UI.useValue("ai_language", main.STORE_ID) ?? "en";
   const [systemPrompt, setSystemPrompt] = useState<string | undefined>();
 
+  const { title, rawMd, enhancedMd, createdAt } = useSession(
+    attachedSessionId ?? "",
+  );
+
+  const transcriptIds = main.UI.useSliceRowIds(
+    main.INDEXES.transcriptBySession,
+    attachedSessionId ?? "",
+    main.STORE_ID,
+  );
+  const firstTranscriptId = transcriptIds?.[0];
+
+  const wordIds = main.UI.useSliceRowIds(
+    main.INDEXES.wordsByTranscript,
+    firstTranscriptId ?? "",
+    main.STORE_ID,
+  );
+
+  const words = useMemo(() => {
+    if (!store || !wordIds || wordIds.length === 0) {
+      return [];
+    }
+
+    const result: {
+      text: string;
+      start_ms: number;
+      end_ms: number;
+      channel: number;
+      speaker?: string;
+    }[] = [];
+
+    for (const wordId of wordIds) {
+      const row = store.getRow("words", wordId);
+      if (row) {
+        result.push({
+          text: row.text as string,
+          start_ms: row.start_ms as number,
+          end_ms: row.end_ms as number,
+          channel: row.channel as number,
+          speaker: row.speaker as string | undefined,
+        });
+      }
+    }
+
+    return result.sort((a, b) => a.start_ms - b.start_ms);
+  }, [store, wordIds]);
+
+  const sessionContext = useMemo(() => {
+    if (!attachedSessionId) {
+      return null;
+    }
+
+    return {
+      session: true,
+      title: title as string | undefined,
+      rawContent: rawMd as string | undefined,
+      enhancedContent: enhancedMd as string | undefined,
+      date: createdAt as string | undefined,
+      words: words.length > 0 ? words : undefined,
+    };
+  }, [attachedSessionId, title, rawMd, enhancedMd, createdAt, words]);
+
   useEffect(() => {
+    const templateParams = {
+      language,
+      ...(sessionContext ?? {}),
+    };
+
     templateCommands
-      .render("chat.system", { language })
+      .render("chat.system", templateParams)
       .then((result) => {
         if (result.status === "ok") {
           setSystemPrompt(result.data);
         }
       })
       .catch(console.error);
-  }, [language]);
+  }, [language, sessionContext]);
 
   const transport = useMemo(() => {
     if (!model) {

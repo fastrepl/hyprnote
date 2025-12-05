@@ -21,7 +21,7 @@ type Provider = {
   requiresPro?: boolean;
 };
 
-export type ProviderId = (typeof PROVIDERS)[number]["id"];
+export type ProviderId = (typeof _PROVIDERS)[number]["id"];
 
 export const displayModelId = (model: string) => {
   if (model === "cloud") {
@@ -78,7 +78,7 @@ export const displayModelId = (model: string) => {
   return model;
 };
 
-export const PROVIDERS = [
+const _PROVIDERS = [
   {
     disabled: false,
     id: "hyprnote",
@@ -94,6 +94,16 @@ export const PROVIDERS = [
       "QuantizedTinyEn",
       "QuantizedSmallEn",
     ],
+    requiresPro: false,
+  },
+  {
+    disabled: false,
+    id: "assemblyai",
+    displayName: "AssemblyAI",
+    badge: "Beta",
+    icon: <AssemblyAI size={12} />,
+    baseUrl: "https://api.assemblyai.com",
+    models: ["universal"],
     requiresPro: false,
   },
   {
@@ -122,28 +132,6 @@ export const PROVIDERS = [
   },
   {
     disabled: false,
-    id: "soniox",
-    displayName: "Soniox",
-    badge: "Beta",
-    icon: (
-      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
-    ),
-    baseUrl: "https://api.soniox.com",
-    models: ["stt-v3"],
-    requiresPro: false,
-  },
-  {
-    disabled: false,
-    id: "assemblyai",
-    displayName: "AssemblyAI",
-    badge: "Beta",
-    icon: <AssemblyAI size={12} />,
-    baseUrl: "https://api.assemblyai.com",
-    models: ["universal"],
-    requiresPro: false,
-  },
-  {
-    disabled: false,
     id: "gladia",
     displayName: "Gladia",
     badge: "Beta",
@@ -162,6 +150,18 @@ export const PROVIDERS = [
     icon: <OpenAI size={16} />,
     baseUrl: "https://api.openai.com/v1",
     models: ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"],
+    requiresPro: false,
+  },
+  {
+    disabled: false,
+    id: "soniox",
+    displayName: "Soniox",
+    badge: "Beta",
+    icon: (
+      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
+    ),
+    baseUrl: "https://api.soniox.com",
+    models: ["stt-v3"],
     requiresPro: false,
   },
   {
@@ -185,6 +185,16 @@ export const PROVIDERS = [
     requiresPro: false,
   },
 ] as const satisfies readonly Provider[];
+
+export const PROVIDERS = [..._PROVIDERS].sort((a, b) => {
+  if (a.id === "hyprnote") return -1;
+  if (b.id === "hyprnote") return 1;
+  if (a.disabled && !b.disabled) return 1;
+  if (!a.disabled && b.disabled) return -1;
+  if (a.id === "custom") return 1;
+  if (b.id === "custom") return -1;
+  return a.displayName.localeCompare(b.displayName);
+});
 
 export const sttProviderRequiresPro = (providerId: ProviderId) =>
   PROVIDERS.find((provider) => provider.id === providerId)?.requiresPro ??

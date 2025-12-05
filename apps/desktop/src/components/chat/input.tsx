@@ -17,9 +17,11 @@ import * as main from "../../store/tinybase/main";
 export function ChatMessageInput({
   onSendMessage,
   disabled: disabledProp,
+  attachedSession,
 }: {
   onSendMessage: (content: string, parts: any[]) => void;
   disabled?: boolean | { disabled: boolean; message?: string };
+  attachedSession?: { id: string; title?: string };
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const chatShortcuts = main.UI.useResultTable(
@@ -110,6 +112,11 @@ export function ChatMessageInput({
 
   return (
     <Container>
+      {attachedSession && (
+        <div className="px-3 pt-2 text-xs text-neutral-500 truncate">
+          Attached: {attachedSession.title || "Untitled"}
+        </div>
+      )}
       <div className="flex flex-col p-2">
         <div className="flex-1 mb-2">
           <ChatEditor

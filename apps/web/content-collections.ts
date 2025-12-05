@@ -119,8 +119,6 @@ const changelog = defineCollection({
     });
 
     const version = document._meta.path.replace(/\.mdx$/, "");
-    const tag = `desktop_v${version}`;
-
     const isNightly = version.includes("-nightly");
     const channel = isNightly ? "nightly" : "stable";
 

@@ -289,16 +289,16 @@ fn build_trace_headers(args: &ListenerArgs, provider_name: &str) -> TraceHeaders
         scope.set_tag("onboarding", args.onboarding.to_string());
 
         if let Some(span) = scope.get_span() {
-            trace_headers.sentry_trace = Some(
-                span.iter_headers()
-                    .find(|(k, _)| *k == "sentry-trace")
-                    .map(|(_, v)| v.to_string())
-                    .unwrap_or_default(),
-            );
+            trace_headers.sentry_trace = span
+                .iter_headers()
+                .find(|(k, _)| *k == "sentry-trace")
+                .map(|(_, v)| v.to_string())
+                .filter(|s| !s.is_empty());
             trace_headers.baggage = span
                 .iter_headers()
                 .find(|(k, _)| *k == "baggage")
-                .map(|(_, v)| v.to_string());
+                .map(|(_, v)| v.to_string())
+                .filter(|s| !s.is_empty());
         }
     });
 

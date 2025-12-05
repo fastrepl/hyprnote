@@ -1,5 +1,5 @@
 import { Icon } from "@iconify-icon/react";
-import { AssemblyAI, Fireworks } from "@lobehub/icons";
+import { AssemblyAI, Fireworks, OpenAI } from "@lobehub/icons";
 import { queryOptions } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -40,6 +40,10 @@ export const displayModelId = (model: string) => {
     return "Solaria 1";
   }
 
+  if (model === "whisper-1") {
+    return "Whisper 1";
+  }
+
   if (model.startsWith("am-")) {
     const am = model as AmModel;
     if (am == "am-parakeet-v2") {
@@ -71,6 +75,7 @@ export const PROVIDERS = [
     disabled: false,
     id: "hyprnote",
     displayName: "Hyprnote",
+    badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     baseUrl: "https://api.hyprnote.com/v1",
     models: [
@@ -87,6 +92,7 @@ export const PROVIDERS = [
     disabled: false,
     id: "deepgram",
     displayName: "Deepgram",
+    badge: null,
     icon: <Icon icon="simple-icons:deepgram" className="size-4" />,
     baseUrl: "https://api.deepgram.com/v1",
     models: [
@@ -110,6 +116,7 @@ export const PROVIDERS = [
     disabled: false,
     id: "soniox",
     displayName: "Soniox",
+    badge: "Beta",
     icon: (
       <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
     ),
@@ -121,6 +128,7 @@ export const PROVIDERS = [
     disabled: false,
     id: "assemblyai",
     displayName: "AssemblyAI",
+    badge: "Beta",
     icon: <AssemblyAI size={12} />,
     baseUrl: "https://api.assemblyai.com",
     models: ["universal"],
@@ -130,11 +138,22 @@ export const PROVIDERS = [
     disabled: false,
     id: "gladia",
     displayName: "Gladia",
+    badge: "Beta",
     icon: (
-      <img src="/assets/gladia.jpeg" alt="Gladia" className="size-5 rounded" />
+      <img src="/assets/gladia.jpeg" alt="Gladia" className="size-4 rounded" />
     ),
     baseUrl: "https://api.gladia.io",
     models: ["solaria-1"],
+    requiresPro: false,
+  },
+  {
+    disabled: false,
+    id: "openai",
+    displayName: "OpenAI",
+    badge: "Beta",
+    icon: <OpenAI size={16} />,
+    baseUrl: "https://api.openai.com/v1",
+    models: ["whisper-1"],
     requiresPro: false,
   },
   {

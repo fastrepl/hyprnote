@@ -1,9 +1,9 @@
 on:
   workflow_dispatch:
     inputs:
-      test_duration:
-        description: "Test duration (e.g., 1h, 2h)"
-        default: "1h"
+      test_duration_minutes:
+        description: "Test duration in minutes"
+        default: "60"
       vus:
         description: "Number of virtual users"
         default: "30"
@@ -30,7 +30,7 @@ jobs:
         env:
           API_URL: wss://hyprnote-api-loadtest.fly.dev
           AUTH_TOKEN: ${{ secrets.K6_AUTH_TOKEN }}
-          TEST_DURATION: ${{ inputs.test_duration }}
+          TEST_DURATION: ${{ inputs.test_duration_minutes }}m
           VUS: ${{ inputs.vus }}
           FLY_ORG: ${{ secrets.FLY_ORG }}
           FLY_APP: hyprnote-api-loadtest

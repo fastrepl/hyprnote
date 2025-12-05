@@ -2,7 +2,6 @@ import { GripVertical as HandleIcon, Plus, X } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 
-import { TemplateEditor as CodeMirrorEditor } from "@hypr/codemirror/template";
 import type { TemplateSection } from "@hypr/store";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
@@ -213,25 +212,23 @@ function SectionItem({
           className="border-0 bg-transparent p-0 font-medium shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
         />
 
-        <div
+        <textarea
+          disabled={disabled}
+          value={item.description}
+          onChange={(e) => onChange({ ...item, description: e.target.value })}
+          placeholder="Template content with Jinja2: {{ variable }}, {% if condition %}"
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           className={cn([
-            "min-h-[100px] border rounded-xl overflow-clip transition-colors",
+            "min-h-[100px] w-full border rounded-xl p-3 resize-y transition-colors font-mono text-sm",
+            "focus-visible:outline-none",
             disabled
               ? "bg-neutral-50"
               : isFocused
                 ? "border-blue-500 ring-2 ring-primary/20"
                 : "border-input",
           ])}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-        >
-          <CodeMirrorEditor
-            value={item.description}
-            onChange={(value) => onChange({ ...item, description: value })}
-            placeholder="Template content with Jinja2: {{ variable }}, {% if condition %}"
-            readOnly={disabled}
-          />
-        </div>
+        />
       </div>
     </div>
   );

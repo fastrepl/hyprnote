@@ -15,13 +15,9 @@ export function ResourceListLayout({
 }) {
   return (
     <ResizablePanelGroup direction="horizontal" className="h-full">
-      <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
-        {listColumn}
-      </ResizablePanel>
+      <ResizablePanel defaultSize={40}>{listColumn}</ResizablePanel>
       <ResizableHandle />
-      <ResizablePanel defaultSize={70} minSize={50}>
-        {detailsColumn}
-      </ResizablePanel>
+      <ResizablePanel defaultSize={60}>{detailsColumn}</ResizablePanel>
     </ResizablePanelGroup>
   );
 }

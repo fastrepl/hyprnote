@@ -1,5 +1,12 @@
 on:
   workflow_dispatch:
+    inputs:
+      test_duration:
+        description: "Test duration (e.g., 1h, 2h)"
+        default: "1h"
+      vus:
+        description: "Number of virtual users"
+        default: "30"
 
 jobs:
   load-test:
@@ -19,12 +26,22 @@ jobs:
 
       - uses: grafana/setup-k6-action@v1
 
-      - uses: grafana/run-k6-action@v1
-        with:
-          path: apps/k6/scripts/websocket/listen.js
+      - run: k6 run apps/k6/scripts/stt-live.js
         env:
           API_URL: wss://hyprnote-api-loadtest.fly.dev
           AUTH_TOKEN: ${{ secrets.K6_AUTH_TOKEN }}
+          TEST_DURATION: ${{ inputs.test_duration }}
+          VUS: ${{ inputs.vus }}
+          FLY_ORG: ${{ secrets.FLY_ORG }}
+          FLY_APP: hyprnote-api-loadtest
+          FLY_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-report-${{ github.run_id }}
+          path: stt-live-*.json
+          retention-days: 90
 
       - run: flyctl scale count 0 --app hyprnote-api-loadtest --yes
         if: always()

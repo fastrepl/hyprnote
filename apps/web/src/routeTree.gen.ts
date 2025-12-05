@@ -23,6 +23,7 @@ import { Route as ViewIndexRouteImport } from './routes/_view/index'
 import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
 import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
 import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
+import { Route as ApiK6ReportsRouteImport } from './routes/api/k6-reports'
 import { Route as ViewSecurityRouteImport } from './routes/_view/security'
 import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
 import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
@@ -41,6 +42,7 @@ import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts
 import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
 import { Route as ViewPressKitIndexRouteImport } from './routes/_view/press-kit/index'
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
+import { Route as ViewK6ReportsIndexRouteImport } from './routes/_view/k6-reports/index'
 import { Route as ViewGalleryIndexRouteImport } from './routes/_view/gallery/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
@@ -76,6 +78,7 @@ import { Route as ViewProductAiNotetakingRouteImport } from './routes/_view/prod
 import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/product/ai-assistant'
 import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit/app'
 import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
+import { Route as ViewK6ReportsIdRouteImport } from './routes/_view/k6-reports/$id'
 import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
 import { Route as ViewDownloadLinuxDebRouteImport } from './routes/_view/download/linux-deb'
 import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/download/linux-appimage'
@@ -161,6 +164,11 @@ const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
 const ApiShortcutsRoute = ApiShortcutsRouteImport.update({
   id: '/api/shortcuts',
   path: '/api/shortcuts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiK6ReportsRoute = ApiK6ReportsRouteImport.update({
+  id: '/api/k6-reports',
+  path: '/api/k6-reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ViewSecurityRoute = ViewSecurityRouteImport.update({
@@ -252,6 +260,11 @@ const ViewPressKitIndexRoute = ViewPressKitIndexRouteImport.update({
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
   id: '/legal/',
   path: '/legal/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewK6ReportsIndexRoute = ViewK6ReportsIndexRouteImport.update({
+  id: '/k6-reports/',
+  path: '/k6-reports/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewGalleryIndexRoute = ViewGalleryIndexRouteImport.update({
@@ -433,6 +446,11 @@ const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
   path: '/legal/$slug',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewK6ReportsIdRoute = ViewK6ReportsIdRouteImport.update({
+  id: '/k6-reports/$id',
+  path: '/k6-reports/$id',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewDownloadWindowsRoute = ViewDownloadWindowsRouteImport.update({
   id: '/download/windows',
   path: '/download/windows',
@@ -547,6 +565,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof ViewPricingRoute
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
+  '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -566,6 +585,7 @@ export interface FileRoutesByFullPath {
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
+  '/k6-reports/$id': typeof ViewK6ReportsIdRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
   '/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -601,6 +621,7 @@ export interface FileRoutesByFullPath {
   '/docs/': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/gallery': typeof ViewGalleryIndexRoute
+  '/k6-reports': typeof ViewK6ReportsIndexRoute
   '/legal': typeof ViewLegalIndexRoute
   '/press-kit': typeof ViewPressKitIndexRoute
   '/roadmap': typeof ViewRoadmapIndexRoute
@@ -629,6 +650,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof ViewPricingRoute
   '/privacy': typeof ViewPrivacyRoute
   '/security': typeof ViewSecurityRoute
+  '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -648,6 +670,7 @@ export interface FileRoutesByTo {
   '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/download/windows': typeof ViewDownloadWindowsRoute
+  '/k6-reports/$id': typeof ViewK6ReportsIdRoute
   '/legal/$slug': typeof ViewLegalSlugRoute
   '/press-kit/app': typeof ViewPressKitAppRoute
   '/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -683,6 +706,7 @@ export interface FileRoutesByTo {
   '/docs': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
   '/gallery': typeof ViewGalleryIndexRoute
+  '/k6-reports': typeof ViewK6ReportsIndexRoute
   '/legal': typeof ViewLegalIndexRoute
   '/press-kit': typeof ViewPressKitIndexRoute
   '/roadmap': typeof ViewRoadmapIndexRoute
@@ -716,6 +740,7 @@ export interface FileRoutesById {
   '/_view/pricing': typeof ViewPricingRoute
   '/_view/privacy': typeof ViewPrivacyRoute
   '/_view/security': typeof ViewSecurityRoute
+  '/api/k6-reports': typeof ApiK6ReportsRoute
   '/api/shortcuts': typeof ApiShortcutsRoute
   '/api/templates': typeof ApiTemplatesRoute
   '/webhook/nango': typeof WebhookNangoRoute
@@ -735,6 +760,7 @@ export interface FileRoutesById {
   '/_view/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
   '/_view/download/linux-deb': typeof ViewDownloadLinuxDebRoute
   '/_view/download/windows': typeof ViewDownloadWindowsRoute
+  '/_view/k6-reports/$id': typeof ViewK6ReportsIdRoute
   '/_view/legal/$slug': typeof ViewLegalSlugRoute
   '/_view/press-kit/app': typeof ViewPressKitAppRoute
   '/_view/product/ai-assistant': typeof ViewProductAiAssistantRoute
@@ -770,6 +796,7 @@ export interface FileRoutesById {
   '/_view/docs/': typeof ViewDocsIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
   '/_view/gallery/': typeof ViewGalleryIndexRoute
+  '/_view/k6-reports/': typeof ViewK6ReportsIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
   '/_view/press-kit/': typeof ViewPressKitIndexRoute
   '/_view/roadmap/': typeof ViewRoadmapIndexRoute
@@ -803,6 +830,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/security'
+    | '/api/k6-reports'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -822,6 +850,7 @@ export interface FileRouteTypes {
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
+    | '/k6-reports/$id'
     | '/legal/$slug'
     | '/press-kit/app'
     | '/product/ai-assistant'
@@ -857,6 +886,7 @@ export interface FileRouteTypes {
     | '/docs/'
     | '/download'
     | '/gallery'
+    | '/k6-reports'
     | '/legal'
     | '/press-kit'
     | '/roadmap'
@@ -885,6 +915,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/security'
+    | '/api/k6-reports'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -904,6 +935,7 @@ export interface FileRouteTypes {
     | '/download/linux-appimage'
     | '/download/linux-deb'
     | '/download/windows'
+    | '/k6-reports/$id'
     | '/legal/$slug'
     | '/press-kit/app'
     | '/product/ai-assistant'
@@ -939,6 +971,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/download'
     | '/gallery'
+    | '/k6-reports'
     | '/legal'
     | '/press-kit'
     | '/roadmap'
@@ -971,6 +1004,7 @@ export interface FileRouteTypes {
     | '/_view/pricing'
     | '/_view/privacy'
     | '/_view/security'
+    | '/api/k6-reports'
     | '/api/shortcuts'
     | '/api/templates'
     | '/webhook/nango'
@@ -990,6 +1024,7 @@ export interface FileRouteTypes {
     | '/_view/download/linux-appimage'
     | '/_view/download/linux-deb'
     | '/_view/download/windows'
+    | '/_view/k6-reports/$id'
     | '/_view/legal/$slug'
     | '/_view/press-kit/app'
     | '/_view/product/ai-assistant'
@@ -1025,6 +1060,7 @@ export interface FileRouteTypes {
     | '/_view/docs/'
     | '/_view/download/'
     | '/_view/gallery/'
+    | '/_view/k6-reports/'
     | '/_view/legal/'
     | '/_view/press-kit/'
     | '/_view/roadmap/'
@@ -1045,6 +1081,7 @@ export interface RootRouteChildren {
   LinkedinRoute: typeof LinkedinRoute
   XRoute: typeof XRoute
   YoutubeRoute: typeof YoutubeRoute
+  ApiK6ReportsRoute: typeof ApiK6ReportsRoute
   ApiShortcutsRoute: typeof ApiShortcutsRoute
   ApiTemplatesRoute: typeof ApiTemplatesRoute
   WebhookNangoRoute: typeof WebhookNangoRoute
@@ -1150,6 +1187,13 @@ declare module '@tanstack/react-router' {
       path: '/api/shortcuts'
       fullPath: '/api/shortcuts'
       preLoaderRoute: typeof ApiShortcutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/k6-reports': {
+      id: '/api/k6-reports'
+      path: '/api/k6-reports'
+      fullPath: '/api/k6-reports'
+      preLoaderRoute: typeof ApiK6ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_view/security': {
@@ -1276,6 +1320,13 @@ declare module '@tanstack/react-router' {
       path: '/legal'
       fullPath: '/legal'
       preLoaderRoute: typeof ViewLegalIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/k6-reports/': {
+      id: '/_view/k6-reports/'
+      path: '/k6-reports'
+      fullPath: '/k6-reports'
+      preLoaderRoute: typeof ViewK6ReportsIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/gallery/': {
@@ -1523,6 +1574,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewLegalSlugRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/k6-reports/$id': {
+      id: '/_view/k6-reports/$id'
+      path: '/k6-reports/$id'
+      fullPath: '/k6-reports/$id'
+      preLoaderRoute: typeof ViewK6ReportsIdRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/download/windows': {
       id: '/_view/download/windows'
       path: '/download/windows'
@@ -1719,6 +1777,7 @@ interface ViewRouteRouteChildren {
   ViewDownloadLinuxAppimageRoute: typeof ViewDownloadLinuxAppimageRoute
   ViewDownloadLinuxDebRoute: typeof ViewDownloadLinuxDebRoute
   ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
+  ViewK6ReportsIdRoute: typeof ViewK6ReportsIdRoute
   ViewLegalSlugRoute: typeof ViewLegalSlugRoute
   ViewPressKitAppRoute: typeof ViewPressKitAppRoute
   ViewProductAiAssistantRoute: typeof ViewProductAiAssistantRoute
@@ -1749,6 +1808,7 @@ interface ViewRouteRouteChildren {
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
   ViewGalleryIndexRoute: typeof ViewGalleryIndexRoute
+  ViewK6ReportsIndexRoute: typeof ViewK6ReportsIndexRoute
   ViewLegalIndexRoute: typeof ViewLegalIndexRoute
   ViewPressKitIndexRoute: typeof ViewPressKitIndexRoute
   ViewRoadmapIndexRoute: typeof ViewRoadmapIndexRoute
@@ -1782,6 +1842,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewDownloadLinuxAppimageRoute: ViewDownloadLinuxAppimageRoute,
   ViewDownloadLinuxDebRoute: ViewDownloadLinuxDebRoute,
   ViewDownloadWindowsRoute: ViewDownloadWindowsRoute,
+  ViewK6ReportsIdRoute: ViewK6ReportsIdRoute,
   ViewLegalSlugRoute: ViewLegalSlugRoute,
   ViewPressKitAppRoute: ViewPressKitAppRoute,
   ViewProductAiAssistantRoute: ViewProductAiAssistantRoute,
@@ -1812,6 +1873,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,
   ViewGalleryIndexRoute: ViewGalleryIndexRoute,
+  ViewK6ReportsIndexRoute: ViewK6ReportsIndexRoute,
   ViewLegalIndexRoute: ViewLegalIndexRoute,
   ViewPressKitIndexRoute: ViewPressKitIndexRoute,
   ViewRoadmapIndexRoute: ViewRoadmapIndexRoute,
@@ -1836,6 +1898,7 @@ const rootRouteChildren: RootRouteChildren = {
   LinkedinRoute: LinkedinRoute,
   XRoute: XRoute,
   YoutubeRoute: YoutubeRoute,
+  ApiK6ReportsRoute: ApiK6ReportsRoute,
   ApiShortcutsRoute: ApiShortcutsRoute,
   ApiTemplatesRoute: ApiTemplatesRoute,
   WebhookNangoRoute: WebhookNangoRoute,

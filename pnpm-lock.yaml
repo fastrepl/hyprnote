@@ -497,6 +497,8 @@ importers:
         specifier: 8.40.6
         version: 8.40.6
 
+  apps/k6: {}
+
   apps/pro:
     dependencies:
       '@cacheable/memory':
@@ -703,6 +705,9 @@ importers:
       exa-js:
         specifier: ^1.10.2
         version: 1.10.2(ws@8.18.3)
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
       lucide-react:
         specifier: ^0.544.0
         version: 0.544.0(react@19.2.1)

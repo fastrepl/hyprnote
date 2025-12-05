@@ -17,6 +17,9 @@ const wsReconnects = new Counter("ws_reconnects");
 const wsConnectionDuration = new Trend("ws_connection_duration");
 const wsFirstTranscriptLatency = new Trend("ws_first_transcript_latency");
 const wsConnectionSuccess = new Rate("ws_connection_success");
+const wsMessagesSent = new Counter("ws_messages_sent");
+const wsMessagesReceived = new Counter("ws_messages_received");
+const wsAudioChunksSent = new Counter("ws_audio_chunks_sent");
 
 const TEST_DURATION = __ENV.TEST_DURATION || "1h";
 const VUS = parseInt(__ENV.VUS) || 30;
@@ -73,6 +76,8 @@ function runSession(data) {
           const end = Math.min(offset + CHUNK_SIZE, audioBytes.length);
           const chunk = audioBytes.slice(offset, end);
           socket.sendBinary(chunk.buffer);
+          wsMessagesSent.add(1);
+          wsAudioChunksSent.add(1);
           offset = end;
         } else {
           offset = 0;
@@ -82,10 +87,12 @@ function runSession(data) {
 
       socket.setInterval(() => {
         socket.send(JSON.stringify({ type: "KeepAlive" }));
+        wsMessagesSent.add(1);
       }, 3000);
     });
 
     socket.on("message", (msg) => {
+      wsMessagesReceived.add(1);
       try {
         const response = JSON.parse(msg);
 
@@ -179,6 +186,12 @@ export function handleSummary(data) {
         avg_ms: data.metrics.ws_connection_duration?.values?.avg || 0,
         p95_ms: data.metrics.ws_connection_duration?.values?.["p(95)"] || 0,
       },
+      messages: {
+        sent: data.metrics.ws_messages_sent?.values?.count || 0,
+        received: data.metrics.ws_messages_received?.values?.count || 0,
+        audio_chunks_sent:
+          data.metrics.ws_audio_chunks_sent?.values?.count || 0,
+      },
       checks_passed_rate: data.metrics.checks?.values?.rate || 0,
     },
     server: flyMetrics,
@@ -269,6 +282,11 @@ function textSummary(report) {
     "Transcripts:",
     `  Received: ${c.transcripts.received}`,
     `  First Latency (avg): ${c.transcripts.first_latency_avg_ms.toFixed(0)}ms`,
+    "",
+    "Messages:",
+    `  Sent: ${c.messages.sent}`,
+    `  Received: ${c.messages.received}`,
+    `  Audio Chunks: ${c.messages.audio_chunks_sent}`,
     "",
     "Connection Duration:",
     `  Avg: ${formatDuration(c.connection_duration.avg_ms)}`,

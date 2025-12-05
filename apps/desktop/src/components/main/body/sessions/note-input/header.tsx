@@ -1,6 +1,7 @@
 import { AlertCircleIcon, PlusIcon, RefreshCcwIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { md2json } from "@hypr/tiptap/shared";
 import {
   Popover,
@@ -250,6 +251,11 @@ function CreateOtherFormatButton({
         return;
       }
 
+      analyticsCommands.event({
+        event: "template_summary_created",
+        template_id: templateId,
+      });
+
       handleTabChange({ type: "enhanced", id: enhancedNoteId });
       setPendingNote({ id: enhancedNoteId, templateId });
     },
@@ -465,6 +471,8 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
       }
 
       setMissingModelError(null);
+
+      analyticsCommands.event({ event: "summary_generated", is_auto: false });
 
       await enhanceTask.start({
         model,

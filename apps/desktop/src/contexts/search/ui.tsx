@@ -10,6 +10,8 @@ import {
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import { commands as analyticsCommands } from "@hypr/plugin-analytics";
+
 import type {
   SearchDocument,
   SearchEntityType,
@@ -203,6 +205,7 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
       setIsSearching(true);
 
       try {
+        analyticsCommands.event({ event: "search_used" });
         const hits = await search(searchQueryInput, searchFilters);
         setSearchHits(hits);
         setSearchQuery(searchQueryInput.trim());

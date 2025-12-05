@@ -13,6 +13,7 @@
     "@wdio/local-runner": "8.40.6",
     "@wdio/mocha-framework": "8.40.6",
     "@wdio/spec-reporter": "8.40.6",
+    "ts-node": "10.9.2",
     "webdriverio": "8.40.6"
   }
 }

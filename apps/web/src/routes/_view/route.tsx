@@ -89,27 +89,35 @@ function MobileDocsDrawer({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div
-      className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-sm border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
-      style={{
-        paddingLeft: "env(safe-area-inset-left)",
-      }}
-    >
-      <div
-        ref={scrollContainerRef}
-        className="h-full overflow-y-auto scrollbar-hide p-4"
-      >
-        <SidebarNavigation
-          sections={sections}
-          currentSlug={currentSlug}
-          onLinkClick={onClose}
-          scrollContainerRef={scrollContainerRef}
-          linkTo="/docs/$"
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 top-[69px] bg-black/20 z-40 md:hidden"
+          onClick={onClose}
         />
+      )}
+      <div
+        className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-sm border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{
+          paddingLeft: "env(safe-area-inset-left)",
+        }}
+      >
+        <div
+          ref={scrollContainerRef}
+          className="h-full overflow-y-auto scrollbar-hide p-4"
+        >
+          <SidebarNavigation
+            sections={sections}
+            currentSlug={currentSlug}
+            onLinkClick={onClose}
+            scrollContainerRef={scrollContainerRef}
+            linkTo="/docs/$"
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -168,26 +176,34 @@ function MobileHandbookDrawer({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div
-      className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-sm border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      }`}
-      style={{
-        paddingLeft: "env(safe-area-inset-left)",
-      }}
-    >
-      <div
-        ref={scrollContainerRef}
-        className="h-full overflow-y-auto scrollbar-hide p-4"
-      >
-        <SidebarNavigation
-          sections={handbooksBySection.sections}
-          currentSlug={currentSlug}
-          onLinkClick={onClose}
-          scrollContainerRef={scrollContainerRef}
-          linkTo="/company-handbook/$"
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 top-[69px] bg-black/20 z-40 md:hidden"
+          onClick={onClose}
         />
+      )}
+      <div
+        className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-sm border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{
+          paddingLeft: "env(safe-area-inset-left)",
+        }}
+      >
+        <div
+          ref={scrollContainerRef}
+          className="h-full overflow-y-auto scrollbar-hide p-4"
+        >
+          <SidebarNavigation
+            sections={handbooksBySection.sections}
+            currentSlug={currentSlug}
+            onLinkClick={onClose}
+            scrollContainerRef={scrollContainerRef}
+            linkTo="/company-handbook/$"
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

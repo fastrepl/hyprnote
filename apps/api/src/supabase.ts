@@ -16,11 +16,11 @@ export const requireSupabaseAuth = createMiddleware<{
     return c.text("unauthorized", 401);
   }
 
+  const token = authHeader.replace("Bearer ", "");
   const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: authHeader } },
   });
 
-  const token = authHeader.replace("Bearer ", "");
   const { data, error } = await supabaseClient.auth.getUser(token);
 
   if (error || !data.user) {

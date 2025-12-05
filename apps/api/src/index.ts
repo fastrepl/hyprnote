@@ -11,6 +11,7 @@ import { logger } from "hono/logger";
 
 import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
+import { loadTestOverride } from "./load-test-auth";
 import { API_TAGS, routes } from "./routes";
 import { sentryMiddleware } from "./sentry/middleware";
 import { verifyStripeWebhook } from "./stripe";
@@ -43,11 +44,11 @@ app.use("*", (c, next) => {
   return corsMiddleware(c, next);
 });
 
-app.use("/chat/completions", requireSupabaseAuth);
+app.use("/chat/completions", loadTestOverride, requireSupabaseAuth);
 app.use("/webhook/stripe", verifyStripeWebhook);
 
 if (env.NODE_ENV !== "development") {
-  app.use("/listen", requireSupabaseAuth);
+  app.use("/listen", loadTestOverride, requireSupabaseAuth);
 }
 
 app.route("/", routes);

@@ -57,10 +57,13 @@ function runSession(data) {
   const startTime = Date.now();
   let firstTranscriptTime = null;
   let loopCount = 0;
+  let connectionOpened = false;
 
   const res = ws.connect(url, params, function (socket) {
     socket.on("open", () => {
+      connectionOpened = true;
       wsConnections.add(1);
+      wsConnectionSuccess.add(1);
 
       const audioBytes = new Uint8Array(data.audioData);
       let offset = 0;
@@ -102,6 +105,9 @@ function runSession(data) {
     socket.on("error", (e) => {
       if (e.error() !== "websocket: close sent") {
         wsErrors.add(1);
+        if (!connectionOpened) {
+          wsConnectionSuccess.add(0);
+        }
         console.log(`[VU ${__VU}] Error: ${e.error()}`);
       }
     });
@@ -116,14 +122,15 @@ function runSession(data) {
     }, SESSION_DURATION_MS);
   });
 
-  const success = res && res.status === 101;
-  wsConnectionSuccess.add(success ? 1 : 0);
+  if (!connectionOpened) {
+    wsConnectionSuccess.add(0);
+  }
 
   check(res, {
     "WebSocket upgrade successful": (r) => r && r.status === 101,
   });
 
-  return success;
+  return connectionOpened;
 }
 
 export default function (data) {
@@ -146,7 +153,7 @@ export function handleSummary(data) {
   const report = {
     timestamp: new Date().toISOString(),
     duration_ms: data.state.testRunDurationMs,
-    vus_max: data.state.vusMax,
+    vus_max: data.metrics.vus_max?.values?.max || VUS,
     github: GITHUB_RUN_ID
       ? {
           run_id: GITHUB_RUN_ID,

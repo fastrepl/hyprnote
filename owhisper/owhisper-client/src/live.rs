@@ -113,11 +113,13 @@ fn interleave_audio(mic: &[u8], speaker: &[u8]) -> Vec<u8> {
     interleaved
 }
 
+pub type TransformedInput = MixedMessage<Message, ControlMessage>;
+
 pub struct ListenClientIO;
 
 impl WebSocketIO for ListenClientIO {
-    type Data = ListenClientInput;
-    type Input = ListenClientInput;
+    type Data = TransformedInput;
+    type Input = TransformedInput;
     type Output = String;
 
     fn to_input(data: Self::Data) -> Self::Input {
@@ -126,7 +128,7 @@ impl WebSocketIO for ListenClientIO {
 
     fn to_message(input: Self::Input) -> Message {
         match input {
-            MixedMessage::Audio(data) => Message::Binary(data),
+            MixedMessage::Audio(msg) => msg,
             MixedMessage::Control(control) => {
                 Message::Text(serde_json::to_string(&control).unwrap().into())
             }
@@ -141,27 +143,33 @@ impl WebSocketIO for ListenClientIO {
     }
 }
 
+pub type TransformedDualInput = MixedMessage<(bytes::Bytes, bytes::Bytes, Message), ControlMessage>;
+
 pub struct ListenClientDualIO;
 
 impl WebSocketIO for ListenClientDualIO {
-    type Data = ListenClientDualInput;
-    type Input = ListenClientInput;
+    type Data = TransformedDualInput;
+    type Input = TransformedInput;
     type Output = String;
 
     fn to_input(data: Self::Data) -> Self::Input {
         match data {
-            ListenClientDualInput::Audio((mic, speaker)) => {
+            TransformedDualInput::Audio((mic, speaker, transform_fn_result)) => {
                 let interleaved = interleave_audio(&mic, &speaker);
-                ListenClientInput::Audio(interleaved.into())
+                // For native multichannel, we need to transform the interleaved audio
+                // But since we receive a pre-transformed message for the original audio,
+                // we need to handle this differently
+                // For now, we'll use the transform_fn_result which should be the transformed interleaved audio
+                TransformedInput::Audio(transform_fn_result)
             }
-            ListenClientDualInput::Control(control) => ListenClientInput::Control(control),
+            TransformedDualInput::Control(control) => TransformedInput::Control(control),
         }
     }
 
     fn to_message(input: Self::Input) -> Message {
         match input {
-            ListenClientInput::Audio(data) => Message::Binary(data),
-            ListenClientInput::Control(control) => {
+            TransformedInput::Audio(msg) => msg,
+            TransformedInput::Control(control) => {
                 Message::Text(serde_json::to_string(&control).unwrap().into())
             }
         }
@@ -194,8 +202,18 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
     > {
         let finalize_text = extract_finalize_text(&self.adapter);
         let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
+
+        // Transform audio stream to use adapter's audio_to_message method
+        let adapter_for_transform = self.adapter.clone();
+        let transformed_stream = audio_stream.map(move |input| match input {
+            MixedMessage::Audio(data) => {
+                TransformedInput::Audio(adapter_for_transform.audio_to_message(data))
+            }
+            MixedMessage::Control(control) => TransformedInput::Control(control),
+        });
+
         let (raw_stream, inner) = ws
-            .from_audio::<ListenClientIO>(self.initial_message, audio_stream)
+            .from_audio::<ListenClientIO>(self.initial_message, Box::pin(transformed_stream))
             .await?;
 
         let adapter = self.adapter;
@@ -236,8 +254,20 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
         let finalize_text = extract_finalize_text(&self.adapter);
         let ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
+
+        // Transform audio stream to use adapter's audio_to_message method
+        let adapter_for_transform = self.adapter.clone();
+        let transformed_stream = stream.map(move |input| match input {
+            MixedMessage::Audio((mic, speaker)) => {
+                let interleaved = interleave_audio(&mic, &speaker);
+                let msg = adapter_for_transform.audio_to_message(interleaved.into());
+                TransformedDualInput::Audio((mic, speaker, msg))
+            }
+            MixedMessage::Control(control) => TransformedDualInput::Control(control),
+        });
+
         let (raw_stream, inner) = ws
-            .from_audio::<ListenClientDualIO>(self.initial_message, stream)
+            .from_audio::<ListenClientDualIO>(self.initial_message, Box::pin(transformed_stream))
             .await?;
 
         let adapter = self.adapter;
@@ -262,8 +292,8 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
     ) -> Result<(DualOutputStream, DualHandle), hypr_ws::Error> {
         let finalize_text = extract_finalize_text(&self.adapter);
-        let (mic_tx, mic_rx) = tokio::sync::mpsc::channel::<ListenClientInput>(32);
-        let (spk_tx, spk_rx) = tokio::sync::mpsc::channel::<ListenClientInput>(32);
+        let (mic_tx, mic_rx) = tokio::sync::mpsc::channel::<TransformedInput>(32);
+        let (spk_tx, spk_rx) = tokio::sync::mpsc::channel::<TransformedInput>(32);
 
         let mic_ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
         let spk_ws = websocket_client_with_keep_alive(&self.request, &self.adapter);
@@ -278,7 +308,12 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         let ((mic_raw, mic_handle), (spk_raw, spk_handle)) =
             tokio::try_join!(mic_connect, spk_connect)?;
 
-        tokio::spawn(forward_dual_to_single(stream, mic_tx, spk_tx));
+        tokio::spawn(forward_dual_to_single(
+            stream,
+            mic_tx,
+            spk_tx,
+            self.adapter.clone(),
+        ));
 
         let adapter = self.adapter.clone();
         let mic_stream = mic_raw.flat_map({
@@ -318,16 +353,19 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
     }
 }
 
-async fn forward_dual_to_single(
+async fn forward_dual_to_single<A: RealtimeSttAdapter>(
     mut stream: impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static,
-    mic_tx: tokio::sync::mpsc::Sender<ListenClientInput>,
-    spk_tx: tokio::sync::mpsc::Sender<ListenClientInput>,
+    mic_tx: tokio::sync::mpsc::Sender<TransformedInput>,
+    spk_tx: tokio::sync::mpsc::Sender<TransformedInput>,
+    adapter: A,
 ) {
     while let Some(msg) = stream.next().await {
         match msg {
             MixedMessage::Audio((mic, spk)) => {
-                let _ = mic_tx.try_send(MixedMessage::Audio(mic));
-                let _ = spk_tx.try_send(MixedMessage::Audio(spk));
+                let mic_msg = adapter.audio_to_message(mic);
+                let spk_msg = adapter.audio_to_message(spk);
+                let _ = mic_tx.try_send(MixedMessage::Audio(mic_msg));
+                let _ = spk_tx.try_send(MixedMessage::Audio(spk_msg));
             }
             MixedMessage::Control(ctrl) => {
                 let _ = mic_tx.send(MixedMessage::Control(ctrl.clone())).await;

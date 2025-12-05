@@ -23,17 +23,23 @@ fn chunk_samples() -> usize {
     1600
 }
 
-fn sample_rate() -> u32 {
+fn default_sample_rate() -> u32 {
     16000
 }
 
 pub fn test_audio_stream_single() -> impl Stream<Item = ListenClientInput> + Send + Unpin + 'static
 {
+    test_audio_stream_single_with_rate(default_sample_rate())
+}
+
+pub fn test_audio_stream_single_with_rate(
+    sample_rate: u32,
+) -> impl Stream<Item = ListenClientInput> + Send + Unpin + 'static {
     let audio = rodio::Decoder::new(std::io::BufReader::new(
         std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
     ))
     .unwrap()
-    .to_i16_le_chunks(sample_rate(), chunk_samples());
+    .to_i16_le_chunks(sample_rate, chunk_samples());
 
     Box::pin(tokio_stream::StreamExt::throttle(
         audio.map(|chunk| MixedMessage::Audio(chunk)),
@@ -43,11 +49,17 @@ pub fn test_audio_stream_single() -> impl Stream<Item = ListenClientInput> + Sen
 
 pub fn test_audio_stream_dual() -> impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static
 {
+    test_audio_stream_dual_with_rate(default_sample_rate())
+}
+
+pub fn test_audio_stream_dual_with_rate(
+    sample_rate: u32,
+) -> impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static {
     let audio = rodio::Decoder::new(std::io::BufReader::new(
         std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
     ))
     .unwrap()
-    .to_i16_le_chunks(sample_rate(), chunk_samples());
+    .to_i16_le_chunks(sample_rate, chunk_samples());
 
     Box::pin(tokio_stream::StreamExt::throttle(
         audio.map(|chunk| MixedMessage::Audio((chunk.clone(), chunk))),
@@ -56,10 +68,18 @@ pub fn test_audio_stream_dual() -> impl Stream<Item = ListenClientDualInput> + S
 }
 
 pub async fn run_single_test<A: RealtimeSttAdapter>(client: ListenClient<A>, provider_name: &str) {
+    run_single_test_with_rate(client, provider_name, default_sample_rate()).await;
+}
+
+pub async fn run_single_test_with_rate<A: RealtimeSttAdapter>(
+    client: ListenClient<A>,
+    provider_name: &str,
+    sample_rate: u32,
+) {
     let _ = tracing_subscriber::fmt::try_init();
 
     let timeout = Duration::from_secs(timeout_secs());
-    let input = test_audio_stream_single();
+    let input = test_audio_stream_single_with_rate(sample_rate);
     let (stream, handle) = client.from_realtime_audio(input).await.unwrap();
     futures_util::pin_mut!(stream);
 
@@ -98,10 +118,18 @@ pub async fn run_dual_test<A: RealtimeSttAdapter>(
     client: ListenClientDual<A>,
     provider_name: &str,
 ) {
+    run_dual_test_with_rate(client, provider_name, default_sample_rate()).await;
+}
+
+pub async fn run_dual_test_with_rate<A: RealtimeSttAdapter>(
+    client: ListenClientDual<A>,
+    provider_name: &str,
+    sample_rate: u32,
+) {
     let _ = tracing_subscriber::fmt::try_init();
 
     let timeout = Duration::from_secs(timeout_secs());
-    let input = test_audio_stream_dual();
+    let input = test_audio_stream_dual_with_rate(sample_rate);
     let (stream, handle) = client.from_realtime_audio(input).await.unwrap();
     futures_util::pin_mut!(stream);
 

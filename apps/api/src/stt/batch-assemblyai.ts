@@ -78,6 +78,9 @@ const createTranscript = async (
   if (params.keywords && params.keywords.length > 0) {
     requestBody.keyterms_prompt = params.keywords;
   }
+  if (params.model) {
+    requestBody.speech_model = params.model;
+  }
 
   const response = await fetch(`${ASSEMBLYAI_API_URL}/transcript`, {
     method: "POST",

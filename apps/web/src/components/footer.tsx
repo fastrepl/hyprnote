@@ -1,11 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  ChevronDown,
-  ChevronUp,
-  ExternalLinkIcon,
-  MailIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { ExternalLinkIcon, MailIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 
 const vsList = [
   { slug: "otter", name: "Otter.ai" },
@@ -16,11 +11,13 @@ const vsList = [
   { slug: "obsidian", name: "Obsidian" },
 ];
 
-const platformsList = [
-  { to: "/download/apple-silicon", label: "macOS (Apple Silicon)" },
-  { to: "/download/apple-intel", label: "macOS (Intel)" },
-  { to: "/download/windows", label: "Windows" },
-  { to: "/download/linux", label: "Linux" },
+const useCasesList = [
+  { to: "/solution/sales", label: "Sales" },
+  { to: "/solution/recruiting", label: "Recruiting" },
+  { to: "/solution/consulting", label: "Consulting" },
+  { to: "/solution/coaching", label: "Coaching" },
+  { to: "/solution/research", label: "Research" },
+  { to: "/solution/journalism", label: "Journalism" },
 ];
 
 function getMaxWidthClass(pathname: string): string {
@@ -168,8 +165,17 @@ function ProductLinks() {
 }
 
 function ResourcesLinks() {
-  const [isCompareOpen, setIsCompareOpen] = useState(false);
-  const [isPlatformsOpen, setIsPlatformsOpen] = useState(false);
+  const [isVersusHovered, setIsVersusHovered] = useState(false);
+  const [isUsedInHovered, setIsUsedInHovered] = useState(false);
+
+  const randomVs = useMemo(
+    () => vsList[Math.floor(Math.random() * vsList.length)],
+    [],
+  );
+  const randomUseCase = useMemo(
+    () => useCasesList[Math.floor(Math.random() * useCasesList.length)],
+    [],
+  );
 
   return (
     <div>
@@ -206,109 +212,29 @@ function ResourcesLinks() {
           </a>
         </li>
         <li
-          className="relative"
-          onMouseEnter={() => setIsCompareOpen(true)}
-          onMouseLeave={() => setIsCompareOpen(false)}
-          onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget)) {
-              setIsCompareOpen(false);
-            }
-          }}
+          onMouseEnter={() => setIsVersusHovered(true)}
+          onMouseLeave={() => setIsVersusHovered(false)}
         >
-          <button
-            type="button"
-            aria-haspopup="menu"
-            aria-expanded={isCompareOpen}
-            aria-controls="compare-menu"
-            onClick={() => setIsCompareOpen(!isCompareOpen)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setIsCompareOpen(!isCompareOpen);
-              }
-            }}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
+          <Link
+            to="/vs/$slug"
+            params={{ slug: randomVs.slug }}
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            Compare
-            {isCompareOpen ? (
-              <ChevronUp className="size-3" />
-            ) : (
-              <ChevronDown className="size-3" />
-            )}
-          </button>
-          {isCompareOpen && (
-            <div
-              id="compare-menu"
-              role="menu"
-              className="absolute bottom-full left-0 pb-2 w-40 z-50"
-            >
-              <div className="bg-white border border-neutral-200 rounded-sm shadow-lg py-2">
-                {vsList.map((item) => (
-                  <Link
-                    key={item.slug}
-                    to="/vs/$slug"
-                    params={{ slug: item.slug }}
-                    role="menuitem"
-                    className="block px-3 py-1.5 text-sm text-neutral-600 hover:text-stone-600 hover:bg-neutral-50 transition-colors"
-                  >
-                    vs {item.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+            {isVersusHovered ? `Versus ${randomVs.name}` : "Versus ???"}
+          </Link>
         </li>
         <li
-          className="relative"
-          onMouseEnter={() => setIsPlatformsOpen(true)}
-          onMouseLeave={() => setIsPlatformsOpen(false)}
-          onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget)) {
-              setIsPlatformsOpen(false);
-            }
-          }}
+          onMouseEnter={() => setIsUsedInHovered(true)}
+          onMouseLeave={() => setIsUsedInHovered(false)}
         >
-          <button
-            type="button"
-            aria-haspopup="menu"
-            aria-expanded={isPlatformsOpen}
-            aria-controls="platforms-menu"
-            onClick={() => setIsPlatformsOpen(!isPlatformsOpen)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setIsPlatformsOpen(!isPlatformsOpen);
-              }
-            }}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
+          <Link
+            to={randomUseCase.to}
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            Platforms
-            {isPlatformsOpen ? (
-              <ChevronUp className="size-3" />
-            ) : (
-              <ChevronDown className="size-3" />
-            )}
-          </button>
-          {isPlatformsOpen && (
-            <div
-              id="platforms-menu"
-              role="menu"
-              className="absolute bottom-full left-0 pb-2 w-48 z-50"
-            >
-              <div className="bg-white border border-neutral-200 rounded-sm shadow-lg py-2">
-                {platformsList.map((item) => (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    role="menuitem"
-                    className="block px-3 py-1.5 text-sm text-neutral-600 hover:text-stone-600 hover:bg-neutral-50 transition-colors"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+            {isUsedInHovered
+              ? `Hyprnote for ${randomUseCase.label}`
+              : "Hyprnote for ???"}
+          </Link>
         </li>
         <li>
           <Link

@@ -32,6 +32,24 @@ pub struct PanelInfo {
     pub styles_path: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct RegistryResponse {
+    pub version: u32,
+    pub extensions: Vec<RegistryEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+pub struct RegistryEntry {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub api_version: String,
+    pub description: String,
+    pub download_url: String,
+    pub checksum: String,
+    pub size: u64,
+}
+
 pub struct State {
     pub runtime: hypr_extensions_runtime::ExtensionsRuntime,
 }
@@ -48,6 +66,9 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::list_extensions::<tauri::Wry>,
             commands::get_extensions_dir::<tauri::Wry>,
             commands::get_extension::<tauri::Wry>,
+            commands::fetch_registry,
+            commands::download_extension::<tauri::Wry>,
+            commands::uninstall_extension::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

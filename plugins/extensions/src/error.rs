@@ -12,6 +12,12 @@ pub enum Error {
     Io(String),
     #[error("Runtime unavailable: V8 engine failed to initialize")]
     RuntimeUnavailable,
+    #[error("Network error: {0}")]
+    Network(String),
+    #[error("Checksum mismatch: expected {expected}, got {actual}")]
+    ChecksumMismatch { expected: String, actual: String },
+    #[error("Zip extraction error: {0}")]
+    ZipError(String),
 }
 
 impl From<hypr_extensions_runtime::Error> for Error {

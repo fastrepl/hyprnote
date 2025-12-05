@@ -1,5 +1,11 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { AlertTriangleIcon, BlocksIcon, PuzzleIcon, XIcon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  BlocksIcon,
+  PuzzleIcon,
+  StoreIcon,
+  XIcon,
+} from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import {
   Component,
@@ -26,6 +32,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
+import { Tabs, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
 import { cn } from "@hypr/utils";
 
 import { createIframeSynchronizer } from "../../../../store/tinybase/iframe-sync";
@@ -36,6 +43,7 @@ import { type TabItem, TabItemBase } from "../shared";
 import { ExtensionDetailsColumn } from "./details";
 import { ExtensionsListColumn } from "./list";
 import { getPanelInfoByExtensionId } from "./registry";
+import { ExtensionStoreColumn } from "./store";
 
 type ExtensionTab = Extract<Tab, { type: "extension" }>;
 type ExtensionsTab = Extract<Tab, { type: "extensions" }>;
@@ -74,6 +82,9 @@ function ExtensionsView({ tab }: { tab: ExtensionsTab }) {
   const updateExtensionsTabState = useTabs(
     (state) => state.updateExtensionsTabState,
   );
+  const [activeTab, setActiveTab] = useState<"installed" | "store">(
+    "installed",
+  );
 
   const { selectedExtension } = tab.state;
 
@@ -88,18 +99,46 @@ function ExtensionsView({ tab }: { tab: ExtensionsTab }) {
   );
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="h-full">
-      <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
-        <ExtensionsListColumn
-          selectedExtension={selectedExtension}
-          setSelectedExtension={setSelectedExtension}
-        />
-      </ResizablePanel>
-      <ResizableHandle />
-      <ResizablePanel defaultSize={70} minSize={50}>
-        <ExtensionDetailsColumn selectedExtensionId={selectedExtension} />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+    <div className="h-full flex flex-col">
+      <div className="border-b border-neutral-200 px-4 py-2">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as "installed" | "store")}
+        >
+          <TabsList className="h-8">
+            <TabsTrigger value="installed" className="text-xs px-3 h-6">
+              <BlocksIcon className="w-3 h-3 mr-1" />
+              Installed
+            </TabsTrigger>
+            <TabsTrigger value="store" className="text-xs px-3 h-6">
+              <StoreIcon className="w-3 h-3 mr-1" />
+              Store
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+      <div className="flex-1 min-h-0">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
+            {activeTab === "installed" ? (
+              <ExtensionsListColumn
+                selectedExtension={selectedExtension}
+                setSelectedExtension={setSelectedExtension}
+              />
+            ) : (
+              <ExtensionStoreColumn
+                selectedExtension={selectedExtension}
+                setSelectedExtension={setSelectedExtension}
+              />
+            )}
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel defaultSize={70} minSize={50}>
+            <ExtensionDetailsColumn selectedExtensionId={selectedExtension} />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+    </div>
   );
 }
 

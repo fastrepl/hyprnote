@@ -1,8 +1,10 @@
+use std::io::{Cursor, Read, Write};
 use std::path::PathBuf;
 
+use sha2::{Digest, Sha256};
 use tauri::Manager;
 
-use crate::{Error, ExtensionInfo, ExtensionsPluginExt, PanelInfo};
+use crate::{Error, ExtensionInfo, ExtensionsPluginExt, PanelInfo, RegistryResponse};
 
 #[tauri::command]
 #[specta::specta]
@@ -141,4 +143,132 @@ pub async fn get_extension<R: tauri::Runtime>(
             }
         })
         .ok_or(Error::ExtensionNotFound(extension_id))
+}
+
+const REGISTRY_URL: &str = "https://pub-hyprnote.r2.dev/extensions/registry.json";
+
+#[tauri::command]
+#[specta::specta]
+pub async fn fetch_registry() -> Result<RegistryResponse, Error> {
+    let response = reqwest::get(REGISTRY_URL)
+        .await
+        .map_err(|e| Error::Network(e.to_string()))?;
+
+    let registry: RegistryResponse = response
+        .json()
+        .await
+        .map_err(|e| Error::Network(e.to_string()))?;
+
+    Ok(registry)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn download_extension<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    extension_id: String,
+    download_url: String,
+    expected_checksum: String,
+) -> Result<(), Error> {
+    let extensions_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| Error::Io(e.to_string()))?
+        .join("extensions");
+
+    if !extensions_dir.exists() {
+        std::fs::create_dir_all(&extensions_dir).map_err(|e| Error::Io(e.to_string()))?;
+    }
+
+    let response = reqwest::get(&download_url)
+        .await
+        .map_err(|e| Error::Network(e.to_string()))?;
+
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|e| Error::Network(e.to_string()))?;
+
+    let mut hasher = Sha256::new();
+    hasher.update(&bytes);
+    let actual_checksum = hex::encode(hasher.finalize());
+
+    if actual_checksum != expected_checksum {
+        return Err(Error::ChecksumMismatch {
+            expected: expected_checksum,
+            actual: actual_checksum,
+        });
+    }
+
+    let cursor = Cursor::new(bytes);
+    let mut archive = zip::ZipArchive::new(cursor).map_err(|e| Error::ZipError(e.to_string()))?;
+
+    let target_dir = extensions_dir.join(&extension_id);
+    if target_dir.exists() {
+        std::fs::remove_dir_all(&target_dir).map_err(|e| Error::Io(e.to_string()))?;
+    }
+    std::fs::create_dir_all(&target_dir).map_err(|e| Error::Io(e.to_string()))?;
+
+    for i in 0..archive.len() {
+        let mut file = archive
+            .by_index(i)
+            .map_err(|e| Error::ZipError(e.to_string()))?;
+
+        let outpath = match file.enclosed_name() {
+            Some(path) => {
+                let components: Vec<_> = path.components().collect();
+                if components.len() > 1 {
+                    target_dir.join(components[1..].iter().collect::<PathBuf>())
+                } else {
+                    continue;
+                }
+            }
+            None => continue,
+        };
+
+        if file.is_dir() {
+            std::fs::create_dir_all(&outpath).map_err(|e| Error::Io(e.to_string()))?;
+        } else {
+            if let Some(parent) = outpath.parent() {
+                if !parent.exists() {
+                    std::fs::create_dir_all(parent).map_err(|e| Error::Io(e.to_string()))?;
+                }
+            }
+            let mut outfile =
+                std::fs::File::create(&outpath).map_err(|e| Error::Io(e.to_string()))?;
+            let mut buffer = Vec::new();
+            file.read_to_end(&mut buffer)
+                .map_err(|e| Error::Io(e.to_string()))?;
+            outfile
+                .write_all(&buffer)
+                .map_err(|e| Error::Io(e.to_string()))?;
+        }
+    }
+
+    tracing::info!("Installed extension: {}", extension_id);
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn uninstall_extension<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    extension_id: String,
+) -> Result<(), Error> {
+    let extensions_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| Error::Io(e.to_string()))?
+        .join("extensions");
+
+    let extension_dir = extensions_dir.join(&extension_id);
+
+    if !extension_dir.exists() {
+        return Err(Error::ExtensionNotFound(extension_id));
+    }
+
+    std::fs::remove_dir_all(&extension_dir).map_err(|e| Error::Io(e.to_string()))?;
+
+    tracing::info!("Uninstalled extension: {}", extension_id);
+    Ok(())
 }

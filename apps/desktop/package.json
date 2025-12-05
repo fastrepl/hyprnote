@@ -79,7 +79,7 @@
     "@wavesurfer/react": "^1.0.11",
     "@xstate/react": "^6.0.0",
     "@xstate/store": "^3.11.2",
-    "ai": "^5.0.101",
+    "ai": "^5.0.106",
     "chroma-js": "^3.1.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

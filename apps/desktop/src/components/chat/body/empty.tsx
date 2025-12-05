@@ -36,17 +36,6 @@ export function ChatBodyEmpty({
     openNew({ type: "prompts" });
   }, [openNew]);
 
-  const quickActions = [
-    "Make a 1-paragraph summary",
-    "Draft a follow-up mail for others",
-    "What are the next steps for me",
-  ];
-
-  const handleQuickAction = (action: string) => {
-    // For now, we just log it
-    console.log("Quick action clicked:", action);
-  };
-
   if (!isModelConfigured) {
     return (
       <div className="flex justify-start px-3 py-2">
@@ -93,35 +82,24 @@ export function ChatBodyEmpty({
           <p className="text-sm text-neutral-700 mb-2">
             Hey! I can help you with a lot of cool stuff :)
           </p>
-          <div className="flex flex-col gap-1 pb-1">
-            {quickActions.map((action) => (
-              <button
-                key={action}
-                onClick={() => handleQuickAction(action)}
-                className="px-3 py-2 text-sm bg-white hover:bg-neutral-50 text-neutral-700 rounded-lg transition-colors border border-neutral-200 text-left"
-              >
-                {action}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2 pt-2 border-t border-neutral-200 mt-1">
+          <div className="flex flex-wrap gap-2 pb-1">
             <button
               onClick={handleOpenChatShortcuts}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-colors"
             >
               <MessageSquareIcon size={12} />
               <span>Shortcuts</span>
             </button>
             <button
               onClick={handleOpenPrompts}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-colors"
             >
               <SparklesIcon size={12} />
               <span>Prompts</span>
             </button>
             <button
               onClick={handleGoToSettings}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-600 bg-white hover:bg-neutral-50 rounded-full border border-neutral-200 transition-colors"
             >
               <SettingsIcon size={12} />
               <span>Settings</span>

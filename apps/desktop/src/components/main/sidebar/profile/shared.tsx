@@ -16,12 +16,12 @@ export function MenuItem({
   return (
     <div className="px-1">
       <button
-        className={cn(
-          "flex w-full justify-between rounded-lg",
+        className={cn([
+          "flex w-full items-center justify-between gap-2 rounded-lg",
           "px-3 py-1.5",
-          "text-sm text-black",
+          "text-sm text-black whitespace-nowrap",
           "transition-colors hover:bg-neutral-100",
-        )}
+        ])}
         onClick={onClick}
       >
         <div className="flex items-center justify-start gap-2.5">

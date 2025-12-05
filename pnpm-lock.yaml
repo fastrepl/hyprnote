@@ -236,7 +236,7 @@ importers:
         version: 2.43.1(@babel/core@7.28.5)(@types/mdast@4.0.4)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(antd@5.28.1(date-fns@4.1.0)(luxon@3.7.2)(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(framer-motion@11.18.2(react-dom@19.2.1(react@19.2.1))(react@19.2.1))(micromark-util-types@2.0.2)(micromark@4.0.2)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@openrouter/ai-sdk-provider':
         specifier: ^1.2.5
-        version: 1.2.5(ai@5.0.101(zod@4.1.13))(zod@4.1.13)
+        version: 1.2.5(ai@5.0.106(zod@4.1.13))(zod@4.1.13)
       '@orama/highlight':
         specifier: ^0.1.9
         version: 0.1.9
@@ -313,8 +313,8 @@ importers:
         specifier: ^3.11.2
         version: 3.11.2(react@19.2.1)(solid-js@1.9.10)
       ai:
-        specifier: ^5.0.101
-        version: 5.0.101(zod@4.1.13)
+        specifier: ^5.0.106
+        version: 5.0.106(zod@4.1.13)
       chroma-js:
         specifier: ^3.1.2
         version: 3.1.2
@@ -18216,10 +18216,10 @@ snapshots:
 
   '@open-draft/until@2.1.0': {}
 
-  '@openrouter/ai-sdk-provider@1.2.5(ai@5.0.101(zod@4.1.13))(zod@4.1.13)':
+  '@openrouter/ai-sdk-provider@1.2.5(ai@5.0.106(zod@4.1.13))(zod@4.1.13)':
     dependencies:
       '@openrouter/sdk': 0.1.27
-      ai: 5.0.101(zod@4.1.13)
+      ai: 5.0.106(zod@4.1.13)
       zod: 4.1.13
 
   '@openrouter/sdk@0.1.27':

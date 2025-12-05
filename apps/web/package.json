@@ -19,6 +19,7 @@
     "@mux/mux-player-react": "^3.9.2",
     "@nangohq/frontend": "^0.69.14",
     "@nangohq/node": "^0.69.14",
+    "@netlify/cache": "^3.3.3",
     "@netlify/vite-plugin-tanstack-start": "^1.2.2",
     "@posthog/react": "^1.5.1",
     "@restatedev/restate-sdk-clients": "^1.9.1",

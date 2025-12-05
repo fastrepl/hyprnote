@@ -1,9 +1,10 @@
+import { fetchWithCache, HOUR } from "@netlify/cache";
 import { createServerFn } from "@tanstack/react-start";
 
 import { env } from "../env";
 
 const GITHUB_ORG_REPO = "fastrepl/hyprnote";
-const CACHE_TTL_MS = 1000 * 60 * 60;
+const CACHE_TTL = HOUR;
 
 function getGitHubHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
@@ -16,25 +17,19 @@ function getGitHubHeaders(): Record<string, string> {
   return headers;
 }
 
-interface StatsCache {
-  data: { stars: number; forks: number };
-  timestamp: number;
+async function fetchGitHub(url: string): Promise<Response> {
+  return fetchWithCache(
+    url,
+    { headers: getGitHubHeaders() },
+    { ttl: CACHE_TTL, durable: true },
+  );
 }
-
-let statsCache: StatsCache | null = null;
 
 export const getGitHubStats = createServerFn({ method: "GET" }).handler(
   async () => {
-    const now = Date.now();
-
-    if (statsCache && now - statsCache.timestamp < CACHE_TTL_MS) {
-      return statsCache.data;
-    }
-
     try {
-      const response = await fetch(
+      const response = await fetchGitHub(
         `https://api.github.com/repos/${GITHUB_ORG_REPO}`,
-        { headers: getGitHubHeaders() },
       );
 
       if (!response.ok) {
@@ -42,42 +37,21 @@ export const getGitHubStats = createServerFn({ method: "GET" }).handler(
       }
 
       const data = await response.json();
-      const result = {
+      return {
         stars: data.stargazers_count ?? 0,
         forks: data.forks_count ?? 0,
       };
-
-      statsCache = { data: result, timestamp: now };
-      return result;
     } catch {
-      if (statsCache) {
-        return statsCache.data;
-      }
       return { stars: 0, forks: 0 };
     }
   },
 );
 
-interface StargazerCache {
-  data: { username: string; avatar: string }[];
-  timestamp: number;
-}
-
-let stargazerCache: StargazerCache | null = null;
-
 export const getStargazers = createServerFn({ method: "GET" }).handler(
   async () => {
-    const now = Date.now();
-
-    if (stargazerCache && now - stargazerCache.timestamp < CACHE_TTL_MS) {
-      return stargazerCache.data;
-    }
-
     try {
-      const headers = getGitHubHeaders();
-      const repoResponse = await fetch(
+      const repoResponse = await fetchGitHub(
         `https://api.github.com/repos/${GITHUB_ORG_REPO}`,
-        { headers },
       );
 
       if (!repoResponse.ok) {
@@ -100,9 +74,8 @@ export const getStargazers = createServerFn({ method: "GET" }).handler(
       const fetchPromises = [];
       for (let page = startPage; page <= lastPage; page++) {
         fetchPromises.push(
-          fetch(
+          fetchGitHub(
             `https://api.github.com/repos/${GITHUB_ORG_REPO}/stargazers?per_page=${perPage}&page=${page}`,
-            { headers },
           ),
         );
       }
@@ -121,18 +94,8 @@ export const getStargazers = createServerFn({ method: "GET" }).handler(
         }
       }
 
-      const result = allStargazers.reverse().slice(0, count);
-
-      stargazerCache = {
-        data: result,
-        timestamp: now,
-      };
-
-      return result;
+      return allStargazers.reverse().slice(0, count);
     } catch {
-      if (stargazerCache) {
-        return stargazerCache.data;
-      }
       return [];
     }
   },

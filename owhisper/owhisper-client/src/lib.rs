@@ -11,8 +11,8 @@ use std::marker::PhantomData;
 
 pub use adapter::{
     append_provider_param, is_local_host, AdapterKind, ArgmaxAdapter, AssemblyAIAdapter,
-    BatchSttAdapter, DeepgramAdapter, FireworksAdapter, GladiaAdapter, RealtimeSttAdapter,
-    SonioxAdapter,
+    BatchSttAdapter, DeepgramAdapter, FireworksAdapter, GladiaAdapter, OpenAIAdapter,
+    RealtimeSttAdapter, SonioxAdapter,
 };
 pub use batch::BatchClient;
 pub use error::Error;

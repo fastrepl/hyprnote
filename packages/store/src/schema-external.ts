@@ -119,7 +119,10 @@ export const memorySchema = baseMemorySchema.omit({ id: true }).extend({
 
 export const chatShortcutSchema = baseChatShortcutSchema
   .omit({ id: true })
-  .extend({ created_at: z.string() });
+  .extend({
+    created_at: z.string(),
+    title: z.string(),
+  });
 
 export const enhancedNoteSchema = z.object({
   user_id: z.string(),
@@ -336,6 +339,7 @@ export const externalTableSchemaForTinybase = {
   chat_shortcuts: {
     user_id: { type: "string" },
     created_at: { type: "string" },
+    title: { type: "string" },
     content: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof chatShortcutSchema>,
 } as const satisfies TablesSchema;

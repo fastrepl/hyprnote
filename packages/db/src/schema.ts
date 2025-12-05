@@ -307,6 +307,7 @@ export const chatShortcuts = pgTable(
   TABLE_CHAT_SHORTCUTS,
   {
     ...SHARED,
+    title: text("title").notNull(),
     content: text("content").notNull(),
   },
   (table) => createPolicies(TABLE_CHAT_SHORTCUTS, table.user_id),

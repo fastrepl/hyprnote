@@ -1,9 +1,10 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon } from "lucide-react";
-import { type ReactNode, useCallback } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import type Stripe from "stripe";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
 
 import { useAuth } from "../../auth";
 import { useBillingAccess } from "../../billing";
@@ -16,16 +17,83 @@ export function SettingsAccount() {
   const billing = useBillingAccess();
 
   const isAuthenticated = !!auth?.session;
+  const [isPending, setIsPending] = useState(false);
+  const [devMode, setDevMode] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState("");
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsPending(false);
+    }
+  }, [isAuthenticated]);
 
   const handleOpenAccount = useCallback(() => {
     openUrl(`${WEB_APP_BASE_URL}/app/account`);
   }, []);
 
-  const handleSignIn = useCallback(() => {
-    auth?.signIn();
+  const handleSignIn = useCallback(async () => {
+    setIsPending(true);
+    try {
+      await auth?.signIn();
+    } catch {
+      setIsPending(false);
+    }
   }, [auth]);
 
   if (!isAuthenticated) {
+    if (isPending && devMode) {
+      return (
+        <Container
+          title="Manual callback"
+          description="Paste the callback URL below."
+        >
+          <div className="flex flex-col gap-2">
+            <Input
+              type="text"
+              className="text-sm"
+              placeholder="hyprnote://auth?access_token=...&refresh_token=..."
+              value={callbackUrl}
+              onChange={(e) => setCallbackUrl(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button
+                onClick={() => auth?.handleAuthCallback(callbackUrl)}
+                className="flex-1"
+              >
+                Submit
+              </Button>
+              <Button variant="outline" onClick={() => setDevMode(false)}>
+                Back
+              </Button>
+            </div>
+          </div>
+        </Container>
+      );
+    }
+
+    if (isPending) {
+      return (
+        <Container
+          title="Not redirected?"
+          description="Click below to reopen the sign-in page."
+          action={
+            <Button onClick={handleSignIn}>
+              <span>Reopen sign-in page</span>
+            </Button>
+          }
+        >
+          {import.meta.env.DEV && (
+            <p
+              onClick={() => setDevMode(true)}
+              className="text-xs text-neutral-600 cursor-pointer hover:text-neutral-900"
+            >
+              Click here to workaround deeplink.
+            </p>
+          )}
+        </Container>
+      );
+    }
+
     return (
       <Container
         title="Sign in to Hyprnote"

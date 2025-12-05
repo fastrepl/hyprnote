@@ -415,6 +415,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           "chat_shortcuts",
           ({ select }) => {
             select("user_id");
+            select("title");
             select("content");
             select("created_at");
           },

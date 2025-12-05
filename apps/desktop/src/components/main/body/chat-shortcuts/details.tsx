@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
+import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 import * as main from "../../../../store/tinybase/main";
@@ -95,22 +96,25 @@ function ChatShortcutForm({
   id: string;
   setSelectedMineId: (id: string | null) => void;
 }) {
+  const title = main.UI.useCell("chat_shortcuts", id, "title", main.STORE_ID);
   const content = main.UI.useCell(
     "chat_shortcuts",
     id,
     "content",
     main.STORE_ID,
   );
-  const [localValue, setLocalValue] = useState(content || "");
+  const [localTitle, setLocalTitle] = useState(title || "");
+  const [localContent, setLocalContent] = useState(content || "");
 
   useEffect(() => {
-    setLocalValue(content || "");
-  }, [content, id]);
+    setLocalTitle(title || "");
+    setLocalContent(content || "");
+  }, [title, content, id]);
 
   const handleUpdate = main.UI.useSetPartialRowCallback(
     "chat_shortcuts",
     id,
-    (row: { content?: string }) => row,
+    (row: { title?: string; content?: string }) => row,
     [id],
     main.STORE_ID,
   );
@@ -122,15 +126,16 @@ function ChatShortcutForm({
   );
 
   const handleSave = useCallback(() => {
-    handleUpdate({ content: localValue });
-  }, [handleUpdate, localValue]);
+    handleUpdate({ title: localTitle, content: localContent });
+  }, [handleUpdate, localTitle, localContent]);
 
   const handleDeleteClick = useCallback(() => {
     handleDelete();
     setSelectedMineId(null);
   }, [handleDelete, setSelectedMineId]);
 
-  const hasChanges = localValue !== (content || "");
+  const hasChanges =
+    localTitle !== (title || "") || localContent !== (content || "");
 
   return (
     <div className="flex flex-col h-full">
@@ -150,13 +155,28 @@ function ChatShortcutForm({
         </div>
       </div>
 
-      <div className="flex-1 p-6">
-        <Textarea
-          value={localValue}
-          onChange={(e) => setLocalValue(e.target.value)}
-          placeholder="Enter your chat shortcut content..."
-          className="min-h-[200px] resize-none"
-        />
+      <div className="flex-1 p-6 space-y-4">
+        <div>
+          <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
+            Title
+          </label>
+          <Input
+            value={localTitle}
+            onChange={(e) => setLocalTitle(e.target.value)}
+            placeholder="Enter a title for this shortcut..."
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
+            Content
+          </label>
+          <Textarea
+            value={localContent}
+            onChange={(e) => setLocalContent(e.target.value)}
+            placeholder="Enter your chat shortcut content..."
+            className="min-h-[200px] resize-none"
+          />
+        </div>
       </div>
 
       <div className="p-6 border-t border-neutral-200">

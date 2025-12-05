@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { CheckIcon, CopyIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -51,19 +52,32 @@ export const Route = createFileRoute("/_view/callback/auth")({
 function Component() {
   const search = Route.useSearch();
   const [attempted, setAttempted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const handleDeeplink = () => {
-    if (
-      search.flow === "desktop" &&
-      search.access_token &&
-      search.refresh_token
-    ) {
+  const getDeeplink = () => {
+    if (search.access_token && search.refresh_token) {
       const params = new URLSearchParams();
       params.set("access_token", search.access_token);
       params.set("refresh_token", search.refresh_token);
-      const deeplink = "hypr://auth/callback?" + params.toString();
+      return "hypr://auth/callback?" + params.toString();
+    }
+    return null;
+  };
+
+  const handleDeeplink = () => {
+    const deeplink = getDeeplink();
+    if (search.flow === "desktop" && deeplink) {
       window.location.href = deeplink;
       setAttempted(true);
+    }
+  };
+
+  const handleCopy = async () => {
+    const deeplink = getDeeplink();
+    if (deeplink) {
+      await navigator.clipboard.writeText(deeplink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -97,14 +111,39 @@ function Component() {
           </div>
 
           {attempted && (
-            <div className="pt-8 space-y-2">
-              <p className="text-sm text-neutral-600">Popup didn't appear?</p>
-              <button
-                onClick={handleDeeplink}
-                className="px-6 py-3 bg-stone-600 hover:bg-stone-700 text-white rounded-lg transition-colors font-medium"
-              >
-                Click here to retry
-              </button>
+            <div className="pt-8 space-y-6">
+              <div className="space-y-2">
+                <p className="text-sm text-neutral-600">Popup didn't appear?</p>
+                <button
+                  onClick={handleDeeplink}
+                  className="px-6 py-3 bg-stone-600 hover:bg-stone-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  Click here to retry
+                </button>
+              </div>
+
+              <div className="pt-4 border-t border-stone-200 space-y-3">
+                <p className="text-sm text-neutral-500">Having trouble?</p>
+                <p className="text-xs text-neutral-400">
+                  Copy the URL below and paste it in the app's address bar
+                </p>
+                <button
+                  onClick={handleCopy}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm text-stone-600 border border-stone-300 hover:bg-stone-50 rounded-lg transition-colors"
+                >
+                  {copied ? (
+                    <>
+                      <CheckIcon className="size-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <CopyIcon className="size-4" />
+                      Copy URL
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>

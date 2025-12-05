@@ -31,7 +31,7 @@ export const TabItemChatShortcut: TabItem<
   return (
     <TabItemBase
       icon={<MessageSquare className="w-4 h-4" />}
-      title={"Chat Shortcuts"}
+      title="Shortcuts"
       selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
@@ -131,16 +131,23 @@ function ChatShortcutView({
 
   const setRow = main.UI.useSetRowCallback(
     "chat_shortcuts",
-    (p: { id: string; user_id: string; created_at: string; content: string }) =>
-      p.id,
     (p: {
       id: string;
       user_id: string;
       created_at: string;
+      title: string;
+      content: string;
+    }) => p.id,
+    (p: {
+      id: string;
+      user_id: string;
+      created_at: string;
+      title: string;
       content: string;
     }) => ({
       user_id: p.user_id,
       created_at: p.created_at,
+      title: p.title,
       content: p.content,
     }),
     [],
@@ -154,11 +161,21 @@ function ChatShortcutView({
       const newId = crypto.randomUUID();
       const now = new Date().toISOString();
 
-      setRow({ id: newId, user_id, created_at: now, content: shortcut.prompt });
-      setIsWebMode(false);
-      setSelectedMineId(newId);
+      setRow({
+        id: newId,
+        user_id,
+        created_at: now,
+        title: shortcut.title,
+        content: shortcut.prompt,
+      });
+
+      updateTabState(tab, {
+        isWebMode: false,
+        selectedMineId: newId,
+        selectedWebIndex: null,
+      });
     },
-    [user_id, setRow, setIsWebMode, setSelectedMineId],
+    [user_id, setRow, updateTabState, tab],
   );
 
   const handleAddNew = useCallback(() => {
@@ -167,10 +184,14 @@ function ChatShortcutView({
     const newId = crypto.randomUUID();
     const now = new Date().toISOString();
 
-    setRow({ id: newId, user_id, created_at: now, content: "" });
-    setIsWebMode(false);
-    setSelectedMineId(newId);
-  }, [user_id, setRow, setIsWebMode, setSelectedMineId]);
+    setRow({ id: newId, user_id, created_at: now, title: "", content: "" });
+
+    updateTabState(tab, {
+      isWebMode: false,
+      selectedMineId: newId,
+      selectedWebIndex: null,
+    });
+  }, [user_id, setRow, updateTabState, tab]);
 
   return (
     <ResourceListLayout
@@ -228,8 +249,9 @@ function ShortcutListColumn({
   const [showSearch, setShowSearch] = useState(false);
 
   const getMineTitle = (item: UserShortcut) => {
+    if (item.title?.trim()) return item.title;
     const content = item.content?.trim();
-    if (!content) return "Empty shortcut";
+    if (!content) return "Untitled shortcut";
     return content.length > 50 ? content.slice(0, 50) + "..." : content;
   };
 
@@ -256,7 +278,7 @@ function ShortcutListColumn({
     <div className="w-full h-full flex flex-col">
       <div className="border-b border-neutral-200">
         <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12">
-          <h3 className="text-sm font-medium">Chat Shortcuts</h3>
+          <h3 className="text-sm font-medium">Shortcuts</h3>
           <div className="flex items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>

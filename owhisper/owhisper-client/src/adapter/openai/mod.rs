@@ -1,3 +1,4 @@
+mod batch;
 mod live;
 
 pub(crate) const DEFAULT_WS_HOST: &str = "api.openai.com";

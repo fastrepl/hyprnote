@@ -4,15 +4,16 @@ use hypr_audio_utils::{f32_to_i16_bytes, resample_audio, source_from_path, Sourc
 
 use crate::error::Error;
 
+const TARGET_SAMPLE_RATE: u32 = 16000;
+
 pub async fn decode_audio_to_linear16(path: PathBuf) -> Result<(bytes::Bytes, u32), Error> {
     tokio::task::spawn_blocking(move || -> Result<(bytes::Bytes, u32), Error> {
         let decoder =
             source_from_path(&path).map_err(|err| Error::AudioProcessing(err.to_string()))?;
 
         let channels = decoder.channels().max(1);
-        let sample_rate = decoder.sample_rate();
 
-        let samples = resample_audio(decoder, sample_rate)
+        let samples = resample_audio(decoder, TARGET_SAMPLE_RATE)
             .map_err(|err| Error::AudioProcessing(err.to_string()))?;
 
         let samples = mix_to_mono(samples, channels);
@@ -25,7 +26,7 @@ pub async fn decode_audio_to_linear16(path: PathBuf) -> Result<(bytes::Bytes, u3
 
         let bytes = f32_to_i16_bytes(samples.into_iter());
 
-        Ok((bytes, sample_rate))
+        Ok((bytes, TARGET_SAMPLE_RATE))
     })
     .await?
 }
@@ -63,7 +64,7 @@ mod tests {
         assert!(result.is_ok());
         let (bytes, sample_rate) = result.unwrap();
         assert!(!bytes.is_empty());
-        assert!(sample_rate > 0);
+        assert_eq!(sample_rate, 16000);
     }
 
     #[tokio::test]

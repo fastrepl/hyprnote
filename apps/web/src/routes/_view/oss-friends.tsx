@@ -198,8 +198,9 @@ function FriendsSection({
             onClick={onLoadMore}
             className={cn([
               "inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-full",
-              "border border-neutral-200 text-neutral-700 bg-white",
-              "hover:bg-stone-50 hover:border-stone-300 transition-colors",
+              "border border-neutral-200 text-neutral-700",
+              "bg-linear-to-t from-stone-100 to-white",
+              "hover:from-stone-200 hover:to-stone-50 hover:border-stone-300 transition-all",
             ])}
           >
             Load more

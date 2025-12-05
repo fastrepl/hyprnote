@@ -154,12 +154,7 @@ impl WebSocketIO for ListenClientDualIO {
 
     fn to_input(data: Self::Data) -> Self::Input {
         match data {
-            TransformedDualInput::Audio((mic, speaker, transform_fn_result)) => {
-                let interleaved = interleave_audio(&mic, &speaker);
-                // For native multichannel, we need to transform the interleaved audio
-                // But since we receive a pre-transformed message for the original audio,
-                // we need to handle this differently
-                // For now, we'll use the transform_fn_result which should be the transformed interleaved audio
+            TransformedDualInput::Audio((_, _, transform_fn_result)) => {
                 TransformedInput::Audio(transform_fn_result)
             }
             TransformedDualInput::Control(control) => TransformedInput::Control(control),

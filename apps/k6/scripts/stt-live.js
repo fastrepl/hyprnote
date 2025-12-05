@@ -294,3 +294,20 @@ function formatDuration(ms) {
   if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`;
   return `${(ms / 3600000).toFixed(2)}h`;
 }
+
+function formatPercent(value) {
+  if (!value) return "N/A";
+  return `${(value * 100).toFixed(2)}%`;
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return "N/A";
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(2)} ${units[unitIndex]}`;
+}

@@ -44,6 +44,14 @@ export const displayModelId = (model: string) => {
     return "Whisper 1";
   }
 
+  if (model === "gpt-4o-transcribe") {
+    return "GPT-4o Transcribe";
+  }
+
+  if (model === "gpt-4o-mini-transcribe") {
+    return "GPT-4o mini Transcribe";
+  }
+
   if (model.startsWith("am-")) {
     const am = model as AmModel;
     if (am == "am-parakeet-v2") {
@@ -153,7 +161,7 @@ export const PROVIDERS = [
     badge: "Beta",
     icon: <OpenAI size={16} />,
     baseUrl: "https://api.openai.com/v1",
-    models: ["whisper-1"],
+    models: ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"],
     requiresPro: false,
   },
   {

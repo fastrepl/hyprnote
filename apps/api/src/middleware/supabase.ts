@@ -1,14 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { createMiddleware } from "hono/factory";
 
-import { env } from "./env";
+import { env } from "../env";
 
-export const supabaseAdmin = createClient(
-  env.SUPABASE_URL,
-  env.SUPABASE_SERVICE_ROLE_KEY,
-);
-
-export const requireSupabaseAuth = createMiddleware<{
+export const supabaseAuthMiddleware = createMiddleware<{
   Variables: { supabaseUserId: string };
 }>(async (c, next) => {
   const authHeader = c.req.header("Authorization");

@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
 
-import { env } from "./env";
+import { env } from "../env";
 
 export const loadTestOverride = createMiddleware<{
   Variables: { supabaseUserId: string };

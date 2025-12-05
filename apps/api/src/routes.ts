@@ -1,20 +1,12 @@
-import { OpenAI as PostHogOpenAI } from "@posthog/ai";
 import * as Sentry from "@sentry/bun";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
 import { z } from "zod";
 
-import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
-import { posthog } from "./posthog";
-import { Metrics } from "./sentry/metrics";
-
-const openai = new PostHogOpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: env.OPENROUTER_API_KEY,
-  posthog,
-});
+import { getModels, openai } from "./integration/openrouter";
+import { Metrics } from "./metrics";
 
 export const API_TAGS = {
   INTERNAL: "internal",
@@ -135,121 +127,102 @@ routes.post(
   validator("json", ChatCompletionRequestSchema),
   async (c) => {
     const requestBody = c.req.valid("json");
+    const span = c.get("sentrySpan");
 
-    return Sentry.startSpan(
-      { op: "http.client", name: "openrouter.chat.completions" },
-      async (span) => {
-        const toolChoice = requestBody.tool_choice;
-        const needsToolCalling =
-          Array.isArray(requestBody.tools) &&
-          !(typeof toolChoice === "string" && toolChoice === "none");
+    const toolChoice = requestBody.tool_choice;
+    const needsToolCalling =
+      Array.isArray(requestBody.tools) &&
+      !(typeof toolChoice === "string" && toolChoice === "none");
 
-        const modelsToUse = needsToolCalling
-          ? [
-              "moonshotai/kimi-k2-0905:exacto",
-              "anthropic/claude-haiku-4.5",
-              "openai/gpt-oss-120b:exacto",
-            ]
-          : ["moonshotai/kimi-k2-0905", "openai/gpt-5.1-chat"];
+    span?.setAttribute("chat.tool_calling", needsToolCalling);
+    span?.setAttribute("chat.streaming", requestBody.stream ?? false);
 
-        span.setAttribute("chat.tool_calling", needsToolCalling);
-        span.setAttribute("chat.streaming", requestBody.stream ?? false);
+    const {
+      model: _ignoredModel,
+      stream,
+      messages,
+      tools,
+      tool_choice,
+      temperature,
+      max_tokens,
+      ...restBody
+    } = requestBody;
 
-        const {
-          model: _ignoredModel,
-          stream,
-          messages,
-          tools,
-          tool_choice,
-          temperature,
-          max_tokens,
-          ...restBody
-        } = requestBody;
+    const startTime = performance.now();
 
-        const startTime = performance.now();
+    try {
+      const createParams = {
+        model: "openrouter/auto",
+        messages,
+        tools,
+        tool_choice,
+        temperature,
+        max_tokens,
+      } as Parameters<typeof openai.chat.completions.create>[0];
+      const extraBody = {
+        ...restBody,
+        models: getModels(needsToolCalling),
+        provider: { sort: "latency" },
+      };
 
-        try {
-          const createParams = {
-            model: "",
-            messages,
-            tools,
-            tool_choice,
-            temperature,
-            max_tokens,
-          } as Parameters<typeof openai.chat.completions.create>[0];
-          const extraBody = {
-            ...restBody,
-            models: modelsToUse,
-            provider: { sort: "latency" },
-          };
+      if (stream) {
+        const streamResponse = await openai.chat.completions.create(
+          { ...createParams, stream: true },
+          { body: extraBody },
+        );
 
-          if (stream) {
-            const streamResponse = await openai.chat.completions.create(
-              { ...createParams, stream: true },
-              { body: extraBody },
-            );
+        Metrics.upstreamLatency("openrouter", performance.now() - startTime);
 
-            Metrics.upstreamLatency(
-              "openrouter",
-              performance.now() - startTime,
-            );
-            Metrics.chatCompletion(true, 200);
-            span.setAttribute("http.status_code", 200);
+        const encoder = new TextEncoder();
+        const readableStream = new ReadableStream({
+          async start(controller) {
+            try {
+              for await (const chunk of streamResponse) {
+                const data = `data: ${JSON.stringify(chunk)}\n\n`;
+                controller.enqueue(encoder.encode(data));
+              }
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+              Metrics.chatCompletion(true, 200);
+            } catch (error) {
+              Metrics.chatCompletion(true, 500);
+              Sentry.captureException(error, {
+                tags: { streaming: true },
+              });
+              controller.error(error);
+            }
+          },
+        });
 
-            const encoder = new TextEncoder();
-            const readableStream = new ReadableStream({
-              async start(controller) {
-                try {
-                  for await (const chunk of streamResponse) {
-                    const data = `data: ${JSON.stringify(chunk)}\n\n`;
-                    controller.enqueue(encoder.encode(data));
-                  }
-                  controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                  controller.close();
-                } catch (error) {
-                  Sentry.captureException(error, {
-                    tags: { streaming: true },
-                  });
-                  controller.error(error);
-                }
-              },
-            });
+        return new Response(readableStream, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        });
+      }
 
-            return new Response(readableStream, {
-              status: 200,
-              headers: {
-                "Content-Type": "text/event-stream",
-                "Cache-Control": "no-cache",
-                Connection: "keep-alive",
-              },
-            });
-          }
+      const response = await openai.chat.completions.create(
+        { ...createParams, stream: false },
+        { body: extraBody },
+      );
 
-          const response = await openai.chat.completions.create(
-            { ...createParams, stream: false },
-            { body: extraBody },
-          );
+      Metrics.upstreamLatency("openrouter", performance.now() - startTime);
+      Metrics.chatCompletion(false, 200);
 
-          Metrics.upstreamLatency("openrouter", performance.now() - startTime);
-          Metrics.chatCompletion(false, 200);
-          span.setAttribute("http.status_code", 200);
-
-          return c.json(response, 200);
-        } catch (error) {
-          Metrics.upstreamLatency("openrouter", performance.now() - startTime);
-          const isAPIError =
-            error instanceof Error &&
-            "status" in error &&
-            typeof (error as { status?: number }).status === "number";
-          const status = isAPIError
-            ? (error as { status: number }).status
-            : 500;
-          Metrics.chatCompletion(stream ?? false, status);
-          span.setAttribute("http.status_code", status);
-          throw error;
-        }
-      },
-    );
+      return c.json(response, 200);
+    } catch (error) {
+      Metrics.upstreamLatency("openrouter", performance.now() - startTime);
+      const isAPIError =
+        error instanceof Error &&
+        "status" in error &&
+        typeof (error as { status?: number }).status === "number";
+      const status = isAPIError ? (error as { status: number }).status : 500;
+      Metrics.chatCompletion(stream ?? false, status);
+      throw error;
+    }
   },
 );
 
@@ -297,14 +270,11 @@ routes.post(
     const { syncBillingForStripeEvent } = await import("./billing");
 
     const stripeEvent = c.get("stripeEvent");
+    const span = c.get("sentrySpan");
+    span?.setAttribute("stripe.event_type", stripeEvent.type);
 
     try {
-      await Sentry.startSpan(
-        { op: "billing.sync", name: `stripe.${stripeEvent.type}` },
-        async () => {
-          await syncBillingForStripeEvent(stripeEvent);
-        },
-      );
+      await syncBillingForStripeEvent(stripeEvent);
       Metrics.billingSync(true, stripeEvent.type);
     } catch (error) {
       Metrics.billingSync(false, stripeEvent.type);

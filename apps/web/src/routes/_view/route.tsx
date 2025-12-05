@@ -92,7 +92,7 @@ function MobileDocsDrawer({
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 top-[69px] bg-black/20 z-40 md:hidden"
+          className="fixed inset-0 top-[69px] z-40 md:hidden"
           onClick={onClose}
         />
       )}
@@ -179,7 +179,7 @@ function MobileHandbookDrawer({
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 top-[69px] bg-black/20 z-40 md:hidden"
+          className="fixed inset-0 top-[69px] z-40 md:hidden"
           onClick={onClose}
         />
       )}

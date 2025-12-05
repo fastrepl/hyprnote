@@ -1,0 +1,71 @@
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      create_devin_sessions:
+        description: "Create Devin sessions for findings"
+        type: boolean
+        default: false
+      max_concurrency:
+        description: "Max concurrent analyses"
+        type: number
+        default: 3
+
+env:
+  MAX_CONCURRENCY: ${{ inputs.max_concurrency || 3 }}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: |
+          curl -fsSL https://opencode.ai/install | bash
+          echo "$HOME/.opencode/bin" >> $GITHUB_PATH
+        env:
+          OPENCODE_TELEMETRY: false
+
+      - run: chmod +x scripts/opencode-analysis/analyze.sh
+
+      - run: ./scripts/opencode-analysis/analyze.sh
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MAX_CONCURRENCY: ${{ env.MAX_CONCURRENCY }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: analysis-results
+          path: scripts/opencode-analysis/output/
+          retention-days: 30
+
+      - run: |
+          chmod +x scripts/opencode-analysis/create-devin-sessions.sh
+          ./scripts/opencode-analysis/create-devin-sessions.sh parse
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: findings
+          path: scripts/opencode-analysis/findings.json
+          retention-days: 30
+
+  create-sessions:
+    needs: analyze
+    runs-on: ubuntu-latest
+    if: ${{ inputs.create_devin_sessions == true }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: findings
+          path: scripts/opencode-analysis/
+
+      - run: |
+          chmod +x scripts/opencode-analysis/create-devin-sessions.sh
+          ./scripts/opencode-analysis/create-devin-sessions.sh create
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}

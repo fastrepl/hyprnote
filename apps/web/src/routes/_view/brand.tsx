@@ -83,7 +83,7 @@ const TYPOGRAPHY = [
   {
     id: "display-font",
     name: "Lora",
-    fontFamily: "Lora, serif",
+    fontFamily: "Lora",
     description:
       "Lora is our display typeface for headlines and featured text. Adds elegance and personality.",
     preview: "The quick brown fox jumps over the lazy dog",

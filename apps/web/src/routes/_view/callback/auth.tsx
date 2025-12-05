@@ -111,38 +111,45 @@ function Component() {
           </div>
 
           {attempted && (
-            <div className="pt-8 space-y-6">
-              <div className="space-y-2">
-                <p className="text-sm text-neutral-600">Popup didn't appear?</p>
-                <button
-                  onClick={handleDeeplink}
-                  className="px-6 py-3 bg-stone-600 hover:bg-stone-700 text-white rounded-lg transition-colors font-medium"
-                >
-                  Click here to retry
-                </button>
-              </div>
+            <div className="pt-8 space-y-4">
+              <h2 className="text-lg font-medium text-stone-700">
+                Not redirected?
+              </h2>
 
-              <div className="pt-4 border-t border-stone-200 space-y-3">
-                <p className="text-sm text-neutral-500">Having trouble?</p>
-                <p className="text-xs text-neutral-400">
-                  Copy the URL below and paste it in the app's address bar
-                </p>
-                <button
-                  onClick={handleCopy}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm text-stone-600 border border-stone-300 hover:bg-stone-50 rounded-lg transition-colors"
-                >
-                  {copied ? (
-                    <>
-                      <CheckIcon className="size-4" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <CopyIcon className="size-4" />
-                      Copy URL
-                    </>
-                  )}
-                </button>
+              <div className="space-y-3">
+                <div className="flex flex-col gap-2 p-4 bg-stone-50 rounded-lg">
+                  <p className="text-sm font-medium text-stone-700">
+                    Not redirected to the app?
+                  </p>
+                  <button
+                    onClick={handleDeeplink}
+                    className="w-full px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white rounded-lg transition-colors font-medium text-sm"
+                  >
+                    Reopen
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-2 p-4 bg-stone-50 rounded-lg">
+                  <p className="text-sm font-medium text-stone-700">
+                    Still having trouble?
+                  </p>
+                  <button
+                    onClick={handleCopy}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm text-stone-600 border border-stone-300 hover:bg-stone-100 rounded-lg transition-colors"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckIcon className="size-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <CopyIcon className="size-4" />
+                        Copy URL
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}

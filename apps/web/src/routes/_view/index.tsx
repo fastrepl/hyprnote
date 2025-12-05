@@ -18,10 +18,9 @@ import { SocialCard } from "@/components/social-card";
 import { VideoModal } from "@/components/video-modal";
 import { VideoThumbnail } from "@/components/video-thumbnail";
 import { addContact } from "@/functions/loops";
+import { useHeroContext } from "@/hooks/use-hero-context";
 import { getHeroCTA, getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 import { useAnalytics } from "@/hooks/use-posthog";
-
-import { useHeroContext } from "./route";
 
 const MUX_PLAYBACK_ID = "bpcBHf4Qv5FbhwWD02zyFDb24EBuEuTPHKFUrZEktULQ";
 

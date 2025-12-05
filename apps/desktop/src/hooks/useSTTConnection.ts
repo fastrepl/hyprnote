@@ -5,12 +5,14 @@ import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import type { AIProviderStorage } from "@hypr/store";
 
 import { useAuth } from "../auth";
+import { useBillingAccess } from "../billing";
 import { ProviderId } from "../components/settings/ai/stt/shared";
 import { env } from "../env";
 import * as main from "../store/tinybase/main";
 
 export const useSTTConnection = () => {
   const auth = useAuth();
+  const billing = useBillingAccess();
   const { current_stt_provider, current_stt_model } = main.UI.useValues(
     main.STORE_ID,
   ) as {
@@ -85,7 +87,7 @@ export const useSTTConnection = () => {
     }
 
     if (isCloudModel) {
-      if (!auth?.session) {
+      if (!auth?.session || !billing.isPro) {
         return null;
       }
 
@@ -116,6 +118,7 @@ export const useSTTConnection = () => {
     baseUrl,
     apiKey,
     auth,
+    billing.isPro,
   ]);
 
   return {

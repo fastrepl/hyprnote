@@ -14,6 +14,7 @@ import { useMemo } from "react";
 import type { AIProviderStorage } from "@hypr/store";
 
 import { useAuth } from "../auth";
+import { useBillingAccess } from "../billing";
 import {
   type ProviderId,
   PROVIDERS,
@@ -34,6 +35,7 @@ export type LLMConnectionStatus =
   | { status: "pending"; reason: "missing_model"; providerId: ProviderId }
   | { status: "error"; reason: "provider_not_found"; providerId: string }
   | { status: "error"; reason: "unauthenticated"; providerId: "hyprnote" }
+  | { status: "error"; reason: "not_pro"; providerId: "hyprnote" }
   | {
       status: "error";
       reason: "missing_config";
@@ -138,6 +140,7 @@ export const useLanguageModel = (): Exclude<LanguageModel, string> | null => {
 
 export const useLLMConnection = (): LLMConnectionResult => {
   const auth = useAuth();
+  const billing = useBillingAccess();
 
   const { current_llm_provider, current_llm_model } = main.UI.useValues(
     main.STORE_ID,
@@ -189,6 +192,13 @@ export const useLLMConnection = (): LLMConnectionResult => {
         return {
           conn: null,
           status: { status: "error", reason: "unauthenticated", providerId },
+        };
+      }
+
+      if (!billing.isPro) {
+        return {
+          conn: null,
+          status: { status: "error", reason: "not_pro", providerId },
         };
       }
 
@@ -244,7 +254,13 @@ export const useLLMConnection = (): LLMConnectionResult => {
       conn,
       status: { status: "success", providerId, isHosted: false },
     };
-  }, [auth, current_llm_model, current_llm_provider, providerConfig]);
+  }, [
+    auth,
+    billing.isPro,
+    current_llm_model,
+    current_llm_provider,
+    providerConfig,
+  ]);
 };
 
 export const useLLMConnectionStatus = (): LLMConnectionStatus => {

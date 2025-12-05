@@ -5,13 +5,14 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { allHandbooks } from "content-collections";
-import { createContext, useContext, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { DocsDrawerContext } from "@/hooks/use-docs-drawer";
 import { HandbookDrawerContext } from "@/hooks/use-handbook-drawer";
+import { HeroContext } from "@/hooks/use-hero-context";
 
 import { handbookStructure } from "./company-handbook/-structure";
 import { getDocsBySection } from "./docs/-structure";
@@ -19,17 +20,6 @@ import { getDocsBySection } from "./docs/-structure";
 export const Route = createFileRoute("/_view")({
   component: Component,
 });
-
-interface HeroContextType {
-  onTrigger: (() => void) | null;
-  setOnTrigger: (callback: () => void) => void;
-}
-
-const HeroContext = createContext<HeroContextType | null>(null);
-
-export function useHeroContext() {
-  return useContext(HeroContext);
-}
 
 function Component() {
   const router = useRouterState();

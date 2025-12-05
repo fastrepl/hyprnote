@@ -43,54 +43,57 @@ export function SettingsAccount() {
   if (!isAuthenticated) {
     if (isPending && devMode) {
       return (
-        <Container
-          title="Manual callback"
-          description="Paste the callback URL below."
-        >
-          <div className="flex flex-col gap-2">
-            <Input
-              type="text"
-              className="text-sm"
-              placeholder="hyprnote://auth?access_token=...&refresh_token=..."
-              value={callbackUrl}
-              onChange={(e) => setCallbackUrl(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <Button
-                onClick={() => auth?.handleAuthCallback(callbackUrl)}
-                className="flex-1"
-              >
-                Submit
-              </Button>
-              <Button variant="outline" onClick={() => setDevMode(false)}>
-                Back
-              </Button>
-            </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-sm font-medium">Manual callback</h2>
+            <p className="text-xs text-neutral-500">
+              Paste the callback URL from your browser
+            </p>
           </div>
-        </Container>
+          <Input
+            type="text"
+            className="text-xs font-mono"
+            placeholder="hyprnote://auth?access_token=...&refresh_token=..."
+            value={callbackUrl}
+            onChange={(e) => setCallbackUrl(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={() => auth?.handleAuthCallback(callbackUrl)}
+              className="flex-1"
+            >
+              Submit
+            </Button>
+            <Button variant="outline" onClick={() => setDevMode(false)}>
+              Back
+            </Button>
+          </div>
+        </div>
       );
     }
 
     if (isPending) {
       return (
-        <Container
-          title="Not redirected?"
-          description="Click below to reopen the sign-in page."
-          action={
-            <Button onClick={handleSignIn}>
-              <span>Reopen sign-in page</span>
-            </Button>
-          }
-        >
-          {import.meta.env.DEV && (
-            <p
-              onClick={() => setDevMode(true)}
-              className="text-xs text-neutral-600 cursor-pointer hover:text-neutral-900"
-            >
-              Click here to workaround deeplink.
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-sm font-medium">Waiting for sign-in...</h2>
+            <p className="text-xs text-neutral-500">
+              Complete the sign-in process in your browser
             </p>
-          )}
-        </Container>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button onClick={handleSignIn} variant="outline" className="w-full">
+              Reopen sign-in page
+            </Button>
+            <Button
+              onClick={() => setDevMode(true)}
+              variant="ghost"
+              className="w-full text-xs"
+            >
+              Having trouble? Paste callback URL manually
+            </Button>
+          </div>
+        </div>
       );
     }
 
@@ -181,7 +184,7 @@ function Container({
   children,
 }: {
   title: string;
-  description: string;
+  description?: string;
   action?: ReactNode;
   children?: ReactNode;
 }) {
@@ -190,7 +193,9 @@ function Container({
       <div className="flex flex-row items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="text-md font-semibold">{title}</h1>
-          <p className="text-sm text-neutral-600">{description}</p>
+          {description && (
+            <p className="text-sm text-neutral-600">{description}</p>
+          )}
         </div>
         {action ? <div className="flex-shrink-0">{action}</div> : null}
       </div>

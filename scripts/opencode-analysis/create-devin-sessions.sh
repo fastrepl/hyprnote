@@ -7,11 +7,6 @@ FINDINGS_FILE="${SCRIPT_DIR}/findings.json"
 
 DEVIN_API_URL="${DEVIN_API_URL:-https://api.devin.ai/v1/sessions}"
 
-if [[ -z "${DEVIN_API_KEY:-}" ]]; then
-    echo "Error: DEVIN_API_KEY environment variable is not set"
-    exit 1
-fi
-
 parse_findings() {
     echo "Parsing analysis results from: $OUTPUT_DIR"
     
@@ -57,6 +52,11 @@ create_devin_session() {
 }
 
 process_findings() {
+    if [[ -z "${DEVIN_API_KEY:-}" ]]; then
+        echo "Error: DEVIN_API_KEY environment variable is not set"
+        exit 1
+    fi
+
     if [[ ! -f "$FINDINGS_FILE" ]]; then
         echo "No findings file found. Run analyze.sh first."
         exit 1

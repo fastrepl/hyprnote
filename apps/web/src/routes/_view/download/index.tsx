@@ -1,23 +1,21 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Copy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
+import { usePlatform } from "@/hooks/use-platform";
 
 export const Route = createFileRoute("/_view/download/")({
   component: Component,
 });
 
 function Component() {
-  const [isMac, setIsMac] = useState(false);
-
-  useEffect(() => {
-    setIsMac(navigator.userAgent.toLowerCase().includes("mac"));
-  }, []);
+  const platform = usePlatform();
+  const isMacDesktop = platform === "mac";
 
   return (
     <div
@@ -96,7 +94,7 @@ function Component() {
               </div>
             </div>
 
-            {isMac && (
+            {isMacDesktop && (
               <div className="mb-16">
                 <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
                   Homebrew

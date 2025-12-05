@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ResizableHandle,
@@ -271,11 +271,29 @@ function AppDetailView({
   selectedItem: SelectedItem;
   setSelectedItem: (item: SelectedItem | null) => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPosRef = useRef<number>(0);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    el.scrollTop = scrollPosRef.current;
+
+    const handleScroll = () => {
+      scrollPosRef.current = el.scrollTop;
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [selectedItem]);
+
   return (
     <ResizablePanelGroup direction="horizontal" className="h-[480px]">
       <AppSidebar
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
+        scrollRef={scrollRef}
       />
       <ResizableHandle withHandle className="bg-neutral-200 w-px" />
       <AppDetailPanel
@@ -366,13 +384,15 @@ function AppDetailContent({
 function AppSidebar({
   selectedItem,
   setSelectedItem,
+  scrollRef,
 }: {
   selectedItem: SelectedItem;
   setSelectedItem: (item: SelectedItem) => void;
+  scrollRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
     <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
-      <div className="p-4 h-full overflow-y-auto">
+      <div ref={scrollRef} className="p-4 h-full overflow-y-auto">
         <ScreenshotsSidebar
           selectedItem={selectedItem}
           setSelectedItem={setSelectedItem}

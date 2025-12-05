@@ -1,8 +1,8 @@
 // https://github.com/t3dotgg/stripe-recommendations/blob/main/README.md
 import Stripe from "stripe";
 
-import { stripe } from "./stripe";
-import { supabaseAdmin } from "./supabase";
+import { stripe } from "./integration/stripe";
+import { supabaseAdmin } from "./integration/supabase";
 
 const HANDLED_EVENTS: Stripe.Event.Type[] = [
   "checkout.session.completed",

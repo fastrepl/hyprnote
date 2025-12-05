@@ -11,11 +11,13 @@ import { logger } from "hono/logger";
 
 import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
-import { loadTestOverride } from "./load-test-auth";
+import {
+  loadTestOverride,
+  sentryMiddleware,
+  supabaseAuthMiddleware,
+  verifyStripeWebhook,
+} from "./middleware";
 import { API_TAGS, routes } from "./routes";
-import { sentryMiddleware } from "./sentry/middleware";
-import { verifyStripeWebhook } from "./stripe";
-import { requireSupabaseAuth } from "./supabase";
 
 const app = new Hono<AppBindings>();
 
@@ -44,11 +46,11 @@ app.use("*", (c, next) => {
   return corsMiddleware(c, next);
 });
 
-app.use("/chat/completions", loadTestOverride, requireSupabaseAuth);
+app.use("/chat/completions", loadTestOverride, supabaseAuthMiddleware);
 app.use("/webhook/stripe", verifyStripeWebhook);
 
 if (env.NODE_ENV !== "development") {
-  app.use("/listen", loadTestOverride, requireSupabaseAuth);
+  app.use("/listen", loadTestOverride, supabaseAuthMiddleware);
 }
 
 app.route("/", routes);

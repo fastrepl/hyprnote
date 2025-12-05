@@ -7,6 +7,12 @@ use super::OpenAIAdapter;
 use crate::adapter::parsing::{calculate_time_span, WordBuilder};
 use crate::adapter::RealtimeSttAdapter;
 
+// Voice Activity Detection (VAD) configuration defaults
+const VAD_DETECTION_TYPE: &str = "server_vad";
+const VAD_THRESHOLD: f32 = 0.5;
+const VAD_PREFIX_PADDING_MS: u32 = 300;
+const VAD_SILENCE_DURATION_MS: u32 = 500;
+
 impl RealtimeSttAdapter for OpenAIAdapter {
     fn provider_name(&self) -> &'static str {
         "openai"
@@ -78,10 +84,10 @@ impl RealtimeSttAdapter for OpenAIAdapter {
                             language,
                         }),
                         turn_detection: Some(TurnDetection {
-                            detection_type: "server_vad".to_string(),
-                            threshold: Some(0.5),
-                            prefix_padding_ms: Some(300),
-                            silence_duration_ms: Some(500),
+                            detection_type: VAD_DETECTION_TYPE.to_string(),
+                            threshold: Some(VAD_THRESHOLD),
+                            prefix_padding_ms: Some(VAD_PREFIX_PADDING_MS),
+                            silence_duration_ms: Some(VAD_SILENCE_DURATION_MS),
                         }),
                     }),
                 }),

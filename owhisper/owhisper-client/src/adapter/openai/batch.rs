@@ -11,6 +11,14 @@ use super::OpenAIAdapter;
 
 const DEFAULT_API_BASE: &str = "https://api.openai.com/v1";
 const DEFAULT_MODEL: &str = "whisper-1";
+const RESPONSE_FORMAT_VERBOSE: &str = "verbose_json";
+const RESPONSE_FORMAT_JSON: &str = "json";
+const TIMESTAMP_GRANULARITY: &str = "word";
+
+// Models that support verbose_json with word-level timestamps
+fn supports_word_timestamps(model: &str) -> bool {
+    model == "whisper-1"
+}
 
 impl BatchSttAdapter for OpenAIAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
@@ -34,17 +42,6 @@ struct OpenAIWord {
 }
 
 #[derive(Debug, serde::Deserialize)]
-struct OpenAISegment {
-    #[allow(dead_code)]
-    id: i32,
-    #[allow(dead_code)]
-    seek: i32,
-    start: f64,
-    end: f64,
-    text: String,
-}
-
-#[derive(Debug, serde::Deserialize)]
 struct OpenAIVerboseResponse {
     #[allow(dead_code)]
     task: Option<String>,
@@ -54,8 +51,6 @@ struct OpenAIVerboseResponse {
     text: String,
     #[serde(default)]
     words: Vec<OpenAIWord>,
-    #[serde(default)]
-    segments: Vec<OpenAISegment>,
 }
 
 async fn do_transcribe_file(
@@ -91,9 +86,17 @@ async fn do_transcribe_file(
 
     let mut form = Form::new()
         .part("file", file_part)
-        .text("model", model.to_string())
-        .text("response_format", "verbose_json")
-        .text("timestamp_granularities[]", "word");
+        .text("model", model.to_string());
+
+    // whisper-1 supports verbose_json with word-level timestamps
+    // gpt-4o-transcribe and gpt-4o-mini-transcribe only support json/text
+    if supports_word_timestamps(model) {
+        form = form
+            .text("response_format", RESPONSE_FORMAT_VERBOSE)
+            .text("timestamp_granularities[]", TIMESTAMP_GRANULARITY);
+    } else {
+        form = form.text("response_format", RESPONSE_FORMAT_JSON);
+    }
 
     if let Some(lang) = params.languages.first() {
         form = form.text("language", lang.iso639().code().to_string());

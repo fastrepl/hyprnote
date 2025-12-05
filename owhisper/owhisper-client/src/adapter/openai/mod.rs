@@ -3,6 +3,12 @@ mod live;
 
 pub(crate) const DEFAULT_WS_HOST: &str = "api.openai.com";
 pub(crate) const WS_PATH: &str = "/v1/realtime";
+
+// OpenAI STT Models:
+// - whisper-1: Legacy model, supports verbose_json with word timestamps (batch only)
+// - gpt-4o-transcribe: High quality, supports both batch (json only) and realtime
+// - gpt-4o-mini-transcribe: Cost-efficient, supports both batch (json only) and realtime
+// - gpt-4o-transcribe-diarize: Speaker diarization (batch only, not yet supported here)
 pub(crate) const DEFAULT_TRANSCRIPTION_MODEL: &str = "gpt-4o-transcribe";
 
 #[derive(Clone, Default)]

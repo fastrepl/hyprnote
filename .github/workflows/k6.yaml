@@ -16,7 +16,7 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - run: flyctl deploy --config apps/api/fly.toml --app hyprnote-api-loadtest --strategy immediate --wait-timeout 120
+      - run: flyctl deploy --config apps/api/fly.toml --app hyprnote-api-loadtest --strategy immediate --wait-timeout 120 --env LOAD_TEST=true
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 

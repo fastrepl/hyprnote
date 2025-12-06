@@ -28,8 +28,9 @@ jobs:
           command: versions upload --message "commit ${{ github.sha }}"
       - uses: ./.github/actions/infisical_export
         id: secrets
+        env:
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
         with:
-          token: ${{ secrets.INFISICAL_TOKEN }}
           project-id: ${{ secrets.INFISICAL_PROJECT_ID }}
           env: prod
           folder: /restate

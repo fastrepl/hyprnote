@@ -1,6 +1,4 @@
 inputs:
-  token:
-    required: true
   project-id:
     required: true
   folder:
@@ -24,7 +22,7 @@ runs:
       run: |
         SECRETS=$(
           infisical export \
-            --token=${{ inputs.token }} \
+            --token="$INFISICAL_TOKEN" \
             --projectId=${{ inputs.project-id }} \
             --path="${{ inputs.folder }}" \
             --env=${{ inputs.env }} \

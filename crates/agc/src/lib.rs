@@ -1,13 +1,12 @@
 use dagc::MonoAgc;
 use hypr_audio_utils::f32_to_i16_samples;
-use hypr_vad3::earshot::{VoiceActivityDetector, VoiceActivityProfile};
+use hypr_vvad::VoiceActivityDetector;
 
 pub struct VadAgc {
     agc: MonoAgc,
     vad: VoiceActivityDetector,
     frame_size: usize,
     vad_tail: Vec<f32>,
-    // Fail-open: treat unknown regions as speech so we don't freeze gain forever
     last_is_speech: bool,
 }
 
@@ -15,7 +14,7 @@ impl VadAgc {
     pub fn new(desired_output_rms: f32, distortion_factor: f32) -> Self {
         Self {
             agc: MonoAgc::new(desired_output_rms, distortion_factor).expect("failed_to_create_agc"),
-            vad: VoiceActivityDetector::new(VoiceActivityProfile::QUALITY),
+            vad: VoiceActivityDetector::new(),
             frame_size: 0,
             vad_tail: Vec::new(),
             last_is_speech: true,
@@ -91,7 +90,7 @@ impl Default for VadAgc {
     fn default() -> Self {
         Self {
             agc: MonoAgc::new(0.03, 0.0001).expect("failed_to_create_agc"),
-            vad: VoiceActivityDetector::new(VoiceActivityProfile::VERY_AGGRESSIVE),
+            vad: VoiceActivityDetector::new(),
             frame_size: 0,
             vad_tail: Vec::new(),
             last_is_speech: true,

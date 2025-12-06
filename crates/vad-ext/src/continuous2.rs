@@ -5,7 +5,7 @@ use std::{
 
 use futures_util::Stream;
 use hypr_audio_utils::f32_to_i16_samples;
-use hypr_vad3::earshot::{VoiceActivityDetector, VoiceActivityProfile};
+use hypr_vvad::VoiceActivityDetector;
 
 pub struct ContinuousVadMaskStream<S> {
     inner: S,
@@ -21,7 +21,7 @@ impl<S> ContinuousVadMaskStream<S> {
     pub fn new(inner: S) -> Self {
         Self {
             inner,
-            vad: VoiceActivityDetector::new(VoiceActivityProfile::QUALITY),
+            vad: VoiceActivityDetector::new(),
             hangover_frames: 3,
             trailing_non_speech: 0,
             in_speech: true,
@@ -32,11 +32,6 @@ impl<S> ContinuousVadMaskStream<S> {
 
     pub fn with_hangover_frames(mut self, frames: usize) -> Self {
         self.hangover_frames = frames;
-        self
-    }
-
-    pub fn with_profile(mut self, profile: VoiceActivityProfile) -> Self {
-        self.vad = VoiceActivityDetector::new(profile);
         self
     }
 

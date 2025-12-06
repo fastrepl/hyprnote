@@ -18,9 +18,6 @@ let package = Package(
     .package(
       id: "argmaxinc.argmax-sdk-swift",
       exact: "1.9.3"),
-    .package(
-      url: "https://github.com/huggingface/swift-transformers.git",
-      exact: "0.1.24")
   ],
   targets: [
     .target(

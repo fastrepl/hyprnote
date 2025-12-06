@@ -11,5 +11,6 @@ rodio = { workspace = true }
 [dependencies]
 hypr-audio-utils = { workspace = true }
 hypr-vad3 = { workspace = true }
+hypr-vvad = { workspace = true }
 
 dagc = "0.1.1"

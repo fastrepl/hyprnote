@@ -15,7 +15,7 @@ pub use adapter::{
     BatchSttAdapter, DeepgramAdapter, FireworksAdapter, GladiaAdapter, OpenAIAdapter,
     RealtimeSttAdapter, SonioxAdapter,
 };
-pub use batch::BatchClient;
+pub use batch::{BatchClient, BatchClientBuilder};
 pub use error::Error;
 pub use hypr_ws;
 pub use live::{DualHandle, FinalizeHandle, ListenClient, ListenClientDual};

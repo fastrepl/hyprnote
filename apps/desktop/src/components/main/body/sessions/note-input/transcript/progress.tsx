@@ -13,8 +13,8 @@ export function TranscriptionProgress({ sessionId }: { sessionId: string }) {
   const isRunning = mode === "running_batch";
 
   const statusLabel = useMemo(() => {
-    if (!progressRaw) {
-      return "Preparing audio";
+    if (!progressRaw || progressRaw.percentage === 0) {
+      return "...";
     }
 
     const percent = Math.round(progressRaw.percentage * 100);

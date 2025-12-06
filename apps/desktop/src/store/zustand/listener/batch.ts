@@ -6,7 +6,11 @@ import type {
   StreamResponse,
 } from "@hypr/plugin-listener2";
 
-import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
+import {
+  ChannelProfile,
+  type RuntimeSpeakerHint,
+  type WordLike,
+} from "../../../utils/segment";
 import type { HandlePersistCallback } from "./transcript";
 import { fixSpacingForWords } from "./utils";
 
@@ -113,7 +117,7 @@ function transformBatch(
   const allHints: RuntimeSpeakerHint[] = [];
   let wordOffset = 0;
 
-  response.results.channels.forEach((channel, channelIndex) => {
+  response.results.channels.forEach((channel) => {
     const alternative = channel.alternatives[0];
     if (!alternative || !alternative.words || !alternative.words.length) {
       return;
@@ -122,7 +126,6 @@ function transformBatch(
     const [words, hints] = transformAlternativeWords(
       alternative.words,
       alternative.transcript,
-      channelIndex,
     );
 
     hints.forEach((hint) => {
@@ -141,7 +144,6 @@ function transformBatch(
 function transformAlternativeWords(
   wordEntries: BatchAlternatives["words"],
   transcript: string,
-  channelIndex: number,
 ): [WordLike[], RuntimeSpeakerHint[]] {
   const words: WordLike[] = [];
   const hints: RuntimeSpeakerHint[] = [];
@@ -159,7 +161,7 @@ function transformAlternativeWords(
       text,
       start_ms: Math.round(word.start * 1000),
       end_ms: Math.round(word.end * 1000),
-      channel: channelIndex,
+      channel: ChannelProfile.MixedCapture,
     });
 
     if (typeof word.speaker === "number") {

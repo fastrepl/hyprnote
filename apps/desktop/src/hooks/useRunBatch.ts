@@ -53,6 +53,14 @@ export const useRunBatch = (sessionId: string) => {
           return "deepgram";
         }
 
+        if (conn.provider === "soniox") {
+          return "soniox";
+        }
+
+        if (conn.provider === "assemblyai") {
+          return "assemblyai";
+        }
+
         if (conn.provider === "hyprnote" && conn.model.startsWith("am-")) {
           return "am";
         }

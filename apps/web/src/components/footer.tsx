@@ -218,35 +218,59 @@ function ResourcesLinks() {
             <ExternalLinkIcon className="size-3" />
           </a>
         </li>
-        <li
-          onMouseEnter={() => {
-            setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
-          }}
-        >
+        <li>
           <Link
             to="/vs/$slug"
             params={{ slug: currentVs.slug }}
             className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            aria-label={`Versus ${currentVs.name}`}
+            onMouseEnter={() => {
+              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
+            }}
+            onMouseLeave={() => {
+              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
+            }}
+            onFocus={() => {
+              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
+            }}
+            onBlur={() => {
+              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
+            }}
           >
             Versus{" "}
-            <span className="inline-block blur-sm group-hover:blur-none transition-all duration-150">
+            <span className="inline-block blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
               {currentVs.name}
             </span>
           </Link>
         </li>
-        <li
-          onMouseEnter={() => {
-            setUseCaseIndex((prev) =>
-              getNextRandomIndex(useCasesList.length, prev),
-            );
-          }}
-        >
+        <li>
           <Link
             to={currentUseCase.to}
             className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            aria-label={`Hyprnote for ${currentUseCase.label}`}
+            onMouseEnter={() => {
+              setUseCaseIndex((prev) =>
+                getNextRandomIndex(useCasesList.length, prev),
+              );
+            }}
+            onMouseLeave={() => {
+              setUseCaseIndex((prev) =>
+                getNextRandomIndex(useCasesList.length, prev),
+              );
+            }}
+            onFocus={() => {
+              setUseCaseIndex((prev) =>
+                getNextRandomIndex(useCasesList.length, prev),
+              );
+            }}
+            onBlur={() => {
+              setUseCaseIndex((prev) =>
+                getNextRandomIndex(useCasesList.length, prev),
+              );
+            }}
           >
             For{" "}
-            <span className="inline-block blur-sm group-hover:blur-none transition-all duration-150">
+            <span className="inline-block blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
               {currentUseCase.label}
             </span>
           </Link>

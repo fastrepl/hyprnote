@@ -249,9 +249,7 @@ function ResourcesLinks() {
             to={currentUseCase.to}
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            {isUsedInHovered
-              ? `Hyprnote for ${currentUseCase.label}`
-              : "Hyprnote for ???"}
+            {isUsedInHovered ? `For ${currentUseCase.label}` : "For ???"}
           </Link>
         </li>
         <li>

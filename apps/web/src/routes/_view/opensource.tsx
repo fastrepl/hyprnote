@@ -1,5 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "motion/react";
+import { useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -13,6 +15,7 @@ import {
   useGitHubStargazers,
   useGitHubStats,
 } from "@/queries";
+import { CTASection } from "@/routes/_view/index";
 
 export const Route = createFileRoute("/_view/opensource")({
   component: Component,
@@ -52,6 +55,8 @@ export const Route = createFileRoute("/_view/opensource")({
 });
 
 function Component() {
+  const heroInputRef = useRef<HTMLInputElement>(null);
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
@@ -64,11 +69,13 @@ function Component() {
         <SlashSeparator />
         <TechStackSection />
         <SlashSeparator />
+        <SponsorsSection />
+        <SlashSeparator />
         <ProgressSection />
         <SlashSeparator />
         <JoinMovementSection />
         <SlashSeparator />
-        <CTASection />
+        <CTASection heroInputRef={heroInputRef} />
       </div>
     </div>
   );
@@ -80,7 +87,7 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
       href={`https://github.com/${stargazer.username}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="block size-14 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
+      className="block size-14 rounded-sm overflow-hidden border border-neutral-100/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
     >
       <img
         src={stargazer.avatar}
@@ -134,7 +141,7 @@ function HeroSection() {
       {stargazers.length > 0 && <StargazersGrid stargazers={stargazers} />}
       <div className="px-6 py-12 lg:py-20 relative z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_800px_400px_at_50%_50%,white_0%,rgba(255,255,255,0.8)_40%,transparent_70%)] pointer-events-none" />
-        <header className="mb-12 text-center max-w-4xl mx-auto relative">
+        <header className="py-6 text-center max-w-4xl mx-auto relative">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
             Built in the open,
             <br />
@@ -261,14 +268,14 @@ function LetterSection() {
                   alt="John Jeong"
                   width={32}
                   height={32}
-                  className="rounded-full object-cover border border-neutral-200"
+                  className="rounded-full object-cover border border-neutral-100"
                 />
                 <Image
                   src="/api/images/team/yujong.png"
                   alt="Yujong Lee"
                   width={32}
                   height={32}
-                  className="rounded-full object-cover border border-neutral-200"
+                  className="rounded-full object-cover border border-neutral-100"
                 />
               </div>
 
@@ -395,38 +402,40 @@ const techStack = [
 const sponsors = [
   {
     name: "Tauri",
-    icon: "simple-icons:tauri",
-    url: "https://tauri.app/",
+    icon: "devicon:tauri",
+    url: "https://github.com/tauri-apps",
     description: "Desktop framework",
   },
   {
-    name: "llama.cpp",
-    icon: "mdi:brain",
-    url: "https://github.com/ggerganov/llama.cpp",
-    description: "LLM inference",
+    name: "MrKai77",
+    imageUrl: "https://avatars.githubusercontent.com/u/68963405?v=4",
+    url: "https://github.com/MrKai77",
+    description: "Loop window manager",
   },
   {
-    name: "whisper.cpp",
-    icon: "mdi:microphone",
-    url: "https://github.com/ggerganov/whisper.cpp",
-    description: "Speech recognition",
+    name: "James Pearce",
+    imageUrl: "https://avatars.githubusercontent.com/u/90942?v=4",
+    url: "https://github.com/jamesgpearce",
+    description: "Open source contributor",
   },
 ];
 
 function TechStackSection() {
   return (
-    <section className="py-12 lg:py-16">
+    <section>
       <div>
-        <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
-          Our Tech Stack
-        </h2>
-        <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          Built with modern, privacy-respecting technologies that run locally on
-          your device.
-        </p>
+        <div className="py-12 lg:py-16">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            Our Tech Stack
+          </h2>
+          <p className="text-neutral-600 text-center max-w-2xl mx-auto">
+            Built with modern, privacy-respecting technologies that run locally
+            on your device.
+          </p>
+        </div>
 
         <div className="grid grid-cols-6">
-          {techStack.map((section, sectionIndex) => {
+          {techStack.map((section) => {
             return (
               <>
                 <div
@@ -502,80 +511,202 @@ function TechStackSection() {
             );
           })}
         </div>
+      </div>
+    </section>
+  );
+}
 
-        <div className="border-t border-neutral-200 pt-12">
-          <h3 className="text-2xl font-serif text-stone-600 mb-4 text-center">
-            Projects We Sponsor
-          </h3>
-          <p className="text-neutral-600 text-center mb-8 max-w-2xl mx-auto">
-            We believe in giving back to the open source community that makes
-            our work possible.
+function SponsorsSection() {
+  return (
+    <section>
+      <div>
+        <div className="py-12 lg:py-16">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            Paying It Forward
+          </h2>
+          <p className="text-neutral-600 text-center max-w-2xl mx-auto">
+            We love giving back to the community that makes Hyprnote possible.
+            As we grow, we hope to sponsor even more projects and creators.
           </p>
+        </div>
 
-          <div className="flex flex-wrap justify-center gap-6 mb-12">
-            {sponsors.map((sponsor) => (
+        <div className="grid grid-cols-6">
+          <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50">
+            <h3 className="text-xl font-serif text-stone-600">
+              Projects We Sponsor
+            </h3>
+          </div>
+          {sponsors.map((sponsor, index) => {
+            const hasBorderR = index < sponsors.length - 1;
+
+            return (
               <a
                 key={sponsor.name}
                 href={sponsor.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn([
-                  "flex items-center gap-3 px-6 py-4",
-                  "border border-neutral-200 rounded-lg bg-white",
-                  "hover:border-stone-400 hover:shadow-sm transition-all",
+                  "col-span-6 sm:col-span-3 lg:col-span-2",
+                  "p-6 border-neutral-100",
+                  "hover:bg-stone-50/30 transition-all group",
+                  index % 2 === 0 && "sm:border-r",
+                  index > 0 && "border-t sm:border-t-0",
+                  hasBorderR && "lg:border-r",
                 ])}
               >
-                <Icon icon={sponsor.icon} className="text-2xl text-stone-600" />
-                <div>
-                  <p className="font-medium text-stone-600">{sponsor.name}</p>
-                  <p className="text-xs text-neutral-500">
-                    {sponsor.description}
-                  </p>
+                <div className="flex items-center gap-3 mb-3">
+                  {"imageUrl" in sponsor ? (
+                    <img
+                      src={sponsor.imageUrl}
+                      alt={`${sponsor.name} avatar`}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <Icon
+                      icon={sponsor.icon}
+                      className="text-2xl text-stone-600 group-hover:text-stone-800 transition-colors"
+                    />
+                  )}
+                  <h4 className="font-medium text-stone-600 group-hover:text-stone-800 transition-colors">
+                    {sponsor.name}
+                  </h4>
                 </div>
+                <p className="text-sm text-neutral-600">
+                  {sponsor.description}
+                </p>
               </a>
-            ))}
-          </div>
-
-          <div className="bg-white border border-neutral-200 rounded-lg p-8 text-center">
-            <h4 className="text-xl font-serif text-stone-600 mb-3">
-              Sponsor Hyprnote
-            </h4>
-            <p className="text-neutral-600 mb-6 max-w-xl mx-auto">
-              Your sponsorship helps us maintain and improve Hyprnote, keeping
-              it free and open source for everyone.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="https://github.com/sponsors/fastrepl"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn([
-                  "inline-flex items-center justify-center gap-2 px-6 py-3 font-medium rounded-full",
-                  "bg-linear-to-t from-neutral-800 to-neutral-700 text-white",
-                  "hover:scale-105 active:scale-95 transition-transform",
-                ])}
-              >
-                <Icon icon="mdi:heart" className="text-lg" />
-                Sponsor on GitHub
-              </a>
-              <a
-                href="https://opencollective.com/hyprnote"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn([
-                  "inline-flex items-center justify-center gap-2 px-6 py-3 font-medium rounded-full",
-                  "border border-neutral-300 text-stone-600",
-                  "hover:bg-stone-50 transition-colors",
-                ])}
-              >
-                <Icon icon="mdi:hand-coin" className="text-lg" />
-                Open Collective
-              </a>
+            );
+          })}
+          <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-serif text-stone-600">
+                We Appreciate Your Support
+              </h3>
+              <p className="text-sm text-neutral-600 mt-2">
+                Your sponsorship keeps Hyprnote free, open source, and
+                independent for everyone.
+              </p>
             </div>
+            <a
+              href="https://github.com/sponsors/fastrepl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn([
+                "inline-flex items-center justify-center gap-2 px-6 py-3 font-medium rounded-full shrink-0",
+                "bg-linear-to-t from-pink-100 to-white text-stone-700",
+                "border border-pink-200",
+                "hover:scale-105 active:scale-95 transition-transform",
+              ])}
+            >
+              <Icon icon="mdi:heart" className="text-lg text-red-400" />
+              Sponsor on GitHub
+            </a>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function ConfettiIcons({
+  icon,
+  imageUrl,
+  color,
+  count = 30,
+}: {
+  icon?: string;
+  imageUrl?: string;
+  color: string;
+  count?: number;
+}) {
+  const icons = Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    delay: Math.random() * 0.8,
+    duration: 0.6 + Math.random() * 0.8,
+    rotation: Math.random() * 720 - 360,
+    scale: 0.5 + Math.random() * 1,
+    xDrift: Math.random() * 60 - 30,
+  }));
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <AnimatePresence>
+        {icons.map((item) => (
+          <motion.div
+            key={item.id}
+            initial={{ y: -30, x: 0, opacity: 0, rotate: 0, scale: item.scale }}
+            animate={{
+              y: 150,
+              x: item.xDrift,
+              opacity: [0, 1, 1, 1, 0],
+              rotate: item.rotation,
+              scale: item.scale,
+            }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: item.duration,
+              delay: item.delay,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
+            className="absolute"
+            style={{ left: `${item.x}%` }}
+          >
+            {imageUrl ? (
+              <img src={imageUrl} alt="" className="w-5 h-5 rounded" />
+            ) : icon ? (
+              <Icon icon={icon} className={cn(["text-xl", color])} />
+            ) : null}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  icon,
+  imageUrl,
+  color,
+  hasBorder,
+}: {
+  label: string;
+  value: string;
+  icon?: string;
+  imageUrl?: string;
+  color: string;
+  hasBorder: boolean;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const confettiIcon = icon === "mdi:account-group" ? "mdi:account" : icon;
+
+  return (
+    <div
+      className={cn([
+        "p-6 text-center border-neutral-100 relative",
+        hasBorder && "border-r",
+      ])}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isHovered && (confettiIcon || imageUrl) && (
+        <ConfettiIcons icon={confettiIcon} imageUrl={imageUrl} color={color} />
+      )}
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={label}
+          className="w-8 h-8 mx-auto mb-2 rounded object-cover"
+        />
+      ) : icon ? (
+        <Icon icon={icon} className={cn(["text-3xl mb-2", color])} />
+      ) : null}
+      <p className="text-2xl font-bold text-stone-600">{value}</p>
+      <p className="text-sm text-neutral-500">{label}</p>
+    </div>
   );
 }
 
@@ -599,141 +730,48 @@ function ProgressSection() {
     },
     {
       label: "Contributors",
-      value: "50+",
+      value: "17",
       icon: "mdi:account-group",
       color: "text-green-500",
     },
     {
-      label: "Countries",
-      value: "30+",
-      icon: "mdi:earth",
+      label: "Downloads",
+      value: "40k+",
+      imageUrl: "/api/images/hyprnote/icon.png",
       color: "text-purple-500",
+    },
+    {
+      label: "Discord Members",
+      value: "1k+",
+      icon: "logos:discord-icon",
+      color: "text-indigo-500",
     },
   ];
 
-  const milestones = [
-    { date: "Jan 2024", event: "First Commit", icon: "mdi:rocket-launch" },
-    { date: "Mar 2024", event: "Public Beta", icon: "mdi:party-popper" },
-    { date: "Jun 2024", event: "1K Stars", icon: "mdi:star" },
-    { date: "Sep 2024", event: "v1.0 Release", icon: "mdi:tag" },
-    { date: "Dec 2024", event: "5K Stars", icon: "mdi:star-shooting" },
-    { date: "2025", event: "10K Stars", icon: "mdi:trophy" },
-  ];
-
   return (
-    <section className="px-6 py-12 lg:py-16">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
-          How We're Doing
-        </h2>
-        <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          Our progress is measured by the community we're building together.
-        </p>
+    <section>
+      <div>
+        <div className="py-12 lg:py-16">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            How We're Doing
+          </h2>
+          <p className="text-neutral-600 text-center max-w-2xl mx-auto">
+            Our progress is measured by the community we're building together.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 border-t border-b border-neutral-100 mb-16">
+        <div className="grid grid-cols-5 border-t border-b border-neutral-100">
           {stats.map((stat, index) => (
-            <div
+            <StatCard
               key={stat.label}
-              className={cn([
-                "p-6 text-center border-neutral-100",
-                index < 2 && "lg:border-r",
-                index === 2 && "lg:border-r",
-                index === 0 && "border-r",
-                index === 2 && "border-r border-t lg:border-t-0",
-                index === 3 && "border-t lg:border-t-0",
-              ])}
-            >
-              <Icon
-                icon={stat.icon}
-                className={cn(["text-3xl mb-2", stat.color])}
-              />
-              <p className="text-2xl font-bold text-stone-600">{stat.value}</p>
-              <p className="text-sm text-neutral-500">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <h3 className="text-2xl font-serif text-stone-600 mb-8 text-center">
-          Our Journey
-        </h3>
-
-        <div className="relative">
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-neutral-200 -translate-x-1/2 hidden md:block" />
-          <div className="space-y-8 md:space-y-0">
-            {milestones.map((milestone, index) => (
-              <div
-                key={milestone.date}
-                className={cn([
-                  "relative md:flex md:items-center md:py-4",
-                  index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse",
-                ])}
-              >
-                <div
-                  className={cn([
-                    "md:w-1/2",
-                    index % 2 === 0 ? "md:pr-8" : "md:pl-8",
-                  ])}
-                >
-                  <div
-                    className={cn([
-                      "p-4 border border-neutral-200 rounded-lg bg-white",
-                      index % 2 === 0 ? "md:text-right" : "md:text-left",
-                    ])}
-                  >
-                    <div
-                      className={cn([
-                        "flex items-center gap-2 mb-1",
-                        index % 2 === 0 ? "md:justify-end" : "md:justify-start",
-                      ])}
-                    >
-                      <Icon
-                        icon={milestone.icon}
-                        className="text-lg text-stone-500"
-                      />
-                      <span className="text-xs text-neutral-500">
-                        {milestone.date}
-                      </span>
-                    </div>
-                    <p className="font-medium text-stone-600">
-                      {milestone.event}
-                    </p>
-                  </div>
-                </div>
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-stone-600 rounded-full border-4 border-white hidden md:block" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-16 grid sm:grid-cols-3 border-t border-b border-neutral-100">
-          <div className="p-6 text-center border-neutral-100 border-r sm:border-r">
-            <Icon
-              icon="mdi:code-braces"
-              className="text-3xl text-stone-600 mb-2"
+              label={stat.label}
+              value={stat.value}
+              icon={"icon" in stat ? stat.icon : undefined}
+              imageUrl={"imageUrl" in stat ? stat.imageUrl : undefined}
+              color={stat.color}
+              hasBorder={index < 4}
             />
-            <h4 className="font-medium text-stone-600 mb-1">
-              Active Development
-            </h4>
-            <p className="text-sm text-neutral-500">
-              New features and improvements every week
-            </p>
-          </div>
-          <div className="p-6 text-center border-neutral-100 border-t sm:border-t-0 sm:border-r">
-            <Icon icon="mdi:bug" className="text-3xl text-stone-600 mb-2" />
-            <h4 className="font-medium text-stone-600 mb-1">Quick Bug Fixes</h4>
-            <p className="text-sm text-neutral-500">
-              Most issues resolved within 48 hours
-            </p>
-          </div>
-          <div className="p-6 text-center border-neutral-100 border-t sm:border-t-0">
-            <Icon icon="mdi:update" className="text-3xl text-stone-600 mb-2" />
-            <h4 className="font-medium text-stone-600 mb-1">
-              Regular Releases
-            </h4>
-            <p className="text-sm text-neutral-500">
-              New versions released every 2-3 weeks
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -787,17 +825,19 @@ const contributions = [
 
 function JoinMovementSection() {
   return (
-    <section className="px-6 py-12 lg:py-16 bg-stone-50/30">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
-          Be Part of the Movement
-        </h2>
-        <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          Every contribution, no matter how small, helps build a more private
-          future for AI.
-        </p>
+    <section className="bg-stone-50/30">
+      <div>
+        <div className="py-12 lg:py-16 px-6">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            Be Part of the Movement
+          </h2>
+          <p className="text-neutral-600 text-center max-w-2xl mx-auto">
+            Every contribution, no matter how small, helps build a more private
+            future for AI.
+          </p>
+        </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-b border-neutral-100 mb-12">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-b border-neutral-100">
           {contributions.map((item, index) => {
             const posInRow3 = index % 3;
             const hasBorderR = posInRow3 < 2;
@@ -807,7 +847,7 @@ function JoinMovementSection() {
               <div
                 key={item.title}
                 className={cn([
-                  "p-6 border-neutral-100",
+                  "p-6 border-neutral-100 flex flex-col justify-between",
                   hasBorderR && "lg:border-r",
                   hasBorderB && "lg:border-b",
                   index % 2 === 0 && "sm:border-r lg:border-r-0",
@@ -815,91 +855,31 @@ function JoinMovementSection() {
                   hasBorderR && "lg:border-r",
                 ])}
               >
-                <Icon
-                  icon={item.icon}
-                  className="text-2xl text-stone-600 mb-3"
-                />
-                <h3 className="font-medium text-stone-600 mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-neutral-600 mb-4">
-                  {item.description}
-                </p>
-                <a
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-stone-600 hover:text-stone-800 transition-colors"
-                >
-                  {item.linkText} →
-                </a>
+                <div>
+                  <h3 className="font-medium text-stone-600 mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-neutral-600">{item.description}</p>
+                </div>
+                <div className="mt-4">
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn([
+                      "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-full",
+                      "bg-linear-to-t from-neutral-100 to-white text-stone-700",
+                      "border border-neutral-200",
+                      "hover:scale-105 active:scale-95 transition-transform",
+                    ])}
+                  >
+                    <Icon icon={item.icon} className="text-base" />
+                    {item.linkText}
+                  </a>
+                </div>
               </div>
             );
           })}
-        </div>
-
-        <div className="flex justify-center gap-6">
-          <a
-            href="https://github.com/fastrepl/hyprnote"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 border border-neutral-200 rounded-full bg-white hover:border-stone-400 transition-colors"
-          >
-            <Icon icon="mdi:github" className="text-2xl text-stone-600" />
-          </a>
-          <a
-            href="https://discord.gg/Hyprnote"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 border border-neutral-200 rounded-full bg-white hover:border-stone-400 transition-colors"
-          >
-            <Icon icon="mdi:discord" className="text-2xl text-stone-600" />
-          </a>
-          <a
-            href="https://twitter.com/hyprnote"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 border border-neutral-200 rounded-full bg-white hover:border-stone-400 transition-colors"
-          >
-            <Icon icon="mdi:twitter" className="text-2xl text-stone-600" />
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CTASection() {
-  return (
-    <section className="px-6 py-16 lg:py-24">
-      <div className="max-w-2xl mx-auto text-center">
-        <Image
-          src="/icon.png"
-          alt="Hyprnote icon"
-          className="w-16 h-16 mx-auto mb-6"
-        />
-        <h2 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-4">
-          Privacy you can verify
-        </h2>
-        <p className="text-neutral-600 mb-8 max-w-xl mx-auto">
-          Join thousands of users who trust Hyprnote for their most important
-          conversations. Open source, local-first, and built for privacy.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <DownloadButton />
-          <a
-            href="https://github.com/fastrepl/hyprnote"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn([
-              "inline-flex items-center justify-center gap-2 px-6 py-3 font-medium rounded-full",
-              "border border-neutral-300 text-stone-600",
-              "hover:bg-stone-50 transition-colors",
-            ])}
-          >
-            <Icon icon="mdi:github" className="text-lg" />
-            View Source Code
-          </a>
         </div>
       </div>
     </section>

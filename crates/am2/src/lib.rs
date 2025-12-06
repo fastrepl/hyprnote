@@ -7,7 +7,6 @@ swift!(fn am2_vad_init() -> bool);
 swift!(fn am2_vad_detect(samples_ptr: *const f32, samples_len: i64) -> SRObject<VadResultArray>);
 swift!(fn am2_vad_index_to_seconds(index: i64) -> f32);
 swift!(fn am2_transcribe_init(model: &SRString) -> bool);
-swift!(fn am2_transcribe_is_ready() -> bool);
 swift!(fn am2_transcribe_file(audio_path: &SRString) -> SRObject<TranscribeResultFFI>);
 
 static SDK_INITIALIZED: OnceLock<()> = OnceLock::new();
@@ -113,7 +112,6 @@ pub mod transcribe {
 
     pub fn is_ready() -> bool {
         TRANSCRIBE_INITIALIZED.get().copied().unwrap_or(false)
-            && unsafe { am2_transcribe_is_ready() }
     }
 
     #[derive(Debug, Clone)]

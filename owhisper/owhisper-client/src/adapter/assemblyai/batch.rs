@@ -1,7 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use hypr_audio_utils::{f32_to_i16_bytes, resample_audio, source_from_path, Source};
 use owhisper_interface::batch::{
     Alternatives as BatchAlternatives, Channel as BatchChannel, Response as BatchResponse,
     Results as BatchResults, Word as BatchWord,
@@ -112,13 +111,25 @@ impl AssemblyAIAdapter {
     ) -> Result<BatchResponse, Error> {
         let base_url = Self::batch_api_url(api_base);
 
-        let audio_data = decode_audio_to_bytes(file_path).await?;
+        let audio_data = tokio::fs::read(&file_path)
+            .await
+            .map_err(|e| Error::AudioProcessing(format!("failed to read file: {}", e)))?;
+
+        let content_type = match file_path.extension().and_then(|e| e.to_str()) {
+            Some("wav") => "audio/wav",
+            Some("mp3") => "audio/mpeg",
+            Some("ogg") => "audio/ogg",
+            Some("flac") => "audio/flac",
+            Some("m4a") => "audio/mp4",
+            Some("webm") => "audio/webm",
+            _ => "application/octet-stream",
+        };
 
         let upload_url = format!("{}/upload", base_url);
         let upload_response = client
             .post(&upload_url)
             .header("Authorization", api_key)
-            .header("Content-Type", "application/octet-stream")
+            .header("Content-Type", content_type)
             .body(audio_data)
             .send()
             .await?;
@@ -258,45 +269,6 @@ impl AssemblyAIAdapter {
             },
         }
     }
-}
-
-async fn decode_audio_to_bytes(path: PathBuf) -> Result<bytes::Bytes, Error> {
-    tokio::task::spawn_blocking(move || -> Result<bytes::Bytes, Error> {
-        let decoder =
-            source_from_path(&path).map_err(|err| Error::AudioProcessing(err.to_string()))?;
-
-        let channels = decoder.channels().max(1);
-        let sample_rate = decoder.sample_rate();
-
-        let samples = resample_audio(decoder, sample_rate)
-            .map_err(|err| Error::AudioProcessing(err.to_string()))?;
-
-        let samples = if channels == 1 {
-            samples
-        } else {
-            let channels_usize = channels as usize;
-            let mut mono = Vec::with_capacity(samples.len() / channels_usize);
-            for frame in samples.chunks(channels_usize) {
-                if frame.is_empty() {
-                    continue;
-                }
-                let sum: f32 = frame.iter().copied().sum();
-                mono.push(sum / frame.len() as f32);
-            }
-            mono
-        };
-
-        if samples.is_empty() {
-            return Err(Error::AudioProcessing(
-                "audio file contains no samples".to_string(),
-            ));
-        }
-
-        let bytes = f32_to_i16_bytes(samples.into_iter());
-
-        Ok(bytes)
-    })
-    .await?
 }
 
 #[cfg(test)]

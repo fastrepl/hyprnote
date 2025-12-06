@@ -122,7 +122,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                     session_id: params.session_id.clone(),
                 }
                 .emit(&app)
-                .map_err(|_| crate::Error::BatchStartFailed("failed to emit event".to_string()))?;
+                .map_err(|e| {
+                    crate::Error::BatchStartFailed(format!(
+                        "failed to emit BatchStarted event: {e}"
+                    ))
+                })?;
 
                 let client = owhisper_client::ListenClient::builder()
                     .api_base(params.base_url.clone())
@@ -140,7 +144,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                     response,
                 }
                 .emit(&app)
-                .map_err(|_| crate::Error::BatchStartFailed("failed to emit event".to_string()))?;
+                .map_err(|e| {
+                    crate::Error::BatchStartFailed(format!(
+                        "failed to emit BatchResponse event: {e}"
+                    ))
+                })?;
 
                 Ok(())
             }
@@ -151,7 +159,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                     session_id: params.session_id.clone(),
                 }
                 .emit(&app)
-                .map_err(|_| crate::Error::BatchStartFailed("failed to emit event".to_string()))?;
+                .map_err(|e| {
+                    crate::Error::BatchStartFailed(format!(
+                        "failed to emit BatchStarted event: {e}"
+                    ))
+                })?;
 
                 let client = owhisper_client::ListenClient::builder()
                     .adapter::<owhisper_client::SonioxAdapter>()
@@ -170,7 +182,11 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                     response,
                 }
                 .emit(&app)
-                .map_err(|_| crate::Error::BatchStartFailed("failed to emit event".to_string()))?;
+                .map_err(|e| {
+                    crate::Error::BatchStartFailed(format!(
+                        "failed to emit BatchResponse event: {e}"
+                    ))
+                })?;
 
                 Ok(())
             }

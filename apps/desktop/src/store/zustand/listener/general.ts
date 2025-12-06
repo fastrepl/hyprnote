@@ -333,7 +333,7 @@ export const createGeneralSlice = <
       get().setTranscriptPersist(options.handlePersist);
     }
 
-    get().clearBatchSession(sessionId);
+    get().handleBatchStarted(sessionId);
 
     let unlisten: (() => void) | undefined;
 

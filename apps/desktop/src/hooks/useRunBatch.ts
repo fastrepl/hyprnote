@@ -61,8 +61,9 @@ export const useRunBatch = (sessionId: string) => {
       })();
 
       if (!provider) {
-        console.error("unsupported_batch_provider", conn.provider);
-        return;
+        throw new Error(
+          `Batch transcription is not supported for provider: ${conn.provider}`,
+        );
       }
 
       if (sessionTabRef.current) {

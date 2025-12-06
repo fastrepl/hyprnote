@@ -1,4 +1,4 @@
-use crate::{events, AppWindow, FakeWindowBounds, OverlayBound, WindowsPluginExt};
+use crate::{events, icon, AppIcon, AppWindow, FakeWindowBounds, OverlayBound, WindowsPluginExt};
 
 #[tauri::command]
 #[specta::specta]
@@ -104,4 +104,38 @@ pub async fn remove_fake_window(
     state: tauri::State<'_, FakeWindowBounds>,
 ) -> Result<(), String> {
     remove_bounds(&window, &state, name).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_app_icon(icon_type: AppIcon) -> Result<(), String> {
+    icon::set_app_icon(icon_type)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn reset_app_icon() -> Result<(), String> {
+    icon::reset_app_icon()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_available_icons() -> Vec<AppIcon> {
+    AppIcon::all()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_build_channel(app: tauri::AppHandle) -> String {
+    let identifier = &app.config().identifier;
+
+    if identifier.contains("nightly") {
+        "nightly".to_string()
+    } else if identifier.contains("stable") {
+        "stable".to_string()
+    } else if identifier.contains("staging") {
+        "staging".to_string()
+    } else {
+        "dev".to_string()
+    }
 }

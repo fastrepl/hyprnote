@@ -7,6 +7,9 @@ import {
   type ToStorageType,
 } from "./shared";
 
+export const appIconSchema = z.enum(["dark", "light", "nightly", "pro"]);
+export type AppIcon = z.infer<typeof appIconSchema>;
+
 export const generalSchema = z.object({
   user_id: z.string(),
   autostart: z.boolean().default(false),
@@ -24,6 +27,7 @@ export const generalSchema = z.object({
   current_llm_model: z.string().optional(),
   current_stt_provider: z.string().optional(),
   current_stt_model: z.string().optional(),
+  app_icon: appIconSchema.default("dark"),
 });
 
 export const aiProviderSchema = z
@@ -64,6 +68,7 @@ export const internalSchemaForTinybase = {
     current_llm_model: { type: "string" },
     current_stt_provider: { type: "string" },
     current_stt_model: { type: "string" },
+    app_icon: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof generalSchema>,
   table: {
     ai_providers: {

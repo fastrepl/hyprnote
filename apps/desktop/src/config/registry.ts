@@ -5,6 +5,10 @@ import {
   commands as localSttCommands,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
+import {
+  type AppIcon,
+  commands as windowsCommands,
+} from "@hypr/plugin-windows";
 
 export type ConfigKey =
   | "autostart"
@@ -21,7 +25,8 @@ export type ConfigKey =
   | "save_recordings"
   | "telemetry_consent"
   | "current_llm_provider"
-  | "current_llm_model";
+  | "current_llm_model"
+  | "app_icon";
 
 type ConfigValueType<K extends ConfigKey> =
   (typeof CONFIG_REGISTRY)[K]["default"];
@@ -153,5 +158,13 @@ export const CONFIG_REGISTRY = {
   current_llm_model: {
     key: "current_llm_model",
     default: undefined,
+  },
+
+  app_icon: {
+    key: "app_icon",
+    default: "dark" as AppIcon,
+    sideEffect: async (value: AppIcon, _) => {
+      await windowsCommands.setAppIcon(value);
+    },
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

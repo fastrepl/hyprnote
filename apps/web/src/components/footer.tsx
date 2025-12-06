@@ -1,5 +1,35 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ExternalLinkIcon, MailIcon } from "lucide-react";
+import { useState } from "react";
+
+import { Image } from "@/components/image";
+
+function getNextRandomIndex(length: number, prevIndex: number): number {
+  if (length <= 1) return 0;
+  let next = prevIndex;
+  while (next === prevIndex) {
+    next = Math.floor(Math.random() * length);
+  }
+  return next;
+}
+
+const vsList = [
+  { slug: "otter", name: "Otter.ai" },
+  { slug: "granola", name: "Granola" },
+  { slug: "fireflies", name: "Fireflies" },
+  { slug: "fathom", name: "Fathom" },
+  { slug: "notion", name: "Notion" },
+  { slug: "obsidian", name: "Obsidian" },
+];
+
+const useCasesList = [
+  { to: "/solution/sales", label: "Sales" },
+  { to: "/solution/recruiting", label: "Recruiting" },
+  { to: "/solution/consulting", label: "Consulting" },
+  { to: "/solution/coaching", label: "Coaching" },
+  { to: "/solution/research", label: "Research" },
+  { to: "/solution/journalism", label: "Journalism" },
+];
 
 function getMaxWidthClass(pathname: string): string {
   const isBlogOrDocs =
@@ -30,7 +60,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
   return (
     <div className="lg:flex-1">
       <Link to="/" className="inline-block mb-4">
-        <img
+        <Image
           src="/api/images/hyprnote/logo.svg"
           alt="Hyprnote"
           className="h-6"
@@ -146,12 +176,30 @@ function ProductLinks() {
 }
 
 function ResourcesLinks() {
+  const [vsIndex, setVsIndex] = useState(() =>
+    Math.floor(Math.random() * vsList.length),
+  );
+  const [useCaseIndex, setUseCaseIndex] = useState(() =>
+    Math.floor(Math.random() * useCasesList.length),
+  );
+
+  const currentVs = vsList[vsIndex];
+  const currentUseCase = useCasesList[useCaseIndex];
+
   return (
     <div>
       <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
         Resources
       </h3>
       <ul className="space-y-3">
+        <li>
+          <Link
+            to="/pricing"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+          >
+            Pricing
+          </Link>
+        </li>
         <li>
           <a
             href="/docs/faq"
@@ -161,13 +209,20 @@ function ResourcesLinks() {
           </a>
         </li>
         <li>
-          <a
-            href="mailto:support@hyprnote.com"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
+          <Link
+            to="/company-handbook"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            Support
-            <MailIcon className="size-3" />
-          </a>
+            Company Handbook
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/gallery"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+          >
+            Prompt Gallery
+          </Link>
         </li>
         <li>
           <a
@@ -181,27 +236,60 @@ function ResourcesLinks() {
           </a>
         </li>
         <li>
-          <Link
-            to="/pricing"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+          <a
+            href="mailto:support@hyprnote.com"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors inline-flex items-center gap-1 no-underline hover:underline hover:decoration-dotted"
           >
-            Pricing
+            Support
+            <MailIcon className="size-3" />
+          </a>
+        </li>
+        <li>
+          <Link
+            to={currentUseCase.to}
+            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            aria-label={`Hyprnote for ${currentUseCase.label}`}
+            onMouseEnter={() => {
+              setUseCaseIndex((prev) =>
+                getNextRandomIndex(useCasesList.length, prev),
+              );
+            }}
+            onFocus={() => {
+              setUseCaseIndex((prev) =>
+                getNextRandomIndex(useCasesList.length, prev),
+              );
+            }}
+          >
+            👍 for{" "}
+            <span className="inline-block blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
+              {currentUseCase.label}
+            </span>
           </Link>
         </li>
         <li>
           <Link
-            to="/gallery"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            to="/vs/$slug"
+            params={{ slug: currentVs.slug }}
+            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            aria-label={`Versus ${currentVs.name}`}
+            onMouseEnter={() => {
+              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
+            }}
+            onFocus={() => {
+              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
+            }}
           >
-            Prompt Gallery
-          </Link>
-        </li>
-        <li>
-          <Link
-            to="/company-handbook"
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
-          >
-            Company Handbook
+            <img
+              src="/api/images/hyprnote/icon.png"
+              alt="Hyprnote"
+              width={12}
+              height={12}
+              className="size-4 rounded border border-neutral-100 inline"
+            />{" "}
+            vs{" "}
+            <span className="inline-block blur-sm group-hover:blur-none group-focus:blur-none transition-all duration-150">
+              {currentVs.name}
+            </span>
           </Link>
         </li>
       </ul>

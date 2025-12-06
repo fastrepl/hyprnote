@@ -9,6 +9,8 @@ import { SlashSeparator } from "@/components/slash-separator";
 import {
   GITHUB_LAST_SEEN_FORKS,
   GITHUB_LAST_SEEN_STARS,
+  Stargazer,
+  useGitHubStargazers,
   useGitHubStats,
 } from "@/queries";
 
@@ -56,6 +58,8 @@ function Component() {
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
+        <HeroSection />
+        <SlashSeparator />
         <LetterSection />
         <SlashSeparator />
         <TechStackSection />
@@ -65,6 +69,99 @@ function Component() {
         <JoinMovementSection />
         <SlashSeparator />
         <CTASection />
+      </div>
+    </div>
+  );
+}
+
+function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
+  return (
+    <a
+      href={`https://github.com/${stargazer.username}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block size-14 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
+    >
+      <img
+        src={stargazer.avatar}
+        alt={`${stargazer.username}'s avatar`}
+        className="w-full h-full object-cover"
+        loading="lazy"
+      />
+    </a>
+  );
+}
+
+function StargazersGrid({ stargazers }: { stargazers: Stargazer[] }) {
+  const rows = 10;
+  const cols = 20;
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 flex flex-col justify-center gap-1 opacity-40 px-4">
+        {Array.from({ length: rows }).map((_, rowIndex) => (
+          <div key={rowIndex} className="flex gap-1 justify-center">
+            {Array.from({ length: cols }).map((_, colIndex) => {
+              const index = (rowIndex * cols + colIndex) % stargazers.length;
+              const stargazer = stargazers[index];
+              const delay = Math.random() * 3;
+
+              return (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className="pointer-events-auto animate-fade-in-out"
+                  style={{
+                    animationDelay: `${delay}s`,
+                    animationDuration: "3s",
+                  }}
+                >
+                  <StargazerAvatar stargazer={stargazer} />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HeroSection() {
+  const { data: stargazers = [] } = useGitHubStargazers();
+
+  return (
+    <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30 relative overflow-hidden">
+      {stargazers.length > 0 && <StargazersGrid stargazers={stargazers} />}
+      <div className="px-6 py-12 lg:py-20 relative z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_800px_400px_at_50%_50%,white_0%,rgba(255,255,255,0.8)_40%,transparent_70%)] pointer-events-none" />
+        <header className="mb-12 text-center max-w-4xl mx-auto relative">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
+            Built in the open,
+            <br />
+            for everyone
+          </h1>
+          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
+            Hyprnote is fully open source under GPL-3.0. Every line of code is
+            auditable, every decision is transparent, and every user has the
+            freedom to inspect, modify, and contribute.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="https://github.com/fastrepl/hyprnote"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn([
+                "inline-flex items-center justify-center gap-2 px-8 py-3 font-medium rounded-full",
+                "bg-linear-to-t from-neutral-800 to-neutral-700 text-white",
+                "hover:scale-105 active:scale-95 transition-transform",
+              ])}
+            >
+              <Icon icon="mdi:github" className="text-lg" />
+              View on GitHub
+            </a>
+            <DownloadButton />
+          </div>
+        </header>
       </div>
     </div>
   );

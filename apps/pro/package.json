@@ -10,7 +10,7 @@
     "@cacheable/memory": "^1.0.1",
     "@hono/mcp": "^0.1.5",
     "@hono/node-server": "^1.19.6",
-    "@modelcontextprotocol/sdk": "^1.22.0",
+    "@modelcontextprotocol/sdk": "^1.24.0",
     "@t3-oss/env-core": "^0.13.8",
     "dotenv": "^17.2.3",
     "exa-js": "^1.10.2",

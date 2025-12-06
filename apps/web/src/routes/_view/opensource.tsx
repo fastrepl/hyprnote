@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -437,11 +437,8 @@ function TechStackSection() {
         <div className="grid grid-cols-6">
           {techStack.map((section) => {
             return (
-              <>
-                <div
-                  key={`header-${section.category}`}
-                  className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50"
-                >
+              <Fragment key={section.category}>
+                <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50">
                   <h3 className="text-xl font-serif text-stone-600">
                     {section.category}
                   </h3>
@@ -507,7 +504,7 @@ function TechStackSection() {
                     </a>
                   );
                 })}
-              </>
+              </Fragment>
             );
           })}
         </div>

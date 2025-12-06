@@ -855,7 +855,6 @@ function JoinMovementSection() {
                   hasBorderB && "lg:border-b",
                   index % 2 === 0 && "sm:border-r lg:border-r-0",
                   index > 1 && "border-t sm:border-t-0 lg:border-t-0",
-                  hasBorderR && "lg:border-r",
                 ])}
               >
                 <div>

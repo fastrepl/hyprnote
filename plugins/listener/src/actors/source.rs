@@ -20,7 +20,6 @@ use hypr_aec::AEC;
 use hypr_agc::VadAgc;
 use hypr_audio::{AudioInput, DeviceEvent, DeviceMonitor, DeviceMonitorHandle};
 use hypr_audio_utils::{chunk_size_for_stt, f32_to_i16_bytes, ResampleExtDynamicNew};
-use hypr_vad_ext::VadMaskExt;
 use tauri_specta::Event;
 
 const AUDIO_AMPLITUDE_THROTTLE: Duration = Duration::from_millis(100);
@@ -403,7 +402,7 @@ async fn start_source_loop_mic_and_speaker(
                 .resampled_chunks(super::SAMPLE_RATE, chunk_size);
 
             match mic_stream_res {
-                Ok(stream) => stream.mask_with_vad(),
+                Ok(stream) => stream,
                 Err(err) => {
                     tracing::error!(error = ?err, device = ?mic_device, "mic_stream_setup_failed");
                     let _ = myself2.cast(SourceMsg::StreamFailed("mic_stream_setup_failed".into()));
@@ -506,7 +505,7 @@ impl Pipeline {
 
     fn new(app: tauri::AppHandle, session_id: String) -> Self {
         Self {
-            agc_mic: VadAgc::default(),
+            agc_mic: VadAgc::default().with_masking(true),
             agc_spk: VadAgc::default(),
             aec: None,
             joiner: Joiner::new(),
@@ -518,7 +517,7 @@ impl Pipeline {
 
     fn reset(&mut self) {
         self.joiner.reset();
-        self.agc_mic = VadAgc::default();
+        self.agc_mic = VadAgc::default().with_masking(true);
         self.agc_spk = VadAgc::default();
         if let Some(aec) = &mut self.aec {
             aec.reset();

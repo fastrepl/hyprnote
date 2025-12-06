@@ -225,8 +225,7 @@ dependencies = [
  "data",
  "hound",
  "rodio",
- "vad3",
- "vvad",
+ "vad-ext",
 ]
 
 [[package]]

@@ -20,6 +20,7 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: linux
+      - uses: ./.github/actions/infisical_install
       - run: infisical run --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::batch --ignored -- --nocapture
   live:
     runs-on: ubuntu-latest
@@ -28,4 +29,5 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: linux
+      - uses: ./.github/actions/infisical_install
       - run: infisical run --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::live --ignored -- --nocapture

@@ -172,12 +172,12 @@ function LetterSection() {
     <section className="px-6 py-16 lg:py-24 bg-[linear-gradient(to_right,#fafafa_1px,transparent_1px),linear-gradient(to_bottom,#fafafa_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8 text-center">
-          <span className="text-sm uppercase tracking-widest text-neutral-500 font-medium">
+          <span className="text-sm font-mono uppercase tracking-widest text-neutral-500 font-medium">
             A letter from our team
           </span>
         </div>
 
-        <article className="prose prose-stone prose-lg max-w-none">
+        <article>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 text-center mb-12">
             Why Open Source is Inevitable
             <br />
@@ -185,73 +185,111 @@ function LetterSection() {
           </h1>
 
           <div className="space-y-6 text-neutral-700 leading-relaxed">
-            <p className="text-lg">Dear friends,</p>
+            <p className="text-lg">Hey friends,</p>
 
             <p>
-              We are living through a profound shift in how software is built
-              and how it shapes our lives. AI is no longer a distant promise—it
-              is here, embedded in the tools we use every day, listening to our
-              conversations, reading our documents, and learning from our most
-              private moments.
-            </p>
-
-            <p>
-              This is precisely why we believe open source is not just a
-              preference—it is a necessity.
+              We're watching software change faster than any of us expected. AI
+              isn't a concept anymore. It's in your meetings, it's inside your
+              documents, and it has context on things that used to live only in
+              your mind.
             </p>
 
             <p>
-              When AI processes your voice, your meetings, your thoughts, you
-              deserve to know exactly what happens to that data. You deserve to
-              verify that your conversations stay private. You deserve to
-              understand the algorithms that summarize your words and extract
-              meaning from your discussions.
+              When software listens to you, when it transcribes you, when it
+              summarizes your thinking, trust can't just be a marketing claim.
+            </p>
+
+            <p>That's why open source is not a nice-to-have. It's mandatory.</p>
+
+            <p>
+              If an AI tool captures your voice, your discussions, your
+              strategy, you should be able to see exactly what it does with that
+              information. Not a PDF saying "we care about privacy." Not a
+              privacy policy written by lawyers. Actual code.
             </p>
 
             <p>
-              Closed-source AI tools ask you to trust them blindly. They say
-              "your data is safe" but offer no way to verify. They promise
-              privacy but hide their code behind corporate walls. In an age
-              where AI can understand and remember everything, this blind trust
-              is no longer acceptable.
+              Closed-source AI tools say "trust us." But you can't audit "trust
+              us." You can't fork it, stress-test it, or guarantee your own
+              compliance.
+            </p>
+
+            <p>In the age of AI, blind trust is basically an attack vector.</p>
+
+            <p>Open source flips the power dynamic:</p>
+
+            <ul className="space-y-2 list-disc pl-6">
+              <li>You can verify claims instead of believing them.</li>
+              <li>Security researchers can inspect, not speculate.</li>
+              <li>Teams can self-host, extend, or fork when needed.</li>
+              <li>The product outlives the company that built it.</li>
+            </ul>
+
+            <p>That's why we built Hyprnote in the open.</p>
+
+            <p>
+              We don't want you to trust us more. We want you to need to trust
+              us less. If you can inspect it, run it locally, modify it, or
+              audit it, the entire idea of trust changes.
+            </p>
+
+            <p>This isn't ideology. It's durability.</p>
+
+            <p>
+              Companies die. Pricing changes. Terms change. Acquisitions happen.
+              Compliance requirements evolve.
+            </p>
+
+            <p>Open source survives all of that.</p>
+
+            <p>
+              What AI is capable of today demands a different contract between
+              software and the people who rely on it. That contract should be
+              inspectable, forkable, and owned by its users, not hidden behind
+              opaque servers.
             </p>
 
             <p>
-              Open source changes this equation fundamentally. When every line
-              of code is visible, privacy claims become verifiable facts.
-              Security researchers can audit. Developers can contribute.
-              Communities can fork and improve. The software becomes accountable
-              not to shareholders, but to users.
+              If AI ends up shaping how we work, think, and communicate, then
+              the people using it deserve transparency—not promises.
             </p>
 
-            <p>
-              We built Hyprnote as open source because we believe the future of
-              AI must be transparent. We believe that as AI becomes more
-              powerful, the need for openness becomes more urgent. We believe
-              that the best way to earn trust is to make trust unnecessary—by
-              showing everything.
-            </p>
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-2">
+                <Image
+                  src="/api/images/team/john.png"
+                  alt="John Jeong"
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover border border-neutral-200"
+                />
+                <Image
+                  src="/api/images/team/yujong.png"
+                  alt="Yujong Lee"
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover border border-neutral-200"
+                />
+              </div>
 
-            <p>
-              This is not idealism. This is pragmatism. Open source projects
-              outlive companies. Open source code can be audited, forked, and
-              improved by anyone. Open source creates a foundation that belongs
-              to everyone, not just those who control the servers.
-            </p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-lg">With clarity,</p>
+                  <p>John Jeong, Yujong Lee</p>
+                </div>
 
-            <p>
-              The age of AI demands a new social contract between software and
-              its users. We believe that contract must be written in open
-              source.
-            </p>
-
-            <p className="mt-8">
-              With conviction,
-              <br />
-              <span className="font-medium text-stone-600">
-                The Hyprnote Team
-              </span>
-            </p>
+                <div>
+                  <Image
+                    src="/api/images/hyprnote/signature-dark.svg"
+                    alt="Hyprnote Signature"
+                    width={124}
+                    height={60}
+                    layout="constrained"
+                    className="opacity-80 object-contain"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </article>
       </div>
@@ -261,40 +299,96 @@ function LetterSection() {
 
 const techStack = [
   {
-    name: "Rust",
-    icon: "mdi:language-rust",
-    description: "Core audio processing and local AI inference",
-    url: "https://www.rust-lang.org/",
+    category: "Languages",
+    items: [
+      {
+        name: "Rust",
+        icon: "devicon:rust",
+        description: "Core language for audio processing and local AI",
+        url: "https://www.rust-lang.org/",
+      },
+      {
+        name: "TypeScript",
+        icon: "devicon:typescript",
+        description: "Type-safe language for frontend development",
+        url: "https://www.typescriptlang.org/",
+      },
+    ],
   },
   {
-    name: "Tauri",
-    icon: "simple-icons:tauri",
-    description: "Cross-platform desktop framework",
-    url: "https://tauri.app/",
+    category: "Desktop & UI",
+    items: [
+      {
+        name: "Tauri",
+        icon: "devicon:tauri",
+        description: "Cross-platform desktop framework",
+        url: "https://tauri.app/",
+      },
+      {
+        name: "React",
+        icon: "devicon:react",
+        description: "UI framework for building interfaces",
+        url: "https://react.dev/",
+      },
+      {
+        name: "TanStack Start",
+        imageUrl: "https://avatars.githubusercontent.com/u/72518640?s=200&v=4",
+        description: "Full-stack React framework with type-safe routing",
+        url: "https://tanstack.com/start",
+      },
+    ],
   },
   {
-    name: "React",
-    icon: "mdi:react",
-    description: "User interface and frontend",
-    url: "https://react.dev/",
+    category: "Build & Tooling",
+    items: [
+      {
+        name: "Vite",
+        icon: "devicon:vitejs",
+        description: "Fast build tool and dev server",
+        url: "https://vite.dev/",
+      },
+      {
+        name: "Turborepo",
+        icon: "vscode-icons:file-type-light-turbo",
+        description: "High-performance monorepo build system",
+        url: "https://turbo.build/repo",
+      },
+      {
+        name: "pnpm",
+        icon: "devicon:pnpm",
+        description: "Fast, disk space efficient package manager",
+        url: "https://pnpm.io/",
+      },
+    ],
   },
   {
-    name: "Whisper",
-    icon: "mdi:microphone",
-    description: "Local speech-to-text transcription",
-    url: "https://github.com/openai/whisper",
-  },
-  {
-    name: "llama.cpp",
-    icon: "mdi:brain",
-    description: "Local LLM inference engine",
-    url: "https://github.com/ggerganov/llama.cpp",
-  },
-  {
-    name: "SQLite",
-    icon: "mdi:database",
-    description: "Local-first data storage",
-    url: "https://www.sqlite.org/",
+    category: "AI & Data",
+    items: [
+      {
+        name: "WhisperKit",
+        imageUrl: "https://avatars.githubusercontent.com/u/150409474?s=200&v=4",
+        description: "Local speech-to-text transcription",
+        url: "https://github.com/argmaxinc/WhisperKit",
+      },
+      {
+        name: "llama.cpp",
+        imageUrl: "https://avatars.githubusercontent.com/u/134263123?s=200&v=4",
+        description: "Local LLM inference engine",
+        url: "https://github.com/ggerganov/llama.cpp",
+      },
+      {
+        name: "TinyBase",
+        imageUrl: "https://avatars.githubusercontent.com/u/96894742?s=200&v=4",
+        description: "Reactive data store for local-first apps",
+        url: "https://tinybase.org/",
+      },
+      {
+        name: "TanStack Query",
+        icon: "logos:react-query-icon",
+        description: "Powerful data synchronization for React",
+        url: "https://tanstack.com/query",
+      },
+    ],
   },
 ];
 
@@ -321,8 +415,8 @@ const sponsors = [
 
 function TechStackSection() {
   return (
-    <section className="px-6 py-12 lg:py-16 bg-stone-50/30">
-      <div className="max-w-4xl mx-auto">
+    <section className="py-12 lg:py-16">
+      <div>
         <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
           Our Tech Stack
         </h2>
@@ -331,31 +425,82 @@ function TechStackSection() {
           your device.
         </p>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {techStack.map((tech) => (
-            <a
-              key={tech.name}
-              href={tech.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn([
-                "p-6 border border-neutral-200 rounded-lg bg-white",
-                "hover:border-stone-400 hover:shadow-sm transition-all",
-                "group",
-              ])}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <Icon
-                  icon={tech.icon}
-                  className="text-2xl text-stone-600 group-hover:text-stone-800 transition-colors"
-                />
-                <h3 className="font-medium text-stone-600 group-hover:text-stone-800 transition-colors">
-                  {tech.name}
-                </h3>
-              </div>
-              <p className="text-sm text-neutral-600">{tech.description}</p>
-            </a>
-          ))}
+        <div className="grid grid-cols-6">
+          {techStack.map((section, sectionIndex) => {
+            return (
+              <>
+                <div
+                  key={`header-${section.category}`}
+                  className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50"
+                >
+                  <h3 className="text-xl font-serif text-stone-600">
+                    {section.category}
+                  </h3>
+                </div>
+                {section.items.map((tech, techIndex) => {
+                  const itemCount = section.items.length;
+                  const posInRow2 = techIndex % 2;
+                  const posInRow3 = techIndex % 3;
+                  const rowIn2Col = Math.floor(techIndex / 2);
+                  const rowIn3Col = Math.floor(techIndex / 3);
+                  const totalRows2Col = Math.ceil(itemCount / 2);
+                  const totalRows3Col = Math.ceil(itemCount / 3);
+                  const isLastItemMobile = techIndex === itemCount - 1;
+                  const isLastRowSm = rowIn2Col === totalRows2Col - 1;
+                  const isLastRowLg = rowIn3Col === totalRows3Col - 1;
+
+                  const hasBorderBMobile = !isLastItemMobile;
+                  const hasBorderRSm = posInRow2 < 1;
+                  const hasBorderRLg = posInRow3 < 2;
+                  const hasBorderBSm = !isLastRowSm;
+                  const hasBorderBLg = !isLastRowLg;
+
+                  return (
+                    <a
+                      key={tech.name}
+                      href={tech.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn([
+                        "col-span-6 sm:col-span-3 lg:col-span-2",
+                        "p-6 border-neutral-100",
+                        "hover:bg-stone-50/30 transition-all group",
+                        hasBorderBMobile && "border-b",
+                        hasBorderRSm && "sm:border-r",
+                        !hasBorderBSm && "sm:border-b-0",
+                        hasBorderBSm && "sm:border-b",
+                        !hasBorderRLg && "lg:border-r-0",
+                        hasBorderRLg && "lg:border-r",
+                        !hasBorderBLg && "lg:border-b-0",
+                        hasBorderBLg && "lg:border-b",
+                      ])}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        {"imageUrl" in tech ? (
+                          <img
+                            src={tech.imageUrl}
+                            alt={`${tech.name} logo`}
+                            className="w-6 h-6 rounded object-cover"
+                          />
+                        ) : (
+                          <Icon
+                            icon={tech.icon}
+                            className="text-2xl text-stone-600 group-hover:text-stone-800 transition-colors"
+                          />
+                        )}
+                        <h4 className="font-medium text-stone-600 group-hover:text-stone-800 transition-colors">
+                          {tech.name}
+                        </h4>
+                      </div>
+                      <p className="text-sm text-neutral-600">
+                        {tech.description}
+                      </p>
+                    </a>
+                  );
+                })}
+              </>
+            );
+          })}
         </div>
 
         <div className="border-t border-neutral-200 pt-12">
@@ -406,7 +551,7 @@ function TechStackSection() {
                 rel="noopener noreferrer"
                 className={cn([
                   "inline-flex items-center justify-center gap-2 px-6 py-3 font-medium rounded-full",
-                  "bg-gradient-to-t from-neutral-800 to-neutral-700 text-white",
+                  "bg-linear-to-t from-neutral-800 to-neutral-700 text-white",
                   "hover:scale-105 active:scale-95 transition-transform",
                 ])}
               >
@@ -435,7 +580,9 @@ function TechStackSection() {
 }
 
 function ProgressSection() {
-  const { stars, forks } = useGitHubStats();
+  const { data } = useGitHubStats();
+  const stars = data?.stars;
+  const forks = data?.forks;
 
   const stats = [
     {
@@ -483,11 +630,18 @@ function ProgressSection() {
           Our progress is measured by the community we're building together.
         </p>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {stats.map((stat) => (
+        <div className="grid grid-cols-2 lg:grid-cols-4 border-t border-b border-neutral-100 mb-16">
+          {stats.map((stat, index) => (
             <div
               key={stat.label}
-              className="p-6 border border-neutral-200 rounded-lg bg-white text-center"
+              className={cn([
+                "p-6 text-center border-neutral-100",
+                index < 2 && "lg:border-r",
+                index === 2 && "lg:border-r",
+                index === 0 && "border-r",
+                index === 2 && "border-r border-t lg:border-t-0",
+                index === 3 && "border-t lg:border-t-0",
+              ])}
             >
               <Icon
                 icon={stat.icon}
@@ -551,8 +705,8 @@ function ProgressSection() {
           </div>
         </div>
 
-        <div className="mt-16 grid sm:grid-cols-3 gap-6">
-          <div className="p-6 border border-neutral-200 rounded-lg bg-white text-center">
+        <div className="mt-16 grid sm:grid-cols-3 border-t border-b border-neutral-100">
+          <div className="p-6 text-center border-neutral-100 border-r sm:border-r">
             <Icon
               icon="mdi:code-braces"
               className="text-3xl text-stone-600 mb-2"
@@ -564,14 +718,14 @@ function ProgressSection() {
               New features and improvements every week
             </p>
           </div>
-          <div className="p-6 border border-neutral-200 rounded-lg bg-white text-center">
+          <div className="p-6 text-center border-neutral-100 border-t sm:border-t-0 sm:border-r">
             <Icon icon="mdi:bug" className="text-3xl text-stone-600 mb-2" />
             <h4 className="font-medium text-stone-600 mb-1">Quick Bug Fixes</h4>
             <p className="text-sm text-neutral-500">
               Most issues resolved within 48 hours
             </p>
           </div>
-          <div className="p-6 border border-neutral-200 rounded-lg bg-white text-center">
+          <div className="p-6 text-center border-neutral-100 border-t sm:border-t-0">
             <Icon icon="mdi:update" className="text-3xl text-stone-600 mb-2" />
             <h4 className="font-medium text-stone-600 mb-1">
               Regular Releases
@@ -643,27 +797,45 @@ function JoinMovementSection() {
           future for AI.
         </p>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {contributions.map((item) => (
-            <div
-              key={item.title}
-              className="p-6 border border-neutral-200 rounded-lg bg-white"
-            >
-              <Icon icon={item.icon} className="text-2xl text-stone-600 mb-3" />
-              <h3 className="font-medium text-stone-600 mb-2">{item.title}</h3>
-              <p className="text-sm text-neutral-600 mb-4">
-                {item.description}
-              </p>
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-stone-600 hover:text-stone-800 transition-colors"
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-b border-neutral-100 mb-12">
+          {contributions.map((item, index) => {
+            const posInRow3 = index % 3;
+            const hasBorderR = posInRow3 < 2;
+            const hasBorderB = index < 3;
+
+            return (
+              <div
+                key={item.title}
+                className={cn([
+                  "p-6 border-neutral-100",
+                  hasBorderR && "lg:border-r",
+                  hasBorderB && "lg:border-b",
+                  index % 2 === 0 && "sm:border-r lg:border-r-0",
+                  index > 1 && "border-t sm:border-t-0 lg:border-t-0",
+                  hasBorderR && "lg:border-r",
+                ])}
               >
-                {item.linkText} →
-              </a>
-            </div>
-          ))}
+                <Icon
+                  icon={item.icon}
+                  className="text-2xl text-stone-600 mb-3"
+                />
+                <h3 className="font-medium text-stone-600 mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-neutral-600 mb-4">
+                  {item.description}
+                </p>
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-stone-600 hover:text-stone-800 transition-colors"
+                >
+                  {item.linkText} →
+                </a>
+              </div>
+            );
+          })}
         </div>
 
         <div className="flex justify-center gap-6">

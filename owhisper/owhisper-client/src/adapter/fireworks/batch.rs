@@ -8,14 +8,14 @@ use owhisper_interface::ListenParams;
 use serde::Deserialize;
 
 use super::FireworksAdapter;
-use crate::adapter::{BatchFuture, BatchSttAdapter};
+use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 
 // https://docs.fireworks.ai/api-reference/audio-transcriptions
 impl BatchSttAdapter for FireworksAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
-        client: &'a reqwest::Client,
+        client: &'a ClientWithMiddleware,
         api_base: &'a str,
         api_key: &'a str,
         params: &'a ListenParams,
@@ -30,7 +30,7 @@ impl BatchSttAdapter for FireworksAdapter {
 
 impl FireworksAdapter {
     async fn do_transcribe_file(
-        client: &reqwest::Client,
+        client: &ClientWithMiddleware,
         api_base: &str,
         api_key: &str,
         params: &ListenParams,
@@ -128,4 +128,32 @@ struct FireworksBatchWord {
     word: String,
     start: f64,
     end: f64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::http_client::create_client;
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_fireworks_batch_transcription() {
+        let api_key = std::env::var("FIREWORKS_API_KEY").expect("FIREWORKS_API_KEY not set");
+        let client = create_client();
+        let adapter = FireworksAdapter::default();
+        let params = ListenParams::default();
+
+        let audio_path = std::path::PathBuf::from(hypr_data::english_1::AUDIO_PATH);
+
+        let result = adapter
+            .transcribe_file(&client, "", &api_key, &params, &audio_path)
+            .await
+            .expect("transcription failed");
+
+        assert!(!result.results.channels.is_empty());
+        assert!(!result.results.channels[0].alternatives.is_empty());
+        assert!(!result.results.channels[0].alternatives[0]
+            .transcript
+            .is_empty());
+    }
 }

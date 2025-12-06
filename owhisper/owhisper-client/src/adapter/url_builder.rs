@@ -15,13 +15,6 @@ impl QueryParamBuilder {
         self
     }
 
-    pub fn add_opt<V: ToString>(&mut self, key: &str, value: Option<V>) -> &mut Self {
-        if let Some(v) = value {
-            self.params.push((key.to_string(), v.to_string()));
-        }
-        self
-    }
-
     pub fn add_bool(&mut self, key: &str, value: bool) -> &mut Self {
         self.params.push((
             key.to_string(),
@@ -31,7 +24,7 @@ impl QueryParamBuilder {
     }
 
     pub fn add_common_listen_params(&mut self, params: &ListenParams, channels: u8) -> &mut Self {
-        let model = params.model.as_deref().unwrap_or("hypr-whisper");
+        let model = params.model.as_deref().unwrap_or("nova-3");
         self.add("model", model)
             .add("channels", channels)
             .add("sample_rate", params.sample_rate)
@@ -51,6 +44,7 @@ impl QueryParamBuilder {
         }
     }
 
+    #[cfg(test)]
     pub fn build(&self) -> Vec<(String, String)> {
         self.params.clone()
     }
@@ -78,20 +72,6 @@ mod tests {
         let mut builder = QueryParamBuilder::new();
         builder.add("channels", 2);
         assert_eq!(builder.build(), vec![("channels".into(), "2".into())]);
-    }
-
-    #[test]
-    fn test_add_opt_some() {
-        let mut builder = QueryParamBuilder::new();
-        builder.add_opt("model", Some("nova-3"));
-        assert_eq!(builder.build(), vec![("model".into(), "nova-3".into())]);
-    }
-
-    #[test]
-    fn test_add_opt_none() {
-        let mut builder = QueryParamBuilder::new();
-        builder.add_opt::<&str>("model", None);
-        assert!(builder.build().is_empty());
     }
 
     #[test]
@@ -179,8 +159,6 @@ mod tests {
         builder.add_common_listen_params(&params, 1);
 
         let result = builder.build();
-        assert!(result
-            .iter()
-            .any(|(k, v)| k == "model" && v == "hypr-whisper"));
+        assert!(result.iter().any(|(k, v)| k == "model" && v == "nova-3"));
     }
 }

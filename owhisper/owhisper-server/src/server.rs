@@ -419,7 +419,8 @@ mod tests {
                 model: Some("whisper_cpp".to_string()),
                 ..Default::default()
             })
-            .build_single();
+            .build_single()
+            .await;
 
         let audio = rodio::Decoder::new(std::io::BufReader::new(
             std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),

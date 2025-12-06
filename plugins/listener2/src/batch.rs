@@ -2,6 +2,10 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use owhisper_client::{
+    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FireworksAdapter,
+    OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+};
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SpawnErr};
@@ -197,6 +201,35 @@ async fn spawn_batch_task(
     ),
     ActorProcessingErr,
 > {
+    let adapter_kind =
+        AdapterKind::from_url_and_languages(&args.base_url, &args.listen_params.languages);
+
+    match adapter_kind {
+        AdapterKind::Argmax => spawn_batch_task_with_adapter::<ArgmaxAdapter>(args, myself).await,
+        AdapterKind::Soniox => spawn_batch_task_with_adapter::<SonioxAdapter>(args, myself).await,
+        AdapterKind::Fireworks => {
+            spawn_batch_task_with_adapter::<FireworksAdapter>(args, myself).await
+        }
+        AdapterKind::Deepgram => {
+            spawn_batch_task_with_adapter::<DeepgramAdapter>(args, myself).await
+        }
+        AdapterKind::AssemblyAI => {
+            spawn_batch_task_with_adapter::<AssemblyAIAdapter>(args, myself).await
+        }
+        AdapterKind::OpenAI => spawn_batch_task_with_adapter::<OpenAIAdapter>(args, myself).await,
+    }
+}
+
+async fn spawn_batch_task_with_adapter<A: RealtimeSttAdapter>(
+    args: BatchArgs,
+    myself: ActorRef<BatchMsg>,
+) -> Result<
+    (
+        tokio::task::JoinHandle<()>,
+        tokio::sync::oneshot::Sender<()>,
+    ),
+    ActorProcessingErr,
+> {
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
 
     let rx_task = tokio::spawn(async move {
@@ -250,10 +283,12 @@ async fn spawn_batch_task(
             ..args.listen_params.clone()
         };
         let client = owhisper_client::ListenClient::builder()
+            .adapter::<A>()
             .api_base(args.base_url)
             .api_key(args.api_key)
             .params(listen_params)
-            .build_with_channels(channel_count);
+            .build_with_channels(channel_count)
+            .await;
 
         let chunk_count = chunked_audio.chunks.len();
         let chunk_interval = stream_config.chunk_interval();

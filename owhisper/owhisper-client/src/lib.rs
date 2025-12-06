@@ -1,6 +1,7 @@
 mod adapter;
 mod batch;
 mod error;
+mod http_client;
 mod live;
 pub(crate) mod polling;
 
@@ -70,11 +71,16 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         self.params.clone().unwrap_or_default()
     }
 
-    fn build_request(&self, adapter: &A, channels: u8) -> hypr_ws::client::ClientRequestBuilder {
+    async fn build_request(
+        &self,
+        adapter: &A,
+        channels: u8,
+    ) -> hypr_ws::client::ClientRequestBuilder {
         let params = self.get_params();
         let api_base = append_provider_param(self.get_api_base(), adapter.provider_name());
         let url = adapter
             .build_ws_url_with_api_key(&api_base, &params, channels, self.api_key.as_deref())
+            .await
             .unwrap_or_else(|| adapter.build_ws_url(&api_base, &params, channels));
         let uri = url.to_string().parse().unwrap();
 
@@ -89,10 +95,10 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         request
     }
 
-    pub fn build_with_channels(self, channels: u8) -> ListenClient<A> {
+    pub async fn build_with_channels(self, channels: u8) -> ListenClient<A> {
         let adapter = A::default();
         let params = self.get_params();
-        let request = self.build_request(&adapter, channels);
+        let request = self.build_request(&adapter, channels).await;
         let initial_message = adapter.initial_message(self.api_key.as_deref(), &params, channels);
 
         ListenClient {
@@ -102,11 +108,11 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
         }
     }
 
-    pub fn build_single(self) -> ListenClient<A> {
-        self.build_with_channels(1)
+    pub async fn build_single(self) -> ListenClient<A> {
+        self.build_with_channels(1).await
     }
 
-    pub fn build_dual(self) -> ListenClientDual<A> {
+    pub async fn build_dual(self) -> ListenClientDual<A> {
         let adapter = A::default();
         let channels = if adapter.supports_native_multichannel() {
             2
@@ -114,7 +120,7 @@ impl<A: RealtimeSttAdapter> ListenClientBuilder<A> {
             1
         };
         let params = self.get_params();
-        let request = self.build_request(&adapter, channels);
+        let request = self.build_request(&adapter, channels).await;
         let initial_message = adapter.initial_message(self.api_key.as_deref(), &params, channels);
 
         ListenClientDual {

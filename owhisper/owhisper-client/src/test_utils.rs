@@ -27,11 +27,6 @@ fn default_sample_rate() -> u32 {
     16000
 }
 
-pub fn test_audio_stream_single() -> impl Stream<Item = ListenClientInput> + Send + Unpin + 'static
-{
-    test_audio_stream_single_with_rate(default_sample_rate())
-}
-
 pub fn test_audio_stream_single_with_rate(
     sample_rate: u32,
 ) -> impl Stream<Item = ListenClientInput> + Send + Unpin + 'static {
@@ -45,11 +40,6 @@ pub fn test_audio_stream_single_with_rate(
         audio.map(|chunk| MixedMessage::Audio(chunk)),
         Duration::from_millis(throttle_ms()),
     ))
-}
-
-pub fn test_audio_stream_dual() -> impl Stream<Item = ListenClientDualInput> + Send + Unpin + 'static
-{
-    test_audio_stream_dual_with_rate(default_sample_rate())
 }
 
 pub fn test_audio_stream_dual_with_rate(

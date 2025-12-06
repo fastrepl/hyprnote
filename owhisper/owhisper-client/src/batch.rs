@@ -3,14 +3,16 @@ use std::path::Path;
 
 use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_interface::ListenParams;
+use reqwest_middleware::ClientWithMiddleware;
 
 use crate::adapter::BatchSttAdapter;
 use crate::error::Error;
+use crate::http_client::create_client;
 use crate::DeepgramAdapter;
 
 #[derive(Clone)]
 pub struct BatchClient<A: BatchSttAdapter = DeepgramAdapter> {
-    client: reqwest::Client,
+    client: ClientWithMiddleware,
     api_base: String,
     api_key: String,
     params: ListenParams,
@@ -20,7 +22,7 @@ pub struct BatchClient<A: BatchSttAdapter = DeepgramAdapter> {
 impl<A: BatchSttAdapter> BatchClient<A> {
     pub fn new(api_base: String, api_key: String, params: ListenParams) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: create_client(),
             api_base,
             api_key,
             params,

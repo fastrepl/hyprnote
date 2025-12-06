@@ -268,6 +268,7 @@ struct InputAudioBufferCommit {
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
+#[allow(dead_code)]
 enum OpenAIEvent {
     #[serde(rename = "session.created")]
     SessionCreated { session: SessionInfo },
@@ -377,7 +378,8 @@ mod tests {
                 sample_rate: OPENAI_SAMPLE_RATE,
                 ..Default::default()
             })
-            .build_single();
+            .build_single()
+            .await;
 
         run_single_test_with_rate(client, "openai", OPENAI_SAMPLE_RATE).await;
     }
@@ -395,7 +397,8 @@ mod tests {
                 sample_rate: OPENAI_SAMPLE_RATE,
                 ..Default::default()
             })
-            .build_dual();
+            .build_dual()
+            .await;
 
         run_dual_test_with_rate(client, "openai", OPENAI_SAMPLE_RATE).await;
     }

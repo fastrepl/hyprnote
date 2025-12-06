@@ -5,7 +5,7 @@ use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_interface::ListenParams;
 
 use crate::adapter::deepgram_compat::build_batch_url;
-use crate::adapter::{BatchFuture, BatchSttAdapter};
+use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 
 use super::{keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy, ArgmaxAdapter};
@@ -13,7 +13,7 @@ use super::{keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy, A
 impl BatchSttAdapter for ArgmaxAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
-        client: &'a reqwest::Client,
+        client: &'a ClientWithMiddleware,
         api_base: &'a str,
         api_key: &'a str,
         params: &'a ListenParams,
@@ -25,7 +25,7 @@ impl BatchSttAdapter for ArgmaxAdapter {
 }
 
 async fn do_transcribe_file(
-    client: &reqwest::Client,
+    client: &ClientWithMiddleware,
     api_base: &str,
     api_key: &str,
     params: &ListenParams,
@@ -104,4 +104,37 @@ async fn decode_audio_to_linear16(path: PathBuf) -> Result<(bytes::Bytes, u32), 
         Ok((bytes, sample_rate))
     })
     .await?
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::http_client::create_client;
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_argmax_batch_transcription() {
+        let client = create_client();
+        let adapter = ArgmaxAdapter::default();
+        let params = ListenParams::default();
+
+        let audio_path = std::path::PathBuf::from(hypr_data::english_1::AUDIO_PATH);
+
+        let result = adapter
+            .transcribe_file(
+                &client,
+                "http://localhost:50060/v1",
+                "",
+                &params,
+                &audio_path,
+            )
+            .await
+            .expect("transcription failed");
+
+        assert!(!result.results.channels.is_empty());
+        assert!(!result.results.channels[0].alternatives.is_empty());
+        assert!(!result.results.channels[0].alternatives[0]
+            .transcript
+            .is_empty());
+    }
 }

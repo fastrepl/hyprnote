@@ -8,13 +8,13 @@ use owhisper_interface::ListenParams;
 use serde::{Deserialize, Serialize};
 
 use super::SonioxAdapter;
-use crate::adapter::{BatchFuture, BatchSttAdapter};
+use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 use crate::polling::{poll_until, PollingConfig, PollingResult};
 
 impl SonioxAdapter {
     async fn upload_file(
-        client: &reqwest::Client,
+        client: &ClientWithMiddleware,
         api_base: &str,
         api_key: &str,
         file_path: &Path,
@@ -60,7 +60,7 @@ impl SonioxAdapter {
     }
 
     async fn create_transcription(
-        client: &reqwest::Client,
+        client: &ClientWithMiddleware,
         api_base: &str,
         api_key: &str,
         params: &ListenParams,
@@ -138,7 +138,7 @@ impl SonioxAdapter {
     }
 
     async fn poll_transcription(
-        client: &reqwest::Client,
+        client: &ClientWithMiddleware,
         api_base: &str,
         api_key: &str,
         transcription_id: &str,
@@ -199,7 +199,7 @@ impl SonioxAdapter {
     }
 
     async fn get_transcript(
-        client: &reqwest::Client,
+        client: &ClientWithMiddleware,
         api_base: &str,
         api_key: &str,
         transcription_id: &str,
@@ -295,7 +295,7 @@ impl SonioxAdapter {
     }
 
     async fn do_transcribe_file(
-        client: &reqwest::Client,
+        client: &ClientWithMiddleware,
         api_base: &str,
         api_key: &str,
         params: &ListenParams,
@@ -323,7 +323,7 @@ impl SonioxAdapter {
 impl BatchSttAdapter for SonioxAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
-        client: &'a reqwest::Client,
+        client: &'a ClientWithMiddleware,
         api_base: &'a str,
         api_key: &'a str,
         params: &'a ListenParams,
@@ -333,5 +333,34 @@ impl BatchSttAdapter for SonioxAdapter {
         Box::pin(
             async move { Self::do_transcribe_file(client, api_base, api_key, params, &path).await },
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::http_client::create_client;
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_soniox_batch_transcription() {
+        let api_key = std::env::var("SONIOX_API_KEY").expect("SONIOX_API_KEY not set");
+        let client = create_client();
+        let adapter = SonioxAdapter::default();
+        let params = ListenParams::default();
+
+        let audio_path = std::path::PathBuf::from(hypr_data::english_1::AUDIO_PATH);
+
+        let result = adapter
+            .transcribe_file(&client, "", &api_key, &params, &audio_path)
+            .await
+            .expect("transcription failed");
+
+        assert!(!result.results.channels.is_empty());
+        assert!(!result.results.channels[0].alternatives.is_empty());
+        assert!(!result.results.channels[0].alternatives[0]
+            .transcript
+            .is_empty());
+        assert!(!result.results.channels[0].alternatives[0].words.is_empty());
     }
 }

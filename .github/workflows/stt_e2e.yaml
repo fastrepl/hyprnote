@@ -42,6 +42,7 @@ jobs:
     if: ${{ needs.setup.outputs.providers != '[]' }}
     runs-on: depot-ubuntu-24.04-8
     strategy:
+      fail-fast: false
       matrix:
         provider: ${{ fromJson(needs.setup.outputs.providers) }}
     steps:
@@ -60,6 +61,7 @@ jobs:
     if: ${{ needs.setup.outputs.providers != '[]' }}
     runs-on: depot-ubuntu-24.04-8
     strategy:
+      fail-fast: false
       matrix:
         provider: ${{ fromJson(needs.setup.outputs.providers) }}
     steps:

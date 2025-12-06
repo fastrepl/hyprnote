@@ -174,9 +174,6 @@ function ProductLinks() {
 }
 
 function ResourcesLinks() {
-  const [isVersusHovered, setIsVersusHovered] = useState(false);
-  const [isUsedInHovered, setIsUsedInHovered] = useState(false);
-
   const [vsIndex, setVsIndex] = useState(() =>
     Math.floor(Math.random() * vsList.length),
   );
@@ -223,33 +220,35 @@ function ResourcesLinks() {
         </li>
         <li
           onMouseEnter={() => {
-            setIsVersusHovered(true);
             setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
           }}
-          onMouseLeave={() => setIsVersusHovered(false)}
         >
           <Link
             to="/vs/$slug"
             params={{ slug: currentVs.slug }}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            {isVersusHovered ? `Versus ${currentVs.name}` : "Versus ???"}
+            Versus{" "}
+            <span className="inline-block blur-sm group-hover:blur-none transition-all duration-150">
+              {currentVs.name}
+            </span>
           </Link>
         </li>
         <li
           onMouseEnter={() => {
-            setIsUsedInHovered(true);
             setUseCaseIndex((prev) =>
               getNextRandomIndex(useCasesList.length, prev),
             );
           }}
-          onMouseLeave={() => setIsUsedInHovered(false)}
         >
           <Link
             to={currentUseCase.to}
-            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            {isUsedInHovered ? `For ${currentUseCase.label}` : "For ???"}
+            For{" "}
+            <span className="inline-block blur-sm group-hover:blur-none transition-all duration-150">
+              {currentUseCase.label}
+            </span>
           </Link>
         </li>
         <li>

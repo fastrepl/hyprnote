@@ -102,6 +102,7 @@ public func am2_diarization_init() -> Bool {
       }
       success = true
     } catch {
+      print("[am2] Diarization init failed: \(error)")
       success = false
     }
     semaphore.signal()
@@ -133,6 +134,7 @@ public func am2_diarization_process(
           do {
             try await speakerKit.processSpeakerSegment(audioArray: audioClip)
           } catch {
+            print("[am2] processSpeakerSegment failed: \(error)")
           }
         }
       }
@@ -155,6 +157,7 @@ public func am2_diarization_process(
           ))
       }
     } catch {
+      print("[am2] Diarization process failed: \(error)")
     }
     semaphore.signal()
   }

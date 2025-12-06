@@ -21,9 +21,10 @@ jobs:
         with:
           platform: linux
       - uses: ./.github/actions/infisical_install
-      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::batch --ignored -- --nocapture
+      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId="$INFISICAL_PROJECT_ID" --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::batch -- --ignored --nocapture
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
   live:
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +33,7 @@ jobs:
         with:
           platform: linux
       - uses: ./.github/actions/infisical_install
-      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::live --ignored -- --nocapture
+      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId="$INFISICAL_PROJECT_ID" --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::live -- --ignored --nocapture
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}

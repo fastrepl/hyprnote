@@ -1,6 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ExternalLinkIcon, MailIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+
+function getNextRandomIndex(length: number, prevIndex: number): number {
+  if (length <= 1) return 0;
+  let next = prevIndex;
+  while (next === prevIndex) {
+    next = Math.floor(Math.random() * length);
+  }
+  return next;
+}
 
 const vsList = [
   { slug: "otter", name: "Otter.ai" },
@@ -168,14 +177,15 @@ function ResourcesLinks() {
   const [isVersusHovered, setIsVersusHovered] = useState(false);
   const [isUsedInHovered, setIsUsedInHovered] = useState(false);
 
-  const randomVs = useMemo(
-    () => vsList[Math.floor(Math.random() * vsList.length)],
-    [],
+  const [vsIndex, setVsIndex] = useState(() =>
+    Math.floor(Math.random() * vsList.length),
   );
-  const randomUseCase = useMemo(
-    () => useCasesList[Math.floor(Math.random() * useCasesList.length)],
-    [],
+  const [useCaseIndex, setUseCaseIndex] = useState(() =>
+    Math.floor(Math.random() * useCasesList.length),
   );
+
+  const currentVs = vsList[vsIndex];
+  const currentUseCase = useCasesList[useCaseIndex];
 
   return (
     <div>
@@ -212,27 +222,35 @@ function ResourcesLinks() {
           </a>
         </li>
         <li
-          onMouseEnter={() => setIsVersusHovered(true)}
+          onMouseEnter={() => {
+            setIsVersusHovered(true);
+            setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
+          }}
           onMouseLeave={() => setIsVersusHovered(false)}
         >
           <Link
             to="/vs/$slug"
-            params={{ slug: randomVs.slug }}
+            params={{ slug: currentVs.slug }}
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
-            {isVersusHovered ? `Versus ${randomVs.name}` : "Versus ???"}
+            {isVersusHovered ? `Versus ${currentVs.name}` : "Versus ???"}
           </Link>
         </li>
         <li
-          onMouseEnter={() => setIsUsedInHovered(true)}
+          onMouseEnter={() => {
+            setIsUsedInHovered(true);
+            setUseCaseIndex((prev) =>
+              getNextRandomIndex(useCasesList.length, prev),
+            );
+          }}
           onMouseLeave={() => setIsUsedInHovered(false)}
         >
           <Link
-            to={randomUseCase.to}
+            to={currentUseCase.to}
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
           >
             {isUsedInHovered
-              ? `Hyprnote for ${randomUseCase.label}`
+              ? `Hyprnote for ${currentUseCase.label}`
               : "Hyprnote for ???"}
           </Link>
         </li>

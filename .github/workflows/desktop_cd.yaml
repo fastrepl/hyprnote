@@ -149,8 +149,8 @@ jobs:
           VITE_APP_URL: "https://hyprnote.com"
           VITE_API_URL: "https://api.hyprnote.com"
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
-          CFLAGS: ${{ matrix.arch == 'aarch64' && '-mcpu=apple-m1' || '' }}
-          CXXFLAGS: ${{ matrix.arch == 'aarch64' && '-mcpu=apple-m1' || '' }}
+          CMAKE_C_FLAGS: ${{ matrix.arch == 'aarch64' && '-mcpu=apple-m1' || '' }}
+          CMAKE_CXX_FLAGS: ${{ matrix.arch == 'aarch64' && '-mcpu=apple-m1' || '' }}
       - run: |
           mkdir -p target/release/
           find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;

@@ -1,12 +1,21 @@
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "motion/react";
+import { Fragment, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
 import { DownloadButton } from "@/components/download-button";
-import { GitHubOpenSource } from "@/components/github-open-source";
+import { Image } from "@/components/image";
 import { SlashSeparator } from "@/components/slash-separator";
-import { Stargazer, useGitHubStargazers } from "@/queries";
+import {
+  GITHUB_LAST_SEEN_FORKS,
+  GITHUB_LAST_SEEN_STARS,
+  Stargazer,
+  useGitHubStargazers,
+  useGitHubStats,
+} from "@/queries";
+import { CTASection } from "@/routes/_view/index";
 
 export const Route = createFileRoute("/_view/opensource")({
   component: Component,
@@ -46,6 +55,8 @@ export const Route = createFileRoute("/_view/opensource")({
 });
 
 function Component() {
+  const heroInputRef = useRef<HTMLInputElement>(null);
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
@@ -54,17 +65,17 @@ function Component() {
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection />
         <SlashSeparator />
-        <WhyOpenSourceSection />
-        <SlashSeparator />
-        <GitHubOpenSource />
-        <SlashSeparator />
-        <TransparencySection />
+        <LetterSection />
         <SlashSeparator />
         <TechStackSection />
         <SlashSeparator />
-        <ContributeSection />
+        <SponsorsSection />
         <SlashSeparator />
-        <CTASection />
+        <ProgressSection />
+        <SlashSeparator />
+        <JoinMovementSection />
+        <SlashSeparator />
+        <CTASection heroInputRef={heroInputRef} />
       </div>
     </div>
   );
@@ -76,7 +87,7 @@ function StargazerAvatar({ stargazer }: { stargazer: Stargazer }) {
       href={`https://github.com/${stargazer.username}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="block size-14 rounded-sm overflow-hidden border border-neutral-200/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
+      className="block size-14 rounded-sm overflow-hidden border border-neutral-100/50 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 hover:opacity-100 transition-all"
     >
       <img
         src={stargazer.avatar}
@@ -130,7 +141,7 @@ function HeroSection() {
       {stargazers.length > 0 && <StargazersGrid stargazers={stargazers} />}
       <div className="px-6 py-12 lg:py-20 relative z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_800px_400px_at_50%_50%,white_0%,rgba(255,255,255,0.8)_40%,transparent_70%)] pointer-events-none" />
-        <header className="mb-12 text-center max-w-4xl mx-auto relative">
+        <header className="py-6 text-center max-w-4xl mx-auto relative">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-stone-600 mb-6">
             Built in the open,
             <br />
@@ -163,367 +174,714 @@ function HeroSection() {
   );
 }
 
-function WhyOpenSourceSection() {
+function LetterSection() {
   return (
-    <section className="px-6 py-12 lg:py-16">
-      <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
-        Why open source matters
-      </h2>
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <Icon
-            icon="mdi:shield-check"
-            className="text-3xl text-stone-600 mb-4"
-          />
-          <h3 className="text-xl font-serif text-stone-600 mb-2">
-            Verifiable privacy
-          </h3>
-          <p className="text-neutral-600">
-            Don't just trust our privacy claims—verify them yourself. Every data
-            flow, every API call, every storage operation is visible in the
-            source code.
-          </p>
-        </div>
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <Icon
-            icon="mdi:account-group"
-            className="text-3xl text-stone-600 mb-4"
-          />
-          <h3 className="text-xl font-serif text-stone-600 mb-2">
-            Community driven
-          </h3>
-          <p className="text-neutral-600">
-            Features are shaped by real users, not just product managers. Report
-            bugs, suggest improvements, or contribute code directly to make
-            Hyprnote better for everyone.
-          </p>
-        </div>
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <Icon icon="mdi:infinity" className="text-3xl text-stone-600 mb-4" />
-          <h3 className="text-xl font-serif text-stone-600 mb-2">
-            No vendor lock-in
-          </h3>
-          <p className="text-neutral-600">
-            Your data, your rules. Fork the project, self-host it, or modify it
-            to fit your exact needs. You're never trapped in a proprietary
-            ecosystem.
-          </p>
-        </div>
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <Icon icon="mdi:history" className="text-3xl text-stone-600 mb-4" />
-          <h3 className="text-xl font-serif text-stone-600 mb-2">
-            Long-term sustainability
-          </h3>
-          <p className="text-neutral-600">
-            Open source projects outlive companies. Even if Hyprnote the company
-            disappears, the software lives on through the community.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TransparencySection() {
-  return (
-    <section className="px-6 py-12 lg:py-16 bg-stone-50/30">
-      <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
-        Complete transparency
-      </h2>
-      <div className="max-w-4xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="text-center p-6">
-            <Icon
-              icon="mdi:code-braces"
-              className="text-4xl text-stone-600 mb-4 mx-auto"
-            />
-            <h3 className="font-medium text-stone-600 mb-2">
-              Auditable codebase
-            </h3>
-            <p className="text-sm text-neutral-600">
-              Every function, every algorithm, every data handler is open for
-              inspection. Security researchers and privacy advocates can verify
-              our claims.
-            </p>
-          </div>
-          <div className="text-center p-6">
-            <Icon
-              icon="mdi:git"
-              className="text-4xl text-stone-600 mb-4 mx-auto"
-            />
-            <h3 className="font-medium text-stone-600 mb-2">
-              Public development
-            </h3>
-            <p className="text-sm text-neutral-600">
-              All development happens in the open. Watch features being built,
-              see how bugs are fixed, and understand the reasoning behind every
-              change.
-            </p>
-          </div>
-          <div className="text-center p-6">
-            <Icon
-              icon="mdi:file-document-outline"
-              className="text-4xl text-stone-600 mb-4 mx-auto"
-            />
-            <h3 className="font-medium text-stone-600 mb-2">Clear licensing</h3>
-            <p className="text-sm text-neutral-600">
-              GPL-3.0 ensures the code stays open. Any modifications must also
-              be open source, protecting the community's investment.
-            </p>
-          </div>
+    <section className="px-6 py-16 lg:py-24 bg-[linear-gradient(to_right,#fafafa_1px,transparent_1px),linear-gradient(to_bottom,#fafafa_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-8 text-center">
+          <span className="text-sm font-mono uppercase tracking-widest text-neutral-500 font-medium">
+            A letter from our team
+          </span>
         </div>
 
-        <div className="mt-12 p-8 border border-neutral-200 rounded-lg bg-white">
-          <div className="flex items-start gap-4">
-            <Icon
-              icon="mdi:eye-outline"
-              className="text-3xl text-stone-600 shrink-0"
-            />
-            <div>
-              <h3 className="text-xl font-serif text-stone-600 mb-3">
-                No hidden data collection
-              </h3>
-              <p className="text-neutral-600 mb-4">
-                Unlike closed-source alternatives, you can verify exactly what
-                data Hyprnote collects and where it goes. Our telemetry is
-                opt-in, minimal, and fully documented in the source code.
-              </p>
-              <a
-                href="https://github.com/fastrepl/hyprnote/blob/main/plugins/analytics/src/lib.rs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium"
-              >
-                <Icon icon="mdi:github" className="text-lg" />
-                View analytics implementation
-                <Icon icon="mdi:arrow-right" className="text-lg" />
-              </a>
+        <article>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 text-center mb-12">
+            Why Open Source is Inevitable
+            <br />
+            in the Age of AI
+          </h1>
+
+          <div className="space-y-6 text-neutral-700 leading-relaxed">
+            <p className="text-lg">Hey friends,</p>
+
+            <p>
+              We're watching software change faster than any of us expected. AI
+              isn't a concept anymore. It's in your meetings, it's inside your
+              documents, and it has context on things that used to live only in
+              your mind.
+            </p>
+
+            <p>
+              When software listens to you, when it transcribes you, when it
+              summarizes your thinking, trust can't just be a marketing claim.
+            </p>
+
+            <p>That's why open source is not a nice-to-have. It's mandatory.</p>
+
+            <p>
+              If an AI tool captures your voice, your discussions, your
+              strategy, you should be able to see exactly what it does with that
+              information. Not a PDF saying "we care about privacy." Not a
+              privacy policy written by lawyers. Actual code.
+            </p>
+
+            <p>
+              Closed-source AI tools say "trust us." But you can't audit "trust
+              us." You can't fork it, stress-test it, or guarantee your own
+              compliance.
+            </p>
+
+            <p>In the age of AI, blind trust is basically an attack vector.</p>
+
+            <p>Open source flips the power dynamic:</p>
+
+            <ul className="space-y-2 list-disc pl-6">
+              <li>You can verify claims instead of believing them.</li>
+              <li>Security researchers can inspect, not speculate.</li>
+              <li>Teams can self-host, extend, or fork when needed.</li>
+              <li>The product outlives the company that built it.</li>
+            </ul>
+
+            <p>That's why we built Hyprnote in the open.</p>
+
+            <p>
+              We don't want you to trust us more. We want you to need to trust
+              us less. If you can inspect it, run it locally, modify it, or
+              audit it, the entire idea of trust changes.
+            </p>
+
+            <p>This isn't ideology. It's durability.</p>
+
+            <p>
+              Companies die. Pricing changes. Terms change. Acquisitions happen.
+              Compliance requirements evolve.
+            </p>
+
+            <p>Open source survives all of that.</p>
+
+            <p>
+              What AI is capable of today demands a different contract between
+              software and the people who rely on it. That contract should be
+              inspectable, forkable, and owned by its users, not hidden behind
+              opaque servers.
+            </p>
+
+            <p>
+              If AI ends up shaping how we work, think, and communicate, then
+              the people using it deserve transparency—not promises.
+            </p>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-2">
+                <Image
+                  src="/api/images/team/john.png"
+                  alt="John Jeong"
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover border border-neutral-100"
+                />
+                <Image
+                  src="/api/images/team/yujong.png"
+                  alt="Yujong Lee"
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover border border-neutral-100"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="text-lg">With clarity,</p>
+                  <p>John Jeong, Yujong Lee</p>
+                </div>
+
+                <div>
+                  <Image
+                    src="/api/images/hyprnote/signature-dark.svg"
+                    alt="Hyprnote Signature"
+                    width={124}
+                    height={60}
+                    layout="constrained"
+                    className="opacity-80 object-contain"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </article>
       </div>
     </section>
   );
 }
+
+const techStack = [
+  {
+    category: "Languages",
+    items: [
+      {
+        name: "Rust",
+        icon: "devicon:rust",
+        description: "Core language for audio processing and local AI",
+        url: "https://www.rust-lang.org/",
+      },
+      {
+        name: "TypeScript",
+        icon: "devicon:typescript",
+        description: "Type-safe language for frontend development",
+        url: "https://www.typescriptlang.org/",
+      },
+    ],
+  },
+  {
+    category: "Desktop & UI",
+    items: [
+      {
+        name: "Tauri",
+        icon: "devicon:tauri",
+        description: "Cross-platform desktop framework",
+        url: "https://tauri.app/",
+      },
+      {
+        name: "React",
+        icon: "devicon:react",
+        description: "UI framework for building interfaces",
+        url: "https://react.dev/",
+      },
+      {
+        name: "TanStack Start",
+        imageUrl: "https://avatars.githubusercontent.com/u/72518640?s=200&v=4",
+        description: "Full-stack React framework with type-safe routing",
+        url: "https://tanstack.com/start",
+      },
+    ],
+  },
+  {
+    category: "Build & Tooling",
+    items: [
+      {
+        name: "Vite",
+        icon: "devicon:vitejs",
+        description: "Fast build tool and dev server",
+        url: "https://vite.dev/",
+      },
+      {
+        name: "Turborepo",
+        icon: "vscode-icons:file-type-light-turbo",
+        description: "High-performance monorepo build system",
+        url: "https://turbo.build/repo",
+      },
+      {
+        name: "pnpm",
+        icon: "devicon:pnpm",
+        description: "Fast, disk space efficient package manager",
+        url: "https://pnpm.io/",
+      },
+    ],
+  },
+  {
+    category: "AI & Data",
+    items: [
+      {
+        name: "WhisperKit",
+        imageUrl: "https://avatars.githubusercontent.com/u/150409474?s=200&v=4",
+        description: "Local speech-to-text transcription",
+        url: "https://github.com/argmaxinc/WhisperKit",
+      },
+      {
+        name: "llama.cpp",
+        imageUrl: "https://avatars.githubusercontent.com/u/134263123?s=200&v=4",
+        description: "Local LLM inference engine",
+        url: "https://github.com/ggerganov/llama.cpp",
+      },
+      {
+        name: "TinyBase",
+        imageUrl: "https://avatars.githubusercontent.com/u/96894742?s=200&v=4",
+        description: "Reactive data store for local-first apps",
+        url: "https://tinybase.org/",
+      },
+      {
+        name: "TanStack Query",
+        icon: "logos:react-query-icon",
+        description: "Powerful data synchronization for React",
+        url: "https://tanstack.com/query",
+      },
+    ],
+  },
+];
+
+const sponsors = [
+  {
+    name: "Tauri",
+    icon: "devicon:tauri",
+    url: "https://github.com/tauri-apps",
+    description: "Desktop framework",
+  },
+  {
+    name: "MrKai77",
+    imageUrl: "https://avatars.githubusercontent.com/u/68963405?v=4",
+    url: "https://github.com/MrKai77",
+    description: "Loop window manager",
+  },
+  {
+    name: "James Pearce",
+    imageUrl: "https://avatars.githubusercontent.com/u/90942?v=4",
+    url: "https://github.com/jamesgpearce",
+    description: "Open source contributor",
+  },
+];
 
 function TechStackSection() {
   return (
-    <section className="px-6 py-12 lg:py-16">
-      <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
-        Built with modern technology
-      </h2>
-      <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-        Hyprnote combines the best of systems programming and web technologies
-        to deliver a fast, secure, and cross-platform experience.
-      </p>
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <div className="flex items-center gap-3 mb-3">
-            <Icon
-              icon="mdi:language-rust"
-              className="text-2xl text-stone-600"
-            />
-            <h3 className="font-medium text-stone-600">Rust</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            Memory-safe systems programming for the core audio processing,
-            transcription pipeline, and local AI inference.
+    <section>
+      <div>
+        <div className="py-12 lg:py-16">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            Our Tech Stack
+          </h2>
+          <p className="text-neutral-600 text-center max-w-2xl mx-auto">
+            Built with modern, privacy-respecting technologies that run locally
+            on your device.
           </p>
-        </div>
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <div className="flex items-center gap-3 mb-3">
-            <Icon
-              icon="simple-icons:tauri"
-              className="text-2xl text-stone-600"
-            />
-            <h3 className="font-medium text-stone-600">Tauri</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            Lightweight desktop framework that combines Rust backend with web
-            frontend for native performance.
-          </p>
-        </div>
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <div className="flex items-center gap-3 mb-3">
-            <Icon icon="mdi:react" className="text-2xl text-stone-600" />
-            <h3 className="font-medium text-stone-600">React</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            Modern UI framework powering the desktop app interface with TanStack
-            Router for navigation.
-          </p>
-        </div>
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <div className="flex items-center gap-3 mb-3">
-            <Icon icon="mdi:microphone" className="text-2xl text-stone-600" />
-            <h3 className="font-medium text-stone-600">Whisper</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            OpenAI's speech recognition model running locally for private,
-            accurate transcription in 100+ languages.
-          </p>
-        </div>
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <div className="flex items-center gap-3 mb-3">
-            <Icon icon="mdi:brain" className="text-2xl text-stone-600" />
-            <h3 className="font-medium text-stone-600">Local LLMs</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            On-device language models for summarization and insights without
-            sending data to external servers.
-          </p>
-        </div>
-        <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-          <div className="flex items-center gap-3 mb-3">
-            <Icon icon="mdi:database" className="text-2xl text-stone-600" />
-            <h3 className="font-medium text-stone-600">SQLite</h3>
-          </div>
-          <p className="text-sm text-neutral-600">
-            Local-first database via libsql for fast, reliable storage with
-            optional cloud sync.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-12 text-center">
-        <a
-          href="https://github.com/fastrepl/hyprnote"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium"
-        >
-          <Icon icon="mdi:github" className="text-lg" />
-          Explore the full architecture on GitHub
-          <Icon icon="mdi:arrow-right" className="text-lg" />
-        </a>
-      </div>
-    </section>
-  );
-}
-
-function ContributeSection() {
-  return (
-    <section className="px-6 py-12 lg:py-16 bg-stone-50/30">
-      <h2 className="text-3xl font-serif text-stone-600 mb-8 text-center">
-        Join the community
-      </h2>
-
-      <div className="max-w-4xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-            <Icon
-              icon="mdi:source-pull"
-              className="text-3xl text-stone-600 mb-4"
-            />
-            <h3 className="text-xl font-serif text-stone-600 mb-2">
-              Contribute code
-            </h3>
-            <p className="text-neutral-600 mb-4">
-              Whether it's fixing a bug, adding a feature, or improving
-              documentation, every contribution makes Hyprnote better.
-            </p>
-            <a
-              href="https://github.com/fastrepl/hyprnote/blob/main/CONTRIBUTING.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium text-sm"
-            >
-              Read contributing guide
-              <Icon icon="mdi:arrow-right" className="text-lg" />
-            </a>
-          </div>
-          <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-            <Icon
-              icon="mdi:bug-outline"
-              className="text-3xl text-stone-600 mb-4"
-            />
-            <h3 className="text-xl font-serif text-stone-600 mb-2">
-              Report issues
-            </h3>
-            <p className="text-neutral-600 mb-4">
-              Found a bug or have a feature request? Open an issue on GitHub and
-              help us prioritize what matters most to users.
-            </p>
-            <a
-              href="https://github.com/fastrepl/hyprnote/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-800 font-medium text-sm"
-            >
-              View open issues
-              <Icon icon="mdi:arrow-right" className="text-lg" />
-            </a>
-          </div>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-6">
-          <a
-            href="https://github.com/fastrepl/hyprnote"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 border border-neutral-200 rounded-lg bg-white hover:border-stone-400 transition-colors"
-          >
-            <Icon icon="mdi:github" className="text-2xl text-stone-600" />
-            <div>
-              <p className="font-medium text-stone-600">GitHub</p>
-              <p className="text-sm text-neutral-500">Star & fork</p>
-            </div>
-          </a>
-          <a
-            href="https://discord.gg/hyprnote"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 border border-neutral-200 rounded-lg bg-white hover:border-stone-400 transition-colors"
-          >
-            <Icon icon="mdi:discord" className="text-2xl text-stone-600" />
-            <div>
-              <p className="font-medium text-stone-600">Discord</p>
-              <p className="text-sm text-neutral-500">Join the chat</p>
-            </div>
-          </a>
-          <a
-            href="https://twitter.com/hyprnote"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 border border-neutral-200 rounded-lg bg-white hover:border-stone-400 transition-colors"
-          >
-            <Icon icon="mdi:twitter" className="text-2xl text-stone-600" />
-            <div>
-              <p className="font-medium text-stone-600">Twitter</p>
-              <p className="text-sm text-neutral-500">Follow updates</p>
-            </div>
-          </a>
+        <div className="grid grid-cols-6">
+          {techStack.map((section) => {
+            return (
+              <Fragment key={section.category}>
+                <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50">
+                  <h3 className="text-xl font-serif text-stone-600">
+                    {section.category}
+                  </h3>
+                </div>
+                {section.items.map((tech, techIndex) => {
+                  const itemCount = section.items.length;
+                  const posInRow2 = techIndex % 2;
+                  const posInRow3 = techIndex % 3;
+                  const rowIn2Col = Math.floor(techIndex / 2);
+                  const rowIn3Col = Math.floor(techIndex / 3);
+                  const totalRows2Col = Math.ceil(itemCount / 2);
+                  const totalRows3Col = Math.ceil(itemCount / 3);
+                  const isLastItemMobile = techIndex === itemCount - 1;
+                  const isLastRowSm = rowIn2Col === totalRows2Col - 1;
+                  const isLastRowLg = rowIn3Col === totalRows3Col - 1;
+
+                  const hasBorderBMobile = !isLastItemMobile;
+                  const hasBorderRSm = posInRow2 < 1;
+                  const hasBorderRLg = posInRow3 < 2;
+                  const hasBorderBSm = !isLastRowSm;
+                  const hasBorderBLg = !isLastRowLg;
+
+                  return (
+                    <a
+                      key={tech.name}
+                      href={tech.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn([
+                        "col-span-6 sm:col-span-3 lg:col-span-2",
+                        "p-6 border-neutral-100",
+                        "hover:bg-stone-50/30 transition-all group",
+                        hasBorderBMobile && "border-b",
+                        hasBorderRSm && "sm:border-r",
+                        !hasBorderBSm && "sm:border-b-0",
+                        hasBorderBSm && "sm:border-b",
+                        !hasBorderRLg && "lg:border-r-0",
+                        hasBorderRLg && "lg:border-r",
+                        !hasBorderBLg && "lg:border-b-0",
+                        hasBorderBLg && "lg:border-b",
+                      ])}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        {"imageUrl" in tech ? (
+                          <img
+                            src={tech.imageUrl}
+                            alt={`${tech.name} logo`}
+                            className="w-6 h-6 rounded object-cover"
+                          />
+                        ) : (
+                          <Icon
+                            icon={tech.icon}
+                            className="text-2xl text-stone-600 group-hover:text-stone-800 transition-colors"
+                          />
+                        )}
+                        <h4 className="font-medium text-stone-600 group-hover:text-stone-800 transition-colors">
+                          {tech.name}
+                        </h4>
+                      </div>
+                      <p className="text-sm text-neutral-600">
+                        {tech.description}
+                      </p>
+                    </a>
+                  );
+                })}
+              </Fragment>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-function CTASection() {
+function SponsorsSection() {
   return (
-    <section className="px-6 py-16 lg:py-20">
-      <div className="bg-stone-50 border border-neutral-200 rounded-lg p-8 lg:p-12 text-center max-w-3xl mx-auto">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">
-          Privacy you can verify
-        </h2>
-        <p className="text-lg text-neutral-600 mb-8 max-w-2xl mx-auto">
-          Join thousands of users who trust Hyprnote because they can see
-          exactly how it works. Download the app or explore the source code
-          today.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <DownloadButton />
-          <Link
-            to="/product/local-ai"
-            className={cn([
-              "px-6 py-3 text-base font-medium rounded-full",
-              "border border-neutral-300 text-stone-600",
-              "hover:bg-stone-50 transition-colors",
-            ])}
+    <section>
+      <div>
+        <div className="py-12 lg:py-16">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            Paying It Forward
+          </h2>
+          <p className="text-neutral-600 text-center max-w-2xl mx-auto">
+            We love giving back to the community that makes Hyprnote possible.
+            As we grow, we hope to sponsor even more projects and creators.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-6">
+          <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50">
+            <h3 className="text-xl font-serif text-stone-600">
+              Projects We Sponsor
+            </h3>
+          </div>
+          {sponsors.map((sponsor, index) => {
+            const hasBorderR = index < sponsors.length - 1;
+
+            return (
+              <a
+                key={sponsor.name}
+                href={sponsor.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn([
+                  "col-span-6 sm:col-span-3 lg:col-span-2",
+                  "p-6 border-neutral-100",
+                  "hover:bg-stone-50/30 transition-all group",
+                  index % 2 === 0 && "sm:border-r",
+                  index > 0 && "border-t sm:border-t-0",
+                  hasBorderR && "lg:border-r",
+                ])}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  {"imageUrl" in sponsor ? (
+                    <img
+                      src={sponsor.imageUrl}
+                      alt={`${sponsor.name} avatar`}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <Icon
+                      icon={sponsor.icon}
+                      className="text-2xl text-stone-600 group-hover:text-stone-800 transition-colors"
+                    />
+                  )}
+                  <h4 className="font-medium text-stone-600 group-hover:text-stone-800 transition-colors">
+                    {sponsor.name}
+                  </h4>
+                </div>
+                <p className="text-sm text-neutral-600">
+                  {sponsor.description}
+                </p>
+              </a>
+            );
+          })}
+          <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-serif text-stone-600">
+                We Appreciate Your Support
+              </h3>
+              <p className="text-sm text-neutral-600 mt-2">
+                Your sponsorship keeps Hyprnote free, open source, and
+                independent for everyone.
+              </p>
+            </div>
+            <a
+              href="https://github.com/sponsors/fastrepl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn([
+                "inline-flex items-center justify-center gap-2 px-6 py-3 font-medium rounded-full shrink-0",
+                "bg-linear-to-t from-pink-100 to-white text-stone-700",
+                "border border-pink-200",
+                "hover:scale-105 active:scale-95 transition-transform",
+              ])}
+            >
+              <Icon icon="mdi:heart" className="text-lg text-red-400" />
+              Sponsor on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ConfettiIcons({
+  icon,
+  imageUrl,
+  color,
+  count = 30,
+}: {
+  icon?: string;
+  imageUrl?: string;
+  color: string;
+  count?: number;
+}) {
+  const icons = Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    delay: Math.random() * 0.8,
+    duration: 0.6 + Math.random() * 0.8,
+    rotation: Math.random() * 720 - 360,
+    scale: 0.5 + Math.random() * 1,
+    xDrift: Math.random() * 60 - 30,
+  }));
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <AnimatePresence>
+        {icons.map((item) => (
+          <motion.div
+            key={item.id}
+            initial={{ y: -30, x: 0, opacity: 0, rotate: 0, scale: item.scale }}
+            animate={{
+              y: 150,
+              x: item.xDrift,
+              opacity: [0, 1, 1, 1, 0],
+              rotate: item.rotation,
+              scale: item.scale,
+            }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: item.duration,
+              delay: item.delay,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
+            className="absolute"
+            style={{ left: `${item.x}%` }}
           >
-            Learn about Local AI
-          </Link>
+            {imageUrl ? (
+              <img src={imageUrl} alt="" className="w-5 h-5 rounded" />
+            ) : icon ? (
+              <Icon icon={icon} className={cn(["text-xl", color])} />
+            ) : null}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  icon,
+  imageUrl,
+  color,
+  hasBorder,
+}: {
+  label: string;
+  value: string;
+  icon?: string;
+  imageUrl?: string;
+  color: string;
+  hasBorder: boolean;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const confettiIcon = icon === "mdi:account-group" ? "mdi:account" : icon;
+
+  return (
+    <div
+      className={cn([
+        "p-6 text-center border-neutral-100 relative flex flex-col justify-between gap-3 h-32",
+        hasBorder && "border-r",
+      ])}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isHovered && (confettiIcon || imageUrl) && (
+        <ConfettiIcons icon={confettiIcon} imageUrl={imageUrl} color={color} />
+      )}
+      <div className="flex-1 flex items-center justify-center">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={label}
+            width={32}
+            height={32}
+            className="rounded-lg object-cover"
+          />
+        ) : icon ? (
+          <Icon icon={icon} className={cn(["text-3xl", color])} />
+        ) : null}
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-stone-600">{value}</p>
+        <p className="text-sm text-neutral-500">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function ProgressSection() {
+  const { data } = useGitHubStats();
+  const stars = data?.stars;
+  const forks = data?.forks;
+
+  const stats = [
+    {
+      label: "GitHub Stars",
+      value: stars?.toLocaleString() ?? GITHUB_LAST_SEEN_STARS.toLocaleString(),
+      icon: "mdi:star",
+      color: "text-yellow-500",
+    },
+    {
+      label: "Forks",
+      value: forks?.toLocaleString() ?? GITHUB_LAST_SEEN_FORKS.toLocaleString(),
+      icon: "mdi:source-fork",
+      color: "text-blue-500",
+    },
+    {
+      label: "Contributors",
+      value: "17",
+      icon: "mdi:account-group",
+      color: "text-green-500",
+    },
+    {
+      label: "Downloads",
+      value: "40k+",
+      imageUrl: "/api/images/hyprnote/icon.png",
+      color: "text-purple-500",
+    },
+    {
+      label: "Discord Members",
+      value: "1k+",
+      icon: "logos:discord-icon",
+      color: "text-indigo-500",
+    },
+  ];
+
+  return (
+    <section>
+      <div>
+        <div className="py-12 lg:py-16">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            How We're Doing
+          </h2>
+          <p className="text-neutral-600 text-center max-w-2xl mx-auto">
+            Our progress is measured by the community we're building together.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-5 border-t border-b border-neutral-100">
+          {stats.map((stat, index) => (
+            <StatCard
+              key={stat.label}
+              label={stat.label}
+              value={stat.value}
+              icon={"icon" in stat ? stat.icon : undefined}
+              imageUrl={"imageUrl" in stat ? stat.imageUrl : undefined}
+              color={stat.color}
+              hasBorder={index < 4}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const contributions = [
+  {
+    title: "Star Repository",
+    description: "Show your support and help others discover Hyprnote",
+    icon: "mdi:star",
+    link: "https://github.com/fastrepl/hyprnote",
+    linkText: "Star on GitHub",
+  },
+  {
+    title: "Contribute Code",
+    description: "Fix bugs, add features, or improve documentation",
+    icon: "mdi:code-braces",
+    link: "https://github.com/fastrepl/hyprnote/contribute",
+    linkText: "View Issues",
+  },
+  {
+    title: "Report Issues",
+    description: "Help us improve by reporting bugs and suggesting features",
+    icon: "mdi:bug",
+    link: "https://github.com/fastrepl/hyprnote/issues",
+    linkText: "Open Issue",
+  },
+  {
+    title: "Help Translate",
+    description: "Make Hyprnote accessible in your language",
+    icon: "mdi:translate",
+    link: "https://github.com/fastrepl/hyprnote",
+    linkText: "Contribute Translations",
+  },
+  {
+    title: "Spread the Word",
+    description: "Share Hyprnote with your network and community",
+    icon: "mdi:share-variant",
+    link: "https://twitter.com/intent/tweet?text=Check%20out%20Hyprnote%20-%20open%20source%20AI%20meeting%20notes%20that%20run%20locally!%20https://hyprnote.com",
+    linkText: "Share on X",
+  },
+  {
+    title: "Join Community",
+    description: "Connect with other users and contributors",
+    icon: "mdi:forum",
+    link: "https://discord.gg/Hyprnote",
+    linkText: "Join Discord",
+  },
+];
+
+function JoinMovementSection() {
+  return (
+    <section className="bg-stone-50/30">
+      <div>
+        <div className="py-12 lg:py-16 px-6">
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            Be Part of the Movement
+          </h2>
+          <p className="text-neutral-600 text-center max-w-2xl mx-auto">
+            Every contribution, no matter how small, helps build a more private
+            future for AI.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-b border-neutral-100">
+          {contributions.map((item, index) => {
+            const posInRow3 = index % 3;
+            const hasBorderR = posInRow3 < 2;
+            const hasBorderB = index < 3;
+
+            return (
+              <div
+                key={item.title}
+                className={cn([
+                  "p-6 border-neutral-100 flex flex-col justify-between",
+                  hasBorderR && "lg:border-r",
+                  hasBorderB && "lg:border-b",
+                  index % 2 === 0 && "sm:border-r lg:border-r-0",
+                  index > 1 && "border-t sm:border-t-0 lg:border-t-0",
+                ])}
+              >
+                <div>
+                  <h3 className="font-medium text-stone-600 mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-neutral-600">{item.description}</p>
+                </div>
+                <div className="mt-4">
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn([
+                      "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-full",
+                      "bg-linear-to-t from-neutral-100 to-white text-stone-700",
+                      "border border-neutral-200",
+                      "hover:scale-105 active:scale-95 transition-transform",
+                    ])}
+                  >
+                    <Icon icon={item.icon} className="text-base" />
+                    {item.linkText}
+                  </a>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -11,8 +11,8 @@ pub struct VadConfig {
 impl Default for VadConfig {
     fn default() -> Self {
         Self {
-            hangover_frames: 3,
-            amplitude_floor: 0.001,
+            hangover_frames: 6,
+            amplitude_floor: 0.0005,
             start_in_speech: true,
         }
     }

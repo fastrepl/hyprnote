@@ -18458,9 +18458,7 @@ dependencies = [
 name = "vvad"
 version = "0.1.0"
 dependencies = [
- "am2",
  "earshot",
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
 ]
 
 [[package]]

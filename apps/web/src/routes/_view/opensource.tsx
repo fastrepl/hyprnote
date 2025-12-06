@@ -169,8 +169,15 @@ function HeroSection() {
 
 function LetterSection() {
   return (
-    <section className="px-6 py-16 lg:py-24">
-      <div className="max-w-3xl mx-auto">
+    <section
+      className="px-6 py-16 lg:py-24 relative"
+      style={{
+        backgroundImage:
+          "linear-gradient(to right, rgb(229 229 229 / 0.3) 1px, transparent 1px), linear-gradient(to bottom, rgb(229 229 229 / 0.3) 1px, transparent 1px)",
+        backgroundSize: "40px 40px",
+      }}
+    >
+      <div className="max-w-3xl mx-auto relative z-10">
         <div className="mb-8 text-center">
           <span className="text-sm uppercase tracking-widest text-neutral-500 font-medium">
             A letter from our team

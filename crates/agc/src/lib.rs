@@ -1,24 +1,31 @@
 use dagc::MonoAgc;
-use hypr_audio_utils::f32_to_i16_samples;
-use hypr_vvad::VoiceActivityDetector;
+use hypr_vad_ext::{StreamingVad, VadConfig};
 
 pub struct VadAgc {
     agc: MonoAgc,
-    vad: VoiceActivityDetector,
-    frame_size: usize,
-    vad_tail: Vec<f32>,
-    last_is_speech: bool,
+    vad: Option<StreamingVad>,
+    vad_cfg: VadConfig,
+    mask_non_speech: bool,
 }
 
 impl VadAgc {
     pub fn new(desired_output_rms: f32, distortion_factor: f32) -> Self {
         Self {
             agc: MonoAgc::new(desired_output_rms, distortion_factor).expect("failed_to_create_agc"),
-            vad: VoiceActivityDetector::new(),
-            frame_size: 0,
-            vad_tail: Vec::new(),
-            last_is_speech: true,
+            vad: None,
+            vad_cfg: VadConfig::default(),
+            mask_non_speech: false,
         }
+    }
+
+    pub fn with_masking(mut self, mask_non_speech: bool) -> Self {
+        self.mask_non_speech = mask_non_speech;
+        self
+    }
+
+    pub fn with_vad_config(mut self, cfg: VadConfig) -> Self {
+        self.vad_cfg = cfg;
+        self
     }
 
     pub fn process(&mut self, samples: &mut [f32]) {
@@ -26,59 +33,20 @@ impl VadAgc {
             return;
         }
 
-        if self.frame_size == 0 {
-            self.frame_size = hypr_vad3::choose_optimal_frame_size(samples.len());
-        }
-        let frame_size = self.frame_size;
+        let vad = self
+            .vad
+            .get_or_insert_with(|| StreamingVad::with_config(samples.len(), self.vad_cfg.clone()));
 
-        let mut pos = 0;
+        let agc = &mut self.agc;
+        let mask_non_speech = self.mask_non_speech;
 
-        if !self.vad_tail.is_empty() {
-            let needed = frame_size - self.vad_tail.len();
-            let to_take = needed.min(samples.len());
-
-            let mut frame_f32 = std::mem::take(&mut self.vad_tail);
-            frame_f32.reserve(frame_size - frame_f32.len());
-            frame_f32.extend_from_slice(&samples[..to_take]);
-
-            if frame_f32.len() == frame_size {
-                let i16_samples = f32_to_i16_samples(&frame_f32);
-                let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
-                self.last_is_speech = is_speech;
-
-                self.agc.freeze_gain(!is_speech);
-                self.agc.process(&mut samples[..to_take]);
-
-                pos = to_take;
-            } else {
-                self.vad_tail = frame_f32;
-
-                self.agc.freeze_gain(!self.last_is_speech);
-                self.agc.process(samples);
-                return;
+        vad.process_in_place(samples, |frame, is_speech| {
+            agc.freeze_gain(!is_speech);
+            if !is_speech && mask_non_speech {
+                frame.fill(0.0);
             }
-        }
-
-        while samples.len() - pos >= frame_size {
-            let frame = &mut samples[pos..pos + frame_size];
-
-            let i16_samples = f32_to_i16_samples(frame);
-            let is_speech = self.vad.predict_16khz(&i16_samples).unwrap_or(true);
-            self.last_is_speech = is_speech;
-
-            self.agc.freeze_gain(!is_speech);
-            self.agc.process(frame);
-
-            pos += frame_size;
-        }
-
-        if pos < samples.len() {
-            self.vad_tail.clear();
-            self.vad_tail.extend_from_slice(&samples[pos..]);
-
-            self.agc.freeze_gain(!self.last_is_speech);
-            self.agc.process(&mut samples[pos..]);
-        }
+            agc.process(frame);
+        });
     }
 
     pub fn gain(&self) -> f32 {
@@ -88,13 +56,7 @@ impl VadAgc {
 
 impl Default for VadAgc {
     fn default() -> Self {
-        Self {
-            agc: MonoAgc::new(0.03, 0.0001).expect("failed_to_create_agc"),
-            vad: VoiceActivityDetector::new(),
-            frame_size: 0,
-            vad_tail: Vec::new(),
-            last_is_speech: true,
-        }
+        Self::new(0.03, 0.0001)
     }
 }
 

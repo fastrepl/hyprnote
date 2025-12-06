@@ -3,11 +3,11 @@
 import PackageDescription
 
 let package = Package(
-  name: "swift-lib",
+  name: "am2-swift",
   platforms: [.macOS("13.0")],
   products: [
     .library(
-      name: "swift-lib",
+      name: "am2-swift",
       type: .static,
       targets: ["swift-lib"])
   ],

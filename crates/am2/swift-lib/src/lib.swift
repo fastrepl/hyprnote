@@ -4,7 +4,6 @@ import SwiftRs
 
 private var vadInstance: VoiceActivityDetector?
 private var speakerKitInstance: SpeakerKitPro?
-private var diarizationAudioClips: [[Float]] = []
 
 @_cdecl("initialize_am2_sdk")
 public func initialize_am2_sdk(apiKey: SRString) {
@@ -128,7 +127,6 @@ public func am2_diarization_process(
   Task {
     do {
       let audioArray = Array(UnsafeBufferPointer(start: samplesPtr, count: samplesLen))
-      diarizationAudioClips = []
 
       try await speakerKit.initializeDiarization(audioArray: audioArray) { audioClip in
         Task {
@@ -172,7 +170,6 @@ public func am2_diarization_deinit() {
   Task {
     speakerKitInstance?.unloadModels()
     speakerKitInstance = nil
-    diarizationAudioClips = []
     semaphore.signal()
   }
 

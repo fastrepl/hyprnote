@@ -1,19 +1,48 @@
+#[cfg(target_os = "macos")]
 use std::sync::OnceLock;
 
+#[cfg(target_os = "macos")]
 use swift_rs::{swift, SRArray, SRObject, SRString};
 
+#[cfg(target_os = "macos")]
 swift!(fn initialize_am2_sdk(api_key: &SRString));
+#[cfg(target_os = "macos")]
 swift!(fn am2_vad_init() -> bool);
+#[cfg(target_os = "macos")]
 swift!(fn am2_vad_detect(samples_ptr: *const f32, samples_len: i64) -> SRObject<VadResultArray>);
+#[cfg(target_os = "macos")]
 swift!(fn am2_vad_index_to_seconds(index: i64) -> f32);
+#[cfg(target_os = "macos")]
+swift!(fn am2_diarization_init() -> bool);
+#[cfg(target_os = "macos")]
+swift!(fn am2_diarization_process(samples_ptr: *const f32, samples_len: i64, num_speakers: i32) -> SRObject<DiarizationResultArray>);
+#[cfg(target_os = "macos")]
+swift!(fn am2_diarization_deinit());
 
+#[cfg(target_os = "macos")]
 static SDK_INITIALIZED: OnceLock<()> = OnceLock::new();
 
+#[cfg(target_os = "macos")]
 #[repr(C)]
 pub struct VadResultArray {
     pub data: SRArray<bool>,
 }
 
+#[cfg(target_os = "macos")]
+#[repr(C)]
+pub struct DiarizationSegmentFFI {
+    pub start: f64,
+    pub end: f64,
+    pub speaker: i32,
+}
+
+#[cfg(target_os = "macos")]
+#[repr(C)]
+pub struct DiarizationResultArray {
+    pub data: SRArray<DiarizationSegmentFFI>,
+}
+
+#[cfg(target_os = "macos")]
 pub fn init() {
     SDK_INITIALIZED.get_or_init(|| {
         let api_key = std::env::var("AM_API_KEY").unwrap_or_default();
@@ -24,10 +53,12 @@ pub fn init() {
     });
 }
 
+#[cfg(target_os = "macos")]
 pub fn is_ready() -> bool {
     SDK_INITIALIZED.get().is_some()
 }
 
+#[cfg(target_os = "macos")]
 pub mod vad {
     use std::sync::OnceLock;
 
@@ -88,7 +119,52 @@ pub mod vad {
     }
 }
 
-#[cfg(test)]
+#[cfg(target_os = "macos")]
+pub mod diarization {
+    use std::sync::OnceLock;
+
+    use super::*;
+
+    static DIARIZATION_INITIALIZED: OnceLock<bool> = OnceLock::new();
+
+    #[derive(Debug, Clone)]
+    pub struct DiarizationSegment {
+        pub start_seconds: f64,
+        pub end_seconds: f64,
+        pub speaker: i32,
+    }
+
+    pub fn init() -> bool {
+        *DIARIZATION_INITIALIZED.get_or_init(|| unsafe { am2_diarization_init() })
+    }
+
+    pub fn is_ready() -> bool {
+        DIARIZATION_INITIALIZED.get().copied().unwrap_or(false)
+    }
+
+    pub fn process(samples: &[f32], num_speakers: Option<i32>) -> Vec<DiarizationSegment> {
+        let num_speakers = num_speakers.unwrap_or(0);
+        let result = unsafe {
+            am2_diarization_process(samples.as_ptr(), samples.len() as i64, num_speakers)
+        };
+        result
+            .data
+            .as_slice()
+            .iter()
+            .map(|s| DiarizationSegment {
+                start_seconds: s.start,
+                end_seconds: s.end,
+                speaker: s.speaker,
+            })
+            .collect()
+    }
+
+    pub fn deinit() {
+        unsafe { am2_diarization_deinit() }
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
 
@@ -103,5 +179,12 @@ mod tests {
         init();
         assert!(vad::init());
         assert!(vad::is_ready());
+    }
+
+    #[test]
+    fn test_am2_diarization_init() {
+        init();
+        assert!(diarization::init());
+        assert!(diarization::is_ready());
     }
 }

@@ -10,8 +10,6 @@ pub mod parsing;
 mod soniox;
 mod url_builder;
 
-pub use url_builder::QueryParamBuilder;
-
 pub use argmax::*;
 pub use assemblyai::*;
 pub use deepgram::*;
@@ -31,6 +29,8 @@ use owhisper_interface::ListenParams;
 
 use crate::error::Error;
 
+pub use reqwest_middleware::ClientWithMiddleware;
+
 pub type BatchFuture<'a> = Pin<Box<dyn Future<Output = Result<BatchResponse, Error>> + Send + 'a>>;
 
 pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
@@ -46,8 +46,9 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
         params: &ListenParams,
         channels: u8,
         _api_key: Option<&str>,
-    ) -> Option<url::Url> {
-        Some(self.build_ws_url(api_base, params, channels))
+    ) -> impl std::future::Future<Output = Option<url::Url>> + Send {
+        let url = self.build_ws_url(api_base, params, channels);
+        async move { Some(url) }
     }
 
     fn build_auth_header(&self, api_key: Option<&str>) -> Option<(&'static str, String)>;
@@ -75,7 +76,7 @@ pub trait RealtimeSttAdapter: Clone + Default + Send + Sync + 'static {
 pub trait BatchSttAdapter: Clone + Default + Send + Sync + 'static {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
-        client: &'a reqwest::Client,
+        client: &'a ClientWithMiddleware,
         api_base: &'a str,
         api_key: &'a str,
         params: &'a ListenParams,

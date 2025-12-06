@@ -1,6 +1,3 @@
-use reqwest::StatusCode;
-use tokio::task::JoinError;
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("audio processing error: {0}")]
@@ -8,7 +5,12 @@ pub enum Error {
     #[error(transparent)]
     Http(#[from] reqwest::Error),
     #[error(transparent)]
-    Task(#[from] JoinError),
+    HttpMiddleware(#[from] reqwest_middleware::Error),
+    #[error(transparent)]
+    Task(#[from] tokio::task::JoinError),
     #[error("unexpected response status {status}: {body}")]
-    UnexpectedStatus { status: StatusCode, body: String },
+    UnexpectedStatus {
+        status: reqwest::StatusCode,
+        body: String,
+    },
 }

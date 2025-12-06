@@ -1,16 +1,5 @@
 use owhisper_interface::stream::Word;
 
-pub fn parse_speaker_id(value: &str) -> Option<usize> {
-    if let Ok(n) = value.parse::<usize>() {
-        return Some(n);
-    }
-
-    value
-        .trim_start_matches(|c: char| !c.is_ascii_digit())
-        .parse()
-        .ok()
-}
-
 pub fn ms_to_secs(ms: u64) -> f64 {
     ms as f64 / 1000.0
 }
@@ -110,6 +99,17 @@ impl WordBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn parse_speaker_id(value: &str) -> Option<usize> {
+        if let Ok(n) = value.parse::<usize>() {
+            return Some(n);
+        }
+
+        value
+            .trim_start_matches(|c: char| !c.is_ascii_digit())
+            .parse()
+            .ok()
+    }
 
     #[test]
     fn test_parse_speaker_id_numeric() {

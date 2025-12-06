@@ -71,69 +71,74 @@ impl RealtimeSttAdapter for GladiaAdapter {
         params: &ListenParams,
         channels: u8,
         api_key: Option<&str>,
-    ) -> Option<url::Url> {
-        if let Some(proxy_result) = crate::adapter::build_proxy_ws_url(api_base) {
-            let (mut url, existing_params) = proxy_result;
-            if !existing_params.is_empty() {
-                let mut query_pairs = url.query_pairs_mut();
-                for (key, value) in &existing_params {
-                    query_pairs.append_pair(key, value);
+    ) -> impl std::future::Future<Output = Option<url::Url>> + Send {
+        let api_base = api_base.to_string();
+        let params = params.clone();
+        let api_key = api_key.map(ToString::to_string);
+
+        async move {
+            if let Some(proxy_result) = crate::adapter::build_proxy_ws_url(&api_base) {
+                let (mut url, existing_params) = proxy_result;
+                if !existing_params.is_empty() {
+                    let mut query_pairs = url.query_pairs_mut();
+                    for (key, value) in &existing_params {
+                        query_pairs.append_pair(key, value);
+                    }
                 }
+                return Some(url);
             }
-            return Some(url);
+
+            let key = api_key.as_deref()?;
+            let post_url = Self::build_http_url(&api_base);
+
+            let language_config = (!params.languages.is_empty()).then(|| LanguageConfig {
+                languages: params
+                    .languages
+                    .iter()
+                    .map(|l| l.iso639().code().to_string())
+                    .collect(),
+            });
+
+            let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
+
+            let body = GladiaConfig {
+                encoding: "wav/pcm",
+                sample_rate: params.sample_rate,
+                bit_depth: 16,
+                channels,
+                language_config,
+                custom_vocabulary,
+                messages_config: Some(MessagesConfig {
+                    receive_partial_transcripts: true,
+                }),
+            };
+
+            let client = reqwest::Client::new();
+            let resp = client
+                .post(post_url.as_str())
+                .header("x-gladia-key", key)
+                .header("Content-Type", "application/json")
+                .json(&body)
+                .send()
+                .await
+                .map_err(|e| {
+                    tracing::error!(error = ?e, "gladia_init_request_failed");
+                })
+                .ok()?;
+
+            let init: InitResponse = resp
+                .json()
+                .await
+                .map_err(|e| {
+                    tracing::error!(error = ?e, "gladia_init_parse_failed");
+                })
+                .ok()?;
+
+            tracing::debug!(session_id = %init.id, url = %init.url, channels = channels, "gladia_session_initialized");
+            SessionChannels::insert(init.id.clone(), channels);
+
+            url::Url::parse(&init.url).ok()
         }
-
-        let key = api_key?;
-        let post_url = Self::build_http_url(api_base);
-
-        let language_config = (!params.languages.is_empty()).then(|| LanguageConfig {
-            languages: params
-                .languages
-                .iter()
-                .map(|l| l.iso639().code().to_string())
-                .collect(),
-        });
-
-        let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
-
-        let body = GladiaConfig {
-            encoding: "wav/pcm",
-            sample_rate: params.sample_rate,
-            bit_depth: 16,
-            channels,
-            language_config,
-            custom_vocabulary,
-            messages_config: Some(MessagesConfig {
-                receive_partial_transcripts: true,
-            }),
-        };
-
-        let body_json = serde_json::to_value(&body)
-            .map_err(|e| {
-                tracing::error!(error = ?e, "gladia_init_serialize_failed");
-            })
-            .ok()?;
-
-        let resp = ureq::post(post_url.as_str())
-            .set("x-gladia-key", key)
-            .set("Content-Type", "application/json")
-            .send_json(body_json)
-            .map_err(|e| {
-                tracing::error!(error = ?e, "gladia_init_request_failed");
-            })
-            .ok()?;
-
-        let init: InitResponse = resp
-            .into_json()
-            .map_err(|e| {
-                tracing::error!(error = ?e, "gladia_init_parse_failed");
-            })
-            .ok()?;
-
-        tracing::debug!(session_id = %init.id, url = %init.url, channels = channels, "gladia_session_initialized");
-        SessionChannels::insert(init.id.clone(), channels);
-
-        url::Url::parse(&init.url).ok()
     }
 
     fn build_auth_header(&self, _api_key: Option<&str>) -> Option<(&'static str, String)> {
@@ -233,6 +238,7 @@ struct InitResponse {
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
+#[allow(dead_code)]
 enum GladiaMessage {
     #[serde(rename = "transcript")]
     Transcript(TranscriptMessage),
@@ -278,6 +284,7 @@ struct TranscriptMessage {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct TranscriptData {
     #[serde(default)]
     id: String,
@@ -394,7 +401,8 @@ mod tests {
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
-            .build_single();
+            .build_single()
+            .await;
 
         run_single_test(client, "gladia").await;
     }
@@ -410,7 +418,8 @@ mod tests {
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
-            .build_dual();
+            .build_dual()
+            .await;
 
         run_dual_test(client, "gladia").await;
     }

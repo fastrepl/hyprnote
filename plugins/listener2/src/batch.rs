@@ -2,6 +2,10 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use owhisper_client::{
+    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FireworksAdapter,
+    OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+};
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, MixedMessage};
 use ractor::{Actor, ActorName, ActorProcessingErr, ActorRef, SpawnErr};
@@ -9,16 +13,18 @@ use tauri_specta::Event;
 use tokio_stream::{self as tokio_stream, StreamExt as TokioStreamExt};
 
 use crate::BatchEvent;
-const BATCH_STREAM_TIMEOUT_SECS: u64 = 5;
+const BATCH_STREAM_TIMEOUT_SECS: u64 = 30;
 const DEFAULT_CHUNK_MS: u64 = 500;
 const DEFAULT_DELAY_MS: u64 = 20;
 
 pub enum BatchMsg {
-    StreamResponse(Box<StreamResponse>),
+    StreamResponse {
+        response: Box<StreamResponse>,
+        percentage: f64,
+    },
     StreamError(String),
     StreamEnded,
     StreamStartFailed(String),
-    StreamAudioDuration(f64),
 }
 
 pub type BatchStartNotifier = Arc<Mutex<Option<tokio::sync::oneshot::Sender<Result<(), String>>>>>;
@@ -39,36 +45,14 @@ pub struct BatchState {
     pub session_id: String,
     rx_task: tokio::task::JoinHandle<()>,
     shutdown_tx: Option<tokio::sync::oneshot::Sender<()>>,
-    audio_duration_secs: Option<f64>,
 }
 
 impl BatchState {
-    fn on_audio_duration(&mut self, duration: f64) -> Result<(), ActorProcessingErr> {
-        let clamped = if duration.is_finite() && duration >= 0.0 {
-            duration
-        } else {
-            0.0
-        };
-
-        self.audio_duration_secs = Some(clamped);
-        Ok(())
-    }
-
     fn emit_streamed_response(
         &self,
         response: StreamResponse,
-        transcript_end: f64,
+        percentage: f64,
     ) -> Result<(), ActorProcessingErr> {
-        let percentage = if let Some(audio_duration) = self.audio_duration_secs {
-            if audio_duration > 0.0 {
-                (transcript_end / audio_duration).clamp(0.0, 1.0)
-            } else {
-                0.0
-            }
-        } else {
-            0.0
-        };
-
         BatchEvent::BatchResponseStreamed {
             session_id: self.session_id.clone(),
             response,
@@ -119,7 +103,6 @@ impl Actor for BatchActor {
             session_id: args.session_id,
             rx_task,
             shutdown_tx: Some(shutdown_tx),
-            audio_duration_secs: None,
         };
 
         Ok(state)
@@ -144,7 +127,10 @@ impl Actor for BatchActor {
         state: &mut Self::State,
     ) -> Result<(), ActorProcessingErr> {
         match message {
-            BatchMsg::StreamResponse(response) => {
+            BatchMsg::StreamResponse {
+                response,
+                percentage,
+            } => {
                 tracing::info!("batch stream response received");
 
                 let is_final = matches!(
@@ -153,16 +139,8 @@ impl Actor for BatchActor {
                 );
 
                 if is_final {
-                    let transcript_end = transcript_end_from_response(&response);
-                    if let Some(end) = transcript_end {
-                        state.emit_streamed_response(*response, end)?;
-                    }
+                    state.emit_streamed_response(*response, percentage)?;
                 }
-            }
-
-            BatchMsg::StreamAudioDuration(duration) => {
-                tracing::info!("batch stream audio duration seconds: {duration}");
-                state.on_audio_duration(duration)?;
             }
 
             BatchMsg::StreamStartFailed(error) => {
@@ -223,6 +201,35 @@ async fn spawn_batch_task(
     ),
     ActorProcessingErr,
 > {
+    let adapter_kind =
+        AdapterKind::from_url_and_languages(&args.base_url, &args.listen_params.languages);
+
+    match adapter_kind {
+        AdapterKind::Argmax => spawn_batch_task_with_adapter::<ArgmaxAdapter>(args, myself).await,
+        AdapterKind::Soniox => spawn_batch_task_with_adapter::<SonioxAdapter>(args, myself).await,
+        AdapterKind::Fireworks => {
+            spawn_batch_task_with_adapter::<FireworksAdapter>(args, myself).await
+        }
+        AdapterKind::Deepgram => {
+            spawn_batch_task_with_adapter::<DeepgramAdapter>(args, myself).await
+        }
+        AdapterKind::AssemblyAI => {
+            spawn_batch_task_with_adapter::<AssemblyAIAdapter>(args, myself).await
+        }
+        AdapterKind::OpenAI => spawn_batch_task_with_adapter::<OpenAIAdapter>(args, myself).await,
+    }
+}
+
+async fn spawn_batch_task_with_adapter<A: RealtimeSttAdapter>(
+    args: BatchArgs,
+    myself: ActorRef<BatchMsg>,
+) -> Result<
+    (
+        tokio::task::JoinHandle<()>,
+        tokio::sync::oneshot::Sender<()>,
+    ),
+    ActorProcessingErr,
+> {
     let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
 
     let rx_task = tokio::spawn(async move {
@@ -268,7 +275,6 @@ async fn spawn_batch_task(
         } else {
             frame_count as f64 / metadata.sample_rate as f64
         };
-        let _ = myself.send_message(BatchMsg::StreamAudioDuration(audio_duration_secs));
 
         let channel_count = metadata.channels.clamp(1, 2);
         let listen_params = owhisper_interface::ListenParams {
@@ -277,10 +283,12 @@ async fn spawn_batch_task(
             ..args.listen_params.clone()
         };
         let client = owhisper_client::ListenClient::builder()
+            .adapter::<A>()
             .api_base(args.base_url)
             .api_key(args.api_key)
             .params(listen_params)
-            .build_with_channels(channel_count);
+            .build_with_channels(channel_count)
+            .await;
 
         let chunk_count = chunked_audio.chunks.len();
         let chunk_interval = stream_config.chunk_interval();
@@ -311,7 +319,7 @@ async fn spawn_batch_task(
         notify_start_result(&start_notifier, Ok(()));
         futures_util::pin_mut!(listen_stream);
 
-        process_batch_stream(listen_stream, myself, shutdown_rx).await;
+        process_batch_stream(listen_stream, myself, shutdown_rx, audio_duration_secs).await;
     });
 
     Ok((rx_task, shutdown_tx))
@@ -321,6 +329,7 @@ async fn process_batch_stream<S, E>(
     mut listen_stream: std::pin::Pin<&mut S>,
     myself: ActorRef<BatchMsg>,
     mut shutdown_rx: tokio::sync::oneshot::Receiver<()>,
+    audio_duration_secs: f64,
 ) where
     S: futures_util::Stream<Item = Result<StreamResponse, E>>,
     E: std::fmt::Debug,
@@ -359,7 +368,13 @@ async fn process_batch_stream<S, E>(
                             if is_from_finalize { " (from_finalize)" } else { "" }
                         );
 
-                        let _ = myself.send_message(BatchMsg::StreamResponse(Box::new(response)));
+                        let percentage = compute_percentage(&response, audio_duration_secs);
+                        if let Err(e) = myself.send_message(BatchMsg::StreamResponse {
+                            response: Box::new(response),
+                            percentage,
+                        }) {
+                            tracing::error!("failed to send stream response message: {:?}", e);
+                        }
 
                         if is_from_finalize {
                             break;
@@ -367,7 +382,9 @@ async fn process_batch_stream<S, E>(
                     }
                     Ok(Some(Err(e))) => {
                         tracing::error!("batch stream error: {:?}", e);
-                        let _ = myself.send_message(BatchMsg::StreamError(format!("{:?}", e)));
+                        if let Err(send_err) = myself.send_message(BatchMsg::StreamError(format!("{:?}", e))) {
+                            tracing::error!("failed to send stream error message: {:?}", send_err);
+                        }
                         break;
                     }
                     Ok(None) => {
@@ -376,7 +393,9 @@ async fn process_batch_stream<S, E>(
                     }
                     Err(elapsed) => {
                         tracing::warn!(timeout = ?elapsed, responses = response_count, "batch stream response timeout");
-                        let _ = myself.send_message(BatchMsg::StreamError("timeout waiting for batch stream response".into()));
+                        if let Err(send_err) = myself.send_message(BatchMsg::StreamError("timeout waiting for batch stream response".into())) {
+                            tracing::error!("failed to send timeout error message: {:?}", send_err);
+                        }
                         break;
                     }
                 }
@@ -384,8 +403,18 @@ async fn process_batch_stream<S, E>(
         }
     }
 
-    let _ = myself.send_message(BatchMsg::StreamEnded);
+    if let Err(e) = myself.send_message(BatchMsg::StreamEnded) {
+        tracing::error!("failed to send stream ended message: {:?}", e);
+    }
     tracing::info!("batch stream processing loop exited");
+}
+
+fn compute_percentage(response: &StreamResponse, audio_duration_secs: f64) -> f64 {
+    let transcript_end = transcript_end_from_response(response);
+    match transcript_end {
+        Some(end) if audio_duration_secs > 0.0 => (end / audio_duration_secs).clamp(0.0, 1.0),
+        _ => 0.0,
+    }
 }
 
 fn transcript_end_from_response(response: &StreamResponse) -> Option<f64> {

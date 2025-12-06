@@ -111,11 +111,10 @@ where
         builder.add(key, value);
     }
 
-    let model = params.model.as_deref().unwrap_or("hypr-whisper");
+    let model = params.model.as_deref().unwrap_or("nova-3");
     builder
         .add("model", model)
         .add("encoding", "linear16")
-        .add("sample_rate", params.sample_rate)
         .add_bool("diarize", true)
         .add_bool("multichannel", false)
         .add_bool("punctuate", true)

@@ -9,14 +9,14 @@ use owhisper_interface::ListenParams;
 use serde::{Deserialize, Serialize};
 
 use super::GladiaAdapter;
-use crate::adapter::{BatchFuture, BatchSttAdapter};
+use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 use crate::polling::{poll_until, PollingConfig, PollingResult};
 
 impl BatchSttAdapter for GladiaAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
-        client: &'a reqwest::Client,
+        client: &'a ClientWithMiddleware,
         api_base: &'a str,
         api_key: &'a str,
         params: &'a ListenParams,
@@ -96,6 +96,7 @@ struct Transcription {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct Utterance {
     text: String,
     #[serde(default)]
@@ -125,7 +126,7 @@ struct GladiaWord {
 
 impl GladiaAdapter {
     async fn do_transcribe_file(
-        client: &reqwest::Client,
+        client: &ClientWithMiddleware,
         api_base: &str,
         api_key: &str,
         params: &ListenParams,
@@ -318,12 +319,13 @@ impl GladiaAdapter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::http_client::create_client;
 
     #[tokio::test]
     #[ignore]
     async fn test_gladia_batch_transcription() {
         let api_key = std::env::var("GLADIA_API_KEY").expect("GLADIA_API_KEY not set");
-        let client = reqwest::Client::new();
+        let client = create_client();
         let adapter = GladiaAdapter::default();
         let params = ListenParams::default();
 

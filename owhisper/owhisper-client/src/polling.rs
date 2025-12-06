@@ -25,11 +25,6 @@ impl PollingConfig {
         self
     }
 
-    pub fn with_max_attempts(mut self, max_attempts: usize) -> Self {
-        self.max_attempts = max_attempts;
-        self
-    }
-
     pub fn with_timeout_error(mut self, timeout_error: impl Into<String>) -> Self {
         self.timeout_error = timeout_error.into();
         self

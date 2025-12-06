@@ -347,7 +347,7 @@ dependencies = [
 name = "am2"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]
@@ -6843,7 +6843,7 @@ dependencies = [
  "reqwest-conditional-middleware",
  "reqwest-middleware 0.2.5",
  "reqwest-retry 0.2.3",
- "reqwest-tracing",
+ "reqwest-tracing 0.4.8",
  "ring 0.16.20",
  "schemars 0.8.22",
  "serde",
@@ -8249,7 +8249,7 @@ dependencies = [
 name = "intercept"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]
@@ -10044,7 +10044,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]
@@ -10090,7 +10090,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]
@@ -11146,6 +11146,8 @@ dependencies = [
  "language",
  "owhisper-interface",
  "reqwest 0.12.24",
+ "reqwest-middleware 0.4.2",
+ "reqwest-tracing 0.5.8",
  "rodio",
  "serde",
  "serde_json",
@@ -11154,7 +11156,6 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "tracing-subscriber",
- "ureq 2.12.1",
  "url",
  "ws",
 ]
@@ -13026,6 +13027,22 @@ dependencies = [
  "reqwest 0.11.27",
  "reqwest-middleware 0.2.5",
  "task-local-extensions",
+ "tracing",
+]
+
+[[package]]
+name = "reqwest-tracing"
+version = "0.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d70ea85f131b2ee9874f0b160ac5976f8af75f3c9badfe0d955880257d10bd83"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "getrandom 0.2.16",
+ "http 1.3.1",
+ "matchit 0.8.4",
+ "reqwest 0.12.24",
+ "reqwest-middleware 0.4.2",
  "tracing",
 ]
 
@@ -15059,7 +15076,7 @@ dependencies = [
 [[package]]
 name = "swift-rs"
 version = "1.0.7"
-source = "git+https://github.com/Brendonovich/swift-rs?rev=01980f9#01980f981bc642a6da382cc0788f18fdd4cde6df"
+source = "git+https://github.com/yujonglee/swift-rs?branch=fix-framework#d21d96f4907081d28653a899c4184b23b9ec2a8b"
 dependencies = [
  "base64 0.21.7",
  "serde",
@@ -16596,7 +16613,7 @@ dependencies = [
 name = "tcc"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]

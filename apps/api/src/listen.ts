@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/bun";
 import type { Handler } from "hono";
 import { upgradeWebSocket } from "hono/bun";
 
-import { Metrics } from "./sentry/metrics";
+import { Metrics } from "./metrics";
 import {
   createProxyFromRequest,
   normalizeWsData,

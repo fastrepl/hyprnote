@@ -4,7 +4,7 @@ use owhisper_interface::batch::{Alternatives, Channel, Response as BatchResponse
 use owhisper_interface::ListenParams;
 use reqwest::multipart::{Form, Part};
 
-use crate::adapter::{BatchFuture, BatchSttAdapter};
+use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 
 use super::OpenAIAdapter;
@@ -23,7 +23,7 @@ fn supports_word_timestamps(model: &str) -> bool {
 impl BatchSttAdapter for OpenAIAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
         &'a self,
-        client: &'a reqwest::Client,
+        client: &'a ClientWithMiddleware,
         api_base: &'a str,
         api_key: &'a str,
         params: &'a ListenParams,
@@ -54,7 +54,7 @@ struct OpenAIVerboseResponse {
 }
 
 async fn do_transcribe_file(
-    client: &reqwest::Client,
+    client: &ClientWithMiddleware,
     api_base: &str,
     api_key: &str,
     params: &ListenParams,
@@ -197,6 +197,7 @@ fn convert_response(response: OpenAIVerboseResponse) -> BatchResponse {
 mod tests {
     use super::*;
     use crate::adapter::BatchSttAdapter;
+    use crate::http_client::create_client;
 
     #[tokio::test]
     #[ignore]
@@ -204,7 +205,7 @@ mod tests {
         let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY not set");
 
         let adapter = OpenAIAdapter::default();
-        let client = reqwest::Client::new();
+        let client = create_client();
         let api_base = "https://api.openai.com/v1";
 
         let params = ListenParams::default();

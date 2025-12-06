@@ -162,7 +162,8 @@ async fn run_audio_stream_with_stop(
             languages: vec![hypr_language::ISO639::En.into()],
             ..Default::default()
         })
-        .build_single();
+        .build_single()
+        .await;
 
     let (response_stream, _) = client.from_realtime_audio(mic_stream).await?;
     futures_util::pin_mut!(response_stream);

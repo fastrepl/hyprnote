@@ -13,9 +13,10 @@ owhisper-interface = { workspace = true }
 
 futures-util = { workspace = true }
 reqwest = { workspace = true, features = ["json", "multipart"] }
+reqwest-middleware = { workspace = true, features = ["json", "multipart"] }
+reqwest-tracing = { workspace = true }
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
-ureq = { version = "2", features = ["json"] }
 
 base64 = "0.22.1"
 bytes = { workspace = true }

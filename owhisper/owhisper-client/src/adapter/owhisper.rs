@@ -24,7 +24,8 @@ mod tests {
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
-            .build_single();
+            .build_single()
+            .await;
 
         let (stream, _) = client.from_realtime_audio(input).await.unwrap();
         futures_util::pin_mut!(stream);

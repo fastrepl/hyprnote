@@ -69,7 +69,8 @@ mod tests {
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
-            .build_single();
+            .build_single()
+            .await;
 
         run_single_test(client, "deepgram").await;
     }
@@ -85,7 +86,8 @@ mod tests {
                 languages: vec![hypr_language::ISO639::En.into()],
                 ..Default::default()
             })
-            .build_dual();
+            .build_dual()
+            .await;
 
         run_dual_test(client, "deepgram").await;
     }

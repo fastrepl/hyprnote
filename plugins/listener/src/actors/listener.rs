@@ -291,7 +291,8 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
-        .build_single();
+        .build_single()
+        .await;
 
     let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 
@@ -350,7 +351,8 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
         .api_base(args.base_url.clone())
         .api_key(args.api_key.clone())
         .params(build_listen_params(&args))
-        .build_dual();
+        .build_dual()
+        .await;
 
     let outbound = tokio_stream::wrappers::ReceiverStream::new(rx);
 

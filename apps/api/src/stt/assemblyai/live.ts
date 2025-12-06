@@ -1,5 +1,5 @@
-import { env } from "../env";
-import { WsProxyConnection } from "./connection";
+import { env } from "../../env";
+import { WsProxyConnection } from "../connection";
 
 const CONTROL_MESSAGE_TYPES = new Set(["Terminate"]);
 

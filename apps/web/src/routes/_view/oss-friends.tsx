@@ -40,8 +40,12 @@ export const Route = createFileRoute("/_view/oss-friends")({
   }),
 });
 
+const INITIAL_DISPLAY_COUNT = 12;
+const LOAD_MORE_COUNT = 12;
+
 function Component() {
   const [search, setSearch] = useState("");
+  const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
 
   const filteredFriends = useMemo(() => {
     if (!search.trim()) return allOssFriends;
@@ -53,6 +57,16 @@ function Component() {
     );
   }, [search]);
 
+  const isSearching = search.trim().length > 0;
+  const displayedFriends = isSearching
+    ? filteredFriends
+    : filteredFriends.slice(0, displayCount);
+  const hasMore = !isSearching && displayCount < filteredFriends.length;
+
+  const handleLoadMore = () => {
+    setDisplayCount((prev) => prev + LOAD_MORE_COUNT);
+  };
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
@@ -61,7 +75,11 @@ function Component() {
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection search={search} onSearchChange={setSearch} />
         <SlashSeparator />
-        <FriendsSection friends={filteredFriends} />
+        <FriendsSection
+          friends={displayedFriends}
+          hasMore={hasMore}
+          onLoadMore={handleLoadMore}
+        />
         <SlashSeparator />
         <JoinSection />
       </div>
@@ -115,7 +133,15 @@ function HeroSection({
   );
 }
 
-function FriendsSection({ friends }: { friends: typeof allOssFriends }) {
+function FriendsSection({
+  friends,
+  hasMore,
+  onLoadMore,
+}: {
+  friends: typeof allOssFriends;
+  hasMore: boolean;
+  onLoadMore: () => void;
+}) {
   return (
     <section>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-200">
@@ -166,6 +192,21 @@ function FriendsSection({ friends }: { friends: typeof allOssFriends }) {
           </a>
         ))}
       </div>
+      {hasMore && (
+        <div className="flex justify-center py-8 bg-white">
+          <button
+            onClick={onLoadMore}
+            className={cn([
+              "inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-full",
+              "border border-neutral-200 text-neutral-700",
+              "bg-linear-to-t from-stone-100 to-white",
+              "hover:from-stone-200 hover:to-stone-50 hover:border-stone-300 transition-all",
+            ])}
+          >
+            Load more
+          </button>
+        </div>
+      )}
     </section>
   );
 }

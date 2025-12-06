@@ -1,0 +1,31 @@
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: "STT provider (adapter name)"
+        required: true
+        type: choice
+        options:
+          - deepgram
+          - assemblyai
+          - soniox
+          - gladia
+          - fireworks
+          - openai
+jobs:
+  batch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/rust_install
+        with:
+          platform: linux
+      - run: infisical run --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::batch --ignored -- --nocapture
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/rust_install
+        with:
+          platform: linux
+      - run: infisical run --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::live --ignored -- --nocapture

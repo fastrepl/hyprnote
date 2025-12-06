@@ -392,6 +392,14 @@ function CTAButton({
     ? "px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md active:scale-[98%] transition-all"
     : "px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all";
 
+  if (mobile && platform === "mobile") {
+    return (
+      <Link to="/" hash="hero" onClick={scrollToHero} className={baseClass}>
+        Get reminder
+      </Link>
+    );
+  }
+
   if (platformCTA.action === "download") {
     return (
       <a href="/download/apple-silicon" download className={baseClass}>
@@ -402,7 +410,7 @@ function CTAButton({
 
   return (
     <Link to="/" hash="hero" onClick={scrollToHero} className={baseClass}>
-      {mobile && platform === "mobile" ? "Get reminder" : platformCTA.label}
+      {platformCTA.label}
     </Link>
   );
 }
@@ -607,7 +615,19 @@ function MobileMenuCTAs({
       >
         Get started
       </Link>
-      {platformCTA.action === "download" ? (
+      {platform === "mobile" ? (
+        <Link
+          to="/"
+          hash="hero"
+          onClick={() => {
+            setIsMenuOpen(false);
+            scrollToHero();
+          }}
+          className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
+        >
+          Get reminder
+        </Link>
+      ) : platformCTA.action === "download" ? (
         <a
           href="/download/apple-silicon"
           download
@@ -626,7 +646,7 @@ function MobileMenuCTAs({
           }}
           className="block w-full px-4 py-3 text-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-lg shadow-md active:scale-[98%] transition-all"
         >
-          {platform === "mobile" ? "Get reminder" : platformCTA.label}
+          {platformCTA.label}
         </Link>
       )}
     </div>

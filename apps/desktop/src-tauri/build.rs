@@ -2,6 +2,9 @@ fn main() {
     #[cfg(target_os = "macos")]
     println!("cargo:rustc-link-arg=-fapple-link-rtlib");
 
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    swift_rs::link_swift_framework("tauri-plugin-local-stt");
+
     #[cfg(debug_assertions)]
     {
         use std::path::PathBuf;

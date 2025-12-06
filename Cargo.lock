@@ -348,7 +348,7 @@ dependencies = [
 name = "am2"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
 ]
 
 [[package]]
@@ -4205,6 +4205,7 @@ dependencies = [
  "specta",
  "specta-typescript",
  "strum 0.26.3",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
  "tauri",
  "tauri-build",
  "tauri-plugin-analytics",
@@ -8250,7 +8251,7 @@ dependencies = [
 name = "intercept"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
 ]
 
 [[package]]
@@ -10045,7 +10046,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
 ]
 
 [[package]]
@@ -10091,7 +10092,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
 ]
 
 [[package]]
@@ -15077,7 +15078,7 @@ dependencies = [
 [[package]]
 name = "swift-rs"
 version = "1.0.7"
-source = "git+https://github.com/yujonglee/swift-rs?rev=41a1605#41a160524c737c061f5633e4371952544425aa01"
+source = "git+https://github.com/yujonglee/swift-rs?rev=0b36e41#0b36e4146974b26c68677e12cf5b1700eb94edcf"
 dependencies = [
  "base64 0.21.7",
  "serde",
@@ -16065,6 +16066,7 @@ dependencies = [
  "specta",
  "specta-typescript",
  "strum 0.26.3",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
  "tauri",
  "tauri-plugin",
  "tauri-plugin-shell",
@@ -16079,6 +16081,7 @@ dependencies = [
  "tracing",
  "transcribe-moonshine",
  "transcribe-whisper-local",
+ "vad-ext",
  "whisper-local",
  "whisper-local-model",
 ]
@@ -16614,7 +16617,7 @@ dependencies = [
 name = "tcc"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
 ]
 
 [[package]]
@@ -18327,7 +18330,7 @@ dependencies = [
  "rodio",
  "serde",
  "silero",
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -18460,7 +18463,7 @@ version = "0.1.0"
 dependencies = [
  "am2",
  "earshot",
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=0b36e41)",
 ]
 
 [[package]]

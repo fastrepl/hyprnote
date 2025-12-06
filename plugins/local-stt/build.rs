@@ -12,5 +12,8 @@ const COMMANDS: &[&str] = &[
 ];
 
 fn main() {
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    swift_rs::link_swift_framework("vad-ext");
+
     tauri_plugin::Builder::new(COMMANDS).build();
 }

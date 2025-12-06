@@ -257,7 +257,7 @@ objc2-user-notifications = "0.3"
 
 tokenizers = "0.21.4"
 
-swift-rs = { git = "https://github.com/yujonglee/swift-rs", rev = "41a1605" }
+swift-rs = { git = "https://github.com/yujonglee/swift-rs", rev = "0b36e41" }
 sysinfo = "0.37.0"
 
 [patch.crates-io]

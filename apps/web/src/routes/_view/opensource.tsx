@@ -686,7 +686,7 @@ function StatCard({
   return (
     <div
       className={cn([
-        "p-6 text-center border-neutral-100 relative",
+        "p-6 text-center border-neutral-100 relative flex flex-col justify-between gap-3 h-32",
         hasBorder && "border-r",
       ])}
       onMouseEnter={() => setIsHovered(true)}
@@ -695,17 +695,23 @@ function StatCard({
       {isHovered && (confettiIcon || imageUrl) && (
         <ConfettiIcons icon={confettiIcon} imageUrl={imageUrl} color={color} />
       )}
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={label}
-          className="w-8 h-8 mx-auto mb-2 rounded object-cover"
-        />
-      ) : icon ? (
-        <Icon icon={icon} className={cn(["text-3xl mb-2", color])} />
-      ) : null}
-      <p className="text-2xl font-bold text-stone-600">{value}</p>
-      <p className="text-sm text-neutral-500">{label}</p>
+      <div className="flex-1 flex items-center justify-center">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={label}
+            width={32}
+            height={32}
+            className="rounded-lg object-cover"
+          />
+        ) : icon ? (
+          <Icon icon={icon} className={cn(["text-3xl", color])} />
+        ) : null}
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-stone-600">{value}</p>
+        <p className="text-sm text-neutral-500">{label}</p>
+      </div>
     </div>
   );
 }

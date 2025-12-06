@@ -169,7 +169,7 @@ function HeroSection() {
 
 function LetterSection() {
   return (
-    <section className="px-6 py-16 lg:py-24 bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
+    <section className="px-6 py-16 lg:py-24 bg-[linear-gradient(to_right,#fafafa_1px,transparent_1px),linear-gradient(to_bottom,#fafafa_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px]">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8 text-center">
           <span className="text-sm uppercase tracking-widest text-neutral-500 font-medium">

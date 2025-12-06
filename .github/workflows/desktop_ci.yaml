@@ -26,7 +26,7 @@ jobs:
       matrix:
         include:
           - platform: "macos"
-            runner: "depot-macos-14"
+            runner: "depot-macos-15"
           - platform: "linux"
             runner: "depot-ubuntu-22.04-8"
           - platform: "linux"

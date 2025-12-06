@@ -97,10 +97,12 @@ jobs:
       - uses: ./.github/actions/pnpm_install
       - if: ${{ matrix.include_am }}
         uses: ./.github/actions/argmax_sdk_setup
-        with:
-          api-token: ${{ secrets.AM_SECRET_TOKEN }}
+        env:
+          AM_SECRET_TOKEN: ${{ secrets.AM_SECRET_TOKEN }}
       - if: ${{ matrix.include_am }}
         run: cargo test -p am2
+        env:
+          AM_API_KEY: ${{ secrets.AM_API_KEY }}
       - run: pnpm -F ui build
       - if: ${{ matrix.include_am }}
         run: |

@@ -227,13 +227,7 @@ function ResourcesLinks() {
             onMouseEnter={() => {
               setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
             }}
-            onMouseLeave={() => {
-              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
-            }}
             onFocus={() => {
-              setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
-            }}
-            onBlur={() => {
               setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));
             }}
           >
@@ -253,17 +247,7 @@ function ResourcesLinks() {
                 getNextRandomIndex(useCasesList.length, prev),
               );
             }}
-            onMouseLeave={() => {
-              setUseCaseIndex((prev) =>
-                getNextRandomIndex(useCasesList.length, prev),
-              );
-            }}
             onFocus={() => {
-              setUseCaseIndex((prev) =>
-                getNextRandomIndex(useCasesList.length, prev),
-              );
-            }}
-            onBlur={() => {
               setUseCaseIndex((prev) =>
                 getNextRandomIndex(useCasesList.length, prev),
               );

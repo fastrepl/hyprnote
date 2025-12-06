@@ -347,7 +347,7 @@ dependencies = [
 name = "am2"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]
@@ -8249,7 +8249,7 @@ dependencies = [
 name = "intercept"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]
@@ -10044,7 +10044,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]
@@ -10090,7 +10090,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]
@@ -15076,7 +15076,7 @@ dependencies = [
 [[package]]
 name = "swift-rs"
 version = "1.0.7"
-source = "git+https://github.com/Brendonovich/swift-rs?rev=01980f9#01980f981bc642a6da382cc0788f18fdd4cde6df"
+source = "git+https://github.com/yujonglee/swift-rs?branch=fix-framework#d21d96f4907081d28653a899c4184b23b9ec2a8b"
 dependencies = [
  "base64 0.21.7",
  "serde",
@@ -16613,7 +16613,7 @@ dependencies = [
 name = "tcc"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/Brendonovich/swift-rs?rev=01980f9)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
 ]
 
 [[package]]

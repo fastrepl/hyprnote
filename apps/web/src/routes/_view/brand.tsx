@@ -350,7 +350,12 @@ function TypographyGrid({
             >
               Aa
             </div>
-            <div className="font-medium text-stone-600">{font.name}</div>
+            <div
+              className="font-medium text-stone-600"
+              style={{ fontFamily: font.fontFamily }}
+            >
+              {font.name}
+            </div>
           </button>
         ))}
       </div>
@@ -439,7 +444,7 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">
@@ -620,10 +625,16 @@ function TypographySidebar({
               Aa
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-600 truncate">
+              <p
+                className="text-sm font-medium text-stone-600 truncate"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.name}
               </p>
-              <p className="text-xs text-neutral-500 truncate">
+              <p
+                className="text-xs text-neutral-500 truncate"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.fontFamily}
               </p>
             </div>

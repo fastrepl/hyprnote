@@ -64,7 +64,10 @@ export function UploadArea({
         <Upload className="text-neutral-400" size={48} />
         <div>
           <p className="text-lg font-medium text-neutral-700">
-            Drop audio file here or click to browse
+            Drop audio file or{" "}
+            <span className="text-stone-600 underline underline-offset-2 hover:text-stone-800">
+              click to upload
+            </span>
           </p>
           <p className="text-sm text-neutral-500 mt-2">
             Supports MP3, WAV, M4A, and other audio formats

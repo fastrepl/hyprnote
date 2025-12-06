@@ -110,6 +110,9 @@ function Component() {
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
                   <div className="w-3 h-3 rounded-full bg-green-400" />
+                  <span className="ml-2 text-sm text-neutral-500">
+                    meeting content
+                  </span>
                 </div>
 
                 <div className="p-6 space-y-6">
@@ -167,6 +170,7 @@ function Component() {
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
                   <div className="w-3 h-3 rounded-full bg-green-400" />
+                  <span className="ml-2 text-sm text-neutral-500">summary</span>
                 </div>
 
                 <div className="p-6">

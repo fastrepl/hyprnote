@@ -28,6 +28,7 @@ import { format } from "@hypr/utils";
 import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
 import { createLocalPersister2 } from "./localPersister2";
+import { onSaveRequest } from "./save";
 
 export const STORE_ID = "main";
 
@@ -237,6 +238,20 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
       unlistenBlur?.();
       unlistenClose?.();
     };
+  }, [localPersister, localPersister2, persist]);
+
+  useEffect(() => {
+    if (!persist || !localPersister || !localPersister2) {
+      return;
+    }
+
+    if (getCurrentWebviewWindowLabel() !== "main") {
+      return;
+    }
+
+    return onSaveRequest(async () => {
+      await Promise.all([localPersister2.save(), localPersister.save()]);
+    });
   }, [localPersister, localPersister2, persist]);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>

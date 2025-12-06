@@ -1,39 +1,74 @@
 on:
   workflow_dispatch:
     inputs:
-      provider:
-        description: "STT provider (adapter name)"
-        required: true
-        type: choice
-        options:
-          - deepgram
-          - assemblyai
-          - soniox
-          - gladia
-          - fireworks
-          - openai
+      deepgram:
+        type: boolean
+        default: false
+      assemblyai:
+        type: boolean
+        default: false
+      soniox:
+        type: boolean
+        default: false
+      gladia:
+        type: boolean
+        default: false
+      fireworks:
+        type: boolean
+        default: false
+      openai:
+        type: boolean
+        default: false
+
 jobs:
-  batch:
+  setup:
     runs-on: ubuntu-latest
+    outputs:
+      providers: ${{ steps.set-matrix.outputs.providers }}
+    steps:
+      - id: set-matrix
+        run: |
+          providers=()
+          if [ "${{ inputs.deepgram }}" == "true" ]; then providers+=("deepgram"); fi
+          if [ "${{ inputs.assemblyai }}" == "true" ]; then providers+=("assemblyai"); fi
+          if [ "${{ inputs.soniox }}" == "true" ]; then providers+=("soniox"); fi
+          if [ "${{ inputs.gladia }}" == "true" ]; then providers+=("gladia"); fi
+          if [ "${{ inputs.fireworks }}" == "true" ]; then providers+=("fireworks"); fi
+          if [ "${{ inputs.openai }}" == "true" ]; then providers+=("openai"); fi
+          echo "providers=$(jq -c -n '$ARGS.positional' --args "${providers[@]}")" >> $GITHUB_OUTPUT
+
+  batch:
+    needs: setup
+    if: ${{ needs.setup.outputs.providers != '[]' }}
+    runs-on: depot-ubuntu-24.04-8
+    strategy:
+      matrix:
+        provider: ${{ fromJson(needs.setup.outputs.providers) }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/rust_install
         with:
           platform: linux
       - uses: ./.github/actions/infisical_install
-      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId="$INFISICAL_PROJECT_ID" --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::batch -- --ignored --nocapture
+      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId="$INFISICAL_PROJECT_ID" --path="/stt" -- cargo test -p owhisper-client adapter::${{ matrix.provider }}::batch -- --ignored --nocapture
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+
   live:
-    runs-on: ubuntu-latest
+    needs: setup
+    if: ${{ needs.setup.outputs.providers != '[]' }}
+    runs-on: depot-ubuntu-24.04-8
+    strategy:
+      matrix:
+        provider: ${{ fromJson(needs.setup.outputs.providers) }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/rust_install
         with:
           platform: linux
       - uses: ./.github/actions/infisical_install
-      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId="$INFISICAL_PROJECT_ID" --path="/stt" -- cargo test -p owhisper-client adapter::${{ inputs.provider }}::live -- --ignored --nocapture
+      - run: infisical run --token="$INFISICAL_TOKEN" --env=dev --projectId="$INFISICAL_PROJECT_ID" --path="/stt" -- cargo test -p owhisper-client adapter::${{ matrix.provider }}::live -- --ignored --nocapture
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}

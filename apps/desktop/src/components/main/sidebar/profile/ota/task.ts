@@ -3,6 +3,7 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { useSelector } from "@xstate/store/react";
 
+import { requestSave } from "../../../../../store/tinybase/save";
 import { updateStore } from "./store";
 
 export const checkForUpdate = async () => {
@@ -94,6 +95,7 @@ const handleInstall = async () => {
   try {
     if (process.env.NODE_ENV !== "development") {
       await update.install();
+      await requestSave();
       await relaunch();
     }
   } catch (err) {

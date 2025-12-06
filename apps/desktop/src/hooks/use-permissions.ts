@@ -5,6 +5,8 @@ import { Command } from "@tauri-apps/plugin-shell";
 
 import { commands as permissionsCommands } from "@hypr/plugin-permissions";
 
+import { requestSave } from "../store/tinybase/save";
+
 export function usePermissions() {
   const micPermissionStatus = useQuery({
     queryKey: ["micPermission"],
@@ -61,7 +63,8 @@ export function usePermissions() {
         kind: "info",
         title: "System Audio Status Changed",
       });
-      setTimeout(() => {
+      setTimeout(async () => {
+        await requestSave();
         relaunch();
       }, 2000);
     },

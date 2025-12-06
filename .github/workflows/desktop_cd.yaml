@@ -99,6 +99,8 @@ jobs:
         uses: ./.github/actions/argmax_sdk_setup
         with:
           api-token: ${{ secrets.AM_SECRET_TOKEN }}
+      - if: ${{ matrix.include_am }}
+        run: cargo test -p am2
       - run: pnpm -F ui build
       - if: ${{ matrix.include_am }}
         run: |

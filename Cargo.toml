@@ -79,6 +79,7 @@ hypr-turso = { path = "crates/turso", package = "turso" }
 hypr-vad-ext = { path = "crates/vad-ext", package = "vad-ext" }
 hypr-vad2 = { path = "crates/vad2", package = "vad2" }
 hypr-vad3 = { path = "crates/vad3", package = "vad3" }
+hypr-vvad = { path = "crates/vvad", package = "vvad" }
 hypr-whisper = { path = "crates/whisper", package = "whisper" }
 hypr-whisper-local = { path = "crates/whisper-local", package = "whisper-local" }
 hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whisper-local-model" }
@@ -256,7 +257,7 @@ objc2-user-notifications = "0.3"
 
 tokenizers = "0.21.4"
 
-swift-rs = { git = "https://github.com/yujonglee/swift-rs", branch = "fix-framework" }
+swift-rs = { git = "https://github.com/yujonglee/swift-rs", rev = "8c39ff4" }
 sysinfo = "0.37.0"
 
 [patch.crates-io]

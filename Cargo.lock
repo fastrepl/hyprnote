@@ -226,6 +226,7 @@ dependencies = [
  "hound",
  "rodio",
  "vad3",
+ "vvad",
 ]
 
 [[package]]
@@ -347,7 +348,7 @@ dependencies = [
 name = "am2"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=8c39ff4)",
 ]
 
 [[package]]
@@ -8249,7 +8250,7 @@ dependencies = [
 name = "intercept"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=8c39ff4)",
 ]
 
 [[package]]
@@ -10044,7 +10045,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=8c39ff4)",
 ]
 
 [[package]]
@@ -10090,7 +10091,7 @@ dependencies = [
  "objc2 0.6.3",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=8c39ff4)",
 ]
 
 [[package]]
@@ -15076,7 +15077,7 @@ dependencies = [
 [[package]]
 name = "swift-rs"
 version = "1.0.7"
-source = "git+https://github.com/yujonglee/swift-rs?branch=fix-framework#d21d96f4907081d28653a899c4184b23b9ec2a8b"
+source = "git+https://github.com/yujonglee/swift-rs?rev=8c39ff4#8c39ff487382f14fd3a785cee99699ebcc694d30"
 dependencies = [
  "base64 0.21.7",
  "serde",
@@ -16613,7 +16614,7 @@ dependencies = [
 name = "tcc"
 version = "0.1.0"
 dependencies = [
- "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?branch=fix-framework)",
+ "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=8c39ff4)",
 ]
 
 [[package]]
@@ -18330,6 +18331,7 @@ dependencies = [
  "tokio",
  "tracing",
  "vad3",
+ "vvad",
 ]
 
 [[package]]
@@ -18449,6 +18451,14 @@ checksum = "fb067e4cbd1ff067d1df46c9194b5de0e98efd2810bbc95c5d5e5f25a3231150"
 dependencies = [
  "cc",
  "libc",
+]
+
+[[package]]
+name = "vvad"
+version = "0.1.0"
+dependencies = [
+ "am2",
+ "earshot",
 ]
 
 [[package]]

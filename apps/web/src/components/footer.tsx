@@ -247,7 +247,7 @@ function ResourcesLinks() {
         <li>
           <Link
             to={currentUseCase.to}
-            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline group-hover:underline group-focus:underline decoration-dotted"
             aria-label={`Hyprnote for ${currentUseCase.label}`}
             onMouseEnter={() => {
               setUseCaseIndex((prev) =>
@@ -270,7 +270,7 @@ function ResourcesLinks() {
           <Link
             to="/vs/$slug"
             params={{ slug: currentVs.slug }}
-            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+            className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline group-hover:underline group-focus:underline decoration-dotted"
             aria-label={`Versus ${currentVs.name}`}
             onMouseEnter={() => {
               setVsIndex((prev) => getNextRandomIndex(vsList.length, prev));

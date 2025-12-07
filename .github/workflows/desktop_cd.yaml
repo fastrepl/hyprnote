@@ -22,7 +22,7 @@ env:
 
 jobs:
   compute-version:
-    runs-on: depot-ubuntu-24.04-8
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -47,7 +47,7 @@ jobs:
   cn-draft:
     if: ${{ inputs.channel != 'staging' }}
     needs: compute-version
-    runs-on: depot-ubuntu-24.04-8
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
@@ -149,6 +149,7 @@ jobs:
           VITE_APP_URL: "https://hyprnote.com"
           VITE_API_URL: "https://api.hyprnote.com"
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
+          VITE_APP_VERSION: ${{ needs.compute-version.outputs.version }}
       - run: |
           mkdir -p target/release/
           find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;
@@ -227,6 +228,7 @@ jobs:
           VITE_APP_URL: "https://hyprnote.com"
           VITE_API_URL: "https://api.hyprnote.com"
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
+          VITE_APP_VERSION: ${{ needs.compute-version.outputs.version }}
       - run: |
           mkdir -p target/release/
           find target/x86_64-unknown-linux-gnu/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;

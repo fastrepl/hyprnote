@@ -1,45 +1,30 @@
-#[cfg(target_os = "macos")]
 use std::sync::OnceLock;
 
-#[cfg(target_os = "macos")]
 use swift_rs::{swift, SRArray, SRObject, SRString};
 
-#[cfg(target_os = "macos")]
 swift!(fn initialize_am2_sdk(api_key: &SRString));
-#[cfg(target_os = "macos")]
 swift!(fn am2_vad_init() -> bool);
-#[cfg(target_os = "macos")]
 swift!(fn am2_vad_detect(samples_ptr: *const f32, samples_len: i64) -> SRObject<VadResultArray>);
-#[cfg(target_os = "macos")]
 swift!(fn am2_vad_index_to_seconds(index: i64) -> f32);
-#[cfg(target_os = "macos")]
 swift!(fn am2_transcribe_init(model: &SRString) -> bool);
-#[cfg(target_os = "macos")]
 swift!(fn am2_transcribe_file(audio_path: &SRString) -> SRObject<TranscribeResultFFI>);
-#[cfg(target_os = "macos")]
 swift!(fn am2_diarization_init() -> bool);
-#[cfg(target_os = "macos")]
 swift!(fn am2_diarization_process(samples_ptr: *const f32, samples_len: i64, num_speakers: i32) -> SRObject<DiarizationResultArray>);
-#[cfg(target_os = "macos")]
 swift!(fn am2_diarization_deinit());
 
-#[cfg(target_os = "macos")]
 static SDK_INITIALIZED: OnceLock<()> = OnceLock::new();
 
-#[cfg(target_os = "macos")]
 #[repr(C)]
 pub struct VadResultArray {
     pub data: SRArray<bool>,
 }
 
-#[cfg(target_os = "macos")]
 #[repr(C)]
 pub struct TranscribeResultFFI {
     pub text: SRString,
     pub success: bool,
 }
 
-#[cfg(target_os = "macos")]
 #[repr(C)]
 pub struct DiarizationSegmentFFI {
     pub start: f64,
@@ -47,13 +32,11 @@ pub struct DiarizationSegmentFFI {
     pub speaker: i32,
 }
 
-#[cfg(target_os = "macos")]
 #[repr(C)]
 pub struct DiarizationResultArray {
     pub data: SRArray<DiarizationSegmentFFI>,
 }
 
-#[cfg(target_os = "macos")]
 pub fn init() {
     SDK_INITIALIZED.get_or_init(|| {
         let api_key = std::env::var("AM_API_KEY").unwrap_or_default();
@@ -64,12 +47,10 @@ pub fn init() {
     });
 }
 
-#[cfg(target_os = "macos")]
 pub fn is_ready() -> bool {
     SDK_INITIALIZED.get().is_some()
 }
 
-#[cfg(target_os = "macos")]
 pub mod vad {
     use std::sync::OnceLock;
 
@@ -130,7 +111,6 @@ pub mod vad {
     }
 }
 
-#[cfg(target_os = "macos")]
 pub mod transcribe {
     use std::sync::OnceLock;
 
@@ -165,7 +145,6 @@ pub mod transcribe {
     }
 }
 
-#[cfg(target_os = "macos")]
 pub mod diarization {
     use std::sync::OnceLock;
 
@@ -210,7 +189,7 @@ pub mod diarization {
     }
 }
 
-#[cfg(all(test, target_os = "macos"))]
+#[cfg(test)]
 mod tests {
     use super::*;
 

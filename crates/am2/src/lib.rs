@@ -8,6 +8,9 @@ swift!(fn am2_vad_detect(samples_ptr: *const f32, samples_len: i64) -> SRObject<
 swift!(fn am2_vad_index_to_seconds(index: i64) -> f32);
 swift!(fn am2_transcribe_init(model: &SRString) -> bool);
 swift!(fn am2_transcribe_file(audio_path: &SRString) -> SRObject<TranscribeResultFFI>);
+swift!(fn am2_diarization_init() -> bool);
+swift!(fn am2_diarization_process(samples_ptr: *const f32, samples_len: i64, num_speakers: i32) -> SRObject<DiarizationResultArray>);
+swift!(fn am2_diarization_deinit());
 
 static SDK_INITIALIZED: OnceLock<()> = OnceLock::new();
 
@@ -20,6 +23,18 @@ pub struct VadResultArray {
 pub struct TranscribeResultFFI {
     pub text: SRString,
     pub success: bool,
+}
+
+#[repr(C)]
+pub struct DiarizationSegmentFFI {
+    pub start: f64,
+    pub end: f64,
+    pub speaker: i32,
+}
+
+#[repr(C)]
+pub struct DiarizationResultArray {
+    pub data: SRArray<DiarizationSegmentFFI>,
 }
 
 pub fn init() {
@@ -130,6 +145,50 @@ pub mod transcribe {
     }
 }
 
+pub mod diarization {
+    use std::sync::OnceLock;
+
+    use super::*;
+
+    static DIARIZATION_INITIALIZED: OnceLock<bool> = OnceLock::new();
+
+    #[derive(Debug, Clone)]
+    pub struct DiarizationSegment {
+        pub start_seconds: f64,
+        pub end_seconds: f64,
+        pub speaker: i32,
+    }
+
+    pub fn init() -> bool {
+        *DIARIZATION_INITIALIZED.get_or_init(|| unsafe { am2_diarization_init() })
+    }
+
+    pub fn is_ready() -> bool {
+        DIARIZATION_INITIALIZED.get().copied().unwrap_or(false)
+    }
+
+    pub fn process(samples: &[f32], num_speakers: Option<i32>) -> Vec<DiarizationSegment> {
+        let num_speakers = num_speakers.unwrap_or(0);
+        let result = unsafe {
+            am2_diarization_process(samples.as_ptr(), samples.len() as i64, num_speakers)
+        };
+        result
+            .data
+            .as_slice()
+            .iter()
+            .map(|s| DiarizationSegment {
+                start_seconds: s.start,
+                end_seconds: s.end,
+                speaker: s.speaker,
+            })
+            .collect()
+    }
+
+    pub fn deinit() {
+        unsafe { am2_diarization_deinit() }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -152,5 +211,12 @@ mod tests {
         init();
         assert!(transcribe::init("large-v3-v20240930_626MB"));
         assert!(transcribe::is_ready());
+    }
+
+    #[test]
+    fn test_am2_diarization_init() {
+        init();
+        assert!(diarization::init());
+        assert!(diarization::is_ready());
     }
 }

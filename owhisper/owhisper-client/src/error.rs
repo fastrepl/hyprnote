@@ -13,4 +13,6 @@ pub enum Error {
         status: reqwest::StatusCode,
         body: String,
     },
+    #[error("websocket error: {0}")]
+    WebSocket(String),
 }

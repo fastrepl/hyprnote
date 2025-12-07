@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use futures_util::StreamExt;
 use owhisper_client::{
     AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, DeepgramAdapter, FireworksAdapter,
     OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
@@ -205,7 +206,7 @@ async fn spawn_batch_task(
         AdapterKind::from_url_and_languages(&args.base_url, &args.listen_params.languages);
 
     match adapter_kind {
-        AdapterKind::Argmax => spawn_batch_task_with_adapter::<ArgmaxAdapter>(args, myself).await,
+        AdapterKind::Argmax => spawn_argmax_streaming_batch_task(args, myself).await,
         AdapterKind::Soniox => spawn_batch_task_with_adapter::<SonioxAdapter>(args, myself).await,
         AdapterKind::Fireworks => {
             spawn_batch_task_with_adapter::<FireworksAdapter>(args, myself).await
@@ -218,6 +219,109 @@ async fn spawn_batch_task(
         }
         AdapterKind::OpenAI => spawn_batch_task_with_adapter::<OpenAIAdapter>(args, myself).await,
     }
+}
+
+async fn spawn_argmax_streaming_batch_task(
+    args: BatchArgs,
+    myself: ActorRef<BatchMsg>,
+) -> Result<
+    (
+        tokio::task::JoinHandle<()>,
+        tokio::sync::oneshot::Sender<()>,
+    ),
+    ActorProcessingErr,
+> {
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+
+    let rx_task = tokio::spawn(async move {
+        tracing::info!("argmax streaming batch task: starting");
+        let start_notifier = args.start_notifier.clone();
+
+        let stream_result = ArgmaxAdapter::transcribe_file_streaming(
+            &args.base_url,
+            &args.api_key,
+            &args.listen_params,
+            &args.file_path,
+            None,
+        )
+        .await;
+
+        let mut stream = match stream_result {
+            Ok(s) => {
+                notify_start_result(&start_notifier, Ok(()));
+                s
+            }
+            Err(e) => {
+                let error = format!("{:?}", e);
+                tracing::error!("argmax streaming batch task: failed to start: {:?}", e);
+                notify_start_result(&start_notifier, Err(error.clone()));
+                let _ = myself.send_message(BatchMsg::StreamStartFailed(error));
+                return;
+            }
+        };
+
+        let response_timeout = Duration::from_secs(BATCH_STREAM_TIMEOUT_SECS);
+        let mut response_count = 0;
+
+        loop {
+            tokio::select! {
+                _ = &mut shutdown_rx => {
+                    tracing::info!("argmax streaming batch task: shutdown");
+                    break;
+                }
+                result = tokio::time::timeout(response_timeout, StreamExt::next(&mut stream)) => {
+                    match result {
+                        Ok(Some(Ok(event))) => {
+                            response_count += 1;
+
+                            let is_from_finalize = matches!(
+                                &event.response,
+                                StreamResponse::TranscriptResponse { from_finalize, .. } if *from_finalize
+                            );
+
+                            tracing::info!(
+                                "argmax streaming batch: response #{}{}",
+                                response_count,
+                                if is_from_finalize { " (from_finalize)" } else { "" }
+                            );
+
+                            if let Err(e) = myself.send_message(BatchMsg::StreamResponse {
+                                response: Box::new(event.response),
+                                percentage: event.percentage,
+                            }) {
+                                tracing::error!("failed to send stream response message: {:?}", e);
+                            }
+
+                            if is_from_finalize {
+                                break;
+                            }
+                        }
+                        Ok(Some(Err(e))) => {
+                            tracing::error!("argmax streaming batch error: {:?}", e);
+                            let _ = myself.send_message(BatchMsg::StreamError(format!("{:?}", e)));
+                            break;
+                        }
+                        Ok(None) => {
+                            tracing::info!("argmax streaming batch completed (total: {})", response_count);
+                            break;
+                        }
+                        Err(elapsed) => {
+                            tracing::warn!(timeout = ?elapsed, responses = response_count, "argmax streaming batch timeout");
+                            let _ = myself.send_message(BatchMsg::StreamError("timeout waiting for response".into()));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if let Err(e) = myself.send_message(BatchMsg::StreamEnded) {
+            tracing::error!("failed to send stream ended message: {:?}", e);
+        }
+        tracing::info!("argmax streaming batch task exited");
+    });
+
+    Ok((rx_task, shutdown_tx))
 }
 
 async fn spawn_batch_task_with_adapter<A: RealtimeSttAdapter>(

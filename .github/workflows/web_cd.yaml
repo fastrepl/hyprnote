@@ -15,7 +15,7 @@ jobs:
       - uses: ./.github/actions/doxxer_install
       - id: version
         run: |
-          VERSION=$(doxxer --config doxxer.api.toml next patch)
+          VERSION=$(doxxer --config doxxer.web.toml next patch)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Computed version: $VERSION"
 
@@ -23,13 +23,21 @@ jobs:
     needs: compute-version
     runs-on: depot-ubuntu-24.04-8
     timeout-minutes: 60
-    concurrency: api-fly-deploy
+    concurrency: web-netlify-deploy
     steps:
       - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config apps/api/fly.toml --remote-only -e APP_VERSION=${{ needs.compute-version.outputs.version }}
+      - uses: ./.github/actions/pnpm_install
+      - uses: denoland/setup-deno@v2
+      - run: pnpm -F ui build
+      - run: pnpm -F web build
         env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          VITE_APP_URL: "https://hyprnote.com"
+          VITE_APP_VERSION: ${{ needs.compute-version.outputs.version }}
+      - run: npm install -g netlify-cli
+      - run: netlify deploy --prod --dir=apps/web/dist/client
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
   tag:
     needs: [compute-version, deploy]
@@ -41,5 +49,5 @@ jobs:
       - uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_tag: api_v${{ needs.compute-version.outputs.version }}
+          custom_tag: web_v${{ needs.compute-version.outputs.version }}
           tag_prefix: ""

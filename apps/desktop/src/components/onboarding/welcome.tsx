@@ -1,6 +1,7 @@
 import { Button } from "@hypr/ui/components/ui/button";
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
+import { useOnboardingContext } from "./config";
 import type { OnboardingNext } from "./shared";
 
 type WelcomeProps = {
@@ -8,6 +9,9 @@ type WelcomeProps = {
 };
 
 export function Welcome({ onNext }: WelcomeProps) {
+  const ctx = useOnboardingContext();
+  const canProceedWithoutLogin = ctx?.isAppleSilicon === true;
+
   return (
     <>
       <img
@@ -34,17 +38,14 @@ export function Welcome({ onNext }: WelcomeProps) {
         Get Started
       </Button>
 
-      {/*<div
-        className={cn([
-          "flex flex-row items-center gap-1",
-          "text-neutral-400 transition-colors hover:text-neutral-800",
-        ])}
-      >
-        <button className="text-sm underline" onClick={() => onNext({ local: true })}>
-          Or proceed without an account
+      {canProceedWithoutLogin && (
+        <button
+          className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
+          onClick={() => onNext({ local: true })}
+        >
+          Proceed without account
         </button>
-        <CircleQuestionMarkIcon className="h-4 w-4 cursor-help" />
-      </div>*/}
+      )}
     </>
   );
 }

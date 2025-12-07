@@ -4,6 +4,7 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     PORT: z.coerce.number().default(8787),
+    APP_VERSION: z.string().min(1), // Set in `api_cd.yaml` via the Fly CLI
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),

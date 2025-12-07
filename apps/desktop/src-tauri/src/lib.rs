@@ -22,10 +22,13 @@ pub async fn main() {
         let dsn = option_env!("SENTRY_DSN");
 
         if let Some(dsn) = dsn {
+            let release =
+                option_env!("APP_VERSION").map(|v| format!("hyprnote-desktop@{}", v).into());
+
             let client = sentry::init((
                 dsn,
                 sentry::ClientOptions {
-                    release: sentry::release_name!(),
+                    release,
                     traces_sample_rate: 1.0,
                     auto_session_tracking: true,
                     ..Default::default()

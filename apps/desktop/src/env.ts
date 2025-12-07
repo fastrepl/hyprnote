@@ -10,6 +10,7 @@ export const env = createEnv({
     VITE_SUPABASE_ANON_KEY: z.string().min(1).optional(),
     VITE_PRO_PRODUCT_ID: z.string().min(1).optional(),
     VITE_SENTRY_DSN: z.string().min(1).optional(),
+    VITE_APP_VERSION: z.string().min(1).optional(),
   },
   runtimeEnv: import.meta.env,
   emptyStringAsUndefined: true,

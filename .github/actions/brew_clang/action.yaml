@@ -8,3 +8,4 @@ runs:
         echo "${LLVM_PREFIX}/bin" >> $GITHUB_PATH
         echo "CC=${LLVM_PREFIX}/bin/clang" >> $GITHUB_ENV
         echo "CXX=${LLVM_PREFIX}/bin/clang++" >> $GITHUB_ENV
+        echo "CMAKE_PREFIX_PATH=${LLVM_PREFIX}" >> $GITHUB_ENV

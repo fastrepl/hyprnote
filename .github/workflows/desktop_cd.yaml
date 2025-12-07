@@ -283,12 +283,10 @@ jobs:
           path: apps/desktop/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb
           retention-days: 3
 
-  publish:
+  cn-publish:
     if: ${{ inputs.channel != 'staging' }}
     needs: [compute-version, build-macos, build-linux]
-    runs-on: depot-ubuntu-24.04-8
-    permissions:
-      contents: write
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
@@ -300,6 +298,15 @@ jobs:
           channel: ${{ env.RELEASE_CHANNEL }}
           framework: tauri
           working-directory: ./apps/desktop
+
+  release:
+    if: ${{ inputs.channel != 'staging' }}
+    needs: [compute-version, build-macos, build-linux, cn-publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
       - if: ${{ needs.build-macos.result == 'success' }}
         run: |
           aws s3 cp \

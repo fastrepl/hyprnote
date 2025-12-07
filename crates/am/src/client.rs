@@ -33,6 +33,32 @@ impl Client {
         }
     }
 
+    pub async fn wait_for_ready(
+        &self,
+        max_wait_time: Option<u32>,
+        poll_interval: Option<u32>,
+    ) -> Result<ServerStatus, Error> {
+        let url = format!("{}/waitForReady", self.base_url);
+        let mut request = self.client.get(&url);
+
+        if let Some(max_wait) = max_wait_time {
+            request = request.query(&[("maxWaitTime", max_wait)]);
+        }
+        if let Some(poll) = poll_interval {
+            request = request.query(&[("pollInterval", poll)]);
+        }
+
+        let response = request.send().await?;
+
+        match response.status() {
+            StatusCode::OK => Ok(response.json().await?),
+            StatusCode::BAD_REQUEST | StatusCode::REQUEST_TIMEOUT => {
+                Err(self.handle_error_response(response).await)
+            }
+            _ => Err(Error::UnexpectedResponse),
+        }
+    }
+
     pub async fn init(&self, request: InitRequest) -> Result<InitResponse, Error> {
         if !request.api_key.starts_with("ax_") {
             return Err(Error::InvalidApiKey);
@@ -40,6 +66,7 @@ impl Client {
 
         let url = format!("{}/init", self.base_url);
         let response = self.client.post(&url).json(&request).send().await?;
+        println!("{:?}", request);
 
         match response.status() {
             StatusCode::OK => Ok(response.json().await?),
@@ -100,9 +127,18 @@ impl InitRequest {
         Self {
             api_key: api_key.into(),
             model: None,
+            model_token: None,
+            download_base: None,
             model_repo: None,
             model_folder: None,
+            tokenizer_folder: None,
+            fast_load: None,
+            fast_load_encoder_compute_units: None,
+            fast_load_decoder_compute_units: None,
+            model_vad: None,
+            verbose: None,
             custom_vocabulary: None,
+            custom_vocabulary_model_folder: None,
         }
     }
 
@@ -124,6 +160,13 @@ impl InitRequest {
         match model {
             crate::AmModel::ParakeetV2 => {
                 self.custom_vocabulary = Some(vec![]);
+                self.custom_vocabulary_model_folder = Some(
+                    base_dir
+                        .as_ref()
+                        .join("parakeet-tdt_ctc-110m")
+                        .to_string_lossy()
+                        .to_string(),
+                );
             }
             _ => {
                 self.custom_vocabulary = None;

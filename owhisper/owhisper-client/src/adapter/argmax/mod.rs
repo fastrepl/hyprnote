@@ -3,6 +3,8 @@ mod keywords;
 mod language;
 mod live;
 
+pub use batch::{StreamingBatchConfig, StreamingBatchEvent, StreamingBatchStream};
+
 #[derive(Clone, Default)]
 pub struct ArgmaxAdapter;
 

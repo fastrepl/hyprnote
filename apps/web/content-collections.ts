@@ -562,6 +562,54 @@ const ossFriends = defineCollection({
   },
 });
 
+const companies = defineCollection({
+  name: "companies",
+  directory: "content/companies",
+  include: "*.mdx",
+  exclude: "AGENTS.md",
+  schema: z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    website: z.string().optional(),
+    industry: z.string().optional(),
+    size: z
+      .enum(["startup", "small", "medium", "large", "enterprise"])
+      .optional(),
+    status: z
+      .enum(["prospect", "lead", "customer", "partner", "churned"])
+      .optional(),
+    logo: z.string().optional(),
+    location: z.string().optional(),
+    founded: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+  }),
+  transform: async (document, context) => {
+    const mdx = await compileMDX(context, document, {
+      remarkPlugins: [remarkGfm, mdxMermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: "wrap",
+            properties: {
+              className: ["anchor"],
+            },
+          },
+        ],
+      ],
+    });
+
+    const slug = document._meta.path.replace(/\.mdx$/, "");
+
+    return {
+      ...document,
+      mdx,
+      slug,
+    };
+  },
+});
+
 const handbook = defineCollection({
   name: "handbook",
   directory: "content/handbook",
@@ -638,5 +686,6 @@ export default defineConfig({
     handbook,
     roadmap,
     ossFriends,
+    companies,
   ],
 });

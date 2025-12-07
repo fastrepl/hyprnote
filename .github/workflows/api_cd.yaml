@@ -11,6 +11,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+      - run: git fetch --tags --force
       - uses: ./.github/actions/doxxer_install
       - id: version
         run: |

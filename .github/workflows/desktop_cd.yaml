@@ -31,6 +31,7 @@ jobs:
           lfs: true
           fetch-depth: 0
           fetch-tags: true
+      - run: git fetch --tags --force
       - uses: ./.github/actions/doxxer_install
       - id: version
         run: |
@@ -87,6 +88,7 @@ jobs:
           lfs: true
           fetch-depth: 0
           fetch-tags: true
+      - run: git fetch --tags --force
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:
@@ -198,6 +200,7 @@ jobs:
           lfs: true
           fetch-depth: 0
           fetch-tags: true
+      - run: git fetch --tags --force
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:

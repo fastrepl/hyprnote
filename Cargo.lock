@@ -347,6 +347,7 @@ dependencies = [
 name = "am2"
 version = "0.1.0"
 dependencies = [
+ "data",
  "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
 ]
 

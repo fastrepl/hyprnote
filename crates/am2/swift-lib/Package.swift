@@ -24,7 +24,7 @@ let package = Package(
       name: "swift-lib",
       dependencies: [
         .product(name: "SwiftRs", package: "swift-rs"),
-        .product(name: "Argmax", package: "argmaxinc.argmax-sdk-swift")
+        .product(name: "Argmax", package: "argmaxinc.argmax-sdk-swift"),
       ],
       path: "src",
       swiftSettings: [
@@ -33,4 +33,3 @@ let package = Package(
     )
   ]
 )
-

@@ -1,41 +1,15 @@
 use std::sync::OnceLock;
 
-use swift_rs::{swift, SRArray, SRObject, SRString};
+use swift_rs::SRString;
 
-swift!(fn initialize_am2_sdk(api_key: &SRString));
-swift!(fn am2_vad_init() -> bool);
-swift!(fn am2_vad_detect(samples_ptr: *const f32, samples_len: i64) -> SRObject<VadResultArray>);
-swift!(fn am2_vad_index_to_seconds(index: i64) -> f32);
-swift!(fn am2_transcribe_init(model: &SRString) -> bool);
-swift!(fn am2_transcribe_file(audio_path: &SRString) -> SRObject<TranscribeResultFFI>);
-swift!(fn am2_diarization_init() -> bool);
-swift!(fn am2_diarization_process(samples_ptr: *const f32, samples_len: i64, num_speakers: i32) -> SRObject<DiarizationResultArray>);
-swift!(fn am2_diarization_deinit());
+pub mod diarization;
+mod ffi;
+pub mod transcribe;
+pub mod vad;
+
+use ffi::initialize_am2_sdk;
 
 static SDK_INITIALIZED: OnceLock<()> = OnceLock::new();
-
-#[repr(C)]
-pub struct VadResultArray {
-    pub data: SRArray<bool>,
-}
-
-#[repr(C)]
-pub struct TranscribeResultFFI {
-    pub text: SRString,
-    pub success: bool,
-}
-
-#[repr(C)]
-pub struct DiarizationSegmentFFI {
-    pub start: f64,
-    pub end: f64,
-    pub speaker: i32,
-}
-
-#[repr(C)]
-pub struct DiarizationResultArray {
-    pub data: SRArray<DiarizationSegmentFFI>,
-}
 
 pub fn init() {
     SDK_INITIALIZED.get_or_init(|| {
@@ -51,172 +25,13 @@ pub fn is_ready() -> bool {
     SDK_INITIALIZED.get().is_some()
 }
 
-pub mod vad {
-    use std::sync::OnceLock;
-
-    use super::*;
-
-    static VAD_INITIALIZED: OnceLock<bool> = OnceLock::new();
-
-    pub fn init() -> bool {
-        *VAD_INITIALIZED.get_or_init(|| unsafe { am2_vad_init() })
-    }
-
-    pub fn is_ready() -> bool {
-        VAD_INITIALIZED.get().copied().unwrap_or(false)
-    }
-
-    pub fn detect(samples: &[f32]) -> Vec<bool> {
-        let result = unsafe { am2_vad_detect(samples.as_ptr(), samples.len() as i64) };
-        result.data.as_slice().to_vec()
-    }
-
-    pub fn index_to_seconds(index: usize) -> f32 {
-        unsafe { am2_vad_index_to_seconds(index as i64) }
-    }
-
-    #[derive(Debug, Clone)]
-    pub struct VoiceSegment {
-        pub start_seconds: f32,
-        pub end_seconds: f32,
-    }
-
-    pub fn detect_segments(samples: &[f32]) -> Vec<VoiceSegment> {
-        let voice_activity = detect(samples);
-        let mut segments = Vec::new();
-        let mut in_voice = false;
-        let mut segment_start = 0.0;
-
-        for (i, &is_voice) in voice_activity.iter().enumerate() {
-            if is_voice && !in_voice {
-                segment_start = index_to_seconds(i);
-                in_voice = true;
-            } else if !is_voice && in_voice {
-                segments.push(VoiceSegment {
-                    start_seconds: segment_start,
-                    end_seconds: index_to_seconds(i),
-                });
-                in_voice = false;
-            }
-        }
-
-        if in_voice {
-            segments.push(VoiceSegment {
-                start_seconds: segment_start,
-                end_seconds: index_to_seconds(voice_activity.len()),
-            });
-        }
-
-        segments
-    }
-}
-
-pub mod transcribe {
-    use std::sync::OnceLock;
-
-    use super::*;
-
-    static TRANSCRIBE_INITIALIZED: OnceLock<bool> = OnceLock::new();
-
-    pub fn init(model: &str) -> bool {
-        *TRANSCRIBE_INITIALIZED.get_or_init(|| {
-            let model = SRString::from(model);
-            unsafe { am2_transcribe_init(&model) }
-        })
-    }
-
-    pub fn is_ready() -> bool {
-        TRANSCRIBE_INITIALIZED.get().copied().unwrap_or(false)
-    }
-
-    #[derive(Debug, Clone)]
-    pub struct TranscribeResult {
-        pub text: String,
-        pub success: bool,
-    }
-
-    pub fn transcribe_file(audio_path: &str) -> TranscribeResult {
-        let audio_path = SRString::from(audio_path);
-        let result = unsafe { am2_transcribe_file(&audio_path) };
-        TranscribeResult {
-            text: result.text.to_string(),
-            success: result.success,
-        }
-    }
-}
-
-pub mod diarization {
-    use std::sync::OnceLock;
-
-    use super::*;
-
-    static DIARIZATION_INITIALIZED: OnceLock<bool> = OnceLock::new();
-
-    #[derive(Debug, Clone)]
-    pub struct DiarizationSegment {
-        pub start_seconds: f64,
-        pub end_seconds: f64,
-        pub speaker: i32,
-    }
-
-    pub fn init() -> bool {
-        *DIARIZATION_INITIALIZED.get_or_init(|| unsafe { am2_diarization_init() })
-    }
-
-    pub fn is_ready() -> bool {
-        DIARIZATION_INITIALIZED.get().copied().unwrap_or(false)
-    }
-
-    pub fn process(samples: &[f32], num_speakers: Option<i32>) -> Vec<DiarizationSegment> {
-        let num_speakers = num_speakers.unwrap_or(0);
-        let result = unsafe {
-            am2_diarization_process(samples.as_ptr(), samples.len() as i64, num_speakers)
-        };
-        result
-            .data
-            .as_slice()
-            .iter()
-            .map(|s| DiarizationSegment {
-                start_seconds: s.start,
-                end_seconds: s.end,
-                speaker: s.speaker,
-            })
-            .collect()
-    }
-
-    pub fn deinit() {
-        unsafe { am2_diarization_deinit() }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_am2_sdk_init() {
+    fn test_sdk_init() {
         init();
         assert!(is_ready());
-    }
-
-    #[test]
-    fn test_am2_vad_init() {
-        init();
-        assert!(vad::init());
-        assert!(vad::is_ready());
-    }
-
-    #[test]
-    fn test_am2_transcribe_init() {
-        init();
-        assert!(transcribe::init("large-v3-v20240930_626MB"));
-        assert!(transcribe::is_ready());
-    }
-
-    #[test]
-    fn test_am2_diarization_init() {
-        init();
-        assert!(diarization::init());
-        assert!(diarization::is_ready());
     }
 }

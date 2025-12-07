@@ -1,7 +1,6 @@
 import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
 import { useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
@@ -10,6 +9,7 @@ import { useShell } from "../../../contexts/shell";
 import { useIsLinux } from "../../../hooks/usePlatform";
 import { TrafficLights } from "../../window/traffic-lights";
 import { BannerArea } from "./banner";
+import { DevtoolView } from "./devtool";
 import { ProfileSection } from "./profile";
 import { SearchResults } from "./search";
 import { TimelineView } from "./timeline";
@@ -40,7 +40,7 @@ export function LeftSidebar() {
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => windowsCommands.windowShow({ type: "devtool" })}
+              onClick={leftsidebar.toggleDevtool}
             >
               <AxeIcon size={16} />
             </Button>
@@ -57,8 +57,16 @@ export function LeftSidebar() {
 
       <div className="flex flex-col flex-1 overflow-hidden gap-1">
         <div className="flex-1 min-h-0 overflow-hidden relative">
-          {showSearchResults ? <SearchResults /> : <TimelineView />}
-          <BannerArea isProfileExpanded={isProfileExpanded} />
+          {leftsidebar.showDevtool ? (
+            <DevtoolView />
+          ) : showSearchResults ? (
+            <SearchResults />
+          ) : (
+            <TimelineView />
+          )}
+          {!leftsidebar.showDevtool && (
+            <BannerArea isProfileExpanded={isProfileExpanded} />
+          )}
         </div>
         <div className="relative z-30">
           <ProfileSection onExpandChange={setIsProfileExpanded} />

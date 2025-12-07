@@ -3,9 +3,14 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 export function useLeftSidebar() {
   const [expanded, setExpanded] = useState(true);
+  const [showDevtool, setShowDevtool] = useState(false);
 
   const toggleExpanded = useCallback(() => {
     setExpanded((prev) => !prev);
+  }, []);
+
+  const toggleDevtool = useCallback(() => {
+    setShowDevtool((prev) => !prev);
   }, []);
 
   useHotkeys(
@@ -23,5 +28,8 @@ export function useLeftSidebar() {
     expanded,
     setExpanded,
     toggleExpanded,
+    showDevtool,
+    setShowDevtool,
+    toggleDevtool,
   };
 }

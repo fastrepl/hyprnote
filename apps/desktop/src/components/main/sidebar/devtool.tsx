@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect } from "react";
 import { useRow, useStores } from "tinybase/ui-react";
 
@@ -6,18 +5,11 @@ import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 
 import {
-  type SeedDefinition,
-  seeds,
-} from "../../components/devtool/seed/index";
-import { TinyTickMonitor } from "../../components/devtool/tinytick";
-import {
   type Store as PersistedStore,
   STORE_ID as STORE_ID_PERSISTED,
-} from "../../store/tinybase/main";
-
-export const Route = createFileRoute("/app/devtool")({
-  component: Component,
-});
+} from "../../../store/tinybase/main";
+import { type SeedDefinition, seeds } from "../../devtool/seed/index";
+import { TinyTickMonitor } from "../../devtool/tinytick";
 
 declare global {
   interface Window {
@@ -28,7 +20,7 @@ declare global {
   }
 }
 
-function Component() {
+export function DevtoolView() {
   const stores = useStores();
   const persistedStore = stores[STORE_ID_PERSISTED] as unknown as
     | PersistedStore
@@ -74,30 +66,7 @@ function Component() {
   }
 
   return (
-    <div
-      className={cn([
-        "h-full w-full flex flex-col",
-        "bg-[#121214] text-[#f5f5f5]",
-      ])}
-    >
-      <header
-        data-tauri-drag-region
-        className={cn([
-          "flex flex-row shrink-0",
-          "w-full items-center h-9",
-          "pl-[72px]",
-        ])}
-      >
-        <div className="flex-1 flex justify-center" data-tauri-drag-region>
-          <span
-            data-tauri-drag-region
-            className="text-sm font-semibold select-none cursor-default pr-12"
-          >
-            Devtool
-          </span>
-        </div>
-      </header>
-
+    <div className="h-full flex flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         <TinyTickMonitor />
         <ExtensionStateMonitor />
@@ -140,13 +109,13 @@ function ExtensionStateMonitor() {
     <DevtoolSection title="Extension State (hello-world)">
       <div className="flex flex-col gap-2 text-sm">
         <div className="flex items-center gap-2">
-          <span className="text-white/60">Synced Counter:</span>
-          <span className="font-mono text-green-400">{counter}</span>
+          <span className="text-neutral-500">Synced Counter:</span>
+          <span className="font-mono text-green-600">{counter}</span>
         </div>
         {lastUpdated && (
           <div className="flex items-center gap-2">
-            <span className="text-white/60">Last Updated:</span>
-            <span className="font-mono text-white/80">
+            <span className="text-neutral-500">Last Updated:</span>
+            <span className="font-mono text-neutral-700">
               {new Date(lastUpdated).toLocaleTimeString()}
             </span>
           </div>
@@ -218,8 +187,9 @@ function SeedButton({
       className={cn([
         "w-full px-2 py-1.5 rounded-md",
         "text-[11px] font-medium",
-        "border border-white/14",
+        "border border-neutral-200",
         "cursor-pointer transition-colors",
+        "hover:bg-neutral-50",
       ])}
     >
       {seed.label}

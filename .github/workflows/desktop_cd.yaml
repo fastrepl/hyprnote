@@ -87,6 +87,7 @@ jobs:
           lfs: true
           fetch-depth: 0
           fetch-tags: true
+      - uses: ./.github/actions/brew_clang
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:
@@ -149,7 +150,6 @@ jobs:
           VITE_APP_URL: "https://hyprnote.com"
           VITE_API_URL: "https://api.hyprnote.com"
           VITE_PRO_PRODUCT_ID: ${{ secrets.VITE_PRO_PRODUCT_ID }}
-          CMAKE_ARGS: ${{ matrix.arch == 'aarch64' && '-DGGML_NATIVE=OFF -DGGML_CPU_ARM_ARCH=armv8-a' || '' }}
       - run: |
           mkdir -p target/release/
           find target/${{ matrix.target }}/release -type f -not -path "*/\.*" -exec cp {} target/release/ \;

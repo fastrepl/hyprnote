@@ -6,12 +6,20 @@ swift!(fn initialize_am2_sdk(api_key: &SRString));
 swift!(fn am2_vad_init() -> bool);
 swift!(fn am2_vad_detect(samples_ptr: *const f32, samples_len: i64) -> SRObject<VadResultArray>);
 swift!(fn am2_vad_index_to_seconds(index: i64) -> f32);
+swift!(fn am2_transcribe_init(model: &SRString) -> bool);
+swift!(fn am2_transcribe_file(audio_path: &SRString) -> SRObject<TranscribeResultFFI>);
 
 static SDK_INITIALIZED: OnceLock<()> = OnceLock::new();
 
 #[repr(C)]
 pub struct VadResultArray {
     pub data: SRArray<bool>,
+}
+
+#[repr(C)]
+pub struct TranscribeResultFFI {
+    pub text: SRString,
+    pub success: bool,
 }
 
 pub fn init() {
@@ -88,6 +96,40 @@ pub mod vad {
     }
 }
 
+pub mod transcribe {
+    use std::sync::OnceLock;
+
+    use super::*;
+
+    static TRANSCRIBE_INITIALIZED: OnceLock<bool> = OnceLock::new();
+
+    pub fn init(model: &str) -> bool {
+        *TRANSCRIBE_INITIALIZED.get_or_init(|| {
+            let model = SRString::from(model);
+            unsafe { am2_transcribe_init(&model) }
+        })
+    }
+
+    pub fn is_ready() -> bool {
+        TRANSCRIBE_INITIALIZED.get().copied().unwrap_or(false)
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct TranscribeResult {
+        pub text: String,
+        pub success: bool,
+    }
+
+    pub fn transcribe_file(audio_path: &str) -> TranscribeResult {
+        let audio_path = SRString::from(audio_path);
+        let result = unsafe { am2_transcribe_file(&audio_path) };
+        TranscribeResult {
+            text: result.text.to_string(),
+            success: result.success,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -103,5 +145,12 @@ mod tests {
         init();
         assert!(vad::init());
         assert!(vad::is_ready());
+    }
+
+    #[test]
+    fn test_am2_transcribe_init() {
+        init();
+        assert!(transcribe::init("large-v3-v20240930_626MB"));
+        assert!(transcribe::is_ready());
     }
 }

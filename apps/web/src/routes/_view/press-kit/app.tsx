@@ -116,9 +116,12 @@ function Component() {
   const handleSetSelectedItem = (item: SelectedItem | null) => {
     setSelectedItem(item);
     if (item === null) {
-      navigate({ search: {} });
+      navigate({ search: {}, resetScroll: false });
     } else if (item.type === "screenshot") {
-      navigate({ search: { type: "screenshot", id: item.data.id } });
+      navigate({
+        search: { type: "screenshot", id: item.data.id },
+        resetScroll: false,
+      });
     }
   };
 
@@ -271,17 +274,18 @@ function AppDetailView({
   selectedItem: SelectedItem;
   setSelectedItem: (item: SelectedItem | null) => void;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollPosRef = useRef<number>(0);
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
+  const sidebarScrollPosRef = useRef<number>(0);
+  const detailScrollPosRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
-    const el = scrollRef.current;
+    const el = sidebarScrollRef.current;
     if (!el) return;
 
-    el.scrollTop = scrollPosRef.current;
+    el.scrollTop = sidebarScrollPosRef.current;
 
     const handleScroll = () => {
-      scrollPosRef.current = el.scrollTop;
+      sidebarScrollPosRef.current = el.scrollTop;
     };
 
     el.addEventListener("scroll", handleScroll);
@@ -293,12 +297,13 @@ function AppDetailView({
       <AppSidebar
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
-        scrollRef={scrollRef}
+        scrollRef={sidebarScrollRef}
       />
       <ResizableHandle withHandle className="bg-neutral-200 w-px" />
       <AppDetailPanel
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
+        detailScrollPosRef={detailScrollPosRef}
       />
     </ResizablePanelGroup>
   );
@@ -456,9 +461,11 @@ function ScreenshotsSidebar({
 function AppDetailPanel({
   selectedItem,
   setSelectedItem,
+  detailScrollPosRef,
 }: {
   selectedItem: SelectedItem;
   setSelectedItem: (item: SelectedItem | null) => void;
+  detailScrollPosRef: React.MutableRefObject<Map<string, number>>;
 }) {
   return (
     <ResizablePanel defaultSize={65}>
@@ -467,6 +474,7 @@ function AppDetailPanel({
           <ScreenshotDetail
             screenshot={selectedItem.data}
             onClose={() => setSelectedItem(null)}
+            detailScrollPosRef={detailScrollPosRef}
           />
         )}
       </div>
@@ -477,10 +485,29 @@ function AppDetailPanel({
 function ScreenshotDetail({
   screenshot,
   onClose,
+  detailScrollPosRef,
 }: {
   screenshot: (typeof screenshots)[0];
   onClose: () => void;
+  detailScrollPosRef?: React.MutableRefObject<Map<string, number>>;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !detailScrollPosRef) return;
+
+    const savedPos = detailScrollPosRef.current.get(screenshot.id) ?? 0;
+    el.scrollTop = savedPos;
+
+    const handleScroll = () => {
+      detailScrollPosRef.current.set(screenshot.id, el.scrollTop);
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [screenshot.id, detailScrollPosRef]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -502,7 +529,7 @@ function ScreenshotDetail({
         </div>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <Image
           src={screenshot.url}
           alt={screenshot.name}

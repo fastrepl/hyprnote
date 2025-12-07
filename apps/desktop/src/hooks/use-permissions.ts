@@ -1,9 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { message } from "@tauri-apps/plugin-dialog";
-import { relaunch } from "@tauri-apps/plugin-process";
 import { Command } from "@tauri-apps/plugin-shell";
 
 import { commands as permissionsCommands } from "@hypr/plugin-permissions";
+
+import { relaunch } from "../store/tinybase/save";
 
 export function usePermissions() {
   const micPermissionStatus = useQuery({
@@ -61,9 +62,7 @@ export function usePermissions() {
         kind: "info",
         title: "System Audio Status Changed",
       });
-      setTimeout(() => {
-        relaunch();
-      }, 2000);
+      setTimeout(() => relaunch(), 2000);
     },
     onError: console.error,
   });

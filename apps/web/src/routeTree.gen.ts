@@ -55,14 +55,18 @@ import { Route as ApiImagesSplatRouteImport } from './routes/api/images.$'
 import { Route as ViewVsSlugRouteImport } from './routes/_view/vs/$slug'
 import { Route as ViewTemplatesSlugRouteImport } from './routes/_view/templates/$slug'
 import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
+import { Route as ViewSolutionResearchRouteImport } from './routes/_view/solution/research'
 import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
 import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_view/solution/project-management'
 import { Route as ViewSolutionMediaRouteImport } from './routes/_view/solution/media'
 import { Route as ViewSolutionLegalRouteImport } from './routes/_view/solution/legal'
+import { Route as ViewSolutionJournalismRouteImport } from './routes/_view/solution/journalism'
 import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solution/healthcare'
 import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
 import { Route as ViewSolutionFieldEngineeringRouteImport } from './routes/_view/solution/field-engineering'
 import { Route as ViewSolutionCustomerSuccessRouteImport } from './routes/_view/solution/customer-success'
+import { Route as ViewSolutionConsultingRouteImport } from './routes/_view/solution/consulting'
+import { Route as ViewSolutionCoachingRouteImport } from './routes/_view/solution/coaching'
 import { Route as ViewShortcutsSlugRouteImport } from './routes/_view/shortcuts/$slug'
 import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
 import { Route as ViewProductWorkflowsRouteImport } from './routes/_view/product/workflows'
@@ -328,6 +332,11 @@ const ViewSolutionSalesRoute = ViewSolutionSalesRouteImport.update({
   path: '/solution/sales',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewSolutionResearchRoute = ViewSolutionResearchRouteImport.update({
+  id: '/solution/research',
+  path: '/solution/research',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewSolutionRecruitingRoute = ViewSolutionRecruitingRouteImport.update({
   id: '/solution/recruiting',
   path: '/solution/recruiting',
@@ -347,6 +356,11 @@ const ViewSolutionMediaRoute = ViewSolutionMediaRouteImport.update({
 const ViewSolutionLegalRoute = ViewSolutionLegalRouteImport.update({
   id: '/solution/legal',
   path: '/solution/legal',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewSolutionJournalismRoute = ViewSolutionJournalismRouteImport.update({
+  id: '/solution/journalism',
+  path: '/solution/journalism',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewSolutionHealthcareRoute = ViewSolutionHealthcareRouteImport.update({
@@ -371,6 +385,16 @@ const ViewSolutionCustomerSuccessRoute =
     path: '/solution/customer-success',
     getParentRoute: () => ViewRouteRoute,
   } as any)
+const ViewSolutionConsultingRoute = ViewSolutionConsultingRouteImport.update({
+  id: '/solution/consulting',
+  path: '/solution/consulting',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewSolutionCoachingRoute = ViewSolutionCoachingRouteImport.update({
+  id: '/solution/coaching',
+  path: '/solution/coaching',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewShortcutsSlugRoute = ViewShortcutsSlugRouteImport.update({
   id: '/shortcuts/$slug',
   path: '/shortcuts/$slug',
@@ -601,14 +625,18 @@ export interface FileRoutesByFullPath {
   '/product/workflows': typeof ViewProductWorkflowsRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
+  '/solution/coaching': typeof ViewSolutionCoachingRoute
+  '/solution/consulting': typeof ViewSolutionConsultingRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
   '/solution/healthcare': typeof ViewSolutionHealthcareRoute
+  '/solution/journalism': typeof ViewSolutionJournalismRoute
   '/solution/legal': typeof ViewSolutionLegalRoute
   '/solution/media': typeof ViewSolutionMediaRoute
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
+  '/solution/research': typeof ViewSolutionResearchRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
   '/templates/$slug': typeof ViewTemplatesSlugRoute
   '/vs/$slug': typeof ViewVsSlugRoute
@@ -686,14 +714,18 @@ export interface FileRoutesByTo {
   '/product/workflows': typeof ViewProductWorkflowsRoute
   '/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
+  '/solution/coaching': typeof ViewSolutionCoachingRoute
+  '/solution/consulting': typeof ViewSolutionConsultingRoute
   '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/solution/government': typeof ViewSolutionGovernmentRoute
   '/solution/healthcare': typeof ViewSolutionHealthcareRoute
+  '/solution/journalism': typeof ViewSolutionJournalismRoute
   '/solution/legal': typeof ViewSolutionLegalRoute
   '/solution/media': typeof ViewSolutionMediaRoute
   '/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/solution/recruiting': typeof ViewSolutionRecruitingRoute
+  '/solution/research': typeof ViewSolutionResearchRoute
   '/solution/sales': typeof ViewSolutionSalesRoute
   '/templates/$slug': typeof ViewTemplatesSlugRoute
   '/vs/$slug': typeof ViewVsSlugRoute
@@ -776,14 +808,18 @@ export interface FileRoutesById {
   '/_view/product/workflows': typeof ViewProductWorkflowsRoute
   '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
   '/_view/shortcuts/$slug': typeof ViewShortcutsSlugRoute
+  '/_view/solution/coaching': typeof ViewSolutionCoachingRoute
+  '/_view/solution/consulting': typeof ViewSolutionConsultingRoute
   '/_view/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
   '/_view/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
   '/_view/solution/government': typeof ViewSolutionGovernmentRoute
   '/_view/solution/healthcare': typeof ViewSolutionHealthcareRoute
+  '/_view/solution/journalism': typeof ViewSolutionJournalismRoute
   '/_view/solution/legal': typeof ViewSolutionLegalRoute
   '/_view/solution/media': typeof ViewSolutionMediaRoute
   '/_view/solution/project-management': typeof ViewSolutionProjectManagementRoute
   '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
+  '/_view/solution/research': typeof ViewSolutionResearchRoute
   '/_view/solution/sales': typeof ViewSolutionSalesRoute
   '/_view/templates/$slug': typeof ViewTemplatesSlugRoute
   '/_view/vs/$slug': typeof ViewVsSlugRoute
@@ -866,14 +902,18 @@ export interface FileRouteTypes {
     | '/product/workflows'
     | '/roadmap/$slug'
     | '/shortcuts/$slug'
+    | '/solution/coaching'
+    | '/solution/consulting'
     | '/solution/customer-success'
     | '/solution/field-engineering'
     | '/solution/government'
     | '/solution/healthcare'
+    | '/solution/journalism'
     | '/solution/legal'
     | '/solution/media'
     | '/solution/project-management'
     | '/solution/recruiting'
+    | '/solution/research'
     | '/solution/sales'
     | '/templates/$slug'
     | '/vs/$slug'
@@ -951,14 +991,18 @@ export interface FileRouteTypes {
     | '/product/workflows'
     | '/roadmap/$slug'
     | '/shortcuts/$slug'
+    | '/solution/coaching'
+    | '/solution/consulting'
     | '/solution/customer-success'
     | '/solution/field-engineering'
     | '/solution/government'
     | '/solution/healthcare'
+    | '/solution/journalism'
     | '/solution/legal'
     | '/solution/media'
     | '/solution/project-management'
     | '/solution/recruiting'
+    | '/solution/research'
     | '/solution/sales'
     | '/templates/$slug'
     | '/vs/$slug'
@@ -1040,14 +1084,18 @@ export interface FileRouteTypes {
     | '/_view/product/workflows'
     | '/_view/roadmap/$slug'
     | '/_view/shortcuts/$slug'
+    | '/_view/solution/coaching'
+    | '/_view/solution/consulting'
     | '/_view/solution/customer-success'
     | '/_view/solution/field-engineering'
     | '/_view/solution/government'
     | '/_view/solution/healthcare'
+    | '/_view/solution/journalism'
     | '/_view/solution/legal'
     | '/_view/solution/media'
     | '/_view/solution/project-management'
     | '/_view/solution/recruiting'
+    | '/_view/solution/research'
     | '/_view/solution/sales'
     | '/_view/templates/$slug'
     | '/_view/vs/$slug'
@@ -1413,6 +1461,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewSolutionSalesRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/solution/research': {
+      id: '/_view/solution/research'
+      path: '/solution/research'
+      fullPath: '/solution/research'
+      preLoaderRoute: typeof ViewSolutionResearchRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/solution/recruiting': {
       id: '/_view/solution/recruiting'
       path: '/solution/recruiting'
@@ -1441,6 +1496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewSolutionLegalRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/solution/journalism': {
+      id: '/_view/solution/journalism'
+      path: '/solution/journalism'
+      fullPath: '/solution/journalism'
+      preLoaderRoute: typeof ViewSolutionJournalismRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/solution/healthcare': {
       id: '/_view/solution/healthcare'
       path: '/solution/healthcare'
@@ -1467,6 +1529,20 @@ declare module '@tanstack/react-router' {
       path: '/solution/customer-success'
       fullPath: '/solution/customer-success'
       preLoaderRoute: typeof ViewSolutionCustomerSuccessRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/consulting': {
+      id: '/_view/solution/consulting'
+      path: '/solution/consulting'
+      fullPath: '/solution/consulting'
+      preLoaderRoute: typeof ViewSolutionConsultingRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/solution/coaching': {
+      id: '/_view/solution/coaching'
+      path: '/solution/coaching'
+      fullPath: '/solution/coaching'
+      preLoaderRoute: typeof ViewSolutionCoachingRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/shortcuts/$slug': {
@@ -1793,14 +1869,18 @@ interface ViewRouteRouteChildren {
   ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute
   ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
   ViewShortcutsSlugRoute: typeof ViewShortcutsSlugRoute
+  ViewSolutionCoachingRoute: typeof ViewSolutionCoachingRoute
+  ViewSolutionConsultingRoute: typeof ViewSolutionConsultingRoute
   ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute
   ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute
   ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
   ViewSolutionHealthcareRoute: typeof ViewSolutionHealthcareRoute
+  ViewSolutionJournalismRoute: typeof ViewSolutionJournalismRoute
   ViewSolutionLegalRoute: typeof ViewSolutionLegalRoute
   ViewSolutionMediaRoute: typeof ViewSolutionMediaRoute
   ViewSolutionProjectManagementRoute: typeof ViewSolutionProjectManagementRoute
   ViewSolutionRecruitingRoute: typeof ViewSolutionRecruitingRoute
+  ViewSolutionResearchRoute: typeof ViewSolutionResearchRoute
   ViewSolutionSalesRoute: typeof ViewSolutionSalesRoute
   ViewTemplatesSlugRoute: typeof ViewTemplatesSlugRoute
   ViewVsSlugRoute: typeof ViewVsSlugRoute
@@ -1858,14 +1938,18 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewProductWorkflowsRoute: ViewProductWorkflowsRoute,
   ViewRoadmapSlugRoute: ViewRoadmapSlugRoute,
   ViewShortcutsSlugRoute: ViewShortcutsSlugRoute,
+  ViewSolutionCoachingRoute: ViewSolutionCoachingRoute,
+  ViewSolutionConsultingRoute: ViewSolutionConsultingRoute,
   ViewSolutionCustomerSuccessRoute: ViewSolutionCustomerSuccessRoute,
   ViewSolutionFieldEngineeringRoute: ViewSolutionFieldEngineeringRoute,
   ViewSolutionGovernmentRoute: ViewSolutionGovernmentRoute,
   ViewSolutionHealthcareRoute: ViewSolutionHealthcareRoute,
+  ViewSolutionJournalismRoute: ViewSolutionJournalismRoute,
   ViewSolutionLegalRoute: ViewSolutionLegalRoute,
   ViewSolutionMediaRoute: ViewSolutionMediaRoute,
   ViewSolutionProjectManagementRoute: ViewSolutionProjectManagementRoute,
   ViewSolutionRecruitingRoute: ViewSolutionRecruitingRoute,
+  ViewSolutionResearchRoute: ViewSolutionResearchRoute,
   ViewSolutionSalesRoute: ViewSolutionSalesRoute,
   ViewTemplatesSlugRoute: ViewTemplatesSlugRoute,
   ViewVsSlugRoute: ViewVsSlugRoute,

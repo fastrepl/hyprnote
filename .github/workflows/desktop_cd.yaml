@@ -87,6 +87,7 @@ jobs:
           lfs: true
           fetch-depth: 0
           fetch-tags: true
+      - uses: ./.github/actions/brew_clang
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:

@@ -1,8 +1,8 @@
 import { getVersion } from "@tauri-apps/api/app";
-import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { useSelector } from "@xstate/store/react";
 
+import { relaunch } from "../../../../../store/tinybase/save";
 import { updateStore } from "./store";
 
 export const checkForUpdate = async () => {

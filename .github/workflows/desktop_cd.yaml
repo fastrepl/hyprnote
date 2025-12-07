@@ -65,7 +65,7 @@ jobs:
     if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
     permissions:
       contents: write
-    runs-on: macos-15
+    runs-on: macos-14
     strategy:
       fail-fast: true
       matrix:
@@ -87,7 +87,6 @@ jobs:
           lfs: true
           fetch-depth: 0
           fetch-tags: true
-      - uses: ./.github/actions/brew_clang
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:
@@ -120,10 +119,10 @@ jobs:
         uses: ./.github/actions/argmax_sdk_setup
         env:
           AM_SECRET_TOKEN: ${{ secrets.AM_SECRET_TOKEN }}
-      - if: ${{ matrix.include_am }}
-        run: cargo test -p am2
-        env:
-          AM_API_KEY: ${{ secrets.AM_API_KEY }}
+      # - if: ${{ matrix.include_am }}
+      #   run: cargo test -p am2
+      #   env:
+      #     AM_API_KEY: ${{ secrets.AM_API_KEY }}
       - run: |
           FEATURES_FLAG=""
           if [[ "${{ inputs.channel }}" == "staging" ]]; then

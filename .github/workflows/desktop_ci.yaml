@@ -26,7 +26,7 @@ jobs:
       matrix:
         include:
           - platform: "macos"
-            runner: "depot-macos-15"
+            runner: "depot-macos-14"
           - platform: "linux"
             runner: "depot-ubuntu-22.04-8"
           - platform: "linux"
@@ -35,7 +35,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - if: matrix.platform == 'macos'
-        uses: ./.github/actions/brew_clang
       - uses: ./.github/actions/pnpm_install
       - uses: denoland/setup-deno@v2
       - run: pnpm -F ui build

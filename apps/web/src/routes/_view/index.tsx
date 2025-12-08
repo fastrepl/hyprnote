@@ -668,7 +668,7 @@ export function CoolStuffSection() {
           </div>
           <div className="flex-1 flex items-center justify-center overflow-hidden">
             <Image
-              src="/api/images/hyprnote/no-bots.png"
+              src="/api/images/hyprnote/no-bots.jpg"
               alt="No bots interface"
               className="w-full h-full object-contain"
             />
@@ -712,7 +712,7 @@ export function CoolStuffSection() {
           </div>
           <div className="overflow-hidden">
             <Image
-              src="/api/images/hyprnote/no-bots.png"
+              src="/api/images/hyprnote/no-bots.jpg"
               alt="No bots interface"
               className="w-full h-auto object-contain"
             />

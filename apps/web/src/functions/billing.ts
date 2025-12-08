@@ -5,6 +5,50 @@ import { env } from "@/env";
 import { getStripeClient } from "@/functions/stripe";
 import { getSupabaseServerClient } from "@/functions/supabase";
 
+type SupabaseClient = ReturnType<typeof getSupabaseServerClient>;
+
+type AuthUser = {
+  id: string;
+  user_metadata?: {
+    stripe_customer_id?: string;
+  } | null;
+};
+
+const getStripeCustomerIdForUser = async (
+  supabase: SupabaseClient,
+  user: AuthUser,
+) => {
+  const metadataCustomerId = user.user_metadata?.stripe_customer_id;
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("stripe_customer_id")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError) {
+    throw profileError;
+  }
+
+  const profileCustomerId = profile?.stripe_customer_id as
+    | string
+    | null
+    | undefined;
+
+  const stripeCustomerId =
+    profileCustomerId ?? (metadataCustomerId as string | undefined);
+
+  if (profileCustomerId && profileCustomerId !== metadataCustomerId) {
+    await supabase.auth.updateUser({
+      data: {
+        stripe_customer_id: profileCustomerId,
+      },
+    });
+  }
+
+  return stripeCustomerId;
+};
+
 const createCheckoutSessionInput = z.object({
   period: z.enum(["monthly", "yearly"]),
 });
@@ -23,9 +67,10 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     const stripe = getStripeClient();
 
-    let stripeCustomerId = user.user_metadata?.stripe_customer_id as
-      | string
-      | undefined;
+    let stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
+      id: user.id,
+      user_metadata: user.user_metadata,
+    });
 
     if (!stripeCustomerId) {
       const newCustomer = await stripe.customers.create({
@@ -82,9 +127,10 @@ export const createPortalSession = createServerFn({ method: "POST" }).handler(
       throw new Error("Unauthorized");
     }
 
-    const stripeCustomerId = user.user_metadata?.stripe_customer_id as
-      | string
-      | undefined;
+    const stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
+      id: user.id,
+      user_metadata: user.user_metadata,
+    });
 
     if (!stripeCustomerId) {
       throw new Error("No Stripe customer found");
@@ -112,9 +158,10 @@ export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(
       throw new Error("Unauthorized");
     }
 
-    const stripeCustomerId = user.user_metadata?.stripe_customer_id as
-      | string
-      | undefined;
+    const stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
+      id: user.id,
+      user_metadata: user.user_metadata,
+    });
 
     if (!stripeCustomerId) {
       return { status: "none" };

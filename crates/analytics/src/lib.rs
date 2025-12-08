@@ -135,7 +135,7 @@ pub struct AnalyticsPayloadBuilder {
 }
 
 impl AnalyticsPayload {
-    pub fn new(event: impl Into<String>) -> AnalyticsPayloadBuilder {
+    pub fn builder(event: impl Into<String>) -> AnalyticsPayloadBuilder {
         AnalyticsPayloadBuilder {
             event: Some(event.into()),
             props: HashMap::new(),
@@ -169,7 +169,7 @@ mod tests {
     #[tokio::test]
     async fn test_analytics() {
         let client = AnalyticsClient::new(Some(""));
-        let payload = AnalyticsPayload::new("test_event")
+        let payload = AnalyticsPayload::builder("test_event")
             .with("key1", "value1")
             .with("key2", 2)
             .build();

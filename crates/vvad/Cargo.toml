@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 earshot = { workspace = true }
+thiserror = { workspace = true }

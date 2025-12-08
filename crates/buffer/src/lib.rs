@@ -10,6 +10,9 @@ pub enum Error {
     HTMLParseError(String),
 }
 
+type TextTransformation = Box<dyn Fn(&mut String)>;
+type MdTransformation = Box<dyn Fn(&mut markdown::mdast::Node)>;
+
 pub fn opinionated_md_to_html(text: impl AsRef<str>) -> Result<String, Error> {
     let md = md_to_md(text)?;
     let md_with_mentions = transform_mentions_in_markdown(&md);
@@ -23,7 +26,7 @@ pub fn opinionated_md_to_md(text: impl AsRef<str>) -> Result<String, Error> {
 fn md_to_md(text: impl AsRef<str>) -> Result<String, Error> {
     let mut text = text.as_ref().to_string();
 
-    let txt_transformations: Vec<Box<dyn Fn(&mut String)>> = vec![Box::new(remove_char_repeat)];
+    let txt_transformations: Vec<TextTransformation> = vec![Box::new(remove_char_repeat)];
 
     for t in txt_transformations {
         t(&mut text);
@@ -32,7 +35,7 @@ fn md_to_md(text: impl AsRef<str>) -> Result<String, Error> {
     let mut ast = markdown::to_mdast(text.as_ref(), &markdown::ParseOptions::default())
         .map_err(|e| Error::MarkdownParseError(e.to_string()))?;
 
-    let md_transformations: Vec<Box<dyn Fn(&mut markdown::mdast::Node)>> = vec![
+    let md_transformations: Vec<MdTransformation> = vec![
         Box::new(remove_thematic_break),
         Box::new(remove_empty_headings),
         Box::new(|node| {

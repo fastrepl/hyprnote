@@ -245,6 +245,7 @@ impl Llama {
         Ok((ctx, batch, last_index, progress_data_ptr, max_output_tokens))
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn process_generation<'a>(
         model: &LlamaModel,
         mut ctx: llama_cpp_2::context::LlamaContext<'a>,

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  tests:
+  run:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -14,5 +14,5 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - run: supabase functions deploy --project-ref $PROJECT_ID
+      - run: supabase link --project-ref $PROJECT_ID
       - run: supabase db push

@@ -1,6 +1,8 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -21,6 +23,8 @@ import {
 } from "@/changelog";
 import { defaultMDXComponents } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
+
+dayjs.extend(relativeTime);
 
 const ITEMS_PER_PAGE = 20;
 
@@ -115,12 +119,15 @@ function Component() {
 }
 
 function HeroSection({ changelog }: { changelog: ChangelogWithMeta }) {
+  const relativeTimeText = dayjs(changelog.created).fromNow();
+
   return (
     <div className="px-6 py-16 lg:py-24">
       <div className="text-center max-w-3xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-600 mb-6">
+        <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-600 mb-2">
           Version {changelog.version}
         </h1>
+        <p className="text-sm text-neutral-500 mb-6">{relativeTimeText}</p>
         <DownloadButtons version={changelog.version} />
       </div>
     </div>

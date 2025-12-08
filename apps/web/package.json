@@ -39,6 +39,7 @@
     "@tanstack/react-start": "^1.139.14",
     "@tanstack/router-plugin": "^1.139.14",
     "@unpic/react": "^1.0.1",
+    "dayjs": "^1.11.19",
     "drizzle-orm": "^0.44.7",
     "exa-js": "^1.10.2",
     "jszip": "^3.10.1",

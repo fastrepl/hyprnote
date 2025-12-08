@@ -198,28 +198,19 @@ function EditorSection() {
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Full markdown syntax support for quick formatting
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Clean, distraction-free writing experience
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Rich text editing with familiar keyboard shortcuts
                 </span>
@@ -247,28 +238,19 @@ function EditorSection() {
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Full markdown syntax support for quick formatting
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Clean, distraction-free writing experience
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Rich text editing with familiar keyboard shortcuts
               </span>

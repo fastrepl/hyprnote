@@ -448,58 +448,59 @@ function FoldersSection() {
   );
 }
 
+const ADVANCED_SEARCH_AUTO_ADVANCE_DURATION = 5000;
+
+const advancedSearchImages = [
+  {
+    id: 1,
+    url: "/api/images/hyprnote/mini-apps/search-default.jpg",
+    title: "Suggestions",
+    description:
+      "Get instant search result suggestions based on recent activities",
+  },
+  {
+    id: 2,
+    url: "/api/images/hyprnote/mini-apps/search-semantic.jpg",
+    title: "Semantic search",
+    description: "Find relevant info even without exact keywords",
+  },
+  {
+    id: 3,
+    url: "/api/images/hyprnote/mini-apps/search-filter.jpg",
+    title: "Filters",
+    description: "Filter out result types easily",
+  },
+];
+
 function AdvancedSearchSection() {
   const [selectedImage, setSelectedImage] = useState(1);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const progressRef = useRef(0);
 
-  const AUTO_ADVANCE_DURATION = 5000;
-
-  const images = [
-    {
-      id: 1,
-      url: "/api/images/hyprnote/mini-apps/search-default.jpg",
-      title: "Suggestions",
-      description:
-        "Get instant search result suggestions based on recent activities",
-    },
-    {
-      id: 2,
-      url: "/api/images/hyprnote/mini-apps/search-semantic.jpg",
-      title: "Semantic search",
-      description: "Find relevant info even without exact keywords",
-    },
-    {
-      id: 3,
-      url: "/api/images/hyprnote/mini-apps/search-filter.jpg",
-      title: "Filters",
-      description: "Filter out result types easily",
-    },
-  ];
-
   useEffect(() => {
     if (isPaused) return;
 
     const startTime =
-      Date.now() - (progressRef.current / 100) * AUTO_ADVANCE_DURATION;
+      Date.now() -
+      (progressRef.current / 100) * ADVANCED_SEARCH_AUTO_ADVANCE_DURATION;
     let animationId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const newProgress = Math.min(
-        (elapsed / AUTO_ADVANCE_DURATION) * 100,
+        (elapsed / ADVANCED_SEARCH_AUTO_ADVANCE_DURATION) * 100,
         100,
       );
       setProgress(newProgress);
       progressRef.current = newProgress;
 
       if (newProgress >= 100) {
-        const currentIndex = images.findIndex(
+        const currentIndex = advancedSearchImages.findIndex(
           (img) => img.id === selectedImage,
         );
-        const nextIndex = (currentIndex + 1) % images.length;
-        setSelectedImage(images[nextIndex].id);
+        const nextIndex = (currentIndex + 1) % advancedSearchImages.length;
+        setSelectedImage(advancedSearchImages[nextIndex].id);
         setProgress(0);
         progressRef.current = 0;
       } else {
@@ -509,7 +510,7 @@ function AdvancedSearchSection() {
 
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
-  }, [selectedImage, isPaused, images, AUTO_ADVANCE_DURATION]);
+  }, [selectedImage, isPaused]);
 
   const handleTabClick = (imageId: number) => {
     setSelectedImage(imageId);
@@ -534,12 +535,13 @@ function AdvancedSearchSection() {
           </div>
 
           <div className="grid md:grid-cols-3 border-y border-neutral-100">
-            {images.map((image, index) => (
+            {advancedSearchImages.map((image, index) => (
               <button
                 key={image.id}
                 className={cn([
                   "text-center cursor-pointer transition-colors relative overflow-hidden",
-                  index < images.length - 1 && "border-r border-neutral-100",
+                  index < advancedSearchImages.length - 1 &&
+                    "border-r border-neutral-100",
                 ])}
                 onClick={() => handleTabClick(image.id)}
                 onMouseEnter={() =>
@@ -568,7 +570,9 @@ function AdvancedSearchSection() {
           </div>
 
           <img
-            src={images.find((img) => img.id === selectedImage)?.url}
+            src={
+              advancedSearchImages.find((img) => img.id === selectedImage)?.url
+            }
             alt="Advanced search interface"
             className="w-full h-auto object-cover"
             onMouseEnter={() => setIsPaused(true)}

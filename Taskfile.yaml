@@ -107,13 +107,29 @@ tasks:
       - dprint fmt supabase/config.toml
       - task: supabase-start:capture
       - supabase migration up --local
-      - mv .supabase/generated.env .env.supabase
       - open http://127.0.0.1:54323
 
   supabase-start:capture:
     internal: true
     cmds:
-      - bash scripts/supabase-capture.sh
+      - supabase start -x realtime,logflare
+      - |
+          supabase status --output=env | awk -F= '
+            /^ANON_KEY=/ { print "SUPABASE_ANON_KEY=" $2; print "VITE_SUPABASE_ANON_KEY=" $2 }
+            /^API_URL=/ { print "SUPABASE_URL=" $2; print "VITE_SUPABASE_URL=" $2 }
+            /^DB_URL=/ { print "DATABASE_URL=" $2 }
+            /^FUNCTIONS_URL=/ { print "SUPABASE_FUNCTIONS_URL=" $2; print "VITE_SUPABASE_FUNCTIONS_URL=" $2 }
+            /^GRAPHQL_URL=/ { print "SUPABASE_GRAPHQL_URL=" $2; print "VITE_SUPABASE_GRAPHQL_URL=" $2 }
+            /^INBUCKET_URL=/ { print "SUPABASE_INBUCKET_URL=" $2 }
+            /^JWT_SECRET=/ { print "SUPABASE_JWT_SECRET=" $2 }
+            /^MAILPIT_URL=/ { print "SUPABASE_MAILPIT_URL=" $2 }
+            /^MCP_URL=/ { print "SUPABASE_MCP_URL=" $2 }
+            /^PUBLISHABLE_KEY=/ { print "SUPABASE_PUBLISHABLE_KEY=" $2; print "VITE_SUPABASE_PUBLISHABLE_KEY=" $2 }
+            /^REST_URL=/ { print "SUPABASE_REST_URL=" $2; print "VITE_SUPABASE_REST_URL=" $2 }
+            /^SECRET_KEY=/ { print "SUPABASE_SECRET_KEY=" $2 }
+            /^SERVICE_ROLE_KEY=/ { print "SUPABASE_SERVICE_ROLE_KEY=" $2 }
+            /^STUDIO_URL=/ { print "SUPABASE_STUDIO_URL=" $2 }
+          ' > .env.supabase
       - task: supabase-start:tunnel
 
   supabase-start:tunnel:

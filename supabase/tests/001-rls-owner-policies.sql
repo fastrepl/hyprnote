@@ -12,8 +12,8 @@ select tests.clear_authentication();
 select tests.authenticate_as('owner');
 
 select lives_ok(
-  $$insert into billings (user_id, stripe_customer, stripe_subscription)
-    values (auth.uid(), '{"id": "cus_owner"}'::jsonb, '{"id": "sub_owner"}'::jsonb)$$,
+  $$insert into billings (user_id, stripe_customer_id)
+    values (auth.uid(), 'cus_owner')$$,
   'Owner can insert own billing row'
 );
 
@@ -33,8 +33,8 @@ select results_eq(
 );
 
 select throws_ok(
-  $$insert into billings (user_id, stripe_customer)
-    values (tests.get_supabase_uid('owner'), '{"id": "cus_other"}'::jsonb)$$,
+  $$insert into billings (user_id, stripe_customer_id)
+    values (tests.get_supabase_uid('owner'), 'cus_other')$$,
   '42501',
   null,
   'Cannot insert billing for another user'
@@ -44,8 +44,8 @@ select tests.clear_authentication();
 select tests.authenticate_as_service_role();
 
 select lives_ok(
-  $$insert into billings (user_id, stripe_customer)
-    values (tests.get_supabase_uid('other'), '{"id": "cus_service"}'::jsonb)$$,
+  $$insert into billings (user_id, stripe_customer_id)
+    values (tests.get_supabase_uid('other'), 'cus_service')$$,
   'Service role bypasses owner RLS'
 );
 

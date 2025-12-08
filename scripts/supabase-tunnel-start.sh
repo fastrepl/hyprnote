@@ -6,11 +6,11 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(dirname "$SCRIPT_DIR")
 cd "$ROOT_DIR"
 
-generated_env_file=".supabase/generated.env"
+generated_env_file=".env.supabase"
 tunnel_pid_file=".supabase/tunnel.pid"
 
 if [ ! -f "$generated_env_file" ]; then
-  echo "ERROR: $generated_env_file not found. Run supabase-capture.sh first."
+  echo "ERROR: $generated_env_file not found. Run 'task supabase-start' first."
   exit 1
 fi
 

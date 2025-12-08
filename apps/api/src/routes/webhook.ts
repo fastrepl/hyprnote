@@ -69,12 +69,8 @@ webhook.post(
 
     try {
       await stripeSync.processWebhook(rawBody, signature);
-
       await syncBillingBridge(stripeEvent);
-
-      Metrics.billingSync(true, stripeEvent.type);
     } catch (error) {
-      Metrics.billingSync(false, stripeEvent.type);
       Sentry.captureException(error, {
         tags: { webhook: "stripe", event_type: stripeEvent.type },
       });

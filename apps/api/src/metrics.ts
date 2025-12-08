@@ -1,13 +1,5 @@
 import * as Sentry from "@sentry/bun";
 
-const billing = {
-  billingSync: (success: boolean, eventType: string) => {
-    Sentry.metrics.count("billing.sync", 1, {
-      attributes: { success: String(success), event_type: eventType },
-    });
-  },
-};
-
 const stt = {
   websocketConnected: (provider: string) => {
     Sentry.metrics.count("websocket.connected", 1, {
@@ -39,5 +31,4 @@ export const Metrics = {
       attributes: { provider },
     });
   },
-  ...billing,
 };

@@ -34,13 +34,12 @@ export async function syncBillingBridge(event: Stripe.Event) {
     return;
   }
 
-  const { error } = await supabaseAdmin.from("billings").upsert(
+  const { error } = await supabaseAdmin.from("profiles").upsert(
     {
-      user_id: userId,
+      id: userId,
       stripe_customer_id: customerId,
-      updated_at: new Date().toISOString(),
     },
-    { onConflict: "user_id" },
+    { onConflict: "id" },
   );
 
   if (error) {

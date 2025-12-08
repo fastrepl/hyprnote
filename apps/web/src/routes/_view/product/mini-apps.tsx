@@ -1,6 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { CheckIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -35,7 +36,7 @@ function Component() {
         <SlashSeparator />
         <DailyNotesSection />
         <SlashSeparator />
-        <NoteshelfSection />
+        <FoldersSection />
         <SlashSeparator />
         <AdvancedSearchSection />
         <SlashSeparator />
@@ -74,174 +75,50 @@ function HeroSection() {
 }
 
 function ContactsSection() {
+  const [currentImage, setCurrentImage] = useState(0);
+
+  const images = [
+    "/api/images/hyprnote/mini-apps/contacts-human.jpg",
+    "/api/images/hyprnote/mini-apps/contacts-org.jpg",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % images.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
   return (
     <section id="contacts" className="bg-stone-50/30">
-      <div className="hidden sm:grid sm:grid-cols-2">
-        <div className="flex items-center p-8">
-          <div className="flex flex-col gap-4">
-            <h2 className="text-3xl font-serif text-stone-600">Contacts</h2>
-            <p className="text-base text-neutral-600 leading-relaxed">
-              Track who you meet with and what you discuss. Never forget a
-              conversation.
+      <div>
+        <div className="text-center">
+          <div className="py-12 px-6">
+            <h2 className="text-3xl font-serif text-stone-600 mb-4">
+              Contacts
+            </h2>
+            <p className="text-base text-neutral-600 max-w-2xl mx-auto">
+              A relationship-focused CRM that builds itself from your meetings.
+              Import contacts and watch them come alive with context once you
+              actually meet.
             </p>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
-                <span className="text-neutral-600">
-                  Auto-detected contacts from meetings
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
-                <span className="text-neutral-600">
-                  Conversation timeline and history
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
-                <span className="text-neutral-600">
-                  Topic tracking and context
-                </span>
-              </li>
-            </ul>
           </div>
-        </div>
-        <div className="flex items-center justify-center px-8 py-8 bg-stone-50 overflow-hidden">
-          <div className="max-w-md w-full bg-white border-2 border-stone-200 rounded-lg p-6 shadow-lg">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-16 h-16 rounded-full bg-stone-200 flex items-center justify-center shrink-0">
-                <Icon icon="mdi:account" className="text-3xl text-stone-700" />
-              </div>
-              <div className="flex-1">
-                <h4 className="text-xl font-serif text-stone-600 mb-1">
-                  Sarah Johnson
-                </h4>
-                <p className="text-sm text-neutral-600">
-                  Product Manager at Acme Inc
-                </p>
-                <div className="flex items-center gap-3 mt-2 text-xs text-neutral-500">
-                  <span className="flex items-center gap-1">
-                    <Icon icon="mdi:calendar" />
-                    12 meetings
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Icon icon="mdi:clock" />
-                    Last met: 2 days ago
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <h5 className="text-sm font-medium text-stone-600 mb-2">
-                  Recent Topics
-                </h5>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-2 py-1 text-xs bg-stone-100 text-stone-700 rounded">
-                    Q1 Planning
-                  </span>
-                  <span className="px-2 py-1 text-xs bg-stone-100 text-stone-700 rounded">
-                    Mobile App
-                  </span>
-                  <span className="px-2 py-1 text-xs bg-stone-100 text-stone-700 rounded">
-                    User Research
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="sm:hidden">
-        <div className="p-6 border-b border-neutral-100">
-          <h2 className="text-2xl font-serif text-stone-600 mb-3">Contacts</h2>
-          <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Track who you meet with and what you discuss. Never forget a
-            conversation.
-          </p>
-          <ul className="space-y-3">
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
+          <div className="relative w-full overflow-hidden">
+            {images.map((image, index) => (
+              <img
+                key={image}
+                src={image}
+                alt="Contacts interface"
+                className={cn([
+                  "w-full h-auto object-cover transition-opacity duration-1000",
+                  index === currentImage
+                    ? "opacity-100"
+                    : "opacity-0 absolute inset-0",
+                ])}
               />
-              <span className="text-neutral-600 text-sm">
-                Auto-detected contacts from meetings
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600 text-sm">
-                Conversation timeline and history
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600 text-sm">
-                Topic tracking and context
-              </span>
-            </li>
-          </ul>
-        </div>
-        <div className="px-6 pb-0 bg-stone-50 overflow-clip">
-          <div className="bg-white border-2 border-stone-200 rounded-lg p-6 shadow-lg">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-16 h-16 rounded-full bg-stone-200 flex items-center justify-center shrink-0">
-                <Icon icon="mdi:account" className="text-3xl text-stone-700" />
-              </div>
-              <div className="flex-1">
-                <h4 className="text-xl font-serif text-stone-600 mb-1">
-                  Sarah Johnson
-                </h4>
-                <p className="text-sm text-neutral-600">
-                  Product Manager at Acme Inc
-                </p>
-                <div className="flex items-center gap-3 mt-2 text-xs text-neutral-500">
-                  <span className="flex items-center gap-1">
-                    <Icon icon="mdi:calendar" />
-                    12 meetings
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Icon icon="mdi:clock" />
-                    Last met: 2 days ago
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <h5 className="text-sm font-medium text-stone-600 mb-2">
-                  Recent Topics
-                </h5>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-2 py-1 text-xs bg-stone-100 text-stone-700 rounded">
-                    Q1 Planning
-                  </span>
-                  <span className="px-2 py-1 text-xs bg-stone-100 text-stone-700 rounded">
-                    Mobile App
-                  </span>
-                  <span className="px-2 py-1 text-xs bg-stone-100 text-stone-700 rounded">
-                    User Research
-                  </span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -262,28 +139,19 @@ function CalendarSection() {
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Automatic meeting linking
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Pre-meeting context and preparation
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Timeline view with notes
                 </span>
@@ -339,28 +207,19 @@ function CalendarSection() {
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Automatic meeting linking
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Pre-meeting context and preparation
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Timeline view with notes
               </span>
@@ -422,30 +281,30 @@ function DailyNotesSection() {
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   Automatic aggregation of meetings
                 </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
-                <span className="text-neutral-600">
-                  Chronological timeline view
+                <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full">
+                  Coming soon
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
+                <span className="text-neutral-600">
+                  Chronological timeline view
+                </span>
+                <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full">
+                  Coming soon
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
                   AI-generated daily summary
+                </span>
+                <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full">
+                  Coming soon
                 </span>
               </li>
             </ul>
@@ -469,30 +328,30 @@ function DailyNotesSection() {
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 Automatic aggregation of meetings
               </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
-              <span className="text-neutral-600 text-sm">
-                Chronological timeline view
+              <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full shrink-0">
+                Coming soon
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
+              <span className="text-neutral-600 text-sm">
+                Chronological timeline view
+              </span>
+              <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full shrink-0">
+                Coming soon
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
                 AI-generated daily summary
+              </span>
+              <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full shrink-0">
+                Coming soon
               </span>
             </li>
           </ul>
@@ -507,94 +366,82 @@ function DailyNotesSection() {
   );
 }
 
-function NoteshelfSection() {
+function FoldersSection() {
   return (
-    <section id="noteshelf" className="bg-stone-50/30">
+    <section id="folders" className="bg-stone-50/30">
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
-            <h2 className="text-3xl font-serif text-stone-600">Noteshelf</h2>
+            <h2 className="text-3xl font-serif text-stone-600">Folders</h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Your workspace for notes, ideas, and reflections alongside your
-              meetings.
+              Organize your meetings and notes into folders for easy access and
+              better structure.
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
-                  Personal notes and reflections
+                  Group related meetings together
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
-                <span className="text-neutral-600">Link notes to meetings</span>
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
+                <span className="text-neutral-600">
+                  Organize by project, client, or topic
+                </span>
               </li>
               <li className="flex items-start gap-3">
-                <Icon
-                  icon="mdi:check-circle"
-                  className="text-stone-600 shrink-0 mt-0.5 text-xl"
-                />
+                <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
                 <span className="text-neutral-600">
-                  Full-text search across all notes
+                  Quick navigation and filtering
                 </span>
               </li>
             </ul>
           </div>
         </div>
-        <div className="flex items-center justify-center px-8 py-8 bg-stone-50 overflow-hidden">
-          <div className="max-w-lg w-full bg-white border-2 border-stone-200 rounded-lg p-6 shadow-lg">
-            <p className="text-neutral-600 text-center italic">Coming soon</p>
-          </div>
+        <div className="bg-stone-50 overflow-hidden aspect-4/3">
+          <img
+            src="/api/images/hyprnote/mini-apps/folders.jpg"
+            alt="Folders interface"
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
 
       <div className="sm:hidden">
         <div className="p-6 border-b border-neutral-100">
-          <h2 className="text-2xl font-serif text-stone-600 mb-3">Noteshelf</h2>
+          <h2 className="text-2xl font-serif text-stone-600 mb-3">Folders</h2>
           <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Your workspace for notes, ideas, and reflections alongside your
-            meetings.
+            Organize your meetings and notes into folders for easy access and
+            better structure.
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
-                Personal notes and reflections
+                Group related meetings together
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
-                Link notes to meetings
+                Organize by project, client, or topic
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <Icon
-                icon="mdi:check-circle"
-                className="text-stone-600 shrink-0 mt-0.5 text-xl"
-              />
+              <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
               <span className="text-neutral-600 text-sm">
-                Full-text search across all notes
+                Quick navigation and filtering
               </span>
             </li>
           </ul>
         </div>
-        <div className="px-6 pb-0 bg-stone-50 overflow-clip">
-          <div className="bg-white border-2 border-stone-200 rounded-lg p-6 shadow-lg">
-            <p className="text-neutral-600 text-center italic">Coming soon</p>
-          </div>
+        <div className="bg-stone-50 overflow-hidden aspect-4/3">
+          <img
+            src="/api/images/hyprnote/mini-apps/folders.jpg"
+            alt="Folders interface"
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
     </section>
@@ -603,28 +450,72 @@ function NoteshelfSection() {
 
 function AdvancedSearchSection() {
   const [selectedImage, setSelectedImage] = useState(1);
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const progressRef = useRef(0);
+
+  const AUTO_ADVANCE_DURATION = 5000;
 
   const images = [
     {
       id: 1,
-      url: "/api/images/hyprnote/search-1.jpg",
+      url: "/api/images/hyprnote/mini-apps/search-default.jpg",
       title: "Suggestions",
       description:
         "Get instant search result suggestions based on recent activities",
     },
     {
       id: 2,
-      url: "/api/images/hyprnote/search-2.jpg",
+      url: "/api/images/hyprnote/mini-apps/search-semantic.jpg",
       title: "Semantic search",
       description: "Find relevant info even without exact keywords",
     },
     {
       id: 3,
-      url: "/api/images/hyprnote/search-3.jpg",
+      url: "/api/images/hyprnote/mini-apps/search-filter.jpg",
       title: "Filters",
       description: "Filter out result types easily",
     },
   ];
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const startTime =
+      Date.now() - (progressRef.current / 100) * AUTO_ADVANCE_DURATION;
+    let animationId: number;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min(
+        (elapsed / AUTO_ADVANCE_DURATION) * 100,
+        100,
+      );
+      setProgress(newProgress);
+      progressRef.current = newProgress;
+
+      if (newProgress >= 100) {
+        const currentIndex = images.findIndex(
+          (img) => img.id === selectedImage,
+        );
+        const nextIndex = (currentIndex + 1) % images.length;
+        setSelectedImage(images[nextIndex].id);
+        setProgress(0);
+        progressRef.current = 0;
+      } else {
+        animationId = requestAnimationFrame(animate);
+      }
+    };
+
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
+  }, [selectedImage, isPaused, images, AUTO_ADVANCE_DURATION]);
+
+  const handleTabClick = (imageId: number) => {
+    setSelectedImage(imageId);
+    setProgress(0);
+    progressRef.current = 0;
+  };
 
   return (
     <section id="advanced-search" className="bg-stone-50/30">
@@ -647,13 +538,24 @@ function AdvancedSearchSection() {
               <button
                 key={image.id}
                 className={cn([
-                  "text-center cursor-pointer transition-colors",
+                  "text-center cursor-pointer transition-colors relative overflow-hidden",
                   index < images.length - 1 && "border-r border-neutral-100",
-                  selectedImage === image.id && "bg-stone-50",
                 ])}
-                onClick={() => setSelectedImage(image.id)}
+                onClick={() => handleTabClick(image.id)}
+                onMouseEnter={() =>
+                  selectedImage === image.id && setIsPaused(true)
+                }
+                onMouseLeave={() =>
+                  selectedImage === image.id && setIsPaused(false)
+                }
               >
-                <div className="p-6">
+                {selectedImage === image.id && (
+                  <div
+                    className="absolute inset-0 bg-stone-100 transition-none"
+                    style={{ width: `${progress}%` }}
+                  />
+                )}
+                <div className="p-6 relative">
                   <h3 className="text-lg font-serif text-stone-600 mb-2">
                     {image.title}
                   </h3>
@@ -669,6 +571,8 @@ function AdvancedSearchSection() {
             src={images.find((img) => img.id === selectedImage)?.url}
             alt="Advanced search interface"
             className="w-full h-auto object-cover"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
           />
         </div>
       </div>
@@ -693,8 +597,8 @@ function CTASection() {
           Get the complete experience
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Download Hyprnote to start using contacts and calendar integration
-          today. Daily notes and noteshelf coming soon
+          Download Hyprnote to start using contacts, calendar, and folders
+          today. Daily notes coming soon
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <a

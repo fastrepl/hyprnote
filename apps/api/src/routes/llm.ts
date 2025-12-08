@@ -9,16 +9,26 @@ import { getModels, openai } from "../integration/openrouter";
 import { Metrics } from "../metrics";
 import { API_TAGS } from "./constants";
 
+const REQUEST_TIMEOUT_MS = 120_000;
+
 const ChatCompletionMessageSchema = z.object({
   role: z.enum(["system", "user", "assistant"]),
   content: z.string(),
 });
 
+const ToolChoiceSchema = z.union([
+  z.enum(["none", "auto", "required"]),
+  z.object({
+    type: z.literal("function"),
+    function: z.object({ name: z.string() }),
+  }),
+]);
+
 const ChatCompletionRequestSchema = z.looseObject({
   model: z.string().optional(),
   messages: z.array(ChatCompletionMessageSchema),
   tools: z.array(z.unknown()).optional(),
-  tool_choice: z.union([z.string(), z.object({})]).optional(),
+  tool_choice: ToolChoiceSchema.optional(),
   stream: z.boolean().optional(),
   temperature: z.number().optional(),
   max_tokens: z.number().optional(),
@@ -62,7 +72,7 @@ llm.post(
     span?.setAttribute("chat.streaming", requestBody.stream ?? false);
 
     const {
-      model: _ignoredModel,
+      model: _,
       stream,
       messages,
       tools,
@@ -73,47 +83,77 @@ llm.post(
     } = requestBody;
 
     const startTime = performance.now();
+    const clientSignal = c.req.raw.signal;
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(
+      () => timeoutController.abort(),
+      REQUEST_TIMEOUT_MS,
+    );
+
+    const signal = AbortSignal.any([clientSignal, timeoutController.signal]);
 
     try {
-      const createParams = {
+      const baseParams = {
         model: "openrouter/auto",
         messages,
         tools,
         tool_choice,
         temperature,
         max_tokens,
-      } as Parameters<typeof openai.chat.completions.create>[0];
-      const extraBody = {
         ...restBody,
         models: getModels(needsToolCalling),
         provider: { sort: "latency" },
-      };
+      } as Parameters<typeof openai.chat.completions.create>[0];
 
       if (stream) {
         const streamResponse = await openai.chat.completions.create(
-          { ...createParams, stream: true },
-          { body: extraBody },
+          { ...baseParams, stream: true },
+          { signal },
         );
 
         Metrics.upstreamLatency("openrouter", performance.now() - startTime);
 
         const encoder = new TextEncoder();
-        const readableStream = new ReadableStream({
-          async start(controller) {
+        const streamStartTime = performance.now();
+        const iterator = streamResponse[Symbol.asyncIterator]();
+
+        const readableStream = new ReadableStream<Uint8Array>({
+          async pull(controller) {
             try {
-              for await (const chunk of streamResponse) {
-                const data = `data: ${JSON.stringify(chunk)}\n\n`;
-                controller.enqueue(encoder.encode(data));
+              const { done, value } = await iterator.next();
+              if (done || signal.aborted) {
+                if (!signal.aborted) {
+                  controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                  Metrics.chatCompletion(true, 200);
+                  Metrics.upstreamStreamDuration(
+                    "openrouter",
+                    performance.now() - streamStartTime,
+                  );
+                }
+                controller.close();
+                return;
               }
-              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-              controller.close();
-              Metrics.chatCompletion(true, 200);
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify(value)}\n\n`),
+              );
             } catch (error) {
-              Metrics.chatCompletion(true, 500);
-              Sentry.captureException(error, {
-                tags: { streaming: true },
-              });
-              controller.error(error);
+              if (!signal.aborted) {
+                Metrics.chatCompletion(true, 500);
+                Sentry.captureException(error, { tags: { streaming: true } });
+                const errorEvent = {
+                  error: {
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "Stream processing failed",
+                    type: "stream_error",
+                  },
+                };
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`),
+                );
+              }
+              controller.close();
             }
           },
         });
@@ -129,8 +169,8 @@ llm.post(
       }
 
       const response = await openai.chat.completions.create(
-        { ...createParams, stream: false },
-        { body: extraBody },
+        { ...baseParams, stream: false },
+        { signal },
       );
 
       Metrics.upstreamLatency("openrouter", performance.now() - startTime);
@@ -138,8 +178,17 @@ llm.post(
 
       return c.json(response, 200);
     } catch (error) {
-      console.error(error);
       Metrics.upstreamLatency("openrouter", performance.now() - startTime);
+
+      if (signal.aborted) {
+        const isTimeout = timeoutController.signal.aborted;
+        Metrics.chatCompletion(stream ?? false, isTimeout ? 504 : 499);
+        return new Response(
+          isTimeout ? "Request timeout" : "Client disconnected",
+          { status: isTimeout ? 504 : 499 },
+        );
+      }
+
       const isAPIError =
         error instanceof Error &&
         "status" in error &&
@@ -147,6 +196,8 @@ llm.post(
       const status = isAPIError ? (error as { status: number }).status : 500;
       Metrics.chatCompletion(stream ?? false, status);
       throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
   },
 );

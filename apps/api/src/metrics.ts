@@ -31,4 +31,10 @@ export const Metrics = {
       attributes: { provider },
     });
   },
+  upstreamStreamDuration: (provider: string, durationMs: number) => {
+    Sentry.metrics.distribution("upstream.stream_duration", durationMs, {
+      unit: "millisecond",
+      attributes: { provider },
+    });
+  },
 };

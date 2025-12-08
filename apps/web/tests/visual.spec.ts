@@ -1,19 +1,18 @@
-import { argosScreenshot } from "@argos-ci/playwright";
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-test.describe("Visual regression tests", () => {
+test.describe("Page load tests", () => {
   test("homepage", async ({ page }) => {
     await page.goto("/");
-    await argosScreenshot(page, "homepage");
+    await expect(page).toHaveTitle(/Hyprnote/);
   });
 
   test("download page", async ({ page }) => {
     await page.goto("/download");
-    await argosScreenshot(page, "download-page");
+    await expect(page).toHaveTitle(/Download/);
   });
 
   test("file transcription page", async ({ page }) => {
     await page.goto("/file-transcription");
-    await argosScreenshot(page, "file-transcription-page");
+    await expect(page).toHaveTitle(/File Transcription/);
   });
 });

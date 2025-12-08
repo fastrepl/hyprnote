@@ -4,11 +4,15 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     PORT: z.coerce.number().default(8787),
-    APP_VERSION: z.string().min(1), // Set in `api_cd.yaml` via the Fly CLI
+    APP_VERSION:
+      process.env.NODE_ENV === "production"
+        ? z.string().min(1) // Set in `api_cd.yaml` via the Fly CLI
+        : z.string().optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
     LOAD_TEST: z.coerce.boolean().default(false),
+    DATABASE_URL: z.string().min(1),
     SUPABASE_URL: z.url(),
     SUPABASE_ANON_KEY: z.string().min(1),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),

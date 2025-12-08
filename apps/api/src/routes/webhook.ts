@@ -4,7 +4,9 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
 import { z } from "zod";
 
+import { syncBillingBridge } from "../billing";
 import type { AppBindings } from "../hono-bindings";
+import { stripeSync } from "../integration/stripe-sync";
 import { Metrics } from "../metrics";
 import { API_TAGS } from "./constants";
 
@@ -59,14 +61,17 @@ webhook.post(
     }),
   ),
   async (c) => {
-    const { syncBillingForStripeEvent } = await import("../billing");
-
     const stripeEvent = c.get("stripeEvent");
+    const rawBody = c.get("stripeRawBody");
+    const signature = c.get("stripeSignature");
     const span = c.get("sentrySpan");
     span?.setAttribute("stripe.event_type", stripeEvent.type);
 
     try {
-      await syncBillingForStripeEvent(stripeEvent);
+      await stripeSync.processWebhook(rawBody, signature);
+
+      await syncBillingBridge(stripeEvent);
+
       Metrics.billingSync(true, stripeEvent.type);
     } catch (error) {
       Metrics.billingSync(false, stripeEvent.type);

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f .env -- bun --hot src/index.ts",
+    "stripe:migrate": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f .env -- bun src/scripts/run-stripe-migrations.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
@@ -12,6 +13,7 @@
     "@posthog/ai": "^7.2.0",
     "@scalar/hono-api-reference": "^0.5.184",
     "@sentry/bun": "^10.28.0",
+    "@supabase/stripe-sync-engine": "^0.45.0",
     "@supabase/supabase-js": "^2.86.0",
     "@t3-oss/env-core": "^0.13.8",
     "hono": "^4.10.7",

@@ -8,7 +8,11 @@ import { stripe } from "../integration/stripe";
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
 export const verifyStripeWebhook = createMiddleware<{
-  Variables: { stripeEvent: Stripe.Event };
+  Variables: {
+    stripeEvent: Stripe.Event;
+    stripeRawBody: string;
+    stripeSignature: string;
+  };
 }>(async (c, next) => {
   const signature = c.req.header("Stripe-Signature");
 
@@ -27,6 +31,8 @@ export const verifyStripeWebhook = createMiddleware<{
     );
 
     c.set("stripeEvent", event);
+    c.set("stripeRawBody", body);
+    c.set("stripeSignature", signature);
     await next();
   } catch (err) {
     Sentry.captureException(err, {

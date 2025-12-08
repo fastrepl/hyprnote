@@ -1,31 +1,27 @@
-// https://github.com/t3dotgg/stripe-recommendations/blob/main/README.md
 import Stripe from "stripe";
 
 import { stripe } from "./integration/stripe";
 import { supabaseAdmin } from "./integration/supabase";
 
-const HANDLED_EVENTS: Stripe.Event.Type[] = [
+const CUSTOMER_EVENTS: Stripe.Event.Type[] = [
   "checkout.session.completed",
+  "customer.created",
+  "customer.updated",
   "customer.subscription.created",
   "customer.subscription.updated",
-  "customer.subscription.deleted",
-  "customer.subscription.paused",
-  "customer.subscription.resumed",
-  "customer.subscription.pending_update_applied",
-  "customer.subscription.pending_update_expired",
-  "customer.subscription.trial_will_end",
-  "invoice.paid",
-  "invoice.payment_failed",
-  "invoice.payment_action_required",
-  "invoice.upcoming",
-  "invoice.marked_uncollectible",
-  "invoice.payment_succeeded",
-  "payment_intent.succeeded",
-  "payment_intent.payment_failed",
-  "payment_intent.canceled",
 ];
 
-export async function syncBillingState(customerId: string) {
+export async function syncBillingBridge(event: Stripe.Event) {
+  if (!isCustomerEvent(event.type)) {
+    return;
+  }
+
+  const customerId = getCustomerId(event.data.object);
+
+  if (!customerId) {
+    return;
+  }
+
   const customer = await getStripeCustomer(customerId);
 
   if (!customer) {
@@ -38,61 +34,30 @@ export async function syncBillingState(customerId: string) {
     return;
   }
 
-  const subscriptions = await stripe.subscriptions.list({
-    customer: customerId,
-    limit: 1,
-    status: "all",
-    expand: ["data.default_payment_method"],
-  });
-
-  const subscription =
-    subscriptions.data.length > 0 ? subscriptions.data[0] : null;
-
-  const payload: {
-    user_id: string;
-    stripe_customer: Stripe.Customer;
-    updated_at: string;
-    stripe_subscription?: Stripe.Subscription | null;
-  } = {
-    user_id: userId,
-    stripe_customer: customer,
-    updated_at: new Date().toISOString(),
-  };
-
-  if (subscription) {
-    payload.stripe_subscription = subscription;
-  }
-
-  const { error } = await supabaseAdmin
-    .from("billings")
-    .upsert(payload, { onConflict: "user_id" });
+  const { error } = await supabaseAdmin.from("billings").upsert(
+    {
+      user_id: userId,
+      stripe_customer_id: customerId,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
 
   if (error) {
     throw error;
   }
 }
 
-export async function syncBillingForStripeEvent(event: Stripe.Event) {
-  if (!isHandledEvent(event.type)) {
-    return;
-  }
-
-  const customerId = getCustomerId(event.data.object);
-
-  if (!customerId) {
-    return;
-  }
-
-  await syncBillingState(customerId);
-}
-
-const isHandledEvent = (eventType: string) =>
-  HANDLED_EVENTS.includes(eventType as Stripe.Event.Type);
+const isCustomerEvent = (eventType: string) =>
+  CUSTOMER_EVENTS.includes(eventType as Stripe.Event.Type);
 
 const getCustomerId = (
   eventObject: Stripe.Event.Data.Object,
 ): string | null => {
-  const obj = eventObject as { customer?: string | { id: string } };
+  const obj = eventObject as {
+    customer?: string | { id: string };
+    id?: string;
+  };
 
   if (typeof obj.customer === "string") {
     return obj.customer;
@@ -102,6 +67,10 @@ const getCustomerId = (
     return obj.customer.id;
   }
 
+  if (obj.id?.startsWith("cus_")) {
+    return obj.id;
+  }
+
   return null;
 };
 
@@ -109,9 +78,6 @@ const getStripeCustomer = async (customerId: string) => {
   const customer = await stripe.customers.retrieve(customerId);
 
   if (isDeletedCustomer(customer)) {
-    console.warn(
-      `[STRIPE WEBHOOK] Customer ${customerId} is deleted, skipping sync`,
-    );
     return null;
   }
 

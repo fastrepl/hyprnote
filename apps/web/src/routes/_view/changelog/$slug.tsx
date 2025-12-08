@@ -3,7 +3,7 @@ import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import semver from "semver";
 
 import {
@@ -21,6 +21,7 @@ import {
 } from "@/changelog";
 import { defaultMDXComponents } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
+import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -403,6 +404,8 @@ function ChangelogSidebar({
   onNavigate?: () => void;
 }) {
   const [currentPage, setCurrentPage] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useScrollRestoration(scrollRef, "changelog-sidebar");
 
   const versionGroups = groupVersions(allChangelogs);
   const totalPages = Math.ceil(versionGroups.length / ITEMS_PER_PAGE);
@@ -424,7 +427,7 @@ function ChangelogSidebar({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-4">
           {paginatedGroups.map((group) => (
             <div key={group.baseVersion}>

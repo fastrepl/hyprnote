@@ -2,7 +2,7 @@ import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Mail, Menu, X, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ResizableHandle,
@@ -734,6 +734,14 @@ function AboutDetailPanel({
 }
 
 function StoryDetail({ onClose }: { onClose: () => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, []);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -746,7 +754,7 @@ function StoryDetail({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="prose prose-stone max-w-none">
           <h2 className="text-3xl font-serif text-stone-600 mb-4">
             How We Landed on Hyprnote
@@ -848,6 +856,14 @@ function FounderDetail({
   founder: (typeof founders)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [founder.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -871,7 +887,7 @@ function FounderDetail({
         </div>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="flex justify-center mb-6">
           <Image
             src={founder.image}
@@ -954,6 +970,14 @@ function PhotoDetail({
   photo: (typeof teamPhotos)[0];
   onClose: () => void;
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [photo.id]);
+
   return (
     <>
       <div className="py-2 px-4 flex items-center justify-between border-b border-neutral-200">
@@ -977,7 +1001,7 @@ function PhotoDetail({
         </div>
       </div>
 
-      <div className="p-4 overflow-y-auto">
+      <div ref={scrollRef} className="p-4 overflow-y-auto">
         <Image
           src={photo.url}
           alt={photo.name}

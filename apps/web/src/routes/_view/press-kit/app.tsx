@@ -276,7 +276,6 @@ function AppDetailView({
 }) {
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
   const sidebarScrollPosRef = useRef<number>(0);
-  const detailScrollPosRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
     const el = sidebarScrollRef.current;
@@ -303,7 +302,6 @@ function AppDetailView({
       <AppDetailPanel
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
-        detailScrollPosRef={detailScrollPosRef}
       />
     </ResizablePanelGroup>
   );
@@ -461,11 +459,9 @@ function ScreenshotsSidebar({
 function AppDetailPanel({
   selectedItem,
   setSelectedItem,
-  detailScrollPosRef,
 }: {
   selectedItem: SelectedItem;
   setSelectedItem: (item: SelectedItem | null) => void;
-  detailScrollPosRef: React.MutableRefObject<Map<string, number>>;
 }) {
   return (
     <ResizablePanel defaultSize={65}>
@@ -474,7 +470,6 @@ function AppDetailPanel({
           <ScreenshotDetail
             screenshot={selectedItem.data}
             onClose={() => setSelectedItem(null)}
-            detailScrollPosRef={detailScrollPosRef}
           />
         )}
       </div>
@@ -485,28 +480,17 @@ function AppDetailPanel({
 function ScreenshotDetail({
   screenshot,
   onClose,
-  detailScrollPosRef,
 }: {
   screenshot: (typeof screenshots)[0];
   onClose: () => void;
-  detailScrollPosRef?: React.MutableRefObject<Map<string, number>>;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el || !detailScrollPosRef) return;
-
-    const savedPos = detailScrollPosRef.current.get(screenshot.id) ?? 0;
-    el.scrollTop = savedPos;
-
-    const handleScroll = () => {
-      detailScrollPosRef.current.set(screenshot.id, el.scrollTop);
-    };
-
-    el.addEventListener("scroll", handleScroll);
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, [screenshot.id, detailScrollPosRef]);
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [screenshot.id]);
 
   return (
     <>

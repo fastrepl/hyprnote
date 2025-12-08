@@ -3,7 +3,7 @@ import { Icon } from "@iconify-icon/react";
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import semver from "semver";
 
 import {
@@ -529,11 +529,17 @@ function ChangelogSidebar({
 function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
   const { diffUrl } = Route.useLoaderData();
   const isMobile = useIsMobile();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const currentVersion = semver.parse(changelog.version);
   const isPrerelease = currentVersion && currentVersion.prerelease.length > 0;
   const isLatest = changelog.newerSlug === null;
 
-  // Parse prerelease info
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [changelog.slug]);
+
   let prereleaseType = "";
   let buildNumber = "";
   if (isPrerelease && currentVersion && currentVersion.prerelease.length > 0) {
@@ -588,7 +594,7 @@ function ChangelogContent({ changelog }: { changelog: ChangelogWithMeta }) {
         </div>
       </div>
 
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto">
         <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4 prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3 prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2 prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-6 max-w-none">
           <MDXContent code={changelog.mdx} components={defaultMDXComponents} />
         </article>

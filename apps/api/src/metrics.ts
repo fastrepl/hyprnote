@@ -14,17 +14,8 @@ const stt = {
   },
 };
 
-const llm = {
-  chatCompletion: (streaming: boolean, statusCode: number) => {
-    Sentry.metrics.count("chat.completion", 1, {
-      attributes: { streaming: String(streaming), status: String(statusCode) },
-    });
-  },
-};
-
 export const Metrics = {
   ...stt,
-  ...llm,
   upstreamLatency: (provider: string, durationMs: number) => {
     Sentry.metrics.distribution("upstream.latency", durationMs, {
       unit: "millisecond",

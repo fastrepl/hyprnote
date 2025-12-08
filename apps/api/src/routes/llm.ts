@@ -124,7 +124,6 @@ llm.post(
               if (done || signal.aborted) {
                 if (!signal.aborted) {
                   controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                  Metrics.chatCompletion(true, 200);
                   Metrics.upstreamStreamDuration(
                     "openrouter",
                     performance.now() - streamStartTime,
@@ -138,7 +137,6 @@ llm.post(
               );
             } catch (error) {
               if (!signal.aborted) {
-                Metrics.chatCompletion(true, 500);
                 Sentry.captureException(error, { tags: { streaming: true } });
                 const errorEvent = {
                   error: {
@@ -174,7 +172,6 @@ llm.post(
       );
 
       Metrics.upstreamLatency("openrouter", performance.now() - startTime);
-      Metrics.chatCompletion(false, 200);
 
       return c.json(response, 200);
     } catch (error) {
@@ -182,7 +179,6 @@ llm.post(
 
       if (signal.aborted) {
         const isTimeout = timeoutController.signal.aborted;
-        Metrics.chatCompletion(stream ?? false, isTimeout ? 504 : 499);
         return new Response(
           isTimeout ? "Request timeout" : "Client disconnected",
           { status: isTimeout ? 504 : 499 },
@@ -194,7 +190,6 @@ llm.post(
         "status" in error &&
         typeof (error as { status?: number }).status === "number";
       const status = isAPIError ? (error as { status: number }).status : 500;
-      Metrics.chatCompletion(stream ?? false, status);
       throw error;
     } finally {
       clearTimeout(timeoutId);

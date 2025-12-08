@@ -1,9 +1,9 @@
 import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import semver from "semver";
 
 import {
@@ -21,7 +21,6 @@ import {
 } from "@/changelog";
 import { defaultMDXComponents } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
-import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -403,9 +402,8 @@ function ChangelogSidebar({
   allChangelogs: ChangelogWithMeta[];
   onNavigate?: () => void;
 }) {
+  const navigate = useNavigate({ from: Route.fullPath });
   const [currentPage, setCurrentPage] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useScrollRestoration(scrollRef, "changelog-sidebar");
 
   const versionGroups = groupVersions(allChangelogs);
   const totalPages = Math.ceil(versionGroups.length / ITEMS_PER_PAGE);
@@ -425,9 +423,18 @@ function ChangelogSidebar({
     }
   };
 
+  const handleVersionClick = (slug: string) => {
+    navigate({
+      to: "/changelog/$slug",
+      params: { slug },
+      resetScroll: false,
+    });
+    onNavigate?.();
+  };
+
   return (
     <div className="h-full flex flex-col">
-      <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-4">
           {paginatedGroups.map((group) => (
             <div key={group.baseVersion}>
@@ -443,13 +450,11 @@ function ChangelogSidebar({
                     : "/api/images/icons/stable-icon.png";
 
                   return (
-                    <Link
+                    <button
                       key={version.slug}
-                      to="/changelog/$slug"
-                      params={{ slug: version.slug }}
-                      onClick={onNavigate}
+                      onClick={() => handleVersionClick(version.slug)}
                       className={cn([
-                        "bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors flex items-center gap-3",
+                        "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors flex items-center gap-3 cursor-pointer",
                         version.slug === changelog.slug
                           ? "border-stone-600 bg-stone-100"
                           : "border-neutral-200",
@@ -464,7 +469,7 @@ function ChangelogSidebar({
                           className="w-10 h-10"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 text-left">
                         <p className="text-sm font-medium text-stone-600 truncate">
                           v{version.version}
                         </p>
@@ -472,7 +477,7 @@ function ChangelogSidebar({
                           {isPrerelease ? "Nightly" : "Stable"}
                         </p>
                       </div>
-                    </Link>
+                    </button>
                   );
                 })}
               </div>

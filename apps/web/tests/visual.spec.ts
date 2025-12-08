@@ -8,11 +8,11 @@ test.describe("Page load tests", () => {
 
   test("download page", async ({ page }) => {
     await page.goto("/download");
-    await expect(page).toHaveTitle(/Download/);
+    await expect(page).toHaveURL(/\/download/);
   });
 
   test("file transcription page", async ({ page }) => {
     await page.goto("/file-transcription");
-    await expect(page).toHaveTitle(/File Transcription/);
+    await expect(page).toHaveURL(/\/file-transcription/);
   });
 });

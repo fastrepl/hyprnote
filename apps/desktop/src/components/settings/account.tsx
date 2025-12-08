@@ -1,50 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLinkIcon } from "lucide-react";
+import { ExternalLinkIcon, RefreshCwIcon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
 import { useAuth } from "../../auth";
+import { useBillingAccess } from "../../billing";
 import { env } from "../../env";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
-type SubscriptionRow = {
-  stripe_customer_id: string | null;
-  subscription_id: string | null;
-  subscription_status: string | null;
-  current_period_start: string | null;
-  current_period_end: string | null;
-  cancel_at_period_end: boolean | null;
-};
-
 export function SettingsAccount() {
   const auth = useAuth();
-
-  const { data: subscription } = useQuery({
-    enabled: !!auth?.supabase && !!auth?.session?.user?.id,
-    queryKey: ["subscription", auth?.session?.user?.id],
-    queryFn: async (): Promise<SubscriptionRow | null> => {
-      if (!auth?.supabase) {
-        return null;
-      }
-
-      const { data, error } = await auth.supabase
-        .from("billing_with_subscription")
-        .select(
-          "stripe_customer_id, subscription_id, subscription_status, current_period_start, current_period_end, cancel_at_period_end",
-        )
-        .maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      return data as SubscriptionRow | null;
-    },
-  });
+  const { isPro } = useBillingAccess();
 
   const isAuthenticated = !!auth?.session;
   const [isPending, setIsPending] = useState(false);
@@ -68,6 +37,10 @@ export function SettingsAccount() {
     } catch {
       setIsPending(false);
     }
+  }, [auth]);
+
+  const handleSignOut = useCallback(async () => {
+    await auth?.signOut();
   }, [auth]);
 
   if (!isAuthenticated) {
@@ -140,22 +113,25 @@ export function SettingsAccount() {
     );
   }
 
-  const hasStripeCustomer = !!subscription?.stripe_customer_id;
-
   return (
     <div className="flex flex-col gap-4">
       <Container
         title="Your Account"
         description="Redirect to the web app to manage your account."
         action={
-          <Button
-            variant="outline"
-            onClick={handleOpenAccount}
-            className="w-[100px] flex flex-row gap-1.5"
-          >
-            <span className="text-sm">Open</span>
-            <ExternalLinkIcon className="text-neutral-600" />
-          </Button>
+          <div className="flex flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={handleOpenAccount}
+              className="w-[100px] flex flex-row gap-1.5"
+            >
+              <span className="text-sm">Open</span>
+              <ExternalLinkIcon className="text-neutral-600" />
+            </Button>
+            <Button variant="outline" onClick={handleSignOut}>
+              Sign out
+            </Button>
+          </div>
         }
       ></Container>
 
@@ -163,57 +139,68 @@ export function SettingsAccount() {
         title="Plan & Billing"
         description="View your current plan and manage billing on the web."
         action={
-          hasStripeCustomer ? (
-            <Button
-              variant="outline"
-              onClick={handleOpenAccount}
-              className="w-[100px] flex flex-row gap-1.5"
-            >
-              <span className="text-sm">Manage</span>
-              <ExternalLinkIcon className="text-neutral-600" size={12} />
-            </Button>
-          ) : undefined
+          <Button
+            variant="outline"
+            onClick={handleOpenAccount}
+            className="w-[100px] flex flex-row gap-1.5"
+          >
+            <span className="text-sm">Manage</span>
+            <ExternalLinkIcon className="text-neutral-600" size={12} />
+          </Button>
         }
       >
-        {subscription?.subscription_id && (
-          <SubscriptionDetails
-            status={subscription.subscription_status}
-            currentPeriodStart={subscription.current_period_start}
-            currentPeriodEnd={subscription.current_period_end}
-          />
-        )}
+        <PlanStatus isPro={isPro} onRefresh={auth?.refreshSession} />
       </Container>
     </div>
   );
 }
 
-function SubscriptionDetails({
-  status,
-  currentPeriodStart,
-  currentPeriodEnd,
+function PlanStatus({
+  isPro,
+  onRefresh,
 }: {
-  status: string | null;
-  currentPeriodStart: string | null;
-  currentPeriodEnd: string | null;
+  isPro: boolean;
+  onRefresh?: () => Promise<void>;
 }) {
-  if (!status) {
-    return null;
-  }
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  if (!currentPeriodStart || !currentPeriodEnd) {
-    return (
-      <div className="flex flex-row gap-1 text-xs text-neutral-600">
-        <span className="capitalize">{status}</span>
-      </div>
-    );
-  }
+  const handleRefresh = async () => {
+    if (!onRefresh) {
+      return;
+    }
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
-    <div className="flex flex-row gap-1 text-xs text-neutral-600">
-      <span className="capitalize">{status}:</span>
-      <span>{new Date(currentPeriodStart).toLocaleDateString()}</span>
-      <span>~</span>
-      <span>{new Date(currentPeriodEnd).toLocaleDateString()}</span>
+    <div className="flex flex-row items-center justify-between">
+      {isPro ? (
+        <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
+          PRO
+        </span>
+      ) : (
+        <span className="px-2 py-0.5 text-xs font-medium bg-neutral-200 text-neutral-600 rounded">
+          FREE
+        </span>
+      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleRefresh}
+        disabled={isRefreshing}
+        title="Refresh plan status"
+      >
+        <RefreshCwIcon
+          className={[
+            "h-4 w-4 text-neutral-500",
+            isRefreshing ? "animate-spin" : "",
+          ].join(" ")}
+        />
+      </Button>
     </div>
   );
 }

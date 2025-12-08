@@ -5,9 +5,9 @@ import { resolver, validator } from "hono-openapi/zod";
 import { z } from "zod";
 
 import { syncBillingBridge } from "../billing";
+import { env } from "../env";
 import type { AppBindings } from "../hono-bindings";
 import { stripeSync } from "../integration/stripe-sync";
-import { Metrics } from "../metrics";
 import { API_TAGS } from "./constants";
 
 const WebhookSuccessSchema = z.object({
@@ -69,12 +69,31 @@ webhook.post(
 
     try {
       await stripeSync.processWebhook(rawBody, signature);
+    } catch (error) {
+      if (env.NODE_ENV !== "production") {
+        console.error(error);
+      } else {
+        if (
+          error instanceof Error &&
+          error.message === "Unhandled webhook event"
+        ) {
+          // stripe-sync-engine doesn't support this event type, skip silently
+        } else {
+          Sentry.captureException(error, {
+            tags: { webhook: "stripe", event_type: stripeEvent.type },
+          });
+          return c.json({ error: "stripe_sync_failed" }, 500);
+        }
+      }
+    }
+
+    try {
       await syncBillingBridge(stripeEvent);
     } catch (error) {
       Sentry.captureException(error, {
         tags: { webhook: "stripe", event_type: stripeEvent.type },
       });
-      return c.json({ error: "stripe_billing_sync_failed" }, 500);
+      return c.json({ error: "billing_bridge_sync_failed" }, 500);
     }
 
     return c.json({ ok: true }, 200);

@@ -104,6 +104,8 @@ tasks:
       - '[ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GOOGLE_CLIENT_ID}}'' ''auth.external.google.client_id'' || true'
       - '[ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t string -v ''{{.GOOGLE_CLIENT_SECRET}}'' ''auth.external.google.secret'' || true'
       - '[ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ] && dasel put -f supabase/config.toml -t bool -v false ''auth.external.google.skip_nonce_check'' || true'
+      - dasel put -f supabase/config.toml -t bool -v true 'auth.hook.custom_access_token.enabled'
+      - dasel put -f supabase/config.toml -t string -v 'pg-functions://postgres/public/custom_access_token_hook' 'auth.hook.custom_access_token.uri'
       - dprint fmt supabase/config.toml
       - task: supabase-start:capture
       - supabase migration up --local

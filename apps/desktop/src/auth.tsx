@@ -91,6 +91,7 @@ const AuthContext = createContext<{
   session: Session | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  refreshSession: () => Promise<void>;
   handleAuthCallback: (url: string) => Promise<void>;
   getHeaders: () => Record<string, string> | null;
   getAvatarUrl: () => Promise<string>;
@@ -237,6 +238,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshSession = async () => {
+    if (!supabase) {
+      return;
+    }
+
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error) {
+      return;
+    }
+    if (data.session) {
+      setSession(data.session);
+    }
+  };
+
   const getHeaders = useCallback(() => {
     if (!session) {
       return null;
@@ -267,6 +282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase,
     signIn,
     signOut,
+    refreshSession,
     handleAuthCallback,
     getHeaders,
     getAvatarUrl,

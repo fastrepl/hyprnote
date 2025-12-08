@@ -35,11 +35,17 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
         },
       });
 
-      await supabase.auth.updateUser({
-        data: {
-          stripe_customer_id: newCustomer.id,
-        },
-      });
+      await Promise.all([
+        supabase.auth.updateUser({
+          data: {
+            stripe_customer_id: newCustomer.id,
+          },
+        }),
+        supabase
+          .from("profiles")
+          .update({ stripe_customer_id: newCustomer.id })
+          .eq("id", user.id),
+      ]);
 
       stripeCustomerId = newCustomer.id;
     }

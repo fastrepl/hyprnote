@@ -1,15 +1,10 @@
-import { LogIn, LogOut } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useCallback } from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
-type AuthSectionProps = {
-  isAuthenticated: boolean;
-  onSignOut: () => Promise<void> | void;
-};
-
-export function AuthSection({ isAuthenticated, onSignOut }: AuthSectionProps) {
+export function AuthSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   const handleOpenAccount = useCallback(async () => {
     await windowsCommands.windowShow({ type: "settings" });
     await windowsCommands.windowNavigate(
@@ -19,18 +14,7 @@ export function AuthSection({ isAuthenticated, onSignOut }: AuthSectionProps) {
   }, []);
 
   if (isAuthenticated) {
-    return (
-      <div className="px-1 py-2">
-        <Button
-          onClick={() => onSignOut()}
-          variant="outline"
-          className="w-full"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Log out
-        </Button>
-      </div>
-    );
+    return null;
   }
 
   return (

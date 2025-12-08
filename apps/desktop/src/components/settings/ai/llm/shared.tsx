@@ -27,7 +27,7 @@ export const PROVIDERS = [
     badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     apiKey: false,
-    baseUrl: "/functions/v1/llm",
+    baseUrl: "",
     requiresPro: true,
   },
   {

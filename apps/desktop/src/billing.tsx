@@ -25,15 +25,27 @@ export function BillingProvider({ children }: { children: ReactNode }) {
 
   const isPro = useMemo(() => {
     if (!auth?.session?.access_token) {
+      console.log("[BillingProvider] no access_token, isPro=false");
       return false;
     }
+
+    console.log(auth.session);
 
     try {
       const decoded = jwtDecode<{ is_pro?: boolean }>(
         auth.session.access_token,
       );
-      return decoded.is_pro ?? false;
-    } catch {
+      console.log(decoded);
+      const result = decoded.is_pro ?? false;
+      console.log(
+        "[BillingProvider] decoded JWT, is_pro claim:",
+        decoded.is_pro,
+        "-> isPro:",
+        result,
+      );
+      return result;
+    } catch (e) {
+      console.error("[BillingProvider] failed to decode JWT:", e);
       return false;
     }
   }, [auth?.session?.access_token]);

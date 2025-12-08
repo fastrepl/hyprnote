@@ -138,6 +138,7 @@ llm.post(
 
       return c.json(response, 200);
     } catch (error) {
+      console.error(error);
       Metrics.upstreamLatency("openrouter", performance.now() - startTime);
       const isAPIError =
         error instanceof Error &&

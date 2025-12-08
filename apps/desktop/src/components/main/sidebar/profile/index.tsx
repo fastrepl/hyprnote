@@ -53,11 +53,6 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     onExpandChange?.(isExpanded);
   }, [isExpanded, onExpandChange]);
 
-  const handleSignOut = useCallback(async () => {
-    await auth?.signOut();
-    closeMenu();
-  }, [auth, closeMenu]);
-
   useEffect(() => {
     if (!isExpanded && currentView !== "main") {
       const timer = setTimeout(() => {
@@ -206,10 +201,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                         <MenuItem key={item.label} {...item} />
                       ))}
 
-                      <AuthSection
-                        isAuthenticated={isAuthenticated}
-                        onSignOut={handleSignOut}
-                      />
+                      <AuthSection isAuthenticated={isAuthenticated} />
                     </motion.div>
                   ) : (
                     <motion.div

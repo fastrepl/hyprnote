@@ -127,9 +127,7 @@ function useAvailability() {
     if (llmProviderRequiresPro(current_llm_provider) && !billing.isPro) {
       return {
         available: false,
-        message: billing.isLoading
-          ? "Checking plan access for this provider..."
-          : "Upgrade to Pro to use this provider.",
+        message: "Upgrade to Pro to use this provider.",
       };
     }
 

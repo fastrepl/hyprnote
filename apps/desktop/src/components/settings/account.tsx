@@ -1,20 +1,50 @@
+import { useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
-import type Stripe from "stripe";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
 import { useAuth } from "../../auth";
-import { useBillingAccess } from "../../billing";
 import { env } from "../../env";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
+type SubscriptionRow = {
+  stripe_customer_id: string | null;
+  subscription_id: string | null;
+  subscription_status: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean | null;
+};
+
 export function SettingsAccount() {
   const auth = useAuth();
-  const billing = useBillingAccess();
+
+  const { data: subscription } = useQuery({
+    enabled: !!auth?.supabase && !!auth?.session?.user?.id,
+    queryKey: ["subscription", auth?.session?.user?.id],
+    queryFn: async (): Promise<SubscriptionRow | null> => {
+      if (!auth?.supabase) {
+        return null;
+      }
+
+      const { data, error } = await auth.supabase
+        .from("billing_with_subscription")
+        .select(
+          "stripe_customer_id, subscription_id, subscription_status, current_period_start, current_period_end, cancel_at_period_end",
+        )
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      return data as SubscriptionRow | null;
+    },
+  });
 
   const isAuthenticated = !!auth?.session;
   const [isPending, setIsPending] = useState(false);
@@ -110,7 +140,7 @@ export function SettingsAccount() {
     );
   }
 
-  const hasStripeCustomer = !!billing.data?.stripe_customer;
+  const hasStripeCustomer = !!subscription?.stripe_customer_id;
 
   return (
     <div className="flex flex-col gap-4">
@@ -145,9 +175,11 @@ export function SettingsAccount() {
           ) : undefined
         }
       >
-        {billing.data?.stripe_subscription && (
+        {subscription?.subscription_id && (
           <SubscriptionDetails
-            subscription={billing.data.stripe_subscription}
+            status={subscription.subscription_status}
+            currentPeriodStart={subscription.current_period_start}
+            currentPeriodEnd={subscription.current_period_end}
           />
         )}
       </Container>
@@ -156,23 +188,32 @@ export function SettingsAccount() {
 }
 
 function SubscriptionDetails({
-  subscription,
+  status,
+  currentPeriodStart,
+  currentPeriodEnd,
 }: {
-  subscription: Stripe.Subscription;
+  status: string | null;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
 }) {
-  const {
-    status,
-    items: {
-      data: [{ current_period_end, current_period_start }],
-    },
-  } = subscription;
+  if (!status) {
+    return null;
+  }
+
+  if (!currentPeriodStart || !currentPeriodEnd) {
+    return (
+      <div className="flex flex-row gap-1 text-xs text-neutral-600">
+        <span className="capitalize">{status}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-row gap-1 text-xs text-neutral-600">
       <span className="capitalize">{status}:</span>
-      <span>{new Date(current_period_start * 1000).toLocaleDateString()}</span>
+      <span>{new Date(currentPeriodStart).toLocaleDateString()}</span>
       <span>~</span>
-      <span>{new Date(current_period_end * 1000).toLocaleDateString()}</span>
+      <span>{new Date(currentPeriodEnd).toLocaleDateString()}</span>
     </div>
   );
 }

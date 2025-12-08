@@ -258,12 +258,17 @@ function ChangelogContentSection({
 }) {
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const relativeTimeText = dayjs(changelog.created).fromNow();
 
   return (
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
         <MockWindow
-          title={isMobile ? undefined : `Version ${changelog.version}`}
+          title={
+            isMobile
+              ? undefined
+              : `Version ${changelog.version} · ${relativeTimeText}`
+          }
           className="rounded-lg w-full max-w-none"
           prefixIcons={
             isMobile && (

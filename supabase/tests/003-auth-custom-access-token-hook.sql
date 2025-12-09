@@ -13,7 +13,7 @@ values ('cus_pro')
 on conflict (id) do nothing;
 
 insert into stripe.active_entitlements (id, customer, lookup_key)
-values ('ent_pro', 'cus_pro', 'pro')
+values ('ent_pro', 'cus_pro', 'hyprnote_pro')
 on conflict (id) do nothing;
 
 select results_eq(
@@ -42,11 +42,11 @@ select results_eq(
         'user_id', tests.get_supabase_uid('pro')::text,
         'claims', '{}'::jsonb
       )
-    ) -> 'claims' ->> 'is_pro'
-  )::boolean
+    ) -> 'claims' -> 'entitlements'
+  )::jsonb
   $$,
-  array[true],
-  'custom_access_token_hook sets is_pro=true when pro entitlement exists'
+  array['["hyprnote_pro"]'::jsonb],
+  'custom_access_token_hook sets entitlements=["hyprnote_pro"] when hyprnote_pro entitlement exists'
 );
 
 select results_eq(
@@ -57,11 +57,11 @@ select results_eq(
         'user_id', tests.get_supabase_uid('free')::text,
         'claims', '{}'::jsonb
       )
-    ) -> 'claims' ->> 'is_pro'
-  )::boolean
+    ) -> 'claims' -> 'entitlements'
+  )::jsonb
   $$,
-  array[false],
-  'custom_access_token_hook sets is_pro=false when no customer id'
+  array['[]'::jsonb],
+  'custom_access_token_hook sets entitlements=[] when no customer id'
 );
 
 select tests.create_supabase_user('other_entitlement', 'other@example.com');
@@ -86,11 +86,11 @@ select results_eq(
         'user_id', tests.get_supabase_uid('other_entitlement')::text,
         'claims', '{}'::jsonb
       )
-    ) -> 'claims' ->> 'is_pro'
-  )::boolean
+    ) -> 'claims' -> 'entitlements'
+  )::jsonb
   $$,
-  array[false],
-  'custom_access_token_hook sets is_pro=false when entitlement exists but lookup_key is not pro'
+  array['["some_other_feature"]'::jsonb],
+  'custom_access_token_hook sets entitlements=["some_other_feature"] for user with other entitlement'
 );
 
 select * from finish();

@@ -1,6 +1,10 @@
 mod earshot_impl {
     use earshot::VoiceActivityProfile;
 
+    #[derive(Debug, thiserror::Error)]
+    #[error("voice activity detection failed")]
+    pub struct VadError;
+
     pub struct VoiceActivityDetector {
         inner: earshot::VoiceActivityDetector,
     }
@@ -12,8 +16,8 @@ mod earshot_impl {
             }
         }
 
-        pub fn predict_16khz(&mut self, samples: &[i16]) -> Result<bool, ()> {
-            self.inner.predict_16khz(samples).map_err(|_| ())
+        pub fn predict_16khz(&mut self, samples: &[i16]) -> Result<bool, VadError> {
+            self.inner.predict_16khz(samples).map_err(|_| VadError)
         }
     }
 

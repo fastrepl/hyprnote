@@ -79,7 +79,7 @@ impl AppWindow {
         if self.label() == "main" {
             use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
 
-            let e = AnalyticsPayload::new("show_main_window").build();
+            let e = AnalyticsPayload::builder("show_main_window").build();
 
             let app_clone = app.clone();
             tauri::async_runtime::spawn(async move {
@@ -173,7 +173,7 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
             {
                 use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
 
-                let e = AnalyticsPayload::new(event_name)
+                let e = AnalyticsPayload::builder(event_name)
                     .with("user_id", user_id)
                     .with("session_id", session_id)
                     .build();

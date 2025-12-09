@@ -18459,6 +18459,7 @@ name = "vvad"
 version = "0.1.0"
 dependencies = [
  "earshot",
+ "thiserror 2.0.17",
 ]
 
 [[package]]

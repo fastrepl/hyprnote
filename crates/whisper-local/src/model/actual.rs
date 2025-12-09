@@ -37,10 +37,12 @@ impl WhisperBuilder {
         unsafe { Self::suppress_log() };
 
         let context_param = {
-            let mut p = WhisperContextParameters::default();
-            p.gpu_device = 0;
-            p.use_gpu = true;
-            p.flash_attn = false; // crash on macos
+            let mut p = WhisperContextParameters {
+                gpu_device: 0,
+                use_gpu: true,
+                flash_attn: false, // crash on macos
+                ..Default::default()
+            };
             p.dtw_parameters.mode = whisper_rs::DtwMode::None;
             p
         };

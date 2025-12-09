@@ -244,13 +244,7 @@ const createLanguageModel = (
     case "openrouter": {
       const provider = createOpenRouter({
         fetch: tauriFetch,
-        apiKey: conn.apiKey,
-        extraBody: {
-          provider: {
-            // https://openrouter.ai/docs/features/provider-routing#provider-sorting
-            sort: "latency",
-          },
-        },
+        apiKey: conn.apiKey
       });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }

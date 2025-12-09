@@ -61,7 +61,6 @@ export const sttFile = restate.workflow({
           const callbackUrl = `${env.RESTATE_INGRESS_URL.replace(/\/+$/, "")}/SttFile/${encodeURIComponent(ctx.key)}/onTranscript`;
 
           if (input.provider === "soniox") {
-            ctx.set("sonioxApiKey", env.SONIOX_API_KEY);
             const requestId = await ctx.run("transcribe", () =>
               transcribeWithSoniox(audioUrl, callbackUrl, env.SONIOX_API_KEY),
             );
@@ -114,14 +113,10 @@ export const sttFile = restate.workflow({
               .reject("Soniox transcription failed");
             return;
           }
-          const apiKey = await ctx.get<string>("sonioxApiKey");
-          if (!apiKey) {
-            ctx.promise<string>("transcript").reject("Missing Soniox API key");
-            return;
-          }
+          const env = ctx.request().extraArgs[0] as Env;
           const transcript = await fetchSonioxTranscript(
             sonioxPayload.id,
-            apiKey,
+            env.SONIOX_API_KEY,
           );
           ctx.promise<string>("transcript").resolve(transcript);
         } else {

@@ -6,15 +6,26 @@ import {
   DeepgramCallback,
   DeepgramCallbackType,
   extractTranscript,
-  transcribeWithCallback,
+  transcribeWithCallback as transcribeWithDeepgram,
 } from "../deepgram";
 import { type Env } from "../env";
+import {
+  fetchTranscript as fetchSonioxTranscript,
+  SonioxCallback,
+  SonioxCallbackType,
+  transcribeWithCallback as transcribeWithSoniox,
+} from "../soniox";
 import { createSignedUrl, deleteFile } from "../supabase";
 import { limiter } from "./rate-limit";
+
+const SttProvider = z.enum(["deepgram", "soniox"]);
+
+export type SttProviderType = z.infer<typeof SttProvider>;
 
 const SttFileInput = z.object({
   userId: z.string(),
   fileId: z.string(),
+  provider: SttProvider.optional().default("deepgram"),
 });
 
 export type SttFileInputType = z.infer<typeof SttFileInput>;
@@ -31,6 +42,7 @@ export const sttFile = restate.workflow({
       async (ctx: restate.WorkflowContext, input: SttFileInputType) => {
         ctx.set("status", "QUEUED" as SttStatusType);
         ctx.set("fileId", input.fileId);
+        ctx.set("provider", input.provider);
 
         const env = ctx.request().extraArgs[0] as Env;
 
@@ -48,10 +60,21 @@ export const sttFile = restate.workflow({
 
           const callbackUrl = `${env.RESTATE_INGRESS_URL.replace(/\/+$/, "")}/SttFile/${encodeURIComponent(ctx.key)}/onTranscript`;
 
-          const requestId = await ctx.run("transcribe", () =>
-            transcribeWithCallback(audioUrl, callbackUrl, env.DEEPGRAM_API_KEY),
-          );
-          ctx.set("deepgramRequestId", requestId);
+          if (input.provider === "soniox") {
+            const requestId = await ctx.run("transcribe", () =>
+              transcribeWithSoniox(audioUrl, callbackUrl, env.SONIOX_API_KEY),
+            );
+            ctx.set("providerRequestId", requestId);
+          } else {
+            const requestId = await ctx.run("transcribe", () =>
+              transcribeWithDeepgram(
+                audioUrl,
+                callbackUrl,
+                env.DEEPGRAM_API_KEY,
+              ),
+            );
+            ctx.set("providerRequestId", requestId);
+          }
 
           const transcript = await ctx.promise<string>("transcript");
           ctx.set("transcript", transcript);
@@ -72,15 +95,35 @@ export const sttFile = restate.workflow({
     ),
 
     onTranscript: restate.handlers.workflow.shared(
-      { input: serde.zod(DeepgramCallback) },
+      { input: serde.zod(z.union([DeepgramCallback, SonioxCallback])) },
       async (
         ctx: restate.WorkflowSharedContext,
-        payload: DeepgramCallbackType,
+        payload: DeepgramCallbackType | SonioxCallbackType,
       ): Promise<void> => {
         const existing = await ctx.get<string>("transcript");
         if (existing !== undefined) return;
 
-        ctx.promise<string>("transcript").resolve(extractTranscript(payload));
+        const provider = await ctx.get<SttProviderType>("provider");
+
+        if (provider === "soniox" && "id" in payload && "status" in payload) {
+          const sonioxPayload = payload as SonioxCallbackType;
+          if (sonioxPayload.status === "error") {
+            ctx
+              .promise<string>("transcript")
+              .reject("Soniox transcription failed");
+            return;
+          }
+          const env = ctx.request().extraArgs[0] as Env;
+          const transcript = await fetchSonioxTranscript(
+            sonioxPayload.id,
+            env.SONIOX_API_KEY,
+          );
+          ctx.promise<string>("transcript").resolve(transcript);
+        } else {
+          ctx
+            .promise<string>("transcript")
+            .resolve(extractTranscript(payload as DeepgramCallbackType));
+        }
       },
     ),
 

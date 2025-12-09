@@ -91,6 +91,12 @@ tasks:
       - task: supabase-env
       - task: supabase-tunnel-start
 
+  supabase-no-expose:
+    platforms: [darwin]
+    cmds:
+      - task: supabase-tunnel-stop
+      - task: supabase-env
+
   supabase-tunnel-stop:
     platforms: [darwin]
     cmds:

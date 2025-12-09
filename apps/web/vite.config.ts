@@ -46,7 +46,6 @@ const config = defineConfig(() => ({
       "@posthog/react",
       "react-tweet",
       "@content-collections/mdx",
-      "mdx-bundler",
     ],
   },
 }));

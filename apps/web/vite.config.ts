@@ -52,6 +52,7 @@ const config = defineConfig(() => ({
   ],
   ssr: {
     noExternal: ["posthog-js", "@posthog/react", "react-tweet"],
+    external: ["turndown"],
   },
 }));
 

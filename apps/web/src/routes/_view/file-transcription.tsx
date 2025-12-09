@@ -21,10 +21,10 @@ export const Route = createFileRoute("/_view/file-transcription")({
   validateSearch: (search: Record<string, unknown>) => ({
     id: (search.id as string) || undefined,
   }),
-  beforeLoad: async () => {
+  beforeLoad: async ({ search }) => {
     const user = await fetchUser();
     if (user) {
-      throw redirect({ to: "/app/file-transcription" });
+      throw redirect({ to: "/app/file-transcription", search });
     }
   },
 });

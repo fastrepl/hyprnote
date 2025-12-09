@@ -11,7 +11,7 @@ jobs:
       - uses: ./.github/actions/pnpm_install
       - uses: ./.github/actions/infisical_install
       - run: pnpm --filter @hypr/api install
-      - run: infisical run --token="$INFISICAL_TOKEN" --env=prod --projectId="$INFISICAL_PROJECT_ID" --path="/stripe-backfil" -- bun apps/api/src/scripts/stripe-backfill.ts
+      - run: infisical run --token="$INFISICAL_TOKEN" --env=prod --projectId="$INFISICAL_PROJECT_ID" --path="/stripe-backfill" -- bun apps/api/src/scripts/stripe-backfill.ts
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
           INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}

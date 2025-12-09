@@ -23,15 +23,25 @@ const config = defineConfig(() => ({
         crawlLinks: true,
         autoStaticPathsDiscovery: true,
         filter: ({ path }) => {
+          const dynamicRoutes = [
+            "/api",
+            "/webhook",
+            "/app",
+            "/callback",
+            "/t",
+            "/new",
+          ];
+          const externalRedirectRoutes = [
+            "/download/linux-deb",
+            "/download/linux-appimage",
+            "/download/windows",
+            "/download/apple-silicon",
+            "/download/apple-intel",
+          ];
           return (
-            path === "/" ||
-            path.startsWith("/blog") ||
-            path.startsWith("/docs") ||
-            path.startsWith("/changelog") ||
-            path.startsWith("/legal") ||
-            path.startsWith("/product") ||
-            path.startsWith("/pricing") ||
-            path === "/enterprise"
+            !dynamicRoutes.some(
+              (route) => path === route || path.startsWith(route + "/"),
+            ) && !externalRedirectRoutes.includes(path)
           );
         },
       },
@@ -41,7 +51,7 @@ const config = defineConfig(() => ({
     netlify({ dev: { images: { enabled: true } } }),
   ],
   ssr: {
-    noExternal: ["posthog-js", "@posthog/react", "react-tweet"],
+    noExternal: ["posthog-js", "@posthog/react", "react-tweet", "mdx-bundler"],
   },
 }));
 

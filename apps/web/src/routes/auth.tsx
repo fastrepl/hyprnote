@@ -11,6 +11,7 @@ import { doAuth } from "@/functions/auth";
 
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
+  scheme: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -19,17 +20,17 @@ export const Route = createFileRoute("/auth")({
 });
 
 function Component() {
-  const { flow } = Route.useSearch();
+  const { flow, scheme } = Route.useSearch();
 
   return (
     <Container>
       <Header />
-      <EmailAuthForm flow={flow} />
+      <EmailAuthForm flow={flow} scheme={scheme} />
       <PrivacyPolicy />
       <Divider />
       <div className="space-y-2">
-        <OAuthButton flow={flow} provider="google" />
-        <OAuthButton flow={flow} provider="github" />
+        <OAuthButton flow={flow} scheme={scheme} provider="google" />
+        <OAuthButton flow={flow} scheme={scheme} provider="github" />
       </div>
     </Container>
   );
@@ -105,7 +106,13 @@ function Divider() {
   );
 }
 
-function EmailAuthForm({ flow }: { flow: "desktop" | "web" }) {
+function EmailAuthForm({
+  flow,
+  scheme,
+}: {
+  flow: "desktop" | "web";
+  scheme?: string;
+}) {
   const emailAuthMutation = useMutation({
     mutationFn: (email: string) =>
       doAuth({
@@ -113,6 +120,7 @@ function EmailAuthForm({ flow }: { flow: "desktop" | "web" }) {
           method: "email_otp",
           email,
           flow,
+          scheme,
         },
       }),
     onSuccess: (result) => {
@@ -200,9 +208,11 @@ function EmailAuthForm({ flow }: { flow: "desktop" | "web" }) {
 
 function OAuthButton({
   flow,
+  scheme,
   provider,
 }: {
   flow: "desktop" | "web";
+  scheme?: string;
   provider: "google" | "github";
 }) {
   const oauthMutation = useMutation({
@@ -212,6 +222,7 @@ function OAuthButton({
           method: "oauth",
           provider,
           flow,
+          scheme,
         },
       }),
     onSuccess: (result) => {

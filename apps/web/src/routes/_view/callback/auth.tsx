@@ -8,6 +8,7 @@ import { getSupabaseServerClient } from "@/functions/supabase";
 const validateSearch = z.object({
   code: z.string().optional(),
   flow: z.enum(["desktop", "web"]).default("desktop"),
+  scheme: z.string().default("hyprnote"),
   access_token: z.string().optional(),
   refresh_token: z.string().optional(),
 });
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
           to: "/callback/auth",
           search: {
             flow: "desktop",
+            scheme: search.scheme,
             access_token: data.session.access_token,
             refresh_token: data.session.refresh_token,
           },
@@ -59,7 +61,7 @@ function Component() {
       const params = new URLSearchParams();
       params.set("access_token", search.access_token);
       params.set("refresh_token", search.refresh_token);
-      return "hypr://auth/callback?" + params.toString();
+      return `${search.scheme}://auth/callback?${params.toString()}`;
     }
     return null;
   };

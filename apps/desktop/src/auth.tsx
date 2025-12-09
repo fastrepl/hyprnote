@@ -6,6 +6,7 @@ import {
   SupabaseClient,
   type SupportedStorage,
 } from "@supabase/supabase-js";
+import { getIdentifier } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
@@ -20,6 +21,17 @@ import {
 } from "react";
 
 import { env } from "./env";
+
+const getScheme = async (): Promise<string> => {
+  const id = await getIdentifier();
+  const schemes: Record<string, string> = {
+    "com.hyprnote.stable": "hyprnote",
+    "com.hyprnote.nightly": "hyprnote-nightly",
+    "com.hyprnote.staging": "hyprnote-staging",
+    "com.hyprnote.dev": "hypr",
+  };
+  return schemes[id] ?? "hypr";
+};
 
 const isLocalAuthServer = (url: string | undefined): boolean => {
   if (!url) return false;
@@ -212,7 +224,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async () => {
     const base = env.VITE_APP_URL ?? "http://localhost:3000";
-    await openUrl(`${base}/auth?flow=desktop`);
+    const scheme = await getScheme();
+    await openUrl(`${base}/auth?flow=desktop&scheme=${scheme}`);
   };
 
   const signOut = async () => {

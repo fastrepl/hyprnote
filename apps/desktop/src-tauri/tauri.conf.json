@@ -68,11 +68,7 @@
       }
     },
     "deep-link": {
-      "desktop": {
-        "schemes": [
-          "hypr"
-        ]
-      }
+      "desktop": { "schemes": ["hyprnote"] }
     },
     "updater": {
       "active": false,

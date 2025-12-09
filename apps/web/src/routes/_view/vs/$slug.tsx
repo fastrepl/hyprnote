@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { allVs } from "content-collections";
 import { useRef, useState } from "react";
 
@@ -155,8 +155,8 @@ function HeroSection({
         </p>
 
         <div className="mt-8">
-          <a
-            href="https://hyprnote.com/download"
+          <Link
+            to="/download"
             className={cn([
               "inline-block px-8 py-3 text-base font-medium rounded-full",
               "bg-linear-to-t from-stone-600 to-stone-500 text-white",
@@ -164,7 +164,7 @@ function HeroSection({
             ])}
           >
             Download Hyprnote for free
-          </a>
+          </Link>
         </div>
       </header>
     </div>

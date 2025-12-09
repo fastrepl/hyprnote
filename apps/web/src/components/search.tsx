@@ -10,7 +10,11 @@ import {
   CommandItem,
   CommandList,
 } from "@hypr/ui/components/ui/command";
-import { Dialog, DialogContent } from "@hypr/ui/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@hypr/ui/components/ui/dialog";
 
 interface SearchResult {
   url: string;
@@ -62,6 +66,7 @@ export function SearchTrigger({
     return (
       <>
         <button
+          type="button"
           onClick={() => setOpen(true)}
           className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-500 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-md transition-colors ${className}`}
         >
@@ -80,6 +85,7 @@ export function SearchTrigger({
     return (
       <>
         <button
+          type="button"
           onClick={() => setOpen(true)}
           className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-neutral-500 bg-white border border-neutral-200 rounded-md shadow-sm ${className}`}
         >
@@ -94,6 +100,7 @@ export function SearchTrigger({
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
         className={`flex items-center gap-2 px-3 h-8 text-sm text-neutral-500 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-full transition-colors ${className}`}
       >
@@ -185,6 +192,7 @@ function SearchCommandPalette({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="overflow-hidden p-0 max-w-xl">
+        <DialogTitle className="sr-only">Search documentation</DialogTitle>
         <Command shouldFilter={false} className="rounded-lg border-0">
           <CommandInput
             placeholder="Search documentation..."

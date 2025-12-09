@@ -1,6 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 import { FileText, Search as SearchIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 
 import {
@@ -37,6 +44,49 @@ interface PagefindInstance {
   search: (query: string) => Promise<{ results: PagefindSearchResult[] }>;
 }
 
+// Context for shared search palette state
+const SearchPaletteContext = createContext<{
+  open: boolean;
+  setOpen: (open: boolean) => void;
+} | null>(null);
+
+function useSearchPalette() {
+  const ctx = useContext(SearchPaletteContext);
+  if (!ctx) {
+    throw new Error(
+      "useSearchPalette must be used within SearchPaletteProvider",
+    );
+  }
+  return ctx;
+}
+
+export function SearchPaletteProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  // Single global Cmd+K handler
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  return (
+    <SearchPaletteContext.Provider value={{ open, setOpen }}>
+      {children}
+      <SearchCommandPalette open={open} onOpenChange={setOpen} />
+    </SearchPaletteContext.Provider>
+  );
+}
+
 export function SearchTrigger({
   className,
   variant = "default",
@@ -44,70 +94,49 @@ export function SearchTrigger({
   className?: string;
   variant?: "default" | "sidebar" | "mobile";
 }) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
-      }
-    };
-
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+  const { setOpen } = useSearchPalette();
 
   if (variant === "sidebar") {
     return (
-      <>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-500 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-md transition-colors ${className}`}
-        >
-          <SearchIcon size={16} className="text-neutral-400" />
-          <span className="flex-1 text-left">Search docs...</span>
-          <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-neutral-200 bg-white px-1.5 font-mono text-[10px] font-medium text-neutral-500">
-            <span className="text-xs">⌘</span>K
-          </kbd>
-        </button>
-        <SearchCommandPalette open={open} onOpenChange={setOpen} />
-      </>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-500 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-md transition-colors ${className}`}
+      >
+        <SearchIcon size={16} className="text-neutral-400" />
+        <span className="flex-1 text-left">Search docs...</span>
+        <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-neutral-200 bg-white px-1.5 font-mono text-[10px] font-medium text-neutral-500">
+          <span className="text-xs">⌘</span>K
+        </kbd>
+      </button>
     );
   }
 
   if (variant === "mobile") {
     return (
-      <>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-neutral-500 bg-white border border-neutral-200 rounded-md shadow-sm ${className}`}
-        >
-          <SearchIcon size={16} className="text-neutral-400" />
-          <span className="flex-1 text-left">Search docs...</span>
-        </button>
-        <SearchCommandPalette open={open} onOpenChange={setOpen} />
-      </>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-neutral-500 bg-white border border-neutral-200 rounded-md shadow-sm ${className}`}
+      >
+        <SearchIcon size={16} className="text-neutral-400" />
+        <span className="flex-1 text-left">Search docs...</span>
+      </button>
     );
   }
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={`flex items-center gap-2 px-3 h-8 text-sm text-neutral-500 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-full transition-colors ${className}`}
-      >
-        <SearchIcon size={14} className="text-neutral-400" />
-        <span className="hidden lg:inline">Search</span>
-        <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border border-neutral-200 bg-white px-1.5 font-mono text-[10px] font-medium text-neutral-500">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </button>
-      <SearchCommandPalette open={open} onOpenChange={setOpen} />
-    </>
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      className={`flex items-center gap-2 px-3 h-8 text-sm text-neutral-500 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-full transition-colors ${className}`}
+    >
+      <SearchIcon size={14} className="text-neutral-400" />
+      <span className="hidden lg:inline">Search</span>
+      <kbd className="hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border border-neutral-200 bg-white px-1.5 font-mono text-[10px] font-medium text-neutral-500">
+        <span className="text-xs">⌘</span>K
+      </kbd>
+    </button>
   );
 }
 
@@ -123,6 +152,18 @@ function SearchCommandPalette({
   const [isLoading, setIsLoading] = useState(false);
   const [pagefind, setPagefind] = useState<PagefindInstance | null>(null);
   const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus input when palette opens
+  useEffect(() => {
+    if (open) {
+      // Small delay to ensure the portal is mounted
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 10);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   useEffect(() => {
     const loadPagefind = async () => {
@@ -224,6 +265,7 @@ function SearchCommandPalette({
             className="rounded-lg **:[[cmdk-input-wrapper]]:border-b-0"
           >
             <CommandInput
+              ref={inputRef}
               placeholder="Search documentation..."
               value={query}
               onValueChange={setQuery}

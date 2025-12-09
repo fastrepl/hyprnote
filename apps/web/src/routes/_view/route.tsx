@@ -9,6 +9,7 @@ import { useMemo, useRef, useState } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { SearchPaletteProvider } from "@/components/search";
 import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { DocsDrawerContext } from "@/hooks/use-docs-drawer";
 import { HandbookDrawerContext } from "@/hooks/use-handbook-drawer";
@@ -31,43 +32,45 @@ function Component() {
   const [isHandbookDrawerOpen, setIsHandbookDrawerOpen] = useState(false);
 
   return (
-    <HeroContext.Provider
-      value={{
-        onTrigger,
-        setOnTrigger: (callback) => setOnTrigger(() => callback),
-      }}
-    >
-      <DocsDrawerContext.Provider
-        value={{ isOpen: isDocsDrawerOpen, setIsOpen: setIsDocsDrawerOpen }}
+    <SearchPaletteProvider>
+      <HeroContext.Provider
+        value={{
+          onTrigger,
+          setOnTrigger: (callback) => setOnTrigger(() => callback),
+        }}
       >
-        <HandbookDrawerContext.Provider
-          value={{
-            isOpen: isHandbookDrawerOpen,
-            setIsOpen: setIsHandbookDrawerOpen,
-          }}
+        <DocsDrawerContext.Provider
+          value={{ isOpen: isDocsDrawerOpen, setIsOpen: setIsDocsDrawerOpen }}
         >
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              <Outlet />
-            </main>
-            <Footer />
-            {isDocsPage && (
-              <MobileDocsDrawer
-                isOpen={isDocsDrawerOpen}
-                onClose={() => setIsDocsDrawerOpen(false)}
-              />
-            )}
-            {isHandbookPage && (
-              <MobileHandbookDrawer
-                isOpen={isHandbookDrawerOpen}
-                onClose={() => setIsHandbookDrawerOpen(false)}
-              />
-            )}
-          </div>
-        </HandbookDrawerContext.Provider>
-      </DocsDrawerContext.Provider>
-    </HeroContext.Provider>
+          <HandbookDrawerContext.Provider
+            value={{
+              isOpen: isHandbookDrawerOpen,
+              setIsOpen: setIsHandbookDrawerOpen,
+            }}
+          >
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                <Outlet />
+              </main>
+              <Footer />
+              {isDocsPage && (
+                <MobileDocsDrawer
+                  isOpen={isDocsDrawerOpen}
+                  onClose={() => setIsDocsDrawerOpen(false)}
+                />
+              )}
+              {isHandbookPage && (
+                <MobileHandbookDrawer
+                  isOpen={isHandbookDrawerOpen}
+                  onClose={() => setIsHandbookDrawerOpen(false)}
+                />
+              )}
+            </div>
+          </HandbookDrawerContext.Provider>
+        </DocsDrawerContext.Provider>
+      </HeroContext.Provider>
+    </SearchPaletteProvider>
   );
 }
 

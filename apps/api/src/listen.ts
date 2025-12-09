@@ -1,4 +1,4 @@
-import type { Context, Handler } from "hono";
+import type { Handler } from "hono";
 import { upgradeWebSocket } from "hono/bun";
 
 import type { AppBindings } from "./hono-bindings";

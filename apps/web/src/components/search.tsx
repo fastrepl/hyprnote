@@ -323,5 +323,9 @@ function SearchCommandPalette({
 }
 
 export function Search() {
-  return <SearchTrigger />;
+  return (
+    <SearchPaletteProvider>
+      <SearchTrigger />
+    </SearchPaletteProvider>
+  );
 }

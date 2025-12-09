@@ -18,7 +18,9 @@
       "chokidar": "4.0.1",
       "semver": "7.6.3",
       "hosted-git-info@^6": "7.0.2",
-      "@wdio/logger": "8.28.0"
+      "@wdio/logger": "8.28.0",
+      "react": "^19.2.1",
+      "react-dom": "^19.2.1"
     }
   }
 }

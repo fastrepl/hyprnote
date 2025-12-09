@@ -1,7 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
+import type { JSONContent } from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 import "@hypr/tiptap/styles.css";
 
@@ -11,6 +19,13 @@ import {
 } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
 import { getSupabaseBrowserClient } from "@/functions/supabase";
+import {
+  getAudioPipelineStatus,
+  startAudioPipeline,
+} from "@/functions/transcription";
+import { createUploadUrl } from "@/functions/upload";
+
+const NoteEditor = lazy(() => import("@hypr/tiptap/editor"));
 
 export const Route = createFileRoute("/_view/file-transcription")({
   component: Component,
@@ -19,8 +34,18 @@ export const Route = createFileRoute("/_view/file-transcription")({
   }),
 });
 
+type ProcessingStatus =
+  | "idle"
+  | "uploading"
+  | "queued"
+  | "transcribing"
+  | "done"
+  | "error";
+
 function Component() {
-  const [user, setUser] = useState<{ email?: string } | null>(null);
+  const [user, setUser] = useState<{ email?: string; id?: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -30,7 +55,7 @@ function Component() {
         const { data } = await supabase.auth.getUser();
         if (!isMounted) return;
         if (data.user?.email) {
-          setUser({ email: data.user.email });
+          setUser({ email: data.user.email, id: data.user.id });
         } else {
           setUser(null);
         }
@@ -43,28 +68,128 @@ function Component() {
       isMounted = false;
     };
   }, []);
+
   const [file, setFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [status, setStatus] = useState<ProcessingStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
-  const handleFileSelect = (selectedFile: File) => {
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => stopPolling();
+  }, [stopPolling]);
+
+  const handleFileSelect = async (selectedFile: File) => {
+    if (!user) {
+      setError("Please sign in to transcribe audio files");
+      return;
+    }
+
     setFile(selectedFile);
     setTranscript(null);
-    setIsProcessing(true);
+    setError(null);
+    setStatus("uploading");
 
-    setTimeout(() => {
-      setIsProcessing(false);
-      setTranscript(
-        "This is a sample transcript. Deepgram integration will be added later.",
-      );
-    }, 2000);
+    try {
+      const uploadResult = await createUploadUrl({
+        data: {
+          fileName: selectedFile.name,
+          fileType: selectedFile.type,
+        },
+      });
+
+      if ("error" in uploadResult && uploadResult.error) {
+        throw new Error(uploadResult.message);
+      }
+
+      if (!("signedUrl" in uploadResult)) {
+        throw new Error("Failed to get upload URL");
+      }
+
+      const uploadResponse = await fetch(uploadResult.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": selectedFile.type,
+        },
+        body: selectedFile,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload file");
+      }
+
+      setStatus("queued");
+
+      const pipelineResult = await startAudioPipeline({
+        data: { fileId: uploadResult.fileId },
+      });
+
+      if ("error" in pipelineResult && pipelineResult.error) {
+        throw new Error(pipelineResult.message);
+      }
+
+      if (!("pipelineId" in pipelineResult)) {
+        throw new Error("Failed to start transcription");
+      }
+
+      const { pipelineId } = pipelineResult;
+
+      pollingRef.current = setInterval(async () => {
+        try {
+          const statusResult = await getAudioPipelineStatus({
+            data: { pipelineId },
+          });
+
+          if ("error" in statusResult && statusResult.error) {
+            throw new Error(statusResult.message);
+          }
+
+          if (!("status" in statusResult)) {
+            return;
+          }
+
+          const { status: pipelineStatus } = statusResult;
+
+          if (pipelineStatus.status === "TRANSCRIBING") {
+            setStatus("transcribing");
+          } else if (pipelineStatus.status === "DONE") {
+            setStatus("done");
+            setTranscript(pipelineStatus.transcript ?? null);
+            stopPolling();
+          } else if (pipelineStatus.status === "ERROR") {
+            setStatus("error");
+            setError(pipelineStatus.error ?? "Transcription failed");
+            stopPolling();
+          }
+        } catch (err) {
+          setStatus("error");
+          setError(
+            err instanceof Error ? err.message : "Failed to check status",
+          );
+          stopPolling();
+        }
+      }, 2000);
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "An error occurred");
+    }
   };
 
   const handleRemoveFile = () => {
+    stopPolling();
     setFile(null);
     setTranscript(null);
-    setIsProcessing(false);
+    setStatus("idle");
+    setError(null);
     setNoteContent(EMPTY_TIPTAP_DOC);
   };
 
@@ -77,6 +202,9 @@ function Component() {
     }),
     [],
   );
+
+  const isProcessing =
+    status === "uploading" || status === "queued" || status === "transcribing";
 
   return (
     <div className="min-h-[calc(100vh-200px)]">
@@ -119,7 +247,7 @@ function Component() {
                   {!file ? (
                     <UploadArea
                       onFileSelect={handleFileSelect}
-                      disabled={isProcessing}
+                      disabled={isProcessing || !user}
                     />
                   ) : (
                     <FileInfo
@@ -134,11 +262,13 @@ function Component() {
                       Your Notes
                     </h3>
                     <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px] bg-neutral-50/30">
-                      <NoteEditor
-                        initialContent={noteContent}
-                        handleChange={setNoteContent}
-                        mentionConfig={mentionConfig}
-                      />
+                      <Suspense fallback={null}>
+                        <NoteEditor
+                          initialContent={noteContent}
+                          handleChange={setNoteContent}
+                          mentionConfig={mentionConfig}
+                        />
+                      </Suspense>
                     </div>
                   </div>
                 </div>
@@ -176,7 +306,8 @@ function Component() {
                 <div className="p-6">
                   <TranscriptDisplay
                     transcript={user ? transcript : null}
-                    isProcessing={isProcessing}
+                    status={user ? status : "idle"}
+                    error={error}
                   />
                 </div>
               </div>

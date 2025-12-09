@@ -20,13 +20,13 @@
     "@openrouter/sdk": "^0.1.27",
     "@restatedev/restate-sdk-cloudflare-workers": "^1.9.1",
     "@restatedev/restate-sdk-zod": "^1.9.1",
-    "zod": "^4.1.0"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240605.0",
+    "@cloudflare/workers-types": "^4.20251209.0",
     "@dotenvx/dotenvx": "^1.51.1",
-    "@restatedev/restate": "^1.5.0",
+    "@restatedev/restate": "^1.5.5",
     "typescript": "^5.9.3",
-    "wrangler": "^4.38.0"
+    "wrangler": "^4.53.0"
   }
 }

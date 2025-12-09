@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@hypr/db": "workspace:*",
-    "tinybase": "^6.7.3",
+    "tinybase": "^6.7.5",
     "zod": "^4.1.13"
   },
   "devDependencies": {

@@ -14,12 +14,12 @@
     "@codemirror/lang-jinja": "^6.0.0",
     "@codemirror/language": "^6.11.3",
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.38.8",
+    "@codemirror/view": "^6.39.0",
     "@lezer/highlight": "^1.2.3",
     "@uiw/react-codemirror": "^4.25.3"
   },
   "devDependencies": {
-    "@types/node": "^22.19.1",
+    "@types/node": "^22.19.2",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "typescript": "^5.9.3"

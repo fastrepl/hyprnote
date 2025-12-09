@@ -7,8 +7,6 @@
     "test": "wdio run wdio.conf.js"
   },
   "devDependencies": {
-    "@argos-ci/cli": "^3.1.0",
-    "@argos-ci/webdriverio": "^0.4.0",
     "@wdio/cli": "8.40.6",
     "@wdio/globals": "8.40.6",
     "@wdio/local-runner": "8.40.6",

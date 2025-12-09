@@ -57,6 +57,21 @@ export async function createSignedUrl(
   return `${url}/storage/v1${data.signedURL}`;
 }
 
+export async function downloadFile(
+  env: SupabaseEnv,
+  fileId: string,
+): Promise<ArrayBuffer> {
+  const signedUrl = await createSignedUrl(env, fileId, 300);
+
+  const response = await fetch(signedUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to download file: ${response.status}`);
+  }
+
+  return response.arrayBuffer();
+}
+
 export async function deleteFile(
   env: SupabaseEnv,
   fileId: string,

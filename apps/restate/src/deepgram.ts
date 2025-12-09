@@ -1,6 +1,32 @@
 import { CallbackUrl, createClient } from "@deepgram/sdk";
 import { z } from "zod";
 
+const NON_RETRYABLE_ERROR_CODES = new Set([
+  "REMOTE_CONTENT_ERROR",
+  "INVALID_AUTH",
+  "INSUFFICIENT_PERMISSIONS",
+  "PROJECT_NOT_FOUND",
+  "ASR_PAYMENT_REQUIRED",
+  "INVALID_QUERY_PARAMETER",
+  "PAYLOAD_ERROR",
+  "PAYLOAD_TOO_LARGE",
+  "Payload Too Large",
+  "UNSUPPORTED_MEDIA_TYPE",
+  "UNPROCESSABLE_ENTITY",
+  "Bad Request",
+]);
+
+export class DeepgramError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string | undefined,
+    public readonly isRetryable: boolean,
+  ) {
+    super(message);
+    this.name = "DeepgramError";
+  }
+}
+
 export const DeepgramCallback = z.object({
   results: z
     .object({
@@ -45,7 +71,15 @@ export async function transcribeWithCallback(
       { model: "nova-3", smart_format: true },
     );
 
-  if (error) throw new Error(`Deepgram: ${error.message}`);
+  if (error) {
+    let code: string | undefined;
+    try {
+      const parsed = JSON.parse(error.message);
+      code = parsed.err_code;
+    } catch {}
+    const isRetryable = code ? !NON_RETRYABLE_ERROR_CODES.has(code) : true;
+    throw new DeepgramError(`Deepgram: ${error.message}`, code, isRetryable);
+  }
   if (!result?.request_id) throw new Error("Deepgram: missing request_id");
 
   return result.request_id;

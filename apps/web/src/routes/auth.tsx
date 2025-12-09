@@ -12,6 +12,7 @@ import { doAuth } from "@/functions/auth";
 const validateSearch = z.object({
   flow: z.enum(["desktop", "web"]).default("web"),
   scheme: z.string().optional(),
+  redirect: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -20,17 +21,27 @@ export const Route = createFileRoute("/auth")({
 });
 
 function Component() {
-  const { flow, scheme } = Route.useSearch();
+  const { flow, scheme, redirect } = Route.useSearch();
 
   return (
     <Container>
       <Header />
-      <EmailAuthForm flow={flow} scheme={scheme} />
+      <EmailAuthForm flow={flow} scheme={scheme} redirect={redirect} />
       <PrivacyPolicy />
       <Divider />
       <div className="space-y-2">
-        <OAuthButton flow={flow} scheme={scheme} provider="google" />
-        <OAuthButton flow={flow} scheme={scheme} provider="github" />
+        <OAuthButton
+          flow={flow}
+          scheme={scheme}
+          redirect={redirect}
+          provider="google"
+        />
+        <OAuthButton
+          flow={flow}
+          scheme={scheme}
+          redirect={redirect}
+          provider="github"
+        />
       </div>
     </Container>
   );
@@ -109,9 +120,11 @@ function Divider() {
 function EmailAuthForm({
   flow,
   scheme,
+  redirect,
 }: {
   flow: "desktop" | "web";
   scheme?: string;
+  redirect?: string;
 }) {
   const emailAuthMutation = useMutation({
     mutationFn: (email: string) =>
@@ -121,6 +134,7 @@ function EmailAuthForm({
           email,
           flow,
           scheme,
+          redirect,
         },
       }),
     onSuccess: (result) => {
@@ -209,10 +223,12 @@ function EmailAuthForm({
 function OAuthButton({
   flow,
   scheme,
+  redirect,
   provider,
 }: {
   flow: "desktop" | "web";
   scheme?: string;
+  redirect?: string;
   provider: "google" | "github";
 }) {
   const oauthMutation = useMutation({
@@ -223,6 +239,7 @@ function OAuthButton({
           provider,
           flow,
           scheme,
+          redirect,
         },
       }),
     onSuccess: (result) => {

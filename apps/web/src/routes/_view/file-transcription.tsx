@@ -34,7 +34,7 @@ function Component() {
   const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
   const handleFileSelect = () => {
-    navigate({ to: "/auth" });
+    navigate({ to: "/auth", search: { redirect: "/file-transcription" } });
   };
 
   const mentionConfig = useMemo(
@@ -120,6 +120,7 @@ function Component() {
                 </div>
                 <Link
                   to="/auth"
+                  search={{ redirect: "/file-transcription" }}
                   className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
                 >
                   Sign in

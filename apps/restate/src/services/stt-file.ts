@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   DeepgramCallback,
   DeepgramCallbackType,
+  DeepgramError,
   extractTranscript,
   transcribeWithCallback as transcribeWithDeepgram,
 } from "../deepgram";
@@ -13,6 +14,7 @@ import {
   fetchTranscript as fetchSonioxTranscript,
   SonioxCallback,
   SonioxCallbackType,
+  SonioxError,
   transcribeWithCallback as transcribeWithSoniox,
 } from "../soniox";
 import { createSignedUrl, deleteFile } from "../supabase";
@@ -61,18 +63,36 @@ export const sttFile = restate.workflow({
           const callbackUrl = `${env.RESTATE_INGRESS_URL.replace(/\/+$/, "")}/SttFile/${encodeURIComponent(ctx.key)}/onTranscript`;
 
           if (input.provider === "soniox") {
-            const requestId = await ctx.run("transcribe", () =>
-              transcribeWithSoniox(audioUrl, callbackUrl, env.SONIOX_API_KEY),
-            );
+            const requestId = await ctx.run("transcribe", async () => {
+              try {
+                return await transcribeWithSoniox(
+                  audioUrl,
+                  callbackUrl,
+                  env.SONIOX_API_KEY,
+                );
+              } catch (err) {
+                if (err instanceof SonioxError && !err.isRetryable) {
+                  throw new restate.TerminalError(err.message);
+                }
+                throw err;
+              }
+            });
             ctx.set("providerRequestId", requestId);
           } else {
-            const requestId = await ctx.run("transcribe", () =>
-              transcribeWithDeepgram(
-                audioUrl,
-                callbackUrl,
-                env.DEEPGRAM_API_KEY,
-              ),
-            );
+            const requestId = await ctx.run("transcribe", async () => {
+              try {
+                return await transcribeWithDeepgram(
+                  audioUrl,
+                  callbackUrl,
+                  env.DEEPGRAM_API_KEY,
+                );
+              } catch (err) {
+                if (err instanceof DeepgramError && !err.isRetryable) {
+                  throw new restate.TerminalError(err.message);
+                }
+                throw err;
+              }
+            });
             ctx.set("providerRequestId", requestId);
           }
 

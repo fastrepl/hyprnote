@@ -9,6 +9,7 @@ const validateSearch = z.object({
   code: z.string().optional(),
   flow: z.enum(["desktop", "web"]).default("desktop"),
   scheme: z.string().default("hyprnote"),
+  redirect: z.string().optional(),
   access_token: z.string().optional(),
   refresh_token: z.string().optional(),
 });
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
       const { error } = await supabase.auth.exchangeCodeForSession(search.code);
 
       if (!error) {
-        throw redirect({ to: "/app" });
+        throw redirect({ to: search.redirect || "/app/account" });
       } else {
         console.error(error);
       }
@@ -85,7 +86,7 @@ function Component() {
 
   useEffect(() => {
     if (search.flow === "web") {
-      throw redirect({ to: "/app" });
+      throw redirect({ to: search.redirect || "/app/account" });
     }
 
     if (

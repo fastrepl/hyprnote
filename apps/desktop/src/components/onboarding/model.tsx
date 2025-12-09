@@ -203,7 +203,7 @@ function useModelDownload(model: SupportedSttModel, onComplete: () => void) {
   }, [model]);
 
   useEffect(() => {
-    if (isDownloaded.data && progress > 0) {
+    if (isDownloaded.data) {
       setProgress(0);
       handleSelectProvider("hyprnote");
       handleSelectModel(model);
@@ -213,7 +213,6 @@ function useModelDownload(model: SupportedSttModel, onComplete: () => void) {
     isDownloaded.data,
     model,
     onComplete,
-    progress,
     handleSelectModel,
     handleSelectProvider,
   ]);

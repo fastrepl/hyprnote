@@ -7,6 +7,7 @@ import { getSupabaseServerClient } from "@/functions/supabase";
 const shared = z.object({
   flow: z.enum(["desktop", "web"]).default("desktop"),
   scheme: z.string().optional(),
+  redirect: z.string().optional(),
 });
 
 export const doAuth = createServerFn({ method: "POST" })
@@ -25,6 +26,7 @@ export const doAuth = createServerFn({ method: "POST" })
     if (data.method === "email_otp") {
       const params = new URLSearchParams({ flow: data.flow });
       if (data.scheme) params.set("scheme", data.scheme);
+      if (data.redirect) params.set("redirect", data.redirect);
 
       const { error } = await supabase.auth.signInWithOtp({
         email: data.email,
@@ -44,6 +46,7 @@ export const doAuth = createServerFn({ method: "POST" })
     if (data.method === "oauth") {
       const params = new URLSearchParams({ flow: data.flow });
       if (data.scheme) params.set("scheme", data.scheme);
+      if (data.redirect) params.set("redirect", data.redirect);
 
       const { data: authData, error } = await supabase.auth.signInWithOAuth({
         provider: data.provider,

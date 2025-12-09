@@ -84,10 +84,38 @@ tasks:
     cmds:
       - bash scripts/supabase-tunnel-start.sh
 
+  supabase-expose:
+    platforms: [darwin]
+    cmds:
+      - task: supabase-tunnel-stop
+      - task: supabase-env
+      - task: supabase-tunnel-start
+
   supabase-tunnel-stop:
     platforms: [darwin]
     cmds:
       - bash scripts/supabase-tunnel-stop.sh
+
+  supabase-env:
+    internal: true
+    cmds:
+      - |
+          supabase status --output=env | awk -F= '
+            /^ANON_KEY=/ { print "SUPABASE_ANON_KEY=" $2; print "VITE_SUPABASE_ANON_KEY=" $2 }
+            /^API_URL=/ { print "SUPABASE_URL=" $2; print "VITE_SUPABASE_URL=" $2 }
+            /^DB_URL=/ { print "DATABASE_URL=" $2 }
+            /^FUNCTIONS_URL=/ { print "SUPABASE_FUNCTIONS_URL=" $2; print "VITE_SUPABASE_FUNCTIONS_URL=" $2 }
+            /^GRAPHQL_URL=/ { print "SUPABASE_GRAPHQL_URL=" $2; print "VITE_SUPABASE_GRAPHQL_URL=" $2 }
+            /^INBUCKET_URL=/ { print "SUPABASE_INBUCKET_URL=" $2 }
+            /^JWT_SECRET=/ { print "SUPABASE_JWT_SECRET=" $2 }
+            /^MAILPIT_URL=/ { print "SUPABASE_MAILPIT_URL=" $2 }
+            /^MCP_URL=/ { print "SUPABASE_MCP_URL=" $2 }
+            /^PUBLISHABLE_KEY=/ { print "SUPABASE_PUBLISHABLE_KEY=" $2; print "VITE_SUPABASE_PUBLISHABLE_KEY=" $2 }
+            /^REST_URL=/ { print "SUPABASE_REST_URL=" $2; print "VITE_SUPABASE_REST_URL=" $2 }
+            /^SECRET_KEY=/ { print "SUPABASE_SECRET_KEY=" $2 }
+            /^SERVICE_ROLE_KEY=/ { print "SUPABASE_SERVICE_ROLE_KEY=" $2 }
+            /^STUDIO_URL=/ { print "SUPABASE_STUDIO_URL=" $2 }
+          ' > .env.supabase
 
   # infisical run --env=dev --projectId=87dad7b5-72a6-4791-9228-b3b86b169db1 --path="/supabase" -- task supabase-start
   supabase-start:
@@ -107,106 +135,9 @@ tasks:
       - dasel put -f supabase/config.toml -t bool -v true 'auth.hook.custom_access_token.enabled'
       - dasel put -f supabase/config.toml -t string -v 'pg-functions://postgres/public/custom_access_token_hook' 'auth.hook.custom_access_token.uri'
       - dprint fmt supabase/config.toml
-      - task: supabase-start:capture
-      - supabase migration up --local
-      - open http://127.0.0.1:54323
-
-  supabase-start:capture:
-    internal: true
-    cmds:
       - supabase start -x realtime,logflare
-      - |
-          supabase status --output=env | awk -F= '
-            /^ANON_KEY=/ { print "SUPABASE_ANON_KEY=" $2; print "VITE_SUPABASE_ANON_KEY=" $2 }
-            /^API_URL=/ { print "SUPABASE_URL=" $2; print "VITE_SUPABASE_URL=" $2 }
-            /^DB_URL=/ { print "DATABASE_URL=" $2 }
-            /^FUNCTIONS_URL=/ { print "SUPABASE_FUNCTIONS_URL=" $2; print "VITE_SUPABASE_FUNCTIONS_URL=" $2 }
-            /^GRAPHQL_URL=/ { print "SUPABASE_GRAPHQL_URL=" $2; print "VITE_SUPABASE_GRAPHQL_URL=" $2 }
-            /^INBUCKET_URL=/ { print "SUPABASE_INBUCKET_URL=" $2 }
-            /^JWT_SECRET=/ { print "SUPABASE_JWT_SECRET=" $2 }
-            /^MAILPIT_URL=/ { print "SUPABASE_MAILPIT_URL=" $2 }
-            /^MCP_URL=/ { print "SUPABASE_MCP_URL=" $2 }
-            /^PUBLISHABLE_KEY=/ { print "SUPABASE_PUBLISHABLE_KEY=" $2; print "VITE_SUPABASE_PUBLISHABLE_KEY=" $2 }
-            /^REST_URL=/ { print "SUPABASE_REST_URL=" $2; print "VITE_SUPABASE_REST_URL=" $2 }
-            /^SECRET_KEY=/ { print "SUPABASE_SECRET_KEY=" $2 }
-            /^SERVICE_ROLE_KEY=/ { print "SUPABASE_SERVICE_ROLE_KEY=" $2 }
-            /^STUDIO_URL=/ { print "SUPABASE_STUDIO_URL=" $2 }
-          ' > .env.supabase
-      - task: supabase-start:tunnel
-
-  supabase-start:tunnel:
-    internal: true
-    platforms: [darwin]
-    status:
-      - '[ "${PUBLIC:-0}" != "1" ]'
-    cmds:
-      - task: supabase-tunnel-start
-
-  env:merge:
-    internal: true
-    cmds:
-      - |
-          ENV_SOURCE="{{.ENV_SOURCE}}" ENV_TARGET="{{.ENV_TARGET}}" bash <<'EOF'
-          set -euo pipefail
-
-          if [ ! -f "$ENV_SOURCE" ]; then
-            echo "Source env file not found: $ENV_SOURCE" >&2
-            exit 1
-          fi
-
-          mkdir -p "$(dirname "$ENV_TARGET")"
-
-          if [ ! -f "$ENV_TARGET" ]; then
-            cp "$ENV_SOURCE" "$ENV_TARGET"
-            exit 0
-          fi
-
-          merged_env_file=$(mktemp)
-
-          awk -v new_file="$ENV_SOURCE" '
-            BEGIN {
-              while ((getline line < new_file) > 0) {
-                if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) continue
-                sep = index(line, "=")
-                if (sep == 0) continue
-                key = substr(line, 1, sep - 1)
-                gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
-                value = substr(line, sep + 1)
-                new_values[key] = value
-              }
-              close(new_file)
-            }
-            {
-              line = $0
-              if (line ~ /^[[:space:]]*$/ || line ~ /^[[:space:]]*#/) {
-                print line
-                next
-              }
-              sep = index(line, "=")
-              if (sep == 0) {
-                print line
-                next
-              }
-              key = substr(line, 1, sep - 1)
-              gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
-              if (key in new_values) {
-                print key "=" new_values[key]
-                used[key] = 1
-              } else {
-                print line
-              }
-            }
-            END {
-              for (key in new_values) {
-                if (!(key in used)) {
-                  print key "=" new_values[key]
-                }
-              }
-            }
-          ' "$ENV_TARGET" > "$merged_env_file"
-
-          mv "$merged_env_file" "$ENV_TARGET"
-          EOF
+      - task: supabase-env
+      - supabase migration up --local
 
   stripe:
     cmds:

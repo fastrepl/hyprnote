@@ -247,7 +247,7 @@ function Component() {
                   {!file ? (
                     <UploadArea
                       onFileSelect={handleFileSelect}
-                      disabled={isProcessing || !user}
+                      disabled={isProcessing}
                     />
                   ) : (
                     <FileInfo

@@ -334,7 +334,7 @@ function SearchCommandPalette({
               onValueChange={setQuery}
             />
             <div className="border-t border-neutral-100" />
-            <CommandList className="max-h-[400px]">
+            <CommandList className="max-h-[400px] p-2">
               {isLoading && (
                 <div className="py-6 text-center text-sm text-neutral-500">
                   Searching...
@@ -344,13 +344,16 @@ function SearchCommandPalette({
                 <CommandEmpty>No results found.</CommandEmpty>
               )}
               {!isLoading && results.length > 0 && (
-                <CommandGroup heading="Documentation">
+                <CommandGroup
+                  heading="Documentation"
+                  className="[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-neutral-500 [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider"
+                >
                   {results.map((result, index) => (
                     <CommandItem
                       key={`${result.url}-${index}`}
                       value={result.url}
                       onSelect={() => handleSelect(result.url)}
-                      className="flex items-start gap-3 py-3 cursor-pointer"
+                      className="flex items-start gap-3 px-3 py-3 cursor-pointer rounded-md"
                     >
                       <FileText
                         size={16}

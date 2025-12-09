@@ -1,0 +1,17 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/bun_install
+      - uses: ./.github/actions/pnpm_install
+      - run: pnpm --filter @hypr/api install
+      - run: bun apps/api/src/scripts/stripe-backfill.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_POOLER }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}

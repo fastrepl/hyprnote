@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Play } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 import "@hypr/tiptap/styles.css";
+import { cn } from "@hypr/utils";
 
 import {
   FileInfo,
@@ -27,6 +29,8 @@ export const Route = createFileRoute("/_view/app/file-transcription")({
 
 function Component() {
   const [file, setFile] = useState<File | null>(null);
+  const [fileId, setFileId] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [pipelineId, setPipelineId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -73,6 +77,8 @@ function Component() {
     !!pipelineId &&
     !["DONE", "ERROR"].includes(pipelineStatusQuery.data?.status ?? "");
 
+  const pipelineStatus = pipelineStatusQuery.data?.status;
+
   const status = (() => {
     if (pipelineStatusQuery.data?.status === "ERROR") {
       return "error" as const;
@@ -80,8 +86,23 @@ function Component() {
     if (pipelineStatusQuery.data?.status === "DONE" || transcript) {
       return "done" as const;
     }
-    if (pipelineId) {
+    if (pipelineStatus === "LLM_RUNNING") {
+      return "summarizing" as const;
+    }
+    if (pipelineStatus === "TRANSCRIBED") {
+      return "summarizing" as const;
+    }
+    if (pipelineStatus === "TRANSCRIBING") {
       return "transcribing" as const;
+    }
+    if (pipelineStatus === "QUEUED" || pipelineId) {
+      return "queued" as const;
+    }
+    if (isUploading) {
+      return "uploading" as const;
+    }
+    if (fileId) {
+      return "uploaded" as const;
     }
     return "idle" as const;
   })();
@@ -97,9 +118,11 @@ function Component() {
 
   const handleFileSelect = async (selectedFile: File) => {
     setFile(selectedFile);
+    setFileId(null);
     setTranscript(null);
     setUploadError(null);
     setPipelineId(null);
+    setIsUploading(true);
 
     try {
       const reader = new FileReader();
@@ -109,6 +132,7 @@ function Component() {
         const base64Data = reader.result?.toString().split(",")[1];
         if (!base64Data) {
           setUploadError("Failed to read file");
+          setIsUploading(false);
           return;
         }
 
@@ -120,6 +144,8 @@ function Component() {
           },
         });
 
+        setIsUploading(false);
+
         if ("error" in uploadResult && uploadResult.error) {
           setUploadError(uploadResult.message || "Failed to upload file");
           return;
@@ -130,25 +156,42 @@ function Component() {
           return;
         }
 
-        const pipelineResult = await startAudioPipeline({
-          data: {
-            fileId: uploadResult.fileId,
-          },
-        });
-
-        if ("error" in pipelineResult && pipelineResult.error) {
-          setUploadError(pipelineResult.message || "Failed to start pipeline");
-          return;
-        }
-
-        if ("pipelineId" in pipelineResult) {
-          setPipelineId(pipelineResult.pipelineId);
-        }
+        setFileId(uploadResult.fileId);
       };
 
       reader.onerror = () => {
         setUploadError("Failed to read file");
+        setIsUploading(false);
       };
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Unknown error");
+      setIsUploading(false);
+    }
+  };
+
+  const handleStartTranscription = async () => {
+    if (!fileId) {
+      setUploadError("No file uploaded");
+      return;
+    }
+
+    setUploadError(null);
+
+    try {
+      const pipelineResult = await startAudioPipeline({
+        data: {
+          fileId,
+        },
+      });
+
+      if ("error" in pipelineResult && pipelineResult.error) {
+        setUploadError(pipelineResult.message || "Failed to start pipeline");
+        return;
+      }
+
+      if ("pipelineId" in pipelineResult) {
+        setPipelineId(pipelineResult.pipelineId);
+      }
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Unknown error");
     }
@@ -156,6 +199,8 @@ function Component() {
 
   const handleRemoveFile = () => {
     setFile(null);
+    setFileId(null);
+    setIsUploading(false);
     setTranscript(null);
     setUploadError(null);
     setPipelineId(null);
@@ -224,11 +269,32 @@ function Component() {
                       disabled={isProcessing}
                     />
                   ) : (
-                    <FileInfo
-                      fileName={file.name}
-                      fileSize={file.size}
-                      onRemove={handleRemoveFile}
-                    />
+                    <div className="space-y-4">
+                      <FileInfo
+                        fileName={file.name}
+                        fileSize={file.size}
+                        onRemove={handleRemoveFile}
+                        isUploading={isUploading}
+                        isProcessing={isProcessing}
+                      />
+                      {status === "uploaded" && (
+                        <button
+                          onClick={handleStartTranscription}
+                          className={cn([
+                            "w-full flex items-center justify-center gap-2",
+                            "px-4 py-3 rounded-lg",
+                            "bg-gradient-to-t from-stone-600 to-stone-500",
+                            "text-white font-medium",
+                            "shadow-md hover:shadow-lg",
+                            "hover:scale-[101%] active:scale-[99%]",
+                            "transition-all",
+                          ])}
+                        >
+                          <Play size={18} />
+                          Start Transcription
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   <div>

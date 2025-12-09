@@ -1,9 +1,18 @@
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish extensions to R2"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  EXTENSIONS_BUCKET: hyprnote-extensions
 
 jobs:
   build:
@@ -13,10 +22,93 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - working-directory: ./extensions
+      - name: Build extensions
+        working-directory: ./extensions
         run: deno task build
+
+      - name: Package extensions
+        run: |
+          mkdir -p dist/extensions
+          for dir in extensions/*/; do
+            if [ -f "$dir/extension.json" ] && [ -d "$dir/dist" ]; then
+              name=$(basename "$dir")
+              version=$(jq -r '.version' "$dir/extension.json")
+
+              # Create a clean package directory
+              mkdir -p "dist/packages/$name"
+              cp "$dir/extension.json" "dist/packages/$name/"
+              cp "$dir/main.js" "dist/packages/$name/" 2>/dev/null || true
+              cp -r "$dir/dist" "dist/packages/$name/"
+
+              # Create zip archive
+              (cd "dist/packages" && zip -r "../extensions/$name-$version.zip" "$name")
+
+              # Calculate checksum
+              sha256sum "dist/extensions/$name-$version.zip" | cut -d' ' -f1 > "dist/extensions/$name-$version.zip.sha256"
+
+              echo "Packaged: $name v$version"
+            fi
+          done
+
+      - name: Generate registry
+        run: |
+          echo '{"version":1,"extensions":[' > dist/extensions/registry.json
+          first=true
+          for dir in extensions/*/; do
+            if [ -f "$dir/extension.json" ] && [ -d "$dir/dist" ]; then
+              name=$(basename "$dir")
+              version=$(jq -r '.version' "$dir/extension.json")
+              ext_name=$(jq -r '.name' "$dir/extension.json")
+              description=$(jq -r '.description // ""' "$dir/extension.json")
+              api_version=$(jq -r '.api_version // "0.1"' "$dir/extension.json")
+              checksum=$(cat "dist/extensions/$name-$version.zip.sha256")
+              size=$(stat -c%s "dist/extensions/$name-$version.zip")
+
+              if [ "$first" = true ]; then
+                first=false
+              else
+                echo ',' >> dist/extensions/registry.json
+              fi
+
+              jq -n \
+                --arg id "$name" \
+                --arg name "$ext_name" \
+                --arg version "$version" \
+                --arg api_version "$api_version" \
+                --arg description "$description" \
+                --arg download_url "https://pub-hyprnote.r2.dev/extensions/$name-$version.zip" \
+                --arg checksum "$checksum" \
+                --argjson size "$size" \
+                '{id: $id, name: $name, version: $version, api_version: $api_version, description: $description, download_url: $download_url, checksum: $checksum, size: $size}' \
+                >> dist/extensions/registry.json
+            fi
+          done
+          echo ']}' >> dist/extensions/registry.json
+          cat dist/extensions/registry.json
+
       - uses: actions/upload-artifact@v4
         with:
           name: extensions
-          path: extensions/*/dist/
+          path: dist/extensions/
           retention-days: 7
+
+      - name: Upload to R2
+        if: ${{ inputs.publish }}
+        run: |
+          # Upload extension packages
+          for file in dist/extensions/*.zip; do
+            aws s3 cp "$file" "s3://${{ env.EXTENSIONS_BUCKET }}/extensions/$(basename "$file")" \
+              --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+              --region auto
+          done
+
+          # Upload registry
+          aws s3 cp dist/extensions/registry.json "s3://${{ env.EXTENSIONS_BUCKET }}/extensions/registry.json" \
+            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
+            --region auto \
+            --content-type "application/json"
+
+          echo "Published extensions to R2"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}

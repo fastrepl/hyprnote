@@ -54,6 +54,30 @@ async getExtension(extensionId: string) : Promise<Result<ExtensionInfo, Error>> 
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async fetchRegistry() : Promise<Result<RegistryResponse, Error>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:extensions|fetch_registry") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async downloadExtension(extensionId: string, downloadUrl: string, expectedChecksum: string) : Promise<Result<null, Error>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:extensions|download_extension", { extensionId, downloadUrl, expectedChecksum }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async uninstallExtension(extensionId: string) : Promise<Result<null, Error>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:extensions|uninstall_extension", { extensionId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -67,9 +91,11 @@ async getExtension(extensionId: string) : Promise<Result<ExtensionInfo, Error>> 
 
 /** user-defined types **/
 
-export type Error = { ExtensionNotFound: string } | { RuntimeError: string } | { InvalidManifest: string } | { Io: string }
+export type Error = { ExtensionNotFound: string } | { RuntimeError: string } | { InvalidManifest: string } | { Io: string } | "RuntimeUnavailable" | { Network: string } | { ChecksumMismatch: { expected: string; actual: string } } | { ZipError: string }
 export type ExtensionInfo = { id: string; name: string; version: string; api_version: string; description: string | null; path: string; panels: PanelInfo[] }
 export type PanelInfo = { id: string; title: string; entry: string; entry_path: string | null; styles_path: string | null }
+export type RegistryEntry = { id: string; name: string; version: string; api_version: string; description: string; download_url: string; checksum: string; size: number }
+export type RegistryResponse = { version: number; extensions: RegistryEntry[] }
 
 /** tauri-specta globals **/
 

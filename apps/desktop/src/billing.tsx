@@ -26,27 +26,17 @@ export function BillingProvider({ children }: { children: ReactNode }) {
 
   const entitlements = useMemo(() => {
     if (!auth?.session?.access_token) {
-      console.log("[BillingProvider] no access_token, entitlements=[]");
       return [];
     }
-
-    console.log(auth.session);
 
     try {
       const decoded = jwtDecode<{ entitlements?: string[] }>(
         auth.session.access_token,
       );
-      console.log(decoded);
       const result = decoded.entitlements ?? [];
-      console.log(
-        "[BillingProvider] decoded JWT, entitlements claim:",
-        decoded.entitlements,
-        "-> entitlements:",
-        result,
-      );
       return result;
     } catch (e) {
-      console.error("[BillingProvider] failed to decode JWT:", e);
+      console.error(e);
       return [];
     }
   }, [auth?.session?.access_token]);

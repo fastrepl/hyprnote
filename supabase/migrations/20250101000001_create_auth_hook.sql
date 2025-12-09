@@ -1,5 +1,3 @@
--- Adds user's Stripe Entitlements to JWT claims.
--- Requires creating Features in Stripe Dashboard (e.g., lookup_key = 'hyprnote_pro') and attaching them to products.
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql

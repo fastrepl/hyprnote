@@ -74,9 +74,6 @@ function AccountSettingsCard() {
     const status = billingQuery.data.status;
     if (status === "trialing") return "trial";
     if (status === "active") return "pro";
-    if (status === "canceled" || status === "past_due" || status === "unpaid") {
-      return "trial_over";
-    }
     return "free";
   })();
 
@@ -89,7 +86,7 @@ function AccountSettingsCard() {
       );
     }
 
-    if (currentPlan === "free" || currentPlan === "trial_over") {
+    if (currentPlan === "free") {
       return (
         <Link
           to="/app/checkout"
@@ -115,7 +112,6 @@ function AccountSettingsCard() {
   const getPlanDisplay = () => {
     if (billingQuery.isLoading) return "...";
     if (currentPlan === "trial") return "Trial";
-    if (currentPlan === "trial_over") return "Trial Ended";
     if (currentPlan === "pro") return "Pro";
     return "Free";
   };

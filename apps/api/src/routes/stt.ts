@@ -11,35 +11,99 @@ const WebSocketErrorSchema = z.object({
   detail: z.string().optional(),
 });
 
-const BatchWordSchema = z.object({
+const ListenWordSchema = z.object({
   word: z.string(),
   start: z.number(),
   end: z.number(),
   confidence: z.number(),
-  speaker: z.number().nullable().optional(),
-  punctuated_word: z.string().nullable().optional(),
+  speaker: z.number().optional(),
+  speaker_confidence: z.number().optional(),
+  punctuated_word: z.string().optional(),
 });
 
-const BatchAlternativesSchema = z.object({
+const ListenSentenceSchema = z.object({
+  text: z.string(),
+  start: z.number(),
+  end: z.number(),
+});
+
+const ListenParagraphSchema = z.object({
+  sentences: z.array(ListenSentenceSchema),
+  speaker: z.number().optional(),
+  num_words: z.number().optional(),
+  start: z.number(),
+  end: z.number(),
+});
+
+const ListenParagraphsSchema = z.object({
+  transcript: z.string(),
+  paragraphs: z.array(ListenParagraphSchema),
+});
+
+const ListenAlternativesSchema = z.object({
   transcript: z.string(),
   confidence: z.number(),
-  words: z.array(BatchWordSchema),
+  words: z.array(ListenWordSchema),
+  paragraphs: ListenParagraphsSchema.optional(),
 });
 
-const BatchChannelSchema = z.object({
-  alternatives: z.array(BatchAlternativesSchema),
+const ListenSearchHitSchema = z.object({
+  confidence: z.number(),
+  start: z.number(),
+  end: z.number(),
+  snippet: z.string(),
 });
 
-const BatchResultsSchema = z.object({
-  channels: z.array(BatchChannelSchema),
+const ListenSearchSchema = z.object({
+  query: z.string(),
+  hits: z.array(ListenSearchHitSchema),
 });
 
-const BatchResponseSchema = z.object({
-  metadata: z.unknown(),
-  results: BatchResultsSchema,
+const ListenChannelSchema = z.object({
+  search: z.array(ListenSearchSchema).optional(),
+  alternatives: z.array(ListenAlternativesSchema),
+  detected_language: z.string().optional(),
 });
 
-const BatchErrorSchema = z.object({
+const ListenUtteranceSchema = z.object({
+  start: z.number(),
+  end: z.number(),
+  confidence: z.number(),
+  channel: z.number(),
+  transcript: z.string(),
+  words: z.array(ListenWordSchema),
+  speaker: z.number().optional(),
+  id: z.string().optional(),
+});
+
+const ListenSummarySchema = z.object({
+  result: z.string().optional(),
+  short: z.string().optional(),
+});
+
+const ListenMetadataSchema = z.object({
+  transaction_key: z.string().optional(),
+  request_id: z.string(),
+  sha256: z.string(),
+  created: z.string(),
+  duration: z.number(),
+  channels: z.number(),
+  models: z.array(z.string()),
+  model_info: z.record(z.unknown()),
+});
+
+const ListenResultsSchema = z.object({
+  channels: z.array(ListenChannelSchema),
+  utterances: z.array(ListenUtteranceSchema).optional(),
+  summary: ListenSummarySchema.optional(),
+});
+
+const ListenResponseSchema = z.object({
+  metadata: ListenMetadataSchema,
+  results: ListenResultsSchema,
+});
+
+const ListenErrorSchema = z.object({
   error: z.string(),
   detail: z.string().optional(),
 });
@@ -99,27 +163,27 @@ stt.get(
 );
 
 stt.post(
-  "/transcribe",
+  "/listen",
   describeRoute({
     tags: [API_TAGS.APP],
-    summary: "Batch speech-to-text transcription",
+    summary: "Pre-recorded speech-to-text transcription",
     description:
-      "HTTP endpoint for batch speech-to-text transcription via file upload. Supports Deepgram, AssemblyAI, and Soniox providers. Use query parameter ?provider=deepgram|assemblyai|soniox to select provider. Requires Supabase authentication.",
+      "Deepgram-compatible HTTP endpoint for pre-recorded speech-to-text transcription. Accepts raw audio data or JSON with URL. Supports all Deepgram query parameters (model, language, diarize, punctuate, smart_format, utterances, paragraphs, etc.). Requires Supabase authentication.",
     security: [{ Bearer: [] }],
     responses: {
       200: {
         description: "Transcription completed successfully",
         content: {
           "application/json": {
-            schema: resolver(BatchResponseSchema),
+            schema: resolver(ListenResponseSchema),
           },
         },
       },
       400: {
-        description: "Bad request - missing or invalid audio file",
+        description: "Bad request - missing or invalid audio data",
         content: {
           "application/json": {
-            schema: resolver(BatchErrorSchema),
+            schema: resolver(ListenErrorSchema),
           },
         },
       },
@@ -135,7 +199,7 @@ stt.post(
         description: "Internal server error during transcription",
         content: {
           "application/json": {
-            schema: resolver(BatchErrorSchema),
+            schema: resolver(ListenErrorSchema),
           },
         },
       },
@@ -143,56 +207,56 @@ stt.post(
         description: "Upstream STT service error",
         content: {
           "application/json": {
-            schema: resolver(BatchErrorSchema),
+            schema: resolver(ListenErrorSchema),
           },
         },
       },
     },
   }),
   async (c) => {
-    const { transcribeBatch } = await import("../stt");
-    type BatchProvider = "deepgram" | "assemblyai" | "soniox";
+    const { transcribeWithDeepgram } = await import("../stt");
 
     const emit = c.get("emit");
     const userId = c.get("supabaseUserId");
     const span = c.get("sentrySpan");
 
     const clientUrl = new URL(c.req.url, "http://localhost");
-    const provider =
-      (clientUrl.searchParams.get("provider") as BatchProvider) ?? "deepgram";
-
-    const languages = clientUrl.searchParams.getAll("language");
-    const keywords = clientUrl.searchParams.getAll("keyword");
-    const model = clientUrl.searchParams.get("model") ?? undefined;
-
     const contentType =
       c.req.header("content-type") ?? "application/octet-stream";
 
     const startTime = performance.now();
 
     try {
-      const audioData = await c.req.arrayBuffer();
+      let body: ArrayBuffer | string;
 
-      if (!audioData || audioData.byteLength === 0) {
+      if (contentType.includes("application/json")) {
+        body = await c.req.text();
+      } else {
+        body = await c.req.arrayBuffer();
+      }
+
+      if (
+        (typeof body === "string" && body.length === 0) ||
+        (body instanceof ArrayBuffer && body.byteLength === 0)
+      ) {
         return c.json(
-          { error: "missing_audio_data", detail: "Request body is empty" },
+          { error: "missing_data", detail: "Request body is empty" },
           400,
         );
       }
 
-      span?.setAttribute("stt.provider", provider);
-      span?.setAttribute("stt.audio_size", audioData.byteLength);
+      const bodySize = typeof body === "string" ? body.length : body.byteLength;
+      span?.setAttribute("stt.provider", "deepgram");
+      span?.setAttribute("stt.body_size", bodySize);
 
-      const response = await transcribeBatch(provider, audioData, contentType, {
-        languages,
-        keywords,
-        model,
+      const response = await transcribeWithDeepgram(body, contentType, {
+        searchParams: clientUrl.searchParams,
       });
 
       emit({
-        type: "stt.batch.success",
+        type: "stt.listen.success",
         userId,
-        provider,
+        provider: "deepgram",
         durationMs: performance.now() - startTime,
       });
 
@@ -205,9 +269,9 @@ stt.post(
       const isUpstreamError = errorMessage.includes("failed:");
 
       emit({
-        type: "stt.batch.error",
+        type: "stt.listen.error",
         userId,
-        provider,
+        provider: "deepgram",
         error: error instanceof Error ? error : new Error(String(error)),
         durationMs: performance.now() - startTime,
       });

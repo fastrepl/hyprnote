@@ -1,2 +1,6 @@
 export { buildDeepgramUrl, createDeepgramProxy } from "./live";
-export { transcribeWithDeepgram } from "./batch";
+export {
+  transcribeWithDeepgram,
+  type DeepgramListenParams,
+  type DeepgramListenResponse,
+} from "./batch";

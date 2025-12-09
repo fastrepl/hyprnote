@@ -10,6 +10,8 @@ export {
   buildDeepgramUrl,
   createDeepgramProxy,
   transcribeWithDeepgram,
+  type DeepgramListenParams,
+  type DeepgramListenResponse,
 } from "./deepgram";
 export {
   buildAssemblyAIUrl,

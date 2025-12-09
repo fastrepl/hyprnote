@@ -1,35 +1,96 @@
 import { env } from "../../env";
-import type { BatchParams, BatchResponse } from "../batch-types";
 
 const DEEPGRAM_BATCH_URL = "https://api.deepgram.com/v1/listen";
 
+export type DeepgramListenParams = {
+  searchParams: URLSearchParams;
+};
+
+export type DeepgramListenResponse = {
+  metadata: {
+    transaction_key?: string;
+    request_id: string;
+    sha256: string;
+    created: string;
+    duration: number;
+    channels: number;
+    models: string[];
+    model_info: Record<string, unknown>;
+  };
+  results: {
+    channels: Array<{
+      search?: Array<{
+        query: string;
+        hits: Array<{
+          confidence: number;
+          start: number;
+          end: number;
+          snippet: string;
+        }>;
+      }>;
+      alternatives: Array<{
+        transcript: string;
+        confidence: number;
+        words: Array<{
+          word: string;
+          start: number;
+          end: number;
+          confidence: number;
+          speaker?: number;
+          speaker_confidence?: number;
+          punctuated_word?: string;
+        }>;
+        paragraphs?: {
+          transcript: string;
+          paragraphs: Array<{
+            sentences: Array<{
+              text: string;
+              start: number;
+              end: number;
+            }>;
+            speaker?: number;
+            num_words?: number;
+            start: number;
+            end: number;
+          }>;
+        };
+      }>;
+      detected_language?: string;
+    }>;
+    utterances?: Array<{
+      start: number;
+      end: number;
+      confidence: number;
+      channel: number;
+      transcript: string;
+      words: Array<{
+        word: string;
+        start: number;
+        end: number;
+        confidence: number;
+        speaker?: number;
+        speaker_confidence?: number;
+        punctuated_word?: string;
+      }>;
+      speaker?: number;
+      id?: string;
+    }>;
+    summary?: {
+      result?: string;
+      short?: string;
+    };
+  };
+};
+
 export const transcribeWithDeepgram = async (
-  audioData: ArrayBuffer,
+  body: ArrayBuffer | string,
   contentType: string,
-  params: BatchParams,
-): Promise<BatchResponse> => {
+  params: DeepgramListenParams,
+): Promise<DeepgramListenResponse> => {
   const url = new URL(DEEPGRAM_BATCH_URL);
 
-  url.searchParams.set("model", params.model ?? "nova-3-general");
-  url.searchParams.set("smart_format", "true");
-  url.searchParams.set("diarize", "true");
-  url.searchParams.set("punctuate", "true");
-  url.searchParams.set("mip_opt_out", "false");
-
-  if (params.languages && params.languages.length > 0) {
-    if (params.languages.length === 1) {
-      url.searchParams.set("language", params.languages[0]);
-    } else {
-      url.searchParams.set("detect_language", "true");
-    }
-  } else {
-    url.searchParams.set("detect_language", "true");
-  }
-
-  if (params.keywords && params.keywords.length > 0) {
-    for (const keyword of params.keywords) {
-      url.searchParams.append("keywords", keyword);
-    }
+  for (const [key, value] of params.searchParams.entries()) {
+    url.searchParams.append(key, value);
   }
 
   const response = await fetch(url.toString(), {
@@ -39,7 +100,7 @@ export const transcribeWithDeepgram = async (
       "Content-Type": contentType,
       Accept: "application/json",
     },
-    body: audioData,
+    body: body,
   });
 
   if (!response.ok) {
@@ -49,5 +110,5 @@ export const transcribeWithDeepgram = async (
     );
   }
 
-  return response.json() as Promise<BatchResponse>;
+  return response.json() as Promise<DeepgramListenResponse>;
 };

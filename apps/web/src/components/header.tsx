@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import { Search } from "@/components/search";
+import { SearchTrigger } from "@/components/search";
 import { useDocsDrawer } from "@/hooks/use-docs-drawer";
 import { useHandbookDrawer } from "@/hooks/use-handbook-drawer";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
@@ -79,6 +79,8 @@ export function Header() {
               setIsMenuOpen={setIsMenuOpen}
               docsDrawer={docsDrawer}
               handbookDrawer={handbookDrawer}
+              isDocsPage={isDocsPage}
+              isHandbookPage={isHandbookPage}
             />
           </div>
         </div>
@@ -326,14 +328,8 @@ function DesktopNav({
   platformCTA: ReturnType<typeof getPlatformCTA>;
 }) {
   return (
-    <nav className="hidden sm:flex items-center gap-2">
-      <Search />
-      <Link
-        to="/join-waitlist"
-        className="px-4 h-8 flex items-center text-sm text-neutral-600 hover:text-neutral-800 transition-all hover:underline decoration-dotted"
-      >
-        Get started
-      </Link>
+    <nav className="hidden sm:flex items-center gap-4">
+      <SearchTrigger variant="header" />
       <CTAButton platformCTA={platformCTA} />
     </nav>
   );
@@ -346,6 +342,8 @@ function MobileNav({
   setIsMenuOpen,
   docsDrawer,
   handbookDrawer,
+  isDocsPage,
+  isHandbookPage,
 }: {
   platform: string;
   platformCTA: ReturnType<typeof getPlatformCTA>;
@@ -353,10 +351,17 @@ function MobileNav({
   setIsMenuOpen: (open: boolean) => void;
   docsDrawer: ReturnType<typeof useDocsDrawer>;
   handbookDrawer: ReturnType<typeof useHandbookDrawer>;
+  isDocsPage: boolean;
+  isHandbookPage: boolean;
 }) {
+  const hideCTA = isDocsPage || isHandbookPage;
+
   return (
-    <div className="sm:hidden flex items-center gap-2">
-      <CTAButton platformCTA={platformCTA} platform={platform} mobile />
+    <div className="sm:hidden flex items-center gap-3">
+      <SearchTrigger variant="header" />
+      {!hideCTA && (
+        <CTAButton platformCTA={platformCTA} platform={platform} mobile />
+      )}
       <button
         onClick={() => {
           if (!isMenuOpen) {

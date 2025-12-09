@@ -145,7 +145,7 @@ function FriendsSection({
   return (
     <section>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-neutral-200">
-        {friends.map((friend, index) => (
+        {friends.map((friend) => (
           <a
             key={friend.slug}
             href={friend.href}
@@ -154,7 +154,7 @@ function FriendsSection({
             className={cn([
               "group flex flex-col bg-white overflow-hidden h-full",
               "hover:bg-stone-50 transition-all",
-              index >= friends.length - 3 && "border-b border-neutral-200",
+              "border-b border-neutral-200",
             ])}
           >
             <div className="aspect-40/21 bg-neutral-100 overflow-hidden shrink-0">

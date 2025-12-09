@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { FileText, Search as SearchIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
   Command,
@@ -10,11 +11,6 @@ import {
   CommandItem,
   CommandList,
 } from "@hypr/ui/components/ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@hypr/ui/components/ui/dialog";
 
 interface SearchResult {
   url: string;
@@ -182,6 +178,26 @@ function SearchCommandPalette({
     return () => clearTimeout(debounceTimer);
   }, [query, search]);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onOpenChange(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }
+  }, [open, onOpenChange]);
+
+  useEffect(() => {
+    const zendeskWidget = document.getElementById("launcher");
+    if (zendeskWidget) {
+      zendeskWidget.style.display = open ? "none" : "";
+    }
+  }, [open]);
+
   const handleSelect = (url: string) => {
     onOpenChange(false);
     setQuery("");
@@ -189,62 +205,78 @@ function SearchCommandPalette({
     navigate({ to: url });
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 max-w-xl">
-        <DialogTitle className="sr-only">Search documentation</DialogTitle>
-        <Command shouldFilter={false} className="rounded-lg border-0">
-          <CommandInput
-            placeholder="Search documentation..."
-            value={query}
-            onValueChange={setQuery}
-          />
-          <CommandList className="max-h-[400px]">
-            {isLoading && (
-              <div className="py-6 text-center text-sm text-neutral-500">
-                Searching...
-              </div>
-            )}
-            {!isLoading && query && results.length === 0 && (
-              <CommandEmpty>No results found.</CommandEmpty>
-            )}
-            {!isLoading && results.length > 0 && (
-              <CommandGroup heading="Documentation">
-                {results.map((result, index) => (
-                  <CommandItem
-                    key={`${result.url}-${index}`}
-                    value={result.url}
-                    onSelect={() => handleSelect(result.url)}
-                    className="flex items-start gap-3 py-3 cursor-pointer"
-                  >
-                    <FileText
-                      size={16}
-                      className="mt-0.5 text-neutral-400 shrink-0"
-                    />
-                    <div className="flex flex-col gap-1 min-w-0">
-                      <span className="font-medium text-neutral-900 truncate">
-                        {result.meta?.title || result.url}
-                      </span>
-                      {result.excerpt && (
-                        <span
-                          className="text-xs text-neutral-500 line-clamp-2"
-                          dangerouslySetInnerHTML={{ __html: result.excerpt }}
-                        />
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-            {!query && (
-              <div className="py-6 text-center text-sm text-neutral-500">
-                Type to search documentation...
-              </div>
-            )}
-          </CommandList>
-        </Command>
-      </DialogContent>
-    </Dialog>
+  if (!open) return null;
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-x-0 top-[69px] bottom-0 z-9999 backdrop-blur-sm"
+      onClick={() => onOpenChange(false)}
+    >
+      <div className="absolute left-1/2 top-[10%] -translate-x-1/2 w-full max-w-xl px-4">
+        <div
+          className="bg-white rounded-lg border border-neutral-200 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Command
+            shouldFilter={false}
+            className="rounded-lg **:[[cmdk-input-wrapper]]:border-b-0"
+          >
+            <CommandInput
+              placeholder="Search documentation..."
+              value={query}
+              onValueChange={setQuery}
+            />
+            <div className="border-t border-neutral-100" />
+            <CommandList className="max-h-[400px]">
+              {isLoading && (
+                <div className="py-6 text-center text-sm text-neutral-500">
+                  Searching...
+                </div>
+              )}
+              {!isLoading && query && results.length === 0 && (
+                <CommandEmpty>No results found.</CommandEmpty>
+              )}
+              {!isLoading && results.length > 0 && (
+                <CommandGroup heading="Documentation">
+                  {results.map((result, index) => (
+                    <CommandItem
+                      key={`${result.url}-${index}`}
+                      value={result.url}
+                      onSelect={() => handleSelect(result.url)}
+                      className="flex items-start gap-3 py-3 cursor-pointer"
+                    >
+                      <FileText
+                        size={16}
+                        className="mt-0.5 text-neutral-400 shrink-0"
+                      />
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <span className="font-medium text-neutral-900 truncate">
+                          {result.meta?.title || result.url}
+                        </span>
+                        {result.excerpt && (
+                          <span
+                            className="text-xs text-neutral-500 line-clamp-2"
+                            dangerouslySetInnerHTML={{ __html: result.excerpt }}
+                          />
+                        )}
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+              {!query && (
+                <div className="py-6 text-center text-sm text-neutral-500">
+                  Type to search documentation...
+                </div>
+              )}
+            </CommandList>
+          </Command>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 

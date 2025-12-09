@@ -12,6 +12,7 @@ import { useAuth } from "./auth";
 import { env } from "./env";
 
 type BillingContextValue = {
+  entitlements: string[];
   isPro: boolean;
   upgradeToPro: () => void;
 };
@@ -23,32 +24,27 @@ const BillingContext = createContext<BillingContextValue | null>(null);
 export function BillingProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
 
-  const isPro = useMemo(() => {
+  const entitlements = useMemo(() => {
     if (!auth?.session?.access_token) {
-      console.log("[BillingProvider] no access_token, isPro=false");
-      return false;
+      return [];
     }
-
-    console.log(auth.session);
 
     try {
-      const decoded = jwtDecode<{ is_pro?: boolean }>(
+      const decoded = jwtDecode<{ entitlements?: string[] }>(
         auth.session.access_token,
       );
-      console.log(decoded);
-      const result = decoded.is_pro ?? false;
-      console.log(
-        "[BillingProvider] decoded JWT, is_pro claim:",
-        decoded.is_pro,
-        "-> isPro:",
-        result,
-      );
+      const result = decoded.entitlements ?? [];
       return result;
     } catch (e) {
-      console.error("[BillingProvider] failed to decode JWT:", e);
-      return false;
+      console.error(e);
+      return [];
     }
   }, [auth?.session?.access_token]);
+
+  const isPro = useMemo(
+    () => entitlements.includes("hyprnote_pro"),
+    [entitlements],
+  );
 
   const upgradeToPro = useCallback(() => {
     openUrl(`${env.VITE_APP_URL}/app/checkout?period=monthly`);
@@ -56,10 +52,11 @@ export function BillingProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<BillingContextValue>(
     () => ({
+      entitlements,
       isPro,
       upgradeToPro,
     }),
-    [isPro, upgradeToPro],
+    [entitlements, isPro, upgradeToPro],
   );
 
   return (

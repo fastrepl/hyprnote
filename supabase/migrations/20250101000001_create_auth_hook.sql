@@ -5,19 +5,22 @@ STABLE
 AS $$
 DECLARE
   claims jsonb;
-  is_pro boolean := false;
+  entitlements jsonb := '[]'::jsonb;
 BEGIN
-  SELECT EXISTS (
-    SELECT 1
-    FROM public.profiles p
-    JOIN stripe.subscriptions s
-      ON s.customer = p.stripe_customer_id
-    WHERE p.id = (event->>'user_id')::uuid
-      AND s.status IN ('active', 'trialing')
-  ) INTO is_pro;
+  SELECT
+    COALESCE(
+      jsonb_agg(ae.lookup_key ORDER BY ae.lookup_key)
+        FILTER (WHERE ae.lookup_key IS NOT NULL),
+      '[]'::jsonb
+    )
+  INTO entitlements
+  FROM public.profiles p
+  JOIN stripe.active_entitlements ae
+    ON ae.customer = p.stripe_customer_id
+  WHERE p.id = (event->>'user_id')::uuid;
 
   claims := event->'claims';
-  claims := jsonb_set(claims, '{is_pro}', to_jsonb(is_pro));
+  claims := jsonb_set(claims, '{entitlements}', entitlements);
   event := jsonb_set(event, '{claims}', claims);
 
   RETURN event;
@@ -39,4 +42,4 @@ TO supabase_auth_admin
 USING (true);
 
 GRANT USAGE ON SCHEMA stripe TO supabase_auth_admin;
-GRANT SELECT ON TABLE stripe.subscriptions TO supabase_auth_admin;
+GRANT SELECT ON TABLE stripe.active_entitlements TO supabase_auth_admin;

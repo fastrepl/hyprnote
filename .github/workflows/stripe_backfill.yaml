@@ -9,9 +9,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/bun_install
       - uses: ./.github/actions/pnpm_install
+      - uses: ./.github/actions/infisical_install
       - run: pnpm --filter @hypr/api install
-      - run: bun apps/api/src/scripts/stripe-backfill.ts
+      - run: infisical run --token="$INFISICAL_TOKEN" --env=prod --projectId="$INFISICAL_PROJECT_ID" --path="/stripe-backfil" -- bun apps/api/src/scripts/stripe-backfill.ts
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL_POOLER }}
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}

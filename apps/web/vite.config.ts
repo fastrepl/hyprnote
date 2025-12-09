@@ -51,7 +51,7 @@ const config = defineConfig(() => ({
     netlify({ dev: { images: { enabled: true } } }),
   ],
   ssr: {
-    noExternal: ["posthog-js", "@posthog/react", "react-tweet", "mdx-bundler"],
+    noExternal: ["posthog-js", "@posthog/react", "react-tweet"],
   },
 }));
 

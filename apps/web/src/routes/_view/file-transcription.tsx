@@ -1,29 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
+import { lazy, Suspense, useMemo, useState } from "react";
 
 import type { JSONContent } from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 import "@hypr/tiptap/styles.css";
 
-import {
-  FileInfo,
-  TranscriptDisplay,
-} from "@/components/transcription/transcript-display";
+import { TranscriptDisplay } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
-import { getSupabaseBrowserClient } from "@/functions/supabase";
-import {
-  getAudioPipelineStatus,
-  startAudioPipeline,
-} from "@/functions/transcription";
-import { createUploadUrl } from "@/functions/upload";
+import { fetchUser } from "@/functions/auth";
 
 const NoteEditor = lazy(() => import("@hypr/tiptap/editor"));
 
@@ -32,165 +21,20 @@ export const Route = createFileRoute("/_view/file-transcription")({
   validateSearch: (search: Record<string, unknown>) => ({
     id: (search.id as string) || undefined,
   }),
+  beforeLoad: async () => {
+    const user = await fetchUser();
+    if (user) {
+      throw redirect({ to: "/app/file-transcription" });
+    }
+  },
 });
 
-type ProcessingStatus =
-  | "idle"
-  | "uploading"
-  | "queued"
-  | "transcribing"
-  | "done"
-  | "error";
-
 function Component() {
-  const [user, setUser] = useState<{ email?: string; id?: string } | null>(
-    null,
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadUser() {
-      try {
-        const supabase = getSupabaseBrowserClient();
-        const { data } = await supabase.auth.getUser();
-        if (!isMounted) return;
-        if (data.user?.email) {
-          setUser({ email: data.user.email, id: data.user.id });
-        } else {
-          setUser(null);
-        }
-      } catch {
-        if (isMounted) setUser(null);
-      }
-    }
-    loadUser();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const [file, setFile] = useState<File | null>(null);
-  const [status, setStatus] = useState<ProcessingStatus>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<string | null>(null);
+  const navigate = useNavigate({ from: Route.fullPath });
   const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const stopPolling = useCallback(() => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => stopPolling();
-  }, [stopPolling]);
-
-  const handleFileSelect = async (selectedFile: File) => {
-    if (!user) {
-      setError("Please sign in to transcribe audio files");
-      return;
-    }
-
-    setFile(selectedFile);
-    setTranscript(null);
-    setError(null);
-    setStatus("uploading");
-
-    try {
-      const uploadResult = await createUploadUrl({
-        data: {
-          fileName: selectedFile.name,
-          fileType: selectedFile.type,
-        },
-      });
-
-      if ("error" in uploadResult && uploadResult.error) {
-        throw new Error(uploadResult.message);
-      }
-
-      if (!("signedUrl" in uploadResult)) {
-        throw new Error("Failed to get upload URL");
-      }
-
-      const uploadResponse = await fetch(uploadResult.signedUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": selectedFile.type,
-        },
-        body: selectedFile,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error("Failed to upload file");
-      }
-
-      setStatus("queued");
-
-      const pipelineResult = await startAudioPipeline({
-        data: { fileId: uploadResult.fileId },
-      });
-
-      if ("error" in pipelineResult && pipelineResult.error) {
-        throw new Error(pipelineResult.message);
-      }
-
-      if (!("pipelineId" in pipelineResult)) {
-        throw new Error("Failed to start transcription");
-      }
-
-      const { pipelineId } = pipelineResult;
-
-      pollingRef.current = setInterval(async () => {
-        try {
-          const statusResult = await getAudioPipelineStatus({
-            data: { pipelineId },
-          });
-
-          if ("error" in statusResult && statusResult.error) {
-            throw new Error(statusResult.message);
-          }
-
-          if (!("status" in statusResult)) {
-            return;
-          }
-
-          const { status: pipelineStatus } = statusResult;
-
-          if (pipelineStatus.status === "TRANSCRIBING") {
-            setStatus("transcribing");
-          } else if (pipelineStatus.status === "DONE") {
-            setStatus("done");
-            setTranscript(pipelineStatus.transcript ?? null);
-            stopPolling();
-          } else if (pipelineStatus.status === "ERROR") {
-            setStatus("error");
-            setError(pipelineStatus.error ?? "Transcription failed");
-            stopPolling();
-          }
-        } catch (err) {
-          setStatus("error");
-          setError(
-            err instanceof Error ? err.message : "Failed to check status",
-          );
-          stopPolling();
-        }
-      }, 2000);
-    } catch (err) {
-      setStatus("error");
-      setError(err instanceof Error ? err.message : "An error occurred");
-    }
-  };
-
-  const handleRemoveFile = () => {
-    stopPolling();
-    setFile(null);
-    setTranscript(null);
-    setStatus("idle");
-    setError(null);
-    setNoteContent(EMPTY_TIPTAP_DOC);
+  const handleFileSelect = () => {
+    navigate({ to: "/auth" });
   };
 
   const mentionConfig = useMemo(
@@ -202,9 +46,6 @@ function Component() {
     }),
     [],
   );
-
-  const isProcessing =
-    status === "uploading" || status === "queued" || status === "transcribing";
 
   return (
     <div className="min-h-[calc(100vh-200px)]">
@@ -244,18 +85,10 @@ function Component() {
                 </div>
 
                 <div className="p-6 space-y-6">
-                  {!file ? (
-                    <UploadArea
-                      onFileSelect={handleFileSelect}
-                      disabled={isProcessing}
-                    />
-                  ) : (
-                    <FileInfo
-                      fileName={file.name}
-                      fileSize={file.size}
-                      onRemove={handleRemoveFile}
-                    />
-                  )}
+                  <UploadArea
+                    onFileSelect={handleFileSelect}
+                    disabled={false}
+                  />
 
                   <div>
                     <h3 className="text-sm font-medium text-neutral-700 mb-3">
@@ -285,14 +118,12 @@ function Component() {
                     Combined notes with transcript
                   </p>
                 </div>
-                {transcript && !user && (
-                  <Link
-                    to="/auth"
-                    className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
-                  >
-                    Sign in
-                  </Link>
-                )}
+                <Link
+                  to="/auth"
+                  className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all"
+                >
+                  Sign in
+                </Link>
               </div>
 
               <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
@@ -305,20 +136,18 @@ function Component() {
 
                 <div className="p-6">
                   <TranscriptDisplay
-                    transcript={user ? transcript : null}
-                    status={user ? status : "idle"}
-                    error={error}
+                    transcript={null}
+                    status="idle"
+                    error={null}
                   />
                 </div>
               </div>
 
-              {transcript && !user && (
-                <div className="p-4 bg-stone-50 border border-neutral-200 rounded-sm">
-                  <p className="text-sm text-neutral-600">
-                    Sign in to view and save your transcription results
-                  </p>
-                </div>
-              )}
+              <div className="p-4 bg-stone-50 border border-neutral-200 rounded-sm">
+                <p className="text-sm text-neutral-600">
+                  Sign in to view and save your transcription results
+                </p>
+              </div>
             </div>
           </div>
         </div>

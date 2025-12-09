@@ -1,3 +1,5 @@
+-- Uses Stripe Entitlements to determine Pro status.
+-- Requires creating a Feature in Stripe Dashboard with lookup_key = 'pro' and attaching it to your Pro product.
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -10,10 +12,10 @@ BEGIN
   SELECT EXISTS (
     SELECT 1
     FROM public.profiles p
-    JOIN stripe.subscriptions s
-      ON s.customer = p.stripe_customer_id
+    JOIN stripe.active_entitlements ae
+      ON ae.customer = p.stripe_customer_id
     WHERE p.id = (event->>'user_id')::uuid
-      AND s.status IN ('active', 'trialing')
+      AND ae.lookup_key = 'pro'
   ) INTO is_pro;
 
   claims := event->'claims';
@@ -39,4 +41,4 @@ TO supabase_auth_admin
 USING (true);
 
 GRANT USAGE ON SCHEMA stripe TO supabase_auth_admin;
-GRANT SELECT ON TABLE stripe.subscriptions TO supabase_auth_admin;
+GRANT SELECT ON TABLE stripe.active_entitlements TO supabase_auth_admin;

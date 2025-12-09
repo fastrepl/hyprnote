@@ -79,3 +79,63 @@ export async function deleteFile(
     throw new Error(`Failed to delete file: ${response.status} ${body}`);
   }
 }
+
+export interface StorageFile {
+  name: string;
+  id: string;
+  created_at: string;
+  updated_at: string;
+  metadata: Record<string, unknown>;
+}
+
+export async function listFiles(
+  env: SupabaseEnv,
+  prefix: string = "",
+  limit: number = 100,
+  offset: number = 0,
+): Promise<StorageFile[]> {
+  const { url, serviceRoleKey } = getSupabaseConfig(env);
+
+  const response = await fetch(`${url}/storage/v1/object/list/audio-files`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: serviceRoleKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prefix,
+      limit,
+      offset,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Failed to list files: ${response.status} ${body}`);
+  }
+
+  return (await response.json()) as StorageFile[];
+}
+
+export async function listAllFiles(env: SupabaseEnv): Promise<StorageFile[]> {
+  const allFiles: StorageFile[] = [];
+  let offset = 0;
+  const limit = 100;
+
+  while (true) {
+    const files = await listFiles(env, "", limit, offset);
+    if (files.length === 0) break;
+
+    for (const file of files) {
+      if (file.id) {
+        allFiles.push(file);
+      }
+    }
+
+    if (files.length < limit) break;
+    offset += limit;
+  }
+
+  return allFiles;
+}

@@ -87,9 +87,16 @@ export const sttFile = restate.workflow({
           ctx.set("error", error);
           throw err;
         } finally {
-          await ctx.run("cleanup", () =>
-            deleteFile(env, input.fileId).catch(() => {}),
-          );
+          await ctx.run("cleanup", async () => {
+            try {
+              await deleteFile(env, input.fileId);
+            } catch (err) {
+              console.error("Failed to delete audio file from storage", {
+                fileId: input.fileId,
+                error: err instanceof Error ? err.message : String(err),
+              });
+            }
+          });
         }
       },
     ),

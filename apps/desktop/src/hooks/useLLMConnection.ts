@@ -244,7 +244,7 @@ const createLanguageModel = (
     case "openrouter": {
       const provider = createOpenRouter({
         fetch: tauriFetch,
-        apiKey: conn.apiKey
+        apiKey: conn.apiKey,
       });
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }

@@ -257,6 +257,20 @@ const createLanguageModel = (
       return wrapWithThinkingMiddleware(provider(conn.modelId));
     }
 
+    case "ollama": {
+      const ollamaFetch: typeof fetch = async (input, init) => {
+        const headers = new Headers(init?.headers);
+        headers.set("Origin", "http://localhost");
+        return tauriFetch(input as RequestInfo | URL, { ...init, headers });
+      };
+      const provider = createOpenAICompatible({
+        fetch: ollamaFetch,
+        name: conn.providerId,
+        baseURL: conn.baseUrl,
+      });
+      return wrapWithThinkingMiddleware(provider.chatModel(conn.modelId));
+    }
+
     default: {
       const config: Parameters<typeof createOpenAICompatible>[0] = {
         fetch: tauriFetch,

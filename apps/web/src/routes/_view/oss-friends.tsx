@@ -152,20 +152,21 @@ function FriendsSection({
             target="_blank"
             rel="noopener noreferrer"
             className={cn([
-              "group flex flex-col bg-white overflow-hidden",
+              "group flex flex-col bg-white overflow-hidden h-full",
               "hover:bg-stone-50 transition-all",
+              "border-b border-neutral-200",
             ])}
           >
-            <div className="aspect-40/21 bg-neutral-100 overflow-hidden">
+            <div className="aspect-40/21 bg-neutral-100 overflow-hidden shrink-0">
               <Image
                 src={friend.image || "/api/images/hyprnote/default-cover.jpg"}
                 alt={friend.name}
-                className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 objectFit="cover"
                 layout="fullWidth"
               />
             </div>
-            <div className="p-4 flex-1 flex flex-col">
+            <div className="p-4 flex flex-col flex-1 border-t border-neutral-200">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="text-lg font-medium text-stone-600 group-hover:text-stone-800">
                   {friend.name}
@@ -175,7 +176,7 @@ function FriendsSection({
                   className="text-lg text-neutral-400 group-hover:text-stone-600 transition-colors shrink-0"
                 />
               </div>
-              <p className="text-sm text-neutral-600 leading-relaxed mb-3">
+              <p className="text-sm text-neutral-600 leading-relaxed mb-3 flex-1 line-clamp-2">
                 {friend.description}
               </p>
               <a
@@ -183,7 +184,7 @@ function FriendsSection({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-700 transition-colors mt-auto"
               >
                 <Icon icon="mdi:github" className="text-sm" />
                 <span>View on GitHub</span>
@@ -197,7 +198,7 @@ function FriendsSection({
           <button
             onClick={onLoadMore}
             className={cn([
-              "inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-full",
+              "cursor-pointer inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium rounded-full",
               "border border-neutral-200 text-neutral-700",
               "bg-linear-to-t from-stone-100 to-white",
               "hover:from-stone-200 hover:to-stone-50 hover:border-stone-300 transition-all",

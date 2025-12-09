@@ -73,6 +73,19 @@ function Component() {
     !!pipelineId &&
     !["DONE", "ERROR"].includes(pipelineStatusQuery.data?.status ?? "");
 
+  const status = (() => {
+    if (pipelineStatusQuery.data?.status === "ERROR") {
+      return "error" as const;
+    }
+    if (pipelineStatusQuery.data?.status === "DONE" || transcript) {
+      return "done" as const;
+    }
+    if (pipelineId) {
+      return "transcribing" as const;
+    }
+    return "idle" as const;
+  })();
+
   const errorMessage =
     uploadError ??
     (pipelineStatusQuery.isError && pipelineStatusQuery.error instanceof Error
@@ -257,7 +270,8 @@ function Component() {
                 <div className="p-6">
                   <TranscriptDisplay
                     transcript={transcript}
-                    isProcessing={isProcessing}
+                    status={status}
+                    error={errorMessage}
                   />
                 </div>
               </div>

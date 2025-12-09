@@ -30,11 +30,7 @@ export function Welcome({ onNext }: WelcomeProps) {
         Where Conversations Stay Yours
       </TextAnimate>
 
-      <Button
-        onClick={() => onNext({ local: false })}
-        size="lg"
-        className="w-full"
-      >
+      <Button onClick={() => onNext()} size="lg" className="w-full">
         Get Started
       </Button>
 

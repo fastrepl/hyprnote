@@ -10,7 +10,7 @@ import { Permissions } from "./permissions";
 import type { OnboardingNext } from "./shared";
 import { Welcome } from "./welcome";
 
-export type OnboardingStepId = "welcome" | "permissions" | "login" | "model";
+export type OnboardingStepId = "welcome" | "login" | "permissions" | "model";
 
 export type OnboardingContext = {
   platform: Platform;
@@ -35,14 +35,14 @@ export const STEP_CONFIGS: OnboardingStepConfig[] = [
     component: Welcome,
   },
   {
-    id: "permissions",
-    shouldShow: (ctx) => ctx.platform === "macos",
-    component: Permissions,
-  },
-  {
     id: "login",
     shouldShow: (ctx) => !ctx.local,
     component: Login,
+  },
+  {
+    id: "permissions",
+    shouldShow: (ctx) => ctx.platform === "macos",
+    component: Permissions,
   },
   {
     id: "model",
@@ -65,9 +65,11 @@ export function useOnboardingContext(
     return null;
   }
 
+  const isAppleSilicon = platform === "macos" && archQuery.data === "aarch64";
+
   return {
     platform,
-    isAppleSilicon: platform === "macos" && archQuery.data === "aarch64",
+    isAppleSilicon,
     isLoggedIn: auth?.session !== null,
     local: local ?? false,
     flags: {

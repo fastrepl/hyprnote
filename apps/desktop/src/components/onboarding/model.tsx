@@ -27,7 +27,7 @@ export function ModelDownload({ onNext }: ModelDownloadProps) {
     showProgress,
     handleDownload,
     handleCancel,
-  } = useModelDownload(DEFAULT_MODEL, onNext);
+  } = useModelDownload(DEFAULT_MODEL);
 
   return (
     <OnboardingContainer
@@ -44,6 +44,7 @@ export function ModelDownload({ onNext }: ModelDownloadProps) {
         hasError={hasError}
         onDownload={handleDownload}
         onCancel={handleCancel}
+        onContinue={() => onNext()}
       />
     </OnboardingContainer>
   );
@@ -59,6 +60,7 @@ type ModelCardProps = {
   hasError: boolean;
   onDownload: () => void;
   onCancel: () => void;
+  onContinue: () => void;
 };
 
 function ModelCard({
@@ -71,6 +73,7 @@ function ModelCard({
   hasError,
   onDownload,
   onCancel,
+  onContinue,
 }: ModelCardProps) {
   return (
     <div
@@ -86,59 +89,56 @@ function ModelCard({
         <span className="text-sm text-neutral-500">{description}</span>
       </div>
 
-      <Button
-        size="lg"
-        className={cn([
-          "w-full relative overflow-hidden group",
-          hasError && "border-red-500",
-        ])}
-        variant={
-          isDownloaded ? "outline" : hasError ? "destructive" : "default"
-        }
-        onClick={
-          isDownloaded ? undefined : showProgress ? onCancel : onDownload
-        }
-        disabled={isDownloaded}
-      >
-        {showProgress && (
-          <div
-            className="absolute inset-0 bg-black/30 transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        )}
-        {isDownloaded ? (
-          <div className="relative z-10 flex items-center gap-2">
-            <Icon icon="mdi:check" width={20} />
-            <span>Downloaded</span>
-          </div>
-        ) : hasError ? (
-          <div className="relative z-10 flex items-center gap-2">
-            <Icon icon="mdi:alert-circle" width={20} />
-            <span>Retry Download</span>
-          </div>
-        ) : showProgress ? (
-          <>
-            <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
-              <Icon icon="mdi:loading" width={20} className="animate-spin" />
-              <span>Downloading {Math.round(progress)}%</span>
+      {isDownloaded ? (
+        <Button size="lg" className="w-full" onClick={onContinue}>
+          <Icon icon="mdi:check" width={20} />
+          <span>Model Ready - Continue</span>
+        </Button>
+      ) : (
+        <Button
+          size="lg"
+          className={cn([
+            "w-full relative overflow-hidden group",
+            hasError && "border-red-500",
+          ])}
+          variant={hasError ? "destructive" : "default"}
+          onClick={showProgress ? onCancel : onDownload}
+        >
+          {showProgress && (
+            <div
+              className="absolute inset-0 bg-black/30 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          )}
+          {hasError ? (
+            <div className="relative z-10 flex items-center gap-2">
+              <Icon icon="mdi:alert-circle" width={20} />
+              <span>Retry Download</span>
             </div>
-            <div className="relative z-10 hidden items-center gap-2 group-hover:flex">
-              <Icon icon="mdi:close" width={20} />
-              <span>Cancel</span>
+          ) : showProgress ? (
+            <>
+              <div className="relative z-10 flex items-center gap-2 group-hover:hidden">
+                <Icon icon="mdi:loading" width={20} className="animate-spin" />
+                <span>Downloading {Math.round(progress)}%</span>
+              </div>
+              <div className="relative z-10 hidden items-center gap-2 group-hover:flex">
+                <Icon icon="mdi:close" width={20} />
+                <span>Cancel</span>
+              </div>
+            </>
+          ) : (
+            <div className="relative z-10 flex items-center gap-2">
+              <Icon icon="mdi:download" width={20} />
+              <span>Download Model</span>
             </div>
-          </>
-        ) : (
-          <div className="relative z-10 flex items-center gap-2">
-            <Icon icon="mdi:download" width={20} />
-            <span>Download Model</span>
-          </div>
-        )}
-      </Button>
+          )}
+        </Button>
+      )}
     </div>
   );
 }
 
-function useModelDownload(model: SupportedSttModel, onComplete: () => void) {
+function useModelDownload(model: SupportedSttModel) {
   const [progress, setProgress] = useState(0);
   const [isStarting, setIsStarting] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -207,15 +207,8 @@ function useModelDownload(model: SupportedSttModel, onComplete: () => void) {
       setProgress(0);
       handleSelectProvider("hyprnote");
       handleSelectModel(model);
-      onComplete();
     }
-  }, [
-    isDownloaded.data,
-    model,
-    onComplete,
-    handleSelectModel,
-    handleSelectProvider,
-  ]);
+  }, [isDownloaded.data, model, handleSelectModel, handleSelectProvider]);
 
   const handleDownload = useCallback(() => {
     if (isDownloaded.data || isDownloading.data || isStarting) {

@@ -89,6 +89,7 @@ import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/do
 import { Route as ViewDownloadLinuxRouteImport } from './routes/_view/download/linux'
 import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
 import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
+import { Route as ViewDownloadAppleRouteImport } from './routes/_view/download/apple'
 import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
 import { Route as ViewCompanyHandbookSplatRouteImport } from './routes/_view/company-handbook/$'
 import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
@@ -507,6 +508,11 @@ const ViewDownloadAppleIntelRoute = ViewDownloadAppleIntelRouteImport.update({
   path: '/download/apple-intel',
   getParentRoute: () => ViewRouteRoute,
 } as any)
+const ViewDownloadAppleRoute = ViewDownloadAppleRouteImport.update({
+  id: '/download/apple',
+  path: '/download/apple',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
 const ViewDocsSplatRoute = ViewDocsSplatRouteImport.update({
   id: '/$',
   path: '/$',
@@ -603,6 +609,7 @@ export interface FileRoutesByFullPath {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
+  '/download/apple': typeof ViewDownloadAppleRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/download/linux': typeof ViewDownloadLinuxRoute
@@ -692,6 +699,7 @@ export interface FileRoutesByTo {
   '/changelog/$slug': typeof ViewChangelogSlugRoute
   '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/docs/$': typeof ViewDocsSplatRoute
+  '/download/apple': typeof ViewDownloadAppleRoute
   '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/download/linux': typeof ViewDownloadLinuxRoute
@@ -786,6 +794,7 @@ export interface FileRoutesById {
   '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
   '/_view/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
   '/_view/docs/$': typeof ViewDocsSplatRoute
+  '/_view/download/apple': typeof ViewDownloadAppleRoute
   '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
   '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
   '/_view/download/linux': typeof ViewDownloadLinuxRoute
@@ -880,6 +889,7 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
+    | '/download/apple'
     | '/download/apple-intel'
     | '/download/apple-silicon'
     | '/download/linux'
@@ -969,6 +979,7 @@ export interface FileRouteTypes {
     | '/changelog/$slug'
     | '/company-handbook/$'
     | '/docs/$'
+    | '/download/apple'
     | '/download/apple-intel'
     | '/download/apple-silicon'
     | '/download/linux'
@@ -1062,6 +1073,7 @@ export interface FileRouteTypes {
     | '/_view/changelog/$slug'
     | '/_view/company-handbook/$'
     | '/_view/docs/$'
+    | '/_view/download/apple'
     | '/_view/download/apple-intel'
     | '/_view/download/apple-silicon'
     | '/_view/download/linux'
@@ -1699,6 +1711,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport
       parentRoute: typeof ViewRouteRoute
     }
+    '/_view/download/apple': {
+      id: '/_view/download/apple'
+      path: '/download/apple'
+      fullPath: '/download/apple'
+      preLoaderRoute: typeof ViewDownloadAppleRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
     '/_view/docs/$': {
       id: '/_view/docs/$'
       path: '/$'
@@ -1847,6 +1866,7 @@ interface ViewRouteRouteChildren {
   ViewBlogSlugRoute: typeof ViewBlogSlugRoute
   ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
   ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
+  ViewDownloadAppleRoute: typeof ViewDownloadAppleRoute
   ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
   ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
   ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute
@@ -1916,6 +1936,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBlogSlugRoute: ViewBlogSlugRoute,
   ViewCallbackAuthRoute: ViewCallbackAuthRoute,
   ViewChangelogSlugRoute: ViewChangelogSlugRoute,
+  ViewDownloadAppleRoute: ViewDownloadAppleRoute,
   ViewDownloadAppleIntelRoute: ViewDownloadAppleIntelRoute,
   ViewDownloadAppleSiliconRoute: ViewDownloadAppleSiliconRoute,
   ViewDownloadLinuxRoute: ViewDownloadLinuxRoute,

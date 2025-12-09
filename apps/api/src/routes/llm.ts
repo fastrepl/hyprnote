@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/bun";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { validator } from "hono-openapi/zod";
@@ -6,7 +5,6 @@ import { z } from "zod";
 
 import type { AppBindings } from "../hono-bindings";
 import { getModels, openai } from "../integration/openrouter";
-import { Metrics } from "../metrics";
 import { API_TAGS } from "./constants";
 
 const REQUEST_TIMEOUT_MS = 120_000;
@@ -62,14 +60,18 @@ llm.post(
   async (c) => {
     const requestBody = c.req.valid("json");
     const span = c.get("sentrySpan");
+    const emit = c.get("emit");
+    const userId = c.get("supabaseUserId");
 
+    const model = "openrouter/auto";
     const toolChoice = requestBody.tool_choice;
     const needsToolCalling =
       Array.isArray(requestBody.tools) &&
       !(typeof toolChoice === "string" && toolChoice === "none");
+    const streaming = requestBody.stream ?? false;
 
     span?.setAttribute("chat.tool_calling", needsToolCalling);
-    span?.setAttribute("chat.streaming", requestBody.stream ?? false);
+    span?.setAttribute("chat.streaming", streaming);
 
     const {
       model: _,
@@ -94,7 +96,7 @@ llm.post(
 
     try {
       const baseParams = {
-        model: "openrouter/auto",
+        model,
         messages,
         tools,
         tool_choice,
@@ -111,7 +113,12 @@ llm.post(
           { signal },
         );
 
-        Metrics.upstreamLatency("openrouter", performance.now() - startTime);
+        emit({
+          type: "llm.request.success",
+          userId,
+          model,
+          durationMs: performance.now() - startTime,
+        });
 
         const encoder = new TextEncoder();
         const streamStartTime = performance.now();
@@ -124,10 +131,12 @@ llm.post(
               if (done || signal.aborted) {
                 if (!signal.aborted) {
                   controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-                  Metrics.upstreamStreamDuration(
-                    "openrouter",
-                    performance.now() - streamStartTime,
-                  );
+                  emit({
+                    type: "llm.stream.complete",
+                    userId,
+                    model,
+                    durationMs: performance.now() - streamStartTime,
+                  });
                 }
                 controller.close();
                 return;
@@ -137,7 +146,14 @@ llm.post(
               );
             } catch (error) {
               if (!signal.aborted) {
-                Sentry.captureException(error, { tags: { streaming: true } });
+                emit({
+                  type: "llm.request.error",
+                  userId,
+                  model,
+                  error:
+                    error instanceof Error ? error : new Error(String(error)),
+                  durationMs: performance.now() - streamStartTime,
+                });
                 const errorEvent = {
                   error: {
                     message:
@@ -171,12 +187,15 @@ llm.post(
         { signal },
       );
 
-      Metrics.upstreamLatency("openrouter", performance.now() - startTime);
+      emit({
+        type: "llm.request.success",
+        userId,
+        model,
+        durationMs: performance.now() - startTime,
+      });
 
       return c.json(response, 200);
     } catch (error) {
-      Metrics.upstreamLatency("openrouter", performance.now() - startTime);
-
       if (signal.aborted) {
         const isTimeout = timeoutController.signal.aborted;
         return new Response(
@@ -185,11 +204,14 @@ llm.post(
         );
       }
 
-      const isAPIError =
-        error instanceof Error &&
-        "status" in error &&
-        typeof (error as { status?: number }).status === "number";
-      const status = isAPIError ? (error as { status: number }).status : 500;
+      emit({
+        type: "llm.request.error",
+        userId,
+        model,
+        error: error instanceof Error ? error : new Error(String(error)),
+        durationMs: performance.now() - startTime,
+      });
+
       throw error;
     } finally {
       clearTimeout(timeoutId);

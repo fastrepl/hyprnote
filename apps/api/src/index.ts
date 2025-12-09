@@ -13,6 +13,7 @@ import { env } from "./env";
 import type { AppBindings } from "./hono-bindings";
 import {
   loadTestOverride,
+  observabilityMiddleware,
   sentryMiddleware,
   supabaseAuthMiddleware,
   verifyStripeWebhook,
@@ -22,6 +23,7 @@ import { API_TAGS, routes } from "./routes";
 const app = new Hono<AppBindings>();
 
 app.use(sentryMiddleware);
+app.use(observabilityMiddleware);
 app.use(logger());
 app.use(bodyLimit({ maxSize: 1024 * 1024 * 5 }));
 

@@ -1,11 +1,9 @@
-import * as Sentry from "@sentry/bun";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 import { z } from "zod";
 
 import type { AppBindings } from "../hono-bindings";
-import { Metrics } from "../metrics";
 import { API_TAGS } from "./constants";
 
 const WebSocketErrorSchema = z.object({
@@ -155,6 +153,10 @@ stt.post(
     const { transcribeBatch } = await import("../stt");
     type BatchProvider = "deepgram" | "assemblyai" | "soniox";
 
+    const emit = c.get("emit");
+    const userId = c.get("supabaseUserId");
+    const span = c.get("sentrySpan");
+
     const clientUrl = new URL(c.req.url, "http://localhost");
     const provider =
       (clientUrl.searchParams.get("provider") as BatchProvider) ?? "deepgram";
@@ -166,54 +168,56 @@ stt.post(
     const contentType =
       c.req.header("content-type") ?? "application/octet-stream";
 
-    return Sentry.startSpan(
-      { op: "http.client", name: `stt.batch.${provider}` },
-      async (span) => {
-        const startTime = performance.now();
+    const startTime = performance.now();
 
-        try {
-          const audioData = await c.req.arrayBuffer();
+    try {
+      const audioData = await c.req.arrayBuffer();
 
-          if (!audioData || audioData.byteLength === 0) {
-            return c.json(
-              { error: "missing_audio_data", detail: "Request body is empty" },
-              400,
-            );
-          }
+      if (!audioData || audioData.byteLength === 0) {
+        return c.json(
+          { error: "missing_audio_data", detail: "Request body is empty" },
+          400,
+        );
+      }
 
-          span.setAttribute("stt.provider", provider);
-          span.setAttribute("stt.audio_size", audioData.byteLength);
+      span?.setAttribute("stt.provider", provider);
+      span?.setAttribute("stt.audio_size", audioData.byteLength);
 
-          const response = await transcribeBatch(
-            provider,
-            audioData,
-            contentType,
-            { languages, keywords, model },
-          );
+      const response = await transcribeBatch(provider, audioData, contentType, {
+        languages,
+        keywords,
+        model,
+      });
 
-          Metrics.upstreamLatency(provider, performance.now() - startTime);
-          span.setAttribute("http.status_code", 200);
+      emit({
+        type: "stt.batch.success",
+        userId,
+        provider,
+        durationMs: performance.now() - startTime,
+      });
 
-          return c.json(response, 200);
-        } catch (error) {
-          Metrics.upstreamLatency(provider, performance.now() - startTime);
+      span?.setAttribute("http.status_code", 200);
 
-          const errorMessage =
-            error instanceof Error ? error.message : "unknown error";
-          const isUpstreamError = errorMessage.includes("failed:");
+      return c.json(response, 200);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "unknown error";
+      const isUpstreamError = errorMessage.includes("failed:");
 
-          Sentry.captureException(error, {
-            tags: { provider, operation: "batch_transcribe" },
-          });
+      emit({
+        type: "stt.batch.error",
+        userId,
+        provider,
+        error: error instanceof Error ? error : new Error(String(error)),
+        durationMs: performance.now() - startTime,
+      });
 
-          span.setAttribute("http.status_code", isUpstreamError ? 502 : 500);
+      span?.setAttribute("http.status_code", isUpstreamError ? 502 : 500);
 
-          return c.json(
-            { error: "transcription_failed", detail: errorMessage },
-            isUpstreamError ? 502 : 500,
-          );
-        }
-      },
-    );
+      return c.json(
+        { error: "transcription_failed", detail: errorMessage },
+        isUpstreamError ? 502 : 500,
+      );
+    }
   },
 );

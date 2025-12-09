@@ -1,10 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Play } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import NoteEditor, { type JSONContent } from "@hypr/tiptap/editor";
 import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 import "@hypr/tiptap/styles.css";
+import { cn } from "@hypr/utils";
 
 import {
   FileInfo,
@@ -27,15 +29,73 @@ export const Route = createFileRoute("/_view/app/file-transcription")({
 
 function Component() {
   const [file, setFile] = useState<File | null>(null);
+  const [fileId, setFileId] = useState<string | null>(null);
   const [pipelineId, setPipelineId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const [noteContent, setNoteContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const uploadMutation = useMutation({
+    mutationFn: async (selectedFile: File) => {
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result?.toString().split(",")[1];
+          if (!result) {
+            reject(new Error("Failed to read file"));
+          } else {
+            resolve(result);
+          }
+        };
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(selectedFile);
+      });
+
+      const uploadResult = await uploadAudioFile({
+        data: {
+          fileName: selectedFile.name,
+          fileType: selectedFile.type,
+          fileData: base64Data,
+        },
+      });
+
+      if ("error" in uploadResult && uploadResult.error) {
+        throw new Error(uploadResult.message || "Failed to upload file");
+      }
+      if (!("fileId" in uploadResult)) {
+        throw new Error("Failed to get file ID");
+      }
+
+      return uploadResult.fileId;
+    },
+    onSuccess: (newFileId) => {
+      setFileId(newFileId);
+    },
+  });
+
+  const startPipelineMutation = useMutation({
+    mutationFn: async (fileIdArg: string) => {
+      const pipelineResult = await startAudioPipeline({
+        data: { fileId: fileIdArg },
+      });
+
+      if ("error" in pipelineResult && pipelineResult.error) {
+        throw new Error(pipelineResult.message || "Failed to start pipeline");
+      }
+      if (!("pipelineId" in pipelineResult)) {
+        throw new Error("Failed to get pipeline ID");
+      }
+
+      return pipelineResult.pipelineId;
+    },
+    onSuccess: (newPipelineId) => {
+      setPipelineId(newPipelineId);
+    },
+  });
 
   const pipelineStatusQuery = useQuery({
     queryKey: ["audioPipelineStatus", pipelineId],
@@ -70,8 +130,11 @@ function Component() {
   }, [pipelineStatusQuery.data]);
 
   const isProcessing =
-    !!pipelineId &&
-    !["DONE", "ERROR"].includes(pipelineStatusQuery.data?.status ?? "");
+    (!!pipelineId &&
+      !["DONE", "ERROR"].includes(pipelineStatusQuery.data?.status ?? "")) ||
+    startPipelineMutation.isPending;
+
+  const pipelineStatus = pipelineStatusQuery.data?.status;
 
   const status = (() => {
     if (pipelineStatusQuery.data?.status === "ERROR") {
@@ -80,86 +143,64 @@ function Component() {
     if (pipelineStatusQuery.data?.status === "DONE" || transcript) {
       return "done" as const;
     }
-    if (pipelineId) {
+    if (pipelineStatus === "LLM_RUNNING") {
+      return "summarizing" as const;
+    }
+    if (pipelineStatus === "TRANSCRIBED") {
+      return "summarizing" as const;
+    }
+    if (pipelineStatus === "TRANSCRIBING") {
       return "transcribing" as const;
+    }
+    if (pipelineStatus === "QUEUED" || pipelineId) {
+      return "queued" as const;
+    }
+    if (uploadMutation.isPending) {
+      return "uploading" as const;
+    }
+    if (fileId) {
+      return "uploaded" as const;
     }
     return "idle" as const;
   })();
 
   const errorMessage =
-    uploadError ??
+    (uploadMutation.error instanceof Error
+      ? uploadMutation.error.message
+      : null) ??
+    (startPipelineMutation.error instanceof Error
+      ? startPipelineMutation.error.message
+      : null) ??
     (pipelineStatusQuery.isError && pipelineStatusQuery.error instanceof Error
       ? pipelineStatusQuery.error.message
       : null) ??
     (pipelineStatusQuery.data?.status === "ERROR"
-      ? pipelineStatusQuery.data.error
+      ? (pipelineStatusQuery.data.error ?? null)
       : null);
 
-  const handleFileSelect = async (selectedFile: File) => {
+  const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
-    setTranscript(null);
-    setUploadError(null);
+    setFileId(null);
     setPipelineId(null);
+    setTranscript(null);
+    uploadMutation.reset();
+    startPipelineMutation.reset();
+    uploadMutation.mutate(selectedFile);
+  };
 
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(selectedFile);
-
-      reader.onload = async () => {
-        const base64Data = reader.result?.toString().split(",")[1];
-        if (!base64Data) {
-          setUploadError("Failed to read file");
-          return;
-        }
-
-        const uploadResult = await uploadAudioFile({
-          data: {
-            fileName: selectedFile.name,
-            fileType: selectedFile.type,
-            fileData: base64Data,
-          },
-        });
-
-        if ("error" in uploadResult && uploadResult.error) {
-          setUploadError(uploadResult.message || "Failed to upload file");
-          return;
-        }
-
-        if (!("fileId" in uploadResult)) {
-          setUploadError("Failed to get file ID");
-          return;
-        }
-
-        const pipelineResult = await startAudioPipeline({
-          data: {
-            fileId: uploadResult.fileId,
-          },
-        });
-
-        if ("error" in pipelineResult && pipelineResult.error) {
-          setUploadError(pipelineResult.message || "Failed to start pipeline");
-          return;
-        }
-
-        if ("pipelineId" in pipelineResult) {
-          setPipelineId(pipelineResult.pipelineId);
-        }
-      };
-
-      reader.onerror = () => {
-        setUploadError("Failed to read file");
-      };
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Unknown error");
-    }
+  const handleStartTranscription = () => {
+    if (!fileId) return;
+    startPipelineMutation.mutate(fileId);
   };
 
   const handleRemoveFile = () => {
     setFile(null);
-    setTranscript(null);
-    setUploadError(null);
+    setFileId(null);
     setPipelineId(null);
+    setTranscript(null);
     setNoteContent(EMPTY_TIPTAP_DOC);
+    uploadMutation.reset();
+    startPipelineMutation.reset();
   };
 
   const mentionConfig = useMemo(
@@ -224,11 +265,32 @@ function Component() {
                       disabled={isProcessing}
                     />
                   ) : (
-                    <FileInfo
-                      fileName={file.name}
-                      fileSize={file.size}
-                      onRemove={handleRemoveFile}
-                    />
+                    <div className="space-y-4">
+                      <FileInfo
+                        fileName={file.name}
+                        fileSize={file.size}
+                        onRemove={handleRemoveFile}
+                        isUploading={uploadMutation.isPending}
+                        isProcessing={isProcessing}
+                      />
+                      {status === "uploaded" && (
+                        <button
+                          onClick={handleStartTranscription}
+                          className={cn([
+                            "w-full flex items-center justify-center gap-2",
+                            "px-4 py-3 rounded-lg",
+                            "bg-gradient-to-t from-stone-600 to-stone-500",
+                            "text-white font-medium",
+                            "shadow-md hover:shadow-lg",
+                            "hover:scale-[101%] active:scale-[99%]",
+                            "transition-all",
+                          ])}
+                        >
+                          <Play size={18} />
+                          Start Transcription
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   <div>

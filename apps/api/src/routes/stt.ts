@@ -4,6 +4,8 @@ import { resolver } from "hono-openapi/zod";
 import { z } from "zod";
 
 import type { AppBindings } from "../hono-bindings";
+import { listenSocketHandler } from "../listen";
+import { transcribeBatch } from "../stt";
 import { API_TAGS } from "./constants";
 
 const WebSocketErrorSchema = z.object({
@@ -92,8 +94,7 @@ stt.get(
       },
     },
   }),
-  async (c, next) => {
-    const { listenSocketHandler } = await import("../listen");
+  (c, next) => {
     return listenSocketHandler(c, next);
   },
 );
@@ -150,7 +151,6 @@ stt.post(
     },
   }),
   async (c) => {
-    const { transcribeBatch } = await import("../stt");
     type BatchProvider = "deepgram" | "assemblyai" | "soniox";
 
     const emit = c.get("emit");

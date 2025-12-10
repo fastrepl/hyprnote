@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { getRpcCanStartTrial } from "@hypr/api-client";
+import { createClient } from "@hypr/api-client/client";
+
 import { env } from "@/env";
 import { getStripeClient } from "@/functions/stripe";
 import { getSupabaseServerClient } from "@/functions/supabase";
@@ -189,3 +192,97 @@ export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(
     };
   },
 );
+
+export const canStartTrial = createServerFn({ method: "POST" }).handler(
+  async () => {
+    const supabase = getSupabaseServerClient();
+    const { data: sessionData } = await supabase.auth.getSession();
+
+    if (!sessionData.session) {
+      return false;
+    }
+
+    const client = createClient({
+      baseUrl: env.VITE_API_URL,
+      headers: {
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
+
+    const { data, error } = await getRpcCanStartTrial({ client });
+
+    if (error) {
+      console.error("can_start_trial error:", error);
+      return false;
+    }
+
+    return data?.canStartTrial ?? false;
+  },
+);
+
+export const createTrialCheckoutSession = createServerFn({
+  method: "POST",
+}).handler(async () => {
+  const supabase = getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const stripe = getStripeClient();
+
+  let stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
+    id: user.id,
+    user_metadata: user.user_metadata,
+  });
+
+  if (!stripeCustomerId) {
+    const newCustomer = await stripe.customers.create({
+      email: user.email,
+      metadata: {
+        userId: user.id,
+      },
+    });
+
+    await Promise.all([
+      supabase.auth.updateUser({
+        data: {
+          stripe_customer_id: newCustomer.id,
+        },
+      }),
+      supabase
+        .from("profiles")
+        .update({ stripe_customer_id: newCustomer.id })
+        .eq("id", user.id),
+    ]);
+
+    stripeCustomerId = newCustomer.id;
+  }
+
+  const checkout = await stripe.checkout.sessions.create({
+    customer: stripeCustomerId,
+    mode: "subscription",
+    payment_method_collection: "if_required",
+    line_items: [
+      {
+        price: env.STRIPE_MONTHLY_PRICE_ID,
+        quantity: 1,
+      },
+    ],
+    subscription_data: {
+      trial_period_days: 14,
+      trial_settings: {
+        end_behavior: {
+          missing_payment_method: "cancel",
+        },
+      },
+    },
+    success_url: `${env.VITE_APP_URL}/app/account?trial=started`,
+    cancel_url: `${env.VITE_APP_URL}/app/account`,
+  });
+
+  return { url: checkout.url };
+});

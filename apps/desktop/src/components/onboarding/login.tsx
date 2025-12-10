@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { postBillingStartTrial } from "@hypr/api-client";
+import { createClient, createConfig } from "@hypr/api-client/client";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
@@ -26,9 +28,16 @@ export function Login({ onNext }: LoginProps) {
     if (auth?.session && !trialStarted.current) {
       trialStarted.current = true;
 
-      fetch(`${env.VITE_API_URL}/billing/start-trial`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${auth.session.access_token}` },
+      const client = createClient(
+        createConfig({
+          baseUrl: env.VITE_API_URL,
+          headers: { Authorization: `Bearer ${auth.session.access_token}` },
+        }),
+      );
+
+      postBillingStartTrial({
+        client,
+        query: { interval: "yearly" },
       }).finally(() => {
         onNext({ local: false });
       });

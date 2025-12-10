@@ -3,6 +3,8 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
+import { getRpcCanStartTrial } from "@hypr/api-client";
+import { createClient } from "@hypr/api-client/client";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
@@ -156,17 +158,19 @@ function BillingButton() {
   const { isPro } = useBillingAccess();
 
   const canTrialQuery = useQuery({
-    enabled: !!auth?.supabase && !isPro,
+    enabled: !!auth?.session && !isPro,
     queryKey: [auth?.session?.user.id ?? "", "canStartTrial"],
     queryFn: async () => {
-      if (!auth?.supabase) {
+      const headers = auth?.getHeaders();
+      if (!headers) {
         return false;
       }
-      const { data, error } = await auth.supabase.rpc("can_start_trial");
+      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
+      const { data, error } = await getRpcCanStartTrial({ client });
       if (error) {
-        throw error;
+        return false;
       }
-      return data as boolean;
+      return data?.canStartTrial ?? false;
     },
   });
 

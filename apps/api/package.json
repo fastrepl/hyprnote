@@ -10,6 +10,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@hypr/api-client": "workspace:*",
     "@hono/zod-validator": "^0.7.5",
     "@posthog/ai": "^7.2.1",
     "@scalar/hono-api-reference": "^0.5.184",

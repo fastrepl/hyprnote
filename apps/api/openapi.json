@@ -241,6 +241,36 @@
         }
       }
     },
+    "/rpc/can-start-trial": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "canStartTrial": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "canStartTrial"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getRpcCan-start-trial",
+        "tags": [
+          "internal"
+        ],
+        "parameters": []
+      }
+    },
     "/listen": {
       "get": {
         "responses": {

@@ -16,8 +16,6 @@ specta-typescript = { workspace = true }
 [dependencies]
 tauri-plugin-shell = { workspace = true }
 
-hypr-calendar-interface = { workspace = true }
-
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 

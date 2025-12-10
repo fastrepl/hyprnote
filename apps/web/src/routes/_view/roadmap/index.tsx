@@ -1,7 +1,5 @@
-import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { allRoadmaps } from "content-collections";
 import { useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -9,11 +7,19 @@ import { cn } from "@hypr/utils";
 import { DownloadButton } from "@/components/download-button";
 import { GithubStars } from "@/components/github-stars";
 import { Image } from "@/components/image";
-import { MDXLink } from "@/components/mdx";
+import {
+  fetchRoadmapItems,
+  type RoadmapItem,
+  toggleVote,
+} from "@/functions/roadmap";
 import { getPlatformCTA, usePlatform } from "@/hooks/use-platform";
 
 export const Route = createFileRoute("/_view/roadmap/")({
   component: Component,
+  loader: async () => {
+    const items = await fetchRoadmapItems();
+    return { items };
+  },
   head: () => ({
     meta: [
       { title: "Roadmap - Hyprnote" },
@@ -28,39 +34,41 @@ export const Route = createFileRoute("/_view/roadmap/")({
 
 type RoadmapStatus = "done" | "in-progress" | "todo";
 
-type RoadmapItem = {
-  slug: string;
-  title: string;
-  status: RoadmapStatus;
-  labels: string[];
-  githubIssues: string[];
-  created: string;
-  updated?: string;
-  mdx: string;
-};
-
 const DEFAULT_VISIBLE_ITEMS = 5;
 
-function getRoadmapItems(): RoadmapItem[] {
-  return allRoadmaps.map((item) => ({
-    slug: item.slug,
-    title: item.title,
-    status: item.status,
-    labels: item.labels || [],
-    githubIssues: item.githubIssues || [],
-    created: item.created,
-    updated: item.updated,
-    mdx: item.mdx,
-  }));
-}
-
 function Component() {
-  const items = getRoadmapItems();
+  const { items: initialItems } = Route.useLoaderData();
+  const [items, setItems] = useState<RoadmapItem[]>(initialItems);
   const heroInputRef = useRef<HTMLInputElement>(null);
 
   const done = items.filter((item) => item.status === "done");
   const inProgress = items.filter((item) => item.status === "in-progress");
   const todo = items.filter((item) => item.status === "todo");
+
+  const handleVote = async (itemId: string) => {
+    const result = await toggleVote({ data: { roadmapItemId: itemId } });
+
+    if ("error" in result && result.error) {
+      return;
+    }
+
+    if ("success" in result && result.success) {
+      setItems((prev) =>
+        prev.map((item) => {
+          if (item.id === itemId) {
+            return {
+              ...item,
+              vote_count: result.voted
+                ? item.vote_count + 1
+                : item.vote_count - 1,
+              user_has_voted: result.voted ?? false,
+            };
+          }
+          return item;
+        }),
+      );
+    }
+  };
 
   return (
     <div
@@ -79,8 +87,18 @@ function Component() {
             </p>
           </header>
 
-          <KanbanView done={done} inProgress={inProgress} todo={todo} />
-          <ColumnView done={done} inProgress={inProgress} todo={todo} />
+          <KanbanView
+            done={done}
+            inProgress={inProgress}
+            todo={todo}
+            onVote={handleVote}
+          />
+          <ColumnView
+            done={done}
+            inProgress={inProgress}
+            todo={todo}
+            onVote={handleVote}
+          />
 
           <CTASection heroInputRef={heroInputRef} />
         </div>
@@ -93,10 +111,12 @@ function KanbanView({
   done,
   inProgress,
   todo,
+  onVote,
 }: {
   done: RoadmapItem[];
   inProgress: RoadmapItem[];
   todo: RoadmapItem[];
+  onVote: (itemId: string) => void;
 }) {
   return (
     <div className="hidden lg:grid lg:grid-cols-3 gap-6">
@@ -106,6 +126,7 @@ function KanbanView({
         iconColor="text-neutral-400"
         items={todo}
         status="todo"
+        onVote={onVote}
       />
       <KanbanColumn
         title="In Progress"
@@ -113,6 +134,7 @@ function KanbanView({
         iconColor="text-blue-600"
         items={inProgress}
         status="in-progress"
+        onVote={onVote}
       />
       <KanbanColumn
         title="Done"
@@ -120,6 +142,7 @@ function KanbanView({
         iconColor="text-green-600"
         items={done}
         status="done"
+        onVote={onVote}
       />
     </div>
   );
@@ -131,15 +154,20 @@ function KanbanColumn({
   iconColor,
   items,
   status,
+  onVote,
 }: {
   title: string;
   icon: string;
   iconColor: string;
   items: RoadmapItem[];
   status: RoadmapStatus;
+  onVote: (itemId: string) => void;
 }) {
   const [showAll, setShowAll] = useState(false);
-  const visibleItems = showAll ? items : items.slice(0, DEFAULT_VISIBLE_ITEMS);
+  const sortedItems = [...items].sort((a, b) => b.vote_count - a.vote_count);
+  const visibleItems = showAll
+    ? sortedItems
+    : sortedItems.slice(0, DEFAULT_VISIBLE_ITEMS);
   const hasMore = items.length > DEFAULT_VISIBLE_ITEMS;
 
   return (
@@ -164,7 +192,7 @@ function KanbanColumn({
           </div>
         ) : (
           visibleItems.map((item) => (
-            <RoadmapCard key={item.slug} item={item} compact />
+            <RoadmapCard key={item.id} item={item} compact onVote={onVote} />
           ))
         )}
         {hasMore && (
@@ -189,10 +217,12 @@ function ColumnView({
   done,
   inProgress,
   todo,
+  onVote,
 }: {
   done: RoadmapItem[];
   inProgress: RoadmapItem[];
   todo: RoadmapItem[];
+  onVote: (itemId: string) => void;
 }) {
   return (
     <div className="lg:hidden space-y-12">
@@ -201,18 +231,21 @@ function ColumnView({
         icon="mdi:calendar-clock"
         iconColor="text-neutral-400"
         items={todo}
+        onVote={onVote}
       />
       <ColumnSection
         title="In Progress"
         icon="mdi:progress-clock"
         iconColor="text-blue-600"
         items={inProgress}
+        onVote={onVote}
       />
       <ColumnSection
         title="Done"
         icon="mdi:check-circle"
         iconColor="text-green-600"
         items={done}
+        onVote={onVote}
       />
     </div>
   );
@@ -223,15 +256,20 @@ function ColumnSection({
   icon,
   iconColor,
   items,
+  onVote,
 }: {
   title: string;
   icon: string;
   iconColor: string;
   items: RoadmapItem[];
+  onVote: (itemId: string) => void;
 }) {
   const [showAll, setShowAll] = useState(false);
   const mobileLimit = 3;
-  const visibleItems = showAll ? items : items.slice(0, mobileLimit);
+  const sortedItems = [...items].sort((a, b) => b.vote_count - a.vote_count);
+  const visibleItems = showAll
+    ? sortedItems
+    : sortedItems.slice(0, mobileLimit);
   const hasMore = items.length > mobileLimit;
 
   if (items.length === 0) {
@@ -247,7 +285,7 @@ function ColumnSection({
       </div>
       <div className="space-y-4">
         {visibleItems.map((item) => (
-          <RoadmapCard key={item.slug} item={item} />
+          <RoadmapCard key={item.id} item={item} onVote={onVote} />
         ))}
         {hasMore && (
           <button
@@ -271,21 +309,56 @@ function ColumnSection({
 function RoadmapCard({
   item,
   compact = false,
+  onVote,
 }: {
   item: RoadmapItem;
   compact?: boolean;
+  onVote: (itemId: string) => void;
 }) {
+  const [isVoting, setIsVoting] = useState(false);
+
+  const handleVoteClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isVoting) return;
+
+    setIsVoting(true);
+    try {
+      await onVote(item.id);
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
   return (
     <Link
       to="/roadmap/$slug"
-      params={{ slug: item.slug }}
+      params={{ slug: item.id }}
       className={cn([
         "block p-4 border border-neutral-200 rounded-sm bg-white",
         "hover:shadow-sm hover:border-neutral-300 transition-all",
         "group",
       ])}
     >
-      <div className="flex items-start gap-3 mb-3">
+      <div className="flex items-start gap-3">
+        <button
+          onClick={handleVoteClick}
+          disabled={isVoting}
+          className={cn([
+            "flex flex-col items-center justify-center px-2 py-1 rounded",
+            "border transition-all min-w-[48px]",
+            item.user_has_voted
+              ? "bg-amber-50 border-amber-200 text-amber-700"
+              : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:border-amber-200 hover:bg-amber-50",
+            isVoting && "opacity-50 cursor-not-allowed",
+          ])}
+        >
+          <Icon
+            icon={item.user_has_voted ? "mdi:thumb-up" : "mdi:thumb-up-outline"}
+            className="text-lg"
+          />
+          <span className="text-xs font-medium">{item.vote_count}</span>
+        </button>
         <div className="flex-1 min-w-0">
           <h3
             className={cn([
@@ -313,13 +386,13 @@ function RoadmapCard({
               )}
             </div>
           )}
+          {!compact && item.description && (
+            <p className="mt-2 text-sm text-neutral-600 line-clamp-2">
+              {item.description}
+            </p>
+          )}
         </div>
       </div>
-      {!compact && (
-        <div className="prose prose-sm prose-stone max-w-none wrap-break-word">
-          <MDXContent code={item.mdx} components={{ a: MDXLink }} />
-        </div>
-      )}
     </Link>
   );
 }

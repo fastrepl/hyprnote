@@ -1,17 +1,19 @@
-import { MDXContent } from "@content-collections/mdx/react";
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { allRoadmaps } from "content-collections";
+import { useState } from "react";
 
 import { cn } from "@hypr/utils";
 
-import { Image } from "@/components/image";
-import { MDXLink, Mermaid, Tweet } from "@/components/mdx";
+import {
+  fetchRoadmapItem,
+  type RoadmapItem,
+  toggleVote,
+} from "@/functions/roadmap";
 
 export const Route = createFileRoute("/_view/roadmap/$slug")({
   component: Component,
   loader: async ({ params }) => {
-    const item = allRoadmaps.find((r) => r.slug === params.slug);
+    const item = await fetchRoadmapItem({ data: { id: params.slug } });
     if (!item) {
       throw notFound();
     }
@@ -23,7 +25,7 @@ export const Route = createFileRoute("/_view/roadmap/$slug")({
     }
 
     const { item } = loaderData;
-    const url = `https://hyprnote.com/roadmap/${item.slug}`;
+    const url = `https://hyprnote.com/roadmap/${item.id}`;
 
     return {
       meta: [
@@ -48,7 +50,9 @@ export const Route = createFileRoute("/_view/roadmap/$slug")({
 });
 
 function Component() {
-  const { item } = Route.useLoaderData();
+  const { item: initialItem } = Route.useLoaderData();
+  const [item, setItem] = useState<RoadmapItem>(initialItem);
+  const [isVoting, setIsVoting] = useState(false);
 
   const statusConfig = {
     done: {
@@ -71,6 +75,25 @@ function Component() {
 
   const status = statusConfig[item.status];
 
+  const handleVote = async () => {
+    if (isVoting) return;
+
+    setIsVoting(true);
+    try {
+      const result = await toggleVote({ data: { roadmapItemId: item.id } });
+
+      if ("success" in result && result.success) {
+        setItem((prev) => ({
+          ...prev,
+          vote_count: result.voted ? prev.vote_count + 1 : prev.vote_count - 1,
+          user_has_voted: result.voted ?? false,
+        }));
+      }
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
   return (
     <div
       className="bg-linear-to-b from-white via-stone-50/20 to-white"
@@ -87,9 +110,33 @@ function Component() {
 
         <article>
           <header className="mb-8">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 mb-4">
-              {item.title}
-            </h1>
+            <div className="flex items-start gap-4 mb-4">
+              <button
+                onClick={handleVote}
+                disabled={isVoting}
+                className={cn([
+                  "flex flex-col items-center justify-center px-3 py-2 rounded-lg",
+                  "border transition-all min-w-[64px]",
+                  item.user_has_voted
+                    ? "bg-amber-50 border-amber-200 text-amber-700"
+                    : "bg-neutral-50 border-neutral-200 text-neutral-600 hover:border-amber-200 hover:bg-amber-50",
+                  isVoting && "opacity-50 cursor-not-allowed",
+                ])}
+              >
+                <Icon
+                  icon={
+                    item.user_has_voted
+                      ? "mdi:thumb-up"
+                      : "mdi:thumb-up-outline"
+                  }
+                  className="text-2xl"
+                />
+                <span className="text-sm font-medium">{item.vote_count}</span>
+              </button>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 flex-1">
+                {item.title}
+              </h1>
+            </div>
 
             <div className="flex items-center gap-2 mb-4 flex-wrap">
               <span
@@ -115,25 +162,25 @@ function Component() {
             </div>
 
             <div className="text-xs text-neutral-500 font-mono">
-              {item.updated && item.updated !== item.created ? (
+              {item.updated_at && item.updated_at !== item.created_at ? (
                 <span>
                   Updated{" "}
-                  {new Date(item.updated).toLocaleDateString("en-US", {
+                  {new Date(item.updated_at).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
                   })}{" "}
                   / Created{" "}
-                  {new Date(item.created).toLocaleDateString("en-US", {
+                  {new Date(item.created_at).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
                   })}
                 </span>
               ) : (
-                <time dateTime={item.created}>
+                <time dateTime={item.created_at}>
                   Created{" "}
-                  {new Date(item.created).toLocaleDateString("en-US", {
+                  {new Date(item.created_at).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
@@ -143,27 +190,19 @@ function Component() {
             </div>
           </header>
 
-          <div className="prose prose-stone prose-lg max-w-none prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8">
-            <MDXContent
-              code={item.mdx}
-              components={{
-                a: MDXLink,
-                Image,
-                img: Image,
-                mermaid: Mermaid,
-                Mermaid,
-                Tweet,
-              }}
-            />
-          </div>
+          {item.description && (
+            <div className="prose prose-stone prose-lg max-w-none mb-8">
+              <p>{item.description}</p>
+            </div>
+          )}
 
           <div className="mt-12 pt-8 border-t border-neutral-100">
             <h3 className="text-xl font-serif text-stone-600 mb-6">
               Related GitHub Issues
             </h3>
-            {item.githubIssues && item.githubIssues.length > 0 ? (
+            {item.github_issues && item.github_issues.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {item.githubIssues.map((url) => (
+                {item.github_issues.map((url) => (
                   <GitHubIssuePreview key={url} url={url} />
                 ))}
               </div>

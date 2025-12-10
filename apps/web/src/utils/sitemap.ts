@@ -322,25 +322,7 @@ export function getSitemap(): Sitemap<TRoutes> {
       },
 
       "/roadmap/$slug": async () => {
-        try {
-          const path = await import("path");
-          const url = await import("url");
-          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
-          const modulePath = path.resolve(
-            __dirname,
-            "../../.content-collections/generated/allRoadmaps.js",
-          );
-          const { default: allRoadmaps } = await import(modulePath);
-          return allRoadmaps.map((roadmap: any) => ({
-            path: `/roadmap/${roadmap.slug}`,
-            priority: 0.6,
-            changeFrequency: "weekly" as const,
-            lastModified: roadmap.updated || roadmap.created,
-          }));
-        } catch (error) {
-          console.warn("Failed to load roadmap items for sitemap:", error);
-          return [];
-        }
+        return [];
       },
 
       "/vs/$slug": async () => {

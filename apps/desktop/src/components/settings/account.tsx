@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
-import { getRpcCanStartTrial } from "@hypr/api-client";
+import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient } from "@hypr/api-client/client";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
@@ -145,7 +145,12 @@ export function SettingsAccount() {
       >
         <p className="text-sm text-neutral-600">
           Click{" "}
-          <span className="text-primary underline cursor-pointer">here</span>
+          <span
+            onClick={() => auth?.refreshSession()}
+            className="text-primary underline cursor-pointer"
+          >
+            here
+          </span>
           <span className="text-neutral-600"> to refresh plan status.</span>
         </p>
       </Container>
@@ -175,12 +180,30 @@ function BillingButton() {
     },
   });
 
+  const startTrialMutation = useMutation({
+    mutationFn: async () => {
+      const headers = auth?.getHeaders();
+      if (!headers) {
+        throw new Error("Not authenticated");
+      }
+      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
+      const { error } = await postBillingStartTrial({
+        client,
+        query: { interval: "monthly" },
+      });
+      if (error) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    },
+    onSuccess: async () => {
+      await auth?.refreshSession();
+    },
+  });
+
   const handleProUpgrade = useCallback(() => {
     openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
-  }, []);
-
-  const handleStartTrial = useCallback(() => {
-    openUrl(`${WEB_APP_BASE_URL}/app/checkout?trial=true`);
   }, []);
 
   const handleOpenAccount = useCallback(() => {
@@ -202,9 +225,12 @@ function BillingButton() {
 
   if (canTrialQuery.data) {
     return (
-      <Button variant="outline" onClick={handleStartTrial}>
-        <span>Start Pro Trial</span>
-        <ExternalLinkIcon className="text-neutral-600" size={12} />
+      <Button
+        variant="outline"
+        onClick={() => startTrialMutation.mutate()}
+        disabled={startTrialMutation.isPending}
+      >
+        <span> Start Pro Trial</span>
       </Button>
     );
   }

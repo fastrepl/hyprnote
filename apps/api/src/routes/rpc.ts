@@ -28,14 +28,30 @@ rpc.get(
   }),
   supabaseAuthMiddleware,
   async (c) => {
-    const supabase = c.get("supabaseClient")!;
+    const supabase = c.get("supabaseClient");
+    if (!supabase) {
+      return c.json({ error: "Supabase client missing" }, 500);
+    }
 
     const { data, error } = await supabase.rpc("can_start_trial");
 
     if (error) {
-      return c.json({ canStartTrial: false });
+      console.error("Supabase RPC error (can_start_trial):", {
+        message: error.message,
+        details: error.details,
+      });
+      return c.json({ error: "Internal server error" }, 500);
     }
 
-    return c.json({ canStartTrial: data as boolean });
+    if (typeof data !== "boolean") {
+      console.error("Unexpected RPC response type (can_start_trial):", {
+        expectedType: "boolean",
+        actualType: typeof data,
+        payload: data,
+      });
+      return c.json({ error: "Unexpected response from database" }, 502);
+    }
+
+    return c.json({ canStartTrial: data });
   },
 );

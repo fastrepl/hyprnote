@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/bun";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
@@ -36,8 +37,14 @@ billing.post(
   supabaseAuthMiddleware,
   async (c) => {
     const { interval } = c.req.valid("query");
-    const supabase = c.get("supabaseClient")!;
-    const userId = c.get("supabaseUserId")!;
+    const supabase = c.get("supabaseClient");
+    if (!supabase) {
+      return c.json({ error: "Supabase client missing" }, 500);
+    }
+    const userId = c.get("supabaseUserId");
+    if (!userId) {
+      return c.json({ error: "User ID missing" }, 500);
+    }
 
     const { data: canTrial, error: trialError } =
       await supabase.rpc("can_start_trial");
@@ -60,17 +67,28 @@ billing.post(
     if (!stripeCustomerId) {
       const { data: user } = await supabase.auth.getUser();
 
-      const newCustomer = await stripe.customers.create({
-        email: user.user?.email,
-        metadata: { userId },
-      });
+      const newCustomer = await stripe.customers.create(
+        { email: user.user?.email, metadata: { userId } },
+        { idempotencyKey: `create-customer-${userId}` },
+      );
 
       await supabase
         .from("profiles")
         .update({ stripe_customer_id: newCustomer.id })
-        .eq("id", userId);
+        .eq("id", userId)
+        .is("stripe_customer_id", null);
 
-      stripeCustomerId = newCustomer.id;
+      const { data: updated } = await supabase
+        .from("profiles")
+        .select("stripe_customer_id")
+        .eq("id", userId)
+        .single();
+
+      stripeCustomerId = updated?.stripe_customer_id;
+    }
+
+    if (!stripeCustomerId) {
+      return c.json({ error: "stripe_customer_id_missing" }, 500);
     }
 
     const priceId =
@@ -78,14 +96,37 @@ billing.post(
         ? env.STRIPE_YEARLY_PRICE_ID
         : env.STRIPE_MONTHLY_PRICE_ID;
 
-    await stripe.subscriptions.create({
-      customer: stripeCustomerId,
-      items: [{ price: priceId }],
-      trial_period_days: 14,
-      trial_settings: {
-        end_behavior: { missing_payment_method: "cancel" },
-      },
-    });
+    try {
+      await stripe.subscriptions.create(
+        {
+          customer: stripeCustomerId,
+          items: [{ price: priceId }],
+          trial_period_days: 14,
+          trial_settings: {
+            end_behavior: { missing_payment_method: "cancel" },
+          },
+        },
+        {
+          idempotencyKey: `trial-${userId}-${new Date().toISOString().slice(0, 10)}`,
+        },
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? `Failed to create Stripe subscription: ${error.message}`
+          : "Failed to create Stripe subscription: unknown error";
+      const errorDetails = error instanceof Error ? error.stack : String(error);
+
+      if (env.NODE_ENV !== "production") {
+        console.error(errorMessage, errorDetails);
+      } else {
+        Sentry.captureException(error, {
+          tags: { billing: "start_trial", operation: "create_subscription" },
+          extra: { userId, stripeCustomerId, priceId, errorDetails },
+        });
+      }
+      return c.json({ error: "failed_to_create_subscription" }, 500);
+    }
 
     return c.json({ started: true });
   },

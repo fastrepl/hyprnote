@@ -242,7 +242,7 @@ function ProfileButton({
   onClick: () => void;
 }) {
   const auth = useAuth();
-  const name = useMyName();
+  const name = useMyName(auth?.session?.user.email);
 
   const profile = useQuery({
     queryKey: ["profile"],
@@ -298,8 +298,8 @@ function ProfileButton({
   );
 }
 
-function useMyName() {
+function useMyName(email?: string) {
   const userId = main.UI.useValue("user_id", main.STORE_ID);
   const name = main.UI.useCell("humans", userId ?? "", "name", main.STORE_ID);
-  return name || "Unknown";
+  return name || email || "Unknown";
 }

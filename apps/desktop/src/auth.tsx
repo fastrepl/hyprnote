@@ -6,7 +6,6 @@ import {
   SupabaseClient,
   type SupportedStorage,
 } from "@supabase/supabase-js";
-import { getIdentifier } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
@@ -21,17 +20,7 @@ import {
 } from "react";
 
 import { env } from "./env";
-
-const getScheme = async (): Promise<string> => {
-  const id = await getIdentifier();
-  const schemes: Record<string, string> = {
-    "com.hyprnote.stable": "hyprnote",
-    "com.hyprnote.nightly": "hyprnote-nightly",
-    "com.hyprnote.staging": "hyprnote-staging",
-    "com.hyprnote.dev": "hypr",
-  };
-  return schemes[id] ?? "hypr";
-};
+import { getScheme } from "./utils";
 
 const isLocalAuthServer = (url: string | undefined): boolean => {
   if (!url) return false;
@@ -103,7 +92,7 @@ const AuthContext = createContext<{
   session: Session | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
-  refreshSession: () => Promise<void>;
+  refreshSession: () => Promise<Session | null>;
   handleAuthCallback: (url: string) => Promise<void>;
   getHeaders: () => Record<string, string> | null;
   getAvatarUrl: () => Promise<string>;
@@ -251,18 +240,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const refreshSession = async () => {
+  const refreshSession = async (): Promise<Session | null> => {
     if (!supabase) {
-      return;
+      return null;
     }
 
     const { data, error } = await supabase.auth.refreshSession();
     if (error) {
-      return;
+      return null;
     }
     if (data.session) {
       setSession(data.session);
+      return data.session;
     }
+    return null;
   };
 
   const getHeaders = useCallback(() => {

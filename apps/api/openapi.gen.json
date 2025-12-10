@@ -2,29 +2,22 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Hyprnote API",
-    "description": "API for Hyprnote - AI-powered meeting notes application. APIs are categorized by tags: 'internal' for health checks and internal use, 'app' for endpoints used by the Hyprnote application (requires authentication), and 'webhook' for external service callbacks.",
+    "description": "Development documentation",
     "version": "1.0.0"
   },
   "tags": [
     {
-      "name": "internal",
-      "description": "Internal endpoints for health checks and monitoring"
+      "name": "private"
     },
     {
-      "name": "app",
-      "description": "Endpoints used by the Hyprnote application. Requires Supabase authentication."
-    },
-    {
-      "name": "webhook",
-      "description": "Webhook endpoints for external service callbacks"
+      "name": "public"
     }
   ],
   "components": {
     "securitySchemes": {
       "Bearer": {
         "type": "http",
-        "scheme": "bearer",
-        "description": "Supabase JWT token"
+        "scheme": "bearer"
       }
     },
     "schemas": {}
@@ -44,7 +37,7 @@
       "get": {
         "responses": {
           "200": {
-            "description": "API is healthy",
+            "description": "-",
             "content": {
               "application/json": {
                 "schema": {
@@ -65,11 +58,9 @@
         },
         "operationId": "getHealth",
         "tags": [
-          "internal"
+          "private-skip-openapi"
         ],
-        "parameters": [],
-        "summary": "Health check",
-        "description": "Returns the health status of the API server."
+        "parameters": []
       }
     },
     "/billing/start-trial": {
@@ -97,7 +88,7 @@
         },
         "operationId": "postBillingStart-trial",
         "tags": [
-          "internal"
+          "private"
         ],
         "parameters": [
           {
@@ -120,27 +111,17 @@
       "post": {
         "responses": {
           "200": {
-            "description": "Chat completion response (streamed or non-streamed)"
+            "description": "-"
           },
           "401": {
-            "description": "Unauthorized - missing or invalid authentication",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "unauthorized"
-                }
-              }
-            }
+            "description": "-"
           }
         },
         "operationId": "postChatCompletions",
         "tags": [
-          "app"
+          "private-skip-openapi"
         ],
         "parameters": [],
-        "summary": "Chat completions",
-        "description": "OpenAI-compatible chat completions endpoint. Proxies requests to OpenRouter with automatic model selection. Requires Supabase authentication.",
         "security": [
           {
             "Bearer": []
@@ -266,7 +247,7 @@
         },
         "operationId": "getRpcCan-start-trial",
         "tags": [
-          "internal"
+          "private"
         ],
         "parameters": []
       }
@@ -275,93 +256,26 @@
       "get": {
         "responses": {
           "101": {
-            "description": "WebSocket upgrade successful"
+            "description": "-"
           },
           "400": {
-            "description": "WebSocket upgrade failed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "detail": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "-"
           },
           "401": {
-            "description": "Unauthorized - missing or invalid authentication",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "unauthorized"
-                }
-              }
-            }
+            "description": "-"
           },
           "502": {
-            "description": "Upstream STT service unavailable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "detail": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "-"
           },
           "504": {
-            "description": "Upstream STT service timeout",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "detail": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "-"
           }
         },
         "operationId": "getListen",
         "tags": [
-          "app"
+          "private-skip-openapi"
         ],
         "parameters": [],
-        "summary": "Speech-to-text WebSocket",
-        "description": "WebSocket endpoint for real-time speech-to-text transcription via Deepgram. Requires Supabase authentication in production.",
         "security": [
           {
             "Bearer": []
@@ -373,7 +287,7 @@
       "post": {
         "responses": {
           "200": {
-            "description": "Transcription completed successfully",
+            "description": "-",
             "content": {
               "application/json": {
                 "schema": {
@@ -479,90 +393,23 @@
             }
           },
           "400": {
-            "description": "Bad request - missing or invalid audio file",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "detail": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "-"
           },
           "401": {
-            "description": "Unauthorized - missing or invalid authentication",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "unauthorized"
-                }
-              }
-            }
+            "description": "-"
           },
           "500": {
-            "description": "Internal server error during transcription",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "detail": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "-"
           },
           "502": {
-            "description": "Upstream STT service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "detail": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "-"
           }
         },
         "operationId": "postTranscribe",
         "tags": [
-          "app"
+          "private-skip-openapi"
         ],
         "parameters": [],
-        "summary": "Batch speech-to-text transcription",
-        "description": "HTTP endpoint for batch speech-to-text transcription via file upload. Supports Deepgram, AssemblyAI, and Soniox providers. Use query parameter ?provider=deepgram|assemblyai|soniox to select provider. Requires Supabase authentication.",
         "security": [
           {
             "Bearer": []
@@ -574,7 +421,7 @@
       "post": {
         "responses": {
           "200": {
-            "description": "Webhook processed successfully",
+            "description": "-",
             "content": {
               "application/json": {
                 "schema": {
@@ -593,39 +440,15 @@
             }
           },
           "400": {
-            "description": "Invalid or missing Stripe signature",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "example": "missing_stripe_signature"
-                }
-              }
-            }
+            "description": "-"
           },
           "500": {
-            "description": "Internal server error during billing sync",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
+            "description": "-"
           }
         },
         "operationId": "postWebhookStripe",
         "tags": [
-          "webhook"
+          "private-skip-openapi"
         ],
         "parameters": [
           {
@@ -636,9 +459,7 @@
             },
             "required": true
           }
-        ],
-        "summary": "Stripe webhook",
-        "description": "Handles Stripe webhook events for billing synchronization. Requires valid Stripe signature."
+        ]
       }
     }
   }

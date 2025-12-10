@@ -16,7 +16,7 @@ export const rpc = new Hono<AppBindings>();
 rpc.get(
   "/can-start-trial",
   describeRoute({
-    tags: [API_TAGS.INTERNAL],
+    tags: [API_TAGS.PRIVATE],
     responses: {
       200: {
         description: "result",

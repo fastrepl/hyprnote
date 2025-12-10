@@ -22,7 +22,7 @@ export const billing = new Hono<AppBindings>();
 billing.post(
   "/start-trial",
   describeRoute({
-    tags: [API_TAGS.INTERNAL],
+    tags: [API_TAGS.PRIVATE],
     responses: {
       200: {
         description: "result",

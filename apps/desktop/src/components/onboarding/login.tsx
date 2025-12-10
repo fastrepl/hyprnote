@@ -1,6 +1,7 @@
+import { jwtDecode } from "jwt-decode";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { postBillingStartTrial } from "@hypr/api-client";
+import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient, createConfig } from "@hypr/api-client/client";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
@@ -8,6 +9,15 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { useAuth } from "../../auth";
 import { env } from "../../env";
 import type { OnboardingNext } from "./shared";
+
+function checkIsPro(accessToken: string): boolean {
+  try {
+    const decoded = jwtDecode<{ entitlements?: string[] }>(accessToken);
+    return decoded.entitlements?.includes("hyprnote_pro") ?? false;
+  } catch {
+    return false;
+  }
+}
 
 type LoginProps = {
   onNext: OnboardingNext;
@@ -35,14 +45,21 @@ export function Login({ onNext }: LoginProps) {
         }),
       );
 
-      postBillingStartTrial({
-        client,
-        query: { interval: "yearly" },
-      }).finally(() => {
-        onNext({ local: false });
-      });
+      (async () => {
+        const { data } = await getRpcCanStartTrial({ client });
+        if (data?.canStartTrial) {
+          await postBillingStartTrial({
+            client,
+            query: { interval: "yearly" },
+          });
+        }
+
+        const newSession = await auth.refreshSession();
+        const isPro = newSession ? checkIsPro(newSession.access_token) : false;
+        onNext({ local: !isPro });
+      })();
     }
-  }, [auth?.session, onNext]);
+  }, [auth?.session, auth?.refreshSession, onNext]);
 
   useEffect(() => {
     handleSignIn();

@@ -3,6 +3,7 @@ import { generateSpecs } from "hono-openapi";
 
 import { openAPIDocumentation } from "../openapi";
 import { routes } from "../routes";
+import { API_TAGS } from "../routes/constants";
 
 async function main() {
   const specs = await generateSpecs(routes, {
@@ -17,6 +18,13 @@ async function main() {
     await createClient({
       input: "./openapi.gen.json",
       output: "../../packages/api-client/src/generated",
+      parser: {
+        filters: {
+          tags: {
+            include: [API_TAGS.PRIVATE],
+          },
+        },
+      },
     });
     console.log("OpenAPI client generated successfully");
   } catch (error) {

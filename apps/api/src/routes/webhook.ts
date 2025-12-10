@@ -14,44 +14,23 @@ const WebhookSuccessSchema = z.object({
   ok: z.boolean(),
 });
 
-const WebhookErrorSchema = z.object({
-  error: z.string(),
-});
-
 export const webhook = new Hono<AppBindings>();
 
 webhook.post(
   "/stripe",
   describeRoute({
-    tags: [API_TAGS.WEBHOOK],
-    summary: "Stripe webhook",
-    description:
-      "Handles Stripe webhook events for billing synchronization. Requires valid Stripe signature.",
+    tags: [API_TAGS.PRIVATE_SKIP_OPENAPI],
     responses: {
       200: {
-        description: "Webhook processed successfully",
+        description: "result",
         content: {
           "application/json": {
             schema: resolver(WebhookSuccessSchema),
           },
         },
       },
-      400: {
-        description: "Invalid or missing Stripe signature",
-        content: {
-          "text/plain": {
-            schema: { type: "string", example: "missing_stripe_signature" },
-          },
-        },
-      },
-      500: {
-        description: "Internal server error during billing sync",
-        content: {
-          "application/json": {
-            schema: resolver(WebhookErrorSchema),
-          },
-        },
-      },
+      400: { description: "-" },
+      500: { description: "-" },
     },
   }),
   validator(

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
 import { useAuth } from "../../auth";
+import { env } from "../../env";
 import type { OnboardingNext } from "./shared";
 
 type LoginProps = {
@@ -19,9 +20,18 @@ export function Login({ onNext }: LoginProps) {
     await auth?.signIn();
   }, [auth]);
 
+  const trialStarted = useRef(false);
+
   useEffect(() => {
-    if (auth?.session) {
-      onNext({ local: false });
+    if (auth?.session && !trialStarted.current) {
+      trialStarted.current = true;
+
+      fetch(`${env.VITE_API_URL}/billing/start-trial`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${auth.session.access_token}` },
+      }).finally(() => {
+        onNext({ local: false });
+      });
     }
   }, [auth?.session, onNext]);
 

@@ -1,5 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLinkIcon, RefreshCwIcon } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -137,71 +138,77 @@ export function SettingsAccount() {
 
       <Container
         title="Plan & Billing"
-        description="View your current plan and manage billing on the web."
-        action={
-          <Button
-            variant="outline"
-            onClick={handleOpenAccount}
-            className="w-[100px] flex flex-row gap-1.5"
-          >
-            <span className="text-sm">Manage</span>
-            <ExternalLinkIcon className="text-neutral-600" size={12} />
-          </Button>
-        }
+        description={`Your current plan is ${isPro ? "PRO" : "FREE"}. `}
+        action={<BillingButton />}
       >
-        <PlanStatus isPro={isPro} onRefresh={auth?.refreshSession} />
+        <p className="text-sm text-neutral-600">
+          Click{" "}
+          <span className="text-primary underline cursor-pointer">here</span>
+          <span className="text-neutral-600"> to refresh plan status.</span>
+        </p>
       </Container>
     </div>
   );
 }
 
-function PlanStatus({
-  isPro,
-  onRefresh,
-}: {
-  isPro: boolean;
-  onRefresh?: () => Promise<void>;
-}) {
-  const [isRefreshing, setIsRefreshing] = useState(false);
+function BillingButton() {
+  const auth = useAuth();
+  const { isPro } = useBillingAccess();
 
-  const handleRefresh = async () => {
-    if (!onRefresh) {
-      return;
-    }
-    setIsRefreshing(true);
-    try {
-      await onRefresh();
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+  const canTrialQuery = useQuery({
+    enabled: !!auth?.supabase && !isPro,
+    queryKey: [auth?.session?.user.id ?? "", "canStartTrial"],
+    queryFn: async () => {
+      if (!auth?.supabase) {
+        return false;
+      }
+      const { data, error } = await auth.supabase.rpc("can_start_trial");
+      if (error) {
+        throw error;
+      }
+      return data as boolean;
+    },
+  });
+
+  const handleProUpgrade = useCallback(() => {
+    openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
+  }, []);
+
+  const handleStartTrial = useCallback(() => {
+    openUrl(`${WEB_APP_BASE_URL}/app/checkout?trial=true`);
+  }, []);
+
+  const handleOpenAccount = useCallback(() => {
+    openUrl(`${WEB_APP_BASE_URL}/app/account`);
+  }, []);
+
+  if (isPro) {
+    return (
+      <Button
+        variant="outline"
+        onClick={handleOpenAccount}
+        className="w-[100px] flex flex-row gap-1.5"
+      >
+        <span className="text-sm">Manage</span>
+        <ExternalLinkIcon className="text-neutral-600" size={12} />
+      </Button>
+    );
+  }
+
+  if (canTrialQuery.data) {
+    return (
+      <Button variant="outline" onClick={handleStartTrial}>
+        <span>Start Pro Trial</span>
+        <ExternalLinkIcon className="text-neutral-600" size={12} />
+      </Button>
+    );
+  }
 
   return (
-    <div className="flex flex-row items-center justify-between">
-      {isPro ? (
-        <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-          PRO
-        </span>
-      ) : (
-        <span className="px-2 py-0.5 text-xs font-medium bg-neutral-200 text-neutral-600 rounded">
-          FREE
-        </span>
-      )}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleRefresh}
-        disabled={isRefreshing}
-        title="Refresh plan status"
-      >
-        <RefreshCwIcon
-          className={[
-            "h-4 w-4 text-neutral-500",
-            isRefreshing ? "animate-spin" : "",
-          ].join(" ")}
-        />
-      </Button>
-    </div>
+    <Button variant="outline" onClick={handleProUpgrade}>
+      <span>Upgrade to Pro</span>
+      <ExternalLinkIcon className="text-neutral-600" size={12} />
+    </Button>
   );
 }
 

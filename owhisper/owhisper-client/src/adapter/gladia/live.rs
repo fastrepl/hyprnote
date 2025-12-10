@@ -108,19 +108,6 @@ impl RealtimeSttAdapter for GladiaAdapter {
 
             let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
 
-            let (pre_processing, realtime_processing) = if channels > 1 {
-                (
-                    Some(PreProcessing {
-                        audio_enhancer: true,
-                    }),
-                    Some(RealtimeProcessing {
-                        words_accurate_timestamps: true,
-                    }),
-                )
-            } else {
-                (None, None)
-            };
-
             let body = GladiaConfig {
                 encoding: "wav/pcm",
                 sample_rate: params.sample_rate,
@@ -133,8 +120,12 @@ impl RealtimeSttAdapter for GladiaAdapter {
                     receive_partial_transcripts: true,
                     receive_final_transcripts: true,
                 }),
-                pre_processing,
-                realtime_processing,
+                pre_processing: Some(PreProcessing {
+                    audio_enhancer: true,
+                }),
+                realtime_processing: Some(RealtimeProcessing {
+                    words_accurate_timestamps: true,
+                }),
             };
 
             let client = reqwest::Client::new();
@@ -368,14 +359,6 @@ impl GladiaAdapter {
         let session_id = msg.session_id;
         let data = msg.data;
         let utterance = data.utterance;
-
-        tracing::debug!(
-            transcript = %utterance.text,
-            is_final = data.is_final,
-            channel = ?utterance.channel,
-            session_id = %session_id,
-            "gladia_transcript_received"
-        );
 
         if utterance.text.is_empty() && utterance.words.is_empty() {
             return vec![];

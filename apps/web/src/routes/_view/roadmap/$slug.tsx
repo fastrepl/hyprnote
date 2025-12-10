@@ -54,23 +54,18 @@ function Component() {
     done: {
       label: "Done",
       icon: "mdi:check-circle",
-      iconColor: "text-green-600",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200",
+      className: "bg-linear-to-t from-green-200 to-green-100 text-green-900",
     },
     "in-progress": {
       label: "In Progress",
       icon: "mdi:progress-clock",
-      iconColor: "text-blue-600",
-      bgColor: "bg-blue-50",
-      borderColor: "border-blue-200",
+      className: "bg-linear-to-b from-[#03BCF1] to-[#127FE5] text-white",
     },
     todo: {
       label: "To Do",
       icon: "mdi:calendar-clock",
-      iconColor: "text-neutral-400",
-      bgColor: "bg-neutral-50",
-      borderColor: "border-neutral-200",
+      className:
+        "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
     },
   };
 
@@ -78,10 +73,10 @@ function Component() {
 
   return (
     <div
-      className="bg-linear-to-b from-white via-stone-50/20 to-white min-h-screen"
+      className="bg-linear-to-b from-white via-stone-50/20 to-white"
       style={{ backgroundImage: "url(/patterns/dots.svg)" }}
     >
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-x border-neutral-100 bg-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-x border-neutral-100 bg-white">
         <Link
           to="/roadmap"
           className="inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-stone-600 transition-colors mb-8 font-serif"
@@ -92,62 +87,58 @@ function Component() {
 
         <article>
           <header className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className={cn([
-                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border",
-                  status.bgColor,
-                  status.borderColor,
-                ])}
-              >
-                <Icon
-                  icon={status.icon}
-                  className={cn(["text-lg", status.iconColor])}
-                />
-                <span className="text-sm font-medium text-stone-600">
-                  {status.label}
-                </span>
-              </div>
-            </div>
-
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-600 mb-4">
               {item.title}
             </h1>
 
-            {item.labels && item.labels.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {item.labels.map((label) => (
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <span
+                className={cn([
+                  "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full",
+                  status.className,
+                ])}
+              >
+                <Icon icon={status.icon} className="text-xs" />
+                {status.label}
+              </span>
+
+              {item.labels &&
+                item.labels.length > 0 &&
+                item.labels.map((label) => (
                   <span
                     key={label}
-                    className="text-xs px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-600"
+                    className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full capitalize"
                   >
                     {label}
                   </span>
                 ))}
-              </div>
-            )}
+            </div>
 
-            <div className="flex items-center gap-4 text-sm text-neutral-500">
-              <time dateTime={item.created}>
-                Created{" "}
-                {new Date(item.created).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </time>
-              {item.updated && item.updated !== item.created && (
-                <>
-                  <span>·</span>
-                  <span>
-                    Updated{" "}
-                    {new Date(item.updated).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
-                </>
+            <div className="text-xs text-neutral-500 font-mono">
+              {item.updated && item.updated !== item.created ? (
+                <span>
+                  Updated{" "}
+                  {new Date(item.updated).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
+                  / Created{" "}
+                  {new Date(item.created).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              ) : (
+                <time dateTime={item.created}>
+                  Created{" "}
+                  {new Date(item.created).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </time>
               )}
             </div>
           </header>
@@ -166,29 +157,23 @@ function Component() {
             />
           </div>
 
-          {item.githubIssues && item.githubIssues.length > 0 && (
-            <div className="mt-12 pt-8 border-t border-neutral-100">
-              <h3 className="text-xl font-serif text-stone-600 mb-6">
-                Related GitHub Issues
-              </h3>
-              <div className="space-y-4">
+          <div className="mt-12 pt-8 border-t border-neutral-100">
+            <h3 className="text-xl font-serif text-stone-600 mb-6">
+              Related GitHub Issues
+            </h3>
+            {item.githubIssues && item.githubIssues.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {item.githubIssues.map((url) => (
                   <GitHubIssuePreview key={url} url={url} />
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-neutral-400 text-sm">
+                No related GitHub issues yet
+              </p>
+            )}
+          </div>
         </article>
-
-        <footer className="mt-16 pt-8 border-t border-neutral-100">
-          <Link
-            to="/roadmap"
-            className="inline-flex items-center gap-2 text-neutral-600 hover:text-stone-600 transition-colors font-medium"
-          >
-            <span>←</span>
-            <span>Back to roadmap</span>
-          </Link>
-        </footer>
       </div>
     </div>
   );

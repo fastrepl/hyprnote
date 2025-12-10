@@ -13,11 +13,11 @@ export function ConfigureNotice({ onNext }: ConfigureNoticeProps) {
       description="You need at least these to get started. With a free trial, no need to worry about configuration."
     >
       <div className="flex flex-col gap-2">
-        <Requirment
+        <Requirement
           title="Language Model"
           description="Configure API key from OpenAI, OpenRouter, etc."
         />
-        <Requirment
+        <Requirement
           title="Speech-to-Text Model"
           description="Configure API key from Deepgram, AssemblyAI, etc."
         />
@@ -44,7 +44,7 @@ export function ConfigureNotice({ onNext }: ConfigureNoticeProps) {
   );
 }
 
-export function Requirment({
+export function Requirement({
   title,
   description,
 }: {

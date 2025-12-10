@@ -9,13 +9,13 @@ async function main() {
     documentation: openAPIDocumentation,
   });
 
-  const outputPath = new URL("../../openapi.json", import.meta.url);
+  const outputPath = new URL("../../openapi.gen.json", import.meta.url);
   await Bun.write(outputPath, JSON.stringify(specs, null, 2));
   console.log(`OpenAPI spec written to ${outputPath.pathname}`);
 
   try {
     await createClient({
-      input: "./openapi.json",
+      input: "./openapi.gen.json",
       output: "../../packages/api-client/src/generated",
     });
     console.log("OpenAPI client generated successfully");

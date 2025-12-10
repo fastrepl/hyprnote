@@ -69,7 +69,7 @@ app.onError((err, c) => {
 app.notFound((c) => c.text("not_found", 404));
 
 app.get(
-  "/openapi.json",
+  "/openapi.gen.json",
   openAPISpecs(routes, { documentation: openAPIDocumentation }),
 );
 
@@ -78,7 +78,7 @@ app.get(
   apiReference({
     theme: "saturn",
     spec: {
-      url: "/openapi.json",
+      url: "/openapi.gen.json",
     },
   }),
 );

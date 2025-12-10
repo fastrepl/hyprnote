@@ -5,11 +5,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
-chrono = { workspace = true }
-hypr-calendar-interface = { path = "../calendar-interface", package = "calendar-interface" }
-itertools = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
+itertools = { workspace = true }
 block2 = "0.5.1"
 objc2 = "0.5.2"
 objc2-contacts = { version = "0.2.2", features = ["CNContactStore", "CNLabeledValue", "CNContact", "block2"] }

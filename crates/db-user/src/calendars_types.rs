@@ -24,22 +24,22 @@ user_common_derives! {
     }
 }
 
-impl From<hypr_calendar_interface::Platform> for Platform {
-    fn from(platform: hypr_calendar_interface::Platform) -> Self {
+impl From<hypr_calendar_apple::Platform> for Platform {
+    fn from(platform: hypr_calendar_apple::Platform) -> Self {
         match platform {
-            hypr_calendar_interface::Platform::Apple => Platform::Apple,
-            hypr_calendar_interface::Platform::Google => Platform::Google,
-            hypr_calendar_interface::Platform::Outlook => Platform::Outlook,
+            hypr_calendar_apple::Platform::Apple => Platform::Apple,
+            hypr_calendar_apple::Platform::Google => Platform::Google,
+            hypr_calendar_apple::Platform::Outlook => Platform::Outlook,
         }
     }
 }
 
-impl From<Platform> for hypr_calendar_interface::Platform {
+impl From<Platform> for hypr_calendar_apple::Platform {
     fn from(platform: Platform) -> Self {
         match platform {
-            Platform::Apple => hypr_calendar_interface::Platform::Apple,
-            Platform::Google => hypr_calendar_interface::Platform::Google,
-            Platform::Outlook => hypr_calendar_interface::Platform::Outlook,
+            Platform::Apple => hypr_calendar_apple::Platform::Apple,
+            Platform::Google => hypr_calendar_apple::Platform::Google,
+            Platform::Outlook => hypr_calendar_apple::Platform::Outlook,
         }
     }
 }

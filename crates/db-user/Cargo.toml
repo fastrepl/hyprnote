@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 hypr-buffer = { workspace = true }
-hypr-calendar-interface = { workspace = true }
+hypr-calendar-apple = { workspace = true }
 hypr-data = { workspace = true }
 hypr-db-core = { workspace = true }
 hypr-language = { workspace = true }

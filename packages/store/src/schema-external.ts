@@ -36,17 +36,51 @@ export const humanSchema = baseHumanSchema.omit({ id: true }).extend({
 
 export const eventSchema = baseEventSchema.omit({ id: true }).extend({
   created_at: z.string(),
+  provider: z.enum(["apple", "google", "outlook"]),
+  provider_event_id: z.string(),
+  calendar_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
   started_at: z.string(),
   ended_at: z.string(),
+  is_all_day: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
   location: z.preprocess((val) => val ?? undefined, z.string().optional()),
-  meeting_link: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  url: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  status: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  is_recurring: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
+  organizer_email: z.preprocess(
+    (val) => val ?? undefined,
+    z.string().optional(),
+  ),
+  organizer_name: z.preprocess(
+    (val) => val ?? undefined,
+    z.string().optional(),
+  ),
+  attendees: z.preprocess(
+    (val) => val ?? undefined,
+    jsonObject(
+      z.array(
+        z.object({
+          name: z.string().optional(),
+          email: z.string().optional(),
+          role: z.string().optional(),
+          status: z.string().optional(),
+          is_organizer: z.boolean().optional(),
+        }),
+      ),
+    ).optional(),
+  ),
   description: z.preprocess((val) => val ?? undefined, z.string().optional()),
   note: z.preprocess((val) => val ?? undefined, z.string().optional()),
 });
 
-export const calendarSchema = baseCalendarSchema
-  .omit({ id: true })
-  .extend({ created_at: z.string() });
+export const calendarSchema = baseCalendarSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  provider: z.enum(["apple", "google", "outlook"]),
+  provider_calendar_id: z.string(),
+  color_hex: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  source_type: z.preprocess((val) => val ?? undefined, z.string().optional()),
+  is_selected: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
+  is_read_only: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
+});
 
 export const organizationSchema = baseOrganizationSchema
   .omit({ id: true })
@@ -199,6 +233,8 @@ export type OrganizationStorage = ToStorageType<typeof organizationSchema>;
 export type FolderStorage = ToStorageType<typeof folderSchema>;
 export type PromptStorage = ToStorageType<typeof promptSchema>;
 export type ChatShortcutStorage = ToStorageType<typeof chatShortcutSchema>;
+export type EventStorage = ToStorageType<typeof eventSchema>;
+export type CalendarStorage = ToStorageType<typeof calendarSchema>;
 
 export const externalTableSchemaForTinybase = {
   folders: {
@@ -261,18 +297,32 @@ export const externalTableSchemaForTinybase = {
   calendars: {
     user_id: { type: "string" },
     created_at: { type: "string" },
+    provider: { type: "string" },
+    provider_calendar_id: { type: "string" },
     name: { type: "string" },
+    color_hex: { type: "string" },
+    source_type: { type: "string" },
+    is_selected: { type: "boolean" },
+    is_read_only: { type: "boolean" },
   } as const satisfies InferTinyBaseSchema<typeof calendarSchema>,
   events: {
     user_id: { type: "string" },
     created_at: { type: "string" },
+    provider: { type: "string" },
+    provider_event_id: { type: "string" },
     calendar_id: { type: "string" },
     title: { type: "string" },
+    description: { type: "string" },
     started_at: { type: "string" },
     ended_at: { type: "string" },
+    is_all_day: { type: "boolean" },
     location: { type: "string" },
-    meeting_link: { type: "string" },
-    description: { type: "string" },
+    url: { type: "string" },
+    status: { type: "string" },
+    is_recurring: { type: "boolean" },
+    organizer_email: { type: "string" },
+    organizer_name: { type: "string" },
+    attendees: { type: "string" },
     note: { type: "string" },
   } as const satisfies InferTinyBaseSchema<typeof eventSchema>,
   mapping_session_participant: {

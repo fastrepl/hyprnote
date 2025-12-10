@@ -112,7 +112,7 @@ const RANDOM_DATA = (() => {
     chat_messages,
     enhanced_notes,
     chat_shortcuts,
-  } satisfies Tables<Schemas[0]>;
+  } as Tables<Schemas[0]>;
 })();
 
 export const randomSeed: SeedDefinition = {

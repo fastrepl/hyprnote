@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   AnyPgColumn,
+  boolean,
   integer,
   json,
   pgPolicy,
@@ -185,15 +186,21 @@ export const events = pgTable(
   TABLE_EVENTS,
   {
     ...SHARED,
-    calendar_id: uuid("calendar_id")
-      .notNull()
-      .references(() => calendars.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    provider_event_id: text("provider_event_id").notNull(),
+    calendar_id: uuid("calendar_id").references(() => calendars.id),
     title: text("title").notNull(),
+    description: text("description"),
     started_at: timestamp("started_at").notNull(),
     ended_at: timestamp("ended_at").notNull(),
+    is_all_day: boolean("is_all_day").default(false),
     location: text("location"),
-    meeting_link: text("meeting_link"),
-    description: text("description"),
+    url: text("url"),
+    status: text("status"),
+    is_recurring: boolean("is_recurring").default(false),
+    organizer_email: text("organizer_email"),
+    organizer_name: text("organizer_name"),
+    attendees: json("attendees"),
     note: text("note"),
   },
   (table) => createPolicies(TABLE_EVENTS, table.user_id),
@@ -204,7 +211,13 @@ export const calendars = pgTable(
   TABLE_CALENDARS,
   {
     ...SHARED,
+    provider: text("provider").notNull(),
+    provider_calendar_id: text("provider_calendar_id").notNull(),
     name: text("name").notNull(),
+    color_hex: text("color_hex"),
+    source_type: text("source_type"),
+    is_selected: boolean("is_selected").default(false),
+    is_read_only: boolean("is_read_only").default(false),
   },
   (table) => createPolicies(TABLE_CALENDARS, table.user_id),
 ).enableRLS();

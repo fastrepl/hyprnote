@@ -32,6 +32,10 @@ pub struct Calendar {
     pub platform: Platform,
     pub name: String,
     pub source: Option<String>,
+    pub color_hex: Option<String>,
+    pub source_type: String,
+    pub is_subscribed: bool,
+    pub allows_modifications: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -39,12 +43,16 @@ pub struct Event {
     pub id: String,
     pub calendar_id: String,
     pub platform: Platform,
-    pub name: String,
-    pub note: String,
+    pub title: String,
+    pub description: String,
     pub participants: Vec<Participant>,
-    pub start_date: DateTime<Utc>,
-    pub end_date: DateTime<Utc>,
-    pub google_event_url: Option<String>,
+    pub started_at: DateTime<Utc>,
+    pub ended_at: DateTime<Utc>,
+    pub is_all_day: bool,
+    pub location: Option<String>,
+    pub url: Option<String>,
+    pub status: String,
+    pub availability: String,
     #[serde(default)]
     pub is_recurring: bool,
 }
@@ -53,6 +61,10 @@ pub struct Event {
 pub struct Participant {
     pub name: String,
     pub email: Option<String>,
+    pub is_organizer: bool,
+    pub is_current_user: bool,
+    pub role: Option<String>,
+    pub status: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -85,7 +97,11 @@ impl Event {
                 Ok(Opener::AppleScript(script))
             }
             Platform::Google => {
-                let url = self.google_event_url.as_ref().unwrap().clone();
+                let url = self
+                    .url
+                    .as_ref()
+                    .ok_or_else(|| anyhow::anyhow!("No URL available for Google event"))?
+                    .clone();
                 Ok(Opener::Url(url))
             }
             Platform::Outlook => {
@@ -233,7 +249,11 @@ impl Handle {
         events
     }
 
-    fn transform_participant(&self, participant: &EKParticipant) -> Participant {
+    fn transform_participant(
+        &self,
+        participant: &EKParticipant,
+        is_current_user: bool,
+    ) -> Participant {
         let name = unsafe { participant.name() }
             .unwrap_or_default()
             .to_string();
@@ -243,29 +263,46 @@ impl Handle {
             email_ns.as_ref().map(|s| s.to_string())
         };
 
-        // let email = if self.contacts_access_granted {
-        //     let email_string = NSString::from_str("emailAddresses");
-        //     let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
-        //         ProtocolObject::from_retained(email_string);
-        //     let keys = NSArray::from_vec(vec![cnkey_email]);
+        let is_organizer = unsafe {
+            let role: isize = msg_send![participant, participantRole];
+            role == 3
+        };
 
-        //     let contact_pred = unsafe { participant.contactPredicate() };
-        //     let contact = unsafe {
-        //         self.contacts_store
-        //             .unifiedContactsMatchingPredicate_keysToFetch_error(&contact_pred, &keys)
-        //     }
-        //     .unwrap_or_default();
+        let role = unsafe {
+            let role: isize = msg_send![participant, participantRole];
+            match role {
+                0 => Some("unknown".to_string()),
+                1 => Some("required".to_string()),
+                2 => Some("optional".to_string()),
+                3 => Some("chair".to_string()),
+                4 => Some("non_participant".to_string()),
+                _ => None,
+            }
+        };
 
-        //     contact.first().and_then(|contact| {
-        //         let emails = unsafe { contact.emailAddresses() };
+        let status = unsafe {
+            let status: isize = msg_send![participant, participantStatus];
+            match status {
+                0 => Some("unknown".to_string()),
+                1 => Some("pending".to_string()),
+                2 => Some("accepted".to_string()),
+                3 => Some("declined".to_string()),
+                4 => Some("tentative".to_string()),
+                5 => Some("delegated".to_string()),
+                6 => Some("completed".to_string()),
+                7 => Some("in_process".to_string()),
+                _ => None,
+            }
+        };
 
-        //         emails
-        //             .first()
-        //             .map(|email| unsafe { email.value() }.to_string())
-        //     })
-        // };
-
-        Participant { name, email }
+        Participant {
+            name,
+            email,
+            is_organizer,
+            is_current_user,
+            role,
+            status,
+        }
     }
 }
 
@@ -281,22 +318,65 @@ impl CalendarSource for Handle {
         let list = calendars
             .iter()
             .map(|calendar| {
-                // https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKCalendar.html
-                // https://developer.apple.com/documentation/eventkit/ekcalendar
-                // https://developer.apple.com/documentation/eventkit/ekevent/eventidentifier
-                // If the calendar of an event changes, its identifier most likely changes as well.
                 let id = unsafe { calendar.calendarIdentifier() };
                 let title = unsafe { calendar.title() };
 
-                // https://developer.apple.com/documentation/eventkit/eksource
-                let source = unsafe { calendar.source().unwrap() };
-                let source_title = unsafe { source.as_ref().title() };
+                let (source_title, source_type) = unsafe {
+                    match calendar.source() {
+                        Some(source) => {
+                            let title = source.as_ref().title().to_string();
+                            let source_type: isize = msg_send![source.as_ref(), sourceType];
+                            let type_str = match source_type {
+                                0 => "local".to_string(),
+                                1 => "exchange".to_string(),
+                                2 => "caldav".to_string(),
+                                3 => "mobile_me".to_string(),
+                                4 => "subscribed".to_string(),
+                                5 => "birthdays".to_string(),
+                                _ => "unknown".to_string(),
+                            };
+                            (Some(title), type_str)
+                        }
+                        None => (None, "unknown".to_string()),
+                    }
+                };
+
+                let color_hex = unsafe {
+                    let color: *const objc2::runtime::AnyObject = msg_send![calendar, color];
+                    if color.is_null() {
+                        None
+                    } else {
+                        let red: f64 = msg_send![color, redComponent];
+                        let green: f64 = msg_send![color, greenComponent];
+                        let blue: f64 = msg_send![color, blueComponent];
+                        Some(format!(
+                            "#{:02X}{:02X}{:02X}",
+                            (red * 255.0) as u8,
+                            (green * 255.0) as u8,
+                            (blue * 255.0) as u8
+                        ))
+                    }
+                };
+
+                let is_subscribed = unsafe {
+                    let subscribed: Bool = msg_send![calendar, isSubscribed];
+                    subscribed.as_bool()
+                };
+
+                let allows_modifications = unsafe {
+                    let allows: Bool = msg_send![calendar, allowsContentModifications];
+                    allows.as_bool()
+                };
 
                 Calendar {
                     id: id.to_string(),
                     platform: Platform::Apple,
                     name: title.to_string(),
-                    source: Some(source_title.to_string()),
+                    source: source_title,
+                    color_hex,
+                    source_type,
+                    is_subscribed,
+                    allows_modifications,
                 }
             })
             .sorted_by(|a, b| a.name.cmp(&b.name))
@@ -314,53 +394,94 @@ impl CalendarSource for Handle {
             .fetch_events(&filter)
             .iter()
             .filter_map(|event| {
-                // https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKEvent.html
-                // https://developer.apple.com/documentation/eventkit/ekevent
-                let id = unsafe { event.eventIdentifier() }.unwrap();
+                let id = unsafe { event.eventIdentifier() }?;
                 let title = unsafe { event.title() };
-                let note = unsafe { event.notes().unwrap_or_default() };
+                let description = unsafe { event.notes().unwrap_or_default() };
                 let start_date = unsafe { event.startDate() };
                 let end_date = unsafe { event.endDate() };
 
-                let calendar = unsafe { event.calendar() }.unwrap();
+                let calendar = unsafe { event.calendar() }?;
                 let calendar_id = unsafe { calendar.calendarIdentifier() };
 
-                // This is theoretically not needed, but it seems like the 'calendars' filter does not work in the predicate.
                 if !filter.calendar_tracking_id.eq(&calendar_id.to_string()) {
                     return None;
                 }
 
-                // experiment: check if the event is recurring
                 let is_recurring = unsafe {
                     let has_rules: Bool = msg_send![event, hasRecurrenceRules];
                     has_rules.as_bool()
                 };
 
+                let is_all_day = unsafe {
+                    let all_day: Bool = msg_send![event, isAllDay];
+                    all_day.as_bool()
+                };
+
+                let location = unsafe {
+                    let loc: *const NSString = msg_send![event, location];
+                    loc.as_ref().map(|s| s.to_string())
+                };
+
+                let url = unsafe {
+                    let url_obj: *const objc2::runtime::AnyObject = msg_send![event, URL];
+                    if url_obj.is_null() {
+                        None
+                    } else {
+                        let url_str: *const NSString = msg_send![url_obj, absoluteString];
+                        url_str.as_ref().map(|s| s.to_string())
+                    }
+                };
+
+                let status = unsafe {
+                    let status: isize = msg_send![event, status];
+                    match status {
+                        0 => "none".to_string(),
+                        1 => "confirmed".to_string(),
+                        2 => "tentative".to_string(),
+                        3 => "cancelled".to_string(),
+                        _ => "unknown".to_string(),
+                    }
+                };
+
+                let availability = unsafe {
+                    let avail: isize = msg_send![event, availability];
+                    match avail {
+                        -1 => "not_supported".to_string(),
+                        0 => "busy".to_string(),
+                        1 => "free".to_string(),
+                        2 => "tentative".to_string(),
+                        3 => "unavailable".to_string(),
+                        _ => "unknown".to_string(),
+                    }
+                };
+
                 let participants = unsafe { event.attendees().unwrap_or_default() };
                 let participant_list: Vec<Participant> = participants
                     .iter()
-                    .filter(|p| {
-                        // Skip the current user
+                    .map(|p| {
                         let is_current_user = unsafe { p.isCurrentUser() };
-                        !is_current_user
+                        self.transform_participant(p, is_current_user)
                     })
-                    .map(|p| self.transform_participant(p))
                     .collect();
 
                 Some(Event {
                     id: id.to_string(),
                     calendar_id: calendar_id.to_string(),
                     platform: Platform::Apple,
-                    name: title.to_string(),
-                    note: note.to_string(),
+                    title: title.to_string(),
+                    description: description.to_string(),
                     participants: participant_list,
-                    start_date: offset_date_time_from(start_date),
-                    end_date: offset_date_time_from(end_date),
-                    google_event_url: None,
+                    started_at: offset_date_time_from(start_date),
+                    ended_at: offset_date_time_from(end_date),
+                    is_all_day,
+                    location,
+                    url,
+                    status,
+                    availability,
                     is_recurring,
                 })
             })
-            .sorted_by(|a, b| a.start_date.cmp(&b.start_date))
+            .sorted_by(|a, b| a.started_at.cmp(&b.started_at))
             .collect();
 
         Ok(events)

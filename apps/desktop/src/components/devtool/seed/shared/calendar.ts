@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { Calendar } from "@hypr/store";
+import type { CalendarStorage } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
@@ -18,12 +18,18 @@ export const createCalendar = () => {
     "Shared Calendar",
   ]);
 
+  const calendarId = id();
   return {
-    id: id(),
+    id: calendarId,
     data: {
       user_id: DEFAULT_USER_ID,
+      provider: faker.helpers.arrayElement(["apple", "google", "outlook"]) as
+        | "apple"
+        | "google"
+        | "outlook",
+      provider_calendar_id: calendarId,
       name: template,
       created_at: faker.date.past({ years: 1 }).toISOString(),
-    } satisfies Calendar,
+    } satisfies CalendarStorage,
   };
 };

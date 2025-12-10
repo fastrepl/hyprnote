@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 
-import type { Event } from "@hypr/store";
+import type { EventStorage } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
@@ -177,19 +177,25 @@ export const createEvent = (calendar_id: string) => {
     description = faker.helpers.arrayElement(topics);
   }
 
+  const eventId = id();
   return {
-    id: id(),
+    id: eventId,
     data: {
       user_id: DEFAULT_USER_ID,
+      provider: faker.helpers.arrayElement(["apple", "google", "outlook"]) as
+        | "apple"
+        | "google"
+        | "outlook",
+      provider_event_id: eventId,
       calendar_id,
       title,
       started_at: startsAt.toISOString(),
       ended_at: endsAt.toISOString(),
       created_at: faker.date.recent({ days: 30 }).toISOString(),
       location,
-      meeting_link,
+      url: meeting_link,
       description,
       note,
-    } satisfies Event,
+    } satisfies EventStorage,
   };
 };

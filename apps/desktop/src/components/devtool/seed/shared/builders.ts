@@ -1,12 +1,12 @@
 import { faker } from "@faker-js/faker";
 
 import type {
-  Calendar,
+  CalendarStorage,
   ChatGroup,
   ChatMessageStorage,
   ChatShortcutStorage,
   EnhancedNoteStorage,
-  Event,
+  EventStorage,
   Folder,
   Human,
   mappingSessionParticipant,
@@ -50,8 +50,10 @@ export const buildOrganizations = (
   return organizations;
 };
 
-export const buildCalendars = (count: number): Record<string, Calendar> => {
-  const calendars: Record<string, Calendar> = {};
+export const buildCalendars = (
+  count: number,
+): Record<string, CalendarStorage> => {
+  const calendars: Record<string, CalendarStorage> = {};
 
   for (let i = 0; i < count; i++) {
     const calendar = createCalendar();
@@ -93,8 +95,8 @@ export const buildHumans = (
 export const buildEvents = (
   calendarIds: string[],
   count: { min: number; max: number },
-): Record<string, Event> => {
-  const events: Record<string, Event> = {};
+): Record<string, EventStorage> => {
+  const events: Record<string, EventStorage> = {};
   const eventCount = faker.number.int(count);
 
   for (let i = 0; i < eventCount; i++) {
@@ -111,10 +113,10 @@ export const buildEventsByHuman = (
   calendarIds: string[],
   countPerHuman: { min: number; max: number },
 ): {
-  events: Record<string, Event>;
+  events: Record<string, EventStorage>;
   eventsByHuman: Record<string, string[]>;
 } => {
-  const events: Record<string, Event> = {};
+  const events: Record<string, EventStorage> = {};
   const eventsByHuman: Record<string, string[]> = {};
 
   humanIds.forEach((humanId) => {

@@ -69,6 +69,8 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     calendarNameToId.set(cal.name, calId);
     calendars[calId] = {
       user_id: DEFAULT_USER_ID,
+      provider: "apple",
+      provider_calendar_id: calId,
       name: cal.name,
       created_at: new Date().toISOString(),
     };
@@ -115,12 +117,14 @@ export const loadCuratedData = (data: CuratedData): Tables<Schemas[0]> => {
     const calendarId = calendarNameToId.get(event.calendar);
     events[eventId] = {
       user_id: DEFAULT_USER_ID,
+      provider: "apple",
+      provider_event_id: eventId,
       calendar_id: calendarId,
       title: event.name,
       started_at: event.started_at,
       ended_at: event.ended_at,
       location: event.location,
-      meeting_link: event.meeting_link,
+      url: event.meeting_link,
       description: event.description,
       note: event.note,
       created_at: new Date().toISOString(),

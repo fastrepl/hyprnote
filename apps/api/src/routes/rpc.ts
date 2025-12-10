@@ -28,7 +28,12 @@ rpc.get(
   }),
   supabaseAuthMiddleware,
   async (c) => {
-    const supabase = c.get("supabaseClient")!;
+    const supabase = c.get("supabaseClient");
+
+    if (!supabase) {
+      console.error("supabaseClient not attached by middleware");
+      return c.json({ error: "Internal server error" }, 500);
+    }
 
     const { data, error } = await supabase.rpc("can_start_trial");
 

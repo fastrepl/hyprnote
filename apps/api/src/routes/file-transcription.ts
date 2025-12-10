@@ -1,12 +1,11 @@
 import type { IngressWorkflowClient } from "@restatedev/restate-sdk-clients";
-import * as clients from "@restatedev/restate-sdk-clients";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
 import { z } from "zod";
 
-import { env } from "../env";
 import type { AppBindings } from "../hono-bindings";
+import { getRestateClient } from "../integration/restate";
 import { supabaseAuthMiddleware } from "../middleware/supabase";
 import { API_TAGS } from "./constants";
 
@@ -39,10 +38,6 @@ type SttFileDefinition = {
 };
 
 type SttFileClient = IngressWorkflowClient<SttFileDefinition>;
-
-function getRestateClient() {
-  return clients.connect({ url: env.RESTATE_INGRESS_URL });
-}
 
 const StartInputSchema = z.object({
   fileId: z.string(),
@@ -96,7 +91,8 @@ fileTranscription.post(
     }
 
     const safeFileId = `${userId}/${rest.join("/")}`;
-    const pipelineId = data.pipelineId ?? crypto.randomUUID();
+    const rawId = data.pipelineId ?? crypto.randomUUID();
+    const pipelineId = `${userId}:${rawId}`;
 
     try {
       const restateClient = getRestateClient();
@@ -134,13 +130,20 @@ fileTranscription.get(
         },
       },
       401: { description: "Unauthorized" },
+      403: { description: "Forbidden" },
       500: { description: "Internal error" },
     },
   }),
   supabaseAuthMiddleware,
   validator("param", StatusInputSchema),
   async (c) => {
+    const userId = c.get("supabaseUserId")!;
     const { pipelineId } = c.req.valid("param");
+
+    const [ownerId] = pipelineId.split(":");
+    if (ownerId !== userId) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
 
     try {
       const restateClient = getRestateClient();
@@ -172,13 +175,20 @@ fileTranscription.get(
         },
       },
       401: { description: "Unauthorized" },
+      403: { description: "Forbidden" },
       500: { description: "Internal error" },
     },
   }),
   supabaseAuthMiddleware,
   validator("param", StatusInputSchema),
   async (c) => {
+    const userId = c.get("supabaseUserId")!;
     const { pipelineId } = c.req.valid("param");
+
+    const [ownerId] = pipelineId.split(":");
+    if (ownerId !== userId) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
 
     try {
       const restateClient = getRestateClient();

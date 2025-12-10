@@ -25,6 +25,11 @@ common_event_derives! {
             response: StreamResponse,
             percentage: f64,
         },
+        #[serde(rename = "batchCloudResponse")]
+        BatchCloudResponse {
+            session_id: String,
+            provider_response: String,
+        },
         #[serde(rename = "batchFailed")]
         BatchFailed { session_id: String, error: String },
     }

@@ -6,7 +6,6 @@ import {
   DeepgramCallback,
   DeepgramCallbackType,
   DeepgramError,
-  extractTranscript,
   transcribeWithCallback as transcribeWithDeepgram,
 } from "../deepgram";
 import { type Env } from "../env";
@@ -15,6 +14,7 @@ import {
   SonioxCallback,
   SonioxCallbackType,
   SonioxError,
+  type SonioxTranscriptResponse,
   transcribeWithCallback as transcribeWithSoniox,
 } from "../soniox";
 import { createSignedUrl, deleteFile } from "../supabase";
@@ -96,11 +96,12 @@ export const sttFile = restate.workflow({
             ctx.set("providerRequestId", requestId);
           }
 
-          const transcript = await ctx.promise<string>("transcript");
-          ctx.set("transcript", transcript);
+          const providerResponse =
+            await ctx.promise<string>("providerResponse");
+          ctx.set("providerResponse", providerResponse);
           ctx.set("status", "DONE" as SttStatusType);
 
-          return { status: "DONE" as const, transcript };
+          return { status: "DONE" as const, providerResponse };
         } catch (err) {
           const error = err instanceof Error ? err.message : "Unknown error";
           ctx.set("status", "ERROR" as SttStatusType);
@@ -127,7 +128,7 @@ export const sttFile = restate.workflow({
         ctx: restate.WorkflowSharedContext,
         payload: DeepgramCallbackType | SonioxCallbackType,
       ): Promise<void> => {
-        const existing = await ctx.get<string>("transcript");
+        const existing = await ctx.get<string>("providerResponse");
         if (existing !== undefined) return;
 
         const provider = await ctx.get<SttProviderType>("provider");
@@ -136,20 +137,24 @@ export const sttFile = restate.workflow({
           const sonioxPayload = payload as SonioxCallbackType;
           if (sonioxPayload.status === "error") {
             ctx
-              .promise<string>("transcript")
+              .promise<string>("providerResponse")
               .reject("Soniox transcription failed");
             return;
           }
           const env = ctx.request().extraArgs[0] as Env;
-          const transcript = await fetchSonioxTranscript(
+          const sonioxResponse = await fetchSonioxTranscript(
             sonioxPayload.id,
             env.SONIOX_API_KEY,
           );
-          ctx.promise<string>("transcript").resolve(transcript);
+          ctx
+            .promise<string>("providerResponse")
+            .resolve(
+              JSON.stringify({ provider: "soniox", data: sonioxResponse }),
+            );
         } else {
           ctx
-            .promise<string>("transcript")
-            .resolve(extractTranscript(payload as DeepgramCallbackType));
+            .promise<string>("providerResponse")
+            .resolve(JSON.stringify({ provider: "deepgram", data: payload }));
         }
       },
     ),
@@ -158,12 +163,12 @@ export const sttFile = restate.workflow({
       {},
       async (ctx: restate.WorkflowSharedContext) => {
         const status = (await ctx.get<SttStatusType>("status")) ?? "QUEUED";
-        const transcript = await ctx.get<string>("transcript");
+        const providerResponse = await ctx.get<string>("providerResponse");
         const error = await ctx.get<string>("error");
 
         return {
           status,
-          transcript: transcript ?? undefined,
+          providerResponse: providerResponse ?? undefined,
           error: error ?? undefined,
         };
       },

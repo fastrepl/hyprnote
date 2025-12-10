@@ -27,26 +27,36 @@ export class DeepgramError extends Error {
   }
 }
 
-export const DeepgramCallback = z.object({
-  results: z
-    .object({
-      channels: z
-        .array(
-          z.object({
-            alternatives: z
-              .array(z.object({ transcript: z.string() }))
-              .optional(),
-          }),
-        )
-        .optional(),
-    })
-    .optional(),
-  channel: z
-    .object({
-      alternatives: z.array(z.object({ transcript: z.string() })).optional(),
-    })
-    .optional(),
+const DeepgramWord = z.object({
+  word: z.string(),
+  start: z.number(),
+  end: z.number(),
+  confidence: z.number(),
+  speaker: z.number().optional(),
+  punctuated_word: z.string().optional(),
 });
+
+const DeepgramAlternative = z.object({
+  transcript: z.string(),
+  confidence: z.number().optional(),
+  words: z.array(DeepgramWord).optional(),
+});
+
+const DeepgramChannel = z.object({
+  alternatives: z.array(DeepgramAlternative).optional(),
+});
+
+export const DeepgramCallback = z
+  .object({
+    metadata: z.record(z.string(), z.unknown()).optional(),
+    results: z
+      .object({
+        channels: z.array(DeepgramChannel).optional(),
+      })
+      .optional(),
+    channel: DeepgramChannel.optional(),
+  })
+  .passthrough();
 
 export type DeepgramCallbackType = z.infer<typeof DeepgramCallback>;
 

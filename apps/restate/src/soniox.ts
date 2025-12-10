@@ -24,7 +24,7 @@ export const SonioxCallback = z.object({
 
 export type SonioxCallbackType = z.infer<typeof SonioxCallback>;
 
-type SonioxToken = {
+export type SonioxToken = {
   text: string;
   start_ms?: number;
   end_ms?: number;
@@ -32,7 +32,7 @@ type SonioxToken = {
   speaker?: number | string;
 };
 
-type SonioxTranscriptResponse = {
+export type SonioxTranscriptResponse = {
   text: string;
   tokens: SonioxToken[];
 };
@@ -77,7 +77,7 @@ export async function transcribeWithCallback(
 export async function fetchTranscript(
   transcriptionId: string,
   apiKey: string,
-): Promise<string> {
+): Promise<SonioxTranscriptResponse> {
   const response = await fetch(
     `${SONIOX_API_HOST}/v1/transcriptions/${transcriptionId}/transcript`,
     {
@@ -95,7 +95,13 @@ export async function fetchTranscript(
   }
 
   const result = (await response.json()) as SonioxTranscriptResponse;
-  return result.text || renderTokens(result.tokens);
+  return result;
+}
+
+export function extractSonioxTranscriptText(
+  response: SonioxTranscriptResponse,
+): string {
+  return response.text || renderTokens(response.tokens);
 }
 
 function renderTokens(tokens: SonioxToken[]): string {

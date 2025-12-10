@@ -1,9 +1,12 @@
+import { readFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useRef } from "react";
 
 import type { BatchParams } from "@hypr/plugin-listener2";
 
+import { useAuth } from "../auth";
 import { useConfigValue } from "../config/use-config";
 import { useListener } from "../contexts/listener";
+import { env } from "../env";
 import * as main from "../store/tinybase/main";
 import type { HandlePersistCallback } from "../store/zustand/listener/transcript";
 import { type Tab, useTabs } from "../store/zustand/tabs";
@@ -23,6 +26,8 @@ type RunOptions = {
 export const useRunBatch = (sessionId: string) => {
   const store = main.UI.useStore(main.STORE_ID);
   const { user_id } = main.UI.useValues(main.STORE_ID);
+
+  const { supabase, session } = useAuth() ?? {};
 
   const runBatch = useListener((state) => state.runBatch);
   const sessionTab = useTabs((state) => {
@@ -65,6 +70,10 @@ export const useRunBatch = (sessionId: string) => {
           return "am";
         }
 
+        if (conn.provider === "hyprnote") {
+          return "hyprnotecloud";
+        }
+
         return null;
       })();
 
@@ -72,6 +81,38 @@ export const useRunBatch = (sessionId: string) => {
         throw new Error(
           `Batch transcription is not supported for provider: ${conn.provider}`,
         );
+      }
+
+      let cloudFileId: string | undefined;
+      let authorization: string | undefined;
+
+      if (provider === "hyprnotecloud") {
+        if (!supabase || !session) {
+          throw new Error(
+            "Authentication required for Hyprnote Cloud batch transcription",
+          );
+        }
+
+        const fileBuffer = await readFile(filePath);
+        const fileName = filePath.split("/").pop() ?? "audio.wav";
+        const timestamp = Date.now();
+        const uploadPath = `${session.user.id}/${timestamp}-${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("audio-files")
+          .upload(uploadPath, fileBuffer, {
+            contentType: "audio/wav",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          throw new Error(
+            `Failed to upload audio file: ${uploadError.message}`,
+          );
+        }
+
+        cloudFileId = uploadPath;
+        authorization = session.access_token;
       }
 
       if (sessionTabRef.current) {
@@ -150,10 +191,15 @@ export const useRunBatch = (sessionId: string) => {
         provider,
         file_path: filePath,
         model: options?.model ?? conn.model,
-        base_url: options?.baseUrl ?? conn.baseUrl,
+        base_url:
+          provider === "hyprnotecloud"
+            ? env.VITE_API_URL
+            : (options?.baseUrl ?? conn.baseUrl),
         api_key: options?.apiKey ?? conn.apiKey,
         keywords: options?.keywords ?? keywords ?? [],
         languages: options?.languages ?? languages ?? [],
+        cloud_file_id: cloudFileId,
+        authorization,
       };
 
       await runBatch(params, { handlePersist: persist, sessionId });
@@ -163,8 +209,10 @@ export const useRunBatch = (sessionId: string) => {
       keywords,
       languages,
       runBatch,
+      session,
       sessionId,
       store,
+      supabase,
       updateSessionTabState,
       user_id,
     ],

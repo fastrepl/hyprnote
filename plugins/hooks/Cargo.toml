@@ -12,6 +12,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 specta-typescript = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt"] }
 
 hypr-docs = { workspace = true }
 
@@ -24,6 +25,8 @@ serde_json = { workspace = true }
 serde_yaml = { workspace = true }
 specta = { workspace = true }
 
+dirs = { workspace = true }
 futures-util = { workspace = true }
+shellexpand = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["process"] }

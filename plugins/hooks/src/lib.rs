@@ -9,8 +9,9 @@ mod runner;
 #[cfg(test)]
 mod docs;
 
-pub use error::{Error, Result};
+pub use error::*;
 pub use ext::*;
+pub use runner::*;
 
 const PLUGIN_NAME: &str = "hooks";
 

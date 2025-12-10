@@ -47,34 +47,51 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
 
 #[cfg(target_os = "macos")]
 pub fn list_mic_using_apps() -> Vec<InstalledApp> {
-    let processes = ca::System::processes().ok().unwrap();
+    let Some(processes) = ca::System::processes().ok() else {
+        return Vec::new();
+    };
 
     let mut out = Vec::<InstalledApp>::new();
     for p in processes {
-        if !p.is_running_input().unwrap_or(false) {
+        if let Ok(false) = p.is_running_input() {
             continue;
         }
 
-        if let Ok(pid) = p.pid() {
-            if let Some(running_app) = cidre::ns::RunningApp::with_pid(pid) {
-                let bundle_id = running_app
-                    .bundle_id()
-                    .map(|s| s.to_string())
-                    .unwrap_or_default();
-                let localized_name = running_app
-                    .localized_name()
-                    .map(|s| s.to_string())
-                    .unwrap_or_default();
-
-                out.push(InstalledApp {
-                    id: bundle_id,
-                    name: localized_name,
-                });
-            }
+        let bundle_id = p
+            .bundle_id()
+            .ok()
+            .map(|s| s.to_string())
+            .unwrap_or_default();
+        if bundle_id.is_empty() {
+            continue;
         }
+
+        let (resolved_bundle_id, name) = resolve_to_parent_app(&bundle_id);
+
+        out.push(InstalledApp {
+            id: resolved_bundle_id,
+            name,
+        });
     }
 
     out
+}
+
+fn resolve_to_parent_app(bundle_id: &str) -> (String, String) {
+    let try_resolve = |id: &str| -> Option<String> {
+        cidre::ns::RunningApp::with_bundle_id(&cidre::ns::String::with_str(id))
+            .first()
+            .and_then(|app| app.localized_name().map(|s| s.to_string()))
+    };
+
+    if let Some((parent, _)) = bundle_id.rsplit_once('.') {
+        if let Some(name) = try_resolve(parent) {
+            return (parent.to_string(), name);
+        }
+    }
+
+    let name = try_resolve(bundle_id).unwrap_or_else(|| bundle_id.to_string());
+    (bundle_id.to_string(), name)
 }
 
 fn get_app_info(app_path: &std::path::Path) -> Option<InstalledApp> {

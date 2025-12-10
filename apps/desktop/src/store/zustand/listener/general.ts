@@ -1,9 +1,10 @@
-import { getName } from "@tauri-apps/api/app";
+import { getIdentifier } from "@tauri-apps/api/app";
 import { appDataDir } from "@tauri-apps/api/path";
 import { Effect, Exit } from "effect";
 import { create as mutate } from "mutative";
 import type { StoreApi } from "zustand";
 
+import { commands as detectCommands } from "@hypr/plugin-detect";
 import { commands as hooksCommands } from "@hypr/plugin-hooks";
 import {
   commands as listenerCommands,
@@ -201,18 +202,30 @@ export const createGeneralSlice = <
         }),
       );
 
-      Promise.all([appDataDir(), getName().catch(() => "com.hyprnote.app")])
-        .then(([dataDirPath, appName]) => {
+      Promise.all([
+        appDataDir(),
+        detectCommands
+          .listMicUsingApplications()
+          .then((r) =>
+            r.status === "ok" ? r.data.map((app) => app.id) : null,
+          ),
+        getIdentifier().catch(() => "com.hyprnote.stable"),
+      ])
+        .then(([dataDirPath, micUsingApps, bundleId]) => {
           const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
-          return hooksCommands.runEventHooks({
-            beforeListeningStarted: {
-              args: {
-                resource_dir: sessionPath,
-                app_hyprnote: appName,
-                app_meeting: null,
+          const app_meeting = micUsingApps?.[0] ?? null;
+
+          hooksCommands
+            .runEventHooks({
+              beforeListeningStarted: {
+                args: {
+                  resource_dir: sessionPath,
+                  app_hyprnote: bundleId,
+                  app_meeting,
+                },
               },
-            },
-          });
+            })
+            .catch(console.error);
         })
         .catch((error) => {
           console.error("[hooks] BeforeListeningStarted failed:", error);
@@ -274,15 +287,15 @@ export const createGeneralSlice = <
           if (sessionId) {
             Promise.all([
               appDataDir(),
-              getName().catch(() => "com.hyprnote.app"),
+              getIdentifier().catch(() => "com.hyprnote.app"),
             ])
-              .then(([dataDirPath, appName]) => {
+              .then(([dataDirPath, bundleId]) => {
                 const sessionPath = `${dataDirPath}/hyprnote/sessions/${sessionId}`;
                 return hooksCommands.runEventHooks({
                   afterListeningStopped: {
                     args: {
                       resource_dir: sessionPath,
-                      app_hyprnote: appName,
+                      app_hyprnote: bundleId,
                       app_meeting: null,
                     },
                   },

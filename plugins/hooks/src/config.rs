@@ -40,13 +40,11 @@ impl HooksConfig {
         Ok(config)
     }
 
-    fn config_path<R: tauri::Runtime>(app: &impl tauri::Manager<R>) -> crate::Result<PathBuf> {
-        let app_data_dir = app
-            .path()
-            .app_data_dir()
-            .map_err(|e| crate::Error::ConfigLoad(e.to_string()))?;
+    fn config_path<R: tauri::Runtime>(_app: &impl tauri::Manager<R>) -> crate::Result<PathBuf> {
+        let data_dir =
+            dirs::data_dir().ok_or_else(|| crate::Error::ConfigLoad("no data dir".to_string()))?;
 
-        Ok(app_data_dir.join("hyprnote").join("hooks.json"))
+        Ok(data_dir.join("hyprnote").join("hooks.json"))
     }
 
     fn empty() -> Self {

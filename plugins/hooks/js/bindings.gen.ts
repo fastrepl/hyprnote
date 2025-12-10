@@ -7,7 +7,7 @@
 
 
 export const commands = {
-async runEventHooks(event: HookEvent) : Promise<Result<null, string>> {
+async runEventHooks(event: HookEvent) : Promise<Result<HookResult[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:hooks|run_event_hooks", { event }) };
 } catch (e) {
@@ -68,6 +68,7 @@ export type HookDefinition = {
  */
 command: string }
 export type HookEvent = { afterListeningStopped: { args: AfterListeningStoppedArgs } } | { beforeListeningStarted: { args: BeforeListeningStartedArgs } }
+export type HookResult = { command: string; success: boolean; exit_code: number | null; stdout: string; stderr: string }
 /**
  * Configuration for hook execution.
  */

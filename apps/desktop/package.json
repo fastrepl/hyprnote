@@ -15,6 +15,7 @@
     "gen:schema": "tsx src/components/devtool/seed/script.ts"
   },
   "dependencies": {
+    "@hypr/api-client": "workspace:*",
     "@ai-sdk/amazon-bedrock": "^3.0.67",
     "@ai-sdk/anthropic": "^2.0.53",
     "@ai-sdk/azure": "^2.0.82",

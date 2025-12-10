@@ -18,6 +18,8 @@ export const env = createEnv({
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     STRIPE_SECRET_KEY: z.string().min(1),
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
+    STRIPE_MONTHLY_PRICE_ID: z.string().min(1),
+    STRIPE_YEARLY_PRICE_ID: z.string().min(1),
     OPENROUTER_API_KEY: z.string().min(1),
     DEEPGRAM_API_KEY: z.string().min(1),
     ASSEMBLYAI_API_KEY: z.string().min(1),
@@ -27,4 +29,5 @@ export const env = createEnv({
   },
   runtimeEnv: Bun.env,
   emptyStringAsUndefined: true,
+  skipValidation: Bun.env.CI === "true",
 });

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@deepgram/sdk": "^4.11.2",
+    "@hypr/api-client": "workspace:*",
     "@hypr/tiptap": "workspace:*",
     "@hypr/ui": "workspace:*",
     "@hypr/utils": "workspace:*",

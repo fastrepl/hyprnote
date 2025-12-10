@@ -5,7 +5,8 @@
     "**/routeTree.gen.ts": true
   },
   "search.exclude": {
-    "**/routeTree.gen.ts": true
+    "**/routeTree.gen.ts": true,
+    "**/generated/**": true
   },
   "files.readonlyInclude": {
     "**/routeTree.gen.ts": true,

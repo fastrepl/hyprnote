@@ -96,7 +96,7 @@ function Component() {
     ) {
       setTimeout(() => {
         handleDeeplink();
-      }, 2000);
+      }, 200);
     }
   }, [search]);
 

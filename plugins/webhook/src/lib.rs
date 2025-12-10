@@ -61,7 +61,7 @@ mod test {
     #[test]
     fn export_openapi() {
         let openapi_json = generate_openapi_json();
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("openapi.json");
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("openapi.gen.json");
         std::fs::write(&path, openapi_json).unwrap();
     }
 }

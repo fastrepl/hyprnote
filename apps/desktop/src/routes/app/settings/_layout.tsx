@@ -4,6 +4,7 @@ import {
   AudioLines,
   Bell,
   CalendarDays,
+  Import,
   type LucideIcon,
   MessageCircleQuestion,
   Puzzle,
@@ -25,6 +26,7 @@ const TAB_KEYS = [
   "notifications",
   "transcription",
   "intelligence",
+  "data-import",
   "integrations",
   "feedback",
   "developers",
@@ -67,6 +69,12 @@ const TAB_CONFIG: Record<
     label: "Intelligence",
     icon: Sparkles,
     group: 1,
+  },
+  "data-import": {
+    label: "Data Import",
+    icon: Import,
+    group: 1,
+    disabled: true,
   },
   integrations: {
     label: "Integrations",

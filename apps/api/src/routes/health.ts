@@ -15,12 +15,10 @@ export const health = new Hono<AppBindings>();
 health.get(
   "/",
   describeRoute({
-    tags: [API_TAGS.INTERNAL],
-    summary: "Health check",
-    description: "Returns the health status of the API server.",
+    tags: [API_TAGS.PRIVATE_SKIP_OPENAPI],
     responses: {
       200: {
-        description: "API is healthy",
+        description: "result",
         content: {
           "application/json": {
             schema: resolver(HealthResponseSchema),

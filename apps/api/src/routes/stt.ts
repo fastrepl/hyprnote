@@ -8,11 +8,6 @@ import { listenSocketHandler } from "../listen";
 import { transcribeBatch } from "../stt";
 import { API_TAGS } from "./constants";
 
-const WebSocketErrorSchema = z.object({
-  error: z.string(),
-  detail: z.string().optional(),
-});
-
 const BatchWordSchema = z.object({
   word: z.string(),
   start: z.number(),
@@ -41,57 +36,19 @@ const BatchResponseSchema = z.object({
   results: BatchResultsSchema,
 });
 
-const BatchErrorSchema = z.object({
-  error: z.string(),
-  detail: z.string().optional(),
-});
-
 export const stt = new Hono<AppBindings>();
 
 stt.get(
   "/listen",
   describeRoute({
-    tags: [API_TAGS.APP],
-    summary: "Speech-to-text WebSocket",
-    description:
-      "WebSocket endpoint for real-time speech-to-text transcription via Deepgram. Requires Supabase authentication in production.",
+    tags: [API_TAGS.PRIVATE_SKIP_OPENAPI],
     security: [{ Bearer: [] }],
     responses: {
-      101: {
-        description: "WebSocket upgrade successful",
-      },
-      400: {
-        description: "WebSocket upgrade failed",
-        content: {
-          "application/json": {
-            schema: resolver(WebSocketErrorSchema),
-          },
-        },
-      },
-      401: {
-        description: "Unauthorized - missing or invalid authentication",
-        content: {
-          "text/plain": {
-            schema: { type: "string", example: "unauthorized" },
-          },
-        },
-      },
-      502: {
-        description: "Upstream STT service unavailable",
-        content: {
-          "application/json": {
-            schema: resolver(WebSocketErrorSchema),
-          },
-        },
-      },
-      504: {
-        description: "Upstream STT service timeout",
-        content: {
-          "application/json": {
-            schema: resolver(WebSocketErrorSchema),
-          },
-        },
-      },
+      101: { description: "-" },
+      400: { description: "-" },
+      401: { description: "-" },
+      502: { description: "-" },
+      504: { description: "-" },
     },
   }),
   (c, next) => {
@@ -102,52 +59,21 @@ stt.get(
 stt.post(
   "/transcribe",
   describeRoute({
-    tags: [API_TAGS.APP],
-    summary: "Batch speech-to-text transcription",
-    description:
-      "HTTP endpoint for batch speech-to-text transcription via file upload. Supports Deepgram, AssemblyAI, and Soniox providers. Use query parameter ?provider=deepgram|assemblyai|soniox to select provider. Requires Supabase authentication.",
+    tags: [API_TAGS.PRIVATE_SKIP_OPENAPI],
     security: [{ Bearer: [] }],
     responses: {
       200: {
-        description: "Transcription completed successfully",
+        description: "result",
         content: {
           "application/json": {
             schema: resolver(BatchResponseSchema),
           },
         },
       },
-      400: {
-        description: "Bad request - missing or invalid audio file",
-        content: {
-          "application/json": {
-            schema: resolver(BatchErrorSchema),
-          },
-        },
-      },
-      401: {
-        description: "Unauthorized - missing or invalid authentication",
-        content: {
-          "text/plain": {
-            schema: { type: "string", example: "unauthorized" },
-          },
-        },
-      },
-      500: {
-        description: "Internal server error during transcription",
-        content: {
-          "application/json": {
-            schema: resolver(BatchErrorSchema),
-          },
-        },
-      },
-      502: {
-        description: "Upstream STT service error",
-        content: {
-          "application/json": {
-            schema: resolver(BatchErrorSchema),
-          },
-        },
-      },
+      400: { description: "-" },
+      401: { description: "-" },
+      500: { description: "-" },
+      502: { description: "-" },
     },
   }),
   async (c) => {

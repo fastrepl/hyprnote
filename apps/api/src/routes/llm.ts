@@ -38,23 +38,11 @@ export const llm = new Hono<AppBindings>();
 llm.post(
   "/completions",
   describeRoute({
-    tags: [API_TAGS.APP],
-    summary: "Chat completions",
-    description:
-      "OpenAI-compatible chat completions endpoint. Proxies requests to OpenRouter with automatic model selection. Requires Supabase authentication.",
+    tags: [API_TAGS.PRIVATE_SKIP_OPENAPI],
     security: [{ Bearer: [] }],
     responses: {
-      200: {
-        description: "Chat completion response (streamed or non-streamed)",
-      },
-      401: {
-        description: "Unauthorized - missing or invalid authentication",
-        content: {
-          "text/plain": {
-            schema: { type: "string", example: "unauthorized" },
-          },
-        },
-      },
+      200: { description: "-" },
+      401: { description: "-" },
     },
   }),
   validator("json", ChatCompletionRequestSchema),

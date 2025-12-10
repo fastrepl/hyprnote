@@ -1,4 +1,5 @@
 import type * as Sentry from "@sentry/bun";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
 
 import type { Emitter } from "./observability";
@@ -10,6 +11,7 @@ export type AppBindings = {
     stripeSignature: string;
     sentrySpan: Sentry.Span;
     supabaseUserId: string | undefined;
+    supabaseClient: SupabaseClient | undefined;
     emit: Emitter;
   };
 };

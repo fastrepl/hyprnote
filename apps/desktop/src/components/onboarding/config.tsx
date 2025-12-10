@@ -4,13 +4,17 @@ import type { ComponentType } from "react";
 
 import { useAuth } from "../../auth";
 import { usePlatform } from "../../hooks/usePlatform";
+import { ConfigureNotice } from "./configure-notice";
 import { Login } from "./login";
-import { ModelDownload } from "./model";
 import { Permissions } from "./permissions";
 import type { OnboardingNext } from "./shared";
 import { Welcome } from "./welcome";
 
-export type OnboardingStepId = "welcome" | "login" | "permissions" | "model";
+export type OnboardingStepId =
+  | "welcome"
+  | "login"
+  | "configure-notice"
+  | "permissions";
 
 export type OnboardingContext = {
   platform: Platform;
@@ -40,14 +44,14 @@ export const STEP_CONFIGS: OnboardingStepConfig[] = [
     component: Login,
   },
   {
+    id: "configure-notice",
+    shouldShow: (ctx) => ctx.local,
+    component: ConfigureNotice,
+  },
+  {
     id: "permissions",
     shouldShow: (ctx) => ctx.platform === "macos",
     component: Permissions,
-  },
-  {
-    id: "model",
-    shouldShow: (ctx) => ctx.local && ctx.isAppleSilicon,
-    component: ModelDownload,
   },
 ];
 

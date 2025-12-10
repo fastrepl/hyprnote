@@ -3,7 +3,10 @@ import type { ReactNode } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 
-export type OnboardingNext = (params?: { local?: boolean }) => void;
+export type OnboardingNext = (params?: {
+  local?: boolean;
+  step?: string;
+}) => void;
 
 type OnboardingAction = {
   kind: "skip" | "next";

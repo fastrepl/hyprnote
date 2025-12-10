@@ -11,6 +11,15 @@ import {
 import { useAuth } from "./auth";
 import { env } from "./env";
 
+export function getEntitlementsFromToken(accessToken: string): string[] {
+  try {
+    const decoded = jwtDecode<{ entitlements?: string[] }>(accessToken);
+    return decoded.entitlements ?? [];
+  } catch {
+    return [];
+  }
+}
+
 type BillingContextValue = {
   entitlements: string[];
   isPro: boolean;
@@ -28,17 +37,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     if (!auth?.session?.access_token) {
       return [];
     }
-
-    try {
-      const decoded = jwtDecode<{ entitlements?: string[] }>(
-        auth.session.access_token,
-      );
-      const result = decoded.entitlements ?? [];
-      return result;
-    } catch (e) {
-      console.error(e);
-      return [];
-    }
+    return getEntitlementsFromToken(auth.session.access_token);
   }, [auth?.session?.access_token]);
 
   const isPro = useMemo(

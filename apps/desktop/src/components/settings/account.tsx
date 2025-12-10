@@ -1,7 +1,10 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLinkIcon, RefreshCwIcon } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 
+import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
+import { createClient } from "@hypr/api-client/client";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
@@ -137,71 +140,106 @@ export function SettingsAccount() {
 
       <Container
         title="Plan & Billing"
-        description="View your current plan and manage billing on the web."
-        action={
-          <Button
-            variant="outline"
-            onClick={handleOpenAccount}
-            className="w-[100px] flex flex-row gap-1.5"
-          >
-            <span className="text-sm">Manage</span>
-            <ExternalLinkIcon className="text-neutral-600" size={12} />
-          </Button>
-        }
+        description={`Your current plan is ${isPro ? "PRO" : "FREE"}. `}
+        action={<BillingButton />}
       >
-        <PlanStatus isPro={isPro} onRefresh={auth?.refreshSession} />
+        <p className="text-sm text-neutral-600">
+          Click{" "}
+          <span
+            onClick={() => auth?.refreshSession()}
+            className="text-primary underline cursor-pointer"
+          >
+            here
+          </span>
+          <span className="text-neutral-600"> to refresh plan status.</span>
+        </p>
       </Container>
     </div>
   );
 }
 
-function PlanStatus({
-  isPro,
-  onRefresh,
-}: {
-  isPro: boolean;
-  onRefresh?: () => Promise<void>;
-}) {
-  const [isRefreshing, setIsRefreshing] = useState(false);
+function BillingButton() {
+  const auth = useAuth();
+  const { isPro } = useBillingAccess();
 
-  const handleRefresh = async () => {
-    if (!onRefresh) {
-      return;
-    }
-    setIsRefreshing(true);
-    try {
-      await onRefresh();
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+  const canTrialQuery = useQuery({
+    enabled: !!auth?.session && !isPro,
+    queryKey: [auth?.session?.user.id ?? "", "canStartTrial"],
+    queryFn: async () => {
+      const headers = auth?.getHeaders();
+      if (!headers) {
+        return false;
+      }
+      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
+      const { data, error } = await getRpcCanStartTrial({ client });
+      if (error) {
+        throw error;
+      }
+
+      return data?.canStartTrial ?? false;
+    },
+  });
+
+  const startTrialMutation = useMutation({
+    mutationFn: async () => {
+      const headers = auth?.getHeaders();
+      if (!headers) {
+        throw new Error("Not authenticated");
+      }
+      const client = createClient({ baseUrl: env.VITE_API_URL, headers });
+      const { error } = await postBillingStartTrial({
+        client,
+        query: { interval: "monthly" },
+      });
+      if (error) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    },
+    onSuccess: async () => {
+      await auth?.refreshSession();
+    },
+  });
+
+  const handleProUpgrade = useCallback(() => {
+    openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
+  }, []);
+
+  const handleOpenAccount = useCallback(() => {
+    openUrl(`${WEB_APP_BASE_URL}/app/account`);
+  }, []);
+
+  if (isPro) {
+    return (
+      <Button
+        variant="outline"
+        onClick={handleOpenAccount}
+        className="w-[100px] flex flex-row gap-1.5"
+      >
+        <span className="text-sm">Manage</span>
+        <ExternalLinkIcon className="text-neutral-600" size={12} />
+      </Button>
+    );
+  }
+
+  if (canTrialQuery.data) {
+    return (
+      <Button
+        variant="outline"
+        onClick={() => startTrialMutation.mutate()}
+        disabled={startTrialMutation.isPending}
+      >
+        <span> Start Pro Trial</span>
+      </Button>
+    );
+  }
 
   return (
-    <div className="flex flex-row items-center justify-between">
-      {isPro ? (
-        <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-          PRO
-        </span>
-      ) : (
-        <span className="px-2 py-0.5 text-xs font-medium bg-neutral-200 text-neutral-600 rounded">
-          FREE
-        </span>
-      )}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleRefresh}
-        disabled={isRefreshing}
-        title="Refresh plan status"
-      >
-        <RefreshCwIcon
-          className={[
-            "h-4 w-4 text-neutral-500",
-            isRefreshing ? "animate-spin" : "",
-          ].join(" ")}
-        />
-      </Button>
-    </div>
+    <Button variant="outline" onClick={handleProUpgrade}>
+      <span>Upgrade to Pro</span>
+      <ExternalLinkIcon className="text-neutral-600" size={12} />
+    </Button>
   );
 }
 

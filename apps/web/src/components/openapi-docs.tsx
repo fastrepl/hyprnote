@@ -69,7 +69,7 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${apiUrl}/openapi.json`)
+    fetch(`${apiUrl}/openapi.gen.json`)
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         return res.json();
@@ -131,7 +131,7 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
         </p>
         <p className="text-sm text-neutral-600">
           <a
-            href={`${apiUrl}/openapi.json`}
+            href={`${apiUrl}/openapi.gen.json`}
             target="_blank"
             rel="noopener noreferrer"
             className="underline hover:text-stone-800"

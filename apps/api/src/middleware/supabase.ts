@@ -11,7 +11,7 @@ export const supabaseAuthMiddleware = createMiddleware<AppBindings>(
       return c.text("unauthorized", 401);
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authHeader.replace(/^bearer /i, "");
     const supabaseClient = createClient(
       env.SUPABASE_URL,
       env.SUPABASE_ANON_KEY,
@@ -27,6 +27,7 @@ export const supabaseAuthMiddleware = createMiddleware<AppBindings>(
     }
 
     c.set("supabaseUserId", data.user.id);
+    c.set("supabaseClient", supabaseClient);
     await next();
   },
 );

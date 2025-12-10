@@ -36,6 +36,15 @@ struct TranscriptRequest {
     language_config: Option<LanguageConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     diarization: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    diarization_config: Option<DiarizationConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    custom_vocabulary: Option<Vec<String>>,
+}
+
+#[derive(Debug, Serialize)]
+struct DiarizationConfig {
+    name_consistency: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -191,10 +200,16 @@ impl GladiaAdapter {
             code_switching: (params.languages.len() > 1).then_some(true),
         });
 
+        let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
+
         let transcript_request = TranscriptRequest {
             audio_url: upload_result.audio_url,
             language_config,
             diarization: Some(true),
+            diarization_config: Some(DiarizationConfig {
+                name_consistency: true,
+            }),
+            custom_vocabulary,
         };
 
         let transcript_url = format!("{}/pre-recorded", base_url);

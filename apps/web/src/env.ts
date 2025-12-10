@@ -20,8 +20,6 @@ export const env = createEnv({
 
     DEEPGRAM_API_KEY: z.string().min(1),
 
-    RESTATE_INGRESS_URL: z.string().min(1),
-
     GITHUB_TOKEN: z.string().optional(),
   },
 

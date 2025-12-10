@@ -346,7 +346,7 @@ function SearchCommandPalette({
               {!isLoading && results.length > 0 && (
                 <CommandGroup
                   heading="Documentation"
-                  className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-neutral-500 [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider"
+                  className="**:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:text-neutral-500 **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider"
                 >
                   {results.map((result, index) => (
                     <CommandItem

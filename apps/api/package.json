@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f .env -- bun --hot src/index.ts",
+    "dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f ../../.env.restate -f .env -- bun --hot src/index.ts",
     "stripe:migrate": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f .env -- bun src/scripts/run-stripe-migrations.ts",
     "openapi": "CI=true bun src/scripts/generate-openapi.ts",
     "typecheck": "tsc --noEmit",
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hypr/api-client": "workspace:*",
+    "@restatedev/restate-sdk-clients": "^1.9.1",
     "@hono/zod-validator": "^0.7.5",
     "@posthog/ai": "^7.2.1",
     "@scalar/hono-api-reference": "^0.5.184",

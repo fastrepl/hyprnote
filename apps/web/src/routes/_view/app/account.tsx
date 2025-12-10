@@ -3,7 +3,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 
 import { signOutFn } from "@/functions/auth";
-import { createPortalSession, syncAfterSuccess } from "@/functions/billing";
+import {
+  canStartTrial,
+  createPortalSession,
+  createTrialCheckoutSession,
+  syncAfterSuccess,
+} from "@/functions/billing";
 import { addContact } from "@/functions/loops";
 import { useAnalytics } from "@/hooks/use-posthog";
 
@@ -58,9 +63,23 @@ function AccountSettingsCard() {
     queryFn: () => syncAfterSuccess(),
   });
 
+  const canTrialQuery = useQuery({
+    queryKey: ["canStartTrial"],
+    queryFn: () => canStartTrial(),
+  });
+
   const manageBillingMutation = useMutation({
     mutationFn: async () => {
       const { url } = await createPortalSession();
+      if (url) {
+        window.location.href = url;
+      }
+    },
+  });
+
+  const startTrialMutation = useMutation({
+    mutationFn: async () => {
+      const { url } = await createTrialCheckoutSession();
       if (url) {
         window.location.href = url;
       }
@@ -78,7 +97,7 @@ function AccountSettingsCard() {
   })();
 
   const renderPlanButton = () => {
-    if (billingQuery.isLoading) {
+    if (billingQuery.isLoading || canTrialQuery.isLoading) {
       return (
         <div className="px-4 h-8 flex items-center text-sm text-neutral-400">
           Loading...
@@ -87,6 +106,18 @@ function AccountSettingsCard() {
     }
 
     if (currentPlan === "free") {
+      if (canTrialQuery.data) {
+        return (
+          <button
+            onClick={() => startTrialMutation.mutate()}
+            disabled={startTrialMutation.isPending}
+            className="px-4 h-8 flex items-center text-sm bg-linear-to-t from-stone-600 to-stone-500 text-white rounded-full shadow-md hover:shadow-lg hover:scale-[102%] active:scale-[98%] transition-all disabled:opacity-50 disabled:hover:scale-100"
+          >
+            {startTrialMutation.isPending ? "Loading..." : "Start Free Trial"}
+          </button>
+        );
+      }
+
       return (
         <Link
           to="/app/checkout"

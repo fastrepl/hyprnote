@@ -91,13 +91,20 @@ impl RealtimeSttAdapter for GladiaAdapter {
             let key = api_key.as_deref()?;
             let post_url = Self::build_http_url(&api_base);
 
-            let language_config = (!params.languages.is_empty()).then(|| LanguageConfig {
-                languages: params
-                    .languages
-                    .iter()
-                    .map(|l| l.iso639().code().to_string())
-                    .collect(),
-            });
+            let languages: Vec<String> = params
+                .languages
+                .iter()
+                .map(|l| l.iso639().code().to_string())
+                .collect();
+
+            let language_config = if languages.is_empty() {
+                None
+            } else {
+                Some(LanguageConfig {
+                    code_switching: languages.len() > 1,
+                    languages,
+                })
+            };
 
             let custom_vocabulary = (!params.keywords.is_empty()).then(|| params.keywords.clone());
 
@@ -108,8 +115,16 @@ impl RealtimeSttAdapter for GladiaAdapter {
                 channels,
                 language_config,
                 custom_vocabulary,
+                custom_metadata: None,
                 messages_config: Some(MessagesConfig {
                     receive_partial_transcripts: true,
+                    receive_final_transcripts: true,
+                }),
+                pre_processing: Some(PreProcessing {
+                    audio_enhancer: true,
+                }),
+                realtime_processing: Some(RealtimeProcessing {
+                    words_accurate_timestamps: true,
                 }),
             };
 
@@ -217,17 +232,35 @@ struct GladiaConfig<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     custom_vocabulary: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    custom_metadata: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     messages_config: Option<MessagesConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pre_processing: Option<PreProcessing>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    realtime_processing: Option<RealtimeProcessing>,
 }
 
 #[derive(Serialize)]
 struct LanguageConfig {
     languages: Vec<String>,
+    code_switching: bool,
 }
 
 #[derive(Serialize)]
 struct MessagesConfig {
     receive_partial_transcripts: bool,
+    receive_final_transcripts: bool,
+}
+
+#[derive(Serialize)]
+struct PreProcessing {
+    audio_enhancer: bool,
+}
+
+#[derive(Serialize)]
+struct RealtimeProcessing {
+    words_accurate_timestamps: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -326,14 +359,6 @@ impl GladiaAdapter {
         let session_id = msg.session_id;
         let data = msg.data;
         let utterance = data.utterance;
-
-        tracing::debug!(
-            transcript = %utterance.text,
-            is_final = data.is_final,
-            channel = ?utterance.channel,
-            session_id = %session_id,
-            "gladia_transcript_received"
-        );
 
         if utterance.text.is_empty() && utterance.words.is_empty() {
             return vec![];

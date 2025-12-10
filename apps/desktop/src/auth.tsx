@@ -125,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (res.error) {
       console.error(res.error);
     } else {
+      setSession(res.data.session);
       setServerReachable(true);
       supabase.auth.startAutoRefresh();
     }

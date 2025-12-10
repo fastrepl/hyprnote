@@ -1,5 +1,4 @@
-import { jwtDecode } from "jwt-decode";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient, createConfig } from "@hypr/api-client/client";
@@ -7,31 +6,16 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
 import { useAuth } from "../../auth";
+import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
-import type { OnboardingNext } from "./shared";
+import { OnboardingContainer, type OnboardingNext } from "./shared";
 
-function checkIsPro(accessToken: string): boolean {
-  try {
-    const decoded = jwtDecode<{ entitlements?: string[] }>(accessToken);
-    return decoded.entitlements?.includes("hyprnote_pro") ?? false;
-  } catch {
-    return false;
-  }
-}
-
-type LoginProps = {
-  onNext: OnboardingNext;
-};
-
-export function Login({ onNext }: LoginProps) {
+export function Login({ onNext }: { onNext: OnboardingNext }) {
   const auth = useAuth();
   const [showManualInput, setShowManualInput] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("");
 
-  const handleSignIn = useCallback(async () => {
-    await auth?.signIn();
-  }, [auth]);
-
+  const signInStarted = useRef(false);
   const trialStarted = useRef(false);
 
   useEffect(() => {
@@ -46,52 +30,51 @@ export function Login({ onNext }: LoginProps) {
       );
 
       (async () => {
-        const { data } = await getRpcCanStartTrial({ client });
-        if (data?.canStartTrial) {
-          await postBillingStartTrial({
-            client,
-            query: { interval: "yearly" },
-          });
-        }
+        try {
+          const { data } = await getRpcCanStartTrial({ client });
+          if (data?.canStartTrial) {
+            await postBillingStartTrial({
+              client,
+              query: { interval: "monthly" },
+            });
+          }
 
-        const newSession = await auth.refreshSession();
-        const isPro = newSession ? checkIsPro(newSession.access_token) : false;
-        onNext({ local: !isPro });
+          const newSession = await auth.refreshSession();
+          const isPro = newSession
+            ? getEntitlementsFromToken(newSession.access_token).includes(
+                "hyprnote_pro",
+              )
+            : false;
+          onNext({ local: !isPro });
+        } catch (e) {
+          console.error("Failed to process login:", e);
+          onNext({ local: true });
+        }
       })();
     }
   }, [auth?.session, auth?.refreshSession, onNext]);
 
   useEffect(() => {
-    handleSignIn();
-  }, [handleSignIn]);
+    if (!signInStarted.current) {
+      signInStarted.current = true;
+      auth?.signIn();
+    }
+  }, [auth]);
 
   if (showManualInput) {
     return (
-      <>
-        <img
-          src="/assets/logo.svg"
-          alt="HYPRNOTE"
-          className="mb-6 w-[300px]"
-          draggable={false}
+      <OnboardingContainer
+        title="Enter callback URL manually"
+        description="Useful if deep linking is not working"
+      >
+        <Input
+          type="text"
+          className="text-xs font-mono"
+          placeholder="<SOMETHING>?access_token=...&refresh_token=..."
+          value={callbackUrl}
+          onChange={(e) => setCallbackUrl(e.target.value)}
         />
-
-        <div className="flex flex-col gap-2 text-center mb-8">
-          <h2 className="text-xl font-semibold text-neutral-900">
-            Manual callback
-          </h2>
-          <p className="text-base text-neutral-500">
-            Paste the callback URL from your browser
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3 w-full">
-          <Input
-            type="text"
-            className="text-xs font-mono"
-            placeholder="hyprnote://auth/callback?access_token=...&refresh_token=..."
-            value={callbackUrl}
-            onChange={(e) => setCallbackUrl(e.target.value)}
-          />
+        <div className="flex flex-col gap-2">
           <Button
             onClick={() => auth?.handleAuthCallback(callbackUrl)}
             className="w-full"
@@ -106,40 +89,39 @@ export function Login({ onNext }: LoginProps) {
             Back
           </Button>
         </div>
-      </>
+      </OnboardingContainer>
     );
   }
 
   return (
-    <>
-      <img
-        src="/assets/logo.svg"
-        alt="HYPRNOTE"
-        className="mb-6 w-[300px]"
-        draggable={false}
-      />
-
-      <div className="flex flex-col gap-2 text-center mb-8">
-        <h2 className="text-xl font-semibold text-neutral-900">
-          Waiting for sign-in...
-        </h2>
-        <p className="text-base text-neutral-500">
-          Complete the sign-in process in your browser
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-3 w-full">
-        <Button onClick={handleSignIn} variant="outline" className="w-full">
-          Reopen sign-in page
+    <OnboardingContainer
+      title="Waiting for sign in..."
+      description="Complete the process in your browser"
+    >
+      <p className="text-xs text-neutral-500 text-center">Having trouble?</p>
+      <div className="flex flex-col gap-2">
+        <Button
+          onClick={() => auth?.signIn()}
+          variant="outline"
+          className="w-full"
+        >
+          Open sign in page in browser
         </Button>
         <Button
           onClick={() => setShowManualInput(true)}
-          variant="ghost"
-          className="w-full text-xs"
+          variant="outline"
+          className="w-full"
         >
-          Having trouble? Paste callback URL manually
+          Paste callback URL manually
+        </Button>
+        <Button
+          onClick={() => onNext({ local: true, step: "configure-notice" })}
+          variant="outline"
+          className="w-full"
+        >
+          Continue without account
         </Button>
       </div>
-    </>
+    </OnboardingContainer>
   );
 }

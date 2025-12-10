@@ -13,6 +13,7 @@ import { cn } from "@hypr/utils";
 import { useAuth } from "../../../../auth";
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
+import * as keys from "../../../../store/tinybase/keys";
 import * as main from "../../../../store/tinybase/main";
 import { listAnthropicModels } from "../shared/list-anthropic";
 import {
@@ -183,9 +184,9 @@ function useConfiguredMapping(): Record<
 > {
   const auth = useAuth();
   const billing = useBillingAccess();
-  const configuredProviders = main.UI.useResultTable(
-    main.QUERIES.llmProviders,
-    main.STORE_ID,
+  const configuredProviders = keys.UI.useResultTable(
+    keys.QUERIES.llmProviders,
+    keys.STORE_ID,
   );
 
   const mapping = useMemo(() => {

@@ -12,7 +12,7 @@ import {
 } from "@hypr/ui/components/ui/input-group";
 import { cn } from "@hypr/utils";
 
-import * as main from "../../../../store/tinybase/main";
+import * as keys from "../../../../store/tinybase/keys";
 
 export * from "./model-combobox";
 
@@ -58,13 +58,13 @@ export function StyledStreamdown({
 }
 
 export function useProvider(id: string) {
-  const providerRow = main.UI.useRow("ai_providers", id, main.STORE_ID);
-  const setProvider = main.UI.useSetPartialRowCallback(
+  const providerRow = keys.UI.useRow("ai_providers", id, keys.STORE_ID);
+  const setProvider = keys.UI.useSetPartialRowCallback(
     "ai_providers",
     id,
     (row: Partial<AIProvider>) => row,
     [id],
-    main.STORE_ID,
+    keys.STORE_ID,
   ) as (row: Partial<AIProvider>) => void;
 
   const { data } = aiProviderSchema.safeParse(providerRow);

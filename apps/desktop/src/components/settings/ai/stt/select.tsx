@@ -15,6 +15,7 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
+import * as keys from "../../../../store/tinybase/keys";
 import * as main from "../../../../store/tinybase/main";
 import { HealthCheckForConnection } from "./health";
 import {
@@ -216,9 +217,9 @@ function useConfiguredMapping(): Record<
   }
 > {
   const billing = useBillingAccess();
-  const configuredProviders = main.UI.useResultTable(
-    main.QUERIES.sttProviders,
-    main.STORE_ID,
+  const configuredProviders = keys.UI.useResultTable(
+    keys.QUERIES.sttProviders,
+    keys.STORE_ID,
   );
 
   const targetArch = useQuery({

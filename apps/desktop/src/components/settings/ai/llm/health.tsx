@@ -5,7 +5,7 @@ import { useEffect, useMemo } from "react";
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import { useLanguageModel } from "../../../../hooks/useLLMConnection";
-import * as main from "../../../../store/tinybase/main";
+import * as keys from "../../../../store/tinybase/keys";
 import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
 import { llmProviderRequiresPro, PROVIDERS } from "./shared";
 
@@ -104,9 +104,9 @@ function useAvailability() {
   ] as const);
   const billing = useBillingAccess();
 
-  const configuredProviders = main.UI.useResultTable(
-    main.QUERIES.llmProviders,
-    main.STORE_ID,
+  const configuredProviders = keys.UI.useResultTable(
+    keys.QUERIES.llmProviders,
+    keys.STORE_ID,
   );
 
   const result = useMemo(() => {

@@ -450,26 +450,6 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           },
         )
         .setQueryDefinition(
-          QUERIES.llmProviders,
-          "ai_providers",
-          ({ select, where }) => {
-            select("type");
-            select("base_url");
-            select("api_key");
-            where((getCell) => getCell("type") === "llm");
-          },
-        )
-        .setQueryDefinition(
-          QUERIES.sttProviders,
-          "ai_providers",
-          ({ select, where }) => {
-            select("type");
-            select("base_url");
-            select("api_key");
-            where((getCell) => getCell("type") === "stt");
-          },
-        )
-        .setQueryDefinition(
           QUERIES.sessionParticipantsWithDetails,
           "mapping_session_participant",
           ({ select, join }) => {
@@ -684,8 +664,6 @@ export const QUERIES = {
   visibleChatShortcuts: "visibleChatShortcuts",
   visibleFolders: "visibleFolders",
   visibleVocabs: "visibleVocabs",
-  llmProviders: "llmProviders",
-  sttProviders: "sttProviders",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
   sessionRecordingTimes: "sessionRecordingTimes",
 };

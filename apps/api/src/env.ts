@@ -29,4 +29,5 @@ export const env = createEnv({
   },
   runtimeEnv: Bun.env,
   emptyStringAsUndefined: true,
+  skipValidation: Bun.env.CI === "true",
 });

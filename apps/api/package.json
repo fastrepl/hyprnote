@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f .env -- bun --hot src/index.ts",
     "stripe:migrate": "dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.stripe -f .env -- bun src/scripts/run-stripe-migrations.ts",
+    "openapi": "CI=true bun src/scripts/generate-openapi.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },

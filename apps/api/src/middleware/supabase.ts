@@ -27,6 +27,7 @@ export const supabaseAuthMiddleware = createMiddleware<AppBindings>(
     }
 
     c.set("supabaseUserId", data.user.id);
+    c.set("supabaseClient", supabaseClient);
     await next();
   },
 );

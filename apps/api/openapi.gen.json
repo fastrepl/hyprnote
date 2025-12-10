@@ -37,7 +37,7 @@
       "get": {
         "responses": {
           "200": {
-            "description": "-",
+            "description": "result",
             "content": {
               "application/json": {
                 "schema": {
@@ -222,6 +222,209 @@
         }
       }
     },
+    "/file-transcription/start": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Pipeline started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pipelineId": {
+                      "type": "string"
+                    },
+                    "invocationId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pipelineId",
+                    "invocationId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid fileId"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        },
+        "operationId": "postFile-transcriptionStart",
+        "tags": [
+          "private"
+        ],
+        "parameters": [],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fileId": {
+                    "type": "string"
+                  },
+                  "pipelineId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fileId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/file-transcription/status/{pipelineId}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Pipeline status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "QUEUED",
+                        "TRANSCRIBING",
+                        "TRANSCRIBED",
+                        "LLM_RUNNING",
+                        "DONE",
+                        "ERROR"
+                      ]
+                    },
+                    "transcript": {
+                      "type": "string"
+                    },
+                    "llmResult": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        },
+        "operationId": "getFile-transcriptionStatusByPipelineId",
+        "tags": [
+          "private"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipelineId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/file-transcription/result/{pipelineId}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Pipeline result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "QUEUED",
+                        "TRANSCRIBING",
+                        "TRANSCRIBED",
+                        "LLM_RUNNING",
+                        "DONE",
+                        "ERROR"
+                      ]
+                    },
+                    "transcript": {
+                      "type": "string"
+                    },
+                    "llmResult": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        },
+        "operationId": "getFile-transcriptionResultByPipelineId",
+        "tags": [
+          "private"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipelineId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/rpc/can-start-trial": {
       "get": {
         "responses": {
@@ -287,7 +490,7 @@
       "post": {
         "responses": {
           "200": {
-            "description": "-",
+            "description": "result",
             "content": {
               "application/json": {
                 "schema": {
@@ -421,7 +624,7 @@
       "post": {
         "responses": {
           "200": {
-            "description": "-",
+            "description": "result",
             "content": {
               "application/json": {
                 "schema": {

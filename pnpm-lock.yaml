@@ -35,6 +35,9 @@ importers:
       '@posthog/ai':
         specifier: ^7.2.1
         version: 7.2.1(@modelcontextprotocol/sdk@1.24.3(@cfworker/json-schema@4.1.1)(zod@4.1.13))(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.2.0(@opentelemetry/api@1.9.0))(posthog-node@5.17.2)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(ws@8.18.3)(zod-to-json-schema@3.25.0(zod@4.1.13))
+      '@restatedev/restate-sdk-clients':
+        specifier: ^1.9.1
+        version: 1.9.1
       '@scalar/hono-api-reference':
         specifier: ^0.5.184
         version: 0.5.184(hono@4.10.7)
@@ -658,9 +661,6 @@ importers:
       '@posthog/react':
         specifier: ^1.5.2
         version: 1.5.2(@types/react@19.2.7)(posthog-js@1.302.2)(react@19.2.1)
-      '@restatedev/restate-sdk-clients':
-        specifier: ^1.9.1
-        version: 1.9.1
       '@sentry/tanstackstart-react':
         specifier: ^10.29.0
         version: 10.29.0(react@19.2.1)
@@ -714,7 +714,7 @@ importers:
         version: 1.11.19
       drizzle-orm:
         specifier: ^0.44.7
-        version: 0.44.7(@cloudflare/workers-types@4.20251209.0)(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(bun-types@1.3.4)(pg@8.16.3)(postgres@3.4.7)
+        version: 0.44.7(@cloudflare/workers-types@4.20251209.0)(@opentelemetry/api@1.8.0)(@types/pg@8.15.6)(bun-types@1.3.4)(pg@8.16.3)(postgres@3.4.7)
       exa-js:
         specifier: ^1.10.2
         version: 1.10.2(ws@8.18.3)
@@ -25308,6 +25308,15 @@ snapshots:
       esbuild-register: 3.6.0(esbuild@0.25.12)
     transitivePeerDependencies:
       - supports-color
+
+  drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251209.0)(@opentelemetry/api@1.8.0)(@types/pg@8.15.6)(bun-types@1.3.4)(pg@8.16.3)(postgres@3.4.7):
+    optionalDependencies:
+      '@cloudflare/workers-types': 4.20251209.0
+      '@opentelemetry/api': 1.8.0
+      '@types/pg': 8.15.6
+      bun-types: 1.3.4
+      pg: 8.16.3
+      postgres: 3.4.7
 
   drizzle-orm@0.44.7(@cloudflare/workers-types@4.20251209.0)(@opentelemetry/api@1.9.0)(@types/pg@8.15.6)(bun-types@1.3.4)(pg@8.16.3)(postgres@3.4.7):
     optionalDependencies:

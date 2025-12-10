@@ -20,6 +20,111 @@ export type PostBillingStartTrialResponses = {
 
 export type PostBillingStartTrialResponse = PostBillingStartTrialResponses[keyof PostBillingStartTrialResponses];
 
+export type PostFileTranscriptionStartData = {
+    body?: {
+        fileId: string;
+        pipelineId?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/file-transcription/start';
+};
+
+export type PostFileTranscriptionStartErrors = {
+    /**
+     * Invalid fileId
+     */
+    400: unknown;
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+    /**
+     * Internal error
+     */
+    500: unknown;
+};
+
+export type PostFileTranscriptionStartResponses = {
+    /**
+     * Pipeline started
+     */
+    200: {
+        pipelineId: string;
+        invocationId: string;
+    };
+};
+
+export type PostFileTranscriptionStartResponse = PostFileTranscriptionStartResponses[keyof PostFileTranscriptionStartResponses];
+
+export type GetFileTranscriptionStatusByPipelineIdData = {
+    body?: never;
+    path: {
+        pipelineId: string;
+    };
+    query?: never;
+    url: '/file-transcription/status/{pipelineId}';
+};
+
+export type GetFileTranscriptionStatusByPipelineIdErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+    /**
+     * Internal error
+     */
+    500: unknown;
+};
+
+export type GetFileTranscriptionStatusByPipelineIdResponses = {
+    /**
+     * Pipeline status
+     */
+    200: {
+        status: 'QUEUED' | 'TRANSCRIBING' | 'TRANSCRIBED' | 'LLM_RUNNING' | 'DONE' | 'ERROR';
+        transcript?: string;
+        llmResult?: string;
+        error?: string;
+    };
+};
+
+export type GetFileTranscriptionStatusByPipelineIdResponse = GetFileTranscriptionStatusByPipelineIdResponses[keyof GetFileTranscriptionStatusByPipelineIdResponses];
+
+export type GetFileTranscriptionResultByPipelineIdData = {
+    body?: never;
+    path: {
+        pipelineId: string;
+    };
+    query?: never;
+    url: '/file-transcription/result/{pipelineId}';
+};
+
+export type GetFileTranscriptionResultByPipelineIdErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
+    /**
+     * Internal error
+     */
+    500: unknown;
+};
+
+export type GetFileTranscriptionResultByPipelineIdResponses = {
+    /**
+     * Pipeline result
+     */
+    200: {
+        status: 'QUEUED' | 'TRANSCRIBING' | 'TRANSCRIBED' | 'LLM_RUNNING' | 'DONE' | 'ERROR';
+        transcript?: string;
+        llmResult?: string;
+        error?: string;
+    };
+};
+
+export type GetFileTranscriptionResultByPipelineIdResponse = GetFileTranscriptionResultByPipelineIdResponses[keyof GetFileTranscriptionResultByPipelineIdResponses];
+
 export type GetRpcCanStartTrialData = {
     body?: never;
     path?: never;

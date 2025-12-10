@@ -25,6 +25,7 @@ export const env = createEnv({
     ASSEMBLYAI_API_KEY: z.string().min(1),
     SONIOX_API_KEY: z.string().min(1),
     POSTHOG_API_KEY: z.string().min(1),
+    RESTATE_INGRESS_URL: z.string().min(1),
     OVERRIDE_AUTH: z.string().optional(),
   },
   runtimeEnv: Bun.env,

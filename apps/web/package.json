@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "VITE_APP_URL=\"http://localhost:3000\" dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f ../../.env.restate -f .env -- vite dev --port 3000",
+    "dev": "VITE_APP_URL=\"http://localhost:3000\" dotenvx run --ignore MISSING_ENV_FILE -f ../../.env.supabase -f .env -- vite dev --port 3000",
     "build": "vite build && cp public/sitemap.xml dist/client/sitemap.xml && pagefind --site ./dist/client",
     "serve": "vite preview",
     "test": "playwright test",
@@ -23,7 +23,6 @@
     "@netlify/cache": "^3.3.4",
     "@netlify/vite-plugin-tanstack-start": "^1.2.3",
     "@posthog/react": "^1.5.2",
-    "@restatedev/restate-sdk-clients": "^1.9.1",
     "@sentry/tanstackstart-react": "^10.29.0",
     "@stripe/stripe-js": "^8.5.3",
     "@supabase/ssr": "^0.7.0",

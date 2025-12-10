@@ -168,8 +168,9 @@ function BillingButton() {
       const client = createClient({ baseUrl: env.VITE_API_URL, headers });
       const { data, error } = await getRpcCanStartTrial({ client });
       if (error) {
-        return false;
+        throw error;
       }
+
       return data?.canStartTrial ?? false;
     },
   });

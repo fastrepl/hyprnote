@@ -6,7 +6,7 @@ import { env } from "@/env";
 export const supabaseAuthMiddleware = createMiddleware().server(
   async ({ next, request }) => {
     const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.replace("Bearer ", "");
+    const token = authHeader?.replace(/^bearer /i, "");
 
     if (!token) {
       throw new Response(

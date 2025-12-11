@@ -3,14 +3,12 @@ mod errors;
 mod mic;
 mod norm;
 mod speaker;
-mod utils;
 
 pub use device_monitor::*;
 pub use errors::*;
 pub use mic::*;
 pub use norm::*;
 pub use speaker::*;
-pub use utils::*;
 
 pub use cpal;
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -208,13 +206,9 @@ impl AsyncSource for AudioStream {
 }
 
 pub fn is_using_headphone() -> bool {
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
     {
-        utils::macos::is_headphone_from_default_output_device()
-    }
-    #[cfg(target_os = "linux")]
-    {
-        utils::linux::is_headphone_from_default_output_device()
+        hypr_device_heuristic::is_headphone_from_default_output_device()
     }
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     {
@@ -225,7 +219,7 @@ pub fn is_using_headphone() -> bool {
 pub fn is_macbook_in_clamshell() -> bool {
     #[cfg(target_os = "macos")]
     {
-        utils::macos::is_macbook_in_clamshell()
+        hypr_device_heuristic::is_macbook_in_clamshell()
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -236,7 +230,7 @@ pub fn is_macbook_in_clamshell() -> bool {
 pub fn is_default_input_external() -> bool {
     #[cfg(target_os = "macos")]
     {
-        utils::macos::is_default_input_external()
+        hypr_device_heuristic::is_default_input_external()
     }
     #[cfg(not(target_os = "macos"))]
     {

@@ -11,8 +11,6 @@ Default permissions for the plugin
 - `allow-contacts-access-status`
 - `allow-request-calendar-access`
 - `allow-request-contacts-access`
-- `allow-sync-calendars`
-- `allow-sync-events`
 
 ## Permission Table
 

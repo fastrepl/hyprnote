@@ -69,6 +69,7 @@
         { "path": "$DOWNLOAD/**/*" }
       ]
     },
+    "apple-calendar:default",
     "extensions:default",
     "db2:default",
     "windows:default",

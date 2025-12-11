@@ -379,10 +379,10 @@
           "markdownDescription": "Denies the request_contacts_access command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-sync-calendars`\n- `allow-sync-events`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-sync-calendars`\n- `allow-sync-events`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`"
         }
       ]
     }

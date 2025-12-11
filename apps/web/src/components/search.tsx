@@ -296,9 +296,13 @@ function SearchCommandPalette({
   }, [open, onOpenChange]);
 
   useEffect(() => {
-    const zendeskWidget = document.getElementById("launcher");
-    if (zendeskWidget) {
-      zendeskWidget.style.display = open ? "none" : "";
+    const zE = (window as { zE?: (...args: unknown[]) => void }).zE;
+    if (zE) {
+      if (open) {
+        zE("messenger", "hide");
+      } else {
+        zE("messenger", "show");
+      }
     }
   }, [open]);
 

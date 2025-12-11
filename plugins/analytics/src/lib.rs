@@ -33,8 +33,21 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let client = hypr_analytics::AnalyticsClient::new(option_env!("POSTHOG_API_KEY"));
+            let api_key = {
+                #[cfg(not(debug_assertions))]
+                {
+                    let v = env!("POSTHOG_API_KEY");
+                    assert!(v.starts_with("phc_"));
+                    Some(v)
+                }
 
+                #[cfg(debug_assertions)]
+                {
+                    option_env!("POSTHOG_API_KEY")
+                }
+            };
+
+            let client = hypr_analytics::AnalyticsClient::new(api_key);
             assert!(app.manage(client));
             Ok(())
         })

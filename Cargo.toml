@@ -54,7 +54,6 @@ hypr-loops = { path = "crates/loops", package = "loops" }
 hypr-mac = { path = "crates/mac", package = "mac" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
-hypr-network = { path = "crates/network", package = "network" }
 hypr-notch = { path = "crates/notch", package = "notch" }
 hypr-notification = { path = "crates/notification", package = "notification" }
 hypr-notification-interface = { path = "crates/notification-interface", package = "notification-interface" }

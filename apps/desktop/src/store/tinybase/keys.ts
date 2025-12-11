@@ -61,16 +61,16 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const persister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       const jsonPersister = createJsonPersister<Schemas>(
         store as Store,
         "keys.json",
       );
 
       await jsonPersister.load();
+
+      if (!persist) {
+        return undefined;
+      }
 
       if (mainStore) {
         migrateFromMainStore(mainStore as main.Store, store as Store);

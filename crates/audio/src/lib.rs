@@ -222,6 +222,28 @@ pub fn is_using_headphone() -> bool {
     }
 }
 
+pub fn is_macbook_in_clamshell() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        utils::macos::is_macbook_in_clamshell()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        false
+    }
+}
+
+pub fn is_default_input_external() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        utils::macos::is_default_input_external()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        false
+    }
+}
+
 #[cfg(all(test, target_os = "macos"))]
 pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
     use rodio::{

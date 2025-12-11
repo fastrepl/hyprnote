@@ -25,7 +25,10 @@ impl ChannelMode {
     pub fn determine(onboarding: bool) -> Self {
         if onboarding {
             ChannelMode::SpeakerOnly
-        } else if hypr_audio::is_using_headphone() {
+        } else if hypr_audio::is_using_headphone()
+            || hypr_audio::is_default_input_external()
+            || hypr_audio::is_macbook_in_clamshell()
+        {
             ChannelMode::MicAndSpeaker
         } else {
             ChannelMode::MicOnly

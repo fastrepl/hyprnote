@@ -33,8 +33,8 @@ tokio = { workspace = true, features = ["rt-multi-thread"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 itertools = { workspace = true }
-block2 = "0.5.1"
-objc2 = "0.5.2"
-objc2-contacts = { version = "0.2.2", features = ["CNContactStore", "CNLabeledValue", "CNContact", "block2"] }
-objc2-event-kit = { version = "0.2.2", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKSource", "EKTypes", "block2"] }
-objc2-foundation = { version = "0.2.2", features = ["NSEnumerator"] }
+block2 = { workspace = true }
+objc2 = { workspace = true }
+objc2-contacts = { version = "0.3", features = ["CNContactStore", "CNLabeledValue", "CNContact", "block2"] }
+objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKSource", "EKTypes", "block2"] }
+objc2-foundation = { workspace = true, features = ["NSDate", "NSEnumerator"] }

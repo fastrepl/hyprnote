@@ -2,8 +2,7 @@ use std::time::Duration;
 
 use block2::RcBlock;
 use itertools::Itertools;
-use objc2::msg_send;
-use objc2::{rc::Retained, runtime::Bool, ClassType};
+use objc2::{msg_send, rc::Retained, runtime::Bool, AllocAnyThread};
 use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType};
 use objc2_event_kit::{
     EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore, EKParticipant,
@@ -108,9 +107,7 @@ impl Handle {
         let (start_date, end_date) = [filter.from, filter.to]
             .iter()
             .sorted_by(|a, b| a.cmp(b))
-            .map(|v| unsafe {
-                NSDate::initWithTimeIntervalSince1970(NSDate::alloc(), v.timestamp() as f64)
-            })
+            .map(|v| NSDate::initWithTimeIntervalSince1970(NSDate::alloc(), v.timestamp() as f64))
             .collect_tuple()
             .unwrap();
 
@@ -153,8 +150,8 @@ impl Handle {
                 let id = unsafe { calendar.calendarIdentifier() };
                 let title = unsafe { calendar.title() };
 
-                let source = unsafe { calendar.source().unwrap() };
-                let source_title = unsafe { source.as_ref().title() };
+                let source = unsafe { calendar.source() }.unwrap();
+                let source_title = unsafe { source.title() };
 
                 Calendar {
                     id: id.to_string(),
@@ -192,7 +189,7 @@ impl Handle {
                 }
 
                 let is_recurring = unsafe {
-                    let has_rules: Bool = msg_send![event, hasRecurrenceRules];
+                    let has_rules: Bool = msg_send![&*event, hasRecurrenceRules];
                     has_rules.as_bool()
                 };
 
@@ -203,7 +200,7 @@ impl Handle {
                         let is_current_user = unsafe { p.isCurrentUser() };
                         !is_current_user
                     })
-                    .map(|p| self.transform_participant(p))
+                    .map(|p| self.transform_participant(&p))
                     .collect();
 
                 Some(Event {
@@ -227,7 +224,7 @@ impl Handle {
 }
 
 fn offset_date_time_from(date: Retained<NSDate>) -> chrono::DateTime<chrono::Utc> {
-    let seconds = unsafe { date.timeIntervalSinceReferenceDate() };
+    let seconds = date.timeIntervalSinceReferenceDate();
 
     let cocoa_reference: chrono::DateTime<chrono::Utc> =
         chrono::DateTime::from_naive_utc_and_offset(

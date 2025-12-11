@@ -205,39 +205,6 @@ impl AsyncSource for AudioStream {
     }
 }
 
-pub fn is_using_headphone() -> bool {
-    #[cfg(any(target_os = "macos", target_os = "linux"))]
-    {
-        hypr_device_heuristic::is_headphone_from_default_output_device()
-    }
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    {
-        false
-    }
-}
-
-pub fn is_macbook_in_clamshell() -> bool {
-    #[cfg(target_os = "macos")]
-    {
-        hypr_device_heuristic::is_macbook_in_clamshell()
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        false
-    }
-}
-
-pub fn is_default_input_external() -> bool {
-    #[cfg(target_os = "macos")]
-    {
-        hypr_device_heuristic::is_default_input_external()
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        false
-    }
-}
-
 #[cfg(all(test, target_os = "macos"))]
 pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
     use rodio::{

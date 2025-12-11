@@ -70,7 +70,7 @@ impl DeviceMonitor {
 mod macos {
     use super::*;
     use cidre::{core_audio as ca, ns, os};
-    use hypr_device_heuristic::is_headphone_from_default_output_device;
+    use hypr_device_heuristic::macos::is_headphone_from_default_output_device;
 
     extern "C-unwind" fn listener(
         _obj_id: ca::Obj,
@@ -291,7 +291,7 @@ mod linux {
     }
 
     fn is_headphone_from_default_output_device() -> bool {
-        hypr_device_heuristic::is_headphone_from_default_output_device()
+        hypr_device_heuristic::linux::is_headphone_from_default_output_device()
     }
 }
 

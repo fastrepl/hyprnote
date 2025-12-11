@@ -15107,6 +15107,7 @@ dependencies = [
  "chrono",
  "codes-iso-639",
  "data",
+ "device-heuristic",
  "dirs 6.0.0",
  "futures-util",
  "hound",

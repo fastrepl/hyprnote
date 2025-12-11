@@ -4172,6 +4172,7 @@ dependencies = [
  "cidre",
  "libc",
  "libpulse-binding",
+ "mac 0.1.0",
  "objc2-core-graphics",
  "tracing",
 ]

@@ -515,6 +515,17 @@ pub enum ModelIdentifier {
 }
 
 impl ModelIdentifier {
+    pub fn has_builtin_mic(&self) -> bool {
+        matches!(
+            self.family(),
+            Family::MacBookPro
+                | Family::MacBookAir
+                | Family::MacBook
+                | Family::IMac
+                | Family::IMacPro
+        )
+    }
+
     pub fn family(&self) -> Family {
         match self {
             Self::Mac16_11

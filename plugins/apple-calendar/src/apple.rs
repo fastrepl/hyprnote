@@ -444,7 +444,7 @@ fn parse_recurrence_rules(event: &EKEvent) -> Vec<RecurrenceRule> {
 }
 
 fn parse_single_rule(rule: &EKRecurrenceRule) -> Option<RecurrenceRule> {
-    let frequency = match rule.frequency() {
+    let frequency = match unsafe { rule.frequency() } {
         EKRecurrenceFrequency::Daily => RecurrenceFrequency::Daily,
         EKRecurrenceFrequency::Weekly => RecurrenceFrequency::Weekly,
         EKRecurrenceFrequency::Monthly => RecurrenceFrequency::Monthly,
@@ -452,7 +452,7 @@ fn parse_single_rule(rule: &EKRecurrenceRule) -> Option<RecurrenceRule> {
         _ => return None,
     };
 
-    let interval = rule.interval() as u32;
+    let interval = unsafe { rule.interval() } as u32;
 
     let days_of_week = unsafe {
         let dow: Option<Retained<NSArray<EKRecurrenceDayOfWeek>>> = msg_send![rule, daysOfTheWeek];

@@ -7,6 +7,8 @@ import { z } from "zod";
 import { syncBillingBridge } from "../billing";
 import { env } from "../env";
 import type { AppBindings } from "../hono-bindings";
+import { getContactByEmail } from "../integration/loops";
+import { postThreadReply } from "../integration/slack";
 import { stripeSync } from "../integration/stripe-sync";
 import { API_TAGS } from "./constants";
 
@@ -73,6 +75,114 @@ webhook.post(
         tags: { webhook: "stripe", event_type: stripeEvent.type },
       });
       return c.json({ error: "billing_bridge_sync_failed" }, 500);
+    }
+
+    return c.json({ ok: true }, 200);
+  },
+);
+
+const SlackEventSchema = z.object({
+  type: z.string(),
+  challenge: z.string().optional(),
+  event: z
+    .object({
+      type: z.string(),
+      channel: z.string().optional(),
+      ts: z.string().optional(),
+      text: z.string().optional(),
+      bot_id: z.string().optional(),
+      user: z.string().optional(),
+    })
+    .optional(),
+});
+
+function extractEmailFromLoopsMessage(text: string): string | null {
+  const mailtoMatch = text.match(/<mailto:([^|]+)\|/);
+  if (mailtoMatch) {
+    return mailtoMatch[1];
+  }
+  const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
+  return emailMatch ? emailMatch[0] : null;
+}
+
+webhook.post(
+  "/slack/events",
+  describeRoute({
+    tags: [API_TAGS.PRIVATE_SKIP_OPENAPI],
+    responses: {
+      200: {
+        description: "result",
+        content: {
+          "application/json": {
+            schema: resolver(WebhookSuccessSchema),
+          },
+        },
+      },
+      400: { description: "-" },
+      500: { description: "-" },
+    },
+  }),
+  async (c) => {
+    const rawBody = c.get("slackRawBody");
+    const span = c.get("sentrySpan");
+
+    let payload: z.infer<typeof SlackEventSchema>;
+    try {
+      payload = SlackEventSchema.parse(JSON.parse(rawBody));
+    } catch {
+      return c.json({ error: "invalid_payload" }, 400);
+    }
+
+    if (payload.type === "url_verification" && payload.challenge) {
+      return c.json({ challenge: payload.challenge }, 200);
+    }
+
+    if (payload.type !== "event_callback" || !payload.event) {
+      return c.json({ ok: true }, 200);
+    }
+
+    const event = payload.event;
+    span?.setAttribute("slack.event_type", event.type);
+
+    if (event.type !== "message" || !event.bot_id) {
+      return c.json({ ok: true }, 200);
+    }
+
+    if (
+      env.LOOPS_SLACK_CHANNEL_ID &&
+      event.channel !== env.LOOPS_SLACK_CHANNEL_ID
+    ) {
+      return c.json({ ok: true }, 200);
+    }
+
+    if (
+      !event.text ||
+      !event.text.includes("was added to your account") ||
+      !event.ts ||
+      !event.channel
+    ) {
+      return c.json({ ok: true }, 200);
+    }
+
+    const email = extractEmailFromLoopsMessage(event.text);
+    if (!email) {
+      return c.json({ ok: true }, 200);
+    }
+
+    try {
+      const contact = await getContactByEmail(email);
+      if (!contact) {
+        return c.json({ ok: true }, 200);
+      }
+
+      const source = contact.source || "Unknown";
+      await postThreadReply(event.channel, event.ts, `Source: ${source}`);
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: { webhook: "slack", step: "loops_source_thread" },
+        extra: { email },
+      });
+      return c.json({ error: "failed_to_process" }, 500);
     }
 
     return c.json({ ok: true }, 200);

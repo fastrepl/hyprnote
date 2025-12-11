@@ -1,0 +1,7 @@
+[package]
+name = "audio-interface"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures-util = { workspace = true }

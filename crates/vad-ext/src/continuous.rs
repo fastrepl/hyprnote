@@ -6,7 +6,7 @@ use std::{
 };
 
 use futures_util::{future, Stream, StreamExt};
-use kalosm_sound::AsyncSource;
+use hypr_audio_interface::AsyncSource;
 use silero_rs::{VadConfig, VadSession, VadTransition};
 
 #[derive(Debug, Clone)]

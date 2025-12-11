@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 bytes = { workspace = true }
 futures-util = { workspace = true }
-kalosm-sound = { workspace = true, default-features = false }
+hypr-audio-interface = { workspace = true }
 thiserror = { workspace = true }
 
 dasp = { workspace = true }

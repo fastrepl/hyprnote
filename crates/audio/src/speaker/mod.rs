@@ -116,7 +116,7 @@ impl Stream for SpeakerStream {
     }
 }
 
-impl kalosm_sound::AsyncSource for SpeakerStream {
+impl hypr_audio_interface::AsyncSource for SpeakerStream {
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
         self
     }
@@ -166,7 +166,7 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_windows() {
-        use kalosm_sound::AsyncSource;
+        use hypr_audio_interface::AsyncSource;
 
         // Test that we can create a SpeakerInput
         let input = match SpeakerInput::new() {
@@ -208,7 +208,7 @@ mod tests {
     #[tokio::test]
     #[serial]
     async fn test_linux() {
-        use kalosm_sound::AsyncSource;
+        use hypr_audio_interface::AsyncSource;
 
         let input = match SpeakerInput::new() {
             Ok(input) => input,

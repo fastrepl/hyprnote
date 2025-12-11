@@ -15,10 +15,10 @@ rodio = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 
+hypr-audio-interface = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-vad3 = { workspace = true }
 hypr-vvad = { workspace = true }
-kalosm-sound = { workspace = true, default-features = false }
 silero-rs = { workspace = true }
 
 futures-util = { workspace = true }

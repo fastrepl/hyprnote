@@ -953,15 +953,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "auth-interface"
-version = "0.1.0"
-dependencies = [
- "schemars 0.8.22",
- "serde",
- "specta",
-]
-
-[[package]]
 name = "auto-launch"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3810,27 +3801,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dbus"
-version = "0.9.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "190b6255e8ab55a7b568df5a883e9497edc3e4821c06396612048b430e5ad1e9"
-dependencies = [
- "libc",
- "libdbus-sys",
- "windows-sys 0.59.0",
-]
-
-[[package]]
-name = "dbus-secret-service"
-version = "4.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "708b509edf7889e53d7efb0ffadd994cc6c2345ccb62f55cfd6b0682165e4fa6"
-dependencies = [
- "dbus",
- "zeroize",
-]
-
-[[package]]
 name = "deadpool"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4132,7 +4102,6 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-analytics",
  "tauri-plugin-apple-calendar",
- "tauri-plugin-auth",
  "tauri-plugin-autostart",
  "tauri-plugin-cli",
  "tauri-plugin-cli2",
@@ -8353,21 +8322,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "keyring"
-version = "3.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eebcc3aff044e5944a8fbaf69eb277d11986064cba30c468730e8b9909fb551c"
-dependencies = [
- "byteorder",
- "dbus-secret-service",
- "log",
- "security-framework 2.11.1",
- "security-framework 3.5.1",
- "windows-sys 0.60.2",
- "zeroize",
-]
-
-[[package]]
 name = "khronos-egl"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8550,15 +8504,6 @@ name = "libc"
 version = "0.2.178"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37c93d8daa9d8a012fd8ab92f088405fb202ea0b6ab73ee2482ae66af4f42091"
-
-[[package]]
-name = "libdbus-sys"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cbe856efeb50e4681f010e9aaa2bf0a644e10139e54cde10fc83a307c23bd9f"
-dependencies = [
- "pkg-config",
-]
 
 [[package]]
 name = "libfuzzer-sys"
@@ -15063,30 +15008,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-auth"
-version = "0.1.0"
-dependencies = [
- "auth-interface",
- "base64 0.22.1",
- "keyring",
- "minijinja",
- "serde",
- "serde_json",
- "serde_qs 1.0.0-rc.3",
- "specta",
- "specta-typescript",
- "strum 0.26.3",
- "tauri",
- "tauri-plugin",
- "tauri-plugin-oauth",
- "tauri-plugin-store",
- "tauri-specta",
- "thiserror 2.0.17",
- "tracing",
- "url",
-]
-
-[[package]]
 name = "tauri-plugin-autostart"
 version = "2.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15588,21 +15509,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-oauth"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eda564acdb23185caf700f89dd6e5d4540225d6a991516b2cad0cbcf27e4dcd3"
-dependencies = [
- "httparse",
- "log",
- "serde",
- "tauri",
- "tauri-plugin",
- "thiserror 1.0.69",
- "url",
-]
-
-[[package]]
 name = "tauri-plugin-opener"
 version = "2.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15909,7 +15815,6 @@ dependencies = [
  "tauri-nspanel",
  "tauri-plugin",
  "tauri-plugin-analytics",
- "tauri-plugin-auth",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",
@@ -19587,20 +19492,6 @@ name = "zeroize"
 version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b97154e67e32c85465826e8bcc1c59429aaaf107c1e4a9e53c8d8ccd5eff88d0"
-dependencies = [
- "zeroize_derive",
-]
-
-[[package]]
-name = "zeroize_derive"
-version = "1.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.111",
-]
 
 [[package]]
 name = "zerotrie"

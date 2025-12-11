@@ -100,19 +100,12 @@ impl AppWindow {
         window.set_focus()?;
         window.show()?;
 
-        if self.label() == "main" {
-            if let Err(e) = app.handle_main_window_visibility(true) {
-                tracing::error!("failed_to_handle_main_window_visibility: {:?}", e);
-            }
-        }
-
         Ok(window)
     }
 }
 
 pub trait WindowsPluginExt<R: tauri::Runtime> {
     fn close_all_windows(&self) -> Result<(), crate::Error>;
-    fn handle_main_window_visibility(&self, visible: bool) -> Result<(), crate::Error>;
 
     fn window_show(&self, window: AppWindow) -> Result<WebviewWindow, crate::Error>;
     fn window_hide(&self, window: AppWindow) -> Result<(), crate::Error>;
@@ -136,57 +129,6 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
         for (_, window) in self.webview_windows() {
             let _ = window.close();
         }
-        Ok(())
-    }
-
-    fn handle_main_window_visibility(&self, visible: bool) -> Result<(), crate::Error> {
-        let state = self.state::<crate::ManagedState>();
-        let mut guard = state.lock().unwrap();
-
-        let window_state = guard.windows.entry(AppWindow::Main).or_default();
-
-        if window_state.visible != visible {
-            let previous_visible = window_state.visible;
-            window_state.visible = visible;
-
-            let event_name = if visible {
-                "show_main_window"
-            } else {
-                "hide_main_window"
-            };
-
-            let session_id = if !previous_visible && visible {
-                let new_session_id = Uuid::new_v4().to_string();
-                window_state.id = new_session_id.clone();
-                new_session_id
-            } else {
-                window_state.id.clone()
-            };
-
-            let user_id = {
-                use tauri_plugin_auth::{AuthPluginExt, StoreKey};
-
-                self.get_from_store(StoreKey::UserId)?
-                    .unwrap_or("UNKNOWN".into())
-            };
-
-            {
-                use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
-
-                let e = AnalyticsPayload::builder(event_name)
-                    .with("user_id", user_id)
-                    .with("session_id", session_id)
-                    .build();
-
-                let app_clone = self.clone();
-                tauri::async_runtime::spawn(async move {
-                    if let Err(e) = app_clone.event(e).await {
-                        tracing::error!("failed_to_send_analytics: {:?}", e);
-                    }
-                });
-            }
-        }
-
         Ok(())
     }
 

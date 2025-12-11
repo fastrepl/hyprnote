@@ -75,7 +75,6 @@
     "windows:default",
     "tracing:default",
     "tray:default",
-    "auth:default",
     "analytics:default",
     "cli2:default",
     "updater:default",

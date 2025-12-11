@@ -74,18 +74,18 @@ pub mod macos {
             return false;
         }
 
-        use core_graphics::display::{CGDisplay, CGGetOnlineDisplayList};
+        use core_graphics::display::{CGDisplay, CGGetActiveDisplayList};
 
         let max_displays: u32 = 16;
         let mut display_ids = vec![0u32; max_displays as usize];
         let mut display_count: u32 = 0;
 
         let err = unsafe {
-            CGGetOnlineDisplayList(max_displays, display_ids.as_mut_ptr(), &mut display_count)
+            CGGetActiveDisplayList(max_displays, display_ids.as_mut_ptr(), &mut display_count)
         };
 
         if err != 0 {
-            tracing::warn!(error = err, "cg_get_online_display_list_failed");
+            tracing::warn!(error = err, "cg_get_active_display_list_failed");
             return false;
         }
 

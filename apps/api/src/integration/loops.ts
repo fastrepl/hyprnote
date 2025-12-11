@@ -1,6 +1,6 @@
 import { env } from "../env";
 
-interface LoopsContact {
+export interface LoopsContact {
   id: string;
   email: string;
   source?: string;

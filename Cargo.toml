@@ -198,7 +198,6 @@ chrono-tz = "0.10.1"
 async-openai = { git = "https://github.com/fastrepl/async-openai", rev = "6404d307f3f706e818ad91544dc82fac5c545aee", default-features = false }
 async-stripe = { version = "0.39.1", default-features = false }
 gbnf-validator = { git = "https://github.com/fastrepl/gbnf-validator", rev = "3dec055" }
-graph-rs-sdk = "2.0.3"
 
 sentry = "0.42"
 vergen-gix = "1"
@@ -216,7 +215,6 @@ tracing-test = "0.2"
 
 apalis = "0.7.0"
 apalis-cron = "0.7.0"
-apalis-sql = "0.7.0"
 
 specta = "2.0.0-rc.22"
 specta-typescript = "0.0.9"

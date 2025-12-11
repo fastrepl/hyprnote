@@ -121,6 +121,7 @@ function ExportPDF() {
 
 function ExportTranscript({ sessionId }: { sessionId: string }) {
   const store = main.UI.useStore(main.STORE_ID);
+  const indexes = main.UI.useIndexes(main.STORE_ID);
 
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -129,19 +130,19 @@ function ExportTranscript({ sessionId }: { sessionId: string }) {
   );
 
   const words = useMemo(() => {
-    if (!store || !transcriptIds || transcriptIds.length === 0) {
+    if (!store || !indexes || !transcriptIds || transcriptIds.length === 0) {
       return [];
     }
 
     const allWords: VttWord[] = [];
 
     for (const transcriptId of transcriptIds) {
-      const wordIds = store.getSliceRowIds(
+      const wordIds = indexes.getSliceRowIds(
         main.INDEXES.wordsByTranscript,
         transcriptId,
       );
 
-      for (const wordId of wordIds) {
+      for (const wordId of wordIds ?? []) {
         const row = store.getRow("words", wordId);
         if (row) {
           allWords.push({
@@ -154,7 +155,7 @@ function ExportTranscript({ sessionId }: { sessionId: string }) {
     }
 
     return allWords.sort((a, b) => a.start_ms - b.start_ms);
-  }, [store, transcriptIds]);
+  }, [store, indexes, transcriptIds]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {

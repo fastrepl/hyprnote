@@ -7,6 +7,7 @@ edition = "2021"
 tracing = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
+hypr-mac = { workspace = true }
 cidre = { workspace = true, features = ["av"] }
 libc = "0.2"
 objc2-core-graphics = { version = "0.3", default-features = false, features = ["CGDirectDisplay", "CGError", "CGDisplayConfiguration", "libc"] }

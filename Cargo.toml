@@ -51,6 +51,7 @@ hypr-llama = { path = "crates/llama", package = "llama" }
 hypr-llm = { path = "crates/llm", package = "llm" }
 hypr-llm-interface = { path = "crates/llm-interface", package = "llm-interface" }
 hypr-loops = { path = "crates/loops", package = "loops" }
+hypr-mac = { path = "crates/mac", package = "mac" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-network = { path = "crates/network", package = "network" }

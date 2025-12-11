@@ -5078,7 +5078,7 @@ version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df420e2e84819663797d1ec6544b13c5be84629e7bb00dc960d6917db2987843"
 dependencies = [
- "mac",
+ "mac 0.1.1",
  "new_debug_unreachable",
 ]
 
@@ -7228,7 +7228,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b7410cae13cbc75623c98ac4cbfd1f0bedddf3227afc24f370cf0f50a44a11c"
 dependencies = [
  "log",
- "mac",
+ "mac 0.1.1",
  "markup5ever 0.14.1",
  "match_token 0.1.0",
 ]
@@ -8842,6 +8842,14 @@ name = "lru-slab"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
+
+[[package]]
+name = "mac"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "strum 0.26.3",
+]
 
 [[package]]
 name = "mac"
@@ -15815,7 +15823,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d24a120c5fc464a3458240ee02c299ebcb9d67b5249c8848b09d639dca8d7bb0"
 dependencies = [
  "futf",
- "mac",
+ "mac 0.1.1",
  "utf-8",
 ]
 

@@ -5,7 +5,7 @@ import {
   PlusIcon,
 } from "lucide-react";
 import { Reorder } from "motion/react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useShallow } from "zustand/shallow";
 
@@ -94,6 +94,25 @@ function Header({ tabs }: { tabs: Tab[] }) {
   );
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
+  const [scrollState, setScrollState] = useState({
+    atStart: true,
+    atEnd: true,
+  });
+
+  const updateScrollState = useCallback(() => {
+    const container = tabsScrollContainerRef.current;
+    if (!container) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const atStart = scrollLeft <= 0;
+    const atEnd = scrollLeft + clientWidth >= scrollWidth - 1;
+
+    setScrollState({ atStart, atEnd });
+  }, []);
+
+  useEffect(() => {
+    updateScrollState();
+  }, [tabs, updateScrollState]);
 
   const setTabRef = useScrollActiveTabIntoView(tabs);
   useTabsShortcuts();
@@ -136,49 +155,58 @@ function Header({ tabs }: { tabs: Tab[] }) {
         </Button>
       </div>
 
-      <div
-        ref={tabsScrollContainerRef}
-        data-tauri-drag-region
-        className={cn([
-          "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
-          "w-fit overflow-x-auto overflow-y-hidden h-full",
-        ])}
-      >
-        <Reorder.Group
-          key={leftsidebar.expanded ? "expanded" : "collapsed"}
-          as="div"
-          axis="x"
-          values={tabs}
-          onReorder={reorder}
-          className="flex w-max gap-1 h-full"
+      <div className="relative">
+        {!scrollState.atStart && (
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-20 pointer-events-none" />
+        )}
+        <div
+          ref={tabsScrollContainerRef}
+          data-tauri-drag-region
+          onScroll={updateScrollState}
+          className={cn([
+            "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]",
+            "w-fit overflow-x-auto overflow-y-hidden h-full",
+          ])}
         >
-          {tabs.map((tab, index) => {
-            const isLastTab = index === tabs.length - 1;
-            const shortcutIndex =
-              index < 8 ? index + 1 : isLastTab ? 9 : undefined;
+          <Reorder.Group
+            key={leftsidebar.expanded ? "expanded" : "collapsed"}
+            as="div"
+            axis="x"
+            values={tabs}
+            onReorder={reorder}
+            className="flex w-max gap-1 h-full"
+          >
+            {tabs.map((tab, index) => {
+              const isLastTab = index === tabs.length - 1;
+              const shortcutIndex =
+                index < 8 ? index + 1 : isLastTab ? 9 : undefined;
 
-            return (
-              <Reorder.Item
-                key={uniqueIdfromTab(tab)}
-                value={tab}
-                as="div"
-                ref={(el) => setTabRef(tab, el)}
-                style={{ position: "relative" }}
-                className="h-full z-10"
-                layoutScroll
-              >
-                <TabItem
-                  tab={tab}
-                  handleClose={close}
-                  handleSelect={select}
-                  handleCloseOthersCallback={closeOthers}
-                  handleCloseAll={closeAll}
-                  tabIndex={shortcutIndex}
-                />
-              </Reorder.Item>
-            );
-          })}
-        </Reorder.Group>
+              return (
+                <Reorder.Item
+                  key={uniqueIdfromTab(tab)}
+                  value={tab}
+                  as="div"
+                  ref={(el) => setTabRef(tab, el)}
+                  style={{ position: "relative" }}
+                  className="h-full z-10"
+                  layoutScroll
+                >
+                  <TabItem
+                    tab={tab}
+                    handleClose={close}
+                    handleSelect={select}
+                    handleCloseOthersCallback={closeOthers}
+                    handleCloseAll={closeAll}
+                    tabIndex={shortcutIndex}
+                  />
+                </Reorder.Item>
+              );
+            })}
+          </Reorder.Group>
+        </div>
+        {!scrollState.atEnd && (
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-20 pointer-events-none" />
+        )}
       </div>
 
       <div

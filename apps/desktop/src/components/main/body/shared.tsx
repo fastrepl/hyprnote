@@ -2,8 +2,8 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
-import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
+import { Waveform } from "@hypr/ui/components/ui/waveform";
 import { cn } from "@hypr/utils";
 
 import { useCmdKeyPressed } from "../../../hooks/useCmdKeyPressed";
@@ -186,14 +186,15 @@ export function SoundIndicator({
     setAmplitude(Math.min(sample, 1));
   }, [value]);
 
+  const resolvedWidth = width ?? (size === "long" ? 32 : 17);
+
   return (
-    <DancingSticks
+    <Waveform
       amplitude={amplitude}
       color={color}
-      size={size}
       height={height}
-      width={width}
-      stickWidth={stickWidth}
+      width={resolvedWidth}
+      barWidth={stickWidth}
       gap={gap}
     />
   );

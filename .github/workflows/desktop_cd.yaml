@@ -66,7 +66,7 @@ jobs:
     if: ${{ !cancelled() && (needs.cn-draft.result == 'success' || needs.cn-draft.result == 'skipped') }}
     permissions:
       contents: write
-    runs-on: macos-14
+    runs-on: depot-macos-14
     strategy:
       fail-fast: true
       matrix:
@@ -89,6 +89,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - run: git fetch --tags --force
+      - uses: ./.github/actions/macos_tcc
       - run: ./scripts/version.sh "./apps/desktop/src-tauri/tauri.conf.json" "${{ needs.compute-version.outputs.version }}"
       - uses: ./.github/actions/install_desktop_deps
         with:

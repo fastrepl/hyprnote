@@ -79,8 +79,13 @@ export function TranscriptContainer({
     setScrollElement(node);
   }, []);
 
-  const { isAtBottom, scrollToBottom } = useScrollDetection(containerRef);
-  useAutoScroll(containerRef, [transcriptIds, partialWords]);
+  const { isAtBottom, autoScrollEnabled, scrollToBottom } =
+    useScrollDetection(containerRef);
+  useAutoScroll(
+    containerRef,
+    [transcriptIds, partialWords, autoScrollEnabled],
+    autoScrollEnabled,
+  );
 
   if (transcriptIds.length === 0) {
     return null;

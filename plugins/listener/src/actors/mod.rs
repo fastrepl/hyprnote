@@ -24,12 +24,20 @@ impl ChannelMode {
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     pub fn determine(onboarding: bool) -> Self {
         if onboarding {
-            ChannelMode::SpeakerOnly
-        } else if hypr_device_heuristic::macos::is_headphone_from_default_output_device() {
-            ChannelMode::MicAndSpeaker
-        } else {
-            ChannelMode::MicOnly
+            return ChannelMode::SpeakerOnly;
         }
+
+        if hypr_device_heuristic::macos::is_headphone_from_default_output_device() {
+            return ChannelMode::MicAndSpeaker;
+        }
+
+        if hypr_device_heuristic::macos::has_builtin_mic()
+            && !hypr_device_heuristic::macos::is_default_input_external()
+        {
+            return ChannelMode::MicOnly;
+        }
+
+        ChannelMode::MicAndSpeaker
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]

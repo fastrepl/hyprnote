@@ -101,7 +101,9 @@ function extractEmailFromLoopsMessage(text: string): string | null {
   if (mailtoMatch) {
     return mailtoMatch[1];
   }
-  const emailMatch = text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+  const emailMatch = text.match(
+    /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/,
+  );
   return emailMatch ? emailMatch[0] : null;
 }
 

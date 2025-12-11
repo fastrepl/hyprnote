@@ -51,7 +51,9 @@ export async function postThreadReply(
     return result;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      throw new Error(`Slack API request timed out after ${SLACK_TIMEOUT_MS}ms`);
+      throw new Error(
+        `Slack API request timed out after ${SLACK_TIMEOUT_MS}ms`,
+      );
     }
     throw error;
   } finally {

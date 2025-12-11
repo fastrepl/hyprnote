@@ -14,8 +14,6 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-tauri-plugin-shell = { workspace = true }
-
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
@@ -33,8 +31,6 @@ tokio = { workspace = true, features = ["rt-multi-thread"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 itertools = { workspace = true }
-block2 = { workspace = true }
 objc2 = { workspace = true }
-objc2-contacts = { version = "0.3", features = ["CNContactStore", "CNLabeledValue", "CNContact", "block2"] }
-objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKSource", "EKTypes", "EKRecurrenceRule", "EKRecurrenceEnd", "block2"] }
+objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKSource", "EKTypes", "EKRecurrenceRule", "EKRecurrenceEnd"] }
 objc2-foundation = { workspace = true, features = ["NSDate", "NSEnumerator"] }

@@ -7,4 +7,10 @@ permissions = [
     "allow-request-system-audio-permission",
     "allow-check-accessibility-permission",
     "allow-request-accessibility-permission",
+    "allow-check-calendar-permission",
+    "allow-request-calendar-permission",
+    "allow-check-contacts-permission",
+    "allow-request-contacts-permission",
+    "allow-open-calendar-settings",
+    "allow-open-contacts-settings",
 ]

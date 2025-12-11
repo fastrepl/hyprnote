@@ -17,6 +17,12 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::request_system_audio_permission::<tauri::Wry>,
             commands::check_accessibility_permission::<tauri::Wry>,
             commands::request_accessibility_permission::<tauri::Wry>,
+            commands::check_calendar_permission::<tauri::Wry>,
+            commands::request_calendar_permission::<tauri::Wry>,
+            commands::check_contacts_permission::<tauri::Wry>,
+            commands::request_contacts_permission::<tauri::Wry>,
+            commands::open_calendar_settings::<tauri::Wry>,
+            commands::open_contacts_settings::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

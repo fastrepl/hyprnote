@@ -15,46 +15,6 @@ async openCalendar() : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
-async openCalendarAccessSettings() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|open_calendar_access_settings") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async openContactsAccessSettings() : Promise<Result<null, string>> {
-    try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|open_contacts_access_settings") };
-} catch (e) {
-    if(e instanceof Error) throw e;
-    else return { status: "error", error: e  as any };
-}
-},
-async calendarAccessStatus() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:apple-calendar|calendar_access_status");
-},
-async contactsAccessStatus() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:apple-calendar|contacts_access_status");
-},
-async hasCalendarAccess() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:apple-calendar|has_calendar_access");
-},
-async hasContactsAccess() : Promise<boolean> {
-    return await TAURI_INVOKE("plugin:apple-calendar|has_contacts_access");
-},
-async requestCalendarAccess() : Promise<void> {
-    await TAURI_INVOKE("plugin:apple-calendar|request_calendar_access");
-},
-async requestContactsAccess() : Promise<void> {
-    await TAURI_INVOKE("plugin:apple-calendar|request_contacts_access");
-},
-async revokeCalendarAccess() : Promise<void> {
-    await TAURI_INVOKE("plugin:apple-calendar|revoke_calendar_access");
-},
-async revokeContactsAccess() : Promise<void> {
-    await TAURI_INVOKE("plugin:apple-calendar|revoke_contacts_access");
-},
 async listCalendars() : Promise<Result<Calendar[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|list_calendars") };

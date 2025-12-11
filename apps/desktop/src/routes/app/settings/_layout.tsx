@@ -53,7 +53,6 @@ const TAB_CONFIG: Record<
     label: "Calendar",
     icon: CalendarDays,
     group: 1,
-    disabled: true,
   },
   notifications: {
     label: "Notifications",

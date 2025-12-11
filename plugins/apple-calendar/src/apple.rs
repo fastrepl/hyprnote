@@ -1,14 +1,11 @@
 use itertools::Itertools;
-use std::time::Duration;
 
-use block2::RcBlock;
 use objc2::{msg_send, rc::Retained, runtime::Bool, AllocAnyThread};
-use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType};
 use objc2_event_kit::{
     EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore, EKParticipant,
     EKRecurrenceEnd, EKRecurrenceFrequency, EKRecurrenceRule,
 };
-use objc2_foundation::{NSArray, NSDate, NSError, NSInteger, NSString};
+use objc2_foundation::{NSArray, NSDate, NSInteger, NSString};
 
 use crate::types::{
     Calendar, Event, EventFilter, Participant, Platform, RecurrenceEnd, RecurrenceFrequency,
@@ -17,81 +14,18 @@ use crate::types::{
 
 pub struct Handle {
     event_store: Retained<EKEventStore>,
-    contacts_store: Retained<CNContactStore>,
-    calendar_access_granted: bool,
-    contacts_access_granted: bool,
 }
 
 #[allow(clippy::new_without_default)]
 impl Handle {
     pub fn new() -> Self {
         let event_store = unsafe { EKEventStore::new() };
-        let contacts_store = unsafe { CNContactStore::new() };
-
-        let mut handle = Self {
-            event_store,
-            contacts_store,
-            calendar_access_granted: false,
-            contacts_access_granted: false,
-        };
-
-        handle.calendar_access_granted = handle.calendar_access_status();
-        handle.contacts_access_granted = handle.contacts_access_status();
-
-        handle
+        Self { event_store }
     }
 
-    pub fn request_calendar_access(&mut self) {
-        if self.calendar_access_granted {
-            return;
-        }
-
-        let (tx, rx) = std::sync::mpsc::channel::<bool>();
-        let completion = RcBlock::new(move |granted: Bool, _error: *mut NSError| {
-            let _ = tx.send(granted.as_bool());
-        });
-
-        unsafe {
-            self.event_store
-                .requestFullAccessToEventsWithCompletion(&*completion as *const _ as *mut _)
-        };
-
-        match rx.recv_timeout(Duration::from_secs(5)) {
-            Ok(true) => self.calendar_access_granted = true,
-            _ => self.calendar_access_granted = false,
-        }
-    }
-
-    pub fn request_contacts_access(&mut self) {
-        if self.contacts_access_granted {
-            return;
-        }
-
-        let (tx, rx) = std::sync::mpsc::channel::<bool>();
-        let completion = RcBlock::new(move |granted: Bool, _error: *mut NSError| {
-            let _ = tx.send(granted.as_bool());
-        });
-
-        unsafe {
-            self.contacts_store
-                .requestAccessForEntityType_completionHandler(CNEntityType::Contacts, &completion);
-        };
-
-        match rx.recv_timeout(Duration::from_secs(5)) {
-            Ok(true) => self.contacts_access_granted = true,
-            _ => self.contacts_access_granted = false,
-        }
-    }
-
-    pub fn calendar_access_status(&self) -> bool {
+    fn has_calendar_access(&self) -> bool {
         let status = unsafe { EKEventStore::authorizationStatusForEntityType(EKEntityType::Event) };
         matches!(status, EKAuthorizationStatus::FullAccess)
-    }
-
-    pub fn contacts_access_status(&self) -> bool {
-        let status =
-            unsafe { CNContactStore::authorizationStatusForEntityType(CNEntityType::Contacts) };
-        matches!(status, CNAuthorizationStatus::Authorized)
     }
 
     fn fetch_events(&self, filter: &EventFilter) -> Retained<NSArray<EKEvent>> {
@@ -141,7 +75,7 @@ impl Handle {
     }
 
     pub fn list_calendars(&self) -> Result<Vec<Calendar>, anyhow::Error> {
-        if !self.calendar_access_granted {
+        if !self.has_calendar_access() {
             return Err(anyhow::anyhow!("calendar_access_denied"));
         }
 
@@ -170,7 +104,7 @@ impl Handle {
     }
 
     pub fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, anyhow::Error> {
-        if !self.calendar_access_granted {
+        if !self.has_calendar_access() {
             return Err(anyhow::anyhow!("calendar_access_denied"));
         }
 

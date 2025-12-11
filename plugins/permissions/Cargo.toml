@@ -30,5 +30,9 @@ futures-util = { workspace = true }
 [target."cfg(target_os = \"macos\")".dependencies]
 hypr-tcc = { workspace = true }
 block2 = { workspace = true }
+objc2 = { workspace = true }
 objc2-av-foundation = { workspace = true }
+objc2-contacts = { version = "0.3", features = ["CNContactStore", "block2"] }
+objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKTypes", "block2"] }
+objc2-foundation = { workspace = true }
 macos-accessibility-client = "0.0.1"

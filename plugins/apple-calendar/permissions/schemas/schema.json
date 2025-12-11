@@ -319,6 +319,30 @@
           "markdownDescription": "Denies the contacts_access_status command without any pre-configured scope."
         },
         {
+          "description": "Enables the list_calendars command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-calendars",
+          "markdownDescription": "Enables the list_calendars command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_calendars command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-calendars",
+          "markdownDescription": "Denies the list_calendars command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the list_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-events",
+          "markdownDescription": "Enables the list_events command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the list_events command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-events",
+          "markdownDescription": "Denies the list_events command without any pre-configured scope."
+        },
+        {
           "description": "Enables the open_calendar command without any pre-configured scope.",
           "type": "string",
           "const": "allow-open-calendar",

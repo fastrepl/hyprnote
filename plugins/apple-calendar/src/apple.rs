@@ -1,15 +1,19 @@
+use itertools::Itertools;
 use std::time::Duration;
 
 use block2::RcBlock;
-use itertools::Itertools;
 use objc2::{msg_send, rc::Retained, runtime::Bool, AllocAnyThread};
 use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType};
 use objc2_event_kit::{
     EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore, EKParticipant,
+    EKRecurrenceEnd, EKRecurrenceFrequency, EKRecurrenceRule,
 };
-use objc2_foundation::{NSArray, NSDate, NSError, NSString};
+use objc2_foundation::{NSArray, NSDate, NSError, NSInteger, NSString};
 
-use crate::types::{Calendar, Event, EventFilter, Participant, Platform};
+use crate::types::{
+    Calendar, Event, EventFilter, Participant, Platform, RecurrenceEnd, RecurrenceFrequency,
+    RecurrenceInfo, RecurrenceRule,
+};
 
 pub struct Handle {
     event_store: Retained<EKEventStore>,
@@ -120,8 +124,7 @@ impl Handle {
                 )
         };
 
-        let events = unsafe { self.event_store.eventsMatchingPredicate(&predicate) };
-        events
+        unsafe { self.event_store.eventsMatchingPredicate(&predicate) }
     }
 
     fn transform_participant(&self, participant: &EKParticipant) -> Participant {
@@ -188,10 +191,7 @@ impl Handle {
                     return None;
                 }
 
-                let is_recurring = unsafe {
-                    let has_rules: Bool = msg_send![&*event, hasRecurrenceRules];
-                    has_rules.as_bool()
-                };
+                let recurrence = parse_recurrence_info(&event, &start_date);
 
                 let participants = unsafe { event.attendees().unwrap_or_default() };
                 let participant_list: Vec<Participant> = participants
@@ -213,13 +213,92 @@ impl Handle {
                     start_date: offset_date_time_from(start_date),
                     end_date: offset_date_time_from(end_date),
                     google_event_url: None,
-                    is_recurring,
+                    recurrence,
                 })
             })
             .sorted_by(|a, b| a.start_date.cmp(&b.start_date))
             .collect();
 
         Ok(events)
+    }
+}
+
+fn series_id(event: &EKEvent) -> String {
+    unsafe {
+        event
+            .calendarItemExternalIdentifier()
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| event.calendarItemIdentifier().to_string())
+    }
+}
+
+fn parse_recurrence_info(event: &EKEvent, start_date: &Retained<NSDate>) -> Option<RecurrenceInfo> {
+    unsafe {
+        let has_rules: Bool = msg_send![event, hasRecurrenceRules];
+        let occurrence_date = event.occurrenceDate();
+
+        if !has_rules.as_bool() && occurrence_date.is_none() {
+            return None;
+        }
+
+        let occ_date = occurrence_date
+            .map(|d| offset_date_time_from(d))
+            .unwrap_or_else(|| offset_date_time_from(start_date.clone()));
+
+        Some(RecurrenceInfo {
+            series_id: series_id(event),
+            occurrence_date: occ_date,
+            is_detached: event.isDetached(),
+            rule: parse_recurrence_rule(event),
+        })
+    }
+}
+
+fn parse_recurrence_rule(event: &EKEvent) -> Option<RecurrenceRule> {
+    unsafe {
+        let rules: Option<Retained<NSArray<EKRecurrenceRule>>> = msg_send![event, recurrenceRules];
+        let rules = rules?;
+        if rules.is_empty() {
+            return None;
+        }
+
+        let rule = rules.objectAtIndex(0);
+
+        let frequency = match rule.frequency() {
+            EKRecurrenceFrequency::Daily => RecurrenceFrequency::Daily,
+            EKRecurrenceFrequency::Weekly => RecurrenceFrequency::Weekly,
+            EKRecurrenceFrequency::Monthly => RecurrenceFrequency::Monthly,
+            EKRecurrenceFrequency::Yearly => RecurrenceFrequency::Yearly,
+            _ => return None,
+        };
+
+        let interval = rule.interval() as u32;
+        let end = parse_recurrence_end(&rule);
+
+        Some(RecurrenceRule {
+            frequency,
+            interval,
+            end,
+        })
+    }
+}
+
+fn parse_recurrence_end(rule: &EKRecurrenceRule) -> Option<RecurrenceEnd> {
+    unsafe {
+        let end: Option<Retained<EKRecurrenceEnd>> = msg_send![rule, recurrenceEnd];
+        let end = end?;
+
+        let end_date: Option<Retained<NSDate>> = msg_send![&*end, endDate];
+        if let Some(date) = end_date {
+            return Some(RecurrenceEnd::Date(offset_date_time_from(date)));
+        }
+
+        let occurrence_count: NSInteger = msg_send![&*end, occurrenceCount];
+        if occurrence_count > 0 {
+            return Some(RecurrenceEnd::Count(occurrence_count as u32));
+        }
+
+        None
     }
 }
 

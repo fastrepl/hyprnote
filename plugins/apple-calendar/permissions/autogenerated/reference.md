@@ -76,6 +76,58 @@ Denies the contacts_access_status command without any pre-configured scope.
 <tr>
 <td>
 
+`apple-calendar:allow-list-calendars`
+
+</td>
+<td>
+
+Enables the list_calendars command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-list-calendars`
+
+</td>
+<td>
+
+Denies the list_calendars command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-list-events`
+
+</td>
+<td>
+
+Enables the list_events command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-list-events`
+
+</td>
+<td>
+
+Denies the list_events command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `apple-calendar:allow-open-calendar`
 
 </td>

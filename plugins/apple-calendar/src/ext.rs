@@ -1,3 +1,5 @@
+use crate::types::{Calendar, Event, EventFilter};
+
 pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
     fn open_calendar(&self) -> Result<(), String>;
 
@@ -9,6 +11,9 @@ pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
 
     fn request_calendar_access(&self);
     fn request_contacts_access(&self);
+
+    fn list_calendars(&self) -> Result<Vec<Calendar>, String>;
+    fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, String>;
 }
 
 #[cfg(target_os = "macos")]
@@ -103,6 +108,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
         let mut handle = crate::apple::Handle::new();
         handle.request_contacts_access();
     }
+
+    #[tracing::instrument(skip_all)]
+    fn list_calendars(&self) -> Result<Vec<Calendar>, String> {
+        let handle = crate::apple::Handle::new();
+        handle.list_calendars().map_err(|e| e.to_string())
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, String> {
+        let handle = crate::apple::Handle::new();
+        handle.list_events(filter).map_err(|e| e.to_string())
+    }
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -130,4 +147,12 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
     fn request_calendar_access(&self) {}
 
     fn request_contacts_access(&self) {}
+
+    fn list_calendars(&self) -> Result<Vec<Calendar>, String> {
+        Err("not supported on this platform".to_string())
+    }
+
+    fn list_events(&self, _filter: EventFilter) -> Result<Vec<Event>, String> {
+        Err("not supported on this platform".to_string())
+    }
 }

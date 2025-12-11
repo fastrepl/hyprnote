@@ -42,6 +42,22 @@ async requestCalendarAccess() : Promise<void> {
 },
 async requestContactsAccess() : Promise<void> {
     await TAURI_INVOKE("plugin:apple-calendar|request_contacts_access");
+},
+async listCalendars() : Promise<Result<Calendar[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|list_calendars") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async listEvents(filter: EventFilter) : Promise<Result<Event[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:apple-calendar|list_events", { filter }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -55,7 +71,15 @@ async requestContactsAccess() : Promise<void> {
 
 /** user-defined types **/
 
-
+export type Calendar = { id: string; platform: Platform; name: string; source: string | null }
+export type Event = { id: string; calendar_id: string; platform: Platform; name: string; note: string; participants: Participant[]; start_date: string; end_date: string; google_event_url: string | null; recurrence: RecurrenceInfo | null }
+export type EventFilter = { from: string; to: string; calendar_tracking_id: string }
+export type Participant = { name: string; email: string | null }
+export type Platform = "Apple"
+export type RecurrenceEnd = { Date: string } | { Count: number }
+export type RecurrenceFrequency = "Daily" | "Weekly" | "Monthly" | "Yearly"
+export type RecurrenceInfo = { series_id: string; occurrence_date: string; is_detached: boolean; rule: RecurrenceRule | null }
+export type RecurrenceRule = { frequency: RecurrenceFrequency; interval: number; end: RecurrenceEnd | null }
 
 /** tauri-specta globals **/
 

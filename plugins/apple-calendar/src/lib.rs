@@ -34,6 +34,8 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::contacts_access_status::<tauri::Wry>,
             commands::request_calendar_access::<tauri::Wry>,
             commands::request_contacts_access::<tauri::Wry>,
+            commands::list_calendars::<tauri::Wry>,
+            commands::list_events::<tauri::Wry>,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

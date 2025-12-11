@@ -21,7 +21,7 @@ tauri-specta = { workspace = true, features = ["derive", "typescript"] }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-specta = { workspace = true }
+specta = { workspace = true, features = ["chrono"] }
 
 anyhow = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
@@ -36,5 +36,5 @@ itertools = { workspace = true }
 block2 = { workspace = true }
 objc2 = { workspace = true }
 objc2-contacts = { version = "0.3", features = ["CNContactStore", "CNLabeledValue", "CNContact", "block2"] }
-objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKSource", "EKTypes", "block2"] }
+objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKSource", "EKTypes", "EKRecurrenceRule", "EKRecurrenceEnd", "block2"] }
 objc2-foundation = { workspace = true, features = ["NSDate", "NSEnumerator"] }

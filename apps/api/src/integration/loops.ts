@@ -4,12 +4,38 @@ export interface LoopsContact {
   id: string;
   email: string;
   source?: string;
+  intent?: string;
+  platform?: string;
   firstName?: string;
   lastName?: string;
   userGroup?: string;
   subscribed: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export type ContactStatus = "paid" | "signed up" | "interested" | "unknown";
+
+export function classifyContactStatus(contact: LoopsContact): ContactStatus {
+  const { source, intent, platform } = contact;
+
+  if (source === "Stripe webhook") {
+    return "paid";
+  }
+
+  if (source === "Supabase webhook") {
+    return "signed up";
+  }
+
+  if (
+    source === "LANDING_PAGE" &&
+    intent === "Waitlist" &&
+    (platform === "Windows" || platform === "Linux")
+  ) {
+    return "interested";
+  }
+
+  return "unknown";
 }
 
 export async function getContactByEmail(

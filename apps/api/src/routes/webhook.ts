@@ -7,7 +7,7 @@ import { z } from "zod";
 import { syncBillingBridge } from "../billing";
 import { env } from "../env";
 import type { AppBindings } from "../hono-bindings";
-import { getContactByEmail } from "../integration/loops";
+import { classifyContactStatus, getContactByEmail } from "../integration/loops";
 import { postThreadReply } from "../integration/slack";
 import { stripeSync } from "../integration/stripe-sync";
 import { API_TAGS } from "./constants";
@@ -177,8 +177,21 @@ webhook.post(
         return c.json({ ok: true }, 200);
       }
 
+      const status = classifyContactStatus(contact);
       const source = contact.source || "Unknown";
-      await postThreadReply(event.channel, event.ts, `Source: ${source}`);
+      const details = [
+        `Source: ${source}`,
+        contact.intent ? `Intent: ${contact.intent}` : null,
+        contact.platform ? `Platform: ${contact.platform}` : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      await postThreadReply(
+        event.channel,
+        event.ts,
+        `Status: ${status} (${details})`,
+      );
     } catch (error) {
       Sentry.captureException(error, {
         tags: { webhook: "slack", step: "loops_source_thread" },

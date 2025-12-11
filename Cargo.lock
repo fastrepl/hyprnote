@@ -2347,22 +2347,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "calendar-apple"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "block2 0.5.1",
- "chrono",
- "itertools 0.14.0",
- "objc2 0.5.2",
- "objc2-contacts",
- "objc2-event-kit",
- "objc2-foundation 0.2.2",
- "serde",
- "tokio",
-]
-
-[[package]]
 name = "camino"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3809,7 +3793,6 @@ name = "db-user"
 version = "0.1.0"
 dependencies = [
  "buffer",
- "calendar-apple",
  "chrono",
  "data",
  "db-core",
@@ -4148,6 +4131,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-analytics",
+ "tauri-plugin-apple-calendar",
  "tauri-plugin-auth",
  "tauri-plugin-autostart",
  "tauri-plugin-cli",
@@ -15112,8 +15096,14 @@ dependencies = [
 name = "tauri-plugin-apple-calendar"
 version = "0.1.0"
 dependencies = [
- "calendar-apple",
+ "anyhow",
+ "block2 0.5.1",
  "chrono",
+ "itertools 0.14.0",
+ "objc2 0.5.2",
+ "objc2-contacts",
+ "objc2-event-kit",
+ "objc2-foundation 0.2.2",
  "serde",
  "serde_json",
  "specta",

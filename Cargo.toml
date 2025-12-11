@@ -30,7 +30,6 @@ hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
 hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
-hypr-calendar-apple = { path = "crates/calendar-apple", package = "calendar-apple" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }

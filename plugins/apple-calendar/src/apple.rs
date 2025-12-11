@@ -1,122 +1,17 @@
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use std::future::Future;
-
-pub use anyhow::Error;
-
-pub trait CalendarSource {
-    fn list_calendars(&self) -> impl Future<Output = Result<Vec<Calendar>, Error>>;
-    fn list_events(&self, filter: EventFilter) -> impl Future<Output = Result<Vec<Event>, Error>>;
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum Platform {
-    Apple,
-    Google,
-    Outlook,
-}
-
-impl std::fmt::Display for Platform {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Platform::Apple => write!(f, "Apple"),
-            Platform::Google => write!(f, "Google"),
-            Platform::Outlook => write!(f, "Outlook"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Calendar {
-    pub id: String,
-    pub platform: Platform,
-    pub name: String,
-    pub source: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Event {
-    pub id: String,
-    pub calendar_id: String,
-    pub platform: Platform,
-    pub name: String,
-    pub note: String,
-    pub participants: Vec<Participant>,
-    pub start_date: DateTime<Utc>,
-    pub end_date: DateTime<Utc>,
-    pub google_event_url: Option<String>,
-    #[serde(default)]
-    pub is_recurring: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Participant {
-    pub name: String,
-    pub email: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EventFilter {
-    pub from: DateTime<Utc>,
-    pub to: DateTime<Utc>,
-    pub calendar_tracking_id: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Opener {
-    AppleScript(String),
-    Url(String),
-}
-
-impl Event {
-    pub fn opener(&self) -> anyhow::Result<Opener> {
-        match self.platform {
-            Platform::Apple => {
-                let script = String::from(
-                    "
-                    tell application \"Calendar\"
-                        activate
-                        switch view to month view
-                        view calendar at current date
-                    end tell
-                ",
-                );
-
-                Ok(Opener::AppleScript(script))
-            }
-            Platform::Google => {
-                let url = self.google_event_url.as_ref().unwrap().clone();
-                Ok(Opener::Url(url))
-            }
-            Platform::Outlook => {
-                anyhow::bail!("Outlook is not supported yet");
-            }
-        }
-    }
-}
-
-#[cfg(target_os = "macos")]
-use itertools::Itertools;
-#[cfg(target_os = "macos")]
 use std::time::Duration;
 
-#[cfg(target_os = "macos")]
-use objc2::msg_send;
-
-#[cfg(target_os = "macos")]
 use block2::RcBlock;
-#[cfg(target_os = "macos")]
+use itertools::Itertools;
+use objc2::msg_send;
 use objc2::{rc::Retained, runtime::Bool, ClassType};
-#[cfg(target_os = "macos")]
 use objc2_contacts::{CNAuthorizationStatus, CNContactStore, CNEntityType};
-#[cfg(target_os = "macos")]
 use objc2_event_kit::{
     EKAuthorizationStatus, EKCalendar, EKEntityType, EKEvent, EKEventStore, EKParticipant,
 };
-#[cfg(target_os = "macos")]
 use objc2_foundation::{NSArray, NSDate, NSError, NSString};
 
-#[cfg(target_os = "macos")]
+use crate::types::{Calendar, Event, EventFilter, Participant, Platform};
+
 pub struct Handle {
     event_store: Retained<EKEventStore>,
     contacts_store: Retained<CNContactStore>,
@@ -124,7 +19,6 @@ pub struct Handle {
     contacts_access_granted: bool,
 }
 
-#[cfg(target_os = "macos")]
 #[allow(clippy::new_without_default)]
 impl Handle {
     pub fn new() -> Self {
@@ -243,35 +137,10 @@ impl Handle {
             email_ns.as_ref().map(|s| s.to_string())
         };
 
-        // let email = if self.contacts_access_granted {
-        //     let email_string = NSString::from_str("emailAddresses");
-        //     let cnkey_email: Retained<ProtocolObject<dyn CNKeyDescriptor>> =
-        //         ProtocolObject::from_retained(email_string);
-        //     let keys = NSArray::from_vec(vec![cnkey_email]);
-
-        //     let contact_pred = unsafe { participant.contactPredicate() };
-        //     let contact = unsafe {
-        //         self.contacts_store
-        //             .unifiedContactsMatchingPredicate_keysToFetch_error(&contact_pred, &keys)
-        //     }
-        //     .unwrap_or_default();
-
-        //     contact.first().and_then(|contact| {
-        //         let emails = unsafe { contact.emailAddresses() };
-
-        //         emails
-        //             .first()
-        //             .map(|email| unsafe { email.value() }.to_string())
-        //     })
-        // };
-
         Participant { name, email }
     }
-}
 
-#[cfg(target_os = "macos")]
-impl CalendarSource for Handle {
-    async fn list_calendars(&self) -> Result<Vec<Calendar>, Error> {
+    pub fn list_calendars(&self) -> Result<Vec<Calendar>, anyhow::Error> {
         if !self.calendar_access_granted {
             return Err(anyhow::anyhow!("calendar_access_denied"));
         }
@@ -281,14 +150,9 @@ impl CalendarSource for Handle {
         let list = calendars
             .iter()
             .map(|calendar| {
-                // https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKCalendar.html
-                // https://developer.apple.com/documentation/eventkit/ekcalendar
-                // https://developer.apple.com/documentation/eventkit/ekevent/eventidentifier
-                // If the calendar of an event changes, its identifier most likely changes as well.
                 let id = unsafe { calendar.calendarIdentifier() };
                 let title = unsafe { calendar.title() };
 
-                // https://developer.apple.com/documentation/eventkit/eksource
                 let source = unsafe { calendar.source().unwrap() };
                 let source_title = unsafe { source.as_ref().title() };
 
@@ -305,7 +169,7 @@ impl CalendarSource for Handle {
         Ok(list)
     }
 
-    async fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, Error> {
+    pub fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, anyhow::Error> {
         if !self.calendar_access_granted {
             return Err(anyhow::anyhow!("calendar_access_denied"));
         }
@@ -314,8 +178,6 @@ impl CalendarSource for Handle {
             .fetch_events(&filter)
             .iter()
             .filter_map(|event| {
-                // https://docs.rs/objc2-event-kit/latest/objc2_event_kit/struct.EKEvent.html
-                // https://developer.apple.com/documentation/eventkit/ekevent
                 let id = unsafe { event.eventIdentifier() }.unwrap();
                 let title = unsafe { event.title() };
                 let note = unsafe { event.notes().unwrap_or_default() };
@@ -325,12 +187,10 @@ impl CalendarSource for Handle {
                 let calendar = unsafe { event.calendar() }.unwrap();
                 let calendar_id = unsafe { calendar.calendarIdentifier() };
 
-                // This is theoretically not needed, but it seems like the 'calendars' filter does not work in the predicate.
                 if !filter.calendar_tracking_id.eq(&calendar_id.to_string()) {
                     return None;
                 }
 
-                // experiment: check if the event is recurring
                 let is_recurring = unsafe {
                     let has_rules: Bool = msg_send![event, hasRecurrenceRules];
                     has_rules.as_bool()
@@ -340,7 +200,6 @@ impl CalendarSource for Handle {
                 let participant_list: Vec<Participant> = participants
                     .iter()
                     .filter(|p| {
-                        // Skip the current user
                         let is_current_user = unsafe { p.isCurrentUser() };
                         !is_current_user
                     })
@@ -367,11 +226,9 @@ impl CalendarSource for Handle {
     }
 }
 
-#[cfg(target_os = "macos")]
 fn offset_date_time_from(date: Retained<NSDate>) -> chrono::DateTime<chrono::Utc> {
     let seconds = unsafe { date.timeIntervalSinceReferenceDate() };
 
-    // Cocoa reference date is January 1, 2001, 00:00:00 UTC
     let cocoa_reference: chrono::DateTime<chrono::Utc> =
         chrono::DateTime::from_naive_utc_and_offset(
             chrono::NaiveDateTime::new(
@@ -383,45 +240,4 @@ fn offset_date_time_from(date: Retained<NSDate>) -> chrono::DateTime<chrono::Utc
 
     let unix_timestamp = seconds + cocoa_reference.timestamp() as f64;
     chrono::DateTime::<chrono::Utc>::from_timestamp(unix_timestamp as i64, 0).unwrap()
-}
-
-#[cfg(all(test, target_os = "macos"))]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_time() {
-        let now = unsafe { NSDate::new() };
-        let now_from_nsdate = offset_date_time_from(now.to_owned());
-        let now_from_chrono = chrono::Utc::now();
-        let diff = (now_from_nsdate - now_from_chrono).num_seconds().abs();
-        assert!(diff < 1);
-    }
-
-    #[tokio::test]
-    async fn test_request_access() {
-        let mut handle = Handle::new();
-        handle.request_calendar_access();
-        handle.request_contacts_access();
-    }
-
-    #[tokio::test]
-    async fn test_list_calendars() {
-        let handle = Handle::new();
-        let calendars = handle.list_calendars().await.unwrap();
-        assert!(!calendars.is_empty());
-    }
-
-    #[tokio::test]
-    async fn test_list_events() {
-        let handle = Handle::new();
-        let filter = EventFilter {
-            calendar_tracking_id: "".to_string(),
-            from: chrono::Utc::now() - chrono::Duration::days(100),
-            to: chrono::Utc::now() + chrono::Duration::days(100),
-        };
-
-        let events = handle.list_events(filter).await.unwrap();
-        assert!(events.is_empty());
-    }
 }

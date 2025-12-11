@@ -111,17 +111,18 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const localPersister = useCreatePersister(
     store,
     async (store) => {
-      if (!persist) {
-        return undefined;
-      }
-
       const persister = createLocalPersister<Schemas>(store as Store, {
         storeTableName: STORE_ID,
         storeIdColumnName: "id",
       });
 
+      await persister.load();
+
+      if (!persist) {
+        return undefined;
+      }
+
       const initializer = async (cb: () => void) => {
-        await persister.load();
         store.transaction(() => cb());
         await persister.save();
       };

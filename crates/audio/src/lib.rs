@@ -3,14 +3,12 @@ mod errors;
 mod mic;
 mod norm;
 mod speaker;
-mod utils;
 
 pub use device_monitor::*;
 pub use errors::*;
 pub use mic::*;
 pub use norm::*;
 pub use speaker::*;
-pub use utils::*;
 
 pub use cpal;
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -204,21 +202,6 @@ impl AsyncSource for AudioStream {
             AudioStream::RealtimeSpeaker { speaker } => speaker.sample_rate(),
             AudioStream::Recorded { .. } => 16000,
         }
-    }
-}
-
-pub fn is_using_headphone() -> bool {
-    #[cfg(target_os = "macos")]
-    {
-        utils::macos::is_headphone_from_default_output_device()
-    }
-    #[cfg(target_os = "linux")]
-    {
-        utils::linux::is_headphone_from_default_output_device()
-    }
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    {
-        false
     }
 }
 

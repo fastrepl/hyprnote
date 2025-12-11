@@ -22,6 +22,7 @@ rodio = { workspace = true }
 
 ebur128 = "0.1.10"
 hypr-audio-interface = { workspace = true }
+hypr-device-heuristic = { workspace = true }
 ringbuf = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]

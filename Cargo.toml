@@ -36,6 +36,7 @@ hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
 hypr-db-core = { path = "crates/db-core", package = "db-core" }
 hypr-db-user = { path = "crates/db-user", package = "db-user" }
 hypr-detect = { path = "crates/detect", package = "detect" }
+hypr-device-heuristic = { path = "crates/device-heuristic", package = "device-heuristic" }
 hypr-docs = { path = "crates/docs", package = "docs" }
 hypr-download-interface = { path = "crates/download-interface", package = "download-interface" }
 hypr-extensions-runtime = { path = "crates/extensions-runtime", package = "extensions-runtime" }
@@ -50,6 +51,7 @@ hypr-llama = { path = "crates/llama", package = "llama" }
 hypr-llm = { path = "crates/llm", package = "llm" }
 hypr-llm-interface = { path = "crates/llm-interface", package = "llm-interface" }
 hypr-loops = { path = "crates/loops", package = "loops" }
+hypr-mac = { path = "crates/mac", package = "mac" }
 hypr-moonshine = { path = "crates/moonshine", package = "moonshine" }
 hypr-nango = { path = "crates/nango", package = "nango" }
 hypr-network = { path = "crates/network", package = "network" }

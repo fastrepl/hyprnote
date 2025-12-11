@@ -25,7 +25,7 @@ impl ChannelMode {
     pub fn determine(onboarding: bool) -> Self {
         if onboarding {
             ChannelMode::SpeakerOnly
-        } else if hypr_audio::is_using_headphone() {
+        } else if hypr_device_heuristic::macos::is_headphone_from_default_output_device() {
             ChannelMode::MicAndSpeaker
         } else {
             ChannelMode::MicOnly

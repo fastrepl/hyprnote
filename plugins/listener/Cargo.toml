@@ -23,6 +23,7 @@ hypr-agc = { workspace = true }
 hypr-audio = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-data = { workspace = true }
+hypr-device-heuristic = { workspace = true }
 hypr-language = { workspace = true }
 hypr-llm = { workspace = true }
 hypr-vad-ext = { workspace = true }

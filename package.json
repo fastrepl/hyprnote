@@ -2,7 +2,7 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.25.0",
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.51.1",
     "@prettier/plugin-oxc": "0.0.5",

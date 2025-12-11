@@ -74,7 +74,7 @@ pub mod macos {
             return false;
         }
 
-        use core_graphics::display::{CGDisplay, CGGetActiveDisplayList};
+        use objc2_core_graphics::{CGDisplayIsBuiltin, CGGetActiveDisplayList};
 
         let max_displays: u32 = 16;
         let mut display_ids = vec![0u32; max_displays as usize];
@@ -84,8 +84,8 @@ pub mod macos {
             CGGetActiveDisplayList(max_displays, display_ids.as_mut_ptr(), &mut display_count)
         };
 
-        if err != 0 {
-            tracing::warn!(error = err, "cg_get_active_display_list_failed");
+        if err.0 != 0 {
+            tracing::warn!(error = err.0, "cg_get_active_display_list_failed");
             return false;
         }
 
@@ -93,8 +93,7 @@ pub mod macos {
         let mut has_external = false;
 
         for &display_id in display_ids.iter().take(display_count as usize) {
-            let display = CGDisplay::new(display_id);
-            if display.is_builtin() {
+            if CGDisplayIsBuiltin(display_id) {
                 has_builtin = true;
             } else {
                 has_external = true;

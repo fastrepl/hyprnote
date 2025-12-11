@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 
 use futures_util::StreamExt;
-use hypr_audio::AsyncSource;
 use owhisper_interface::stream::StreamResponse;
 use tokio::sync::mpsc;
 
@@ -128,17 +127,18 @@ async fn run_audio_stream_with_stop(
     should_stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
 ) -> anyhow::Result<()> {
     let mic_stream = {
+        use hypr_audio_utils::ResampleExtDynamicNew;
+
         let mut audio_input = hypr_audio::AudioInput::from_mic(Some(device_name.clone()))?;
         let amplitude_clone = amplitude_data.clone();
         let mut agc = hypr_agc::VadAgc::default();
 
         audio_input
             .stream()
-            .resample(16000)
-            .chunks(512)
-            .map(move |chunk| {
+            .resampled_chunks(16000, 512)?
+            .map(move |chunk_result| {
                 let samples: Vec<f32> = {
-                    let mut samples: Vec<f32> = chunk.to_vec();
+                    let mut samples = chunk_result.unwrap_or_default();
                     agc.process(&mut samples);
                     samples
                 };

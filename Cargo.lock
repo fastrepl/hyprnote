@@ -916,7 +916,6 @@ dependencies = [
  "audio-utils",
  "bytes",
  "cidre",
- "core-graphics 0.24.0",
  "cpal",
  "dasp",
  "data",
@@ -926,6 +925,7 @@ dependencies = [
  "hound",
  "libc",
  "libpulse-binding",
+ "objc2-core-graphics",
  "ringbuf",
  "rodio",
  "serde",
@@ -941,7 +941,9 @@ dependencies = [
 name = "audio-interface"
 version = "0.1.0"
 dependencies = [
+ "dasp",
  "futures-util",
+ "rodio",
 ]
 
 [[package]]

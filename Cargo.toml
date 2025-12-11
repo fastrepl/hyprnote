@@ -223,8 +223,8 @@ specta = "2.0.0-rc.22"
 specta-typescript = "0.0.9"
 tauri-specta = "2.0.0-rc.21"
 
-cidre = "0.11.4"
-cpal = "0.15.3"
+cidre = "0.11"
+cpal = "0.16"
 dasp = { version = "0.11.0", features = ["interpolate", "interpolate-linear"] }
 earshot = "0.1.0"
 flume = "0.11.1"
@@ -253,5 +253,4 @@ swift-rs = { git = "https://github.com/yujonglee/swift-rs", rev = "41a1605" }
 sysinfo = "0.37.0"
 
 [patch.crates-io]
-cpal = { git = "https://github.com/RustAudio/cpal", rev = "51c3b43" }
 esaxx-rs = { git = "https://github.com/thewh1teagle/esaxx-rs.git", branch = "feat/dynamic-msvc-link" }

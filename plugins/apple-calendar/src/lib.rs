@@ -8,10 +8,12 @@ mod apple;
 mod commands;
 mod error;
 mod ext;
+pub mod model;
 mod types;
 
 pub use error::{Error, Result};
 pub use ext::AppleCalendarPluginExt;
+pub use model::*;
 pub use types::*;
 
 pub type ManagedState = Mutex<State>;

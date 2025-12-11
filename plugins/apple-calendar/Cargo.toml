@@ -32,5 +32,5 @@ tokio = { workspace = true, features = ["rt-multi-thread"] }
 [target.'cfg(target_os = "macos")'.dependencies]
 itertools = { workspace = true }
 objc2 = { workspace = true }
-objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKSource", "EKTypes", "EKRecurrenceRule", "EKRecurrenceEnd"] }
+objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKCalendarItem", "EKCalendar", "EKParticipant", "EKObject", "EKEvent", "EKSource", "EKTypes", "EKRecurrenceRule", "EKRecurrenceEnd", "EKAlarm", "EKStructuredLocation", "EKRecurrenceDayOfWeek"] }
 objc2-foundation = { workspace = true, features = ["NSDate", "NSEnumerator"] }

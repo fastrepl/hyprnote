@@ -2,12 +2,17 @@ use std::sync::Mutex;
 
 use tauri::Manager;
 
+#[cfg(target_os = "macos")]
+mod apple;
+
 mod commands;
 mod error;
 mod ext;
+mod types;
 
 pub use error::{Error, Result};
 pub use ext::AppleCalendarPluginExt;
+pub use types::*;
 
 pub type ManagedState = Mutex<State>;
 

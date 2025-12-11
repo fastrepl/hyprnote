@@ -11,6 +11,7 @@ pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
     fn request_contacts_access(&self);
 }
 
+#[cfg(target_os = "macos")]
 impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> for T {
     #[tracing::instrument(skip_all)]
     fn open_calendar(&self) -> Result<(), String> {
@@ -61,13 +62,13 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
 
     #[tracing::instrument(skip_all)]
     fn calendar_access_status(&self) -> bool {
-        let handle = hypr_calendar_apple::Handle::new();
+        let handle = crate::apple::Handle::new();
         handle.calendar_access_status()
     }
 
     #[tracing::instrument(skip_all)]
     fn contacts_access_status(&self) -> bool {
-        let handle = hypr_calendar_apple::Handle::new();
+        let handle = crate::apple::Handle::new();
         handle.contacts_access_status()
     }
 
@@ -83,7 +84,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
             .spawn()
             .ok();
 
-        let mut handle = hypr_calendar_apple::Handle::new();
+        let mut handle = crate::apple::Handle::new();
         handle.request_calendar_access();
     }
 
@@ -99,7 +100,34 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
             .spawn()
             .ok();
 
-        let mut handle = hypr_calendar_apple::Handle::new();
+        let mut handle = crate::apple::Handle::new();
         handle.request_contacts_access();
     }
+}
+
+#[cfg(not(target_os = "macos"))]
+impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> for T {
+    fn open_calendar(&self) -> Result<(), String> {
+        Err("not supported on this platform".to_string())
+    }
+
+    fn open_calendar_access_settings(&self) -> Result<(), String> {
+        Err("not supported on this platform".to_string())
+    }
+
+    fn open_contacts_access_settings(&self) -> Result<(), String> {
+        Err("not supported on this platform".to_string())
+    }
+
+    fn calendar_access_status(&self) -> bool {
+        false
+    }
+
+    fn contacts_access_status(&self) -> bool {
+        false
+    }
+
+    fn request_calendar_access(&self) {}
+
+    fn request_contacts_access(&self) {}
 }

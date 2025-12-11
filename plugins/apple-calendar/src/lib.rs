@@ -4,6 +4,8 @@ use tauri::Manager;
 
 #[cfg(target_os = "macos")]
 mod apple;
+#[cfg(target_os = "macos")]
+mod recurrence;
 
 mod commands;
 mod error;

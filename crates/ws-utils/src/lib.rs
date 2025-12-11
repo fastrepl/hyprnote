@@ -134,7 +134,7 @@ impl Stream for WebSocketAudioSource {
     }
 }
 
-impl kalosm_sound::AsyncSource for WebSocketAudioSource {
+impl hypr_audio_interface::AsyncSource for WebSocketAudioSource {
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
         self
     }
@@ -195,7 +195,7 @@ impl Stream for ChannelAudioSource {
     }
 }
 
-impl kalosm_sound::AsyncSource for ChannelAudioSource {
+impl hypr_audio_interface::AsyncSource for ChannelAudioSource {
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
         self
     }

@@ -16,7 +16,7 @@ pub use cpal;
 use cpal::traits::{DeviceTrait, HostTrait};
 
 use futures_util::Stream;
-pub use kalosm_sound::AsyncSource;
+pub use hypr_audio_interface::AsyncSource;
 
 pub const TAP_DEVICE_NAME: &str = "hypr-audio-tap";
 
@@ -193,7 +193,7 @@ impl Stream for AudioStream {
     }
 }
 
-impl kalosm_sound::AsyncSource for AudioStream {
+impl AsyncSource for AudioStream {
     fn as_stream(&mut self) -> impl Stream<Item = f32> + '_ {
         self
     }

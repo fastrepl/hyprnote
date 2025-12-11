@@ -27,6 +27,7 @@ hypr-am = { path = "crates/am", package = "am" }
 hypr-am2 = { path = "crates/am2", package = "am2" }
 hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
+hypr-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
 hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
@@ -223,7 +224,7 @@ tauri-specta = "2.0.0-rc.21"
 
 cidre = "0.11.4"
 cpal = "0.15.3"
-dasp = "0.11.0"
+dasp = { version = "0.11.0", features = ["interpolate", "interpolate-linear"] }
 earshot = "0.1.0"
 flume = "0.11.1"
 hound = "3.5.1"
@@ -232,12 +233,6 @@ ringbuf = "0.4.8"
 rodio = { version = "0.20.1", features = ["symphonia"] }
 silero-rs = { git = "https://github.com/emotechlab/silero-rs", rev = "26a6460", package = "silero" }
 vorbis_rs = "0.5.5"
-
-kalosm-common = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
-kalosm-llama = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
-kalosm-model-types = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
-kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", default-features = false }
-kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
 deepgram = { version = "0.7", default-features = false }
 libsql = "0.9.24"

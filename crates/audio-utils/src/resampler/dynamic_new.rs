@@ -3,7 +3,7 @@ use std::task::{Context, Poll};
 
 use super::driver::RubatoChunkResampler;
 use futures_util::{pin_mut, Stream};
-use kalosm_sound::AsyncSource;
+use hypr_audio_interface::AsyncSource;
 use rubato::{FastFixedIn, PolynomialDegree};
 
 pub trait ResampleExtDynamicNew: AsyncSource + Sized + Unpin {

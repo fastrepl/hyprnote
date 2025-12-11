@@ -23,7 +23,7 @@ hypr-whisper = { workspace = true }
 dasp = { workspace = true }
 hound = { workspace = true }
 
-kalosm-sound = { workspace = true, default-features = false }
+hypr-audio-interface = { workspace = true }
 rodio = { workspace = true }
 whisper-rs = { git = "https://codeberg.org/tazz4843/whisper-rs", rev = "a23990c", features = ["raw-api", "tracing_backend"], optional = true }
 

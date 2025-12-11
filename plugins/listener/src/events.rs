@@ -30,5 +30,12 @@ common_event_derives! {
             session_id: String,
             response: Box<StreamResponse>,
         },
+        #[serde(rename = "error")]
+        Error {
+            session_id: String,
+            error_type: String,
+            message: String,
+            context: Option<String>,
+        },
     }
 }

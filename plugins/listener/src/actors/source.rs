@@ -44,6 +44,7 @@ pub struct SourceArgs {
 
 pub struct SourceState {
     session_id: String,
+    app: tauri::AppHandle,
     mic_device: Option<String>,
     onboarding: bool,
     mic_muted: Arc<AtomicBool>,
@@ -135,6 +136,7 @@ impl Actor for SourceActor {
 
         let mut st = SourceState {
             session_id: args.session_id,
+            app: args.app,
             mic_device,
             onboarding: args.onboarding,
             mic_muted: Arc::new(AtomicBool::new(false)),
@@ -185,6 +187,39 @@ impl Actor for SourceActor {
             }
             SourceMsg::StreamFailed(reason) => {
                 tracing::error!(%reason, "source_stream_failed_stopping");
+                let (error_type, message) = match reason.as_str() {
+                    "mic_open_failed" => ("mic_open_failed", "Failed to open microphone device"),
+                    "mic_stream_setup_failed" => (
+                        "mic_stream_setup_failed",
+                        "Failed to set up microphone audio stream",
+                    ),
+                    "mic_resample_failed" => {
+                        ("mic_resample_failed", "Microphone audio processing failed")
+                    }
+                    "mic_stream_ended" => (
+                        "mic_stream_ended",
+                        "Microphone audio stream ended unexpectedly",
+                    ),
+                    "speaker_stream_setup_failed" => (
+                        "speaker_stream_setup_failed",
+                        "Failed to set up speaker audio capture",
+                    ),
+                    "speaker_resample_failed" => {
+                        ("speaker_resample_failed", "Speaker audio processing failed")
+                    }
+                    "speaker_stream_ended" => (
+                        "speaker_stream_ended",
+                        "Speaker audio stream ended unexpectedly",
+                    ),
+                    _ => ("audio_error", "Audio capture error"),
+                };
+                let _ = (SessionEvent::Error {
+                    session_id: st.session_id.clone(),
+                    error_type: error_type.to_string(),
+                    message: message.to_string(),
+                    context: Some(reason.clone()),
+                })
+                .emit(&st.app);
                 myself.stop(Some(reason));
             }
         }

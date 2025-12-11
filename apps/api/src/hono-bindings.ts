@@ -9,6 +9,8 @@ export type AppBindings = {
     stripeEvent: Stripe.Event;
     stripeRawBody: string;
     stripeSignature: string;
+    slackRawBody: string;
+    slackTimestamp: string;
     sentrySpan: Sentry.Span;
     supabaseUserId: string | undefined;
     supabaseClient: SupabaseClient | undefined;

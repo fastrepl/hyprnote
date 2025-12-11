@@ -130,13 +130,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_kalosm_builtin_resampler() {
-        let source = create_test_source();
-        let resampled = source.resample(16000);
-        assert_eq!(resampled.collect::<Vec<_>>().await.len(), 9906153);
-    }
-
-    #[tokio::test]
     async fn test_dynamic_old_resampler() {
         let source = create_test_source();
         let samples = ResamplerDynamicOld::new(source, 16000)

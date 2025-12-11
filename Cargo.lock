@@ -939,7 +939,9 @@ dependencies = [
 name = "audio-interface"
 version = "0.1.0"
 dependencies = [
+ "dasp",
  "futures-util",
+ "rodio",
 ]
 
 [[package]]

@@ -1,9 +1,10 @@
 use std::sync::{Arc, Mutex};
 
 use futures_util::StreamExt;
-use hypr_audio::AsyncSource;
 use owhisper_interface::stream::StreamResponse;
 use tokio::sync::mpsc;
+
+use hypr_audio_utils::ResampleExtDynamicNew;
 
 use super::{
     calculate_rms, create_event_channel, draw_ui, AmplitudeData, RunState, TerminalGuard, TuiEvent,
@@ -134,11 +135,10 @@ async fn run_audio_stream_with_stop(
 
         audio_input
             .stream()
-            .resample(16000)
-            .chunks(512)
-            .map(move |chunk| {
+            .resampled_chunks(16000, 512)?
+            .map(move |chunk_result| {
                 let samples: Vec<f32> = {
-                    let mut samples: Vec<f32> = chunk.to_vec();
+                    let mut samples = chunk_result.unwrap_or_default();
                     agc.process(&mut samples);
                     samples
                 };

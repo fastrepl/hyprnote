@@ -9,8 +9,14 @@ pub trait AppleCalendarPluginExt<R: tauri::Runtime> {
     fn calendar_access_status(&self) -> bool;
     fn contacts_access_status(&self) -> bool;
 
+    fn has_calendar_access(&self) -> bool;
+    fn has_contacts_access(&self) -> bool;
+
     fn request_calendar_access(&self);
     fn request_contacts_access(&self);
+
+    fn revoke_calendar_access(&self);
+    fn revoke_contacts_access(&self);
 
     fn list_calendars(&self) -> Result<Vec<Calendar>, String>;
     fn list_events(&self, filter: EventFilter) -> Result<Vec<Event>, String>;
@@ -78,6 +84,18 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
     }
 
     #[tracing::instrument(skip_all)]
+    fn has_calendar_access(&self) -> bool {
+        let handle = crate::apple::Handle::new();
+        handle.calendar_access_status()
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn has_contacts_access(&self) -> bool {
+        let handle = crate::apple::Handle::new();
+        handle.contacts_access_status()
+    }
+
+    #[tracing::instrument(skip_all)]
     fn request_calendar_access(&self) {
         use tauri_plugin_shell::ShellExt;
 
@@ -107,6 +125,32 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
 
         let mut handle = crate::apple::Handle::new();
         handle.request_contacts_access();
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn revoke_calendar_access(&self) {
+        use tauri_plugin_shell::ShellExt;
+
+        let bundle_id = self.config().identifier.clone();
+        self.app_handle()
+            .shell()
+            .command("tccutil")
+            .args(["reset", "Calendar", &bundle_id])
+            .spawn()
+            .ok();
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn revoke_contacts_access(&self) {
+        use tauri_plugin_shell::ShellExt;
+
+        let bundle_id = self.config().identifier.clone();
+        self.app_handle()
+            .shell()
+            .command("tccutil")
+            .args(["reset", "AddressBook", &bundle_id])
+            .spawn()
+            .ok();
     }
 
     #[tracing::instrument(skip_all)]
@@ -144,9 +188,21 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AppleCalendarPluginExt<R> f
         false
     }
 
+    fn has_calendar_access(&self) -> bool {
+        false
+    }
+
+    fn has_contacts_access(&self) -> bool {
+        false
+    }
+
     fn request_calendar_access(&self) {}
 
     fn request_contacts_access(&self) {}
+
+    fn revoke_calendar_access(&self) {}
+
+    fn revoke_contacts_access(&self) {}
 
     fn list_calendars(&self) -> Result<Vec<Calendar>, String> {
         Err("not supported on this platform".to_string())

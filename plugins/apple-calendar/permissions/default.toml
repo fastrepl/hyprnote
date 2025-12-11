@@ -6,6 +6,10 @@ permissions = [
     "allow-open-contacts-access-settings",
     "allow-calendar-access-status",
     "allow-contacts-access-status",
+    "allow-has-calendar-access",
+    "allow-has-contacts-access",
     "allow-request-calendar-access",
     "allow-request-contacts-access",
+    "allow-revoke-calendar-access",
+    "allow-revoke-contacts-access",
 ]

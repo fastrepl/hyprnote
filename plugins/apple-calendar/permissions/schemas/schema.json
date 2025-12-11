@@ -319,6 +319,30 @@
           "markdownDescription": "Denies the contacts_access_status command without any pre-configured scope."
         },
         {
+          "description": "Enables the has_calendar_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-has-calendar-access",
+          "markdownDescription": "Enables the has_calendar_access command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the has_calendar_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-has-calendar-access",
+          "markdownDescription": "Denies the has_calendar_access command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the has_contacts_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-has-contacts-access",
+          "markdownDescription": "Enables the has_contacts_access command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the has_contacts_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-has-contacts-access",
+          "markdownDescription": "Denies the has_contacts_access command without any pre-configured scope."
+        },
+        {
           "description": "Enables the list_calendars command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-calendars",
@@ -403,10 +427,34 @@
           "markdownDescription": "Denies the request_contacts_access command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`",
+          "description": "Enables the revoke_calendar_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-revoke-calendar-access",
+          "markdownDescription": "Enables the revoke_calendar_access command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the revoke_calendar_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-revoke-calendar-access",
+          "markdownDescription": "Denies the revoke_calendar_access command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the revoke_contacts_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-revoke-contacts-access",
+          "markdownDescription": "Enables the revoke_contacts_access command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the revoke_contacts_access command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-revoke-contacts-access",
+          "markdownDescription": "Denies the revoke_contacts_access command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-has-calendar-access`\n- `allow-has-contacts-access`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-revoke-calendar-access`\n- `allow-revoke-contacts-access`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-open-calendar`\n- `allow-open-calendar-access-settings`\n- `allow-open-contacts-access-settings`\n- `allow-calendar-access-status`\n- `allow-contacts-access-status`\n- `allow-has-calendar-access`\n- `allow-has-contacts-access`\n- `allow-request-calendar-access`\n- `allow-request-contacts-access`\n- `allow-revoke-calendar-access`\n- `allow-revoke-contacts-access`"
         }
       ]
     }

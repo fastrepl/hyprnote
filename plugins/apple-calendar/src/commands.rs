@@ -37,6 +37,18 @@ pub fn contacts_access_status<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bo
 
 #[tauri::command]
 #[specta::specta]
+pub fn has_calendar_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
+    app.has_calendar_access()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn has_contacts_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> bool {
+    app.has_contacts_access()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn request_calendar_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
     app.request_calendar_access();
 }
@@ -45,6 +57,18 @@ pub fn request_calendar_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
 #[specta::specta]
 pub fn request_contacts_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
     app.request_contacts_access();
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn revoke_calendar_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
+    app.revoke_calendar_access();
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn revoke_contacts_access<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
+    app.revoke_contacts_access();
 }
 
 #[tauri::command]

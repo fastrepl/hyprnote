@@ -32,8 +32,12 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::open_contacts_access_settings::<tauri::Wry>,
             commands::calendar_access_status::<tauri::Wry>,
             commands::contacts_access_status::<tauri::Wry>,
+            commands::has_calendar_access::<tauri::Wry>,
+            commands::has_contacts_access::<tauri::Wry>,
             commands::request_calendar_access::<tauri::Wry>,
             commands::request_contacts_access::<tauri::Wry>,
+            commands::revoke_calendar_access::<tauri::Wry>,
+            commands::revoke_contacts_access::<tauri::Wry>,
             commands::list_calendars::<tauri::Wry>,
             commands::list_events::<tauri::Wry>,
         ])

@@ -37,11 +37,23 @@ async calendarAccessStatus() : Promise<boolean> {
 async contactsAccessStatus() : Promise<boolean> {
     return await TAURI_INVOKE("plugin:apple-calendar|contacts_access_status");
 },
+async hasCalendarAccess() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:apple-calendar|has_calendar_access");
+},
+async hasContactsAccess() : Promise<boolean> {
+    return await TAURI_INVOKE("plugin:apple-calendar|has_contacts_access");
+},
 async requestCalendarAccess() : Promise<void> {
     await TAURI_INVOKE("plugin:apple-calendar|request_calendar_access");
 },
 async requestContactsAccess() : Promise<void> {
     await TAURI_INVOKE("plugin:apple-calendar|request_contacts_access");
+},
+async revokeCalendarAccess() : Promise<void> {
+    await TAURI_INVOKE("plugin:apple-calendar|revoke_calendar_access");
+},
+async revokeContactsAccess() : Promise<void> {
+    await TAURI_INVOKE("plugin:apple-calendar|revoke_contacts_access");
 },
 async listCalendars() : Promise<Result<Calendar[], string>> {
     try {

@@ -9,8 +9,12 @@ Default permissions for the plugin
 - `allow-open-contacts-access-settings`
 - `allow-calendar-access-status`
 - `allow-contacts-access-status`
+- `allow-has-calendar-access`
+- `allow-has-contacts-access`
 - `allow-request-calendar-access`
 - `allow-request-contacts-access`
+- `allow-revoke-calendar-access`
+- `allow-revoke-contacts-access`
 
 ## Permission Table
 
@@ -69,6 +73,58 @@ Enables the contacts_access_status command without any pre-configured scope.
 <td>
 
 Denies the contacts_access_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-has-calendar-access`
+
+</td>
+<td>
+
+Enables the has_calendar_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-has-calendar-access`
+
+</td>
+<td>
+
+Denies the has_calendar_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-has-contacts-access`
+
+</td>
+<td>
+
+Enables the has_contacts_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-has-contacts-access`
+
+</td>
+<td>
+
+Denies the has_contacts_access command without any pre-configured scope.
 
 </td>
 </tr>
@@ -251,6 +307,58 @@ Enables the request_contacts_access command without any pre-configured scope.
 <td>
 
 Denies the request_contacts_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-revoke-calendar-access`
+
+</td>
+<td>
+
+Enables the revoke_calendar_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-revoke-calendar-access`
+
+</td>
+<td>
+
+Denies the revoke_calendar_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:allow-revoke-contacts-access`
+
+</td>
+<td>
+
+Enables the revoke_contacts_access command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`apple-calendar:deny-revoke-contacts-access`
+
+</td>
+<td>
+
+Denies the revoke_contacts_access command without any pre-configured scope.
 
 </td>
 </tr>

@@ -202,34 +202,39 @@ export const createGeneralSlice = <
         }),
       );
 
-      Promise.all([
-        appDataDir(),
-        detectCommands
-          .listMicUsingApplications()
-          .then((r) =>
-            r.status === "ok" ? r.data.map((app) => app.id) : null,
-          ),
-        getIdentifier().catch(() => "com.hyprnote.stable"),
-      ])
-        .then(([dataDirPath, micUsingApps, bundleId]) => {
-          const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
-          const app_meeting = micUsingApps?.[0] ?? null;
+      const [dataDirPath, micUsingApps, bundleId] = yield* Effect.tryPromise({
+        try: () =>
+          Promise.all([
+            appDataDir(),
+            detectCommands
+              .listMicUsingApplications()
+              .then((r) =>
+                r.status === "ok" ? r.data.map((app) => app.id) : null,
+              ),
+            getIdentifier().catch(() => "com.hyprnote.stable"),
+          ]),
+        catch: (error) => error,
+      });
 
-          hooksCommands
-            .runEventHooks({
-              beforeListeningStarted: {
-                args: {
-                  resource_dir: sessionPath,
-                  app_hyprnote: bundleId,
-                  app_meeting,
-                },
+      const sessionPath = `${dataDirPath}/hyprnote/sessions/${targetSessionId}`;
+      const app_meeting = micUsingApps?.[0] ?? null;
+
+      yield* Effect.tryPromise({
+        try: () =>
+          hooksCommands.runEventHooks({
+            beforeListeningStarted: {
+              args: {
+                resource_dir: sessionPath,
+                app_hyprnote: bundleId,
+                app_meeting,
               },
-            })
-            .catch(console.error);
-        })
-        .catch((error) => {
+            },
+          }),
+        catch: (error) => {
           console.error("[hooks] BeforeListeningStarted failed:", error);
-        });
+          return error;
+        },
+      });
 
       yield* startSessionEffect(params);
       set((state) =>

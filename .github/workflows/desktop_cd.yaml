@@ -390,6 +390,15 @@ jobs:
     needs: [compute-version, release]
     runs-on: ubuntu-latest
     steps:
+      - name: Check HOMEBREW_PAT secret
+        run: |
+          if [ -z "$HOMEBREW_PAT" ]; then
+            echo "::error::HOMEBREW_PAT secret is not set. This secret is required to trigger the homebrew-hyprnote update workflow."
+            echo "Please add a Personal Access Token with 'repo' scope to the repository secrets as HOMEBREW_PAT."
+            exit 1
+          fi
+        env:
+          HOMEBREW_PAT: ${{ secrets.HOMEBREW_PAT }}
       - run: |
           aws s3 cp \
             "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-aarch64.dmg" \

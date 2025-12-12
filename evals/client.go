@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"time"
@@ -134,6 +135,161 @@ func generateStructuredGraderResponse(ctx context.Context, client *openai.Client
 	}
 
 	return result, nil
+}
+
+func generateTextMulti(ctx context.Context, client *openai.Client, model, prompt string, n int) ([]string, error) {
+	if n <= 0 {
+		n = 1
+	}
+
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = defaultRetryInterval
+
+	result, err := backoff.Retry(ctx, func() ([]string, error) {
+		resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+			Model: model,
+			Messages: []openai.ChatCompletionMessageParamUnion{
+				openai.UserMessage(prompt),
+			},
+			Temperature: openai.Float(defaultTemperature),
+			N:           openai.Int(int64(n)),
+		})
+
+		if err != nil {
+			if !isRetryable(err) {
+				return nil, backoff.Permanent(err)
+			}
+			return nil, err
+		}
+
+		if len(resp.Choices) == 0 {
+			return nil, backoff.Permanent(ErrNoChoices)
+		}
+
+		outputs := make([]string, len(resp.Choices))
+		for i, choice := range resp.Choices {
+			outputs[i] = choice.Message.Content
+		}
+		return outputs, nil
+	}, backoff.WithBackOff(b), backoff.WithMaxElapsedTime(defaultMaxElapsedTime))
+
+	if err != nil {
+		return nil, fmt.Errorf("chat completion: %w", err)
+	}
+
+	return result, nil
+}
+
+func generateStructuredGraderResponseMulti(ctx context.Context, client *openai.Client, model, prompt string, n int) ([]GraderResponse, error) {
+	if n <= 0 {
+		n = 1
+	}
+
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = defaultRetryInterval
+
+	result, err := backoff.Retry(ctx, func() ([]GraderResponse, error) {
+		resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+			Model: model,
+			Messages: []openai.ChatCompletionMessageParamUnion{
+				openai.UserMessage(prompt),
+			},
+			Temperature: openai.Float(defaultTemperature),
+			N:           openai.Int(int64(n)),
+			ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
+				OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{
+					JSONSchema: openai.ResponseFormatJSONSchemaJSONSchemaParam{
+						Name:   "grader_response",
+						Schema: graderResponseSchema,
+						Strict: openai.Bool(true),
+					},
+				},
+			},
+		})
+
+		if err != nil {
+			if !isRetryable(err) {
+				return nil, backoff.Permanent(err)
+			}
+			return nil, err
+		}
+
+		if len(resp.Choices) == 0 {
+			return nil, backoff.Permanent(ErrNoChoices)
+		}
+
+		responses := make([]GraderResponse, len(resp.Choices))
+		for i, choice := range resp.Choices {
+			var graderResp GraderResponse
+			if err := json.Unmarshal([]byte(choice.Message.Content), &graderResp); err != nil {
+				return nil, backoff.Permanent(fmt.Errorf("unmarshal grader response %d: %w", i, err))
+			}
+			responses[i] = graderResp
+		}
+
+		return responses, nil
+	}, backoff.WithBackOff(b), backoff.WithMaxElapsedTime(defaultMaxElapsedTime))
+
+	if err != nil {
+		return nil, fmt.Errorf("structured chat completion: %w", err)
+	}
+
+	return result, nil
+}
+
+type AggregatedGraderResponse struct {
+	PassRate  float64
+	Passed    bool
+	Reasoning string
+	Samples   int
+}
+
+func aggregateGraderResponses(responses []GraderResponse) AggregatedGraderResponse {
+	if len(responses) == 0 {
+		return AggregatedGraderResponse{}
+	}
+
+	passCount := 0
+	var reasonings []string
+	for _, r := range responses {
+		if r.Verdict == "PASS" {
+			passCount++
+		}
+		reasonings = append(reasonings, r.Reasoning)
+	}
+
+	passRate := float64(passCount) / float64(len(responses))
+
+	return AggregatedGraderResponse{
+		PassRate:  passRate,
+		Passed:    passRate >= 0.5,
+		Reasoning: reasonings[0],
+		Samples:   len(responses),
+	}
+}
+
+func mean(values []float64) float64 {
+	if len(values) == 0 {
+		return 0
+	}
+	sum := 0.0
+	for _, v := range values {
+		sum += v
+	}
+	return sum / float64(len(values))
+}
+
+func stdDev(values []float64) float64 {
+	if len(values) <= 1 {
+		return 0
+	}
+	m := mean(values)
+	sumSquares := 0.0
+	for _, v := range values {
+		diff := v - m
+		sumSquares += diff * diff
+	}
+	return math.Sqrt(sumSquares / float64(len(values)))
 }
 
 func isRetryable(err error) bool {

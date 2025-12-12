@@ -151,6 +151,20 @@ func (r *Runner) runSingle(ctx context.Context, model string, runNum int, task T
 		RunNum: runNum,
 	}
 
+	if task.Samples > 1 {
+		outputs, err := task.ExecuteMulti(ctx, r.client, model)
+		if err != nil {
+			result.Error = err.Error()
+			return result
+		}
+
+		if len(outputs) > 0 {
+			result.Output = outputs[0]
+		}
+		result.Scores = task.GradeMulti(ctx, r.client, r.graderModel, outputs)
+		return result
+	}
+
 	output, err := task.Execute(ctx, r.client, model)
 	if err != nil {
 		result.Error = err.Error()

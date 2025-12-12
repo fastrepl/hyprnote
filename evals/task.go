@@ -13,11 +13,16 @@ import (
 //go:embed templates/*.jinja
 var templatesFS embed.FS
 
+// Inputs defines the interface for typed task input variables.
+type Inputs interface {
+	ToMap() map[string]any
+}
+
 // Task represents an evaluation task with a prompt template and rubrics.
 type Task struct {
 	Name         string
 	TemplatePath string
-	Inputs       map[string]any
+	Inputs       Inputs
 	Rubrics      []Rubric
 	Samples      int
 }
@@ -35,7 +40,11 @@ func (t *Task) RenderPrompt() (string, error) {
 	}
 	defer r.Close()
 
-	out, err := r.RenderString(string(content), jinja2.WithGlobals(t.Inputs))
+	var globals map[string]any
+	if t.Inputs != nil {
+		globals = t.Inputs.ToMap()
+	}
+	out, err := r.RenderString(string(content), jinja2.WithGlobals(globals))
 	if err != nil {
 		return "", fmt.Errorf("jinja2: render: %w", err)
 	}
@@ -82,10 +91,14 @@ func (t *Task) ExecuteMulti(ctx context.Context, client *openai.Client, model st
 // Grade evaluates output against all rubrics using the provided grader model.
 func (t *Task) Grade(ctx context.Context, client *openai.Client, model, output string) []Score {
 	scores := make([]Score, 0, len(t.Rubrics))
+	var inputMap map[string]any
+	if t.Inputs != nil {
+		inputMap = t.Inputs.ToMap()
+	}
 	for _, rubric := range t.Rubrics {
 		var s Score
 		if graderWithInputs, ok := rubric.Grader.(GraderWithInputs); ok {
-			s = graderWithInputs.GradeWithInputs(ctx, client, model, rubric, output, t.Inputs)
+			s = graderWithInputs.GradeWithInputs(ctx, client, model, rubric, output, inputMap)
 		} else {
 			s = rubric.Grader.Grade(ctx, client, model, rubric, output)
 		}
@@ -150,7 +163,7 @@ func (t *Task) GradeMulti(ctx context.Context, client *openai.Client, model stri
 }
 
 // NewTask creates a task with the given name, inputs, and rubrics.
-func NewTask(name string, inputs map[string]any, rubrics []Rubric) Task {
+func NewTask(name string, inputs Inputs, rubrics []Rubric) Task {
 	return Task{
 		Name:         name,
 		TemplatePath: filepath.Join("templates", name+".jinja"),

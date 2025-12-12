@@ -4,10 +4,20 @@ import (
 	"hyprnote/evals"
 )
 
+type MDGenInputs struct {
+	Topic string
+}
+
+func (in MDGenInputs) ToMap() map[string]any {
+	return map[string]any{
+		"topic": in.Topic,
+	}
+}
+
 var MDGen = evals.NewTask(
 	"mdgen",
-	map[string]any{
-		"topic": "Go tests for LLM evaluation",
+	MDGenInputs{
+		Topic: "Go tests for LLM evaluation",
 	},
 	[]evals.Rubric{
 		{

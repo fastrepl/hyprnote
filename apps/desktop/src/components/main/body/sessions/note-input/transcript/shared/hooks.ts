@@ -295,6 +295,7 @@ export function useScrollDetection(
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const lastScrollTopRef = useRef(0);
+  const userScrolledAwayRef = useRef(false);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -316,11 +317,12 @@ export function useScrollDetection(
       lastScrollTopRef.current = currentTop;
 
       const scrolledUp = currentTop < prevTop - 2;
-      if (scrolledUp && !isNearBottom) {
+      if (scrolledUp) {
+        userScrolledAwayRef.current = true;
         setAutoScrollEnabled(false);
       }
 
-      if (isNearBottom) {
+      if (isNearBottom && !userScrolledAwayRef.current) {
         setAutoScrollEnabled(true);
       }
     };
@@ -334,6 +336,7 @@ export function useScrollDetection(
     if (!element) {
       return;
     }
+    userScrolledAwayRef.current = false;
     setAutoScrollEnabled(true);
     element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
   };

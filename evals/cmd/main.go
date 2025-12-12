@@ -19,10 +19,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	errEvalFailed    = errors.New("evaluation failed")
-	errMissingAPIKey = errors.New("OPENROUTER_API_KEY environment variable is not set")
-)
+var errEvalFailed = errors.New("evaluation failed")
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
@@ -67,8 +64,13 @@ var runCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if os.Getenv("OPENROUTER_API_KEY") == "" {
-			return errMissingAPIKey
+		cfg, err := evals.ParseConfig()
+		if err != nil {
+			return fmt.Errorf("parse config: %w", err)
+		}
+
+		if cfg.OpenRouterAPIKey == "" {
+			return errors.New("OPENROUTER_API_KEY environment variable is not set")
 		}
 
 		taskFilter, _ := cmd.Flags().GetStringSlice("tasks")

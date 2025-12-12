@@ -14,7 +14,7 @@ export function useModelMetadata(
 ) {
   const enabled = options?.enabled ?? Boolean(providerId && listModels);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["models", providerId],
     queryFn: async () => {
       if (!listModels) {
@@ -28,5 +28,5 @@ export function useModelMetadata(
     staleTime: 1000 * 2,
   });
 
-  return { data, isLoading };
+  return { data, isLoading, refetch, isFetching };
 }

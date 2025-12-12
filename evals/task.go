@@ -83,7 +83,12 @@ func (t *Task) ExecuteMulti(ctx context.Context, client *openai.Client, model st
 func (t *Task) Grade(ctx context.Context, client *openai.Client, model, output string) []Score {
 	scores := make([]Score, 0, len(t.Rubrics))
 	for _, rubric := range t.Rubrics {
-		s := rubric.Grader.Grade(ctx, client, model, rubric, output)
+		var s Score
+		if graderWithInputs, ok := rubric.Grader.(GraderWithInputs); ok {
+			s = graderWithInputs.GradeWithInputs(ctx, client, model, rubric, output, t.Inputs)
+		} else {
+			s = rubric.Grader.Grade(ctx, client, model, rubric, output)
+		}
 		scores = append(scores, s)
 	}
 	return scores

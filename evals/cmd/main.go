@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"hyprnote/evals"
@@ -39,11 +41,29 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.AddCommand(runCmd)
+	rootCmd.AddCommand(listCmd)
+
+	runCmd.Flags().StringSliceP("tasks", "t", nil, "tasks to run (comma-separated)")
+	runCmd.Flags().StringP("output", "o", "table", "output format: table or json")
+	runCmd.Flags().StringSliceP("models", "m", nil, "models to use (comma-separated)")
+}
+
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List available tasks",
+	Run: func(cmd *cobra.Command, args []string) {
+		for _, task := range tasks.All {
+			fmt.Printf("%s\n", task.Name)
+			for _, rubric := range task.Rubrics {
+				fmt.Printf("  - %s: %s\n", rubric.Name, rubric.Description)
+			}
+		}
+	},
 }
 
 var runCmd = &cobra.Command{
 	Use:           "run",
-	Short:         "Run all evaluations",
+	Short:         "Run evaluations",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -51,17 +71,71 @@ var runCmd = &cobra.Command{
 			return errMissingAPIKey
 		}
 
+		taskFilter, _ := cmd.Flags().GetStringSlice("tasks")
+		outputFormat, _ := cmd.Flags().GetString("output")
+		modelOverride, _ := cmd.Flags().GetStringSlice("models")
+
+		selectedTasks := filterTasks(tasks.All, taskFilter)
+		if len(selectedTasks) == 0 {
+			return errors.New("no tasks matched the filter")
+		}
+
+		var opts []evals.Option
+		if len(modelOverride) > 0 {
+			opts = append(opts, evals.WithModels(modelOverride...))
+		}
+
 		ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer cancel()
 
-		runner := evals.New()
-		bar := progressbar.Default(int64(runner.TotalCount(tasks.All)), "evaluating")
+		runner := evals.New(opts...)
+
+		if outputFormat == "json" {
+			results := runner.Run(ctx, selectedTasks)
+			return renderJSON(results)
+		}
+
+		bar := progressbar.Default(int64(runner.TotalCount(selectedTasks)), "evaluating")
 		runner.OnProgress = func() { bar.Add(1) }
-		results := runner.Run(ctx, tasks.All)
+		results := runner.Run(ctx, selectedTasks)
 		bar.Finish()
 
 		return renderResults(results)
 	},
+}
+
+func filterTasks(allTasks []evals.Task, filter []string) []evals.Task {
+	if len(filter) == 0 {
+		return allTasks
+	}
+
+	filterSet := make(map[string]bool)
+	for _, f := range filter {
+		filterSet[strings.ToLower(f)] = true
+	}
+
+	var filtered []evals.Task
+	for _, task := range allTasks {
+		if filterSet[strings.ToLower(task.Name)] {
+			filtered = append(filtered, task)
+		}
+	}
+	return filtered
+}
+
+func renderJSON(results []evals.Result) error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(results); err != nil {
+		return fmt.Errorf("encode json: %w", err)
+	}
+
+	for _, r := range results {
+		if r.Error != "" || !r.AllPassed() {
+			return errEvalFailed
+		}
+	}
+	return nil
 }
 
 func renderResults(results []evals.Result) error {

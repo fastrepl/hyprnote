@@ -2,6 +2,9 @@ inputs:
   platform:
     required: false
     default: ""
+  cache-suffix:
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -58,3 +61,4 @@ runs:
     - uses: Swatinem/rust-cache@v2
       with:
         cache-targets: "true"
+        prefix-key: v0-rust${{ inputs.cache-suffix && format('-{0}', inputs.cache-suffix) || '' }}

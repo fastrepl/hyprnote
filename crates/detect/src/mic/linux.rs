@@ -91,7 +91,7 @@ impl crate::Observer for Detector {
                                                 }
                                             });
                                         } else if let Ok(guard) = callback_for_subscribe.lock() {
-                                            let event = DetectEvent::MicStopped;
+                                            let event = DetectEvent::MicStopped(vec![]);
                                             tracing::info!(event = ?event, "detected");
                                             (*guard)(event);
                                         }

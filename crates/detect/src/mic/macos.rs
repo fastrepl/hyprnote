@@ -1,7 +1,9 @@
 use cidre::{core_audio as ca, os};
+use std::collections::HashSet;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
-use crate::{BackgroundTask, DetectEvent};
+use crate::{BackgroundTask, DetectEvent, InstalledApp};
 
 pub struct Detector {
     background: BackgroundTask,
@@ -21,10 +23,13 @@ const DEVICE_IS_RUNNING_SOMEWHERE: ca::PropAddr = ca::PropAddr {
     element: ca::PropElement::MAIN,
 };
 
+const POLL_INTERVAL: Duration = Duration::from_secs(1);
+
 struct DetectorState {
     last_state: bool,
     last_change: Instant,
     debounce_duration: Duration,
+    active_apps: Vec<InstalledApp>,
 }
 
 impl DetectorState {
@@ -33,6 +38,7 @@ impl DetectorState {
             last_state: false,
             last_change: Instant::now(),
             debounce_duration: Duration::from_millis(500),
+            active_apps: Vec::new(),
         }
     }
 
@@ -52,6 +58,28 @@ impl DetectorState {
     }
 }
 
+fn diff_apps(
+    previous: &[InstalledApp],
+    current: &[InstalledApp],
+) -> (Vec<InstalledApp>, Vec<InstalledApp>) {
+    let previous_ids: HashSet<_> = previous.iter().map(|app| &app.id).collect();
+    let current_ids: HashSet<_> = current.iter().map(|app| &app.id).collect();
+
+    let started = current
+        .iter()
+        .filter(|app| !previous_ids.contains(&app.id))
+        .cloned()
+        .collect();
+
+    let stopped = previous
+        .iter()
+        .filter(|app| !current_ids.contains(&app.id))
+        .cloned()
+        .collect();
+
+    (started, stopped)
+}
+
 impl crate::Observer for Detector {
     fn start(&mut self, f: crate::DetectCallback) {
         self.background.start(|running, mut rx| async move {
@@ -62,10 +90,51 @@ impl crate::Observer for Detector {
                 let current_device = std::sync::Arc::new(std::sync::Mutex::new(None::<ca::Device>));
                 let detector_state =
                     std::sync::Arc::new(std::sync::Mutex::new(DetectorState::new()));
+                let polling_active = std::sync::Arc::new(AtomicBool::new(false));
 
                 let callback_for_device = callback.clone();
                 let current_device_for_device = current_device.clone();
                 let detector_state_for_device = detector_state.clone();
+                let polling_active_for_device = polling_active.clone();
+
+                let callback_for_polling = callback.clone();
+                let detector_state_for_polling = detector_state.clone();
+                let polling_active_for_polling = polling_active.clone();
+
+                std::thread::spawn(move || {
+                    loop {
+                        std::thread::sleep(POLL_INTERVAL);
+
+                        if !polling_active_for_polling.load(Ordering::SeqCst) {
+                            continue;
+                        }
+
+                        let current_apps = crate::list_mic_using_apps();
+
+                        if let Ok(mut state_guard) = detector_state_for_polling.lock() {
+                            let (started, stopped) =
+                                diff_apps(&state_guard.active_apps, &current_apps);
+
+                            state_guard.active_apps = current_apps;
+
+                            if !started.is_empty() {
+                                if let Ok(guard) = callback_for_polling.lock() {
+                                    let event = DetectEvent::MicStarted(started);
+                                    tracing::info!(event = ?event, "detected_via_polling");
+                                    (*guard)(event);
+                                }
+                            }
+
+                            if !stopped.is_empty() {
+                                if let Ok(guard) = callback_for_polling.lock() {
+                                    let event = DetectEvent::MicStopped(stopped);
+                                    tracing::info!(event = ?event, "detected_via_polling");
+                                    (*guard)(event);
+                                }
+                            }
+                        }
+                    }
+                });
 
                 extern "C-unwind" fn device_listener(
                     _obj_id: ca::Obj,
@@ -79,10 +148,12 @@ impl crate::Observer for Detector {
                                 std::sync::Arc<std::sync::Mutex<crate::DetectCallback>>,
                                 std::sync::Arc<std::sync::Mutex<Option<ca::Device>>>,
                                 std::sync::Arc<std::sync::Mutex<DetectorState>>,
+                                std::sync::Arc<AtomicBool>,
                             ))
                     };
                     let callback = &data.0;
                     let state = &data.2;
+                    let polling_active = &data.3;
 
                     let addresses =
                         unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
@@ -98,24 +169,29 @@ impl crate::Observer for Detector {
                                     if let Ok(mut state_guard) = state.lock() {
                                         if state_guard.should_trigger(mic_in_use) {
                                             if mic_in_use {
-                                                let cb = callback.clone();
+                                                let apps = crate::list_mic_using_apps();
+                                                tracing::info!(
+                                                    "detect_device_listener: {:?}",
+                                                    apps
+                                                );
 
-                                                std::thread::spawn(move || {
-                                                    let apps = crate::list_mic_using_apps();
-                                                    tracing::info!(
-                                                        "detect_device_listener: {:?}",
-                                                        apps
-                                                    );
+                                                state_guard.active_apps = apps.clone();
+                                                polling_active.store(true, Ordering::SeqCst);
 
-                                                    if let Ok(guard) = cb.lock() {
-                                                        let event = DetectEvent::MicStarted(apps);
-                                                        tracing::info!(event = ?event, "detected");
-                                                        (*guard)(event);
-                                                    }
-                                                });
-                                            } else {
                                                 if let Ok(guard) = callback.lock() {
-                                                    let event = DetectEvent::MicStopped;
+                                                    let event = DetectEvent::MicStarted(apps);
+                                                    tracing::info!(event = ?event, "detected");
+                                                    (*guard)(event);
+                                                }
+                                            } else {
+                                                polling_active.store(false, Ordering::SeqCst);
+
+                                                let stopped_apps =
+                                                    std::mem::take(&mut state_guard.active_apps);
+
+                                                if let Ok(guard) = callback.lock() {
+                                                    let event =
+                                                        DetectEvent::MicStopped(stopped_apps);
                                                     tracing::info!(event = ?event, "detected");
                                                     (*guard)(event);
                                                 }
@@ -142,12 +218,14 @@ impl crate::Observer for Detector {
                                 std::sync::Arc<std::sync::Mutex<crate::DetectCallback>>,
                                 std::sync::Arc<std::sync::Mutex<Option<ca::Device>>>,
                                 std::sync::Arc<std::sync::Mutex<DetectorState>>,
+                                std::sync::Arc<AtomicBool>,
                                 *mut (),
                             ))
                     };
                     let current_device = &data.1;
                     let state = &data.2;
-                    let device_listener_data = data.3;
+                    let polling_active = &data.3;
+                    let device_listener_data = data.4;
 
                     let addresses =
                         unsafe { std::slice::from_raw_parts(addresses, number_addresses as usize) };
@@ -185,21 +263,20 @@ impl crate::Observer for Detector {
                                         if let Ok(mut state_guard) = state.lock() {
                                             if state_guard.should_trigger(mic_in_use) {
                                                 if mic_in_use {
-                                                    let cb = data.0.clone();
+                                                    let apps = crate::list_mic_using_apps();
+                                                    tracing::info!(
+                                                        "detect_system_listener: {:?}",
+                                                        apps
+                                                    );
 
-                                                    std::thread::spawn(move || {
-                                                        let apps = crate::list_mic_using_apps();
-                                                        tracing::info!(
-                                                            "detect_system_listener: {:?}",
-                                                            apps
-                                                        );
+                                                    state_guard.active_apps = apps.clone();
+                                                    polling_active.store(true, Ordering::SeqCst);
 
-                                                        if let Ok(callback_guard) = cb.lock() {
-                                                            (*callback_guard)(
-                                                                DetectEvent::MicStarted(apps),
-                                                            );
-                                                        }
-                                                    });
+                                                    if let Ok(callback_guard) = data.0.lock() {
+                                                        (*callback_guard)(DetectEvent::MicStarted(
+                                                            apps,
+                                                        ));
+                                                    }
                                                 }
                                             }
                                         }
@@ -216,6 +293,7 @@ impl crate::Observer for Detector {
                     callback_for_device.clone(),
                     current_device_for_device.clone(),
                     detector_state_for_device.clone(),
+                    polling_active_for_device.clone(),
                 ));
                 let device_listener_ptr = Box::into_raw(device_listener_data) as *mut ();
 
@@ -223,6 +301,7 @@ impl crate::Observer for Detector {
                     callback.clone(),
                     current_device.clone(),
                     detector_state.clone(),
+                    polling_active.clone(),
                     device_listener_ptr,
                 ));
                 let system_listener_ptr = Box::into_raw(system_listener_data) as *mut ();
@@ -261,6 +340,10 @@ impl crate::Observer for Detector {
 
                         if let Ok(mut state_guard) = detector_state.lock() {
                             state_guard.last_state = mic_in_use;
+                            if mic_in_use {
+                                state_guard.active_apps = crate::list_mic_using_apps();
+                                polling_active.store(true, Ordering::SeqCst);
+                            }
                         }
                     } else {
                         tracing::error!("adding_device_listener_failed");

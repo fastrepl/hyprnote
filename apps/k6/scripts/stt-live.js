@@ -17,6 +17,9 @@ const wsReconnects = new Counter("ws_reconnects");
 const wsConnectionDuration = new Trend("ws_connection_duration");
 const wsFirstTranscriptLatency = new Trend("ws_first_transcript_latency");
 const wsConnectionSuccess = new Rate("ws_connection_success");
+const wsMessagesSent = new Counter("ws_messages_sent");
+const wsMessagesReceived = new Counter("ws_messages_received");
+const wsAudioChunksSent = new Counter("ws_audio_chunks_sent");
 
 const TEST_DURATION = __ENV.TEST_DURATION || "1h";
 const VUS = parseInt(__ENV.VUS) || 30;
@@ -57,10 +60,13 @@ function runSession(data) {
   const startTime = Date.now();
   let firstTranscriptTime = null;
   let loopCount = 0;
+  let connectionOpened = false;
 
   const res = ws.connect(url, params, function (socket) {
     socket.on("open", () => {
+      connectionOpened = true;
       wsConnections.add(1);
+      wsConnectionSuccess.add(1);
 
       const audioBytes = new Uint8Array(data.audioData);
       let offset = 0;
@@ -70,6 +76,8 @@ function runSession(data) {
           const end = Math.min(offset + CHUNK_SIZE, audioBytes.length);
           const chunk = audioBytes.slice(offset, end);
           socket.sendBinary(chunk.buffer);
+          wsMessagesSent.add(1);
+          wsAudioChunksSent.add(1);
           offset = end;
         } else {
           offset = 0;
@@ -79,10 +87,12 @@ function runSession(data) {
 
       socket.setInterval(() => {
         socket.send(JSON.stringify({ type: "KeepAlive" }));
+        wsMessagesSent.add(1);
       }, 3000);
     });
 
     socket.on("message", (msg) => {
+      wsMessagesReceived.add(1);
       try {
         const response = JSON.parse(msg);
 
@@ -102,6 +112,9 @@ function runSession(data) {
     socket.on("error", (e) => {
       if (e.error() !== "websocket: close sent") {
         wsErrors.add(1);
+        if (!connectionOpened) {
+          wsConnectionSuccess.add(0);
+        }
         console.log(`[VU ${__VU}] Error: ${e.error()}`);
       }
     });
@@ -116,14 +129,15 @@ function runSession(data) {
     }, SESSION_DURATION_MS);
   });
 
-  const success = res && res.status === 101;
-  wsConnectionSuccess.add(success ? 1 : 0);
+  if (!connectionOpened) {
+    wsConnectionSuccess.add(0);
+  }
 
   check(res, {
     "WebSocket upgrade successful": (r) => r && r.status === 101,
   });
 
-  return success;
+  return connectionOpened;
 }
 
 export default function (data) {
@@ -146,7 +160,7 @@ export function handleSummary(data) {
   const report = {
     timestamp: new Date().toISOString(),
     duration_ms: data.state.testRunDurationMs,
-    vus_max: data.state.vusMax,
+    vus_max: data.metrics.vus_max?.values?.max || VUS,
     github: GITHUB_RUN_ID
       ? {
           run_id: GITHUB_RUN_ID,
@@ -171,6 +185,12 @@ export function handleSummary(data) {
       connection_duration: {
         avg_ms: data.metrics.ws_connection_duration?.values?.avg || 0,
         p95_ms: data.metrics.ws_connection_duration?.values?.["p(95)"] || 0,
+      },
+      messages: {
+        sent: data.metrics.ws_messages_sent?.values?.count || 0,
+        received: data.metrics.ws_messages_received?.values?.count || 0,
+        audio_chunks_sent:
+          data.metrics.ws_audio_chunks_sent?.values?.count || 0,
       },
       checks_passed_rate: data.metrics.checks?.values?.rate || 0,
     },
@@ -262,6 +282,11 @@ function textSummary(report) {
     "Transcripts:",
     `  Received: ${c.transcripts.received}`,
     `  First Latency (avg): ${c.transcripts.first_latency_avg_ms.toFixed(0)}ms`,
+    "",
+    "Messages:",
+    `  Sent: ${c.messages.sent}`,
+    `  Received: ${c.messages.received}`,
+    `  Audio Chunks: ${c.messages.audio_chunks_sent}`,
     "",
     "Connection Duration:",
     `  Avg: ${formatDuration(c.connection_duration.avg_ms)}`,

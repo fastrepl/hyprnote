@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/cenkalti/backoff/v5"
@@ -15,11 +14,10 @@ import (
 )
 
 const (
-	defaultTemperature     = 0.2
-	defaultRetryInterval   = 500 * time.Millisecond
-	defaultMaxElapsedTime  = 30 * time.Second
-	openRouterBaseURL      = "https://openrouter.ai/api/v1"
-	openRouterAPIKeyEnvVar = "OPENROUTER_API_KEY"
+	defaultTemperature    = 0.2
+	defaultRetryInterval  = 500 * time.Millisecond
+	defaultMaxElapsedTime = 30 * time.Second
+	openRouterBaseURL     = "https://openrouter.ai/api/v1"
 )
 
 var ErrNoChoices = errors.New("no choices in response")
@@ -46,9 +44,9 @@ var graderResponseSchema = map[string]any{
 	"additionalProperties": false,
 }
 
-func newClient() *openai.Client {
+func newClient(apiKey string) *openai.Client {
 	c := openai.NewClient(
-		option.WithAPIKey(os.Getenv(openRouterAPIKeyEnvVar)),
+		option.WithAPIKey(apiKey),
 		option.WithBaseURL(openRouterBaseURL),
 	)
 	return &c

@@ -1,10 +1,8 @@
-// Package evals provides a framework for evaluating LLM outputs against rubrics.
 package evals
 
 import (
 	"context"
 	"errors"
-	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -112,24 +110,22 @@ func WithConcurrency(n int) Option {
 	}
 }
 
-func envInt(key string, fallback int) int {
-	if v := os.Getenv(key); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			return n
-		}
-	}
-	return fallback
-}
-
 // New creates a Runner with the provided options.
 func New(opts ...Option) *Runner {
+	cfg, _ := ParseConfig()
+
+	numEvals := cfg.NumEvals
+	if numEvals <= 0 {
+		numEvals = 1
+	}
+
 	r := &Runner{
-		client:       newClient(),
+		client:       newClient(cfg.OpenRouterAPIKey),
 		targetModels: defaultModels,
 		graderModel:  defaultGraderModel,
-		numEvals:     envInt("GOEVALS", 1),
-		timeout:      time.Duration(envInt("GOEVALS_TIMEOUT_SECONDS", 60)) * time.Second,
-		concurrency:  envInt("GOEVALS_CONCURRENCY", 4),
+		numEvals:     numEvals,
+		timeout:      cfg.Timeout(),
+		concurrency:  cfg.Concurrency,
 	}
 
 	for _, opt := range opts {
@@ -261,12 +257,12 @@ func (r *Runner) runTestIteration(ctx context.Context, t *testing.T, model strin
 func RunTest(t *testing.T, tasks []Task) {
 	t.Helper()
 
-	v := os.Getenv("GOEVALS")
-	if v == "" || v == "0" || v == "false" {
+	cfg, _ := ParseConfig()
+	if !cfg.Enabled() {
 		t.Skip("skipping LLM evals (set GOEVALS=1 to enable)")
 	}
 
-	if os.Getenv(openRouterAPIKeyEnvVar) == "" {
+	if cfg.OpenRouterAPIKey == "" {
 		t.Skip("skipping LLM evals (OPENROUTER_API_KEY is not set)")
 	}
 

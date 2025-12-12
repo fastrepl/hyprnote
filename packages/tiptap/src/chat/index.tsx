@@ -70,6 +70,7 @@ const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
         onCreate: ({ editor }) => {
           editor.view.dom.setAttribute("spellcheck", "false");
           editor.view.dom.setAttribute("autocomplete", "off");
+          editor.view.dom.setAttribute("autocorrect", "off");
           editor.view.dom.setAttribute("autocapitalize", "off");
         },
         immediatelyRender: false,

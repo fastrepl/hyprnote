@@ -151,20 +151,7 @@ export function ModelCombobox({
               ) : hasIgnoredOptions ? (
                 <p>No models ready to use.</p>
               ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <p>No models available.</p>
-                  <button
-                    type="button"
-                    onClick={() => refetch()}
-                    disabled={isFetching}
-                    className="flex items-center gap-1 text-xs hover:text-foreground transition-colors disabled:opacity-50"
-                  >
-                    <RefreshCcw
-                      className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`}
-                    />
-                    {isFetching ? "Refreshing..." : "Refresh"}
-                  </button>
-                </div>
+                <p>No models available.</p>
               )}
             </div>
           </CommandEmpty>
@@ -257,27 +244,38 @@ export function ModelCombobox({
             </CommandGroup>
           </CommandList>
 
-          {hasIgnoredOptions && (
-            <div className="px-2 py-1.5 text-xs text-muted-foreground border-t flex items-center justify-between">
+          <div className="px-2 py-1.5 text-xs text-muted-foreground border-t flex items-center justify-between">
+            <button
+              type="button"
+              onClick={toggleShowIgnored}
+              className="flex items-center gap-1 text-xs hover:text-foreground transition-colors mr-1"
+            >
+              {showIgnored ? (
+                <EyeOff className="h-3 w-3" />
+              ) : (
+                <Eye className="h-3 w-3" />
+              )}
+            </button>
+
+            {hasIgnoredOptions && (
               <span>
                 {showIgnored
-                  ? `Showing ${ignoredOptions.length} more items.`
+                  ? `Showing total of ${options.length} models.`
                   : `${ignoredOptions.length} items ignored.`}
               </span>
-              <button
-                type="button"
-                onClick={toggleShowIgnored}
-                className="flex items-center gap-1 text-xs hover:text-foreground transition-colors"
-              >
-                {showIgnored ? (
-                  <EyeOff className="h-3 w-3" />
-                ) : (
-                  <Eye className="h-3 w-3" />
-                )}
-                {showIgnored ? "Hide" : "Show"}
-              </button>
-            </div>
-          )}
+            )}
+
+            <button
+              type="button"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="flex items-center gap-1 text-xs hover:text-foreground transition-colors disabled:opacity-50 ml-auto"
+            >
+              <RefreshCcw
+                className={cn(["h-3 w-3", isFetching && "animate-spin"])}
+              />
+            </button>
+          </div>
         </Command>
       </PopoverContent>
     </Popover>

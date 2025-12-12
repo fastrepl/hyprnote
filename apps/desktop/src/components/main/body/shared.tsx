@@ -1,8 +1,7 @@
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
-import { DancingSticks } from "@hypr/ui/components/ui/dancing-sticks";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
@@ -154,47 +153,5 @@ export function TabItemBase({
         )}
       </InteractiveButton>
     </div>
-  );
-}
-
-type SoundIndicatorProps = {
-  value: number | Array<number>;
-  color?: string;
-  size?: "default" | "long";
-  height?: number;
-  width?: number;
-  stickWidth?: number;
-  gap?: number;
-};
-
-export function SoundIndicator({
-  value,
-  color,
-  size = "long",
-  height,
-  width,
-  stickWidth,
-  gap,
-}: SoundIndicatorProps) {
-  const [amplitude, setAmplitude] = useState(0);
-
-  const u16max = 65535;
-  useEffect(() => {
-    const sample = Array.isArray(value)
-      ? value.reduce((sum, v) => sum + v, 0) / value.length / u16max
-      : value / u16max;
-    setAmplitude(Math.min(sample, 1));
-  }, [value]);
-
-  return (
-    <DancingSticks
-      amplitude={amplitude}
-      color={color}
-      size={size}
-      height={height}
-      width={width}
-      stickWidth={stickWidth}
-      gap={gap}
-    />
   );
 }

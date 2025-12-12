@@ -63,7 +63,7 @@ impl AdminDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{tests::setup_db, Account, User};
+    use crate::{Account, User, tests::setup_db};
 
     #[tokio::test]
     async fn test_devices() {

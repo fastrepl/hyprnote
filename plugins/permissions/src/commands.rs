@@ -183,9 +183,10 @@ pub async fn request_calendar_permission<R: tauri::Runtime>(
 
         let event_store = unsafe { EKEventStore::new() };
         let (tx, rx) = std::sync::mpsc::channel::<bool>();
-        let completion = block2::RcBlock::new(move |granted: objc2::runtime::Bool, _error: *mut NSError| {
-            let _ = tx.send(granted.as_bool());
-        });
+        let completion =
+            block2::RcBlock::new(move |granted: objc2::runtime::Bool, _error: *mut NSError| {
+                let _ = tx.send(granted.as_bool());
+            });
 
         unsafe {
             event_store.requestFullAccessToEventsWithCompletion(&*completion as *const _ as *mut _)
@@ -234,12 +235,14 @@ pub async fn request_contacts_permission<R: tauri::Runtime>(
 
         let contacts_store = unsafe { CNContactStore::new() };
         let (tx, rx) = std::sync::mpsc::channel::<bool>();
-        let completion = block2::RcBlock::new(move |granted: objc2::runtime::Bool, _error: *mut NSError| {
-            let _ = tx.send(granted.as_bool());
-        });
+        let completion =
+            block2::RcBlock::new(move |granted: objc2::runtime::Bool, _error: *mut NSError| {
+                let _ = tx.send(granted.as_bool());
+            });
 
         unsafe {
-            contacts_store.requestAccessForEntityType_completionHandler(CNEntityType::Contacts, &completion);
+            contacts_store
+                .requestAccessForEntityType_completionHandler(CNEntityType::Contacts, &completion);
         };
 
         let _ = rx.recv_timeout(std::time::Duration::from_secs(60));

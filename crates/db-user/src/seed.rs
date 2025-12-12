@@ -1,5 +1,5 @@
 use super::{
-    user_common_derives, Calendar, Config, Event, Human, Organization, Session, Tag, UserDatabase,
+    Calendar, Config, Event, Human, Organization, Session, Tag, UserDatabase, user_common_derives,
 };
 
 const ONBOARDING_RAW_HTML: &str = include_str!("../assets/onboarding-raw.html");

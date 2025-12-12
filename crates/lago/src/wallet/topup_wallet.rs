@@ -1,8 +1,8 @@
 use crate::LagoClient;
 
 use super::{
-    list_wallet_transactions::WalletTransactionTransactionStatus, Meta, WalletTransactionStatus,
-    WalletTransactionType,
+    Meta, WalletTransactionStatus, WalletTransactionType,
+    list_wallet_transactions::WalletTransactionTransactionStatus,
 };
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

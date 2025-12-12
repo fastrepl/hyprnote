@@ -1,10 +1,10 @@
-use futures_util::{pin_mut, SinkExt, Stream, StreamExt};
+use futures_util::{SinkExt, Stream, StreamExt, pin_mut};
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tokio_tungstenite::{
     accept_async,
-    tungstenite::{protocol::Message, ClientRequestBuilder},
+    tungstenite::{ClientRequestBuilder, protocol::Message},
 };
 use ws::client::{WebSocketClient, WebSocketIO};
 
@@ -98,7 +98,7 @@ async fn test_basic_echo() {
     ];
 
     let stream = futures_util::stream::iter(messages.clone());
-    let (output, _handle) = client.from_audio::<TestIO>(None, stream).await.unwrap();
+    let (output, _handle) = client.from_audio::<TestIO, _>(None, stream).await.unwrap();
 
     let received = collect_messages::<TestIO>(output, 2).await;
     assert_eq!(received, messages);
@@ -115,7 +115,7 @@ async fn test_finalize() {
         text: "initial".to_string(),
         count: 1,
     }]);
-    let (output, handle) = client.from_audio::<TestIO>(None, stream).await.unwrap();
+    let (output, handle) = client.from_audio::<TestIO, _>(None, stream).await.unwrap();
 
     let final_msg = TestMessage {
         text: "final".to_string(),
@@ -169,7 +169,7 @@ async fn test_keep_alive() {
     );
 
     let stream = futures_util::stream::pending::<TestMessage>();
-    let (output, _handle) = client.from_audio::<TestIO>(None, stream).await.unwrap();
+    let (output, _handle) = client.from_audio::<TestIO, _>(None, stream).await.unwrap();
 
     let received = collect_messages::<TestIO>(output, 1).await;
     assert_eq!(received[0].text, "done");
@@ -216,7 +216,7 @@ async fn test_retry() {
         text: "retry_test".to_string(),
         count: 1,
     }]);
-    let (output, _handle) = client.from_audio::<TestIO>(None, stream).await.unwrap();
+    let (output, _handle) = client.from_audio::<TestIO, _>(None, stream).await.unwrap();
 
     let received = collect_messages::<TestIO>(output, 1).await;
     assert_eq!(received[0].text, "retry_test");

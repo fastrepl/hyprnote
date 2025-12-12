@@ -208,7 +208,7 @@ impl<A: RealtimeSttAdapter> ListenClient<A> {
         });
 
         let (raw_stream, inner) = ws
-            .from_audio::<ListenClientIO>(self.initial_message, Box::pin(transformed_stream))
+            .from_audio::<ListenClientIO, _>(self.initial_message, Box::pin(transformed_stream))
             .await?;
 
         let adapter = self.adapter;
@@ -262,7 +262,7 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         });
 
         let (raw_stream, inner) = ws
-            .from_audio::<ListenClientDualIO>(self.initial_message, Box::pin(transformed_stream))
+            .from_audio::<ListenClientDualIO, _>(self.initial_message, Box::pin(transformed_stream))
             .await?;
 
         let adapter = self.adapter;
@@ -297,8 +297,9 @@ impl<A: RealtimeSttAdapter> ListenClientDual<A> {
         let spk_outbound = tokio_stream::wrappers::ReceiverStream::new(spk_rx);
 
         let mic_connect =
-            mic_ws.from_audio::<ListenClientIO>(self.initial_message.clone(), mic_outbound);
-        let spk_connect = spk_ws.from_audio::<ListenClientIO>(self.initial_message, spk_outbound);
+            mic_ws.from_audio::<ListenClientIO, _>(self.initial_message.clone(), mic_outbound);
+        let spk_connect =
+            spk_ws.from_audio::<ListenClientIO, _>(self.initial_message, spk_outbound);
 
         let ((mic_raw, mic_handle), (spk_raw, spk_handle)) =
             tokio::try_join!(mic_connect, spk_connect)?;

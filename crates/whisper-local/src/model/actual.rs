@@ -257,14 +257,18 @@ impl Whisper {
                 return;
             }
 
-            let token_beg_id = *(user_data as *const WhisperTokenId);
-            *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
+            unsafe {
+                let token_beg_id = *(user_data as *const WhisperTokenId);
+                *logits.offset(token_beg_id as isize) = f32::NEG_INFINITY;
+            }
         }
 
-        params.set_filter_logits_callback(Some(logits_filter_callback));
-        params.set_filter_logits_callback_user_data(
-            token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
-        );
+        unsafe {
+            params.set_filter_logits_callback(Some(logits_filter_callback));
+            params.set_filter_logits_callback_user_data(
+                token_beg as *const WhisperTokenId as *mut std::ffi::c_void,
+            );
+        }
     }
 
     fn debug(&mut self, audio: &[f32]) {

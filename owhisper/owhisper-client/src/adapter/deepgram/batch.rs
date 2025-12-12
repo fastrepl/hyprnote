@@ -1,15 +1,15 @@
 use std::path::{Path, PathBuf};
 
-use hypr_audio_utils::{f32_to_i16_bytes, resample_audio, source_from_path, Source};
-use owhisper_interface::batch::Response as BatchResponse;
+use hypr_audio_utils::{Source, f32_to_i16_bytes, resample_audio, source_from_path};
 use owhisper_interface::ListenParams;
+use owhisper_interface::batch::Response as BatchResponse;
 
 use crate::adapter::deepgram_compat::build_batch_url;
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
 
 use super::{
-    keywords::DeepgramKeywordStrategy, language::DeepgramLanguageStrategy, DeepgramAdapter,
+    DeepgramAdapter, keywords::DeepgramKeywordStrategy, language::DeepgramLanguageStrategy,
 };
 
 impl BatchSttAdapter for DeepgramAdapter {
@@ -139,8 +139,10 @@ mod tests {
 
         assert!(!result.results.channels.is_empty());
         assert!(!result.results.channels[0].alternatives.is_empty());
-        assert!(!result.results.channels[0].alternatives[0]
-            .transcript
-            .is_empty());
+        assert!(
+            !result.results.channels[0].alternatives[0]
+                .transcript
+                .is_empty()
+        );
     }
 }

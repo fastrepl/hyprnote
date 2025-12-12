@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::BufReader;
-use std::num::{NonZeroU32, NonZeroU8};
+use std::num::{NonZeroU8, NonZeroU32};
 use std::path::Path;
 
 use hound::{SampleFormat, WavReader, WavSpec, WavWriter};

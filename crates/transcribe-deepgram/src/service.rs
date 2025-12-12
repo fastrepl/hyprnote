@@ -17,8 +17,8 @@ use std::{
 use tower::Service;
 
 use deepgram::{
-    common::options::{Encoding, Language, Model, Options},
     Deepgram,
+    common::options::{Encoding, Language, Model, Options},
 };
 
 use owhisper_interface::{ListenInputChunk, ListenOutputChunk, ListenParams, Word2};

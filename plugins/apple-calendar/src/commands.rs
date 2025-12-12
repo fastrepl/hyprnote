@@ -1,5 +1,6 @@
-use crate::types::{Calendar, Event, EventFilter};
 use crate::AppleCalendarPluginExt;
+use crate::model::{AppleCalendar, AppleEvent};
+use crate::types::EventFilter;
 
 #[tauri::command]
 #[specta::specta]
@@ -11,7 +12,7 @@ pub fn open_calendar<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Result<(), 
 #[specta::specta]
 pub fn list_calendars<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
-) -> Result<Vec<Calendar>, String> {
+) -> Result<Vec<AppleCalendar>, String> {
     app.list_calendars()
 }
 
@@ -20,6 +21,6 @@ pub fn list_calendars<R: tauri::Runtime>(
 pub fn list_events<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     filter: EventFilter,
-) -> Result<Vec<Event>, String> {
+) -> Result<Vec<AppleEvent>, String> {
     app.list_events(filter)
 }

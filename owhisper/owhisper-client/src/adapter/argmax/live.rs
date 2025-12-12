@@ -1,11 +1,11 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::ListenParams;
+use owhisper_interface::stream::StreamResponse;
 
-use crate::adapter::deepgram_compat::build_listen_ws_url;
 use crate::adapter::RealtimeSttAdapter;
+use crate::adapter::deepgram_compat::build_listen_ws_url;
 
-use super::{keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy, ArgmaxAdapter};
+use super::{ArgmaxAdapter, keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy};
 
 impl RealtimeSttAdapter for ArgmaxAdapter {
     fn provider_name(&self) -> &'static str {
@@ -54,8 +54,8 @@ impl RealtimeSttAdapter for ArgmaxAdapter {
 #[cfg(test)]
 mod tests {
     use super::ArgmaxAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
     use crate::ListenClient;
+    use crate::test_utils::{run_dual_test, run_single_test};
 
     #[tokio::test]
     #[ignore]

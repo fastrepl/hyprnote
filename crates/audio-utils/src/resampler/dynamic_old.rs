@@ -2,7 +2,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use dasp::interpolate::Interpolator;
-use futures_util::{pin_mut, Stream};
+use futures_util::{Stream, pin_mut};
 use hypr_audio_interface::AsyncSource;
 
 pub struct ResamplerDynamicOld<S: AsyncSource> {

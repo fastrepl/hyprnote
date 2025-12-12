@@ -1,6 +1,6 @@
 use owhisper_interface::ListenParams;
-use url::form_urlencoded::Serializer;
 use url::UrlQuery;
+use url::form_urlencoded::Serializer;
 
 pub trait KeywordQueryStrategy {
     fn append_keyword_query<'a>(

@@ -132,24 +132,34 @@ mod tests {
         let result = builder.build();
         assert!(result.iter().any(|(k, v)| k == "model" && v == "nova-3"));
         assert!(result.iter().any(|(k, v)| k == "channels" && v == "2"));
-        assert!(result
-            .iter()
-            .any(|(k, v)| k == "sample_rate" && v == "16000"));
-        assert!(result
-            .iter()
-            .any(|(k, v)| k == "encoding" && v == "linear16"));
+        assert!(
+            result
+                .iter()
+                .any(|(k, v)| k == "sample_rate" && v == "16000")
+        );
+        assert!(
+            result
+                .iter()
+                .any(|(k, v)| k == "encoding" && v == "linear16")
+        );
         assert!(result.iter().any(|(k, v)| k == "diarize" && v == "true"));
         assert!(result.iter().any(|(k, v)| k == "punctuate" && v == "true"));
-        assert!(result
-            .iter()
-            .any(|(k, v)| k == "smart_format" && v == "true"));
+        assert!(
+            result
+                .iter()
+                .any(|(k, v)| k == "smart_format" && v == "true")
+        );
         assert!(result.iter().any(|(k, v)| k == "numerals" && v == "true"));
-        assert!(result
-            .iter()
-            .any(|(k, v)| k == "filler_words" && v == "false"));
-        assert!(result
-            .iter()
-            .any(|(k, v)| k == "mip_opt_out" && v == "true"));
+        assert!(
+            result
+                .iter()
+                .any(|(k, v)| k == "filler_words" && v == "false")
+        );
+        assert!(
+            result
+                .iter()
+                .any(|(k, v)| k == "mip_opt_out" && v == "true")
+        );
     }
 
     #[test]

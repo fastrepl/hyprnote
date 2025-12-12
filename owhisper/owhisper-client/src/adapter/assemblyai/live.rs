@@ -1,11 +1,11 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use serde::Deserialize;
 
 use super::AssemblyAIAdapter;
-use crate::adapter::parsing::{calculate_time_span, ms_to_secs, WordBuilder};
 use crate::adapter::RealtimeSttAdapter;
+use crate::adapter::parsing::{WordBuilder, calculate_time_span, ms_to_secs};
 
 // https://www.assemblyai.com/docs/api-reference/streaming-api/streaming-api.md
 impl RealtimeSttAdapter for AssemblyAIAdapter {
@@ -278,8 +278,8 @@ impl AssemblyAIAdapter {
 #[cfg(test)]
 mod tests {
     use super::AssemblyAIAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
     use crate::ListenClient;
+    use crate::test_utils::{run_dual_test, run_single_test};
 
     #[tokio::test]
     #[ignore]

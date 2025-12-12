@@ -2,7 +2,7 @@ use tauri::{AppHandle, EventTarget, Manager, Runtime};
 use tauri_plugin_windows::WindowImpl;
 use tauri_specta::Event;
 
-use crate::{dnd, DetectEvent, SharedState};
+use crate::{DetectEvent, SharedState, dnd};
 
 pub async fn setup<R: Runtime>(app: &AppHandle<R>) -> Result<(), Box<dyn std::error::Error>> {
     let app_handle = app.app_handle().clone();

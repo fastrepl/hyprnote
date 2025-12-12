@@ -98,7 +98,7 @@ impl AdminDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{tests::setup_db, Account, Device};
+    use crate::{Account, Device, tests::setup_db};
 
     #[tokio::test]
     async fn test_create_list_get_user() {

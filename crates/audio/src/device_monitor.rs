@@ -148,8 +148,8 @@ mod linux {
     use super::*;
     use libpulse_binding::{
         context::{
-            subscribe::{Facility, InterestMaskSet, Operation},
             Context, FlagSet as ContextFlagSet,
+            subscribe::{Facility, InterestMaskSet, Operation},
         },
         mainloop::threaded::Mainloop,
         proplist::Proplist,

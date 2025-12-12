@@ -1,14 +1,14 @@
 use std::marker::PhantomData;
 use std::path::Path;
 
-use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_interface::ListenParams;
+use owhisper_interface::batch::Response as BatchResponse;
 use reqwest_middleware::ClientWithMiddleware;
 
+use crate::DeepgramAdapter;
 use crate::adapter::BatchSttAdapter;
 use crate::error::Error;
 use crate::http_client::create_client;
-use crate::DeepgramAdapter;
 
 pub struct BatchClientBuilder<A: BatchSttAdapter = DeepgramAdapter> {
     api_base: Option<String>,

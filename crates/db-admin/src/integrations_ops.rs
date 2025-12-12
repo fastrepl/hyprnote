@@ -59,7 +59,7 @@ impl AdminDatabase {
 
 #[cfg(test)]
 mod tests {
-    use crate::{tests::setup_db, Account, Integration, User};
+    use crate::{Account, Integration, User, tests::setup_db};
     use hypr_nango::NangoIntegration;
 
     #[tokio::test]

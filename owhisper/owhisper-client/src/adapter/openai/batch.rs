@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use owhisper_interface::batch::{Alternatives, Channel, Response as BatchResponse, Results, Word};
 use owhisper_interface::ListenParams;
+use owhisper_interface::batch::{Alternatives, Channel, Response as BatchResponse, Results, Word};
 use reqwest::multipart::{Form, Part};
 
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};

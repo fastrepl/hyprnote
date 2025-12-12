@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 use crate::BackgroundTask;
 

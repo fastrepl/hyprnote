@@ -2,12 +2,13 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 
 use llama_cpp_2::{
+    LogOptions,
     context::params::LlamaContextParams,
     llama_backend::LlamaBackend,
     llama_batch::LlamaBatch,
-    model::{params::LlamaModelParams, AddBos, LlamaModel, Special},
+    model::{AddBos, LlamaModel, Special, params::LlamaModelParams},
     sampling::LlamaSampler,
-    send_logs_to_tracing, LogOptions,
+    send_logs_to_tracing,
 };
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_util::sync::CancellationToken;
@@ -380,7 +381,7 @@ impl Llama {
     pub fn generate_stream(
         &self,
         request: LlamaRequest,
-    ) -> Result<impl futures_util::Stream<Item = Response>, crate::Error> {
+    ) -> Result<impl futures_util::Stream<Item = Response> + 'static, crate::Error> {
         let callback = Box::new(|_| {});
         let (stream, _cancellation_token) =
             self.generate_stream_with_callback(request, callback)?;
@@ -393,7 +394,7 @@ impl Llama {
         callback: Box<dyn FnMut(f64) + Send + 'static>,
     ) -> Result<
         (
-            impl futures_util::Stream<Item = Response>,
+            impl futures_util::Stream<Item = Response> + 'static,
             CancellationToken,
         ),
         crate::Error,
@@ -419,7 +420,7 @@ impl Llama {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_util::{pin_mut, StreamExt};
+    use futures_util::{StreamExt, pin_mut};
 
     async fn run(model: &Llama, request: LlamaRequest) -> Vec<Response> {
         let (stream, _cancellation_token) = model

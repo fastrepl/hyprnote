@@ -1,11 +1,11 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use serde::{Deserialize, Serialize};
 
 use super::SonioxAdapter;
-use crate::adapter::parsing::{ms_to_secs_opt, WordBuilder};
 use crate::adapter::RealtimeSttAdapter;
+use crate::adapter::parsing::{WordBuilder, ms_to_secs_opt};
 
 // https://soniox.com/docs/stt/rt/real-time-transcription
 // https://soniox.com/docs/stt/api-reference/websocket-api
@@ -277,8 +277,8 @@ impl SonioxAdapter {
 #[cfg(test)]
 mod tests {
     use super::SonioxAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
     use crate::ListenClient;
+    use crate::test_utils::{run_dual_test, run_single_test};
 
     #[tokio::test]
     #[ignore]

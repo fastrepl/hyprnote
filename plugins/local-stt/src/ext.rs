@@ -1,6 +1,6 @@
 use std::{collections::HashMap, future::Future, path::PathBuf, sync::Arc};
 
-use ractor::{call_t, registry, ActorRef};
+use ractor::{ActorRef, call_t, registry};
 use tauri_specta::Event;
 use tokio_util::sync::CancellationToken;
 
@@ -12,7 +12,7 @@ use hypr_file::download_file_parallel_cancellable;
 
 use crate::{
     model::SupportedSttModel,
-    server::{external, internal, supervisor, ServerInfo, ServerStatus, ServerType},
+    server::{ServerInfo, ServerStatus, ServerType, external, internal, supervisor},
     types::DownloadProgressPayload,
 };
 

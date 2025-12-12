@@ -92,11 +92,13 @@ mod test {
         make_specta_builder()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
                 OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

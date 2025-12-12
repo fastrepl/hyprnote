@@ -1,11 +1,11 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use serde::{Deserialize, Serialize};
 
 use super::OpenAIAdapter;
-use crate::adapter::parsing::{calculate_time_span, WordBuilder};
 use crate::adapter::RealtimeSttAdapter;
+use crate::adapter::parsing::{WordBuilder, calculate_time_span};
 
 // Voice Activity Detection (VAD) configuration defaults
 const VAD_DETECTION_TYPE: &str = "server_vad";
@@ -360,8 +360,8 @@ impl OpenAIAdapter {
 #[cfg(test)]
 mod tests {
     use super::OpenAIAdapter;
-    use crate::test_utils::{run_dual_test_with_rate, run_single_test_with_rate};
     use crate::ListenClient;
+    use crate::test_utils::{run_dual_test_with_rate, run_single_test_with_rate};
 
     const OPENAI_SAMPLE_RATE: u32 = 24000;
 

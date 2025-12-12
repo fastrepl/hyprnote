@@ -9,10 +9,10 @@ use std::path::PathBuf;
 use std::{fs, io};
 use tauri::Manager;
 
-use file_rotate::{compression::Compression, suffix::AppendCount, ContentLimit, FileRotate};
+use file_rotate::{ContentLimit, FileRotate, compression::Compression, suffix::AppendCount};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
-    fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+    EnvFilter, fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
 };
 
 const PLUGIN_NAME: &str = "tracing";
@@ -114,14 +114,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

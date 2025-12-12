@@ -7,8 +7,8 @@ use tokio::sync::mpsc;
 use hypr_audio_utils::ResampleExtDynamicNew;
 
 use super::{
-    calculate_rms, create_event_channel, draw_ui, AmplitudeData, RunState, TerminalGuard, TuiEvent,
-    TuiEventSender,
+    AmplitudeData, RunState, TerminalGuard, TuiEvent, TuiEventSender, calculate_rms,
+    create_event_channel, draw_ui,
 };
 
 pub async fn handle_realtime_input(

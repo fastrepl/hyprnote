@@ -3,8 +3,7 @@ name = "tauri-plugin-permissions"
 version = "0.1.0"
 authors = [ "You" ]
 description = ""
-edition = "2021"
-rust-version = "1.77.2"
+edition = "2024"
 exclude = ["/examples", "/dist-js", "/guest-js", "/node_modules"]
 links = "tauri-plugin-permissions"
 
@@ -32,7 +31,7 @@ hypr-tcc = { workspace = true }
 block2 = { workspace = true }
 objc2 = { workspace = true }
 objc2-av-foundation = { workspace = true }
-objc2-contacts = { version = "0.3", features = ["CNContactStore", "block2"] }
-objc2-event-kit = { version = "0.3", features = ["EKEventStore", "EKTypes", "block2"] }
+objc2-contacts = { workspace = true, features = ["CNContactStore", "block2"] }
+objc2-event-kit = { workspace = true, features = ["EKEventStore", "EKTypes", "block2"] }
 objc2-foundation = { workspace = true }
 macos-accessibility-client = "0.0.1"

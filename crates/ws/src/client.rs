@@ -2,12 +2,12 @@ use serde::de::DeserializeOwned;
 
 use backon::{ConstantBuilder, Retryable};
 use futures_util::{
-    future::{pending, FutureExt},
     SinkExt, Stream, StreamExt,
+    future::{FutureExt, pending},
 };
 use tokio_tungstenite::{connect_async, tungstenite::client::IntoClientRequest};
 
-pub use tokio_tungstenite::tungstenite::{protocol::Message, ClientRequestBuilder, Utf8Bytes};
+pub use tokio_tungstenite::tungstenite::{ClientRequestBuilder, Utf8Bytes, protocol::Message};
 
 #[derive(Debug)]
 enum ControlCommand {
@@ -65,13 +65,13 @@ impl WebSocketClient {
         self
     }
 
-    pub async fn from_audio<T: WebSocketIO>(
+    pub async fn from_audio<T: WebSocketIO, S: Stream<Item = T::Data> + Send + Unpin + 'static>(
         &self,
         initial_message: Option<Message>,
-        mut audio_stream: impl Stream<Item = T::Data> + Send + Unpin + 'static,
+        mut audio_stream: S,
     ) -> Result<
         (
-            impl Stream<Item = Result<T::Output, crate::Error>>,
+            impl Stream<Item = Result<T::Output, crate::Error>> + use<T, S>,
             WebSocketHandle,
         ),
         crate::Error,

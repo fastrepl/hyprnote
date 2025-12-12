@@ -27,7 +27,7 @@ pub fn reset_quit_handler() {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 #[cfg(target_os = "macos")]
 pub extern "C" fn rust_should_quit() -> bool {
     QUIT_CALLBACK

@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use tauri::{path::BaseDirectory, Manager};
+use tauri::{Manager, path::BaseDirectory};
 use tauri_plugin_opener::OpenerExt;
 
+use crate::MiscPluginExt;
 use crate::audio::import_audio;
 use crate::error::AudioImportError;
-use crate::MiscPluginExt;
 
 #[tauri::command]
 #[specta::specta]

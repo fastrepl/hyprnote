@@ -1,16 +1,16 @@
 use std::path::Path;
 
+use owhisper_interface::ListenParams;
 use owhisper_interface::batch::{
     Alternatives as BatchAlternatives, Channel as BatchChannel, Response as BatchResponse,
     Results as BatchResults, Word as BatchWord,
 };
-use owhisper_interface::ListenParams;
 use serde::{Deserialize, Serialize};
 
 use super::SonioxAdapter;
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
-use crate::polling::{poll_until, PollingConfig, PollingResult};
+use crate::polling::{PollingConfig, PollingResult, poll_until};
 
 impl SonioxAdapter {
     async fn upload_file(
@@ -358,9 +358,11 @@ mod tests {
 
         assert!(!result.results.channels.is_empty());
         assert!(!result.results.channels[0].alternatives.is_empty());
-        assert!(!result.results.channels[0].alternatives[0]
-            .transcript
-            .is_empty());
+        assert!(
+            !result.results.channels[0].alternatives[0]
+                .transcript
+                .is_empty()
+        );
         assert!(!result.results.channels[0].alternatives[0].words.is_empty());
     }
 }

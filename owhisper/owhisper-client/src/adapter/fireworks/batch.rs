@@ -1,10 +1,10 @@
 use std::path::Path;
 
+use owhisper_interface::ListenParams;
 use owhisper_interface::batch::{
     Alternatives as BatchAlternatives, Channel as BatchChannel, Response as BatchResponse,
     Results as BatchResults,
 };
-use owhisper_interface::ListenParams;
 use serde::Deserialize;
 
 use super::FireworksAdapter;
@@ -152,8 +152,10 @@ mod tests {
 
         assert!(!result.results.channels.is_empty());
         assert!(!result.results.channels[0].alternatives.is_empty());
-        assert!(!result.results.channels[0].alternatives[0]
-            .transcript
-            .is_empty());
+        assert!(
+            !result.results.channels[0].alternatives[0]
+                .transcript
+                .is_empty()
+        );
     }
 }

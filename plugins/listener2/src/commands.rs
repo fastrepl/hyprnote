@@ -1,4 +1,4 @@
-use tauri::{path::BaseDirectory, Manager};
+use tauri::{Manager, path::BaseDirectory};
 
 use crate::{BatchParams, Listener2PluginExt, Subtitle, VttWord};
 
@@ -29,7 +29,7 @@ pub async fn export_to_vtt<R: tauri::Runtime>(
     session_id: String,
     words: Vec<VttWord>,
 ) -> Result<String, String> {
-    use aspasia::{webvtt::WebVttCue, Moment, Subtitle, WebVttSubtitle};
+    use aspasia::{Moment, Subtitle, WebVttSubtitle, webvtt::WebVttCue};
 
     let data_dir = app
         .path()

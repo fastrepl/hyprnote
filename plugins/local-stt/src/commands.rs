@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    server::ServerType, LocalSttPluginExt, ServerInfo, SttModelInfo, SupportedSttModel,
-    SUPPORTED_MODELS,
+    LocalSttPluginExt, SUPPORTED_MODELS, ServerInfo, SttModelInfo, SupportedSttModel,
+    server::ServerType,
 };
 
 #[tauri::command]

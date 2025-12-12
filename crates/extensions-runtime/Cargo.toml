@@ -1,7 +1,7 @@
 [package]
 name = "extensions-runtime"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 deno_core = "0.338"

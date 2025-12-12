@@ -1,6 +1,6 @@
 use crate::{
     event::HookEvent,
-    runner::{run_hooks_for_event, HookResult},
+    runner::{HookResult, run_hooks_for_event},
 };
 
 pub trait HooksPluginExt<R: tauri::Runtime> {

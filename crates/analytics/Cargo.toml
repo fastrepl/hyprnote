@@ -1,7 +1,7 @@
 [package]
 name = "analytics"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 posthog = { git = "https://github.com/yujonglee/posthog-rs", package = "async-posthog", rev = "1779042" }

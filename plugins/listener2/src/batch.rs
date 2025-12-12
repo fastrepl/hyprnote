@@ -542,9 +542,5 @@ fn transcript_end_from_response(response: &StreamResponse) -> Option<f64> {
         }
     }
 
-    if end.is_finite() {
-        Some(end)
-    } else {
-        None
-    }
+    if end.is_finite() { Some(end) } else { None }
 }

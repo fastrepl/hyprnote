@@ -1,4 +1,4 @@
-use crate::{events, AppWindow, FakeWindowBounds, OverlayBound, WindowsPluginExt};
+use crate::{AppWindow, FakeWindowBounds, OverlayBound, WindowsPluginExt, events};
 
 #[tauri::command]
 #[specta::specta]

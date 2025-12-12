@@ -301,7 +301,7 @@ impl crate::Observer for Detector {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{new_callback, Observer};
+    use crate::{Observer, new_callback};
 
     #[tokio::test]
     async fn test_detector() {

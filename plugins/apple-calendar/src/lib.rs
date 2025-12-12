@@ -1,25 +1,22 @@
-use std::sync::Mutex;
-
 use tauri::Manager;
 
 #[cfg(target_os = "macos")]
 mod apple;
+#[cfg(target_os = "macos")]
+mod recurrence;
 
 mod commands;
 mod error;
+mod events;
 mod ext;
+pub mod model;
 mod types;
 
 pub use error::{Error, Result};
+pub use events::*;
 pub use ext::AppleCalendarPluginExt;
+pub use model::*;
 pub use types::*;
-
-pub type ManagedState = Mutex<State>;
-
-#[derive(Default)]
-pub struct State {
-    pub worker_handle: Option<tokio::task::JoinHandle<()>>,
-}
 
 const PLUGIN_NAME: &str = "apple-calendar";
 
@@ -31,6 +28,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::list_calendars::<tauri::Wry>,
             commands::list_events::<tauri::Wry>,
         ])
+        .events(tauri_specta::collect_events![CalendarChangedEvent])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -39,8 +37,19 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
-            app.manage(ManagedState::default());
+        .setup(move |app, _api| {
+            specta_builder.mount_events(app);
+
+            #[cfg(target_os = "macos")]
+            {
+                use tauri_specta::Event;
+
+                let app_handle = app.app_handle().clone();
+                apple::setup_change_notification(move || {
+                    let _ = CalendarChangedEvent.emit(&app_handle);
+                });
+            }
+
             Ok(())
         })
         .build()
@@ -52,15 +61,19 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "./js/bindings.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
-                    .header("// @ts-nocheck\n\n")
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "./js/bindings.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 
     fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {

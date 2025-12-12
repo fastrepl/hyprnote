@@ -2,7 +2,7 @@ use std::ffi::CStr;
 use std::os::raw::c_char;
 use std::sync::Mutex;
 
-use swift_rs::{swift, Bool, SRString};
+use swift_rs::{Bool, SRString, swift};
 
 pub use hypr_notification_interface::*;
 
@@ -32,18 +32,24 @@ where
     *CONFIRM_CB.lock().unwrap() = Some(Box::new(f));
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn rust_on_notification_confirm(id_ptr: *const c_char) {
     if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
-        let id = CStr::from_ptr(id_ptr).to_str().unwrap().to_string();
+        let id = unsafe { CStr::from_ptr(id_ptr) }
+            .to_str()
+            .unwrap()
+            .to_string();
         cb(id);
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn rust_on_notification_dismiss(id_ptr: *const c_char) {
     if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
-        let id = CStr::from_ptr(id_ptr).to_str().unwrap().to_string();
+        let id = unsafe { CStr::from_ptr(id_ptr) }
+            .to_str()
+            .unwrap()
+            .to_string();
         cb(id);
     }
 }

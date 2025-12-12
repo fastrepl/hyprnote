@@ -11,9 +11,9 @@ pub(crate) mod test_utils;
 use std::marker::PhantomData;
 
 pub use adapter::{
-    append_provider_param, is_local_host, AdapterKind, ArgmaxAdapter, AssemblyAIAdapter,
-    BatchSttAdapter, DeepgramAdapter, FireworksAdapter, GladiaAdapter, OpenAIAdapter,
-    RealtimeSttAdapter, SonioxAdapter,
+    AdapterKind, ArgmaxAdapter, AssemblyAIAdapter, BatchSttAdapter, DeepgramAdapter,
+    FireworksAdapter, GladiaAdapter, OpenAIAdapter, RealtimeSttAdapter, SonioxAdapter,
+    append_provider_param, is_local_host,
 };
 pub use batch::{BatchClient, BatchClientBuilder};
 pub use error::Error;

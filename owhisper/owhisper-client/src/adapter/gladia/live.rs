@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
 
 use hypr_ws::client::Message;
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use serde::{Deserialize, Serialize};
 
 use super::GladiaAdapter;
-use crate::adapter::parsing::WordBuilder;
 use crate::adapter::RealtimeSttAdapter;
+use crate::adapter::parsing::WordBuilder;
 
 struct SessionChannels;
 
@@ -412,8 +412,8 @@ impl GladiaAdapter {
 #[cfg(test)]
 mod tests {
     use super::GladiaAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
     use crate::ListenClient;
+    use crate::test_utils::{run_dual_test, run_single_test};
 
     #[tokio::test]
     #[ignore]

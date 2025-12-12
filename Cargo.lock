@@ -14698,10 +14698,11 @@ dependencies = [
 name = "tauri-plugin-apple-calendar"
 version = "0.1.0"
 dependencies = [
- "anyhow",
+ "block2 0.6.2",
  "chrono",
  "itertools 0.14.0",
  "objc2 0.6.3",
+ "objc2-contacts",
  "objc2-event-kit",
  "objc2-foundation 0.3.2",
  "serde",

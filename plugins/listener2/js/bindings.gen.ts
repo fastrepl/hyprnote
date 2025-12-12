@@ -1,5 +1,4 @@
 // @ts-nocheck
-
 /** tauri-specta globals **/
 import {
   Channel as TAURI_CHANNEL,

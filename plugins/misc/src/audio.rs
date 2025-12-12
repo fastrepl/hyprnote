@@ -1,10 +1,10 @@
-use std::fs::{copy, remove_file, rename, write, File};
+use std::fs::{File, copy, remove_file, rename, write};
 use std::io::{BufReader, ErrorKind};
-use std::num::{NonZeroU32, NonZeroU8};
+use std::num::{NonZeroU8, NonZeroU32};
 use std::path::{Path, PathBuf};
 
 use hypr_audio_utils::{
-    encode_vorbis_mono, mix_down_to_mono, resample_audio, Source, VorbisEncodeSettings,
+    Source, VorbisEncodeSettings, encode_vorbis_mono, mix_down_to_mono, resample_audio,
 };
 
 use crate::error::AudioProcessingError;

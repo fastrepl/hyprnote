@@ -17,9 +17,6 @@ members = [
   "tools",
 ]
 
-[workspace.package]
-rust-version = "1.90.0"
-
 [workspace.dependencies]
 hypr-aec = { path = "crates/aec", package = "aec" }
 hypr-agc = { path = "crates/agc", package = "agc" }
@@ -241,7 +238,9 @@ objc2 = "0.6"
 objc2-app-kit = "0.3"
 objc2-application-services = "0.3"
 objc2-av-foundation = "0.3"
+objc2-contacts = "0.3"
 objc2-core-foundation = "0.3"
+objc2-event-kit = "0.3"
 objc2-foundation = "0.3"
 objc2-user-notifications = "0.3"
 

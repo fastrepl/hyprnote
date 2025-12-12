@@ -23,9 +23,9 @@ use std::path::Path;
 use std::pin::Pin;
 
 use hypr_ws::client::Message;
+use owhisper_interface::ListenParams;
 use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_interface::stream::StreamResponse;
-use owhisper_interface::ListenParams;
 
 use crate::error::Error;
 

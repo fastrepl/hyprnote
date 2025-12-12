@@ -7,7 +7,7 @@ pub use remote::*;
 pub use types::*;
 
 use {
-    futures_util::{stream::FuturesUnordered, StreamExt, TryStreamExt},
+    futures_util::{StreamExt, TryStreamExt, stream::FuturesUnordered},
     hypr_download_interface::DownloadProgress,
     reqwest::StatusCode,
     std::{
@@ -902,7 +902,13 @@ mod tests {
             "Downloaded file should match expected size"
         );
 
-        assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
+        assert!(
+            speedup >= 1.1,
+            "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x",
+            serial_duration,
+            parallel_duration,
+            speedup
+        );
     }
 
     #[tokio::test]
@@ -1002,6 +1008,12 @@ mod tests {
             "Both downloads should produce files of the same size"
         );
 
-        assert!(speedup >= 1.1, "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x", serial_duration, parallel_duration, speedup);
+        assert!(
+            speedup >= 1.1,
+            "Parallel download should be at least 10% faster: serial={:?}, parallel={:?}, speedup={:.2}x",
+            serial_duration,
+            parallel_duration,
+            speedup
+        );
     }
 }

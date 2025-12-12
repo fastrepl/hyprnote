@@ -43,8 +43,8 @@ impl AudioOutput {
 
     pub fn silence() -> std::sync::mpsc::Sender<()> {
         use rodio::{
-            source::{Source, Zero},
             OutputStream, Sink,
+            source::{Source, Zero},
         };
 
         let (tx, rx) = std::sync::mpsc::channel();
@@ -208,9 +208,9 @@ impl AsyncSource for AudioStream {
 #[cfg(all(test, target_os = "macos"))]
 pub(crate) fn play_sine_for_sec(seconds: u64) -> std::thread::JoinHandle<()> {
     use rodio::{
+        OutputStream,
         cpal::SampleRate,
         source::{Function::Sine, SignalGenerator, Source},
-        OutputStream,
     };
     use std::{
         thread::{sleep, spawn},

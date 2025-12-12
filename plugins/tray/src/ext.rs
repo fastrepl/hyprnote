@@ -1,8 +1,8 @@
 use tauri::{
+    AppHandle, Result,
     image::Image,
     menu::{Menu, MenuId, MenuItem, MenuItemKind, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    AppHandle, Result,
 };
 
 use tauri_plugin_clipboard_manager::ClipboardExt;

@@ -3,18 +3,18 @@ use std::pin::Pin;
 use std::time::Duration;
 
 use futures_util::{Stream, StreamExt};
-use hypr_audio_utils::{f32_to_i16_bytes, resample_audio, source_from_path, Source};
+use hypr_audio_utils::{Source, f32_to_i16_bytes, resample_audio, source_from_path};
 use owhisper_interface::batch::Response as BatchResponse;
 use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::{ControlMessage, ListenParams, MixedMessage};
 use tokio_stream::StreamExt as TokioStreamExt;
 
+use crate::ListenClientBuilder;
 use crate::adapter::deepgram_compat::build_batch_url;
 use crate::adapter::{BatchFuture, BatchSttAdapter, ClientWithMiddleware};
 use crate::error::Error;
-use crate::ListenClientBuilder;
 
-use super::{keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy, ArgmaxAdapter};
+use super::{ArgmaxAdapter, keywords::ArgmaxKeywordStrategy, language::ArgmaxLanguageStrategy};
 
 impl BatchSttAdapter for ArgmaxAdapter {
     fn transcribe_file<'a, P: AsRef<Path> + Send + 'a>(
@@ -253,11 +253,7 @@ fn transcript_end_from_response(response: &StreamResponse) -> Option<f64> {
         }
     }
 
-    if end.is_finite() {
-        Some(end)
-    } else {
-        None
-    }
+    if end.is_finite() { Some(end) } else { None }
 }
 
 #[cfg(test)]
@@ -287,8 +283,10 @@ mod tests {
 
         assert!(!result.results.channels.is_empty());
         assert!(!result.results.channels[0].alternatives.is_empty());
-        assert!(!result.results.channels[0].alternatives[0]
-            .transcript
-            .is_empty());
+        assert!(
+            !result.results.channels[0].alternatives[0]
+                .transcript
+                .is_empty()
+        );
     }
 }

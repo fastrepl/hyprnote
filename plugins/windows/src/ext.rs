@@ -2,7 +2,7 @@ use tauri::{AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
 use uuid::Uuid;
 
-use crate::{events, AppWindow, WindowImpl};
+use crate::{AppWindow, WindowImpl, events};
 
 impl AppWindow {
     fn emit_navigate(
@@ -121,7 +121,7 @@ pub trait WindowsPluginExt<R: tauri::Runtime> {
     ) -> Result<(), crate::Error>;
 
     fn window_navigate(&self, window: AppWindow, path: impl AsRef<str>)
-        -> Result<(), crate::Error>;
+    -> Result<(), crate::Error>;
 }
 
 impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {

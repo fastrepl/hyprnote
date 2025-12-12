@@ -5,25 +5,28 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - id: toolchain
+      run: echo "channel=$(grep 'channel' rust-toolchain.toml | cut -d'"' -f2)" >> $GITHUB_OUTPUT
+      shell: bash
     - if: inputs.platform == 'macos'
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: "1.91.1"
+        toolchain: ${{ steps.toolchain.outputs.channel }}
         targets: aarch64-apple-darwin,x86_64-apple-darwin
     - if: inputs.platform == 'ios'
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: "1.91.1"
+        toolchain: ${{ steps.toolchain.outputs.channel }}
         targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
     - if: inputs.platform == 'android'
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: "1.91.1"
+        toolchain: ${{ steps.toolchain.outputs.channel }}
         targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
     - if: inputs.platform == 'windows'
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: "1.91.1"
+        toolchain: ${{ steps.toolchain.outputs.channel }}
         targets: x86_64-pc-windows-msvc
     - if: inputs.platform == 'windows'
       run: cargo install trusted-signing-cli
@@ -33,7 +36,7 @@ runs:
     - if: inputs.platform == 'linux'
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: "1.91.1"
+        toolchain: ${{ steps.toolchain.outputs.channel }}
         targets: x86_64-unknown-linux-gnu,x86_64-unknown-linux-musl,aarch64-unknown-linux-gnu
     - if: inputs.platform == 'linux'
       run: |
@@ -43,7 +46,7 @@ runs:
     - if: inputs.platform == ''
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: "1.91.1"
+        toolchain: ${{ steps.toolchain.outputs.channel }}
     - uses: Swatinem/rust-cache@v2
       with:
         cache-targets: "true"

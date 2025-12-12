@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use futures_util::{Stream, StreamExt};
 use hypr_audio_utils::AudioFormatExt;
-use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::MixedMessage;
+use owhisper_interface::stream::StreamResponse;
 
 use crate::live::{FinalizeHandle, ListenClientDualInput, ListenClientInput};
 use crate::{ListenClient, ListenClientDual, RealtimeSttAdapter};

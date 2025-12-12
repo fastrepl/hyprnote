@@ -1,13 +1,13 @@
 use std::future::Future;
 use std::time::{Instant, SystemTime};
 
-use ractor::{call_t, registry, ActorRef};
-use tauri::{path::BaseDirectory, Manager};
+use ractor::{ActorRef, call_t, registry};
+use tauri::{Manager, path::BaseDirectory};
 use tauri_specta::Event;
 
 use crate::{
-    actors::{spawn_session_supervisor, SessionContext, SessionParams, SourceActor, SourceMsg},
     SessionEvent,
+    actors::{SessionContext, SessionParams, SourceActor, SourceMsg, spawn_session_supervisor},
 };
 
 pub trait ListenerPluginExt<R: tauri::Runtime> {

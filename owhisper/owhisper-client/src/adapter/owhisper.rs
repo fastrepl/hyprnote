@@ -3,8 +3,8 @@ mod tests {
     use futures_util::StreamExt;
     use hypr_audio_utils::AudioFormatExt;
 
-    use crate::live::ListenClientInput;
     use crate::ListenClient;
+    use crate::live::ListenClientInput;
 
     #[tokio::test]
     #[ignore]

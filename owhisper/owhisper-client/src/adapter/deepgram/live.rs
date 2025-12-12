@@ -1,12 +1,12 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::StreamResponse;
 use owhisper_interface::ListenParams;
+use owhisper_interface::stream::StreamResponse;
 
-use crate::adapter::deepgram_compat::build_listen_ws_url;
 use crate::adapter::RealtimeSttAdapter;
+use crate::adapter::deepgram_compat::build_listen_ws_url;
 
 use super::{
-    keywords::DeepgramKeywordStrategy, language::DeepgramLanguageStrategy, DeepgramAdapter,
+    DeepgramAdapter, keywords::DeepgramKeywordStrategy, language::DeepgramLanguageStrategy,
 };
 
 impl RealtimeSttAdapter for DeepgramAdapter {
@@ -55,8 +55,8 @@ impl RealtimeSttAdapter for DeepgramAdapter {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::{run_dual_test, run_single_test};
     use crate::ListenClient;
+    use crate::test_utils::{run_dual_test, run_single_test};
 
     #[tokio::test]
     #[ignore]

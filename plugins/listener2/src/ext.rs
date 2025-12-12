@@ -4,8 +4,8 @@ use std::sync::{Arc, Mutex};
 use owhisper_client::BatchSttAdapter;
 use tauri_specta::Event;
 
-use crate::batch::{spawn_batch_actor, BatchArgs};
 use crate::BatchEvent;
+use crate::batch::{BatchArgs, spawn_batch_actor};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]

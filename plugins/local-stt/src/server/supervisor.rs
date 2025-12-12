@@ -1,13 +1,13 @@
-use ractor::{concurrency::Duration, registry, ActorCell, ActorProcessingErr, ActorRef};
+use ractor::{ActorCell, ActorProcessingErr, ActorRef, concurrency::Duration, registry};
 use ractor_supervisor::{
     core::{ChildBackoffFn, ChildSpec, Restart, SpawnFn, SupervisorError},
     dynamic::{DynamicSupervisor, DynamicSupervisorMsg, DynamicSupervisorOptions},
 };
 
 use super::{
+    ServerType,
     external::{ExternalSTTActor, ExternalSTTArgs},
     internal::{InternalSTTActor, InternalSTTArgs},
-    ServerType,
 };
 
 pub type SupervisorRef = ActorRef<DynamicSupervisorMsg>;

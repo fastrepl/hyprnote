@@ -1,4 +1,4 @@
-use crate::{actors::SessionParams, ListenerPluginExt};
+use crate::{ListenerPluginExt, actors::SessionParams};
 
 #[tauri::command]
 #[specta::specta]

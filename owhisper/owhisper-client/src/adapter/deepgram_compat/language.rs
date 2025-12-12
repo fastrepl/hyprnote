@@ -1,6 +1,6 @@
 use owhisper_interface::ListenParams;
-use url::form_urlencoded::Serializer;
 use url::UrlQuery;
+use url::form_urlencoded::Serializer;
 
 pub trait LanguageQueryStrategy {
     fn append_language_query<'a>(

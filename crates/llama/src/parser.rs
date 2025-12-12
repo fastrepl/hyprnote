@@ -1,9 +1,9 @@
 use nom::{
+    IResult, Parser,
     bytes::complete::{tag, take_until},
     character::complete::multispace0,
     combinator::map,
     sequence::{delimited, terminated},
-    IResult, Parser,
 };
 use std::collections::HashMap;
 

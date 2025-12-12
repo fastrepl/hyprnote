@@ -7,8 +7,8 @@ use anyhow::Result;
 use futures_util::Stream;
 
 use ringbuf::{
-    traits::{Consumer, Producer, Split},
     HeapCons, HeapProd, HeapRb,
+    traits::{Consumer, Producer, Split},
 };
 
 use ca::aggregate_device_keys as agg_keys;

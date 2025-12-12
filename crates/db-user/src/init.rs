@@ -1,6 +1,6 @@
 use super::{
-    seed::{SeedData, SeedParams},
     UserDatabase,
+    seed::{SeedData, SeedParams},
 };
 
 const ONBOARDING_JSON: &str = include_str!("../../../plugins/db/seed/onboarding.json");

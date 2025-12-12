@@ -1,4 +1,4 @@
-use crate::{event::HookEvent, runner::HookResult, HooksPluginExt};
+use crate::{HooksPluginExt, event::HookEvent, runner::HookResult};
 
 #[tauri::command]
 #[specta::specta]

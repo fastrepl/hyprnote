@@ -4,8 +4,8 @@ mod language;
 pub use keywords::KeywordQueryStrategy;
 pub use language::LanguageQueryStrategy;
 
-pub use url::form_urlencoded::Serializer;
 pub use url::UrlQuery;
+pub use url::form_urlencoded::Serializer;
 
 use owhisper_interface::ListenParams;
 

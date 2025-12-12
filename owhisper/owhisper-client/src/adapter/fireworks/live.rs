@@ -1,11 +1,11 @@
 use hypr_ws::client::Message;
-use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use owhisper_interface::ListenParams;
+use owhisper_interface::stream::{Alternatives, Channel, Metadata, StreamResponse};
 use serde::Deserialize;
 
 use super::FireworksAdapter;
-use crate::adapter::parsing::WordBuilder;
 use crate::adapter::RealtimeSttAdapter;
+use crate::adapter::parsing::WordBuilder;
 
 // https://docs.fireworks.ai/guides/querying-asr-models#streaming-transcription
 // https://docs.fireworks.ai/api-reference/audio-streaming-transcriptions
@@ -211,8 +211,8 @@ struct FireworksWord {
 #[cfg(test)]
 mod tests {
     use super::FireworksAdapter;
-    use crate::test_utils::{run_dual_test, run_single_test};
     use crate::ListenClient;
+    use crate::test_utils::{run_dual_test, run_single_test};
 
     #[tokio::test]
     #[ignore]

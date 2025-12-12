@@ -4111,6 +4111,7 @@ dependencies = [
  "regex",
  "serde",
  "specta",
+ "sysinfo 0.37.2",
  "thiserror 2.0.17",
  "tokio",
  "tracing",

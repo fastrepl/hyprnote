@@ -2,9 +2,7 @@
 created: "2025-12-12T09:04:58Z"
 ---
 
-- Add scrolling waveform visualization for audio amplitude in the listen button.
-- Add app info to MicStopped event with polling, caching, and diffing to detect which apps stopped using the microphone.
-- Fix store data loading from disk in non-main windows (like Settings), eliminating 1-2 second delay.
-- Hide Zendesk widget when search palette is open.
-- Fix analytics app_version to use APP_VERSION environment variable.
-- Update Rust edition and apply formatting improvements.
+- Add app info to MicStopped event, so that the app ignored list can also be applied to MicStopped events, consistent with MicStarted events.
+- Fix store data loading from disk in non-main windows (e.g., Settings), eliminating a 1-2 second delay.
+- Fix analytics app_version to use the APP_VERSION environment variable.
+- Add scrolling waveform visualization showing audio amplitude in the listen button.

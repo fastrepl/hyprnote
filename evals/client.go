@@ -2,6 +2,7 @@ package evals
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -22,6 +23,28 @@ const (
 )
 
 var ErrNoChoices = errors.New("no choices in response")
+
+type GraderResponse struct {
+	Verdict   string `json:"verdict"`
+	Reasoning string `json:"reasoning"`
+}
+
+var graderResponseSchema = map[string]any{
+	"type": "object",
+	"properties": map[string]any{
+		"verdict": map[string]any{
+			"type":        "string",
+			"enum":        []string{"PASS", "FAIL"},
+			"description": "Whether the output passes or fails the rubric criterion",
+		},
+		"reasoning": map[string]any{
+			"type":        "string",
+			"description": "Brief explanation for the verdict",
+		},
+	},
+	"required":             []string{"verdict", "reasoning"},
+	"additionalProperties": false,
+}
 
 func newClient() *openai.Client {
 	c := openai.NewClient(
@@ -60,6 +83,54 @@ func generateText(ctx context.Context, client *openai.Client, model, prompt stri
 
 	if err != nil {
 		return "", fmt.Errorf("chat completion: %w", err)
+	}
+
+	return result, nil
+}
+
+func generateStructuredGraderResponse(ctx context.Context, client *openai.Client, model, prompt string) (GraderResponse, error) {
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = defaultRetryInterval
+
+	result, err := backoff.Retry(ctx, func() (GraderResponse, error) {
+		resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+			Model: model,
+			Messages: []openai.ChatCompletionMessageParamUnion{
+				openai.UserMessage(prompt),
+			},
+			Temperature: openai.Float(defaultTemperature),
+			ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
+				OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{
+					JSONSchema: openai.ResponseFormatJSONSchemaJSONSchemaParam{
+						Name:   "grader_response",
+						Schema: graderResponseSchema,
+						Strict: openai.Bool(true),
+					},
+				},
+			},
+		})
+
+		if err != nil {
+			if !isRetryable(err) {
+				return GraderResponse{}, backoff.Permanent(err)
+			}
+			return GraderResponse{}, err
+		}
+
+		if len(resp.Choices) == 0 {
+			return GraderResponse{}, backoff.Permanent(ErrNoChoices)
+		}
+
+		var graderResp GraderResponse
+		if err := json.Unmarshal([]byte(resp.Choices[0].Message.Content), &graderResp); err != nil {
+			return GraderResponse{}, backoff.Permanent(fmt.Errorf("unmarshal grader response: %w", err))
+		}
+
+		return graderResp, nil
+	}, backoff.WithBackOff(b), backoff.WithMaxElapsedTime(defaultMaxElapsedTime))
+
+	if err != nil {
+		return GraderResponse{}, fmt.Errorf("structured chat completion: %w", err)
 	}
 
 	return result, nil

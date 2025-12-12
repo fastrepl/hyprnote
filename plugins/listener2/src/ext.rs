@@ -14,6 +14,7 @@ pub enum BatchProvider {
     Soniox,
     AssemblyAI,
     Am,
+    HyprnoteCloud,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
@@ -29,6 +30,10 @@ pub struct BatchParams {
     pub languages: Vec<hypr_language::Language>,
     #[serde(default)]
     pub keywords: Vec<String>,
+    #[serde(default)]
+    pub cloud_file_id: Option<String>,
+    #[serde(default)]
+    pub authorization: Option<String>,
 }
 
 pub trait Listener2PluginExt<R: tauri::Runtime> {
@@ -86,8 +91,173 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> Listener2PluginExt<R> for T {
                 )
                 .await
             }
+            BatchProvider::HyprnoteCloud => run_batch_hyprnote_cloud(app, params).await,
         }
     }
+}
+
+async fn run_batch_hyprnote_cloud(
+    app: tauri::AppHandle,
+    params: BatchParams,
+) -> Result<(), crate::Error> {
+    let cloud_file_id = params.cloud_file_id.clone().ok_or_else(|| {
+        crate::Error::BatchStartFailed("cloud_file_id is required for HyprnoteCloud".to_string())
+    })?;
+    let authorization = params.authorization.clone().ok_or_else(|| {
+        crate::Error::BatchStartFailed("authorization is required for HyprnoteCloud".to_string())
+    })?;
+
+    BatchEvent::BatchStarted {
+        session_id: params.session_id.clone(),
+    }
+    .emit(&app)
+    .map_err(|e| {
+        crate::Error::BatchStartFailed(format!("failed to emit BatchStarted event: {e}"))
+    })?;
+
+    let client = reqwest::Client::new();
+    let base_url = params.base_url.trim_end_matches('/').to_string();
+
+    let start_response = client
+        .post(format!("{}/file-transcription/start", &base_url))
+        .header("Authorization", format!("Bearer {}", authorization))
+        .header("Content-Type", "application/json")
+        .json(&serde_json::json!({
+            "fileId": cloud_file_id
+        }))
+        .send()
+        .await
+        .map_err(|e| {
+            crate::Error::BatchStartFailed(format!("failed to start transcription: {e}"))
+        })?;
+
+    if !start_response.status().is_success() {
+        let error_text = start_response.text().await.unwrap_or_default();
+        BatchEvent::BatchFailed {
+            session_id: params.session_id.clone(),
+            error: format!("failed to start transcription: {}", error_text),
+        }
+        .emit(&app)
+        .ok();
+        return Err(crate::Error::BatchStartFailed(format!(
+            "failed to start transcription: {}",
+            error_text
+        )));
+    }
+
+    #[derive(serde::Deserialize)]
+    struct StartResponse {
+        #[serde(rename = "pipelineId")]
+        pipeline_id: String,
+    }
+
+    let start_result: StartResponse = start_response.json().await.map_err(|e| {
+        crate::Error::BatchStartFailed(format!("failed to parse start response: {e}"))
+    })?;
+
+    let pipeline_id = start_result.pipeline_id;
+    tracing::info!(
+        "hyprnote cloud batch started with pipeline_id: {}",
+        pipeline_id
+    );
+
+    let session_id = params.session_id.clone();
+    let app_clone = app.clone();
+
+    tokio::spawn(async move {
+        let poll_interval = std::time::Duration::from_millis(1500);
+        let max_attempts = 120;
+
+        for attempt in 0..max_attempts {
+            tokio::time::sleep(poll_interval).await;
+
+            let status_response = match client
+                .get(format!(
+                    "{}/file-transcription/status/{}",
+                    base_url, pipeline_id
+                ))
+                .header("Authorization", format!("Bearer {}", authorization))
+                .send()
+                .await
+            {
+                Ok(resp) => resp,
+                Err(e) => {
+                    tracing::warn!("poll attempt {} failed: {}", attempt, e);
+                    continue;
+                }
+            };
+
+            if !status_response.status().is_success() {
+                tracing::warn!(
+                    "poll attempt {} returned status: {}",
+                    attempt,
+                    status_response.status()
+                );
+                continue;
+            }
+
+            #[derive(serde::Deserialize)]
+            struct StatusResponse {
+                status: String,
+                #[serde(rename = "providerResponse")]
+                provider_response: Option<String>,
+                error: Option<String>,
+            }
+
+            let status: StatusResponse = match status_response.json().await {
+                Ok(s) => s,
+                Err(e) => {
+                    tracing::warn!("poll attempt {} failed to parse response: {}", attempt, e);
+                    continue;
+                }
+            };
+
+            tracing::debug!("poll attempt {}: status = {}", attempt, status.status);
+
+            match status.status.as_str() {
+                "DONE" => {
+                    if let Some(provider_response) = status.provider_response {
+                        BatchEvent::BatchCloudResponse {
+                            session_id: session_id.clone(),
+                            provider_response,
+                        }
+                        .emit(&app_clone)
+                        .ok();
+                    }
+                    tracing::info!("hyprnote cloud batch completed");
+                    return;
+                }
+                "ERROR" => {
+                    let error_msg = status.error.unwrap_or_else(|| "Unknown error".to_string());
+                    BatchEvent::BatchFailed {
+                        session_id: session_id.clone(),
+                        error: error_msg,
+                    }
+                    .emit(&app_clone)
+                    .ok();
+                    tracing::error!("hyprnote cloud batch failed");
+                    return;
+                }
+                "QUEUED" | "TRANSCRIBING" => {
+                    continue;
+                }
+                _ => {
+                    tracing::warn!("unknown status: {}", status.status);
+                    continue;
+                }
+            }
+        }
+
+        BatchEvent::BatchFailed {
+            session_id: session_id.clone(),
+            error: "timeout waiting for transcription".to_string(),
+        }
+        .emit(&app_clone)
+        .ok();
+        tracing::error!("hyprnote cloud batch timed out");
+    });
+
+    Ok(())
 }
 
 async fn run_batch_with_adapter<A: BatchSttAdapter>(

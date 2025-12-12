@@ -195,6 +195,7 @@ const SUPPORTED_LANGUAGES: ISO_639_1_CODE[] = [
   "sl",
   "ta",
   "lv",
+  "lt",
   "az",
   "he",
 ];

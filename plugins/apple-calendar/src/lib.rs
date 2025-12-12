@@ -84,7 +84,22 @@ mod test {
     }
 
     #[test]
-    fn test_apple_calendar() {
-        let _app = create_app(tauri::test::mock_builder());
+    fn test_list_calendars() {
+        let app = create_app(tauri::test::mock_builder());
+
+        let calendars = app.list_calendars();
+        println!("calendars: {:?}", calendars);
+    }
+
+    #[test]
+    fn test_list_events() {
+        let app = create_app(tauri::test::mock_builder());
+        let calendars = app.list_events(EventFilter {
+            from: chrono::Utc::now(),
+            to: chrono::Utc::now() + chrono::Duration::days(7),
+            calendar_tracking_id: "B5EF504D-57E0-4DA9-967F-6B60226C00BF".to_string(),
+        });
+
+        println!("events: {:?}", calendars);
     }
 }

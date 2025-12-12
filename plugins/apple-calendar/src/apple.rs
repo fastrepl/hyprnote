@@ -340,10 +340,7 @@ fn transform_participant(participant: &EKParticipant) -> Participant {
     let role = transform_participant_role(unsafe { participant.participantRole() });
     let status = transform_participant_status(unsafe { participant.participantStatus() });
     let participant_type = transform_participant_type(unsafe { participant.participantType() });
-    let schedule_status = unsafe {
-        let status: NSInteger = msg_send![participant, participantScheduleStatus];
-        transform_participant_schedule_status(status)
-    };
+    let schedule_status = safe_participant_schedule_status(participant);
 
     let url = unsafe {
         let url_obj: Option<Retained<NSURL>> = msg_send![participant, URL];
@@ -365,6 +362,21 @@ fn transform_participant(participant: &EKParticipant) -> Participant {
     }
 }
 
+fn safe_participant_schedule_status(
+    participant: &EKParticipant,
+) -> Option<ParticipantScheduleStatus> {
+    let participant = std::panic::AssertUnwindSafe(participant);
+    let result = objc2::exception::catch(|| unsafe {
+        let raw: NSInteger = msg_send![*participant, participantScheduleStatus];
+        raw
+    });
+
+    match result {
+        Ok(raw) => transform_participant_schedule_status(raw),
+        Err(_) => None,
+    }
+}
+
 fn resolve_participant_contact(
     participant: &EKParticipant,
     url: Option<&str>,
@@ -383,7 +395,14 @@ fn try_fetch_contact(participant: &EKParticipant) -> Option<ParticipantContact> 
         return None;
     }
 
-    let predicate: Retained<NSPredicate> = unsafe { participant.contactPredicate() };
+    // contactPredicate() can throw an Objective-C exception
+    let participant = std::panic::AssertUnwindSafe(participant);
+    let predicate: Retained<NSPredicate> =
+        match unsafe { objc2::exception::catch(|| participant.contactPredicate()) } {
+            Ok(p) => p,
+            Err(_) => return None,
+        };
+
     let contact_store = unsafe { CNContactStore::new() };
 
     let keys_to_fetch: Retained<NSArray<NSString>> = NSArray::from_slice(&[

@@ -31,6 +31,12 @@ type Grader interface {
 	Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score
 }
 
+// GraderWithInputs is an extended grader that can access input variables.
+type GraderWithInputs interface {
+	Grader
+	GradeWithInputs(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string, inputs map[string]any) Score
+}
+
 // LLMGrader uses a language model to evaluate output.
 // Set Samples > 1 to run multiple grading samples and aggregate results for better stability.
 type LLMGrader struct {
@@ -95,6 +101,71 @@ Output to evaluate:
 	return score
 }
 
+// GradeWithInputs evaluates the output using an LLM judge with access to input variables.
+func (g LLMGrader) GradeWithInputs(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string, inputs map[string]any) Score {
+	score := Score{
+		RubricName:  rubric.Name,
+		GraderType:  "llm",
+		GraderModel: model,
+		Samples:     1,
+	}
+
+	inputsStr := ""
+	if len(inputs) > 0 {
+		inputsStr = "\nInput Variables:\n"
+		for k, v := range inputs {
+			inputsStr += fmt.Sprintf("- %s: %v\n", k, v)
+		}
+	}
+
+	prompt := fmt.Sprintf(`You are an evaluation judge. Score the following output against this rubric.
+
+Rubric: %s
+Description: %s
+%s
+Output to evaluate:
+---
+%s
+---`, rubric.Name, rubric.Description, inputsStr, output)
+
+	n := g.Samples
+	if n <= 1 {
+		graderResp, err := generateStructuredGraderResponse(ctx, client, model, prompt)
+		if err != nil {
+			score.Reasoning = fmt.Sprintf("grader error: %v", err)
+			return score
+		}
+
+		score.Passed = graderResp.Verdict == "PASS"
+		if score.Passed {
+			score.Value = 1
+		}
+		score.Reasoning = graderResp.Reasoning
+		score.PassRate = 1.0
+		if !score.Passed {
+			score.PassRate = 0.0
+		}
+		return score
+	}
+
+	responses, err := generateStructuredGraderResponseMulti(ctx, client, model, prompt, n)
+	if err != nil {
+		score.Reasoning = fmt.Sprintf("grader error: %v", err)
+		return score
+	}
+
+	agg := aggregateGraderResponses(responses)
+	score.Passed = agg.Passed
+	if score.Passed {
+		score.Value = 1
+	}
+	score.Reasoning = agg.Reasoning
+	score.PassRate = agg.PassRate
+	score.Samples = agg.Samples
+
+	return score
+}
+
 // FuncGrader wraps a function to implement the Grader interface.
 type FuncGrader func(output string) (passed bool, reason string)
 
@@ -111,6 +182,36 @@ func (g FuncGrader) Grade(_ context.Context, _ *openai.Client, _ string, rubric 
 	}
 
 	passed, reasoning := g(output)
+	score.Passed = passed
+	if passed {
+		score.Value = 1
+	}
+	score.Reasoning = reasoning
+
+	return score
+}
+
+// FuncGraderWithInputs wraps a function that needs access to input variables.
+type FuncGraderWithInputs func(output string, inputs map[string]any) (passed bool, reason string)
+
+// Grade implements the base Grader interface by calling with nil inputs.
+func (g FuncGraderWithInputs) Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score {
+	return g.GradeWithInputs(ctx, client, model, rubric, output, nil)
+}
+
+// GradeWithInputs evaluates the output using the wrapped function with inputs.
+func (g FuncGraderWithInputs) GradeWithInputs(_ context.Context, _ *openai.Client, _ string, rubric Rubric, output string, inputs map[string]any) Score {
+	score := Score{
+		RubricName: rubric.Name,
+		GraderType: "func",
+	}
+
+	if g == nil {
+		score.Reasoning = "no grader function provided"
+		return score
+	}
+
+	passed, reasoning := g(output, inputs)
 	score.Passed = passed
 	if passed {
 		score.Value = 1

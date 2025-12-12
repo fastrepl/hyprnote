@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -135,21 +136,27 @@ export function TranscriptContainer({
         )}
       </div>
 
-      {!isAtBottom && currentActive && (
-        <button
-          onClick={scrollToBottom}
-          className={cn([
-            "absolute bottom-3 left-1/2 -translate-x-1/2",
-            "px-4 py-2 rounded-full",
-            "shadow-lg bg-neutral-800 hover:bg-neutral-700",
-            "text-white text-xs font-light",
-            "transition-all duration-200",
-            "z-30",
-          ])}
-        >
-          Go to bottom
-        </button>
-      )}
+      <AnimatePresence>
+        {!isAtBottom && currentActive && (
+          <motion.button
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            onClick={scrollToBottom}
+            className={cn([
+              "absolute bottom-3 left-1/2 -translate-x-1/2",
+              "px-4 py-2 rounded-full",
+              "shadow-lg bg-neutral-800 hover:bg-neutral-700",
+              "text-white text-xs font-light",
+              "transition-colors duration-200",
+              "z-30",
+            ])}
+          >
+            Go to bottom
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

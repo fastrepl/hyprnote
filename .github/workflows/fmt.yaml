@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - .github/workflows/fmt.yaml
   pull_request:
     branches:
       - main
@@ -13,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/pnpm_install
+      - uses: ./.github/actions/rust_install
       - uses: dprint/check@v2.3
         with:
           config-path: dprint.json

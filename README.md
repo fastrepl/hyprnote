@@ -38,7 +38,7 @@ Hyprnote is designed to take notes easily during meetings. Just jot down stuff y
 <img width="732" height="612" alt="Screenshot 2025-11-23 at 2 38 20 PM" src="https://github.com/user-attachments/assets/268ab859-a194-484b-b895-bc640df18dd4" />
 
 ### Realtime Transcript
-While you stay engaged in the conversation, Hyprnote captures every detail so you don’t have to type frantically.
+While you stay engaged in the conversation, Hyprnote captures every detail so you don't have to type frantically.
 
 <img width="688" height="568" alt="Screenshot 2025-11-23 at 2 35 47 PM" src="https://github.com/user-attachments/assets/e63ce73f-1a5f-49ce-a14d-dd8ba161e5bc" />
 
@@ -59,7 +59,7 @@ Prefer something custom? You can swap in your own language model:
 - Use approved third-party APIs like Gemini, Claude, or Azure-hosted GPT
 - Stay compliant with whatever your org allows
 
-Hyprnote plays nice with whatever stack you’re running.
+Hyprnote plays nice with whatever stack you're running.
 
 <img width="912" height="712" alt="Screenshot 2025-11-23 at 2 41 03 PM" src="https://github.com/user-attachments/assets/a6552c99-acbc-4d47-9d21-7f1925989344" />
 

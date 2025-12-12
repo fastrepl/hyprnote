@@ -3,7 +3,6 @@ package evals
 
 import (
 	"context"
-	"errors"
 	"os"
 	"strconv"
 	"sync"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/openai/openai-go/v3"
 	"golang.org/x/sync/errgroup"
-	"golang.org/x/sync/semaphore"
 )
 
 // Result holds the outcome of a single evaluation run.
@@ -182,21 +180,16 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
-	sem := semaphore.NewWeighted(int64(r.concurrency))
 	var mu sync.Mutex
 	var results []Result
 
 	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(r.concurrency)
 
 	for _, model := range r.targetModels {
 		for _, task := range tasks {
 			for i := range r.numEvals {
 				g.Go(func() error {
-					if err := sem.Acquire(ctx, 1); err != nil {
-						return err
-					}
-					defer sem.Release(1)
-
 					result := r.runSingle(ctx, model, i, task)
 
 					mu.Lock()
@@ -212,9 +205,7 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 		}
 	}
 
-	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
-		return results
-	}
+	_ = g.Wait()
 
 	return results
 }

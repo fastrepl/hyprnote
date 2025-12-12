@@ -8,35 +8,39 @@ import (
 	"github.com/openai/openai-go/v3"
 )
 
-type GraderType string
-
-const (
-	GraderLLM    GraderType = "llm"
-	GraderParser GraderType = "parser"
-)
-
+// Rubric defines an evaluation criterion with a name, description, and grader.
 type Rubric struct {
 	Name        string
 	Description string
-	Grader      GraderType
-	GraderFunc  func(output string) (bool, string)
+	Grader      Grader
 }
 
-type RubricResult struct {
+// Score holds the result of evaluating output against a single rubric.
+type Score struct {
 	RubricName  string
 	Passed      bool
-	Score       int
+	Value       int
 	Reasoning   string
-	GraderType  GraderType
+	GraderType  string
 	GraderModel string
 }
 
-type GraderConfig struct {
-	Client openai.Client
-	Model  string
+// Grader evaluates output against a rubric criterion.
+type Grader interface {
+	Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score
 }
 
-func GradeLLM(ctx context.Context, cfg GraderConfig, rubric Rubric, output string) RubricResult {
+// LLMGrader uses a language model to evaluate output.
+type LLMGrader struct{}
+
+// Grade evaluates the output using an LLM judge.
+func (g LLMGrader) Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score {
+	score := Score{
+		RubricName:  rubric.Name,
+		GraderType:  "llm",
+		GraderModel: model,
+	}
+
 	prompt := fmt.Sprintf(`You are an evaluation judge. Score the following output against this rubric.
 
 Rubric: %s
@@ -49,108 +53,47 @@ Output to evaluate:
 
 Respond with ONLY "PASS" or "FAIL" on the first line, followed by a brief explanation on the next line.`, rubric.Name, rubric.Description, output)
 
-	resp, err := cfg.Client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
-		Model: cfg.Model,
-		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.UserMessage(prompt),
-		},
-		Temperature: openai.Float(0.0),
-	})
-
-	result := RubricResult{
-		RubricName:  rubric.Name,
-		GraderType:  GraderLLM,
-		GraderModel: cfg.Model,
-	}
-
+	content, err := generateText(ctx, client, model, prompt)
 	if err != nil {
-		result.Passed = false
-		result.Score = 0
-		result.Reasoning = fmt.Sprintf("grader error: %v", err)
-		return result
+		score.Reasoning = fmt.Sprintf("grader error: %v", err)
+		return score
 	}
 
-	if len(resp.Choices) == 0 {
-		result.Passed = false
-		result.Score = 0
-		result.Reasoning = "grader returned no choices"
-		return result
-	}
-
-	content := resp.Choices[0].Message.Content
 	lines := strings.SplitN(content, "\n", 2)
-
 	verdict := strings.TrimSpace(strings.ToUpper(lines[0]))
-	result.Passed = verdict == "PASS"
-	if result.Passed {
-		result.Score = 1
+	score.Passed = verdict == "PASS"
+	if score.Passed {
+		score.Value = 1
 	}
 
 	if len(lines) > 1 {
-		result.Reasoning = strings.TrimSpace(lines[1])
+		score.Reasoning = strings.TrimSpace(lines[1])
 	}
 
-	return result
+	return score
 }
 
-func GradeParser(rubric Rubric, output string) RubricResult {
-	result := RubricResult{
+// FuncGrader wraps a function to implement the Grader interface.
+type FuncGrader func(output string) (passed bool, reason string)
+
+// Grade evaluates the output using the wrapped function.
+func (g FuncGrader) Grade(_ context.Context, _ *openai.Client, _ string, rubric Rubric, output string) Score {
+	score := Score{
 		RubricName: rubric.Name,
-		GraderType: GraderParser,
+		GraderType: "func",
 	}
 
-	if rubric.GraderFunc == nil {
-		result.Passed = false
-		result.Reasoning = "no grader function provided"
-		return result
+	if g == nil {
+		score.Reasoning = "no grader function provided"
+		return score
 	}
 
-	passed, reasoning := rubric.GraderFunc(output)
-	result.Passed = passed
+	passed, reasoning := g(output)
+	score.Passed = passed
 	if passed {
-		result.Score = 1
+		score.Value = 1
 	}
-	result.Reasoning = reasoning
+	score.Reasoning = reasoning
 
-	return result
-}
-
-func HasMarkdownHeading(output string) (bool, string) {
-	shape, ok := ParseMarkdownShape(output)
-	if !ok {
-		return false, "failed to parse as markdown"
-	}
-	if shape.HasHeading {
-		return true, "contains heading"
-	}
-	return false, "missing heading"
-}
-
-func HasMarkdownList(output string) (bool, string) {
-	shape, ok := ParseMarkdownShape(output)
-	if !ok {
-		return false, "failed to parse as markdown"
-	}
-	if shape.HasList {
-		return true, "contains list"
-	}
-	return false, "missing list"
-}
-
-func HasMarkdownCode(output string) (bool, string) {
-	shape, ok := ParseMarkdownShape(output)
-	if !ok {
-		return false, "failed to parse as markdown"
-	}
-	if shape.HasCode {
-		return true, "contains code block"
-	}
-	return false, "missing code block"
-}
-
-func IsNonEmpty(output string) (bool, string) {
-	if strings.TrimSpace(output) == "" {
-		return false, "output is empty"
-	}
-	return true, "output is non-empty"
+	return score
 }

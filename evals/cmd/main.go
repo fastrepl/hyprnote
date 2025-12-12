@@ -1,107 +1,155 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
-	"strings"
+	"os/signal"
+	"syscall"
 
 	"hyprnote/evals"
+	"hyprnote/evals/tasks"
+
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/schollz/progressbar/v3"
+	"github.com/spf13/cobra"
 )
 
-const (
-	reset  = "\033[0m"
-	green  = "\033[32m"
-	red    = "\033[31m"
-	yellow = "\033[33m"
-	cyan   = "\033[36m"
-	bold   = "\033[1m"
-	dim    = "\033[2m"
+var (
+	errEvalFailed    = errors.New("evaluation failed")
+	errMissingAPIKey = errors.New("OPENROUTER_API_KEY environment variable is not set")
 )
 
 func main() {
-	if os.Getenv("OPENROUTER_API_KEY") == "" {
-		fmt.Printf("%s%sError:%s OPENROUTER_API_KEY is not set\n", bold, red, reset)
+	if err := rootCmd.Execute(); err != nil {
+		if !errors.Is(err, errEvalFailed) {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+		}
 		os.Exit(1)
 	}
+}
 
-	fmt.Printf("%s%sRunning evals...%s\n", bold, yellow, reset)
-	fmt.Printf("%sModels: %s%s\n", dim, strings.Join(evals.TargetModels, ", "), reset)
-	fmt.Printf("%sGrader: %s%s\n\n", dim, evals.GraderModel, reset)
+var rootCmd = &cobra.Command{
+	Use:   "evals",
+	Short: "LLM evaluation runner",
+}
 
-	results := evals.RunAll(evals.AllEvals)
+func init() {
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
+	rootCmd.AddCommand(runCmd)
+}
 
-	modelStats := make(map[string]struct{ passed, failed int })
+var runCmd = &cobra.Command{
+	Use:           "run",
+	Short:         "Run all evaluations",
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if os.Getenv("OPENROUTER_API_KEY") == "" {
+			return errMissingAPIKey
+		}
+
+		ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+		defer cancel()
+
+		runner := evals.New()
+		bar := progressbar.Default(int64(runner.TotalCount(tasks.All)), "evaluating")
+		runner.OnProgress = func() { bar.Add(1) }
+		results := runner.Run(ctx, tasks.All)
+		bar.Finish()
+
+		return renderResults(results)
+	},
+}
+
+func renderResults(results []evals.Result) error {
+	rubricNames := extractRubricNames(results)
+
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.SetStyle(table.StyleRounded)
+	t.AppendHeader(buildHeader(rubricNames))
+
+	totals := make([]int, len(rubricNames))
+	var grandTotal, maxTotal, totalFailed int
 
 	for _, r := range results {
-		stats := modelStats[r.Model]
+		row := table.Row{r.Model}
 
 		if r.Error != "" {
-			stats.failed++
-			modelStats[r.Model] = stats
-			fmt.Printf("%s✗%s %s%s%s / %s", red, reset, cyan, r.Model, reset, r.Name)
-			if r.RunNum > 0 {
-				fmt.Printf(" %s(run %d)%s", dim, r.RunNum, reset)
+			totalFailed++
+			for range rubricNames {
+				row = append(row, "-")
 			}
-			fmt.Printf("\n  %s%serror:%s %s\n", bold, red, reset, r.Error)
+			row = append(row, text.FgRed.Sprint("error"))
+			t.AppendRow(row)
 			continue
 		}
 
-		passed, total := r.Score()
-		allPassed := passed == total
-
-		if allPassed {
-			stats.passed++
-			fmt.Printf("%s✓%s %s%s%s / %s", green, reset, cyan, r.Model, reset, r.Name)
-		} else {
-			stats.failed++
-			fmt.Printf("%s✗%s %s%s%s / %s", red, reset, cyan, r.Model, reset, r.Name)
+		passed, total := r.TallyScore()
+		if passed != total {
+			totalFailed++
 		}
+		maxTotal += total
 
-		modelStats[r.Model] = stats
-
-		if r.RunNum > 0 {
-			fmt.Printf(" %s(run %d)%s", dim, r.RunNum, reset)
-		}
-		fmt.Printf(" %s[%d/%d rubrics]%s\n", dim, passed, total, reset)
-
-		for _, rr := range r.RubricResults {
-			if rr.Passed {
-				fmt.Printf("  %s✓%s %s", green, reset, rr.RubricName)
+		for i, s := range r.Scores {
+			if s.Passed {
+				totals[i]++
+				grandTotal++
+				row = append(row, text.FgGreen.Sprint("1"))
 			} else {
-				fmt.Printf("  %s✗%s %s", red, reset, rr.RubricName)
+				row = append(row, text.FgRed.Sprint("0"))
 			}
-			if rr.GraderType == evals.GraderLLM {
-				fmt.Printf(" %s(llm)%s", dim, reset)
-			}
-			if !rr.Passed && rr.Reasoning != "" {
-				fmt.Printf(" - %s", rr.Reasoning)
-			}
-			fmt.Println()
 		}
+
+		if passed == total {
+			row = append(row, text.FgGreen.Sprintf("%d/%d", passed, total))
+		} else {
+			row = append(row, text.FgRed.Sprintf("%d/%d", passed, total))
+		}
+
+		t.AppendRow(row)
 	}
 
-	fmt.Printf("\n%s%sSummary by model:%s\n", bold, yellow, reset)
-	totalPassed := 0
-	totalFailed := 0
-	for _, model := range evals.TargetModels {
-		stats := modelStats[model]
-		totalPassed += stats.passed
-		totalFailed += stats.failed
-		fmt.Printf("  %s%s%s: ", cyan, model, reset)
-		fmt.Printf("%s%d passed%s", green, stats.passed, reset)
-		if stats.failed > 0 {
-			fmt.Printf(", %s%d failed%s", red, stats.failed, reset)
-		}
-		fmt.Println()
-	}
-
-	fmt.Printf("\n%s%sTotal: %d passed%s", bold, green, totalPassed, reset)
-	if totalFailed > 0 {
-		fmt.Printf(", %s%s%d failed%s", bold, red, totalFailed, reset)
-	}
-	fmt.Println()
+	t.AppendFooter(buildFooter(totals, grandTotal, maxTotal))
+	t.Render()
 
 	if totalFailed > 0 {
-		os.Exit(1)
+		return errEvalFailed
 	}
+	return nil
+}
+
+func extractRubricNames(results []evals.Result) []string {
+	for _, r := range results {
+		if r.Error != "" || len(r.Scores) == 0 {
+			continue
+		}
+		names := make([]string, len(r.Scores))
+		for i, s := range r.Scores {
+			names[i] = s.RubricName
+		}
+		return names
+	}
+	return nil
+}
+
+func buildHeader(rubricNames []string) table.Row {
+	header := table.Row{"Model"}
+	for _, name := range rubricNames {
+		header = append(header, name)
+	}
+	header = append(header, "Total")
+	return header
+}
+
+func buildFooter(totals []int, grandTotal, maxTotal int) table.Row {
+	footer := table.Row{"Total"}
+	for _, total := range totals {
+		footer = append(footer, fmt.Sprintf("%d", total))
+	}
+	footer = append(footer, fmt.Sprintf("%d/%d", grandTotal, maxTotal))
+	return footer
 }

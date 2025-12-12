@@ -1,184 +1,250 @@
+// Package evals provides a framework for evaluating LLM outputs against rubrics.
 package evals
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"os"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/openai/openai-go/v3"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 )
 
-type EvalResult struct {
-	Name          string
-	Model         string
-	RunNum        int
-	LLMOutput     string
-	RubricResults []RubricResult
-	Error         string
+// Result holds the outcome of a single evaluation run.
+type Result struct {
+	Name   string
+	Model  string
+	RunNum int
+	Output string
+	Scores []Score
+	Error  string
 }
 
-func (r EvalResult) Passed() bool {
+// AllPassed returns true if the run completed without error and all rubrics passed.
+func (r Result) AllPassed() bool {
 	if r.Error != "" {
 		return false
 	}
-	for _, rr := range r.RubricResults {
-		if !rr.Passed {
+	for _, s := range r.Scores {
+		if !s.Passed {
 			return false
 		}
 	}
 	return true
 }
 
-func (r EvalResult) Score() (passed, total int) {
-	for _, rr := range r.RubricResults {
+// TallyScore returns the number of passed rubrics and total rubrics.
+func (r Result) TallyScore() (passed, total int) {
+	for _, s := range r.Scores {
 		total++
-		if rr.Passed {
+		if s.Passed {
 			passed++
 		}
 	}
-	return
+	return passed, total
 }
 
-type Eval struct {
-	ctx       context.Context
-	client    openai.Client
-	model     string
-	runNumber int
-	output    string
-	failed    bool
-	failMsg   string
+var defaultModels = []string{
+	"openai/gpt-4.1-nano",
+	"anthropic/claude-haiku-4.5",
+	"liquid/lfm-2.2-6b",
 }
 
-func (e *Eval) Ctx() context.Context  { return e.ctx }
-func (e *Eval) Client() openai.Client { return e.client }
-func (e *Eval) Model() string         { return e.model }
+const defaultGraderModel = "openai/gpt-4.1-nano"
 
-func (e *Eval) SetOutput(output string) { e.output = output }
-
-func (e *Eval) Fatalf(format string, args ...any) {
-	e.failed = true
-	e.failMsg = fmt.Sprintf(format, args...)
-	panic(evalFailure{msg: e.failMsg})
+// Runner executes evaluation tasks across multiple models.
+type Runner struct {
+	client       *openai.Client
+	targetModels []string
+	graderModel  string
+	numEvals     int
+	timeout      time.Duration
+	concurrency  int
+	OnProgress   func()
 }
 
-type evalFailure struct{ msg string }
+// Option configures a Runner.
+type Option func(*Runner)
 
-type EvalFunc func(e *Eval)
-
-type EvalCase struct {
-	Name    string
-	Func    EvalFunc
-	Rubrics []Rubric
+// WithModels sets the target models to evaluate.
+func WithModels(models ...string) Option {
+	return func(r *Runner) {
+		r.targetModels = models
+	}
 }
 
-func getConfig() (numEvals int, timeout time.Duration) {
-	numEvals = 1
-	if v := os.Getenv("GOEVALS"); v != "" {
+// WithGraderModel sets the model used for LLM-based grading.
+func WithGraderModel(model string) Option {
+	return func(r *Runner) {
+		r.graderModel = model
+	}
+}
+
+// WithNumEvals sets the number of evaluation runs per task/model combination.
+func WithNumEvals(n int) Option {
+	return func(r *Runner) {
+		if n > 0 {
+			r.numEvals = n
+		}
+	}
+}
+
+// WithTimeout sets the overall timeout for the evaluation run.
+func WithTimeout(d time.Duration) Option {
+	return func(r *Runner) {
+		if d > 0 {
+			r.timeout = d
+		}
+	}
+}
+
+// WithConcurrency sets the maximum number of concurrent evaluations.
+func WithConcurrency(n int) Option {
+	return func(r *Runner) {
+		if n > 0 {
+			r.concurrency = n
+		}
+	}
+}
+
+func envInt(key string, fallback int) int {
+	if v := os.Getenv(key); v != "" {
 		if n, err := strconv.Atoi(v); err == nil && n > 0 {
-			numEvals = n
+			return n
 		}
 	}
-
-	timeout = 60 * time.Second
-	if v := os.Getenv("GOEVALS_TIMEOUT_SECONDS"); v != "" {
-		if s, err := strconv.Atoi(v); err == nil && s > 0 {
-			timeout = time.Duration(s) * time.Second
-		}
-	}
-	return
+	return fallback
 }
 
-func runSingleEval(client openai.Client, model string, timeout time.Duration, runNum int, ec EvalCase) EvalResult {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	e := &Eval{
-		ctx:       ctx,
-		client:    client,
-		model:     model,
-		runNumber: runNum,
+// New creates a Runner with the provided options.
+func New(opts ...Option) *Runner {
+	r := &Runner{
+		client:       newClient(),
+		targetModels: defaultModels,
+		graderModel:  defaultGraderModel,
+		numEvals:     envInt("GOEVALS", 1),
+		timeout:      time.Duration(envInt("GOEVALS_TIMEOUT_SECONDS", 60)) * time.Second,
+		concurrency:  envInt("GOEVALS_CONCURRENCY", 4),
 	}
 
-	result := EvalResult{
-		Name:   ec.Name,
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
+}
+
+// TotalCount returns the total number of evaluation runs.
+func (r *Runner) TotalCount(tasks []Task) int {
+	return len(r.targetModels) * len(tasks) * r.numEvals
+}
+
+func (r *Runner) runSingle(ctx context.Context, model string, runNum int, task Task) Result {
+	result := Result{
+		Name:   task.Name,
 		Model:  model,
 		RunNum: runNum,
 	}
 
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				if _, ok := r.(evalFailure); !ok {
-					e.failed = true
-					e.failMsg = fmt.Sprintf("panic: %v", r)
-				}
-			}
-		}()
-		ec.Func(e)
-	}()
-
-	if e.failed {
-		result.Error = e.failMsg
+	output, err := task.Execute(ctx, r.client, model)
+	if err != nil {
+		result.Error = err.Error()
 		return result
 	}
 
-	result.LLMOutput = e.output
-
-	graderCfg := GraderConfig{
-		Client: client,
-		Model:  GraderModel,
-	}
-
-	for _, rubric := range ec.Rubrics {
-		var rr RubricResult
-		switch rubric.Grader {
-		case GraderLLM:
-			rr = GradeLLM(ctx, graderCfg, rubric, e.output)
-		case GraderParser:
-			rr = GradeParser(rubric, e.output)
-		default:
-			rr = RubricResult{
-				RubricName: rubric.Name,
-				Passed:     false,
-				Reasoning:  fmt.Sprintf("unknown grader type: %s", rubric.Grader),
-			}
-		}
-		result.RubricResults = append(result.RubricResults, rr)
-	}
+	result.Output = output
+	result.Scores = task.Grade(ctx, r.client, r.graderModel, output)
 
 	return result
 }
 
-func RunAll(cases []EvalCase) []EvalResult {
-	numEvals, timeout := getConfig()
-	client := NewClient()
+// Run executes all tasks across all target models.
+func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
+	ctx, cancel := context.WithTimeout(ctx, r.timeout)
+	defer cancel()
 
-	var results []EvalResult
-	for _, model := range TargetModels {
-		for _, c := range cases {
-			for i := range numEvals {
-				r := runSingleEval(client, model, timeout, i, c)
-				results = append(results, r)
+	sem := semaphore.NewWeighted(int64(r.concurrency))
+	var mu sync.Mutex
+	var results []Result
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	for _, model := range r.targetModels {
+		for _, task := range tasks {
+			for i := range r.numEvals {
+				g.Go(func() error {
+					if err := sem.Acquire(ctx, 1); err != nil {
+						return err
+					}
+					defer sem.Release(1)
+
+					result := r.runSingle(ctx, model, i, task)
+
+					mu.Lock()
+					results = append(results, result)
+					if r.OnProgress != nil {
+						r.OnProgress()
+					}
+					mu.Unlock()
+
+					return nil
+				})
 			}
 		}
 	}
+
+	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
+		return results
+	}
+
 	return results
 }
 
-type testingEval struct {
-	*testing.T
-	*Eval
+// RunTest executes tasks as Go test subtests.
+func (r *Runner) RunTest(t *testing.T, tasks []Task) {
+	t.Helper()
+
+	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
+	defer cancel()
+
+	for _, model := range r.targetModels {
+		t.Run(model, func(t *testing.T) {
+			for _, task := range tasks {
+				t.Run(task.Name, func(t *testing.T) {
+					for i := range r.numEvals {
+						r.runTestIteration(ctx, t, model, i, task)
+					}
+				})
+			}
+		})
+	}
 }
 
-func (te *testingEval) Fatalf(format string, args ...any) {
-	te.T.Helper()
-	te.T.Fatalf(format, args...)
+func (r *Runner) runTestIteration(ctx context.Context, t *testing.T, model string, runNum int, task Task) {
+	t.Attr("eval_run_number", strconv.Itoa(runNum))
+	t.Attr("model", model)
+
+	output, err := task.Execute(ctx, r.client, model)
+	if err != nil {
+		t.Fatalf("task execution failed: %v", err)
+	}
+
+	for _, s := range task.Grade(ctx, r.client, r.graderModel, output) {
+		t.Attr("rubric_"+s.RubricName, "passed="+strconv.FormatBool(s.Passed)+" score="+strconv.Itoa(s.Value))
+		if !s.Passed {
+			t.Errorf("rubric %q failed: %s", s.RubricName, s.Reasoning)
+		}
+	}
 }
 
-func RunTest(t *testing.T, cases []EvalCase) {
+// RunTest creates a default runner and executes tasks as test subtests.
+// It skips if GOEVALS env is not set or OPENROUTER_API_KEY is missing.
+func RunTest(t *testing.T, tasks []Task) {
 	t.Helper()
 
 	v := os.Getenv("GOEVALS")
@@ -186,67 +252,9 @@ func RunTest(t *testing.T, cases []EvalCase) {
 		t.Skip("skipping LLM evals (set GOEVALS=1 to enable)")
 	}
 
-	apiKey := os.Getenv("OPENROUTER_API_KEY")
-	if apiKey == "" {
+	if os.Getenv(openRouterAPIKeyEnvVar) == "" {
 		t.Skip("skipping LLM evals (OPENROUTER_API_KEY is not set)")
 	}
 
-	numEvals, timeout := getConfig()
-	client := NewClient()
-
-	for _, model := range TargetModels {
-		t.Run(model, func(t *testing.T) {
-			for _, c := range cases {
-				t.Run(c.Name, func(t *testing.T) {
-					for i := range numEvals {
-						ctx, cancel := context.WithTimeout(context.Background(), timeout)
-						e := &Eval{
-							ctx:       ctx,
-							client:    client,
-							model:     model,
-							runNumber: i,
-						}
-						te := &testingEval{T: t, Eval: e}
-						te.T.Attr("eval_run_number", strconv.Itoa(i))
-						te.T.Attr("model", model)
-
-						func() {
-							defer func() {
-								if r := recover(); r != nil {
-									if _, ok := r.(evalFailure); ok {
-										te.T.Fatalf("%s", e.failMsg)
-									} else {
-										te.T.Fatalf("panic: %v", r)
-									}
-								}
-							}()
-							c.Func(e)
-						}()
-
-						graderCfg := GraderConfig{
-							Client: client,
-							Model:  GraderModel,
-						}
-
-						for _, rubric := range c.Rubrics {
-							var rr RubricResult
-							switch rubric.Grader {
-							case GraderLLM:
-								rr = GradeLLM(ctx, graderCfg, rubric, e.output)
-							case GraderParser:
-								rr = GradeParser(rubric, e.output)
-							}
-
-							te.T.Attr("rubric_"+rubric.Name, fmt.Sprintf("passed=%v score=%d", rr.Passed, rr.Score))
-							if !rr.Passed {
-								te.T.Errorf("rubric %q failed: %s", rubric.Name, rr.Reasoning)
-							}
-						}
-
-						cancel()
-					}
-				})
-			}
-		})
-	}
+	New().RunTest(t, tasks)
 }

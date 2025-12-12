@@ -3,9 +3,14 @@ module hyprnote
 go 1.25.0
 
 require (
+	github.com/cenkalti/backoff/v5 v5.0.3
+	github.com/jedib0t/go-pretty/v6 v6.7.7
 	github.com/kluctl/kluctl/lib v0.0.0-20251031225459-ef169039f119
 	github.com/openai/openai-go/v3 v3.12.0
+	github.com/schollz/progressbar/v3 v3.18.0
+	github.com/spf13/cobra v1.10.2
 	github.com/yuin/goldmark v1.7.13
+	golang.org/x/sync v0.15.0
 )
 
 require (
@@ -17,16 +22,22 @@ require (
 	github.com/gofrs/flock v0.12.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/kluctl/go-embed-python v0.0.0-3.11.11-20241219-1 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/term v0.32.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )

@@ -47,7 +47,26 @@ function ScrollingWaveform({
 
   amplitudeRef.current = amplitude;
 
+  const dprRef = useRef(window.devicePixelRatio || 1);
+
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    dprRef.current = dpr;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.scale(dpr, dpr);
+    }
+  }, [width, height]);
+
+  useEffect(() => {
+    amplitudesRef.current = [];
+
     const draw = () => {
       const amp = amplitudeRef.current;
       const linear = amp < 30 ? 0 : Math.min((amp - 30) / 40, 1);
@@ -63,11 +82,6 @@ function ScrollingWaveform({
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      ctx.scale(dpr, dpr);
 
       ctx.clearRect(0, 0, width, height);
 
@@ -262,10 +276,12 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
           >
             {muted && <MicOff size={14} />}
             <ScrollingWaveform
-              amplitude={(amplitude.mic + amplitude.speaker) / 2}
+              amplitude={
+                ((amplitude.mic + amplitude.speaker) / 2 / 65535) * 100 * 1000
+              }
               color="#ef4444"
               height={16}
-              width={75}
+              width={muted ? 50 : 75}
               barWidth={2}
               gap={1}
               minBarHeight={2}

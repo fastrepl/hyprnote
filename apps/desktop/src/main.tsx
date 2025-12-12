@@ -17,7 +17,7 @@ import {
 import "@hypr/ui/globals.css";
 
 import { ErrorComponent, NotFoundComponent } from "./components/control";
-import { TaskManager } from "./components/task-manager";
+import { TaskManager } from "./components/tasks";
 import { createToolRegistry } from "./contexts/tool-registry/core";
 import { env } from "./env";
 import { initExtensionGlobals } from "./extension-globals";

@@ -218,13 +218,12 @@ function useAppleCalendarSelection() {
 }
 
 function AppleCalendarSelection() {
-  const { groups, isLoading, isCalendarEnabled, handleToggle, handleRefresh } =
+  const { groups, isCalendarEnabled, handleToggle, handleRefresh } =
     useAppleCalendarSelection();
 
   return (
     <CalendarSelection
       groups={groups}
-      isLoading={isLoading}
       isCalendarEnabled={isCalendarEnabled}
       onToggle={handleToggle}
       onRefresh={handleRefresh}

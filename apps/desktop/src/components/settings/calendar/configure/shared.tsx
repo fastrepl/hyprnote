@@ -16,7 +16,6 @@ export interface CalendarGroup {
 
 interface CalendarSelectionProps {
   groups: CalendarGroup[];
-  isLoading: boolean;
   isCalendarEnabled: (id: string) => boolean;
   onToggle: (calendar: CalendarItem, enabled: boolean) => void;
   onRefresh: () => void;
@@ -24,19 +23,10 @@ interface CalendarSelectionProps {
 
 export function CalendarSelection({
   groups,
-  isLoading,
   isCalendarEnabled,
   onToggle,
   onRefresh,
 }: CalendarSelectionProps) {
-  if (isLoading) {
-    return (
-      <div className="py-4 text-center text-sm text-neutral-500">
-        Loading calendars...
-      </div>
-    );
-  }
-
   if (groups.length === 0) {
     return (
       <div className="py-4 text-center text-sm text-neutral-500">

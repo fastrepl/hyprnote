@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"os"
 	"time"
@@ -266,30 +265,6 @@ func aggregateGraderResponses(responses []GraderResponse) AggregatedGraderRespon
 		Reasoning: reasonings[0],
 		Samples:   len(responses),
 	}
-}
-
-func mean(values []float64) float64 {
-	if len(values) == 0 {
-		return 0
-	}
-	sum := 0.0
-	for _, v := range values {
-		sum += v
-	}
-	return sum / float64(len(values))
-}
-
-func stdDev(values []float64) float64 {
-	if len(values) <= 1 {
-		return 0
-	}
-	m := mean(values)
-	sumSquares := 0.0
-	for _, v := range values {
-		diff := v - m
-		sumSquares += diff * diff
-	}
-	return math.Sqrt(sumSquares / float64(len(values)))
 }
 
 func isRetryable(err error) bool {

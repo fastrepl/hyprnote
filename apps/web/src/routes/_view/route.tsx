@@ -9,6 +9,7 @@ import { useMemo, useRef, useState } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { NotFoundContent } from "@/components/not-found";
 import { SearchPaletteProvider } from "@/components/search";
 import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { DocsDrawerContext } from "@/hooks/use-docs-drawer";
@@ -20,6 +21,7 @@ import { getDocsBySection } from "./docs/-structure";
 
 export const Route = createFileRoute("/_view")({
   component: Component,
+  notFoundComponent: NotFoundContent,
 });
 
 function Component() {

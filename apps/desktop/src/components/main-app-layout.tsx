@@ -7,6 +7,7 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
+import { NetworkProvider } from "../contexts/network";
 
 /**
  * Main app layout component that wraps routes with auth/billing providers.
@@ -20,7 +21,9 @@ export default function MainAppLayout() {
   return (
     <AuthProvider>
       <BillingProvider>
-        <Outlet />
+        <NetworkProvider>
+          <Outlet />
+        </NetworkProvider>
       </BillingProvider>
     </AuthProvider>
   );

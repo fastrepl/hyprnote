@@ -3,7 +3,6 @@ package evals
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/openai/openai-go/v3"
 )
@@ -33,7 +32,7 @@ type Grader interface {
 // LLMGrader uses a language model to evaluate output.
 type LLMGrader struct{}
 
-// Grade evaluates the output using an LLM judge.
+// Grade evaluates the output using an LLM judge with structured output.
 func (g LLMGrader) Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score {
 	score := Score{
 		RubricName:  rubric.Name,
@@ -49,26 +48,19 @@ Description: %s
 Output to evaluate:
 ---
 %s
----
+---`, rubric.Name, rubric.Description, output)
 
-Respond with ONLY "PASS" or "FAIL" on the first line, followed by a brief explanation on the next line.`, rubric.Name, rubric.Description, output)
-
-	content, err := generateText(ctx, client, model, prompt)
+	graderResp, err := generateStructuredGraderResponse(ctx, client, model, prompt)
 	if err != nil {
 		score.Reasoning = fmt.Sprintf("grader error: %v", err)
 		return score
 	}
 
-	lines := strings.SplitN(content, "\n", 2)
-	verdict := strings.TrimSpace(strings.ToUpper(lines[0]))
-	score.Passed = verdict == "PASS"
+	score.Passed = graderResp.Verdict == "PASS"
 	if score.Passed {
 		score.Value = 1
 	}
-
-	if len(lines) > 1 {
-		score.Reasoning = strings.TrimSpace(lines[1])
-	}
+	score.Reasoning = graderResp.Reasoning
 
 	return score
 }

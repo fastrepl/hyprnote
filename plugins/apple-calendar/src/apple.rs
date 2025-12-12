@@ -5,6 +5,7 @@ use itertools::Itertools;
 
 use objc2::{AllocAnyThread, msg_send, rc::Retained, runtime::Bool};
 use objc2_contacts::{CNContactStore, CNEntityType};
+use objc2_core_graphics::CGColor;
 use objc2_event_kit::{
     EKAlarm, EKAuthorizationStatus, EKCalendar, EKCalendarType, EKEntityType, EKEvent,
     EKEventAvailability, EKEventStatus, EKEventStore, EKParticipant, EKParticipantRole,
@@ -77,13 +78,14 @@ pub struct Handle {
     event_store: Retained<EKEventStore>,
 }
 
-#[allow(clippy::new_without_default)]
-impl Handle {
-    pub fn new() -> Self {
+impl Default for Handle {
+    fn default() -> Self {
         let event_store = unsafe { EKEventStore::new() };
         Self { event_store }
     }
+}
 
+impl Handle {
     fn has_calendar_access(&self) -> bool {
         let status = unsafe { EKEventStore::authorizationStatusForEntityType(EKEntityType::Event) };
         matches!(status, EKAuthorizationStatus::FullAccess)
@@ -168,14 +170,7 @@ fn transform_calendar(calendar: &EKCalendar) -> AppleCalendar {
     let title = unsafe { calendar.title() }.to_string();
     let calendar_type = transform_calendar_type(unsafe { calendar.r#type() });
 
-    let color = unsafe {
-        let cg_color: *const std::ffi::c_void = msg_send![calendar, CGColor];
-        if cg_color.is_null() {
-            None
-        } else {
-            extract_color_components(cg_color)
-        }
-    };
+    let color = unsafe { calendar.CGColor() }.map(|cg_color| extract_color_components(&cg_color));
 
     let allows_content_modifications = unsafe { calendar.allowsContentModifications() };
     let is_immutable = unsafe { calendar.isImmutable() };
@@ -694,8 +689,45 @@ fn transform_participant_schedule_status(status: NSInteger) -> Option<Participan
 }
 
 #[allow(unused_variables)]
-fn extract_color_components(cg_color: *const std::ffi::c_void) -> Option<CalendarColor> {
-    None
+fn extract_color_components(cg_color: &CGColor) -> CalendarColor {
+    let num_components = CGColor::number_of_components(Some(cg_color));
+    let components_ptr = CGColor::components(Some(cg_color));
+    let alpha = CGColor::alpha(Some(cg_color)) as f32;
+
+    if components_ptr.is_null() || num_components < 1 {
+        return CalendarColor {
+            red: 0.5,
+            green: 0.5,
+            blue: 0.5,
+            alpha: 1.0,
+        };
+    }
+
+    let components = unsafe { std::slice::from_raw_parts(components_ptr, num_components) };
+
+    match num_components {
+        2 => {
+            let gray = components[0] as f32;
+            CalendarColor {
+                red: gray,
+                green: gray,
+                blue: gray,
+                alpha,
+            }
+        }
+        3 | 4 => CalendarColor {
+            red: components[0] as f32,
+            green: components[1] as f32,
+            blue: components[2] as f32,
+            alpha,
+        },
+        _ => CalendarColor {
+            red: 0.5,
+            green: 0.5,
+            blue: 0.5,
+            alpha: 1.0,
+        },
+    }
 }
 
 fn extract_supported_availabilities(calendar: &EKCalendar) -> Vec<EventAvailability> {

@@ -28,3 +28,4 @@ jobs:
       - run: go install honnef.co/go/tools/cmd/staticcheck@latest
       - run: staticcheck ./evals/...
       - run: go build ./evals/cmd
+      - run: go test ./evals/... -v

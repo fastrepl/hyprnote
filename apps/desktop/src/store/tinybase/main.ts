@@ -442,6 +442,18 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           select("created_at");
         })
         .setQueryDefinition(
+          QUERIES.visibleCalendars,
+          "calendars",
+          ({ select }) => {
+            select("tracking_id");
+            select("name");
+            select("source");
+            select("provider");
+            select("enabled");
+            select("created_at");
+          },
+        )
+        .setQueryDefinition(
           QUERIES.visibleVocabs,
           "memories",
           ({ select, where }) => {
@@ -532,6 +544,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         INDEXES.speakerHintsByWord,
         "speaker_hints",
         "word_id",
+      )
+      .setIndexDefinition(
+        INDEXES.calendarsBySource,
+        "calendars",
+        "source",
+        "name",
       )
       .setIndexDefinition(
         INDEXES.eventsByCalendar,
@@ -664,6 +682,7 @@ export const QUERIES = {
   visibleTemplates: "visibleTemplates",
   visibleChatShortcuts: "visibleChatShortcuts",
   visibleFolders: "visibleFolders",
+  visibleCalendars: "visibleCalendars",
   visibleVocabs: "visibleVocabs",
   sessionParticipantsWithDetails: "sessionParticipantsWithDetails",
   sessionRecordingTimes: "sessionRecordingTimes",
@@ -676,6 +695,7 @@ export const METRICS = {
 };
 
 export const INDEXES = {
+  calendarsBySource: "calendarsBySource",
   humansByOrg: "humansByOrg",
   sessionParticipantsBySession: "sessionParticipantsBySession",
   foldersByParent: "foldersByParent",

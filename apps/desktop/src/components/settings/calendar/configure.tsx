@@ -1,6 +1,16 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertCircleIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  RefreshCwIcon,
+} from "lucide-react";
+import { useMemo } from "react";
 
+import {
+  type AppleCalendar,
+  commands as appleCalendarCommands,
+} from "@hypr/plugin-apple-calendar";
 import {
   commands as permissionsCommands,
   PermissionStatus,
@@ -12,9 +22,11 @@ import {
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
 import { useIsMacos } from "../../../hooks/usePlatform";
+import * as main from "../../../store/tinybase/main";
 import { PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
@@ -187,8 +199,174 @@ function AppleCalendarProviderCard() {
             onAction={contacts.handleAction}
           />
         </div>
+        {calendar.isAuthorized && <CalendarSelection />}
       </AccordionContent>
     </AccordionItem>
+  );
+}
+
+function CalendarSelection() {
+  const queryClient = useQueryClient();
+  const store = main.UI.useStore(main.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
+  const storedCalendars = main.UI.useTable("calendars", main.STORE_ID);
+
+  const {
+    data: appleCalendars,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["appleCalendars"],
+    queryFn: async () => {
+      const result = await appleCalendarCommands.listCalendars();
+      if (result.status === "ok") {
+        return result.data;
+      }
+      throw new Error(result.error);
+    },
+  });
+
+  const calendarsGroupedBySource = useMemo(() => {
+    if (!appleCalendars) return new Map<string, AppleCalendar[]>();
+
+    const grouped = new Map<string, AppleCalendar[]>();
+    for (const cal of appleCalendars) {
+      const sourceTitle = cal.source.title;
+      if (!grouped.has(sourceTitle)) {
+        grouped.set(sourceTitle, []);
+      }
+      grouped.get(sourceTitle)!.push(cal);
+    }
+    return grouped;
+  }, [appleCalendars]);
+
+  const getCalendarRowId = (trackingId: string): string | undefined => {
+    for (const [rowId, data] of Object.entries(storedCalendars)) {
+      if (data.tracking_id === trackingId) {
+        return rowId;
+      }
+    }
+    return undefined;
+  };
+
+  const isCalendarEnabled = (trackingId: string): boolean => {
+    for (const data of Object.values(storedCalendars)) {
+      if (data.tracking_id === trackingId) {
+        return data.enabled === 1;
+      }
+    }
+    return true;
+  };
+
+  const handleToggleCalendar = (calendar: AppleCalendar, enabled: boolean) => {
+    if (!store || !user_id) return;
+
+    const existingRowId = getCalendarRowId(calendar.id);
+
+    if (existingRowId) {
+      store.setPartialRow("calendars", existingRowId, {
+        enabled: enabled ? 1 : 0,
+      });
+    } else {
+      const newRowId = crypto.randomUUID();
+      store.setRow("calendars", newRowId, {
+        user_id,
+        created_at: new Date().toISOString(),
+        tracking_id: calendar.id,
+        name: calendar.title,
+        source: calendar.source.title,
+        provider: "apple",
+        enabled: enabled ? 1 : 0,
+      });
+    }
+  };
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["appleCalendars"] });
+    refetch();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="py-4 text-center text-sm text-neutral-500">
+        Loading calendars...
+      </div>
+    );
+  }
+
+  if (!appleCalendars || appleCalendars.length === 0) {
+    return (
+      <div className="py-4 text-center text-sm text-neutral-500">
+        No calendars found
+      </div>
+    );
+  }
+
+  return (
+    <div className="pt-4 border-t mt-2">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-medium">Select Calendars</h4>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          className="size-7"
+          aria-label="Refresh calendars"
+        >
+          <RefreshCwIcon className="size-4" />
+        </Button>
+      </div>
+      <div className="space-y-4">
+        {Array.from(calendarsGroupedBySource.entries()).map(
+          ([sourceName, calendars]) => (
+            <div key={sourceName}>
+              <h5 className="text-xs font-medium text-neutral-500 mb-2">
+                {sourceName}
+              </h5>
+              <div className="space-y-2">
+                {calendars.map((cal) => (
+                  <CalendarToggleRow
+                    key={cal.id}
+                    calendar={cal}
+                    enabled={isCalendarEnabled(cal.id)}
+                    onToggle={(enabled) => handleToggleCalendar(cal, enabled)}
+                  />
+                ))}
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CalendarToggleRow({
+  calendar,
+  enabled,
+  onToggle,
+}: {
+  calendar: AppleCalendar;
+  enabled: boolean;
+  onToggle: (enabled: boolean) => void;
+}) {
+  const colorStyle = calendar.color
+    ? {
+        backgroundColor: `rgba(${Math.round(calendar.color.red * 255)}, ${Math.round(calendar.color.green * 255)}, ${Math.round(calendar.color.blue * 255)}, ${calendar.color.alpha})`,
+      }
+    : undefined;
+
+  return (
+    <div className="flex items-center justify-between gap-3 py-1">
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div
+          className="size-3 rounded-full shrink-0"
+          style={colorStyle ?? { backgroundColor: "#888" }}
+        />
+        <span className="text-sm truncate">{calendar.title}</span>
+      </div>
+      <Switch checked={enabled} onCheckedChange={onToggle} />
+    </div>
   );
 }
 

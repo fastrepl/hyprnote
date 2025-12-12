@@ -204,7 +204,11 @@ export const calendars = pgTable(
   TABLE_CALENDARS,
   {
     ...SHARED,
+    tracking_id: text("tracking_id").notNull(),
     name: text("name").notNull(),
+    source: text("source").notNull(),
+    provider: text("provider").notNull(),
+    enabled: integer("enabled").notNull().default(1),
   },
   (table) => createPolicies(TABLE_CALENDARS, table.user_id),
 ).enableRLS();

@@ -18,11 +18,23 @@ export const createCalendar = () => {
     "Shared Calendar",
   ]);
 
+  const source = faker.helpers.arrayElement([
+    "iCloud",
+    "Exchange",
+    "Google",
+    "Local",
+    "Subscribed",
+  ]);
+
   return {
     id: id(),
     data: {
       user_id: DEFAULT_USER_ID,
+      tracking_id: id(),
       name: template,
+      source,
+      provider: "apple",
+      enabled: 1,
       created_at: faker.date.past({ years: 1 }).toISOString(),
     } satisfies Calendar,
   };

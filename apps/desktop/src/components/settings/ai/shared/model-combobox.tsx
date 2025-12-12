@@ -1,4 +1,4 @@
-import { ChevronDown, CirclePlus, Eye, EyeOff } from "lucide-react";
+import { ChevronDown, CirclePlus, Eye, EyeOff, RefreshCcw } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -70,11 +70,12 @@ export function ModelCombobox({
   const [query, setQuery] = useState("");
   const [showIgnored, setShowIgnored] = useState(false);
 
-  const { data: fetchedResult, isLoading: isLoadingModels } = useModelMetadata(
-    providerId,
-    listModels,
-    { enabled: !disabled },
-  );
+  const {
+    data: fetchedResult,
+    isLoading: isLoadingModels,
+    refetch,
+    isFetching,
+  } = useModelMetadata(providerId, listModels, { enabled: !disabled });
 
   const options: string[] = useMemo(
     () => fetchedResult?.models ?? [],
@@ -150,7 +151,20 @@ export function ModelCombobox({
               ) : hasIgnoredOptions ? (
                 <p>No models ready to use.</p>
               ) : (
-                <p>No models available.</p>
+                <div className="flex flex-col items-center gap-2">
+                  <p>No models available.</p>
+                  <button
+                    type="button"
+                    onClick={() => refetch()}
+                    disabled={isFetching}
+                    className="flex items-center gap-1 text-xs hover:text-foreground transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCcw
+                      className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`}
+                    />
+                    {isFetching ? "Refreshing..." : "Refresh"}
+                  </button>
+                </div>
               )}
             </div>
           </CommandEmpty>

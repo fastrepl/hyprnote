@@ -8,6 +8,7 @@ use tauri::{
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri_plugin_misc::MiscPluginExt;
+use tauri_plugin_updater::UpdaterExt;
 
 const TRAY_ID: &str = "hypr-tray";
 
@@ -15,6 +16,7 @@ pub enum HyprMenuItem {
     TrayOpen,
     TrayStart,
     TrayQuit,
+    TrayCheckUpdate,
     AppInfo,
     AppCliInstall,
     AppCliUninstall,
@@ -27,6 +29,7 @@ impl From<HyprMenuItem> for MenuId {
             HyprMenuItem::TrayOpen => "hypr_tray_open",
             HyprMenuItem::TrayStart => "hypr_tray_start",
             HyprMenuItem::TrayQuit => "hypr_tray_quit",
+            HyprMenuItem::TrayCheckUpdate => "hypr_tray_check_update",
             HyprMenuItem::AppInfo => "hypr_app_info",
             HyprMenuItem::AppCliInstall => "hypr_app_cli_install",
             HyprMenuItem::AppCliUninstall => "hypr_app_cli_uninstall",
@@ -43,6 +46,7 @@ impl From<MenuId> for HyprMenuItem {
             "hypr_tray_open" => HyprMenuItem::TrayOpen,
             "hypr_tray_start" => HyprMenuItem::TrayStart,
             "hypr_tray_quit" => HyprMenuItem::TrayQuit,
+            "hypr_tray_check_update" => HyprMenuItem::TrayCheckUpdate,
             "hypr_app_info" => HyprMenuItem::AppInfo,
             "hypr_app_cli_install" => HyprMenuItem::AppCliInstall,
             "hypr_app_cli_uninstall" => HyprMenuItem::AppCliUninstall,
@@ -98,6 +102,8 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             &[
                 &tray_open_menu(app)?,
                 &tray_start_menu(app, false)?,
+                &PredefinedMenuItem::separator(app)?,
+                &tray_check_update_menu(app)?,
                 &PredefinedMenuItem::separator(app)?,
                 &tray_quit_menu(app)?,
             ],
@@ -186,6 +192,88 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                             );
                         }
                     }
+                    HyprMenuItem::TrayCheckUpdate => {
+                        let app_clone = app.clone();
+                        tauri::async_runtime::spawn(async move {
+                            match app_clone.updater() {
+                                Ok(updater) => match updater.check().await {
+                                    Ok(Some(update)) => {
+                                        let version = update.version.clone();
+                                        let body = update
+                                            .body
+                                            .clone()
+                                            .unwrap_or_else(|| "No release notes.".to_string());
+
+                                        let app_for_dialog = app_clone.clone();
+                                        app_clone
+                                            .dialog()
+                                            .message(format!(
+                                                "Update v{} is available!\n\n{}",
+                                                version, body
+                                            ))
+                                            .title("Update Available")
+                                            .buttons(MessageDialogButtons::OkCancelCustom(
+                                                "Download & Install".to_string(),
+                                                "Later".to_string(),
+                                            ))
+                                            .show(move |result| {
+                                                if result {
+                                                    let app_for_install = app_for_dialog.clone();
+                                                    tauri::async_runtime::spawn(async move {
+                                                        match update
+                                                            .download_and_install(
+                                                                |_, _| {},
+                                                                || {},
+                                                            )
+                                                            .await
+                                                        {
+                                                            Ok(_) => {
+                                                                app_for_install
+                                                                    .dialog()
+                                                                    .message("Update installed! Please restart the application.")
+                                                                    .title("Update Complete")
+                                                                    .blocking_show();
+                                                            }
+                                                            Err(e) => {
+                                                                app_for_install
+                                                                    .dialog()
+                                                                    .message(format!(
+                                                                        "Failed to install update: {}",
+                                                                        e
+                                                                    ))
+                                                                    .title("Update Error")
+                                                                    .blocking_show();
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                    }
+                                    Ok(None) => {
+                                        app_clone
+                                            .dialog()
+                                            .message("You're running the latest version!")
+                                            .title("No Updates")
+                                            .blocking_show();
+                                    }
+                                    Err(e) => {
+                                        app_clone
+                                            .dialog()
+                                            .message(format!("Failed to check for updates: {}", e))
+                                            .title("Update Check Failed")
+                                            .blocking_show();
+                                    }
+                                },
+                                Err(e) => {
+                                    app_clone
+                                        .dialog()
+                                        .message(format!("Failed to initialize updater: {}", e))
+                                        .title("Updater Error")
+                                        .blocking_show();
+                                }
+                            }
+                        });
+                    }
                 }
             })
             .build(app)?;
@@ -202,6 +290,8 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                 &[
                     &tray_open_menu(app)?,
                     &tray_start_menu(app, disabled)?,
+                    &PredefinedMenuItem::separator(app)?,
+                    &tray_check_update_menu(app)?,
                     &PredefinedMenuItem::separator(app)?,
                     &tray_quit_menu(app)?,
                 ],
@@ -289,5 +379,15 @@ fn tray_quit_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> 
         "Quit Completely",
         true,
         Some("cmd+q"),
+    )
+}
+
+fn tray_check_update_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
+    MenuItem::with_id(
+        app,
+        HyprMenuItem::TrayCheckUpdate,
+        "Check for Updates...",
+        true,
+        None::<&str>,
     )
 }

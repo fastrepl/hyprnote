@@ -9,7 +9,7 @@ export const CustomListKeymap = ListKeymap.extend({
     return [
       new Plugin({
         key: mergeAdjacentListsPluginKey,
-        appendTransaction: (transactions, oldState, newState) => {
+        appendTransaction: (transactions, _oldState, newState) => {
           if (!transactions.some((tr) => tr.docChanged)) {
             return null;
           }

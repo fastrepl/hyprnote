@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
@@ -88,6 +87,8 @@ export function TranscriptContainer({
     autoScrollEnabled,
   );
 
+  const shouldShowButton = !isAtBottom && currentActive;
+
   if (transcriptIds.length === 0) {
     return null;
   }
@@ -136,27 +137,20 @@ export function TranscriptContainer({
         )}
       </div>
 
-      <AnimatePresence>
-        {!isAtBottom && currentActive && (
-          <motion.button
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            onClick={scrollToBottom}
-            className={cn([
-              "absolute bottom-3 left-1/2 transform -translate-x-1/2",
-              "px-4 py-2 rounded-full",
-              "shadow-lg bg-neutral-800 hover:bg-neutral-700",
-              "text-white text-xs font-light",
-              "transition-colors duration-200",
-              "z-30",
-            ])}
-          >
-            Go to bottom
-          </motion.button>
-        )}
-      </AnimatePresence>
+      <button
+        onClick={scrollToBottom}
+        className={cn([
+          "absolute bottom-3 left-1/2 -translate-x-1/2 z-30",
+          "px-4 py-2 rounded-full",
+          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+          "text-xs font-light",
+          "transition-opacity duration-150",
+          shouldShowButton ? "opacity-100" : "opacity-0 pointer-events-none",
+        ])}
+      >
+        Go to bottom
+      </button>
     </div>
   );
 }

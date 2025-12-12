@@ -178,6 +178,7 @@ pub async fn main() {
         }
     }
 
+    #[allow(unused_variables)]
     app.run(move |app, event| match event {
         #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen { .. } => {

@@ -145,7 +145,7 @@ export function TranscriptContainer({
             transition={{ duration: 0.2, ease: "easeOut" }}
             onClick={scrollToBottom}
             className={cn([
-              "absolute bottom-3 left-1/2 -translate-x-1/2",
+              "absolute bottom-3 left-1/2 transform -translate-x-1/2",
               "px-4 py-2 rounded-full",
               "shadow-lg bg-neutral-800 hover:bg-neutral-700",
               "text-white text-xs font-light",

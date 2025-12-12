@@ -77,6 +77,22 @@ fn actor_error(msg: impl Into<String>) -> ActorProcessingErr {
     Box::new(ListenerInitError(msg.into()))
 }
 
+fn emit_session_error(
+    app: &tauri::AppHandle,
+    session_id: &str,
+    error_type: &str,
+    message: &str,
+    context: Option<String>,
+) {
+    let _ = (SessionEvent::Error {
+        session_id: session_id.to_string(),
+        error_type: error_type.to_string(),
+        message: message.to_string(),
+        context,
+    })
+    .emit(app);
+}
+
 #[ractor::async_trait]
 impl Actor for ListenerActor {
     type Msg = ListenerMsg;
@@ -154,6 +170,13 @@ impl Actor for ListenerActor {
 
             ListenerMsg::StreamError(error) => {
                 tracing::info!("listen_stream_error: {}", error);
+                emit_session_error(
+                    &state.args.app,
+                    &state.args.session_id,
+                    "stream_error",
+                    "Transcription stream encountered an error",
+                    Some(error),
+                );
                 myself.stop(None);
             }
 
@@ -164,6 +187,13 @@ impl Actor for ListenerActor {
 
             ListenerMsg::StreamTimeout(elapsed) => {
                 tracing::info!("listen_stream_timeout: {}", elapsed);
+                emit_session_error(
+                    &state.args.app,
+                    &state.args.session_id,
+                    "stream_timeout",
+                    "Transcription stream timed out",
+                    Some(format!("{}", elapsed)),
+                );
                 myself.stop(None);
             }
         }
@@ -305,11 +335,28 @@ async fn spawn_rx_task_single_with_adapter<A: RealtimeSttAdapter>(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(single)"
             );
+            emit_session_error(
+                &args.app,
+                &args.session_id,
+                "ws_connect_timeout",
+                "Connection to transcription service timed out",
+                Some(format!(
+                    "Timeout after {} seconds",
+                    LISTEN_CONNECT_TIMEOUT.as_secs()
+                )),
+            );
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, "listen_ws_connect_failed(single)");
-            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+            emit_session_error(
+                &args.app,
+                &args.session_id,
+                "ws_connect_failed",
+                "Failed to connect to transcription service",
+                Some(e.to_string()),
+            );
+            return Err(actor_error(format!("listen_ws_connect_failed: {}", e)));
         }
         Ok(Ok(res)) => res,
     };
@@ -365,11 +412,28 @@ async fn spawn_rx_task_dual_with_adapter<A: RealtimeSttAdapter>(
                 timeout_secs = LISTEN_CONNECT_TIMEOUT.as_secs_f32(),
                 "listen_ws_connect_timeout(dual)"
             );
+            emit_session_error(
+                &args.app,
+                &args.session_id,
+                "ws_connect_timeout",
+                "Connection to transcription service timed out",
+                Some(format!(
+                    "Timeout after {} seconds",
+                    LISTEN_CONNECT_TIMEOUT.as_secs()
+                )),
+            );
             return Err(actor_error("listen_ws_connect_timeout"));
         }
         Ok(Err(e)) => {
             tracing::error!(error = ?e, "listen_ws_connect_failed(dual)");
-            return Err(actor_error(format!("listen_ws_connect_failed: {:?}", e)));
+            emit_session_error(
+                &args.app,
+                &args.session_id,
+                "ws_connect_failed",
+                "Failed to connect to transcription service",
+                Some(e.to_string()),
+            );
+            return Err(actor_error(format!("listen_ws_connect_failed: {}", e)));
         }
         Ok(Ok(res)) => res,
     };

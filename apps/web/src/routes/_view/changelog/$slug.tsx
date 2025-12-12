@@ -23,6 +23,7 @@ import {
 } from "@/changelog";
 import { defaultMDXComponents } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
+import { NotFoundContent } from "@/components/not-found";
 
 dayjs.extend(relativeTime);
 
@@ -35,6 +36,7 @@ type VersionGroup = {
 
 export const Route = createFileRoute("/_view/changelog/$slug")({
   component: Component,
+  notFoundComponent: NotFoundContent,
   loader: async ({ params }) => {
     const changelog = getChangelogBySlug(params.slug);
     if (!changelog) {

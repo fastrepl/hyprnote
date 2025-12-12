@@ -54,9 +54,7 @@ const SearchPaletteContext = createContext<{
 function useSearchPalette() {
   const ctx = useContext(SearchPaletteContext);
   if (!ctx) {
-    throw new Error(
-      "useSearchPalette must be used within SearchPaletteProvider",
-    );
+    return { open: false, setOpen: () => {} };
   }
   return ctx;
 }

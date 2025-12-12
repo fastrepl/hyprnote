@@ -41,6 +41,11 @@
         "exts": ["js", "ts", "jsx", "tsx", "mjs", "mts"]
       },
       {
+        "command": "gofmt",
+        "exts": ["go"],
+        "cacheKeyFiles": ["go.mod", "go.sum"]
+      },
+      {
         "command": "rustfmt --edition 2024",
         "exts": ["rs"],
         "cacheKeyFiles": [

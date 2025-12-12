@@ -8,6 +8,14 @@ type StoreSetRow = {
   ) => unknown;
 };
 
+function getEventUniqueId(event: AppleEvent): string {
+  // For recurring events, event_identifier is shared across all occurrences.
+  // occurrence_date distinguishes specific occurrences.
+  // Fall back to start_date which is always unique per occurrence.
+  const occurrenceKey = event.occurrence_date ?? event.start_date;
+  return `${event.event_identifier}:${occurrenceKey}`;
+}
+
 export function generateCalendarChunks(): Array<{ from: string; to: string }> {
   const now = new Date();
   const day = 24 * 60 * 60 * 1000;
@@ -38,7 +46,7 @@ export function storeEvents(
     const calendarId = calendarMap[event.calendar.id];
     if (!calendarId) continue;
 
-    store.setRow("events", event.event_identifier, {
+    store.setRow("events", getEventUniqueId(event), {
       user_id: userId,
       created_at: event.creation_date ?? new Date().toISOString(),
       calendar_id: calendarId,

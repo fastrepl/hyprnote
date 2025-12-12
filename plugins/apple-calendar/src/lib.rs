@@ -3,6 +3,8 @@ use tauri::Manager;
 #[cfg(target_os = "macos")]
 mod apple;
 #[cfg(target_os = "macos")]
+mod contact_resolver;
+#[cfg(target_os = "macos")]
 mod recurrence;
 
 mod commands;
@@ -84,7 +86,38 @@ mod test {
     }
 
     #[test]
-    fn test_apple_calendar() {
-        let _app = create_app(tauri::test::mock_builder());
+    fn test_list_calendars() {
+        let app = create_app(tauri::test::mock_builder());
+
+        let calendars = app.list_calendars();
+        println!("calendars: {:?}", calendars);
+    }
+
+    #[test]
+    fn test_list_events() {
+        let app = create_app(tauri::test::mock_builder());
+
+        // First test with a simple calendar that should exist
+        match app.list_calendars() {
+            Ok(calendars) => {
+                if let Some(calendar) = calendars.first() {
+                    println!(
+                        "Testing with calendar: {} ({})",
+                        calendar.title, calendar.id
+                    );
+                    let events = app.list_events(EventFilter {
+                        from: chrono::Utc::now(),
+                        to: chrono::Utc::now() + chrono::Duration::days(7),
+                        calendar_tracking_id: calendar.id.clone(),
+                    });
+                    println!("events: {:?}", events);
+                } else {
+                    println!("No calendars found");
+                }
+            }
+            Err(e) => {
+                println!("Error listing calendars: {:?}", e);
+            }
+        }
     }
 }

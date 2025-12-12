@@ -1,12 +1,16 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
+import { useMemo } from "react";
 
+import {
+  type AppleCalendar,
+  commands as appleCalendarCommands,
+} from "@hypr/plugin-apple-calendar";
 import {
   commands as permissionsCommands,
   PermissionStatus,
 } from "@hypr/plugin-permissions";
 import {
-  Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
@@ -14,31 +18,9 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { useIsMacos } from "../../../hooks/usePlatform";
-import { PROVIDERS } from "./shared";
-
-export function ConfigureProviders() {
-  const isMacos = useIsMacos();
-
-  const visibleProviders = PROVIDERS.filter(
-    (p) => p.platform === "all" || (p.platform === "macos" && isMacos),
-  );
-
-  return (
-    <div className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold">Configure Providers</h3>
-      <Accordion type="single" collapsible className="space-y-3">
-        {visibleProviders.map((provider) =>
-          provider.id === "apple" ? (
-            <AppleCalendarProviderCard key={provider.id} />
-          ) : (
-            <DisabledProviderCard key={provider.id} config={provider} />
-          ),
-        )}
-      </Accordion>
-    </div>
-  );
-}
+import * as main from "../../../../store/tinybase/main";
+import { PROVIDERS } from "../shared";
+import { CalendarGroup, CalendarItem, CalendarSelection } from "./shared";
 
 function useAccessPermission(config: {
   queryKey: string;
@@ -140,7 +122,116 @@ function AccessPermissionRow({
   );
 }
 
-function AppleCalendarProviderCard() {
+function appleColorToCss(color?: AppleCalendar["color"]): string | undefined {
+  if (!color) return undefined;
+  return `rgba(${Math.round(color.red * 255)}, ${Math.round(color.green * 255)}, ${Math.round(color.blue * 255)}, ${color.alpha})`;
+}
+
+function useAppleCalendarSelection() {
+  const queryClient = useQueryClient();
+  const store = main.UI.useStore(main.STORE_ID);
+  const { user_id } = main.UI.useValues(main.STORE_ID);
+  const storedCalendars = main.UI.useTable("calendars", main.STORE_ID);
+
+  const { data: appleCalendars, isLoading } = useQuery({
+    queryKey: ["appleCalendars"],
+    queryFn: async () => {
+      const result = await appleCalendarCommands.listCalendars();
+      if (result.status === "ok") {
+        return result.data;
+      }
+      throw new Error(result.error);
+    },
+  });
+
+  const groups = useMemo((): CalendarGroup[] => {
+    if (!appleCalendars) return [];
+
+    const grouped = new Map<string, CalendarItem[]>();
+    for (const cal of appleCalendars) {
+      const sourceTitle = cal.source.title;
+      if (!grouped.has(sourceTitle)) {
+        grouped.set(sourceTitle, []);
+      }
+      grouped.get(sourceTitle)!.push({
+        id: cal.id,
+        title: cal.title,
+        color: appleColorToCss(cal.color),
+      });
+    }
+
+    return Array.from(grouped.entries()).map(([sourceName, calendars]) => ({
+      sourceName,
+      calendars,
+    }));
+  }, [appleCalendars]);
+
+  const getCalendarRowId = (trackingId: string): string | undefined => {
+    for (const [rowId, data] of Object.entries(storedCalendars)) {
+      if (data.tracking_id === trackingId) {
+        return rowId;
+      }
+    }
+    return undefined;
+  };
+
+  const isCalendarEnabled = (trackingId: string): boolean => {
+    for (const data of Object.values(storedCalendars)) {
+      if (data.tracking_id === trackingId) {
+        return data.enabled === 1;
+      }
+    }
+    return false;
+  };
+
+  const handleToggle = (calendar: CalendarItem, enabled: boolean) => {
+    if (!store || !user_id) return;
+
+    const appleCalendar = appleCalendars?.find((c) => c.id === calendar.id);
+    if (!appleCalendar) return;
+
+    const existingRowId = getCalendarRowId(calendar.id);
+
+    if (existingRowId) {
+      store.setPartialRow("calendars", existingRowId, {
+        enabled: enabled ? 1 : 0,
+      });
+    } else {
+      const newRowId = crypto.randomUUID();
+      store.setRow("calendars", newRowId, {
+        user_id,
+        created_at: new Date().toISOString(),
+        tracking_id: calendar.id,
+        name: calendar.title,
+        source: appleCalendar.source.title,
+        provider: "apple",
+        enabled: enabled ? 1 : 0,
+      });
+    }
+  };
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["appleCalendars"] });
+  };
+
+  return { groups, isLoading, isCalendarEnabled, handleToggle, handleRefresh };
+}
+
+function AppleCalendarSelection() {
+  const { groups, isCalendarEnabled, handleToggle, handleRefresh } =
+    useAppleCalendarSelection();
+
+  return (
+    <CalendarSelection
+      groups={groups}
+      isCalendarEnabled={isCalendarEnabled}
+      onToggle={handleToggle}
+      onRefresh={handleRefresh}
+    />
+  );
+}
+
+export function AppleCalendarProviderCard() {
   const config = PROVIDERS.find((p) => p.id === "apple")!;
 
   const calendar = useAccessPermission({
@@ -187,38 +278,8 @@ function AppleCalendarProviderCard() {
             onAction={contacts.handleAction}
           />
         </div>
+        {calendar.isAuthorized && <AppleCalendarSelection />}
       </AccordionContent>
-    </AccordionItem>
-  );
-}
-
-function DisabledProviderCard({
-  config,
-}: {
-  config: (typeof PROVIDERS)[number];
-}) {
-  return (
-    <AccordionItem
-      disabled
-      value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
-    >
-      <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          "cursor-not-allowed opacity-50",
-        ])}
-      >
-        <div className="flex items-center gap-2">
-          {config.icon}
-          <span>{config.displayName}</span>
-          {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-              {config.badge}
-            </span>
-          )}
-        </div>
-      </AccordionTrigger>
     </AccordionItem>
   );
 }

@@ -66,6 +66,16 @@ common_derives! {
     }
 }
 
+impl Default for CalendarSource {
+    fn default() -> Self {
+        Self {
+            identifier: String::new(),
+            title: String::new(),
+            source_type: CalendarSourceType::Local,
+        }
+    }
+}
+
 common_derives! {
     pub struct AppleCalendar {
         pub id: String,

@@ -1,6 +1,7 @@
 import { startOfDay } from "date-fns";
-import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon, RefreshCwIcon } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
+import { useScheduleTaskRunCallback } from "tinytick/ui-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -18,6 +19,8 @@ import { useAnchor, useAutoScrollToAnchor } from "./anchor";
 import { TimelineItemComponent } from "./item";
 import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
 
+const CALENDAR_FETCH_TASK_ID = "fetchAppleCalendarChunk";
+
 export function TimelineView() {
   const buckets = useTimelineData();
   const hasToday = useMemo(
@@ -27,6 +30,15 @@ export function TimelineView() {
 
   const currentTab = useTabs((state) => state.currentTab);
   const store = main.UI.useStore(main.STORE_ID);
+  const calendars = main.UI.useTable("calendars", main.STORE_ID);
+
+  const hasEnabledCalendar = useMemo(() => {
+    return Object.values(calendars).some((cal) => cal.enabled === 1);
+  }, [calendars]);
+
+  const triggerCalendarSync = useScheduleTaskRunCallback(
+    CALENDAR_FETCH_TASK_ID,
+  );
 
   const selectedSessionId = useMemo(() => {
     return currentTab?.type === "sessions" ? currentTab.id : undefined;
@@ -85,13 +97,10 @@ export function TimelineView() {
   }, [buckets, hasToday, todayTimestamp]);
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full flex flex-col">
       <div
         ref={containerRef}
-        className={cn([
-          "flex flex-col h-full overflow-y-auto scrollbar-hide",
-          "bg-neutral-50 rounded-xl",
-        ])}
+        className="flex flex-col flex-1 overflow-y-auto scrollbar-hide"
       >
         {buckets.map((bucket, index) => {
           const isToday = bucket.label === "Today";
@@ -103,12 +112,21 @@ export function TimelineView() {
               {shouldRenderIndicatorBefore && (
                 <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
               )}
-              <div
-                className={cn(["sticky top-0 z-10", "bg-neutral-50 px-2 py-1"])}
-              >
+              <div className="sticky top-0 z-10 bg-background px-2 py-1 flex items-center justify-between">
                 <div className="text-base font-bold text-neutral-900">
                   {bucket.label}
                 </div>
+                {isToday && hasEnabledCalendar && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => triggerCalendarSync()}
+                    className="size-5 text-neutral-400 hover:text-neutral-600"
+                    aria-label="Refresh calendar events"
+                  >
+                    <RefreshCwIcon className="size-3" />
+                  </Button>
+                )}
               </div>
               {isToday ? (
                 <TodayBucket

@@ -1,6 +1,5 @@
 use tauri::{AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
-use uuid::Uuid;
 
 use crate::{AppWindow, WindowImpl, events};
 

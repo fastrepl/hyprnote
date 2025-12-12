@@ -45,7 +45,6 @@ jobs:
       - uses: ./.github/actions/rust_install
         with:
           platform: ${{ matrix.platform }}
-          cache-suffix: ${{ matrix.runner }}
       - run: cargo check -p desktop
       - run: cargo test -p desktop
 

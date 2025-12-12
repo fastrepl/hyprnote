@@ -33,12 +33,12 @@ var MDGen = evals.NewTask(
 		{
 			Name:        "concise",
 			Description: "Output is concise and under 150 words, staying focused on the topic",
-			Grader:      evals.LLMGrader{},
+			Grader:      evals.LLMGrader{Samples: 3},
 		},
 		{
 			Name:        "technically_accurate",
 			Description: "Output is technically accurate about Go testing and LLM evaluation",
-			Grader:      evals.LLMGrader{},
+			Grader:      evals.LLMGrader{Samples: 3},
 		},
 	},
 )

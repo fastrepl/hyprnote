@@ -25,9 +25,9 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
-import { useIsMacos } from "../../../hooks/usePlatform";
-import * as main from "../../../store/tinybase/main";
-import { PROVIDERS } from "./shared";
+import { useIsMacos } from "../../../../hooks/usePlatform";
+import * as main from "../../../../store/tinybase/main";
+import { PROVIDERS } from "../shared";
 
 export function ConfigureProviders() {
   const isMacos = useIsMacos();

@@ -1,7 +1,7 @@
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLinkIcon, SparklesIcon } from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";

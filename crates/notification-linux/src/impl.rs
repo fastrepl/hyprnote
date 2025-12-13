@@ -244,22 +244,22 @@ impl NotificationManager {
 
         main_box.pack_start(&text_box, true, true, 0);
 
-        if let Some(url_str) = url {
-            if !url_str.is_empty() {
-                let action_button = Button::with_label("Take Notes");
-                action_button.style_context().add_class("action-button");
+        if let Some(url_str) = url
+            && !url_str.is_empty()
+        {
+            let action_button = Button::with_label("Take Notes");
+            action_button.style_context().add_class("action-button");
 
-                let id_clone = id.to_string();
-                let url_clone = url_str.to_string();
-                let window_clone = window.clone();
-                action_button.connect_clicked(move |_| {
-                    call_confirm_handler(id_clone.clone());
-                    let _ = open::that(&url_clone);
-                    NotificationInstance::dismiss_window(&window_clone, &id_clone, false);
-                });
+            let id_clone = id.to_string();
+            let url_clone = url_str.to_string();
+            let window_clone = window.clone();
+            action_button.connect_clicked(move |_| {
+                call_confirm_handler(id_clone.clone());
+                let _ = open::that(&url_clone);
+                NotificationInstance::dismiss_window(&window_clone, &id_clone, false);
+            });
 
-                main_box.pack_start(&action_button, false, false, 0);
-            }
+            main_box.pack_start(&action_button, false, false, 0);
         }
 
         let close_button = Button::new();
@@ -286,13 +286,13 @@ impl NotificationManager {
         // Use the default width we set (360) since window.size() returns 0 before realization
         const DEFAULT_WINDOW_WIDTH: i32 = 360;
 
-        if let Some(screen) = gdk::Screen::default() {
-            if let Some(root_window) = screen.root_window() {
-                let screen_width = root_window.width();
-                let x = screen_width - DEFAULT_WINDOW_WIDTH - 20;
-                let y = 50;
-                window.move_(x, y);
-            }
+        if let Some(screen) = gdk::Screen::default()
+            && let Some(root_window) = screen.root_window()
+        {
+            let screen_width = root_window.width();
+            let x = screen_width - DEFAULT_WINDOW_WIDTH - 20;
+            let y = 50;
+            window.move_(x, y);
         }
     }
 

@@ -187,14 +187,14 @@ impl Llama {
                     let rounded_progress_int = (progress * 100.0).round() as i32;
 
                     let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                        if let Ok(mut last_reported) = progress_data.last_reported.lock() {
-                            if *last_reported != rounded_progress_int {
-                                *last_reported = rounded_progress_int;
-                                let rounded_progress = rounded_progress_int as f64 / 100.0;
+                        if let Ok(mut last_reported) = progress_data.last_reported.lock()
+                            && *last_reported != rounded_progress_int
+                        {
+                            *last_reported = rounded_progress_int;
+                            let rounded_progress = rounded_progress_int as f64 / 100.0;
 
-                                if let Ok(mut cb) = progress_data.callback.lock() {
-                                    (cb)(rounded_progress);
-                                }
+                            if let Ok(mut cb) = progress_data.callback.lock() {
+                                (cb)(rounded_progress);
                             }
                         }
                     }));

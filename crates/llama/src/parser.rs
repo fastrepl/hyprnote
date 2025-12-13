@@ -65,12 +65,12 @@ impl StreamingParser {
             return Some(Response::ToolCall { name, arguments });
         }
 
-        if let Some(pos) = self.find_next_block_start() {
-            if pos > 0 {
-                let text = self.buffer[..pos].to_string();
-                self.buffer = self.buffer[pos..].to_string();
-                return Some(Response::TextDelta(text));
-            }
+        if let Some(pos) = self.find_next_block_start()
+            && pos > 0
+        {
+            let text = self.buffer[..pos].to_string();
+            self.buffer = self.buffer[pos..].to_string();
+            return Some(Response::TextDelta(text));
         }
 
         None

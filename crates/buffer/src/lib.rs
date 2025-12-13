@@ -166,20 +166,20 @@ fn set_heading_level_from(node: &mut markdown::mdast::Node, depth: u8, header_fo
 }
 
 fn flatten_headings(node: &mut markdown::mdast::Node) {
-    if let markdown::mdast::Node::Heading(heading) = node {
-        if heading.depth > 1 {
-            let children = node.children().cloned().unwrap_or_default();
+    if let markdown::mdast::Node::Heading(heading) = node
+        && heading.depth > 1
+    {
+        let children = node.children().cloned().unwrap_or_default();
 
-            let strong_node = markdown::mdast::Node::Strong(markdown::mdast::Strong {
-                children,
-                position: None,
-            });
+        let strong_node = markdown::mdast::Node::Strong(markdown::mdast::Strong {
+            children,
+            position: None,
+        });
 
-            *node = markdown::mdast::Node::Paragraph(markdown::mdast::Paragraph {
-                children: vec![strong_node],
-                position: None,
-            });
-        }
+        *node = markdown::mdast::Node::Paragraph(markdown::mdast::Paragraph {
+            children: vec![strong_node],
+            position: None,
+        });
     }
 
     if let Some(children) = node.children_mut() {
@@ -208,13 +208,12 @@ fn remove_empty_headings(node: &mut markdown::mdast::Node) {
     if let Some(children) = node.children_mut() {
         let mut i = 0;
         while i < children.len() {
-            if let Some(next) = children.get(i + 1) {
-                if matches!(&children[i], markdown::mdast::Node::Heading(_))
-                    && matches!(next, markdown::mdast::Node::Heading(_))
-                {
-                    children.remove(i);
-                    continue;
-                }
+            if let Some(next) = children.get(i + 1)
+                && matches!(&children[i], markdown::mdast::Node::Heading(_))
+                && matches!(next, markdown::mdast::Node::Heading(_))
+            {
+                children.remove(i);
+                continue;
             }
             i += 1;
         }

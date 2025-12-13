@@ -126,7 +126,6 @@ export const tabSchema = z.discriminatedUnion("type", [
           .enum([
             "general",
             "calendar",
-            "notifications",
             "transcription",
             "intelligence",
             "account",
@@ -192,7 +191,6 @@ export type TabInput =
         tab?:
           | "general"
           | "calendar"
-          | "notifications"
           | "transcription"
           | "intelligence"
           | "account";

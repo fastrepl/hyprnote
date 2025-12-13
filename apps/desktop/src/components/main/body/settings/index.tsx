@@ -1,7 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   AudioLines,
-  Bell,
   CalendarDays,
   type LucideIcon,
   MessageCircleQuestion,
@@ -21,14 +20,12 @@ import { LLM } from "../../../settings/ai/llm";
 import { STT } from "../../../settings/ai/stt";
 import { SettingsCalendar } from "../../../settings/calendar";
 import { SettingsGeneral } from "../../../settings/general";
-import { SettingsNotifications } from "../../../settings/notification";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 
 type SettingsTabKey =
   | "general"
   | "calendar"
-  | "notifications"
   | "transcription"
   | "intelligence"
   | "account";
@@ -51,11 +48,6 @@ const TAB_CONFIG: Record<
     icon: CalendarDays,
     group: 1,
   },
-  notifications: {
-    label: "Notifications",
-    icon: Bell,
-    group: 1,
-  },
   transcription: {
     label: "Transcription",
     icon: AudioLines,
@@ -76,7 +68,6 @@ const TAB_CONFIG: Record<
 const TAB_KEYS: SettingsTabKey[] = [
   "general",
   "calendar",
-  "notifications",
   "transcription",
   "intelligence",
   "account",
@@ -249,8 +240,6 @@ function SettingsContent({ activeTab }: { activeTab: SettingsTabKey }) {
       return <STT />;
     case "intelligence":
       return <LLM />;
-    case "notifications":
-      return <SettingsNotifications />;
     case "account":
       return <SettingsAccount />;
     default:

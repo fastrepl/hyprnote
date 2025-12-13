@@ -41,14 +41,16 @@ const useNavigationEvents = () => {
       .navigate(webview)
       .listen(({ payload }) => {
         if (payload.path === "/app/settings") {
-          const tab = (payload.search?.tab as string) ?? "general";
+          let tab = (payload.search?.tab as string) ?? "general";
+          if (tab === "notifications") {
+            tab = "general";
+          }
           openNew({
             type: "settings",
             state: {
               tab: tab as
                 | "general"
                 | "calendar"
-                | "notifications"
                 | "transcription"
                 | "intelligence"
                 | "account",

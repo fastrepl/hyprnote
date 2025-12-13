@@ -10,6 +10,7 @@ pub use events::*;
 pub use ext::*;
 pub use window::*;
 
+pub use commands::VibrancyMaterial;
 pub use overlay::{FakeWindowBounds, OverlayBound};
 
 const PLUGIN_NAME: &str = "windows";
@@ -54,6 +55,8 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             commands::window_is_exists,
             commands::set_fake_window_bounds,
             commands::remove_fake_window,
+            commands::apply_vibrancy,
+            commands::clear_vibrancy,
         ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }

@@ -1,5 +1,45 @@
 use crate::{AppWindow, FakeWindowBounds, OverlayBound, WindowsPluginExt, events};
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type)]
+pub enum VibrancyMaterial {
+    Titlebar,
+    Selection,
+    Menu,
+    Popover,
+    Sidebar,
+    HeaderView,
+    Sheet,
+    WindowBackground,
+    HudWindow,
+    FullScreenUI,
+    Tooltip,
+    ContentBackground,
+    UnderWindowBackground,
+    UnderPageBackground,
+}
+
+#[cfg(target_os = "macos")]
+impl From<VibrancyMaterial> for window_vibrancy::NSVisualEffectMaterial {
+    fn from(material: VibrancyMaterial) -> Self {
+        match material {
+            VibrancyMaterial::Titlebar => Self::Titlebar,
+            VibrancyMaterial::Selection => Self::Selection,
+            VibrancyMaterial::Menu => Self::Menu,
+            VibrancyMaterial::Popover => Self::Popover,
+            VibrancyMaterial::Sidebar => Self::Sidebar,
+            VibrancyMaterial::HeaderView => Self::HeaderView,
+            VibrancyMaterial::Sheet => Self::Sheet,
+            VibrancyMaterial::WindowBackground => Self::WindowBackground,
+            VibrancyMaterial::HudWindow => Self::HudWindow,
+            VibrancyMaterial::FullScreenUI => Self::FullScreenUI,
+            VibrancyMaterial::Tooltip => Self::Tooltip,
+            VibrancyMaterial::ContentBackground => Self::ContentBackground,
+            VibrancyMaterial::UnderWindowBackground => Self::UnderWindowBackground,
+            VibrancyMaterial::UnderPageBackground => Self::UnderPageBackground,
+        }
+    }
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn window_show(
@@ -104,4 +144,64 @@ pub async fn remove_fake_window(
     state: tauri::State<'_, FakeWindowBounds>,
 ) -> Result<(), String> {
     remove_bounds(&window, &state, name).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn apply_vibrancy(
+    app: tauri::AppHandle<tauri::Wry>,
+    window: AppWindow,
+    material: VibrancyMaterial,
+    radius: Option<f64>,
+) -> Result<(), String> {
+    let Some(win) = window.get(&app) else {
+        return Err("Window not found".to_string());
+    };
+
+    #[cfg(target_os = "macos")]
+    {
+        window_vibrancy::apply_vibrancy(&win, material.into(), None, radius)
+            .map_err(|e| format!("Failed to apply vibrancy: {:?}", e))?;
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let _ = material;
+        let alpha = radius.map(|r| (r * 2.55) as u8).unwrap_or(125);
+        window_vibrancy::apply_blur(&win, Some((18, 18, 18, alpha)))
+            .map_err(|e| format!("Failed to apply blur: {:?}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let _ = (material, radius);
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn clear_vibrancy(app: tauri::AppHandle<tauri::Wry>, window: AppWindow) -> Result<(), String> {
+    let Some(win) = window.get(&app) else {
+        return Err("Window not found".to_string());
+    };
+
+    #[cfg(target_os = "macos")]
+    {
+        window_vibrancy::clear_vibrancy(&win)
+            .map_err(|e| format!("Failed to clear vibrancy: {:?}", e))?;
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        window_vibrancy::clear_blur(&win).map_err(|e| format!("Failed to clear blur: {:?}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let _ = win;
+    }
+
+    Ok(())
 }

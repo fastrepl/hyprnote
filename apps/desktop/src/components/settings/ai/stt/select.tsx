@@ -24,9 +24,7 @@ import {
   sttModelQueries,
 } from "./shared";
 
-export function SelectProviderAndModel({
-  headerAction,
-}: { headerAction?: React.ReactNode } = {}) {
+export function SelectProviderAndModel() {
   const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
     "current_stt_model",
@@ -73,10 +71,7 @@ export function SelectProviderAndModel({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-md font-semibold">Model being used</h3>
-        {headerAction}
-      </div>
+      <h3 className="text-md font-semibold">Model being used</h3>
       <div
         className={cn([
           "flex flex-col gap-4",
@@ -208,6 +203,15 @@ export function SelectProviderAndModel({
             <HealthCheckForConnection />
           )}
         </div>
+
+        {(!current_stt_provider || !current_stt_model) && (
+          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
+            <span className="text-sm text-red-600">
+              <strong className="font-medium">Transcription model</strong> is
+              needed to make Hyprnote listen to your conversations.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -2772,9 +2772,9 @@ checksum = "cbd0f76e066e64fdc5631e3bb46381254deab9ef1158292f27c8c57e3bf3fe59"
 
 [[package]]
 name = "cmake"
-version = "0.1.54"
+version = "0.1.55"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7caa3f9de89ddbe2c607f4101924c5abec803763ae9534e4f4d7d8f84aa81f0"
+checksum = "d49d74c227b6cc9f3c51a2c7c667a05b6453f7f0f952a5f8e4493bb9e731d68e"
 dependencies = [
  "cc",
 ]
@@ -8035,9 +8035,9 @@ dependencies = [
 
 [[package]]
 name = "jiff-tzdb"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1283705eb0a21404d2bfd6eef2a7593d240bc42a0bdb39db0ad6fa2ec026524"
+checksum = "68971ebff725b9e2ca27a601c5eb38a4c5d64422c4cbab0c535f248087eda5c2"
 
 [[package]]
 name = "jiff-tzdb-platform"
@@ -9153,9 +9153,9 @@ dependencies = [
 
 [[package]]
 name = "minijinja"
-version = "2.13.0"
+version = "2.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0adbe6e92a6ce0fd6c4aac593fdfd3e3950b0f61b1a63aa9731eb6fd85776fa3"
+checksum = "12ea9ac0a51fb5112607099560fdf0f90366ab088a2a9e6e8ae176794e9806aa"
 dependencies = [
  "indexmap 2.12.1",
  "memo-map",
@@ -9166,9 +9166,9 @@ dependencies = [
 
 [[package]]
 name = "minijinja-contrib"
-version = "2.13.0"
+version = "2.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a915f5cc17b954d5252b6373cc5fd97eb86d75e29b30ac2ee7932126451eef24"
+checksum = "be6ad8bbc21c256d5f2f5494699d5d69d519b8510d672a0e43b7bfa3a56c388a"
 dependencies = [
  "minijinja",
  "serde",
@@ -15462,6 +15462,7 @@ dependencies = [
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-dialog",
  "tauri-plugin-misc",
+ "tauri-plugin-updater",
  "tauri-plugin-windows",
  "tauri-specta",
 ]

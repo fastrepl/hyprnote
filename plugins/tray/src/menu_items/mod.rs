@@ -1,6 +1,7 @@
 mod app_cli;
 mod app_info;
 mod app_new;
+mod tray_check_update;
 mod tray_open;
 mod tray_quit;
 mod tray_start;
@@ -8,6 +9,7 @@ mod tray_start;
 pub use app_cli::{AppCliInstall, AppCliUninstall, app_cli_menu};
 pub use app_info::AppInfo;
 pub use app_new::AppNew;
+pub use tray_check_update::TrayCheckUpdate;
 pub use tray_open::TrayOpen;
 pub use tray_quit::TrayQuit;
 pub use tray_start::TrayStart;
@@ -59,6 +61,7 @@ macro_rules! menu_items {
 menu_items! {
     TrayOpen => TrayOpen,
     TrayStart => TrayStart,
+    TrayCheckUpdate => TrayCheckUpdate,
     TrayQuit => TrayQuit,
     AppInfo => AppInfo,
     AppCliInstall => AppCliInstall,

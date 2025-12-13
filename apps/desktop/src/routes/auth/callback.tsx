@@ -28,11 +28,7 @@ function AuthCallbackRoute() {
     const { access_token, refresh_token } = search;
 
     if (access_token && refresh_token && auth) {
-      const params = new URLSearchParams();
-      params.set("access_token", access_token);
-      params.set("refresh_token", refresh_token);
-      const url = `hyprnote://auth/callback?${params.toString()}`;
-      auth.handleAuthCallback(url).finally(() => {
+      auth.setSessionFromTokens(access_token, refresh_token).finally(() => {
         navigate({ to: "/app/main" });
       });
     } else {

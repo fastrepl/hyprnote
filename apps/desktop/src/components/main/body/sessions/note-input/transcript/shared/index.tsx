@@ -79,8 +79,15 @@ export function TranscriptContainer({
     setScrollElement(node);
   }, []);
 
-  const { isAtBottom, scrollToBottom } = useScrollDetection(containerRef);
-  useAutoScroll(containerRef, [transcriptIds, partialWords]);
+  const { isAtBottom, autoScrollEnabled, scrollToBottom } =
+    useScrollDetection(containerRef);
+  useAutoScroll(
+    containerRef,
+    [transcriptIds, partialWords, autoScrollEnabled],
+    autoScrollEnabled,
+  );
+
+  const shouldShowButton = !isAtBottom && currentActive;
 
   if (transcriptIds.length === 0) {
     return null;
@@ -130,21 +137,20 @@ export function TranscriptContainer({
         )}
       </div>
 
-      {!isAtBottom && currentActive && (
-        <button
-          onClick={scrollToBottom}
-          className={cn([
-            "absolute bottom-3 left-1/2 -translate-x-1/2",
-            "px-4 py-2 rounded-full",
-            "shadow-lg bg-neutral-800 hover:bg-neutral-700",
-            "text-white text-xs font-light",
-            "transition-all duration-200",
-            "z-30",
-          ])}
-        >
-          Go to bottom
-        </button>
-      )}
+      <button
+        onClick={scrollToBottom}
+        className={cn([
+          "absolute bottom-3 left-1/2 -translate-x-1/2 z-30",
+          "px-4 py-2 rounded-full",
+          "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+          "shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%]",
+          "text-xs font-light",
+          "transition-opacity duration-150",
+          shouldShowButton ? "opacity-100" : "opacity-0 pointer-events-none",
+        ])}
+      >
+        Go to bottom
+      </button>
     </div>
   );
 }

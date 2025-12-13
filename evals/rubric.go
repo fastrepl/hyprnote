@@ -14,6 +14,13 @@ type Rubric struct {
 	Grader      Grader
 }
 
+// ConfidenceInterval represents a statistical confidence interval.
+type ConfidenceInterval struct {
+	Lower float64
+	Upper float64
+	Level float64
+}
+
 // Score holds the result of evaluating output against a single rubric.
 type Score struct {
 	RubricName  string
@@ -24,6 +31,12 @@ type Score struct {
 	GraderModel string
 	PassRate    float64
 	Samples     int
+
+	StandardDeviation  float64
+	Variance           float64
+	ConfidenceInterval ConfidenceInterval
+	PassCount          int
+	FailCount          int
 }
 
 // Grader evaluates output against a rubric criterion.
@@ -97,6 +110,11 @@ Output to evaluate:
 	score.Reasoning = agg.Reasoning
 	score.PassRate = agg.PassRate
 	score.Samples = agg.Samples
+	score.StandardDeviation = agg.StandardDeviation
+	score.Variance = agg.Variance
+	score.ConfidenceInterval = agg.ConfidenceInterval
+	score.PassCount = agg.PassCount
+	score.FailCount = agg.FailCount
 
 	return score
 }
@@ -162,6 +180,11 @@ Output to evaluate:
 	score.Reasoning = agg.Reasoning
 	score.PassRate = agg.PassRate
 	score.Samples = agg.Samples
+	score.StandardDeviation = agg.StandardDeviation
+	score.Variance = agg.Variance
+	score.ConfidenceInterval = agg.ConfidenceInterval
+	score.PassCount = agg.PassCount
+	score.FailCount = agg.FailCount
 
 	return score
 }

@@ -143,16 +143,31 @@ func (t *Task) GradeMulti(ctx context.Context, client *openai.Client, model stri
 			}
 		}
 
-		passRate := float64(passCount) / float64(len(outputs))
+		totalCount := len(outputs)
+		failCount := totalCount - passCount
+		passRate := float64(passCount) / float64(totalCount)
+
+		stdDev, variance := calculateBinaryStatistics(passCount, totalCount)
+		ciLower, ciUpper := calculateWilsonConfidenceInterval(passCount, totalCount, 0.95)
+
 		aggregated[rubricIdx] = Score{
-			RubricName:  t.Rubrics[rubricIdx].Name,
-			Passed:      passRate >= 0.5,
-			Value:       0,
-			Reasoning:   firstReasoning,
-			GraderType:  graderType,
-			GraderModel: graderModel,
-			PassRate:    passRate,
-			Samples:     len(outputs),
+			RubricName:        t.Rubrics[rubricIdx].Name,
+			Passed:            passRate >= 0.5,
+			Value:             0,
+			Reasoning:         firstReasoning,
+			GraderType:        graderType,
+			GraderModel:       graderModel,
+			PassRate:          passRate,
+			Samples:           totalCount,
+			StandardDeviation: stdDev,
+			Variance:          variance,
+			ConfidenceInterval: ConfidenceInterval{
+				Lower: ciLower,
+				Upper: ciUpper,
+				Level: 0.95,
+			},
+			PassCount: passCount,
+			FailCount: failCount,
 		}
 		if aggregated[rubricIdx].Passed {
 			aggregated[rubricIdx].Value = 1

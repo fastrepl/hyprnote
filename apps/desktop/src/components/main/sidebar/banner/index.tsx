@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import * as main from "../../../../store/tinybase/main";
+import { useTabs } from "../../../../store/zustand/tabs";
 import { Banner } from "./component";
 import { createBannerRegistry, getBannerToShow } from "./registry";
 import { useDismissedBanners } from "./useDismissedBanners";
@@ -29,26 +29,17 @@ export function BannerArea({
   const hasLLMConfigured = !!(current_llm_provider && current_llm_model);
   const hasSttConfigured = !!(current_stt_provider && current_stt_model);
 
+  const openNew = useTabs((state) => state.openNew);
+
   const handleSignIn = useCallback(async () => {
     await auth?.signIn();
   }, [auth]);
 
   const openSettingsTab = useCallback(
     (tab: "intelligence" | "transcription") => {
-      windowsCommands
-        .windowShow({ type: "settings" })
-        .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-        .then(() =>
-          windowsCommands.windowEmitNavigate(
-            { type: "settings" },
-            {
-              path: "/app/settings",
-              search: { tab },
-            },
-          ),
-        );
+      openNew({ type: "settings", state: { tab } });
     },
-    [],
+    [openNew],
   );
 
   const handleOpenLLMSettings = useCallback(() => {

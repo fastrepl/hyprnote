@@ -30,6 +30,10 @@ export type StateBasicActions = {
     tab: Tab,
     state: Extract<Tab, { type: "extensions" }>["state"],
   ) => void;
+  updateSettingsTabState: (
+    tab: Tab,
+    state: Extract<Tab, { type: "settings" }>["state"],
+  ) => void;
 };
 
 export const createStateUpdaterSlice = <T extends BasicState & NavigationState>(
@@ -48,6 +52,8 @@ export const createStateUpdaterSlice = <T extends BasicState & NavigationState>(
     updateTabState(tab, "chat_shortcuts", state, get, set),
   updateExtensionsTabState: (tab, state) =>
     updateTabState(tab, "extensions", state, get, set),
+  updateSettingsTabState: (tab, state) =>
+    updateTabState(tab, "settings", state, get, set),
 });
 
 const updateTabState = <T extends BasicState & NavigationState>(

@@ -16,7 +16,20 @@ impl MenuItemHandler for TraySettings {
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {
-        use tauri_plugin_windows::AppWindow;
-        let _ = AppWindow::Settings.show(app);
+        use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
+        if app.window_show(AppWindow::Main).is_ok() {
+            let _ = app.window_emit_navigate(
+                AppWindow::Main,
+                Navigate {
+                    path: "/app/settings".to_string(),
+                    search: Some(
+                        serde_json::json!({ "tab": "general" })
+                            .as_object()
+                            .cloned()
+                            .unwrap(),
+                    ),
+                },
+            );
+        }
     }
 }

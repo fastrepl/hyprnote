@@ -1,17 +1,16 @@
 import { LogIn } from "lucide-react";
 import { useCallback } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
+import { useTabs } from "../../../../store/zustand/tabs";
+
 export function AuthSection({ isAuthenticated }: { isAuthenticated: boolean }) {
-  const handleOpenAccount = useCallback(async () => {
-    await windowsCommands.windowShow({ type: "settings" });
-    await windowsCommands.windowNavigate(
-      { type: "settings" },
-      "/app/settings?tab=account",
-    );
-  }, []);
+  const openNew = useTabs((state) => state.openNew);
+
+  const handleOpenAccount = useCallback(() => {
+    openNew({ type: "settings", state: { tab: "account" } });
+  }, [openNew]);
 
   if (isAuthenticated) {
     return null;

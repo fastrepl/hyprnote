@@ -10,12 +10,12 @@ import { useCallback } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { type Tab, useTabs } from "../../../../store/zustand/tabs";
-import { LLM } from "../../../settings/ai/llm";
-import { STT } from "../../../settings/ai/stt";
-import { SettingsGeneral } from "../../../settings/general";
-import { StandardTabWrapper } from "../index";
-import { type TabItem, TabItemBase } from "../shared";
+import { type Tab, useTabs } from "../../../store/zustand/tabs";
+import { LLM } from "../../settings/ai/llm";
+import { STT } from "../../settings/ai/stt";
+import { SettingsGeneral } from "../../settings/general";
+import { StandardTabWrapper } from "./index";
+import { type TabItem, TabItemBase } from "./shared";
 
 type SettingsTabKey = "general" | "transcription" | "intelligence";
 

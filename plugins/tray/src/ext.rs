@@ -23,6 +23,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         let app = self.app_handle();
 
         let info_item = AppInfo::build(app)?;
+        let check_update_item = TrayCheckUpdate::build(app)?;
         let cli_item = app_cli_menu(app)?;
         let new_item = AppNew::build(app)?;
 
@@ -37,6 +38,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                 submenu.remove_at(0)?;
                 submenu.remove_at(0)?;
                 submenu.prepend(&cli_item)?;
+                submenu.prepend(&check_update_item)?;
                 submenu.prepend(&info_item)?;
             }
 

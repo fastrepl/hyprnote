@@ -1,4 +1,7 @@
-use tauri::{AppHandle, Result, menu::MenuItem};
+use tauri::{
+    AppHandle, Result,
+    menu::{MenuItem, MenuItemKind},
+};
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri_plugin_updater::UpdaterExt;
 
@@ -9,8 +12,9 @@ pub struct TrayCheckUpdate;
 impl MenuItemHandler for TrayCheckUpdate {
     const ID: &'static str = "hypr_tray_check_update";
 
-    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItem<tauri::Wry>> {
-        MenuItem::with_id(app, Self::ID, "Check for Updates...", true, None::<&str>)
+    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
+        let item = MenuItem::with_id(app, Self::ID, "Check for Updates...", true, None::<&str>)?;
+        Ok(MenuItemKind::MenuItem(item))
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {

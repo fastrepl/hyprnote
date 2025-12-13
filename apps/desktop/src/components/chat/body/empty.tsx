@@ -1,7 +1,6 @@
 import { MessageSquareIcon, SettingsIcon, SparklesIcon } from "lucide-react";
 import { useCallback } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
 import { useTabs } from "../../../store/zustand/tabs";
@@ -14,19 +13,8 @@ export function ChatBodyEmpty({
   const openNew = useTabs((state) => state.openNew);
 
   const handleGoToSettings = useCallback(() => {
-    windowsCommands
-      .windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate(
-          { type: "settings" },
-          {
-            path: "/app/settings",
-            search: { tab: "intelligence" },
-          },
-        ),
-      );
-  }, []);
+    openNew({ type: "settings", state: { tab: "intelligence" } });
+  }, [openNew]);
 
   const handleOpenChatShortcuts = useCallback(() => {
     openNew({ type: "chat_shortcuts" });

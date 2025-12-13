@@ -38,6 +38,7 @@ import { TabContentHuman, TabItemHuman } from "./humans";
 import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
+import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
 
 export function Body() {
@@ -349,6 +350,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "settings") {
+    return (
+      <TabItemSettings
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -386,6 +399,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "extensions") {
     return <TabContentExtensions tab={tab} />;
+  }
+  if (tab.type === "settings") {
+    return <TabContentSettings tab={tab} />;
   }
 
   return null;

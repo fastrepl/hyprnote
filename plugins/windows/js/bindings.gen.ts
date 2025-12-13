@@ -129,7 +129,6 @@ export const events = __makeEvents__<{
 export type AppWindow =
   | { type: "onboarding" }
   | { type: "main" }
-  | { type: "settings" }
   | { type: "auth" }
   | { type: "chat" }
   | { type: "control" };

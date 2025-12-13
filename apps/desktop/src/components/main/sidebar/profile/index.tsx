@@ -16,7 +16,6 @@ import {
   useState,
 } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
@@ -104,9 +103,9 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   });
 
   const handleClickSettings = useCallback(() => {
-    windowsCommands.windowShow({ type: "settings" });
+    openNew({ type: "settings" });
     closeMenu();
-  }, [closeMenu]);
+  }, [openNew, closeMenu]);
 
   const handleClickFolders = useCallback(() => {
     openNew({ type: "folders", id: null });

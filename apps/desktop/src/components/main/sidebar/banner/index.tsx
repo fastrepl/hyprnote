@@ -29,7 +29,14 @@ export function BannerArea({
   const hasLLMConfigured = !!(current_llm_provider && current_llm_model);
   const hasSttConfigured = !!(current_stt_provider && current_stt_model);
 
+  const currentTab = useTabs((state) => state.currentTab);
+  const isAiTranscriptionTabActive =
+    currentTab?.type === "ai" && currentTab.state?.tab === "transcription";
+  const isAiIntelligenceTabActive =
+    currentTab?.type === "ai" && currentTab.state?.tab === "intelligence";
+
   const openNew = useTabs((state) => state.openNew);
+  const updateAiTabState = useTabs((state) => state.updateAiTabState);
 
   const handleSignIn = useCallback(async () => {
     await auth?.signIn();
@@ -37,9 +44,13 @@ export function BannerArea({
 
   const openAiTab = useCallback(
     (tab: "intelligence" | "transcription") => {
-      openNew({ type: "ai", state: { tab } });
+      if (currentTab?.type === "ai") {
+        updateAiTabState(currentTab, { tab });
+      } else {
+        openNew({ type: "ai", state: { tab } });
+      }
     },
-    [openNew],
+    [currentTab, openNew, updateAiTabState],
   );
 
   const handleOpenLLMSettings = useCallback(() => {
@@ -56,6 +67,8 @@ export function BannerArea({
         isAuthenticated,
         hasLLMConfigured,
         hasSttConfigured,
+        isAiTranscriptionTabActive,
+        isAiIntelligenceTabActive,
         onSignIn: handleSignIn,
         onOpenLLMSettings: handleOpenLLMSettings,
         onOpenSTTSettings: handleOpenSTTSettings,
@@ -64,6 +77,8 @@ export function BannerArea({
       isAuthenticated,
       hasLLMConfigured,
       hasSttConfigured,
+      isAiTranscriptionTabActive,
+      isAiIntelligenceTabActive,
       handleSignIn,
       handleOpenLLMSettings,
       handleOpenSTTSettings,

@@ -457,8 +457,13 @@ function ContentWrapper({ tab }: { tab: Tab }) {
 
 function TabChatButton() {
   const { chat } = useShell();
+  const currentTab = useTabs((state) => state.currentTab);
 
   if (chat.mode === "RightPanelOpen") {
+    return null;
+  }
+
+  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
     return null;
   }
 

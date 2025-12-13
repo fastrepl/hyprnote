@@ -4,7 +4,10 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 
 	"github.com/kluctl/kluctl/lib/go-jinja2"
 	"github.com/openai/openai-go/v3"
@@ -12,6 +15,18 @@ import (
 
 //go:embed templates/*.jinja
 var templatesFS embed.FS
+
+const cratesTemplatePrefix = "crates_templates/"
+
+// getCratesTemplateDir returns the path to crates/template/assets directory.
+func getCratesTemplateDir() string {
+	_, currentFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return ""
+	}
+	evalsDir := filepath.Dir(currentFile)
+	return filepath.Join(evalsDir, "..", "crates", "template", "assets")
+}
 
 // Inputs defines the interface for typed task input variables.
 type Inputs interface {
@@ -27,14 +42,36 @@ type Task struct {
 	Samples      int
 }
 
+// readTemplate reads a template from either the embedded filesystem or the crates templates directory.
+func readTemplate(templatePath string) ([]byte, error) {
+	if strings.HasPrefix(templatePath, cratesTemplatePrefix) {
+		templateName := strings.TrimPrefix(templatePath, cratesTemplatePrefix)
+		cratesDir := getCratesTemplateDir()
+		if cratesDir == "" {
+			return nil, fmt.Errorf("could not determine crates template directory")
+		}
+		fullPath := filepath.Join(cratesDir, templateName)
+		return os.ReadFile(fullPath)
+	}
+	return templatesFS.ReadFile(templatePath)
+}
+
 // RenderPrompt renders the task's Jinja template with inputs.
 func (t *Task) RenderPrompt() (string, error) {
-	content, err := templatesFS.ReadFile(t.TemplatePath)
+	content, err := readTemplate(t.TemplatePath)
 	if err != nil {
 		return "", fmt.Errorf("read template %s: %w", t.TemplatePath, err)
 	}
 
-	r, err := jinja2.NewJinja2("", 1)
+	var jinja2Opts []jinja2.Jinja2Opt
+	if strings.HasPrefix(t.TemplatePath, cratesTemplatePrefix) {
+		cratesDir := getCratesTemplateDir()
+		if cratesDir != "" {
+			jinja2Opts = append(jinja2Opts, jinja2.WithSearchDir(cratesDir))
+		}
+	}
+
+	r, err := jinja2.NewJinja2("", 1, jinja2Opts...)
 	if err != nil {
 		return "", fmt.Errorf("jinja2: init: %w", err)
 	}
@@ -178,10 +215,22 @@ func (t *Task) GradeMulti(ctx context.Context, client *openai.Client, model stri
 }
 
 // NewTask creates a task with the given name, inputs, and rubrics.
+// The template is loaded from the embedded templates directory (evals/templates/).
 func NewTask(name string, inputs Inputs, rubrics []Rubric) Task {
 	return Task{
 		Name:         name,
 		TemplatePath: filepath.Join("templates", name+".jinja"),
+		Inputs:       inputs,
+		Rubrics:      rubrics,
+	}
+}
+
+// NewTaskWithCratesTemplate creates a task that uses a template from crates/template/assets.
+// The templateName should be the filename without the .jinja extension (e.g., "enhance.system").
+func NewTaskWithCratesTemplate(name, templateName string, inputs Inputs, rubrics []Rubric) Task {
+	return Task{
+		Name:         name,
+		TemplatePath: cratesTemplatePrefix + templateName + ".jinja",
 		Inputs:       inputs,
 		Rubrics:      rubrics,
 	}

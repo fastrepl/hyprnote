@@ -17,8 +17,8 @@ jobs:
       - run: go mod tidy
 
       - env:
-          GOEVALS: ${{ inputs.goevals }}
-          GOEVALS_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+          EVALS: ${{ inputs.goevals }}
+          EVALS_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: ${{ inputs.model }}
         run: go test ./evals/... -count=1 -json > test-results.json

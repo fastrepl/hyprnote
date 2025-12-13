@@ -65,6 +65,7 @@ pub async fn main() {
         .plugin(tauri_plugin_db2::init())
         .plugin(tauri_plugin_tracing::init())
         .plugin(tauri_plugin_hooks::init())
+        .plugin(tauri_plugin_icon::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_permissions::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -217,13 +218,18 @@ mod test {
 
     #[test]
     fn export_types() {
+        const OUTPUT_FILE: &str = "../src/types/tauri.gen.ts";
+
         make_specta_builder::<tauri::Wry>()
             .export(
                 specta_typescript::Typescript::default()
                     .formatter(specta_typescript::formatter::prettier)
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
-                "../src/types/tauri.gen.ts",
+                OUTPUT_FILE,
             )
-            .unwrap()
+            .unwrap();
+
+        let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
+        std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
 }

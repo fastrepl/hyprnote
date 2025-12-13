@@ -31,6 +31,12 @@
       "icons/stable/icon.icns",
       "icons/stable/icon.ico"
     ],
+    "resources": {
+      "icons/stable/icon.icns": "icons/stable.icns",
+      "icons/nightly/icon.icns": "icons/nightly.icns",
+      "icons/staging/icon.icns": "icons/staging.icns",
+      "icons/pro/icon.icns": "icons/pro.icns"
+    },
     "macOS": {
       "minimumSystemVersion": "14.2",
       "entitlements": "./Entitlements.plist",

@@ -4068,6 +4068,7 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-hooks",
  "tauri-plugin-http",
+ "tauri-plugin-icon",
  "tauri-plugin-importer",
  "tauri-plugin-listener",
  "tauri-plugin-listener2",
@@ -14983,6 +14984,23 @@ dependencies = [
  "tokio",
  "url",
  "urlpattern",
+]
+
+[[package]]
+name = "tauri-plugin-icon"
+version = "0.1.0"
+dependencies = [
+ "objc2 0.6.3",
+ "objc2-app-kit",
+ "objc2-foundation 0.3.2",
+ "serde",
+ "specta",
+ "specta-typescript",
+ "tauri",
+ "tauri-plugin",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

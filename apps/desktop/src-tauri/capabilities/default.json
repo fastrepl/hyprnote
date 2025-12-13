@@ -85,6 +85,7 @@
     "local-stt:default",
     "dialog:default",
     "hooks:default",
+    "icon:default",
     "importer:default",
     "listener:default",
     "listener2:default",

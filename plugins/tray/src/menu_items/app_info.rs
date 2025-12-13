@@ -1,6 +1,6 @@
 use tauri::{
     AppHandle, Result,
-    menu::{IconMenuItem, MenuItemKind, NativeIcon},
+    menu::{MenuItem, MenuItemKind},
 };
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
@@ -14,15 +14,8 @@ impl MenuItemHandler for AppInfo {
     const ID: &'static str = "hypr_app_info";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = IconMenuItem::with_id_and_native_icon(
-            app,
-            Self::ID,
-            "About Hyprnote",
-            true,
-            Some(NativeIcon::Info),
-            None::<&str>,
-        )?;
-        Ok(MenuItemKind::Icon(item))
+        let item = MenuItem::with_id(app, Self::ID, "About Hyprnote", true, None::<&str>)?;
+        Ok(MenuItemKind::MenuItem(item))
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {

@@ -13,7 +13,7 @@ impl MenuItemHandler for TrayCheckUpdate {
     const ID: &'static str = "hypr_tray_check_update";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = MenuItem::with_id(app, Self::ID, "Check for Updates...", true, None::<&str>)?;
+        let item = MenuItem::with_id(app, Self::ID, "Check for Updates", true, None::<&str>)?;
         Ok(MenuItemKind::MenuItem(item))
     }
 

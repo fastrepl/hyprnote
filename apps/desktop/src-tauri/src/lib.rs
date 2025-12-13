@@ -6,6 +6,7 @@ mod supervisor;
 use ext::*;
 use store::*;
 
+use tauri::Emitter;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]

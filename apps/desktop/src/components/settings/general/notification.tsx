@@ -14,10 +14,10 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
-import { useConfigValues } from "../../config/use-config";
-import * as main from "../../store/tinybase/main";
+import { useConfigValues } from "../../../config/use-config";
+import * as main from "../../../store/tinybase/main";
 
-export function SettingsNotifications() {
+export function NotificationSettingsView() {
   const [inputValue, setInputValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -143,7 +143,6 @@ export function SettingsNotifications() {
 
   const installedApps = allInstalledApps?.map((app) => app.name) ?? [];
 
-  // Filter apps based on input, excluding already added and default ignored
   const filteredApps = installedApps.filter((app) => {
     const matchesSearch = app.toLowerCase().includes(inputValue.toLowerCase());
     const notAlreadyAdded = !ignoredPlatforms.includes(app);
@@ -151,7 +150,6 @@ export function SettingsNotifications() {
     return matchesSearch && notAlreadyAdded && notDefaultIgnored;
   });
 
-  // Show custom option if input doesn't match any apps
   const showCustomOption =
     inputValue.trim() &&
     !filteredApps.some((app) => app.toLowerCase() === inputValue.toLowerCase());
@@ -205,7 +203,6 @@ export function SettingsNotifications() {
       !inputValue &&
       ignoredPlatforms.length > 0
     ) {
-      // Remove last chip when backspace is pressed on empty input
       const lastApp = ignoredPlatforms[ignoredPlatforms.length - 1];
       if (!isDefaultIgnored(lastApp)) {
         handleRemoveIgnoredApp(lastApp);
@@ -219,7 +216,6 @@ export function SettingsNotifications() {
     setSelectedIndex(0);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

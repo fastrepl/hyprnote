@@ -119,6 +119,9 @@ export const tabSchema = z.discriminatedUnion("type", [
     state: z.record(z.string(), z.unknown()).default({}),
   }),
   baseTabSchema.extend({
+    type: z.literal("calendar"),
+  }),
+  baseTabSchema.extend({
     type: z.literal("changelog"),
     state: z.object({
       previous: z.string(),
@@ -127,20 +130,14 @@ export const tabSchema = z.discriminatedUnion("type", [
   }),
   baseTabSchema.extend({
     type: z.literal("settings"),
+  }),
+  baseTabSchema.extend({
+    type: z.literal("ai"),
     state: z
       .object({
-        tab: z
-          .enum([
-            "general",
-            "calendar",
-            "notifications",
-            "transcription",
-            "intelligence",
-            "account",
-          ])
-          .default("general"),
+        tab: z.enum(["transcription", "intelligence"]).default("transcription"),
       })
-      .default({ tab: "general" }),
+      .default({ tab: "transcription" }),
   }),
 ]);
 
@@ -193,17 +190,13 @@ export type TabInput =
   | { type: "folders"; id: string | null }
   | { type: "empty" }
   | { type: "extension"; extensionId: string; state?: Record<string, unknown> }
+  | { type: "calendar" }
   | { type: "changelog"; state: { previous: string; current: string } }
+  | { type: "settings" }
   | {
-      type: "settings";
+      type: "ai";
       state?: {
-        tab?:
-          | "general"
-          | "calendar"
-          | "notifications"
-          | "transcription"
-          | "intelligence"
-          | "account";
+        tab?: "transcription" | "intelligence";
       };
     };
 
@@ -224,8 +217,10 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "extensions":
     case "empty":
     case "extension":
+    case "calendar":
     case "changelog":
     case "settings":
+    case "ai":
       throw new Error("invalid_resource");
     case "folders":
       if (!tab.id) {
@@ -261,10 +256,14 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `empty-${tab.slotId}`;
     case "extension":
       return `extension-${tab.extensionId}`;
+    case "calendar":
+      return `calendar`;
     case "changelog":
       return "changelog";
     case "settings":
       return `settings`;
+    case "ai":
+      return `ai`;
   }
 };
 

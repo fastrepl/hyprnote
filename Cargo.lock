@@ -14761,6 +14761,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-cli",
+ "tauri-plugin-updater",
  "tauri-specta",
  "thiserror 2.0.17",
  "tracing",

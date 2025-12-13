@@ -25,7 +25,9 @@ import {
   sttModelQueries,
 } from "./shared";
 
-export function SelectProviderAndModel() {
+export function SelectProviderAndModel({
+  headerAction,
+}: { headerAction?: React.ReactNode } = {}) {
   const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
     "current_stt_model",
@@ -72,7 +74,10 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Model being used</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-md font-semibold">Model being used</h3>
+        {headerAction}
+      </div>
       <div
         className={cn([
           "flex flex-col gap-4",

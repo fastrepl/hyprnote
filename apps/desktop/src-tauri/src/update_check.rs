@@ -20,11 +20,7 @@ pub fn maybe_emit_updated<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) {
     match app_handle.get_last_seen_version() {
         Ok(Some(last_version)) if !last_version.is_empty() => {
             if last_version != current_version {
-                tracing::info!(
-                    "version_updated: {} -> {}",
-                    last_version,
-                    current_version
-                );
+                tracing::info!("version_updated: {} -> {}", last_version, current_version);
 
                 let payload = UpdatedPayload {
                     previous: last_version,

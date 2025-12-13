@@ -24,6 +24,9 @@ export const generalSchema = z.object({
   current_llm_model: z.string().optional(),
   current_stt_provider: z.string().optional(),
   current_stt_model: z.string().optional(),
+  vibrancy_enabled: z.boolean().default(false),
+  vibrancy_material: z.string().default("Sidebar"),
+  vibrancy_radius: z.number().default(0),
 });
 
 export const aiProviderSchema = z
@@ -64,6 +67,9 @@ export const internalSchemaForTinybase = {
     current_llm_model: { type: "string" },
     current_stt_provider: { type: "string" },
     current_stt_model: { type: "string" },
+    vibrancy_enabled: { type: "boolean" },
+    vibrancy_material: { type: "string" },
+    vibrancy_radius: { type: "number" },
   } as const satisfies InferTinyBaseSchema<typeof generalSchema>,
   table: {
     ai_providers: {

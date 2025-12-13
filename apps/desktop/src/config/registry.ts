@@ -21,7 +21,10 @@ export type ConfigKey =
   | "save_recordings"
   | "telemetry_consent"
   | "current_llm_provider"
-  | "current_llm_model";
+  | "current_llm_model"
+  | "vibrancy_enabled"
+  | "vibrancy_material"
+  | "vibrancy_radius";
 
 type ConfigValueType<K extends ConfigKey> =
   (typeof CONFIG_REGISTRY)[K]["default"];
@@ -153,5 +156,20 @@ export const CONFIG_REGISTRY = {
   current_llm_model: {
     key: "current_llm_model",
     default: undefined,
+  },
+
+  vibrancy_enabled: {
+    key: "vibrancy_enabled",
+    default: false,
+  },
+
+  vibrancy_material: {
+    key: "vibrancy_material",
+    default: "Sidebar",
+  },
+
+  vibrancy_radius: {
+    key: "vibrancy_radius",
+    default: 0,
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

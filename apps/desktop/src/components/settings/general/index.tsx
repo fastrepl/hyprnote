@@ -10,6 +10,7 @@ import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
+import { VibrancySettingsView } from "./vibrancy-settings";
 
 export function SettingsGeneral() {
   const value = useConfigValues([
@@ -19,6 +20,9 @@ export function SettingsGeneral() {
     "telemetry_consent",
     "ai_language",
     "spoken_languages",
+    "vibrancy_enabled",
+    "vibrancy_material",
+    "vibrancy_radius",
   ] as const);
 
   const setPartialValues = main.UI.useSetPartialValuesCallback(
@@ -47,6 +51,9 @@ export function SettingsGeneral() {
       telemetry_consent: value.telemetry_consent,
       ai_language: value.ai_language,
       spoken_languages: value.spoken_languages,
+      vibrancy_enabled: value.vibrancy_enabled,
+      vibrancy_material: value.vibrancy_material,
+      vibrancy_radius: value.vibrancy_radius,
     },
     listeners: {
       onChange: ({ formApi }) => {
@@ -146,6 +153,33 @@ export function SettingsGeneral() {
           </form.Field>
         </div>
       </div>
+
+      <form.Field name="vibrancy_enabled">
+        {(enabledField) => (
+          <form.Field name="vibrancy_material">
+            {(materialField) => (
+              <form.Field name="vibrancy_radius">
+                {(radiusField) => (
+                  <VibrancySettingsView
+                    enabled={{
+                      value: enabledField.state.value,
+                      onChange: (val) => enabledField.handleChange(val),
+                    }}
+                    material={{
+                      value: materialField.state.value,
+                      onChange: (val) => materialField.handleChange(val),
+                    }}
+                    radius={{
+                      value: radiusField.state.value,
+                      onChange: (val) => radiusField.handleChange(val),
+                    }}
+                  />
+                )}
+              </form.Field>
+            )}
+          </form.Field>
+        )}
+      </form.Field>
 
       <Permissions />
     </div>

@@ -37,3 +37,4 @@ once_cell = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["time"] }
 tracing = { workspace = true }
+window-vibrancy = { workspace = true }

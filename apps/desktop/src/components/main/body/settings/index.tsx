@@ -15,13 +15,13 @@ import { useCallback } from "react";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { SettingsAccount } from "../../../settings/account";
 import { LLM } from "../../../settings/ai/llm";
 import { STT } from "../../../settings/ai/stt";
 import { SettingsCalendar } from "../../../settings/calendar";
 import { SettingsGeneral } from "../../../settings/general";
 import { SettingsNotifications } from "../../../settings/notification";
-import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 
@@ -171,7 +171,9 @@ function Group({
   setActiveTab?: (tab: SettingsTabKey) => void;
   expandHeight?: boolean;
 }) {
-  const handleTabClick = async (tab: SettingsTabKey | "feedback" | "developers") => {
+  const handleTabClick = async (
+    tab: SettingsTabKey | "feedback" | "developers",
+  ) => {
     if (tab === "feedback") {
       await openUrl("https://github.com/fastrepl/hyprnote/discussions");
     } else if (tab === "developers") {
@@ -201,7 +203,8 @@ function Group({
       {tabs.map((tab) => {
         const tabInfo = getTabInfo(tab);
         const Icon = tabInfo.icon;
-        const isActive = tab !== "feedback" && tab !== "developers" && activeTab === tab;
+        const isActive =
+          tab !== "feedback" && tab !== "developers" && activeTab === tab;
 
         return (
           <div key={tab} className="px-1">

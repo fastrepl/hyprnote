@@ -73,9 +73,18 @@ var runCmd = &cobra.Command{
 			return errors.New("OPENROUTER_API_KEY environment variable is not set")
 		}
 
-		taskFilter, _ := cmd.Flags().GetStringSlice("tasks")
-		outputFormat, _ := cmd.Flags().GetString("output")
-		modelOverride, _ := cmd.Flags().GetStringSlice("models")
+		taskFilter, err := cmd.Flags().GetStringSlice("tasks")
+		if err != nil {
+			return fmt.Errorf("get tasks flag: %w", err)
+		}
+		outputFormat, err := cmd.Flags().GetString("output")
+		if err != nil {
+			return fmt.Errorf("get output flag: %w", err)
+		}
+		modelOverride, err := cmd.Flags().GetStringSlice("models")
+		if err != nil {
+			return fmt.Errorf("get models flag: %w", err)
+		}
 
 		selectedTasks := filterTasks(tasks.All, taskFilter)
 		if len(selectedTasks) == 0 {

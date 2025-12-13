@@ -59,75 +59,16 @@ type LLMGrader struct {
 // Grade evaluates the output using an LLM judge with structured output.
 // When Samples > 1, it generates multiple grading responses and aggregates them using mean pass rate.
 func (g LLMGrader) Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score {
-	score := Score{
-		RubricName:  rubric.Name,
-		GraderType:  "llm",
-		GraderModel: model,
-		Samples:     1,
-	}
-
-	prompt := fmt.Sprintf(`You are an evaluation judge. Score the following output against this rubric.
-
-Rubric: %s
-Description: %s
-
-Output to evaluate:
----
-%s
----`, rubric.Name, rubric.Description, output)
-
-	n := g.Samples
-	if n <= 1 {
-		graderResp, err := generateStructuredGraderResponse(ctx, client, model, prompt)
-		if err != nil {
-			score.Reasoning = fmt.Sprintf("grader error: %v", err)
-			return score
-		}
-
-		score.Passed = graderResp.Verdict == "PASS"
-		if score.Passed {
-			score.Value = 1
-		}
-		score.Reasoning = graderResp.Reasoning
-		score.PassRate = 1.0
-		if !score.Passed {
-			score.PassRate = 0.0
-		}
-		return score
-	}
-
-	responses, err := generateStructuredGraderResponseMulti(ctx, client, model, prompt, n)
-	if err != nil {
-		score.Reasoning = fmt.Sprintf("grader error: %v", err)
-		return score
-	}
-
-	agg := aggregateGraderResponses(responses)
-	score.Passed = agg.Passed
-	if score.Passed {
-		score.Value = 1
-	}
-	score.Reasoning = agg.Reasoning
-	score.PassRate = agg.PassRate
-	score.Samples = agg.Samples
-	score.StandardDeviation = agg.StandardDeviation
-	score.Variance = agg.Variance
-	score.ConfidenceInterval = agg.ConfidenceInterval
-	score.PassCount = agg.PassCount
-	score.FailCount = agg.FailCount
-
-	return score
+	return g.GradeWithInputs(ctx, client, model, rubric, output, nil)
 }
 
 // GradeWithInputs evaluates the output using an LLM judge with access to input variables.
 func (g LLMGrader) GradeWithInputs(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string, inputs map[string]any) Score {
-	score := Score{
-		RubricName:  rubric.Name,
-		GraderType:  "llm",
-		GraderModel: model,
-		Samples:     1,
-	}
+	prompt := g.buildPrompt(rubric, output, inputs)
+	return g.gradeWithPrompt(ctx, client, model, rubric, prompt)
+}
 
+func (g LLMGrader) buildPrompt(rubric Rubric, output string, inputs map[string]any) string {
 	inputsStr := ""
 	if len(inputs) > 0 {
 		inputsStr = "\nInput Variables:\n"
@@ -136,7 +77,7 @@ func (g LLMGrader) GradeWithInputs(ctx context.Context, client *openai.Client, m
 		}
 	}
 
-	prompt := fmt.Sprintf(`You are an evaluation judge. Score the following output against this rubric.
+	return fmt.Sprintf(`You are an evaluation judge. Score the following output against this rubric.
 
 Rubric: %s
 Description: %s
@@ -145,6 +86,15 @@ Output to evaluate:
 ---
 %s
 ---`, rubric.Name, rubric.Description, inputsStr, output)
+}
+
+func (g LLMGrader) gradeWithPrompt(ctx context.Context, client *openai.Client, model string, rubric Rubric, prompt string) Score {
+	score := Score{
+		RubricName:  rubric.Name,
+		GraderType:  "llm",
+		GraderModel: model,
+		Samples:     1,
+	}
 
 	n := g.Samples
 	if n <= 1 {

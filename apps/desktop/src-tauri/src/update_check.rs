@@ -37,7 +37,24 @@ pub fn maybe_emit_updated<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) {
             }
         }
         Ok(Some(_)) | Ok(None) => {
-            tracing::info!("first_install: storing version {}", current_version);
+            let is_existing_install = app_handle.get_onboarding_needed().is_ok();
+
+            if is_existing_install {
+                tracing::info!(
+                    "existing_user_migration: showing changelog for {}",
+                    current_version
+                );
+                let payload = UpdatedPayload {
+                    previous: "pre-changelog".to_string(),
+                    current: current_version.clone(),
+                };
+                if let Err(e) = app_handle.emit("Updated", payload) {
+                    tracing::error!("failed_to_emit_updated_event: {}", e);
+                }
+            } else {
+                tracing::info!("first_install: storing version {}", current_version);
+            }
+
             if let Err(e) = app_handle.set_last_seen_version(current_version) {
                 tracing::error!("failed_to_store_initial_version: {}", e);
             }

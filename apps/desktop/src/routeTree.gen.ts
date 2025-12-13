@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as NotificationRouteImport } from './routes/notification'
 import { Route as AppRouteRouteImport } from './routes/app/route'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AppExtHostRouteImport } from './routes/app/ext-host'
 import { Route as AppControlRouteImport } from './routes/app/control'
 import { Route as AppOnboardingIndexRouteImport } from './routes/app/onboarding/index'
@@ -43,6 +44,11 @@ const AppMainRoute = AppMainRouteImport.update({
   id: '/main',
   path: '/main',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppExtHostRoute = AppExtHostRouteImport.update({
   id: '/ext-host',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/notification': typeof NotificationRoute
   '/app/control': typeof AppControlRoute
   '/app/ext-host': typeof AppExtHostRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsLayoutRouteWithChildren
   '/app/onboarding': typeof AppOnboardingIndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/notification': typeof NotificationRoute
   '/app/control': typeof AppControlRoute
   '/app/ext-host': typeof AppExtHostRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainLayoutIndexRoute
   '/app/settings': typeof AppSettingsLayoutIndexRoute
   '/app/onboarding': typeof AppOnboardingIndexRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/notification': typeof NotificationRoute
   '/app/control': typeof AppControlRoute
   '/app/ext-host': typeof AppExtHostRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
   '/app/settings': typeof AppSettingsRouteWithChildren
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/notification'
     | '/app/control'
     | '/app/ext-host'
+    | '/auth/callback'
     | '/app/main'
     | '/app/settings'
     | '/app/onboarding'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/notification'
     | '/app/control'
     | '/app/ext-host'
+    | '/auth/callback'
     | '/app/main'
     | '/app/settings'
     | '/app/onboarding'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/notification'
     | '/app/control'
     | '/app/ext-host'
+    | '/auth/callback'
     | '/app/main'
     | '/app/main/_layout'
     | '/app/settings'
@@ -151,6 +163,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRouteRoute: typeof AppRouteRouteWithChildren
   NotificationRoute: typeof NotificationRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -182,6 +195,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/ext-host': {
       id: '/app/ext-host'
@@ -304,6 +324,7 @@ const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRouteRoute: AppRouteRouteWithChildren,
   NotificationRoute: NotificationRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

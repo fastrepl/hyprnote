@@ -4,6 +4,7 @@ import {
   ChevronUpIcon,
   FolderOpenIcon,
   SettingsIcon,
+  SparklesIcon,
   UserIcon,
   UsersIcon,
 } from "lucide-react";
@@ -148,10 +149,16 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
+  const handleClickAI = useCallback(() => {
+    openNew({ type: "ai" });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
   const menuItems = [
     { icon: FolderOpenIcon, label: "Folders", onClick: handleClickFolders },
     { icon: UsersIcon, label: "Contacts", onClick: handleClickContacts },
     { icon: CalendarIcon, label: "Calendar", onClick: handleClickCalendar },
+    { icon: SparklesIcon, label: "AI", onClick: handleClickAI },
     { icon: UserIcon, label: "My Profile", onClick: handleClickProfile },
     {
       icon: SettingsIcon,

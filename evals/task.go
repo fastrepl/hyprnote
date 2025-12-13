@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/kluctl/kluctl/lib/go-jinja2"
-	"github.com/openai/openai-go/v3"
 )
 
 //go:embed templates/*.jinja
@@ -89,7 +88,7 @@ func (t *Task) RenderPrompt() (string, error) {
 }
 
 // Execute renders the prompt and sends it to the model.
-func (t *Task) Execute(ctx context.Context, client *openai.Client, model string) (string, error) {
+func (t *Task) Execute(ctx context.Context, client ChatCompleter, model string) (string, error) {
 	prompt, err := t.RenderPrompt()
 	if err != nil {
 		return "", err
@@ -103,7 +102,7 @@ func (t *Task) Execute(ctx context.Context, client *openai.Client, model string)
 
 // ExecuteMulti renders the prompt and generates multiple outputs using the n parameter.
 // Returns multiple outputs for evaluation with aggregation.
-func (t *Task) ExecuteMulti(ctx context.Context, client *openai.Client, model string) ([]string, error) {
+func (t *Task) ExecuteMulti(ctx context.Context, client ChatCompleter, model string) ([]string, error) {
 	prompt, err := t.RenderPrompt()
 	if err != nil {
 		return nil, err
@@ -126,7 +125,7 @@ func (t *Task) ExecuteMulti(ctx context.Context, client *openai.Client, model st
 }
 
 // Grade evaluates output against all rubrics using the provided grader model.
-func (t *Task) Grade(ctx context.Context, client *openai.Client, model, output string) []Score {
+func (t *Task) Grade(ctx context.Context, client ChatCompleter, model, output string) []Score {
 	scores := make([]Score, 0, len(t.Rubrics))
 	var inputMap map[string]any
 	if t.Inputs != nil {
@@ -146,7 +145,7 @@ func (t *Task) Grade(ctx context.Context, client *openai.Client, model, output s
 
 // GradeMulti evaluates multiple outputs against all rubrics and aggregates the results.
 // For each rubric, it calculates the mean pass rate across all outputs.
-func (t *Task) GradeMulti(ctx context.Context, client *openai.Client, model string, outputs []string) []Score {
+func (t *Task) GradeMulti(ctx context.Context, client ChatCompleter, model string, outputs []string) []Score {
 	if len(outputs) == 0 {
 		return nil
 	}

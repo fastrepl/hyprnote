@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/openai/openai-go/v3"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -55,7 +54,7 @@ const defaultGraderModel = "openai/gpt-4.1-nano"
 
 // Runner executes evaluation tasks across multiple models.
 type Runner struct {
-	client       *openai.Client
+	client       ChatCompleter
 	targetModels []string
 	graderModel  string
 	numEvals     int
@@ -108,6 +107,13 @@ func WithConcurrency(n int) Option {
 	}
 }
 
+// WithClient sets the client for the runner.
+func WithClient(client ChatCompleter) Option {
+	return func(r *Runner) {
+		r.client = client
+	}
+}
+
 // New creates a Runner with the provided options.
 func New(opts ...Option) *Runner {
 	cfg, err := ParseConfig()
@@ -125,7 +131,7 @@ func New(opts ...Option) *Runner {
 	}
 
 	r := &Runner{
-		client:       newClient(cfg.OpenRouterAPIKey),
+		client:       NewOpenRouterClient(cfg.OpenRouterAPIKey),
 		targetModels: defaultModels,
 		graderModel:  defaultGraderModel,
 		numEvals:     numEvals,

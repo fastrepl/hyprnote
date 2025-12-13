@@ -1,13 +1,10 @@
-import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   AudioLines,
   CalendarDays,
   type LucideIcon,
-  MessageCircleQuestion,
   Settings2,
   SettingsIcon,
   Sparkles,
-  UserIcon,
 } from "lucide-react";
 import { useCallback } from "react";
 
@@ -15,7 +12,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
-import { SettingsAccount } from "../../../settings/account";
 import { LLM } from "../../../settings/ai/llm";
 import { STT } from "../../../settings/ai/stt";
 import { SettingsCalendar } from "../../../settings/calendar";
@@ -23,19 +19,14 @@ import { SettingsGeneral } from "../../../settings/general";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 
-type SettingsTabKey =
-  | "general"
-  | "calendar"
-  | "transcription"
-  | "intelligence"
-  | "account";
+type SettingsTabKey = "general" | "calendar" | "transcription" | "intelligence";
 
 const TAB_CONFIG: Record<
   SettingsTabKey,
   {
     label: string;
     icon: LucideIcon;
-    group: 1 | 2;
+    group: 1;
   }
 > = {
   general: {
@@ -58,11 +49,6 @@ const TAB_CONFIG: Record<
     icon: Sparkles,
     group: 1,
   },
-  account: {
-    label: "Account",
-    icon: UserIcon,
-    group: 2,
-  },
 };
 
 const TAB_KEYS: SettingsTabKey[] = [
@@ -70,7 +56,6 @@ const TAB_KEYS: SettingsTabKey[] = [
   "calendar",
   "transcription",
   "intelligence",
-  "account",
 ];
 
 export const TabItemSettings: TabItem<Extract<Tab, { type: "settings" }>> = ({
@@ -121,23 +106,14 @@ function SettingsView({ tab }: { tab: Extract<Tab, { type: "settings" }> }) {
     [updateSettingsTabState, tab],
   );
 
-  const group1Tabs = TAB_KEYS.filter((t) => TAB_CONFIG[t].group === 1);
-  const group2Tabs = TAB_KEYS.filter((t) => TAB_CONFIG[t].group === 2);
-
   return (
     <div className={cn(["flex h-full p-1 gap-1"])}>
       <aside className="w-52 flex flex-col justify-between overflow-hidden gap-1">
         <Group
-          tabs={group1Tabs}
+          tabs={TAB_KEYS}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           expandHeight={true}
-        />
-        <Group tabs={["feedback", "developers"]} activeTab={activeTab} />
-        <Group
-          tabs={group2Tabs}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
         />
       </aside>
 
@@ -157,31 +133,15 @@ function Group({
   setActiveTab,
   expandHeight = false,
 }: {
-  tabs: (SettingsTabKey | "feedback" | "developers")[];
+  tabs: SettingsTabKey[];
   activeTab: SettingsTabKey;
   setActiveTab?: (tab: SettingsTabKey) => void;
   expandHeight?: boolean;
 }) {
-  const handleTabClick = async (
-    tab: SettingsTabKey | "feedback" | "developers",
-  ) => {
-    if (tab === "feedback") {
-      await openUrl("https://github.com/fastrepl/hyprnote/discussions");
-    } else if (tab === "developers") {
-      await openUrl("https://cal.com/team/hyprnote/welcome");
-    } else if (setActiveTab) {
+  const handleTabClick = (tab: SettingsTabKey) => {
+    if (setActiveTab) {
       setActiveTab(tab);
     }
-  };
-
-  const getTabInfo = (tab: SettingsTabKey | "feedback" | "developers") => {
-    if (tab === "feedback") {
-      return { label: "Feedback", icon: MessageCircleQuestion };
-    }
-    if (tab === "developers") {
-      return { label: "Talk to developers", icon: Settings2 };
-    }
-    return TAB_CONFIG[tab];
   };
 
   return (
@@ -192,10 +152,9 @@ function Group({
       ])}
     >
       {tabs.map((tab) => {
-        const tabInfo = getTabInfo(tab);
+        const tabInfo = TAB_CONFIG[tab];
         const Icon = tabInfo.icon;
-        const isActive =
-          tab !== "feedback" && tab !== "developers" && activeTab === tab;
+        const isActive = activeTab === tab;
 
         return (
           <div key={tab} className="px-1">
@@ -240,8 +199,6 @@ function SettingsContent({ activeTab }: { activeTab: SettingsTabKey }) {
       return <STT />;
     case "intelligence":
       return <LLM />;
-    case "account":
-      return <SettingsAccount />;
     default:
       return null;
   }

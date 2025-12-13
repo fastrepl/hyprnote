@@ -123,13 +123,7 @@ export const tabSchema = z.discriminatedUnion("type", [
     state: z
       .object({
         tab: z
-          .enum([
-            "general",
-            "calendar",
-            "transcription",
-            "intelligence",
-            "account",
-          ])
+          .enum(["general", "calendar", "transcription", "intelligence"])
           .default("general"),
       })
       .default({ tab: "general" }),
@@ -188,12 +182,7 @@ export type TabInput =
   | {
       type: "settings";
       state?: {
-        tab?:
-          | "general"
-          | "calendar"
-          | "transcription"
-          | "intelligence"
-          | "account";
+        tab?: "general" | "calendar" | "transcription" | "intelligence";
       };
     };
 

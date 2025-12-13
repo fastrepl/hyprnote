@@ -8,13 +8,13 @@ import { createClient } from "@hypr/api-client/client";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
 
-import { useAuth } from "../../auth";
-import { useBillingAccess } from "../../billing";
-import { env } from "../../env";
+import { useAuth } from "../../../auth";
+import { useBillingAccess } from "../../../billing";
+import { env } from "../../../env";
 
 const WEB_APP_BASE_URL = env.VITE_APP_URL ?? "http://localhost:3000";
 
-export function SettingsAccount() {
+export function AccountSettings() {
   const auth = useAuth();
   const { isPro } = useBillingAccess();
 

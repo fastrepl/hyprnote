@@ -42,7 +42,7 @@ const useNavigationEvents = () => {
       .listen(({ payload }) => {
         if (payload.path === "/app/settings") {
           let tab = (payload.search?.tab as string) ?? "general";
-          if (tab === "notifications") {
+          if (tab === "notifications" || tab === "account") {
             tab = "general";
           }
           openNew({
@@ -52,8 +52,7 @@ const useNavigationEvents = () => {
                 | "general"
                 | "calendar"
                 | "transcription"
-                | "intelligence"
-                | "account",
+                | "intelligence",
             },
           });
         } else {

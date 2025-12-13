@@ -6,6 +6,7 @@ import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
 import * as main from "../../../store/tinybase/main";
+import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
 import { NotificationSettingsView } from "./notification";
@@ -154,6 +155,11 @@ export function SettingsGeneral() {
       </div>
 
       <Permissions />
+
+      <div>
+        <h2 className="font-semibold mb-4">Account & Billing</h2>
+        <AccountSettings />
+      </div>
     </div>
   );
 }

@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the load command without any pre-configured scope."
         },
         {
+          "description": "Enables the path command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-path",
+          "markdownDescription": "Enables the path command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the path command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-path",
+          "markdownDescription": "Denies the path command without any pre-configured scope."
+        },
+        {
           "description": "Enables the save command without any pre-configured scope.",
           "type": "string",
           "const": "allow-save",
@@ -319,10 +331,10 @@
           "markdownDescription": "Denies the save command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-load`\n- `allow-save`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-path`\n- `allow-load`\n- `allow-save`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-load`\n- `allow-save`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-path`\n- `allow-load`\n- `allow-save`"
         }
       ]
     }

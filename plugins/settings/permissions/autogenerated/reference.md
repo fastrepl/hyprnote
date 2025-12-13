@@ -4,6 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
+- `allow-path`
 - `allow-load`
 - `allow-save`
 
@@ -38,6 +39,32 @@ Enables the load command without any pre-configured scope.
 <td>
 
 Denies the load command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:allow-path`
+
+</td>
+<td>
+
+Enables the path command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`settings:deny-path`
+
+</td>
+<td>
+
+Denies the path command without any pre-configured scope.
 
 </td>
 </tr>

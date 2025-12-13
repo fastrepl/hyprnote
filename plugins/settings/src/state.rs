@@ -15,6 +15,10 @@ impl SettingsState {
         }
     }
 
+    pub fn path(&self) -> &PathBuf {
+        &self.path
+    }
+
     pub async fn load(&self) -> Result<serde_json::Value, String> {
         let _guard = self.lock.read().await;
 

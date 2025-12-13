@@ -6,6 +6,9 @@
 
 
 export const commands = {
+async path() : Promise<string> {
+    return await TAURI_INVOKE("plugin:settings|path");
+},
 async load() : Promise<Result<JsonValue, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("plugin:settings|load") };

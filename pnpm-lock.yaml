@@ -190,6 +190,9 @@ importers:
       '@hypr/plugin-hooks':
         specifier: workspace:*
         version: link:../../plugins/hooks
+      '@hypr/plugin-icon':
+        specifier: workspace:*
+        version: link:../../plugins/icon
       '@hypr/plugin-importer':
         specifier: workspace:*
         version: link:../../plugins/importer
@@ -1355,6 +1358,12 @@ importers:
         version: 2.9.1
 
   plugins/hooks:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/icon:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

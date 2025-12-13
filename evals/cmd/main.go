@@ -43,6 +43,8 @@ func init() {
 	runCmd.Flags().StringSliceP("tasks", "t", nil, "tasks to run (comma-separated)")
 	runCmd.Flags().StringP("output", "o", "table", "output format: table or json")
 	runCmd.Flags().StringSliceP("models", "m", nil, "models to use (comma-separated)")
+	runCmd.Flags().Bool("no-cache", false, "disable response caching")
+	runCmd.Flags().String("cache-dir", "", "custom cache directory (default: XDG cache dir)")
 }
 
 var listCmd = &cobra.Command{
@@ -85,16 +87,35 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("get models flag: %w", err)
 		}
+		noCache, err := cmd.Flags().GetBool("no-cache")
+		if err != nil {
+			return fmt.Errorf("get no-cache flag: %w", err)
+		}
+		cacheDir, err := cmd.Flags().GetString("cache-dir")
+		if err != nil {
+			return fmt.Errorf("get cache-dir flag: %w", err)
+		}
 
 		selectedTasks := filterTasks(tasks.All, taskFilter)
 		if len(selectedTasks) == 0 {
 			return errors.New("no tasks matched the filter")
 		}
 
+		baseClient := evals.NewOpenRouterClient(cfg.OpenRouterAPIKey)
+		cachingClient, err := evals.NewCachingChatCompleter(baseClient, evals.CacheConfig{
+			Enabled:  !noCache,
+			CacheDir: cacheDir,
+		})
+		if err != nil {
+			return fmt.Errorf("create caching client: %w", err)
+		}
+		defer cachingClient.Close()
+
 		var opts []evals.Option
 		if len(modelOverride) > 0 {
 			opts = append(opts, evals.WithModels(modelOverride...))
 		}
+		opts = append(opts, evals.WithClient(cachingClient))
 
 		ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer cancel()

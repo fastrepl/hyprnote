@@ -3,8 +3,6 @@ package evals
 import (
 	"context"
 	"fmt"
-
-	"github.com/openai/openai-go/v3"
 )
 
 // Rubric defines an evaluation criterion with a name, description, and grader.
@@ -41,13 +39,13 @@ type Score struct {
 
 // Grader evaluates output against a rubric criterion.
 type Grader interface {
-	Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score
+	Grade(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string) Score
 }
 
 // GraderWithInputs is an extended grader that can access input variables.
 type GraderWithInputs interface {
 	Grader
-	GradeWithInputs(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string, inputs map[string]any) Score
+	GradeWithInputs(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string, inputs map[string]any) Score
 }
 
 // LLMGrader uses a language model to evaluate output.
@@ -58,12 +56,12 @@ type LLMGrader struct {
 
 // Grade evaluates the output using an LLM judge with structured output.
 // When Samples > 1, it generates multiple grading responses and aggregates them using mean pass rate.
-func (g LLMGrader) Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score {
+func (g LLMGrader) Grade(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string) Score {
 	return g.GradeWithInputs(ctx, client, model, rubric, output, nil)
 }
 
 // GradeWithInputs evaluates the output using an LLM judge with access to input variables.
-func (g LLMGrader) GradeWithInputs(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string, inputs map[string]any) Score {
+func (g LLMGrader) GradeWithInputs(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string, inputs map[string]any) Score {
 	prompt := g.buildPrompt(rubric, output, inputs)
 	return g.gradeWithPrompt(ctx, client, model, rubric, prompt)
 }
@@ -88,7 +86,7 @@ Output to evaluate:
 ---`, rubric.Name, rubric.Description, inputsStr, output)
 }
 
-func (g LLMGrader) gradeWithPrompt(ctx context.Context, client *openai.Client, model string, rubric Rubric, prompt string) Score {
+func (g LLMGrader) gradeWithPrompt(ctx context.Context, client ChatCompleter, model string, rubric Rubric, prompt string) Score {
 	score := Score{
 		RubricName:  rubric.Name,
 		GraderType:  "llm",
@@ -143,7 +141,7 @@ func (g LLMGrader) gradeWithPrompt(ctx context.Context, client *openai.Client, m
 type FuncGrader func(output string) (passed bool, reason string)
 
 // Grade evaluates the output using the wrapped function.
-func (g FuncGrader) Grade(_ context.Context, _ *openai.Client, _ string, rubric Rubric, output string) Score {
+func (g FuncGrader) Grade(_ context.Context, _ ChatCompleter, _ string, rubric Rubric, output string) Score {
 	score := Score{
 		RubricName: rubric.Name,
 		GraderType: "func",
@@ -168,12 +166,12 @@ func (g FuncGrader) Grade(_ context.Context, _ *openai.Client, _ string, rubric 
 type FuncGraderWithInputs func(output string, inputs map[string]any) (passed bool, reason string)
 
 // Grade implements the base Grader interface by calling with nil inputs.
-func (g FuncGraderWithInputs) Grade(ctx context.Context, client *openai.Client, model string, rubric Rubric, output string) Score {
+func (g FuncGraderWithInputs) Grade(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string) Score {
 	return g.GradeWithInputs(ctx, client, model, rubric, output, nil)
 }
 
 // GradeWithInputs evaluates the output using the wrapped function with inputs.
-func (g FuncGraderWithInputs) GradeWithInputs(_ context.Context, _ *openai.Client, _ string, rubric Rubric, output string, inputs map[string]any) Score {
+func (g FuncGraderWithInputs) GradeWithInputs(_ context.Context, _ ChatCompleter, _ string, rubric Rubric, output string, inputs map[string]any) Score {
 	score := Score{
 		RubricName: rubric.Name,
 		GraderType: "func",

@@ -34,7 +34,7 @@ export function TabContentChangelog({
 }: {
   tab: Extract<Tab, { type: "changelog" }>;
 }) {
-  const version = tab.state?.version;
+  const { previous, current } = tab.state;
 
   return (
     <StandardTabWrapper>
@@ -45,12 +45,12 @@ export function TabContentChangelog({
           </div>
 
           <h1 className="text-2xl font-semibold text-neutral-900">
-            {version ? `Welcome to v${version}` : "What's New"}
+            Welcome to v{current}
           </h1>
 
           <p className="text-neutral-600">
-            Hyprnote has been updated with new features and improvements. Check
-            out the changelog to see what's new.
+            Hyprnote has been updated from v{previous} to v{current}. Check out
+            the changelog to see what's new.
           </p>
 
           <Button

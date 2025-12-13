@@ -120,11 +120,10 @@ export const tabSchema = z.discriminatedUnion("type", [
   }),
   baseTabSchema.extend({
     type: z.literal("changelog"),
-    state: z
-      .object({
-        version: z.string().optional(),
-      })
-      .default({}),
+    state: z.object({
+      previous: z.string(),
+      current: z.string(),
+    }),
   }),
   baseTabSchema.extend({
     type: z.literal("settings"),
@@ -194,7 +193,7 @@ export type TabInput =
   | { type: "folders"; id: string | null }
   | { type: "empty" }
   | { type: "extension"; extensionId: string; state?: Record<string, unknown> }
-  | { type: "changelog"; state?: { version?: string } }
+  | { type: "changelog"; state: { previous: string; current: string } }
   | {
       type: "settings";
       state?: {

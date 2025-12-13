@@ -19,10 +19,10 @@ export function ChangelogListener() {
     }
 
     const unlisten = listen<UpdatedPayload>("Updated", (event) => {
-      const { current } = event.payload;
+      const { previous, current } = event.payload;
       openNew({
         type: "changelog",
-        state: { version: current },
+        state: { previous, current },
       });
     });
 

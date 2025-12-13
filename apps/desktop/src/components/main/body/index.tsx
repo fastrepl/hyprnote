@@ -22,6 +22,7 @@ import {
 import { ChatFloatingButton } from "../../chat";
 import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
+import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
@@ -326,6 +327,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "calendar") {
+    return (
+      <TabItemCalendar
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
   if (tab.type === "extension") {
     return (
       <TabItemExtension
@@ -393,6 +406,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "empty") {
     return <TabContentEmpty tab={tab} />;
+  }
+  if (tab.type === "calendar") {
+    return <TabContentCalendar />;
   }
   if (tab.type === "extension") {
     return <TabContentExtension tab={tab} />;

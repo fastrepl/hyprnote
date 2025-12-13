@@ -1,6 +1,5 @@
 import {
   AudioLines,
-  CalendarDays,
   type LucideIcon,
   Settings2,
   SettingsIcon,
@@ -14,12 +13,11 @@ import { cn } from "@hypr/utils";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
 import { LLM } from "../../../settings/ai/llm";
 import { STT } from "../../../settings/ai/stt";
-import { SettingsCalendar } from "../../../settings/calendar";
 import { SettingsGeneral } from "../../../settings/general";
 import { StandardTabWrapper } from "../index";
 import { type TabItem, TabItemBase } from "../shared";
 
-type SettingsTabKey = "general" | "calendar" | "transcription" | "intelligence";
+type SettingsTabKey = "general" | "transcription" | "intelligence";
 
 const TAB_CONFIG: Record<
   SettingsTabKey,
@@ -34,11 +32,6 @@ const TAB_CONFIG: Record<
     icon: Settings2,
     group: 1,
   },
-  calendar: {
-    label: "Calendar",
-    icon: CalendarDays,
-    group: 1,
-  },
   transcription: {
     label: "Transcription",
     icon: AudioLines,
@@ -51,12 +44,7 @@ const TAB_CONFIG: Record<
   },
 };
 
-const TAB_KEYS: SettingsTabKey[] = [
-  "general",
-  "calendar",
-  "transcription",
-  "intelligence",
-];
+const TAB_KEYS: SettingsTabKey[] = ["general", "transcription", "intelligence"];
 
 export const TabItemSettings: TabItem<Extract<Tab, { type: "settings" }>> = ({
   tab,
@@ -193,8 +181,6 @@ function SettingsContent({ activeTab }: { activeTab: SettingsTabKey }) {
   switch (activeTab) {
     case "general":
       return <SettingsGeneral />;
-    case "calendar":
-      return <SettingsCalendar />;
     case "transcription":
       return <STT />;
     case "intelligence":

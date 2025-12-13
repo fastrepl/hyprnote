@@ -45,16 +45,16 @@ const useNavigationEvents = () => {
           if (tab === "notifications" || tab === "account") {
             tab = "general";
           }
-          openNew({
-            type: "settings",
-            state: {
-              tab: tab as
-                | "general"
-                | "calendar"
-                | "transcription"
-                | "intelligence",
-            },
-          });
+          if (tab === "calendar") {
+            openNew({ type: "calendar" });
+          } else {
+            openNew({
+              type: "settings",
+              state: {
+                tab: tab as "general" | "transcription" | "intelligence",
+              },
+            });
+          }
         } else {
           navigate({ to: payload.path, search: payload.search ?? undefined });
         }

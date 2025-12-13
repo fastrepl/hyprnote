@@ -2,12 +2,12 @@ use std::sync::atomic::{AtomicU8, Ordering};
 
 use tauri::{
     AppHandle, Result,
-    menu::{MenuItem, MenuItemKind},
+    menu::{Menu, MenuItem, MenuItemKind, PredefinedMenuItem},
 };
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri_plugin_updater::UpdaterExt;
 
-use super::MenuItemHandler;
+use super::{MenuItemHandler, TrayOpen, TrayQuit, TrayStart};
 
 const STATE_CHECK_FOR_UPDATE: u8 = 0;
 const STATE_DOWNLOADING: u8 = 1;
@@ -18,9 +18,7 @@ static UPDATE_STATE: AtomicU8 = AtomicU8::new(STATE_CHECK_FOR_UPDATE);
 pub struct TrayCheckUpdate;
 
 impl TrayCheckUpdate {
-    pub fn set_state<R: tauri::Runtime>(app: &AppHandle<R>, state: UpdateMenuState) -> Result<()> {
-        use tauri::Manager;
-
+    pub fn set_state(app: &AppHandle<tauri::Wry>, state: UpdateMenuState) -> Result<()> {
         let (text, enabled, state_value) = match state {
             UpdateMenuState::CheckForUpdate => ("Check for Updates", true, STATE_CHECK_FOR_UPDATE),
             UpdateMenuState::Downloading => ("Downloading...", false, STATE_DOWNLOADING),
@@ -41,14 +39,21 @@ impl TrayCheckUpdate {
         }
 
         if let Some(tray) = app.tray_by_id("hypr-tray") {
-            if let Some(menu) = tray.menu() {
-                if let Some(item) = menu.get(Self::ID) {
-                    if let MenuItemKind::MenuItem(menu_item) = item {
-                        menu_item.set_text(text)?;
-                        menu_item.set_enabled(enabled)?;
-                    }
-                }
-            }
+            let check_update_item = MenuItem::with_id(app, Self::ID, text, enabled, None::<&str>)?;
+
+            let menu = Menu::with_items(
+                app,
+                &[
+                    &TrayOpen::build(app)?,
+                    &TrayStart::build_with_disabled(app, false)?,
+                    &PredefinedMenuItem::separator(app)?,
+                    &MenuItemKind::MenuItem(check_update_item),
+                    &PredefinedMenuItem::separator(app)?,
+                    &TrayQuit::build(app)?,
+                ],
+            )?;
+
+            tray.set_menu(Some(menu))?;
         }
 
         Ok(())
@@ -85,7 +90,6 @@ impl MenuItemHandler for TrayCheckUpdate {
 
         if current_state == STATE_RESTART_TO_APPLY {
             app.restart();
-            return;
         }
 
         if current_state == STATE_DOWNLOADING {
@@ -116,29 +120,23 @@ impl MenuItemHandler for TrayCheckUpdate {
                                 if result {
                                     let app_for_download = app_for_dialog.clone();
                                     tauri::async_runtime::spawn(async move {
-                                        if let Err(e) = TrayCheckUpdate::set_state(
+                                        let _ = TrayCheckUpdate::set_state(
                                             &app_for_download,
                                             UpdateMenuState::Downloading,
-                                        ) {
-                                            tracing::error!("failed to set update menu state to downloading: {}", e);
-                                        }
+                                        );
 
                                         match update.download_and_install(|_, _| {}, || {}).await {
                                             Ok(()) => {
-                                                if let Err(e) = TrayCheckUpdate::set_state(
+                                                let _ = TrayCheckUpdate::set_state(
                                                     &app_for_download,
                                                     UpdateMenuState::RestartToApply,
-                                                ) {
-                                                    tracing::error!("failed to set update menu state to restart: {}", e);
-                                                }
+                                                );
                                             }
                                             Err(e) => {
-                                                if let Err(state_err) = TrayCheckUpdate::set_state(
+                                                let _ = TrayCheckUpdate::set_state(
                                                     &app_for_download,
                                                     UpdateMenuState::CheckForUpdate,
-                                                ) {
-                                                    tracing::error!("failed to reset update menu state: {}", state_err);
-                                                }
+                                                );
                                                 app_for_download
                                                     .dialog()
                                                     .message(format!(

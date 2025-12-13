@@ -14,11 +14,12 @@ import (
 	"github.com/openai/openai-go/v3/option"
 )
 
+const openRouterBaseURL = "https://openrouter.ai/api/v1"
+
 const (
 	defaultTemperature    = 0.2
 	defaultRetryInterval  = 500 * time.Millisecond
 	defaultMaxElapsedTime = 30 * time.Second
-	openRouterBaseURL     = "https://openrouter.ai/api/v1"
 )
 
 var ErrNoChoices = errors.New("no choices in response")

@@ -110,7 +110,14 @@ func WithConcurrency(n int) Option {
 
 // New creates a Runner with the provided options.
 func New(opts ...Option) *Runner {
-	cfg, _ := ParseConfig()
+	cfg, err := ParseConfig()
+	if err != nil {
+		cfg = Config{
+			NumEvals:       1,
+			TimeoutSeconds: 60,
+			Concurrency:    4,
+		}
+	}
 
 	numEvals := cfg.NumEvals
 	if numEvals <= 0 {
@@ -201,7 +208,7 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 		}
 	}
 
-	_ = g.Wait()
+	g.Wait()
 
 	return results
 }
@@ -248,7 +255,11 @@ func (r *Runner) runTestIteration(ctx context.Context, t *testing.T, model strin
 func RunTest(t *testing.T, tasks []Task) {
 	t.Helper()
 
-	cfg, _ := ParseConfig()
+	cfg, err := ParseConfig()
+	if err != nil {
+		t.Fatalf("failed to parse config: %v", err)
+	}
+
 	if !cfg.Enabled() {
 		t.Skip("skipping LLM evals (set GOEVALS=1 to enable)")
 	}

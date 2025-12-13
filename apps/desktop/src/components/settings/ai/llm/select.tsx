@@ -29,7 +29,9 @@ import { ModelCombobox } from "../shared/model-combobox";
 import { HealthCheckForConnection } from "./health";
 import { PROVIDERS } from "./shared";
 
-export function SelectProviderAndModel() {
+export function SelectProviderAndModel({
+  headerAction,
+}: { headerAction?: React.ReactNode } = {}) {
   const configuredProviders = useConfiguredMapping();
 
   const { current_llm_model, current_llm_provider } = useConfigValues([
@@ -76,7 +78,10 @@ export function SelectProviderAndModel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-md font-semibold">Model being used</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-md font-semibold">Model being used</h3>
+        {headerAction}
+      </div>
       <div
         className={cn([
           "flex flex-col gap-4",

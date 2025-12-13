@@ -9,7 +9,7 @@ export function AuthSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   const openNew = useTabs((state) => state.openNew);
 
   const handleOpenAccount = useCallback(() => {
-    openNew({ type: "settings", state: { tab: "general" } });
+    openNew({ type: "settings" });
   }, [openNew]);
 
   if (isAuthenticated) {

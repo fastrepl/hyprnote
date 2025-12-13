@@ -47,13 +47,13 @@ const useNavigationEvents = () => {
           }
           if (tab === "calendar") {
             openNew({ type: "calendar" });
-          } else {
+          } else if (tab === "transcription" || tab === "intelligence") {
             openNew({
-              type: "settings",
-              state: {
-                tab: tab as "general" | "transcription" | "intelligence",
-              },
+              type: "ai",
+              state: { tab: tab as "transcription" | "intelligence" },
             });
+          } else {
+            openNew({ type: "settings" });
           }
         } else {
           navigate({ to: payload.path, search: payload.search ?? undefined });

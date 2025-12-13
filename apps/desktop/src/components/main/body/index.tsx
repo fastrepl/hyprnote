@@ -22,6 +22,7 @@ import {
 import { ChatFloatingButton } from "../../chat";
 import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
+import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
@@ -375,6 +376,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "ai") {
+    return (
+      <TabItemAI
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -418,6 +431,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "settings") {
     return <TabContentSettings tab={tab} />;
+  }
+  if (tab.type === "ai") {
+    return <TabContentAI tab={tab} />;
   }
 
   return null;

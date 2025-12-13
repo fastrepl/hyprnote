@@ -35,20 +35,20 @@ export function BannerArea({
     await auth?.signIn();
   }, [auth]);
 
-  const openSettingsTab = useCallback(
+  const openAiTab = useCallback(
     (tab: "intelligence" | "transcription") => {
-      openNew({ type: "settings", state: { tab } });
+      openNew({ type: "ai", state: { tab } });
     },
     [openNew],
   );
 
   const handleOpenLLMSettings = useCallback(() => {
-    openSettingsTab("intelligence");
-  }, [openSettingsTab]);
+    openAiTab("intelligence");
+  }, [openAiTab]);
 
   const handleOpenSTTSettings = useCallback(() => {
-    openSettingsTab("transcription");
-  }, [openSettingsTab]);
+    openAiTab("transcription");
+  }, [openAiTab]);
 
   const registry = useMemo(
     () =>

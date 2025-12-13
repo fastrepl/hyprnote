@@ -24,6 +24,7 @@ import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
 import { TabContentAI, TabItemAI } from "./ai";
 import { TabContentCalendar, TabItemCalendar } from "./calendar";
+import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
@@ -364,6 +365,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "changelog") {
+    return (
+      <TabItemChangelog
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
   if (tab.type === "settings") {
     return (
       <TabItemSettings
@@ -428,6 +441,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "extensions") {
     return <TabContentExtensions tab={tab} />;
+  }
+  if (tab.type === "changelog") {
+    return <TabContentChangelog tab={tab} />;
   }
   if (tab.type === "settings") {
     return <TabContentSettings tab={tab} />;

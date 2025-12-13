@@ -2,6 +2,7 @@ mod commands;
 mod ext;
 mod store;
 mod supervisor;
+mod update_check;
 
 use ext::*;
 use store::*;
@@ -153,6 +154,9 @@ pub async fn main() {
             }
 
             specta_builder.mount_events(&app_handle);
+
+            update_check::maybe_emit_updated(&app_handle);
+
             Ok(())
         })
         .build(tauri::generate_context!())

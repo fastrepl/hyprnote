@@ -72,9 +72,9 @@ impl crate::Observer for Detector {
 
                 context.set_subscribe_callback(Some(Box::new(
                     move |facility, operation, _index| {
-                        if let Some(pulse::context::subscribe::Facility::Source) = facility {
-                            if let Some(pulse::context::subscribe::Operation::Changed) = operation {
-                                if let Ok(mut state) = detector_state_for_subscribe.lock() {
+                        if let Some(pulse::context::subscribe::Facility::Source) = facility
+                            && let Some(pulse::context::subscribe::Operation::Changed) = operation
+                                && let Ok(mut state) = detector_state_for_subscribe.lock() {
                                     let mic_in_use = check_mic_in_use();
 
                                     if state.should_trigger(mic_in_use) {
@@ -97,8 +97,6 @@ impl crate::Observer for Detector {
                                         }
                                     }
                                 }
-                            }
-                        }
                     },
                 )));
 
@@ -224,11 +222,10 @@ fn check_mic_in_use() -> bool {
 
     introspector.get_source_output_info_list(move |list_result| match list_result {
         pulse::callbacks::ListResult::Item(info) => {
-            if !info.corked {
-                if let Ok(mut r) = result_clone.lock() {
+            if !info.corked
+                && let Ok(mut r) = result_clone.lock() {
                     *r = true;
                 }
-            }
         }
         pulse::callbacks::ListResult::End => {
             if let Ok(mut d) = done_clone.lock() {
@@ -243,11 +240,10 @@ fn check_mic_in_use() -> bool {
     });
 
     for _ in 0..100 {
-        if let Ok(d) = done.lock() {
-            if *d {
+        if let Ok(d) = done.lock()
+            && *d {
                 break;
             }
-        }
         std::thread::sleep(Duration::from_millis(10));
     }
 

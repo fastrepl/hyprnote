@@ -112,11 +112,10 @@ pub async fn stop_stt_server(
     let result = DynamicSupervisor::terminate_child(supervisor.clone(), child_id.to_string()).await;
 
     if let Err(e) = result {
-        if let Some(supervisor_error) = e.downcast_ref::<SupervisorError>() {
-            if matches!(supervisor_error, SupervisorError::ChildNotFound { .. }) {
+        if let Some(supervisor_error) = e.downcast_ref::<SupervisorError>()
+            && matches!(supervisor_error, SupervisorError::ChildNotFound { .. }) {
                 return Ok(());
             }
-        }
         return Err(e);
     }
 

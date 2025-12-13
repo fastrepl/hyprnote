@@ -26,7 +26,6 @@ hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
-hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }

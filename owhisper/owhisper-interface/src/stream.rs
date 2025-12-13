@@ -175,11 +175,10 @@ impl StreamResponse {
     }
 
     pub fn remap_channel_index(&mut self, from: i32, to: i32) {
-        if let StreamResponse::TranscriptResponse { channel_index, .. } = self {
-            if !channel_index.is_empty() && channel_index[0] == from {
+        if let StreamResponse::TranscriptResponse { channel_index, .. } = self
+            && !channel_index.is_empty() && channel_index[0] == from {
                 channel_index[0] = to;
             }
-        }
     }
 
     pub fn set_channel_index(&mut self, channel_idx: i32, total_channels: i32) {

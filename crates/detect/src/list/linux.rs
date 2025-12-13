@@ -11,11 +11,10 @@ pub fn list_installed_apps() -> Vec<InstalledApp> {
         if let Ok(entries) = fs::read_dir(&dir) {
             for entry in entries.flatten() {
                 let path = entry.path();
-                if path.extension().and_then(|s| s.to_str()) == Some("desktop") {
-                    if let Some(app) = parse_desktop_file(&path) {
+                if path.extension().and_then(|s| s.to_str()) == Some("desktop")
+                    && let Some(app) = parse_desktop_file(&path) {
                         apps.entry(app.id.clone()).or_insert(app);
                     }
-                }
             }
         }
     }
@@ -150,8 +149,8 @@ fn parse_desktop_file(path: &std::path::Path) -> Option<InstalledApp> {
             id = Some(line.strip_prefix("Icon=")?.to_string());
         }
 
-        if line.starts_with("Exec=") && id.is_none() {
-            if let Some(exec) = line.strip_prefix("Exec=") {
+        if line.starts_with("Exec=") && id.is_none()
+            && let Some(exec) = line.strip_prefix("Exec=") {
                 let binary = exec
                     .split_whitespace()
                     .next()?
@@ -160,7 +159,6 @@ fn parse_desktop_file(path: &std::path::Path) -> Option<InstalledApp> {
                     .to_string();
                 id = Some(binary);
             }
-        }
     }
 
     if id.is_none() {

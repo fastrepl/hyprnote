@@ -272,8 +272,8 @@ impl Whisper {
     }
 
     fn debug(&mut self, audio: &[f32]) {
-        if let Ok(v) = std::env::var("HYPR_WHISPER_DEBUG") {
-            if v == "1" {
+        if let Ok(v) = std::env::var("HYPR_WHISPER_DEBUG")
+            && v == "1" {
                 let mut writer = hound::WavWriter::create(
                     format!("./whisper_{}_{}.wav", self.id, self.index),
                     hound::WavSpec {
@@ -291,7 +291,6 @@ impl Whisper {
                 }
                 writer.finalize().unwrap();
             }
-        }
     }
 }
 

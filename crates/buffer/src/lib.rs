@@ -166,8 +166,8 @@ fn set_heading_level_from(node: &mut markdown::mdast::Node, depth: u8, header_fo
 }
 
 fn flatten_headings(node: &mut markdown::mdast::Node) {
-    if let markdown::mdast::Node::Heading(heading) = node {
-        if heading.depth > 1 {
+    if let markdown::mdast::Node::Heading(heading) = node
+        && heading.depth > 1 {
             let children = node.children().cloned().unwrap_or_default();
 
             let strong_node = markdown::mdast::Node::Strong(markdown::mdast::Strong {
@@ -180,7 +180,6 @@ fn flatten_headings(node: &mut markdown::mdast::Node) {
                 position: None,
             });
         }
-    }
 
     if let Some(children) = node.children_mut() {
         for child in children {
@@ -208,14 +207,13 @@ fn remove_empty_headings(node: &mut markdown::mdast::Node) {
     if let Some(children) = node.children_mut() {
         let mut i = 0;
         while i < children.len() {
-            if let Some(next) = children.get(i + 1) {
-                if matches!(&children[i], markdown::mdast::Node::Heading(_))
+            if let Some(next) = children.get(i + 1)
+                && matches!(&children[i], markdown::mdast::Node::Heading(_))
                     && matches!(next, markdown::mdast::Node::Heading(_))
                 {
                     children.remove(i);
                     continue;
                 }
-            }
             i += 1;
         }
 

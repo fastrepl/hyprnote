@@ -66,8 +66,8 @@ fn get_running_meeting_apps() -> Result<HashSet<String>, std::io::Error> {
         let entry = entry?;
         let path = entry.path();
 
-        if let Some(pid_str) = path.file_name().and_then(|n| n.to_str()) {
-            if pid_str.chars().all(|c| c.is_ascii_digit()) {
+        if let Some(pid_str) = path.file_name().and_then(|n| n.to_str())
+            && pid_str.chars().all(|c| c.is_ascii_digit()) {
                 let comm_path = path.join("comm");
                 if let Ok(comm) = fs::read_to_string(&comm_path) {
                     let process_name = comm.trim();
@@ -85,18 +85,15 @@ fn get_running_meeting_apps() -> Result<HashSet<String>, std::io::Error> {
                     let cmdline_lower = cmdline.to_lowercase();
 
                     for &meeting_app in &MEETING_APP_LIST {
-                        if cmdline_lower.contains(meeting_app) {
-                            if let Some(process_name) = cmdline.split('\0').next() {
-                                if let Some(basename) = process_name.split('/').next_back() {
+                        if cmdline_lower.contains(meeting_app)
+                            && let Some(process_name) = cmdline.split('\0').next()
+                                && let Some(basename) = process_name.split('/').next_back() {
                                     apps.insert(basename.to_string());
                                     break;
                                 }
-                            }
-                        }
                     }
                 }
             }
-        }
     }
 
     Ok(apps)

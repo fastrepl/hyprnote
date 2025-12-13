@@ -97,13 +97,12 @@ impl WebSocketClient {
         let handle = WebSocketHandle { control_tx };
 
         let _send_task = tokio::spawn(async move {
-            if let Some(msg) = initial_message {
-                if let Err(e) = ws_sender.send(msg).await {
+            if let Some(msg) = initial_message
+                && let Err(e) = ws_sender.send(msg).await {
                     tracing::error!("ws_initial_message_failed: {:?}", e);
                     let _ = error_tx.send(e.into());
                     return;
                 }
-            }
 
             let mut last_outbound_at = tokio::time::Instant::now();
             loop {

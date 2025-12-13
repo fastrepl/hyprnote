@@ -106,8 +106,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             ServerType::External => external_health().await,
         };
 
-        if let Some(info) = current_info.as_ref() {
-            if info.model.as_ref() == Some(&model) {
+        if let Some(info) = current_info.as_ref()
+            && info.model.as_ref() == Some(&model) {
                 if let Some(url) = info.url.clone() {
                     return Ok(url);
                 }
@@ -116,7 +116,6 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     "missing_health_url".to_string(),
                 ));
             }
-        }
 
         if matches!(server_type, ServerType::Internal) && !self.is_model_downloaded(&model).await? {
             return Err(crate::Error::ModelNotDownloaded);
@@ -514,10 +513,7 @@ async fn internal_health() -> Option<ServerInfo> {
     match registry::where_is(internal::InternalSTTActor::name()) {
         Some(cell) => {
             let actor: ActorRef<internal::InternalSTTMessage> = cell.into();
-            match call_t!(actor, internal::InternalSTTMessage::GetHealth, 10 * 1000) {
-                Ok(info) => Some(info),
-                Err(_) => None,
-            }
+            call_t!(actor, internal::InternalSTTMessage::GetHealth, 10 * 1000).ok()
         }
         None => None,
     }
@@ -527,10 +523,7 @@ async fn external_health() -> Option<ServerInfo> {
     match registry::where_is(external::ExternalSTTActor::name()) {
         Some(cell) => {
             let actor: ActorRef<external::ExternalSTTMessage> = cell.into();
-            match call_t!(actor, external::ExternalSTTMessage::GetHealth, 10 * 1000) {
-                Ok(info) => Some(info),
-                Err(_) => None,
-            }
+            call_t!(actor, external::ExternalSTTMessage::GetHealth, 10 * 1000).ok()
         }
         None => None,
     }

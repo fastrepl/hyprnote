@@ -333,10 +333,9 @@ impl Stream for SpeakerStream {
 impl Drop for SpeakerStream {
     fn drop(&mut self) {
         self.stop_signal.store(true, Ordering::Release);
-        if let Ok(mut state) = self.waker_state.lock() {
-            if let Some(waker) = state.waker.take() {
+        if let Ok(mut state) = self.waker_state.lock()
+            && let Some(waker) = state.waker.take() {
                 waker.wake();
             }
-        }
     }
 }

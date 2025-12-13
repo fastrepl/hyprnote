@@ -77,8 +77,8 @@ impl ExternalSTTActor {
 fn cleanup_state(state: &mut ExternalSTTState) {
     let mut kill_failed = false;
 
-    if let Some(process) = state.process_handle.take() {
-        if let Err(e) = process.kill() {
+    if let Some(process) = state.process_handle.take()
+        && let Err(e) = process.kill() {
             if let tauri_plugin_shell::Error::Io(io_err) = &e {
                 match io_err.kind() {
                     io::ErrorKind::InvalidInput | io::ErrorKind::NotFound => {}
@@ -92,7 +92,6 @@ fn cleanup_state(state: &mut ExternalSTTState) {
                 kill_failed = true;
             }
         }
-    }
 
     if kill_failed {
         hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);

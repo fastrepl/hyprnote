@@ -35,35 +35,13 @@ impl MenuItemHandler for TrayCheckUpdate {
                             .message(format!("Update v{} is available!\n\n{}", version, body))
                             .title("Update Available")
                             .buttons(MessageDialogButtons::OkCancelCustom(
-                                "Download & Install".to_string(),
+                                "View Update".to_string(),
                                 "Later".to_string(),
                             ))
                             .show(move |result| {
                                 if result {
-                                    let app_for_install = app_for_dialog.clone();
-                                    tauri::async_runtime::spawn(async move {
-                                        match update.download_and_install(|_, _| {}, || {}).await {
-                                            Ok(_) => {
-                                                app_for_install
-                                                    .dialog()
-                                                    .message(
-                                                        "Update installed! Please restart the application.",
-                                                    )
-                                                    .title("Update Complete")
-                                                    .show(|_| {});
-                                            }
-                                            Err(e) => {
-                                                app_for_install
-                                                    .dialog()
-                                                    .message(format!(
-                                                        "Failed to install update: {}",
-                                                        e
-                                                    ))
-                                                    .title("Update Error")
-                                                    .show(|_| {});
-                                            }
-                                        }
-                                    });
+                                    use tauri_plugin_windows::AppWindow;
+                                    let _ = AppWindow::Main.show(&app_for_dialog);
                                 }
                             });
                     }

@@ -4043,9 +4043,6 @@ name = "desktop"
 version = "0.0.0"
 dependencies = [
  "host",
- "objc2 0.6.3",
- "objc2-app-kit",
- "objc2-foundation 0.3.2",
  "ractor",
  "ractor-supervisor",
  "sentry",

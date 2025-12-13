@@ -37,6 +37,7 @@ tauri-plugin-extensions = { workspace = true }
 tauri-plugin-fs = { workspace = true }
 tauri-plugin-hooks = { workspace = true }
 tauri-plugin-http = { workspace = true }
+tauri-plugin-icon = { workspace = true }
 tauri-plugin-importer = { workspace = true }
 tauri-plugin-listener = { workspace = true }
 tauri-plugin-listener2 = { workspace = true }
@@ -76,6 +77,11 @@ ractor = { workspace = true }
 ractor-supervisor = { workspace = true }
 
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[target."cfg(target_os = \"macos\")".dependencies]
+objc2 = { workspace = true }
+objc2-app-kit = { workspace = true, features = ["NSApplication", "NSImage", "NSRunningApplication"] }
+objc2-foundation = { workspace = true, features = ["NSString"] }
 
 [features]
 devtools = ["tauri/devtools"]

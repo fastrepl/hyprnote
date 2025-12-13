@@ -38,6 +38,7 @@
     "@hypr/plugin-detect": "workspace:*",
     "@hypr/plugin-extensions": "workspace:*",
     "@hypr/plugin-hooks": "workspace:*",
+    "@hypr/plugin-icon": "workspace:*",
     "@hypr/plugin-importer": "workspace:*",
     "@hypr/plugin-listener": "workspace:*",
     "@hypr/plugin-listener2": "workspace:*",

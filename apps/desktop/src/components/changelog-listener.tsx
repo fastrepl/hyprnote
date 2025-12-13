@@ -5,6 +5,11 @@ import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 import { useTabs } from "../store/zustand/tabs";
 
+interface UpdatedPayload {
+  previous: string;
+  current: string;
+}
+
 export function ChangelogListener() {
   const openNew = useTabs((state) => state.openNew);
 
@@ -13,11 +18,11 @@ export function ChangelogListener() {
       return;
     }
 
-    const unlisten = listen<string>("show-changelog", (event) => {
-      const version = event.payload;
+    const unlisten = listen<UpdatedPayload>("Updated", (event) => {
+      const { current } = event.payload;
       openNew({
         type: "changelog",
-        state: { version },
+        state: { version: current },
       });
     });
 

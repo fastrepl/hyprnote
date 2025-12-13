@@ -2,11 +2,11 @@ mod commands;
 mod ext;
 mod store;
 mod supervisor;
+mod update_check;
 
 use ext::*;
 use store::*;
 
-use tauri::Emitter;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -155,40 +155,7 @@ pub async fn main() {
 
             specta_builder.mount_events(&app_handle);
 
-            if let Some(current_version) = option_env!("APP_VERSION") {
-                match app_handle.get_last_seen_version() {
-                    Ok(Some(last_version)) => {
-                        if last_version != current_version {
-                            tracing::info!(
-                                "version_updated: {} -> {}",
-                                last_version,
-                                current_version
-                            );
-
-                            if let Err(e) = app_handle.emit("show-changelog", current_version) {
-                                tracing::error!("failed_to_emit_changelog_event: {}", e);
-                            }
-
-                            if let Err(e) =
-                                app_handle.set_last_seen_version(current_version.to_string())
-                            {
-                                tracing::error!("failed_to_update_version: {}", e);
-                            }
-                        }
-                    }
-                    Ok(None) => {
-                        tracing::info!("first_install: storing version {}", current_version);
-                        if let Err(e) =
-                            app_handle.set_last_seen_version(current_version.to_string())
-                        {
-                            tracing::error!("failed_to_store_initial_version: {}", e);
-                        }
-                    }
-                    Err(e) => {
-                        tracing::error!("failed_to_get_last_seen_version: {}", e);
-                    }
-                }
-            }
+            update_check::maybe_emit_updated(&app_handle);
 
             Ok(())
         })

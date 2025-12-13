@@ -10,7 +10,7 @@ mod tray_start;
 pub use app_cli::{AppCliInstall, AppCliUninstall, app_cli_menu};
 pub use app_info::AppInfo;
 pub use app_new::AppNew;
-pub use tray_check_update::TrayCheckUpdate;
+pub use tray_check_update::{TrayCheckUpdate, UpdateMenuState};
 pub use tray_open::TrayOpen;
 pub use tray_quit::TrayQuit;
 pub use tray_settings::TraySettings;

@@ -36,6 +36,7 @@ export function BannerArea({
     currentTab?.type === "ai" && currentTab.state?.tab === "intelligence";
 
   const openNew = useTabs((state) => state.openNew);
+  const updateAiTabState = useTabs((state) => state.updateAiTabState);
 
   const handleSignIn = useCallback(async () => {
     await auth?.signIn();
@@ -43,9 +44,13 @@ export function BannerArea({
 
   const openAiTab = useCallback(
     (tab: "intelligence" | "transcription") => {
-      openNew({ type: "ai", state: { tab } });
+      if (currentTab?.type === "ai") {
+        updateAiTabState(currentTab, { tab });
+      } else {
+        openNew({ type: "ai", state: { tab } });
+      }
     },
-    [openNew],
+    [currentTab, openNew, updateAiTabState],
   );
 
   const handleOpenLLMSettings = useCallback(() => {

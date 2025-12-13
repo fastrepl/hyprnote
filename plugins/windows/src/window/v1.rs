@@ -7,8 +7,6 @@ pub enum AppWindow {
     Onboarding,
     #[serde(rename = "main")]
     Main,
-    #[serde(rename = "settings")]
-    Settings,
     #[serde(rename = "auth")]
     Auth,
     #[serde(rename = "chat")]
@@ -22,7 +20,6 @@ impl std::fmt::Display for AppWindow {
         match self {
             Self::Onboarding => write!(f, "onboarding"),
             Self::Main => write!(f, "main"),
-            Self::Settings => write!(f, "settings"),
             Self::Auth => write!(f, "auth"),
             Self::Chat => write!(f, "chat"),
             Self::Control => write!(f, "control"),
@@ -37,7 +34,6 @@ impl std::str::FromStr for AppWindow {
         match s {
             "onboarding" => return Ok(Self::Onboarding),
             "main" => return Ok(Self::Main),
-            "settings" => return Ok(Self::Settings),
             "auth" => return Ok(Self::Auth),
             "chat" => return Ok(Self::Chat),
             "control" => return Ok(Self::Control),
@@ -90,7 +86,6 @@ impl WindowImpl for AppWindow {
         match self {
             Self::Onboarding => "Onboarding".into(),
             Self::Main => "Main".into(),
-            Self::Settings => "Settings".into(),
             Self::Auth => "Auth".into(),
             Self::Chat => "Chat".into(),
             Self::Control => "Control".into(),
@@ -121,21 +116,6 @@ impl WindowImpl for AppWindow {
                     .min_inner_size(620.0, 500.0);
                 let window = builder.build()?;
                 window.set_size(LogicalSize::new(910.0, 600.0))?;
-                window
-            }
-            Self::Settings => {
-                let window = self
-                    .window_builder(app, "/app/settings")
-                    .resizable(true)
-                    .minimizable(true)
-                    .maximizable(true)
-                    .min_inner_size(800.0, 600.0)
-                    .build()?;
-
-                let desired_size = LogicalSize::new(800.0, 600.0);
-                window.set_size(LogicalSize::new(1.0, 1.0))?;
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
                 window
             }
             Self::Auth => {

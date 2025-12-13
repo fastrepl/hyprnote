@@ -33,21 +33,18 @@ export function Banner({
           </Button>
         )}
 
-        {banner.title &&
-          (banner.icon ? (
-            <div className="flex items-center gap-2">
-              {banner.icon}
+        {(banner.icon || banner.title) && (
+          <div className="flex items-center gap-2">
+            {banner.icon}
+            {banner.title && (
               <h3 className="text-lg font-bold text-neutral-900">
                 {banner.title}
               </h3>
-            </div>
-          ) : (
-            <h3 className="text-lg font-bold text-neutral-900">
-              {banner.title}
-            </h3>
-          ))}
+            )}
+          </div>
+        )}
 
-        <p className="text-sm">{banner.description}</p>
+        <div className="text-sm">{banner.description}</div>
 
         <div className="flex flex-col gap-2 mt-1">
           {banner.primaryAction && (

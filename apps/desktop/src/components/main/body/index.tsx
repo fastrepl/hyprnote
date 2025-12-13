@@ -22,6 +22,7 @@ import {
 import { ChatFloatingButton } from "../../chat";
 import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
+import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
@@ -349,6 +350,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "changelog") {
+    return (
+      <TabItemChangelog
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -386,6 +399,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   }
   if (tab.type === "extensions") {
     return <TabContentExtensions tab={tab} />;
+  }
+  if (tab.type === "changelog") {
+    return <TabContentChangelog tab={tab} />;
   }
 
   return null;

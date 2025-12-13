@@ -8,7 +8,7 @@ import { useTabs } from "../../../../store/zustand/tabs";
 export function AuthSection({ isAuthenticated }: { isAuthenticated: boolean }) {
   const openNew = useTabs((state) => state.openNew);
 
-  const handleOpenAccount = useCallback(() => {
+  const handleOpenSettings = useCallback(() => {
     openNew({ type: "settings" });
   }, [openNew]);
 
@@ -18,7 +18,7 @@ export function AuthSection({ isAuthenticated }: { isAuthenticated: boolean }) {
 
   return (
     <div className="p-1 pt-2">
-      <Button onClick={handleOpenAccount} variant="default" className="w-full">
+      <Button onClick={handleOpenSettings} variant="default" className="w-full">
         <LogIn size={16} />
         Sign in
       </Button>

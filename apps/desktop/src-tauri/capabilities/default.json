@@ -109,6 +109,7 @@
     "os:default",
     "detect:default",
     "permissions:default",
+    "settings:default",
     "autostart:default",
     {
       "identifier": "http:default",

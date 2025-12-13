@@ -6,9 +6,17 @@
 
 
 export const commands = {
-async ping() : Promise<Result<string, string>> {
+async load() : Promise<Result<JsonValue, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("plugin:importer|ping") };
+    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|load") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async save(settings: JsonValue) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("plugin:settings|save", { settings }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -26,7 +34,7 @@ async ping() : Promise<Result<string, string>> {
 
 /** user-defined types **/
 
-
+export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 
 /** tauri-specta globals **/
 

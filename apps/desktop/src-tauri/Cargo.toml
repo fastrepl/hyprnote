@@ -51,6 +51,7 @@ tauri-plugin-permissions = { workspace = true }
 tauri-plugin-prevent-default = { workspace = true }
 tauri-plugin-process = { workspace = true }
 tauri-plugin-sentry = { workspace = true }
+tauri-plugin-settings = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { workspace = true }
 tauri-plugin-store = { workspace = true }

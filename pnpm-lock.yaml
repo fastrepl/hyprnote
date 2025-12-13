@@ -217,6 +217,9 @@ importers:
       '@hypr/plugin-permissions':
         specifier: workspace:*
         version: link:../../plugins/permissions
+      '@hypr/plugin-settings':
+        specifier: workspace:*
+        version: link:../../plugins/settings
       '@hypr/plugin-template':
         specifier: workspace:*
         version: link:../../plugins/template
@@ -1418,6 +1421,12 @@ importers:
         version: 2.9.1
 
   plugins/permissions:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/settings:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

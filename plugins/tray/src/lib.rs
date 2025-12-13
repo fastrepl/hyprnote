@@ -1,5 +1,8 @@
 mod ext;
+mod menu_items;
+
 pub use ext::*;
+pub use menu_items::HyprMenuItem;
 
 const PLUGIN_NAME: &str = "tray";
 

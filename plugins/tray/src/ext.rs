@@ -1,56 +1,15 @@
 use tauri::{
     AppHandle, Result,
     image::Image,
-    menu::{Menu, MenuId, MenuItem, MenuItemKind, PredefinedMenuItem},
+    menu::{Menu, MenuItemKind, PredefinedMenuItem},
     tray::TrayIconBuilder,
 };
 
-use tauri_plugin_clipboard_manager::ClipboardExt;
-use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
-use tauri_plugin_misc::MiscPluginExt;
+use crate::menu_items::{
+    AppInfo, AppNew, HyprMenuItem, MenuItemHandler, TrayOpen, TrayQuit, TrayStart, app_cli_menu,
+};
 
 const TRAY_ID: &str = "hypr-tray";
-
-pub enum HyprMenuItem {
-    TrayOpen,
-    TrayStart,
-    TrayQuit,
-    AppInfo,
-    AppCliInstall,
-    AppCliUninstall,
-    AppNew,
-}
-
-impl From<HyprMenuItem> for MenuId {
-    fn from(value: HyprMenuItem) -> Self {
-        match value {
-            HyprMenuItem::TrayOpen => "hypr_tray_open",
-            HyprMenuItem::TrayStart => "hypr_tray_start",
-            HyprMenuItem::TrayQuit => "hypr_tray_quit",
-            HyprMenuItem::AppInfo => "hypr_app_info",
-            HyprMenuItem::AppCliInstall => "hypr_app_cli_install",
-            HyprMenuItem::AppCliUninstall => "hypr_app_cli_uninstall",
-            HyprMenuItem::AppNew => "hypr_app_new",
-        }
-        .into()
-    }
-}
-
-impl From<MenuId> for HyprMenuItem {
-    fn from(id: MenuId) -> Self {
-        let id = id.0.as_str();
-        match id {
-            "hypr_tray_open" => HyprMenuItem::TrayOpen,
-            "hypr_tray_start" => HyprMenuItem::TrayStart,
-            "hypr_tray_quit" => HyprMenuItem::TrayQuit,
-            "hypr_app_info" => HyprMenuItem::AppInfo,
-            "hypr_app_cli_install" => HyprMenuItem::AppCliInstall,
-            "hypr_app_cli_uninstall" => HyprMenuItem::AppCliUninstall,
-            "hypr_app_new" => HyprMenuItem::AppNew,
-            _ => unreachable!(),
-        }
-    }
-}
 
 pub trait TrayPluginExt<R: tauri::Runtime> {
     fn create_app_menu(&self) -> Result<()>;
@@ -62,9 +21,9 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
     fn create_app_menu(&self) -> Result<()> {
         let app = self.app_handle();
 
-        let info_item = app_info_menu(app)?;
+        let info_item = AppInfo::build(app)?;
         let cli_item = app_cli_menu(app)?;
-        let new_item = app_new_menu(app)?;
+        let new_item = AppNew::build(app)?;
 
         if cfg!(target_os = "macos") {
             if let Some(menu) = app.menu() {
@@ -96,10 +55,10 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         let menu = Menu::with_items(
             app,
             &[
-                &tray_open_menu(app)?,
-                &tray_start_menu(app, false)?,
+                &TrayOpen::build(app)?,
+                &TrayStart::build_with_disabled(app, false)?,
                 &PredefinedMenuItem::separator(app)?,
-                &tray_quit_menu(app)?,
+                &TrayQuit::build(app)?,
             ],
         )?;
 
@@ -110,83 +69,8 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             .icon_as_template(true)
             .menu(&menu)
             .show_menu_on_left_click(true)
-            .on_menu_event({
-                move |app: &AppHandle, event| match HyprMenuItem::from(event.id.clone()) {
-                    HyprMenuItem::TrayOpen => {
-                        use tauri_plugin_windows::AppWindow;
-                        let _ = AppWindow::Main.show(app);
-                    }
-                    HyprMenuItem::TrayStart => {
-                        use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
-                        if app.window_show(AppWindow::Main).is_ok() {
-                            let _ = app.window_emit_navigate(
-                                AppWindow::Main,
-                                Navigate {
-                                    path: "/app/new".to_string(),
-                                    search: Some(
-                                        serde_json::json!({ "record": true })
-                                            .as_object()
-                                            .cloned()
-                                            .unwrap(),
-                                    ),
-                                },
-                            );
-                        }
-                    }
-                    HyprMenuItem::TrayQuit => {
-                        hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
-                        app.exit(0);
-                    }
-                    HyprMenuItem::AppInfo => {
-                        let app_name = app.package_info().name.clone();
-                        let app_version = app.package_info().version.to_string();
-                        let app_commit = app.get_git_hash();
-
-                        let message = format!(
-                            "• App Name: {}\n• App Version: {}\n• SHA:\n  {}",
-                            app_name, app_version, app_commit
-                        );
-
-                        let app_clone = app.clone();
-
-                        app.dialog()
-                            .message(&message)
-                            .title("About Hyprnote")
-                            .buttons(MessageDialogButtons::OkCancelCustom(
-                                "Copy".to_string(),
-                                "Cancel".to_string(),
-                            ))
-                            .show(move |result| {
-                                if result {
-                                    let _ = app_clone.clipboard().write_text(&message);
-                                }
-                            });
-                    }
-                    HyprMenuItem::AppCliInstall => {
-                        use tauri_plugin_cli2::CliPluginExt;
-                        if app.plugin_cli().install_cli_to_path().is_ok() {
-                            let _ = app.create_app_menu();
-                        }
-                    }
-                    HyprMenuItem::AppCliUninstall => {
-                        use tauri_plugin_cli2::CliPluginExt;
-                        if app.plugin_cli().uninstall_cli_from_path().is_ok() {
-                            let _ = app.create_app_menu();
-                        }
-                    }
-                    HyprMenuItem::AppNew => {
-                        use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
-                        if app.window_show(AppWindow::Main).is_ok() {
-                            let _ = app.window_emit_navigate(
-                                AppWindow::Main,
-                                Navigate {
-                                    path: "/app/new".to_string(),
-                                    search: None,
-                                },
-                            );
-                        }
-                    }
-                }
+            .on_menu_event(move |app: &AppHandle, event| {
+                HyprMenuItem::from(event.id.clone()).handle(app);
             })
             .build(app)?;
 
@@ -200,10 +84,10 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             let menu = Menu::with_items(
                 app,
                 &[
-                    &tray_open_menu(app)?,
-                    &tray_start_menu(app, disabled)?,
+                    &TrayOpen::build(app)?,
+                    &TrayStart::build_with_disabled(app, disabled)?,
                     &PredefinedMenuItem::separator(app)?,
-                    &tray_quit_menu(app)?,
+                    &TrayQuit::build(app)?,
                 ],
             )?;
 
@@ -212,82 +96,4 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
 
         Ok(())
     }
-}
-
-fn app_info_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    MenuItem::with_id(
-        app,
-        HyprMenuItem::AppInfo,
-        "About Hyprnote",
-        true,
-        None::<&str>,
-    )
-}
-
-fn app_cli_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    use tauri_plugin_cli2::CliPluginExt;
-
-    let is_installed = app
-        .plugin_cli()
-        .check_cli_status()
-        .map(|status| status.is_installed)
-        .unwrap_or(false);
-
-    if is_installed {
-        MenuItem::with_id(
-            app,
-            HyprMenuItem::AppCliUninstall,
-            "Uninstall CLI",
-            true,
-            None::<&str>,
-        )
-    } else {
-        MenuItem::with_id(
-            app,
-            HyprMenuItem::AppCliInstall,
-            "Install CLI",
-            true,
-            None::<&str>,
-        )
-    }
-}
-
-fn app_new_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    MenuItem::with_id(
-        app,
-        HyprMenuItem::AppNew,
-        "New Note",
-        true,
-        Some("CmdOrCtrl+N"),
-    )
-}
-
-fn tray_open_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    MenuItem::with_id(
-        app,
-        HyprMenuItem::TrayOpen,
-        "Open Hyprnote",
-        true,
-        None::<&str>,
-    )
-}
-
-fn tray_start_menu<R: tauri::Runtime>(app: &AppHandle<R>, disabled: bool) -> Result<MenuItem<R>> {
-    MenuItem::with_id(
-        app,
-        HyprMenuItem::TrayStart,
-        "Start a new recording",
-        !disabled,
-        None::<&str>,
-    )
-}
-
-fn tray_quit_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
-    MenuItem::with_id(
-        app,
-        HyprMenuItem::TrayQuit,
-        "Quit Completely",
-        true,
-        Some("cmd+q"),
-    )
 }

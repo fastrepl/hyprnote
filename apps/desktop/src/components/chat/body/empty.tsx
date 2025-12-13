@@ -13,7 +13,7 @@ export function ChatBodyEmpty({
   const openNew = useTabs((state) => state.openNew);
 
   const handleGoToSettings = useCallback(() => {
-    openNew({ type: "settings", state: { tab: "intelligence" } });
+    openNew({ type: "ai", state: { tab: "intelligence" } });
   }, [openNew]);
 
   const handleOpenChatShortcuts = useCallback(() => {

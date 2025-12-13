@@ -125,7 +125,7 @@ function ListenSplitButton({
 
   const handleAction = useCallback(() => {
     onPrimaryClick();
-    openNew({ type: "settings", state: { tab: "transcription" } });
+    openNew({ type: "ai", state: { tab: "transcription" } });
   }, [onPrimaryClick, openNew]);
 
   return (

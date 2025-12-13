@@ -2,11 +2,11 @@ import { ConfigureProviders } from "./configure";
 import { HealthCheckForAvailability } from "./health";
 import { SelectProviderAndModel } from "./select";
 
-export function LLM() {
+export function LLM({ headerAction }: { headerAction?: React.ReactNode } = {}) {
   return (
     <div className="space-y-6">
       <HealthCheckForAvailability />
-      <SelectProviderAndModel />
+      <SelectProviderAndModel headerAction={headerAction} />
       <ConfigureProviders />
     </div>
   );

@@ -251,7 +251,7 @@ func (r *Runner) runTestIteration(ctx context.Context, t *testing.T, model strin
 }
 
 // RunTest creates a default runner and executes tasks as test subtests.
-// It skips if GOEVALS env is not set or OPENROUTER_API_KEY is missing.
+// It skips if EVALS env is not set or OPENROUTER_API_KEY is missing.
 func RunTest(t *testing.T, tasks []Task) {
 	t.Helper()
 
@@ -261,7 +261,7 @@ func RunTest(t *testing.T, tasks []Task) {
 	}
 
 	if !cfg.Enabled() {
-		t.Skip("skipping LLM evals (set GOEVALS=1 to enable)")
+		t.Skip("skipping LLM evals (set EVALS=1 to enable)")
 	}
 
 	if cfg.OpenRouterAPIKey == "" {

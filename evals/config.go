@@ -8,9 +8,9 @@ import (
 
 type Config struct {
 	OpenRouterAPIKey string `env:"OPENROUTER_API_KEY"`
-	NumEvals         int    `env:"GOEVALS"                  envDefault:"0"`
-	TimeoutSeconds   int    `env:"GOEVALS_TIMEOUT_SECONDS"  envDefault:"60"`
-	Concurrency      int    `env:"GOEVALS_CONCURRENCY"      envDefault:"4"`
+	NumEvals         int    `env:"EVALS"                  envDefault:"0"`
+	TimeoutSeconds   int    `env:"EVALS_TIMEOUT_SECONDS"  envDefault:"60"`
+	Concurrency      int    `env:"EVALS_CONCURRENCY"      envDefault:"4"`
 }
 
 func (c Config) Timeout() time.Duration {

@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { commands as detectCommands } from "@hypr/plugin-detect";
@@ -161,15 +162,58 @@ export const CONFIG_REGISTRY = {
   vibrancy_enabled: {
     key: "vibrancy_enabled",
     default: false,
+    sideEffect: async (_value: boolean, getConfig) => {
+      const enabled = getConfig("vibrancy_enabled") as boolean;
+      const material = getConfig("vibrancy_material") as string;
+      const radius = getConfig("vibrancy_radius") as number;
+
+      if (enabled) {
+        await invoke("plugin:windows|apply_vibrancy", {
+          window: { type: "main" },
+          material,
+          radius: radius > 0 ? radius : null,
+        });
+      } else {
+        await invoke("plugin:windows|clear_vibrancy", {
+          window: { type: "main" },
+        });
+      }
+    },
   },
 
   vibrancy_material: {
     key: "vibrancy_material",
     default: "Sidebar",
+    sideEffect: async (_value: string, getConfig) => {
+      const enabled = getConfig("vibrancy_enabled") as boolean;
+      if (!enabled) return;
+
+      const material = getConfig("vibrancy_material") as string;
+      const radius = getConfig("vibrancy_radius") as number;
+
+      await invoke("plugin:windows|apply_vibrancy", {
+        window: { type: "main" },
+        material,
+        radius: radius > 0 ? radius : null,
+      });
+    },
   },
 
   vibrancy_radius: {
     key: "vibrancy_radius",
     default: 0,
+    sideEffect: async (_value: number, getConfig) => {
+      const enabled = getConfig("vibrancy_enabled") as boolean;
+      if (!enabled) return;
+
+      const material = getConfig("vibrancy_material") as string;
+      const radius = getConfig("vibrancy_radius") as number;
+
+      await invoke("plugin:windows|apply_vibrancy", {
+        window: { type: "main" },
+        material,
+        radius: radius > 0 ? radius : null,
+      });
+    },
   },
 } satisfies Record<ConfigKey, ConfigDefinition>;

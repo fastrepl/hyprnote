@@ -30,7 +30,7 @@ import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 export function ConfigureProviders() {
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold">Configure Providers</h3>
+      <h3 className="text-md font-semibold">Configure Providers</h3>
       <Accordion type="single" collapsible className="space-y-3">
         <HyprProviderCard
           providerId="hyprnote"
@@ -50,6 +50,20 @@ export function ConfigureProviders() {
   );
 }
 
+function useIsProviderConfigured(providerId: string) {
+  const configuredProviders = settings.UI.useResultTable(
+    settings.QUERIES.sttProviders,
+    settings.STORE_ID,
+  );
+  const config = configuredProviders[providerId];
+
+  if (!config || !config.api_key) {
+    return false;
+  }
+
+  return true;
+}
+
 function NonHyprProviderCard({
   config,
 }: {
@@ -58,6 +72,7 @@ function NonHyprProviderCard({
   const billing = useBillingAccess();
   const [provider, setProvider] = useProvider(config.id);
   const locked = config.requiresPro && !billing.isPro;
+  const isConfigured = useIsProviderConfigured(config.id);
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
@@ -89,7 +104,10 @@ function NonHyprProviderCard({
     <AccordionItem
       disabled={config.disabled || locked}
       value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
+      className={cn([
+        "rounded-xl border-2 bg-neutral-50",
+        isConfigured ? "border-solid border-neutral-300" : "border-dashed",
+      ])}
     >
       <AccordionTrigger
         className={cn([

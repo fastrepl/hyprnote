@@ -91,11 +91,8 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
 
   return (
     <div className="flex-1 w-full overflow-y-auto scrollbar-hide p-6">
-      {activeTab === "transcription" ? (
-        <STT headerAction={headerAction} />
-      ) : (
-        <LLM headerAction={headerAction} />
-      )}
+      <div className="mb-6">{headerAction}</div>
+      {activeTab === "transcription" ? <STT /> : <LLM />}
     </div>
   );
 }

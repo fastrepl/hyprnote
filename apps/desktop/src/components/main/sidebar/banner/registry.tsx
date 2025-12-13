@@ -11,6 +11,8 @@ type BannerRegistryParams = {
   isAuthenticated: boolean;
   hasLLMConfigured: boolean;
   hasSttConfigured: boolean;
+  isAiTranscriptionTabActive: boolean;
+  isAiIntelligenceTabActive: boolean;
   onSignIn: () => void | Promise<void>;
   onOpenLLMSettings: () => void;
   onOpenSTTSettings: () => void;
@@ -20,6 +22,8 @@ export function createBannerRegistry({
   isAuthenticated,
   hasLLMConfigured,
   hasSttConfigured,
+  isAiTranscriptionTabActive,
+  isAiIntelligenceTabActive,
   onSignIn,
   onOpenLLMSettings,
   onOpenSTTSettings,
@@ -39,7 +43,7 @@ export function createBannerRegistry({
         },
         dismissible: false,
       },
-      condition: () => !hasSttConfigured,
+      condition: () => !hasSttConfigured && !isAiTranscriptionTabActive,
     },
     {
       banner: {
@@ -54,7 +58,8 @@ export function createBannerRegistry({
         },
         dismissible: false,
       },
-      condition: () => !hasLLMConfigured,
+      condition: () =>
+        hasSttConfigured && !hasLLMConfigured && !isAiIntelligenceTabActive,
     },
     {
       banner: {

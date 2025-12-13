@@ -29,6 +29,12 @@ export function BannerArea({
   const hasLLMConfigured = !!(current_llm_provider && current_llm_model);
   const hasSttConfigured = !!(current_stt_provider && current_stt_model);
 
+  const currentTab = useTabs((state) => state.currentTab);
+  const isAiTranscriptionTabActive =
+    currentTab?.type === "ai" && currentTab.state?.tab === "transcription";
+  const isAiIntelligenceTabActive =
+    currentTab?.type === "ai" && currentTab.state?.tab === "intelligence";
+
   const openNew = useTabs((state) => state.openNew);
 
   const handleSignIn = useCallback(async () => {
@@ -56,6 +62,8 @@ export function BannerArea({
         isAuthenticated,
         hasLLMConfigured,
         hasSttConfigured,
+        isAiTranscriptionTabActive,
+        isAiIntelligenceTabActive,
         onSignIn: handleSignIn,
         onOpenLLMSettings: handleOpenLLMSettings,
         onOpenSTTSettings: handleOpenSTTSettings,
@@ -64,6 +72,8 @@ export function BannerArea({
       isAuthenticated,
       hasLLMConfigured,
       hasSttConfigured,
+      isAiTranscriptionTabActive,
+      isAiIntelligenceTabActive,
       handleSignIn,
       handleOpenLLMSettings,
       handleOpenSTTSettings,

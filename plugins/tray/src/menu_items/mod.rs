@@ -14,12 +14,12 @@ pub use tray_open::TrayOpen;
 pub use tray_quit::TrayQuit;
 pub use tray_start::TrayStart;
 
-use tauri::{AppHandle, Result, menu::MenuItem};
+use tauri::{AppHandle, Result, menu::MenuItemKind};
 
 pub trait MenuItemHandler {
     const ID: &'static str;
 
-    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItem<tauri::Wry>>;
+    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>>;
     fn handle(app: &AppHandle<tauri::Wry>);
 }
 

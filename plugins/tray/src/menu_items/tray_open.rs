@@ -1,4 +1,7 @@
-use tauri::{AppHandle, Result, menu::MenuItem};
+use tauri::{
+    AppHandle, Result,
+    menu::{MenuItem, MenuItemKind},
+};
 
 use super::MenuItemHandler;
 
@@ -7,8 +10,9 @@ pub struct TrayOpen;
 impl MenuItemHandler for TrayOpen {
     const ID: &'static str = "hypr_tray_open";
 
-    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItem<tauri::Wry>> {
-        MenuItem::with_id(app, Self::ID, "Open Hyprnote", true, None::<&str>)
+    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
+        let item = MenuItem::with_id(app, Self::ID, "Open Hyprnote", true, None::<&str>)?;
+        Ok(MenuItemKind::MenuItem(item))
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {

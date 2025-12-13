@@ -1,4 +1,7 @@
-use tauri::{AppHandle, Result, menu::MenuItem};
+use tauri::{
+    AppHandle, Result,
+    menu::{IconMenuItem, MenuItemKind, NativeIcon},
+};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri_plugin_misc::MiscPluginExt;
@@ -10,8 +13,16 @@ pub struct AppInfo;
 impl MenuItemHandler for AppInfo {
     const ID: &'static str = "hypr_app_info";
 
-    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItem<tauri::Wry>> {
-        MenuItem::with_id(app, Self::ID, "About Hyprnote", true, None::<&str>)
+    fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
+        let item = IconMenuItem::with_id_and_native_icon(
+            app,
+            Self::ID,
+            "About Hyprnote",
+            true,
+            Some(NativeIcon::Info),
+            None::<&str>,
+        )?;
+        Ok(MenuItemKind::Icon(item))
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {

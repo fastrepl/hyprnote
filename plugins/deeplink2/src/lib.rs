@@ -14,6 +14,18 @@ use tauri_specta::Event;
 
 const PLUGIN_NAME: &str = "deeplink2";
 
+fn redact_url(url_str: &str) -> String {
+    match url::Url::parse(url_str) {
+        Ok(parsed) => {
+            let scheme = parsed.scheme();
+            let host = parsed.host_str().unwrap_or("");
+            let path = parsed.path();
+            format!("{}://{}{}", scheme, host, path)
+        }
+        Err(_) => "[invalid_url]".to_string(),
+    }
+}
+
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
@@ -34,17 +46,18 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             app.deep_link().on_open_url(move |event| {
                 for url in event.urls() {
                     let url_str = url.as_str();
-                    tracing::info!(url = url_str, "deeplink_received");
+                    let redacted = redact_url(url_str);
+                    tracing::info!(url = %redacted, "deeplink_received");
 
                     match DeepLink::from_str(url_str) {
                         Ok(deep_link) => {
-                            tracing::info!(deep_link = ?deep_link, "deeplink_parsed");
+                            tracing::info!(path = deep_link.path(), "deeplink_parsed");
                             if let Err(e) = DeepLinkEvent(deep_link).emit(&app_handle) {
                                 tracing::error!(error = ?e, "deeplink_event_emit_failed");
                             }
                         }
                         Err(e) => {
-                            tracing::warn!(error = ?e, url = url_str, "deeplink_parse_failed");
+                            tracing::debug!(error = ?e, url = %redacted, "deeplink_parse_failed");
                         }
                     }
                 }

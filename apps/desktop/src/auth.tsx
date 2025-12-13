@@ -94,6 +94,10 @@ const AuthContext = createContext<{
   signOut: () => Promise<void>;
   refreshSession: () => Promise<Session | null>;
   handleAuthCallback: (url: string) => Promise<void>;
+  setSessionFromTokens: (
+    accessToken: string,
+    refreshToken: string,
+  ) => Promise<void>;
   getHeaders: () => Record<string, string> | null;
   getAvatarUrl: () => Promise<string>;
 } | null>(null);
@@ -102,18 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [serverReachable, setServerReachable] = useState(true);
 
-  const handleAuthCallback = async (url: string) => {
+  const setSessionFromTokens = async (
+    accessToken: string,
+    refreshToken: string,
+  ) => {
     if (!supabase) {
       console.error("Supabase client not found");
-      return;
-    }
-
-    const parsed = new URL(url);
-    const accessToken = parsed.searchParams.get("access_token");
-    const refreshToken = parsed.searchParams.get("refresh_token");
-
-    if (!accessToken || !refreshToken) {
-      console.error("invalid_callback_url");
       return;
     }
 
@@ -123,12 +121,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (res.error) {
-      console.error(res.error);
+      console.error("Failed to set session");
     } else {
       setSession(res.data.session);
       setServerReachable(true);
       supabase.auth.startAutoRefresh();
     }
+  };
+
+  const handleAuthCallback = async (url: string) => {
+    const parsed = new URL(url);
+    const accessToken = parsed.searchParams.get("access_token");
+    const refreshToken = parsed.searchParams.get("refresh_token");
+
+    if (!accessToken || !refreshToken) {
+      console.error("invalid_callback_url");
+      return;
+    }
+
+    await setSessionFromTokens(accessToken, refreshToken);
   };
 
   useEffect(() => {
@@ -289,6 +300,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     refreshSession,
     handleAuthCallback,
+    setSessionFromTokens,
     getHeaders,
     getAvatarUrl,
   };

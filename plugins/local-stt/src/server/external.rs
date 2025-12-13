@@ -78,20 +78,21 @@ fn cleanup_state(state: &mut ExternalSTTState) {
     let mut kill_failed = false;
 
     if let Some(process) = state.process_handle.take()
-        && let Err(e) = process.kill() {
-            if let tauri_plugin_shell::Error::Io(io_err) = &e {
-                match io_err.kind() {
-                    io::ErrorKind::InvalidInput | io::ErrorKind::NotFound => {}
-                    _ => {
-                        tracing::error!("failed_to_kill_process: {:?}", e);
-                        kill_failed = true;
-                    }
+        && let Err(e) = process.kill()
+    {
+        if let tauri_plugin_shell::Error::Io(io_err) = &e {
+            match io_err.kind() {
+                io::ErrorKind::InvalidInput | io::ErrorKind::NotFound => {}
+                _ => {
+                    tracing::error!("failed_to_kill_process: {:?}", e);
+                    kill_failed = true;
                 }
-            } else {
-                tracing::error!("failed_to_kill_process: {:?}", e);
-                kill_failed = true;
             }
+        } else {
+            tracing::error!("failed_to_kill_process: {:?}", e);
+            kill_failed = true;
         }
+    }
 
     if kill_failed {
         hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);

@@ -113,9 +113,10 @@ pub async fn stop_stt_server(
 
     if let Err(e) = result {
         if let Some(supervisor_error) = e.downcast_ref::<SupervisorError>()
-            && matches!(supervisor_error, SupervisorError::ChildNotFound { .. }) {
-                return Ok(());
-            }
+            && matches!(supervisor_error, SupervisorError::ChildNotFound { .. })
+        {
+            return Ok(());
+        }
         return Err(e);
     }
 

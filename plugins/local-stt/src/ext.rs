@@ -107,15 +107,16 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         };
 
         if let Some(info) = current_info.as_ref()
-            && info.model.as_ref() == Some(&model) {
-                if let Some(url) = info.url.clone() {
-                    return Ok(url);
-                }
-
-                return Err(crate::Error::ServerStartFailed(
-                    "missing_health_url".to_string(),
-                ));
+            && info.model.as_ref() == Some(&model)
+        {
+            if let Some(url) = info.url.clone() {
+                return Ok(url);
             }
+
+            return Err(crate::Error::ServerStartFailed(
+                "missing_health_url".to_string(),
+            ));
+        }
 
         if matches!(server_type, ServerType::Internal) && !self.is_model_downloaded(&model).await? {
             return Err(crate::Error::ModelNotDownloaded);

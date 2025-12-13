@@ -55,9 +55,10 @@ impl<R: tauri::Runtime> PluginCli<R> {
         let symlink_path = self.get_cli_symlink_path();
 
         if let Some(parent) = symlink_path.parent()
-            && !parent.exists() {
-                std::fs::create_dir_all(parent)?;
-            }
+            && !parent.exists()
+        {
+            std::fs::create_dir_all(parent)?;
+        }
 
         #[cfg(unix)]
         {

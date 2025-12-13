@@ -24,9 +24,10 @@ static OVERLAY_JOIN_HANDLE: Lazy<Mutex<Option<tokio::task::JoinHandle<()>>>> =
 
 pub fn abort_overlay_join_handle() {
     if let Ok(mut guard) = OVERLAY_JOIN_HANDLE.lock()
-        && let Some(handle) = guard.take() {
-            handle.abort();
-        }
+        && let Some(handle) = guard.take()
+    {
+        handle.abort();
+    }
 }
 
 pub fn spawn_overlay_listener(app: AppHandle, window: WebviewWindow) {

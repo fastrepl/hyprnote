@@ -55,14 +55,15 @@ pub fn is_headphone_from_default_output_device() -> bool {
         introspector.get_sink_info_by_name("@DEFAULT_SINK@", move |list_result| {
             if let pulse::callbacks::ListResult::Item(sink_info) = list_result
                 && let Some(active_port) = &sink_info.active_port
-                    && let Some(name) = active_port.name.as_ref() {
-                        let name_lower = name.to_lowercase();
-                        let is_headphone =
-                            name_lower.contains("headphone") || name_lower.contains("headset");
-                        if let Ok(mut r) = result.lock() {
-                            *r = is_headphone;
-                        }
-                    }
+                && let Some(name) = active_port.name.as_ref()
+            {
+                let name_lower = name.to_lowercase();
+                let is_headphone =
+                    name_lower.contains("headphone") || name_lower.contains("headset");
+                if let Ok(mut r) = result.lock() {
+                    *r = is_headphone;
+                }
+            }
             done.store(true, Ordering::Release);
         });
         mainloop.unlock();

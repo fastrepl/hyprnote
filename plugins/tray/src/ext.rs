@@ -67,22 +67,25 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
         let new_item = app_new_menu(app)?;
 
         if cfg!(target_os = "macos")
-            && let Some(menu) = app.menu() {
-                let items = menu.items()?;
+            && let Some(menu) = app.menu()
+        {
+            let items = menu.items()?;
 
-                if !items.is_empty()
-                    && let MenuItemKind::Submenu(submenu) = &items[0] {
-                        submenu.remove_at(0)?;
-                        submenu.remove_at(0)?;
-                        submenu.prepend(&cli_item)?;
-                        submenu.prepend(&info_item)?;
-                    }
-
-                if items.len() > 1
-                    && let MenuItemKind::Submenu(submenu) = &items[1] {
-                        submenu.prepend(&new_item)?;
-                    }
+            if !items.is_empty()
+                && let MenuItemKind::Submenu(submenu) = &items[0]
+            {
+                submenu.remove_at(0)?;
+                submenu.remove_at(0)?;
+                submenu.prepend(&cli_item)?;
+                submenu.prepend(&info_item)?;
             }
+
+            if items.len() > 1
+                && let MenuItemKind::Submenu(submenu) = &items[1]
+            {
+                submenu.prepend(&new_item)?;
+            }
+        }
 
         Ok(())
     }

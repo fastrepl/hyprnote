@@ -179,20 +179,21 @@ pub async fn download_file_with_callback_cancellable<F: Fn(DownloadProgress)>(
     loop {
         // Check for cancellation
         if let Some(ref token) = cancellation_token
-            && token.is_cancelled() {
-                // Flush any buffered data before exiting
-                if !write_buffer.is_empty() {
-                    file.write_all(&write_buffer)?;
-                    write_buffer.clear();
-                }
-                file.flush()?;
-                file.sync_all()?;
-                tracing::info!(
-                    "Download cancelled, partial file saved at: {:?}",
-                    output_path.as_ref()
-                );
-                return Err(crate::Error::Cancelled);
+            && token.is_cancelled()
+        {
+            // Flush any buffered data before exiting
+            if !write_buffer.is_empty() {
+                file.write_all(&write_buffer)?;
+                write_buffer.clear();
             }
+            file.flush()?;
+            file.sync_all()?;
+            tracing::info!(
+                "Download cancelled, partial file saved at: {:?}",
+                output_path.as_ref()
+            );
+            return Err(crate::Error::Cancelled);
+        }
 
         match stream.next().await {
             Some(Ok(chunk)) => {
@@ -387,25 +388,26 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
     for chunk_idx in 0..num_chunks {
         // Check for cancellation before starting new chunks
         if let Some(ref token) = cancellation_token
-            && token.is_cancelled() {
-                // Process any remaining tasks and flush data
-                while let Some(result) = tasks.next().await {
-                    let _ = process_task_result(result, &file, &pending_writes, &next_write_offset);
-                }
-
-                // Ensure all pending writes are flushed
-                {
-                    let mut file_guard = file.lock().unwrap();
-                    file_guard.flush()?;
-                    file_guard.sync_all()?;
-                }
-
-                tracing::info!(
-                    "Download cancelled, partial file saved at: {:?}",
-                    output_path.as_ref()
-                );
-                return Err(crate::Error::Cancelled);
+            && token.is_cancelled()
+        {
+            // Process any remaining tasks and flush data
+            while let Some(result) = tasks.next().await {
+                let _ = process_task_result(result, &file, &pending_writes, &next_write_offset);
             }
+
+            // Ensure all pending writes are flushed
+            {
+                let mut file_guard = file.lock().unwrap();
+                file_guard.flush()?;
+                file_guard.sync_all()?;
+            }
+
+            tracing::info!(
+                "Download cancelled, partial file saved at: {:?}",
+                output_path.as_ref()
+            );
+            return Err(crate::Error::Cancelled);
+        }
 
         let start = existing_size + chunk_idx * chunk_size;
         let end = min(start + chunk_size - 1, total_size - 1);
@@ -418,9 +420,10 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
         let task = async move {
             // Check cancellation at chunk level
             if let Some(ref token) = cancellation_token_clone
-                && token.is_cancelled() {
-                    return Err(crate::Error::Cancelled);
-                }
+                && token.is_cancelled()
+            {
+                return Err(crate::Error::Cancelled);
+            }
 
             let client = get_client();
             let range_header = format!("bytes={}-{}", start, end);
@@ -444,9 +447,10 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
             while let Some(chunk) = stream.try_next().await? {
                 // Check cancellation during chunk download
                 if let Some(ref token) = cancellation_token_clone
-                    && token.is_cancelled() {
-                        return Ok((start, bytes)); // Return what we have so far
-                    }
+                    && token.is_cancelled()
+                {
+                    return Ok((start, bytes)); // Return what we have so far
+                }
 
                 bytes.extend_from_slice(&chunk);
 
@@ -464,9 +468,10 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
         tasks.push(task);
 
         if tasks.len() >= MAX_CONCURRENT_CHUNKS
-            && let Some(result) = tasks.next().await {
-                process_task_result(result, &file, &pending_writes, &next_write_offset)?;
-            }
+            && let Some(result) = tasks.next().await
+        {
+            process_task_result(result, &file, &pending_writes, &next_write_offset)?;
+        }
     }
 
     while let Some(result) = tasks.next().await {

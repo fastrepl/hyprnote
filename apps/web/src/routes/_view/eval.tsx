@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   BarElement,
   CategoryScale,
@@ -7,15 +7,20 @@ import {
   Tooltip,
   type TooltipItem,
 } from "chart.js";
-import { useState } from "react";
 import { Bar } from "react-chartjs-2";
+import { z } from "zod";
 
 import { cn } from "@hypr/utils";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
+const validateSearch = z.object({
+  task: z.string().optional(),
+});
+
 export const Route = createFileRoute("/_view/eval")({
   component: Component,
+  validateSearch,
 });
 
 interface ModelResult {
@@ -107,8 +112,19 @@ function generateRainbowColors(count: number): string[] {
 }
 
 function Component() {
+  const navigate = useNavigate({ from: Route.fullPath });
+  const search = Route.useSearch();
   const tasks = Object.keys(mockEvalData);
-  const [selectedTask, setSelectedTask] = useState(tasks[0]);
+
+  const selectedTask =
+    search.task && tasks.includes(search.task) ? search.task : tasks[0];
+
+  const handleTaskClick = (task: string) => {
+    navigate({
+      search: { task },
+      resetScroll: false,
+    });
+  };
 
   const taskData = mockEvalData[selectedTask] || [];
   const sortedData = [...taskData].sort((a, b) => b.rate - a.rate);
@@ -151,7 +167,7 @@ function Component() {
           display: false,
         },
         ticks: {
-          color: "#9ca3af",
+          color: "#525252",
           maxRotation: 90,
           minRotation: 45,
           font: {
@@ -163,26 +179,26 @@ function Component() {
         min: 0,
         max: 100,
         grid: {
-          color: "rgba(255, 255, 255, 0.1)",
+          color: "rgba(0, 0, 0, 0.1)",
         },
         ticks: {
-          color: "#9ca3af",
+          color: "#525252",
           stepSize: 25,
           callback: (value: number | string) => `${value}`,
         },
         title: {
           display: true,
           text: "Success Rate (%)",
-          color: "#9ca3af",
+          color: "#525252",
         },
       },
     },
   };
 
   return (
-    <main className="flex-1 bg-neutral-900 min-h-screen">
+    <main className="flex-1 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto py-12 px-4">
-        <h1 className="text-3xl font-serif text-white mb-8 text-center">
+        <h1 className="text-3xl font-serif text-stone-600 mb-8 text-center">
           Model Evaluation Results
         </h1>
 
@@ -190,12 +206,12 @@ function Component() {
           {tasks.map((task) => (
             <button
               key={task}
-              onClick={() => setSelectedTask(task)}
+              onClick={() => handleTaskClick(task)}
               className={cn([
                 "px-4 py-2 rounded-full text-sm font-medium transition-all",
                 selectedTask === task
-                  ? "bg-white text-neutral-900"
-                  : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700",
+                  ? "bg-stone-600 text-white"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200",
               ])}
             >
               {task}

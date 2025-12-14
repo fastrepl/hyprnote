@@ -71,7 +71,7 @@ type Runner struct {
 	numEvals     int
 	timeout      time.Duration
 	concurrency  int
-	OnProgress ProgressCallback
+	OnProgress   ProgressCallback
 
 	generationsTotal int
 	evaluationsTotal int

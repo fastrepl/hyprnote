@@ -156,9 +156,7 @@ pub async fn main() {
             }
 
             specta_builder.mount_events(&app_handle);
-
-            let is_existing_install = app_handle.get_onboarding_needed().is_ok();
-            app_handle.maybe_emit_updated(is_existing_install);
+            app_handle.maybe_emit_updated();
 
             Ok(())
         })

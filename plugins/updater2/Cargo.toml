@@ -16,6 +16,7 @@ tokio = { workspace = true, features = ["macros"] }
 
 [dependencies]
 tauri-plugin-store2 = { workspace = true }
+tauri-plugin-updater = { workspace = true }
 
 tauri = { workspace = true, features = ["test"] }
 tauri-specta = { workspace = true, features = ["derive", "typescript"] }
@@ -25,4 +26,5 @@ specta = { workspace = true }
 strum = { workspace = true, features = ["derive"] }
 
 thiserror = { workspace = true }
+tokio = { workspace = true, features = ["time"] }
 tracing = { workspace = true }

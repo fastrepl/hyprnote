@@ -144,11 +144,6 @@ type textResult struct {
 	generationID string
 }
 
-func generateText(ctx context.Context, client ChatCompleter, model, prompt string) (string, error) {
-	result, _, err := generateTextWithGenerationID(ctx, client, model, prompt)
-	return result, err
-}
-
 func generateTextWithGenerationID(ctx context.Context, client ChatCompleter, model, prompt string) (string, string, error) {
 	b := backoff.NewExponentialBackOff()
 	b.InitialInterval = defaultRetryInterval
@@ -237,11 +232,6 @@ func generateStructuredGraderResponse(ctx context.Context, client ChatCompleter,
 type textMultiResult struct {
 	outputs      []string
 	generationID string
-}
-
-func generateTextMulti(ctx context.Context, client ChatCompleter, model, prompt string, n int) ([]string, error) {
-	result, _, err := generateTextMultiWithGenerationID(ctx, client, model, prompt, n)
-	return result, err
 }
 
 func generateTextMultiWithGenerationID(ctx context.Context, client ChatCompleter, model, prompt string, n int) ([]string, string, error) {

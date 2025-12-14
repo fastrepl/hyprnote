@@ -165,9 +165,17 @@ func (r *Runner) TotalCount(tasks []Task) int {
 	return len(r.targetModels) * len(tasks) * r.numEvals
 }
 
-// TotalGenerations returns the total number of generations that will be performed.
+// TotalGenerations returns the total number of samples that will be generated.
 func (r *Runner) TotalGenerations(tasks []Task) int {
-	return len(r.targetModels) * len(tasks) * r.numEvals
+	total := 0
+	for _, task := range tasks {
+		samples := task.Samples
+		if samples <= 1 {
+			samples = 1
+		}
+		total += samples
+	}
+	return total * len(r.targetModels) * r.numEvals
 }
 
 // TotalEvaluations returns the total number of evaluations that will be performed.
@@ -209,7 +217,9 @@ func (r *Runner) runSingleWithProgress(ctx context.Context, model string, runNum
 		}
 
 		if onGeneration != nil {
-			onGeneration()
+			for range outputs {
+				onGeneration()
+			}
 		}
 
 		if len(outputs) > 0 {

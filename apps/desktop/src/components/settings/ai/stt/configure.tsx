@@ -76,7 +76,10 @@ function HyprProviderCard({
   return (
     <AccordionItem
       value={providerId}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
+      className={cn([
+        "rounded-xl border-2 bg-neutral-50",
+        true ? "border-solid border-neutral-300" : "border-dashed",
+      ])}
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>
         <div className="flex items-center gap-2">

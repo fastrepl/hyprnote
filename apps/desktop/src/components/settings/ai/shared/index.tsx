@@ -36,7 +36,7 @@ type ProviderConfig = {
   requiresPro?: boolean;
 };
 
-export function useIsProviderConfigured(
+function useIsProviderConfigured(
   providerId: string,
   providerType: ProviderType,
   providers: readonly ProviderConfig[],
@@ -235,7 +235,7 @@ export function StyledStreamdown({
   );
 }
 
-export function useProvider(id: string) {
+function useProvider(id: string) {
   const providerRow = settings.UI.useRow("ai_providers", id, settings.STORE_ID);
   const setProvider = settings.UI.useSetPartialRowCallback(
     "ai_providers",
@@ -249,7 +249,7 @@ export function useProvider(id: string) {
   return [data, setProvider] as const;
 }
 
-export function FormField({
+function FormField({
   field,
   label,
   icon,

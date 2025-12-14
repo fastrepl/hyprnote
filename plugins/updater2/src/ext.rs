@@ -26,8 +26,8 @@ impl<R: tauri::Runtime, T: Manager<R> + Emitter<R>> crate::Updater2PluginExt<R> 
 
     fn get_pending_update_version(&self) -> Result<Option<String>, crate::Error> {
         let store = self.scoped_store(crate::PLUGIN_NAME)?;
-        let v = store.get(crate::StoreKey::PendingUpdateVersion)?;
-        Ok(v)
+        let v: Option<String> = store.get(crate::StoreKey::PendingUpdateVersion)?;
+        Ok(v.filter(|s| !s.is_empty()))
     }
 
     fn set_pending_update_version(&self, version: Option<String>) -> Result<(), crate::Error> {

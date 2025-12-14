@@ -27,9 +27,14 @@ export function Banner({
             size="icon"
             variant="ghost"
             aria-label="Dismiss banner"
-            className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-all duration-200"
+            className={cn([
+              "absolute top-1.5 right-1.5 size-6",
+              "opacity-0 group-hover:opacity-50 hover:!opacity-100",
+              "hover:bg-neutral-200",
+              "transition-all duration-200",
+            ])}
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </Button>
         )}
 

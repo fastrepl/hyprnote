@@ -48,6 +48,12 @@ type GraderWithInputs interface {
 	GradeWithInputs(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string, inputs map[string]any) Score
 }
 
+// GraderWithProgress is an extended grader that reports progress during evaluation.
+type GraderWithProgress interface {
+	Grader
+	GradeWithProgress(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string, onEvaluation func()) Score
+}
+
 // LLMGrader uses a language model to evaluate output.
 // Set Samples > 1 to run multiple grading samples and aggregate results for better stability.
 type LLMGrader struct {
@@ -57,13 +63,19 @@ type LLMGrader struct {
 // Grade evaluates the output using an LLM judge with structured output.
 // When Samples > 1, it generates multiple grading responses and aggregates them using mean pass rate.
 func (g LLMGrader) Grade(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string) Score {
-	return g.GradeWithInputs(ctx, client, model, rubric, output, nil)
+	return g.GradeWithProgress(ctx, client, model, rubric, output, nil)
+}
+
+// GradeWithProgress evaluates the output using an LLM judge with progress callback.
+func (g LLMGrader) GradeWithProgress(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string, onEvaluation func()) Score {
+	prompt := g.buildPrompt(rubric, output, nil)
+	return g.gradeWithPromptAndProgress(ctx, client, model, rubric, prompt, onEvaluation)
 }
 
 // GradeWithInputs evaluates the output using an LLM judge with access to input variables.
 func (g LLMGrader) GradeWithInputs(ctx context.Context, client ChatCompleter, model string, rubric Rubric, output string, inputs map[string]any) Score {
 	prompt := g.buildPrompt(rubric, output, inputs)
-	return g.gradeWithPrompt(ctx, client, model, rubric, prompt)
+	return g.gradeWithPromptAndProgress(ctx, client, model, rubric, prompt, nil)
 }
 
 func (g LLMGrader) buildPrompt(rubric Rubric, output string, inputs map[string]any) string {
@@ -86,7 +98,7 @@ Output to evaluate:
 ---`, rubric.Name, rubric.Description, inputsStr, output)
 }
 
-func (g LLMGrader) gradeWithPrompt(ctx context.Context, client ChatCompleter, model string, rubric Rubric, prompt string) Score {
+func (g LLMGrader) gradeWithPromptAndProgress(ctx context.Context, client ChatCompleter, model string, rubric Rubric, prompt string, onEvaluation func()) Score {
 	score := Score{
 		RubricName:  rubric.Name,
 		GraderType:  "llm",
@@ -111,6 +123,9 @@ func (g LLMGrader) gradeWithPrompt(ctx context.Context, client ChatCompleter, mo
 		if !score.Passed {
 			score.PassRate = 0.0
 		}
+		if onEvaluation != nil {
+			onEvaluation()
+		}
 		return score
 	}
 
@@ -120,19 +135,25 @@ func (g LLMGrader) gradeWithPrompt(ctx context.Context, client ChatCompleter, mo
 		return score
 	}
 
+	if onEvaluation != nil {
+		for range n {
+			onEvaluation()
+		}
+	}
+
 	agg := aggregateGraderResponses(responses)
 	score.Passed = agg.Passed
 	if score.Passed {
 		score.Value = 1
 	}
 	score.Reasoning = agg.Reasoning
-	score.PassRate = agg.PassRate
-	score.Samples = agg.Samples
-	score.StandardDeviation = agg.StandardDeviation
-	score.Variance = agg.Variance
-	score.ConfidenceInterval = agg.ConfidenceInterval
-	score.PassCount = agg.PassCount
-	score.FailCount = agg.FailCount
+	score.PassRate = agg.PassStats.PassRate
+	score.Samples = agg.PassStats.Samples
+	score.StandardDeviation = agg.PassStats.StandardDeviation
+	score.Variance = agg.PassStats.Variance
+	score.ConfidenceInterval = agg.PassStats.ConfidenceInterval
+	score.PassCount = agg.PassStats.PassCount
+	score.FailCount = agg.PassStats.FailCount
 
 	return score
 }

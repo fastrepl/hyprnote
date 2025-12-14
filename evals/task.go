@@ -142,6 +142,11 @@ func (t *Task) ExecuteMulti(ctx context.Context, client ChatCompleter, model str
 
 // Grade evaluates output against all rubrics using the provided grader model.
 func (t *Task) Grade(ctx context.Context, client ChatCompleter, model, output string) []Score {
+	return t.GradeWithProgress(ctx, client, model, output, nil)
+}
+
+// GradeWithProgress evaluates output against all rubrics with progress callback.
+func (t *Task) GradeWithProgress(ctx context.Context, client ChatCompleter, model, output string, onEvaluation func()) []Score {
 	scores := make([]Score, 0, len(t.Rubrics))
 	var inputMap map[string]any
 	if t.Inputs != nil {
@@ -149,10 +154,18 @@ func (t *Task) Grade(ctx context.Context, client ChatCompleter, model, output st
 	}
 	for _, rubric := range t.Rubrics {
 		var s Score
-		if graderWithInputs, ok := rubric.Grader.(GraderWithInputs); ok {
+		if graderWithProgress, ok := rubric.Grader.(GraderWithProgress); ok {
+			s = graderWithProgress.GradeWithProgress(ctx, client, model, rubric, output, onEvaluation)
+		} else if graderWithInputs, ok := rubric.Grader.(GraderWithInputs); ok {
 			s = graderWithInputs.GradeWithInputs(ctx, client, model, rubric, output, inputMap)
+			if onEvaluation != nil {
+				onEvaluation()
+			}
 		} else {
 			s = rubric.Grader.Grade(ctx, client, model, rubric, output)
+			if onEvaluation != nil {
+				onEvaluation()
+			}
 		}
 		scores = append(scores, s)
 	}
@@ -162,17 +175,22 @@ func (t *Task) Grade(ctx context.Context, client ChatCompleter, model, output st
 // GradeMulti evaluates multiple outputs against all rubrics and aggregates the results.
 // For each rubric, it calculates the mean pass rate across all outputs.
 func (t *Task) GradeMulti(ctx context.Context, client ChatCompleter, model string, outputs []string) []Score {
+	return t.GradeMultiWithProgress(ctx, client, model, outputs, nil)
+}
+
+// GradeMultiWithProgress evaluates multiple outputs against all rubrics with progress callback.
+func (t *Task) GradeMultiWithProgress(ctx context.Context, client ChatCompleter, model string, outputs []string, onEvaluation func()) []Score {
 	if len(outputs) == 0 {
 		return nil
 	}
 
 	if len(outputs) == 1 {
-		return t.Grade(ctx, client, model, outputs[0])
+		return t.GradeWithProgress(ctx, client, model, outputs[0], onEvaluation)
 	}
 
 	allScores := make([][]Score, len(outputs))
 	for i, output := range outputs {
-		allScores[i] = t.Grade(ctx, client, model, output)
+		allScores[i] = t.GradeWithProgress(ctx, client, model, output, onEvaluation)
 	}
 
 	aggregated := make([]Score, len(t.Rubrics))
@@ -195,31 +213,21 @@ func (t *Task) GradeMulti(ctx context.Context, client ChatCompleter, model strin
 			}
 		}
 
-		totalCount := len(outputs)
-		failCount := totalCount - passCount
-		passRate := float64(passCount) / float64(totalCount)
-
-		stdDev, variance := calculateBinaryStatistics(passCount, totalCount)
-		ciLower, ciUpper := calculateWilsonConfidenceInterval(passCount, totalCount, 0.95)
-
+		stats := calcPassStats(passCount, len(outputs))
 		aggregated[rubricIdx] = Score{
-			RubricName:        t.Rubrics[rubricIdx].Name,
-			Passed:            passRate >= 0.5,
-			Value:             0,
-			Reasoning:         firstReasoning,
-			GraderType:        graderType,
-			GraderModel:       graderModel,
-			PassRate:          passRate,
-			Samples:           totalCount,
-			StandardDeviation: stdDev,
-			Variance:          variance,
-			ConfidenceInterval: ConfidenceInterval{
-				Lower: ciLower,
-				Upper: ciUpper,
-				Level: 0.95,
-			},
-			PassCount: passCount,
-			FailCount: failCount,
+			RubricName:         t.Rubrics[rubricIdx].Name,
+			Passed:             stats.PassRate >= 0.5,
+			Value:              0,
+			Reasoning:          firstReasoning,
+			GraderType:         graderType,
+			GraderModel:        graderModel,
+			PassRate:           stats.PassRate,
+			Samples:            stats.Samples,
+			StandardDeviation:  stats.StandardDeviation,
+			Variance:           stats.Variance,
+			ConfidenceInterval: stats.ConfidenceInterval,
+			PassCount:          stats.PassCount,
+			FailCount:          stats.FailCount,
 		}
 		if aggregated[rubricIdx].Passed {
 			aggregated[rubricIdx].Value = 1

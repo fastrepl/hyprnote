@@ -6,6 +6,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     Store2(#[from] tauri_plugin_store2::Error),
+    #[error(transparent)]
+    Updater(#[from] tauri_plugin_updater::Error),
 }
 
 impl Serialize for Error {

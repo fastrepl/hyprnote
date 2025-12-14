@@ -124,7 +124,7 @@ export const tabSchema = z.discriminatedUnion("type", [
   baseTabSchema.extend({
     type: z.literal("changelog"),
     state: z.object({
-      previous: z.string(),
+      previous: z.string().nullable(),
       current: z.string(),
     }),
   }),
@@ -191,7 +191,7 @@ export type TabInput =
   | { type: "empty" }
   | { type: "extension"; extensionId: string; state?: Record<string, unknown> }
   | { type: "calendar" }
-  | { type: "changelog"; state: { previous: string; current: string } }
+  | { type: "changelog"; state: { previous: string | null; current: string } }
   | { type: "settings" }
   | {
       type: "ai";

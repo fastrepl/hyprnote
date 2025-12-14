@@ -23,7 +23,7 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
 import { useIsMacos } from "../../../../hooks/usePlatform";
-import * as main from "../../../../store/tinybase/main";
+import * as settings from "../../../../store/tinybase/settings";
 import { FormField, StyledStreamdown, useProvider } from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
@@ -283,18 +283,18 @@ function HyprProviderRow({ children }: { children: React.ReactNode }) {
 function HyprProviderCloudRow() {
   const { isPro, upgradeToPro } = useBillingAccess();
 
-  const handleSelectProvider = main.UI.useSetValueCallback(
+  const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
     (provider: string) => provider,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_stt_model",
     (model: string) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const handleClick = useCallback(() => {
@@ -549,11 +549,11 @@ function ProviderContext({ providerId }: { providerId: ProviderId }) {
 }
 
 function useSafeSelectModel() {
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_stt_model",
     (model: SupportedSttModel) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const active = useListener((state) => state.live.status !== "inactive");

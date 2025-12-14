@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
-import * as main from "../../../../store/tinybase/main";
+import { useConfigValues } from "../../../../config/use-config";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Banner } from "./component";
 import { createBannerRegistry, getBannerToShow } from "./registry";
@@ -25,7 +25,12 @@ export function BannerArea({
     current_llm_model,
     current_stt_provider,
     current_stt_model,
-  } = main.UI.useValues(main.STORE_ID);
+  } = useConfigValues([
+    "current_llm_provider",
+    "current_llm_model",
+    "current_stt_provider",
+    "current_stt_model",
+  ] as const);
   const hasLLMConfigured = !!(current_llm_provider && current_llm_model);
   const hasSttConfigured = !!(current_stt_provider && current_stt_model);
 

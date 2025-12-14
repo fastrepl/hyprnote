@@ -17,19 +17,18 @@ import {
   listOpenAIModels,
 } from "../components/settings/ai/shared/list-openai";
 import { listOpenRouterModels } from "../components/settings/ai/shared/list-openrouter";
-import * as keys from "../store/tinybase/keys";
-import * as main from "../store/tinybase/main";
+import * as settings from "../store/tinybase/settings";
 import { useModelMetadata } from "./useModelMetadata";
 
 export function useCurrentModelModalitySupport(): InputModality[] | null {
   const auth = useAuth();
-  const { current_llm_provider, current_llm_model } = main.UI.useValues(
-    main.STORE_ID,
+  const { current_llm_provider, current_llm_model } = settings.UI.useValues(
+    settings.STORE_ID,
   );
-  const providerConfig = keys.UI.useRow(
+  const providerConfig = settings.UI.useRow(
     "ai_providers",
     current_llm_provider ?? "",
-    keys.STORE_ID,
+    settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
   const providerId = current_llm_provider as ProviderId | null;

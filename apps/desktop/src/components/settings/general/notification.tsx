@@ -15,7 +15,7 @@ import { Switch } from "@hypr/ui/components/ui/switch";
 import { cn } from "@hypr/utils";
 
 import { useConfigValues } from "../../../config/use-config";
-import * as main from "../../../store/tinybase/main";
+import * as settings from "../../../store/tinybase/settings";
 
 export function NotificationSettingsView() {
   const [inputValue, setInputValue] = useState("");
@@ -74,39 +74,39 @@ export function NotificationSettingsView() {
     return defaultIgnoredBundleIds?.includes(bundleId) ?? false;
   };
 
-  const handleSetNotificationEvent = main.UI.useSetValueCallback(
+  const handleSetNotificationEvent = settings.UI.useSetValueCallback(
     "notification_event",
     (value: boolean) => value,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSetNotificationDetect = main.UI.useSetValueCallback(
+  const handleSetNotificationDetect = settings.UI.useSetValueCallback(
     "notification_detect",
     (value: boolean) => value,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSetRespectDnd = main.UI.useSetValueCallback(
+  const handleSetRespectDnd = settings.UI.useSetValueCallback(
     "respect_dnd",
     (value: boolean) => value,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSetIgnoredPlatforms = main.UI.useSetValueCallback(
+  const handleSetIgnoredPlatforms = settings.UI.useSetValueCallback(
     "ignored_platforms",
     (value: string) => value,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSetQuitIntercept = main.UI.useSetValueCallback(
+  const handleSetQuitIntercept = settings.UI.useSetValueCallback(
     "quit_intercept",
     (value: boolean) => value,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const form = useForm({

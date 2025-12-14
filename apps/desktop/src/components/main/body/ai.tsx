@@ -68,8 +68,9 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
           size="sm"
           onClick={() => setActiveTab("transcription")}
           className={cn([
-            "gap-1.5 h-7 px-2",
-            activeTab === "transcription" && "bg-neutral-200",
+            "gap-1.5 h-7 px-2 border border-transparent",
+            activeTab === "transcription" &&
+              "bg-neutral-100 border-neutral-200",
           ])}
         >
           <AudioLinesIcon size={14} />
@@ -80,8 +81,8 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
           size="sm"
           onClick={() => setActiveTab("intelligence")}
           className={cn([
-            "gap-1.5 h-7 px-2",
-            activeTab === "intelligence" && "bg-neutral-200",
+            "gap-1.5 h-7 px-2 border border-transparent",
+            activeTab === "intelligence" && "bg-neutral-100 border-neutral-200",
           ])}
         >
           <SparklesIcon size={14} />

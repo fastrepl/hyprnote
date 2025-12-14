@@ -5,6 +5,7 @@ import {
   Chart as ChartJS,
   LinearScale,
   Tooltip,
+  type TooltipItem,
 } from "chart.js";
 import { useState } from "react";
 import { Bar } from "react-chartjs-2";
@@ -137,8 +138,10 @@ function Component() {
       },
       tooltip: {
         callbacks: {
-          label: (context: { parsed: { y: number } }) =>
-            `${context.parsed.y.toFixed(1)}%`,
+          label: (context: TooltipItem<"bar">) => {
+            const value = context.parsed.y;
+            return value !== null ? `${value.toFixed(1)}%` : "";
+          },
         },
       },
     },

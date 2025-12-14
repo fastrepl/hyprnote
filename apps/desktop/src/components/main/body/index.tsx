@@ -43,6 +43,7 @@ import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
+import { Update } from "./update";
 
 export function Body() {
   const { tabs, currentTab } = useTabs(
@@ -198,7 +199,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
           <PlusIcon size={16} />
         </Button>
 
-        <Search />
+        <div className="flex items-center gap-1">
+          <Update />
+          <Search />
+        </div>
       </div>
     </div>
   );

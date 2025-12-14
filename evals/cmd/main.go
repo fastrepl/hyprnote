@@ -199,10 +199,30 @@ var runCmd = &cobra.Command{
 			return renderJSON(results)
 		}
 
-		bar := progressbar.Default(int64(runner.TotalCount(selectedTasks)), "evaluating")
-		runner.OnProgress = func(completed, total int) { bar.Set(completed) }
+		genBar := progressbar.NewOptions(
+			runner.TotalGenerations(selectedTasks),
+			progressbar.OptionSetDescription("Generations"),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionShowCount(),
+			progressbar.OptionSetWidth(30),
+			progressbar.OptionClearOnFinish(),
+		)
+		evalBar := progressbar.NewOptions(
+			runner.TotalEvaluations(selectedTasks),
+			progressbar.OptionSetDescription("Evaluations"),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionShowCount(),
+			progressbar.OptionSetWidth(30),
+			progressbar.OptionClearOnFinish(),
+		)
+
+		runner.OnProgress = func(info evals.ProgressInfo) {
+			genBar.Set(info.GenerationsComplete)
+			evalBar.Set(info.EvaluationsComplete)
+		}
 		results := runner.Run(ctx, selectedTasks)
-		bar.Finish()
+		genBar.Finish()
+		evalBar.Finish()
 
 		return renderResults(results)
 	},

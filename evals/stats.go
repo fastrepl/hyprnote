@@ -4,17 +4,48 @@ import (
 	"math"
 )
 
-// AggregatedGraderResponse holds aggregated statistics from multiple grader responses.
-type AggregatedGraderResponse struct {
+// PassStats holds statistical data for pass/fail outcomes.
+type PassStats struct {
 	PassRate           float64
-	Passed             bool
-	Reasoning          string
 	Samples            int
 	StandardDeviation  float64
 	Variance           float64
 	ConfidenceInterval ConfidenceInterval
 	PassCount          int
 	FailCount          int
+}
+
+// calcPassStats computes statistics for binary pass/fail outcomes.
+func calcPassStats(passCount, totalCount int) PassStats {
+	if totalCount == 0 {
+		return PassStats{}
+	}
+
+	failCount := totalCount - passCount
+	passRate := float64(passCount) / float64(totalCount)
+	stdDev, variance := calculateBinaryStatistics(passCount, totalCount)
+	ciLower, ciUpper := calculateWilsonConfidenceInterval(passCount, totalCount, 0.95)
+
+	return PassStats{
+		PassRate:          passRate,
+		Samples:           totalCount,
+		StandardDeviation: stdDev,
+		Variance:          variance,
+		ConfidenceInterval: ConfidenceInterval{
+			Lower: ciLower,
+			Upper: ciUpper,
+			Level: 0.95,
+		},
+		PassCount: passCount,
+		FailCount: failCount,
+	}
+}
+
+// AggregatedGraderResponse holds aggregated statistics from multiple grader responses.
+type AggregatedGraderResponse struct {
+	PassStats
+	Passed    bool
+	Reasoning string
 }
 
 // calculateBinaryStatistics computes standard deviation and variance for binary outcomes.
@@ -70,34 +101,20 @@ func aggregateGraderResponses(responses []GraderResponse) AggregatedGraderRespon
 	}
 
 	passCount := 0
-	var reasonings []string
-	for _, r := range responses {
+	var firstReasoning string
+	for i, r := range responses {
 		if r.Verdict == "PASS" {
 			passCount++
 		}
-		reasonings = append(reasonings, r.Reasoning)
+		if i == 0 {
+			firstReasoning = r.Reasoning
+		}
 	}
 
-	totalCount := len(responses)
-	failCount := totalCount - passCount
-	passRate := float64(passCount) / float64(totalCount)
-
-	stdDev, variance := calculateBinaryStatistics(passCount, totalCount)
-	ciLower, ciUpper := calculateWilsonConfidenceInterval(passCount, totalCount, 0.95)
-
+	stats := calcPassStats(passCount, len(responses))
 	return AggregatedGraderResponse{
-		PassRate:          passRate,
-		Passed:            passRate >= 0.5,
-		Reasoning:         reasonings[0],
-		Samples:           totalCount,
-		StandardDeviation: stdDev,
-		Variance:          variance,
-		ConfidenceInterval: ConfidenceInterval{
-			Lower: ciLower,
-			Upper: ciUpper,
-			Level: 0.95,
-		},
-		PassCount: passCount,
-		FailCount: failCount,
+		PassStats: stats,
+		Passed:    stats.PassRate >= 0.5,
+		Reasoning: firstReasoning,
 	}
 }

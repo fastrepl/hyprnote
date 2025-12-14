@@ -178,11 +178,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         if (data.session) {
-          setSession(data.session);
-          setServerReachable(true);
-          supabase.auth.startAutoRefresh();
+          const { data: refreshData, error: refreshError } =
+            await supabase.auth.refreshSession();
+          if (refreshError) {
+            if (refreshError instanceof AuthSessionMissingError) {
+              await clearAuthStorage();
+              setSession(null);
+              return;
+            }
+            if (
+              refreshError instanceof AuthRetryableFetchError &&
+              isLocalAuthServer(env.VITE_SUPABASE_URL)
+            ) {
+              await clearAuthStorage();
+              setServerReachable(false);
+              setSession(null);
+              return;
+            }
+          }
+          if (refreshData.session) {
+            setSession(refreshData.session);
+            setServerReachable(true);
+            supabase.auth.startAutoRefresh();
+          }
         }
       } catch (e) {
+        if (e instanceof AuthSessionMissingError) {
+          await clearAuthStorage();
+          setSession(null);
+          return;
+        }
         if (
           e instanceof AuthRetryableFetchError &&
           isLocalAuthServer(env.VITE_SUPABASE_URL)

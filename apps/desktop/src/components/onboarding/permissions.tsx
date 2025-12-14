@@ -1,6 +1,10 @@
-import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+} from "lucide-react";
 
-import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { usePermissions } from "../../hooks/use-permissions";
@@ -24,8 +28,15 @@ function PermissionBlock({
   const isAuthorized = status === "authorized";
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-col gap-2">
+    <div
+      className={cn([
+        "flex items-center justify-between rounded-xl py-3 px-4",
+        isAuthorized
+          ? "border border-neutral-200"
+          : "border border-red-200 bg-red-50",
+      ])}
+    >
+      <div className="flex flex-col gap-1">
         <div
           className={cn([
             "flex items-center gap-2",
@@ -33,20 +44,21 @@ function PermissionBlock({
           ])}
         >
           {!isAuthorized && <AlertCircleIcon className="size-4" />}
-          <span className="text-base font-medium">{name}</span>
+          <span className="text-sm font-medium">{name}</span>
         </div>
-        <p className="text-sm text-neutral-500">
+        <p className="text-xs text-neutral-500">
           {isAuthorized ? description.authorized : description.unauthorized}
         </p>
       </div>
-      <Button
-        variant={isAuthorized ? "outline" : "default"}
-        size="icon"
+      <button
         onClick={onAction}
         disabled={isPending || isAuthorized}
         className={cn([
-          "size-8",
-          isAuthorized && "bg-stone-100 text-stone-800",
+          "size-8 flex items-center justify-center rounded-lg transition-all",
+          isAuthorized
+            ? "bg-stone-100 text-stone-800 opacity-50 cursor-not-allowed"
+            : "bg-gradient-to-t from-red-600 to-red-500 text-white hover:scale-[1.05] active:scale-[0.95]",
+          isPending && "opacity-50 cursor-not-allowed",
         ])}
         aria-label={
           isAuthorized
@@ -55,11 +67,11 @@ function PermissionBlock({
         }
       >
         {isAuthorized ? (
-          <CheckIcon className="size-5" />
+          <CheckIcon className="size-4" />
         ) : (
-          <ArrowRightIcon className="size-5" />
+          <ArrowRightIcon className="size-4" />
         )}
-      </Button>
+      </button>
     </div>
   );
 }
@@ -87,51 +99,65 @@ export function Permissions({ onNext }: PermissionsProps) {
     accessibilityPermissionStatus.data === "authorized";
 
   return (
-    <OnboardingContainer title="Quick permissions before we begin">
-      <div className="flex flex-col gap-4">
-        <PermissionBlock
-          name="Microphone"
-          status={micPermissionStatus.data}
-          description={{
-            authorized: "Good to go :)",
-            unauthorized: "To capture your voice",
-          }}
-          isPending={micPermission.isPending}
-          onAction={handleMicPermissionAction}
-        />
-
-        <PermissionBlock
-          name="System audio"
-          status={systemAudioPermissionStatus.data}
-          description={{
-            authorized: "Good to go :)",
-            unauthorized: "To capture what other people are saying",
-          }}
-          isPending={systemAudioPermission.isPending}
-          onAction={handleSystemAudioPermissionAction}
-        />
-
-        <PermissionBlock
-          name="Accessibility"
-          status={accessibilityPermissionStatus.data}
-          description={{
-            authorized: "Good to go :)",
-            unauthorized: "To sync mic inputs & mute from meetings",
-          }}
-          isPending={accessibilityPermission.isPending}
-          onAction={handleAccessibilityPermissionAction}
-        />
-      </div>
-
-      <Button
-        onClick={() => onNext()}
-        className="w-full"
-        disabled={!allPermissionsGranted}
+    <>
+      <button
+        onClick={() => onNext({ step: "welcome" })}
+        className="fixed top-10 left-1 flex items-center gap-1 px-2 py-1 text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
       >
-        {allPermissionsGranted
-          ? "Continue"
-          : "Need all permissions to continue"}
-      </Button>
-    </OnboardingContainer>
+        <ChevronLeftIcon size={16} />
+        Back
+      </button>
+      <OnboardingContainer title="Permissions needed for best experience">
+        <div className="flex flex-col gap-4">
+          <PermissionBlock
+            name="Microphone"
+            status={micPermissionStatus.data}
+            description={{
+              authorized: "Good to go :)",
+              unauthorized: "To capture your voice",
+            }}
+            isPending={micPermission.isPending}
+            onAction={handleMicPermissionAction}
+          />
+
+          <PermissionBlock
+            name="System audio"
+            status={systemAudioPermissionStatus.data}
+            description={{
+              authorized: "Good to go :)",
+              unauthorized: "To capture what other people are saying",
+            }}
+            isPending={systemAudioPermission.isPending}
+            onAction={handleSystemAudioPermissionAction}
+          />
+
+          <PermissionBlock
+            name="Accessibility"
+            status={accessibilityPermissionStatus.data}
+            description={{
+              authorized: "Good to go :)",
+              unauthorized: "To sync mic inputs & mute from meetings",
+            }}
+            isPending={accessibilityPermission.isPending}
+            onAction={handleAccessibilityPermissionAction}
+          />
+        </div>
+
+        <button
+          onClick={() => onNext()}
+          disabled={!allPermissionsGranted}
+          className={cn([
+            "w-full py-3 rounded-full text-sm font-medium duration-150",
+            allPermissionsGranted
+              ? "bg-gradient-to-t from-stone-600 to-stone-500 text-white hover:scale-[1.01] active:scale-[0.99]"
+              : "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-400 cursor-not-allowed",
+          ])}
+        >
+          {allPermissionsGranted
+            ? "Continue"
+            : "Need all permissions to continue"}
+        </button>
+      </OnboardingContainer>
+    </>
   );
 }

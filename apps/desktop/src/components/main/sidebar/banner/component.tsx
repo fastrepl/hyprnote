@@ -13,7 +13,7 @@ export function Banner({
   onDismiss?: () => void;
 }) {
   return (
-    <div className="overflow-hidden px-1 py-2">
+    <div className="overflow-hidden p-1">
       <div
         className={cn([
           "relative group overflow-hidden rounded-lg",

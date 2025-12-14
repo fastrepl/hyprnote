@@ -9,9 +9,9 @@ pub struct UpdatedPayload {
     pub current: String,
 }
 
-pub fn start_background_update_check<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) {
+pub fn start_background_update_check(app_handle: &tauri::AppHandle) {
     let app = app_handle.clone();
-    tokio::spawn(async move {
+    tauri::async_runtime::spawn(async move {
         tokio::time::sleep(std::time::Duration::from_secs(5)).await;
 
         let updater = match app.updater() {
@@ -31,7 +31,7 @@ pub fn start_background_update_check<R: tauri::Runtime>(app_handle: &tauri::AppH
                 use tauri_plugin_tray::{TrayCheckUpdate, UpdateMenuState};
                 let _ = TrayCheckUpdate::set_state(&app, UpdateMenuState::Downloading);
 
-                match update.download(|_, _| {}).await {
+                match update.download_and_install(|_, _| {}, || {}).await {
                     Ok(()) => {
                         tracing::info!("update_downloaded: v{}", update.version);
                         let _ = TrayCheckUpdate::set_state(&app, UpdateMenuState::RestartToApply);

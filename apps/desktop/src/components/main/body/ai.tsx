@@ -20,10 +20,17 @@ export const TabItemAI: TabItem<Extract<Tab, { type: "ai" }>> = ({
   handleCloseOthers,
   handleCloseAll,
 }) => {
+  const suffix = tab.state.tab === "transcription" ? "STT" : "LLM";
+
   return (
     <TabItemBase
       icon={<SparklesIcon className="w-4 h-4" />}
-      title={"AI"}
+      title={
+        <div className="flex items-center gap-1">
+          <span>AI</span>
+          <span className="text-xs text-neutral-400">({suffix})</span>
+        </div>
+      }
       selected={tab.active}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}

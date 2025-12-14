@@ -377,36 +377,3 @@ jobs:
           name: desktop_v${{ needs.compute-version.outputs.version }}
           body: "https://hyprnote.com/changelog/${{ needs.compute-version.outputs.version }}"
           artifacts: ${{ steps.artifacts.outputs.list }}
-
-  update-homebrew:
-    if: ${{ inputs.channel == 'nightly' }}
-    needs: [compute-version, release]
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          aws s3 cp \
-            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-aarch64.dmg" \
-            "hyprnote-macos-aarch64.dmg" \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-          aws s3 cp \
-            "s3://hyprnote-build/desktop/${{ needs.compute-version.outputs.version }}/hyprnote-macos-x86_64.dmg" \
-            "hyprnote-macos-x86_64.dmg" \
-            --endpoint-url ${{ secrets.CLOUDFLARE_R2_ENDPOINT_URL }} \
-            --region auto
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-      - id: checksums
-        run: |
-          SHA_ARM=$(shasum -a 256 hyprnote-macos-aarch64.dmg | awk '{print $1}')
-          SHA_INTEL=$(shasum -a 256 hyprnote-macos-x86_64.dmg | awk '{print $1}')
-          echo "sha_arm=$SHA_ARM" >> $GITHUB_OUTPUT
-          echo "sha_intel=$SHA_INTEL" >> $GITHUB_OUTPUT
-      - run: |
-          set -e
-          curl -f -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.HOMEBREW_PAT }}" \
-            "https://api.github.com/repos/fastrepl/homebrew-hyprnote/dispatches" \
-            -d '{"event_type": "nightly_release", "client_payload": {"version": "${{ needs.compute-version.outputs.version }}", "sha_arm": "${{ steps.checksums.outputs.sha_arm }}", "sha_intel": "${{ steps.checksums.outputs.sha_intel }}"}}'

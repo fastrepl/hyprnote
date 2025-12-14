@@ -12,12 +12,14 @@ import (
 
 // Result holds the outcome of a single evaluation run.
 type Result struct {
-	Name   string
-	Model  string
-	RunNum int
-	Output string
-	Scores []Score
-	Error  string
+	Name         string
+	Model        string
+	RunNum       int
+	Output       string
+	Scores       []Score
+	Error        string
+	GenerationID string
+	Usage        Usage
 }
 
 // AllPassed returns true if the run completed without error and all rubrics passed.
@@ -210,11 +212,12 @@ func (r *Runner) runSingleWithProgress(ctx context.Context, model string, runNum
 	}
 
 	if task.Samples > 1 {
-		outputs, err := task.ExecuteMulti(ctx, r.client, model)
+		outputs, generationID, err := task.ExecuteMultiWithGenerationID(ctx, r.client, model)
 		if err != nil {
 			result.Error = err.Error()
 			return result
 		}
+		result.GenerationID = generationID
 
 		if onGeneration != nil {
 			for range outputs {
@@ -229,11 +232,12 @@ func (r *Runner) runSingleWithProgress(ctx context.Context, model string, runNum
 		return result
 	}
 
-	output, err := task.Execute(ctx, r.client, model)
+	output, generationID, err := task.ExecuteWithGenerationID(ctx, r.client, model)
 	if err != nil {
 		result.Error = err.Error()
 		return result
 	}
+	result.GenerationID = generationID
 
 	if onGeneration != nil {
 		onGeneration()
@@ -304,6 +308,38 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 	g.Wait()
 
 	return results
+}
+
+// ResolveUsage fetches usage information for all results with generation IDs.
+// This should be called after Run() to populate the Usage field in results.
+func (r *Runner) ResolveUsage(ctx context.Context, results []Result) {
+	resolver, ok := r.client.(UsageResolver)
+	if !ok {
+		return
+	}
+
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, r.concurrency)
+
+	for i := range results {
+		if results[i].GenerationID == "" || results[i].Error != "" {
+			continue
+		}
+
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			usage, err := resolver.GetGenerationUsage(ctx, results[idx].GenerationID)
+			if err == nil {
+				results[idx].Usage = usage
+			}
+		}(i)
+	}
+
+	wg.Wait()
 }
 
 // RunTest executes tasks as Go test subtests.

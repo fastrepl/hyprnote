@@ -23,14 +23,46 @@ const (
 // ErrNoChoices is returned when the API response contains no choices.
 var ErrNoChoices = errors.New("no choices in response")
 
+// Usage holds token usage and cost information from an API call.
+type Usage struct {
+	PromptTokens     int64   `json:"prompt_tokens"`
+	CompletionTokens int64   `json:"completion_tokens"`
+	TotalTokens      int64   `json:"total_tokens"`
+	Cost             float64 `json:"cost"`
+}
+
+// Add adds another Usage to this one.
+func (u *Usage) Add(other Usage) {
+	u.PromptTokens += other.PromptTokens
+	u.CompletionTokens += other.CompletionTokens
+	u.TotalTokens += other.TotalTokens
+	u.Cost += other.Cost
+}
+
+// GenerationResponse represents the response from the OpenRouter generation API.
+type GenerationResponse struct {
+	Data struct {
+		NativeTokensPrompt     int64   `json:"native_tokens_prompt"`
+		NativeTokensCompletion int64   `json:"native_tokens_completion"`
+		TotalCost              float64 `json:"total_cost"`
+	} `json:"data"`
+}
+
 // ChatCompleter is the interface for chat completion clients.
 type ChatCompleter interface {
 	CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error)
 }
 
+// UsageResolver is the interface for fetching usage information from generation IDs.
+type UsageResolver interface {
+	GetGenerationUsage(ctx context.Context, generationID string) (Usage, error)
+}
+
 // OpenRouterClient wraps the OpenAI client configured for OpenRouter.
 type OpenRouterClient struct {
-	api *openai.Client
+	api        *openai.Client
+	apiKey     string
+	httpClient *http.Client
 }
 
 // NewOpenRouterClient creates a new OpenRouter client with the given API key.
@@ -39,12 +71,49 @@ func NewOpenRouterClient(apiKey string) *OpenRouterClient {
 		option.WithAPIKey(apiKey),
 		option.WithBaseURL(openRouterBaseURL),
 	)
-	return &OpenRouterClient{api: &c}
+	return &OpenRouterClient{
+		api:        &c,
+		apiKey:     apiKey,
+		httpClient: &http.Client{Timeout: 30 * time.Second},
+	}
 }
 
 // CreateChatCompletion sends a chat completion request to OpenRouter.
 func (c *OpenRouterClient) CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
 	return c.api.Chat.Completions.New(ctx, params)
+}
+
+// GetGenerationUsage fetches usage information for a generation from the OpenRouter API.
+func (c *OpenRouterClient) GetGenerationUsage(ctx context.Context, generationID string) (Usage, error) {
+	url := fmt.Sprintf("%s/generation?id=%s", openRouterBaseURL, generationID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return Usage{}, fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return Usage{}, fmt.Errorf("do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return Usage{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var genResp GenerationResponse
+	if err := json.NewDecoder(resp.Body).Decode(&genResp); err != nil {
+		return Usage{}, fmt.Errorf("decode response: %w", err)
+	}
+
+	return Usage{
+		PromptTokens:     genResp.Data.NativeTokensPrompt,
+		CompletionTokens: genResp.Data.NativeTokensCompletion,
+		TotalTokens:      genResp.Data.NativeTokensPrompt + genResp.Data.NativeTokensCompletion,
+		Cost:             genResp.Data.TotalCost,
+	}, nil
 }
 
 // GraderResponse represents the structured response from an LLM grader.
@@ -70,11 +139,21 @@ var graderResponseSchema = map[string]any{
 	"additionalProperties": false,
 }
 
+type textResult struct {
+	content      string
+	generationID string
+}
+
 func generateText(ctx context.Context, client ChatCompleter, model, prompt string) (string, error) {
+	result, _, err := generateTextWithGenerationID(ctx, client, model, prompt)
+	return result, err
+}
+
+func generateTextWithGenerationID(ctx context.Context, client ChatCompleter, model, prompt string) (string, string, error) {
 	b := backoff.NewExponentialBackOff()
 	b.InitialInterval = defaultRetryInterval
 
-	result, err := backoff.Retry(ctx, func() (string, error) {
+	result, err := backoff.Retry(ctx, func() (textResult, error) {
 		resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionNewParams{
 			Model: model,
 			Messages: []openai.ChatCompletionMessageParamUnion{
@@ -85,23 +164,26 @@ func generateText(ctx context.Context, client ChatCompleter, model, prompt strin
 
 		if err != nil {
 			if !isRetryable(err) {
-				return "", backoff.Permanent(err)
+				return textResult{}, backoff.Permanent(err)
 			}
-			return "", err
+			return textResult{}, err
 		}
 
 		if len(resp.Choices) == 0 {
-			return "", backoff.Permanent(ErrNoChoices)
+			return textResult{}, backoff.Permanent(ErrNoChoices)
 		}
 
-		return resp.Choices[0].Message.Content, nil
+		return textResult{
+			content:      resp.Choices[0].Message.Content,
+			generationID: resp.ID,
+		}, nil
 	}, backoff.WithBackOff(b), backoff.WithMaxElapsedTime(defaultMaxElapsedTime))
 
 	if err != nil {
-		return "", fmt.Errorf("chat completion: %w", err)
+		return "", "", fmt.Errorf("chat completion: %w", err)
 	}
 
-	return result, nil
+	return result.content, result.generationID, nil
 }
 
 func generateStructuredGraderResponse(ctx context.Context, client ChatCompleter, model, prompt string) (GraderResponse, error) {
@@ -152,7 +234,17 @@ func generateStructuredGraderResponse(ctx context.Context, client ChatCompleter,
 	return result, nil
 }
 
+type textMultiResult struct {
+	outputs      []string
+	generationID string
+}
+
 func generateTextMulti(ctx context.Context, client ChatCompleter, model, prompt string, n int) ([]string, error) {
+	result, _, err := generateTextMultiWithGenerationID(ctx, client, model, prompt, n)
+	return result, err
+}
+
+func generateTextMultiWithGenerationID(ctx context.Context, client ChatCompleter, model, prompt string, n int) ([]string, string, error) {
 	if n <= 0 {
 		n = 1
 	}
@@ -160,7 +252,7 @@ func generateTextMulti(ctx context.Context, client ChatCompleter, model, prompt 
 	b := backoff.NewExponentialBackOff()
 	b.InitialInterval = defaultRetryInterval
 
-	result, err := backoff.Retry(ctx, func() ([]string, error) {
+	result, err := backoff.Retry(ctx, func() (textMultiResult, error) {
 		resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionNewParams{
 			Model: model,
 			Messages: []openai.ChatCompletionMessageParamUnion{
@@ -172,27 +264,30 @@ func generateTextMulti(ctx context.Context, client ChatCompleter, model, prompt 
 
 		if err != nil {
 			if !isRetryable(err) {
-				return nil, backoff.Permanent(err)
+				return textMultiResult{}, backoff.Permanent(err)
 			}
-			return nil, err
+			return textMultiResult{}, err
 		}
 
 		if len(resp.Choices) == 0 {
-			return nil, backoff.Permanent(ErrNoChoices)
+			return textMultiResult{}, backoff.Permanent(ErrNoChoices)
 		}
 
 		outputs := make([]string, len(resp.Choices))
 		for i, choice := range resp.Choices {
 			outputs[i] = choice.Message.Content
 		}
-		return outputs, nil
+		return textMultiResult{
+			outputs:      outputs,
+			generationID: resp.ID,
+		}, nil
 	}, backoff.WithBackOff(b), backoff.WithMaxElapsedTime(defaultMaxElapsedTime))
 
 	if err != nil {
-		return nil, fmt.Errorf("chat completion: %w", err)
+		return nil, "", fmt.Errorf("chat completion: %w", err)
 	}
 
-	return result, nil
+	return result.outputs, result.generationID, nil
 }
 
 func generateStructuredGraderResponseMulti(ctx context.Context, client ChatCompleter, model, prompt string, n int) ([]GraderResponse, error) {

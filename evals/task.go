@@ -105,39 +105,51 @@ func (t *Task) RenderPrompt() (string, error) {
 
 // Execute renders the prompt and sends it to the model.
 func (t *Task) Execute(ctx context.Context, client ChatCompleter, model string) (string, error) {
+	output, _, err := t.ExecuteWithGenerationID(ctx, client, model)
+	return output, err
+}
+
+// ExecuteWithGenerationID renders the prompt and sends it to the model, returning the generation ID.
+func (t *Task) ExecuteWithGenerationID(ctx context.Context, client ChatCompleter, model string) (string, string, error) {
 	prompt, err := t.RenderPrompt()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	output, err := generateText(ctx, client, model, prompt)
+	output, generationID, err := generateTextWithGenerationID(ctx, client, model, prompt)
 	if err != nil {
-		return "", fmt.Errorf("execute task %s: %w", t.Name, err)
+		return "", "", fmt.Errorf("execute task %s: %w", t.Name, err)
 	}
-	return output, nil
+	return output, generationID, nil
 }
 
 // ExecuteMulti renders the prompt and generates multiple outputs using the n parameter.
 // Returns multiple outputs for evaluation with aggregation.
 func (t *Task) ExecuteMulti(ctx context.Context, client ChatCompleter, model string) ([]string, error) {
+	outputs, _, err := t.ExecuteMultiWithGenerationID(ctx, client, model)
+	return outputs, err
+}
+
+// ExecuteMultiWithGenerationID renders the prompt and generates multiple outputs, returning the generation ID.
+func (t *Task) ExecuteMultiWithGenerationID(ctx context.Context, client ChatCompleter, model string) ([]string, string, error) {
 	prompt, err := t.RenderPrompt()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	n := t.Samples
 	if n <= 1 {
-		output, err := generateText(ctx, client, model, prompt)
+		output, generationID, err := generateTextWithGenerationID(ctx, client, model, prompt)
 		if err != nil {
-			return nil, fmt.Errorf("execute task %s: %w", t.Name, err)
+			return nil, "", fmt.Errorf("execute task %s: %w", t.Name, err)
 		}
-		return []string{output}, nil
+		return []string{output}, generationID, nil
 	}
 
-	outputs, err := generateTextMulti(ctx, client, model, prompt, n)
+	outputs, generationID, err := generateTextMultiWithGenerationID(ctx, client, model, prompt, n)
 	if err != nil {
-		return nil, fmt.Errorf("execute task %s: %w", t.Name, err)
+		return nil, "", fmt.Errorf("execute task %s: %w", t.Name, err)
 	}
-	return outputs, nil
+	return outputs, generationID, nil
 }
 
 // Grade evaluates output against all rubrics using the provided grader model.

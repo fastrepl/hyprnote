@@ -7,8 +7,8 @@ pub struct SettingsState {
 }
 
 impl SettingsState {
-    pub fn new(hyprnote_dir: PathBuf) -> Self {
-        let path = hyprnote_dir.join("settings.json");
+    pub fn new(base: PathBuf) -> Self {
+        let path = base.join("settings.json");
         Self {
             path,
             lock: RwLock::new(()),

@@ -28,13 +28,8 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let hyprnote_dir = app
-                .path()
-                .app_data_dir()
-                .expect("failed to get app data dir")
-                .join("hyprnote");
-
-            let state = SettingsState::new(hyprnote_dir);
+            let base = app.path().data_dir().unwrap().join("hyprnote");
+            let state = SettingsState::new(base);
             assert!(app.manage(state));
             Ok(())
         })

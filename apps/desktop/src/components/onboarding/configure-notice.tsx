@@ -1,4 +1,4 @@
-import { Button } from "@hypr/ui/components/ui/button";
+import { ChevronLeftIcon } from "lucide-react";
 
 import { OnboardingContainer, type OnboardingNext } from "./shared";
 
@@ -8,51 +8,60 @@ type ConfigureNoticeProps = {
 
 export function ConfigureNotice({ onNext }: ConfigureNoticeProps) {
   return (
-    <OnboardingContainer
-      title="You are not logged in"
-      description="You need at least these to get started. With a free trial, no need to worry about configuration."
-    >
-      <div className="flex flex-col gap-2">
-        <Requirement
-          title="Language Model"
-          description="Configure API key from OpenAI, OpenRouter, etc."
-        />
-        <Requirement
-          title="Speech-to-Text Model"
-          description="Configure API key from Deepgram, AssemblyAI, etc."
-        />
-      </div>
+    <>
+      <button
+        onClick={() => onNext({ step: "welcome" })}
+        className="fixed top-10 left-1 flex items-center gap-1 px-2 py-1 text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
+      >
+        <ChevronLeftIcon size={16} />
+        Back
+      </button>
+      <OnboardingContainer title="AI models are needed for best experience">
+        <div className="flex flex-col gap-4">
+          <Requirement
+            title="Speech-to-Text Model"
+            description="Deepgram, AssemblyAI, etc."
+            required
+          />
+          <Requirement
+            title="Language Model"
+            description="OpenAI, OpenRouter, etc."
+          />
+        </div>
 
-      <div className="flex flex-col gap-3 mt-4">
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={() => onNext({ local: false, step: "login" })}
-        >
-          Changed my mind. Let me sign up.
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          className="w-full"
-          onClick={() => onNext()}
-        >
-          I understand. Let me continue.
-        </Button>
-      </div>
-    </OnboardingContainer>
+        <div className="flex flex-col gap-3 mt-4">
+          <button
+            onClick={() => onNext()}
+            className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
+          >
+            Continue to download
+          </button>
+        </div>
+      </OnboardingContainer>
+    </>
   );
 }
 
 export function Requirement({
   title,
   description,
+  required,
 }: {
   title: string;
   description: string;
+  required?: boolean;
 }) {
   return (
-    <div className="border border-neutral-200 rounded-lg py-3 px-4 flex flex-col gap-1">
+    <div className="relative border border-neutral-200 rounded-xl py-3 px-4 flex flex-col gap-1">
+      {required ? (
+        <span className="absolute -top-2 left-3 px-1.5 bg-white text-xs text-red-500">
+          Required
+        </span>
+      ) : (
+        <span className="absolute -top-2 left-3 px-1.5 bg-white text-xs text-neutral-400">
+          Optional
+        </span>
+      )}
       <p className="text-sm font-medium">{title}</p>
       <p className="text-xs text-neutral-500">{description}</p>
     </div>

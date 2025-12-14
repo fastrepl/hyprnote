@@ -131,6 +131,7 @@ tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
+tauri-plugin-updater2 = { path = "plugins/updater2" }
 tauri-plugin-webhook = { path = "plugins/webhook" }
 tauri-plugin-windows = { path = "plugins/windows" }
 

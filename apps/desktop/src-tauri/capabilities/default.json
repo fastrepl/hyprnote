@@ -84,6 +84,7 @@
     "analytics:default",
     "cli2:default",
     "updater:default",
+    "updater2:default",
     "deep-link:default",
     "deeplink2:default",
     "store:default",

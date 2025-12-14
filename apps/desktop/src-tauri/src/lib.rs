@@ -2,11 +2,11 @@ mod commands;
 mod ext;
 mod store;
 mod supervisor;
-mod update_check;
 
 use ext::*;
 use store::*;
 
+use tauri_plugin_updater2::Updater2PluginExt;
 use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
 
 #[tokio::main]
@@ -106,7 +106,8 @@ pub async fn main() {
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
-        ));
+        ))
+        .plugin(tauri_plugin_updater2::init());
 
     if let Some(client) = sentry_client.as_ref() {
         builder = builder.plugin(tauri_plugin_sentry::init_with_no_injection(client));
@@ -156,7 +157,8 @@ pub async fn main() {
 
             specta_builder.mount_events(&app_handle);
 
-            update_check::maybe_emit_updated(&app_handle);
+            let is_existing_install = app_handle.get_onboarding_needed().is_ok();
+            app_handle.maybe_emit_updated(is_existing_install);
 
             Ok(())
         })

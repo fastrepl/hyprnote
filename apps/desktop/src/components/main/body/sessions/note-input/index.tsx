@@ -14,6 +14,13 @@ import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
+function getTabKey(view: EditorView): string {
+  if (view.type === "enhanced") {
+    return `enhanced-${view.id}`;
+  }
+  return view.type;
+}
+
 export function NoteInput({
   tab,
 }: {
@@ -23,6 +30,8 @@ export function NoteInput({
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionsRef = useRef<Map<string, number>>(new Map());
 
   const sessionId = tab.id;
   useAutoEnhance(tab);
@@ -31,14 +40,40 @@ export function NoteInput({
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
+  const currentTab: EditorView = useCurrentNoteTab(tab);
+  const currentTabKey = getTabKey(currentTab);
+
   const handleTabChange = useCallback(
     (view: EditorView) => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        const currentKey = getTabKey(
+          tabRef.current.state?.editor || { type: "raw" },
+        );
+        scrollPositionsRef.current.set(currentKey, container.scrollTop);
+      }
       updateSessionTabState(tabRef.current, { editor: view });
     },
     [updateSessionTabState],
   );
 
-  const currentTab: EditorView = useCurrentNoteTab(tab);
+  useEffect(() => {
+    const restoreScroll = () => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const savedPosition = scrollPositionsRef.current.get(currentTabKey);
+      if (savedPosition !== undefined) {
+        container.scrollTop = savedPosition;
+      }
+    };
+
+    const rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(restoreScroll);
+    });
+
+    return () => cancelAnimationFrame(rafId);
+  }, [currentTabKey]);
 
   useTabShortcuts({
     editorTabs,
@@ -72,6 +107,7 @@ export function NoteInput({
       </div>
 
       <div
+        ref={currentTab.type !== "transcript" ? scrollContainerRef : undefined}
         onClick={handleContainerClick}
         className={cn([
           "flex-1 mt-2 px-3",
@@ -91,7 +127,11 @@ export function NoteInput({
           <RawEditor ref={editorRef} sessionId={sessionId} />
         )}
         {currentTab.type === "transcript" && (
-          <Transcript sessionId={sessionId} isEditing={isEditing} />
+          <Transcript
+            sessionId={sessionId}
+            isEditing={isEditing}
+            scrollContainerRef={scrollContainerRef}
+          />
         )}
       </div>
     </div>

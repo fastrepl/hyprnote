@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { type RefObject, useCallback } from "react";
 
 import * as main from "../../../../../../store/tinybase/main";
 import { id } from "../../../../../../utils";
@@ -7,9 +7,11 @@ import { TranscriptContainer } from "./shared";
 export function Transcript({
   sessionId,
   isEditing,
+  scrollContainerRef,
 }: {
   sessionId: string;
   isEditing: boolean;
+  scrollContainerRef?: RefObject<HTMLDivElement | null>;
 }) {
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
@@ -73,7 +75,11 @@ export function Transcript({
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
-      <TranscriptContainer sessionId={sessionId} operations={operations} />
+      <TranscriptContainer
+        sessionId={sessionId}
+        operations={operations}
+        scrollContainerRef={scrollContainerRef}
+      />
     </div>
   );
 }

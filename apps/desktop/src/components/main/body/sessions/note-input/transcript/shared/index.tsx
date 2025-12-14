@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 
 import { cn } from "@hypr/utils";
 
@@ -15,9 +15,11 @@ export { SegmentRenderer } from "./segment-renderer";
 export function TranscriptContainer({
   sessionId,
   operations,
+  scrollContainerRef,
 }: {
   sessionId: string;
   operations?: Operations;
+  scrollContainerRef?: RefObject<HTMLDivElement | null>;
 }) {
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -74,17 +76,26 @@ export function TranscriptContainer({
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
     null,
   );
-  const handleContainerRef = useCallback((node: HTMLDivElement | null) => {
-    containerRef.current = node;
-    setScrollElement(node);
-  }, []);
+  const handleContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      setScrollElement(node);
+      if (scrollContainerRef) {
+        (
+          scrollContainerRef as React.MutableRefObject<HTMLDivElement | null>
+        ).current = node;
+      }
+    },
+    [scrollContainerRef],
+  );
 
   const { isAtBottom, autoScrollEnabled, scrollToBottom } =
     useScrollDetection(containerRef);
+  const shouldAutoScroll = currentActive && autoScrollEnabled;
   useAutoScroll(
     containerRef,
-    [transcriptIds, partialWords, autoScrollEnabled],
-    autoScrollEnabled,
+    [transcriptIds, partialWords, shouldAutoScroll],
+    shouldAutoScroll,
   );
 
   const shouldShowButton = !isAtBottom && currentActive;

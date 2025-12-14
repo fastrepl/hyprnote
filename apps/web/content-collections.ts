@@ -182,9 +182,10 @@ const docs = defineCollection({
     const order = orderMatch ? parseInt(orderMatch[1], 10) : 999;
 
     const cleanFileName = fileName.replace(/^\d+\./, "");
+    const filteredPathParts = pathParts.filter((part) => part !== "_");
     const cleanPath =
-      pathParts.length > 0
-        ? `${pathParts.join("/")}/${cleanFileName}`
+      filteredPathParts.length > 0
+        ? `${filteredPathParts.join("/")}/${cleanFileName}`
         : cleanFileName;
     const slug = cleanPath;
 

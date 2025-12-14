@@ -2,7 +2,6 @@ import { useHover } from "@uidotdev/usehooks";
 import { MicOff } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Tooltip,
@@ -13,6 +12,7 @@ import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
 import { useStartListening } from "../../../../../hooks/useStartListening";
+import { useTabs } from "../../../../../store/zustand/tabs";
 import {
   ActionableTooltipContent,
   RecordingIcon,
@@ -171,21 +171,11 @@ export function ListenButton({ sessionId }: { sessionId: string }) {
 function StartButton({ sessionId }: { sessionId: string }) {
   const { isDisabled, warningMessage } = useListenButtonState(sessionId);
   const handleClick = useStartListening(sessionId);
+  const openNew = useTabs((state) => state.openNew);
 
   const handleConfigureAction = useCallback(() => {
-    windowsCommands
-      .windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate(
-          { type: "settings" },
-          {
-            path: "/app/settings",
-            search: { tab: "transcription" },
-          },
-        ),
-      );
-  }, []);
+    openNew({ type: "ai", state: { tab: "transcription" } });
+  }, [openNew]);
 
   const button = (
     <Button

@@ -5,9 +5,11 @@ import { disable, enable } from "@tauri-apps/plugin-autostart";
 import type { General, GeneralStorage } from "@hypr/store";
 
 import { useConfigValues } from "../../../config/use-config";
-import * as main from "../../../store/tinybase/main";
+import * as settings from "../../../store/tinybase/settings";
+import { AccountSettings } from "./account";
 import { AppSettingsView } from "./app-settings";
 import { MainLanguageView } from "./main-language";
+import { NotificationSettingsView } from "./notification";
 import { Permissions } from "./permissions";
 import { SpokenLanguagesView } from "./spoken-languages";
 
@@ -21,7 +23,7 @@ export function SettingsGeneral() {
     "spoken_languages",
   ] as const);
 
-  const setPartialValues = main.UI.useSetPartialValuesCallback(
+  const setPartialValues = settings.UI.useSetPartialValuesCallback(
     (row: Partial<General>) =>
       ({
         ...row,
@@ -36,7 +38,7 @@ export function SettingsGeneral() {
           : undefined,
       }) satisfies Partial<GeneralStorage>,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const form = useForm({
@@ -147,7 +149,17 @@ export function SettingsGeneral() {
         </div>
       </div>
 
+      <div>
+        <h2 className="font-semibold mb-4">Notifications</h2>
+        <NotificationSettingsView />
+      </div>
+
       <Permissions />
+
+      <div>
+        <h2 className="font-semibold mb-4">Account & Billing</h2>
+        <AccountSettings />
+      </div>
     </div>
   );
 }

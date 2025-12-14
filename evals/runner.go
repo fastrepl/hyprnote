@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/openai/openai-go/v3"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -53,15 +52,29 @@ var defaultModels = []string{
 
 const defaultGraderModel = "openai/gpt-4.1-nano"
 
+// ProgressInfo holds detailed progress information for tracking.
+type ProgressInfo struct {
+	GenerationsComplete int
+	GenerationsTotal    int
+	EvaluationsComplete int
+	EvaluationsTotal    int
+}
+
+// ProgressCallback is called when progress is made during evaluation.
+type ProgressCallback func(ProgressInfo)
+
 // Runner executes evaluation tasks across multiple models.
 type Runner struct {
-	client       *openai.Client
+	client       ChatCompleter
 	targetModels []string
 	graderModel  string
 	numEvals     int
 	timeout      time.Duration
 	concurrency  int
-	OnProgress   func()
+	OnProgress   ProgressCallback
+
+	generationsTotal int
+	evaluationsTotal int
 }
 
 // Option configures a Runner.
@@ -108,9 +121,23 @@ func WithConcurrency(n int) Option {
 	}
 }
 
+// WithClient sets the client for the runner.
+func WithClient(client ChatCompleter) Option {
+	return func(r *Runner) {
+		r.client = client
+	}
+}
+
 // New creates a Runner with the provided options.
 func New(opts ...Option) *Runner {
-	cfg, _ := ParseConfig()
+	cfg, err := ParseConfig()
+	if err != nil {
+		cfg = Config{
+			NumEvals:       1,
+			TimeoutSeconds: 60,
+			Concurrency:    4,
+		}
+	}
 
 	numEvals := cfg.NumEvals
 	if numEvals <= 0 {
@@ -118,7 +145,7 @@ func New(opts ...Option) *Runner {
 	}
 
 	r := &Runner{
-		client:       newClient(cfg.OpenRouterAPIKey),
+		client:       NewOpenRouterClient(cfg.OpenRouterAPIKey),
 		targetModels: defaultModels,
 		graderModel:  defaultGraderModel,
 		numEvals:     numEvals,
@@ -138,7 +165,36 @@ func (r *Runner) TotalCount(tasks []Task) int {
 	return len(r.targetModels) * len(tasks) * r.numEvals
 }
 
-func (r *Runner) runSingle(ctx context.Context, model string, runNum int, task Task) Result {
+// TotalGenerations returns the total number of generations that will be performed.
+func (r *Runner) TotalGenerations(tasks []Task) int {
+	return len(r.targetModels) * len(tasks) * r.numEvals
+}
+
+// TotalEvaluations returns the total number of evaluations that will be performed.
+func (r *Runner) TotalEvaluations(tasks []Task) int {
+	total := 0
+	for _, task := range tasks {
+		taskSamples := task.Samples
+		if taskSamples <= 1 {
+			taskSamples = 1
+		}
+
+		for _, rubric := range task.Rubrics {
+			evalCount := taskSamples
+			if llmGrader, ok := rubric.Grader.(LLMGrader); ok {
+				graderSamples := llmGrader.Samples
+				if graderSamples <= 1 {
+					graderSamples = 1
+				}
+				evalCount = taskSamples * graderSamples
+			}
+			total += evalCount
+		}
+	}
+	return total * len(r.targetModels) * r.numEvals
+}
+
+func (r *Runner) runSingleWithProgress(ctx context.Context, model string, runNum int, task Task, onGeneration, onEvaluation func()) Result {
 	result := Result{
 		Name:   task.Name,
 		Model:  model,
@@ -152,10 +208,14 @@ func (r *Runner) runSingle(ctx context.Context, model string, runNum int, task T
 			return result
 		}
 
+		if onGeneration != nil {
+			onGeneration()
+		}
+
 		if len(outputs) > 0 {
 			result.Output = outputs[0]
 		}
-		result.Scores = task.GradeMulti(ctx, r.client, r.graderModel, outputs)
+		result.Scores = task.GradeMultiWithProgress(ctx, r.client, r.graderModel, outputs, onEvaluation)
 		return result
 	}
 
@@ -165,8 +225,12 @@ func (r *Runner) runSingle(ctx context.Context, model string, runNum int, task T
 		return result
 	}
 
+	if onGeneration != nil {
+		onGeneration()
+	}
+
 	result.Output = output
-	result.Scores = task.Grade(ctx, r.client, r.graderModel, output)
+	result.Scores = task.GradeWithProgress(ctx, r.client, r.graderModel, output, onEvaluation)
 
 	return result
 }
@@ -176,8 +240,23 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 	ctx, cancel := context.WithTimeout(ctx, r.timeout)
 	defer cancel()
 
+	r.generationsTotal = r.TotalGenerations(tasks)
+	r.evaluationsTotal = r.TotalEvaluations(tasks)
+
 	var mu sync.Mutex
 	var results []Result
+	var generationsDone, evaluationsDone int
+
+	reportProgress := func() {
+		if r.OnProgress != nil {
+			r.OnProgress(ProgressInfo{
+				GenerationsComplete: generationsDone,
+				GenerationsTotal:    r.generationsTotal,
+				EvaluationsComplete: evaluationsDone,
+				EvaluationsTotal:    r.evaluationsTotal,
+			})
+		}
+	}
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.SetLimit(r.concurrency)
@@ -186,13 +265,24 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 		for _, task := range tasks {
 			for i := range r.numEvals {
 				g.Go(func() error {
-					result := r.runSingle(ctx, model, i, task)
+					onGeneration := func() {
+						mu.Lock()
+						generationsDone++
+						reportProgress()
+						mu.Unlock()
+					}
+
+					onEvaluation := func() {
+						mu.Lock()
+						evaluationsDone++
+						reportProgress()
+						mu.Unlock()
+					}
+
+					result := r.runSingleWithProgress(ctx, model, i, task, onGeneration, onEvaluation)
 
 					mu.Lock()
 					results = append(results, result)
-					if r.OnProgress != nil {
-						r.OnProgress()
-					}
 					mu.Unlock()
 
 					return nil
@@ -201,7 +291,7 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 		}
 	}
 
-	_ = g.Wait()
+	g.Wait()
 
 	return results
 }
@@ -244,13 +334,17 @@ func (r *Runner) runTestIteration(ctx context.Context, t *testing.T, model strin
 }
 
 // RunTest creates a default runner and executes tasks as test subtests.
-// It skips if GOEVALS env is not set or OPENROUTER_API_KEY is missing.
+// It skips if EVALS env is not set or OPENROUTER_API_KEY is missing.
 func RunTest(t *testing.T, tasks []Task) {
 	t.Helper()
 
-	cfg, _ := ParseConfig()
+	cfg, err := ParseConfig()
+	if err != nil {
+		t.Fatalf("failed to parse config: %v", err)
+	}
+
 	if !cfg.Enabled() {
-		t.Skip("skipping LLM evals (set GOEVALS=1 to enable)")
+		t.Skip("skipping LLM evals (set EVALS=1 to enable)")
 	}
 
 	if cfg.OpenRouterAPIKey == "" {

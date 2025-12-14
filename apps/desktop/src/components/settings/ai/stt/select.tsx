@@ -15,8 +15,7 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
-import * as keys from "../../../../store/tinybase/keys";
-import * as main from "../../../../store/tinybase/main";
+import * as settings from "../../../../store/tinybase/settings";
 import { HealthCheckForConnection } from "./health";
 import {
   displayModelId,
@@ -33,18 +32,18 @@ export function SelectProviderAndModel() {
   const billing = useBillingAccess();
   const configuredProviders = useConfiguredMapping();
 
-  const handleSelectProvider = main.UI.useSetValueCallback(
+  const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_stt_provider",
     (provider: string) => provider,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_stt_model",
     (model: string) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const form = useForm({
@@ -204,6 +203,15 @@ export function SelectProviderAndModel() {
             <HealthCheckForConnection />
           )}
         </div>
+
+        {(!current_stt_provider || !current_stt_model) && (
+          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
+            <span className="text-sm text-red-600">
+              <strong className="font-medium">Transcription model</strong> is
+              needed to make Hyprnote listen to your conversations.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -217,9 +225,9 @@ function useConfiguredMapping(): Record<
   }
 > {
   const billing = useBillingAccess();
-  const configuredProviders = keys.UI.useResultTable(
-    keys.QUERIES.sttProviders,
-    keys.STORE_ID,
+  const configuredProviders = settings.UI.useResultTable(
+    settings.QUERIES.sttProviders,
+    settings.STORE_ID,
   );
 
   const targetArch = useQuery({

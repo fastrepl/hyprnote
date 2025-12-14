@@ -13,7 +13,6 @@ import { useCallback, useState } from "react";
 
 import { commands as listener2Commands } from "@hypr/plugin-listener2";
 import { commands as miscCommands } from "@hypr/plugin-misc";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
   Popover,
@@ -122,21 +121,12 @@ function ListenSplitButton({
   onPrimaryClick: () => void;
   sessionId: string;
 }) {
+  const openNew = useTabs((state) => state.openNew);
+
   const handleAction = useCallback(() => {
     onPrimaryClick();
-    windowsCommands
-      .windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate(
-          { type: "settings" },
-          {
-            path: "/app/settings",
-            search: { tab: "transcription" },
-          },
-        ),
-      );
-  }, [onPrimaryClick]);
+    openNew({ type: "ai", state: { tab: "transcription" } });
+  }, [onPrimaryClick, openNew]);
 
   return (
     <div className="flex flex-col items-start gap-2">

@@ -7,6 +7,7 @@ import { events as windowsEvents } from "@hypr/plugin-windows";
 
 import { AuthProvider } from "../auth";
 import { BillingProvider } from "../billing";
+import { useTabs } from "../store/zustand/tabs";
 
 /**
  * Main app layout component that wraps routes with auth/billing providers.
@@ -28,6 +29,7 @@ export default function MainAppLayout() {
 
 const useNavigationEvents = () => {
   const navigate = useNavigate();
+  const openNew = useTabs((state) => state.openNew);
 
   useEffect(() => {
     let unlistenNavigate: (() => void) | undefined;
@@ -38,7 +40,24 @@ const useNavigationEvents = () => {
     windowsEvents
       .navigate(webview)
       .listen(({ payload }) => {
-        navigate({ to: payload.path, search: payload.search ?? undefined });
+        if (payload.path === "/app/settings") {
+          let tab = (payload.search?.tab as string) ?? "general";
+          if (tab === "notifications" || tab === "account") {
+            tab = "general";
+          }
+          if (tab === "calendar") {
+            openNew({ type: "calendar" });
+          } else if (tab === "transcription" || tab === "intelligence") {
+            openNew({
+              type: "ai",
+              state: { tab: tab as "transcription" | "intelligence" },
+            });
+          } else {
+            openNew({ type: "settings" });
+          }
+        } else {
+          navigate({ to: payload.path, search: payload.search ?? undefined });
+        }
       })
       .then((fn) => {
         unlistenNavigate = fn;
@@ -56,5 +75,5 @@ const useNavigationEvents = () => {
       unlistenNavigate?.();
       unlistenDeepLink?.();
     };
-  }, [navigate]);
+  }, [navigate, openNew]);
 };

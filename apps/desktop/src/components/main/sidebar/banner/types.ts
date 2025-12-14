@@ -8,8 +8,8 @@ export type BannerAction = {
 export type BannerType = {
   id: string;
   icon?: ReactNode;
-  title: string;
-  description: string;
+  title?: string;
+  description: ReactNode;
   primaryAction?: BannerAction;
   secondaryAction?: BannerAction;
   dismissible: boolean;

@@ -17,12 +17,9 @@ import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AppExtHostRouteImport } from './routes/app/ext-host'
 import { Route as AppControlRouteImport } from './routes/app/control'
 import { Route as AppOnboardingIndexRouteImport } from './routes/app/onboarding/index'
-import { Route as AppSettingsLayoutRouteImport } from './routes/app/settings/_layout'
 import { Route as AppMainLayoutRouteImport } from './routes/app/main/_layout'
-import { Route as AppSettingsLayoutIndexRouteImport } from './routes/app/settings/_layout.index'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/app/main/_layout.index'
 
-const AppSettingsRouteImport = createFileRoute('/app/settings')()
 const AppMainRouteImport = createFileRoute('/app/main')()
 
 const NotificationRoute = NotificationRouteImport.update({
@@ -34,11 +31,6 @@ const AppRouteRoute = AppRouteRouteImport.update({
   id: '/app',
   path: '/app',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRouteRoute,
 } as any)
 const AppMainRoute = AppMainRouteImport.update({
   id: '/main',
@@ -65,18 +57,9 @@ const AppOnboardingIndexRoute = AppOnboardingIndexRouteImport.update({
   path: '/onboarding/',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppSettingsLayoutRoute = AppSettingsLayoutRouteImport.update({
-  id: '/_layout',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => AppMainRoute,
-} as any)
-const AppSettingsLayoutIndexRoute = AppSettingsLayoutIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppSettingsLayoutRoute,
 } as any)
 const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   id: '/',
@@ -91,10 +74,8 @@ export interface FileRoutesByFullPath {
   '/app/ext-host': typeof AppExtHostRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainLayoutRouteWithChildren
-  '/app/settings': typeof AppSettingsLayoutRouteWithChildren
   '/app/onboarding': typeof AppOnboardingIndexRoute
   '/app/main/': typeof AppMainLayoutIndexRoute
-  '/app/settings/': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/app': typeof AppRouteRouteWithChildren
@@ -103,7 +84,6 @@ export interface FileRoutesByTo {
   '/app/ext-host': typeof AppExtHostRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainLayoutIndexRoute
-  '/app/settings': typeof AppSettingsLayoutIndexRoute
   '/app/onboarding': typeof AppOnboardingIndexRoute
 }
 export interface FileRoutesById {
@@ -115,11 +95,8 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/app/main': typeof AppMainRouteWithChildren
   '/app/main/_layout': typeof AppMainLayoutRouteWithChildren
-  '/app/settings': typeof AppSettingsRouteWithChildren
-  '/app/settings/_layout': typeof AppSettingsLayoutRouteWithChildren
   '/app/onboarding/': typeof AppOnboardingIndexRoute
   '/app/main/_layout/': typeof AppMainLayoutIndexRoute
-  '/app/settings/_layout/': typeof AppSettingsLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -130,10 +107,8 @@ export interface FileRouteTypes {
     | '/app/ext-host'
     | '/auth/callback'
     | '/app/main'
-    | '/app/settings'
     | '/app/onboarding'
     | '/app/main/'
-    | '/app/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/app'
@@ -142,7 +117,6 @@ export interface FileRouteTypes {
     | '/app/ext-host'
     | '/auth/callback'
     | '/app/main'
-    | '/app/settings'
     | '/app/onboarding'
   id:
     | '__root__'
@@ -153,11 +127,8 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/app/main'
     | '/app/main/_layout'
-    | '/app/settings'
-    | '/app/settings/_layout'
     | '/app/onboarding/'
     | '/app/main/_layout/'
-    | '/app/settings/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -181,13 +152,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRouteRoute
     }
     '/app/main': {
       id: '/app/main'
@@ -224,26 +188,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/app/settings/_layout': {
-      id: '/app/settings/_layout'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsLayoutRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
     '/app/main/_layout': {
       id: '/app/main/_layout'
       path: '/main'
       fullPath: '/app/main'
       preLoaderRoute: typeof AppMainLayoutRouteImport
       parentRoute: typeof AppMainRoute
-    }
-    '/app/settings/_layout/': {
-      id: '/app/settings/_layout/'
-      path: '/'
-      fullPath: '/app/settings/'
-      preLoaderRoute: typeof AppSettingsLayoutIndexRouteImport
-      parentRoute: typeof AppSettingsLayoutRoute
     }
     '/app/main/_layout/': {
       id: '/app/main/_layout/'
@@ -278,34 +228,10 @@ const AppMainRouteChildren: AppMainRouteChildren = {
 const AppMainRouteWithChildren =
   AppMainRoute._addFileChildren(AppMainRouteChildren)
 
-interface AppSettingsLayoutRouteChildren {
-  AppSettingsLayoutIndexRoute: typeof AppSettingsLayoutIndexRoute
-}
-
-const AppSettingsLayoutRouteChildren: AppSettingsLayoutRouteChildren = {
-  AppSettingsLayoutIndexRoute: AppSettingsLayoutIndexRoute,
-}
-
-const AppSettingsLayoutRouteWithChildren =
-  AppSettingsLayoutRoute._addFileChildren(AppSettingsLayoutRouteChildren)
-
-interface AppSettingsRouteChildren {
-  AppSettingsLayoutRoute: typeof AppSettingsLayoutRouteWithChildren
-}
-
-const AppSettingsRouteChildren: AppSettingsRouteChildren = {
-  AppSettingsLayoutRoute: AppSettingsLayoutRouteWithChildren,
-}
-
-const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
-  AppSettingsRouteChildren,
-)
-
 interface AppRouteRouteChildren {
   AppControlRoute: typeof AppControlRoute
   AppExtHostRoute: typeof AppExtHostRoute
   AppMainRoute: typeof AppMainRouteWithChildren
-  AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppOnboardingIndexRoute: typeof AppOnboardingIndexRoute
 }
 
@@ -313,7 +239,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppControlRoute: AppControlRoute,
   AppExtHostRoute: AppExtHostRoute,
   AppMainRoute: AppMainRouteWithChildren,
-  AppSettingsRoute: AppSettingsRouteWithChildren,
   AppOnboardingIndexRoute: AppOnboardingIndexRoute,
 }
 

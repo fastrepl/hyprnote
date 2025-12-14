@@ -72,6 +72,8 @@ function EmptyView() {
     <div className="flex flex-col items-center justify-center h-full gap-6 mb-12 text-neutral-600">
       <div className="relative flex flex-col gap-1 text-center min-w-[280px]">
         <ActionItem label="New Note" shortcut={["⌘", "N"]} onClick={newNote} />
+        <ActionItem label="Calendar" onClick={openCalendar} />
+        <ActionItem label="Contacts" onClick={openContacts} />
         <ActionItem
           label="Others"
           icon={
@@ -86,11 +88,9 @@ function EmptyView() {
         />
         {showOthers && (
           <div className="absolute top-full left-0 right-0 flex flex-col gap-1 pt-1">
-            <ActionItem label="Open Calendar" onClick={openCalendar} />
-            <ActionItem label="Open Contacts" onClick={openContacts} />
-            <ActionItem label="Open Templates" onClick={openTemplates} />
-            <ActionItem label="Open Shortcuts" onClick={openShortcuts} />
-            <ActionItem label="Open Prompts" onClick={openPrompts} />
+            <ActionItem label="Templates" onClick={openTemplates} />
+            <ActionItem label="Shortcuts" onClick={openShortcuts} />
+            <ActionItem label="Prompts" onClick={openPrompts} />
           </div>
         )}
       </div>

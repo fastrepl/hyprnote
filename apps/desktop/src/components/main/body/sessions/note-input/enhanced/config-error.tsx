@@ -1,24 +1,15 @@
 import { ArrowRightIcon } from "lucide-react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Button } from "@hypr/ui/components/ui/button";
 
 import type { LLMConnectionStatus } from "../../../../../../hooks/useLLMConnection";
+import { useTabs } from "../../../../../../store/zustand/tabs";
 
 export function ConfigError({ status }: { status: LLMConnectionStatus }) {
+  const openNew = useTabs((state) => state.openNew);
+
   const handleConfigureClick = () => {
-    windowsCommands
-      .windowShow({ type: "settings" })
-      .then(() => new Promise((resolve) => setTimeout(resolve, 1000)))
-      .then(() =>
-        windowsCommands.windowEmitNavigate(
-          { type: "settings" },
-          {
-            path: "/app/settings",
-            search: { tab: "intelligence" },
-          },
-        ),
-      );
+    openNew({ type: "ai", state: { tab: "intelligence" } });
   };
 
   const message = getMessageForStatus(status);

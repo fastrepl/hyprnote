@@ -18,7 +18,7 @@ type TabItemProps<T extends Tab = Tab> = { tab: T; tabIndex?: number } & {
 
 type TabItemBaseProps = {
   icon: React.ReactNode;
-  title: string;
+  title: React.ReactNode;
   selected: boolean;
   active?: boolean;
   tabIndex?: number;

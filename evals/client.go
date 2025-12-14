@@ -14,14 +14,40 @@ import (
 )
 
 const (
+	openRouterBaseURL     = "https://openrouter.ai/api/v1"
 	defaultTemperature    = 0.2
 	defaultRetryInterval  = 500 * time.Millisecond
 	defaultMaxElapsedTime = 30 * time.Second
-	openRouterBaseURL     = "https://openrouter.ai/api/v1"
 )
 
+// ErrNoChoices is returned when the API response contains no choices.
 var ErrNoChoices = errors.New("no choices in response")
 
+// ChatCompleter is the interface for chat completion clients.
+type ChatCompleter interface {
+	CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error)
+}
+
+// OpenRouterClient wraps the OpenAI client configured for OpenRouter.
+type OpenRouterClient struct {
+	api *openai.Client
+}
+
+// NewOpenRouterClient creates a new OpenRouter client with the given API key.
+func NewOpenRouterClient(apiKey string) *OpenRouterClient {
+	c := openai.NewClient(
+		option.WithAPIKey(apiKey),
+		option.WithBaseURL(openRouterBaseURL),
+	)
+	return &OpenRouterClient{api: &c}
+}
+
+// CreateChatCompletion sends a chat completion request to OpenRouter.
+func (c *OpenRouterClient) CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
+	return c.api.Chat.Completions.New(ctx, params)
+}
+
+// GraderResponse represents the structured response from an LLM grader.
 type GraderResponse struct {
 	Verdict   string `json:"verdict"`
 	Reasoning string `json:"reasoning"`
@@ -44,20 +70,12 @@ var graderResponseSchema = map[string]any{
 	"additionalProperties": false,
 }
 
-func newClient(apiKey string) *openai.Client {
-	c := openai.NewClient(
-		option.WithAPIKey(apiKey),
-		option.WithBaseURL(openRouterBaseURL),
-	)
-	return &c
-}
-
-func generateText(ctx context.Context, client *openai.Client, model, prompt string) (string, error) {
+func generateText(ctx context.Context, client ChatCompleter, model, prompt string) (string, error) {
 	b := backoff.NewExponentialBackOff()
 	b.InitialInterval = defaultRetryInterval
 
 	result, err := backoff.Retry(ctx, func() (string, error) {
-		resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+		resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionNewParams{
 			Model: model,
 			Messages: []openai.ChatCompletionMessageParamUnion{
 				openai.UserMessage(prompt),
@@ -86,12 +104,12 @@ func generateText(ctx context.Context, client *openai.Client, model, prompt stri
 	return result, nil
 }
 
-func generateStructuredGraderResponse(ctx context.Context, client *openai.Client, model, prompt string) (GraderResponse, error) {
+func generateStructuredGraderResponse(ctx context.Context, client ChatCompleter, model, prompt string) (GraderResponse, error) {
 	b := backoff.NewExponentialBackOff()
 	b.InitialInterval = defaultRetryInterval
 
 	result, err := backoff.Retry(ctx, func() (GraderResponse, error) {
-		resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+		resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionNewParams{
 			Model: model,
 			Messages: []openai.ChatCompletionMessageParamUnion{
 				openai.UserMessage(prompt),
@@ -134,7 +152,7 @@ func generateStructuredGraderResponse(ctx context.Context, client *openai.Client
 	return result, nil
 }
 
-func generateTextMulti(ctx context.Context, client *openai.Client, model, prompt string, n int) ([]string, error) {
+func generateTextMulti(ctx context.Context, client ChatCompleter, model, prompt string, n int) ([]string, error) {
 	if n <= 0 {
 		n = 1
 	}
@@ -143,7 +161,7 @@ func generateTextMulti(ctx context.Context, client *openai.Client, model, prompt
 	b.InitialInterval = defaultRetryInterval
 
 	result, err := backoff.Retry(ctx, func() ([]string, error) {
-		resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+		resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionNewParams{
 			Model: model,
 			Messages: []openai.ChatCompletionMessageParamUnion{
 				openai.UserMessage(prompt),
@@ -177,7 +195,7 @@ func generateTextMulti(ctx context.Context, client *openai.Client, model, prompt
 	return result, nil
 }
 
-func generateStructuredGraderResponseMulti(ctx context.Context, client *openai.Client, model, prompt string, n int) ([]GraderResponse, error) {
+func generateStructuredGraderResponseMulti(ctx context.Context, client ChatCompleter, model, prompt string, n int) ([]GraderResponse, error) {
 	if n <= 0 {
 		n = 1
 	}
@@ -186,7 +204,7 @@ func generateStructuredGraderResponseMulti(ctx context.Context, client *openai.C
 	b.InitialInterval = defaultRetryInterval
 
 	result, err := backoff.Retry(ctx, func() ([]GraderResponse, error) {
-		resp, err := client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
+		resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionNewParams{
 			Model: model,
 			Messages: []openai.ChatCompletionMessageParamUnion{
 				openai.UserMessage(prompt),
@@ -232,37 +250,6 @@ func generateStructuredGraderResponseMulti(ctx context.Context, client *openai.C
 	}
 
 	return result, nil
-}
-
-type AggregatedGraderResponse struct {
-	PassRate  float64
-	Passed    bool
-	Reasoning string
-	Samples   int
-}
-
-func aggregateGraderResponses(responses []GraderResponse) AggregatedGraderResponse {
-	if len(responses) == 0 {
-		return AggregatedGraderResponse{}
-	}
-
-	passCount := 0
-	var reasonings []string
-	for _, r := range responses {
-		if r.Verdict == "PASS" {
-			passCount++
-		}
-		reasonings = append(reasonings, r.Reasoning)
-	}
-
-	passRate := float64(passCount) / float64(len(responses))
-
-	return AggregatedGraderResponse{
-		PassRate:  passRate,
-		Passed:    passRate >= 0.5,
-		Reasoning: reasonings[0],
-		Samples:   len(responses),
-	}
 }
 
 func isRetryable(err error) bool {

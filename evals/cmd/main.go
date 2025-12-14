@@ -2,22 +2,26 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"hyprnote/evals"
 	"hyprnote/evals/tasks"
 
-	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 )
+
+var defaultModels = []string{
+	"openai/gpt-4.1-nano",
+	"anthropic/claude-haiku-4.5",
+	"liquid/lfm-2.2-6b",
+}
 
 var errEvalFailed = errors.New("evaluation failed")
 
@@ -36,13 +40,83 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(completionCmd)
 
 	runCmd.Flags().StringSliceP("tasks", "t", nil, "tasks to run (comma-separated)")
 	runCmd.Flags().StringP("output", "o", "table", "output format: table or json")
 	runCmd.Flags().StringSliceP("models", "m", nil, "models to use (comma-separated)")
+	runCmd.Flags().Bool("no-cache", false, "disable response caching")
+	runCmd.Flags().String("cache-dir", "", "custom cache directory (default: XDG cache dir)")
+
+	runCmd.RegisterFlagCompletionFunc("models", completeModels)
+}
+
+func completeModels(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	models, err := evals.FetchOpenRouterModels(ctx)
+	if err != nil {
+		return append(defaultModels, cobra.AppendActiveHelp(nil, fmt.Sprintf("Failed to fetch models: %v", err))...), cobra.ShellCompDirectiveNoFileComp
+	}
+
+	filtered := evals.FilterModels(models, toComplete)
+	if len(filtered) == 0 {
+		return defaultModels, cobra.ShellCompDirectiveNoFileComp
+	}
+
+	return filtered, cobra.ShellCompDirectiveNoFileComp
+}
+
+var completionCmd = &cobra.Command{
+	Use:   "completion [bash|zsh|fish|powershell]",
+	Short: "Generate completion script",
+	Long: `To load completions:
+
+Bash:
+  $ source <(evals completion bash)
+  # To load completions for each session, execute once:
+  # Linux:
+  $ evals completion bash > /etc/bash_completion.d/evals
+  # macOS:
+  $ evals completion bash > $(brew --prefix)/etc/bash_completion.d/evals
+
+Zsh:
+  # If shell completion is not already enabled in your environment,
+  # you will need to enable it. You can execute the following once:
+  $ echo "autoload -U compinit; compinit" >> ~/.zshrc
+  # To load completions for each session, execute once:
+  $ evals completion zsh > "${fpath[1]}/_evals"
+  # You will need to start a new shell for this setup to take effect.
+
+Fish:
+  $ evals completion fish | source
+  # To load completions for each session, execute once:
+  $ evals completion fish > ~/.config/fish/completions/evals.fish
+
+PowerShell:
+  PS> evals completion powershell | Out-String | Invoke-Expression
+  # To load completions for every new session, run:
+  PS> evals completion powershell > evals.ps1
+  # and source this file from your PowerShell profile.
+`,
+	DisableFlagsInUseLine: true,
+	ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
+	Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	Run: func(cmd *cobra.Command, args []string) {
+		switch args[0] {
+		case "bash":
+			cmd.Root().GenBashCompletion(os.Stdout)
+		case "zsh":
+			cmd.Root().GenZshCompletion(os.Stdout)
+		case "fish":
+			cmd.Root().GenFishCompletion(os.Stdout, true)
+		case "powershell":
+			cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+		}
+	},
 }
 
 var listCmd = &cobra.Command{
@@ -73,19 +147,47 @@ var runCmd = &cobra.Command{
 			return errors.New("OPENROUTER_API_KEY environment variable is not set")
 		}
 
-		taskFilter, _ := cmd.Flags().GetStringSlice("tasks")
-		outputFormat, _ := cmd.Flags().GetString("output")
-		modelOverride, _ := cmd.Flags().GetStringSlice("models")
+		taskFilter, err := cmd.Flags().GetStringSlice("tasks")
+		if err != nil {
+			return fmt.Errorf("get tasks flag: %w", err)
+		}
+		outputFormat, err := cmd.Flags().GetString("output")
+		if err != nil {
+			return fmt.Errorf("get output flag: %w", err)
+		}
+		modelOverride, err := cmd.Flags().GetStringSlice("models")
+		if err != nil {
+			return fmt.Errorf("get models flag: %w", err)
+		}
+		noCache, err := cmd.Flags().GetBool("no-cache")
+		if err != nil {
+			return fmt.Errorf("get no-cache flag: %w", err)
+		}
+		cacheDir, err := cmd.Flags().GetString("cache-dir")
+		if err != nil {
+			return fmt.Errorf("get cache-dir flag: %w", err)
+		}
 
 		selectedTasks := filterTasks(tasks.All, taskFilter)
 		if len(selectedTasks) == 0 {
 			return errors.New("no tasks matched the filter")
 		}
 
+		baseClient := evals.NewOpenRouterClient(cfg.OpenRouterAPIKey)
+		cachingClient, err := evals.NewCachingChatCompleter(baseClient, evals.CacheConfig{
+			Enabled:  !noCache,
+			CacheDir: cacheDir,
+		})
+		if err != nil {
+			return fmt.Errorf("create caching client: %w", err)
+		}
+		defer cachingClient.Close()
+
 		var opts []evals.Option
 		if len(modelOverride) > 0 {
 			opts = append(opts, evals.WithModels(modelOverride...))
 		}
+		opts = append(opts, evals.WithClient(cachingClient))
 
 		ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer cancel()
@@ -97,10 +199,30 @@ var runCmd = &cobra.Command{
 			return renderJSON(results)
 		}
 
-		bar := progressbar.Default(int64(runner.TotalCount(selectedTasks)), "evaluating")
-		runner.OnProgress = func() { bar.Add(1) }
+		genBar := progressbar.NewOptions(
+			runner.TotalGenerations(selectedTasks),
+			progressbar.OptionSetDescription("Generations"),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionShowCount(),
+			progressbar.OptionSetWidth(30),
+			progressbar.OptionClearOnFinish(),
+		)
+		evalBar := progressbar.NewOptions(
+			runner.TotalEvaluations(selectedTasks),
+			progressbar.OptionSetDescription("Evaluations"),
+			progressbar.OptionSetWriter(os.Stderr),
+			progressbar.OptionShowCount(),
+			progressbar.OptionSetWidth(30),
+			progressbar.OptionClearOnFinish(),
+		)
+
+		runner.OnProgress = func(info evals.ProgressInfo) {
+			genBar.Set(info.GenerationsComplete)
+			evalBar.Set(info.EvaluationsComplete)
+		}
 		results := runner.Run(ctx, selectedTasks)
-		bar.Finish()
+		genBar.Finish()
+		evalBar.Finish()
 
 		return renderResults(results)
 	},
@@ -123,109 +245,4 @@ func filterTasks(allTasks []evals.Task, filter []string) []evals.Task {
 		}
 	}
 	return filtered
-}
-
-func renderJSON(results []evals.Result) error {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
-	if err := enc.Encode(results); err != nil {
-		return fmt.Errorf("encode json: %w", err)
-	}
-
-	for _, r := range results {
-		if r.Error != "" || !r.AllPassed() {
-			return errEvalFailed
-		}
-	}
-	return nil
-}
-
-func renderResults(results []evals.Result) error {
-	rubricNames := extractRubricNames(results)
-
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleRounded)
-	t.AppendHeader(buildHeader(rubricNames))
-
-	totals := make([]int, len(rubricNames))
-	var grandTotal, maxTotal, totalFailed int
-
-	for _, r := range results {
-		row := table.Row{r.Model}
-
-		if r.Error != "" {
-			totalFailed++
-			for range rubricNames {
-				row = append(row, "-")
-			}
-			row = append(row, text.FgRed.Sprint("error"))
-			t.AppendRow(row)
-			continue
-		}
-
-		passed, total := r.TallyScore()
-		if passed != total {
-			totalFailed++
-		}
-		maxTotal += total
-
-		for i, s := range r.Scores {
-			if s.Passed {
-				totals[i]++
-				grandTotal++
-				row = append(row, text.FgGreen.Sprint("1"))
-			} else {
-				row = append(row, text.FgRed.Sprint("0"))
-			}
-		}
-
-		if passed == total {
-			row = append(row, text.FgGreen.Sprintf("%d/%d", passed, total))
-		} else {
-			row = append(row, text.FgRed.Sprintf("%d/%d", passed, total))
-		}
-
-		t.AppendRow(row)
-	}
-
-	t.AppendFooter(buildFooter(totals, grandTotal, maxTotal))
-	t.Render()
-
-	if totalFailed > 0 {
-		return errEvalFailed
-	}
-	return nil
-}
-
-func extractRubricNames(results []evals.Result) []string {
-	for _, r := range results {
-		if r.Error != "" || len(r.Scores) == 0 {
-			continue
-		}
-		names := make([]string, len(r.Scores))
-		for i, s := range r.Scores {
-			names[i] = s.RubricName
-		}
-		return names
-	}
-	return nil
-}
-
-func buildHeader(rubricNames []string) table.Row {
-	header := table.Row{"Model"}
-	for _, name := range rubricNames {
-		header = append(header, name)
-	}
-	header = append(header, "Total")
-	return header
-}
-
-func buildFooter(totals []int, grandTotal, maxTotal int) table.Row {
-	footer := table.Row{"Total"}
-	for _, total := range totals {
-		footer = append(footer, fmt.Sprintf("%d", total))
-	}
-	footer = append(footer, fmt.Sprintf("%d/%d", grandTotal, maxTotal))
-	return footer
 }

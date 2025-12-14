@@ -69,6 +69,12 @@
         { "path": "$DOWNLOAD/**/*" }
       ]
     },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [
+        { "path": "$DATA/hyprnote/**/*" }
+      ]
+    },
     "apple-calendar:default",
     "extensions:default",
     "db2:default",
@@ -78,6 +84,7 @@
     "analytics:default",
     "cli2:default",
     "updater:default",
+    "updater2:default",
     "deep-link:default",
     "deeplink2:default",
     "store:default",
@@ -109,6 +116,7 @@
     "os:default",
     "detect:default",
     "permissions:default",
+    "settings:default",
     "autostart:default",
     {
       "identifier": "http:default",

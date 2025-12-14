@@ -217,9 +217,15 @@ importers:
       '@hypr/plugin-permissions':
         specifier: workspace:*
         version: link:../../plugins/permissions
+      '@hypr/plugin-settings':
+        specifier: workspace:*
+        version: link:../../plugins/settings
       '@hypr/plugin-template':
         specifier: workspace:*
         version: link:../../plugins/template
+      '@hypr/plugin-updater2':
+        specifier: workspace:*
+        version: link:../../plugins/updater2
       '@hypr/plugin-windows':
         specifier: workspace:*
         version: link:../../plugins/windows
@@ -1423,6 +1429,12 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
+  plugins/settings:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
   plugins/sfx:
     dependencies:
       '@tauri-apps/api':
@@ -1448,6 +1460,12 @@ importers:
         version: 2.9.1
 
   plugins/tray:
+    dependencies:
+      '@tauri-apps/api':
+        specifier: ^2.9.1
+        version: 2.9.1
+
+  plugins/updater2:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.9.1

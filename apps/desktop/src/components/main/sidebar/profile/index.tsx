@@ -4,6 +4,7 @@ import {
   ChevronUpIcon,
   FolderOpenIcon,
   SettingsIcon,
+  SparklesIcon,
   UserIcon,
   UsersIcon,
 } from "lucide-react";
@@ -16,7 +17,6 @@ import {
   useState,
 } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
 
@@ -104,9 +104,9 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   });
 
   const handleClickSettings = useCallback(() => {
-    windowsCommands.windowShow({ type: "settings" });
+    openNew({ type: "settings" });
     closeMenu();
-  }, [closeMenu]);
+  }, [openNew, closeMenu]);
 
   const handleClickFolders = useCallback(() => {
     openNew({ type: "folders", id: null });
@@ -114,7 +114,7 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
   }, [openNew, closeMenu]);
 
   const handleClickCalendar = useCallback(() => {
-    openNew({ type: "extension", extensionId: "calendar" });
+    openNew({ type: "calendar" });
     closeMenu();
   }, [openNew, closeMenu]);
 
@@ -149,10 +149,16 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
+  const handleClickAI = useCallback(() => {
+    openNew({ type: "ai" });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
   const menuItems = [
     { icon: FolderOpenIcon, label: "Folders", onClick: handleClickFolders },
     { icon: UsersIcon, label: "Contacts", onClick: handleClickContacts },
     { icon: CalendarIcon, label: "Calendar", onClick: handleClickCalendar },
+    { icon: SparklesIcon, label: "AI", onClick: handleClickAI },
     { icon: UserIcon, label: "My Profile", onClick: handleClickProfile },
     {
       icon: SettingsIcon,

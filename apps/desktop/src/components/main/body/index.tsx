@@ -22,6 +22,9 @@ import {
 import { ChatFloatingButton } from "../../chat";
 import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
+import { TabContentAI, TabItemAI } from "./ai";
+import { TabContentCalendar, TabItemCalendar } from "./calendar";
+import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
@@ -38,7 +41,9 @@ import { TabContentHuman, TabItemHuman } from "./humans";
 import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
+import { TabContentSettings, TabItemSettings } from "./settings";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
+import { Update } from "./update";
 
 export function Body() {
   const { tabs, currentTab } = useTabs(
@@ -194,7 +199,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
           <PlusIcon size={16} />
         </Button>
 
-        <Search />
+        <div className="flex items-center gap-1">
+          <Update />
+          <Search />
+        </div>
       </div>
     </div>
   );
@@ -325,6 +333,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "calendar") {
+    return (
+      <TabItemCalendar
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
   if (tab.type === "extension") {
     return (
       <TabItemExtension
@@ -340,6 +360,42 @@ function TabItem({
   if (tab.type === "extensions") {
     return (
       <TabItemExtensions
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
+  if (tab.type === "changelog") {
+    return (
+      <TabItemChangelog
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
+  if (tab.type === "settings") {
+    return (
+      <TabItemSettings
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
+  if (tab.type === "ai") {
+    return (
+      <TabItemAI
         tab={tab}
         tabIndex={tabIndex}
         handleCloseThis={handleClose}
@@ -381,11 +437,23 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "empty") {
     return <TabContentEmpty tab={tab} />;
   }
+  if (tab.type === "calendar") {
+    return <TabContentCalendar />;
+  }
   if (tab.type === "extension") {
     return <TabContentExtension tab={tab} />;
   }
   if (tab.type === "extensions") {
     return <TabContentExtensions tab={tab} />;
+  }
+  if (tab.type === "changelog") {
+    return <TabContentChangelog tab={tab} />;
+  }
+  if (tab.type === "settings") {
+    return <TabContentSettings tab={tab} />;
+  }
+  if (tab.type === "ai") {
+    return <TabContentAI tab={tab} />;
   }
 
   return null;
@@ -393,8 +461,13 @@ function ContentWrapper({ tab }: { tab: Tab }) {
 
 function TabChatButton() {
   const { chat } = useShell();
+  const currentTab = useTabs((state) => state.currentTab);
 
   if (chat.mode === "RightPanelOpen") {
+    return null;
+  }
+
+  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
     return null;
   }
 

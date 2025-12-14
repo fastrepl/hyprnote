@@ -182,9 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             error instanceof AuthRetryableFetchError &&
             isLocalAuthServer(env.VITE_SUPABASE_URL)
           ) {
-            await clearAuthStorage();
             setServerReachable(false);
-            setSession(null);
             return;
           }
         }
@@ -201,9 +199,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               refreshError instanceof AuthRetryableFetchError &&
               isLocalAuthServer(env.VITE_SUPABASE_URL)
             ) {
-              await clearAuthStorage();
               setServerReachable(false);
-              setSession(null);
+              setSession(data.session);
+              supabase.auth.startAutoRefresh();
               return;
             }
           }
@@ -223,9 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           e instanceof AuthRetryableFetchError &&
           isLocalAuthServer(env.VITE_SUPABASE_URL)
         ) {
-          await clearAuthStorage();
           setServerReachable(false);
-          setSession(null);
         }
       }
     };

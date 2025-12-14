@@ -10,11 +10,15 @@ on:
       - main
 jobs:
   fmt:
-    runs-on: depot-ubuntu-24.04-8
+    runs-on: depot-ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/pnpm_install
       - uses: ./.github/actions/rust_install
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/dprint/cache/plugins
+          key: dprint-${{ hashFiles('dprint.json') }}
       - uses: dprint/check@v2.3
         with:
           config-path: dprint.json

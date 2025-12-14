@@ -9,7 +9,7 @@ pub struct HooksConfig {
     pub version: u8,
     /// Map of event names to their associated hook definitions.
     #[serde(default)]
-    pub hooks: HashMap<String, Vec<HookDefinition>>,
+    pub on: HashMap<String, Vec<HookDefinition>>,
 }
 
 /// Defines a single hook to be executed on an event.
@@ -59,7 +59,7 @@ impl HooksConfig {
     fn empty() -> Self {
         Self {
             version: 0,
-            hooks: HashMap::new(),
+            on: HashMap::new(),
         }
     }
 }

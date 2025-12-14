@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { type UnlistenFn } from "@tauri-apps/api/event";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { check } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useState } from "react";
 
@@ -21,15 +23,31 @@ export function Update() {
   }, [pendingUpdate.data]);
 
   useEffect(() => {
-    events.updateReadyEvent.listen(({ payload: { version: _ } }) => {
-      pendingUpdate.refetch();
-    });
+    let unlisten: null | UnlistenFn = null;
+    events.updateReadyEvent
+      .listen(({ payload: { version: _ } }) => {
+        pendingUpdate.refetch();
+      })
+      .then((f) => {
+        unlisten = f;
+      });
+
+    return () => {
+      unlisten?.();
+      unlisten = null;
+    };
   }, []);
 
   const handleInstallUpdate = useCallback(async () => {
-    const u = await check();
-    if (u) {
-      u.install();
+    try {
+      const u = await check();
+      if (u) {
+        await u.install();
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      await relaunch();
     }
   }, [check]);
 

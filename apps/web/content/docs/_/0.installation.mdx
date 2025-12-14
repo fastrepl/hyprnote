@@ -4,40 +4,29 @@ section: "Getting Started"
 description: "How to install Hyprnote on your computer."
 ---
 
+# Common
+
+- All releases are always available on [GitHub Releases](https://github.com/fastrepl/hyprnote/releases).
+
+# Platforms
+
 ## macOS
 
-Download the latest version from the [changelog](/changelog) page or directly from our servers:
+> macOS is our main focus, especially Apple Silicon devices.
 
-- [Download for Apple Silicon (M1/M2/M3)](https://desktop2.hyprnote.com/download/latest/dmg-aarch64?channel=nightly)
-
-After downloading:
-
-1. Open the `.dmg` file
-2. Drag Hyprnote to your Applications folder
-3. Open Hyprnote from Applications
-
-On first launch, macOS may show a security warning. Right-click the app and select "Open" to bypass this.
+```bash
+brew install --cask fastrepl/hyprnote/hyprnote@nightly
+```
 
 ## Linux
 
-Download the latest version from the [changelog](/changelog) page:
+> Note that `Linux` version is barely usable.
+
+You can find binaries for `Linux` on the [GitHub Releases](https://github.com/fastrepl/hyprnote/releases) page, or directly download latest version from below:
 
 - [AppImage (x86_64)](https://desktop2.hyprnote.com/download/latest/appimage-x86_64?channel=nightly)
 - [Debian Package (x86_64)](https://desktop2.hyprnote.com/download/latest/deb-x86_64?channel=nightly)
 
-### AppImage
-
-```bash
-chmod +x Hyprnote-*.AppImage
-./Hyprnote-*.AppImage
-```
-
-### Debian/Ubuntu
-
-```bash
-sudo dpkg -i hyprnote_*.deb
-```
-
 ## Windows
 
-Windows support is coming soon. Join our [Discord](https://discord.gg/hyprnote) to stay updated.
+> Windows support is coming soon. Join our [Discord](https://discord.gg/hyprnote) to stay updated.

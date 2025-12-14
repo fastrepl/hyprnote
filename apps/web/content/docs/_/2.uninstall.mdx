@@ -6,37 +6,6 @@ description: "How to uninstall Hyprnote from your computer."
 
 ## macOS
 
-1. Quit Hyprnote if it's running
-2. Open Finder and go to **Applications**
-3. Drag Hyprnote to the Trash
-4. Empty the Trash
-
-To remove all data, also delete:
-
 ```bash
-rm -rf ~/Library/Application\ Support/com.hyprnote.dev
-rm -rf ~/Library/Caches/com.hyprnote.dev
-```
-
-## Linux
-
-### AppImage
-
-Simply delete the AppImage file:
-
-```bash
-rm Hyprnote-*.AppImage
-```
-
-### Debian/Ubuntu
-
-```bash
-sudo apt remove hyprnote
-```
-
-To remove configuration and data:
-
-```bash
-rm -rf ~/.local/share/com.hyprnote.dev
-rm -rf ~/.config/com.hyprnote.dev
+rm -rf ~/Library/Application\ Support/hyprnote
 ```

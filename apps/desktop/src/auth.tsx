@@ -88,17 +88,22 @@ const supabase =
       })
     : null;
 
+export type AuthResult = {
+  success: boolean;
+  error?: string;
+};
+
 const AuthContext = createContext<{
   supabase: SupabaseClient | null;
   session: Session | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<Session | null>;
-  handleAuthCallback: (url: string) => Promise<void>;
+  handleAuthCallback: (url: string) => Promise<AuthResult>;
   setSessionFromTokens: (
     accessToken: string,
     refreshToken: string,
-  ) => Promise<void>;
+  ) => Promise<AuthResult>;
   getHeaders: () => Record<string, string> | null;
   getAvatarUrl: () => Promise<string>;
 } | null>(null);
@@ -110,37 +115,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setSessionFromTokens = async (
     accessToken: string,
     refreshToken: string,
-  ) => {
+  ): Promise<AuthResult> => {
     if (!supabase) {
-      console.error("Supabase client not found");
-      return;
+      console.error("Supabase client not initialized");
+      return {
+        success: false,
+        error:
+          "Authentication service not available. Please check your app configuration.",
+      };
     }
 
-    const res = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+    try {
+      const res = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
 
-    if (res.error) {
-      console.error("Failed to set session");
-    } else {
+      if (res.error) {
+        console.error("Failed to set session:", res.error.message);
+        return {
+          success: false,
+          error:
+            res.error.message || "Failed to authenticate. Please try again.",
+        };
+      }
+
       setSession(res.data.session);
       setServerReachable(true);
       supabase.auth.startAutoRefresh();
+      return { success: true };
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : "Unknown error";
+      console.error("Failed to set session:", errorMessage);
+      return {
+        success: false,
+        error: `Authentication failed: ${errorMessage}`,
+      };
     }
   };
 
-  const handleAuthCallback = async (url: string) => {
-    const parsed = new URL(url);
-    const accessToken = parsed.searchParams.get("access_token");
-    const refreshToken = parsed.searchParams.get("refresh_token");
+  const handleAuthCallback = async (url: string): Promise<AuthResult> => {
+    try {
+      const parsed = new URL(url);
+      const accessToken = parsed.searchParams.get("access_token");
+      const refreshToken = parsed.searchParams.get("refresh_token");
 
-    if (!accessToken || !refreshToken) {
-      console.error("invalid_callback_url");
-      return;
+      if (!accessToken || !refreshToken) {
+        console.error("Invalid callback URL: missing tokens");
+        return {
+          success: false,
+          error:
+            "Invalid callback URL. Please make sure you copied the complete URL.",
+        };
+      }
+
+      return await setSessionFromTokens(accessToken, refreshToken);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : "Unknown error";
+      console.error("Failed to parse callback URL:", errorMessage);
+      return {
+        success: false,
+        error: "Invalid URL format. Please check the URL and try again.",
+      };
     }
-
-    await setSessionFromTokens(accessToken, refreshToken);
   };
 
   useEffect(() => {

@@ -14,9 +14,26 @@ export function Login({ onNext }: { onNext: OnboardingNext }) {
   const auth = useAuth();
   const [showManualInput, setShowManualInput] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("");
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const signInStarted = useRef(false);
   const trialStarted = useRef(false);
+
+  const handleManualSubmit = async () => {
+    if (!auth || !callbackUrl.trim()) return;
+
+    setIsSubmitting(true);
+    setAuthError(null);
+
+    const result = await auth.handleAuthCallback(callbackUrl);
+
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      setAuthError(result.error || "Authentication failed. Please try again.");
+    }
+  };
 
   useEffect(() => {
     if (auth?.session && !trialStarted.current) {
@@ -70,20 +87,30 @@ export function Login({ onNext }: { onNext: OnboardingNext }) {
         <Input
           type="text"
           className="text-xs font-mono"
-          placeholder="<SOMETHING>?access_token=...&refresh_token=..."
+          placeholder="hyprnote://auth/callback?access_token=...&refresh_token=..."
           value={callbackUrl}
-          onChange={(e) => setCallbackUrl(e.target.value)}
+          onChange={(e) => {
+            setCallbackUrl(e.target.value);
+            setAuthError(null);
+          }}
         />
+        {authError && (
+          <p className="text-xs text-red-600 text-center">{authError}</p>
+        )}
         <div className="flex flex-col gap-2">
           <Button
-            onClick={() => auth?.handleAuthCallback(callbackUrl)}
+            onClick={handleManualSubmit}
             className="w-full"
+            disabled={isSubmitting || !callbackUrl.trim()}
           >
-            Submit
+            {isSubmitting ? "Authenticating..." : "Submit"}
           </Button>
           <Button
             variant="outline"
-            onClick={() => setShowManualInput(false)}
+            onClick={() => {
+              setShowManualInput(false);
+              setAuthError(null);
+            }}
             className="w-full"
           >
             Back

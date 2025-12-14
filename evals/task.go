@@ -9,7 +9,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/kluctl/kluctl/lib/go-jinja2"
+	"github.com/nikolalohinski/gonja/v2"
+	"github.com/nikolalohinski/gonja/v2/exec"
+	"github.com/nikolalohinski/gonja/v2/loaders"
 )
 
 //go:embed templates/*.jinja
@@ -62,25 +64,39 @@ func (t *Task) RenderPrompt() (string, error) {
 		return "", fmt.Errorf("read template %s: %w", t.TemplatePath, err)
 	}
 
-	var jinja2Opts []jinja2.Jinja2Opt
+	var loader loaders.Loader
 	if strings.HasPrefix(t.TemplatePath, cratesTemplatePrefix) {
 		cratesDir := getCratesTemplateDir()
 		if cratesDir != "" {
-			jinja2Opts = append(jinja2Opts, jinja2.WithSearchDir(cratesDir))
+			fsLoader, err := loaders.NewFileSystemLoader(cratesDir)
+			if err != nil {
+				return "", fmt.Errorf("jinja2: loader: %w", err)
+			}
+			loader, err = loaders.NewShiftedLoader("template", strings.NewReader(string(content)), fsLoader)
+			if err != nil {
+				return "", fmt.Errorf("jinja2: shifted loader: %w", err)
+			}
 		}
 	}
 
-	r, err := jinja2.NewJinja2("", 1, jinja2Opts...)
-	if err != nil {
-		return "", fmt.Errorf("jinja2: init: %w", err)
+	if loader == nil {
+		loader, err = loaders.NewMemoryLoader(map[string]string{"template": string(content)})
+		if err != nil {
+			return "", fmt.Errorf("jinja2: memory loader: %w", err)
+		}
 	}
-	defer r.Close()
 
-	var globals map[string]any
-	if t.Inputs != nil {
-		globals = t.Inputs.ToMap()
+	template, err := exec.NewTemplate("template", gonja.DefaultConfig, loader, gonja.DefaultEnvironment)
+	if err != nil {
+		return "", fmt.Errorf("jinja2: parse: %w", err)
 	}
-	out, err := r.RenderString(string(content), jinja2.WithGlobals(globals))
+
+	var data map[string]any
+	if t.Inputs != nil {
+		data = t.Inputs.ToMap()
+	}
+
+	out, err := template.ExecuteToString(exec.NewContext(data))
 	if err != nil {
 		return "", fmt.Errorf("jinja2: render: %w", err)
 	}

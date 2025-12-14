@@ -60,7 +60,7 @@ type Runner struct {
 	numEvals     int
 	timeout      time.Duration
 	concurrency  int
-	OnProgress   func()
+	OnProgress   func(completed, total int)
 }
 
 // Option configures a Runner.
@@ -191,6 +191,7 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 
 	var mu sync.Mutex
 	var results []Result
+	total := r.TotalCount(tasks)
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.SetLimit(r.concurrency)
@@ -203,10 +204,12 @@ func (r *Runner) Run(ctx context.Context, tasks []Task) []Result {
 
 					mu.Lock()
 					results = append(results, result)
-					if r.OnProgress != nil {
-						r.OnProgress()
-					}
+					completed := len(results)
 					mu.Unlock()
+
+					if r.OnProgress != nil {
+						r.OnProgress(completed, total)
+					}
 
 					return nil
 				})

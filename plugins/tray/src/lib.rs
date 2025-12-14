@@ -2,7 +2,7 @@ mod ext;
 mod menu_items;
 
 pub use ext::*;
-pub use menu_items::{HyprMenuItem, UpdateMenuState};
+pub use menu_items::{HyprMenuItem, TrayCheckUpdate, UpdateMenuState};
 
 const PLUGIN_NAME: &str = "tray";
 

@@ -1,4 +1,5 @@
 use tauri::{Emitter, Manager};
+use tauri_plugin_updater::UpdaterExt;
 
 use crate::ext::AppExt;
 
@@ -6,6 +7,49 @@ use crate::ext::AppExt;
 pub struct UpdatedPayload {
     pub previous: String,
     pub current: String,
+}
+
+pub fn start_background_update_check<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) {
+    let app = app_handle.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+
+        let updater = match app.updater() {
+            Ok(u) => u,
+            Err(e) => {
+                tracing::debug!("updater_not_available: {}", e);
+                return;
+            }
+        };
+
+        tracing::info!("checking_for_updates_in_background");
+
+        match updater.check().await {
+            Ok(Some(update)) => {
+                tracing::info!("update_available: v{}", update.version);
+
+                use tauri_plugin_tray::{TrayCheckUpdate, UpdateMenuState};
+                let _ = TrayCheckUpdate::set_state(&app, UpdateMenuState::Downloading);
+
+                match update.download(|_, _| {}).await {
+                    Ok(()) => {
+                        tracing::info!("update_downloaded: v{}", update.version);
+                        let _ = TrayCheckUpdate::set_state(&app, UpdateMenuState::RestartToApply);
+                    }
+                    Err(e) => {
+                        tracing::error!("update_download_failed: {}", e);
+                        let _ = TrayCheckUpdate::set_state(&app, UpdateMenuState::CheckForUpdate);
+                    }
+                }
+            }
+            Ok(None) => {
+                tracing::debug!("no_updates_available");
+            }
+            Err(e) => {
+                tracing::debug!("update_check_failed: {}", e);
+            }
+        }
+    });
 }
 
 pub fn maybe_emit_updated<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) {

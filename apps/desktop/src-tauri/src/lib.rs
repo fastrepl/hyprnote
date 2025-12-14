@@ -157,6 +157,7 @@ pub async fn main() {
             specta_builder.mount_events(&app_handle);
 
             update_check::maybe_emit_updated(&app_handle);
+            update_check::start_background_update_check(&app_handle);
 
             Ok(())
         })

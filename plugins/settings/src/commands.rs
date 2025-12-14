@@ -1,10 +1,9 @@
-use tauri::Manager;
+use crate::SettingsPluginExt;
 
 #[tauri::command]
 #[specta::specta]
 pub(crate) fn path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> String {
-    let state = app.state::<crate::state::SettingsState>();
-    state.path().to_string_lossy().to_string()
+    app.settings().path().to_string_lossy().to_string()
 }
 
 #[tauri::command]
@@ -12,8 +11,7 @@ pub(crate) fn path<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> String {
 pub(crate) async fn load<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<serde_json::Value, String> {
-    let state = app.state::<crate::state::SettingsState>();
-    state.load().await
+    app.settings().load().await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -22,6 +20,8 @@ pub(crate) async fn save<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     settings: serde_json::Value,
 ) -> Result<(), String> {
-    let state = app.state::<crate::state::SettingsState>();
-    state.save(settings).await
+    app.settings()
+        .save(settings)
+        .await
+        .map_err(|e| e.to_string())
 }

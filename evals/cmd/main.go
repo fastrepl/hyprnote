@@ -13,7 +13,7 @@ import (
 	"hyprnote/evals"
 	"hyprnote/evals/tasks"
 
-	"github.com/schollz/progressbar/v3"
+	"fortio.org/progressbar"
 	"github.com/spf13/cobra"
 )
 
@@ -199,30 +199,41 @@ var runCmd = &cobra.Command{
 			return renderJSON(results)
 		}
 
-		genBar := progressbar.NewOptions(
-			runner.TotalGenerations(selectedTasks),
-			progressbar.OptionSetDescription("Generations"),
-			progressbar.OptionSetWriter(os.Stderr),
-			progressbar.OptionShowCount(),
-			progressbar.OptionSetWidth(30),
-			progressbar.OptionClearOnFinish(),
-		)
-		evalBar := progressbar.NewOptions(
-			runner.TotalEvaluations(selectedTasks),
-			progressbar.OptionSetDescription("Evaluations"),
-			progressbar.OptionSetWriter(os.Stderr),
-			progressbar.OptionShowCount(),
-			progressbar.OptionSetWidth(30),
-			progressbar.OptionClearOnFinish(),
-		)
+		genTotal := runner.TotalGenerations(selectedTasks)
+		evalTotal := runner.TotalEvaluations(selectedTasks)
+
+		pbCfg := progressbar.DefaultConfig()
+		pbCfg.Width = 30
+		pbCfg.ScreenWriter = os.Stderr
+		mbar := pbCfg.NewMultiBarPrefixes("Generations", "Evaluations")
+
+		genBar := mbar.Bars[0]
+		evalBar := mbar.Bars[1]
+
+		var genComplete, evalComplete int
+		genBar.Extra = func(_ *progressbar.Bar, _ float64) string {
+			return fmt.Sprintf(" %d/%d", genComplete, genTotal)
+		}
+		evalBar.Extra = func(_ *progressbar.Bar, _ float64) string {
+			return fmt.Sprintf(" %d/%d", evalComplete, evalTotal)
+		}
 
 		runner.OnProgress = func(info evals.ProgressInfo) {
-			genBar.Set(info.GenerationsComplete)
-			evalBar.Set(info.EvaluationsComplete)
+			genComplete = info.GenerationsComplete
+			evalComplete = info.EvaluationsComplete
+
+			var genPercent, evalPercent float64
+			if genTotal > 0 {
+				genPercent = 100.0 * float64(info.GenerationsComplete) / float64(genTotal)
+			}
+			if evalTotal > 0 {
+				evalPercent = 100.0 * float64(info.EvaluationsComplete) / float64(evalTotal)
+			}
+			genBar.Progress(genPercent)
+			evalBar.Progress(evalPercent)
 		}
 		results := runner.Run(ctx, selectedTasks)
-		genBar.Finish()
-		evalBar.Finish()
+		mbar.End()
 
 		return renderResults(results)
 	},

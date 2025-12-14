@@ -239,13 +239,18 @@ function migrateLegacyProviderKeys(settingsStore: Store) {
   const rowsToMigrate: Array<{ oldKey: string; newKey: string; row: any }> = [];
 
   for (const [rowId, row] of Object.entries(providers)) {
-    if (!rowId.includes(":") && row.type) {
-      const newKey = `${row.type}:${rowId}`;
+    if (!rowId.includes(":")) {
+      const type = row.type ?? "";
+      const newKey = `${type}:${rowId}`;
       rowsToMigrate.push({ oldKey: rowId, newKey, row });
     }
   }
 
   for (const { oldKey, newKey, row } of rowsToMigrate) {
+    if (settingsStore.hasRow("ai_providers", newKey)) {
+      settingsStore.delRow("ai_providers", oldKey);
+      continue;
+    }
     settingsStore.setRow("ai_providers", newKey, {
       type: row.type ?? "",
       base_url: row.base_url ?? "",

@@ -147,6 +147,32 @@ export const CustomListKeymap = ListKeymap.extend({
 
         return false;
       },
+
+      Tab: () => {
+        const listNodeType = getListItemType();
+        if (!listNodeType) {
+          return false;
+        }
+
+        if (isNodeActive(this.editor.state, listNodeType.name)) {
+          return this.editor.chain().sinkListItem(listNodeType.name).run();
+        }
+
+        return false;
+      },
+
+      "Shift-Tab": () => {
+        const listNodeType = getListItemType();
+        if (!listNodeType) {
+          return false;
+        }
+
+        if (isNodeActive(this.editor.state, listNodeType.name)) {
+          return this.editor.chain().liftListItem(listNodeType.name).run();
+        }
+
+        return false;
+      },
     };
   },
 });

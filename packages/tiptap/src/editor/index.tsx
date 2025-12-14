@@ -94,11 +94,6 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
             }
           }
 
-          if (event.key === "Tab") {
-            event.preventDefault();
-            return true;
-          }
-
           return false;
         },
       }),

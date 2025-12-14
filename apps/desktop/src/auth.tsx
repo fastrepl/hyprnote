@@ -1,5 +1,6 @@
 import {
   AuthRetryableFetchError,
+  AuthSessionMissingError,
   createClient,
   processLock,
   type Session,
@@ -226,7 +227,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        if (error instanceof AuthRetryableFetchError) {
+        if (
+          error instanceof AuthRetryableFetchError ||
+          error instanceof AuthSessionMissingError
+        ) {
           await clearAuthStorage();
           setSession(null);
           return;
@@ -234,7 +238,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error(error);
       }
     } catch (e) {
-      if (e instanceof AuthRetryableFetchError) {
+      if (
+        e instanceof AuthRetryableFetchError ||
+        e instanceof AuthSessionMissingError
+      ) {
         await clearAuthStorage();
         setSession(null);
       }

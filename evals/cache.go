@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"runtime"
 
+	"github.com/adrg/xdg"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/openai/openai-go/v3"
 )
@@ -28,30 +28,7 @@ type CacheConfig struct {
 
 // DefaultCacheDir returns the platform-specific default cache directory.
 func DefaultCacheDir() string {
-	switch runtime.GOOS {
-	case "darwin":
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return ""
-		}
-		return filepath.Join(home, "Library", "Application Support", "hyprnote", "eval.cache")
-	case "windows":
-		localAppData := os.Getenv("LOCALAPPDATA")
-		if localAppData == "" {
-			return ""
-		}
-		return filepath.Join(localAppData, "hyprnote", "eval.cache")
-	default:
-		xdgCache := os.Getenv("XDG_CACHE_HOME")
-		if xdgCache == "" {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return ""
-			}
-			xdgCache = filepath.Join(home, ".cache")
-		}
-		return filepath.Join(xdgCache, "hyprnote", "eval.cache")
-	}
+	return filepath.Join(xdg.CacheHome, "hyprnote", "eval.cache")
 }
 
 // NewCachingChatCompleter creates a new caching wrapper around the given ChatCompleter.

@@ -3,6 +3,7 @@ module hyprnote
 go 1.25.5
 
 require (
+	github.com/adrg/xdg v0.5.3
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/cenkalti/backoff/v5 v5.0.3
 	github.com/dgraph-io/badger/v4 v4.8.0

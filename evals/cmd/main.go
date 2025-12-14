@@ -255,6 +255,7 @@ func renderResults(results []evals.Result) error {
 
 	totals := make([]int, len(rubricNames))
 	var grandTotal, maxTotal, totalFailed int
+	var errorDetails []string
 
 	for _, r := range results {
 		row := table.Row{r.Model}
@@ -266,6 +267,7 @@ func renderResults(results []evals.Result) error {
 			}
 			row = append(row, text.FgRed.Sprint("error"))
 			t.AppendRow(row)
+			errorDetails = append(errorDetails, fmt.Sprintf("%s: %s", r.Model, r.Error))
 			continue
 		}
 
@@ -296,6 +298,14 @@ func renderResults(results []evals.Result) error {
 
 	t.AppendFooter(buildFooter(totals, grandTotal, maxTotal))
 	t.Render()
+
+	if len(errorDetails) > 0 {
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, text.FgRed.Sprint("Errors:"))
+		for _, detail := range errorDetails {
+			fmt.Fprintln(os.Stderr, text.FgRed.Sprint("  • "+detail))
+		}
+	}
 
 	if totalFailed > 0 {
 		return errEvalFailed

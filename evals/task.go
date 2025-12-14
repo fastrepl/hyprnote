@@ -72,7 +72,7 @@ func (t *Task) RenderPrompt() (string, error) {
 			if err != nil {
 				return "", fmt.Errorf("jinja2: loader: %w", err)
 			}
-			loader, err = loaders.NewShiftedLoader("template", strings.NewReader(string(content)), fsLoader)
+			loader, err = loaders.NewShiftedLoader("/template", strings.NewReader(string(content)), fsLoader)
 			if err != nil {
 				return "", fmt.Errorf("jinja2: shifted loader: %w", err)
 			}
@@ -80,13 +80,13 @@ func (t *Task) RenderPrompt() (string, error) {
 	}
 
 	if loader == nil {
-		loader, err = loaders.NewMemoryLoader(map[string]string{"template": string(content)})
+		loader, err = loaders.NewMemoryLoader(map[string]string{"/template": string(content)})
 		if err != nil {
 			return "", fmt.Errorf("jinja2: memory loader: %w", err)
 		}
 	}
 
-	template, err := exec.NewTemplate("template", gonja.DefaultConfig, loader, gonja.DefaultEnvironment)
+	template, err := exec.NewTemplate("/template", gonja.DefaultConfig, loader, gonja.DefaultEnvironment)
 	if err != nil {
 		return "", fmt.Errorf("jinja2: parse: %w", err)
 	}

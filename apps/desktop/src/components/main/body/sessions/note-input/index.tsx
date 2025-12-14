@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import type { TiptapEditor } from "@hypr/tiptap/editor";
@@ -13,6 +19,13 @@ import { Enhanced } from "./enhanced";
 import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
+
+function getTabKey(view: EditorView): string {
+  if (view.type === "enhanced") {
+    return `enhanced-${view.id}`;
+  }
+  return view.type;
+}
 
 export function NoteInput({
   tab,
@@ -31,14 +44,61 @@ export function NoteInput({
   const tabRef = useRef(tab);
   tabRef.current = tab;
 
+  const currentTab: EditorView = useCurrentNoteTab(tab);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionsRef = useRef<Map<string, number>>(new Map());
+  const previousTabRef = useRef<EditorView | null>(null);
+
+  useLayoutEffect(() => {
+    if (previousTabRef.current && previousTabRef.current !== currentTab) {
+      const prevKey = getTabKey(previousTabRef.current);
+      if (previousTabRef.current.type === "transcript") {
+        const transcriptContainer = scrollContainerRef.current?.querySelector(
+          "[data-transcript-container]",
+        );
+        if (transcriptContainer) {
+          scrollPositionsRef.current.set(
+            prevKey,
+            transcriptContainer.scrollTop,
+          );
+        }
+      } else if (scrollContainerRef.current) {
+        scrollPositionsRef.current.set(
+          prevKey,
+          scrollContainerRef.current.scrollTop,
+        );
+      }
+    }
+    previousTabRef.current = currentTab;
+  }, [currentTab]);
+
+  useEffect(() => {
+    const currentKey = getTabKey(currentTab);
+    const savedPosition = scrollPositionsRef.current.get(currentKey);
+
+    if (savedPosition !== undefined) {
+      requestAnimationFrame(() => {
+        if (currentTab.type === "transcript") {
+          const transcriptContainer = scrollContainerRef.current?.querySelector(
+            "[data-transcript-container]",
+          );
+          if (transcriptContainer) {
+            transcriptContainer.scrollTop = savedPosition;
+          }
+        } else if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = savedPosition;
+        }
+      });
+    }
+  }, [currentTab]);
+
   const handleTabChange = useCallback(
     (view: EditorView) => {
       updateSessionTabState(tabRef.current, { editor: view });
     },
     [updateSessionTabState],
   );
-
-  const currentTab: EditorView = useCurrentNoteTab(tab);
 
   useTabShortcuts({
     editorTabs,
@@ -72,6 +132,7 @@ export function NoteInput({
       </div>
 
       <div
+        ref={scrollContainerRef}
         onClick={handleContainerClick}
         className={cn([
           "flex-1 mt-2 px-3",

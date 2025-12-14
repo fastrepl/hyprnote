@@ -194,10 +194,6 @@ func (r *Runner) TotalEvaluations(tasks []Task) int {
 	return total * len(r.targetModels) * r.numEvals
 }
 
-func (r *Runner) runSingle(ctx context.Context, model string, runNum int, task Task) Result {
-	return r.runSingleWithProgress(ctx, model, runNum, task, nil, nil)
-}
-
 func (r *Runner) runSingleWithProgress(ctx context.Context, model string, runNum int, task Task, onGeneration, onEvaluation func()) Result {
 	result := Result{
 		Name:   task.Name,

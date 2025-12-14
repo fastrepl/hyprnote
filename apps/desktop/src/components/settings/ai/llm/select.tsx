@@ -28,9 +28,7 @@ import { ModelCombobox } from "../shared/model-combobox";
 import { HealthCheckForConnection } from "./health";
 import { PROVIDERS } from "./shared";
 
-export function SelectProviderAndModel({
-  headerAction,
-}: { headerAction?: React.ReactNode } = {}) {
+export function SelectProviderAndModel() {
   const configuredProviders = useConfiguredMapping();
 
   const { current_llm_model, current_llm_provider } = useConfigValues([
@@ -77,10 +75,7 @@ export function SelectProviderAndModel({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-md font-semibold">Model being used</h3>
-        {headerAction}
-      </div>
+      <h3 className="text-md font-semibold">Model being used</h3>
       <div
         className={cn([
           "flex flex-col gap-4",
@@ -177,6 +172,15 @@ export function SelectProviderAndModel({
             <HealthCheckForConnection />
           )}
         </div>
+
+        {(!current_llm_provider || !current_llm_model) && (
+          <div className="flex items-center gap-2 pt-2 border-t border-red-200">
+            <span className="text-sm text-red-600">
+              <strong className="font-medium">Language model</strong> is needed
+              to make Hyprnote summarize and chat about your conversations.
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

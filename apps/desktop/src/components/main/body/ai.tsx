@@ -60,42 +60,38 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
     [updateAiTabState, tab],
   );
 
-  const headerAction = (
-    <div className="flex gap-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setActiveTab("transcription")}
-        className={cn([
-          "gap-1.5 h-7 px-2",
-          activeTab === "transcription" && "bg-neutral-200",
-        ])}
-      >
-        <AudioLinesIcon size={14} />
-        <span className="text-xs">Transcription</span>
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setActiveTab("intelligence")}
-        className={cn([
-          "gap-1.5 h-7 px-2",
-          activeTab === "intelligence" && "bg-neutral-200",
-        ])}
-      >
-        <SparklesIcon size={14} />
-        <span className="text-xs">Intelligence</span>
-      </Button>
-    </div>
-  );
-
   return (
-    <div className="flex-1 w-full overflow-y-auto scrollbar-hide p-6">
-      {activeTab === "transcription" ? (
-        <STT headerAction={headerAction} />
-      ) : (
-        <LLM headerAction={headerAction} />
-      )}
+    <div className="flex flex-col flex-1 w-full overflow-hidden">
+      <div className="flex gap-1 px-6 pt-6 pb-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setActiveTab("transcription")}
+          className={cn([
+            "gap-1.5 h-7 px-2 border border-transparent",
+            activeTab === "transcription" &&
+              "bg-neutral-100 border-neutral-200",
+          ])}
+        >
+          <AudioLinesIcon size={14} />
+          <span className="text-xs">Transcription</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setActiveTab("intelligence")}
+          className={cn([
+            "gap-1.5 h-7 px-2 border border-transparent",
+            activeTab === "intelligence" && "bg-neutral-100 border-neutral-200",
+          ])}
+        >
+          <SparklesIcon size={14} />
+          <span className="text-xs">Intelligence</span>
+        </Button>
+      </div>
+      <div className="flex-1 w-full overflow-y-auto scrollbar-hide px-6 pb-6">
+        {activeTab === "transcription" ? <STT /> : <LLM />}
+      </div>
     </div>
   );
 }

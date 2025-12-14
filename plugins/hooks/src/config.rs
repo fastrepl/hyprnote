@@ -30,8 +30,15 @@ impl HooksConfig {
         let content =
             std::fs::read_to_string(&path).map_err(|e| crate::Error::ConfigLoad(e.to_string()))?;
 
-        let config: HooksConfig =
+        let settings: serde_json::Value =
             serde_json::from_str(&content).map_err(|e| crate::Error::ConfigParse(e.to_string()))?;
+
+        let Some(hooks_value) = settings.get("hooks").cloned() else {
+            return Ok(Self::empty());
+        };
+
+        let config: HooksConfig = serde_json::from_value(hooks_value)
+            .map_err(|e| crate::Error::ConfigParse(e.to_string()))?;
 
         if config.version != 0 {
             return Err(crate::Error::UnsupportedVersion(config.version));
@@ -40,11 +47,13 @@ impl HooksConfig {
         Ok(config)
     }
 
-    fn config_path<R: tauri::Runtime>(_app: &impl tauri::Manager<R>) -> crate::Result<PathBuf> {
-        let data_dir =
-            dirs::data_dir().ok_or_else(|| crate::Error::ConfigLoad("no data dir".to_string()))?;
+    fn config_path<R: tauri::Runtime>(app: &impl tauri::Manager<R>) -> crate::Result<PathBuf> {
+        let data_dir = app
+            .path()
+            .data_dir()
+            .map_err(|e| crate::Error::ConfigLoad(e.to_string()))?;
 
-        Ok(data_dir.join("hyprnote").join("hooks.json"))
+        Ok(data_dir.join("hyprnote").join("settings.json"))
     }
 
     fn empty() -> Self {

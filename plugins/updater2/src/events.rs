@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, specta::Type, tauri_specta::Event)]
 pub struct UpdatedEvent {
-    pub previous: String,
+    pub previous: Option<String>,
     pub current: String,
 }
 

@@ -1,7 +1,9 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { ExternalLinkIcon, SparklesIcon } from "lucide-react";
-
-import { Button } from "@hypr/ui/components/ui/button";
+import {
+  ExternalLinkIcon,
+  GitCompareArrowsIcon,
+  SparklesIcon,
+} from "lucide-react";
 
 import { type Tab } from "../../../../store/zustand/tabs";
 import { StandardTabWrapper } from "../index";
@@ -14,20 +16,18 @@ export const TabItemChangelog: TabItem<Extract<Tab, { type: "changelog" }>> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
-}) => {
-  return (
-    <TabItemBase
-      icon={<SparklesIcon className="w-4 h-4" />}
-      title="What's New"
-      selected={tab.active}
-      tabIndex={tabIndex}
-      handleCloseThis={() => handleCloseThis(tab)}
-      handleSelectThis={() => handleSelectThis(tab)}
-      handleCloseOthers={handleCloseOthers}
-      handleCloseAll={handleCloseAll}
-    />
-  );
-};
+}) => (
+  <TabItemBase
+    icon={<SparklesIcon className="w-4 h-4" />}
+    title="What's New"
+    selected={tab.active}
+    tabIndex={tabIndex}
+    handleCloseThis={() => handleCloseThis(tab)}
+    handleSelectThis={() => handleSelectThis(tab)}
+    handleCloseOthers={handleCloseOthers}
+    handleCloseAll={handleCloseAll}
+  />
+);
 
 export function TabContentChangelog({
   tab,
@@ -38,29 +38,39 @@ export function TabContentChangelog({
 
   return (
     <StandardTabWrapper>
-      <div className="flex flex-col items-center justify-center h-full gap-6 p-8">
-        <div className="flex flex-col items-center gap-4 text-center max-w-md">
-          <div className="p-4 rounded-full bg-neutral-100">
-            <SparklesIcon className="w-8 h-8 text-neutral-600" />
-          </div>
-
+      <div className="flex flex-1 flex-col items-center justify-center gap-6">
+        <div className="text-center">
           <h1 className="text-2xl font-semibold text-neutral-900">
-            Welcome to v{current}
+            Updated to v{current}
           </h1>
+          {previous && (
+            <p className="mt-1 text-sm text-neutral-500">from v{previous}</p>
+          )}
+        </div>
 
-          <p className="text-neutral-600">
-            Hyprnote has been updated from v{previous} to v{current}. Check out
-            the changelog to see what's new.
-          </p>
-
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => openUrl("https://hyprnote.com/changelog")}
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() =>
+              openUrl(`https://hyprnote.com/changelog/v${current}`)
+            }
+            className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
           >
             <ExternalLinkIcon className="w-4 h-4" />
             View Changelog
-          </Button>
+          </button>
+          {previous && (
+            <button
+              onClick={() =>
+                openUrl(
+                  `https://github.com/fastrepl/hyprnote/compare/v${previous}...v${current}`,
+                )
+              }
+              className="flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
+            >
+              <GitCompareArrowsIcon className="w-4 h-4" />
+              View GitHub Diff
+            </button>
+          )}
         </div>
       </div>
     </StandardTabWrapper>

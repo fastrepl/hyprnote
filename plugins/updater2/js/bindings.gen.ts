@@ -34,7 +34,7 @@ updatedEvent: "plugin:updater2:updated-event"
 /** user-defined types **/
 
 export type UpdateReadyEvent = { version: string }
-export type UpdatedEvent = { previous: string; current: string }
+export type UpdatedEvent = { previous: string | null; current: string }
 
 /** tauri-specta globals **/
 

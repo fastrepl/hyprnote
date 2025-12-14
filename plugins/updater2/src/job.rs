@@ -5,6 +5,10 @@ use crate::Updater2PluginExt;
 use crate::events::UpdateReadyEvent;
 
 pub async fn check_and_download_update<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
+    if cfg!(debug_assertions) {
+        return;
+    }
+
     let Ok(updater) = app.updater() else {
         tracing::error!("failed_to_get_updater");
         return;

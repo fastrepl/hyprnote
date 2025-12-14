@@ -13,8 +13,7 @@ import { cn } from "@hypr/utils";
 import { useAuth } from "../../../../auth";
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
-import * as keys from "../../../../store/tinybase/keys";
-import * as main from "../../../../store/tinybase/main";
+import * as settings from "../../../../store/tinybase/settings";
 import { listAnthropicModels } from "../shared/list-anthropic";
 import {
   type InputModality,
@@ -40,17 +39,17 @@ export function SelectProviderAndModel({
   ] as const);
   const billing = useBillingAccess();
 
-  const handleSelectProvider = main.UI.useSetValueCallback(
+  const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_llm_provider",
     (provider: string) => provider,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
-  const handleSelectModel = main.UI.useSetValueCallback(
+  const handleSelectModel = settings.UI.useSetValueCallback(
     "current_llm_model",
     (model: string) => model,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const form = useForm({
@@ -189,9 +188,9 @@ function useConfiguredMapping(): Record<
 > {
   const auth = useAuth();
   const billing = useBillingAccess();
-  const configuredProviders = keys.UI.useResultTable(
-    keys.QUERIES.llmProviders,
-    keys.STORE_ID,
+  const configuredProviders = settings.UI.useResultTable(
+    settings.QUERIES.llmProviders,
+    settings.STORE_ID,
   );
 
   const mapping = useMemo(() => {

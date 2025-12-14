@@ -20,8 +20,7 @@ import {
   PROVIDERS,
 } from "../components/settings/ai/llm/shared";
 import { env } from "../env";
-import * as keys from "../store/tinybase/keys";
-import * as main from "../store/tinybase/main";
+import * as settings from "../store/tinybase/settings";
 import { tracedFetch } from "../utils/traced-fetch";
 
 type LLMConnectionInfo = {
@@ -59,13 +58,13 @@ export const useLLMConnection = (): LLMConnectionResult => {
   const auth = useAuth();
   const billing = useBillingAccess();
 
-  const { current_llm_provider, current_llm_model } = main.UI.useValues(
-    main.STORE_ID,
+  const { current_llm_provider, current_llm_model } = settings.UI.useValues(
+    settings.STORE_ID,
   );
-  const providerConfig = keys.UI.useRow(
+  const providerConfig = settings.UI.useRow(
     "ai_providers",
     current_llm_provider ?? "",
-    keys.STORE_ID,
+    settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
   return useMemo<LLMConnectionResult>(

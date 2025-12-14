@@ -1,5 +1,5 @@
 import { useListener } from "../contexts/listener";
-import * as main from "../store/tinybase/main";
+import * as settings from "../store/tinybase/settings";
 import { CONFIG_REGISTRY, type ConfigKey } from "./registry";
 
 type ConfigValueType<K extends ConfigKey> =
@@ -19,7 +19,7 @@ function tryParseJSON<T>(value: any, fallback: T): T {
 export function useConfigValue<K extends ConfigKey>(
   key: K,
 ): ConfigValueType<K> {
-  const storedValue = main.UI.useValue(key, main.STORE_ID);
+  const storedValue = settings.UI.useValue(key, settings.STORE_ID);
   const definition = CONFIG_REGISTRY[key];
 
   if (storedValue !== undefined) {
@@ -42,7 +42,7 @@ export function useConfigValue<K extends ConfigKey>(
 export function useConfigValues<K extends ConfigKey>(
   keys: readonly K[],
 ): { [P in K]: ConfigValueType<P> } {
-  const allValues = main.UI.useValues(main.STORE_ID);
+  const allValues = settings.UI.useValues(settings.STORE_ID);
 
   const result = {} as { [P in K]: ConfigValueType<P> };
 
@@ -121,7 +121,7 @@ export function useConfigSideEffects() {
 function useValuesToWatch(): Partial<Record<ConfigKey, any>> {
   const inactive = useListener((state) => state.live.status === "inactive");
   const keys = inactive ? (Object.keys(CONFIG_REGISTRY) as ConfigKey[]) : [];
-  const allValues = main.UI.useValues(main.STORE_ID);
+  const allValues = settings.UI.useValues(settings.STORE_ID);
 
   return keys.reduce<Partial<Record<ConfigKey, any>>>((acc, key) => {
     acc[key] = allValues[key];

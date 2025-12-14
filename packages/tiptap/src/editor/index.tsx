@@ -1,3 +1,4 @@
+import { isNodeActive } from "@tiptap/core";
 import {
   EditorContent,
   type JSONContent,
@@ -92,6 +93,18 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
               event.preventDefault();
               return true;
             }
+          }
+
+          if (event.key === "Tab") {
+            const { state } = view;
+            const isInListItem =
+              isNodeActive(state, "listItem") ||
+              isNodeActive(state, "taskItem");
+            if (isInListItem) {
+              return false;
+            }
+            event.preventDefault();
+            return true;
           }
 
           return false;

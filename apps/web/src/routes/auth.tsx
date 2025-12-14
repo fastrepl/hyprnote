@@ -1,5 +1,4 @@
 import { Icon } from "@iconify-icon/react";
-import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
@@ -26,9 +25,6 @@ function Component() {
   return (
     <Container>
       <Header />
-      <EmailAuthForm flow={flow} scheme={scheme} redirect={redirect} />
-      <PrivacyPolicy />
-      <Divider />
       <div className="space-y-2">
         <OAuthButton
           flow={flow}
@@ -43,6 +39,7 @@ function Component() {
           provider="github"
         />
       </div>
+      <PrivacyPolicy />
     </Container>
   );
 }
@@ -104,122 +101,6 @@ function PrivacyPolicy() {
   );
 }
 
-function Divider() {
-  return (
-    <div className="relative my-6">
-      <div className="absolute inset-0 flex items-center">
-        <div className="w-full border-t border-neutral-200"></div>
-      </div>
-      <div className="relative flex justify-center text-sm">
-        <span className="px-2 bg-white text-neutral-500">or</span>
-      </div>
-    </div>
-  );
-}
-
-function EmailAuthForm({
-  flow,
-  scheme,
-  redirect,
-}: {
-  flow: "desktop" | "web";
-  scheme?: string;
-  redirect?: string;
-}) {
-  const emailAuthMutation = useMutation({
-    mutationFn: (email: string) =>
-      doAuth({
-        data: {
-          method: "email_otp",
-          email,
-          flow,
-          scheme,
-          redirect,
-        },
-      }),
-    onSuccess: (result) => {
-      if (result?.success) {
-        form.reset();
-      }
-    },
-  });
-
-  const form = useForm({
-    defaultValues: {
-      email: "",
-    },
-    validators: {
-      onChange: z.object({
-        email: z.email("Please enter a valid email."),
-      }),
-    },
-    onSubmit: ({ value }) => {
-      emailAuthMutation.mutate(value.email);
-    },
-  });
-
-  return (
-    <>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-        className="space-y-4"
-      >
-        <form.Field
-          name="email"
-          children={(field) => (
-            <div>
-              <input
-                id="email"
-                type="email"
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Your email"
-                disabled={emailAuthMutation.isPending}
-                className={cn([
-                  "w-full px-4 py-2",
-                  "border border-neutral-300 rounded-lg",
-                  "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                ])}
-              />
-              {field.state.meta.errors.length > 0 && (
-                <p className="mt-1 text-sm text-red-400">
-                  {field.state.meta.errors[0]?.message ??
-                    "An unexpected error occurred"}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={
-                  emailAuthMutation.isPending ||
-                  field.state.meta.errors.length > 0 ||
-                  !field.state.value
-                }
-                className={cn([
-                  "w-full px-4 py-2 mt-4",
-                  "bg-stone-600 text-white font-medium",
-                  "rounded-lg",
-                  "hover:bg-stone-700",
-                  "focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "transition-colors",
-                ])}
-              >
-                {emailAuthMutation.isPending ? "Loading..." : "Continue"}
-              </button>
-            </div>
-          )}
-        />
-      </form>
-    </>
-  );
-}
-
 function OAuthButton({
   flow,
   scheme,
@@ -235,7 +116,6 @@ function OAuthButton({
     mutationFn: (provider: "google" | "github") =>
       doAuth({
         data: {
-          method: "oauth",
           provider,
           flow,
           scheme,

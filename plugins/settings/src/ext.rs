@@ -15,12 +15,12 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Settings<'a, R, M> {
 
     pub async fn load(&self) -> crate::Result<serde_json::Value> {
         let state = self.manager.state::<crate::state::SettingsState>();
-        state.load().await.map_err(crate::Error::Settings)
+        state.load().await
     }
 
     pub async fn save(&self, settings: serde_json::Value) -> crate::Result<()> {
         let state = self.manager.state::<crate::state::SettingsState>();
-        state.save(settings).await.map_err(crate::Error::Settings)
+        state.save(settings).await
     }
 }
 

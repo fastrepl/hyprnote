@@ -19,7 +19,7 @@ pub async fn run_hooks_for_event<R: tauri::Runtime>(
     let condition_key = event.condition_key();
     let cli_args = event.cli_args();
 
-    let Some(hooks) = config.hooks.get(condition_key) else {
+    let Some(hooks) = config.on.get(condition_key) else {
         return Ok(vec![]);
     };
 

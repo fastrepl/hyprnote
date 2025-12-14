@@ -38,9 +38,26 @@ impl SettingsState {
                 .map_err(|e| format!("create dir: {}", e))?;
         }
 
+        let existing = match tokio::fs::read_to_string(&self.path).await {
+            Ok(content) => serde_json::from_str::<serde_json::Value>(&content)
+                .map_err(|e| format!("parse existing: {}", e))?,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => serde_json::json!({}),
+            Err(e) => return Err(format!("read existing: {}", e)),
+        };
+
+        let merged = match (existing, settings) {
+            (serde_json::Value::Object(mut existing_map), serde_json::Value::Object(new_map)) => {
+                for (key, value) in new_map {
+                    existing_map.insert(key, value);
+                }
+                serde_json::Value::Object(existing_map)
+            }
+            (_, new) => new,
+        };
+
         let tmp_path = self.path.with_extension("json.tmp");
         let content =
-            serde_json::to_string_pretty(&settings).map_err(|e| format!("serialize: {}", e))?;
+            serde_json::to_string_pretty(&merged).map_err(|e| format!("serialize: {}", e))?;
 
         tokio::fs::write(&tmp_path, &content)
             .await

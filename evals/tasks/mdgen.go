@@ -26,19 +26,14 @@ var MDGen = evals.NewTask(
 			Grader:      evals.NonEmptyGrader,
 		},
 		{
-			Name:        "has_heading",
-			Description: "Output contains a markdown heading",
-			Grader:      evals.HasHeadingGrader,
-		},
-		{
-			Name:        "has_list",
-			Description: "Output contains a bullet list",
-			Grader:      evals.HasListGrader,
-		},
-		{
-			Name:        "has_code",
-			Description: "Output contains a fenced code block",
-			Grader:      evals.HasCodeGrader,
+			Name:        "format",
+			Description: "Output follows h1 headers with unordered lists format",
+			Grader: evals.FormatMatcherGrader(evals.FormatSpec{
+				Sections: []evals.SectionSpec{
+					{Header: evals.HeaderSpec{Level: 1}, ListOnly: true},
+					{Header: evals.HeaderSpec{Level: 1}, ListOnly: true},
+				},
+			}),
 		},
 		{
 			Name:        "concise",

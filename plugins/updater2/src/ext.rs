@@ -1,5 +1,6 @@
-use tauri::{Emitter, Manager};
+use tauri::Manager;
 use tauri_plugin_store2::StorePluginExt;
+use tauri_specta::Event;
 
 use crate::events::UpdatedEvent;
 
@@ -11,7 +12,7 @@ pub trait Updater2PluginExt<R: tauri::Runtime> {
     fn maybe_emit_updated(&self, is_existing_install: bool);
 }
 
-impl<R: tauri::Runtime, T: Manager<R> + Emitter<R>> crate::Updater2PluginExt<R> for T {
+impl<R: tauri::Runtime, T: Manager<R>> crate::Updater2PluginExt<R> for T {
     fn get_last_seen_version(&self) -> Result<Option<String>, crate::Error> {
         let store = self.scoped_store(crate::PLUGIN_NAME)?;
         let v = store.get(crate::StoreKey::LastSeenVersion)?;
@@ -62,7 +63,7 @@ impl<R: tauri::Runtime, T: Manager<R> + Emitter<R>> crate::Updater2PluginExt<R> 
                         current: current_version.clone(),
                     };
 
-                    if let Err(e) = self.emit("plugin:updater2:updated", payload) {
+                    if let Err(e) = payload.emit(self.app_handle()) {
                         tracing::error!("failed_to_emit_updated_event: {}", e);
                     }
 
@@ -81,7 +82,7 @@ impl<R: tauri::Runtime, T: Manager<R> + Emitter<R>> crate::Updater2PluginExt<R> 
                         previous: "pre-changelog".to_string(),
                         current: current_version.clone(),
                     };
-                    if let Err(e) = self.emit("plugin:updater2:updated", payload) {
+                    if let Err(e) = payload.emit(self.app_handle()) {
                         tracing::error!("failed_to_emit_updated_event: {}", e);
                     }
                 } else {

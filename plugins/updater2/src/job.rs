@@ -13,7 +13,6 @@ pub async fn check_and_download_update<R: tauri::Runtime>(app: &tauri::AppHandle
     let update = match updater.check().await {
         Ok(Some(update)) => update,
         Ok(None) => {
-            tracing::debug!("no_update_available");
             return;
         }
         Err(e) => {
@@ -23,22 +22,7 @@ pub async fn check_and_download_update<R: tauri::Runtime>(app: &tauri::AppHandle
     };
 
     let version = update.version.clone();
-    tracing::info!("update_available: {}", version);
-
-    let bytes = match update.download(|_, _| {}, || {}).await {
-        Ok(bytes) => bytes,
-        Err(e) => {
-            tracing::error!("failed_to_download_update: {}", e);
-            return;
-        }
-    };
-    tracing::info!("update_downloaded: {}", version);
-
-    if let Err(e) = update.install(bytes) {
-        tracing::error!("failed_to_install_update: {}", e);
-        return;
-    }
-    tracing::info!("update_staged_for_restart: {}", version);
+    let _bytes = update.download(|_, _| {}, || {}).await;
 
     if let Err(e) = app.set_pending_update_version(Some(version.clone())) {
         tracing::error!("failed_to_set_pending_update_version: {}", e);

@@ -13,8 +13,15 @@ export function Update() {
 
   const pendingUpdate = useQuery({
     queryKey: ["pending-update"],
-    queryFn: () => commands.getPendingUpdate(),
-    select: (data) => (data.status === "ok" ? data.data : null),
+    queryFn: async () => {
+      const u = await check();
+      if (!u) {
+        return false;
+      }
+
+      const v = await commands.getPendingUpdate();
+      return v.status === "ok" ? v.data : null;
+    },
     refetchInterval: 30 * 1000,
   });
 

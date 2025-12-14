@@ -137,6 +137,8 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         return undefined;
       }
 
+      migrateLegacyProviderKeys(store as Store);
+
       if (mainStore) {
         migrateFromMainStore(mainStore as main.Store, store as Store);
         await settingsPersister.save();
@@ -208,8 +210,10 @@ function migrateFromMainStore(mainStore: main.Store, settingsStore: Store) {
   if (mainProviders && Object.keys(mainProviders).length > 0) {
     for (const [rowId, row] of Object.entries(mainProviders)) {
       if (row.api_key || row.base_url) {
-        settingsStore.setRow("ai_providers", rowId, {
-          type: row.type ?? "",
+        const type = row.type ?? "";
+        const compositeKey = `${type}:${rowId}`;
+        settingsStore.setRow("ai_providers", compositeKey, {
+          type,
           base_url: row.base_url ?? "",
           api_key: row.api_key ?? "",
         });
@@ -227,5 +231,26 @@ function migrateFromMainStore(mainStore: main.Store, settingsStore: Store) {
     if (value !== undefined) {
       mainStore.delValue(key);
     }
+  }
+}
+
+function migrateLegacyProviderKeys(settingsStore: Store) {
+  const providers = settingsStore.getTable("ai_providers");
+  const rowsToMigrate: Array<{ oldKey: string; newKey: string; row: any }> = [];
+
+  for (const [rowId, row] of Object.entries(providers)) {
+    if (!rowId.includes(":") && row.type) {
+      const newKey = `${row.type}:${rowId}`;
+      rowsToMigrate.push({ oldKey: rowId, newKey, row });
+    }
+  }
+
+  for (const { oldKey, newKey, row } of rowsToMigrate) {
+    settingsStore.setRow("ai_providers", newKey, {
+      type: row.type ?? "",
+      base_url: row.base_url ?? "",
+      api_key: row.api_key ?? "",
+    });
+    settingsStore.delRow("ai_providers", oldKey);
   }
 }

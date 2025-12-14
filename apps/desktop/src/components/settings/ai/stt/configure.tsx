@@ -55,9 +55,18 @@ function useIsProviderConfigured(providerId: string) {
     settings.QUERIES.sttProviders,
     settings.STORE_ID,
   );
+  const providerDef = PROVIDERS.find((p) => p.id === providerId);
   const config = configuredProviders[providerId];
 
-  if (!config || !config.api_key) {
+  if (!config) {
+    return false;
+  }
+
+  if (!providerDef?.baseUrl && !config.base_url) {
+    return false;
+  }
+
+  if (!config.api_key) {
     return false;
   }
 

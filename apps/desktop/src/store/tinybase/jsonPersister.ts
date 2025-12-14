@@ -177,6 +177,13 @@ export async function migrateKeysJsonToSettings(): Promise<boolean> {
     );
     return true;
   } catch (error) {
+    const errorStr = String(error);
+    if (
+      errorStr.includes("No such file or directory") ||
+      errorStr.includes("ENOENT")
+    ) {
+      return false;
+    }
     console.error("[migrateKeysJsonToSettings] error:", error);
     return false;
   }

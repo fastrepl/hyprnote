@@ -1,5 +1,4 @@
 import { Icon } from "@iconify-icon/react";
-import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { arch } from "@tauri-apps/plugin-os";
@@ -10,7 +9,6 @@ import {
   events as localSttEvents,
   type SupportedSttModel,
 } from "@hypr/plugin-local-stt";
-import { type AIProvider, aiProviderSchema } from "@hypr/store";
 import {
   Accordion,
   AccordionContent,
@@ -24,7 +22,7 @@ import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
 import { useIsMacos } from "../../../../hooks/usePlatform";
 import * as settings from "../../../../store/tinybase/settings";
-import { FormField, StyledStreamdown, useProvider } from "../shared";
+import { NonHyprProviderCard, StyledStreamdown } from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
 
 export function ConfigureProviders() {
@@ -42,143 +40,17 @@ export function ConfigureProviders() {
         />
         {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
           (provider) => (
-            <NonHyprProviderCard key={provider.id} config={provider} />
+            <NonHyprProviderCard
+              key={provider.id}
+              config={provider}
+              providerType="stt"
+              providers={PROVIDERS}
+              providerContext={<ProviderContext providerId={provider.id} />}
+            />
           ),
         )}
       </Accordion>
     </div>
-  );
-}
-
-function useIsProviderConfigured(providerId: string) {
-  const configuredProviders = settings.UI.useResultTable(
-    settings.QUERIES.sttProviders,
-    settings.STORE_ID,
-  );
-  const providerDef = PROVIDERS.find((p) => p.id === providerId);
-  const config = configuredProviders[providerId];
-
-  if (!config) {
-    return false;
-  }
-
-  if (!providerDef?.baseUrl && !config.base_url) {
-    return false;
-  }
-
-  if (!config.api_key) {
-    return false;
-  }
-
-  return true;
-}
-
-function NonHyprProviderCard({
-  config,
-}: {
-  config: (typeof PROVIDERS)[number];
-}) {
-  const billing = useBillingAccess();
-  const [provider, setProvider] = useProvider(config.id);
-  const locked = config.requiresPro && !billing.isPro;
-  const isConfigured = useIsProviderConfigured(config.id);
-
-  const form = useForm({
-    onSubmit: ({ value }) => setProvider(value),
-    defaultValues:
-      provider ??
-      ({
-        type: "stt",
-        base_url: config.baseUrl ?? "",
-        api_key: "",
-      } satisfies AIProvider),
-    listeners: {
-      onChange: ({ formApi }) => {
-        queueMicrotask(() => {
-          const {
-            form: { errors },
-          } = formApi.getAllErrors();
-          if (errors.length > 0) {
-            console.log(errors);
-          }
-
-          formApi.handleSubmit();
-        });
-      },
-    },
-    validators: { onChange: aiProviderSchema },
-  });
-
-  return (
-    <AccordionItem
-      disabled={config.disabled || locked}
-      value={config.id}
-      className={cn([
-        "rounded-xl border-2 bg-neutral-50",
-        isConfigured ? "border-solid border-neutral-300" : "border-dashed",
-      ])}
-    >
-      <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          (config.disabled || locked) && "cursor-not-allowed opacity-30",
-        ])}
-      >
-        <div className="flex items-center gap-2">
-          {config.icon}
-          <span>{config.displayName}</span>
-          {config.badge && (
-            <span className="text-xs text-neutral-500 font-light border border-neutral-300 rounded-full px-2">
-              {config.badge}
-            </span>
-          )}
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className="px-4">
-        <ProviderContext providerId={config.id} />
-
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          {!config.baseUrl && (
-            <form.Field name="base_url">
-              {(field) => (
-                <FormField field={field} label="Base URL" icon="mdi:web" />
-              )}
-            </form.Field>
-          )}
-          <form.Field name="api_key">
-            {(field) => (
-              <FormField
-                field={field}
-                label="API Key"
-                icon="mdi:key"
-                placeholder="Enter your API key"
-                type="password"
-              />
-            )}
-          </form.Field>
-          {config.baseUrl && (
-            <details className="space-y-4 pt-2">
-              <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
-                Advanced
-              </summary>
-              <div className="mt-4">
-                <form.Field name="base_url">
-                  {(field) => (
-                    <FormField field={field} label="Base URL" icon="mdi:web" />
-                  )}
-                </form.Field>
-              </div>
-            </details>
-          )}
-        </form>
-      </AccordionContent>
-    </AccordionItem>
   );
 }
 

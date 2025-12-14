@@ -213,31 +213,21 @@ func (t *Task) GradeMultiWithProgress(ctx context.Context, client ChatCompleter,
 			}
 		}
 
-		totalCount := len(outputs)
-		failCount := totalCount - passCount
-		passRate := float64(passCount) / float64(totalCount)
-
-		stdDev, variance := calculateBinaryStatistics(passCount, totalCount)
-		ciLower, ciUpper := calculateWilsonConfidenceInterval(passCount, totalCount, 0.95)
-
+		stats := calcPassStats(passCount, len(outputs))
 		aggregated[rubricIdx] = Score{
-			RubricName:        t.Rubrics[rubricIdx].Name,
-			Passed:            passRate >= 0.5,
-			Value:             0,
-			Reasoning:         firstReasoning,
-			GraderType:        graderType,
-			GraderModel:       graderModel,
-			PassRate:          passRate,
-			Samples:           totalCount,
-			StandardDeviation: stdDev,
-			Variance:          variance,
-			ConfidenceInterval: ConfidenceInterval{
-				Lower: ciLower,
-				Upper: ciUpper,
-				Level: 0.95,
-			},
-			PassCount: passCount,
-			FailCount: failCount,
+			RubricName:         t.Rubrics[rubricIdx].Name,
+			Passed:             stats.PassRate >= 0.5,
+			Value:              0,
+			Reasoning:          firstReasoning,
+			GraderType:         graderType,
+			GraderModel:        graderModel,
+			PassRate:           stats.PassRate,
+			Samples:            stats.Samples,
+			StandardDeviation:  stats.StandardDeviation,
+			Variance:           stats.Variance,
+			ConfidenceInterval: stats.ConfidenceInterval,
+			PassCount:          stats.PassCount,
+			FailCount:          stats.FailCount,
 		}
 		if aggregated[rubricIdx].Passed {
 			aggregated[rubricIdx].Value = 1

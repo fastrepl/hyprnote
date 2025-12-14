@@ -4,7 +4,7 @@ Default permissions for the plugin
 
 #### This default permission set includes the following:
 
-- `allow-ping`
+- `allow-get-pending-update`
 
 ## Permission Table
 
@@ -18,12 +18,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`updater2:allow-ping`
+`updater2:allow-get-pending-update`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the get_pending_update command without any pre-configured scope.
 
 </td>
 </tr>
@@ -31,12 +31,12 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`updater2:deny-ping`
+`updater2:deny-get-pending-update`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the get_pending_update command without any pre-configured scope.
 
 </td>
 </tr>

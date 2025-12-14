@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 
 import { useConfigValue } from "../../../../config/use-config";
-import * as main from "../../../../store/tinybase/main";
+import * as settings from "../../../../store/tinybase/settings";
 
 export function useDismissedBanners(): {
   dismissedBanners: string[];
@@ -10,11 +10,11 @@ export function useDismissedBanners(): {
 } {
   const dismissedBanners = useConfigValue("dismissed_banners");
 
-  const setDismissedBanners = main.UI.useSetValueCallback(
+  const setDismissedBanners = settings.UI.useSetValueCallback(
     "dismissed_banners",
     (value: string) => value,
     [],
-    main.STORE_ID,
+    settings.STORE_ID,
   );
 
   const dismissedSet = useMemo(

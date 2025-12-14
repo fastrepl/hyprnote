@@ -42,3 +42,4 @@ const _PROVIDERS = [
 ] as const satisfies readonly CalendarProvider[];
 
 export const PROVIDERS = [..._PROVIDERS];
+

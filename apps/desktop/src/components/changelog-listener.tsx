@@ -1,14 +1,10 @@
-import { listen } from "@tauri-apps/api/event";
+import { type UnlistenFn } from "@tauri-apps/api/event";
 import { useEffect } from "react";
 
+import { events } from "@hypr/plugin-updater2";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
 import { useTabs } from "../store/zustand/tabs";
-
-interface UpdatedPayload {
-  previous: string;
-  current: string;
-}
 
 export function ChangelogListener() {
   const openNew = useTabs((state) => state.openNew);
@@ -18,16 +14,21 @@ export function ChangelogListener() {
       return;
     }
 
-    const unlisten = listen<UpdatedPayload>("Updated", (event) => {
-      const { previous, current } = event.payload;
-      openNew({
-        type: "changelog",
-        state: { previous, current },
+    let unlisten: null | UnlistenFn = null;
+    events.updatedEvent
+      .listen(({ payload: { previous, current } }) => {
+        openNew({
+          type: "changelog",
+          state: { previous, current },
+        });
+      })
+      .then((f) => {
+        unlisten = f;
       });
-    });
 
     return () => {
-      unlisten.then((fn) => fn());
+      unlisten?.();
+      unlisten = null;
     };
   }, [openNew]);
 

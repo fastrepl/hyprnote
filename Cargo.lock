@@ -15499,6 +15499,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-misc",
  "tauri-plugin-updater",
+ "tauri-plugin-updater2",
  "tauri-plugin-windows",
  "tauri-specta",
 ]
@@ -15546,6 +15547,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-store2",
+ "tauri-plugin-updater",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",

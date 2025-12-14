@@ -1,11 +1,15 @@
 mod commands;
 mod error;
+mod events;
 mod ext;
+mod job;
 mod store;
 
 pub use error::{Error, Result};
+pub use events::*;
 pub use ext::*;
-use store::*;
+pub use job::*;
+pub(crate) use store::*;
 
 const PLUGIN_NAME: &str = "updater2";
 
@@ -13,9 +17,12 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .plugin_name(PLUGIN_NAME)
         .commands(tauri_specta::collect_commands![
-            commands::ping::<tauri::Wry>,
+            commands::get_pending_update::<tauri::Wry>,
         ])
-        .events(tauri_specta::collect_events![ext::UpdatedEvent])
+        .events(tauri_specta::collect_events![
+            events::UpdatedEvent,
+            events::UpdateReadyEvent
+        ])
         .error_handling(tauri_specta::ErrorHandlingMode::Result)
 }
 
@@ -24,6 +31,16 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _api| {
+            let handle = app.clone();
+            tauri::async_runtime::spawn(async move {
+                loop {
+                    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                    job::check_and_download_update(&handle).await;
+                }
+            });
+            Ok(())
+        })
         .build()
 }
 
@@ -46,18 +63,5 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
-    }
-
-    fn create_app<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::App<R> {
-        let mut ctx = tauri::test::mock_context(tauri::test::noop_assets());
-        ctx.config_mut().identifier = "com.hyprnote.dev".to_string();
-        ctx.config_mut().version = Some("0.0.1".to_string());
-
-        builder.plugin(init()).build(ctx).unwrap()
-    }
-
-    #[tokio::test]
-    async fn test_updater2() {
-        let _app = create_app(tauri::test::mock_builder());
     }
 }

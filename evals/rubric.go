@@ -147,13 +147,13 @@ func (g LLMGrader) gradeWithPromptAndProgress(ctx context.Context, client ChatCo
 		score.Value = 1
 	}
 	score.Reasoning = agg.Reasoning
-	score.PassRate = agg.PassRate
-	score.Samples = agg.Samples
-	score.StandardDeviation = agg.StandardDeviation
-	score.Variance = agg.Variance
-	score.ConfidenceInterval = agg.ConfidenceInterval
-	score.PassCount = agg.PassCount
-	score.FailCount = agg.FailCount
+	score.PassRate = agg.PassStats.PassRate
+	score.Samples = agg.PassStats.Samples
+	score.StandardDeviation = agg.PassStats.StandardDeviation
+	score.Variance = agg.PassStats.Variance
+	score.ConfidenceInterval = agg.PassStats.ConfidenceInterval
+	score.PassCount = agg.PassStats.PassCount
+	score.FailCount = agg.PassStats.FailCount
 
 	return score
 }

@@ -11,42 +11,22 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/openai/openai-go/v3"
-	"github.com/openai/openai-go/v3/option"
 )
 
-const openRouterBaseURL = "https://openrouter.ai/api/v1"
-
-type ChatCompleter interface {
-	CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error)
-}
-
-type OpenRouterClient struct {
-	api *openai.Client
-}
-
-func NewOpenRouterClient(apiKey string) *OpenRouterClient {
-	c := openai.NewClient(
-		option.WithAPIKey(apiKey),
-		option.WithBaseURL(openRouterBaseURL),
-	)
-	return &OpenRouterClient{api: &c}
-}
-
-func (c *OpenRouterClient) CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
-	return c.api.Chat.Completions.New(ctx, params)
-}
-
+// CachingChatCompleter wraps a ChatCompleter with response caching using BadgerDB.
 type CachingChatCompleter struct {
 	next     ChatCompleter
 	db       *badger.DB
 	cacheDir string
 }
 
+// CacheConfig configures the caching behavior.
 type CacheConfig struct {
 	Enabled  bool
 	CacheDir string
 }
 
+// DefaultCacheDir returns the platform-specific default cache directory.
 func DefaultCacheDir() string {
 	switch runtime.GOOS {
 	case "darwin":
@@ -74,6 +54,9 @@ func DefaultCacheDir() string {
 	}
 }
 
+// NewCachingChatCompleter creates a new caching wrapper around the given ChatCompleter.
+// If caching is disabled or the cache directory cannot be determined, it returns
+// a passthrough wrapper that delegates directly to the underlying client.
 func NewCachingChatCompleter(next ChatCompleter, cfg CacheConfig) (*CachingChatCompleter, error) {
 	if !cfg.Enabled {
 		return &CachingChatCompleter{next: next}, nil
@@ -103,6 +86,7 @@ func NewCachingChatCompleter(next ChatCompleter, cfg CacheConfig) (*CachingChatC
 	return &CachingChatCompleter{next: next, db: db, cacheDir: cacheDir}, nil
 }
 
+// Close closes the underlying BadgerDB database.
 func (c *CachingChatCompleter) Close() error {
 	if c.db != nil {
 		return c.db.Close()
@@ -110,6 +94,7 @@ func (c *CachingChatCompleter) Close() error {
 	return nil
 }
 
+// CacheDir returns the directory where cache data is stored.
 func (c *CachingChatCompleter) CacheDir() string {
 	return c.cacheDir
 }
@@ -189,6 +174,9 @@ func computeCacheKey(params openai.ChatCompletionNewParams) (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
+// CreateChatCompletion implements ChatCompleter with caching.
+// It first checks the cache for a matching response, and if not found,
+// delegates to the underlying client and caches the result.
 func (c *CachingChatCompleter) CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
 	if c.db == nil {
 		return c.next.CreateChatCompletion(ctx, params)

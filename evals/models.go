@@ -8,26 +8,40 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
+// OpenRouterModel represents a model available on OpenRouter.
 type OpenRouterModel struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
+// OpenRouterModelsResponse is the API response for listing models.
 type OpenRouterModelsResponse struct {
 	Data []OpenRouterModel `json:"data"`
 }
 
-var cachedModels []string
-var cacheTime time.Time
-var cacheDuration = 5 * time.Minute
+// modelCache holds the cached models list with thread-safe access.
+var modelCache struct {
+	sync.RWMutex
+	models    []string
+	fetchedAt time.Time
+}
 
+const modelCacheDuration = 5 * time.Minute
+
+// FetchOpenRouterModels fetches the list of available models from OpenRouter.
+// Results are cached for 5 minutes to reduce API calls.
 func FetchOpenRouterModels(ctx context.Context) ([]string, error) {
-	if len(cachedModels) > 0 && time.Since(cacheTime) < cacheDuration {
-		return cachedModels, nil
+	modelCache.RLock()
+	if len(modelCache.models) > 0 && time.Since(modelCache.fetchedAt) < modelCacheDuration {
+		models := modelCache.models
+		modelCache.RUnlock()
+		return models, nil
 	}
+	modelCache.RUnlock()
 
 	apiKey := os.Getenv("OPENROUTER_API_KEY")
 
@@ -63,12 +77,16 @@ func FetchOpenRouterModels(ctx context.Context) ([]string, error) {
 
 	sort.Strings(models)
 
-	cachedModels = models
-	cacheTime = time.Now()
+	modelCache.Lock()
+	modelCache.models = models
+	modelCache.fetchedAt = time.Now()
+	modelCache.Unlock()
 
 	return models, nil
 }
 
+// FilterModels returns models that start with the given prefix.
+// If prefix is empty, all models are returned.
 func FilterModels(models []string, prefix string) []string {
 	if prefix == "" {
 		return models

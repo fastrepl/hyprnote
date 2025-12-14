@@ -5,22 +5,49 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"time"
 
 	"github.com/cenkalti/backoff/v5"
 	"github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 )
 
 const (
+	openRouterBaseURL     = "https://openrouter.ai/api/v1"
 	defaultTemperature    = 0.2
 	defaultRetryInterval  = 500 * time.Millisecond
 	defaultMaxElapsedTime = 30 * time.Second
 )
 
+// ErrNoChoices is returned when the API response contains no choices.
 var ErrNoChoices = errors.New("no choices in response")
 
+// ChatCompleter is the interface for chat completion clients.
+type ChatCompleter interface {
+	CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error)
+}
+
+// OpenRouterClient wraps the OpenAI client configured for OpenRouter.
+type OpenRouterClient struct {
+	api *openai.Client
+}
+
+// NewOpenRouterClient creates a new OpenRouter client with the given API key.
+func NewOpenRouterClient(apiKey string) *OpenRouterClient {
+	c := openai.NewClient(
+		option.WithAPIKey(apiKey),
+		option.WithBaseURL(openRouterBaseURL),
+	)
+	return &OpenRouterClient{api: &c}
+}
+
+// CreateChatCompletion sends a chat completion request to OpenRouter.
+func (c *OpenRouterClient) CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
+	return c.api.Chat.Completions.New(ctx, params)
+}
+
+// GraderResponse represents the structured response from an LLM grader.
 type GraderResponse struct {
 	Verdict   string `json:"verdict"`
 	Reasoning string `json:"reasoning"`
@@ -223,97 +250,6 @@ func generateStructuredGraderResponseMulti(ctx context.Context, client ChatCompl
 	}
 
 	return result, nil
-}
-
-type AggregatedGraderResponse struct {
-	PassRate           float64
-	Passed             bool
-	Reasoning          string
-	Samples            int
-	StandardDeviation  float64
-	Variance           float64
-	ConfidenceInterval ConfidenceInterval
-	PassCount          int
-	FailCount          int
-}
-
-func calculateBinaryStatistics(passCount, totalCount int) (stdDev, variance float64) {
-	if totalCount == 0 {
-		return 0, 0
-	}
-
-	p := float64(passCount) / float64(totalCount)
-	variance = p * (1 - p)
-	stdDev = math.Sqrt(variance)
-	return stdDev, variance
-}
-
-func calculateWilsonConfidenceInterval(passCount, totalCount int, confidenceLevel float64) (lower, upper float64) {
-	if totalCount == 0 {
-		return 0, 0
-	}
-
-	z := 1.96
-	if confidenceLevel == 0.99 {
-		z = 2.576
-	}
-
-	p := float64(passCount) / float64(totalCount)
-	n := float64(totalCount)
-
-	denominator := 1 + z*z/n
-	center := (p + z*z/(2*n)) / denominator
-	margin := (z * math.Sqrt(p*(1-p)/n+z*z/(4*n*n))) / denominator
-
-	lower = center - margin
-	upper = center + margin
-
-	if lower < 0 {
-		lower = 0
-	}
-	if upper > 1 {
-		upper = 1
-	}
-
-	return lower, upper
-}
-
-func aggregateGraderResponses(responses []GraderResponse) AggregatedGraderResponse {
-	if len(responses) == 0 {
-		return AggregatedGraderResponse{}
-	}
-
-	passCount := 0
-	var reasonings []string
-	for _, r := range responses {
-		if r.Verdict == "PASS" {
-			passCount++
-		}
-		reasonings = append(reasonings, r.Reasoning)
-	}
-
-	totalCount := len(responses)
-	failCount := totalCount - passCount
-	passRate := float64(passCount) / float64(totalCount)
-
-	stdDev, variance := calculateBinaryStatistics(passCount, totalCount)
-	ciLower, ciUpper := calculateWilsonConfidenceInterval(passCount, totalCount, 0.95)
-
-	return AggregatedGraderResponse{
-		PassRate:          passRate,
-		Passed:            passRate >= 0.5,
-		Reasoning:         reasonings[0],
-		Samples:           totalCount,
-		StandardDeviation: stdDev,
-		Variance:          variance,
-		ConfidenceInterval: ConfidenceInterval{
-			Lower: ciLower,
-			Upper: ciUpper,
-			Level: 0.95,
-		},
-		PassCount: passCount,
-		FailCount: failCount,
-	}
 }
 
 func isRetryable(err error) bool {

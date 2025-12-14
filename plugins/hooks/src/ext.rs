@@ -5,7 +5,7 @@ use crate::{
 
 pub struct Hooks<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
     manager: &'a M,
-    _runtime: std::marker::PhantomData<R>,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
 impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Hooks<'a, R, M> {

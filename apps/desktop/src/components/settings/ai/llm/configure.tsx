@@ -12,7 +12,12 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
-import { FormField, StyledStreamdown, useProvider } from "../shared";
+import {
+  FormField,
+  StyledStreamdown,
+  useLocalProviderConnection,
+  useProvider,
+} from "../shared";
 import { ProviderId, PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
@@ -45,6 +50,7 @@ function NonHyprProviderCard({
   const billing = useBillingAccess();
   const [provider, setProvider] = useProvider(config.id);
   const locked = config.requiresPro && !billing.isPro;
+  const { isLocal, isConnected } = useLocalProviderConnection(config.id);
 
   useEffect(() => {
     if (!provider && config.baseUrl && !config.apiKey) {
@@ -85,7 +91,10 @@ function NonHyprProviderCard({
   return (
     <AccordionItem
       value={config.id}
-      className="rounded-xl border-2 border-dashed bg-neutral-50"
+      className={cn([
+        "rounded-xl border-2 bg-neutral-50",
+        isLocal && isConnected ? "border-solid" : "border-dashed",
+      ])}
       disabled={locked}
     >
       <AccordionTrigger

@@ -15,6 +15,7 @@ import { cn } from "@hypr/utils";
 import * as settings from "../../../../store/tinybase/settings";
 
 export * from "./model-combobox";
+export * from "./use-local-provider-connection";
 
 const streamdownComponents = {
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => {

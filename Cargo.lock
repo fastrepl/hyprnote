@@ -4091,6 +4091,7 @@ dependencies = [
  "tauri-plugin-tracing",
  "tauri-plugin-tray",
  "tauri-plugin-updater",
+ "tauri-plugin-updater2",
  "tauri-plugin-windows",
  "tauri-specta",
  "tokio",
@@ -15532,6 +15533,23 @@ dependencies = [
  "url",
  "windows-sys 0.60.2",
  "zip 4.6.1",
+]
+
+[[package]]
+name = "tauri-plugin-updater2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-store2",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

@@ -1,6 +1,15 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
-const STORE_FILENAME: &str = "store.json";
+use tauri::Manager;
+
+pub const STORE_FILENAME: &str = "store.json";
+
+pub fn store_path<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<PathBuf, crate::Error> {
+    let store_dir = app.path().data_dir()?.join("hyprnote");
+    std::fs::create_dir_all(&store_dir).ok();
+    Ok(store_dir.join(STORE_FILENAME))
+}
 
 pub trait StorePluginExt<R: tauri::Runtime> {
     fn store(&self) -> Result<Arc<tauri_plugin_store::Store<R>>, crate::Error>;
@@ -13,7 +22,8 @@ pub trait StorePluginExt<R: tauri::Runtime> {
 impl<R: tauri::Runtime, T: tauri::Manager<R>> StorePluginExt<R> for T {
     fn store(&self) -> Result<std::sync::Arc<tauri_plugin_store::Store<R>>, crate::Error> {
         let app = self.app_handle();
-        <tauri::AppHandle<R> as tauri_plugin_store::StoreExt<R>>::store(app, STORE_FILENAME)
+        let store_path = store_path(app)?;
+        <tauri::AppHandle<R> as tauri_plugin_store::StoreExt<R>>::store(app, &store_path)
             .map_err(Into::into)
     }
 

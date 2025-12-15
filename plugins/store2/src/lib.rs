@@ -5,6 +5,8 @@ mod ext;
 pub use error::*;
 pub use ext::*;
 
+use tauri::Manager;
+
 const PLUGIN_NAME: &str = "store2";
 
 fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -26,7 +28,26 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
+        .setup(|app, _| {
+            migrate(app).ok();
+            Ok(())
+        })
         .build()
+}
+
+fn migrate<R: tauri::Runtime>(app: &tauri::AppHandle<R>) -> Result<(), Error> {
+    let old_path = app.path().app_data_dir()?.join(STORE_FILENAME);
+    if !old_path.exists() {
+        return Ok(());
+    }
+
+    let new_path = store_path(app)?;
+    if new_path.exists() {
+        return Ok(());
+    }
+
+    std::fs::rename(&old_path, &new_path)?;
+    Ok(())
 }
 
 #[cfg(test)]

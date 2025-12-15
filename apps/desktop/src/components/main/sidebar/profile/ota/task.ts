@@ -36,6 +36,7 @@ export function useOTA() {
     handleStartDownload,
     handleCancelDownload,
     handleInstall,
+    handleCloseDrawer: () => updateStore.trigger.closeDrawer(),
   };
 }
 

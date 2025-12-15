@@ -21,6 +21,7 @@ type Context = {
     total: number | null;
     percentage: number;
   };
+  showDrawer: boolean;
 };
 
 export const updateStore = createStore({
@@ -34,6 +35,7 @@ export const updateStore = createStore({
       total: null,
       percentage: 0,
     },
+    showDrawer: false,
   } as Context,
   on: {
     setState: (context, event: { state: State }) => ({
@@ -64,6 +66,7 @@ export const updateStore = createStore({
         percentage: 0,
       },
       state: "downloading" as State,
+      showDrawer: true,
     }),
     downloadProgress: (
       context,
@@ -101,6 +104,11 @@ export const updateStore = createStore({
         percentage: 0,
       },
       state: "idle" as State,
+      showDrawer: false,
+    }),
+    closeDrawer: (context) => ({
+      ...context,
+      showDrawer: false,
     }),
     setInstalling: (context) => ({
       ...context,
@@ -116,6 +124,7 @@ export const updateStore = createStore({
         percentage: 0,
       },
       state: "idle" as State,
+      showDrawer: false,
     }),
   },
 });

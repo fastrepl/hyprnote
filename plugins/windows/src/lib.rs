@@ -3,11 +3,13 @@ mod errors;
 mod events;
 mod ext;
 mod overlay;
+mod tab;
 mod window;
 
 pub use errors::*;
 pub use events::*;
 pub use ext::{Windows, WindowsPluginExt};
+pub use tab::*;
 pub use window::*;
 
 pub use overlay::{FakeWindowBounds, OverlayBound};
@@ -45,6 +47,7 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             events::Navigate,
             events::WindowDestroyed,
             events::MainWindowState,
+            events::OpenTab,
         ])
         .commands(tauri_specta::collect_commands![
             commands::window_show,

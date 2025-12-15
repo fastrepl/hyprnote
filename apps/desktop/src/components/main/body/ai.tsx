@@ -51,7 +51,7 @@ export function TabContentAI({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
 
 function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
   const updateAiTabState = useTabs((state) => state.updateAiTabState);
-  const activeTab = tab.state.tab;
+  const activeTab = tab.state.tab ?? "intelligence";
 
   const setActiveTab = useCallback(
     (newTab: AITabKey) => {
@@ -68,7 +68,7 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
           size="sm"
           onClick={() => setActiveTab("transcription")}
           className={cn([
-            "gap-1.5 h-7 px-2 border border-transparent",
+            "px-1 gap-1.5 h-7 border border-transparent",
             activeTab === "transcription" &&
               "bg-neutral-100 border-neutral-200",
           ])}
@@ -81,7 +81,7 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
           size="sm"
           onClick={() => setActiveTab("intelligence")}
           className={cn([
-            "gap-1.5 h-7 px-2 border border-transparent",
+            "px-1 gap-1.5 h-7 border border-transparent",
             activeTab === "intelligence" && "bg-neutral-100 border-neutral-200",
           ])}
         >

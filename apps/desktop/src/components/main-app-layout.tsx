@@ -34,6 +34,7 @@ const useNavigationEvents = () => {
   useEffect(() => {
     let unlistenNavigate: (() => void) | undefined;
     let unlistenDeepLink: (() => void) | undefined;
+    let unlistenOpenTab: (() => void) | undefined;
 
     const webview = getCurrentWebviewWindow();
 
@@ -63,6 +64,15 @@ const useNavigationEvents = () => {
         unlistenNavigate = fn;
       });
 
+    windowsEvents
+      .openTab(webview)
+      .listen(({ payload }) => {
+        openNew(payload.tab);
+      })
+      .then((fn) => {
+        unlistenOpenTab = fn;
+      });
+
     deeplink2Events.deepLinkEvent
       .listen(({ payload }) => {
         navigate({ to: payload.to, search: payload.search });
@@ -73,6 +83,7 @@ const useNavigationEvents = () => {
 
     return () => {
       unlistenNavigate?.();
+      unlistenOpenTab?.();
       unlistenDeepLink?.();
     };
   }, [navigate, openNew]);

@@ -15443,6 +15443,7 @@ dependencies = [
  "tauri-plugin-updater2",
  "tauri-plugin-windows",
  "tauri-specta",
+ "tracing",
 ]
 
 [[package]]

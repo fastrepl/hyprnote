@@ -2,6 +2,8 @@ use tauri::{
     AppHandle, Result,
     menu::{MenuItem, MenuItemKind, Submenu},
 };
+use tauri_plugin_windows::{AppWindow, OpenTab, TabInput, WindowsPluginExt};
+use tauri_specta::Event;
 
 use super::MenuItemHandler;
 
@@ -46,9 +48,13 @@ impl MenuItemHandler for TraySettingsGeneral {
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {
-        use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
         if app.windows().show(AppWindow::Main).is_ok() {
-            todo!()
+            let event = OpenTab {
+                tab: TabInput::Settings,
+            };
+            if let Err(e) = event.emit(app) {
+                tracing::warn!("failed_emit_open_settings_tab: {e}");
+            }
         }
     }
 }
@@ -64,9 +70,15 @@ impl MenuItemHandler for TraySettingsAI {
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {
-        use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
         if app.windows().show(AppWindow::Main).is_ok() {
-            todo!()
+            let event = OpenTab {
+                tab: TabInput::Ai {
+                    state: Some(Default::default()),
+                },
+            };
+            if let Err(e) = event.emit(app) {
+                tracing::warn!("failed_emit_open_ai_tab: {e}");
+            }
         }
     }
 }

@@ -29,3 +29,4 @@ tauri-plugin-windows = { workspace = true }
 
 serde_json = { workspace = true }
 specta = { workspace = true }
+tracing = { workspace = true }

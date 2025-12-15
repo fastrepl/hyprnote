@@ -97,6 +97,12 @@ common_event_derives! {
     }
 }
 
+common_event_derives! {
+    pub struct OpenTab {
+        pub tab: crate::TabInput,
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

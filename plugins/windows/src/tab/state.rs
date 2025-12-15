@@ -1,0 +1,77 @@
+crate::common_derives! {
+    #[serde(tag = "type")]
+    pub enum EditorView {
+        #[serde(rename = "raw")]
+        Raw,
+        #[serde(rename = "transcript")]
+        Transcript,
+        #[serde(rename = "enhanced")]
+        Enhanced { id: String },
+    }
+}
+
+crate::common_derives! {
+    pub struct SessionsState {
+        pub editor: Option<EditorView>,
+    }
+}
+
+crate::common_derives! {
+    pub struct ContactsState {
+        pub selected_organization: Option<String>,
+        pub selected_person: Option<String>,
+    }
+}
+
+crate::common_derives! {
+    pub struct TemplatesState {
+        pub is_web_mode: Option<bool>,
+        pub selected_mine_id: Option<String>,
+        pub selected_web_index: Option<i32>,
+    }
+}
+
+crate::common_derives! {
+    pub struct PromptsState {
+        pub selected_task: Option<String>,
+    }
+}
+
+crate::common_derives! {
+    pub struct ChatShortcutsState {
+        pub is_web_mode: Option<bool>,
+        pub selected_mine_id: Option<String>,
+        pub selected_web_index: Option<i32>,
+    }
+}
+
+crate::common_derives! {
+    pub struct ExtensionsState {
+        pub selected_extension: Option<String>,
+    }
+}
+
+crate::common_derives! {
+    pub struct ChangelogState {
+        pub previous: Option<String>,
+        pub current: String,
+    }
+}
+
+crate::common_derives! {
+    #[derive(Default)]
+    pub enum AiTab {
+        #[serde(rename = "transcription")]
+        Transcription,
+        #[default]
+        #[serde(rename = "intelligence")]
+        Intelligence,
+    }
+}
+
+crate::common_derives! {
+    #[derive(Default)]
+    pub struct AiState {
+        pub tab: Option<AiTab>,
+    }
+}

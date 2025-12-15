@@ -4,7 +4,7 @@ import { id } from "../../../utils";
 import type { LifecycleState } from "./lifecycle";
 import type { NavigationState, TabHistory } from "./navigation";
 import { pushHistory } from "./navigation";
-import { isSameTab, type Tab, type TabInput, tabSchema } from "./schema";
+import { getDefaultState, isSameTab, type Tab, type TabInput } from "./schema";
 
 export type BasicState = {
   tabs: Tab[];
@@ -151,11 +151,11 @@ const openTab = <T extends BasicState & NavigationState>(
   history: Map<string, TabHistory>,
   replaceActive: boolean,
 ): Partial<T> => {
-  const tabWithDefaults: Tab = tabSchema.parse({
-    ...newTab,
+  const tabWithDefaults: Tab = {
+    ...getDefaultState(newTab),
     active: false,
     slotId: id(),
-  });
+  };
 
   let nextTabs: Tab[];
   let activeTab: Tab;

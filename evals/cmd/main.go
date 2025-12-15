@@ -173,21 +173,22 @@ var runCmd = &cobra.Command{
 			return errors.New("no tasks matched the filter")
 		}
 
-		baseClient := evals.NewOpenRouterClient(cfg.OpenRouterAPIKey)
-		cachingClient, err := evals.NewCachingChatCompleter(baseClient, evals.CacheConfig{
+		cachingHTTPClient, err := evals.NewCachingHTTPClient(evals.CacheConfig{
 			Enabled:  !noCache,
 			CacheDir: cacheDir,
 		})
 		if err != nil {
-			return fmt.Errorf("create caching client: %w", err)
+			return fmt.Errorf("create caching http client: %w", err)
 		}
-		defer cachingClient.Close()
+		defer cachingHTTPClient.Close()
+
+		client := evals.NewOpenRouterClientWithHTTPClient(cfg.OpenRouterAPIKey, cachingHTTPClient.Client)
 
 		var opts []evals.Option
 		if len(modelOverride) > 0 {
 			opts = append(opts, evals.WithModels(modelOverride...))
 		}
-		opts = append(opts, evals.WithClient(cachingClient))
+		opts = append(opts, evals.WithClient(client))
 
 		ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer cancel()

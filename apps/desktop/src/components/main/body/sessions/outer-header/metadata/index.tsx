@@ -51,7 +51,7 @@ const TriggerInner = forwardRef<
       size="sm"
       className={cn([open && "bg-neutral-100"])}
     >
-      <CalendarIcon />
+      <CalendarIcon size={16} />
       {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
     </Button>
   );

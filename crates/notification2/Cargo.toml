@@ -1,0 +1,15 @@
+[package]
+name = "notification2"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = []
+
+[[example]]
+name = "test_notification"
+
+[dependencies]
+gpui = "0.2.2"
+
+[dev-dependencies]

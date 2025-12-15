@@ -11,7 +11,6 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { load } from "@tauri-apps/plugin-store";
 import {
   createContext,
   useCallback,
@@ -19,6 +18,8 @@ import {
   useEffect,
   useState,
 } from "react";
+
+import { commands } from "@hypr/plugin-auth";
 
 import { env } from "./env";
 import { getScheme } from "./utils";
@@ -35,9 +36,7 @@ const isLocalAuthServer = (url: string | undefined): boolean => {
 
 const clearAuthStorage = async (): Promise<void> => {
   try {
-    const store = await load("auth.json");
-    await store.clear();
-    await store.save();
+    await commands.clear();
   } catch {
     // Ignore storage errors
   }
@@ -52,19 +51,17 @@ const tauriStorage: SupportedStorage | null = isIframeContext
   ? null
   : {
       async getItem(key: string): Promise<string | null> {
-        const store = await load("auth.json");
-        const val = await store.get<string>(key);
-        return val ?? null;
+        const result = await commands.getItem(key);
+        if (result.status === "error") {
+          return null;
+        }
+        return result.data;
       },
       async setItem(key: string, value: string): Promise<void> {
-        const store = await load("auth.json");
-        await store.set(key, value);
-        await store.save();
+        await commands.setItem(key, value);
       },
       async removeItem(key: string): Promise<void> {
-        const store = await load("auth.json");
-        await store.delete(key);
-        await store.save();
+        await commands.removeItem(key);
       },
     };
 
@@ -182,9 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             error instanceof AuthRetryableFetchError &&
             isLocalAuthServer(env.VITE_SUPABASE_URL)
           ) {
-            await clearAuthStorage();
             setServerReachable(false);
-            setSession(null);
             return;
           }
         }
@@ -201,9 +196,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               refreshError instanceof AuthRetryableFetchError &&
               isLocalAuthServer(env.VITE_SUPABASE_URL)
             ) {
-              await clearAuthStorage();
               setServerReachable(false);
-              setSession(null);
+              setSession(data.session);
+              supabase.auth.startAutoRefresh();
               return;
             }
           }
@@ -223,9 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           e instanceof AuthRetryableFetchError &&
           isLocalAuthServer(env.VITE_SUPABASE_URL)
         ) {
-          await clearAuthStorage();
           setServerReachable(false);
-          setSession(null);
         }
       }
     };

@@ -76,6 +76,7 @@
       ]
     },
     "apple-calendar:default",
+    "auth:default",
     "extensions:default",
     "db2:default",
     "windows:default",

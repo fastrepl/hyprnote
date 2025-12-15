@@ -4013,6 +4013,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-analytics",
  "tauri-plugin-apple-calendar",
+ "tauri-plugin-auth",
  "tauri-plugin-autostart",
  "tauri-plugin-cli",
  "tauri-plugin-cli2",
@@ -14642,6 +14643,24 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "tauri-plugin-auth"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "specta",
+ "specta-typescript",
+ "strum 0.26.3",
+ "tauri",
+ "tauri-plugin",
+ "tauri-plugin-store",
+ "tauri-plugin-store2",
+ "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

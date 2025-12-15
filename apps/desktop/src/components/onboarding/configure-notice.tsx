@@ -28,7 +28,7 @@ export function ConfigureNotice({ onNext, onBack }: ConfigureNoticeProps) {
           onClick={() => onNext()}
           className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
         >
-          Continue to download
+          I will configure it later
         </button>
       </div>
     </OnboardingContainer>

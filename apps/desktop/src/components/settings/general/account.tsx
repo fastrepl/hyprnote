@@ -129,7 +129,7 @@ export function AccountSettings() {
               className="w-[100px] flex flex-row gap-1.5"
             >
               <span className="text-sm">Open</span>
-              <ExternalLinkIcon className="text-neutral-600" />
+              <ExternalLinkIcon className="text-neutral-600" size={12} />
             </Button>
             <Button variant="outline" onClick={handleSignOut}>
               Sign out

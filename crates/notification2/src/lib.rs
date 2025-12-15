@@ -1,42 +1,24 @@
 use std::rc::Rc;
-use std::time::Duration;
 
-use gpui::prelude::*;
-use gpui::*;
+use gpui::{prelude::*, *};
 
-const DEFAULT_TOAST_DURATION: Duration = Duration::from_secs(10);
-const NOTIFICATION_WIDTH: Pixels = px(400.);
+pub use gpui::PlatformDisplay;
+
+const NOTIFICATION_WIDTH: Pixels = px(450.);
 const NOTIFICATION_HEIGHT: Pixels = px(72.);
-const NOTIFICATION_MARGIN: Pixels = px(16.);
+const NOTIFICATION_MARGIN_X: Pixels = px(16.);
+const NOTIFICATION_MARGIN_Y: Pixels = px(-48.);
 
-#[derive(Clone)]
-pub struct ToastAction {
-    pub id: SharedString,
-    pub label: SharedString,
-    pub on_click: Option<Rc<dyn Fn(&mut Window, &mut App)>>,
-}
-
-impl ToastAction {
-    pub fn new(id: impl Into<SharedString>, label: impl Into<SharedString>) -> Self {
-        Self {
-            id: id.into(),
-            label: label.into(),
-            on_click: None,
-        }
-    }
-
-    pub fn on_click(mut self, handler: impl Fn(&mut Window, &mut App) + 'static) -> Self {
-        self.on_click = Some(Rc::new(handler));
-        self
-    }
+pub enum NotificationEvent {
+    Accepted,
+    Dismissed,
 }
 
 pub struct StatusToast {
     title: SharedString,
     subtitle: Option<SharedString>,
-    action: Option<ToastAction>,
-    show_dismiss: bool,
-    on_dismiss: Option<Rc<dyn Fn(&mut Window, &mut App)>>,
+    project_name: Option<SharedString>,
+    action_label: SharedString,
 }
 
 impl StatusToast {
@@ -44,9 +26,8 @@ impl StatusToast {
         Self {
             title: title.into(),
             subtitle: None,
-            action: None,
-            show_dismiss: true,
-            on_dismiss: None,
+            project_name: None,
+            action_label: "View Panel".into(),
         }
     }
 
@@ -55,206 +36,185 @@ impl StatusToast {
         self
     }
 
-    pub fn action(mut self, action: ToastAction) -> Self {
-        self.action = Some(action);
+    pub fn project_name(mut self, name: impl Into<SharedString>) -> Self {
+        self.project_name = Some(name.into());
         self
     }
 
-    pub fn show_dismiss(mut self, show: bool) -> Self {
-        self.show_dismiss = show;
+    pub fn action_label(mut self, label: impl Into<SharedString>) -> Self {
+        self.action_label = label.into();
         self
     }
 
-    pub fn on_dismiss(mut self, handler: impl Fn(&mut Window, &mut App) + 'static) -> Self {
-        self.on_dismiss = Some(Rc::new(handler));
-        self
+    pub fn window_options(screen: Rc<dyn PlatformDisplay>, _cx: &App) -> WindowOptions {
+        let size = Size {
+            width: NOTIFICATION_WIDTH,
+            height: NOTIFICATION_HEIGHT,
+        };
+
+        let bounds = Bounds {
+            origin: screen.bounds().top_right()
+                - point(size.width + NOTIFICATION_MARGIN_X, NOTIFICATION_MARGIN_Y),
+            size,
+        };
+
+        WindowOptions {
+            window_bounds: Some(WindowBounds::Windowed(bounds)),
+            titlebar: None,
+            focus: false,
+            show: true,
+            kind: WindowKind::PopUp,
+            is_movable: false,
+            display_id: Some(screen.id()),
+            window_background: WindowBackgroundAppearance::Transparent,
+            window_decorations: Some(WindowDecorations::Client),
+            ..Default::default()
+        }
     }
 }
+
+impl EventEmitter<NotificationEvent> for StatusToast {}
 
 impl Render for StatusToast {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        let has_action_or_dismiss = self.action.is_some() || self.show_dismiss;
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let bg = rgb(0x1e1e1e);
+        let border = rgb(0x3d3d3d);
+        let text_primary = rgb(0xe8e8e8);
+        let text_muted = rgb(0x8b8b8b);
+        let accent = rgb(0x0a84ff);
+        let accent_hover = rgb(0x409cff);
 
-        let mut root = div()
-            .id("status-toast")
+        div()
+            .id("agent-notification")
+            .size_full()
+            .p_3()
+            .gap_4()
             .flex()
             .flex_row()
-            .items_center()
-            .gap_3()
-            .py_2()
-            .pl_3()
-            .flex_none()
-            .bg(rgb(0x2d2d2d))
-            .rounded_lg()
-            .shadow_lg()
+            .justify_between()
+            .bg(bg)
             .border_1()
-            .border_color(rgb(0x444444));
-
-        if has_action_or_dismiss {
-            root = root.pr_2();
-        } else {
-            root = root.pr_3();
-        }
-
-        let icon = div().size_6().flex().items_center().justify_center().child(
-            div()
-                .text_color(rgb(0xffd700))
-                .text_size(px(16.))
-                .child("✦"),
-        );
-
-        root = root.child(icon);
-
-        let mut text_container = div().flex().flex_col().flex_1().gap_0p5().child(
-            div()
-                .text_color(rgb(0xffffff))
-                .text_size(px(13.))
-                .font_weight(FontWeight::MEDIUM)
-                .child(self.title.clone()),
-        );
-
-        if let Some(subtitle) = &self.subtitle {
-            text_container = text_container.child(
+            .border_color(border)
+            .rounded_xl()
+            .shadow_lg()
+            .child(
                 div()
-                    .text_color(rgb(0x888888))
-                    .text_size(px(12.))
-                    .child(subtitle.clone()),
-            );
-        }
-
-        root = root.child(text_container);
-
-        if let Some(action) = &self.action {
-            let on_click = action.on_click.clone();
-            let mut action_btn = div()
-                .id(action.id.clone())
-                .px_3()
-                .py_1()
-                .bg(rgb(0x0066ff))
-                .rounded_md()
-                .cursor_pointer()
-                .child(
-                    div()
-                        .text_color(rgb(0xffffff))
-                        .text_size(px(13.))
-                        .font_weight(FontWeight::MEDIUM)
-                        .child(action.label.clone()),
-                );
-
-            if let Some(handler) = on_click {
-                action_btn = action_btn.on_click(move |_event, window, cx| {
-                    handler(window, cx);
-                });
-            }
-
-            root = root.child(action_btn);
-        }
-
-        if self.show_dismiss {
-            let on_dismiss = self.on_dismiss.clone();
-            let mut dismiss_btn = div()
-                .id("dismiss")
-                .px_2()
-                .py_1()
-                .cursor_pointer()
-                .rounded_md()
-                .child(
-                    div()
-                        .text_color(rgb(0x888888))
-                        .text_size(px(13.))
-                        .child("Dismiss"),
-                );
-
-            if let Some(handler) = on_dismiss {
-                dismiss_btn = dismiss_btn.on_click(move |_event, window, cx| {
-                    handler(window, cx);
-                });
-            }
-
-            root = root.child(dismiss_btn);
-        }
-
-        root
-    }
-}
-
-pub struct NotificationManager {
-    toasts: Vec<Entity<StatusToast>>,
-}
-
-impl NotificationManager {
-    pub fn show_toast(&mut self, toast: StatusToast, cx: &mut Context<Self>) {
-        let entity = cx.new(|_cx| toast);
-        self.toasts.push(entity);
-        cx.notify();
-    }
-
-    pub fn dismiss_at(&mut self, index: usize, cx: &mut Context<Self>) {
-        if index < self.toasts.len() {
-            self.toasts.remove(index);
-            cx.notify();
-        }
-    }
-
-    pub fn dismiss_all(&mut self, cx: &mut Context<Self>) {
-        self.toasts.clear();
-        cx.notify();
-    }
-}
-
-impl Render for NotificationManager {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        div()
-            .absolute()
-            .top(NOTIFICATION_MARGIN)
-            .right(NOTIFICATION_MARGIN)
-            .flex()
-            .flex_col()
-            .gap_2()
-            .children(self.toasts.iter().cloned())
-    }
-}
-
-pub fn window_options(_cx: &App) -> WindowOptions {
-    let size = Size {
-        width: NOTIFICATION_WIDTH,
-        height: NOTIFICATION_HEIGHT,
-    };
-
-    WindowOptions {
-        window_bounds: Some(WindowBounds::Windowed(Bounds {
-            origin: point(px(100.), px(100.)),
-            size,
-        })),
-        titlebar: Some(TitlebarOptions {
-            appears_transparent: true,
-            ..Default::default()
-        }),
-        window_background: WindowBackgroundAppearance::Transparent,
-        focus: false,
-        show: true,
-        kind: WindowKind::PopUp,
-        ..Default::default()
+                    .flex()
+                    .flex_row()
+                    .items_start()
+                    .gap_2()
+                    .flex_1()
+                    .child(
+                        div()
+                            .h(px(20.))
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .child(div().text_color(text_muted).text_size(px(14.)).child("✦")),
+                    )
+                    .child(
+                        div()
+                            .flex()
+                            .flex_col()
+                            .flex_1()
+                            .overflow_hidden()
+                            .child(
+                                div()
+                                    .text_size(px(14.))
+                                    .text_color(text_primary)
+                                    .truncate()
+                                    .child(self.title.clone()),
+                            )
+                            .child(
+                                div()
+                                    .flex()
+                                    .flex_row()
+                                    .gap_1p5()
+                                    .text_size(px(12.))
+                                    .text_color(text_muted)
+                                    .truncate()
+                                    .when_some(self.project_name.clone(), |el, name| {
+                                        el.child(
+                                            div()
+                                                .flex()
+                                                .flex_row()
+                                                .gap_1p5()
+                                                .items_center()
+                                                .child(div().max_w_16().truncate().child(name))
+                                                .child(
+                                                    div()
+                                                        .size(px(3.))
+                                                        .rounded_full()
+                                                        .bg(rgb(0x5a5a5a)),
+                                                ),
+                                        )
+                                    })
+                                    .when_some(self.subtitle.clone(), |el, sub| el.child(sub)),
+                            ),
+                    ),
+            )
+            .child(
+                div()
+                    .flex()
+                    .flex_col()
+                    .gap_1()
+                    .child(
+                        div()
+                            .id("open")
+                            .px_3()
+                            .py_1()
+                            .bg(accent)
+                            .hover(|s| s.bg(accent_hover))
+                            .rounded_md()
+                            .cursor_pointer()
+                            .text_color(rgb(0xffffff))
+                            .text_size(px(13.))
+                            .font_weight(FontWeight::MEDIUM)
+                            .child(self.action_label.clone())
+                            .on_click(cx.listener(|_, _, _, cx| {
+                                cx.emit(NotificationEvent::Accepted);
+                            })),
+                    )
+                    .child(
+                        div()
+                            .id("dismiss")
+                            .px_3()
+                            .py_0p5()
+                            .hover(|s| s.bg(rgb(0x333333)))
+                            .rounded_md()
+                            .cursor_pointer()
+                            .text_color(text_muted)
+                            .text_size(px(13.))
+                            .text_center()
+                            .child("Dismiss")
+                            .on_click(cx.listener(|_, _, _, cx| {
+                                cx.emit(NotificationEvent::Dismissed);
+                            })),
+                    ),
+            )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::StatusToast;
 
     #[test]
     fn test_toast_builder() {
         let toast = StatusToast::new("Test Title")
             .subtitle("Test subtitle")
-            .action(ToastAction::new("action", "Click Me"))
-            .show_dismiss(true);
+            .project_name("hyprnote")
+            .action_label("View Panel");
 
         assert_eq!(toast.title.as_ref(), "Test Title");
         assert_eq!(
             toast.subtitle.as_ref().map(|s| s.as_ref()),
             Some("Test subtitle")
         );
-        assert!(toast.action.is_some());
-        assert!(toast.show_dismiss);
+        assert_eq!(
+            toast.project_name.as_ref().map(|s| s.as_ref()),
+            Some("hyprnote")
+        );
+        assert_eq!(toast.action_label.as_ref(), "View Panel");
     }
 }

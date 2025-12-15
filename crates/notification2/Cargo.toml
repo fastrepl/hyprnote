@@ -10,6 +10,6 @@ default = []
 name = "test_notification"
 
 [dependencies]
-gpui = "0.2.2"
+gpui = { version = "0.2.2", features = ["runtime_shaders"] }
 
 [dev-dependencies]

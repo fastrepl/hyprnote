@@ -6,10 +6,10 @@ fn main() {
         let screen = cx.primary_display().expect("No primary display found");
 
         let toast_entity: Entity<StatusToast> = cx.new(|_cx| {
-            StatusToast::new("Meeting starting soon")
-                .project_name("hyprnote")
-                .subtitle("Daily standup in 5 minutes")
-                .action_label("Join")
+            StatusToast::new("Discovery call - Apple <> Hyprnote")
+                .subtitle("sjobs@apple.com, John Jeong (john@hyprnote.com), Yujong Lee")
+                .action_label("Join Zoom & Start listening")
+                .action_icon("zoom")
                 .expanded_content(
                     "You have a scheduled meeting with the team. \
                      Click 'Join' to open the meeting room, or dismiss \

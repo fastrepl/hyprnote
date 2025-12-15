@@ -23,6 +23,7 @@ pub struct StatusToast {
     subtitle: Option<SharedString>,
     project_name: Option<SharedString>,
     action_label: SharedString,
+    action_icon: Option<SharedString>,
     expanded_content: Option<SharedString>,
     is_expanded: bool,
     animation: Option<AnimationState>,
@@ -36,6 +37,7 @@ impl StatusToast {
             subtitle: None,
             project_name: None,
             action_label: "View".into(),
+            action_icon: None,
             expanded_content: None,
             is_expanded: false,
             animation: None,
@@ -60,6 +62,11 @@ impl StatusToast {
 
     pub fn action_label(mut self, label: impl Into<SharedString>) -> Self {
         self.action_label = label.into();
+        self
+    }
+
+    pub fn action_icon(mut self, icon: impl Into<SharedString>) -> Self {
+        self.action_icon = Some(icon.into());
         self
     }
 
@@ -219,12 +226,17 @@ impl Render for StatusToast {
         };
 
         let accent = rgb(0x0a84ff);
-        let accent_hover = rgb(0x409cff);
 
         let has_expandable_content = self.expanded_content.is_some();
         let is_expanded = self.is_expanded;
         let is_animating = self.animation.is_some();
         let content_clip_height = self.current_content_clip_height();
+
+        let button_bg = hsla(0., 0., 0.25, 0.8);
+        let button_bg_hover = hsla(0., 0., 0.3, 0.8);
+        let button_inner_shadow = hsla(0., 0., 1., 0.1);
+
+        let action_icon = self.action_icon.clone();
 
         div()
             .id("notification-container")
@@ -232,7 +244,7 @@ impl Render for StatusToast {
             .bg(bg)
             .border_1()
             .border_color(border)
-            .rounded_xl()
+            .rounded(px(20.))
             .shadow(Self::native_shadow())
             .overflow_hidden()
             .flex()
@@ -242,102 +254,83 @@ impl Render for StatusToast {
                     .flex_shrink_0()
                     .h(NOTIFICATION_HEIGHT_COLLAPSED)
                     .px_4()
+                    .py_3()
                     .flex()
-                    .flex_row()
-                    .items_center()
-                    .gap_3()
+                    .flex_col()
+                    .justify_center()
+                    .gap_1()
                     .child(
                         div()
-                            .size(px(40.))
-                            .rounded_lg()
-                            .bg(accent)
-                            .flex()
-                            .items_center()
-                            .justify_center()
-                            .flex_shrink_0()
-                            .child(
-                                div()
-                                    .text_color(white())
-                                    .text_size(px(20.))
-                                    .font_weight(FontWeight::BOLD)
-                                    .child("✦"),
-                            ),
-                    )
-                    .child(
-                        div()
-                            .flex()
-                            .flex_col()
-                            .gap_0p5()
-                            .flex_1()
-                            .min_w_0()
-                            .child(
-                                div()
-                                    .text_size(px(14.))
-                                    .font_weight(FontWeight::SEMIBOLD)
-                                    .text_color(text_primary)
-                                    .truncate()
-                                    .child(self.title.clone()),
-                            )
-                            .child(
-                                div()
-                                    .flex()
-                                    .flex_row()
-                                    .gap_1()
-                                    .items_center()
-                                    .text_size(px(12.))
-                                    .text_color(text_secondary)
-                                    .truncate()
-                                    .when_some(self.project_name.clone(), |el, name| {
-                                        el.child(div().truncate().child(name))
-                                            .child(div().text_color(text_secondary).child("·"))
-                                    })
-                                    .when_some(self.subtitle.clone(), |el, sub| {
-                                        el.child(div().flex_1().truncate().child(sub))
-                                    }),
-                            ),
+                            .text_size(px(16.))
+                            .font_weight(FontWeight::SEMIBOLD)
+                            .text_color(text_primary)
+                            .truncate()
+                            .child(self.title.clone()),
                     )
                     .child(
                         div()
                             .flex()
                             .flex_row()
-                            .gap_2()
+                            .gap_1()
                             .items_center()
-                            .flex_shrink_0()
+                            .text_size(px(13.))
+                            .text_color(text_secondary)
+                            .truncate()
+                            .when_some(self.subtitle.clone(), |el, sub| {
+                                el.child(div().flex_1().truncate().child(sub))
+                            }),
+                    )
+                    .child(
+                        div()
+                            .id("action-button")
+                            .mt_2()
+                            .w_full()
+                            .py_2()
+                            .px_4()
+                            .bg(button_bg)
+                            .hover(|s| s.bg(button_bg_hover))
+                            .rounded_full()
+                            .cursor_pointer()
+                            .border_1()
+                            .border_color(button_inner_shadow)
+                            .flex()
+                            .flex_row()
+                            .items_center()
+                            .justify_center()
+                            .gap_2()
+                            .when_some(action_icon, |el, icon| {
+                                el.child(
+                                    div()
+                                        .size(px(24.))
+                                        .rounded(px(4.))
+                                        .bg(accent)
+                                        .flex()
+                                        .items_center()
+                                        .justify_center()
+                                        .flex_shrink_0()
+                                        .child(
+                                            div()
+                                                .text_color(white())
+                                                .text_size(px(10.))
+                                                .font_weight(FontWeight::BOLD)
+                                                .child(icon),
+                                        ),
+                                )
+                            })
                             .child(
                                 div()
-                                    .id("action-button")
-                                    .px_4()
-                                    .py_1p5()
-                                    .bg(accent)
-                                    .hover(|s| s.bg(accent_hover))
-                                    .rounded_lg()
-                                    .cursor_pointer()
                                     .text_color(white())
-                                    .text_size(px(13.))
-                                    .font_weight(FontWeight::SEMIBOLD)
-                                    .child(self.action_label.clone())
-                                    .on_click(cx.listener(|this, _, window, cx| {
-                                        if this.expanded_content.is_some() && !this.is_expanded {
-                                            this.toggle_expanded(window, cx);
-                                        } else {
-                                            cx.emit(NotificationEvent::Accepted);
-                                        }
-                                    })),
+                                    .text_size(px(14.))
+                                    .font_weight(FontWeight::MEDIUM)
+                                    .child(self.action_label.clone()),
                             )
-                            .child(
-                                div()
-                                    .id("dismiss-button")
-                                    .px_2()
-                                    .py_1p5()
-                                    .cursor_pointer()
-                                    .text_color(text_secondary)
-                                    .hover(|s| s.text_color(text_primary))
-                                    .text_size(px(13.))
-                                    .child("Dismiss")
-                                    .on_click(cx.listener(|_, _, _, cx| {
-                                        cx.emit(NotificationEvent::Dismissed);
-                                    })),
-                            ),
+                            .on_click(cx.listener(|this, _, window, cx| {
+                                if this.expanded_content.is_some() && !this.is_expanded {
+                                    this.toggle_expanded(window, cx);
+                                } else {
+                                    cx.emit(NotificationEvent::Accepted);
+                                }
+                            })),
                     ),
             )
             .when(

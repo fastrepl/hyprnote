@@ -196,6 +196,7 @@ var runCmd = &cobra.Command{
 
 		if outputFormat == "json" {
 			results := runner.Run(ctx, selectedTasks)
+			runner.ResolveUsage(ctx, results)
 			return renderJSON(results)
 		}
 
@@ -234,6 +235,9 @@ var runCmd = &cobra.Command{
 		}
 		results := runner.Run(ctx, selectedTasks)
 		mbar.End()
+
+		fmt.Fprintln(os.Stderr, "Fetching cost information...")
+		runner.ResolveUsage(ctx, results)
 
 		return renderResults(results)
 	},

@@ -76,6 +76,14 @@ func (c *CachingChatCompleter) CacheDir() string {
 	return c.cacheDir
 }
 
+// GetGenerationUsage delegates to the underlying client if it implements UsageResolver.
+func (c *CachingChatCompleter) GetGenerationUsage(ctx context.Context, generationID string) (Usage, error) {
+	if resolver, ok := c.next.(UsageResolver); ok {
+		return resolver.GetGenerationUsage(ctx, generationID)
+	}
+	return Usage{}, nil
+}
+
 type cacheRequest struct {
 	Model          string         `json:"model"`
 	Messages       []cacheMessage `json:"messages"`

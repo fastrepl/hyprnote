@@ -53,11 +53,11 @@ describe("State Updater Actions", () => {
       });
       expect(state.tabs[1]).toMatchObject({
         id: active.id,
-        state: {},
+        state: { editor: null },
       });
       expect(useTabs.getState()).toHaveLastHistoryEntry({
         id: active.id,
-        state: {},
+        state: { editor: null },
       });
     });
 
@@ -74,7 +74,7 @@ describe("State Updater Actions", () => {
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({
         id: session.id,
-        state: {},
+        state: { editor: null },
       });
       expect(state.tabs[1]).toMatchObject({ type: "contacts" });
     });
@@ -112,7 +112,7 @@ describe("State Updater Actions", () => {
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
-      expect(state.tabs[1]).toMatchObject({ state: {} });
+      expect(state.tabs[1]).toMatchObject({ state: { editor: null } });
       expect(useTabs.getState()).toHaveLastHistoryEntry({
         id: session.id,
       });

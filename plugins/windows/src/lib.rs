@@ -7,7 +7,7 @@ mod window;
 
 pub use errors::*;
 pub use events::*;
-pub use ext::*;
+pub use ext::{Windows, WindowsPluginExt};
 pub use window::*;
 
 pub use overlay::{FakeWindowBounds, OverlayBound};

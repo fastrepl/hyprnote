@@ -52,7 +52,7 @@ pub async fn main() {
     // should always be the first plugin
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            app.window_show(AppWindow::Main).unwrap();
+            app.windows().show(AppWindow::Main).unwrap();
         }));
     }
 

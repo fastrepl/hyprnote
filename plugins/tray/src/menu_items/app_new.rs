@@ -17,8 +17,8 @@ impl MenuItemHandler for AppNew {
 
     fn handle(app: &AppHandle<tauri::Wry>) {
         use tauri_plugin_windows::{AppWindow, Navigate, WindowsPluginExt};
-        if app.window_show(AppWindow::Main).is_ok() {
-            let _ = app.window_emit_navigate(
+        if app.windows().show(AppWindow::Main).is_ok() {
+            let _ = app.windows().emit_navigate(
                 AppWindow::Main,
                 Navigate {
                     path: "/app/new".to_string(),

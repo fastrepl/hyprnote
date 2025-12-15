@@ -87,7 +87,6 @@ owhisper-model = { path = "owhisper/owhisper-model", package = "owhisper-model" 
 
 tauri = "2.9"
 tauri-build = "2.5"
-tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin = "2.5"
 tauri-plugin-autostart = "2.5"
 tauri-plugin-cli = "2.4"

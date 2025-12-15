@@ -6,7 +6,7 @@ pub async fn window_show(
     app: tauri::AppHandle<tauri::Wry>,
     window: AppWindow,
 ) -> Result<(), String> {
-    app.window_show(window).map_err(|e| e.to_string())?;
+    app.windows().show(window).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -16,7 +16,7 @@ pub async fn window_destroy(
     app: tauri::AppHandle<tauri::Wry>,
     window: AppWindow,
 ) -> Result<(), String> {
-    app.window_destroy(window).map_err(|e| e.to_string())?;
+    app.windows().destroy(window).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -27,7 +27,8 @@ pub async fn window_navigate(
     window: AppWindow,
     path: String,
 ) -> Result<(), String> {
-    app.window_navigate(window, path)
+    app.windows()
+        .navigate(window, path)
         .map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -39,7 +40,8 @@ pub async fn window_emit_navigate(
     window: AppWindow,
     event: events::Navigate,
 ) -> Result<(), String> {
-    app.window_emit_navigate(window, event)
+    app.windows()
+        .emit_navigate(window, event)
         .map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -50,7 +52,7 @@ pub async fn window_is_exists(
     app: tauri::AppHandle<tauri::Wry>,
     window: AppWindow,
 ) -> Result<bool, String> {
-    let exists = app.window_is_exists(window).map_err(|e| e.to_string())?;
+    let exists = app.windows().is_exists(window).map_err(|e| e.to_string())?;
     Ok(exists)
 }
 

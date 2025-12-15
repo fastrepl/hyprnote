@@ -47,7 +47,7 @@ impl MenuItemHandler for TraySettingsGeneral {
 
     fn handle(app: &AppHandle<tauri::Wry>) {
         use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
-        if app.window_show(AppWindow::Main).is_ok() {
+        if app.windows().show(AppWindow::Main).is_ok() {
             todo!()
         }
     }
@@ -65,7 +65,7 @@ impl MenuItemHandler for TraySettingsAI {
 
     fn handle(app: &AppHandle<tauri::Wry>) {
         use tauri_plugin_windows::{AppWindow, WindowsPluginExt};
-        if app.window_show(AppWindow::Main).is_ok() {
+        if app.windows().show(AppWindow::Main).is_ok() {
             todo!()
         }
     }

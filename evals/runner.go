@@ -212,16 +212,44 @@ func (r *Runner) runSingleWithProgress(ctx context.Context, model string, runNum
 		RunNum: runNum,
 	}
 
+	taskSamples := task.Samples
+	if taskSamples <= 1 {
+		taskSamples = 1
+	}
+
+	expectedEvals := 0
+	for _, rubric := range task.Rubrics {
+		evalCount := taskSamples
+		if llmGrader, ok := rubric.Grader.(LLMGrader); ok {
+			graderSamples := llmGrader.Samples
+			if graderSamples <= 1 {
+				graderSamples = 1
+			}
+			evalCount = taskSamples * graderSamples
+		}
+		expectedEvals += evalCount
+	}
+
 	if task.Samples > 1 {
 		outputs, generationID, err := task.ExecuteMultiWithGenerationID(ctx, r.client, model)
 		if err != nil {
 			result.Error = err.Error()
+			if onGeneration != nil {
+				for range taskSamples {
+					onGeneration()
+				}
+			}
+			if onEvaluation != nil {
+				for range expectedEvals {
+					onEvaluation()
+				}
+			}
 			return result
 		}
 		result.GenerationID = generationID
 
 		if onGeneration != nil {
-			for range outputs {
+			for range taskSamples {
 				onGeneration()
 			}
 		}
@@ -230,12 +258,30 @@ func (r *Runner) runSingleWithProgress(ctx context.Context, model string, runNum
 			result.Output = outputs[0]
 		}
 		result.Scores = task.GradeMultiWithProgress(ctx, r.client, r.graderModel, outputs, onEvaluation)
+
+		if onEvaluation != nil && len(outputs) < taskSamples {
+			missingSamples := taskSamples - len(outputs)
+			evalsPerSample := expectedEvals / taskSamples
+			missingEvals := missingSamples * evalsPerSample
+			for range missingEvals {
+				onEvaluation()
+			}
+		}
+
 		return result
 	}
 
 	output, generationID, err := task.ExecuteWithGenerationID(ctx, r.client, model)
 	if err != nil {
 		result.Error = err.Error()
+		if onGeneration != nil {
+			onGeneration()
+		}
+		if onEvaluation != nil {
+			for range expectedEvals {
+				onEvaluation()
+			}
+		}
 		return result
 	}
 	result.GenerationID = generationID

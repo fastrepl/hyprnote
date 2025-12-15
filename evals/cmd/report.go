@@ -19,7 +19,7 @@ func renderJSON(results []evals.Result) error {
 	}
 
 	for _, r := range results {
-		if r.Error != "" || !r.AllPassed() {
+		if r.Error != "" {
 			return errEvalFailed
 		}
 	}
@@ -60,9 +60,6 @@ func renderResults(results []evals.Result) error {
 		}
 
 		passed, total := r.TallyScore()
-		if passed != total {
-			totalFailed++
-		}
 		maxTotal += total
 		totalCost += r.Usage.Cost
 

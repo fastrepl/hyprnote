@@ -1,6 +1,7 @@
-package grader
+package evals
 
 import (
+	"context"
 	"testing"
 )
 
@@ -185,4 +186,47 @@ func TestMatchFormat(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFormatMatcherGrader(t *testing.T) {
+	spec := FormatSpec{
+		Sections: []SectionSpec{
+			{Header: HeaderSpec{Level: 1, Text: "Header first"}, ListOnly: true},
+			{Header: HeaderSpec{Level: 1, Text: "Header Second"}, ListOnly: true},
+		},
+	}
+
+	rubric := Rubric{
+		Name:        "format_check",
+		Description: "Check markdown format",
+		Grader:      FormatMatcherGrader(spec),
+	}
+
+	validMd := "# Header first\n\n- Point 1\n- Point 2\n\n# Header Second\n\n- Point 1"
+	score := rubric.Grader.Grade(context.Background(), nil, "", rubric, validMd)
+
+	if !score.Passed {
+		t.Errorf("FormatMatcherGrader() passed = false, want true")
+	}
+	if score.Value != 1 {
+		t.Errorf("FormatMatcherGrader() value = %d, want 1", score.Value)
+	}
+}
+
+func TestNonEmptyGrader(t *testing.T) {
+	rubric := Rubric{Name: "test", Description: "test"}
+
+	t.Run("passes for non-empty", func(t *testing.T) {
+		score := NonEmptyGrader.Grade(context.Background(), nil, "", rubric, "hello")
+		if !score.Passed {
+			t.Error("NonEmptyGrader should pass for non-empty input")
+		}
+	})
+
+	t.Run("fails for empty", func(t *testing.T) {
+		score := NonEmptyGrader.Grade(context.Background(), nil, "", rubric, "")
+		if score.Passed {
+			t.Error("NonEmptyGrader should fail for empty input")
+		}
+	})
 }

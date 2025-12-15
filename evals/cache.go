@@ -11,13 +11,17 @@ import (
 	"github.com/adrg/xdg"
 	"github.com/dgraph-io/badger/v4"
 	"github.com/openai/openai-go/v3"
+	"golang.org/x/sync/singleflight"
 )
 
 // CachingChatCompleter wraps a ChatCompleter with response caching using BadgerDB.
+// It uses singleflight to prevent thundering herd when multiple concurrent requests
+// are made for the same prompt.
 type CachingChatCompleter struct {
 	next     ChatCompleter
 	db       *badger.DB
 	cacheDir string
+	group    singleflight.Group
 }
 
 // CacheConfig configures the caching behavior.
@@ -161,7 +165,8 @@ func computeCacheKey(params openai.ChatCompletionNewParams) (string, error) {
 
 // CreateChatCompletion implements ChatCompleter with caching.
 // It first checks the cache for a matching response, and if not found,
-// delegates to the underlying client and caches the result.
+// uses singleflight to ensure only one request is made for concurrent
+// requests with the same parameters.
 func (c *CachingChatCompleter) CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
 	if c.db == nil {
 		return c.next.CreateChatCompletion(ctx, params)
@@ -187,17 +192,47 @@ func (c *CachingChatCompleter) CreateChatCompletion(ctx context.Context, params 
 		return cached, nil
 	}
 
-	resp, err := c.next.CreateChatCompletion(ctx, params)
+	result, err, _ := c.group.Do(cacheKey, func() (any, error) {
+		if cached := c.checkCache(cacheKey); cached != nil {
+			return cached, nil
+		}
+
+		resp, err := c.next.CreateChatCompletion(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+
+		c.writeCache(cacheKey, resp)
+		return resp, nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
+	return result.(*openai.ChatCompletion), nil
+}
 
-	data, marshalErr := json.Marshal(resp)
-	if marshalErr == nil {
-		c.db.Update(func(txn *badger.Txn) error {
-			return txn.Set([]byte(cacheKey), data)
+func (c *CachingChatCompleter) checkCache(cacheKey string) *openai.ChatCompletion {
+	var cached *openai.ChatCompletion
+	c.db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(cacheKey))
+		if err != nil {
+			return err
+		}
+		return item.Value(func(val []byte) error {
+			cached = &openai.ChatCompletion{}
+			return json.Unmarshal(val, cached)
 		})
-	}
+	})
+	return cached
+}
 
-	return resp, nil
+func (c *CachingChatCompleter) writeCache(cacheKey string, resp *openai.ChatCompletion) {
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return
+	}
+	c.db.Update(func(txn *badger.Txn) error {
+		return txn.Set([]byte(cacheKey), data)
+	})
 }

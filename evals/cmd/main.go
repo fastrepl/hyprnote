@@ -210,6 +210,8 @@ var runCmd = &cobra.Command{
 
 		genBar := mbar.Bars[0]
 		evalBar := mbar.Bars[1]
+		genBar.Color = progressbar.WhiteBar
+		evalBar.Color = progressbar.WhiteBar
 
 		var genComplete, evalComplete int
 		genBar.Extra = func(_ *progressbar.Bar, _ float64) string {
@@ -235,8 +237,6 @@ var runCmd = &cobra.Command{
 		}
 		results := runner.Run(ctx, selectedTasks)
 		mbar.End()
-
-		fmt.Fprintln(os.Stderr, "Fetching cost information...")
 		runner.ResolveUsage(ctx, results)
 
 		return renderResults(results)

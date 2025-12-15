@@ -1,4 +1,4 @@
-package grader
+package evals
 
 import (
 	"errors"
@@ -141,4 +141,12 @@ func IsNonEmpty(output string) (bool, string) {
 		return false, "output is empty"
 	}
 	return true, "output is non-empty"
+}
+
+var NonEmptyGrader = FuncGrader(IsNonEmpty)
+
+func FormatMatcherGrader(spec FormatSpec) FuncGrader {
+	return func(output string) (bool, string) {
+		return MatchFormat(output, spec)
+	}
 }

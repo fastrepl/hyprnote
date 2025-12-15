@@ -32,7 +32,13 @@ func renderResults(results []evals.Result) error {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.SetStyle(table.StyleRounded)
-	t.AppendHeader(buildHeader(rubricNames))
+
+	header := table.Row{"Model"}
+	for _, name := range rubricNames {
+		header = append(header, name)
+	}
+	header = append(header, "Total", "Cost")
+	t.AppendHeader(header)
 
 	totals := make([]int, len(rubricNames))
 	var grandTotal, maxTotal, totalFailed int
@@ -64,14 +70,14 @@ func renderResults(results []evals.Result) error {
 			if s.Passed {
 				totals[i]++
 				grandTotal++
-				row = append(row, text.FgGreen.Sprint("1"))
+				row = append(row, "1")
 			} else {
 				row = append(row, text.FgRed.Sprint("0"))
 			}
 		}
 
 		if passed == total {
-			row = append(row, text.FgGreen.Sprintf("%d/%d", passed, total))
+			row = append(row, fmt.Sprintf("%d/%d", passed, total))
 		} else {
 			row = append(row, text.FgRed.Sprintf("%d/%d", passed, total))
 		}
@@ -80,10 +86,13 @@ func renderResults(results []evals.Result) error {
 		t.AppendRow(row)
 	}
 
-	t.AppendFooter(buildFooter(totals, grandTotal, maxTotal, totalCost))
+	footer := table.Row{"Total"}
+	for _, total := range totals {
+		footer = append(footer, fmt.Sprintf("%d", total))
+	}
+	footer = append(footer, fmt.Sprintf("%d/%d", grandTotal, maxTotal), formatCost(totalCost))
+	t.AppendFooter(footer)
 	t.Render()
-
-	renderCostSummary(results)
 
 	if len(errorDetails) > 0 {
 		fmt.Fprintln(os.Stderr)
@@ -113,24 +122,6 @@ func extractRubricNames(results []evals.Result) []string {
 	return nil
 }
 
-func buildHeader(rubricNames []string) table.Row {
-	header := table.Row{"Model"}
-	for _, name := range rubricNames {
-		header = append(header, name)
-	}
-	header = append(header, "Total", "Cost (credits)")
-	return header
-}
-
-func buildFooter(totals []int, grandTotal, maxTotal int, totalCost float64) table.Row {
-	footer := table.Row{"Total"}
-	for _, total := range totals {
-		footer = append(footer, fmt.Sprintf("%d", total))
-	}
-	footer = append(footer, fmt.Sprintf("%d/%d", grandTotal, maxTotal), formatCost(totalCost))
-	return footer
-}
-
 func formatCost(cost float64) string {
 	if cost == 0 {
 		return "-"
@@ -139,49 +130,4 @@ func formatCost(cost float64) string {
 		return fmt.Sprintf("%.6f", cost)
 	}
 	return fmt.Sprintf("%.4f", cost)
-}
-
-func renderCostSummary(results []evals.Result) {
-	modelCosts := make(map[string]evals.Usage)
-	for _, r := range results {
-		if r.Error != "" {
-			continue
-		}
-		usage := modelCosts[r.Model]
-		usage.Add(r.Usage)
-		modelCosts[r.Model] = usage
-	}
-
-	if len(modelCosts) == 0 {
-		return
-	}
-
-	fmt.Println()
-	fmt.Println("Cost Summary by Model:")
-
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleRounded)
-	t.AppendHeader(table.Row{"Model", "Prompt Tokens", "Completion Tokens", "Total Tokens", "Cost"})
-
-	var totalUsage evals.Usage
-	for model, usage := range modelCosts {
-		t.AppendRow(table.Row{
-			model,
-			usage.PromptTokens,
-			usage.CompletionTokens,
-			usage.TotalTokens,
-			formatCost(usage.Cost),
-		})
-		totalUsage.Add(usage)
-	}
-
-	t.AppendFooter(table.Row{
-		"Total",
-		totalUsage.PromptTokens,
-		totalUsage.CompletionTokens,
-		totalUsage.TotalTokens,
-		formatCost(totalUsage.Cost),
-	})
-	t.Render()
 }

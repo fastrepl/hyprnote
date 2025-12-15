@@ -27,6 +27,7 @@ import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
 import { NotificationsMenuContent } from "./notification";
 import { UpdateChecker } from "./ota";
+import { useOTA } from "./ota/task";
 import { MenuItem } from "./shared";
 
 type ProfileView = "main" | "notifications";
@@ -255,6 +256,9 @@ function ProfileButton({
 }) {
   const auth = useAuth();
   const name = useMyName(auth?.session?.user.email);
+  const { state, downloadProgress } = useOTA();
+
+  const isDownloading = state === "downloading";
 
   const profile = useQuery({
     queryKey: ["profile"],
@@ -276,23 +280,54 @@ function ProfileButton({
       ])}
       onClick={onClick}
     >
-      <div
-        className={cn([
-          "flex size-8 flex-shrink-0 items-center justify-center",
-          "overflow-hidden rounded-full",
-          "border border-white/60 border-t border-neutral-400",
-          "bg-gradient-to-br from-indigo-400 to-purple-500",
-          "shadow-sm",
-          "transition-transform duration-300",
-        ])}
-      >
-        {profile.data && (
-          <img
-            src={profile.data}
-            alt="Profile"
-            className="h-full w-full rounded-full"
-          />
+      <div className="relative flex-shrink-0">
+        {isDownloading && (
+          <svg className="absolute -inset-1 size-10" viewBox="0 0 40 40">
+            <circle
+              cx="20"
+              cy="20"
+              r="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-neutral-200"
+            />
+            <circle
+              cx="20"
+              cy="20"
+              r="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeDasharray={`${2 * Math.PI * 18}`}
+              strokeDashoffset={`${2 * Math.PI * 18 * (1 - downloadProgress.percentage / 100)}`}
+              strokeLinecap="round"
+              className="text-neutral-700 transition-all duration-300"
+              style={{
+                transform: "rotate(-90deg)",
+                transformOrigin: "center",
+              }}
+            />
+          </svg>
         )}
+        <div
+          className={cn([
+            "flex size-8 items-center justify-center",
+            "overflow-hidden rounded-full",
+            "border border-white/60 border-t border-neutral-400",
+            "bg-gradient-to-br from-indigo-400 to-purple-500",
+            "shadow-sm",
+            "transition-transform duration-300",
+          ])}
+        >
+          {profile.data && (
+            <img
+              src={profile.data}
+              alt="Profile"
+              className="h-full w-full rounded-full"
+            />
+          )}
+        </div>
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-sm text-black truncate">{name}</div>

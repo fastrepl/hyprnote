@@ -66,7 +66,7 @@ export const updateStore = createStore({
         percentage: 0,
       },
       state: "downloading" as State,
-      showDrawer: true,
+      showDrawer: false,
     }),
     downloadProgress: (
       context,
@@ -94,6 +94,7 @@ export const updateStore = createStore({
     downloadFinished: (context) => ({
       ...context,
       state: "ready" as State,
+      showDrawer: true,
     }),
     cancelDownload: (context) => ({
       ...context,

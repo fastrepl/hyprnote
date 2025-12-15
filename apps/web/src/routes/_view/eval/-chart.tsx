@@ -25,7 +25,7 @@ export function ChartSkeleton() {
 
   return (
     <div className="h-full w-full flex flex-col">
-      <div className="flex-1 flex items-end justify-center gap-2 pb-8">
+      <div className="flex-1 flex items-end justify-around pb-8">
         {heights.slice(0, barCount).map((height, i) => (
           <div
             key={i}
@@ -34,7 +34,7 @@ export function ChartSkeleton() {
           />
         ))}
       </div>
-      <div className="h-8 flex justify-center gap-2">
+      <div className="h-8 flex justify-around">
         {Array.from({ length: barCount }).map((_, i) => (
           <div
             key={i}

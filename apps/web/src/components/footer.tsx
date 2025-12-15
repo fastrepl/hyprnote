@@ -358,6 +358,14 @@ function ToolsLinks() {
       <ul className="space-y-3">
         <li>
           <Link
+            to="/eval"
+            className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"
+          >
+            AI Eval
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/file-transcription"
             search={{ id: undefined }}
             className="text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline hover:underline hover:decoration-dotted"

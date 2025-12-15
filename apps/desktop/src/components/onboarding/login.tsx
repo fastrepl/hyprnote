@@ -44,7 +44,7 @@ export function Login({
     },
     onSuccess: (isPro) => onNext({ local: !isPro }),
     onError: (e) => {
-      console.error("Failed to process login:", e);
+      console.error(e);
       onNext({ local: true });
     },
   });

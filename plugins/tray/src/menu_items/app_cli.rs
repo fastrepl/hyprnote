@@ -1,6 +1,6 @@
 use tauri::{
     AppHandle, Result,
-    menu::{IconMenuItem, MenuItemKind, NativeIcon},
+    menu::{MenuItem, MenuItemKind},
 };
 use tauri_plugin_cli2::CliPluginExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
@@ -14,15 +14,8 @@ impl MenuItemHandler for AppCliInstall {
     const ID: &'static str = "hypr_app_cli_install";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = IconMenuItem::with_id_and_native_icon(
-            app,
-            Self::ID,
-            "Install CLI",
-            true,
-            Some(NativeIcon::Add),
-            None::<&str>,
-        )?;
-        Ok(MenuItemKind::Icon(item))
+        let item = MenuItem::with_id(app, Self::ID, "+ Install CLI", true, None::<&str>)?;
+        Ok(MenuItemKind::MenuItem(item))
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {
@@ -55,15 +48,8 @@ impl MenuItemHandler for AppCliUninstall {
     const ID: &'static str = "hypr_app_cli_uninstall";
 
     fn build(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
-        let item = IconMenuItem::with_id_and_native_icon(
-            app,
-            Self::ID,
-            "Uninstall CLI",
-            true,
-            Some(NativeIcon::Remove),
-            None::<&str>,
-        )?;
-        Ok(MenuItemKind::Icon(item))
+        let item = MenuItem::with_id(app, Self::ID, "- Uninstall CLI", true, None::<&str>)?;
+        Ok(MenuItemKind::MenuItem(item))
     }
 
     fn handle(app: &AppHandle<tauri::Wry>) {

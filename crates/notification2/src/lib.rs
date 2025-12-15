@@ -6,4 +6,4 @@ mod toast;
 pub use gpui::PlatformDisplay;
 
 pub use event::NotificationEvent;
-pub use toast::StatusToast;
+pub use toast::{NotificationTheme, StatusToast};

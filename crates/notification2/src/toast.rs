@@ -10,6 +10,14 @@ use crate::constants::{
 };
 use crate::event::NotificationEvent;
 
+#[derive(Clone, Copy, Default, PartialEq)]
+pub enum NotificationTheme {
+    #[default]
+    System,
+    Light,
+    Dark,
+}
+
 pub struct StatusToast {
     title: SharedString,
     subtitle: Option<SharedString>,
@@ -18,6 +26,7 @@ pub struct StatusToast {
     expanded_content: Option<SharedString>,
     is_expanded: bool,
     animation: Option<AnimationState>,
+    theme: NotificationTheme,
 }
 
 impl StatusToast {
@@ -30,7 +39,13 @@ impl StatusToast {
             expanded_content: None,
             is_expanded: false,
             animation: None,
+            theme: NotificationTheme::default(),
         }
+    }
+
+    pub fn theme(mut self, theme: NotificationTheme) -> Self {
+        self.theme = theme;
+        self
     }
 
     pub fn subtitle(mut self, subtitle: impl Into<SharedString>) -> Self {
@@ -180,10 +195,29 @@ impl EventEmitter<NotificationEvent> for StatusToast {}
 
 impl Render for StatusToast {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let bg = rgb(0x1e1e1e);
-        let border = hsla(0., 0., 1., 0.1);
-        let text_primary = rgb(0xf5f5f5);
-        let text_secondary = rgb(0x999999);
+        let is_light = match self.theme {
+            NotificationTheme::System | NotificationTheme::Dark => false,
+            NotificationTheme::Light => true,
+        };
+
+        let (bg, border, text_primary, text_secondary, separator) = if is_light {
+            (
+                hsla(0., 0., 0.5, 0.6),
+                hsla(0., 0., 1., 0.3),
+                rgb(0x1a1a1a),
+                hsla(0., 0., 0., 0.5),
+                hsla(0., 0., 0., 0.1),
+            )
+        } else {
+            (
+                hsla(0., 0., 0.12, 0.95),
+                hsla(0., 0., 1., 0.1),
+                rgb(0xf5f5f5),
+                hsla(0., 0., 1., 0.5),
+                hsla(0., 0., 1., 0.08),
+            )
+        };
+
         let accent = rgb(0x0a84ff);
         let accent_hover = rgb(0x409cff);
 
@@ -255,7 +289,7 @@ impl Render for StatusToast {
                                     .truncate()
                                     .when_some(self.project_name.clone(), |el, name| {
                                         el.child(div().truncate().child(name))
-                                            .child(div().text_color(rgb(0x666666)).child("·"))
+                                            .child(div().text_color(text_secondary).child("·"))
                                     })
                                     .when_some(self.subtitle.clone(), |el, sub| {
                                         el.child(div().flex_1().truncate().child(sub))
@@ -307,6 +341,32 @@ impl Render for StatusToast {
                     ),
             )
             .when(
+                has_expandable_content && !is_expanded && !is_animating,
+                |el| {
+                    el.child(
+                        div()
+                            .id("expand-hint")
+                            .w_full()
+                            .py_2()
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .cursor_pointer()
+                            .border_t_1()
+                            .border_color(separator)
+                            .on_click(cx.listener(|this, _, window, cx| {
+                                this.toggle_expanded(window, cx);
+                            }))
+                            .child(
+                                div()
+                                    .text_size(px(12.))
+                                    .text_color(text_secondary)
+                                    .child("Expand to see more info"),
+                            ),
+                    )
+                },
+            )
+            .when(
                 has_expandable_content && (is_expanded || is_animating),
                 |el: Stateful<Div>| {
                     let full_content_height = self.expanded_content_height();
@@ -336,7 +396,7 @@ impl Render for StatusToast {
                                     .justify_center()
                                     .cursor_pointer()
                                     .border_t_1()
-                                    .border_color(hsla(0., 0., 1., 0.08))
+                                    .border_color(separator)
                                     .hover(|s| s.bg(hsla(0., 0., 1., 0.05)))
                                     .on_click(cx.listener(|this, _, window, cx| {
                                         this.toggle_expanded(window, cx);
@@ -362,9 +422,7 @@ impl Render for StatusToast {
                                             .px_4()
                                             .pb_4()
                                             .opacity(content_opacity)
-                                            .child(
-                                                self.render_expanded_content(text_secondary.into()),
-                                            ),
+                                            .child(self.render_expanded_content(text_secondary)),
                                     ),
                             ),
                     )

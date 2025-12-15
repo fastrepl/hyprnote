@@ -4,7 +4,7 @@ import type { WordStorage } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
-const selectWeighted = <T,>(choices: Array<{ weight: number; value: T }>): T =>
+const selectWeighted = <T>(choices: Array<{ weight: number; value: T }>): T =>
   faker.helpers.weightedArrayElement(choices);
 
 const appendPhrase = (target: string[], phrase: string) => {
@@ -133,11 +133,17 @@ export const generateTranscript = () => {
 
       if (sentenceIndex < sentenceCount - 1) {
         if (sentenceCount >= 4) {
-          const sentenceGap = faker.number.int({ min: 200, max: 800 });
+          const sentenceGap = faker.number.int({
+            min: 200,
+            max: 800,
+          });
           currentTimeMs += sentenceGap;
         } else if (sentenceCount >= 2) {
           if (faker.datatype.boolean({ probability: 0.5 })) {
-            const sentenceGap = faker.number.int({ min: 150, max: 600 });
+            const sentenceGap = faker.number.int({
+              min: 150,
+              max: 600,
+            });
             currentTimeMs += sentenceGap;
           }
         }

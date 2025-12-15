@@ -61,7 +61,10 @@ webhook.post(
           // stripe-sync-engine doesn't support this event type, skip silently
         } else {
           Sentry.captureException(error, {
-            tags: { webhook: "stripe", event_type: stripeEvent.type },
+            tags: {
+              webhook: "stripe",
+              event_type: stripeEvent.type,
+            },
           });
           return c.json({ error: "stripe_sync_failed" }, 500);
         }

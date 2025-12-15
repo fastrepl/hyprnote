@@ -345,7 +345,9 @@ export const buildSessionTags = (
   const { tagProbability = 0.6, tagsPerSession = { min: 1, max: 3 } } = options;
 
   sessionIds.forEach((sessionId) => {
-    const shouldTag = faker.datatype.boolean({ probability: tagProbability });
+    const shouldTag = faker.datatype.boolean({
+      probability: tagProbability,
+    });
     if (shouldTag) {
       const tagCount = faker.number.int(tagsPerSession);
       const selectedTags = faker.helpers.arrayElements(tagIds, tagCount);

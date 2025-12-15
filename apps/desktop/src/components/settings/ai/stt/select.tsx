@@ -257,14 +257,26 @@ function useConfiguredMapping(): Record<
       if (provider.id === "hyprnote") {
         const models = [
           { id: "cloud", isDownloaded: billing.isPro },
-          { id: "QuantizedTinyEn", isDownloaded: tinyEn.data ?? false },
-          { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
+          {
+            id: "QuantizedTinyEn",
+            isDownloaded: tinyEn.data ?? false,
+          },
+          {
+            id: "QuantizedSmallEn",
+            isDownloaded: smallEn.data ?? false,
+          },
         ];
 
         if (isAppleSilicon) {
           models.push(
-            { id: "am-parakeet-v2", isDownloaded: p2.data ?? false },
-            { id: "am-parakeet-v3", isDownloaded: p3.data ?? false },
+            {
+              id: "am-parakeet-v2",
+              isDownloaded: p2.data ?? false,
+            },
+            {
+              id: "am-parakeet-v3",
+              isDownloaded: p3.data ?? false,
+            },
             {
               id: "am-whisper-large-v3",
               isDownloaded: whisperLargeV3.data ?? false,

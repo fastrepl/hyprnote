@@ -163,7 +163,11 @@ const suggestion = (
           .insertContentAt(range, [
             {
               type: `mention-${config.trigger}`,
-              attrs: { id: item.id, type: item.type, label: item.label },
+              attrs: {
+                id: item.id,
+                type: item.type,
+                label: item.label,
+              },
             },
             { type: "text", text: " " },
           ])

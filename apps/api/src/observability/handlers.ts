@@ -91,14 +91,21 @@ export function handleSentry(event: ObservabilityEvent): void {
       });
       Sentry.metrics.distribution("upstream.latency", event.durationMs, {
         unit: "millisecond",
-        attributes: { model: event.model, operation: "llm", status: "error" },
+        attributes: {
+          model: event.model,
+          operation: "llm",
+          status: "error",
+        },
       });
       break;
 
     case "stt.batch.success":
       Sentry.metrics.distribution("upstream.latency", event.durationMs, {
         unit: "millisecond",
-        attributes: { provider: event.provider, operation: "stt_batch" },
+        attributes: {
+          provider: event.provider,
+          operation: "stt_batch",
+        },
       });
       break;
 

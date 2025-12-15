@@ -42,7 +42,10 @@ function Component() {
         }}
       >
         <DocsDrawerContext.Provider
-          value={{ isOpen: isDocsDrawerOpen, setIsOpen: setIsDocsDrawerOpen }}
+          value={{
+            isOpen: isDocsDrawerOpen,
+            setIsOpen: setIsDocsDrawerOpen,
+          }}
         >
           <HandbookDrawerContext.Provider
             value={{

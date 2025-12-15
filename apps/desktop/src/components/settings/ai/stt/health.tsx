@@ -46,7 +46,10 @@ function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
     return { status: "success" };
   }
 
-  return { status: "error", tooltip: `Local server status: ${serverStatus}.` };
+  return {
+    status: "error",
+    tooltip: `Local server status: ${serverStatus}.`,
+  };
 }
 
 export function HealthCheckForAvailability() {
@@ -78,7 +81,10 @@ function useAvailability():
   });
 
   if (!current_stt_provider || !current_stt_model) {
-    return { available: false, message: "Please select a provider and model." };
+    return {
+      available: false,
+      message: "Please select a provider and model.",
+    };
   }
 
   const providerId = current_stt_provider as ProviderId;

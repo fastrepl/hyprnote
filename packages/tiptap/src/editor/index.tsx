@@ -19,7 +19,10 @@ const safeRequestIdleCallback =
     : (cb: IdleRequestCallback) =>
         setTimeout(
           () =>
-            cb({ didTimeout: false, timeRemaining: () => 50 } as IdleDeadline),
+            cb({
+              didTimeout: false,
+              timeRemaining: () => 50,
+            } as IdleDeadline),
           1,
         );
 

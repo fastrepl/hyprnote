@@ -25,7 +25,11 @@ export const ErrorComponent: ErrorRouteComponent = ({ error, reset }) => {
               className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              transition={{
+                delay: 0.1,
+                type: "spring",
+                stiffness: 200,
+              }}
             >
               <AlertTriangle className="h-6 w-6 text-red-500" />
             </motion.div>
@@ -73,7 +77,11 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
               className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              transition={{
+                delay: 0.1,
+                type: "spring",
+                stiffness: 200,
+              }}
             >
               <Search className="h-6 w-6 text-neutral-400" />
             </motion.div>
@@ -83,7 +91,11 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
                 className="block text-4xl font-bold text-neutral-300"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
+                transition={{
+                  delay: 0.15,
+                  type: "spring",
+                  stiffness: 200,
+                }}
               >
                 404
               </motion.span>

@@ -101,7 +101,10 @@ stt.post(
 
       if (!audioData || audioData.byteLength === 0) {
         return c.json(
-          { error: "missing_audio_data", detail: "Request body is empty" },
+          {
+            error: "missing_audio_data",
+            detail: "Request body is empty",
+          },
           400,
         );
       }

@@ -92,7 +92,10 @@ export function md2json(markdown: string): JSONContent {
     return {
       type: "doc",
       content: [
-        { type: "paragraph", content: [{ type: "text", text: markdown }] },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: markdown }],
+        },
       ],
     };
   }

@@ -51,13 +51,18 @@ const useNavigationEvents = () => {
           } else if (tab === "transcription" || tab === "intelligence") {
             openNew({
               type: "ai",
-              state: { tab: tab as "transcription" | "intelligence" },
+              state: {
+                tab: tab as "transcription" | "intelligence",
+              },
             });
           } else {
             openNew({ type: "settings" });
           }
         } else {
-          navigate({ to: payload.path, search: payload.search ?? undefined });
+          navigate({
+            to: payload.path,
+            search: payload.search ?? undefined,
+          });
         }
       })
       .then((fn) => {

@@ -8,14 +8,20 @@ describe("jsonPersister roundtrip", () => {
     const original = {
       ai: {
         llm: {
-          openai: { base_url: "https://api.openai.com", api_key: "sk-123" },
+          openai: {
+            base_url: "https://api.openai.com",
+            api_key: "sk-123",
+          },
           anthropic: {
             base_url: "https://api.anthropic.com",
             api_key: "sk-456",
           },
         },
         stt: {
-          deepgram: { base_url: "https://api.deepgram.com", api_key: "dg-789" },
+          deepgram: {
+            base_url: "https://api.deepgram.com",
+            api_key: "dg-789",
+          },
         },
         current_llm_provider: "openai",
         current_llm_model: "gpt-4",
@@ -119,7 +125,10 @@ describe("jsonPersister roundtrip", () => {
     const original = {
       ai: {
         llm: {
-          openai: { base_url: "https://api.openai.com", api_key: "sk-123" },
+          openai: {
+            base_url: "https://api.openai.com",
+            api_key: "sk-123",
+          },
         },
         stt: {},
         current_llm_provider: "openai",

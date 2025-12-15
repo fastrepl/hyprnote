@@ -139,7 +139,11 @@ const resolveLLMConnection = (params: {
     if (!session) {
       return {
         conn: null,
-        status: { status: "error", reason: "unauthenticated", providerId },
+        status: {
+          status: "error",
+          reason: "unauthenticated",
+          providerId,
+        },
       };
     }
 
@@ -261,7 +265,10 @@ const createLanguageModel = (
       const ollamaFetch: typeof fetch = async (input, init) => {
         const headers = new Headers(init?.headers);
         headers.set("Origin", "http://localhost");
-        return tauriFetch(input as RequestInfo | URL, { ...init, headers });
+        return tauriFetch(input as RequestInfo | URL, {
+          ...init,
+          headers,
+        });
       };
       const provider = createOpenAICompatible({
         fetch: ollamaFetch,

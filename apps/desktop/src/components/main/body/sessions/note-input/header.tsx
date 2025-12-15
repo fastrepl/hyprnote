@@ -472,7 +472,10 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
 
       setMissingModelError(null);
 
-      analyticsCommands.event({ event: "summary_generated", is_auto: false });
+      analyticsCommands.event({
+        event: "summary_generated",
+        is_auto: false,
+      });
 
       await enhanceTask.start({
         model,

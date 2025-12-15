@@ -94,7 +94,9 @@ describe("State Updater Actions", () => {
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
-      expect(useTabs.getState()).toHaveCurrentTab({ state: newContactsState });
+      expect(useTabs.getState()).toHaveCurrentTab({
+        state: newContactsState,
+      });
       expect(useTabs.getState()).toHaveLastHistoryEntry({
         state: newContactsState,
       });
@@ -111,7 +113,9 @@ describe("State Updater Actions", () => {
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
       expect(state.tabs[1]).toMatchObject({ state: {} });
-      expect(useTabs.getState()).toHaveLastHistoryEntry({ id: session.id });
+      expect(useTabs.getState()).toHaveLastHistoryEntry({
+        id: session.id,
+      });
     });
 
     test("updates contacts tab state using any contacts instance", () => {
@@ -125,7 +129,9 @@ describe("State Updater Actions", () => {
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });
-      expect(useTabs.getState()).toHaveCurrentTab({ state: newContactsState });
+      expect(useTabs.getState()).toHaveCurrentTab({
+        state: newContactsState,
+      });
     });
   });
 });

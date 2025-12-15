@@ -193,7 +193,10 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       initial={{ x: 0, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       exit={{ x: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      transition={{
+                        duration: 0.2,
+                        ease: "easeInOut",
+                      }}
                       ref={mainViewRef}
                     >
                       {/*<NotificationsMenuHeader
@@ -215,7 +218,10 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                       initial={{ x: 20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       exit={{ x: 20, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      transition={{
+                        duration: 0.2,
+                        ease: "easeInOut",
+                      }}
                       style={
                         mainViewHeight ? { height: mainViewHeight } : undefined
                       }

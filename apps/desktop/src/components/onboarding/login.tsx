@@ -25,7 +25,9 @@ export function Login({ onNext }: { onNext: OnboardingNext }) {
       const client = createClient(
         createConfig({
           baseUrl: env.VITE_API_URL,
-          headers: { Authorization: `Bearer ${auth.session.access_token}` },
+          headers: {
+            Authorization: `Bearer ${auth.session.access_token}`,
+          },
         }),
       );
 

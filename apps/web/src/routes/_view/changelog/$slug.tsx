@@ -357,7 +357,11 @@ function MobileSidebarDrawer({
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+            transition={{
+              type: "tween",
+              duration: 0.2,
+              ease: "easeOut",
+            }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
               <span className="text-sm font-medium text-stone-600">

@@ -100,7 +100,11 @@ export function ChatMessageInput({
         Object.entries(sessions).forEach(([rowId, row]) => {
           const title = row.title as string | undefined;
           if (title && title.toLowerCase().includes(lowerQuery)) {
-            results.push({ id: rowId, type: "session", label: title });
+            results.push({
+              id: rowId,
+              type: "session",
+              label: title,
+            });
           }
         });
 

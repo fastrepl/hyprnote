@@ -5,9 +5,7 @@
   "packageManager": "pnpm@10.25.0",
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.51.1",
-    "@prettier/plugin-oxc": "0.0.5",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
-    "prettier": "3.6.2",
     "turbo": "2.6.3"
   }
 }

@@ -39,7 +39,10 @@ export const Route = createFileRoute("/_view/vs/$slug")({
         { property: "og:title", content: metaTitle },
         { property: "og:description", content: doc.metaDescription },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: `https://hyprnote.com/vs/${doc.slug}` },
+        {
+          property: "og:url",
+          content: `https://hyprnote.com/vs/${doc.slug}`,
+        },
         { name: "twitter:card", content: "summary" },
         { name: "twitter:title", content: metaTitle },
         { name: "twitter:description", content: doc.metaDescription },

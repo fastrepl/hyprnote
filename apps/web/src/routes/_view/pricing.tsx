@@ -32,7 +32,11 @@ const pricingPlans: PricingPlan[] = [
       "Fully functional with your own API keys. Perfect for individuals who want complete control.",
     features: [
       { label: "Local Transcription", included: true },
-      { label: "Speaker Identification", included: true, comingSoon: true },
+      {
+        label: "Speaker Identification",
+        included: true,
+        comingSoon: true,
+      },
       { label: "Bring Your Own Key (STT & LLM)", included: true },
       { label: "Basic Sharing (Copy, PDF)", included: true },
       { label: "All Data Local", included: true },

@@ -69,7 +69,10 @@ export const TimelineItemComponent = memo(
       });
 
       if (existingSessionId) {
-        const tab: TabInput = { id: existingSessionId, type: "sessions" };
+        const tab: TabInput = {
+          id: existingSessionId,
+          type: "sessions",
+        };
         if (openInNewTab) {
           openNew(tab);
         } else {
@@ -82,7 +85,10 @@ export const TimelineItemComponent = memo(
           title: title,
           created_at: new Date().toISOString(),
         });
-        analyticsCommands.event({ event: "note_created", has_event_id: true });
+        analyticsCommands.event({
+          event: "note_created",
+          has_event_id: true,
+        });
         const tab: TabInput = { id: sessionId, type: "sessions" };
         if (openInNewTab) {
           openNew(tab);
@@ -142,7 +148,10 @@ export const TimelineItemComponent = memo(
 
       const sameYear = date.getFullYear() === new Date().getFullYear();
       const dateStr = sameYear
-        ? date.toLocaleDateString([], { month: "short", day: "numeric" })
+        ? date.toLocaleDateString([], {
+            month: "short",
+            day: "numeric",
+          })
         : date.toLocaleDateString([], {
             month: "short",
             day: "numeric",

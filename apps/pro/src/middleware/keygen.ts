@@ -25,7 +25,9 @@ export const keygenAuth = (options: KeygenAuthOptions = {}) => {
     const credentials = extractCredentials(c);
 
     if (!credentials) {
-      throw new HTTPException(401, { message: "invalid authorization header" });
+      throw new HTTPException(401, {
+        message: "invalid authorization header",
+      });
     }
 
     const { licenseKey } = credentials;

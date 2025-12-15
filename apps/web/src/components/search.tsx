@@ -368,7 +368,9 @@ function SearchCommandPalette({
                         {result.excerpt && (
                           <span
                             className="text-xs text-neutral-500 line-clamp-2"
-                            dangerouslySetInnerHTML={{ __html: result.excerpt }}
+                            dangerouslySetInnerHTML={{
+                              __html: result.excerpt,
+                            }}
                           />
                         )}
                       </div>

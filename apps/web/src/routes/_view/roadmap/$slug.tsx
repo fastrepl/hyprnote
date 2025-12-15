@@ -33,7 +33,10 @@ export const Route = createFileRoute("/_view/roadmap/$slug")({
           content: `Roadmap item: ${item.title}`,
         },
         { property: "og:title", content: item.title },
-        { property: "og:description", content: `Roadmap item: ${item.title}` },
+        {
+          property: "og:description",
+          content: `Roadmap item: ${item.title}`,
+        },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
         { name: "twitter:card", content: "summary" },

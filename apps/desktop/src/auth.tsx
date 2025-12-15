@@ -298,7 +298,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
 
-    return { Authorization: `${session.token_type} ${session.access_token}` };
+    return {
+      Authorization: `${session.token_type} ${session.access_token}`,
+    };
   }, [session]);
 
   const getAvatarUrl = useCallback(async () => {

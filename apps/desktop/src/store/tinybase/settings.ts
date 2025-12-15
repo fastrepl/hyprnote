@@ -23,17 +23,32 @@ export const STORE_ID = "settings";
 export const SETTINGS_MAPPING = {
   values: {
     autostart: { type: "boolean", path: ["general", "autostart"] },
-    save_recordings: { type: "boolean", path: ["general", "save_recordings"] },
-    notification_event: { type: "boolean", path: ["notification", "event"] },
-    notification_detect: { type: "boolean", path: ["notification", "detect"] },
+    save_recordings: {
+      type: "boolean",
+      path: ["general", "save_recordings"],
+    },
+    notification_event: {
+      type: "boolean",
+      path: ["notification", "event"],
+    },
+    notification_detect: {
+      type: "boolean",
+      path: ["notification", "detect"],
+    },
     respect_dnd: { type: "boolean", path: ["notification", "respect_dnd"] },
-    quit_intercept: { type: "boolean", path: ["general", "quit_intercept"] },
+    quit_intercept: {
+      type: "boolean",
+      path: ["general", "quit_intercept"],
+    },
     telemetry_consent: {
       type: "boolean",
       path: ["general", "telemetry_consent"],
     },
     ai_language: { type: "string", path: ["general", "ai_language"] },
-    spoken_languages: { type: "string", path: ["general", "spoken_languages"] },
+    spoken_languages: {
+      type: "string",
+      path: ["general", "spoken_languages"],
+    },
     ignored_platforms: {
       type: "string",
       path: ["notification", "ignored_platforms"],
@@ -46,12 +61,18 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["ai", "current_llm_provider"],
     },
-    current_llm_model: { type: "string", path: ["ai", "current_llm_model"] },
+    current_llm_model: {
+      type: "string",
+      path: ["ai", "current_llm_model"],
+    },
     current_stt_provider: {
       type: "string",
       path: ["ai", "current_stt_provider"],
     },
-    current_stt_model: { type: "string", path: ["ai", "current_stt_model"] },
+    current_stt_model: {
+      type: "string",
+      path: ["ai", "current_stt_model"],
+    },
   },
   tables: {
     ai_providers: {

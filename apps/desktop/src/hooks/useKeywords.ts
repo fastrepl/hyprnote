@@ -47,7 +47,10 @@ export const extractKeywordsFromMarkdown = (
             processMarkdown(cleaned),
             Effect.map((file) => gatherKeywords(file, hashtags)),
             Effect.orElse(() =>
-              Effect.succeed({ keywords: hashtags, keyphrases: [] }),
+              Effect.succeed({
+                keywords: hashtags,
+                keyphrases: [],
+              }),
             ),
           ),
     ),

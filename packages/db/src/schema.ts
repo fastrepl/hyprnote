@@ -111,7 +111,9 @@ export const folders: any = pgTable(
     name: text("name").notNull(),
     parent_folder_id: uuid("parent_folder_id").references(
       (): any => folders.id,
-      { onDelete: "cascade" },
+      {
+        onDelete: "cascade",
+      },
     ),
   },
   (table) => createPolicies(TABLE_FOLDERS, table.user_id),

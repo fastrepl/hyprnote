@@ -186,7 +186,9 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         store as Store,
         saveEnhancedNoteToFile,
         (sessionId, content) =>
-          store.setPartialRow("sessions", sessionId, { enhanced_md: content }),
+          store.setPartialRow("sessions", sessionId, {
+            enhanced_md: content,
+          }),
       );
 
       return persister;

@@ -40,7 +40,10 @@ export async function check_2(): Promise<Update | null> {
 
       for (let i = 0; i < chunks; i++) {
         await new Promise((resolve) => setTimeout(resolve, 50));
-        onEvent?.({ event: "Progress", data: { chunkLength: chunkSize } });
+        onEvent?.({
+          event: "Progress",
+          data: { chunkLength: chunkSize },
+        });
       }
 
       onEvent?.({ event: "Finished" });

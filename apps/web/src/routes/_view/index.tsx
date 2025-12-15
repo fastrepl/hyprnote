@@ -1133,7 +1133,10 @@ export function MainFeaturesSection({
         if (featuresScrollRef.current) {
           const container = featuresScrollRef.current;
           const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: "smooth",
+          });
         }
       } else {
         animationId = requestAnimationFrame(animate);
@@ -1424,7 +1427,10 @@ export function DetailsSection({
         if (detailsScrollRef.current) {
           const container = detailsScrollRef.current;
           const scrollLeft = container.offsetWidth * nextIndex;
-          container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: "smooth",
+          });
         }
       } else {
         animationId = requestAnimationFrame(animate);

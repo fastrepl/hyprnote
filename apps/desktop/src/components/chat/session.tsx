@@ -159,7 +159,14 @@ export function ChatSession({
 
   return (
     <div className="flex-1 h-full flex flex-col">
-      {children({ messages, sendMessage, regenerate, stop, status, error })}
+      {children({
+        messages,
+        sendMessage,
+        regenerate,
+        stop,
+        status,
+        error,
+      })}
     </div>
   );
 }

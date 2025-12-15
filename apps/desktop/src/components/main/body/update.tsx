@@ -49,6 +49,7 @@ export function Update() {
     try {
       const u = await check();
       if (u) {
+        await u.download();
         await u.install();
       }
     } catch (error) {
@@ -56,7 +57,7 @@ export function Update() {
     } finally {
       await relaunch();
     }
-  }, [check]);
+  }, []);
 
   if (!show) {
     return null;

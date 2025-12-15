@@ -38,6 +38,15 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             {
                 submenu.remove_at(0)?;
                 submenu.remove_at(0)?;
+
+                while let Ok(items) = submenu.items() {
+                    if let Some(MenuItemKind::Predefined(_)) = items.first() {
+                        let _ = submenu.remove_at(0);
+                    } else {
+                        break;
+                    }
+                }
+
                 submenu.prepend(&cli_item)?;
                 submenu.prepend(&settings_item)?;
                 submenu.prepend(&check_update_item)?;

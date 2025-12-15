@@ -30,7 +30,9 @@ export function OnboardingContainer({
   return (
     <>
       <div className="space-y-3 text-center mb-8">
-        <h1 className="text-xl font-semibold text-neutral-900">{title}</h1>
+        <h1 className="text-xl font-semibold text-neutral-900 font-serif">
+          {title}
+        </h1>
         {description && (
           <p className="text-base text-neutral-500">{description}</p>
         )}

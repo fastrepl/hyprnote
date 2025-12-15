@@ -6,6 +6,7 @@ import { z } from "zod";
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
 import {
+  getPreviousStep,
   type OnboardingContext,
   type OnboardingStepId,
   STEP_CONFIGS,
@@ -127,6 +128,13 @@ function OnboardingFlow({
   }
 
   const StepComponent = currentConfig.component;
+  const previousStep = getPreviousStep(
+    { ...ctx, local: state.local },
+    state.step,
+  );
+  const goBack = previousStep
+    ? () => actorRef.send({ type: "GO_TO", step: previousStep })
+    : undefined;
 
   return (
     <div className="flex flex-col h-full relative items-center justify-center p-8">
@@ -134,7 +142,7 @@ function OnboardingFlow({
         data-tauri-drag-region
         className="h-14 w-full absolute top-0 left-0 right-0"
       />
-      <StepComponent onNext={goNext} />
+      <StepComponent onNext={goNext} onBack={goBack} />
     </div>
   );
 }

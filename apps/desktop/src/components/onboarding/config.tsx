@@ -29,8 +29,17 @@ export type OnboardingContext = {
 export type OnboardingStepConfig = {
   id: OnboardingStepId;
   shouldShow: (ctx: OnboardingContext) => boolean;
-  component: ComponentType<{ onNext: OnboardingNext }>;
+  component: ComponentType<{ onNext: OnboardingNext; onBack?: () => void }>;
 };
+
+export function getPreviousStep(
+  ctx: OnboardingContext,
+  currentStep: OnboardingStepId,
+): OnboardingStepId | null {
+  const visibleSteps = STEP_CONFIGS.filter((s) => s.shouldShow(ctx));
+  const currentIndex = visibleSteps.findIndex((s) => s.id === currentStep);
+  return visibleSteps[currentIndex - 1]?.id ?? null;
+}
 
 export const STEP_CONFIGS: OnboardingStepConfig[] = [
   {

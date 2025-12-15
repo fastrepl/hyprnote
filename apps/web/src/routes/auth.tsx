@@ -143,9 +143,8 @@ function OAuthButton({
         "flex items-center justify-center gap-2",
       ])}
     >
-      <Icon
-        icon={provider === "google" ? "logos:google-icon" : "logos:github-icon"}
-      />
+      {provider === "google" && <Icon icon="logos:google-icon" />}
+      {provider === "github" && <Icon icon="logos:github-icon" />}
       Sign in with {provider.charAt(0).toUpperCase() + provider.slice(1)}
     </button>
   );

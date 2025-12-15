@@ -5,6 +5,7 @@ import type { OnboardingNext } from "./shared";
 
 type WelcomeProps = {
   onNext: OnboardingNext;
+  onBack?: () => void;
 };
 
 export function Welcome({ onNext }: WelcomeProps) {

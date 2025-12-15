@@ -1,4 +1,4 @@
-import { ArrowRightIcon, CheckIcon } from "lucide-react";
+import { ArrowRightIcon, CheckIcon, ChevronLeftIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -19,6 +19,7 @@ type OnboardingContainerProps = {
   description?: string;
   action?: OnboardingAction;
   children: ReactNode;
+  onBack?: () => void;
 };
 
 export function OnboardingContainer({
@@ -26,9 +27,20 @@ export function OnboardingContainer({
   description,
   action,
   children,
+  onBack,
 }: OnboardingContainerProps) {
   return (
     <>
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="fixed top-10 left-1 flex items-center gap-1 px-2 py-1 text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
+        >
+          <ChevronLeftIcon size={16} />
+          Back
+        </button>
+      )}
+
       <div className="space-y-3 text-center mb-8">
         <h1 className="text-xl font-semibold text-neutral-900 font-serif">
           {title}

@@ -10,13 +10,15 @@ import {
 type CalendarsProps = {
   local: boolean;
   onNext: OnboardingNext;
+  onBack?: () => void;
 };
 
-export function Calendars({ local, onNext }: CalendarsProps) {
+export function Calendars({ local, onNext, onBack }: CalendarsProps) {
   return (
     <OnboardingContainer
       title="Connect your calendars to be reminded every time"
       action={{ kind: "skip", onClick: () => onNext() }}
+      onBack={onBack}
     >
       <div className="flex flex-col gap-4">
         {local ? (

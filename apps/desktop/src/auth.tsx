@@ -117,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       access_token: accessToken,
       refresh_token: refreshToken,
     });
+    console.log("res", res);
 
     if (res.error) {
       console.error("Failed to set session");

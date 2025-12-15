@@ -1,44 +1,37 @@
-import { ChevronLeftIcon } from "lucide-react";
-
 import { OnboardingContainer, type OnboardingNext } from "./shared";
 
 type ConfigureNoticeProps = {
   onNext: OnboardingNext;
+  onBack?: () => void;
 };
 
-export function ConfigureNotice({ onNext }: ConfigureNoticeProps) {
+export function ConfigureNotice({ onNext, onBack }: ConfigureNoticeProps) {
   return (
-    <>
-      <button
-        onClick={() => onNext({ step: "welcome" })}
-        className="fixed top-10 left-1 flex items-center gap-1 px-2 py-1 text-sm text-neutral-400 hover:text-neutral-600 transition-colors"
-      >
-        <ChevronLeftIcon size={16} />
-        Back
-      </button>
-      <OnboardingContainer title="AI models are needed for best experience">
-        <div className="flex flex-col gap-4">
-          <Requirement
-            title="Speech-to-Text Model"
-            description="Deepgram, AssemblyAI, etc."
-            required
-          />
-          <Requirement
-            title="Language Model"
-            description="OpenAI, OpenRouter, etc."
-          />
-        </div>
+    <OnboardingContainer
+      title="AI models are needed for best experience"
+      onBack={onBack}
+    >
+      <div className="flex flex-col gap-4">
+        <Requirement
+          title="Speech-to-Text Model"
+          description="Deepgram, AssemblyAI, etc."
+          required
+        />
+        <Requirement
+          title="Language Model"
+          description="OpenAI, OpenRouter etc."
+        />
+      </div>
 
-        <div className="flex flex-col gap-3 mt-4">
-          <button
-            onClick={() => onNext()}
-            className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
-          >
-            Continue to download
-          </button>
-        </div>
-      </OnboardingContainer>
-    </>
+      <div className="flex flex-col gap-3 mt-4">
+        <button
+          onClick={() => onNext()}
+          className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
+        >
+          Continue to download
+        </button>
+      </div>
+    </OnboardingContainer>
   );
 }
 

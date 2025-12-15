@@ -31,7 +31,6 @@ import { Route as ViewOssFriendsRouteImport } from './routes/_view/oss-friends'
 import { Route as ViewOpensourceRouteImport } from './routes/_view/opensource'
 import { Route as ViewFreeRouteImport } from './routes/_view/free'
 import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
-import { Route as ViewEvalRouteImport } from './routes/_view/eval'
 import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
 import { Route as ViewBrandRouteImport } from './routes/_view/brand'
 import { Route as ViewAboutRouteImport } from './routes/_view/about'
@@ -45,6 +44,7 @@ import { Route as ViewPressKitIndexRouteImport } from './routes/_view/press-kit/
 import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
 import { Route as ViewK6ReportsIndexRouteImport } from './routes/_view/k6-reports/index'
 import { Route as ViewGalleryIndexRouteImport } from './routes/_view/gallery/index'
+import { Route as ViewEvalIndexRouteImport } from './routes/_view/eval/index'
 import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
 import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
 import { Route as ViewCompanyHandbookIndexRouteImport } from './routes/_view/company-handbook/index'
@@ -212,11 +212,6 @@ const ViewFileTranscriptionRoute = ViewFileTranscriptionRouteImport.update({
   path: '/file-transcription',
   getParentRoute: () => ViewRouteRoute,
 } as any)
-const ViewEvalRoute = ViewEvalRouteImport.update({
-  id: '/eval',
-  path: '/eval',
-  getParentRoute: () => ViewRouteRoute,
-} as any)
 const ViewEnterpriseRoute = ViewEnterpriseRouteImport.update({
   id: '/enterprise',
   path: '/enterprise',
@@ -281,6 +276,11 @@ const ViewK6ReportsIndexRoute = ViewK6ReportsIndexRouteImport.update({
 const ViewGalleryIndexRoute = ViewGalleryIndexRouteImport.update({
   id: '/gallery/',
   path: '/gallery/',
+  getParentRoute: () => ViewRouteRoute,
+} as any)
+const ViewEvalIndexRoute = ViewEvalIndexRouteImport.update({
+  id: '/eval/',
+  path: '/eval/',
   getParentRoute: () => ViewRouteRoute,
 } as any)
 const ViewDownloadIndexRoute = ViewDownloadIndexRouteImport.update({
@@ -594,7 +594,6 @@ export interface FileRoutesByFullPath {
   '/about': typeof ViewAboutRoute
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
-  '/eval': typeof ViewEvalRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
@@ -662,6 +661,7 @@ export interface FileRoutesByFullPath {
   '/company-handbook/': typeof ViewCompanyHandbookIndexRoute
   '/docs/': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
+  '/eval': typeof ViewEvalIndexRoute
   '/gallery': typeof ViewGalleryIndexRoute
   '/k6-reports': typeof ViewK6ReportsIndexRoute
   '/legal': typeof ViewLegalIndexRoute
@@ -685,7 +685,6 @@ export interface FileRoutesByTo {
   '/about': typeof ViewAboutRoute
   '/brand': typeof ViewBrandRoute
   '/enterprise': typeof ViewEnterpriseRoute
-  '/eval': typeof ViewEvalRoute
   '/file-transcription': typeof ViewFileTranscriptionRoute
   '/free': typeof ViewFreeRoute
   '/opensource': typeof ViewOpensourceRoute
@@ -753,6 +752,7 @@ export interface FileRoutesByTo {
   '/company-handbook': typeof ViewCompanyHandbookIndexRoute
   '/docs': typeof ViewDocsIndexRoute
   '/download': typeof ViewDownloadIndexRoute
+  '/eval': typeof ViewEvalIndexRoute
   '/gallery': typeof ViewGalleryIndexRoute
   '/k6-reports': typeof ViewK6ReportsIndexRoute
   '/legal': typeof ViewLegalIndexRoute
@@ -781,7 +781,6 @@ export interface FileRoutesById {
   '/_view/about': typeof ViewAboutRoute
   '/_view/brand': typeof ViewBrandRoute
   '/_view/enterprise': typeof ViewEnterpriseRoute
-  '/_view/eval': typeof ViewEvalRoute
   '/_view/file-transcription': typeof ViewFileTranscriptionRoute
   '/_view/free': typeof ViewFreeRoute
   '/_view/opensource': typeof ViewOpensourceRoute
@@ -849,6 +848,7 @@ export interface FileRoutesById {
   '/_view/company-handbook/': typeof ViewCompanyHandbookIndexRoute
   '/_view/docs/': typeof ViewDocsIndexRoute
   '/_view/download/': typeof ViewDownloadIndexRoute
+  '/_view/eval/': typeof ViewEvalIndexRoute
   '/_view/gallery/': typeof ViewGalleryIndexRoute
   '/_view/k6-reports/': typeof ViewK6ReportsIndexRoute
   '/_view/legal/': typeof ViewLegalIndexRoute
@@ -877,7 +877,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/brand'
     | '/enterprise'
-    | '/eval'
     | '/file-transcription'
     | '/free'
     | '/opensource'
@@ -945,6 +944,7 @@ export interface FileRouteTypes {
     | '/company-handbook/'
     | '/docs/'
     | '/download'
+    | '/eval'
     | '/gallery'
     | '/k6-reports'
     | '/legal'
@@ -968,7 +968,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/brand'
     | '/enterprise'
-    | '/eval'
     | '/file-transcription'
     | '/free'
     | '/opensource'
@@ -1036,6 +1035,7 @@ export interface FileRouteTypes {
     | '/company-handbook'
     | '/docs'
     | '/download'
+    | '/eval'
     | '/gallery'
     | '/k6-reports'
     | '/legal'
@@ -1063,7 +1063,6 @@ export interface FileRouteTypes {
     | '/_view/about'
     | '/_view/brand'
     | '/_view/enterprise'
-    | '/_view/eval'
     | '/_view/file-transcription'
     | '/_view/free'
     | '/_view/opensource'
@@ -1131,6 +1130,7 @@ export interface FileRouteTypes {
     | '/_view/company-handbook/'
     | '/_view/docs/'
     | '/_view/download/'
+    | '/_view/eval/'
     | '/_view/gallery/'
     | '/_view/k6-reports/'
     | '/_view/legal/'
@@ -1317,13 +1317,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewFileTranscriptionRouteImport
       parentRoute: typeof ViewRouteRoute
     }
-    '/_view/eval': {
-      id: '/_view/eval'
-      path: '/eval'
-      fullPath: '/eval'
-      preLoaderRoute: typeof ViewEvalRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
     '/_view/enterprise': {
       id: '/_view/enterprise'
       path: '/enterprise'
@@ -1413,6 +1406,13 @@ declare module '@tanstack/react-router' {
       path: '/gallery'
       fullPath: '/gallery'
       preLoaderRoute: typeof ViewGalleryIndexRouteImport
+      parentRoute: typeof ViewRouteRoute
+    }
+    '/_view/eval/': {
+      id: '/_view/eval/'
+      path: '/eval'
+      fullPath: '/eval'
+      preLoaderRoute: typeof ViewEvalIndexRouteImport
       parentRoute: typeof ViewRouteRoute
     }
     '/_view/download/': {
@@ -1874,7 +1874,6 @@ interface ViewRouteRouteChildren {
   ViewAboutRoute: typeof ViewAboutRoute
   ViewBrandRoute: typeof ViewBrandRoute
   ViewEnterpriseRoute: typeof ViewEnterpriseRoute
-  ViewEvalRoute: typeof ViewEvalRoute
   ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
   ViewFreeRoute: typeof ViewFreeRoute
   ViewOpensourceRoute: typeof ViewOpensourceRoute
@@ -1927,6 +1926,7 @@ interface ViewRouteRouteChildren {
   ViewBlogIndexRoute: typeof ViewBlogIndexRoute
   ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
   ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
+  ViewEvalIndexRoute: typeof ViewEvalIndexRoute
   ViewGalleryIndexRoute: typeof ViewGalleryIndexRoute
   ViewK6ReportsIndexRoute: typeof ViewK6ReportsIndexRoute
   ViewLegalIndexRoute: typeof ViewLegalIndexRoute
@@ -1945,7 +1945,6 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewAboutRoute: ViewAboutRoute,
   ViewBrandRoute: ViewBrandRoute,
   ViewEnterpriseRoute: ViewEnterpriseRoute,
-  ViewEvalRoute: ViewEvalRoute,
   ViewFileTranscriptionRoute: ViewFileTranscriptionRoute,
   ViewFreeRoute: ViewFreeRoute,
   ViewOpensourceRoute: ViewOpensourceRoute,
@@ -1998,6 +1997,7 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewBlogIndexRoute: ViewBlogIndexRoute,
   ViewChangelogIndexRoute: ViewChangelogIndexRoute,
   ViewDownloadIndexRoute: ViewDownloadIndexRoute,
+  ViewEvalIndexRoute: ViewEvalIndexRoute,
   ViewGalleryIndexRoute: ViewGalleryIndexRoute,
   ViewK6ReportsIndexRoute: ViewK6ReportsIndexRoute,
   ViewLegalIndexRoute: ViewLegalIndexRoute,

@@ -168,6 +168,7 @@ func (r *Runner) TotalCount(tasks []Task) int {
 }
 
 // TotalGenerations returns the total number of samples that will be generated.
+// This equals API calls × Task.Samples (using the n parameter for multi-sample generation).
 func (r *Runner) TotalGenerations(tasks []Task) int {
 	total := 0
 	for _, task := range tasks {

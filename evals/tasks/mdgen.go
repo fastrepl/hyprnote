@@ -14,12 +14,14 @@ func (in MDGenInputs) ToMap() map[string]any {
 	}
 }
 
-var MDGen = evals.NewTask(
-	"mdgen",
-	MDGenInputs{
+var MDGen = evals.Task{
+	Name:         "mdgen",
+	TemplatePath: "templates/mdgen.jinja",
+	Inputs: MDGenInputs{
 		Topic: "Go tests for LLM evaluation",
 	},
-	[]evals.Rubric{
+	Samples: 3,
+	Rubrics: []evals.Rubric{
 		{
 			Name:        "non_empty",
 			Description: "Output is non-empty",
@@ -46,4 +48,4 @@ var MDGen = evals.NewTask(
 			Grader:      evals.LLMGrader{Samples: 3},
 		},
 	},
-)
+}

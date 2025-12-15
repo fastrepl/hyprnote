@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient, createConfig } from "@hypr/api-client/client";
@@ -7,6 +7,7 @@ import { createClient, createConfig } from "@hypr/api-client/client";
 import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
+import * as settings from "../../store/tinybase/settings";
 import { Divider, OnboardingContainer, type OnboardingNext } from "./shared";
 
 export function Login({
@@ -18,6 +19,38 @@ export function Login({
 }) {
   const auth = useAuth();
   const [callbackUrl, setCallbackUrl] = useState("");
+
+  const setLlmProvider = settings.UI.useSetValueCallback(
+    "current_llm_provider",
+    () => "hyprnote",
+    [],
+    settings.STORE_ID,
+  );
+  const setLlmModel = settings.UI.useSetValueCallback(
+    "current_llm_model",
+    () => "Auto",
+    [],
+    settings.STORE_ID,
+  );
+  const setSttProvider = settings.UI.useSetValueCallback(
+    "current_stt_provider",
+    () => "hyprnote",
+    [],
+    settings.STORE_ID,
+  );
+  const setSttModel = settings.UI.useSetValueCallback(
+    "current_stt_model",
+    () => "cloud",
+    [],
+    settings.STORE_ID,
+  );
+
+  const setTrialDefaults = useCallback(() => {
+    setLlmProvider();
+    setLlmModel();
+    setSttProvider();
+    setSttModel();
+  }, [setLlmProvider, setLlmModel, setSttProvider, setSttModel]);
 
   const processLoginMutation = useMutation({
     mutationFn: async () => {
@@ -42,7 +75,12 @@ export function Login({
           )
         : false;
     },
-    onSuccess: (isPro) => onNext({ local: !isPro }),
+    onSuccess: (isPro) => {
+      if (isPro) {
+        setTrialDefaults();
+      }
+      onNext({ local: !isPro });
+    },
     onError: (e) => {
       console.error(e);
       onNext({ local: true });
@@ -56,7 +94,7 @@ export function Login({
   }, [auth?.session, processLoginMutation]);
 
   useEffect(() => {
-    if (processLoginMutation.isIdle) {
+    if (processLoginMutation.isIdle && !auth?.session) {
       auth?.signIn();
     }
   }, [auth, processLoginMutation.isIdle]);

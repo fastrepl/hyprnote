@@ -40,7 +40,9 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
+        .setup(move |app, _api| {
+            specta_builder.mount_events(app);
+
             let app_handle = app.clone();
 
             app.deep_link().on_open_url(move |event| {

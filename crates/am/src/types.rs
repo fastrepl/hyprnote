@@ -5,6 +5,26 @@ macro_rules! common_derives {
     };
 }
 
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[serde(transparent)]
+pub struct Secret(String);
+
+impl Secret {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
+    }
+
+    pub fn expose(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Debug for Secret {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("[REDACTED]")
+    }
+}
+
 common_derives! {
     #[serde(rename_all = "camelCase")]
     pub struct ServerStatus {
@@ -57,7 +77,7 @@ common_derives! {
 common_derives! {
     #[serde(rename_all = "camelCase")]
     pub struct InitRequest {
-        pub api_key: String,
+        pub api_key: Secret,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub model: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]

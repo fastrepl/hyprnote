@@ -1,46 +1,45 @@
 package evals
 
 import (
-	"context"
+	"bufio"
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httputil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/adrg/xdg"
+	"github.com/cyberphone/json-canonicalization/go/src/webpki.org/jsoncanonicalizer"
 	"github.com/dgraph-io/badger/v4"
-	"github.com/openai/openai-go/v3"
 	"golang.org/x/sync/singleflight"
 )
 
-// CachingChatCompleter wraps a ChatCompleter with response caching using BadgerDB.
-// It uses singleflight to prevent thundering herd when multiple concurrent requests
-// are made for the same prompt.
-type CachingChatCompleter struct {
-	next     ChatCompleter
-	db       *badger.DB
-	cacheDir string
-	group    singleflight.Group
-}
+const cacheKeyVersion = 1
 
-// CacheConfig configures the caching behavior.
 type CacheConfig struct {
 	Enabled  bool
 	CacheDir string
 }
 
-// DefaultCacheDir returns the platform-specific default cache directory.
 func DefaultCacheDir() string {
 	return filepath.Join(xdg.CacheHome, "hyprnote", "eval.cache")
 }
 
-// NewCachingChatCompleter creates a new caching wrapper around the given ChatCompleter.
-// If caching is disabled or the cache directory cannot be determined, it returns
-// a passthrough wrapper that delegates directly to the underlying client.
-func NewCachingChatCompleter(next ChatCompleter, cfg CacheConfig) (*CachingChatCompleter, error) {
+type CachingRoundTripper struct {
+	next     http.RoundTripper
+	db       *badger.DB
+	cacheDir string
+	group    singleflight.Group
+}
+
+func NewCachingRoundTripper(next http.RoundTripper, cfg CacheConfig) (*CachingRoundTripper, error) {
 	if !cfg.Enabled {
-		return &CachingChatCompleter{next: next}, nil
+		return &CachingRoundTripper{next: next}, nil
 	}
 
 	cacheDir := cfg.CacheDir
@@ -49,7 +48,7 @@ func NewCachingChatCompleter(next ChatCompleter, cfg CacheConfig) (*CachingChatC
 	}
 
 	if cacheDir == "" {
-		return &CachingChatCompleter{next: next}, nil
+		return &CachingRoundTripper{next: next}, nil
 	}
 
 	if err := os.MkdirAll(cacheDir, 0755); err != nil {
@@ -64,97 +63,49 @@ func NewCachingChatCompleter(next ChatCompleter, cfg CacheConfig) (*CachingChatC
 		return nil, err
 	}
 
-	return &CachingChatCompleter{next: next, db: db, cacheDir: cacheDir}, nil
+	return &CachingRoundTripper{next: next, db: db, cacheDir: cacheDir}, nil
 }
 
-// Close closes the underlying BadgerDB database.
-func (c *CachingChatCompleter) Close() error {
+func (c *CachingRoundTripper) Close() error {
 	if c.db != nil {
 		return c.db.Close()
 	}
 	return nil
 }
 
-// CacheDir returns the directory where cache data is stored.
-func (c *CachingChatCompleter) CacheDir() string {
+func (c *CachingRoundTripper) CacheDir() string {
 	return c.cacheDir
 }
 
-// GetGenerationUsage delegates to the underlying client if it implements UsageResolver.
-func (c *CachingChatCompleter) GetGenerationUsage(ctx context.Context, generationID string) (Usage, error) {
-	if resolver, ok := c.next.(UsageResolver); ok {
-		return resolver.GetGenerationUsage(ctx, generationID)
-	}
-	return Usage{}, nil
+type cacheKeyInput struct {
+	Version int    `json:"v"`
+	Method  string `json:"method"`
+	URL     string `json:"url"`
+	Body    string `json:"body"`
 }
 
-type cacheRequest struct {
-	Model          string         `json:"model"`
-	Messages       []cacheMessage `json:"messages"`
-	Temperature    float64        `json:"temperature,omitempty"`
-	N              int64          `json:"n,omitempty"`
-	ResponseFormat any            `json:"response_format,omitempty"`
+func canonicalizeJSON(data []byte) ([]byte, error) {
+	return jsoncanonicalizer.Transform(data)
 }
 
-type cacheMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-func computeCacheKey(params openai.ChatCompletionNewParams) (string, error) {
-	messages := make([]cacheMessage, 0)
-	for _, msg := range params.Messages {
-		if userMsg := msg.OfUser; userMsg != nil {
-			for _, part := range userMsg.Content.OfArrayOfContentParts {
-				if textPart := part.OfText; textPart != nil {
-					messages = append(messages, cacheMessage{Role: "user", Content: textPart.Text})
-				}
-			}
-			if userMsg.Content.OfString.Valid() {
-				messages = append(messages, cacheMessage{Role: "user", Content: userMsg.Content.OfString.Value})
-			}
-		}
-		if sysMsg := msg.OfSystem; sysMsg != nil {
-			if sysMsg.Content.OfString.Valid() {
-				messages = append(messages, cacheMessage{Role: "system", Content: sysMsg.Content.OfString.Value})
-			}
-		}
-		if asstMsg := msg.OfAssistant; asstMsg != nil {
-			if asstMsg.Content.OfString.Valid() {
-				messages = append(messages, cacheMessage{Role: "assistant", Content: asstMsg.Content.OfString.Value})
-			}
+func computeHTTPCacheKey(method, url string, body []byte) (string, error) {
+	var canonicalBody []byte
+	if len(body) > 0 {
+		var err error
+		canonicalBody, err = canonicalizeJSON(body)
+		if err != nil {
+			return "", err
 		}
 	}
 
-	var temp float64
-	if params.Temperature.Valid() {
-		temp = params.Temperature.Value
+	keyInput := cacheKeyInput{
+		Version: cacheKeyVersion,
+		Method:  method,
+		URL:     url,
+		Body:    string(canonicalBody),
 	}
 
-	var n int64
-	if params.N.Valid() {
-		n = params.N.Value
-	}
-
-	var responseFormat any
-	if params.ResponseFormat.OfJSONSchema != nil {
-		responseFormat = map[string]any{
-			"type":   "json_schema",
-			"name":   params.ResponseFormat.OfJSONSchema.JSONSchema.Name,
-			"schema": params.ResponseFormat.OfJSONSchema.JSONSchema.Schema,
-			"strict": params.ResponseFormat.OfJSONSchema.JSONSchema.Strict,
-		}
-	}
-
-	req := cacheRequest{
-		Model:          params.Model,
-		Messages:       messages,
-		Temperature:    temp,
-		N:              n,
-		ResponseFormat: responseFormat,
-	}
-
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(keyInput)
 	if err != nil {
 		return "", err
 	}
@@ -163,33 +114,37 @@ func computeCacheKey(params openai.ChatCompletionNewParams) (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-// CreateChatCompletion implements ChatCompleter with caching.
-// It first checks the cache for a matching response, and if not found,
-// uses singleflight to ensure only one request is made for concurrent
-// requests with the same parameters.
-func (c *CachingChatCompleter) CreateChatCompletion(ctx context.Context, params openai.ChatCompletionNewParams) (*openai.ChatCompletion, error) {
-	if c.db == nil {
-		return c.next.CreateChatCompletion(ctx, params)
+func shouldCache(req *http.Request) bool {
+	if req.Method == http.MethodPost {
+		return true
 	}
 
-	cacheKey, err := computeCacheKey(params)
-	if err != nil {
-		return c.next.CreateChatCompletion(ctx, params)
+	if req.Method == http.MethodGet && strings.Contains(req.URL.Path, "/generation") {
+		return true
 	}
 
-	var cached *openai.ChatCompletion
-	err = c.db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(cacheKey))
+	return false
+}
+
+func (c *CachingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	if c.db == nil || !shouldCache(req) {
+		return c.next.RoundTrip(req)
+	}
+
+	var body []byte
+	if req.Body != nil {
+		var err error
+		body, err = io.ReadAll(req.Body)
 		if err != nil {
-			return err
+			return c.next.RoundTrip(req)
 		}
-		return item.Value(func(val []byte) error {
-			cached = &openai.ChatCompletion{}
-			return json.Unmarshal(val, cached)
-		})
-	})
-	if err == nil && cached != nil {
-		return cached, nil
+		req.Body = io.NopCloser(bytes.NewReader(body))
+	}
+
+	cacheKey, err := computeHTTPCacheKey(req.Method, req.URL.String(), body)
+	if err != nil {
+		req.Body = io.NopCloser(bytes.NewReader(body))
+		return c.next.RoundTrip(req)
 	}
 
 	result, err, _ := c.group.Do(cacheKey, func() (any, error) {
@@ -197,42 +152,99 @@ func (c *CachingChatCompleter) CreateChatCompletion(ctx context.Context, params 
 			return cached, nil
 		}
 
-		resp, err := c.next.CreateChatCompletion(ctx, params)
+		reqCopy := req.Clone(req.Context())
+		reqCopy.Body = io.NopCloser(bytes.NewReader(body))
+
+		resp, err := c.next.RoundTrip(reqCopy)
 		if err != nil {
 			return nil, err
 		}
 
-		c.writeCache(cacheKey, resp)
+		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			serialized, serErr := serializeResponse(resp)
+			if serErr == nil {
+				c.writeCache(cacheKey, serialized)
+				deserialized, desErr := deserializeResponse(serialized)
+				if desErr == nil {
+					return deserialized, nil
+				}
+			}
+		}
+
 		return resp, nil
 	})
 
 	if err != nil {
 		return nil, err
 	}
-	return result.(*openai.ChatCompletion), nil
+	return result.(*http.Response), nil
 }
 
-func (c *CachingChatCompleter) checkCache(cacheKey string) *openai.ChatCompletion {
-	var cached *openai.ChatCompletion
+func serializeResponse(resp *http.Response) ([]byte, error) {
+	return httputil.DumpResponse(resp, true)
+}
+
+func deserializeResponse(data []byte) (*http.Response, error) {
+	buf := bufio.NewReader(bytes.NewReader(data))
+	return http.ReadResponse(buf, nil)
+}
+
+func (c *CachingRoundTripper) checkCache(cacheKey string) *http.Response {
+	var cached *http.Response
 	c.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(cacheKey))
 		if err != nil {
 			return err
 		}
 		return item.Value(func(val []byte) error {
-			cached = &openai.ChatCompletion{}
-			return json.Unmarshal(val, cached)
+			resp, err := deserializeResponse(val)
+			if err != nil {
+				return err
+			}
+			cached = resp
+			return nil
 		})
 	})
 	return cached
 }
 
-func (c *CachingChatCompleter) writeCache(cacheKey string, resp *openai.ChatCompletion) {
-	data, err := json.Marshal(resp)
-	if err != nil {
-		return
-	}
+func (c *CachingRoundTripper) writeCache(cacheKey string, data []byte) {
 	c.db.Update(func(txn *badger.Txn) error {
 		return txn.Set([]byte(cacheKey), data)
 	})
+}
+
+type CachingHTTPClient struct {
+	*http.Client
+	transport *CachingRoundTripper
+}
+
+func NewCachingHTTPClient(cfg CacheConfig) (*CachingHTTPClient, error) {
+	baseTransport := http.DefaultTransport
+
+	cachingTransport, err := NewCachingRoundTripper(baseTransport, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CachingHTTPClient{
+		Client: &http.Client{
+			Transport: cachingTransport,
+		},
+		transport: cachingTransport,
+	}, nil
+}
+
+func (c *CachingHTTPClient) Close() error {
+	if c.transport != nil {
+		return c.transport.Close()
+	}
+	return nil
+}
+
+func (c *CachingHTTPClient) CacheDir() string {
+	if c.transport != nil {
+		return c.transport.CacheDir()
+	}
+	return ""
 }

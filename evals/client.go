@@ -67,14 +67,23 @@ type OpenRouterClient struct {
 
 // NewOpenRouterClient creates a new OpenRouter client with the given API key.
 func NewOpenRouterClient(apiKey string) *OpenRouterClient {
+	return NewOpenRouterClientWithHTTPClient(apiKey, &http.Client{Timeout: 30 * time.Second})
+}
+
+// NewOpenRouterClientWithHTTPClient creates a new OpenRouter client with a custom HTTP client.
+func NewOpenRouterClientWithHTTPClient(apiKey string, httpClient *http.Client) *OpenRouterClient {
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
 	c := openai.NewClient(
 		option.WithAPIKey(apiKey),
 		option.WithBaseURL(openRouterBaseURL),
+		option.WithHTTPClient(httpClient),
 	)
 	return &OpenRouterClient{
 		api:        &c,
 		apiKey:     apiKey,
-		httpClient: &http.Client{Timeout: 30 * time.Second},
+		httpClient: httpClient,
 	}
 }
 

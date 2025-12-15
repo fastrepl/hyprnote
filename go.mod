@@ -7,6 +7,7 @@ require (
 	github.com/adrg/xdg v0.5.3
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/cenkalti/backoff/v5 v5.0.3
+	github.com/cyberphone/json-canonicalization v0.0.0-20241213102144-19d51d7fe467
 	github.com/dgraph-io/badger/v4 v4.8.0
 	github.com/jedib0t/go-pretty/v6 v6.7.7
 	github.com/nikolalohinski/gonja/v2 v2.5.1

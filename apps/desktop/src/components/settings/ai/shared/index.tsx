@@ -20,6 +20,12 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import * as settings from "../../../../store/tinybase/settings";
+import {
+  getRequiredConfigFields,
+  getProviderSelectionBlockers,
+  type ProviderRequirement,
+  requiresEntitlement,
+} from "./eligibility";
 
 export * from "./model-combobox";
 
@@ -31,9 +37,8 @@ type ProviderConfig = {
   icon: ReactNode;
   badge?: string | null;
   baseUrl?: string;
-  apiKey?: boolean;
   disabled?: boolean;
-  requiresPro?: boolean;
+  requirements: ProviderRequirement[];
 };
 
 function useIsProviderConfigured(
@@ -41,6 +46,7 @@ function useIsProviderConfigured(
   providerType: ProviderType,
   providers: readonly ProviderConfig[],
 ) {
+  const billing = useBillingAccess();
   const query =
     providerType === "stt"
       ? settings.QUERIES.sttProviders
@@ -53,27 +59,20 @@ function useIsProviderConfigured(
   const providerDef = providers.find((p) => p.id === providerId);
   const config = configuredProviders[providerId];
 
-  if (!config) {
+  if (!providerDef) {
     return false;
   }
 
-  if (providerType === "stt") {
-    if (!providerDef?.baseUrl && !config.base_url) {
-      return false;
-    }
-    if (!config.api_key) {
-      return false;
-    }
-  } else {
-    if (!config.base_url) {
-      return false;
-    }
-    if (providerDef?.apiKey && !config.api_key) {
-      return false;
-    }
-  }
+  const baseUrl = String(config?.base_url || providerDef.baseUrl || "").trim();
+  const apiKey = String(config?.api_key || "").trim();
 
-  return true;
+  return (
+    getProviderSelectionBlockers(providerDef.requirements, {
+      isAuthenticated: true,
+      isPro: billing.isPro,
+      config: { base_url: baseUrl, api_key: apiKey },
+    }).length === 0
+  );
 }
 
 export function NonHyprProviderCard({
@@ -89,14 +88,17 @@ export function NonHyprProviderCard({
 }) {
   const billing = useBillingAccess();
   const [provider, setProvider] = useProvider(config.id);
-  const locked = config.requiresPro && !billing.isPro;
+  const locked =
+    requiresEntitlement(config.requirements, "pro") && !billing.isPro;
   const isConfigured = useIsProviderConfigured(
     config.id,
     providerType,
     providers,
   );
 
-  const showApiKey = providerType === "stt" || config.apiKey;
+  const requiredFields = getRequiredConfigFields(config.requirements);
+  const showApiKey = requiredFields.includes("api_key");
+  const showBaseUrl = requiredFields.includes("base_url");
 
   const form = useForm({
     onSubmit: ({ value }) => setProvider(value),
@@ -154,7 +156,7 @@ export function NonHyprProviderCard({
             e.stopPropagation();
           }}
         >
-          {!config.baseUrl && (
+          {showBaseUrl && (
             <form.Field name="base_url">
               {(field) => (
                 <FormField field={field} label="Base URL" icon="mdi:web" />
@@ -174,7 +176,7 @@ export function NonHyprProviderCard({
               )}
             </form.Field>
           )}
-          {config.baseUrl && (
+          {!showBaseUrl && config.baseUrl && (
             <details className="space-y-4 pt-2">
               <summary className="text-xs cursor-pointer text-neutral-600 hover:text-neutral-900 hover:underline">
                 Advanced

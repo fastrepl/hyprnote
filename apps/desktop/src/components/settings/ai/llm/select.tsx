@@ -25,6 +25,10 @@ import { listOllamaModels } from "../shared/list-ollama";
 import { listGenericModels, listOpenAIModels } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
+import {
+  getProviderSelectionBlockers,
+  requiresEntitlement,
+} from "../shared/eligibility";
 import { HealthCheckForConnection } from "./health";
 import { PROVIDERS } from "./shared";
 
@@ -35,7 +39,6 @@ export function SelectProviderAndModel() {
     "current_llm_model",
     "current_llm_provider",
   ] as const);
-  const billing = useBillingAccess();
 
   const handleSelectProvider = settings.UI.useSetValueCallback(
     "current_llm_provider",
@@ -109,14 +112,13 @@ export function SelectProviderAndModel() {
                   </SelectTrigger>
                   <SelectContent>
                     {PROVIDERS.map((provider) => {
-                      const locked = provider.requiresPro && !billing.isPro;
-                      const configured = configuredProviders[provider.id];
+                      const status = configuredProviders[provider.id];
 
                       return (
                         <SelectItem
                           key={provider.id}
                           value={provider.id}
-                          disabled={!configured || locked}
+                          disabled={!status?.listModels}
                         >
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-2">
@@ -138,15 +140,8 @@ export function SelectProviderAndModel() {
           <form.Field name="model">
             {(field) => {
               const providerId = form.getFieldValue("provider");
-              const maybeListModels = configuredProviders[providerId];
-
-              const providerDef = PROVIDERS.find(
-                (provider) => provider.id === providerId,
-              );
-              const providerRequiresPro = providerDef?.requiresPro ?? false;
-              const locked = providerRequiresPro && !billing.isPro;
-
-              const listModels = !locked ? maybeListModels : undefined;
+              const status = configuredProviders[providerId];
+              const providerDef = PROVIDERS.find((p) => p.id === providerId);
 
               return (
                 <div className="flex-[3] min-w-0">
@@ -154,10 +149,10 @@ export function SelectProviderAndModel() {
                     providerId={providerId}
                     value={field.state.value}
                     onChange={(value) => field.handleChange(value)}
-                    disabled={!maybeListModels || locked}
-                    listModels={listModels}
+                    disabled={!status?.listModels}
+                    listModels={status?.listModels}
                   />
-                  {locked ? (
+                  {status?.proLocked ? (
                     <p className="mt-1 text-[11px] text-neutral-500">
                       Upgrade to Pro to pick{" "}
                       {providerDef?.displayName ?? "this provider"} models.
@@ -186,10 +181,12 @@ export function SelectProviderAndModel() {
   );
 }
 
-function useConfiguredMapping(): Record<
-  string,
-  undefined | (() => Promise<ListModelsResult>)
-> {
+type ProviderStatus = {
+  listModels?: () => Promise<ListModelsResult>;
+  proLocked: boolean;
+};
+
+function useConfiguredMapping(): Record<string, ProviderStatus> {
   const auth = useAuth();
   const billing = useBillingAccess();
   const configuredProviders = settings.UI.useResultTable(
@@ -200,15 +197,27 @@ function useConfiguredMapping(): Record<
   const mapping = useMemo(() => {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
-        if (provider.requiresPro && !billing.isPro) {
-          return [provider.id, undefined];
+        const config = configuredProviders[provider.id];
+        const baseUrl = String(
+          config?.base_url || provider.baseUrl || "",
+        ).trim();
+        const apiKey = String(config?.api_key || "").trim();
+
+        const proLocked =
+          requiresEntitlement(provider.requirements, "pro") && !billing.isPro;
+
+        const eligible =
+          getProviderSelectionBlockers(provider.requirements, {
+            isAuthenticated: !!auth?.session,
+            isPro: billing.isPro,
+            config: { base_url: baseUrl, api_key: apiKey },
+          }).length === 0;
+
+        if (!eligible) {
+          return [provider.id, { listModels: undefined, proLocked }];
         }
 
         if (provider.id === "hyprnote") {
-          if (!auth?.session) {
-            return [provider.id, undefined];
-          }
-
           const result: ListModelsResult = {
             models: ["Auto"],
             ignored: [],
@@ -218,23 +227,8 @@ function useConfiguredMapping(): Record<
               },
             },
           };
-
-          return [provider.id, async () => result];
+          return [provider.id, { listModels: async () => result, proLocked }];
         }
-
-        const config = configuredProviders[provider.id];
-
-        if (!config || !config.base_url) {
-          return [provider.id, undefined];
-        }
-
-        if (provider.apiKey && !config.api_key) {
-          return [provider.id, undefined];
-        }
-
-        const { base_url, api_key } = config;
-        const baseUrl = String(base_url);
-        const apiKey = String(api_key);
 
         let listModelsFunc: () => Promise<ListModelsResult>;
 
@@ -264,9 +258,9 @@ function useConfiguredMapping(): Record<
             listModelsFunc = () => listGenericModels(baseUrl, apiKey);
         }
 
-        return [provider.id, listModelsFunc];
+        return [provider.id, { listModels: listModelsFunc, proLocked }];
       }),
-    ) as Record<string, undefined | (() => Promise<ListModelsResult>)>;
+    ) as Record<string, ProviderStatus>;
   }, [configuredProviders, auth, billing]);
 
   return mapping;

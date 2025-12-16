@@ -57,7 +57,7 @@ function HyprProviderCard({
       disabled={locked}
       className={cn([
         "rounded-xl border-2 bg-neutral-50",
-        true ? "border-solid border-neutral-300" : "border-dashed",
+        !locked ? "border-solid border-neutral-300" : "border-dashed",
       ])}
     >
       <AccordionTrigger

@@ -16,6 +16,10 @@ import type { AIProviderStorage } from "@hypr/store";
 import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
 import {
+  getProviderSelectionBlockers,
+  type ProviderEligibilityContext,
+} from "../components/settings/ai/shared/eligibility";
+import {
   type ProviderId,
   PROVIDERS,
 } from "../components/settings/ai/llm/shared";
@@ -135,25 +139,51 @@ const resolveLLMConnection = (params: {
     };
   }
 
-  if (providerId === "hyprnote") {
-    if (!session) {
+  const baseUrl =
+    providerConfig?.base_url?.trim() ||
+    providerDefinition.baseUrl?.trim() ||
+    "";
+  const apiKey = providerConfig?.api_key?.trim() || "";
+
+  const context: ProviderEligibilityContext = {
+    isAuthenticated: !!session,
+    isPro,
+    config: { base_url: baseUrl, api_key: apiKey },
+  };
+
+  const blockers = getProviderSelectionBlockers(
+    providerDefinition.requirements,
+    context,
+  );
+
+  if (blockers.length > 0) {
+    const blocker = blockers[0];
+    if (blocker.code === "requires_auth" && providerId === "hyprnote") {
       return {
         conn: null,
-        status: {
-          status: "error",
-          reason: "unauthenticated",
-          providerId,
-        },
+        status: { status: "error", reason: "unauthenticated", providerId },
       };
     }
-
-    if (!isPro) {
+    if (blocker.code === "requires_entitlement" && providerId === "hyprnote") {
       return {
         conn: null,
         status: { status: "error", reason: "not_pro", providerId },
       };
     }
+    if (blocker.code === "missing_config") {
+      return {
+        conn: null,
+        status: {
+          status: "error",
+          reason: "missing_config",
+          providerId,
+          missing: blocker.fields,
+        },
+      };
+    }
+  }
 
+  if (providerId === "hyprnote" && session) {
     return {
       conn: {
         providerId,
@@ -162,32 +192,6 @@ const resolveLLMConnection = (params: {
         apiKey: session.access_token,
       },
       status: { status: "success", providerId, isHosted: true },
-    };
-  }
-
-  const baseUrl =
-    providerConfig?.base_url?.trim() ||
-    providerDefinition.baseUrl?.trim() ||
-    "";
-  const apiKey = providerConfig?.api_key?.trim() || "";
-
-  const missing: Array<"base_url" | "api_key"> = [];
-  if (!baseUrl) {
-    missing.push("base_url");
-  }
-  if (providerDefinition.apiKey && !apiKey) {
-    missing.push("api_key");
-  }
-
-  if (missing.length > 0) {
-    return {
-      conn: null,
-      status: {
-        status: "error",
-        reason: "missing_config",
-        providerId,
-        missing,
-      },
     };
   }
 

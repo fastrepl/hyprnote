@@ -73,12 +73,15 @@ function HyprProviderCard({
   });
   const isAppleSilicon = isMacos && targetArch.data === "aarch64";
 
+  const providerDef = PROVIDERS.find((p) => p.id === providerId);
+  const isConfigured = providerDef?.requirements.length === 0;
+
   return (
     <AccordionItem
       value={providerId}
       className={cn([
         "rounded-xl border-2 bg-neutral-50",
-        true ? "border-solid border-neutral-300" : "border-dashed",
+        isConfigured ? "border-solid border-neutral-300" : "border-dashed",
       ])}
     >
       <AccordionTrigger className={cn(["capitalize gap-2 px-4"])}>

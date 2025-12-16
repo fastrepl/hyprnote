@@ -1,8 +1,18 @@
 import { faker } from "@faker-js/faker";
 
-import type { WordStorage } from "@hypr/store";
+import type { Transcript, WordStorage } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
+
+type TranscriptWithMetadata = {
+  transcriptId: string;
+  transcript: Transcript;
+  words: Record<string, WordStorage>;
+};
+
+type TranscriptWordsOnly = {
+  words: Array<WordStorage>;
+};
 
 const selectWeighted = <T,>(choices: Array<{ weight: number; value: T }>): T =>
   faker.helpers.weightedArrayElement(choices);
@@ -80,15 +90,37 @@ const generateSentence = () => {
   return sentenceWords;
 };
 
-export const generateTranscript = () => {
+export function generateTranscript(options: {
+  turnCount?: { min: number; max: number };
+  days?: number;
+  sessionId: string;
+}): TranscriptWithMetadata;
+export function generateTranscript(options?: {
+  turnCount?: { min: number; max: number };
+  days?: number;
+  sessionId?: undefined;
+}): TranscriptWordsOnly;
+export function generateTranscript(options?: {
+  turnCount?: { min: number; max: number };
+  days?: number;
+  sessionId?: string;
+}): TranscriptWithMetadata | TranscriptWordsOnly {
+  const {
+    turnCount: turnCountRange = { min: 200, max: 500 },
+    days = 30,
+    sessionId,
+  } = options ?? {};
+
   const channelCount = 2;
-  const turnCount = faker.number.int({ min: 10, max: 20 });
+  const turnCount = faker.number.int(turnCountRange);
 
   const transcriptId = id();
   const words: Array<WordStorage> = [];
   let currentTimeMs = 0;
   let currentChannel = 0;
-  const createdAt = faker.date.recent({ days: 30 }).toISOString();
+  const createdAt = faker.date.recent({ days });
+  const createdAtStr = createdAt.toISOString();
+  const startedAt = createdAt.getTime();
 
   for (let turnIndex = 0; turnIndex < turnCount; turnIndex++) {
     const sentenceCount = selectWeighted([
@@ -119,7 +151,7 @@ export const generateTranscript = () => {
 
         words.push({
           user_id: DEFAULT_USER_ID,
-          created_at: createdAt,
+          created_at: createdAtStr,
           transcript_id: transcriptId,
           channel: currentChannel,
           text: ` ${text}`,
@@ -159,5 +191,25 @@ export const generateTranscript = () => {
     currentChannel = (currentChannel + 1) % channelCount;
   }
 
+  if (sessionId) {
+    const wordsRecord: Record<string, WordStorage> = {};
+    words.forEach((word) => {
+      const wordId = id();
+      wordsRecord[wordId] = word;
+    });
+
+    return {
+      transcriptId,
+      transcript: {
+        user_id: DEFAULT_USER_ID,
+        session_id: sessionId,
+        created_at: createdAtStr,
+        started_at: startedAt,
+        ended_at: startedAt + currentTimeMs,
+      },
+      words: wordsRecord,
+    };
+  }
+
   return { words };
-};
+}

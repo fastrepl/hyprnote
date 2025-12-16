@@ -87,8 +87,10 @@ export function SelectProviderAndModel() {
       <div
         className={cn([
           "flex flex-col gap-4",
-          "p-4 rounded-xl border border-neutral-200",
-          isNotConfigured || isUnreachable ? "bg-red-50" : "bg-neutral-50",
+          "p-4 rounded-xl border",
+          isNotConfigured || isUnreachable
+            ? ["bg-red-50", "border-red-200"]
+            : ["bg-neutral-50", "border-neutral-200"],
         ])}
       >
         <div className="flex flex-row items-center gap-4">

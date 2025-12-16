@@ -104,6 +104,7 @@ tauri-plugin-shell = "2.3"
 tauri-plugin-single-instance = "2"
 tauri-plugin-store = "2.4"
 tauri-plugin-updater = "2.9"
+tauri-plugin-window-state = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }

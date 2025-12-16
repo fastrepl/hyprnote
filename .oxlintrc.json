@@ -1,5 +1,6 @@
 {
   "ignorePatterns": ["**/*.gen.ts"],
+  "plugins": ["promise"],
   "overrides": [
     {
       "files": ["**/*.{ts,tsx}"],

@@ -1,22 +1,9 @@
 {
   "markdown": {
-    "associations": [
-      "**/*.jinja",
-      "crates/db-user/assets/**/*.md"
-    ]
+    "associations": ["**/*.jinja", "crates/db-user/assets/**/*.md"]
   },
   "markup": {
-    "associations": [
-      "!**/*.html",
-      "!**/*.jinja",
-      "**/*.wxs",
-      "**/*.wxl"
-    ]
-  },
-  "biome": {
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 80
+    "associations": ["!**/*.html", "!**/*.jinja", "**/*.wxs", "**/*.wxl"]
   },
   "excludes": [
     ".venv",
@@ -49,13 +36,16 @@
       {
         "command": "rustfmt --edition 2024",
         "exts": ["rs"],
-        "cacheKeyFiles": [
-          "rust-toolchain.toml"
-        ]
+        "cacheKeyFiles": ["rust-toolchain.toml"]
       },
       {
         "command": "swift-format format",
         "exts": ["swift"]
+      },
+      {
+        "command": "pnpm exec biome format --stdin-file-path {{file_path}} --write",
+        "exts": ["js", "jsx", "ts", "tsx"],
+        "cacheKeyFiles": ["biome.json"]
       }
     ]
   },
@@ -69,7 +59,6 @@
     "https://plugins.dprint.dev/json-0.20.0.wasm",
     "https://plugins.dprint.dev/markdown-0.17.8.wasm",
     "https://plugins.dprint.dev/g-plane/markup_fmt-v0.18.0.wasm",
-    "https://plugins.dprint.dev/g-plane/malva-v0.12.1.wasm",
-    "https://plugins.dprint.dev/biome-0.11.7.wasm"
+    "https://plugins.dprint.dev/g-plane/malva-v0.12.1.wasm"
   ]
 }

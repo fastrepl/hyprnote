@@ -15,7 +15,7 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
-import { useSTTConnection } from "../../../../hooks/useSTTConnection";
+import { isLocalSttModel, useSTTConnection } from "../../../../hooks/useSTTConnection";
 import * as settings from "../../../../store/tinybase/settings";
 import {
   getProviderSelectionBlockers,
@@ -39,12 +39,9 @@ export function SelectProviderAndModel() {
   const { local: sttLocal } = useSTTConnection();
   const sttServerStatus = sttLocal.data?.status;
 
-  const isLocalSttModel =
-    current_stt_provider === "hyprnote" &&
-    !!current_stt_model &&
-    current_stt_model !== "cloud";
+  const isLocal = isLocalSttModel(current_stt_provider, current_stt_model);
 
-  const isUnreachable = isLocalSttModel && sttServerStatus === "unreachable";
+  const isUnreachable = isLocal && sttServerStatus === "unreachable";
   const isNotConfigured = !current_stt_provider || !current_stt_model;
 
   const handleSelectProvider = settings.UI.useSetValueCallback(

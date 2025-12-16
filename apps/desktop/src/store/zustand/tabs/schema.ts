@@ -85,15 +85,15 @@ export type Tab =
       type: "changelog";
       state: ChangelogState;
     })
-    | (BaseTab & { type: "settings" })
-    | (BaseTab & {
-        type: "ai";
-        state: AiState;
-      })
-    | (BaseTab & {
-        type: "data";
-        state: DataState;
-      });
+  | (BaseTab & { type: "settings" })
+  | (BaseTab & {
+      type: "ai";
+      state: AiState;
+    })
+  | (BaseTab & {
+      type: "data";
+      state: DataState;
+    });
 
 export const getDefaultState = (tab: TabInput): Tab => {
   const base = { active: false, slotId: "" };
@@ -263,6 +263,6 @@ export const uniqueIdfromTab = (tab: Tab): string => {
   }
 };
 
-export const isSameTab= (a: Tab, b: Tab) => {
+export const isSameTab = (a: Tab, b: Tab) => {
   return uniqueIdfromTab(a) === uniqueIdfromTab(b);
 };

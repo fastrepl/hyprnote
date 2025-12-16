@@ -253,5 +253,76 @@ describe("createLocalPersister2", () => {
       expect(handlePersistEnhancedNote).toHaveBeenCalledTimes(2);
       expect(handleSyncToSession).toHaveBeenCalledTimes(1);
     });
+
+    test("calls handlePersistRawMemo for sessions with raw_md", async () => {
+      const handlePersistRawMemo = vi.fn().mockResolvedValue(undefined);
+
+      store.setRow("sessions", "session-1", {
+        user_id: "user-1",
+        created_at: new Date().toISOString(),
+        title: "Test Session",
+        raw_md: '{"type":"doc","content":[{"type":"paragraph"}]}',
+        enhanced_md: "",
+      });
+
+      const persister = createLocalPersister2<Schemas>(
+        store,
+        handlePersistEnhancedNote,
+        handleSyncToSession,
+        handlePersistRawMemo,
+      );
+
+      await persister.save();
+
+      expect(handlePersistRawMemo).toHaveBeenCalledTimes(1);
+      expect(handlePersistRawMemo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: "session-1",
+          raw_md: '{"type":"doc","content":[{"type":"paragraph"}]}',
+        }),
+        "_memo.md",
+      );
+    });
+
+    test("does not call handlePersistRawMemo when raw_md is empty", async () => {
+      const handlePersistRawMemo = vi.fn().mockResolvedValue(undefined);
+
+      store.setRow("sessions", "session-1", {
+        user_id: "user-1",
+        created_at: new Date().toISOString(),
+        title: "Test Session",
+        raw_md: "",
+        enhanced_md: "",
+      });
+
+      const persister = createLocalPersister2<Schemas>(
+        store,
+        handlePersistEnhancedNote,
+        handleSyncToSession,
+        handlePersistRawMemo,
+      );
+
+      await persister.save();
+
+      expect(handlePersistRawMemo).not.toHaveBeenCalled();
+    });
+
+    test("does not call handlePersistRawMemo when handler is not provided", async () => {
+      store.setRow("sessions", "session-1", {
+        user_id: "user-1",
+        created_at: new Date().toISOString(),
+        title: "Test Session",
+        raw_md: '{"type":"doc","content":[{"type":"paragraph"}]}',
+        enhanced_md: "",
+      });
+
+      const persister = createLocalPersister2<Schemas>(
+        store,
+        handlePersistEnhancedNote,
+        handleSyncToSession,
+      );
+
+      await persister.save();
+    });
   });
 });

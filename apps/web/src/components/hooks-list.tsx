@@ -13,10 +13,7 @@ export function HooksList() {
   return (
     <div className="space-y-10 mt-6">
       {hooks.map((hook) => (
-        <section
-          key={hook.slug}
-          className="border-t pt-2 first:border-t-0 first:pt-0"
-        >
+        <section key={hook.slug} className="border-t pt-2 first:border-t-0 first:pt-0">
           <div className="space-y-1">
             <h2
               id={hook.name}
@@ -25,9 +22,7 @@ export function HooksList() {
               {hook.name}
             </h2>
             {hook.description && (
-              <p className="text-neutral-600 leading-relaxed">
-                {hook.description}
-              </p>
+              <p className="text-neutral-600 leading-relaxed">{hook.description}</p>
             )}
           </div>
 
@@ -51,9 +46,7 @@ export function HooksList() {
                         {arg.optional && (
                           <>
                             <span className="h-0.5 w-0.5 rounded-full bg-neutral-300" />
-                            <span className="italic text-neutral-400">
-                              optional
-                            </span>
+                            <span className="italic text-neutral-400">optional</span>
                           </>
                         )}
                       </div>

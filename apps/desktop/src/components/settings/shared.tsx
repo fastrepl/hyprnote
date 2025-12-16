@@ -90,21 +90,12 @@ export function ConnectedServiceCard({
           {icon}
           <div>
             <div>{title}</div>
-            {subtitle && (
-              <div className="text-xs text-neutral-600 font-normal">
-                {subtitle}
-              </div>
-            )}
+            {subtitle && <div className="text-xs text-neutral-600 font-normal">{subtitle}</div>}
           </div>
         </div>
 
         {onSync && (
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={handleSync}
-            disabled={isSyncing}
-          >
+          <Button size="icon" variant="ghost" onClick={handleSync} disabled={isSyncing}>
             {isSyncing ? <Spinner size={16} /> : <RefreshCcw size={16} />}
           </Button>
         )}
@@ -122,11 +113,7 @@ export function ConnectedServiceCard({
             ])}
           >
             Advanced
-            {isAdvancedOpen ? (
-              <ChevronUp size={16} />
-            ) : (
-              <ChevronDown size={16} />
-            )}
+            {isAdvancedOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {isAdvancedOpen && (
@@ -177,23 +164,16 @@ export function ConnectedServiceCard({
       )}
 
       {onDisconnect && (
-        <Dialog
-          open={showDisconnectDialog}
-          onOpenChange={setShowDisconnectDialog}
-        >
+        <Dialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{disconnectDialogTitle}</DialogTitle>
               <DialogDescription>
-                {disconnectDialogDescription ||
-                  "Are you sure you want to disconnect this service?"}
+                {disconnectDialogDescription || "Are you sure you want to disconnect this service?"}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowDisconnectDialog(false)}
-              >
+              <Button variant="outline" onClick={() => setShowDisconnectDialog(false)}>
                 Cancel
               </Button>
               <Button variant="destructive" onClick={handleDisconnect}>

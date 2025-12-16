@@ -3,11 +3,7 @@ import { useState } from "react";
 
 import { Avatar, AvatarFallback } from "@hypr/ui/components/ui/avatar";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -61,9 +57,7 @@ export function ShareButton(_: { sessionId: string }) {
           email: "bob@example.com",
           role: "viewer" as const,
         },
-      ].filter((person) =>
-        person.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+      ].filter((person) => person.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
 
   const handleSelectPerson = (person: Person) => {
@@ -79,8 +73,7 @@ export function ShareButton(_: { sessionId: string }) {
 
   const handleInvite = () => {
     const newInvites = selectedPeople.filter(
-      (selected) =>
-        !invitedPeople.find((invited) => invited.id === selected.id),
+      (selected) => !invitedPeople.find((invited) => invited.id === selected.id),
     );
     setInvitedPeople([...invitedPeople, ...newInvites]);
     setSelectedPeople([]);
@@ -93,9 +86,7 @@ export function ShareButton(_: { sessionId: string }) {
   };
 
   const handleRoleChange = (personId: string, role: "viewer" | "editor") => {
-    setInvitedPeople(
-      invitedPeople.map((p) => (p.id === personId ? { ...p, role } : p)),
-    );
+    setInvitedPeople(invitedPeople.map((p) => (p.id === personId ? { ...p, role } : p)));
   };
 
   const handleCopyLink = () => {
@@ -106,13 +97,7 @@ export function ShareButton(_: { sessionId: string }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="gap-1.5"
-          aria-label="Share"
-          title="Share"
-        >
+        <Button size="sm" variant="ghost" className="gap-1.5" aria-label="Share" title="Share">
           <Share2 className="size-4" />
           <span className="hidden md:inline">Share</span>
         </Button>
@@ -155,13 +140,9 @@ export function ShareButton(_: { sessionId: string }) {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-medium truncate">
-                          {person.name}
-                        </span>
+                        <span className="font-medium truncate">{person.name}</span>
                         {person.email && (
-                          <span className="text-xs text-neutral-500">
-                            {person.email}
-                          </span>
+                          <span className="text-xs text-neutral-500">{person.email}</span>
                         )}
                       </div>
                     </div>
@@ -203,9 +184,7 @@ export function ShareButton(_: { sessionId: string }) {
                           {person.name}
                         </span>
                         {person.email && (
-                          <span className="text-xs text-neutral-500 truncate">
-                            {person.email}
-                          </span>
+                          <span className="text-xs text-neutral-500 truncate">{person.email}</span>
                         )}
                       </div>
                     </div>
@@ -217,8 +196,7 @@ export function ShareButton(_: { sessionId: string }) {
 
           {selectedPeople.length > 0 && (
             <Button onClick={handleInvite} variant="outline" className="w-full">
-              Invite {selectedPeople.length}{" "}
-              {selectedPeople.length === 1 ? "person" : "people"}
+              Invite {selectedPeople.length} {selectedPeople.length === 1 ? "person" : "people"}
             </Button>
           )}
 
@@ -226,9 +204,7 @@ export function ShareButton(_: { sessionId: string }) {
 
           {invitedPeople.length > 0 && (
             <div className="flex flex-col gap-2">
-              <div className="text-xs font-medium text-neutral-500">
-                People with access
-              </div>
+              <div className="text-xs font-medium text-neutral-500">People with access</div>
               <div className="flex flex-col rounded-md border border-neutral-100 bg-neutral-50">
                 {invitedPeople.map((person) => (
                   <div
@@ -259,9 +235,7 @@ export function ShareButton(_: { sessionId: string }) {
                           {person.name}
                         </span>
                         {person.email && (
-                          <span className="text-xs text-neutral-500 truncate">
-                            {person.email}
-                          </span>
+                          <span className="text-xs text-neutral-500 truncate">{person.email}</span>
                         )}
                       </div>
                     </div>

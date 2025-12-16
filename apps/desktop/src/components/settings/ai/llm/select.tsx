@@ -15,20 +15,14 @@ import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import * as settings from "../../../../store/tinybase/settings";
 import { listAnthropicModels } from "../shared/list-anthropic";
-import {
-  type InputModality,
-  type ListModelsResult,
-} from "../shared/list-common";
+import { type InputModality, type ListModelsResult } from "../shared/list-common";
 import { listGoogleModels } from "../shared/list-google";
 import { listLMStudioModels } from "../shared/list-lmstudio";
 import { listOllamaModels } from "../shared/list-ollama";
 import { listGenericModels, listOpenAIModels } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
-import {
-  getProviderSelectionBlockers,
-  requiresEntitlement,
-} from "../shared/eligibility";
+import { getProviderSelectionBlockers, requiresEntitlement } from "../shared/eligibility";
 import { HealthCheckForConnection } from "./health";
 import { PROVIDERS } from "./shared";
 
@@ -83,9 +77,7 @@ export function SelectProviderAndModel() {
         className={cn([
           "flex flex-col gap-4",
           "p-4 rounded-xl border border-neutral-200",
-          !!current_llm_provider && !!current_llm_model
-            ? "bg-neutral-50"
-            : "bg-red-50",
+          !!current_llm_provider && !!current_llm_model ? "bg-neutral-50" : "bg-red-50",
         ])}
       >
         <div className="flex flex-row items-center gap-4">
@@ -154,8 +146,7 @@ export function SelectProviderAndModel() {
                   />
                   {status?.proLocked ? (
                     <p className="mt-1 text-[11px] text-neutral-500">
-                      Upgrade to Pro to pick{" "}
-                      {providerDef?.displayName ?? "this provider"} models.
+                      Upgrade to Pro to pick {providerDef?.displayName ?? "this provider"} models.
                     </p>
                   ) : null}
                 </div>
@@ -163,16 +154,14 @@ export function SelectProviderAndModel() {
             }}
           </form.Field>
 
-          {current_llm_provider && current_llm_model && (
-            <HealthCheckForConnection />
-          )}
+          {current_llm_provider && current_llm_model && <HealthCheckForConnection />}
         </div>
 
         {(!current_llm_provider || !current_llm_model) && (
           <div className="flex items-center gap-2 pt-2 border-t border-red-200">
             <span className="text-sm text-red-600">
-              <strong className="font-medium">Language model</strong> is needed
-              to make Hyprnote summarize and chat about your conversations.
+              <strong className="font-medium">Language model</strong> is needed to make Hyprnote
+              summarize and chat about your conversations.
             </span>
           </div>
         )}
@@ -198,13 +187,10 @@ function useConfiguredMapping(): Record<string, ProviderStatus> {
     return Object.fromEntries(
       PROVIDERS.map((provider) => {
         const config = configuredProviders[provider.id];
-        const baseUrl = String(
-          config?.base_url || provider.baseUrl || "",
-        ).trim();
+        const baseUrl = String(config?.base_url || provider.baseUrl || "").trim();
         const apiKey = String(config?.api_key || "").trim();
 
-        const proLocked =
-          requiresEntitlement(provider.requirements, "pro") && !billing.isPro;
+        const proLocked = requiresEntitlement(provider.requirements, "pro") && !billing.isPro;
 
         const eligible =
           getProviderSelectionBlockers(provider.requirements, {

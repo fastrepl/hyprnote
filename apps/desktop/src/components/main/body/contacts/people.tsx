@@ -15,8 +15,7 @@ export function PeopleColumn({
   setSelectedPerson: (id: string | null) => void;
 }) {
   const [searchValue, setSearchValue] = useState("");
-  const { humanIds, sortOption, setSortOption } =
-    useSortedHumanIds(currentOrgId);
+  const { humanIds, sortOption, setSortOption } = useSortedHumanIds(currentOrgId);
 
   const allHumans = main.UI.useTable("humans", main.STORE_ID);
 
@@ -156,9 +155,7 @@ function PersonItem({
           )}
         </div>
         {person.email && person.name && (
-          <div className="text-xs text-neutral-500 truncate">
-            {person.email}
-          </div>
+          <div className="text-xs text-neutral-500 truncate">{person.email}</div>
         )}
       </div>
     </button>

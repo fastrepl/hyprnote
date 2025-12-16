@@ -1,11 +1,7 @@
 import type { TablesSchema } from "tinybase/with-schemas";
 import { z } from "zod";
 
-import {
-  type InferTinyBaseSchema,
-  jsonObject,
-  type ToStorageType,
-} from "./shared";
+import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 
 export const generalSchema = z.object({
   user_id: z.string(),
@@ -32,13 +28,10 @@ export const aiProviderSchema = z
     base_url: z.url().min(1),
     api_key: z.string(),
   })
-  .refine(
-    (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,
-    {
-      message: "API key is required for HTTPS URLs",
-      path: ["api_key"],
-    },
-  );
+  .refine((data) => !data.base_url.startsWith("https:") || data.api_key.length > 0, {
+    message: "API key is required for HTTPS URLs",
+    path: ["api_key"],
+  });
 
 export type AIProvider = z.infer<typeof aiProviderSchema>;
 export type General = z.infer<typeof generalSchema>;

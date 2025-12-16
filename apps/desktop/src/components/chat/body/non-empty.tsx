@@ -51,20 +51,14 @@ export function ChatBodyNonEmpty({
           key={message.id}
           message={message}
           handleReload={
-            message.role === "assistant" &&
-            index === lastAssistantIndex &&
-            onReload
+            message.role === "assistant" && index === lastAssistantIndex && onReload
               ? onReload
               : undefined
           }
         />
       ))}
       {showLoadingState && (
-        <LoadingMessage
-          onCancelAndRetry={
-            onStop && onReload ? handleCancelAndRetry : undefined
-          }
-        />
+        <LoadingMessage onCancelAndRetry={onStop && onReload ? handleCancelAndRetry : undefined} />
       )}
       {showErrorState && <ErrorMessage error={error} onRetry={onReload} />}
     </div>

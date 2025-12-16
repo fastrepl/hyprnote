@@ -34,9 +34,7 @@ type SemanticVersionGroup = {
   versions: ChangelogWithMeta[];
 };
 
-function groupBySemanticVersion(
-  changelogs: ChangelogWithMeta[],
-): SemanticVersionGroup[] {
+function groupBySemanticVersion(changelogs: ChangelogWithMeta[]): SemanticVersionGroup[] {
   const groups = new Map<string, ChangelogWithMeta[]>();
 
   for (const changelog of changelogs) {
@@ -90,11 +88,7 @@ function HeroSection() {
   );
 }
 
-function ChangelogContentSection({
-  groups,
-}: {
-  groups: SemanticVersionGroup[];
-}) {
+function ChangelogContentSection({ groups }: { groups: SemanticVersionGroup[] }) {
   return (
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
@@ -114,10 +108,7 @@ function ChangelogGridView({ groups }: { groups: SemanticVersionGroup[] }) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
         <div className="mb-6">
-          <Icon
-            icon="mdi:clipboard-text-outline"
-            className="text-6xl text-neutral-300"
-          />
+          <Icon icon="mdi:clipboard-text-outline" className="text-6xl text-neutral-300" />
         </div>
         <p className="text-neutral-500">No releases yet. Stay tuned!</p>
       </div>
@@ -127,23 +118,13 @@ function ChangelogGridView({ groups }: { groups: SemanticVersionGroup[] }) {
   return (
     <div className="p-8">
       {groups.map((group, index) => (
-        <VersionGroup
-          key={group.baseVersion}
-          group={group}
-          isFirst={index === 0}
-        />
+        <VersionGroup key={group.baseVersion} group={group} isFirst={index === 0} />
       ))}
     </div>
   );
 }
 
-function VersionGroup({
-  group,
-  isFirst,
-}: {
-  group: SemanticVersionGroup;
-  isFirst: boolean;
-}) {
+function VersionGroup({ group, isFirst }: { group: SemanticVersionGroup; isFirst: boolean }) {
   return (
     <div className={isFirst ? "mb-8" : "mb-8 border-t border-neutral-100 pt-8"}>
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
@@ -180,24 +161,19 @@ function VersionIcon({ changelog }: { changelog: ChangelogWithMeta }) {
           className="w-16 h-16 group-hover:scale-110 transition-transform"
         />
       </div>
-      <div className="font-medium text-stone-600 text-sm">
-        v{changelog.version}
-      </div>
+      <div className="font-medium text-stone-600 text-sm">v{changelog.version}</div>
     </Link>
   );
 }
 
 function ChangelogStatusBar({ groups }: { groups: SemanticVersionGroup[] }) {
-  const totalVersions = groups.reduce(
-    (sum, group) => sum + group.versions.length,
-    0,
-  );
+  const totalVersions = groups.reduce((sum, group) => sum + group.versions.length, 0);
 
   return (
     <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
       <span className="text-xs text-neutral-500">
-        {totalVersions} {totalVersions === 1 ? "version" : "versions"},{" "}
-        {groups.length} {groups.length === 1 ? "group" : "groups"}
+        {totalVersions} {totalVersions === 1 ? "version" : "versions"}, {groups.length}{" "}
+        {groups.length === 1 ? "group" : "groups"}
       </span>
     </div>
   );

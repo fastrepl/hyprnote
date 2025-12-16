@@ -19,10 +19,7 @@ const OpenAIModelSchema = Schema.Struct({
   ),
 });
 
-export async function listOpenAIModels(
-  baseUrl: string,
-  apiKey: string,
-): Promise<ListModelsResult> {
+export async function listOpenAIModels(baseUrl: string, apiKey: string): Promise<ListModelsResult> {
   if (!baseUrl) {
     return DEFAULT_RESULT;
   }

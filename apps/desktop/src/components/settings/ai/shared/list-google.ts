@@ -21,14 +21,9 @@ const GoogleModelSchema = Schema.Struct({
   ),
 });
 
-type GoogleModel = Schema.Schema.Type<
-  typeof GoogleModelSchema
->["models"][number];
+type GoogleModel = Schema.Schema.Type<typeof GoogleModelSchema>["models"][number];
 
-export async function listGoogleModels(
-  baseUrl: string,
-  apiKey: string,
-): Promise<ListModelsResult> {
+export async function listGoogleModels(baseUrl: string, apiKey: string): Promise<ListModelsResult> {
   if (!baseUrl) {
     return DEFAULT_RESULT;
   }

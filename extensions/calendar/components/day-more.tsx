@@ -24,10 +24,7 @@ export function DayMore({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          className="w-full justify-start px-1 text-neutral-600 h-6"
-        >
+        <Button variant="ghost" className="w-full justify-start px-1 text-neutral-600 h-6">
           +{hiddenCount} more
         </Button>
       </PopoverTrigger>

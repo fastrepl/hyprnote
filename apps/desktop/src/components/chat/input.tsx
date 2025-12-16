@@ -4,10 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import type { SlashCommandConfig, TiptapEditor } from "@hypr/tiptap/chat";
 import ChatEditor from "@hypr/tiptap/chat";
-import {
-  EMPTY_TIPTAP_DOC,
-  type PlaceholderFunction,
-} from "@hypr/tiptap/shared";
+import { EMPTY_TIPTAP_DOC, type PlaceholderFunction } from "@hypr/tiptap/shared";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
@@ -24,17 +21,10 @@ export function ChatMessageInput({
   attachedSession?: { id: string; title?: string };
 }) {
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
-  const chatShortcuts = main.UI.useResultTable(
-    main.QUERIES.visibleChatShortcuts,
-    main.STORE_ID,
-  );
-  const sessions = main.UI.useResultTable(
-    main.QUERIES.sessionsWithMaybeEvent,
-    main.STORE_ID,
-  );
+  const chatShortcuts = main.UI.useResultTable(main.QUERIES.visibleChatShortcuts, main.STORE_ID);
+  const sessions = main.UI.useResultTable(main.QUERIES.sessionsWithMaybeEvent, main.STORE_ID);
 
-  const disabled =
-    typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
+  const disabled = typeof disabledProp === "object" ? disabledProp.disabled : disabledProp;
 
   const handleSubmit = useCallback(() => {
     const json = editorRef.current?.editor?.getJSON();
@@ -86,8 +76,7 @@ export function ChatMessageInput({
         Object.entries(chatShortcuts).forEach(([rowId, row]) => {
           const content = row.content as string | undefined;
           if (content && content.toLowerCase().includes(lowerQuery)) {
-            const label =
-              content.length > 40 ? content.slice(0, 40) + "..." : content;
+            const label = content.length > 40 ? content.slice(0, 40) + "..." : content;
             results.push({
               id: rowId,
               type: "chat_shortcut",
@@ -199,11 +188,7 @@ function Container({ children }: { children: React.ReactNode }) {
 
 const ChatPlaceholder: PlaceholderFunction = ({ node, pos }) => {
   if (node.type.name === "paragraph" && pos === 0) {
-    return (
-      <p className="text-sm text-neutral-400">
-        Ask & search about anything, or be creative!
-      </p>
-    );
+    return <p className="text-sm text-neutral-400">Ask & search about anything, or be creative!</p>;
   }
   return "";
 };

@@ -37,11 +37,7 @@ export const verifySlackWebhook = createMiddleware<{
       false,
       ["sign"],
     );
-    const signatureBuffer = await crypto.subtle.sign(
-      "HMAC",
-      key,
-      encoder.encode(sigBaseString),
-    );
+    const signatureBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(sigBaseString));
     const computedSignature = `v0=${Array.from(new Uint8Array(signatureBuffer))
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("")}`;

@@ -72,13 +72,7 @@ function reduceFrame(
 ): SegmentationReducerState {
   const key = createSegmentKeyFromIdentity(frame.word.channel, frame.identity);
   const channelState = channelStateFor(state.channelState, key.channel);
-  const extension = selectSegmentExtension(
-    state,
-    channelState,
-    key,
-    frame,
-    options,
-  );
+  const extension = selectSegmentExtension(state, channelState, key, frame, options);
 
   if (extension) {
     extension.segment.words.push(frame);
@@ -148,8 +142,7 @@ function canExtendWithSpeakerIdentity(
   }
 
   return (
-    lastSegmentInState !== undefined &&
-    SegmentKeyUtils.equals(lastSegmentInState.key, candidateKey)
+    lastSegmentInState !== undefined && SegmentKeyUtils.equals(lastSegmentInState.key, candidateKey)
   );
 }
 
@@ -164,12 +157,9 @@ function canExtendNonLastSegment(
   }
 
   if (!frame.word.isFinal) {
-    const allWordsArePartial = existingSegment.words.every(
-      (w) => !w.word.isFinal,
-    );
+    const allWordsArePartial = existingSegment.words.every((w) => !w.word.isFinal);
 
-    const hasInheritedIdentity =
-      SegmentKeyUtils.hasSpeakerIdentity(candidateKey);
+    const hasInheritedIdentity = SegmentKeyUtils.hasSpeakerIdentity(candidateKey);
     return allWordsArePartial || hasInheritedIdentity;
   }
 
@@ -186,25 +176,11 @@ function canExtend(
   const lastSegment = state.segments[state.segments.length - 1];
   const isLastSegment = existingSegment === lastSegment;
 
-  if (
-    !canExtendWithSpeakerIdentity(
-      existingSegment,
-      candidateKey,
-      frame,
-      lastSegment,
-    )
-  ) {
+  if (!canExtendWithSpeakerIdentity(existingSegment, candidateKey, frame, lastSegment)) {
     return false;
   }
 
-  if (
-    !canExtendNonLastSegment(
-      existingSegment,
-      candidateKey,
-      frame,
-      isLastSegment,
-    )
-  ) {
+  if (!canExtendNonLastSegment(existingSegment, candidateKey, frame, isLastSegment)) {
     return false;
   }
 
@@ -229,10 +205,7 @@ function channelStateFor(
   return state;
 }
 
-function trackAnonymousSegment(
-  state: ChannelSegmentsState,
-  segment: ProtoSegment,
-): void {
+function trackAnonymousSegment(state: ChannelSegmentsState, segment: ProtoSegment): void {
   if (!SegmentKeyUtils.hasSpeakerIdentity(segment.key)) {
     state.lastAnonymous = segment;
   }

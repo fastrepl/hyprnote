@@ -38,9 +38,7 @@ export function classifyContactStatus(contact: LoopsContact): ContactStatus {
   return "unknown";
 }
 
-export async function getContactByEmail(
-  email: string,
-): Promise<LoopsContact | null> {
+export async function getContactByEmail(email: string): Promise<LoopsContact | null> {
   if (!env.LOOPS_API_KEY) {
     throw new Error("LOOPS_API_KEY not configured");
   }

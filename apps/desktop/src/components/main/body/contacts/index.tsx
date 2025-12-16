@@ -39,11 +39,7 @@ export const TabItemContact: TabItem<Extract<Tab, { type: "contacts" }>> = ({
   );
 };
 
-export function TabContentContact({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "contacts" }>;
-}) {
+export function TabContentContact({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
   return (
     <StandardTabWrapper>
       <ContactView tab={tab} />
@@ -52,9 +48,7 @@ export function TabContentContact({
 }
 
 function ContactView({ tab }: { tab: Extract<Tab, { type: "contacts" }> }) {
-  const updateContactsTabState = useTabs(
-    (state) => state.updateContactsTabState,
-  );
+  const updateContactsTabState = useTabs((state) => state.updateContactsTabState);
   const { openCurrent, invalidateResource } = useTabs(
     useShallow((state) => ({
       openCurrent: state.openCurrent,

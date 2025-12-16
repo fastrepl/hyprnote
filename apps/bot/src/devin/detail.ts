@@ -13,8 +13,7 @@ export const DevinSessionStatus = {
   Resumed: "resumed",
 } as const;
 
-export type DevinSessionStatus =
-  (typeof DevinSessionStatus)[keyof typeof DevinSessionStatus];
+export type DevinSessionStatus = (typeof DevinSessionStatus)[keyof typeof DevinSessionStatus];
 
 export interface DevinSessionDetail {
   session_id: string;
@@ -30,9 +29,7 @@ export interface DevinSessionDetail {
   status_enum: DevinSessionStatus | null;
 }
 
-export async function getDevinSessionDetail(
-  sessionId: string,
-): Promise<DevinSessionDetail> {
+export async function getDevinSessionDetail(sessionId: string): Promise<DevinSessionDetail> {
   const url = `${DEVIN_API_BASE_URL}/sessions/${sessionId}`;
 
   const response = await fetchFromDevin(url, {

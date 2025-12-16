@@ -2,12 +2,7 @@ import { ArrowDownUp, Plus, Search, X } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@hypr/ui/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@hypr/ui/components/ui/select";
 
 export const getInitials = (name?: string | null) => {
   if (!name) {
@@ -21,11 +16,7 @@ export const getInitials = (name?: string | null) => {
     .slice(0, 2);
 };
 
-export type SortOption =
-  | "alphabetical"
-  | "reverse-alphabetical"
-  | "oldest"
-  | "newest";
+export type SortOption = "alphabetical" | "reverse-alphabetical" | "oldest" | "newest";
 
 export function SortDropdown({
   sortOption,
@@ -35,10 +26,7 @@ export function SortDropdown({
   setSortOption: (option: SortOption) => void;
 }) {
   return (
-    <Select
-      value={sortOption}
-      onValueChange={(value: SortOption) => setSortOption(value)}
-    >
+    <Select value={sortOption} onValueChange={(value: SortOption) => setSortOption(value)}>
       <SelectTrigger className="h-8 w-8 p-0" aria-label="Sort options">
         <ArrowDownUp size={16} />
       </SelectTrigger>
@@ -98,21 +86,13 @@ export function ColumnHeader({
         <h3 className="text-sm font-medium">{title}</h3>
         <div className="flex items-center flex-shrink-0">
           {onSearchChange && (
-            <Button
-              onClick={handleSearchToggle}
-              size="icon"
-              variant="ghost"
-              title="Search"
-            >
+            <Button onClick={handleSearchToggle} size="icon" variant="ghost" title="Search">
               <Search size={16} />
             </Button>
           )}
           {sortOption && setSortOption && (
             <div className="hidden @[220px]:block">
-              <SortDropdown
-                sortOption={sortOption}
-                setSortOption={setSortOption}
-              />
+              <SortDropdown sortOption={sortOption} setSortOption={setSortOption} />
             </div>
           )}
           <Button onClick={onAdd} size="icon" variant="ghost" title="Add">

@@ -2,11 +2,15 @@
   "name": "@hypr/bot",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "start": "node ./lib/src/server.js",
     "test": "vitest run"
+  },
+  "overrides": {
+    "@types/pg": "8.15.1"
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.8",
@@ -21,11 +25,7 @@
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   },
-  "overrides": {
-    "@types/pg": "8.15.1"
-  },
   "engines": {
     "node": ">= 18"
-  },
-  "type": "module"
+  }
 }

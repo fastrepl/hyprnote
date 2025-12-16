@@ -26,9 +26,9 @@ function LeftSidebar() {
   const matchRoute = useMatchRoute();
   const match = matchRoute({ to: "/docs/$", fuzzy: true });
 
-  const currentSlug = (
-    match && typeof match !== "boolean" ? match._splat : undefined
-  ) as string | undefined;
+  const currentSlug = (match && typeof match !== "boolean" ? match._splat : undefined) as
+    | string
+    | undefined;
 
   const { sections } = getDocsBySection();
   const scrollContainerRef = useRef<HTMLDivElement>(null);

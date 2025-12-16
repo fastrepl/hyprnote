@@ -25,8 +25,7 @@ export function WordSpan({
   operations?: Operations;
   onClickWord: (word: SegmentWord) => void;
 }) {
-  const mode =
-    operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
+  const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
   const { segments, isActive } = useTranscriptSearchHighlights(word);
   const hasMatch = segments.some((segment) => segment.isMatch);
 
@@ -63,11 +62,7 @@ export function WordSpan({
     return (
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <span
-            onClick={handleClick}
-            className={className}
-            data-word-id={word.id}
-          >
+          <span onClick={handleClick} className={className} data-word-id={word.id}>
             {content}
           </span>
         </ContextMenuTrigger>

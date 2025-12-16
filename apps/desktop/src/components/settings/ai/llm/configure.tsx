@@ -19,21 +19,17 @@ export function ConfigureProviders() {
         <HyprProviderCard
           providerId="hyprnote"
           providerName="Hyprnote"
-          icon={
-            <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
-          }
+          icon={<img src="/assets/icon.png" alt="Hyprnote" className="size-5" />}
         />
-        {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
-          (provider) => (
-            <NonHyprProviderCard
-              key={provider.id}
-              config={provider}
-              providerType="llm"
-              providers={PROVIDERS}
-              providerContext={<ProviderContext providerId={provider.id} />}
-            />
-          ),
-        )}
+        {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map((provider) => (
+          <NonHyprProviderCard
+            key={provider.id}
+            config={provider}
+            providerType="llm"
+            providers={PROVIDERS}
+            providerContext={<ProviderContext providerId={provider.id} />}
+          />
+        ))}
       </Accordion>
     </div>
   );
@@ -61,10 +57,7 @@ function HyprProviderCard({
       ])}
     >
       <AccordionTrigger
-        className={cn([
-          "capitalize gap-2 px-4",
-          locked && "cursor-not-allowed opacity-30",
-        ])}
+        className={cn(["capitalize gap-2 px-4", locked && "cursor-not-allowed opacity-30"])}
       >
         <div className="flex items-center gap-2">
           {icon}

@@ -1,16 +1,7 @@
-import type { Auth, AuthToken } from './auth';
-import type {
-  BodySerializer,
-  QuerySerializer,
-  QuerySerializerOptions,
-} from './bodySerializer';
+import type { Auth, AuthToken } from "./auth";
+import type { BodySerializer, QuerySerializer, QuerySerializerOptions } from "./bodySerializer";
 
-export interface Client<
-  RequestFn = never,
-  Config = unknown,
-  MethodFn = never,
-  BuildUrlFn = never,
-> {
+export interface Client<RequestFn = never, Config = unknown, MethodFn = never, BuildUrlFn = never> {
   /**
    * Returns the final request URL.
    */
@@ -47,32 +38,17 @@ export interface Config {
    * {@link https://developer.mozilla.org/docs/Web/API/Headers/Headers#init See more}
    */
   headers?:
-    | RequestInit['headers']
+    | RequestInit["headers"]
     | Record<
         string,
-        | string
-        | number
-        | boolean
-        | (string | number | boolean)[]
-        | null
-        | undefined
-        | unknown
+        string | number | boolean | (string | number | boolean)[] | null | undefined | unknown
       >;
   /**
    * The request method.
    *
    * {@link https://developer.mozilla.org/docs/Web/API/fetch#method See more}
    */
-  method?:
-    | 'CONNECT'
-    | 'DELETE'
-    | 'GET'
-    | 'HEAD'
-    | 'OPTIONS'
-    | 'PATCH'
-    | 'POST'
-    | 'PUT'
-    | 'TRACE';
+  method?: "CONNECT" | "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "TRACE";
   /**
    * A function for serializing request query parameters. By default, arrays
    * will be exploded in form style, objects will be exploded in deepObject

@@ -2,14 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "SeedData",
   "type": "object",
-  "required": [
-    "calendars",
-    "events",
-    "humans",
-    "organizations",
-    "sessions",
-    "tags"
-  ],
+  "required": ["calendars", "events", "humans", "organizations", "sessions", "tags"],
   "properties": {
     "organizations": {
       "type": "array",
@@ -61,10 +54,7 @@
   "definitions": {
     "Organization": {
       "type": "object",
-      "required": [
-        "id",
-        "name"
-      ],
+      "required": ["id", "name"],
       "properties": {
         "id": {
           "type": "string"
@@ -73,68 +63,40 @@
           "type": "string"
         },
         "description": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
     "Human": {
       "type": "object",
-      "required": [
-        "id",
-        "is_user"
-      ],
+      "required": ["id", "is_user"],
       "properties": {
         "id": {
           "type": "string"
         },
         "organization_id": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "is_user": {
           "type": "boolean"
         },
         "full_name": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "email": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "job_title": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "linkedin_username": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
     "Calendar": {
       "type": "object",
-      "required": [
-        "id",
-        "name",
-        "platform",
-        "selected",
-        "tracking_id",
-        "user_id"
-      ],
+      "required": ["id", "name", "platform", "selected", "tracking_id", "user_id"],
       "properties": {
         "id": {
           "type": "string"
@@ -155,20 +117,13 @@
           "type": "boolean"
         },
         "source": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
     "Platform": {
       "type": "string",
-      "enum": [
-        "Apple",
-        "Google",
-        "Outlook"
-      ]
+      "enum": ["Apple", "Google", "Outlook"]
     },
     "Event": {
       "type": "object",
@@ -193,10 +148,7 @@
           "type": "string"
         },
         "calendar_id": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "name": {
           "type": "string"
@@ -213,16 +165,10 @@
           "format": "date-time"
         },
         "google_event_url": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "participants": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "is_recurring": {
           "type": "boolean"
@@ -231,15 +177,7 @@
     },
     "Session": {
       "type": "object",
-      "required": [
-        "created_at",
-        "id",
-        "raw_memo_html",
-        "title",
-        "user_id",
-        "visited_at",
-        "words"
-      ],
+      "required": ["created_at", "id", "raw_memo_html", "title", "user_id", "visited_at", "words"],
       "properties": {
         "id": {
           "type": "string"
@@ -256,10 +194,7 @@
           "type": "string"
         },
         "calendar_event_id": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "title": {
           "type": "string"
@@ -268,10 +203,7 @@
           "type": "string"
         },
         "enhanced_memo_html": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "words": {
           "type": "array",
@@ -280,32 +212,21 @@
           }
         },
         "record_start": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "record_end": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "date-time"
         },
         "pre_meeting_memo_html": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
     "Word2": {
       "type": "object",
-      "required": [
-        "text"
-      ],
+      "required": ["text"],
       "properties": {
         "text": {
           "type": "string"
@@ -321,25 +242,16 @@
           ]
         },
         "confidence": {
-          "type": [
-            "number",
-            "null"
-          ],
+          "type": ["number", "null"],
           "format": "float"
         },
         "start_ms": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "format": "uint64",
           "minimum": 0.0
         },
         "end_ms": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "format": "uint64",
           "minimum": 0.0
         }
@@ -350,22 +262,15 @@
       "oneOf": [
         {
           "type": "object",
-          "required": [
-            "type",
-            "value"
-          ],
+          "required": ["type", "value"],
           "properties": {
             "type": {
               "type": "string",
-              "enum": [
-                "unassigned"
-              ]
+              "enum": ["unassigned"]
             },
             "value": {
               "type": "object",
-              "required": [
-                "index"
-              ],
+              "required": ["index"],
               "properties": {
                 "index": {
                   "type": "integer",
@@ -380,23 +285,15 @@
         },
         {
           "type": "object",
-          "required": [
-            "type",
-            "value"
-          ],
+          "required": ["type", "value"],
           "properties": {
             "type": {
               "type": "string",
-              "enum": [
-                "assigned"
-              ]
+              "enum": ["assigned"]
             },
             "value": {
               "type": "object",
-              "required": [
-                "id",
-                "label"
-              ],
+              "required": ["id", "label"],
               "properties": {
                 "id": {
                   "type": "string"
@@ -414,10 +311,7 @@
     },
     "Tag": {
       "type": "object",
-      "required": [
-        "id",
-        "name"
-      ],
+      "required": ["id", "name"],
       "properties": {
         "id": {
           "type": "string"
@@ -429,13 +323,7 @@
     },
     "Config": {
       "type": "object",
-      "required": [
-        "ai",
-        "general",
-        "id",
-        "notification",
-        "user_id"
-      ],
+      "required": ["ai", "general", "id", "notification", "user_id"],
       "properties": {
         "id": {
           "type": "string"
@@ -456,11 +344,7 @@
     },
     "ConfigGeneral": {
       "type": "object",
-      "required": [
-        "autostart",
-        "display_language",
-        "telemetry_consent"
-      ],
+      "required": ["autostart", "display_language", "telemetry_consent"],
       "properties": {
         "autostart": {
           "type": "boolean"
@@ -487,16 +371,10 @@
           "type": "boolean"
         },
         "save_recordings": {
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "type": ["boolean", "null"]
         },
         "selected_template_id": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "summary_language": {
           "default": "en",
@@ -507,9 +385,7 @@
     },
     "Language": {
       "type": "object",
-      "required": [
-        "iso639"
-      ],
+      "required": ["iso639"],
       "properties": {
         "iso639": {
           "type": "string",
@@ -519,10 +395,7 @@
     },
     "ConfigNotification": {
       "type": "object",
-      "required": [
-        "auto",
-        "before"
-      ],
+      "required": ["auto", "before"],
       "properties": {
         "before": {
           "type": "boolean"
@@ -531,10 +404,7 @@
           "type": "boolean"
         },
         "ignoredPlatforms": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "items": {
             "type": "string"
           }
@@ -545,30 +415,18 @@
       "type": "object",
       "properties": {
         "api_base": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "api_key": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "ai_specificity": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "format": "uint8",
           "minimum": 0.0
         },
         "redemption_time_ms": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "format": "uint32",
           "minimum": 0.0
         }

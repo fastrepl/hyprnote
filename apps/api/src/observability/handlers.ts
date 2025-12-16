@@ -74,14 +74,10 @@ export function handleSentry(event: ObservabilityEvent): void {
       break;
 
     case "llm.stream.complete":
-      Sentry.metrics.distribution(
-        "upstream.stream_duration",
-        event.durationMs,
-        {
-          unit: "millisecond",
-          attributes: { model: event.model },
-        },
-      );
+      Sentry.metrics.distribution("upstream.stream_duration", event.durationMs, {
+        unit: "millisecond",
+        attributes: { model: event.model },
+      });
       break;
 
     case "llm.request.error":

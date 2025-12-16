@@ -4,9 +4,7 @@ export type EarlyValidatorFn = (
   textSoFar: string,
 ) => { valid: true } | { valid: false; feedback: string };
 
-export async function* withEarlyValidationRetry<
-  TOOLS extends ToolSet = ToolSet,
->(
+export async function* withEarlyValidationRetry<TOOLS extends ToolSet = ToolSet>(
   executeStream: (
     signal: AbortSignal,
     attemptContext: { attempt: number; previousFeedback?: string },
@@ -20,13 +18,7 @@ export async function* withEarlyValidationRetry<
     onRetrySuccess?: () => void;
   } = {},
 ): AsyncIterable<TextStreamPart<TOOLS>> {
-  const {
-    minChar = 5,
-    maxChar = 30,
-    maxRetries = 2,
-    onRetry,
-    onRetrySuccess,
-  } = options;
+  const { minChar = 5, maxChar = 30, maxRetries = 2, onRetry, onRetrySuccess } = options;
 
   let previousFeedback: string | undefined;
 

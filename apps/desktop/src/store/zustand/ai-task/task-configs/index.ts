@@ -57,10 +57,7 @@ export interface TaskArgsMapTransformed {
 
 export type TaskId<T extends TaskType = TaskType> = `${string}-${T}`;
 
-export function createTaskId<T extends TaskType>(
-  entityId: string,
-  taskType: T,
-): TaskId<T> {
+export function createTaskId<T extends TaskType>(entityId: string, taskType: T): TaskId<T> {
   return `${entityId}-${taskType}` as TaskId<T>;
 }
 

@@ -20,13 +20,7 @@ export function UpdateChecker() {
   } = useOTA();
 
   if (state === "checking") {
-    return (
-      <MenuItem
-        icon={Spinner}
-        label="Checking for updates..."
-        onClick={() => {}}
-      />
-    );
+    return <MenuItem icon={Spinner} label="Checking for updates..." onClick={() => {}} />;
   }
 
   if (state === "noUpdate") {
@@ -135,9 +129,7 @@ export function UpdateChecker() {
       <MenuItem
         icon={CheckCircle}
         label="Install update"
-        badge={
-          <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-        }
+        badge={<div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />}
         onClick={handleInstall}
       />
     );
@@ -148,13 +140,7 @@ export function UpdateChecker() {
   }
 
   if (state === "idle") {
-    return (
-      <MenuItem
-        icon={RefreshCw}
-        label="Check for updates"
-        onClick={handleCheckForUpdate}
-      />
-    );
+    return <MenuItem icon={RefreshCw} label="Check for updates" onClick={handleCheckForUpdate} />;
   }
 }
 

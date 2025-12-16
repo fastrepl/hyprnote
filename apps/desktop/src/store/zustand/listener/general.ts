@@ -29,9 +29,7 @@ type LiveSessionStatus = Extract<
 >;
 export type SessionMode = LiveSessionStatus | "running_batch";
 
-const hasSessionId = (
-  payload: SessionEvent,
-): payload is SessionEvent & { session_id: string } =>
+const hasSessionId = (payload: SessionEvent): payload is SessionEvent & { session_id: string } =>
   "session_id" in payload && typeof payload.session_id === "string";
 
 export type GeneralState = {
@@ -48,10 +46,7 @@ export type GeneralState = {
 };
 
 export type GeneralActions = {
-  start: (
-    params: SessionParams,
-    options?: { handlePersist?: HandlePersistCallback },
-  ) => void;
+  start: (params: SessionParams, options?: { handlePersist?: HandlePersistCallback }) => void;
   stop: () => void;
   setMuted: (value: boolean) => void;
   runBatch: (
@@ -76,8 +71,7 @@ const listenToSessionEvents = (
   onEvent: (payload: SessionEvent) => void,
 ): Effect.Effect<() => void, unknown> =>
   Effect.tryPromise({
-    try: () =>
-      listenerEvents.sessionEvent.listen(({ payload }) => onEvent(payload)),
+    try: () => listenerEvents.sessionEvent.listen(({ payload }) => onEvent(payload)),
     catch: (error) => error,
   });
 
@@ -86,11 +80,7 @@ const startSessionEffect = (params: SessionParams) =>
 const stopSessionEffect = () => fromResult(listenerCommands.stopSession());
 
 export const createGeneralSlice = <
-  T extends GeneralState &
-    GeneralActions &
-    TranscriptActions &
-    BatchActions &
-    BatchState,
+  T extends GeneralState & GeneralActions & TranscriptActions & BatchActions & BatchState,
 >(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
@@ -206,9 +196,7 @@ export const createGeneralSlice = <
         appDataDir(),
         detectCommands
           .listMicUsingApplications()
-          .then((r) =>
-            r.status === "ok" ? r.data.map((app) => app.id) : null,
-          ),
+          .then((r) => (r.status === "ok" ? r.data.map((app) => app.id) : null)),
         getIdentifier().catch(() => "com.hyprnote.stable"),
       ])
         .then(([dataDirPath, micUsingApps, bundleId]) => {
@@ -285,10 +273,7 @@ export const createGeneralSlice = <
         },
         onSuccess: () => {
           if (sessionId) {
-            Promise.all([
-              appDataDir(),
-              getIdentifier().catch(() => "com.hyprnote.app"),
-            ])
+            Promise.all([appDataDir(), getIdentifier().catch(() => "com.hyprnote.app")])
               .then(([dataDirPath, bundleId]) => {
                 const sessionPath = `${dataDirPath}/hyprnote/sessions/${sessionId}`;
                 return hooksCommands.runEventHooks({
@@ -327,16 +312,12 @@ export const createGeneralSlice = <
 
     const mode = get().getSessionMode(sessionId);
     if (mode === "running_active" || mode === "finalizing") {
-      console.warn(
-        `[listener] cannot start batch processing while session ${sessionId} is live`,
-      );
+      console.warn(`[listener] cannot start batch processing while session ${sessionId} is live`);
       return;
     }
 
     if (mode === "running_batch") {
-      console.warn(
-        `[listener] session ${sessionId} is already processing in batch mode`,
-      );
+      console.warn(`[listener] session ${sessionId} is already processing in batch mode`);
       return;
     }
 
@@ -376,11 +357,7 @@ export const createGeneralSlice = <
           }
 
           if (payload.type === "batchProgress") {
-            get().handleBatchResponseStreamed(
-              sessionId,
-              payload.response,
-              payload.percentage,
-            );
+            get().handleBatchResponseStreamed(sessionId, payload.response, payload.percentage);
 
             const batchState = get().batch[sessionId];
             if (batchState?.isComplete) {

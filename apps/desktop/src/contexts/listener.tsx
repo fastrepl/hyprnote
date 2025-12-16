@@ -6,10 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { events as detectEvents } from "@hypr/plugin-detect";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 
-import {
-  createListenerStore,
-  type ListenerStore,
-} from "../store/zustand/listener";
+import { createListenerStore, type ListenerStore } from "../store/zustand/listener";
 
 const ListenerContext = createContext<ListenerStore | null>(null);
 
@@ -27,17 +24,11 @@ export const ListenerProvider = ({
     storeRef.current = store;
   }
 
-  return (
-    <ListenerContext.Provider value={storeRef.current}>
-      {children}
-    </ListenerContext.Provider>
-  );
+  return <ListenerContext.Provider value={storeRef.current}>{children}</ListenerContext.Provider>;
 };
 
 export const useListener = <T,>(
-  selector: Parameters<
-    typeof useStore<ReturnType<typeof createListenerStore>, T>
-  >[1],
+  selector: Parameters<typeof useStore<ReturnType<typeof createListenerStore>, T>>[1],
 ) => {
   const store = useContext(ListenerContext);
 

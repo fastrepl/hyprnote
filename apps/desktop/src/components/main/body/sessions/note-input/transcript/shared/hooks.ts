@@ -1,11 +1,4 @@
-import {
-  DependencyList,
-  RefObject,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { DependencyList, RefObject, useEffect, useMemo, useRef, useState } from "react";
 
 import type { SpeakerHintStorage, Word } from "@hypr/store";
 
@@ -39,10 +32,7 @@ export function useFinalWords(transcriptId: string): (Word & { id: string })[] {
 
 function useWordsQuery(transcriptId: string) {
   const queries = main.UI.useQueries(main.STORE_ID);
-  const queryId = useMemo(
-    () => `wordsByTranscript:${transcriptId}`,
-    [transcriptId],
-  );
+  const queryId = useMemo(() => `wordsByTranscript:${transcriptId}`, [transcriptId]);
 
   useEffect(() => {
     if (!queries || !transcriptId) {
@@ -69,9 +59,7 @@ function useWordsQuery(transcriptId: string) {
   return queryId;
 }
 
-export function useFinalSpeakerHints(
-  transcriptId: string,
-): RuntimeSpeakerHint[] {
+export function useFinalSpeakerHints(transcriptId: string): RuntimeSpeakerHint[] {
   const store = main.UI.useStore(main.STORE_ID);
   const wordIds = main.UI.useSliceRowIds(
     main.INDEXES.wordsByTranscript,
@@ -96,9 +84,7 @@ export function useFinalSpeakerHints(
 
     const storageHints: SpeakerHintStorage[] = [];
     speakerHintIds?.forEach((hintId) => {
-      const hint = store.getRow("speaker_hints", hintId) as
-        | SpeakerHintStorage
-        | undefined;
+      const hint = store.getRow("speaker_hints", hintId) as SpeakerHintStorage | undefined;
       if (hint) {
         storageHints.push(hint);
       }
@@ -116,12 +102,7 @@ export function useTranscriptOffset(transcriptId: string): number {
     main.STORE_ID,
   );
 
-  const sessionId = main.UI.useCell(
-    "transcripts",
-    transcriptId,
-    "session_id",
-    main.STORE_ID,
-  );
+  const sessionId = main.UI.useCell("transcripts", transcriptId, "session_id", main.STORE_ID);
 
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,
@@ -138,8 +119,7 @@ export function useTranscriptOffset(transcriptId: string): number {
   );
 
   return transcriptStartedAt && firstTranscriptStartedAt
-    ? new Date(transcriptStartedAt).getTime() -
-        new Date(firstTranscriptStartedAt).getTime()
+    ? new Date(transcriptStartedAt).getTime() - new Date(firstTranscriptStartedAt).getTime()
     : 0;
 }
 
@@ -159,12 +139,7 @@ export function useSessionSpeakers(sessionId?: string) {
 
 type SegmentsBuilder = typeof buildSegments;
 
-export const useSegments: SegmentsBuilder = (
-  finalWords,
-  partialWords,
-  speakerHints,
-  options,
-) => {
+export const useSegments: SegmentsBuilder = (finalWords, partialWords, speakerHints, options) => {
   const segments = useMemo(
     () => buildSegments(finalWords, partialWords, speakerHints, options),
     [finalWords, partialWords, speakerHints, options],
@@ -182,12 +157,7 @@ export const useStableSegments: SegmentsBuilder = (
   const cacheRef = useRef<Map<string, Segment>>(new Map());
 
   return useMemo(() => {
-    const fresh = buildSegments(
-      finalWords,
-      partialWords,
-      speakerHints,
-      options,
-    );
+    const fresh = buildSegments(finalWords, partialWords, speakerHints, options);
     const nextCache = new Map<string, Segment>();
 
     const segments = fresh.map((segment) => {
@@ -212,13 +182,9 @@ function createStableSegmentKey(segment: Segment) {
   const firstWord = segment.words[0];
   const lastWord = segment.words[segment.words.length - 1];
 
-  const firstAnchor = firstWord
-    ? (firstWord.id ?? `start:${firstWord.start_ms}`)
-    : "none";
+  const firstAnchor = firstWord ? (firstWord.id ?? `start:${firstWord.start_ms}`) : "none";
 
-  const lastAnchor = lastWord
-    ? (lastWord.id ?? `end:${lastWord.end_ms}`)
-    : "none";
+  const lastAnchor = lastWord ? (lastWord.id ?? `end:${lastWord.end_ms}`) : "none";
 
   return [
     segment.key.channel,
@@ -229,11 +195,7 @@ function createStableSegmentKey(segment: Segment) {
   ].join(":");
 }
 
-export function createSegmentKey(
-  segment: Segment,
-  transcriptId: string,
-  fallbackIndex: number,
-) {
+export function createSegmentKey(segment: Segment, transcriptId: string, fallbackIndex: number) {
   const stableKey = createStableSegmentKey(segment);
   if (segment.words.length === 0) {
     return [transcriptId, stableKey, `index:${fallbackIndex}`].join("-");
@@ -289,9 +251,7 @@ export function segmentsShallowEqual(a: Segment[], b: Segment[]) {
   return true;
 }
 
-export function useScrollDetection(
-  containerRef: RefObject<HTMLDivElement | null>,
-) {
+export function useScrollDetection(containerRef: RefObject<HTMLDivElement | null>) {
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const lastScrollTopRef = useRef(0);
@@ -307,8 +267,7 @@ export function useScrollDetection(
 
     const handleScroll = () => {
       const threshold = 100;
-      const distanceToBottom =
-        element.scrollHeight - element.scrollTop - element.clientHeight;
+      const distanceToBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
       const isNearBottom = distanceToBottom < threshold;
       setIsAtBottom(isNearBottom);
 
@@ -362,8 +321,7 @@ export function useAutoScroll(
     lastHeightRef.current = element.scrollHeight;
 
     const isPinned = () => {
-      const distanceToBottom =
-        element.scrollHeight - element.scrollTop - element.clientHeight;
+      const distanceToBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
       return distanceToBottom < 80;
     };
 
@@ -392,10 +350,7 @@ export function useAutoScroll(
       schedule();
     }
 
-    if (
-      typeof window === "undefined" ||
-      typeof window.ResizeObserver === "undefined"
-    ) {
+    if (typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
       const mutationObserver = new MutationObserver(() => {
         const nextHeight = element.scrollHeight;
         if (nextHeight === lastHeightRef.current) {

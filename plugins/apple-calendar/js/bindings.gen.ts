@@ -1,9 +1,6 @@
 // @ts-nocheck
 /** tauri-specta globals **/
-import {
-  Channel as TAURI_CHANNEL,
-  invoke as TAURI_INVOKE,
-} from "@tauri-apps/api/core";
+import { Channel as TAURI_CHANNEL, invoke as TAURI_INVOKE } from "@tauri-apps/api/core";
 import * as TAURI_API_EVENT from "@tauri-apps/api/event";
 import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
 
@@ -137,18 +134,8 @@ export type CalendarSourceType =
   | "MobileMe"
   | "Subscribed"
   | "Birthdays";
-export type CalendarType =
-  | "Local"
-  | "CalDav"
-  | "Exchange"
-  | "Subscription"
-  | "Birthday";
-export type EventAvailability =
-  | "NotSupported"
-  | "Busy"
-  | "Free"
-  | "Tentative"
-  | "Unavailable";
+export type CalendarType = "Local" | "CalDav" | "Exchange" | "Subscription" | "Birthday";
+export type EventAvailability = "NotSupported" | "Busy" | "Free" | "Tentative" | "Unavailable";
 export type EventFilter = {
   from: string;
   to: string;
@@ -179,12 +166,7 @@ export type ParticipantContact = {
   url_addresses: string[];
   image_available: boolean;
 };
-export type ParticipantRole =
-  | "Unknown"
-  | "Required"
-  | "Optional"
-  | "Chair"
-  | "NonParticipant";
+export type ParticipantRole = "Unknown" | "Required" | "Optional" | "Chair" | "NonParticipant";
 export type ParticipantScheduleStatus =
   | "None"
   | "Pending"
@@ -203,12 +185,7 @@ export type ParticipantStatus =
   | "Delegated"
   | "Completed"
   | "InProgress";
-export type ParticipantType =
-  | "Unknown"
-  | "Person"
-  | "Room"
-  | "Resource"
-  | "Group";
+export type ParticipantType = "Unknown" | "Person" | "Room" | "Resource" | "Group";
 export type RecurrenceDayOfWeek = {
   weekday: Weekday;
   week_number: number | null;
@@ -252,24 +229,16 @@ export type Weekday =
   | "Saturday";
 
 type __EventObj__<T> = {
-  listen: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
-  once: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
+  listen: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
+  once: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
   emit: null extends T
     ? (payload?: T) => ReturnType<typeof TAURI_API_EVENT.emit>
     : (payload: T) => ReturnType<typeof TAURI_API_EVENT.emit>;
 };
 
-export type Result<T, E> =
-  | { status: "ok"; data: T }
-  | { status: "error"; error: E };
+export type Result<T, E> = { status: "ok"; data: T } | { status: "error"; error: E };
 
-function __makeEvents__<T extends Record<string, any>>(
-  mappings: Record<keyof T, string>,
-) {
+function __makeEvents__<T extends Record<string, any>>(mappings: Record<keyof T, string>) {
   return new Proxy(
     {} as unknown as {
       [K in keyof T]: __EventObj__<T[K]> & {

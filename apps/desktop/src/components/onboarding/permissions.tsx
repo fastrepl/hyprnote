@@ -26,9 +26,7 @@ function PermissionBlock({
     <div
       className={cn([
         "flex items-center justify-between rounded-xl py-3 px-4",
-        isAuthorized
-          ? "border border-neutral-200"
-          : "border border-red-200 bg-red-50",
+        isAuthorized ? "border border-neutral-200" : "border border-red-200 bg-red-50",
       ])}
     >
       <div className="flex flex-col gap-1">
@@ -56,16 +54,10 @@ function PermissionBlock({
           isPending && "opacity-50 cursor-not-allowed",
         ])}
         aria-label={
-          isAuthorized
-            ? `${name} permission granted`
-            : `Request ${name.toLowerCase()} permission`
+          isAuthorized ? `${name} permission granted` : `Request ${name.toLowerCase()} permission`
         }
       >
-        {isAuthorized ? (
-          <CheckIcon className="size-4" />
-        ) : (
-          <ArrowRightIcon className="size-4" />
-        )}
+        {isAuthorized ? <CheckIcon className="size-4" /> : <ArrowRightIcon className="size-4" />}
       </button>
     </div>
   );
@@ -146,9 +138,7 @@ export function Permissions({
             : "bg-gradient-to-t from-neutral-200 to-neutral-100 text-neutral-400 cursor-not-allowed",
         ])}
       >
-        {allPermissionsGranted
-          ? "Continue"
-          : "Need all permissions to continue"}
+        {allPermissionsGranted ? "Continue" : "Need all permissions to continue"}
       </button>
     </OnboardingContainer>
   );

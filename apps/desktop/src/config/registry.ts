@@ -1,10 +1,7 @@
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 
 import { commands as detectCommands } from "@hypr/plugin-detect";
-import {
-  commands as localSttCommands,
-  type SupportedSttModel,
-} from "@hypr/plugin-local-stt";
+import { commands as localSttCommands, type SupportedSttModel } from "@hypr/plugin-local-stt";
 
 export type ConfigKey =
   | "autostart"
@@ -23,8 +20,7 @@ export type ConfigKey =
   | "current_llm_provider"
   | "current_llm_model";
 
-type ConfigValueType<K extends ConfigKey> =
-  (typeof CONFIG_REGISTRY)[K]["default"];
+type ConfigValueType<K extends ConfigKey> = (typeof CONFIG_REGISTRY)[K]["default"];
 
 interface ConfigDefinition<T = any> {
   key: ConfigKey;

@@ -34,12 +34,7 @@ export function TemplateDetailsColumn({
     if (!selectedWebTemplate) {
       return <ResourceDetailEmpty message="Select a template to preview" />;
     }
-    return (
-      <WebTemplatePreview
-        template={selectedWebTemplate}
-        onClone={handleCloneTemplate}
-      />
-    );
+    return <WebTemplatePreview template={selectedWebTemplate} onClone={handleCloneTemplate} />;
   }
 
   if (!selectedMineId) {
@@ -60,11 +55,7 @@ function WebTemplatePreview({
   onClone,
 }: {
   template: WebTemplate;
-  onClone: (template: {
-    title: string;
-    description: string;
-    sections: TemplateSection[];
-  }) => void;
+  onClone: (template: { title: string; description: string; sections: TemplateSection[] }) => void;
 }) {
   return (
     <div className="flex-1 flex flex-col h-full">
@@ -84,14 +75,8 @@ function WebTemplatePreview({
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-sm font-medium text-neutral-600 mb-3">
-            Sections
-          </h3>
-          <SectionsList
-            disabled={true}
-            items={template.sections ?? []}
-            onChange={() => {}}
-          />
+          <h3 className="text-sm font-medium text-neutral-600 mb-3">Sections</h3>
+          <SectionsList disabled={true} items={template.sections ?? []} onChange={() => {}} />
         </div>
       </div>
     </div>

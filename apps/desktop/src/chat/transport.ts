@@ -16,9 +16,7 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
     private systemPrompt?: string,
   ) {}
 
-  sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (
-    options,
-  ) => {
+  sendMessages: ChatTransport<HyprUIMessage>["sendMessages"] = async (options) => {
     const tools = this.registry.getTools("chat");
 
     const agent = new Agent({
@@ -53,8 +51,7 @@ export class CustomChatTransport implements ChatTransport<HyprUIMessage> {
     });
   };
 
-  reconnectToStream: ChatTransport<HyprUIMessage>["reconnectToStream"] =
-    async () => {
-      return null;
-    };
+  reconnectToStream: ChatTransport<HyprUIMessage>["reconnectToStream"] = async () => {
+    return null;
+  };
 }

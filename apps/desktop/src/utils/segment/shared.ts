@@ -77,10 +77,7 @@ export class SpeakerLabelManager {
     return newIndex;
   }
 
-  static fromSegments(
-    segments: Segment[],
-    ctx?: RenderLabelContext,
-  ): SpeakerLabelManager {
+  static fromSegments(segments: Segment[], ctx?: RenderLabelContext): SpeakerLabelManager {
     const manager = new SpeakerLabelManager();
     for (const segment of segments) {
       if (!SegmentKey.isKnownSpeaker(segment.key, ctx)) {
@@ -106,9 +103,7 @@ export const SegmentKey = {
   ): SegmentKey => Data.struct(params),
 
   hasSpeakerIdentity: (key: SegmentKey): boolean => {
-    return (
-      key.speaker_index !== undefined || key.speaker_human_id !== undefined
-    );
+    return key.speaker_index !== undefined || key.speaker_human_id !== undefined;
   },
 
   equals: (a: SegmentKey, b: SegmentKey): boolean => {
@@ -120,11 +115,7 @@ export const SegmentKey = {
   },
 
   serialize: (key: SegmentKey): string => {
-    return JSON.stringify([
-      key.channel,
-      key.speaker_index ?? null,
-      key.speaker_human_id ?? null,
-    ]);
+    return JSON.stringify([key.channel, key.speaker_index ?? null, key.speaker_human_id ?? null]);
   },
 
   isKnownSpeaker: (key: SegmentKey, ctx?: RenderLabelContext): boolean => {
@@ -220,10 +211,7 @@ type RequireKeys<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 
 export type SegmentPass<TNeedsKeys extends keyof SegmentGraph = never> = {
   id: StageId;
-  run: (
-    graph: RequireKeys<SegmentGraph, TNeedsKeys>,
-    ctx: SegmentPassContext,
-  ) => SegmentGraph;
+  run: (graph: RequireKeys<SegmentGraph, TNeedsKeys>, ctx: SegmentPassContext) => SegmentGraph;
 };
 
 export type SegmentPassContext = {

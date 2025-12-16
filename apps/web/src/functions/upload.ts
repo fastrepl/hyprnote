@@ -56,11 +56,9 @@ export const uploadAudioFile = createServerFn({ method: "POST" })
     const filePath = `${userData.user.id}/${Date.now()}-${data.fileName}`;
     const fileBuffer = Buffer.from(data.fileData, "base64");
 
-    const { error } = await supabase.storage
-      .from("audio-files")
-      .upload(filePath, fileBuffer, {
-        contentType: data.fileType,
-      });
+    const { error } = await supabase.storage.from("audio-files").upload(filePath, fileBuffer, {
+      contentType: data.fileType,
+    });
 
     if (error) {
       return { error: true as const, message: error.message };

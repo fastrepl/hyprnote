@@ -1,10 +1,6 @@
 import { beforeAll, describe, expect, mock, test } from "bun:test";
 
-import {
-  getPayloadSize,
-  normalizeWsData,
-  payloadIsControlMessage,
-} from "./utils";
+import { getPayloadSize, normalizeWsData, payloadIsControlMessage } from "./utils";
 
 mock.module("../env", () => ({
   env: {
@@ -105,9 +101,7 @@ describe("payloadIsControlMessage", () => {
   const controlTypes = new Set(["keepalive", "finalize"]);
 
   test("returns false for binary payload", () => {
-    expect(
-      payloadIsControlMessage(new Uint8Array([1, 2, 3]), controlTypes),
-    ).toBe(false);
+    expect(payloadIsControlMessage(new Uint8Array([1, 2, 3]), controlTypes)).toBe(false);
   });
 
   test("returns false for non-JSON string", () => {
@@ -119,27 +113,16 @@ describe("payloadIsControlMessage", () => {
   });
 
   test("returns false for unrecognized type", () => {
-    expect(payloadIsControlMessage('{"type": "unknown"}', controlTypes)).toBe(
-      false,
-    );
+    expect(payloadIsControlMessage('{"type": "unknown"}', controlTypes)).toBe(false);
   });
 
   test("returns true for recognized control message type", () => {
-    expect(payloadIsControlMessage('{"type": "keepalive"}', controlTypes)).toBe(
-      true,
-    );
-    expect(payloadIsControlMessage('{"type": "finalize"}', controlTypes)).toBe(
-      true,
-    );
+    expect(payloadIsControlMessage('{"type": "keepalive"}', controlTypes)).toBe(true);
+    expect(payloadIsControlMessage('{"type": "finalize"}', controlTypes)).toBe(true);
   });
 
   test("returns true with additional fields present", () => {
-    expect(
-      payloadIsControlMessage(
-        '{"type": "keepalive", "extra": 123}',
-        controlTypes,
-      ),
-    ).toBe(true);
+    expect(payloadIsControlMessage('{"type": "keepalive", "extra": 123}', controlTypes)).toBe(true);
   });
 
   test("returns false with empty control types set", () => {
@@ -203,18 +186,14 @@ describe("buildAssemblyAIUrl", () => {
   });
 
   test("copies query params from incoming URL", () => {
-    const incoming = new URL(
-      "wss://example.com/stt?sample_rate=16000&encoding=pcm",
-    );
+    const incoming = new URL("wss://example.com/stt?sample_rate=16000&encoding=pcm");
     const result = buildAssemblyAIUrl(incoming);
     expect(result.searchParams.get("sample_rate")).toBe("16000");
     expect(result.searchParams.get("encoding")).toBe("pcm");
   });
 
   test("excludes provider param", () => {
-    const incoming = new URL(
-      "wss://example.com/stt?provider=assemblyai&format=json",
-    );
+    const incoming = new URL("wss://example.com/stt?provider=assemblyai&format=json");
     const result = buildAssemblyAIUrl(incoming);
     expect(result.searchParams.has("provider")).toBe(false);
     expect(result.searchParams.get("format")).toBe("json");

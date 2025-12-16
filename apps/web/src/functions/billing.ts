@@ -17,10 +17,7 @@ type AuthUser = {
   } | null;
 };
 
-const getStripeCustomerIdForUser = async (
-  supabase: SupabaseClient,
-  user: AuthUser,
-) => {
+const getStripeCustomerIdForUser = async (supabase: SupabaseClient, user: AuthUser) => {
   const metadataCustomerId = user.user_metadata?.stripe_customer_id;
 
   const { data: profile, error: profileError } = await supabase
@@ -33,13 +30,9 @@ const getStripeCustomerIdForUser = async (
     throw profileError;
   }
 
-  const profileCustomerId = profile?.stripe_customer_id as
-    | string
-    | null
-    | undefined;
+  const profileCustomerId = profile?.stripe_customer_id as string | null | undefined;
 
-  const stripeCustomerId =
-    profileCustomerId ?? (metadataCustomerId as string | undefined);
+  const stripeCustomerId = profileCustomerId ?? (metadataCustomerId as string | undefined);
 
   if (profileCustomerId && profileCustomerId !== metadataCustomerId) {
     await supabase.auth.updateUser({
@@ -89,19 +82,14 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
             stripe_customer_id: newCustomer.id,
           },
         }),
-        supabase
-          .from("profiles")
-          .update({ stripe_customer_id: newCustomer.id })
-          .eq("id", user.id),
+        supabase.from("profiles").update({ stripe_customer_id: newCustomer.id }).eq("id", user.id),
       ]);
 
       stripeCustomerId = newCustomer.id;
     }
 
     const priceId =
-      data.period === "yearly"
-        ? env.STRIPE_YEARLY_PRICE_ID
-        : env.STRIPE_MONTHLY_PRICE_ID;
+      data.period === "yearly" ? env.STRIPE_YEARLY_PRICE_ID : env.STRIPE_MONTHLY_PRICE_ID;
 
     const checkout = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
@@ -119,106 +107,100 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     return { url: checkout.url };
   });
 
-export const createPortalSession = createServerFn({ method: "POST" }).handler(
-  async () => {
-    const supabase = getSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const createPortalSession = createServerFn({ method: "POST" }).handler(async () => {
+  const supabase = getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user?.id) {
-      throw new Error("Unauthorized");
-    }
+  if (!user?.id) {
+    throw new Error("Unauthorized");
+  }
 
-    const stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
-      id: user.id,
-      user_metadata: user.user_metadata,
-    });
+  const stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
+    id: user.id,
+    user_metadata: user.user_metadata,
+  });
 
-    if (!stripeCustomerId) {
-      throw new Error("No Stripe customer found");
-    }
+  if (!stripeCustomerId) {
+    throw new Error("No Stripe customer found");
+  }
 
-    const stripe = getStripeClient();
+  const stripe = getStripeClient();
 
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: stripeCustomerId,
-      return_url: `${env.VITE_APP_URL}/app/account`,
-    });
+  const portalSession = await stripe.billingPortal.sessions.create({
+    customer: stripeCustomerId,
+    return_url: `${env.VITE_APP_URL}/app/account`,
+  });
 
-    return { url: portalSession.url };
-  },
-);
+  return { url: portalSession.url };
+});
 
-export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(
-  async () => {
-    const supabase = getSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const syncAfterSuccess = createServerFn({ method: "POST" }).handler(async () => {
+  const supabase = getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user?.id) {
-      throw new Error("Unauthorized");
-    }
+  if (!user?.id) {
+    throw new Error("Unauthorized");
+  }
 
-    const stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
-      id: user.id,
-      user_metadata: user.user_metadata,
-    });
+  const stripeCustomerId = await getStripeCustomerIdForUser(supabase, {
+    id: user.id,
+    user_metadata: user.user_metadata,
+  });
 
-    if (!stripeCustomerId) {
-      return { status: "none" };
-    }
+  if (!stripeCustomerId) {
+    return { status: "none" };
+  }
 
-    const stripe = getStripeClient();
+  const stripe = getStripeClient();
 
-    const subscriptions = await stripe.subscriptions.list({
-      customer: stripeCustomerId,
-      limit: 1,
-      status: "all",
-    });
+  const subscriptions = await stripe.subscriptions.list({
+    customer: stripeCustomerId,
+    limit: 1,
+    status: "all",
+  });
 
-    if (subscriptions.data.length === 0) {
-      return { status: "none" };
-    }
+  if (subscriptions.data.length === 0) {
+    return { status: "none" };
+  }
 
-    const subscription = subscriptions.data[0];
+  const subscription = subscriptions.data[0];
 
-    return {
-      subscriptionId: subscription.id,
-      status: subscription.status,
-      priceId: subscription.items.data[0].price.id,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    };
-  },
-);
+  return {
+    subscriptionId: subscription.id,
+    status: subscription.status,
+    priceId: subscription.items.data[0].price.id,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+  };
+});
 
-export const canStartTrial = createServerFn({ method: "POST" }).handler(
-  async () => {
-    const supabase = getSupabaseServerClient();
-    const { data: sessionData } = await supabase.auth.getSession();
+export const canStartTrial = createServerFn({ method: "POST" }).handler(async () => {
+  const supabase = getSupabaseServerClient();
+  const { data: sessionData } = await supabase.auth.getSession();
 
-    if (!sessionData.session) {
-      return false;
-    }
+  if (!sessionData.session) {
+    return false;
+  }
 
-    const client = createClient({
-      baseUrl: env.VITE_API_URL,
-      headers: {
-        Authorization: `Bearer ${sessionData.session.access_token}`,
-      },
-    });
+  const client = createClient({
+    baseUrl: env.VITE_API_URL,
+    headers: {
+      Authorization: `Bearer ${sessionData.session.access_token}`,
+    },
+  });
 
-    const { data, error } = await getRpcCanStartTrial({ client });
+  const { data, error } = await getRpcCanStartTrial({ client });
 
-    if (error) {
-      console.error("can_start_trial error:", error);
-      return false;
-    }
+  if (error) {
+    console.error("can_start_trial error:", error);
+    return false;
+  }
 
-    return data?.canStartTrial ?? false;
-  },
-);
+  return data?.canStartTrial ?? false;
+});
 
 export const createTrialCheckoutSession = createServerFn({
   method: "POST",
@@ -253,10 +235,7 @@ export const createTrialCheckoutSession = createServerFn({
           stripe_customer_id: newCustomer.id,
         },
       }),
-      supabase
-        .from("profiles")
-        .update({ stripe_customer_id: newCustomer.id })
-        .eq("id", user.id),
+      supabase.from("profiles").update({ stripe_customer_id: newCustomer.id }).eq("id", user.id),
     ]);
 
     stripeCustomerId = newCustomer.id;

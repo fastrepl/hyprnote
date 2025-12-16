@@ -23,9 +23,7 @@ export function SearchResultItem({ result }: { result: SearchResult }) {
   }
 
   if (result.type === "organization") {
-    return (
-      <OrganizationSearchResultItem result={result} onClick={handleClick} />
-    );
+    return <OrganizationSearchResultItem result={result} onClick={handleClick} />;
   }
 
   if (result.type === "session") {
@@ -35,13 +33,7 @@ export function SearchResultItem({ result }: { result: SearchResult }) {
   return null;
 }
 
-function HumanSearchResultItem({
-  result,
-  onClick,
-}: {
-  result: SearchResult;
-  onClick: () => void;
-}) {
+function HumanSearchResultItem({ result, onClick }: { result: SearchResult; onClick: () => void }) {
   const sanitizedTitle = useMemo(
     () =>
       DOMPurify.sanitize(result.titleHighlighted, {
@@ -90,11 +82,7 @@ function OrganizationSearchResultItem({
   result: SearchResult;
   onClick: () => void;
 }) {
-  const humanIds = main.UI.useSliceRowIds(
-    main.INDEXES.humansByOrg,
-    result.id,
-    main.STORE_ID,
-  );
+  const humanIds = main.UI.useSliceRowIds(main.INDEXES.humansByOrg, result.id, main.STORE_ID);
 
   const sanitizedTitle = useMemo(
     () =>
@@ -126,9 +114,7 @@ function OrganizationSearchResultItem({
           ])}
           dangerouslySetInnerHTML={{ __html: sanitizedTitle }}
         />
-        <div className={cn(["text-xs text-neutral-500 truncate mt-0.5"])}>
-          {memberText}
-        </div>
+        <div className={cn(["text-xs text-neutral-500 truncate mt-0.5"])}>{memberText}</div>
       </div>
     </button>
   );

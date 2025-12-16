@@ -124,9 +124,8 @@ function HeroSection() {
             for legal professionals
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
-            Capture every client meeting and case discussion with AI that
-            processes everything locally. Your privileged communications stay
-            protected.
+            Capture every client meeting and case discussion with AI that processes everything
+            locally. Your privileged communications stay protected.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -164,8 +163,7 @@ function FeaturesSection() {
           Built for legal confidentiality
         </h2>
         <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          Every feature designed with attorney-client privilege and legal
-          workflows in mind.
+          Every feature designed with attorney-client privilege and legal workflows in mind.
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature) => (
@@ -173,12 +171,8 @@ function FeaturesSection() {
               <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center">
                 <Icon icon={feature.icon} className="text-2xl text-stone-600" />
               </div>
-              <h3 className="text-lg font-medium text-stone-700">
-                {feature.title}
-              </h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">
-                {feature.description}
-              </p>
+              <h3 className="text-lg font-medium text-stone-700">{feature.title}</h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
@@ -199,16 +193,9 @@ function UseCasesSection() {
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           {useCases.map((useCase) => (
-            <div
-              key={useCase.title}
-              className="bg-white p-6 rounded-xl border border-neutral-100"
-            >
-              <h3 className="text-lg font-medium text-stone-700 mb-2">
-                {useCase.title}
-              </h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">
-                {useCase.description}
-              </p>
+            <div key={useCase.title} className="bg-white p-6 rounded-xl border border-neutral-100">
+              <h3 className="text-lg font-medium text-stone-700 mb-2">{useCase.title}</h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">{useCase.description}</p>
             </div>
           ))}
         </div>
@@ -225,8 +212,8 @@ function CTASection() {
           Ready to streamline legal documentation?
         </h2>
         <p className="text-neutral-600 mb-8">
-          Join legal teams who are saving time on documentation while
-          maintaining client confidentiality.
+          Join legal teams who are saving time on documentation while maintaining client
+          confidentiality.
         </p>
         <Link
           to="/download"

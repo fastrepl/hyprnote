@@ -18,9 +18,7 @@ export function CtaCard({
       <div className="p-8 text-center">
         <h3 className="font-serif text-2xl text-stone-600 mb-3">{title}</h3>
         {description && (
-          <p className="text-base text-neutral-600 mb-6 max-w-2xl mx-auto">
-            {description}
-          </p>
+          <p className="text-base text-neutral-600 mb-6 max-w-2xl mx-auto">{description}</p>
         )}
         <a
           href={buttonUrl}

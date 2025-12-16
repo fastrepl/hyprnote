@@ -52,9 +52,7 @@ export function AccountSettings() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
             <h2 className="text-sm font-medium">Manual callback</h2>
-            <p className="text-xs text-neutral-500">
-              Paste the callback URL from your browser
-            </p>
+            <p className="text-xs text-neutral-500">Paste the callback URL from your browser</p>
           </div>
           <Input
             type="text"
@@ -64,10 +62,7 @@ export function AccountSettings() {
             onChange={(e) => setCallbackUrl(e.target.value)}
           />
           <div className="flex gap-2">
-            <Button
-              onClick={() => auth?.handleAuthCallback(callbackUrl)}
-              className="flex-1"
-            >
+            <Button onClick={() => auth?.handleAuthCallback(callbackUrl)} className="flex-1">
               Submit
             </Button>
             <Button variant="outline" onClick={() => setDevMode(false)}>
@@ -83,19 +78,13 @@ export function AccountSettings() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <h2 className="text-sm font-medium">Waiting for sign-in...</h2>
-            <p className="text-xs text-neutral-500">
-              Complete the sign-in process in your browser
-            </p>
+            <p className="text-xs text-neutral-500">Complete the sign-in process in your browser</p>
           </div>
           <div className="flex flex-col gap-2">
             <Button onClick={handleSignIn} variant="outline" className="w-full">
               Reopen sign-in page
             </Button>
-            <Button
-              onClick={() => setDevMode(true)}
-              variant="ghost"
-              className="w-full text-xs"
-            >
+            <Button onClick={() => setDevMode(true)} variant="ghost" className="w-full text-xs">
               Having trouble? Paste callback URL manually
             </Button>
           </div>
@@ -259,9 +248,7 @@ function Container({
       <div className="flex flex-row items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="text-md font-semibold">{title}</h1>
-          {description && (
-            <p className="text-sm text-neutral-600">{description}</p>
-          )}
+          {description && <p className="text-sm text-neutral-600">{description}</p>}
         </div>
         {action ? <div className="flex-shrink-0">{action}</div> : null}
       </div>

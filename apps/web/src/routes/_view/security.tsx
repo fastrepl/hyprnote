@@ -74,10 +74,9 @@ function HeroSection() {
             is our priority
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
-            At Hyprnote, we believe your meeting conversations are among your
-            most sensitive data. That's why we've built security into every
-            layer of our architecture, not as an afterthought, but as a
-            foundational principle.
+            At Hyprnote, we believe your meeting conversations are among your most sensitive data.
+            That's why we've built security into every layer of our architecture, not as an
+            afterthought, but as a foundational principle.
           </p>
         </header>
       </div>
@@ -119,22 +118,14 @@ function SecurityPrinciplesSection() {
         Security principles we live by
       </h2>
       <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-        These aren't just marketing claims. They're architectural decisions
-        baked into every aspect of Hyprnote.
+        These aren't just marketing claims. They're architectural decisions baked into every aspect
+        of Hyprnote.
       </p>
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         {principles.map((principle, index) => (
-          <div
-            key={index}
-            className="p-6 border border-neutral-200 rounded-lg bg-white"
-          >
-            <Icon
-              icon={principle.icon}
-              className="text-3xl text-stone-600 mb-4"
-            />
-            <h3 className="text-xl font-serif text-stone-600 mb-2">
-              {principle.title}
-            </h3>
+          <div key={index} className="p-6 border border-neutral-200 rounded-lg bg-white">
+            <Icon icon={principle.icon} className="text-3xl text-stone-600 mb-4" />
+            <h3 className="text-xl font-serif text-stone-600 mb-2">{principle.title}</h3>
             <p className="text-neutral-600">{principle.description}</p>
           </div>
         ))}
@@ -148,72 +139,52 @@ function LocalFirstSection() {
     <section className="px-6 py-12 lg:py-16 bg-stone-50/30">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <Icon
-            icon="mdi:desktop-classic"
-            className="text-5xl text-stone-600 mb-4"
-          />
+          <Icon icon="mdi:desktop-classic" className="text-5xl text-stone-600 mb-4" />
           <h2 className="text-3xl font-serif text-stone-600 mb-4">
             Local-first means secure by default
           </h2>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            Unlike cloud-based alternatives that upload your audio to remote
-            servers, Hyprnote processes everything on your machine.
+            Unlike cloud-based alternatives that upload your audio to remote servers, Hyprnote
+            processes everything on your machine.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="text-center p-6">
-            <Icon
-              icon="mdi:microphone"
-              className="text-4xl text-stone-600 mb-4 mx-auto"
-            />
-            <h3 className="font-medium text-stone-600 mb-2">
-              Audio stays local
-            </h3>
+            <Icon icon="mdi:microphone" className="text-4xl text-stone-600 mb-4 mx-auto" />
+            <h3 className="font-medium text-stone-600 mb-2">Audio stays local</h3>
             <p className="text-sm text-neutral-600">
-              Your meeting recordings never leave your device. No cloud uploads,
-              no third-party access, no data mining.
+              Your meeting recordings never leave your device. No cloud uploads, no third-party
+              access, no data mining.
             </p>
           </div>
           <div className="text-center p-6">
-            <Icon
-              icon="mdi:brain"
-              className="text-4xl text-stone-600 mb-4 mx-auto"
-            />
+            <Icon icon="mdi:brain" className="text-4xl text-stone-600 mb-4 mx-auto" />
             <h3 className="font-medium text-stone-600 mb-2">On-device AI</h3>
             <p className="text-sm text-neutral-600">
-              Transcription and summarization run locally using optimized AI
-              models. Your words are processed without ever touching the cloud.
+              Transcription and summarization run locally using optimized AI models. Your words are
+              processed without ever touching the cloud.
             </p>
           </div>
           <div className="text-center p-6">
-            <Icon
-              icon="mdi:database"
-              className="text-4xl text-stone-600 mb-4 mx-auto"
-            />
+            <Icon icon="mdi:database" className="text-4xl text-stone-600 mb-4 mx-auto" />
             <h3 className="font-medium text-stone-600 mb-2">Local storage</h3>
             <p className="text-sm text-neutral-600">
-              All notes, transcripts, and metadata are stored in an encrypted
-              local database that only you can access.
+              All notes, transcripts, and metadata are stored in an encrypted local database that
+              only you can access.
             </p>
           </div>
         </div>
 
         <div className="mt-12 p-8 border border-neutral-200 rounded-lg bg-white">
           <div className="flex items-start gap-4">
-            <Icon
-              icon="mdi:wifi-off"
-              className="text-3xl text-stone-600 shrink-0"
-            />
+            <Icon icon="mdi:wifi-off" className="text-3xl text-stone-600 shrink-0" />
             <div>
-              <h3 className="text-xl font-serif text-stone-600 mb-3">
-                Works completely offline
-              </h3>
+              <h3 className="text-xl font-serif text-stone-600 mb-3">Works completely offline</h3>
               <p className="text-neutral-600">
-                Because everything runs locally, Hyprnote works without an
-                internet connection. Record meetings, transcribe audio, and
-                generate summaries even when you're offline. Your productivity
-                isn't dependent on network availability, and your data isn't
+                Because everything runs locally, Hyprnote works without an internet connection.
+                Record meetings, transcribe audio, and generate summaries even when you're offline.
+                Your productivity isn't dependent on network availability, and your data isn't
                 exposed to network-based attacks.
               </p>
             </div>
@@ -230,30 +201,23 @@ function EncryptionSection() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <Icon icon="mdi:lock" className="text-5xl text-stone-600 mb-4" />
-          <h2 className="text-3xl font-serif text-stone-600 mb-4">
-            Enterprise-grade encryption
-          </h2>
+          <h2 className="text-3xl font-serif text-stone-600 mb-4">Enterprise-grade encryption</h2>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            Your data is protected with the same encryption standards used by
-            banks and government agencies.
+            Your data is protected with the same encryption standards used by banks and government
+            agencies.
           </p>
         </div>
 
         <div className="space-y-6">
           <div className="p-6 border border-neutral-200 rounded-lg bg-white">
             <div className="flex items-start gap-4">
-              <Icon
-                icon="mdi:harddisk"
-                className="text-2xl text-stone-600 shrink-0 mt-1"
-              />
+              <Icon icon="mdi:harddisk" className="text-2xl text-stone-600 shrink-0 mt-1" />
               <div>
-                <h3 className="font-medium text-stone-600 mb-2">
-                  Encryption at rest
-                </h3>
+                <h3 className="font-medium text-stone-600 mb-2">Encryption at rest</h3>
                 <p className="text-neutral-600">
-                  All local data is encrypted using AES-256, the gold standard
-                  for data encryption. Your recordings, transcripts, and notes
-                  are unreadable without your encryption key.
+                  All local data is encrypted using AES-256, the gold standard for data encryption.
+                  Your recordings, transcripts, and notes are unreadable without your encryption
+                  key.
                 </p>
               </div>
             </div>
@@ -261,19 +225,13 @@ function EncryptionSection() {
 
           <div className="p-6 border border-neutral-200 rounded-lg bg-white">
             <div className="flex items-start gap-4">
-              <Icon
-                icon="mdi:swap-horizontal"
-                className="text-2xl text-stone-600 shrink-0 mt-1"
-              />
+              <Icon icon="mdi:swap-horizontal" className="text-2xl text-stone-600 shrink-0 mt-1" />
               <div>
-                <h3 className="font-medium text-stone-600 mb-2">
-                  Encryption in transit
-                </h3>
+                <h3 className="font-medium text-stone-600 mb-2">Encryption in transit</h3>
                 <p className="text-neutral-600">
-                  When you choose to sync data across devices, all
-                  communications use TLS 1.3 with perfect forward secrecy. Even
-                  if a session key is compromised, past communications remain
-                  secure.
+                  When you choose to sync data across devices, all communications use TLS 1.3 with
+                  perfect forward secrecy. Even if a session key is compromised, past communications
+                  remain secure.
                 </p>
               </div>
             </div>
@@ -281,18 +239,13 @@ function EncryptionSection() {
 
           <div className="p-6 border border-neutral-200 rounded-lg bg-white">
             <div className="flex items-start gap-4">
-              <Icon
-                icon="mdi:key"
-                className="text-2xl text-stone-600 shrink-0 mt-1"
-              />
+              <Icon icon="mdi:key" className="text-2xl text-stone-600 shrink-0 mt-1" />
               <div>
-                <h3 className="font-medium text-stone-600 mb-2">
-                  Key management
-                </h3>
+                <h3 className="font-medium text-stone-600 mb-2">Key management</h3>
                 <p className="text-neutral-600">
-                  Your encryption keys are derived from your credentials using
-                  industry-standard key derivation functions. Keys never leave
-                  your device and are never stored on our servers.
+                  Your encryption keys are derived from your credentials using industry-standard key
+                  derivation functions. Keys never leave your device and are never stored on our
+                  servers.
                 </p>
               </div>
             </div>
@@ -308,46 +261,31 @@ function OpenSourceSecuritySection() {
     <section className="px-6 py-12 lg:py-16 bg-stone-50/30">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <Icon
-            icon="mdi:code-braces"
-            className="text-5xl text-stone-600 mb-4"
-          />
-          <h2 className="text-3xl font-serif text-stone-600 mb-4">
-            Security through transparency
-          </h2>
+          <Icon icon="mdi:code-braces" className="text-5xl text-stone-600 mb-4" />
+          <h2 className="text-3xl font-serif text-stone-600 mb-4">Security through transparency</h2>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            Open source isn't just about collaboration. It's about trust. When
-            you can see exactly how your data is handled, you don't have to take
-            our word for it.
+            Open source isn't just about collaboration. It's about trust. When you can see exactly
+            how your data is handled, you don't have to take our word for it.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
           <div className="p-6 border border-neutral-200 rounded-lg bg-white">
             <Icon icon="mdi:magnify" className="text-3xl text-stone-600 mb-4" />
-            <h3 className="text-xl font-serif text-stone-600 mb-2">
-              Fully auditable
-            </h3>
+            <h3 className="text-xl font-serif text-stone-600 mb-2">Fully auditable</h3>
             <p className="text-neutral-600">
-              Every function, every data flow, every security measure is visible
-              in our public repository. Security researchers can audit our code
-              and report vulnerabilities through our responsible disclosure
-              program.
+              Every function, every data flow, every security measure is visible in our public
+              repository. Security researchers can audit our code and report vulnerabilities through
+              our responsible disclosure program.
             </p>
           </div>
           <div className="p-6 border border-neutral-200 rounded-lg bg-white">
-            <Icon
-              icon="mdi:account-group"
-              className="text-3xl text-stone-600 mb-4"
-            />
-            <h3 className="text-xl font-serif text-stone-600 mb-2">
-              Community reviewed
-            </h3>
+            <Icon icon="mdi:account-group" className="text-3xl text-stone-600 mb-4" />
+            <h3 className="text-xl font-serif text-stone-600 mb-2">Community reviewed</h3>
             <p className="text-neutral-600">
-              Thousands of developers have reviewed our codebase. Bugs and
-              security issues are caught faster when many eyes are watching.
-              This collective vigilance makes Hyprnote more secure than any
-              closed-source alternative.
+              Thousands of developers have reviewed our codebase. Bugs and security issues are
+              caught faster when many eyes are watching. This collective vigilance makes Hyprnote
+              more secure than any closed-source alternative.
             </p>
           </div>
         </div>
@@ -401,28 +339,18 @@ function EnterpriseSecuritySection() {
     <section className="px-6 py-12 lg:py-16">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-serif text-stone-600 mb-4">
-            Enterprise-ready security
-          </h2>
+          <h2 className="text-3xl font-serif text-stone-600 mb-4">Enterprise-ready security</h2>
           <p className="text-neutral-600 max-w-2xl mx-auto">
-            For organizations with advanced security requirements, Hyprnote
-            offers enterprise features that meet the most demanding standards.
+            For organizations with advanced security requirements, Hyprnote offers enterprise
+            features that meet the most demanding standards.
           </p>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-6">
           {features.map((feature, index) => (
-            <div
-              key={index}
-              className="p-6 border border-neutral-200 rounded-lg bg-white"
-            >
-              <Icon
-                icon={feature.icon}
-                className="text-2xl text-stone-600 mb-3"
-              />
-              <h3 className="font-medium text-stone-600 mb-2">
-                {feature.title}
-              </h3>
+            <div key={index} className="p-6 border border-neutral-200 rounded-lg bg-white">
+              <Icon icon={feature.icon} className="text-2xl text-stone-600 mb-3" />
+              <h3 className="font-medium text-stone-600 mb-2">{feature.title}</h3>
               <p className="text-sm text-neutral-600">{feature.description}</p>
             </div>
           ))}
@@ -446,16 +374,13 @@ function CTASection() {
   return (
     <section className="px-6 py-16 lg:py-20 bg-stone-50/30">
       <div className="max-w-3xl mx-auto text-center">
-        <Icon
-          icon="mdi:shield-check"
-          className="text-5xl text-stone-600 mb-6 mx-auto"
-        />
+        <Icon icon="mdi:shield-check" className="text-5xl text-stone-600 mb-6 mx-auto" />
         <h2 className="text-3xl font-serif text-stone-600 mb-4">
           Ready to take control of your meeting data?
         </h2>
         <p className="text-neutral-600 mb-8">
-          Join thousands of professionals who trust Hyprnote to keep their
-          conversations secure and private.
+          Join thousands of professionals who trust Hyprnote to keep their conversations secure and
+          private.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link

@@ -1,9 +1,4 @@
-import {
-  FolderIcon,
-  FoldersIcon,
-  PlusIcon,
-  StickyNoteIcon,
-} from "lucide-react";
+import { FolderIcon, FoldersIcon, PlusIcon, StickyNoteIcon } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
@@ -15,9 +10,7 @@ import { type TabItem, TabItemBase } from "../shared";
 import { FolderBreadcrumb, useFolderChain } from "../shared/folder-breadcrumb";
 import { Section } from "./shared";
 
-export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (
-  props,
-) => {
+export const TabItemFolder: TabItem<Extract<Tab, { type: "folders" }>> = (props) => {
   if (props.tab.type === "folders" && props.tab.id === null) {
     return <TabItemFolderAll {...props} />;
   }
@@ -97,11 +90,7 @@ export function TabContentFolder({ tab }: { tab: Tab }) {
 }
 
 function TabContentFolderTopLevel() {
-  const topLevelFolderIds = main.UI.useSliceRowIds(
-    main.INDEXES.foldersByParent,
-    "",
-    main.STORE_ID,
-  );
+  const topLevelFolderIds = main.UI.useSliceRowIds(main.INDEXES.foldersByParent, "", main.STORE_ID);
 
   return (
     <div className="flex flex-col gap-6">
@@ -136,11 +125,7 @@ function FolderCard({ folderId }: { folderId: string }) {
     main.STORE_ID,
   );
 
-  const sessionIds = main.UI.useSliceRowIds(
-    main.INDEXES.sessionsByFolder,
-    folderId,
-    main.STORE_ID,
-  );
+  const sessionIds = main.UI.useSliceRowIds(main.INDEXES.sessionsByFolder, folderId, main.STORE_ID);
 
   const childCount = (childFolderIds?.length ?? 0) + (sessionIds?.length ?? 0);
 
@@ -154,11 +139,7 @@ function FolderCard({ folderId }: { folderId: string }) {
     >
       <FolderIcon className="w-12 h-12 text-muted-foreground" />
       <span className="text-sm font-medium text-center">{folder.name}</span>
-      {childCount > 0 && (
-        <span className="text-xs text-muted-foreground">
-          {childCount} items
-        </span>
-      )}
+      {childCount > 0 && <span className="text-xs text-muted-foreground">{childCount} items</span>}
     </div>
   );
 }
@@ -170,14 +151,9 @@ function TabContentFolderSpecific({ folderId }: { folderId: string }) {
     main.STORE_ID,
   );
 
-  const sessionIds = main.UI.useSliceRowIds(
-    main.INDEXES.sessionsByFolder,
-    folderId,
-    main.STORE_ID,
-  );
+  const sessionIds = main.UI.useSliceRowIds(main.INDEXES.sessionsByFolder, folderId, main.STORE_ID);
 
-  const isEmpty =
-    (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
+  const isEmpty = (childFolderIds?.length ?? 0) === 0 && (sessionIds?.length ?? 0) === 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -241,9 +217,7 @@ function TabContentFolderBreadcrumb({ folderId }: { folderId: string }) {
       renderCrumb={({ id, name, isLast }) => (
         <button
           onClick={() => !isLast && openCurrent({ type: "folders", id })}
-          className={
-            isLast ? "text-foreground font-medium" : "hover:text-foreground"
-          }
+          className={isLast ? "text-foreground font-medium" : "hover:text-foreground"}
         >
           {name}
         </button>

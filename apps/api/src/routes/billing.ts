@@ -48,8 +48,7 @@ billing.post(
       return c.json({ error: "User ID missing" }, 500);
     }
 
-    const { data: canTrial, error: trialError } =
-      await supabase.rpc("can_start_trial");
+    const { data: canTrial, error: trialError } = await supabase.rpc("can_start_trial");
 
     if (trialError || !canTrial) {
       return c.json({ started: false });
@@ -61,10 +60,7 @@ billing.post(
       .eq("id", userId)
       .single();
 
-    let stripeCustomerId = profile?.stripe_customer_id as
-      | string
-      | null
-      | undefined;
+    let stripeCustomerId = profile?.stripe_customer_id as string | null | undefined;
 
     if (!stripeCustomerId) {
       const { data: user } = await supabase.auth.getUser();
@@ -94,9 +90,7 @@ billing.post(
     }
 
     const priceId =
-      interval === "yearly"
-        ? env.STRIPE_YEARLY_PRICE_ID
-        : env.STRIPE_MONTHLY_PRICE_ID;
+      interval === "yearly" ? env.STRIPE_YEARLY_PRICE_ID : env.STRIPE_MONTHLY_PRICE_ID;
 
     try {
       await stripe.subscriptions.create(

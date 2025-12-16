@@ -4,19 +4,12 @@ import type { Store } from "./main";
 
 export type TaskType = "enhance" | "title";
 
-export function getCustomPrompt(
-  store: Store,
-  taskType: TaskType,
-): string | null {
+export function getCustomPrompt(store: Store, taskType: TaskType): string | null {
   const content = store.getCell("prompts", taskType, "content");
   return content || null;
 }
 
-export function setCustomPrompt(
-  store: Store,
-  taskType: TaskType,
-  content: string,
-): void {
+export function setCustomPrompt(store: Store, taskType: TaskType, content: string): void {
   const userId = store.getValue("user_id");
   if (!userId) return;
 

@@ -41,11 +41,6 @@
       {
         "command": "swift-format format",
         "exts": ["swift"]
-      },
-      {
-        "command": "pnpm exec biome format --stdin-file-path {{file_path}} --write",
-        "exts": ["js", "jsx", "ts", "tsx"],
-        "cacheKeyFiles": ["biome.json"]
       }
     ]
   },

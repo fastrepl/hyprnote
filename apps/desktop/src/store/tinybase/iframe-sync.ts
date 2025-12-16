@@ -60,12 +60,7 @@ export function createIframeSynchronizer(
         return;
       }
 
-      const payload: TinybaseSyncPayload = [
-        clientId,
-        requestId as string | null,
-        message,
-        body,
-      ];
+      const payload: TinybaseSyncPayload = [clientId, requestId as string | null, message, body];
 
       contentWindow.postMessage(
         {
@@ -124,12 +119,7 @@ export function createParentSynchronizer(
     store,
     // send: send messages back to parent
     (_toClientId, requestId, message, body) => {
-      const payload: TinybaseSyncPayload = [
-        clientId,
-        requestId as string | null,
-        message,
-        body,
-      ];
+      const payload: TinybaseSyncPayload = [clientId, requestId as string | null, message, body];
 
       window.parent.postMessage(
         {

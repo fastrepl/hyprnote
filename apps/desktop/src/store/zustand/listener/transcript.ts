@@ -8,10 +8,7 @@ import { fixSpacingForWords } from "./utils";
 
 type WordsByChannel = Record<number, WordLike[]>;
 
-export type HandlePersistCallback = (
-  words: WordLike[],
-  hints: RuntimeSpeakerHint[],
-) => void;
+export type HandlePersistCallback = (words: WordLike[], hints: RuntimeSpeakerHint[]) => void;
 
 export type TranscriptState = {
   finalWordsMaxEndMsByChannel: Record<number, number>;
@@ -33,9 +30,7 @@ const initialState: TranscriptState = {
   handlePersist: undefined,
 };
 
-export const createTranscriptSlice = <
-  T extends TranscriptState & TranscriptActions,
->(
+export const createTranscriptSlice = <T extends TranscriptState & TranscriptActions>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): TranscriptState & TranscriptActions => {
@@ -54,9 +49,7 @@ export const createTranscriptSlice = <
     const lastPersistedEndMs = finalWordsMaxEndMsByChannel[channelIndex] ?? 0;
     const lastEndMs = getLastEndMs(words);
 
-    const firstNewWordIndex = words.findIndex(
-      (word) => word.end_ms > lastPersistedEndMs,
-    );
+    const firstNewWordIndex = words.findIndex((word) => word.end_ms > lastPersistedEndMs);
     if (firstNewWordIndex === -1) {
       return;
     }
@@ -70,9 +63,7 @@ export const createTranscriptSlice = <
       }));
 
     const existingPartialWords = partialWordsByChannel[channelIndex] ?? [];
-    const remainingPartialWords = existingPartialWords.filter(
-      (word) => word.start_ms > lastEndMs,
-    );
+    const remainingPartialWords = existingPartialWords.filter((word) => word.start_ms > lastEndMs);
 
     const oldToNewIndex = new Map<number, number>();
     let newIdx = 0;
@@ -128,9 +119,7 @@ export const createTranscriptSlice = <
     const existingHints = partialHintsByChannel[channelIndex] ?? [];
     const filteredOldHints = existingHints.filter((hint) => {
       const word = existing[hint.wordIndex];
-      return (
-        word && (word.end_ms <= firstStartMs || word.start_ms >= lastEndMs)
-      );
+      return word && (word.end_ms <= firstStartMs || word.start_ms >= lastEndMs);
     });
 
     set((state) =>
@@ -176,8 +165,7 @@ export const createTranscriptSlice = <
       }
     },
     resetTranscript: () => {
-      const { partialWordsByChannel, partialHintsByChannel, handlePersist } =
-        get();
+      const { partialWordsByChannel, partialHintsByChannel, handlePersist } = get();
 
       const remainingWords = Object.values(partialWordsByChannel).flat();
 
@@ -220,8 +208,7 @@ export const createTranscriptSlice = <
   };
 };
 
-const getLastEndMs = (words: WordLike[]): number =>
-  words[words.length - 1]?.end_ms ?? 0;
+const getLastEndMs = (words: WordLike[]): number => words[words.length - 1]?.end_ms ?? 0;
 const getFirstStartMs = (words: WordLike[]): number => words[0]?.start_ms ?? 0;
 
 function transformWords(

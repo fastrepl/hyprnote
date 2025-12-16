@@ -32,8 +32,7 @@ const useCasesList = [
 ];
 
 function getMaxWidthClass(pathname: string): string {
-  const isBlogOrDocs =
-    pathname.startsWith("/blog") || pathname.startsWith("/docs");
+  const isBlogOrDocs = pathname.startsWith("/blog") || pathname.startsWith("/docs");
   return isBlogOrDocs ? "max-w-6xl" : "max-w-6xl";
 }
 
@@ -60,11 +59,7 @@ function BrandSection({ currentYear }: { currentYear: number }) {
   return (
     <div className="lg:flex-1">
       <Link to="/" className="inline-block mb-4">
-        <Image
-          src="/api/images/hyprnote/logo.svg"
-          alt="Hyprnote"
-          className="h-6"
-        />
+        <Image src="/api/images/hyprnote/logo.svg" alt="Hyprnote" className="h-6" />
       </Link>
       <p className="text-sm text-neutral-500 mb-4">Fastrepl © {currentYear}</p>
       <p className="text-sm text-neutral-600 mb-3">
@@ -112,9 +107,7 @@ function LinksGrid() {
 function ProductLinks() {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
-        Product
-      </h3>
+      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">Product</h3>
       <ul className="space-y-3">
         <li>
           <Link
@@ -176,9 +169,7 @@ function ProductLinks() {
 }
 
 function ResourcesLinks() {
-  const [vsIndex, setVsIndex] = useState(() =>
-    Math.floor(Math.random() * vsList.length),
-  );
+  const [vsIndex, setVsIndex] = useState(() => Math.floor(Math.random() * vsList.length));
   const [useCaseIndex, setUseCaseIndex] = useState(() =>
     Math.floor(Math.random() * useCasesList.length),
   );
@@ -188,9 +179,7 @@ function ResourcesLinks() {
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
-        Resources
-      </h3>
+      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">Resources</h3>
       <ul className="space-y-3">
         <li>
           <Link
@@ -250,14 +239,10 @@ function ResourcesLinks() {
             className="group text-sm text-neutral-600 hover:text-stone-600 transition-colors no-underline group-hover:underline group-focus:underline decoration-dotted"
             aria-label={`Hyprnote for ${currentUseCase.label}`}
             onMouseEnter={() => {
-              setUseCaseIndex((prev) =>
-                getNextRandomIndex(useCasesList.length, prev),
-              );
+              setUseCaseIndex((prev) => getNextRandomIndex(useCasesList.length, prev));
             }}
             onFocus={() => {
-              setUseCaseIndex((prev) =>
-                getNextRandomIndex(useCasesList.length, prev),
-              );
+              setUseCaseIndex((prev) => getNextRandomIndex(useCasesList.length, prev));
             }}
           >
             👍 for{" "}
@@ -300,9 +285,7 @@ function ResourcesLinks() {
 function CompanyLinks() {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
-        Company
-      </h3>
+      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">Company</h3>
       <ul className="space-y-3">
         <li>
           <Link
@@ -352,9 +335,7 @@ function CompanyLinks() {
 function ToolsLinks() {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
-        Tools
-      </h3>
+      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">Tools</h3>
       <ul className="space-y-3">
         <li>
           <Link
@@ -389,9 +370,7 @@ function ToolsLinks() {
 function SocialLinks() {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">
-        Social
-      </h3>
+      <h3 className="text-sm font-semibold text-neutral-900 mb-4 font-serif">Social</h3>
       <ul className="space-y-3">
         <li>
           <a

@@ -1,16 +1,6 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo } from "react";
 
-import {
-  createToolRegistry,
-  type ToolRegistry,
-  type ToolScope,
-} from "./tool-registry/core";
+import { createToolRegistry, type ToolRegistry, type ToolScope } from "./tool-registry/core";
 
 export type { ToolRegistry, ToolScope };
 
@@ -23,16 +13,9 @@ export function ToolRegistryProvider({
   registry?: ToolRegistry;
   children: React.ReactNode;
 }) {
-  const registry = useMemo(
-    () => providedRegistry ?? createToolRegistry(),
-    [providedRegistry],
-  );
+  const registry = useMemo(() => providedRegistry ?? createToolRegistry(), [providedRegistry]);
 
-  return (
-    <ToolRegistryContext.Provider value={registry}>
-      {children}
-    </ToolRegistryContext.Provider>
-  );
+  return <ToolRegistryContext.Provider value={registry}>{children}</ToolRegistryContext.Provider>;
 }
 
 export function useToolRegistry(): ToolRegistry {
@@ -53,9 +36,7 @@ export function useRegisterTools(
 
   useEffect(() => {
     const tools = memoFactory();
-    const ids = Object.entries(tools).map(([key, tool]) =>
-      registry.register(scopes, key, tool),
-    );
+    const ids = Object.entries(tools).map(([key, tool]) => registry.register(scopes, key, tool));
 
     return () => {
       ids.forEach((id) => registry.unregister(id));

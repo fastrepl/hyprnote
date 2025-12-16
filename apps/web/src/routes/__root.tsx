@@ -1,9 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import {
-  createRootRouteWithContext,
-  HeadContent,
-  Scripts,
-} from "@tanstack/react-router";
+import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { lazy } from "react";
 
 import { NotFoundDocument } from "@/components/not-found";
@@ -89,9 +85,7 @@ export const TanStackDevtools =
           import("@tanstack/react-router-devtools"),
           import("@tanstack/react-query-devtools"),
         ]).then(([devtools, router, query]) => ({
-          default: (
-            props: React.ComponentProps<typeof devtools.TanStackDevtools>,
-          ) => (
+          default: (props: React.ComponentProps<typeof devtools.TanStackDevtools>) => (
             <devtools.TanStackDevtools
               {...props}
               plugins={[

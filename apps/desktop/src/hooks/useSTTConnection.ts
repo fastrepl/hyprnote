@@ -13,9 +13,7 @@ import * as settings from "../store/tinybase/settings";
 export const useSTTConnection = () => {
   const auth = useAuth();
   const billing = useBillingAccess();
-  const { current_stt_provider, current_stt_model } = settings.UI.useValues(
-    settings.STORE_ID,
-  ) as {
+  const { current_stt_provider, current_stt_model } = settings.UI.useValues(settings.STORE_ID) as {
     current_stt_provider: ProviderId | undefined;
     current_stt_model: string | undefined;
   };
@@ -29,11 +27,9 @@ export const useSTTConnection = () => {
   const isLocalModel =
     current_stt_provider === "hyprnote" &&
     !!current_stt_model &&
-    (current_stt_model.startsWith("am-") ||
-      current_stt_model.startsWith("Quantized"));
+    (current_stt_model.startsWith("am-") || current_stt_model.startsWith("Quantized"));
 
-  const isCloudModel =
-    current_stt_provider === "hyprnote" && current_stt_model === "cloud";
+  const isCloudModel = current_stt_provider === "hyprnote" && current_stt_model === "cloud";
 
   const local = useQuery({
     enabled: current_stt_provider === "hyprnote",
@@ -51,9 +47,7 @@ export const useSTTConnection = () => {
       }
 
       const isInternalModel = current_stt_model.startsWith("Quantized");
-      const server = isInternalModel
-        ? servers.data.internal
-        : servers.data.external;
+      const server = isInternalModel ? servers.data.internal : servers.data.external;
 
       if (server?.status === "ready" && server.url) {
         return {

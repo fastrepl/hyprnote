@@ -23,13 +23,7 @@ export const validateKey = async (licenseKey: string) => {
         res.json() as Promise<{
           data: {
             attributes: {
-              status:
-                | "ACTIVE"
-                | "INACTIVE"
-                | "EXPIRING"
-                | "EXPIRED"
-                | "SUSPENDED"
-                | "BANNED";
+              status: "ACTIVE" | "INACTIVE" | "EXPIRING" | "EXPIRED" | "SUSPENDED" | "BANNED";
             };
           };
         }>,

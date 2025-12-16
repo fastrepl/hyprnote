@@ -96,11 +96,7 @@ interface ModalBodyProps {
 }
 
 export function ModalBody({ children, className }: ModalBodyProps) {
-  return (
-    <div className={cn(["flex-1 overflow-auto p-6 h-full", className])}>
-      {children}
-    </div>
-  );
+  return <div className={cn(["flex-1 overflow-auto p-6 h-full", className])}>{children}</div>;
 }
 
 interface ModalFooterProps {
@@ -110,12 +106,7 @@ interface ModalFooterProps {
 
 export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
-    <div
-      className={cn([
-        "flex items-center justify-end gap-2 px-6 py-4",
-        className,
-      ])}
-    >
+    <div className={cn(["flex items-center justify-end gap-2 px-6 py-4", className])}>
       {children}
     </div>
   );
@@ -127,11 +118,7 @@ interface ModalTitleProps {
 }
 
 export function ModalTitle({ children, className }: ModalTitleProps) {
-  return (
-    <h2 className={cn(["text-lg font-semibold leading-none", className])}>
-      {children}
-    </h2>
-  );
+  return <h2 className={cn(["text-lg font-semibold leading-none", className])}>{children}</h2>;
 }
 
 interface ModalDescriptionProps {
@@ -139,13 +126,6 @@ interface ModalDescriptionProps {
   className?: string;
 }
 
-export function ModalDescription({
-  children,
-  className,
-}: ModalDescriptionProps) {
-  return (
-    <p className={cn(["text-sm text-muted-foreground", className])}>
-      {children}
-    </p>
-  );
+export function ModalDescription({ children, className }: ModalDescriptionProps) {
+  return <p className={cn(["text-sm text-muted-foreground", className])}>{children}</p>;
 }

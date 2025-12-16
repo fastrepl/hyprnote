@@ -1,12 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";

@@ -7,9 +7,7 @@ import { type ToolScope, useRegisterTools } from "./tool";
 
 const AITaskContext = createContext<AITaskStore | null>(null);
 
-export type AITaskState = ReturnType<
-  ReturnType<typeof createAITaskStore>["getState"]
->;
+export type AITaskState = ReturnType<ReturnType<typeof createAITaskStore>["getState"]>;
 
 export const AITaskProvider = ({
   children,
@@ -39,11 +37,7 @@ export const AITaskProvider = ({
 
   useRegisterTools("enhancing", () => resolvedTools ?? {}, [resolvedTools]);
 
-  return (
-    <AITaskContext.Provider value={storeRef.current}>
-      {children}
-    </AITaskContext.Provider>
-  );
+  return <AITaskContext.Provider value={storeRef.current}>{children}</AITaskContext.Provider>;
 };
 
 export const useAITask = <T,>(

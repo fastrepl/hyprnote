@@ -56,9 +56,7 @@ export const SplashLoader: React.FC<SplashLoaderProps> = ({
       const length = pathRef.current.getTotalLength();
 
       const easeInOutProgress =
-        progress < 0.5
-          ? 2 * progress * progress
-          : -1 + (4 - 2 * progress) * progress;
+        progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
 
       const dynamicWormLength = MAX_WORM_LENGTH * Math.sin(progress * Math.PI);
 
@@ -83,10 +81,7 @@ export const SplashLoader: React.FC<SplashLoaderProps> = ({
           pathRef.current.style.strokeDashoffset = `${length}`;
         } else if (head > length - halfVisibleLength) {
           const remainingLength = length - head;
-          const adjustedVisibleLength = Math.min(
-            finalVisibleLength,
-            2 * remainingLength,
-          );
+          const adjustedVisibleLength = Math.min(finalVisibleLength, 2 * remainingLength);
           pathRef.current.style.strokeDasharray = `${adjustedVisibleLength} ${length - adjustedVisibleLength}`;
           pathRef.current.style.strokeDashoffset = `${length - head + adjustedVisibleLength / 2}`;
         } else {
@@ -144,11 +139,7 @@ export const SplashScreen: React.FC<SplashLoaderProps> = ({
 }) => {
   return (
     <div className={cn(["flex items-center justify-center", className])}>
-      <SplashLoader
-        repeatCount={repeatCount}
-        size={size}
-        strokeWidth={strokeWidth}
-      />
+      <SplashLoader repeatCount={repeatCount} size={size} strokeWidth={strokeWidth} />
     </div>
   );
 };

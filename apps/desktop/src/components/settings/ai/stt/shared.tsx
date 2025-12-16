@@ -4,16 +4,9 @@ import { queryOptions } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import type {
-  AmModel,
-  SupportedSttModel,
-  WhisperModel,
-} from "@hypr/plugin-local-stt";
+import type { AmModel, SupportedSttModel, WhisperModel } from "@hypr/plugin-local-stt";
 
-import {
-  type ProviderRequirement,
-  requiresEntitlement,
-} from "../shared/eligibility";
+import { type ProviderRequirement, requiresEntitlement } from "../shared/eligibility";
 import { sortProviders } from "../shared/sort-providers";
 
 type Provider = {
@@ -149,9 +142,7 @@ const _PROVIDERS = [
     id: "gladia",
     displayName: "Gladia",
     badge: "Beta",
-    icon: (
-      <img src="/assets/gladia.jpeg" alt="Gladia" className="size-4 rounded" />
-    ),
+    icon: <img src="/assets/gladia.jpeg" alt="Gladia" className="size-4 rounded" />,
     baseUrl: "https://api.gladia.io",
     models: ["solaria-1"],
     requirements: [{ kind: "requires_config", fields: ["api_key"] }],
@@ -161,9 +152,7 @@ const _PROVIDERS = [
     id: "soniox",
     displayName: "Soniox",
     badge: "Beta",
-    icon: (
-      <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />
-    ),
+    icon: <img src="/assets/soniox.jpeg" alt="Soniox" className="size-5 rounded" />,
     baseUrl: "https://api.soniox.com",
     models: ["stt-v3"],
     requirements: [{ kind: "requires_config", fields: ["api_key"] }],
@@ -176,9 +165,7 @@ const _PROVIDERS = [
     icon: <Icon icon="mingcute:random-fill" />,
     baseUrl: undefined,
     models: [],
-    requirements: [
-      { kind: "requires_config", fields: ["base_url", "api_key"] },
-    ],
+    requirements: [{ kind: "requires_config", fields: ["base_url", "api_key"] }],
   },
   {
     disabled: true,

@@ -35,31 +35,27 @@ const mainFeatures = [
   {
     icon: "mdi:file-document-outline",
     title: "Summary",
-    description:
-      "Create customized summaries with templates for various formats",
+    description: "Create customized summaries with templates for various formats",
     image: "/api/images/hyprnote/summary.jpg",
     link: "/product/ai-notetaking#summaries",
   },
   {
     icon: "mdi:chat-outline",
     title: "Chat",
-    description:
-      "Get context-aware answers in realtime, even from past meetings",
+    description: "Get context-aware answers in realtime, even from past meetings",
     image: "/api/images/hyprnote/chat.jpg",
     link: "/product/ai-assistant",
   },
   {
     icon: "mdi:window-restore",
     title: "Floating Panel",
-    description:
-      "Compact notepad with transcript, summary, and chat during meetings",
+    description: "Compact notepad with transcript, summary, and chat during meetings",
     comingSoon: true,
   },
   {
     icon: "mdi:calendar-check-outline",
     title: "Daily Note",
-    description:
-      "Track todos and navigate emails and events throughout the day",
+    description: "Track todos and navigate emails and events throughout the day",
     comingSoon: true,
   },
 ];
@@ -148,10 +144,7 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <YCombinatorBanner />
-        <HeroSection
-          onVideoExpand={setExpandedVideo}
-          heroInputRef={heroInputRef}
-        />
+        <HeroSection onVideoExpand={setExpandedVideo} heroInputRef={heroInputRef} />
         <SlashSeparator />
         <HowItWorksSection />
         <SlashSeparator />
@@ -237,8 +230,7 @@ function HeroSection({
   const mutation = useMutation({
     mutationFn: async (email: string) => {
       const intent = platform === "mobile" ? "Reminder" : "Waitlist";
-      const eventName =
-        platform === "mobile" ? "reminder_requested" : "os_waitlist_joined";
+      const eventName = platform === "mobile" ? "reminder_requested" : "os_waitlist_joined";
 
       track(eventName, {
         platform: platform,
@@ -251,9 +243,7 @@ function HeroSection({
           email,
           userGroup: "Lead",
           platform:
-            platform === "mobile"
-              ? "Mobile"
-              : platform.charAt(0).toUpperCase() + platform.slice(1),
+            platform === "mobile" ? "Mobile" : platform.charAt(0).toUpperCase() + platform.slice(1),
           source: "LANDING_PAGE",
           intent: intent,
         },
@@ -298,8 +288,7 @@ function HeroSection({
               private meetings
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600">
-              Hyprnote listens and summarizes your meetings{" "}
-              <br className="hidden sm:block" />
+              Hyprnote listens and summarizes your meetings <br className="hidden sm:block" />
               without sending any voice to remote servers
             </p>
           </div>
@@ -363,9 +352,7 @@ function HeroSection({
                       </button>
                     </div>
                     {mutation.isSuccess && (
-                      <p className="text-green-600 mt-4 text-sm">
-                        Thanks! We'll be in touch soon.
-                      </p>
+                      <p className="text-green-600 mt-4 text-sm">Thanks! We'll be in touch soon.</p>
                     )}
                     {mutation.isError && (
                       <p className="text-red-600 mt-4 text-sm">
@@ -386,9 +373,7 @@ function HeroSection({
                           {heroCTA.subtext}
                         </Link>
                       ) : (
-                        <p className="text-neutral-500 mt-4 text-sm">
-                          {heroCTA.subtext}
-                        </p>
+                        <p className="text-neutral-500 mt-4 text-sm">{heroCTA.subtext}</p>
                       ))}
                   </>
                 )}
@@ -438,22 +423,17 @@ function ValuePropsGrid() {
       <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
         <h3 className="font-medium mb-1 text-neutral-900 font-mono">Private</h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
-          Your notes stay local by default. Sync to a cloud only when you
-          choose.
+          Your notes stay local by default. Sync to a cloud only when you choose.
         </p>
       </div>
       <div className="p-6 text-left border-b md:border-b-0 md:border-r border-neutral-100">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          Effortless
-        </h3>
+        <h3 className="font-medium mb-1 text-neutral-900 font-mono">Effortless</h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
           A simple notepad that just works—fast, minimal, and distraction-free.
         </p>
       </div>
       <div className="p-6 text-left">
-        <h3 className="font-medium mb-1 text-neutral-900 font-mono">
-          Flexible
-        </h3>
+        <h3 className="font-medium mb-1 text-neutral-900 font-mono">Flexible</h3>
         <p className="text-sm text-neutral-600 leading-relaxed">
           Use any STT or LLM. Local or cloud. No lock-ins, no forced stack.
         </p>
@@ -656,10 +636,7 @@ export function CoolStuffSection() {
         <div className="border-r border-neutral-100 flex flex-col">
           <div className="p-8 flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <Icon
-                icon="mdi:robot-off-outline"
-                className="text-3xl text-stone-600"
-              />
+              <Icon icon="mdi:robot-off-outline" className="text-3xl text-stone-600" />
               <h3 className="text-2xl font-serif text-stone-600">No bots</h3>
             </div>
             <p className="text-base text-neutral-600 leading-relaxed">
@@ -678,9 +655,7 @@ export function CoolStuffSection() {
           <div className="p-8 flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <Icon icon="mdi:wifi-off" className="text-3xl text-stone-600" />
-              <h3 className="text-2xl font-serif text-stone-600">
-                No internet
-              </h3>
+              <h3 className="text-2xl font-serif text-stone-600">No internet</h3>
             </div>
             <p className="text-base text-neutral-600 leading-relaxed">
               Hyprnote is local-first. Take notes anywhere.
@@ -700,10 +675,7 @@ export function CoolStuffSection() {
         <div className="border-b border-neutral-100">
           <div className="p-6">
             <div className="flex items-center gap-3 mb-3">
-              <Icon
-                icon="mdi:robot-off-outline"
-                className="text-2xl text-stone-600"
-              />
+              <Icon icon="mdi:robot-off-outline" className="text-2xl text-stone-600" />
               <h3 className="text-xl font-serif text-stone-600">No bots</h3>
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed mb-4">
@@ -815,9 +787,8 @@ export function HowItWorksSection() {
         <div className="border-r border-neutral-100 flex flex-col overflow-clip">
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">
-              <span className="font-semibold">While you take notes,</span>{" "}
-              Hyprnote listens and keeps track of everything that happens during
-              the meeting.
+              <span className="font-semibold">While you take notes,</span> Hyprnote listens and
+              keeps track of everything that happens during the meeting.
             </p>
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -847,9 +818,8 @@ export function HowItWorksSection() {
         <div className="flex flex-col overflow-clip">
           <div className="p-8 flex flex-col gap-4">
             <p className="text-lg font-serif text-neutral-600 leading-relaxed">
-              <span className="font-semibold">After the meeting is over,</span>{" "}
-              Hyprnote combines your notes with transcripts to create a perfect
-              summary.
+              <span className="font-semibold">After the meeting is over,</span> Hyprnote combines
+              your notes with transcripts to create a perfect summary.
             </p>
           </div>
           <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -871,9 +841,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 2 ? "opacity-100" : "opacity-0",
                       )}
                     >
-                      Sarah presented the new mobile UI update, which includes a
-                      streamlined navigation bar and improved button placements
-                      for better accessibility.
+                      Sarah presented the new mobile UI update, which includes a streamlined
+                      navigation bar and improved button placements for better accessibility.
                     </li>
                     <li
                       className={cn([
@@ -881,9 +850,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 3 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      Ben confirmed that API adjustments are needed to support
-                      dynamic UI changes, particularly for fetching personalized
-                      user data more efficiently.
+                      Ben confirmed that API adjustments are needed to support dynamic UI changes,
+                      particularly for fetching personalized user data more efficiently.
                     </li>
                     <li
                       className={cn([
@@ -891,9 +859,9 @@ export function HowItWorksSection() {
                         enhancedLines >= 4 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      The UI update will be implemented in phases, starting with
-                      core navigation improvements. Ben will ensure API
-                      modifications are completed before development begins.
+                      The UI update will be implemented in phases, starting with core navigation
+                      improvements. Ben will ensure API modifications are completed before
+                      development begins.
                     </li>
                   </ul>
                 </div>
@@ -913,8 +881,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 6 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      Alice emphasized that the new analytics dashboard must be
-                      prioritized due to increasing stakeholder demand.
+                      Alice emphasized that the new analytics dashboard must be prioritized due to
+                      increasing stakeholder demand.
                     </li>
                     <li
                       className={cn([
@@ -922,8 +890,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 7 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      The new dashboard will feature real-time user engagement
-                      metrics and a customizable reporting system.
+                      The new dashboard will feature real-time user engagement metrics and a
+                      customizable reporting system.
                     </li>
                   </ul>
                 </div>
@@ -937,16 +905,12 @@ export function HowItWorksSection() {
         <div className="border-b border-neutral-100">
           <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
-              <span className="font-semibold">While you take notes,</span>{" "}
-              Hyprnote listens and keeps track of everything that happens during
-              the meeting.
+              <span className="font-semibold">While you take notes,</span> Hyprnote listens and
+              keeps track of everything that happens during the meeting.
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
-            <MockWindow
-              variant="mobile"
-              showAudioIndicator={enhancedLines === 0}
-            >
+            <MockWindow variant="mobile" showAudioIndicator={enhancedLines === 0}>
               <div className="p-6 h-[200px] overflow-hidden">
                 <div className="text-neutral-700">ui update - moble</div>
                 <div className="text-neutral-700">api</div>
@@ -972,9 +936,8 @@ export function HowItWorksSection() {
         <div>
           <div className="p-6 pb-2">
             <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
-              <span className="font-semibold">After the meeting is over,</span>{" "}
-              Hyprnote combines your notes with transcripts to create a perfect
-              summary.
+              <span className="font-semibold">After the meeting is over,</span> Hyprnote combines
+              your notes with transcripts to create a perfect summary.
             </p>
           </div>
           <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -991,9 +954,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 1 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      Sarah presented the new mobile UI update, which includes a
-                      streamlined navigation bar and improved button placements
-                      for better accessibility.
+                      Sarah presented the new mobile UI update, which includes a streamlined
+                      navigation bar and improved button placements for better accessibility.
                     </li>
                     <li
                       className={cn([
@@ -1001,9 +963,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 2 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      Ben confirmed that API adjustments are needed to support
-                      dynamic UI changes, particularly for fetching personalized
-                      user data more efficiently.
+                      Ben confirmed that API adjustments are needed to support dynamic UI changes,
+                      particularly for fetching personalized user data more efficiently.
                     </li>
                     <li
                       className={cn([
@@ -1011,9 +972,9 @@ export function HowItWorksSection() {
                         enhancedLines >= 3 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      The UI update will be implemented in phases, starting with
-                      core navigation improvements. Ben will ensure API
-                      modifications are completed before development begins.
+                      The UI update will be implemented in phases, starting with core navigation
+                      improvements. Ben will ensure API modifications are completed before
+                      development begins.
                     </li>
                   </ul>
                 </div>
@@ -1028,8 +989,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 4 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      Alice emphasized that the new analytics dashboard must be
-                      prioritized due to increasing stakeholder demand.
+                      Alice emphasized that the new analytics dashboard must be prioritized due to
+                      increasing stakeholder demand.
                     </li>
                     <li
                       className={cn([
@@ -1037,8 +998,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 5 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      The new dashboard will feature real-time user engagement
-                      metrics and a customizable reporting system.
+                      The new dashboard will feature real-time user engagement metrics and a
+                      customizable reporting system.
                     </li>
                     <li
                       className={cn([
@@ -1046,8 +1007,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 6 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      Ben mentioned that backend infrastructure needs
-                      optimization to handle real-time data processing.
+                      Ben mentioned that backend infrastructure needs optimization to handle
+                      real-time data processing.
                     </li>
                     <li
                       className={cn([
@@ -1055,8 +1016,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 6 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      Mark stressed that the dashboard launch should align with
-                      marketing efforts to maximize user adoption.
+                      Mark stressed that the dashboard launch should align with marketing efforts to
+                      maximize user adoption.
                     </li>
                     <li
                       className={cn([
@@ -1064,8 +1025,8 @@ export function HowItWorksSection() {
                         enhancedLines >= 6 ? "opacity-100" : "opacity-0",
                       ])}
                     >
-                      Development will start immediately, and a basic prototype
-                      must be ready for stakeholder review next week.
+                      Development will start immediately, and a basic prototype must be ready for
+                      stakeholder review next week.
                     </li>
                   </ul>
                 </div>
@@ -1108,24 +1069,18 @@ export function MainFeaturesSection({
   useEffect(() => {
     if (isPaused) return;
 
-    const startTime =
-      Date.now() - (progressRef.current / 100) * FEATURES_AUTO_ADVANCE_DURATION;
+    const startTime = Date.now() - (progressRef.current / 100) * FEATURES_AUTO_ADVANCE_DURATION;
     let animationId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
-      const newProgress = Math.min(
-        (elapsed / FEATURES_AUTO_ADVANCE_DURATION) * 100,
-        100,
-      );
+      const newProgress = Math.min((elapsed / FEATURES_AUTO_ADVANCE_DURATION) * 100, 100);
       setProgress(newProgress);
       progressRef.current = newProgress;
 
       if (newProgress >= 100) {
-        const currentActiveIndex =
-          activeFeatureIndices.indexOf(selectedFeature);
-        const nextActiveIndex =
-          (currentActiveIndex + 1) % activeFeatureIndices.length;
+        const currentActiveIndex = activeFeatureIndices.indexOf(selectedFeature);
+        const nextActiveIndex = (currentActiveIndex + 1) % activeFeatureIndices.length;
         const nextIndex = activeFeatureIndices[nextActiveIndex];
         setSelectedFeature(nextIndex);
         setProgress(0);
@@ -1167,9 +1122,7 @@ export function MainFeaturesSection({
             className="size-24 rounded-3xl border border-neutral-100"
           />
         </div>
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">
-          Works like charm
-        </h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">Works like charm</h2>
         <p className="text-neutral-600 max-w-lg mx-auto">
           {
             "Super simple and easy to use with its clean interface. And it's getting better with every update — every single week."
@@ -1237,18 +1190,14 @@ function FeaturesMobileCarousel({
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <h3 className="text-lg font-serif text-stone-600">
-                      {feature.title}
-                    </h3>
+                    <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
                         Coming Soon
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-600">
-                    {feature.description}
-                  </p>
+                  <p className="text-sm text-neutral-600">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -1298,10 +1247,7 @@ function FeaturesDesktopGrid() {
       {mainFeatures.map((feature, index) => (
         <div
           key={index}
-          className={cn(
-            gridClasses[index],
-            "border-neutral-100 overflow-hidden flex flex-col",
-          )}
+          className={cn(gridClasses[index], "border-neutral-100 overflow-hidden flex flex-col")}
         >
           <div
             className={cn([
@@ -1355,9 +1301,7 @@ function FeaturesDesktopGrid() {
             <div className="flex items-center justify-between gap-3 mb-2">
               <div className="flex items-center gap-3">
                 <Icon icon={feature.icon} className="text-2xl text-stone-600" />
-                <h3 className="text-lg font-serif text-stone-600">
-                  {feature.title}
-                </h3>
+                <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
               </div>
               {feature.comingSoon && (
                 <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
@@ -1403,23 +1347,18 @@ export function DetailsSection({
   useEffect(() => {
     if (isPaused) return;
 
-    const startTime =
-      Date.now() - (progressRef.current / 100) * DETAILS_AUTO_ADVANCE_DURATION;
+    const startTime = Date.now() - (progressRef.current / 100) * DETAILS_AUTO_ADVANCE_DURATION;
     let animationId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
-      const newProgress = Math.min(
-        (elapsed / DETAILS_AUTO_ADVANCE_DURATION) * 100,
-        100,
-      );
+      const newProgress = Math.min((elapsed / DETAILS_AUTO_ADVANCE_DURATION) * 100, 100);
       setProgress(newProgress);
       progressRef.current = newProgress;
 
       if (newProgress >= 100) {
         const currentActiveIndex = activeDetailIndices.indexOf(selectedDetail);
-        const nextActiveIndex =
-          (currentActiveIndex + 1) % activeDetailIndices.length;
+        const nextActiveIndex = (currentActiveIndex + 1) % activeDetailIndices.length;
         const nextIndex = activeDetailIndices[nextActiveIndex];
         setSelectedDetail(nextIndex);
         setProgress(0);
@@ -1481,12 +1420,9 @@ export function DetailsSection({
 function DetailsSectionHeader() {
   return (
     <div className="text-center py-12 px-4 laptop:px-0">
-      <h2 className="text-3xl font-serif text-stone-600 mb-4">
-        We focus on every bit of details
-      </h2>
+      <h2 className="text-3xl font-serif text-stone-600 mb-4">We focus on every bit of details</h2>
       <p className="text-neutral-600 max-w-lg mx-auto">
-        From powerful editing to seamless organization, every feature is crafted
-        with care
+        From powerful editing to seamless organization, every feature is crafted with care
       </p>
     </div>
   );
@@ -1541,18 +1477,14 @@ function DetailsMobileCarousel({
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <h3 className="text-lg font-serif text-stone-600">
-                      {feature.title}
-                    </h3>
+                    <h3 className="text-lg font-serif text-stone-600">{feature.title}</h3>
                     {feature.comingSoon && (
                       <span className="text-xs font-medium bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 px-2 py-1 rounded-full shadow-sm">
                         Coming Soon
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-600">
-                    {feature.description}
-                  </p>
+                  <p className="text-sm text-neutral-600">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -1606,12 +1538,8 @@ function DetailsTabletView({
               <button
                 key={index}
                 onClick={() => onTabClick(index)}
-                onMouseEnter={() =>
-                  selectedDetail === index && onPauseChange(true)
-                }
-                onMouseLeave={() =>
-                  selectedDetail === index && onPauseChange(false)
-                }
+                onMouseEnter={() => selectedDetail === index && onPauseChange(true)}
+                onMouseLeave={() => selectedDetail === index && onPauseChange(false)}
                 className={cn([
                   "cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors relative overflow-hidden",
                   selectedDetail !== index && "hover:bg-neutral-50",
@@ -1634,9 +1562,7 @@ function DetailsTabletView({
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-600">
-                    {feature.description}
-                  </p>
+                  <p className="text-sm text-neutral-600">{feature.description}</p>
                 </div>
               </button>
             ))}
@@ -1673,30 +1599,24 @@ function DetailsDesktopView() {
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const progressRef = useRef(0);
-  const selectedFeature =
-    selectedDetail !== null ? detailsFeatures[selectedDetail] : null;
+  const selectedFeature = selectedDetail !== null ? detailsFeatures[selectedDetail] : null;
 
   useEffect(() => {
     if (isPaused) return;
     if (detailsFeatures[selectedDetail]?.comingSoon) return;
 
-    const startTime =
-      Date.now() - (progressRef.current / 100) * DETAILS_AUTO_ADVANCE_DURATION;
+    const startTime = Date.now() - (progressRef.current / 100) * DETAILS_AUTO_ADVANCE_DURATION;
     let animationId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
-      const newProgress = Math.min(
-        (elapsed / DETAILS_AUTO_ADVANCE_DURATION) * 100,
-        100,
-      );
+      const newProgress = Math.min((elapsed / DETAILS_AUTO_ADVANCE_DURATION) * 100, 100);
       setProgress(newProgress);
       progressRef.current = newProgress;
 
       if (newProgress >= 100) {
         const currentActiveIndex = activeDetailIndices.indexOf(selectedDetail);
-        const nextActiveIndex =
-          (currentActiveIndex + 1) % activeDetailIndices.length;
+        const nextActiveIndex = (currentActiveIndex + 1) % activeDetailIndices.length;
         const nextIndex = activeDetailIndices[nextActiveIndex];
         setSelectedDetail(nextIndex);
         setProgress(0);
@@ -1728,13 +1648,10 @@ function DetailsDesktopView() {
               key={index}
               onClick={() => handleTabClick(index)}
               onMouseEnter={() => selectedDetail === index && setIsPaused(true)}
-              onMouseLeave={() =>
-                selectedDetail === index && setIsPaused(false)
-              }
+              onMouseLeave={() => selectedDetail === index && setIsPaused(false)}
               className={cn([
                 "p-6 cursor-pointer transition-colors relative overflow-hidden",
-                index < detailsFeatures.length - 1 &&
-                  "border-b border-neutral-100",
+                index < detailsFeatures.length - 1 && "border-b border-neutral-100",
                 selectedDetail !== index && "hover:bg-neutral-50",
               ])}
             >
@@ -1747,10 +1664,7 @@ function DetailsDesktopView() {
               <div className="relative">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
-                    <Icon
-                      icon={feature.icon}
-                      className="text-xl text-stone-600"
-                    />
+                    <Icon icon={feature.icon} className="text-xl text-stone-600" />
                     <h3 className="text-base font-serif font-medium text-stone-600">
                       {feature.title}
                     </h3>
@@ -1761,9 +1675,7 @@ function DetailsDesktopView() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-neutral-600">
-                  {feature.description}
-                </p>
+                <p className="text-sm text-neutral-600">{feature.description}</p>
               </div>
             </div>
           ))}
@@ -1842,27 +1754,20 @@ function ManifestoSection() {
               backgroundImage: "url(/api/images/texture/paper.png)",
             }}
           >
-            <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">
-              Our manifesto
-            </h2>
+            <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">Our manifesto</h2>
 
             <div className="space-y-4 text-neutral-700 leading-relaxed">
               <p>
-                We believe in the power of notetaking, not notetakers. Meetings
-                should be moments of presence, not passive attendance. If you
-                are not added value, your time is better spent elsewhere for you
-                and your team.
+                We believe in the power of notetaking, not notetakers. Meetings should be moments of
+                presence, not passive attendance. If you are not added value, your time is better
+                spent elsewhere for you and your team.
               </p>
               <p>
-                Hyprnote exists to preserve what makes us human: conversations
-                that spark ideas, collaborations that move work forward. We
-                build tools that amplify human agency, not replace it. No ghost
-                bots. No silent note lurkers. Just people, thinking together.
+                Hyprnote exists to preserve what makes us human: conversations that spark ideas,
+                collaborations that move work forward. We build tools that amplify human agency, not
+                replace it. No ghost bots. No silent note lurkers. Just people, thinking together.
               </p>
-              <p>
-                We stand with those who value real connection and purposeful
-                collaboration.
-              </p>
+              <p>We stand with those who value real connection and purposeful collaboration.</p>
             </div>
 
             <div className="flex gap-2 mt-12 mb-4">
@@ -1884,12 +1789,8 @@ function ManifestoSection() {
 
             <div className="space-y-4">
               <div>
-                <p className="text-base text-neutral-600 font-medium italic font-serif">
-                  Hyprnote
-                </p>
-                <p className="text-sm text-neutral-500">
-                  John Jeong, Yujong Lee
-                </p>
+                <p className="text-base text-neutral-600 font-medium italic font-serif">Hyprnote</p>
+                <p className="text-sm text-neutral-500">John Jeong, Yujong Lee</p>
               </div>
 
               <div>
@@ -1927,9 +1828,7 @@ function BlogSection() {
   return (
     <section className="border-t border-neutral-100 py-16">
       <div className="text-center mb-12 px-4">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">
-          Latest from our blog
-        </h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">Latest from our blog</h2>
         <p className="text-neutral-600 max-w-lg mx-auto">
           Insights, updates, and stories from the Hyprnote team
         </p>
@@ -1967,10 +1866,7 @@ function BlogSection() {
                   </p>
 
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-neutral-100">
-                    <time
-                      dateTime={article.updated}
-                      className="text-xs text-neutral-500"
-                    >
+                    <time dateTime={article.updated} className="text-xs text-neutral-500">
                       {new Date(article.updated).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -2036,10 +1932,7 @@ export function CTASection({
       setTimeout(() => {
         if (heroInputRef.current) {
           heroInputRef.current.focus();
-          heroInputRef.current.parentElement?.classList.add(
-            "animate-shake",
-            "border-stone-600",
-          );
+          heroInputRef.current.parentElement?.classList.add("animate-shake", "border-stone-600");
           setTimeout(() => {
             heroInputRef.current?.parentElement?.classList.remove(
               "animate-shake",
@@ -2068,8 +1961,7 @@ export function CTASection({
           <br className="sm:hidden" /> stay yours
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Start using Hyprnote today and bring clarity to your back-to-back
-          meetings
+          Start using Hyprnote today and bring clarity to your back-to-back meetings
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           {platformCTA.action === "download" ? (

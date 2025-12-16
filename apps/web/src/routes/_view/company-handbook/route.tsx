@@ -27,15 +27,12 @@ function LeftSidebar() {
   const matchRoute = useMatchRoute();
   const match = matchRoute({ to: "/company-handbook/$", fuzzy: true });
 
-  const currentSlug = (
-    match && typeof match !== "boolean" ? match._splat : undefined
-  ) as string | undefined;
+  const currentSlug = (match && typeof match !== "boolean" ? match._splat : undefined) as
+    | string
+    | undefined;
 
   const handbooksBySection = useMemo(() => {
-    const sectionGroups: Record<
-      string,
-      { title: string; docs: (typeof allHandbooks)[0][] }
-    > = {};
+    const sectionGroups: Record<string, { title: string; docs: (typeof allHandbooks)[0][] }> = {};
 
     allHandbooks.forEach((doc) => {
       if (doc.slug === "index" || doc.isIndex) {
@@ -60,8 +57,7 @@ function LeftSidebar() {
 
     const sections = handbookStructure.sections
       .map((sectionId) => {
-        const sectionName =
-          sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+        const sectionName = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
         return sectionGroups[sectionName];
       })
       .filter(Boolean);

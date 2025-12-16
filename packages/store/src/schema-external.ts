@@ -26,10 +26,7 @@ import { InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
 export const humanSchema = baseHumanSchema.omit({ id: true }).extend({
   created_at: z.string(),
   job_title: z.preprocess((val) => val ?? undefined, z.string().optional()),
-  linkedin_username: z.preprocess(
-    (val) => val ?? undefined,
-    z.string().optional(),
-  ),
+  linkedin_username: z.preprocess((val) => val ?? undefined, z.string().optional()),
   is_user: z.preprocess((val) => val ?? undefined, z.boolean().optional()),
   memo: z.preprocess((val) => val ?? undefined, z.string().optional()),
 });
@@ -54,10 +51,7 @@ export const organizationSchema = baseOrganizationSchema
 
 export const folderSchema = baseFolderSchema.omit({ id: true }).extend({
   created_at: z.string(),
-  parent_folder_id: z.preprocess(
-    (val) => val ?? undefined,
-    z.string().optional(),
-  ),
+  parent_folder_id: z.preprocess((val) => val ?? undefined, z.string().optional()),
 });
 
 export const sessionSchema = baseSessionSchema.omit({ id: true }).extend({
@@ -72,8 +66,9 @@ export const transcriptSchema = baseTranscriptSchema.omit({ id: true }).extend({
   ended_at: z.preprocess((val) => val ?? undefined, z.number().optional()),
 });
 
-export const mappingSessionParticipantSchema =
-  baseMappingSessionParticipantSchema.omit({ id: true }).extend({
+export const mappingSessionParticipantSchema = baseMappingSessionParticipantSchema
+  .omit({ id: true })
+  .extend({
     created_at: z.string(),
   });
 
@@ -81,11 +76,9 @@ export const tagSchema = baseTagSchema.omit({ id: true }).extend({
   created_at: z.string(),
 });
 
-export const mappingTagSessionSchema = baseMappingTagSessionSchema
-  .omit({ id: true })
-  .extend({
-    created_at: z.string(),
-  });
+export const mappingTagSessionSchema = baseMappingTagSessionSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+});
 
 export const templateSectionSchema = z.object({
   title: z.string(),
@@ -95,34 +88,27 @@ export const templateSectionSchema = z.object({
 export const templateSchema = baseTemplateSchema.omit({ id: true }).extend({
   created_at: z.string(),
   category: z.preprocess((val) => val ?? undefined, z.string().optional()),
-  targets: z.preprocess(
-    (val) => val ?? undefined,
-    jsonObject(z.array(z.string())).optional(),
-  ),
+  targets: z.preprocess((val) => val ?? undefined, jsonObject(z.array(z.string())).optional()),
   sections: jsonObject(z.array(templateSectionSchema)),
 });
 
 export const chatGroupSchema = baseChatGroupSchema
   .omit({ id: true })
   .extend({ created_at: z.string() });
-export const chatMessageSchema = baseChatMessageSchema
-  .omit({ id: true })
-  .extend({
-    created_at: z.string(),
-    metadata: jsonObject(z.any()),
-    parts: jsonObject(z.any()),
-  });
+export const chatMessageSchema = baseChatMessageSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  metadata: jsonObject(z.any()),
+  parts: jsonObject(z.any()),
+});
 
 export const memorySchema = baseMemorySchema.omit({ id: true }).extend({
   created_at: z.string(),
 });
 
-export const chatShortcutSchema = baseChatShortcutSchema
-  .omit({ id: true })
-  .extend({
-    created_at: z.string(),
-    title: z.string(),
-  });
+export const chatShortcutSchema = baseChatShortcutSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  title: z.string(),
+});
 
 export const enhancedNoteSchema = z.object({
   user_id: z.string(),
@@ -151,15 +137,13 @@ export const wordSchemaOverride = wordSchema.omit({ id: true }).extend({
   ),
 });
 
-export const speakerHintSchemaOverride = baseSpeakerHintSchema
-  .omit({ id: true })
-  .extend({
-    created_at: z.string(),
-    transcript_id: z.string(),
-    word_id: z.string(),
-    type: z.string(),
-    value: jsonObject(z.record(z.string(), z.unknown())),
-  });
+export const speakerHintSchemaOverride = baseSpeakerHintSchema.omit({ id: true }).extend({
+  created_at: z.string(),
+  transcript_id: z.string(),
+  word_id: z.string(),
+  type: z.string(),
+  value: jsonObject(z.record(z.string(), z.unknown())),
+});
 
 export type Human = z.infer<typeof humanSchema>;
 export type Event = z.infer<typeof eventSchema>;
@@ -170,9 +154,7 @@ export type Session = z.infer<typeof sessionSchema>;
 export type Transcript = z.infer<typeof transcriptSchema>;
 export type Word = z.infer<typeof wordSchemaOverride>;
 export type SpeakerHint = z.infer<typeof speakerHintSchemaOverride>;
-export type mappingSessionParticipant = z.infer<
-  typeof mappingSessionParticipantSchema
->;
+export type mappingSessionParticipant = z.infer<typeof mappingSessionParticipantSchema>;
 export type Tag = z.infer<typeof tagSchema>;
 export type MappingTagSession = z.infer<typeof mappingTagSessionSchema>;
 export type Template = z.infer<typeof templateSchema>;
@@ -187,9 +169,7 @@ export type Prompt = z.infer<typeof promptSchema>;
 export type SessionStorage = ToStorageType<typeof sessionSchema>;
 export type TranscriptStorage = ToStorageType<typeof transcriptSchema>;
 export type WordStorage = ToStorageType<typeof wordSchemaOverride>;
-export type SpeakerHintStorage = ToStorageType<
-  typeof speakerHintSchemaOverride
->;
+export type SpeakerHintStorage = ToStorageType<typeof speakerHintSchemaOverride>;
 export type TemplateStorage = ToStorageType<typeof templateSchema>;
 export type ChatMessageStorage = ToStorageType<typeof chatMessageSchema>;
 export type MemoryStorage = ToStorageType<typeof memorySchema>;
@@ -280,9 +260,7 @@ export const externalTableSchemaForTinybase = {
     created_at: { type: "string" },
     session_id: { type: "string" },
     human_id: { type: "string" },
-  } as const satisfies InferTinyBaseSchema<
-    typeof mappingSessionParticipantSchema
-  >,
+  } as const satisfies InferTinyBaseSchema<typeof mappingSessionParticipantSchema>,
   tags: {
     user_id: { type: "string" },
     created_at: { type: "string" },

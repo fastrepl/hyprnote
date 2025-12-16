@@ -4,13 +4,7 @@ import * as main from "../../../../../../store/tinybase/main";
 import { id } from "../../../../../../utils";
 import { TranscriptContainer } from "./shared";
 
-export function Transcript({
-  sessionId,
-  isEditing,
-}: {
-  sessionId: string;
-  isEditing: boolean;
-}) {
+export function Transcript({ sessionId, isEditing }: { sessionId: string; isEditing: boolean }) {
   const store = main.UI.useStore(main.STORE_ID);
   const indexes = main.UI.useIndexes(main.STORE_ID);
   const checkpoints = main.UI.useCheckpoints(main.STORE_ID);
@@ -21,10 +15,7 @@ export function Transcript({
         return;
       }
 
-      const speakerHintIds = indexes.getSliceRowIds(
-        main.INDEXES.speakerHintsByWord,
-        wordId,
-      );
+      const speakerHintIds = indexes.getSliceRowIds(main.INDEXES.speakerHintsByWord, wordId);
 
       speakerHintIds?.forEach((hintId) => {
         store.delRow("speaker_hints", hintId);

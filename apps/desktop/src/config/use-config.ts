@@ -2,8 +2,7 @@ import { useListener } from "../contexts/listener";
 import * as settings from "../store/tinybase/settings";
 import { CONFIG_REGISTRY, type ConfigKey } from "./registry";
 
-type ConfigValueType<K extends ConfigKey> =
-  (typeof CONFIG_REGISTRY)[K]["default"];
+type ConfigValueType<K extends ConfigKey> = (typeof CONFIG_REGISTRY)[K]["default"];
 
 function tryParseJSON<T>(value: any, fallback: T): T {
   if (typeof value !== "string") {
@@ -16,22 +15,13 @@ function tryParseJSON<T>(value: any, fallback: T): T {
   }
 }
 
-export function useConfigValue<K extends ConfigKey>(
-  key: K,
-): ConfigValueType<K> {
+export function useConfigValue<K extends ConfigKey>(key: K): ConfigValueType<K> {
   const storedValue = settings.UI.useValue(key, settings.STORE_ID);
   const definition = CONFIG_REGISTRY[key];
 
   if (storedValue !== undefined) {
-    if (
-      key === "ignored_platforms" ||
-      key === "spoken_languages" ||
-      key === "dismissed_banners"
-    ) {
-      return tryParseJSON(
-        storedValue,
-        definition.default,
-      ) as ConfigValueType<K>;
+    if (key === "ignored_platforms" || key === "spoken_languages" || key === "dismissed_banners") {
+      return tryParseJSON(storedValue, definition.default) as ConfigValueType<K>;
     }
     return storedValue as ConfigValueType<K>;
   }
@@ -56,10 +46,7 @@ export function useConfigValues<K extends ConfigKey>(
         key === "spoken_languages" ||
         key === "dismissed_banners"
       ) {
-        result[key] = tryParseJSON(
-          storedValue,
-          definition.default,
-        ) as ConfigValueType<K>;
+        result[key] = tryParseJSON(storedValue, definition.default) as ConfigValueType<K>;
       } else {
         result[key] = storedValue as ConfigValueType<K>;
       }
@@ -83,11 +70,7 @@ export function useConfigSideEffects() {
         const val = configs[k];
 
         if (val !== undefined) {
-          if (
-            k === "ignored_platforms" ||
-            k === "spoken_languages" ||
-            k === "dismissed_banners"
-          ) {
+          if (k === "ignored_platforms" || k === "spoken_languages" || k === "dismissed_banners") {
             return tryParseJSON(val, def.default) as ConfigValueType<K>;
           }
           return val as ConfigValueType<K>;
@@ -97,15 +80,11 @@ export function useConfigSideEffects() {
       };
 
       type GetConfigFn = <K extends ConfigKey>(k: K) => ConfigValueType<K>;
-      const storedValue =
-        configs[key] !== undefined ? configs[key] : definition.default;
+      const storedValue = configs[key] !== undefined ? configs[key] : definition.default;
 
       try {
         const result = (
-          definition.sideEffect as (
-            value: unknown,
-            getConfig: GetConfigFn,
-          ) => void | Promise<void>
+          definition.sideEffect as (value: unknown, getConfig: GetConfigFn) => void | Promise<void>
         )(storedValue, getConfig);
 
         Promise.resolve(result).catch((error) => {

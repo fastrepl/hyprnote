@@ -30,10 +30,7 @@ type SonioxTranscriptionStatus = {
   error_message?: string;
 };
 
-const uploadFile = async (
-  audioData: ArrayBuffer,
-  fileName: string,
-): Promise<string> => {
+const uploadFile = async (audioData: ArrayBuffer, fileName: string): Promise<string> => {
   const formData = new FormData();
   const blob = new Blob([audioData]);
   formData.append("file", blob, fileName);
@@ -55,10 +52,7 @@ const uploadFile = async (
   return result.id;
 };
 
-const createTranscription = async (
-  fileId: string,
-  params: BatchParams,
-): Promise<string> => {
+const createTranscription = async (fileId: string, params: BatchParams): Promise<string> => {
   const model = params.model ?? "stt-async-v3";
   const languageHints = params.languages ?? [];
 
@@ -90,9 +84,7 @@ const createTranscription = async (
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
-      `Soniox transcription creation failed: ${response.status} - ${errorText}`,
-    );
+    throw new Error(`Soniox transcription creation failed: ${response.status} - ${errorText}`);
   }
 
   const result = (await response.json()) as { id: string };
@@ -122,9 +114,7 @@ const pollTranscription = async (transcriptionId: string): Promise<void> => {
     }
 
     if (result.status === "error") {
-      throw new Error(
-        `Soniox transcription failed: ${result.error_message ?? "unknown error"}`,
-      );
+      throw new Error(`Soniox transcription failed: ${result.error_message ?? "unknown error"}`);
     }
 
     if (result.status !== "queued" && result.status !== "processing") {
@@ -137,9 +127,7 @@ const pollTranscription = async (transcriptionId: string): Promise<void> => {
   throw new Error("Soniox transcription timed out");
 };
 
-const getTranscript = async (
-  transcriptionId: string,
-): Promise<SonioxTranscriptResponse> => {
+const getTranscript = async (transcriptionId: string): Promise<SonioxTranscriptResponse> => {
   const response = await fetch(
     `https://${SONIOX_API_HOST}/v1/transcriptions/${transcriptionId}/transcript`,
     {
@@ -151,17 +139,13 @@ const getTranscript = async (
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
-      `Soniox get transcript failed: ${response.status} - ${errorText}`,
-    );
+    throw new Error(`Soniox get transcript failed: ${response.status} - ${errorText}`);
   }
 
   return response.json() as Promise<SonioxTranscriptResponse>;
 };
 
-const parseSpeaker = (
-  speaker: number | string | undefined,
-): number | undefined => {
+const parseSpeaker = (speaker: number | string | undefined): number | undefined => {
   if (speaker === undefined) {
     return undefined;
   }

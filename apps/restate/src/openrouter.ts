@@ -1,7 +1,4 @@
-import type {
-  ChatGenerationParams,
-  ChatResponse,
-} from "@openrouter/sdk/models";
+import type { ChatGenerationParams, ChatResponse } from "@openrouter/sdk/models";
 
 export { ChatGenerationParams, ChatResponse };
 
@@ -18,11 +15,7 @@ export async function callOpenRouter(
     !(typeof toolChoice === "string" && toolChoice === "none");
 
   const modelsToUse = needsToolCalling
-    ? [
-        "moonshotai/kimi-k2-0905:exacto",
-        "anthropic/claude-haiku-4.5",
-        "openai/gpt-oss-120b:exacto",
-      ]
+    ? ["moonshotai/kimi-k2-0905:exacto", "anthropic/claude-haiku-4.5", "openai/gpt-oss-120b:exacto"]
     : ["moonshotai/kimi-k2-0905", "openai/gpt-5.1-chat"];
 
   const response = await fetch(OPENROUTER_BASE_URL, {

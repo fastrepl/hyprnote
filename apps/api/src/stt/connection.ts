@@ -1,12 +1,7 @@
 import * as Sentry from "@sentry/bun";
 import type { ServerWebSocket, WebSocketOptions } from "bun";
 
-import {
-  getPayloadSize,
-  normalizeWsData,
-  payloadIsControlMessage,
-  type WsPayload,
-} from "./utils";
+import { getPayloadSize, normalizeWsData, payloadIsControlMessage, type WsPayload } from "./utils";
 
 const DEFAULT_CLOSE_CODE = 1011;
 const UPSTREAM_ERROR_TIMEOUT = 1000;
@@ -47,8 +42,7 @@ export class WsProxyConnection {
     options: WsProxyOptions = {},
   ) {
     this.headers = options.headers;
-    this.controlMessageTypes =
-      options.controlMessageTypes ?? DEFAULT_CONTROL_MESSAGE_TYPES;
+    this.controlMessageTypes = options.controlMessageTypes ?? DEFAULT_CONTROL_MESSAGE_TYPES;
     this.transformFirstMessage = options.transformFirstMessage;
   }
 
@@ -106,18 +100,11 @@ export class WsProxyConnection {
     }
 
     const wsOptions: WebSocketOptions =
-      this.headers && Object.keys(this.headers).length > 0
-        ? { headers: this.headers }
-        : {};
+      this.headers && Object.keys(this.headers).length > 0 ? { headers: this.headers } : {};
 
-    this.upstream = new (
-      globalThis.WebSocket as {
-        new (
-          url: string | URL,
-          options?: WebSocketOptions,
-        ): InstanceType<typeof WebSocket>;
-      }
-    )(this.upstreamUrl, wsOptions);
+    this.upstream = new (globalThis.WebSocket as {
+      new (url: string | URL, options?: WebSocketOptions): InstanceType<typeof WebSocket>;
+    })(this.upstreamUrl, wsOptions);
 
     this.upstream.binaryType = "arraybuffer";
     this.setupUpstreamHandlers();
@@ -158,10 +145,7 @@ export class WsProxyConnection {
       this.resolveUpstreamReadyWaiters();
     }
 
-    if (
-      this.clientSocket &&
-      this.clientSocket.readyState !== WebSocket.CLOSED
-    ) {
+    if (this.clientSocket && this.clientSocket.readyState !== WebSocket.CLOSED) {
       this.safeCloseSocket(this.clientSocket, validCode, reason);
     }
 
@@ -189,18 +173,13 @@ export class WsProxyConnection {
     if (
       !this.upstream ||
       !this.upstreamReady ||
-      (this.pendingControlMessages.length === 0 &&
-        this.pendingDataMessages.length === 0)
+      (this.pendingControlMessages.length === 0 && this.pendingDataMessages.length === 0)
     ) {
       return;
     }
 
-    while (
-      this.pendingControlMessages.length > 0 ||
-      this.pendingDataMessages.length > 0
-    ) {
-      const queued =
-        this.pendingControlMessages.shift() ?? this.pendingDataMessages.shift();
+    while (this.pendingControlMessages.length > 0 || this.pendingDataMessages.length > 0) {
+      const queued = this.pendingControlMessages.shift() ?? this.pendingDataMessages.shift();
       if (!queued) {
         continue;
       }
@@ -287,16 +266,10 @@ export class WsProxyConnection {
       this.clearErrorTimeout();
       if (!this.upstreamReady) {
         this.rejectUpstreamReadyWaiters(
-          new Error(
-            event.reason ||
-              `upstream_closed_${event.code || DEFAULT_CLOSE_CODE}`,
-          ),
+          new Error(event.reason || `upstream_closed_${event.code || DEFAULT_CLOSE_CODE}`),
         );
       }
-      this.closeConnections(
-        event.code || DEFAULT_CLOSE_CODE,
-        event.reason || "upstream_closed",
-      );
+      this.closeConnections(event.code || DEFAULT_CLOSE_CODE, event.reason || "upstream_closed");
     });
 
     this.upstream.addEventListener("error", (error) => {
@@ -370,10 +343,7 @@ export class WsProxyConnection {
       this.hasTransformedFirst = true;
     }
 
-    const isControlPayload = payloadIsControlMessage(
-      finalPayload,
-      this.controlMessageTypes,
-    );
+    const isControlPayload = payloadIsControlMessage(finalPayload, this.controlMessageTypes);
 
     if (!this.upstreamReady) {
       this.enqueuePendingPayload(finalPayload, isControlPayload);
@@ -414,9 +384,7 @@ export class WsProxyConnection {
       return;
     }
 
-    const targetQueue = isControlPayload
-      ? this.pendingControlMessages
-      : this.pendingDataMessages;
+    const targetQueue = isControlPayload ? this.pendingControlMessages : this.pendingDataMessages;
     targetQueue.push({ payload, size });
     this.pendingBytes += size;
   }

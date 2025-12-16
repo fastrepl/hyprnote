@@ -85,18 +85,12 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
   }, [apiUrl]);
 
   if (loading) {
-    return (
-      <div className="p-8 text-center text-neutral-500">
-        Loading API documentation...
-      </div>
-    );
+    return <div className="p-8 text-center text-neutral-500">Loading API documentation...</div>;
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
-        Failed to load API documentation: {error}
-      </div>
+      <div className="p-8 text-center text-red-500">Failed to load API documentation: {error}</div>
     );
   }
 
@@ -154,9 +148,7 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
                 )}
               >
                 <span className="font-medium capitalize">{tag.name}</span>
-                {tag.description && (
-                  <p className="text-sm mt-1 opacity-80">{tag.description}</p>
-                )}
+                {tag.description && <p className="text-sm mt-1 opacity-80">{tag.description}</p>}
               </div>
             ))}
           </div>
@@ -165,9 +157,7 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
 
       {Object.entries(groupedPaths).map(([tag, endpoints]) => (
         <div key={tag} className="space-y-4">
-          <h3 className="text-lg font-serif text-stone-600 capitalize">
-            {tag} Endpoints
-          </h3>
+          <h3 className="text-lg font-serif text-stone-600 capitalize">{tag} Endpoints</h3>
           <div className="space-y-3">
             {endpoints.map(({ path, method, operation }) => (
               <div
@@ -183,9 +173,7 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
                   >
                     {method}
                   </span>
-                  <code className="text-sm font-mono text-stone-700">
-                    {path}
-                  </code>
+                  <code className="text-sm font-mono text-stone-700">{path}</code>
                   {operation.security && operation.security.length > 0 && (
                     <span className="ml-auto text-xs text-neutral-500 flex items-center gap-1">
                       <svg
@@ -207,14 +195,10 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
                 </div>
                 <div className="p-3 space-y-2">
                   {operation.summary && (
-                    <p className="font-medium text-stone-700">
-                      {operation.summary}
-                    </p>
+                    <p className="font-medium text-stone-700">{operation.summary}</p>
                   )}
                   {operation.description && (
-                    <p className="text-sm text-neutral-600">
-                      {operation.description}
-                    </p>
+                    <p className="text-sm text-neutral-600">{operation.description}</p>
                   )}
                   {operation.responses && (
                     <div className="mt-3">
@@ -222,26 +206,24 @@ export function OpenAPIDocs({ apiUrl }: { apiUrl: string }) {
                         Responses
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {Object.entries(operation.responses).map(
-                          ([code, response]) => (
-                            <span
-                              key={code}
-                              className={cn(
-                                "px-2 py-1 text-xs rounded border",
-                                code.startsWith("2")
-                                  ? "bg-green-50 text-green-700 border-green-200"
-                                  : code.startsWith("4")
-                                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                                    : code.startsWith("5")
-                                      ? "bg-red-50 text-red-700 border-red-200"
-                                      : "bg-gray-50 text-gray-700 border-gray-200",
-                              )}
-                              title={response.description}
-                            >
-                              {code}
-                            </span>
-                          ),
-                        )}
+                        {Object.entries(operation.responses).map(([code, response]) => (
+                          <span
+                            key={code}
+                            className={cn(
+                              "px-2 py-1 text-xs rounded border",
+                              code.startsWith("2")
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : code.startsWith("4")
+                                  ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                                  : code.startsWith("5")
+                                    ? "bg-red-50 text-red-700 border-red-200"
+                                    : "bg-gray-50 text-gray-700 border-gray-200",
+                            )}
+                            title={response.description}
+                          >
+                            {code}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}

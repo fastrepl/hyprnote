@@ -22,9 +22,7 @@ declare global {
 
 export function DevtoolView() {
   const stores = useStores();
-  const persistedStore = stores[STORE_ID_PERSISTED] as unknown as
-    | PersistedStore
-    | undefined;
+  const persistedStore = stores[STORE_ID_PERSISTED] as unknown as PersistedStore | undefined;
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -77,13 +75,7 @@ export function DevtoolView() {
   );
 }
 
-function DevtoolSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function DevtoolSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-1.5">
       <h2 className="text-sm font-semibold">{title}</h2>
@@ -93,11 +85,7 @@ function DevtoolSection({
 }
 
 function ExtensionStateMonitor() {
-  const extensionState = useRow(
-    "extension_state",
-    "hello-world",
-    STORE_ID_PERSISTED,
-  ) as {
+  const extensionState = useRow("extension_state", "hello-world", STORE_ID_PERSISTED) as {
     counter?: number;
     last_updated?: string;
   };
@@ -149,11 +137,7 @@ function NavigationList() {
         >
           Onboarding
         </button>
-        <button
-          type="button"
-          onClick={handleShowMain}
-          className="pl-2 text-left hover:underline"
-        >
+        <button type="button" onClick={handleShowMain} className="pl-2 text-left hover:underline">
           Main
         </button>
       </nav>
@@ -173,13 +157,7 @@ function SeedList({ onSeed }: { onSeed: (seed: SeedDefinition) => void }) {
   );
 }
 
-function SeedButton({
-  seed,
-  onClick,
-}: {
-  seed: SeedDefinition;
-  onClick: () => void;
-}) {
+function SeedButton({ seed, onClick }: { seed: SeedDefinition; onClick: () => void }) {
   return (
     <button
       type="button"

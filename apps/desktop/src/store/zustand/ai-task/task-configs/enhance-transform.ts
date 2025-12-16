@@ -5,10 +5,7 @@ import {
   SegmentKey,
   type WordLike,
 } from "../../../../utils/segment";
-import {
-  defaultRenderLabelContext,
-  SpeakerLabelManager,
-} from "../../../../utils/segment/shared";
+import { defaultRenderLabelContext, SpeakerLabelManager } from "../../../../utils/segment/shared";
 import { convertStorageHintsToRuntime } from "../../../../utils/speaker-hints";
 import type { Store as MainStore } from "../../../tinybase/main";
 
@@ -84,12 +81,7 @@ function getSessionContext(sessionId: string, store: MainStore) {
 
 function getSessionData(sessionId: string, store: MainStore) {
   const rawTitle = getStringCell(store, "sessions", sessionId, "title");
-  const eventId = getOptionalStringCell(
-    store,
-    "sessions",
-    sessionId,
-    "event_id",
-  );
+  const eventId = getOptionalStringCell(store, "sessions", sessionId, "event_id");
 
   if (eventId) {
     return {
@@ -152,9 +144,7 @@ function getTemplateData(templateId: string, store: MainStore) {
     created_at: getStringCell(store, "templates", templateId, "created_at"),
     title: getStringCell(store, "templates", templateId, "title"),
     description: getStringCell(store, "templates", templateId, "description"),
-    sections: parseTemplateSections(
-      store.getCell("templates", templateId, "sections"),
-    ),
+    sections: parseTemplateSections(store.getCell("templates", templateId, "sections")),
   };
 }
 
@@ -181,23 +171,18 @@ function parseTemplateSections(raw: unknown) {
 
       if (section && typeof section === "object") {
         const record = section as Record<string, unknown>;
-        const title =
-          typeof record.title === "string" ? record.title.trim() : "";
+        const title = typeof record.title === "string" ? record.title.trim() : "";
         if (!title) {
           return null;
         }
 
-        const description =
-          typeof record.description === "string" ? record.description : "";
+        const description = typeof record.description === "string" ? record.description : "";
         return { title, description };
       }
 
       return null;
     })
-    .filter(
-      (section): section is { title: string; description: string } =>
-        section !== null,
-    );
+    .filter((section): section is { title: string; description: string } => section !== null);
 }
 
 function getTranscriptSegments(sessionId: string, store: MainStore) {
@@ -222,33 +207,23 @@ function getTranscriptSegments(sessionId: string, store: MainStore) {
     (min, transcript) => Math.min(min, transcript.startedAt),
     Number.POSITIVE_INFINITY,
   );
-  const sessionStartMs = Number.isFinite(sessionStartCandidate)
-    ? sessionStartCandidate
-    : 0;
+  const sessionStartMs = Number.isFinite(sessionStartCandidate) ? sessionStartCandidate : 0;
 
   const segmentsForPayload = segments as unknown as SegmentForPayload[];
 
-  const normalizedSegments = segmentsForPayload.reduce<SegmentPayload[]>(
-    (acc, segment) => {
-      if (segment.words.length === 0) {
-        return acc;
-      }
-
-      acc.push(
-        toSegmentPayload(segment, sessionStartMs, store, speakerLabelManager),
-      );
+  const normalizedSegments = segmentsForPayload.reduce<SegmentPayload[]>((acc, segment) => {
+    if (segment.words.length === 0) {
       return acc;
-    },
-    [],
-  );
+    }
+
+    acc.push(toSegmentPayload(segment, sessionStartMs, store, speakerLabelManager));
+    return acc;
+  }, []);
 
   return normalizedSegments.sort((a, b) => a.start_ms - b.start_ms);
 }
 
-function collectTranscripts(
-  sessionId: string,
-  store: MainStore,
-): TranscriptMeta[] {
+function collectTranscripts(sessionId: string, store: MainStore): TranscriptMeta[] {
   const transcripts: TranscriptMeta[] = [];
 
   store.forEachRow("transcripts", (transcriptId, _forEachCell) => {
@@ -262,8 +237,7 @@ function collectTranscripts(
       return;
     }
 
-    const startedAt =
-      getNumberCell(store, "transcripts", transcriptId, "started_at") ?? 0;
+    const startedAt = getNumberCell(store, "transcripts", transcriptId, "started_at") ?? 0;
     transcripts.push({ id: transcriptId, startedAt });
   });
 
@@ -371,12 +345,7 @@ function isWordRow(row: unknown): row is WordRow {
   );
 }
 
-function getStringCell(
-  store: MainStore,
-  tableId: any,
-  rowId: string,
-  columnId: string,
-): string {
+function getStringCell(store: MainStore, tableId: any, rowId: string, columnId: string): string {
   const value = store.getCell(tableId, rowId, columnId);
   return typeof value === "string" ? value : "";
 }

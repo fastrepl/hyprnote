@@ -40,19 +40,9 @@ export function Callout({
   const style = CALLOUT_STYLES[type];
 
   return (
-    <div
-      className={cn([
-        "not-prose my-6 p-4 rounded-sm border flex gap-3",
-        ...style.container,
-      ])}
-    >
-      <Icon
-        icon={style.icon}
-        className={cn(["text-xl shrink-0", style.iconColor])}
-      />
-      <div className="flex-1 text-sm leading-relaxed text-stone-700">
-        {children}
-      </div>
+    <div className={cn(["not-prose my-6 p-4 rounded-sm border flex gap-3", ...style.container])}>
+      <Icon icon={style.icon} className={cn(["text-xl shrink-0", style.iconColor])} />
+      <div className="flex-1 text-sm leading-relaxed text-stone-700">{children}</div>
     </div>
   );
 }

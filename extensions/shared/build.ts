@@ -75,10 +75,7 @@ function getExtensionsDir(): string {
   throw new Error(`Unsupported platform: ${os}`);
 }
 
-function log(
-  message: string,
-  type: "info" | "success" | "warn" | "error" = "info",
-) {
+function log(message: string, type: "info" | "success" | "warn" | "error" = "info") {
   const prefix: Record<string, string> = {
     info: "\x1b[36m[INFO]\x1b[0m",
     success: "\x1b[32m[SUCCESS]\x1b[0m",
@@ -177,10 +174,7 @@ async function buildExtension(name: string): Promise<boolean> {
     const raw = Deno.readTextFileSync(manifestPath);
     manifest = JSON.parse(raw);
   } catch (err) {
-    log(
-      `Failed to read/parse manifest ${manifestPath}: ${(err as Error).message}`,
-      "error",
-    );
+    log(`Failed to read/parse manifest ${manifestPath}: ${(err as Error).message}`, "error");
     return false;
   }
 
@@ -227,26 +221,15 @@ async function buildExtension(name: string): Promise<boolean> {
         return false;
       }
     } catch (err) {
-      log(
-        `Error building panel ${panel.id}: ${(err as Error).message}`,
-        "error",
-      );
+      log(`Error building panel ${panel.id}: ${(err as Error).message}`, "error");
       return false;
     }
 
     if (panel.styles) {
-      const stylesInput = panel.styles
-        .replace("dist/", "")
-        .replace(".css", ".css");
-      const stylesInputPath = stylesInput.startsWith("dist/")
-        ? stylesInput.slice(5)
-        : stylesInput;
+      const stylesInput = panel.styles.replace("dist/", "").replace(".css", ".css");
+      const stylesInputPath = stylesInput.startsWith("dist/") ? stylesInput.slice(5) : stylesInput;
       const sourceStyles = stylesInputPath.replace(/^dist\//, "");
-      const stylesSuccess = await buildStyles(
-        extensionDir,
-        sourceStyles,
-        panel.styles,
-      );
+      const stylesSuccess = await buildStyles(extensionDir, sourceStyles, panel.styles);
       if (!stylesSuccess) {
         return false;
       }

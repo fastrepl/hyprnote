@@ -176,9 +176,6 @@ describe("timeline utils", () => {
       sessionsWithMaybeEventTable,
     });
 
-    expect(buckets.map((bucket) => bucket.label)).toEqual([
-      "Tomorrow",
-      "Yesterday",
-    ]);
+    expect(buckets.map((bucket) => bucket.label)).toEqual(["Tomorrow", "Yesterday"]);
   });
 });

@@ -8,10 +8,7 @@ import { EMPTY_TIPTAP_DOC } from "@hypr/tiptap/shared";
 import "@hypr/tiptap/styles.css";
 import { cn } from "@hypr/utils";
 
-import {
-  FileInfo,
-  TranscriptDisplay,
-} from "@/components/transcription/transcript-display";
+import { FileInfo, TranscriptDisplay } from "@/components/transcription/transcript-display";
 import { UploadArea } from "@/components/transcription/upload-area";
 import {
   getAudioPipelineStatus,
@@ -105,9 +102,7 @@ function Component() {
       }
       const res = (await getAudioPipelineStatus({
         data: { pipelineId },
-      })) as
-        | { success: true; status: StatusStateType }
-        | { error: true; message?: string };
+      })) as { success: true; status: StatusStateType } | { error: true; message?: string };
       if ("error" in res && res.error) {
         throw new Error(res.message ?? "Failed to get pipeline status");
       }
@@ -132,8 +127,7 @@ function Component() {
   }, [pipelineStatusQuery.data]);
 
   const isProcessing =
-    (!!pipelineId &&
-      !["DONE", "ERROR"].includes(pipelineStatusQuery.data?.status ?? "")) ||
+    (!!pipelineId && !["DONE", "ERROR"].includes(pipelineStatusQuery.data?.status ?? "")) ||
     startPipelineMutation.isPending;
 
   const pipelineStatus = pipelineStatusQuery.data?.status;
@@ -167,12 +161,8 @@ function Component() {
   })();
 
   const errorMessage =
-    (uploadMutation.error instanceof Error
-      ? uploadMutation.error.message
-      : null) ??
-    (startPipelineMutation.error instanceof Error
-      ? startPipelineMutation.error.message
-      : null) ??
+    (uploadMutation.error instanceof Error ? uploadMutation.error.message : null) ??
+    (startPipelineMutation.error instanceof Error ? startPipelineMutation.error.message : null) ??
     (pipelineStatusQuery.isError && pipelineStatusQuery.error instanceof Error
       ? pipelineStatusQuery.error.message
       : null) ??
@@ -220,12 +210,9 @@ function Component() {
       <div className="max-w-7xl mx-auto border-x border-neutral-100">
         <div className="flex items-center justify-center py-20 bg-linear-to-b from-stone-50/30 to-stone-100/30 border-b border-neutral-100">
           <div className="text-center max-w-2xl px-4">
-            <h1 className="font-serif text-3xl font-medium mb-4">
-              Audio Transcription
-            </h1>
+            <h1 className="font-serif text-3xl font-medium mb-4">Audio Transcription</h1>
             <p className="text-neutral-600">
-              Upload your audio file and get an accurate transcript powered by
-              Deepgram
+              Upload your audio file and get an accurate transcript powered by Deepgram
             </p>
           </div>
         </div>
@@ -242,12 +229,8 @@ function Component() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-serif font-medium mb-2">
-                  Raw Note + Audio
-                </h2>
-                <p className="text-sm text-neutral-600">
-                  Upload your audio and add your notes
-                </p>
+                <h2 className="text-xl font-serif font-medium mb-2">Raw Note + Audio</h2>
+                <p className="text-sm text-neutral-600">Upload your audio and add your notes</p>
               </div>
 
               <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
@@ -255,17 +238,12 @@ function Component() {
                   <div className="w-3 h-3 rounded-full bg-red-400" />
                   <div className="w-3 h-3 rounded-full bg-yellow-400" />
                   <div className="w-3 h-3 rounded-full bg-green-400" />
-                  <span className="ml-2 text-sm text-neutral-500">
-                    meeting content
-                  </span>
+                  <span className="ml-2 text-sm text-neutral-500">meeting content</span>
                 </div>
 
                 <div className="p-6 space-y-6">
                   {!file ? (
-                    <UploadArea
-                      onFileSelect={handleFileSelect}
-                      disabled={isProcessing}
-                    />
+                    <UploadArea onFileSelect={handleFileSelect} disabled={isProcessing} />
                   ) : (
                     <div className="space-y-4">
                       <FileInfo
@@ -296,9 +274,7 @@ function Component() {
                   )}
 
                   <div>
-                    <h3 className="text-sm font-medium text-neutral-700 mb-3">
-                      Your Notes
-                    </h3>
+                    <h3 className="text-sm font-medium text-neutral-700 mb-3">Your Notes</h3>
                     <div className="border border-neutral-200 rounded-sm p-4 min-h-[200px] bg-neutral-50/30">
                       {isMounted && (
                         <NoteEditor
@@ -315,12 +291,8 @@ function Component() {
 
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-serif font-medium mb-2">
-                  Final Result
-                </h2>
-                <p className="text-sm text-neutral-600">
-                  Combined notes with transcript
-                </p>
+                <h2 className="text-xl font-serif font-medium mb-2">Final Result</h2>
+                <p className="text-sm text-neutral-600">Combined notes with transcript</p>
               </div>
 
               <div className="border border-neutral-200 rounded-lg shadow-sm bg-white overflow-hidden">
@@ -332,11 +304,7 @@ function Component() {
                 </div>
 
                 <div className="p-6">
-                  <TranscriptDisplay
-                    transcript={transcript}
-                    status={status}
-                    error={errorMessage}
-                  />
+                  <TranscriptDisplay transcript={transcript} status={status} error={errorMessage} />
                 </div>
               </div>
             </div>

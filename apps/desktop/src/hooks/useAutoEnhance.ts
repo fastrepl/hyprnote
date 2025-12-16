@@ -29,9 +29,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   );
   const hasTranscript = !!transcriptIds && transcriptIds.length > 0;
 
-  const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(
-    null,
-  );
+  const [autoEnhancedNoteId, setAutoEnhancedNoteId] = useState<string | null>(null);
 
   const startedTasksRef = useRef<Set<string>>(new Set());
   const tabRef = useRef(tab);
@@ -72,11 +70,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
   }, [hasTranscript, sessionId, updateSessionTabState, createEnhancedNote]);
 
   useEffect(() => {
-    if (
-      autoEnhancedNoteId &&
-      model &&
-      !startedTasksRef.current.has(autoEnhancedNoteId)
-    ) {
+    if (autoEnhancedNoteId && model && !startedTasksRef.current.has(autoEnhancedNoteId)) {
       startedTasksRef.current.add(autoEnhancedNoteId);
       analyticsCommands.event({
         event: "summary_generated",
@@ -91,8 +85,7 @@ export function useAutoEnhance(tab: Extract<Tab, { type: "sessions" }>) {
 
   useEffect(() => {
     const listenerJustStopped =
-      prevListenerStatus === "running_active" &&
-      listenerStatus !== "running_active";
+      prevListenerStatus === "running_active" && listenerStatus !== "running_active";
 
     if (listenerJustStopped) {
       createAndStartEnhance();

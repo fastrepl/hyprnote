@@ -27,12 +27,8 @@ export function OnboardingContainer({
       )}
 
       <div className="space-y-3 text-center mb-8">
-        <h1 className="text-xl font-semibold text-neutral-900 font-serif">
-          {title}
-        </h1>
-        {description && (
-          <p className="text-base text-neutral-500">{description}</p>
-        )}
+        <h1 className="text-xl font-semibold text-neutral-900 font-serif">{title}</h1>
+        {description && <p className="text-base text-neutral-500">{description}</p>}
       </div>
 
       <div className="flex flex-col gap-6 w-full max-w-md">{children}</div>
@@ -69,11 +65,7 @@ export function IntegrationRow({
         disabled={disabled || connected}
         className="h-8 w-8"
       >
-        {connected ? (
-          <CheckIcon className="h-5 w-5" />
-        ) : (
-          <ArrowRightIcon className="h-5 w-5" />
-        )}
+        {connected ? <CheckIcon className="h-5 w-5" /> : <ArrowRightIcon className="h-5 w-5" />}
       </Button>
     </div>
   );

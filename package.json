@@ -1,11 +1,16 @@
 {
-  "engines": {
-    "node": ">=22"
+  "scripts": {
+    "fmt:check": "pnpm exec oxfmt --check",
+    "fmt": "dprint fmt && pnpm exec oxfmt && pnpm exec oxlint --fix-suggestions --silent || true"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.51.1",
+    "oxfmt": "^0.18.0",
+    "oxlint": "^1.33.0",
+    "turbo": "2.6.3"
   },
   "packageManager": "pnpm@10.26.0",
-  "devDependencies": {
-    "@biomejs/biome": "^2.3.9",
-    "@dotenvx/dotenvx": "^1.51.1",
-    "turbo": "2.6.3"
+  "engines": {
+    "node": ">=22"
   }
 }

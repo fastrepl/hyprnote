@@ -3,11 +3,7 @@ import { CalendarIcon } from "lucide-react";
 import { forwardRef, useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../../../store/tinybase/main";
@@ -32,30 +28,24 @@ export function MetadataButton({ sessionId }: { sessionId: string }) {
   );
 }
 
-const TriggerInner = forwardRef<
-  HTMLButtonElement,
-  { sessionId: string; open?: boolean }
->(({ sessionId, open, ...props }, ref) => {
-  const createdAt = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "created_at",
-    main.STORE_ID,
-  );
+const TriggerInner = forwardRef<HTMLButtonElement, { sessionId: string; open?: boolean }>(
+  ({ sessionId, open, ...props }, ref) => {
+    const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
 
-  return (
-    <Button
-      ref={ref}
-      {...props}
-      variant="ghost"
-      size="sm"
-      className={cn([open && "bg-neutral-100"])}
-    >
-      <CalendarIcon size={16} />
-      {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
-    </Button>
-  );
-});
+    return (
+      <Button
+        ref={ref}
+        {...props}
+        variant="ghost"
+        size="sm"
+        className={cn([open && "bg-neutral-100"])}
+      >
+        <CalendarIcon size={16} />
+        {formatRelativeOrAbsolute(createdAt ? new Date(createdAt) : new Date())}
+      </Button>
+    );
+  },
+);
 
 function ContentInner({ sessionId }: { sessionId: string }) {
   return (

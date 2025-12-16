@@ -12,7 +12,5 @@ if (typeof window !== "undefined" && env.VITE_POSTHOG_API_KEY) {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <PostHogReactProvider client={posthog}>{children}</PostHogReactProvider>
-  );
+  return <PostHogReactProvider client={posthog}>{children}</PostHogReactProvider>;
 }

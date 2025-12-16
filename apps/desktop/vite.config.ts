@@ -7,10 +7,7 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(() => ({
-  plugins: [
-    tanstackRouter({ target: "react", autoCodeSplitting: false }),
-    react(),
-  ],
+  plugins: [tanstackRouter({ target: "react", autoCodeSplitting: false }), react()],
   resolve: {
     alias:
       process.env.NODE_ENV === "development"
@@ -52,8 +49,7 @@ const tauri: UserConfig = {
   build: {
     outDir: "./dist",
     chunkSizeWarningLimit: 500 * 10,
-    target:
-      process.env.TAURI_ENV_PLATFORM == "windows" ? "chrome105" : "safari13",
+    target: process.env.TAURI_ENV_PLATFORM == "windows" ? "chrome105" : "safari13",
     // minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
     minify: false,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,

@@ -1,9 +1,6 @@
 // @ts-nocheck
 /** tauri-specta globals **/
-import {
-  Channel as TAURI_CHANNEL,
-  invoke as TAURI_INVOKE,
-} from "@tauri-apps/api/core";
+import { Channel as TAURI_CHANNEL, invoke as TAURI_INVOKE } from "@tauri-apps/api/core";
 import * as TAURI_API_EVENT from "@tauri-apps/api/event";
 import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
 
@@ -23,9 +20,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async isModelDownloaded(
-    model: SupportedSttModel,
-  ): Promise<Result<boolean, string>> {
+  async isModelDownloaded(model: SupportedSttModel): Promise<Result<boolean, string>> {
     try {
       return {
         status: "ok",
@@ -38,9 +33,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async isModelDownloading(
-    model: SupportedSttModel,
-  ): Promise<Result<boolean, string>> {
+  async isModelDownloading(model: SupportedSttModel): Promise<Result<boolean, string>> {
     try {
       return {
         status: "ok",
@@ -67,9 +60,7 @@ export const commands = {
   async cancelDownload(model: SupportedSttModel): Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-stt|cancel_download", { model });
   },
-  async getServers(): Promise<
-    Result<Partial<{ [key in ServerType]: ServerInfo }>, string>
-  > {
+  async getServers(): Promise<Result<Partial<{ [key in ServerType]: ServerInfo }>, string>> {
     try {
       return {
         status: "ok",
@@ -91,9 +82,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async stopServer(
-    serverType: ServerType | null,
-  ): Promise<Result<boolean, string>> {
+  async stopServer(serverType: ServerType | null): Promise<Result<boolean, string>> {
     try {
       return {
         status: "ok",
@@ -136,10 +125,7 @@ export const events = __makeEvents__<{
 
 /** user-defined types **/
 
-export type AmModel =
-  | "am-parakeet-v2"
-  | "am-parakeet-v3"
-  | "am-whisper-large-v3";
+export type AmModel = "am-parakeet-v2" | "am-parakeet-v3" | "am-whisper-large-v3";
 export type DownloadProgressPayload = {
   model: SupportedSttModel;
   progress: number;
@@ -167,24 +153,16 @@ export type WhisperModel =
   | "QuantizedLargeTurbo";
 
 type __EventObj__<T> = {
-  listen: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
-  once: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
+  listen: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
+  once: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
   emit: null extends T
     ? (payload?: T) => ReturnType<typeof TAURI_API_EVENT.emit>
     : (payload: T) => ReturnType<typeof TAURI_API_EVENT.emit>;
 };
 
-export type Result<T, E> =
-  | { status: "ok"; data: T }
-  | { status: "error"; error: E };
+export type Result<T, E> = { status: "ok"; data: T } | { status: "error"; error: E };
 
-function __makeEvents__<T extends Record<string, any>>(
-  mappings: Record<keyof T, string>,
-) {
+function __makeEvents__<T extends Record<string, any>>(mappings: Record<keyof T, string>) {
   return new Proxy(
     {} as unknown as {
       [K in keyof T]: __EventObj__<T[K]> & {

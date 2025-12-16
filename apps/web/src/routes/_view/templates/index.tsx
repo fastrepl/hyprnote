@@ -18,8 +18,7 @@ export const Route = createFileRoute("/_view/templates/")({
   component: Component,
   validateSearch: (search: Record<string, unknown>): TemplatesSearch => {
     return {
-      category:
-        typeof search.category === "string" ? search.category : undefined,
+      category: typeof search.category === "string" ? search.category : undefined,
     };
   },
   head: () => ({
@@ -49,9 +48,7 @@ function Component() {
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    (typeof allTemplates)[0] | null
-  >(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<(typeof allTemplates)[0] | null>(null);
 
   const selectedCategory = search.category || null;
 
@@ -123,10 +120,7 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <ContributeBanner />
-        <HeroSection
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
+        <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
         <QuoteSection />
         <MobileCategoriesSection
           categories={categories}
@@ -145,9 +139,7 @@ function Component() {
         <CTASection />
       </div>
 
-      {selectedTemplate && (
-        <TemplateModal template={selectedTemplate} onClose={handleModalClose} />
-      )}
+      {selectedTemplate && <TemplateModal template={selectedTemplate} onClose={handleModalClose} />}
     </div>
   );
 }
@@ -192,9 +184,9 @@ function HeroSection({
             Templates
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
-            Different conversations need different approaches. Templates are AI
-            instructions that capture best practices for each meeting type —
-            plug them in and get structured notes instantly.
+            Different conversations need different approaches. Templates are AI instructions that
+            capture best practices for each meeting type — plug them in and get structured notes
+            instantly.
           </p>
         </div>
 
@@ -290,10 +282,7 @@ function TemplatesSection({
           setSelectedCategory={setSelectedCategory}
           templatesByCategory={templatesByCategory}
         />
-        <TemplatesGrid
-          filteredTemplates={filteredTemplates}
-          onTemplateClick={onTemplateClick}
-        />
+        <TemplatesGrid filteredTemplates={filteredTemplates} onTemplateClick={onTemplateClick} />
       </div>
     </div>
   );
@@ -327,9 +316,7 @@ function DesktopSidebar({
             ])}
           >
             All Templates
-            <span className="ml-2 text-xs text-neutral-400">
-              ({allTemplates.length})
-            </span>
+            <span className="ml-2 text-xs text-neutral-400">({allTemplates.length})</span>
           </button>
           {categories.map((category) => (
             <button
@@ -365,13 +352,8 @@ function TemplatesGrid({
     return (
       <section className="flex-1 min-w-0">
         <div className="text-center py-12">
-          <Icon
-            icon="mdi:file-search"
-            className="text-6xl text-neutral-300 mb-4 mx-auto"
-          />
-          <p className="text-neutral-600">
-            No templates found matching your search.
-          </p>
+          <Icon icon="mdi:file-search" className="text-6xl text-neutral-300 mb-4 mx-auto" />
+          <p className="text-neutral-600">No templates found matching your search.</p>
         </div>
       </section>
     );
@@ -414,17 +396,13 @@ function TemplateCard({
         <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
           {template.title}
         </h3>
-        <p className="text-sm text-neutral-600 line-clamp-2">
-          {template.description}
-        </p>
+        <p className="text-sm text-neutral-600 line-clamp-2">{template.description}</p>
       </div>
       <div className="pt-4 border-t border-neutral-100 w-full">
         <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
           For
         </div>
-        <div className="text-sm text-stone-600">
-          {template.targets.join(", ")}
-        </div>
+        <div className="text-sm text-stone-600">{template.targets.join(", ")}</div>
       </div>
     </button>
   );
@@ -433,9 +411,7 @@ function TemplateCard({
 function ContributeCard() {
   return (
     <div className="p-4 border border-dashed border-neutral-300 rounded-sm bg-stone-50/50 flex flex-col items-center justify-center text-center">
-      <h3 className="font-serif text-lg text-stone-600 mb-2">
-        Contribute a template
-      </h3>
+      <h3 className="font-serif text-lg text-stone-600 mb-2">Contribute a template</h3>
       <p className="text-sm text-neutral-500 mb-4">
         Have a template idea? Submit a PR and help the community.
       </p>
@@ -465,14 +441,12 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Hyprnote and start using these templates to capture perfect
-          meeting notes with AI.
+          Download Hyprnote and start using these templates to capture perfect meeting notes with
+          AI.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />
-          <p className="text-sm text-neutral-500">
-            Free to use. No credit card required.
-          </p>
+          <p className="text-sm text-neutral-500">Free to use. No credit card required.</p>
         </div>
       </div>
     </section>
@@ -488,10 +462,7 @@ function TemplateModal({
 }) {
   return (
     <div className="fixed inset-0 z-50">
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className="absolute inset-4 sm:inset-8 lg:inset-16 flex items-start justify-center overflow-y-auto">
         <div
           className={cn([
@@ -530,9 +501,7 @@ function TemplateModal({
                 <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
                   For:{" "}
                 </span>
-                <span className="text-sm text-stone-600">
-                  {template.targets.join(", ")}
-                </span>
+                <span className="text-sm text-stone-600">{template.targets.join(", ")}</span>
               </div>
 
               <div className="space-y-6">
@@ -550,13 +519,9 @@ function TemplateModal({
                           <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-600 text-xs font-medium flex items-center justify-center">
                             {index + 1}
                           </span>
-                          <h4 className="font-medium text-stone-700 text-sm">
-                            {section.title}
-                          </h4>
+                          <h4 className="font-medium text-stone-700 text-sm">{section.title}</h4>
                         </div>
-                        <p className="text-xs text-neutral-600 ml-8">
-                          {section.description}
-                        </p>
+                        <p className="text-xs text-neutral-600 ml-8">{section.description}</p>
                       </div>
                     ))}
                   </div>

@@ -26,11 +26,7 @@ describe("fixSpacingForWords", () => {
     },
   ];
 
-  test.each(testCases)("transcript: $transcript", ({
-    transcript,
-    input,
-    output,
-  }) => {
+  test.each(testCases)("transcript: $transcript", ({ transcript, input, output }) => {
     expect(output.join("")).toEqual(` ${transcript}`);
 
     const actual = fixSpacingForWords(input, transcript);

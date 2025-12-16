@@ -3,11 +3,7 @@ import { MicOff } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
@@ -90,8 +86,7 @@ function ScrollingWaveform({
 
       ctx.fillStyle = color;
       amplitudes.forEach((amp, index) => {
-        const barHeight =
-          minBarHeight + amp * (resolvedMaxBarHeight - minBarHeight);
+        const barHeight = minBarHeight + amp * (resolvedMaxBarHeight - minBarHeight);
         const x = startX + index * (barWidth + gap);
         const y = (height - barHeight) / 2;
 
@@ -104,16 +99,7 @@ function ScrollingWaveform({
     draw();
     const interval = setInterval(draw, 100);
     return () => clearInterval(interval);
-  }, [
-    color,
-    height,
-    width,
-    barWidth,
-    gap,
-    minBarHeight,
-    resolvedMaxBarHeight,
-    maxBars,
-  ]);
+  }, [color, height, width, barWidth, gap, minBarHeight, resolvedMaxBarHeight, maxBars]);
 
   return (
     <div
@@ -133,8 +119,7 @@ function ScrollingWaveform({
           left: 0,
           width: 12,
           height: "100%",
-          background:
-            "linear-gradient(to right, rgb(254 242 242), transparent)",
+          background: "linear-gradient(to right, rgb(254 242 242), transparent)",
           pointerEvents: "none",
         }}
       />
@@ -183,17 +168,12 @@ function StartButton({ sessionId }: { sessionId: string }) {
       variant="ghost"
       onClick={handleClick}
       disabled={isDisabled}
-      className={cn([
-        "bg-white text-neutral-900 hover:bg-neutral-100",
-        "gap-1.5",
-      ])}
+      className={cn(["bg-white text-neutral-900 hover:bg-neutral-100", "gap-1.5"])}
       title={warningMessage || "Start listening"}
       aria-label="Start listening"
     >
       <RecordingIcon disabled={true} />
-      <span className="text-neutral-900 hover:text-neutral-800">
-        Start listening
-      </span>
+      <span className="text-neutral-900 hover:text-neutral-800">Start listening</span>
     </Button>
   );
 
@@ -258,17 +238,10 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
         </div>
       ) : (
         <>
-          <div
-            className={cn([
-              "flex items-center gap-1.5",
-              hovered ? "hidden" : "flex",
-            ])}
-          >
+          <div className={cn(["flex items-center gap-1.5", hovered ? "hidden" : "flex"])}>
             {muted && <MicOff size={14} />}
             <ScrollingWaveform
-              amplitude={
-                ((amplitude.mic + amplitude.speaker) / 2 / 65535) * 100 * 1000
-              }
+              amplitude={((amplitude.mic + amplitude.speaker) / 2 / 65535) * 100 * 1000}
               color="#ef4444"
               height={16}
               width={muted ? 50 : 75}
@@ -277,12 +250,7 @@ function InMeetingIndicator({ sessionId }: { sessionId: string }) {
               minBarHeight={2}
             />
           </div>
-          <div
-            className={cn([
-              "flex items-center gap-1.5",
-              hovered ? "flex" : "hidden",
-            ])}
-          >
+          <div className={cn(["flex items-center gap-1.5", hovered ? "flex" : "hidden"])}>
             <span className="w-3 h-3 bg-red-500 rounded-none" />
             <span>Stop</span>
           </div>

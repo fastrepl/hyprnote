@@ -65,11 +65,7 @@ export const sttFile = restate.workflow({
           if (input.provider === "soniox") {
             const requestId = await ctx.run("transcribe", async () => {
               try {
-                return await transcribeWithSoniox(
-                  audioUrl,
-                  callbackUrl,
-                  env.SONIOX_API_KEY,
-                );
+                return await transcribeWithSoniox(audioUrl, callbackUrl, env.SONIOX_API_KEY);
               } catch (err) {
                 if (err instanceof SonioxError && !err.isRetryable) {
                   throw new restate.TerminalError(err.message);
@@ -81,11 +77,7 @@ export const sttFile = restate.workflow({
           } else {
             const requestId = await ctx.run("transcribe", async () => {
               try {
-                return await transcribeWithDeepgram(
-                  audioUrl,
-                  callbackUrl,
-                  env.DEEPGRAM_API_KEY,
-                );
+                return await transcribeWithDeepgram(audioUrl, callbackUrl, env.DEEPGRAM_API_KEY);
               } catch (err) {
                 if (err instanceof DeepgramError && !err.isRetryable) {
                   throw new restate.TerminalError(err.message);
@@ -135,16 +127,11 @@ export const sttFile = restate.workflow({
         if (provider === "soniox" && "id" in payload && "status" in payload) {
           const sonioxPayload = payload as SonioxCallbackType;
           if (sonioxPayload.status === "error") {
-            ctx
-              .promise<string>("transcript")
-              .reject("Soniox transcription failed");
+            ctx.promise<string>("transcript").reject("Soniox transcription failed");
             return;
           }
           const env = ctx.request().extraArgs[0] as Env;
-          const transcript = await fetchSonioxTranscript(
-            sonioxPayload.id,
-            env.SONIOX_API_KEY,
-          );
+          const transcript = await fetchSonioxTranscript(sonioxPayload.id, env.SONIOX_API_KEY);
           ctx.promise<string>("transcript").resolve(transcript);
         } else {
           ctx
@@ -154,20 +141,17 @@ export const sttFile = restate.workflow({
       },
     ),
 
-    getStatus: restate.handlers.workflow.shared(
-      {},
-      async (ctx: restate.WorkflowSharedContext) => {
-        const status = (await ctx.get<SttStatusType>("status")) ?? "QUEUED";
-        const transcript = await ctx.get<string>("transcript");
-        const error = await ctx.get<string>("error");
+    getStatus: restate.handlers.workflow.shared({}, async (ctx: restate.WorkflowSharedContext) => {
+      const status = (await ctx.get<SttStatusType>("status")) ?? "QUEUED";
+      const transcript = await ctx.get<string>("transcript");
+      const error = await ctx.get<string>("error");
 
-        return {
-          status,
-          transcript: transcript ?? undefined,
-          error: error ?? undefined,
-        };
-      },
-    ),
+      return {
+        status,
+        transcript: transcript ?? undefined,
+        error: error ?? undefined,
+      };
+    }),
   },
 });
 

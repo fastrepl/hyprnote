@@ -5,12 +5,8 @@ let tauriDriver;
 
 // Support environment variable for app path (used in CI)
 // Falls back to dev binary for local testing
-const defaultAppPath = resolve(
-  "../desktop/src-tauri/target/release/hyprnote-dev",
-);
-const appPath = process.env.APP_BINARY_PATH
-  ? resolve(process.env.APP_BINARY_PATH)
-  : defaultAppPath;
+const defaultAppPath = resolve("../desktop/src-tauri/target/release/hyprnote-dev");
+const appPath = process.env.APP_BINARY_PATH ? resolve(process.env.APP_BINARY_PATH) : defaultAppPath;
 
 console.log("App binary path:", appPath);
 

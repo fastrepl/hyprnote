@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./globals.css": "./dist/globals.css",
-    "./postcss.config": "./postcss.config.mjs",
-    "./tailwind.config": "./tailwind.config.ts",
-    "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.tsx",
     "./contexts/*": "./src/contexts/*.tsx",
-    "./docs": "./src/docs/index.tsx"
+    "./docs": "./src/docs/index.tsx",
+    "./globals.css": "./dist/globals.css",
+    "./hooks/*": "./src/hooks/*.tsx",
+    "./lib/*": "./src/lib/*.ts",
+    "./postcss.config": "./postcss.config.mjs",
+    "./tailwind.config": "./tailwind.config.ts"
   },
   "scripts": {
     "build": "tailwindcss -i ./src/styles/globals.css -o ./dist/globals.css --minify"

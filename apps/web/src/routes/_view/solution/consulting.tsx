@@ -124,8 +124,8 @@ function HeroSection() {
             AI-powered meeting notes
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
-            Focus on advising your clients while Hyprnote captures every detail,
-            extracts insights, and helps you create compelling deliverables.
+            Focus on advising your clients while Hyprnote captures every detail, extracts insights,
+            and helps you create compelling deliverables.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -163,8 +163,7 @@ function FeaturesSection() {
           Built for consulting excellence
         </h2>
         <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          Every feature designed to help you deliver exceptional client value
-          and insights.
+          Every feature designed to help you deliver exceptional client value and insights.
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature) => (
@@ -172,12 +171,8 @@ function FeaturesSection() {
               <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center">
                 <Icon icon={feature.icon} className="text-2xl text-stone-600" />
               </div>
-              <h3 className="text-lg font-medium text-stone-700">
-                {feature.title}
-              </h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">
-                {feature.description}
-              </p>
+              <h3 className="text-lg font-medium text-stone-700">{feature.title}</h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
@@ -194,21 +189,14 @@ function UseCasesSection() {
           For every client engagement
         </h2>
         <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          From discovery to delivery, Hyprnote helps you capture and leverage
-          every client interaction.
+          From discovery to delivery, Hyprnote helps you capture and leverage every client
+          interaction.
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           {useCases.map((useCase) => (
-            <div
-              key={useCase.title}
-              className="bg-white p-6 rounded-xl border border-neutral-100"
-            >
-              <h3 className="text-lg font-medium text-stone-700 mb-2">
-                {useCase.title}
-              </h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">
-                {useCase.description}
-              </p>
+            <div key={useCase.title} className="bg-white p-6 rounded-xl border border-neutral-100">
+              <h3 className="text-lg font-medium text-stone-700 mb-2">{useCase.title}</h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">{useCase.description}</p>
             </div>
           ))}
         </div>
@@ -225,8 +213,7 @@ function CTASection() {
           Ready to elevate your consulting?
         </h2>
         <p className="text-neutral-600 mb-8">
-          Join consultants who are delivering better insights with AI-powered
-          meeting notes.
+          Join consultants who are delivering better insights with AI-powered meeting notes.
         </p>
         <Link
           to="/download"

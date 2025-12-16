@@ -1,8 +1,4 @@
-import {
-  Extension,
-  getTextBetween,
-  getTextSerializersFromSchema,
-} from "@tiptap/core";
+import { Extension, getTextBetween, getTextSerializersFromSchema } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 
 import { html2md } from "./utils";

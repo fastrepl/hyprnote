@@ -28,17 +28,11 @@ export function Calendars({
               name="Outlook"
             />
             <Divider text="Directly connecting Google/Outlook works better" />
-            <IntegrationRow
-              icon={<Icon icon="logos:apple" size={24} />}
-              name="Apple Calendar"
-            />
+            <IntegrationRow icon={<Icon icon="logos:apple" size={24} />} name="Apple Calendar" />
           </>
         ) : (
           <>
-            <IntegrationRow
-              icon={<Icon icon="logos:apple" size={24} />}
-              name="Apple Calendar"
-            />
+            <IntegrationRow icon={<Icon icon="logos:apple" size={24} />} name="Apple Calendar" />
             <Divider text="You need account" />
             <IntegrationRow
               icon={<Icon icon="logos:google-calendar" size={24} />}
@@ -55,9 +49,7 @@ export function Calendars({
       </div>
 
       <button
-        onClick={() =>
-          onNavigate(currentPlatform === "macos" ? "permissions" : "done")
-        }
+        onClick={() => onNavigate(currentPlatform === "macos" ? "permissions" : "done")}
         className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
       >
         skip

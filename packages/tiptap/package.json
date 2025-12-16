@@ -4,15 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./editor": "./src/editor/index.tsx",
     "./chat": "./src/chat/index.tsx",
+    "./editor": "./src/editor/index.tsx",
     "./prompt": "./src/prompt/index.tsx",
     "./shared": "./src/shared/index.ts",
     "./styles.css": "./styles.css"
   },
-  "peerDependencies": {
-    "react": "^19.2",
-    "react-dom": "^19.2"
+  "scripts": {
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.0",
@@ -63,7 +62,8 @@
     "@types/turndown": "^5.0.6",
     "vitest": "^3.2.4"
   },
-  "scripts": {
-    "test": "vitest run --passWithNoTests"
+  "peerDependencies": {
+    "react": "^19.2",
+    "react-dom": "^19.2"
   }
 }

@@ -6,10 +6,7 @@ declare module "@tiptap/core" {
       /**
        * Set an AI highlight mark
        */
-      setAIHighlight: (attributes?: {
-        timestamp?: string;
-        sessionId?: string;
-      }) => ReturnType;
+      setAIHighlight: (attributes?: { timestamp?: string; sessionId?: string }) => ReturnType;
       /**
        * Remove an AI highlight mark
        */
@@ -17,10 +14,7 @@ declare module "@tiptap/core" {
       /**
        * Toggle an AI highlight mark
        */
-      toggleAIHighlight: (attributes?: {
-        timestamp?: string;
-        sessionId?: string;
-      }) => ReturnType;
+      toggleAIHighlight: (attributes?: { timestamp?: string; sessionId?: string }) => ReturnType;
     };
   }
 }
@@ -80,11 +74,7 @@ export const AIHighlight = Mark.create<AIHighlightOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return [
-      "mark",
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-      0,
-    ];
+    return ["mark", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
   },
 
   addCommands() {

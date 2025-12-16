@@ -12,12 +12,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 
-import type {
-  SearchDocument,
-  SearchEntityType,
-  SearchFilters,
-  SearchHit,
-} from "./engine";
+import type { SearchDocument, SearchEntityType, SearchFilters, SearchHit } from "./engine";
 import { useSearchEngine } from "./engine";
 
 export type { SearchEntityType, SearchFilters } from "./engine";
@@ -70,9 +65,7 @@ function calculateDynamicThreshold(scores: number[]): number {
   }
 
   const sortedScores = [...scores].sort((a, b) => b - a);
-  const thresholdIndex = Math.floor(
-    sortedScores.length * SCORE_PERCENTILE_THRESHOLD,
-  );
+  const thresholdIndex = Math.floor(sortedScores.length * SCORE_PERCENTILE_THRESHOLD);
 
   return sortedScores[Math.min(thresholdIndex, sortedScores.length - 1)] || 0;
 }
@@ -111,10 +104,7 @@ function toGroup(type: SearchEntityType, results: SearchResult[]): SearchGroup {
   };
 }
 
-function groupSearchResults(
-  hits: SearchHit[],
-  query: string,
-): GroupedSearchResults {
+function groupSearchResults(hits: SearchHit[], query: string): GroupedSearchResults {
   if (hits.length === 0) {
     return {
       groups: [],
@@ -127,29 +117,23 @@ function groupSearchResults(
   const maxScore = Math.max(...scores);
   const threshold = calculateDynamicThreshold(scores);
 
-  const grouped = hits.reduce<Map<SearchEntityType, SearchResult[]>>(
-    (acc, hit) => {
-      if (hit.score < threshold) {
-        return acc;
-      }
-
-      const key = hit.document.type;
-      const list = acc.get(key) ?? [];
-      list.push(createSearchResult(hit, query));
-      acc.set(key, list);
+  const grouped = hits.reduce<Map<SearchEntityType, SearchResult[]>>((acc, hit) => {
+    if (hit.score < threshold) {
       return acc;
-    },
-    new Map(),
-  );
+    }
+
+    const key = hit.document.type;
+    const list = acc.get(key) ?? [];
+    list.push(createSearchResult(hit, query));
+    acc.set(key, list);
+    return acc;
+  }, new Map());
 
   const groups = Array.from(grouped.entries())
     .map(([type, results]) => toGroup(type, results.sort(sortResultsByScore)))
     .sort((a, b) => b.topScore - a.topScore);
 
-  const totalResults = groups.reduce(
-    (count, group) => count + group.totalCount,
-    0,
-  );
+  const totalResults = groups.reduce((count, group) => count + group.totalCount, 0);
 
   return {
     groups,
@@ -251,11 +235,7 @@ export function SearchUIProvider({ children }: { children: React.ReactNode }) {
     [query, filters, results, isSearching, isIndexing, focus, setFocusImpl],
   );
 
-  return (
-    <SearchUIContext.Provider value={value}>
-      {children}
-    </SearchUIContext.Provider>
-  );
+  return <SearchUIContext.Provider value={value}>{children}</SearchUIContext.Provider>;
 }
 
 export function useSearch() {

@@ -63,9 +63,12 @@ export const RawEditor = forwardRef<
     hasTrackedWriteRef.current = false;
   }, [sessionId]);
 
-  const hasNonEmptyText = useCallback((node?: JSONContent): boolean =>
-    !!node?.text?.trim() ||
-    !!node?.content?.some((child) => hasNonEmptyText(child)), []);
+  const hasNonEmptyText = useCallback(
+    (node?: JSONContent): boolean =>
+      !!node?.text?.trim() ||
+      !!node?.content?.some((child) => hasNonEmptyText(child)),
+    [],
+  );
 
   const handleChange = useCallback(
     (input: JSONContent) => {

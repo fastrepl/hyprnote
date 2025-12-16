@@ -256,7 +256,9 @@ export class DevinStatusPoller {
         `Discovered ${this.trackedPRs.size} PRs with active Devin sessions`,
       );
     } catch (error) {
-      this.logger.error(`Failed to discover existing sessions: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `Failed to discover existing sessions: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -329,7 +331,9 @@ export class DevinStatusPoller {
         return;
       }
     } catch (error) {
-      this.logger.error(`Failed to check PR state for ${pr.prUrl}: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `Failed to check PR state for ${pr.prUrl}: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
 
     // Use cached session lookup instead of making individual API calls
@@ -510,7 +514,9 @@ export class DevinStatusPoller {
         `Updated check for PR ${pr.prUrl}: ${status} ${conclusion ?? ""}`,
       );
     } catch (error) {
-      this.logger.error(`Failed to update check for PR ${pr.prUrl}: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `Failed to update check for PR ${pr.prUrl}: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 }

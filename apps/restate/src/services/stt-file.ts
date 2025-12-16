@@ -134,12 +134,12 @@ export const sttFile = restate.workflow({
 
         if (provider === "soniox" && "id" in payload && "status" in payload) {
           const sonioxPayload = payload as SonioxCallbackType;
-            if (sonioxPayload.status === "error") {
-              void ctx
-                .promise<string>("transcript")
-                .reject("Soniox transcription failed");
-              return;
-            }
+          if (sonioxPayload.status === "error") {
+            void ctx
+              .promise<string>("transcript")
+              .reject("Soniox transcription failed");
+            return;
+          }
           const env = ctx.request().extraArgs[0] as Env;
           const transcript = await fetchSonioxTranscript(
             sonioxPayload.id,

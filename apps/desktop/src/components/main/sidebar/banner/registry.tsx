@@ -30,6 +30,53 @@ export function createBannerRegistry({
   return [
     {
       banner: {
+        id: "stt-loading",
+        description: (
+          <>
+            Transcription model is
+            <strong className="font-mono animate-ping text-amber-500">
+              loading
+            </strong>
+            . This may take a moment.
+          </>
+        ),
+        primaryAction: {
+          label: "View status",
+          onClick: onOpenSTTSettings,
+        },
+        dismissible: false,
+      },
+      condition: () =>
+        isLocalSttModel &&
+        sttServerStatus === "loading" &&
+        !hasSttConfigured &&
+        !isAiTranscriptionTabActive,
+    },
+    {
+      banner: {
+        id: "stt-unreachable",
+        variant: "error",
+        description: (
+          <>
+            Transcription model{" "}
+            <strong className="font-mono text-red-500">failed to start</strong>.
+            Please try again.
+          </>
+        ),
+        primaryAction: {
+          label: "Configure transcription",
+          onClick: onOpenSTTSettings,
+        },
+        dismissible: false,
+      },
+      condition: () =>
+        isLocalSttModel &&
+        sttServerStatus === "unreachable" &&
+        !hasSttConfigured &&
+        !isAiTranscriptionTabActive,
+    },
+    {
+      banner: {
         id: "missing-stt",
         description: (
           <>

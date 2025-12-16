@@ -1,6 +1,6 @@
 import { MarkdownManager } from "@tiptap/markdown";
 import type { JSONContent } from "@tiptap/react";
-import { renderToHTMLString, renderToMarkdown } from "@tiptap/static-renderer";
+import { renderToHTMLString } from "@tiptap/static-renderer";
 import TurndownService from "turndown";
 
 import { getExtensions } from "./extensions";

@@ -4,20 +4,22 @@ import { useCallback, useEffect, useState } from "react";
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient, createConfig } from "@hypr/api-client/client";
 
+import { platform } from "@tauri-apps/plugin-os";
+
 import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
 import * as settings from "../../store/tinybase/settings";
-import { Divider, OnboardingContainer, type OnboardingNext } from "./shared";
+import type { OnboardingStepId } from "./config";
+import { Divider, OnboardingContainer } from "./shared";
 
 export function Login({
-  onNext,
-  onBack,
+  onNavigate,
 }: {
-  onNext: OnboardingNext;
-  onBack?: () => void;
+  onNavigate: (step: OnboardingStepId | "done") => void;
 }) {
   const auth = useAuth();
+  const currentPlatform = platform();
   const [callbackUrl, setCallbackUrl] = useState("");
 
   const setLlmProvider = settings.UI.useSetValueCallback(
@@ -78,12 +80,14 @@ export function Login({
     onSuccess: (isPro) => {
       if (isPro) {
         setTrialDefaults();
+        onNavigate(currentPlatform === "macos" ? "permissions" : "done");
+      } else {
+        onNavigate("configure-notice");
       }
-      onNext({ local: !isPro });
     },
     onError: (e) => {
       console.error(e);
-      onNext({ local: true });
+      onNavigate("configure-notice");
     },
   });
 
@@ -103,7 +107,7 @@ export function Login({
     <OnboardingContainer
       title="Waiting for sign in..."
       description="Complete the process in your browser"
-      onBack={onBack}
+      onBack={() => onNavigate("welcome")}
     >
       <button
         onClick={() => auth?.signIn()}

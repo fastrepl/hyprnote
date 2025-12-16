@@ -74,6 +74,11 @@ export type BatchEvent =
       response: StreamResponse;
       percentage: number;
     }
+  | {
+      type: "batchCloudResponse";
+      session_id: string;
+      provider_response: string;
+    }
   | { type: "batchFailed"; session_id: string; error: string };
 export type BatchParams = {
   session_id: string;
@@ -84,8 +89,15 @@ export type BatchParams = {
   api_key: string;
   languages?: string[];
   keywords?: string[];
+  cloud_file_id?: string | null;
+  authorization?: string | null;
 };
-export type BatchProvider = "deepgram" | "soniox" | "assemblyai" | "am";
+export type BatchProvider =
+  | "deepgram"
+  | "soniox"
+  | "assemblyai"
+  | "am"
+  | "hyprnotecloud";
 export type BatchResponse = { metadata: JsonValue; results: BatchResults };
 export type BatchResults = { channels: BatchChannel[] };
 export type BatchWord = {

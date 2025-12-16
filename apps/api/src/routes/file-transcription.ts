@@ -20,8 +20,7 @@ const PipelineStatus = z.enum([
 
 const StatusResponseSchema = z.object({
   status: PipelineStatus,
-  transcript: z.string().optional(),
-  llmResult: z.string().optional(),
+  providerResponse: z.string().optional(),
   error: z.string().optional(),
 });
 

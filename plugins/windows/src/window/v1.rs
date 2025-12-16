@@ -7,10 +7,6 @@ pub enum AppWindow {
     Onboarding,
     #[serde(rename = "main")]
     Main,
-    #[serde(rename = "auth")]
-    Auth,
-    #[serde(rename = "chat")]
-    Chat,
     #[serde(rename = "control")]
     Control,
 }
@@ -20,8 +16,6 @@ impl std::fmt::Display for AppWindow {
         match self {
             Self::Onboarding => write!(f, "onboarding"),
             Self::Main => write!(f, "main"),
-            Self::Auth => write!(f, "auth"),
-            Self::Chat => write!(f, "chat"),
             Self::Control => write!(f, "control"),
         }
     }
@@ -34,8 +28,6 @@ impl std::str::FromStr for AppWindow {
         match s {
             "onboarding" => return Ok(Self::Onboarding),
             "main" => return Ok(Self::Main),
-            "auth" => return Ok(Self::Auth),
-            "chat" => return Ok(Self::Chat),
             "control" => return Ok(Self::Control),
             _ => {}
         }
@@ -92,13 +84,28 @@ impl AppWindow {
     }
 }
 
+fn window_size_with_ratio(
+    monitor_width: f64,
+    monitor_height: f64,
+    aspect_ratio: f64,
+    scale: f64,
+) -> (f64, f64) {
+    let monitor_ratio = monitor_width / monitor_height;
+
+    if aspect_ratio > monitor_ratio {
+        let width = monitor_width * scale;
+        (width, width / aspect_ratio)
+    } else {
+        let height = monitor_height * scale;
+        (height * aspect_ratio, height)
+    }
+}
+
 impl WindowImpl for AppWindow {
     fn title(&self) -> String {
         match self {
             Self::Onboarding => "Onboarding".into(),
             Self::Main => "Main".into(),
-            Self::Auth => "Auth".into(),
-            Self::Chat => "Chat".into(),
             Self::Control => "Control".into(),
         }
     }
@@ -107,68 +114,53 @@ impl WindowImpl for AppWindow {
         &self,
         app: &tauri::AppHandle<tauri::Wry>,
     ) -> Result<tauri::WebviewWindow, crate::Error> {
-        use tauri::LogicalSize;
+        let margin = tauri::Size::Logical(tauri::LogicalSize::new(24.0, 24.0));
+
+        let monitor = app.primary_monitor().ok().flatten();
+
+        let (monitor_width, monitor_height) = monitor
+            .map(|m| {
+                let size = m.size();
+                let scale = m.scale_factor();
+                (size.width as f64 / scale, size.height as f64 / scale)
+            })
+            .unwrap_or((1920.0, 1080.0));
 
         let window = match self {
             Self::Onboarding => {
-                let builder = self
-                    .window_builder(app, "/app/onboarding")
+                let (width, height) =
+                    window_size_with_ratio(monitor_width, monitor_height, 2.0 / 3.0, 0.7);
+
+                self.window_builder(app, "/app/onboarding")
                     .resizable(false)
-                    .min_inner_size(400.0, 600.0);
-                let window = builder.build()?;
-                window.set_size(LogicalSize::new(400.0, 600.0))?;
-                window
+                    .inner_size(width, height)
+                    .prevent_overflow_with_margin(margin)
+                    .center()
+                    .build()?
             }
             Self::Main => {
-                let builder = self
-                    .window_builder(app, "/app/main")
+                let (width, height) =
+                    window_size_with_ratio(monitor_width, monitor_height, 4.0 / 3.0, 0.8);
+                let (min_w, min_h) =
+                    window_size_with_ratio(monitor_width, monitor_height, 4.0 / 3.0, 0.4);
+
+                self.window_builder(app, "/app/main")
                     .maximizable(true)
                     .minimizable(true)
-                    .min_inner_size(620.0, 500.0);
-                let window = builder.build()?;
-                window.set_size(LogicalSize::new(910.0, 600.0))?;
-                window
+                    .inner_size(width, height)
+                    .min_inner_size(min_w, min_h)
+                    .prevent_overflow_with_margin(margin)
+                    .center()
+                    .build()?
             }
-            Self::Auth => {
-                let window = self
-                    .window_builder(app, "/app/auth")
-                    .resizable(false)
-                    .min_inner_size(400.0, 600.0)
-                    .build()?;
-
-                let desired_size = LogicalSize::new(400.0, 600.0);
-                window.set_size(LogicalSize::new(1.0, 1.0))?;
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
-                window
-            }
-            Self::Chat => {
-                let window = self
-                    .window_builder(app, "/app/chat")
-                    .resizable(true)
-                    .min_inner_size(400.0, 500.0)
-                    .build()?;
-
-                let desired_size = LogicalSize::new(400.0, 600.0);
-                window.set_size(LogicalSize::new(1.0, 1.0))?;
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
-                window
-            }
-            Self::Control => {
-                let window = self
-                    .window_builder(app, "/app/control")
-                    .transparent(true)
-                    .resizable(true)
-                    .min_inner_size(300.0, 200.0)
-                    .build()?;
-
-                let desired_size = LogicalSize::new(300.0, 200.0);
-                window.set_size(LogicalSize::new(1.0, 1.0))?;
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                window.set_size(desired_size)?;
-                window
-            }
+            Self::Control => self
+                .window_builder(app, "/app/control")
+                .transparent(true)
+                .resizable(true)
+                .inner_size(300.0, 200.0)
+                .min_inner_size(300.0, 200.0)
+                .prevent_overflow()
+                .build()?,
         };
 
         Ok(window)

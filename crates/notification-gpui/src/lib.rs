@@ -1,5 +1,6 @@
 mod constants;
 mod event;
+mod theme;
 mod toast;
 
 use std::sync::Mutex;
@@ -10,7 +11,8 @@ pub use gpui::PlatformDisplay;
 pub use hypr_notification_interface::*;
 
 pub use event::NotificationEvent;
-pub use toast::{NotificationTheme, StatusToast};
+pub use theme::NotificationTheme;
+pub use toast::StatusToast;
 
 static ACTIVE_WINDOWS: Mutex<Vec<WindowHandle<StatusToast>>> = Mutex::new(Vec::new());
 

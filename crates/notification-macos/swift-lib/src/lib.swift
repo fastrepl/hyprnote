@@ -6,13 +6,11 @@ class NotificationInstance {
   let id = UUID()
   let panel: NSPanel
   let clickableView: ClickableView
-  let url: String?
   private var dismissTimer: DispatchWorkItem?
 
-  init(panel: NSPanel, clickableView: ClickableView, url: String?) {
+  init(panel: NSPanel, clickableView: ClickableView) {
     self.panel = panel
     self.clickableView = clickableView
-    self.url = url
   }
 
   func startDismissTimer(timeoutSeconds: Double) {
@@ -94,11 +92,6 @@ class ClickableView: NSView {
     let inside = bounds.contains(local)
     if inside != isHovering {
       isHovering = inside
-      if inside && notification?.url != nil {
-        NSCursor.pointingHand.set()
-      } else {
-        NSCursor.arrow.set()
-      }
       onHover?(inside)
     }
   }
@@ -106,7 +99,6 @@ class ClickableView: NSView {
   override func mouseEntered(with event: NSEvent) {
     super.mouseEntered(with: event)
     isHovering = true
-    if notification?.url != nil { NSCursor.pointingHand.set() }
     onHover?(true)
   }
 
@@ -123,11 +115,6 @@ class ClickableView: NSView {
     let isInside = bounds.contains(location)
     if isInside != isHovering {
       isHovering = isInside
-      if isInside && notification?.url != nil {
-        NSCursor.pointingHand.set()
-      } else {
-        NSCursor.arrow.set()
-      }
       onHover?(isInside)
     }
   }
@@ -138,9 +125,6 @@ class ClickableView: NSView {
     if let notification = notification {
       notification.id.uuidString.withCString { idPtr in
         rustOnNotificationConfirm(idPtr)
-      }
-      if let urlString = notification.url, let url = URL(string: urlString) {
-        NSWorkspace.shared.open(url)
       }
       notification.dismissWithUserAction()
     }
@@ -344,14 +328,13 @@ class NotificationManager {
     return NSScreen.main ?? NSScreen.screens.first
   }
 
-  func show(title: String, message: String, url: String?, timeoutSeconds: Double) {
+  func show(title: String, message: String, timeoutSeconds: Double) {
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
       self.setupApplicationIfNeeded()
       self.createAndShowNotification(
         title: title,
         message: message,
-        url: url,
         timeoutSeconds: timeoutSeconds
       )
     }
@@ -394,7 +377,7 @@ class NotificationManager {
   }
 
   private func createAndShowNotification(
-    title: String, message: String, url: String?, timeoutSeconds: Double
+    title: String, message: String, timeoutSeconds: Double
   ) {
     guard let screen = getTargetScreen() else { return }
 
@@ -406,11 +389,11 @@ class NotificationManager {
     let container = createContainer(clickableView: clickableView)
     let effectView = createEffectView(container: container)
 
-    let notification = NotificationInstance(panel: panel, clickableView: clickableView, url: url)
+    let notification = NotificationInstance(panel: panel, clickableView: clickableView)
     clickableView.notification = notification
 
     setupContent(
-      effectView: effectView, title: title, message: message, url: url, notification: notification)
+      effectView: effectView, title: title, message: message, notification: notification)
 
     clickableView.addSubview(container)
     panel.contentView = clickableView
@@ -530,26 +513,20 @@ class NotificationManager {
     effectView: NSVisualEffectView,
     title: String,
     message: String,
-    url: String?,
     notification: NotificationInstance
   ) {
-    let hasUrl = (url != nil && !url!.isEmpty)
-
     let contentView = createNotificationView(
       title: title,
       body: message,
-      buttonTitle: hasUrl ? "Take Notes" : nil,
       notification: notification
     )
     contentView.translatesAutoresizingMaskIntoConstraints = false
     effectView.addSubview(contentView)
 
-    let trailingConstant: CGFloat = hasUrl ? -10 : -35
-
     NSLayoutConstraint.activate([
       contentView.leadingAnchor.constraint(equalTo: effectView.leadingAnchor, constant: 12),
       contentView.trailingAnchor.constraint(
-        equalTo: effectView.trailingAnchor, constant: trailingConstant),
+        equalTo: effectView.trailingAnchor, constant: -35),
       contentView.topAnchor.constraint(equalTo: effectView.topAnchor, constant: 9),
       contentView.bottomAnchor.constraint(equalTo: effectView.bottomAnchor, constant: -9),
     ])
@@ -561,7 +538,6 @@ class NotificationManager {
   private func createNotificationView(
     title: String,
     body: String,
-    buttonTitle: String? = nil,
     notification: NotificationInstance
   ) -> NSView {
     let container = NSStackView()
@@ -622,37 +598,7 @@ class NotificationManager {
     container.addArrangedSubview(iconContainer)
     container.addArrangedSubview(textStack)
 
-    if let buttonTitle {
-      let gap = NSView()
-      gap.translatesAutoresizingMaskIntoConstraints = false
-      gap.widthAnchor.constraint(equalToConstant: 8).isActive = true
-      gap.setContentHuggingPriority(.required, for: .horizontal)
-      gap.setContentCompressionResistancePriority(.required, for: .horizontal)
-      container.addArrangedSubview(gap)
-
-      let btn = ActionButton(
-        title: buttonTitle,
-        target: self,
-        action: #selector(handleActionButtonPress(_:))
-      )
-      btn.setContentHuggingPriority(.required, for: .horizontal)
-      btn.setContentCompressionResistancePriority(.required, for: .horizontal)
-      btn.notification = notification
-      container.addArrangedSubview(btn)
-    }
-
     return container
-  }
-
-  @objc private func handleActionButtonPress(_ sender: NSButton) {
-    guard let btn = sender as? ActionButton, let notification = btn.notification else { return }
-    notification.id.uuidString.withCString { idPtr in
-      rustOnNotificationConfirm(idPtr)
-    }
-    if let urlString = notification.url, let url = URL(string: urlString) {
-      NSWorkspace.shared.open(url)
-    }
-    notification.dismissWithUserAction()
   }
 
   private func createAppIconView() -> NSImageView {
@@ -806,18 +752,14 @@ func rustOnNotificationDismiss(_ idPtr: UnsafePointer<CChar>)
 public func _showNotification(
   title: SRString,
   message: SRString,
-  url: SRString,
   timeoutSeconds: Double
 ) -> Bool {
   let titleStr = title.toString()
   let messageStr = message.toString()
-  let urlStr = url.toString()
-  let finalUrl = urlStr.isEmpty ? nil : urlStr
 
   NotificationManager.shared.show(
     title: titleStr,
     message: messageStr,
-    url: finalUrl,
     timeoutSeconds: timeoutSeconds
   )
 

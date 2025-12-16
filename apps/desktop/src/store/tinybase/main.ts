@@ -21,7 +21,7 @@ import {
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 import { SCHEMA, type Schemas } from "@hypr/store";
-import type { EnhancedNote } from "@hypr/store";
+import type { EnhancedNote, Session } from "@hypr/store";
 import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 import { format } from "@hypr/utils";
 
@@ -189,6 +189,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           store.setPartialRow("sessions", sessionId, {
             enhanced_md: content,
           }),
+        saveRawMemoToFile,
       );
 
       return persister;
@@ -753,5 +754,40 @@ async function saveEnhancedNoteToFile(
       enhancedNote.id,
       error,
     );
+  }
+}
+
+async function saveRawMemoToFile(
+  session: Session & { id: string },
+  filename: string,
+): Promise<void> {
+  if (!session.raw_md) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(session.raw_md);
+    if (!isValidTiptapContent(parsed)) {
+      return;
+    }
+
+    const markdown = json2md(parsed);
+    const sessionDir = `hyprnote/sessions/${session.id}`;
+
+    const sessionDirExists = await exists(sessionDir, {
+      baseDir: BaseDirectory.Data,
+    });
+    if (!sessionDirExists) {
+      await mkdir(sessionDir, {
+        baseDir: BaseDirectory.Data,
+        recursive: true,
+      });
+    }
+
+    await writeTextFile(`${sessionDir}/${filename}`, markdown, {
+      baseDir: BaseDirectory.Data,
+    });
+  } catch (error) {
+    console.error("Failed to save raw memo markdown:", session.id, error);
   }
 }

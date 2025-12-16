@@ -1,7 +1,7 @@
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
 import type { MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
-import { type EnhancedNote } from "@hypr/store";
+import { type EnhancedNote, type Session } from "@hypr/store";
 
 export function createLocalPersister2<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
@@ -10,6 +10,10 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
     filename: string,
   ) => Promise<void>,
   handleSyncToSession: (sessionId: string, content: string) => void,
+  handlePersistRawMemo?: (
+    session: Session & { id: string },
+    filename: string,
+  ) => Promise<void>,
 ) {
   // https://tinybase.org/api/persisters/functions/creation/createcustompersister
   return createCustomPersister(
@@ -47,6 +51,19 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
 
         promises.push(handlePersistEnhancedNote(enhancedNote, filename));
       });
+
+      if (handlePersistRawMemo) {
+        Object.entries(tables?.sessions ?? {}).forEach(([id, row]) => {
+          // @ts-ignore
+          row.id = id;
+          const session = row as Session & { id: string };
+
+          if (session.raw_md) {
+            promises.push(handlePersistRawMemo(session, "_memo.md"));
+          }
+        });
+      }
+
       await Promise.all(promises);
     },
     (listener) => setInterval(listener, 1000),

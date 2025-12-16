@@ -28,14 +28,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
             let app_handle = app.clone();
-            hypr_notification::setup_notification_confirm_handler(move |_id| {
-                if let Err(e) = app_handle
-                    .windows()
-                    .show(tauri_plugin_windows::AppWindow::Main)
-                {
-                    tracing::error!("Failed to show main window on notification confirm: {}", e);
-                }
-            });
+            init_handler(app_handle);
             Ok(())
         })
         .on_event(|app, event| match event {
@@ -53,6 +46,14 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             _ => {}
         })
         .build()
+}
+
+fn init_handler(app: tauri::AppHandle<tauri::Wry>) {
+    hypr_notification::setup_notification_confirm_handler(move |_id| {
+        if let Err(_e) = app.windows().show(tauri_plugin_windows::AppWindow::Main) {}
+    });
+
+    hypr_notification::setup_notification_dismiss_handler(move |_id| {});
 }
 
 #[cfg(test)]

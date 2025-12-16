@@ -1,30 +1,20 @@
-use std::future::Future;
-
 use tauri_plugin_misc::MiscPluginExt;
 use tauri_plugin_store2::StorePluginExt;
 
-pub trait AnalyticsPluginExt<R: tauri::Runtime> {
-    fn set_disabled(&self, disabled: bool) -> Result<(), crate::Error>;
-    fn is_disabled(&self) -> Result<bool, crate::Error>;
-    fn event(
-        &self,
-        payload: hypr_analytics::AnalyticsPayload,
-    ) -> impl Future<Output = Result<(), crate::Error>>;
-    fn set_properties(
-        &self,
-        payload: hypr_analytics::PropertiesPayload,
-    ) -> impl Future<Output = Result<(), crate::Error>>;
+pub struct Analytics<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T {
-    async fn event(
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Analytics<'a, R, M> {
+    pub async fn event(
         &self,
         mut payload: hypr_analytics::AnalyticsPayload,
     ) -> Result<(), crate::Error> {
         let app_version = env!("APP_VERSION");
-        let app_identifier = self.config().identifier.clone();
-        let git_hash = self.get_git_hash();
-        let bundle_id = self.config().identifier.clone();
+        let app_identifier = self.manager.config().identifier.clone();
+        let git_hash = self.manager.get_git_hash();
+        let bundle_id = self.manager.config().identifier.clone();
         let machine_id = hypr_host::fingerprint();
 
         payload
@@ -48,7 +38,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
             .or_insert(bundle_id.into());
 
         if !self.is_disabled()? {
-            let client = self.state::<crate::ManagedState>();
+            let client = self.manager.state::<crate::ManagedState>();
             client
                 .event(machine_id, payload)
                 .await
@@ -58,28 +48,28 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
         Ok(())
     }
 
-    fn set_disabled(&self, disabled: bool) -> Result<(), crate::Error> {
+    pub fn set_disabled(&self, disabled: bool) -> Result<(), crate::Error> {
         {
-            let store = self.scoped_store(crate::PLUGIN_NAME)?;
+            let store = self.manager.scoped_store(crate::PLUGIN_NAME)?;
             store.set(crate::StoreKey::Disabled, disabled)?;
         }
         Ok(())
     }
 
-    fn is_disabled(&self) -> Result<bool, crate::Error> {
-        let store = self.scoped_store(crate::PLUGIN_NAME)?;
+    pub fn is_disabled(&self) -> Result<bool, crate::Error> {
+        let store = self.manager.scoped_store(crate::PLUGIN_NAME)?;
         let v = store.get(crate::StoreKey::Disabled)?.unwrap_or(false);
         Ok(v)
     }
 
-    async fn set_properties(
+    pub async fn set_properties(
         &self,
         payload: hypr_analytics::PropertiesPayload,
     ) -> Result<(), crate::Error> {
         if !self.is_disabled()? {
             let machine_id = hypr_host::fingerprint();
 
-            let client = self.state::<crate::ManagedState>();
+            let client = self.manager.state::<crate::ManagedState>();
             client
                 .set_properties(machine_id, payload)
                 .await
@@ -87,5 +77,23 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
         }
 
         Ok(())
+    }
+}
+
+pub trait AnalyticsPluginExt<R: tauri::Runtime> {
+    fn analytics(&self) -> Analytics<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> AnalyticsPluginExt<R> for T {
+    fn analytics(&self) -> Analytics<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Analytics {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

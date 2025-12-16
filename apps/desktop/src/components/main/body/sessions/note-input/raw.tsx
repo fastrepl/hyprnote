@@ -108,6 +108,7 @@ export const RawEditor = forwardRef<
 });
 
 const Placeholder: PlaceholderFunction = ({ node, pos }) => {
+  "use no memo";
   if (node.type.name === "paragraph" && pos === 0) {
     return (
       <p className="text-[#e5e5e5]">

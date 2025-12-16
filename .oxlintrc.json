@@ -1,5 +1,13 @@
 {
-  "rules": {
-    "sort-imports": "error"
-  }
+  "ignorePatterns": ["**/*.gen.ts"],
+  "overrides": [
+    {
+      "files": ["**/*.{ts,tsx}"],
+      "plugins": ["typescript"]
+    },
+    {
+      "files": ["apps/desktop/src/**/*.{ts,tsx}", "apps/web/src/**/*.{ts,tsx}"],
+      "plugins": ["react", "react-perf"]
+    }
+  ]
 }

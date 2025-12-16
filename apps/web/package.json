@@ -50,9 +50,9 @@
     "motion": "^11.18.2",
     "postgres": "^3.4.7",
     "posthog-js": "^1.302.2",
-    "react": "^19.2.1",
+    "react": "^19.2.3",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "^19.2.1",
+    "react-dom": "^19.2.3",
     "react-tweet": "^3.2.2",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
@@ -63,7 +63,7 @@
     "tailwindcss": "^4.1.17",
     "unpic": "^4.2.2",
     "vite-tsconfig-paths": "^5.1.4",
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@argos-ci/playwright": "^6.3.4",

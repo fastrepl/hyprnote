@@ -89,7 +89,14 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
           <span className="text-xs">Intelligence</span>
         </Button>
       </div>
-      <div className="flex-1 w-full overflow-y-auto scrollbar-hide px-6 pb-6">
+      <div
+        className="flex-1 w-full overflow-y-auto scrollbar-hide px-6 pb-6"
+        onScroll={() => {
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+        }}
+      >
         {activeTab === "transcription" ? <STT /> : <LLM />}
       </div>
     </div>

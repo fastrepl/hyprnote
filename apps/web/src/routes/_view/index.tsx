@@ -272,8 +272,9 @@ function HeroSection({
   });
 
   const handleTrigger = useCallback(() => {
-    if (heroInputRef.current) {
-      heroInputRef.current.focus();
+    const inputEl = heroInputRef.current;
+    if (inputEl) {
+      inputEl.focus();
       setShake(true);
       setTimeout(() => setShake(false), 500);
     }

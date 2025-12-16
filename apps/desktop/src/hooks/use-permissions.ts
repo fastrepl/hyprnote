@@ -47,7 +47,7 @@ export function usePermissions() {
     mutationFn: () => permissionsCommands.requestMicrophonePermission(),
     onSuccess: () => {
       setTimeout(() => {
-        micPermissionStatus.refetch();
+        void micPermissionStatus.refetch();
       }, 1000);
     },
     onError: (error) => {
@@ -58,7 +58,7 @@ export function usePermissions() {
   const systemAudioPermission = useMutation({
     mutationFn: () => permissionsCommands.requestSystemAudioPermission(),
     onSuccess: () => {
-      message("The app will now restart to apply the changes", {
+      void message("The app will now restart to apply the changes", {
         kind: "info",
         title: "System Audio Status Changed",
       });
@@ -71,7 +71,7 @@ export function usePermissions() {
     mutationFn: () => permissionsCommands.requestAccessibilityPermission(),
     onSuccess: () => {
       setTimeout(() => {
-        accessibilityPermissionStatus.refetch();
+        void accessibilityPermissionStatus.refetch();
       }, 1000);
     },
     onError: console.error,

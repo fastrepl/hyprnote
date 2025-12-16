@@ -46,7 +46,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
   );
 
   const upgradeToPro = useCallback(() => {
-    openUrl(`${env.VITE_APP_URL}/app/checkout?period=monthly`);
+    void openUrl(`${env.VITE_APP_URL}/app/checkout?period=monthly`);
   }, []);
 
   const value = useMemo<BillingContextValue>(

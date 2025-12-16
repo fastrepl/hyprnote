@@ -64,7 +64,7 @@ export function SelectProviderAndModel() {
           console.log(errors);
         }
 
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: ({ value }) => {

@@ -160,7 +160,7 @@ export function buildTimelineBuckets({
   const items: TimelineItem[] = [];
   const seenEvents = new Set<string>();
 
-  eventsWithoutSessionTable &&
+  if (eventsWithoutSessionTable) {
     Object.entries(eventsWithoutSessionTable).forEach(([eventId, row]) => {
       const rawTimestamp = String(row.started_at ?? "");
       const eventStartTime = new Date(rawTimestamp);
@@ -179,8 +179,9 @@ export function buildTimelineBuckets({
         seenEvents.add(eventId);
       }
     });
+  }
 
-  sessionsWithMaybeEventTable &&
+  if (sessionsWithMaybeEventTable) {
     Object.entries(sessionsWithMaybeEventTable).forEach(([sessionId, row]) => {
       const eventId = row.event_id ? String(row.event_id) : undefined;
       if (eventId && seenEvents.has(eventId)) {
@@ -203,6 +204,7 @@ export function buildTimelineBuckets({
         });
       }
     });
+  }
 
   items.sort((a, b) => {
     const timeA = a.type === "event" ? a.data.started_at : a.data.created_at;

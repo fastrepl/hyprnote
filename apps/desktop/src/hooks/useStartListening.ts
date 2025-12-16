@@ -38,7 +38,7 @@ export function useStartListening(sessionId: string) {
     });
 
     const eventId = store.getCell("sessions", sessionId, "event_id");
-    analyticsCommands.event({
+    void analyticsCommands.event({
       event: "recording_started",
       has_calendar_event: !!eventId,
     });
@@ -112,7 +112,7 @@ export function useStartListening(sessionId: string) {
         handlePersist,
       },
     );
-  }, [conn, store, sessionId, start, keywords]);
+  }, [conn, store, sessionId, start, keywords, user_id, record_enabled]);
 
   return startListening;
 }

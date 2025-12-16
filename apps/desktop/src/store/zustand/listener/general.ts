@@ -241,7 +241,7 @@ export const createGeneralSlice = <
       );
     });
 
-    Effect.runPromiseExit(program).then((exit) => {
+    void Effect.runPromiseExit(program).then((exit) => {
       Exit.match(exit, {
         onFailure: (cause) => {
           console.error(JSON.stringify(cause));
@@ -273,7 +273,7 @@ export const createGeneralSlice = <
       yield* stopSessionEffect();
     });
 
-    Effect.runPromiseExit(program).then((exit) => {
+    void Effect.runPromiseExit(program).then((exit) => {
       Exit.match(exit, {
         onFailure: (cause) => {
           console.error("Failed to stop session:", cause);
@@ -285,7 +285,7 @@ export const createGeneralSlice = <
         },
         onSuccess: () => {
           if (sessionId) {
-            Promise.all([
+            void Promise.all([
               appDataDir(),
               getIdentifier().catch(() => "com.hyprnote.app"),
             ])
@@ -313,7 +313,7 @@ export const createGeneralSlice = <
     set((state) =>
       mutate(state, (draft) => {
         draft.live.muted = value;
-        listenerCommands.setMicMuted(value);
+        void listenerCommands.setMicMuted(value);
       }),
     );
   },

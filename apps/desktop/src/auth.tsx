@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setSession(res.data.session);
       setServerReachable(true);
-      supabase.auth.startAutoRefresh();
+      void supabase.auth.startAutoRefresh();
     }
   };
 
@@ -149,20 +149,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const unlistenFocus = appWindow.listen("tauri://focus", () => {
       if (serverReachable) {
-        supabase.auth.startAutoRefresh();
+        void supabase.auth.startAutoRefresh();
       }
     });
     const unlistenBlur = appWindow.listen("tauri://blur", () => {
-      supabase.auth.stopAutoRefresh();
+      void supabase.auth.stopAutoRefresh();
     });
 
-    onOpenUrl(([url]) => {
-      handleAuthCallback(url);
+    void onOpenUrl(([url]) => {
+      void handleAuthCallback(url);
     });
 
     return () => {
-      unlistenFocus.then((fn) => fn());
-      unlistenBlur.then((fn) => fn());
+      void unlistenFocus.then((fn) => fn());
+      void unlistenBlur.then((fn) => fn());
     };
   }, [serverReachable]);
 
@@ -198,14 +198,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ) {
               setServerReachable(false);
               setSession(data.session);
-              supabase.auth.startAutoRefresh();
+              void supabase.auth.startAutoRefresh();
               return;
             }
           }
           if (refreshData.session) {
             setSession(refreshData.session);
             setServerReachable(true);
-            supabase.auth.startAutoRefresh();
+            void supabase.auth.startAutoRefresh();
           }
         }
       } catch (e) {
@@ -223,14 +223,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initSession();
+    void initSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "TOKEN_REFRESHED" && !session) {
         if (isLocalAuthServer(env.VITE_SUPABASE_URL)) {
-          clearAuthStorage();
+          void clearAuthStorage();
           setServerReachable(false);
         }
       }

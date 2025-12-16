@@ -261,7 +261,7 @@ function DeleteNote({ sessionId }: { sessionId: string }) {
 
   const handleDeleteNote = useCallback(() => {
     deleteRow();
-    miscCommands.audioDelete(sessionId);
+    void miscCommands.audioDelete(sessionId);
   }, [sessionId, deleteRow]);
 
   return (
@@ -291,7 +291,7 @@ function DeleteRecording({ sessionId }: { sessionId: string }) {
       ]);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.length >= 2 &&
           query.queryKey[0] === "audio" &&

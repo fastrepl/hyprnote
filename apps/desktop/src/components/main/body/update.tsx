@@ -29,11 +29,12 @@ export function Update() {
     setShow(!!pendingUpdate.data);
   }, [pendingUpdate.data]);
 
+  const { refetch } = pendingUpdate;
   useEffect(() => {
     let unlisten: null | UnlistenFn = null;
-    events.updateReadyEvent
+    void events.updateReadyEvent
       .listen(({ payload: { version: _ } }) => {
-        pendingUpdate.refetch();
+        void refetch();
       })
       .then((f) => {
         unlisten = f;
@@ -43,7 +44,7 @@ export function Update() {
       unlisten?.();
       unlisten = null;
     };
-  }, []);
+  }, [refetch]);
 
   const handleInstallUpdate = useCallback(async () => {
     try {

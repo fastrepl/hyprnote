@@ -26,8 +26,8 @@ export const Route = createFileRoute("/app/onboarding/")({
 
 function finishOnboarding() {
   commands.setOnboardingNeeded(false).catch((e) => console.error(e));
-  windowsCommands.windowShow({ type: "main" }).then(() => {
-    windowsCommands.windowDestroy({ type: "onboarding" });
+  void windowsCommands.windowShow({ type: "main" }).then(() => {
+    void windowsCommands.windowDestroy({ type: "onboarding" });
   });
 }
 
@@ -40,7 +40,7 @@ function Component() {
       if (target === "done") {
         finishOnboarding();
       } else {
-        navigate({ to: "/app/onboarding", search: { step: target } });
+        void navigate({ to: "/app/onboarding", search: { step: target } });
       }
     },
     [navigate],

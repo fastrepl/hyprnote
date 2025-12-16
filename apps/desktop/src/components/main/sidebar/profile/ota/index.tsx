@@ -48,7 +48,7 @@ export function UpdateChecker() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleCheckForUpdate();
+              void handleCheckForUpdate();
             }}
             className={cn([
               "rounded-full",

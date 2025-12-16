@@ -33,9 +33,9 @@ export function NotificationSettingsView() {
   ] as const);
 
   useEffect(() => {
-    notificationCommands.clearNotifications();
+    void notificationCommands.clearNotifications();
     return () => {
-      notificationCommands.clearNotifications();
+      void notificationCommands.clearNotifications();
     };
   }, []);
 
@@ -123,7 +123,7 @@ export function NotificationSettingsView() {
           formApi.getFieldValue("notification_event") ||
           formApi.getFieldValue("notification_detect");
         formApi.setFieldValue("quit_intercept", anyEnabled);
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: async ({ value }) => {
@@ -169,7 +169,7 @@ export function NotificationSettingsView() {
     }
 
     form.setFieldValue("ignored_platforms", [...ignoredPlatforms, trimmedName]);
-    form.handleSubmit();
+    void form.handleSubmit();
     setInputValue("");
     setShowDropdown(false);
     setSelectedIndex(0);
@@ -178,7 +178,7 @@ export function NotificationSettingsView() {
   const handleRemoveIgnoredApp = (app: string) => {
     const updated = ignoredPlatforms.filter((a: string) => a !== app);
     form.setFieldValue("ignored_platforms", updated);
-    form.handleSubmit();
+    void form.handleSubmit();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

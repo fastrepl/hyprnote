@@ -1,7 +1,7 @@
 import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { arch } from "@tauri-apps/plugin-os";
+import { arch, platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -20,7 +20,6 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useListener } from "../../../../contexts/listener";
-import { useIsMacos } from "../../../../hooks/usePlatform";
 import * as settings from "../../../../store/tinybase/settings";
 import { NonHyprProviderCard, StyledStreamdown } from "../shared";
 import { ProviderId, PROVIDERS, sttModelQueries } from "./shared";
@@ -65,7 +64,7 @@ function HyprProviderCard({
   icon: React.ReactNode;
   badge?: string | null;
 }) {
-  const isMacos = useIsMacos();
+  const isMacos = platform() === "macos";
   const targetArch = useQuery({
     queryKey: ["target-arch"],
     queryFn: () => arch(),

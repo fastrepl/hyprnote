@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { arch, type Platform } from "@tauri-apps/plugin-os";
+import { arch, platform, type Platform } from "@tauri-apps/plugin-os";
 import type { ComponentType } from "react";
 
 import { useAuth } from "../../auth";
-import { usePlatform } from "../../hooks/usePlatform";
 import { ConfigureNotice } from "./configure-notice";
 import { Login } from "./login";
 import { Permissions } from "./permissions";
@@ -67,7 +66,7 @@ export const STEP_CONFIGS: OnboardingStepConfig[] = [
 export function useOnboardingContext(
   local?: boolean,
 ): OnboardingContext | null {
-  const platform = usePlatform();
+  const currentPlatform = platform();
   const auth = useAuth();
   const archQuery = useQuery({
     queryKey: ["arch"],
@@ -78,10 +77,11 @@ export function useOnboardingContext(
     return null;
   }
 
-  const isAppleSilicon = platform === "macos" && archQuery.data === "aarch64";
+  const isAppleSilicon =
+    currentPlatform === "macos" && archQuery.data === "aarch64";
 
   return {
-    platform,
+    platform: currentPlatform,
     isAppleSilicon,
     isLoggedIn: auth?.session !== null,
     local: local ?? false,

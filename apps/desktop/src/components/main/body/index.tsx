@@ -8,12 +8,12 @@ import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useShallow } from "zustand/shallow";
+import { platform } from "@tauri-apps/plugin-os";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../../contexts/shell";
-import { useIsLinux } from "../../../hooks/usePlatform";
 import {
   type Tab,
   uniqueIdfromTab,
@@ -73,7 +73,7 @@ export function Body() {
 
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
-  const isLinux = useIsLinux();
+  const isLinux = platform() === "linux";
   const {
     select,
     close,

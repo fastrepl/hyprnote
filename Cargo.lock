@@ -10677,11 +10677,21 @@ dependencies = [
 name = "notification"
 version = "0.1.0"
 dependencies = [
+ "notification-gpui",
  "notification-interface",
  "notification-linux",
  "notification-macos",
  "serde",
  "tracing",
+]
+
+[[package]]
+name = "notification-gpui"
+version = "0.1.0"
+dependencies = [
+ "gpui",
+ "gpui_squircle",
+ "notification-interface",
 ]
 
 [[package]]
@@ -10717,15 +10727,6 @@ dependencies = [
  "objc2-app-kit",
  "objc2-foundation 0.3.2",
  "swift-rs 1.0.7 (git+https://github.com/yujonglee/swift-rs?rev=41a1605)",
-]
-
-[[package]]
-name = "notification2"
-version = "0.1.0"
-dependencies = [
- "gpui",
- "gpui_squircle",
- "notification-interface",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "notification2"
+name = "notification-gpui"
 version = "0.1.0"
 edition = "2024"
 

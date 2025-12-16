@@ -10,7 +10,10 @@ import { ProviderId } from "../components/settings/ai/stt/shared";
 import { env } from "../env";
 import * as settings from "../store/tinybase/settings";
 
-export function isLocalSttModel(provider: string | undefined, model: string | undefined): boolean {
+export function isLocalSttModel(
+  provider: string | undefined,
+  model: string | undefined,
+): boolean {
   return (
     provider === "hyprnote" &&
     !!model &&

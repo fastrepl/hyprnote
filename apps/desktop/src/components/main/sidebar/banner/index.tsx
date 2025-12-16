@@ -1,7 +1,7 @@
-import type { ServerStatus } from "@hypr/plugin-local-stt";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import type { ServerStatus } from "@hypr/plugin-local-stt";
 import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";

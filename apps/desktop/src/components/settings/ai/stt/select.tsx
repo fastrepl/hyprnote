@@ -15,7 +15,10 @@ import { cn } from "@hypr/utils";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
-import { isLocalSttModel, useSTTConnection } from "../../../../hooks/useSTTConnection";
+import {
+  isLocalSttModel,
+  useSTTConnection,
+} from "../../../../hooks/useSTTConnection";
 import * as settings from "../../../../store/tinybase/settings";
 import {
   getProviderSelectionBlockers,

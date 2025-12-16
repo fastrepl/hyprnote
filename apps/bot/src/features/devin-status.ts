@@ -38,7 +38,7 @@ export function registerDevinStatusHandler(app: Probot): void {
       try {
         await checkDevinSession(context, owner, repo, prNumber, headSha, prUrl);
       } catch (error) {
-        context.log.error(`[Devin] Failed to check Devin session: ${error}`);
+        context.log.error(`[Devin] Failed to check Devin session: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
   );

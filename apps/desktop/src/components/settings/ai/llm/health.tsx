@@ -60,11 +60,12 @@ function useConnectionHealth() {
     },
   });
 
+  const { refetch } = text;
   useEffect(() => {
     if (model) {
-      text.refetch();
+      void refetch();
     }
-  }, [model]);
+  }, [model, refetch]);
 
   if (!model) {
     return { status: null, errorMessage: null };

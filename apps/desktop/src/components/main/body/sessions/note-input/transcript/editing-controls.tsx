@@ -90,7 +90,7 @@ export function EditingControls({
 
   const handleRedoClick = useCallback(() => {
     setOpen(false);
-    handleRedoTranscript();
+    void handleRedoTranscript();
   }, [handleRedoTranscript]);
 
   const viewModeControls = audioExists ? (

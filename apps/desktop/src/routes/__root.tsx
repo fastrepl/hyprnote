@@ -14,8 +14,8 @@ import { isExtHostPath } from "../utils/ext-host";
 // This is necessary because auth.tsx creates Supabase client at module level which uses Tauri APIs.
 const MainAppLayout = lazy(() => import("../components/main-app-layout"));
 
-0 as DeepLink["to"] extends NonNullable<LinkProps["to"]>
-  ? 0
+type _DeepLinkCheck = DeepLink["to"] extends NonNullable<LinkProps["to"]>
+  ? true
   : "DeepLink['to'] must match a valid route";
 
 export const Route = createRootRouteWithContext<Partial<Context>>()({

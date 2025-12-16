@@ -44,7 +44,7 @@ export function ChatMessageInput({
       return;
     }
 
-    analyticsCommands.event({ event: "chat_message_sent" });
+    void analyticsCommands.event({ event: "chat_message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
   }, [disabled, onSendMessage]);

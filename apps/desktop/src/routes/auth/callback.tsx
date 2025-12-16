@@ -28,11 +28,11 @@ function AuthCallbackRoute() {
     const { access_token, refresh_token } = search;
 
     if (access_token && refresh_token && auth) {
-      auth.setSessionFromTokens(access_token, refresh_token).finally(() => {
-        navigate({ to: "/app/main" });
+      void auth.setSessionFromTokens(access_token, refresh_token).finally(() => {
+        void navigate({ to: "/app/main" });
       });
     } else {
-      navigate({ to: "/app/main" });
+      void navigate({ to: "/app/main" });
     }
   }, [search, auth, navigate]);
 

@@ -134,20 +134,20 @@ export const sttFile = restate.workflow({
 
         if (provider === "soniox" && "id" in payload && "status" in payload) {
           const sonioxPayload = payload as SonioxCallbackType;
-          if (sonioxPayload.status === "error") {
-            ctx
-              .promise<string>("transcript")
-              .reject("Soniox transcription failed");
-            return;
-          }
+            if (sonioxPayload.status === "error") {
+              void ctx
+                .promise<string>("transcript")
+                .reject("Soniox transcription failed");
+              return;
+            }
           const env = ctx.request().extraArgs[0] as Env;
           const transcript = await fetchSonioxTranscript(
             sonioxPayload.id,
             env.SONIOX_API_KEY,
           );
-          ctx.promise<string>("transcript").resolve(transcript);
+          void ctx.promise<string>("transcript").resolve(transcript);
         } else {
-          ctx
+          void ctx
             .promise<string>("transcript")
             .resolve(extractTranscript(payload as DeepgramCallbackType));
         }

@@ -31,7 +31,7 @@ export function registerPrClosedHandler(app: Probot): void {
       );
     } catch (error) {
       context.log.error(
-        `Failed to terminate Devin session for ${prUrl}: ${error}`,
+        `Failed to terminate Devin session for ${prUrl}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   });

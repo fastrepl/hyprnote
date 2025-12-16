@@ -529,7 +529,7 @@ const roadmap = defineCollection({
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
     const githubIssueRegex =
-      /https:\/\/github\.com\/[^\/\s]+\/[^\/\s]+\/issues\/\d+/g;
+      /https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/issues\/\d+/g;
     const githubIssues = document.content.match(githubIssueRegex) || [];
 
     return {

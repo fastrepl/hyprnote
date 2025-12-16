@@ -1,3 +1,11 @@
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, specta::Type)]
+pub enum NotificationEvent {
+    Confirm,
+    Accept,
+    Dismiss,
+    Timeout,
+}
+
 #[derive(Debug, serde::Serialize, serde::Deserialize, specta::Type)]
 pub struct Notification {
     pub key: Option<String>,

@@ -11,11 +11,42 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Analytics<'a, R, M> {
         &self,
         mut payload: hypr_analytics::AnalyticsPayload,
     ) -> Result<(), crate::Error> {
-        let app_version = env!("APP_VERSION");
-        let app_identifier = self.manager.config().identifier.clone();
-        let git_hash = self.manager.get_git_hash();
-        let bundle_id = self.manager.config().identifier.clone();
+        Self::enrich_payload(self.manager, &mut payload);
+
+        if self.is_disabled().unwrap_or(true) {
+            return Ok(());
+        }
+
         let machine_id = hypr_host::fingerprint();
+        let client = self.manager.state::<crate::ManagedState>();
+        client
+            .event(machine_id, payload)
+            .await
+            .map_err(crate::Error::HyprAnalytics)?;
+
+        Ok(())
+    }
+
+    pub fn event_fire_and_forget(&self, mut payload: hypr_analytics::AnalyticsPayload) {
+        Self::enrich_payload(self.manager, &mut payload);
+
+        if self.is_disabled().unwrap_or(true) {
+            return;
+        }
+
+        let machine_id = hypr_host::fingerprint();
+        let client = self.manager.state::<crate::ManagedState>().inner().clone();
+
+        tauri::async_runtime::spawn(async move {
+            let _ = client.event(machine_id, payload).await;
+        });
+    }
+
+    fn enrich_payload(manager: &M, payload: &mut hypr_analytics::AnalyticsPayload) {
+        let app_version = env!("APP_VERSION");
+        let app_identifier = manager.config().identifier.clone();
+        let git_hash = manager.get_git_hash();
+        let bundle_id = manager.config().identifier.clone();
 
         payload
             .props
@@ -36,16 +67,6 @@ impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Analytics<'a, R, M> {
             .props
             .entry("bundle_id".into())
             .or_insert(bundle_id.into());
-
-        if !self.is_disabled()? {
-            let client = self.manager.state::<crate::ManagedState>();
-            client
-                .event(machine_id, payload)
-                .await
-                .map_err(crate::Error::HyprAnalytics)?;
-        }
-
-        Ok(())
     }
 
     pub fn set_disabled(&self, disabled: bool) -> Result<(), crate::Error> {

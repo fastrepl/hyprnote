@@ -1,10 +1,9 @@
 use std::str::FromStr;
 
-use tauri_plugin_windows::WindowsPluginExt;
-
 mod commands;
 mod error;
 mod ext;
+mod handler;
 
 pub use error::*;
 pub use ext::*;
@@ -27,8 +26,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
         .setup(|app, _api| {
-            let app_handle = app.clone();
-            init_handler(app_handle);
+            handler::init(app.clone());
             Ok(())
         })
         .on_event(|app, event| match event {
@@ -46,14 +44,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
             _ => {}
         })
         .build()
-}
-
-fn init_handler(app: tauri::AppHandle<tauri::Wry>) {
-    hypr_notification::setup_notification_confirm_handler(move |_id| {
-        if let Err(_e) = app.windows().show(tauri_plugin_windows::AppWindow::Main) {}
-    });
-
-    hypr_notification::setup_notification_dismiss_handler(move |_id| {});
 }
 
 #[cfg(test)]

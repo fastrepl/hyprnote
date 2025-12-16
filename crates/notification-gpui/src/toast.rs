@@ -2,12 +2,12 @@ use std::rc::Rc;
 
 use gpui::{prelude::*, *};
 use gpui_squircle::{SquircleStyled, squircle};
+use hypr_notification_interface::NotificationEvent;
 
 use crate::constants::{
     NOTIFICATION_CORNER_RADIUS, NOTIFICATION_HEIGHT, NOTIFICATION_MARGIN_RIGHT,
     NOTIFICATION_MARGIN_TOP, NOTIFICATION_WIDTH,
 };
-use crate::event::NotificationEvent;
 use crate::theme::NotificationTheme;
 
 pub struct StatusToast {
@@ -125,7 +125,7 @@ impl Render for StatusToast {
                             .child("×"),
                     )
                     .on_click(cx.listener(|_, _, _, cx| {
-                        cx.emit(NotificationEvent::Dismissed);
+                        cx.emit(NotificationEvent::Dismiss);
                     })),
             )
             .child(
@@ -231,7 +231,7 @@ impl StatusToast {
                     .child(label),
             )
             .on_click(cx.listener(|_, _, _, cx| {
-                cx.emit(NotificationEvent::Accepted);
+                cx.emit(NotificationEvent::Accept);
             }))
     }
 }

@@ -4,6 +4,8 @@ import type {
   ChangelogState,
   ChatShortcutsState,
   ContactsState,
+  DataState,
+  DataTab,
   EditorView,
   ExtensionsState,
   PromptsState,
@@ -18,6 +20,8 @@ export type {
   ChangelogState,
   ChatShortcutsState,
   ContactsState,
+  DataState,
+  DataTab,
   EditorView,
   ExtensionsState,
   PromptsState,
@@ -81,11 +85,15 @@ export type Tab =
       type: "changelog";
       state: ChangelogState;
     })
-  | (BaseTab & { type: "settings" })
-  | (BaseTab & {
-      type: "ai";
-      state: AiState;
-    });
+    | (BaseTab & { type: "settings" })
+    | (BaseTab & {
+        type: "ai";
+        state: AiState;
+      })
+    | (BaseTab & {
+        type: "data";
+        state: DataState;
+      });
 
 export const getDefaultState = (tab: TabInput): Tab => {
   const base = { active: false, slotId: "" };
@@ -176,6 +184,12 @@ export const getDefaultState = (tab: TabInput): Tab => {
         type: "ai",
         state: tab.state ?? { tab: null },
       };
+    case "data":
+      return {
+        ...base,
+        type: "data",
+        state: tab.state ?? { tab: null },
+      };
   }
 };
 
@@ -200,6 +214,7 @@ export const rowIdfromTab = (tab: Tab): string => {
     case "changelog":
     case "settings":
     case "ai":
+    case "data":
       throw new Error("invalid_resource");
     case "folders":
       if (!tab.id) {
@@ -243,9 +258,11 @@ export const uniqueIdfromTab = (tab: Tab): string => {
       return `settings`;
     case "ai":
       return `ai`;
+    case "data":
+      return `data`;
   }
 };
 
-export const isSameTab = (a: Tab, b: Tab) => {
+export const isSameTab= (a: Tab, b: Tab) => {
   return uniqueIdfromTab(a) === uniqueIdfromTab(b);
 };

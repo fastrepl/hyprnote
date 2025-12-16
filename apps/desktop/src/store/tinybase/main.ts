@@ -29,6 +29,7 @@ import { DEFAULT_USER_ID } from "../../utils";
 import { createLocalPersister } from "./localPersister";
 import { createLocalPersister2 } from "./localPersister2";
 import { registerSaveHandler } from "./save";
+import * as settings from "./settings";
 
 export const STORE_ID = "main";
 
@@ -77,6 +78,8 @@ export const testUtils = {
 };
 
 export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
+  const settingsStore = settings.UI.useStore(settings.STORE_ID);
+
   const store = useCreateMergeableStore(() =>
     createMergeableStore()
       .setTablesSchema(SCHEMA.table)
@@ -190,11 +193,12 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             enhanced_md: content,
           }),
         saveRawMemoToFile,
+        () => settingsStore?.getValue("auto_export") === true,
       );
 
       return persister;
     },
-    [persist],
+    [persist, settingsStore],
   );
 
   useEffect(() => {

@@ -14,6 +14,7 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
     session: Session & { id: string },
     filename: string,
   ) => Promise<void>,
+  isEnabled?: () => boolean,
 ) {
   // https://tinybase.org/api/persisters/functions/creation/createcustompersister
   return createCustomPersister(
@@ -22,6 +23,10 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
       return undefined;
     },
     async (getContent, _changes) => {
+      if (isEnabled && !isEnabled()) {
+        return;
+      }
+
       const [tables, _values] = getContent();
 
       const promises: Promise<void>[] = [];

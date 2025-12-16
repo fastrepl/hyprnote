@@ -3,7 +3,6 @@ pub struct Notification {
     pub key: Option<String>,
     pub title: String,
     pub message: String,
-    pub url: Option<String>,
     pub timeout: Option<std::time::Duration>,
 }
 
@@ -18,7 +17,6 @@ pub struct NotificationBuilder {
     key: Option<String>,
     title: Option<String>,
     message: Option<String>,
-    url: Option<String>,
     timeout: Option<std::time::Duration>,
 }
 
@@ -38,11 +36,6 @@ impl NotificationBuilder {
         self
     }
 
-    pub fn url(mut self, url: impl Into<String>) -> Self {
-        self.url = Some(url.into());
-        self
-    }
-
     pub fn timeout(mut self, timeout: std::time::Duration) -> Self {
         self.timeout = Some(timeout);
         self
@@ -52,14 +45,12 @@ impl NotificationBuilder {
         let key = self.key.clone();
         let title = self.title.unwrap();
         let message = self.message.unwrap();
-        let url = self.url.clone();
         let timeout = self.timeout;
 
         Notification {
             key,
             title,
             message,
-            url,
             timeout,
         }
     }

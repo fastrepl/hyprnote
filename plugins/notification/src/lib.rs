@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use tauri_plugin_windows::WindowsPluginExt;
+
 mod commands;
 mod error;
 mod ext;
@@ -24,7 +26,18 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|_app, _api| Ok(()))
+        .setup(|app, _api| {
+            let app_handle = app.clone();
+            hypr_notification::setup_notification_confirm_handler(move |_id| {
+                if let Err(e) = app_handle
+                    .windows()
+                    .show(tauri_plugin_windows::AppWindow::Main)
+                {
+                    tracing::error!("Failed to show main window on notification confirm: {}", e);
+                }
+            });
+            Ok(())
+        })
         .on_event(|app, event| match event {
             tauri::RunEvent::MainEventsCleared => {}
             tauri::RunEvent::Ready => {}

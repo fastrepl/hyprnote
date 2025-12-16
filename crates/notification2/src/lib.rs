@@ -35,13 +35,8 @@ pub fn show(notification: &Notification, cx: &mut App) {
         None => return,
     };
 
-    let toast_entity: Entity<StatusToast> = cx.new(|_cx| {
-        let mut toast = StatusToast::new(&notification.title, &notification.message);
-        if notification.url.is_some() {
-            toast = toast.action_label("Open");
-        }
-        toast
-    });
+    let toast_entity: Entity<StatusToast> =
+        cx.new(|_cx| StatusToast::new(&notification.title, &notification.message));
 
     if let Ok(window) = cx.open_window(StatusToast::window_options(screen, cx), |_window, _cx| {
         toast_entity.clone()

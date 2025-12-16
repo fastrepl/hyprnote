@@ -113,7 +113,7 @@ impl NotificationManager {
         }
     }
 
-    fn show(&mut self, title: String, message: String, url: Option<String>, timeout_seconds: f64) {
+    fn show(&mut self, title: String, message: String, timeout_seconds: f64) {
         if !self.ensure_gtk() {
             return;
         }
@@ -138,7 +138,7 @@ impl NotificationManager {
         window.set_keep_above(true);
 
         self.setup_window_style(&window);
-        self.create_notification_content(&window, &title, &message, url.as_deref(), &id);
+        self.create_notification_content(&window, &title, &message, &id);
         self.position_window(&window);
 
         window.show_all();
@@ -207,14 +207,7 @@ impl NotificationManager {
         }
     }
 
-    fn create_notification_content(
-        &self,
-        window: &Window,
-        title: &str,
-        message: &str,
-        url: Option<&str>,
-        id: &str,
-    ) {
+    fn create_notification_content(&self, window: &Window, title: &str, message: &str, id: &str) {
         let main_box = GtkBox::new(Orientation::Horizontal, 8);
         main_box.set_margin_start(12);
         main_box.set_margin_end(12);
@@ -243,24 +236,6 @@ impl NotificationManager {
         text_box.pack_start(&message_label, false, false, 0);
 
         main_box.pack_start(&text_box, true, true, 0);
-
-        if let Some(url_str) = url
-            && !url_str.is_empty()
-        {
-            let action_button = Button::with_label("Take Notes");
-            action_button.style_context().add_class("action-button");
-
-            let id_clone = id.to_string();
-            let url_clone = url_str.to_string();
-            let window_clone = window.clone();
-            action_button.connect_clicked(move |_| {
-                call_confirm_handler(id_clone.clone());
-                let _ = open::that(&url_clone);
-                NotificationInstance::dismiss_window(&window_clone, &id_clone, false);
-            });
-
-            main_box.pack_start(&action_button, false, false, 0);
-        }
 
         let close_button = Button::new();
         close_button.set_label("×");
@@ -326,14 +301,11 @@ impl NotificationManager {
 pub fn show(notification: &hypr_notification_interface::Notification) {
     let title = notification.title.clone();
     let message = notification.message.clone();
-    let url = notification.url.clone();
     let timeout_seconds = notification.timeout.map(|d| d.as_secs_f64()).unwrap_or(5.0);
 
     glib::MainContext::default().invoke(move || {
         NOTIFICATION_MANAGER.with(|manager| {
-            manager
-                .borrow_mut()
-                .show(title, message, url, timeout_seconds);
+            manager.borrow_mut().show(title, message, timeout_seconds);
         });
     });
 }
@@ -355,7 +327,6 @@ mod tests {
         let notification = hypr_notification_interface::Notification::builder()
             .title("Test Title")
             .message("Test message content")
-            .url("https://example.com")
             .timeout(std::time::Duration::from_secs(3))
             .build();
 

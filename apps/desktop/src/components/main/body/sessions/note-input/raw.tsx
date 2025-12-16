@@ -63,9 +63,12 @@ export const RawEditor = forwardRef<
     hasTrackedWriteRef.current = false;
   }, [sessionId]);
 
-  const hasNonEmptyText = (node?: JSONContent): boolean =>
-    !!node?.text?.trim() ||
-    !!node?.content?.some((child) => hasNonEmptyText(child));
+  const hasNonEmptyText = useCallback(
+    (node?: JSONContent): boolean =>
+      !!node?.text?.trim() ||
+      !!node?.content?.some((child) => hasNonEmptyText(child)),
+    [],
+  );
 
   const handleChange = useCallback(
     (input: JSONContent) => {
@@ -75,14 +78,14 @@ export const RawEditor = forwardRef<
         const hasContent = hasNonEmptyText(input);
         if (hasContent) {
           hasTrackedWriteRef.current = true;
-          analyticsCommands.event({
+          void analyticsCommands.event({
             event: "note_written",
             has_content: true,
           });
         }
       }
     },
-    [persistChange],
+    [persistChange, hasNonEmptyText],
   );
 
   const mentionConfig = useMemo(

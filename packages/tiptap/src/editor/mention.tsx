@@ -37,7 +37,9 @@ const Component = forwardRef<
 
   const selectItem = (index: number) => {
     const item = props.items[index];
-    item && props.command(item);
+    if (item) {
+      props.command(item);
+    }
   };
 
   const upHandler = () => {
@@ -217,7 +219,7 @@ const suggestion = (
       let referenceEl: VirtualElement;
 
       const update = () => {
-        computePosition(referenceEl, floatingEl, {
+        void computePosition(referenceEl, floatingEl, {
           placement: "bottom-start",
           middleware: [offset(0), flip(), shift({ limiter: limitShift() })],
         }).then(({ x, y }) => {

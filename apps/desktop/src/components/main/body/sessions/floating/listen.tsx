@@ -269,10 +269,10 @@ function OptionsMenu({
         fromResult(miscCommands.audioImport(sessionId, path)),
         Effect.tap(() =>
           Effect.sync(() => {
-            queryClient.invalidateQueries({
+            void queryClient.invalidateQueries({
               queryKey: ["audio", sessionId, "exist"],
             });
-            queryClient.invalidateQueries({
+            void queryClient.invalidateQueries({
               queryKey: ["audio", sessionId, "url"],
             });
           }),

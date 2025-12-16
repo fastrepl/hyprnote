@@ -54,7 +54,7 @@ export function Body() {
   );
 
   useEffect(() => {
-    loadExtensionPanels();
+    void loadExtensionPanels();
   }, []);
 
   if (!currentTab) {

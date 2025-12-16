@@ -112,7 +112,7 @@ export function NonHyprProviderCard({
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {
-          formApi.handleSubmit();
+          void formApi.handleSubmit();
         });
       },
     },

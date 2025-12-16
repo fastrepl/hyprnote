@@ -73,7 +73,7 @@ function ExtHostComponent() {
     initExtensionGlobals();
 
     if (stylesUrl) {
-      loadExtensionStyles();
+      void loadExtensionStyles();
     }
 
     const store = createMergeableStore();
@@ -86,7 +86,7 @@ function ExtHostComponent() {
       .startSync()
       .then(() => {
         if (isMountedRef.current) {
-          loadExtensionScript();
+          void loadExtensionScript();
         }
       })
       .catch((err) => {
@@ -100,7 +100,7 @@ function ExtHostComponent() {
 
     return () => {
       isMountedRef.current = false;
-      synchronizer.destroy();
+      void synchronizer.destroy();
     };
   }, []);
 

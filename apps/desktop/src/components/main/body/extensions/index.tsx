@@ -247,7 +247,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
     if (!iframeRef.current || !store) return;
 
     if (synchronizerRef.current) {
-      synchronizerRef.current.destroy();
+      void synchronizerRef.current.destroy();
     }
 
     const synchronizer = createIframeSynchronizer(
@@ -266,7 +266,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
   useEffect(() => {
     return () => {
       if (synchronizerRef.current) {
-        synchronizerRef.current.destroy();
+        void synchronizerRef.current.destroy();
         synchronizerRef.current = null;
       }
     };

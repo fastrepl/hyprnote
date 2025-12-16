@@ -35,8 +35,8 @@ export function createLocalPersister<Schemas extends OptionalSchemas>(
     (handle: NodeJS.Timeout) => {
       clearInterval(handle);
     },
-    false ? console.log.bind(console, "[LocalPersister]") : () => {},
-    true ? console.error.bind(console, "[LocalPersister]") : () => {},
+    () => {},
+    console.error.bind(console, "[LocalPersister]"),
     () => {},
     MergeableStoreOnly,
     null,

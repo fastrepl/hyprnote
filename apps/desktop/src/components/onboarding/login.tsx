@@ -84,17 +84,19 @@ export function Login({ onNavigate }: StepProps) {
     },
   });
 
-  useEffect(() => {
-    if (auth?.session && processLoginMutation.isIdle) {
-      processLoginMutation.mutate();
-    }
-  }, [auth?.session, processLoginMutation]);
+  const { mutate, isIdle } = processLoginMutation;
 
   useEffect(() => {
-    if (processLoginMutation.isIdle && !auth?.session) {
-      auth?.signIn();
+    if (auth?.session && isIdle) {
+      mutate();
     }
-  }, [auth, processLoginMutation.isIdle]);
+  }, [auth?.session, isIdle, mutate]);
+
+  useEffect(() => {
+    if (isIdle && !auth?.session) {
+      void auth?.signIn();
+    }
+  }, [auth, isIdle]);
 
   return (
     <OnboardingContainer

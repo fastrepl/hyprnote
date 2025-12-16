@@ -17359,6 +17359,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "tauri-plugin-analytics",
+ "tauri-plugin-os",
  "tauri-specta",
  "thiserror 2.0.17",
  "tokio",

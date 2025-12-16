@@ -59,11 +59,22 @@ impl AppWindow {
 
         #[cfg(target_os = "macos")]
         {
+            let traffic_light_y = {
+                let major = tauri_plugin_os::version()
+                    .to_string()
+                    .split('.')
+                    .next()
+                    .and_then(|v| v.parse::<u32>().ok())
+                    .unwrap_or(0);
+
+                if major >= 26 { 24.0 } else { 18.0 }
+            };
+
             builder = builder
                 .decorations(true)
                 .hidden_title(true)
                 .theme(Some(tauri::Theme::Light))
-                .traffic_light_position(tauri::LogicalPosition::new(12.0, 24.0))
+                .traffic_light_position(tauri::LogicalPosition::new(12.0, traffic_light_y))
                 .title_bar_style(tauri::TitleBarStyle::Overlay);
         }
 

@@ -104,4 +104,9 @@ mod test {
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
     }
+
+    #[test]
+    fn test_version() {
+        println!("version: {}", tauri_plugin_os::version());
+    }
 }

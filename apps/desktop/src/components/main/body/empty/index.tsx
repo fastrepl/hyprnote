@@ -31,7 +31,11 @@ export const TabItemEmpty: TabItem<Extract<Tab, { type: "empty" }>> = ({
   );
 };
 
-export function TabContentEmpty({ tab: _tab }: { tab: Extract<Tab, { type: "empty" }> }) {
+export function TabContentEmpty({
+  tab: _tab,
+}: {
+  tab: Extract<Tab, { type: "empty" }>;
+}) {
   return (
     <StandardTabWrapper>
       <EmptyView />
@@ -47,10 +51,22 @@ function EmptyView() {
     () => openCurrent({ type: "extension", extensionId: "calendar" }),
     [openCurrent],
   );
-  const openContacts = useCallback(() => openCurrent({ type: "contacts" }), [openCurrent]);
-  const openTemplates = useCallback(() => openCurrent({ type: "templates" }), [openCurrent]);
-  const openShortcuts = useCallback(() => openCurrent({ type: "chat_shortcuts" }), [openCurrent]);
-  const openPrompts = useCallback(() => openCurrent({ type: "prompts" }), [openCurrent]);
+  const openContacts = useCallback(
+    () => openCurrent({ type: "contacts" }),
+    [openCurrent],
+  );
+  const openTemplates = useCallback(
+    () => openCurrent({ type: "templates" }),
+    [openCurrent],
+  );
+  const openShortcuts = useCallback(
+    () => openCurrent({ type: "chat_shortcuts" }),
+    [openCurrent],
+  );
+  const openPrompts = useCallback(
+    () => openCurrent({ type: "prompts" }),
+    [openCurrent],
+  );
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-6 mb-12 text-neutral-600">

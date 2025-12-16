@@ -2,7 +2,9 @@ import type { TextStreamPart, ToolSet } from "ai";
 
 import type { StreamTransform } from "./transform_infra";
 
-function isNonTextChunk<TOOLS extends ToolSet>(chunk: TextStreamPart<TOOLS>): boolean {
+function isNonTextChunk<TOOLS extends ToolSet>(
+  chunk: TextStreamPart<TOOLS>,
+): boolean {
   return (
     chunk.type === "tool-call" ||
     chunk.type === "tool-result" ||

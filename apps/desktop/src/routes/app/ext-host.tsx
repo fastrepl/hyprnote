@@ -35,12 +35,20 @@ export const Route = createFileRoute("/app/ext-host")({
     }
 
     const scriptUrl = search.scriptUrl;
-    if (typeof scriptUrl === "string" && scriptUrl.trim().length > 0 && isValidUrl(scriptUrl)) {
+    if (
+      typeof scriptUrl === "string" &&
+      scriptUrl.trim().length > 0 &&
+      isValidUrl(scriptUrl)
+    ) {
       result.scriptUrl = scriptUrl;
     }
 
     const stylesUrl = search.stylesUrl;
-    if (typeof stylesUrl === "string" && stylesUrl.trim().length > 0 && isValidUrl(stylesUrl)) {
+    if (
+      typeof stylesUrl === "string" &&
+      stylesUrl.trim().length > 0 &&
+      isValidUrl(stylesUrl)
+    ) {
       result.stylesUrl = stylesUrl;
     }
 
@@ -51,10 +59,13 @@ export const Route = createFileRoute("/app/ext-host")({
 
 function ExtHostComponent() {
   const { extensionId, scriptUrl, stylesUrl } = Route.useSearch();
-  const [Component, setComponent] = useState<ComponentType<ExtensionViewProps> | null>(null);
+  const [Component, setComponent] =
+    useState<ComponentType<ExtensionViewProps> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const storeRef = useRef<ReturnType<typeof createMergeableStore> | null>(null);
-  const synchronizerRef = useRef<ReturnType<typeof createParentSynchronizer> | null>(null);
+  const synchronizerRef = useRef<ReturnType<
+    typeof createParentSynchronizer
+  > | null>(null);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -121,7 +132,8 @@ function ExtHostComponent() {
         throw new Error(`Failed to fetch extension script: ${response.status}`);
       }
 
-      const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+      const contentType =
+        response.headers.get("content-type")?.toLowerCase() ?? "";
       if (!contentType.includes("javascript")) {
         throw new Error(
           `Invalid content-type for extension script: expected JavaScript, got ${contentType || "unknown"}`,
@@ -130,8 +142,9 @@ function ExtHostComponent() {
 
       const scriptContent = await response.text();
 
-      const previousExports = (window as Window & { __hypr_panel_exports?: unknown })
-        .__hypr_panel_exports;
+      const previousExports = (
+        window as Window & { __hypr_panel_exports?: unknown }
+      ).__hypr_panel_exports;
 
       const script = document.createElement("script");
       script.textContent = scriptContent;
@@ -149,8 +162,9 @@ function ExtHostComponent() {
       if (exports?.default) {
         if (isMountedRef.current) {
           setComponent(() => exports.default!);
-          (window as Window & { __hypr_panel_exports?: unknown }).__hypr_panel_exports =
-            previousExports;
+          (
+            window as Window & { __hypr_panel_exports?: unknown }
+          ).__hypr_panel_exports = previousExports;
         }
       } else {
         if (isMountedRef.current) {
@@ -159,7 +173,9 @@ function ExtHostComponent() {
       }
     } catch (err) {
       if (isMountedRef.current) {
-        setError(`Failed to load extension: ${err instanceof Error ? err.message : String(err)}`);
+        setError(
+          `Failed to load extension: ${err instanceof Error ? err.message : String(err)}`,
+        );
       }
     }
   };

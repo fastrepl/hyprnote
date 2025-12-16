@@ -1,5 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronDown, ChevronUp, Menu, PanelLeft, PanelLeftClose } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Menu,
+  PanelLeft,
+  PanelLeftClose,
+} from "lucide-react";
 import { useState } from "react";
 
 import { SearchTrigger } from "@/components/search";
@@ -15,7 +21,8 @@ function scrollToHero() {
 }
 
 function getMaxWidthClass(pathname: string): string {
-  const isBlogOrDocs = pathname.startsWith("/blog") || pathname.startsWith("/docs");
+  const isBlogOrDocs =
+    pathname.startsWith("/blog") || pathname.startsWith("/docs");
   return isBlogOrDocs ? "max-w-6xl" : "max-w-6xl";
 }
 
@@ -43,7 +50,8 @@ export function Header() {
   const router = useRouterState();
   const maxWidthClass = getMaxWidthClass(router.location.pathname);
   const isDocsPage = router.location.pathname.startsWith("/docs");
-  const isHandbookPage = router.location.pathname.startsWith("/company-handbook");
+  const isHandbookPage =
+    router.location.pathname.startsWith("/company-handbook");
   const docsDrawer = useDocsDrawer();
   const handbookDrawer = useHandbookDrawer();
 
@@ -118,7 +126,10 @@ function LeftNav({
         setIsMenuOpen={setIsMenuOpen}
       />
       <Logo />
-      <ProductDropdown isProductOpen={isProductOpen} setIsProductOpen={setIsProductOpen} />
+      <ProductDropdown
+        isProductOpen={isProductOpen}
+        setIsProductOpen={setIsProductOpen}
+      />
       <NavLinks />
     </div>
   );
@@ -147,7 +158,9 @@ function DrawerButton({
           docsDrawer.setIsOpen(!docsDrawer.isOpen);
         }}
         className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
-        aria-label={docsDrawer.isOpen ? "Close docs navigation" : "Open docs navigation"}
+        aria-label={
+          docsDrawer.isOpen ? "Close docs navigation" : "Open docs navigation"
+        }
       >
         {docsDrawer.isOpen ? (
           <PanelLeftClose className="text-neutral-600" size={16} />
@@ -169,7 +182,9 @@ function DrawerButton({
         }}
         className="cursor-pointer md:hidden px-3 h-8 flex items-center text-sm bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm hover:shadow-md hover:scale-[102%] active:scale-[98%] transition-all"
         aria-label={
-          handbookDrawer.isOpen ? "Close handbook navigation" : "Open handbook navigation"
+          handbookDrawer.isOpen
+            ? "Close handbook navigation"
+            : "Open handbook navigation"
         }
       >
         {handbookDrawer.isOpen ? (
@@ -307,7 +322,11 @@ function NavLinks() {
   );
 }
 
-function DesktopNav({ platformCTA }: { platformCTA: ReturnType<typeof getPlatformCTA> }) {
+function DesktopNav({
+  platformCTA,
+}: {
+  platformCTA: ReturnType<typeof getPlatformCTA>;
+}) {
   return (
     <nav className="hidden sm:flex items-center gap-4">
       <SearchTrigger variant="header" />
@@ -340,7 +359,9 @@ function MobileNav({
   return (
     <div className="sm:hidden flex items-center gap-3">
       <SearchTrigger variant="header" />
-      {!hideCTA && <CTAButton platformCTA={platformCTA} platform={platform} mobile />}
+      {!hideCTA && (
+        <CTAButton platformCTA={platformCTA} platform={platform} mobile />
+      )}
       <button
         onClick={() => {
           if (!isMenuOpen) {
@@ -420,7 +441,10 @@ function MobileMenu({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 sm:hidden" onClick={() => setIsMenuOpen(false)} />
+      <div
+        className="fixed inset-0 z-40 sm:hidden"
+        onClick={() => setIsMenuOpen(false)}
+      />
       <div className="fixed top-[69px] left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-neutral-100 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] z-50 sm:hidden animate-in slide-in-from-top duration-300 max-h-[calc(100vh-69px)] overflow-y-auto">
         <nav className={`${maxWidthClass} mx-auto px-4 py-6`}>
           <div className="space-y-6">
@@ -517,7 +541,11 @@ function MobileProductSection({
   );
 }
 
-function MobileProductsList({ setIsMenuOpen }: { setIsMenuOpen: (open: boolean) => void }) {
+function MobileProductsList({
+  setIsMenuOpen,
+}: {
+  setIsMenuOpen: (open: boolean) => void;
+}) {
   return (
     <div>
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
@@ -542,7 +570,11 @@ function MobileProductsList({ setIsMenuOpen }: { setIsMenuOpen: (open: boolean) 
   );
 }
 
-function MobileFeaturesList({ setIsMenuOpen }: { setIsMenuOpen: (open: boolean) => void }) {
+function MobileFeaturesList({
+  setIsMenuOpen,
+}: {
+  setIsMenuOpen: (open: boolean) => void;
+}) {
   return (
     <div>
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">

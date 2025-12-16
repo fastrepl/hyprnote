@@ -1,4 +1,8 @@
-import { createFileRoute, Outlet, useRouteContext } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  useRouteContext,
+} from "@tanstack/react-router";
 import { useCallback, useEffect, useRef } from "react";
 
 import { buildChatTools } from "../../../chat/tools";

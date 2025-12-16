@@ -1,7 +1,10 @@
 import type { TextStreamPart, ToolSet } from "ai";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { addMarkdownSectionSeparators, trimBeforeMarker } from "./transform_impl";
+import {
+  addMarkdownSectionSeparators,
+  trimBeforeMarker,
+} from "./transform_impl";
 
 function convertArrayToReadableStream<T>(values: T[]): ReadableStream<T> {
   return new ReadableStream({
@@ -251,7 +254,9 @@ describe("trimBeforeMarker", () => {
       { text: "START:", type: "text-delta", id: "1" },
       { text: " actual content", type: "text-delta", id: "1" },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(trimBeforeMarker("START:")({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      trimBeforeMarker("START:")({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -307,7 +312,9 @@ describe("addMarkdownSectionSeparators", () => {
         id: "1",
       },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -346,7 +353,9 @@ describe("addMarkdownSectionSeparators", () => {
         id: "1",
       },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -385,7 +394,9 @@ describe("addMarkdownSectionSeparators", () => {
       { type: "text-start", id: "1" },
       { text: "# First Section\nContent", type: "text-delta", id: "1" },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -414,7 +425,9 @@ describe("addMarkdownSectionSeparators", () => {
       { type: "text-start", id: "1" },
       { text: "Content\n# Heading", type: "text-delta", id: "1" },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -449,7 +462,9 @@ describe("addMarkdownSectionSeparators", () => {
         input: {},
       },
       { type: "text-end", id: "1" },
-    ]).pipeThrough(addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }));
+    ]).pipeThrough(
+      addMarkdownSectionSeparators()({ tools: {}, stopStream: () => {} }),
+    );
 
     await consumeStream(stream);
 
@@ -471,7 +486,9 @@ describe("addMarkdownSectionSeparators", () => {
   });
 
   it("streams separators without waiting for text-end", async () => {
-    let streamController!: ReadableStreamDefaultController<TextStreamPart<ToolSet>>;
+    let streamController!: ReadableStreamDefaultController<
+      TextStreamPart<ToolSet>
+    >;
 
     const source = new ReadableStream<TextStreamPart<ToolSet>>({
       start(controller) {

@@ -7,7 +7,10 @@ import type { TaskArgsMapTransformed, TaskConfig } from ".";
 import type { Store } from "../../../tinybase/main";
 import { getCustomPrompt } from "../../../tinybase/prompts";
 
-export const titleWorkflow: Pick<TaskConfig<"title">, "executeWorkflow" | "transforms"> = {
+export const titleWorkflow: Pick<
+  TaskConfig<"title">,
+  "executeWorkflow" | "transforms"
+> = {
   executeWorkflow,
   transforms: [],
 };
@@ -64,7 +67,10 @@ async function getSystemPrompt(args: TaskArgsMapTransformed["title"]) {
   return result.data;
 }
 
-async function getUserPrompt(args: TaskArgsMapTransformed["title"], store: Store) {
+async function getUserPrompt(
+  args: TaskArgsMapTransformed["title"],
+  store: Store,
+) {
   const { enhancedMd } = args;
   const ctx = { enhanced_note: enhancedMd };
 

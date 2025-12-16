@@ -13,7 +13,12 @@ export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = ({
   handleCloseOthers,
   handleCloseAll,
 }) => {
-  const title = main.UI.useCell("events", rowIdfromTab(tab), "title", main.STORE_ID);
+  const title = main.UI.useCell(
+    "events",
+    rowIdfromTab(tab),
+    "title",
+    main.STORE_ID,
+  );
 
   return (
     <TabItemBase
@@ -29,7 +34,11 @@ export const TabItemEvent: TabItem<Extract<Tab, { type: "events" }>> = ({
   );
 };
 
-export function TabContentEvent({ tab }: { tab: Extract<Tab, { type: "events" }> }) {
+export function TabContentEvent({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "events" }>;
+}) {
   const id = rowIdfromTab(tab);
   const event = main.UI.useRow("events", id, main.STORE_ID);
 

@@ -27,7 +27,11 @@ export const TabItemSettings: TabItem<Extract<Tab, { type: "settings" }>> = ({
   );
 };
 
-export function TabContentSettings({ tab: _tab }: { tab: Extract<Tab, { type: "settings" }> }) {
+export function TabContentSettings({
+  tab: _tab,
+}: {
+  tab: Extract<Tab, { type: "settings" }>;
+}) {
   return (
     <StandardTabWrapper>
       <div className="flex-1 w-full overflow-y-auto scrollbar-hide p-6">

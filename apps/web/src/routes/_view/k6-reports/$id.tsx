@@ -71,8 +71,13 @@ function Component() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16">
         <h1 className="text-2xl font-bold text-red-600">Error</h1>
-        <p className="text-neutral-600 mt-2">{(error as Error)?.message || "Report not found"}</p>
-        <Link to="/k6-reports" className="text-blue-600 hover:underline mt-4 inline-block">
+        <p className="text-neutral-600 mt-2">
+          {(error as Error)?.message || "Report not found"}
+        </p>
+        <Link
+          to="/k6-reports"
+          className="text-blue-600 hover:underline mt-4 inline-block"
+        >
           ← Back to reports
         </Link>
       </div>
@@ -90,7 +95,9 @@ function Component() {
       <div className="mt-4 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Load Test Report</h1>
-          <p className="text-neutral-500 mt-1">{new Date(report.timestamp).toLocaleString()}</p>
+          <p className="text-neutral-500 mt-1">
+            {new Date(report.timestamp).toLocaleString()}
+          </p>
         </div>
         {report.github && (
           <a
@@ -105,12 +112,17 @@ function Component() {
       </div>
 
       <div className="mt-8 grid grid-cols-3 gap-4">
-        <MetricCard label="Duration" value={formatDuration(report.duration_ms)} />
+        <MetricCard
+          label="Duration"
+          value={formatDuration(report.duration_ms)}
+        />
         <MetricCard label="Virtual Users" value={String(report.vus_max)} />
         <MetricCard
           label="Success Rate"
           value={`${(report.client.connections.success_rate * 100).toFixed(1)}%`}
-          status={report.client.connections.success_rate >= 0.95 ? "good" : "bad"}
+          status={
+            report.client.connections.success_rate >= 0.95 ? "good" : "bad"
+          }
         />
       </div>
 
@@ -125,13 +137,19 @@ function Component() {
                 value={report.client.connections.errors}
                 status={report.client.connections.errors === 0 ? "good" : "bad"}
               />
-              <Row label="Reconnects" value={report.client.connections.reconnects} />
+              <Row
+                label="Reconnects"
+                value={report.client.connections.reconnects}
+              />
             </dl>
           </div>
           <div>
             <h4 className="font-medium text-neutral-700 mb-2">Transcripts</h4>
             <dl className="space-y-1 text-sm">
-              <Row label="Received" value={report.client.transcripts.received} />
+              <Row
+                label="Received"
+                value={report.client.transcripts.received}
+              />
               <Row
                 label="First Latency (avg)"
                 value={`${report.client.transcripts.first_latency_avg_ms.toFixed(0)}ms`}
@@ -144,10 +162,18 @@ function Component() {
           </div>
         </div>
         <div className="mt-4">
-          <h4 className="font-medium text-neutral-700 mb-2">Connection Duration</h4>
+          <h4 className="font-medium text-neutral-700 mb-2">
+            Connection Duration
+          </h4>
           <dl className="space-y-1 text-sm">
-            <Row label="Average" value={formatDuration(report.client.connection_duration.avg_ms)} />
-            <Row label="P95" value={formatDuration(report.client.connection_duration.p95_ms)} />
+            <Row
+              label="Average"
+              value={formatDuration(report.client.connection_duration.avg_ms)}
+            />
+            <Row
+              label="P95"
+              value={formatDuration(report.client.connection_duration.p95_ms)}
+            />
           </dl>
         </div>
       </Section>
@@ -164,12 +190,13 @@ function Component() {
                     value={`avg ${(report.server.cpu_usage.avg * 100).toFixed(1)}%, max ${(report.server.cpu_usage.max * 100).toFixed(1)}%`}
                   />
                 )}
-                {report.server.memory_used_bytes && report.server.memory_total_bytes && (
-                  <Row
-                    label="Memory"
-                    value={`${formatBytes(report.server.memory_used_bytes.avg)} / ${formatBytes(report.server.memory_total_bytes.avg)}`}
-                  />
-                )}
+                {report.server.memory_used_bytes &&
+                  report.server.memory_total_bytes && (
+                    <Row
+                      label="Memory"
+                      value={`${formatBytes(report.server.memory_used_bytes.avg)} / ${formatBytes(report.server.memory_total_bytes.avg)}`}
+                    />
+                  )}
                 {report.server.concurrency && (
                   <Row
                     label="Concurrency"
@@ -182,10 +209,16 @@ function Component() {
               <h4 className="font-medium text-neutral-700 mb-2">Network</h4>
               <dl className="space-y-1 text-sm">
                 {report.server.net_recv_bytes && (
-                  <Row label="Received" value={formatBytes(report.server.net_recv_bytes.avg)} />
+                  <Row
+                    label="Received"
+                    value={formatBytes(report.server.net_recv_bytes.avg)}
+                  />
                 )}
                 {report.server.net_sent_bytes && (
-                  <Row label="Sent" value={formatBytes(report.server.net_sent_bytes.avg)} />
+                  <Row
+                    label="Sent"
+                    value={formatBytes(report.server.net_sent_bytes.avg)}
+                  />
                 )}
               </dl>
             </div>
@@ -222,7 +255,12 @@ function Section({
   className?: string;
 }) {
   return (
-    <section className={["bg-white border border-neutral-200 rounded-lg p-6", className].join(" ")}>
+    <section
+      className={[
+        "bg-white border border-neutral-200 rounded-lg p-6",
+        className,
+      ].join(" ")}
+    >
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       {children}
     </section>
@@ -244,7 +282,11 @@ function MetricCard({
       <div
         className={[
           "text-2xl font-bold mt-1",
-          status === "good" ? "text-green-600" : status === "bad" ? "text-red-600" : "",
+          status === "good"
+            ? "text-green-600"
+            : status === "bad"
+              ? "text-red-600"
+              : "",
         ].join(" ")}
       >
         {value}
@@ -268,7 +310,11 @@ function Row({
       <dd
         className={[
           "font-medium",
-          status === "good" ? "text-green-600" : status === "bad" ? "text-red-600" : "",
+          status === "good"
+            ? "text-green-600"
+            : status === "bad"
+              ? "text-red-600"
+              : "",
         ].join(" ")}
       >
         {value}

@@ -20,7 +20,8 @@ export const Enhanced = forwardRef<
   const isConfigError =
     llmStatus.status === "pending" ||
     (llmStatus.status === "error" &&
-      (llmStatus.reason === "missing_config" || llmStatus.reason === "unauthenticated"));
+      (llmStatus.reason === "missing_config" ||
+        llmStatus.reason === "unauthenticated"));
 
   if (status === "idle" && isConfigError) {
     return <ConfigError status={llmStatus} />;
@@ -34,5 +35,11 @@ export const Enhanced = forwardRef<
     return <StreamingView enhancedNoteId={enhancedNoteId} />;
   }
 
-  return <EnhancedEditor ref={ref} sessionId={sessionId} enhancedNoteId={enhancedNoteId} />;
+  return (
+    <EnhancedEditor
+      ref={ref}
+      sessionId={sessionId}
+      enhancedNoteId={enhancedNoteId}
+    />
+  );
 });

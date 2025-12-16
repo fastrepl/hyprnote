@@ -43,7 +43,9 @@ export function OrganizationDetailsColumn({
               <div className="flex-1">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <EditableOrganizationNameField organizationId={selectedOrganizationId} />
+                    <EditableOrganizationNameField
+                      organizationId={selectedOrganizationId}
+                    />
                     <p className="text-sm text-neutral-500 mt-1">
                       {peopleInOrg?.length ?? 0}{" "}
                       {(peopleInOrg?.length ?? 0) === 1 ? "person" : "people"}
@@ -56,7 +58,9 @@ export function OrganizationDetailsColumn({
 
           <div className="flex-1 overflow-y-auto">
             <div className="p-6">
-              <h3 className="text-sm font-medium text-neutral-600 mb-4">People</h3>
+              <h3 className="text-sm font-medium text-neutral-600 mb-4">
+                People
+              </h3>
               <div className="overflow-y-auto" style={{ maxHeight: "55vh" }}>
                 {(peopleInOrg?.length ?? 0) > 0 ? (
                   <div className="grid grid-cols-3 gap-4">
@@ -75,7 +79,10 @@ export function OrganizationDetailsColumn({
                           <div className="flex flex-col items-center text-center gap-3">
                             <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center flex-shrink-0">
                               <span className="text-sm font-medium text-neutral-600">
-                                {getInitials((human.name as string) || (human.email as string))}
+                                {getInitials(
+                                  (human.name as string) ||
+                                    (human.email as string),
+                                )}
                               </span>
                             </div>
                             <div className="w-full">
@@ -108,7 +115,9 @@ export function OrganizationDetailsColumn({
                                   size="icon"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    const v = String(human.linkedin_username ?? "");
+                                    const v = String(
+                                      human.linkedin_username ?? "",
+                                    );
                                     const href = /^https?:\/\//i.test(v)
                                       ? v
                                       : `https://www.linkedin.com/in/${v.replace(/^@/, "")}`;
@@ -126,7 +135,9 @@ export function OrganizationDetailsColumn({
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-neutral-500">No people in this organization</p>
+                  <p className="text-sm text-neutral-500">
+                    No people in this organization
+                  </p>
                 )}
               </div>
             </div>
@@ -134,7 +145,9 @@ export function OrganizationDetailsColumn({
             <div className="p-6">
               <div className="border border-red-200 rounded-lg overflow-hidden">
                 <div className="bg-red-50 px-4 py-3 border-b border-red-200">
-                  <h3 className="text-sm font-semibold text-red-900">Danger Zone</h3>
+                  <h3 className="text-sm font-semibold text-red-900">
+                    Danger Zone
+                  </h3>
                 </div>
                 <div className="bg-white p-4">
                   <div className="flex items-center justify-between">
@@ -142,7 +155,9 @@ export function OrganizationDetailsColumn({
                       <p className="text-sm font-medium text-neutral-900">
                         Delete this organization
                       </p>
-                      <p className="text-xs text-neutral-500 mt-1">This action cannot be undone</p>
+                      <p className="text-xs text-neutral-500 mt-1">
+                        This action cannot be undone
+                      </p>
                     </div>
                     <Button
                       onClick={(e) => {
@@ -165,15 +180,26 @@ export function OrganizationDetailsColumn({
         </>
       ) : (
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm text-neutral-500">Select an organization to view details</p>
+          <p className="text-sm text-neutral-500">
+            Select an organization to view details
+          </p>
         </div>
       )}
     </div>
   );
 }
 
-function EditableOrganizationNameField({ organizationId }: { organizationId: string }) {
-  const value = main.UI.useCell("organizations", organizationId, "name", main.STORE_ID);
+function EditableOrganizationNameField({
+  organizationId,
+}: {
+  organizationId: string;
+}) {
+  const value = main.UI.useCell(
+    "organizations",
+    organizationId,
+    "name",
+    main.STORE_ID,
+  );
 
   const handleChange = main.UI.useSetCellCallback(
     "organizations",

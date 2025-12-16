@@ -5,9 +5,15 @@ import { StrictMode, useMemo } from "react";
 import ReactDOM from "react-dom/client";
 import { Provider as TinyBaseProvider, useStores } from "tinybase/ui-react";
 import { createManager } from "tinytick";
-import { Provider as TinyTickProvider, useCreateManager } from "tinytick/ui-react";
+import {
+  Provider as TinyTickProvider,
+  useCreateManager,
+} from "tinytick/ui-react";
 
-import { getCurrentWebviewWindowLabel, init as initWindowsPlugin } from "@hypr/plugin-windows";
+import {
+  getCurrentWebviewWindowLabel,
+  init as initWindowsPlugin,
+} from "@hypr/plugin-windows";
 import "@hypr/ui/globals.css";
 
 import { ChangelogListener } from "./components/changelog-listener";
@@ -70,12 +76,15 @@ function App() {
   );
 }
 
-const isIframeContext = typeof window !== "undefined" && window.self !== window.top;
+const isIframeContext =
+  typeof window !== "undefined" && window.self !== window.top;
 
 if (!isIframeContext && env.VITE_SENTRY_DSN) {
   Sentry.init({
     dsn: env.VITE_SENTRY_DSN,
-    release: env.VITE_APP_VERSION ? `hyprnote-desktop@${env.VITE_APP_VERSION}` : undefined,
+    release: env.VITE_APP_VERSION
+      ? `hyprnote-desktop@${env.VITE_APP_VERSION}`
+      : undefined,
     environment: import.meta.env.MODE,
     tracePropagationTargets: [env.VITE_API_URL],
     integrations: [Sentry.browserTracingIntegration()],
@@ -89,7 +98,9 @@ function AppWithTiny() {
 
   // In iframe context, we're not the main window and shouldn't persist the store
   // (the parent window handles persistence, iframe syncs via postMessage)
-  const isMainWindow = isIframeContext ? false : getCurrentWebviewWindowLabel() === "main";
+  const isMainWindow = isIframeContext
+    ? false
+    : getCurrentWebviewWindowLabel() === "main";
 
   return (
     <QueryClientProvider client={queryClient}>

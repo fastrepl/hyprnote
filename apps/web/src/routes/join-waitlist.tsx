@@ -40,7 +40,10 @@ function Container({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <div className="mt-6 text-center">
-          <Link to="/" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+          <Link
+            to="/"
+            className="text-sm text-stone-600 hover:text-stone-900 transition-colors"
+          >
             Back to home
           </Link>
         </div>
@@ -57,7 +60,10 @@ function Header() {
       </h1>
       <p className="text-lg text-stone-600 mb-8 text-center">
         Hop on a 20 minute chat and get early access to beta features in{" "}
-        <Link to="/pricing" className="underline decoration-dotted hover:text-stone-800">
+        <Link
+          to="/pricing"
+          className="underline decoration-dotted hover:text-stone-800"
+        >
           Hyprnote Pro
         </Link>
       </p>

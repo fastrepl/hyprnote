@@ -67,7 +67,8 @@ function Component() {
     todo: {
       label: "To Do",
       icon: "mdi:calendar-clock",
-      className: "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
+      className:
+        "bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900",
     },
   };
 
@@ -160,7 +161,9 @@ function Component() {
           </div>
 
           <div className="mt-12 pt-8 border-t border-neutral-100">
-            <h3 className="text-xl font-serif text-stone-600 mb-6">Related GitHub Issues</h3>
+            <h3 className="text-xl font-serif text-stone-600 mb-6">
+              Related GitHub Issues
+            </h3>
             {item.githubIssues && item.githubIssues.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {item.githubIssues.map((url) => (
@@ -168,7 +171,9 @@ function Component() {
                 ))}
               </div>
             ) : (
-              <p className="text-neutral-400 text-sm">No related GitHub issues yet</p>
+              <p className="text-neutral-400 text-sm">
+                No related GitHub issues yet
+              </p>
             )}
           </div>
         </article>

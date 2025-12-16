@@ -5,7 +5,8 @@ import { cn } from "@hypr/utils";
 import { MockWindow } from "@/components/mock-window";
 
 const TITLE = "Press Kit - Hyprnote";
-const DESCRIPTION = "Download Hyprnote press materials, logos, screenshots, and brand assets.";
+const DESCRIPTION =
+  "Download Hyprnote press materials, logos, screenshots, and brand assets.";
 
 export const Route = createFileRoute("/_view/press-kit/")({
   component: Component,
@@ -49,8 +50,8 @@ function Component() {
               Press Kit
             </h1>
             <p className="text-lg sm:text-xl text-neutral-600">
-              Download press materials, logos, screenshots, and learn more about Hyprnote. For press
-              inquiries, contact us at{" "}
+              Download press materials, logos, screenshots, and learn more about
+              Hyprnote. For press inquiries, contact us at{" "}
               <a
                 href="mailto:founders@hyprnote.com"
                 className="text-stone-600 underline hover:text-stone-700"
@@ -87,7 +88,9 @@ function Component() {
                     />
                     <div className="invisible">
                       <div className="mb-3 w-16 h-16"></div>
-                      <div className="font-medium text-stone-600">Placeholder</div>
+                      <div className="font-medium text-stone-600">
+                        Placeholder
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -117,14 +120,18 @@ function Component() {
                     />
                     <div className="invisible">
                       <div className="mb-3 w-16 h-16"></div>
-                      <div className="font-medium text-stone-600">Placeholder</div>
+                      <div className="font-medium text-stone-600">
+                        Placeholder
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
-                <span className="text-xs text-neutral-500">7 items, 2 groups</span>
+                <span className="text-xs text-neutral-500">
+                  7 items, 2 groups
+                </span>
               </div>
             </MockWindow>
           </div>
@@ -213,7 +220,12 @@ function FinderAction({
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+      >
         {content}
       </a>
     );

@@ -28,7 +28,8 @@ export const CustomListKeymap = ListKeymap.extend({
 
       const currentNode = $from.parent;
       const isEmptyParagraph =
-        currentNode.type === schema.nodes.paragraph && currentNode.content.size === 0;
+        currentNode.type === schema.nodes.paragraph &&
+        currentNode.content.size === 0;
 
       if (isEmptyParagraph) {
         const posBefore = $from.before();
@@ -109,11 +110,16 @@ export const CustomListKeymap = ListKeymap.extend({
           return false;
         }
 
-        if (isNodeActive(state, listNodeType.name) && selection.$from.parent.content.size === 0) {
+        if (
+          isNodeActive(state, listNodeType.name) &&
+          selection.$from.parent.content.size === 0
+        ) {
           return editor.chain().liftListItem(listNodeType.name).run();
         }
 
-        return originalShortcuts.Enter ? originalShortcuts.Enter({ editor }) : false;
+        return originalShortcuts.Enter
+          ? originalShortcuts.Enter({ editor })
+          : false;
       },
 
       Backspace: ({ editor }) => {

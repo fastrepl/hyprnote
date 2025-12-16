@@ -28,9 +28,12 @@ export const generateEnhancedMarkdown = () => {
     current.push(`## ${heading}`);
 
     const bulletCount = faker.number.int({ min: 2, max: 5 });
-    const bullets = faker.helpers.multiple(() => `- ${faker.lorem.sentence()}`, {
-      count: bulletCount,
-    });
+    const bullets = faker.helpers.multiple(
+      () => `- ${faker.lorem.sentence()}`,
+      {
+        count: bulletCount,
+      },
+    );
     current.push(bullets.join("\n"));
     sections.push(current.join("\n"));
   }
@@ -43,7 +46,10 @@ export const createSession = (
   folderId?: string,
 ): { id: string; data: SessionStorage } => {
   const title = generateTitle();
-  const raw_md = faker.lorem.paragraphs(faker.number.int({ min: 2, max: 5 }), "\n\n");
+  const raw_md = faker.lorem.paragraphs(
+    faker.number.int({ min: 2, max: 5 }),
+    "\n\n",
+  );
   const enhanced_md = generateEnhancedMarkdown();
 
   return {

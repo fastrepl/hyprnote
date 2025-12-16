@@ -56,7 +56,10 @@ export function UploadArea({
       />
       <label
         htmlFor="file-upload"
-        className={cn(["flex flex-col items-center gap-4", !disabled && "cursor-pointer"])}
+        className={cn([
+          "flex flex-col items-center gap-4",
+          !disabled && "cursor-pointer",
+        ])}
       >
         <Upload className="text-neutral-400" size={48} />
         <div>

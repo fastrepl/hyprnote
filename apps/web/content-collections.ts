@@ -8,7 +8,9 @@ import { z } from "zod";
 
 import { VersionPlatform } from "@/scripts/versioning";
 
-function extractToc(content: string): Array<{ id: string; text: string; level: number }> {
+function extractToc(
+  content: string,
+): Array<{ id: string; text: string; level: number }> {
   const toc: Array<{ id: string; text: string; level: number }> = [];
   const lines = content.split("\n");
 
@@ -46,7 +48,12 @@ const articles = defineCollection({
     featured: z.boolean().optional(),
     published: z.boolean().default(false),
     category: z
-      .enum(["Case Study", "Hyprnote Weekly", "Productivity Hack", "Engineering"])
+      .enum([
+        "Case Study",
+        "Hyprnote Weekly",
+        "Productivity Hack",
+        "Engineering",
+      ])
       .optional(),
   }),
   transform: async (document, context) => {
@@ -521,7 +528,8 @@ const roadmap = defineCollection({
 
     const slug = document._meta.path.replace(/\.mdx$/, "");
 
-    const githubIssueRegex = /https:\/\/github\.com\/[^\/\s]+\/[^\/\s]+\/issues\/\d+/g;
+    const githubIssueRegex =
+      /https:\/\/github\.com\/[^\/\s]+\/[^\/\s]+\/issues\/\d+/g;
     const githubIssues = document.content.match(githubIssueRegex) || [];
 
     return {
@@ -599,7 +607,9 @@ const handbook = defineCollection({
 
     const cleanFileName = fileName.replace(/^\d+\./, "");
     const cleanPath =
-      pathParts.length > 0 ? `${pathParts.join("/")}/${cleanFileName}` : cleanFileName;
+      pathParts.length > 0
+        ? `${pathParts.join("/")}/${cleanFileName}`
+        : cleanFileName;
     const slug = cleanPath;
 
     return {

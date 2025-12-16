@@ -43,7 +43,11 @@ export function MenuItem({
           ) : (
             badge
           ))}
-        {SuffixIcon && <SuffixIcon className={cn("h-4 w-4 flex-shrink-0", "text-neutral-400")} />}
+        {SuffixIcon && (
+          <SuffixIcon
+            className={cn("h-4 w-4 flex-shrink-0", "text-neutral-400")}
+          />
+        )}
       </button>
     </div>
   );

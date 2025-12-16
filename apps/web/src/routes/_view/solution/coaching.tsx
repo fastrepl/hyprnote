@@ -124,8 +124,9 @@ function HeroSection() {
             AI-powered meeting notes
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
-            Be fully present with your clients while Hyprnote captures every insight, tracks
-            progress, and helps you deliver transformational coaching.
+            Be fully present with your clients while Hyprnote captures every
+            insight, tracks progress, and helps you deliver transformational
+            coaching.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -163,7 +164,8 @@ function FeaturesSection() {
           Built for coaching excellence
         </h2>
         <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          Every feature designed to help you be fully present and deliver transformational results.
+          Every feature designed to help you be fully present and deliver
+          transformational results.
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature) => (
@@ -171,8 +173,12 @@ function FeaturesSection() {
               <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center">
                 <Icon icon={feature.icon} className="text-2xl text-stone-600" />
               </div>
-              <h3 className="text-lg font-medium text-stone-700">{feature.title}</h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">{feature.description}</p>
+              <h3 className="text-lg font-medium text-stone-700">
+                {feature.title}
+              </h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">
+                {feature.description}
+              </p>
             </div>
           ))}
         </div>
@@ -189,14 +195,21 @@ function UseCasesSection() {
           For every coaching practice
         </h2>
         <p className="text-neutral-600 text-center mb-12 max-w-2xl mx-auto">
-          Whatever your coaching specialty, Hyprnote helps you capture and leverage every client
-          session.
+          Whatever your coaching specialty, Hyprnote helps you capture and
+          leverage every client session.
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           {useCases.map((useCase) => (
-            <div key={useCase.title} className="bg-white p-6 rounded-xl border border-neutral-100">
-              <h3 className="text-lg font-medium text-stone-700 mb-2">{useCase.title}</h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">{useCase.description}</p>
+            <div
+              key={useCase.title}
+              className="bg-white p-6 rounded-xl border border-neutral-100"
+            >
+              <h3 className="text-lg font-medium text-stone-700 mb-2">
+                {useCase.title}
+              </h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">
+                {useCase.description}
+              </p>
             </div>
           ))}
         </div>
@@ -209,7 +222,9 @@ function CTASection() {
   return (
     <section className="px-6 py-16 border-t border-neutral-100">
       <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">Ready to amplify your impact?</h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          Ready to amplify your impact?
+        </h2>
         <p className="text-neutral-600 mb-8">
           Join coaches who are transforming lives with AI-powered meeting notes.
         </p>

@@ -4,7 +4,9 @@ type Sortable = {
   displayName: string;
 };
 
-export function sortProviders<T extends Sortable>(providers: readonly T[]): T[] {
+export function sortProviders<T extends Sortable>(
+  providers: readonly T[],
+): T[] {
   return [...providers].sort((a, b) => {
     if (a.id === "hyprnote") return -1;
     if (b.id === "hyprnote") return 1;

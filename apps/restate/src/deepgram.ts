@@ -33,7 +33,9 @@ export const DeepgramCallback = z.object({
       channels: z
         .array(
           z.object({
-            alternatives: z.array(z.object({ transcript: z.string() })).optional(),
+            alternatives: z
+              .array(z.object({ transcript: z.string() }))
+              .optional(),
           }),
         )
         .optional(),
@@ -62,11 +64,12 @@ export async function transcribeWithCallback(
   apiKey: string,
 ): Promise<string> {
   const client = createClient(apiKey);
-  const { result, error } = await client.listen.prerecorded.transcribeUrlCallback(
-    { url: audioUrl },
-    new CallbackUrl(callbackUrl),
-    { model: "nova-3", smart_format: true },
-  );
+  const { result, error } =
+    await client.listen.prerecorded.transcribeUrlCallback(
+      { url: audioUrl },
+      new CallbackUrl(callbackUrl),
+      { model: "nova-3", smart_format: true },
+    );
 
   if (error) {
     let code: string | undefined;

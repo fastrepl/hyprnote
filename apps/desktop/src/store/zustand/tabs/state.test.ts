@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import { type Tab, useTabs } from ".";
 import "./test-matchers";
-import { createContactsTab, createSessionTab, resetTabsStore } from "./test-utils";
+import {
+  createContactsTab,
+  createSessionTab,
+  resetTabsStore,
+} from "./test-utils";
 
 describe("State Updater Actions", () => {
   beforeEach(() => {
@@ -63,7 +67,9 @@ describe("State Updater Actions", () => {
       useTabs.getState().openNew(session);
       useTabs.getState().openNew(contacts);
 
-      useTabs.getState().updateSessionTabState(contacts as Tab, { editor: "enhanced" } as any);
+      useTabs
+        .getState()
+        .updateSessionTabState(contacts as Tab, { editor: "enhanced" } as any);
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({
@@ -117,7 +123,9 @@ describe("State Updater Actions", () => {
       useTabs.getState().openNew(contacts);
 
       const otherInstance = createContactsTab({ active: true });
-      useTabs.getState().updateContactsTabState(otherInstance, newContactsState);
+      useTabs
+        .getState()
+        .updateContactsTabState(otherInstance, newContactsState);
 
       const state = useTabs.getState();
       expect(state.tabs[0]).toMatchObject({ state: newContactsState });

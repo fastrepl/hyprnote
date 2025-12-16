@@ -16,7 +16,11 @@ export function ChatTrigger({ onClick }: { onClick: () => void }) {
         "hover:scale-105",
       ])}
     >
-      <img src="/assets/dynamic.gif" alt="Chat Assistant" className="w-12 h-12 object-contain" />
+      <img
+        src="/assets/dynamic.gif"
+        alt="Chat Assistant"
+        className="w-12 h-12 object-contain"
+      />
     </button>,
     document.body,
   );

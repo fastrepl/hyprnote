@@ -13,7 +13,10 @@ export function DeeplinksList() {
   return (
     <div className="space-y-10 mt-6">
       {deeplinks.map((deeplink) => (
-        <section key={deeplink.slug} className="border-t pt-2 first:border-t-0 first:pt-0">
+        <section
+          key={deeplink.slug}
+          className="border-t pt-2 first:border-t-0 first:pt-0"
+        >
           <div className="space-y-1">
             <h2
               id={deeplink.path}
@@ -22,7 +25,9 @@ export function DeeplinksList() {
               {deeplink.path}
             </h2>
             {deeplink.description && (
-              <p className="text-neutral-600 leading-relaxed">{deeplink.description}</p>
+              <p className="text-neutral-600 leading-relaxed">
+                {deeplink.description}
+              </p>
             )}
           </div>
 

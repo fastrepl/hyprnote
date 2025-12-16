@@ -3,7 +3,11 @@ import React, { useState } from "react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { Input } from "@hypr/ui/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 import * as main from "../../../../store/tinybase/main";
@@ -18,7 +22,11 @@ export function DetailsColumn({
   handleDeletePerson: (id: string) => void;
   handleSessionClick: (id: string) => void;
 }) {
-  const selectedPersonData = main.UI.useRow("humans", selectedHumanId ?? "", main.STORE_ID);
+  const selectedPersonData = main.UI.useRow(
+    "humans",
+    selectedHumanId ?? "",
+    main.STORE_ID,
+  );
 
   const mappingIdsByHuman = main.UI.useSliceRowIds(
     main.INDEXES.sessionsByHuman,
@@ -26,7 +34,10 @@ export function DetailsColumn({
     main.STORE_ID,
   );
 
-  const allMappings = main.UI.useTable("mapping_session_participant", main.STORE_ID);
+  const allMappings = main.UI.useTable(
+    "mapping_session_participant",
+    main.STORE_ID,
+  );
   const allSessions = main.UI.useTable("sessions", main.STORE_ID);
 
   const personSessions = React.useMemo(() => {
@@ -52,7 +63,10 @@ export function DetailsColumn({
           ...session,
         };
       })
-      .filter((session: any): session is NonNullable<typeof session> => session !== null);
+      .filter(
+        (session: any): session is NonNullable<typeof session> =>
+          session !== null,
+      );
   }, [mappingIdsByHuman, allMappings, allSessions]);
 
   return (
@@ -63,7 +77,9 @@ export function DetailsColumn({
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
                 <span className="text-lg font-medium text-neutral-600">
-                  {getInitials(selectedPersonData.name || selectedPersonData.email)}
+                  {getInitials(
+                    selectedPersonData.name || selectedPersonData.email,
+                  )}
                 </span>
               </div>
               <div className="flex-1">
@@ -99,19 +115,24 @@ export function DetailsColumn({
 
             {personSessions.length > 0 && (
               <div className="p-6 border-b border-neutral-200">
-                <h3 className="text-sm font-medium text-neutral-600 mb-3">Summary</h3>
+                <h3 className="text-sm font-medium text-neutral-600 mb-3">
+                  Summary
+                </h3>
                 <div className="p-4 rounded-lg bg-neutral-50 border border-neutral-200">
                   <p className="text-sm text-neutral-700 leading-relaxed">
-                    AI-generated summary of all interactions and notes with this contact will appear
-                    here. This will synthesize key discussion points, action items, and relationship
-                    context across all meetings and notes.
+                    AI-generated summary of all interactions and notes with this
+                    contact will appear here. This will synthesize key
+                    discussion points, action items, and relationship context
+                    across all meetings and notes.
                   </p>
                 </div>
               </div>
             )}
 
             <div className="p-6">
-              <h3 className="text-sm font-medium text-neutral-600 mb-4">Related Notes</h3>
+              <h3 className="text-sm font-medium text-neutral-600 mb-4">
+                Related Notes
+              </h3>
               <div className="space-y-2">
                 {personSessions.length > 0 ? (
                   personSessions.map((session: any) => (
@@ -139,7 +160,9 @@ export function DetailsColumn({
                     </button>
                   ))
                 ) : (
-                  <p className="text-sm text-neutral-500">No related notes found</p>
+                  <p className="text-sm text-neutral-500">
+                    No related notes found
+                  </p>
                 )}
               </div>
             </div>
@@ -148,12 +171,16 @@ export function DetailsColumn({
               <div className="p-6">
                 <div className="border border-red-200 rounded-lg overflow-hidden">
                   <div className="bg-red-50 px-4 py-3 border-b border-red-200">
-                    <h3 className="text-sm font-semibold text-red-900">Danger Zone</h3>
+                    <h3 className="text-sm font-semibold text-red-900">
+                      Danger Zone
+                    </h3>
                   </div>
                   <div className="bg-white p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-neutral-900">Delete this contact</p>
+                        <p className="text-sm font-medium text-neutral-900">
+                          Delete this contact
+                        </p>
                         <p className="text-xs text-neutral-500 mt-1">
                           This action cannot be undone
                         </p>
@@ -180,7 +207,9 @@ export function DetailsColumn({
         </>
       ) : (
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm text-neutral-500">Select a person to view details</p>
+          <p className="text-sm text-neutral-500">
+            Select a person to view details
+          </p>
         </div>
       )}
     </div>
@@ -265,7 +294,12 @@ function EditablePersonEmailField({ personId }: { personId: string }) {
 }
 
 function EditablePersonLinkedInField({ personId }: { personId: string }) {
-  const value = main.UI.useCell("humans", personId, "linkedin_username", main.STORE_ID);
+  const value = main.UI.useCell(
+    "humans",
+    personId,
+    "linkedin_username",
+    main.STORE_ID,
+  );
 
   const handleChange = main.UI.useSetCellCallback(
     "humans",
@@ -321,8 +355,14 @@ function EditablePersonMemoField({ personId }: { personId: string }) {
 
 function EditPersonOrganizationSelector({ personId }: { personId: string }) {
   const [open, setOpen] = useState(false);
-  const orgId = main.UI.useCell("humans", personId, "org_id", main.STORE_ID) as string | null;
-  const organization = main.UI.useRow("organizations", orgId ?? "", main.STORE_ID);
+  const orgId = main.UI.useCell("humans", personId, "org_id", main.STORE_ID) as
+    | string
+    | null;
+  const organization = main.UI.useRow(
+    "organizations",
+    orgId ?? "",
+    main.STORE_ID,
+  );
 
   const handleChange = main.UI.useSetCellCallback(
     "humans",
@@ -355,13 +395,18 @@ function EditPersonOrganizationSelector({ personId }: { personId: string }) {
               </span>
             </div>
           ) : (
-            <span className="text-neutral-400 text-base">Select organization</span>
+            <span className="text-neutral-400 text-base">
+              Select organization
+            </span>
           )}
         </div>
       </PopoverTrigger>
 
       <PopoverContent className="shadow-lg p-3" align="start" side="bottom">
-        <OrganizationControl onChange={handleChange} closePopover={() => setOpen(false)} />
+        <OrganizationControl
+          onChange={handleChange}
+          closePopover={() => setOpen(false)}
+        />
       </PopoverContent>
     </Popover>
   );
@@ -381,10 +426,12 @@ function OrganizationControl({
     main.STORE_ID,
   );
 
-  const allOrganizations = Object.entries(organizationsData).map(([id, data]) => ({
-    id,
-    ...(data as any),
-  }));
+  const allOrganizations = Object.entries(organizationsData).map(
+    ([id, data]) => ({
+      id,
+      ...(data as any),
+    }),
+  );
 
   const organizations = searchTerm.trim()
     ? allOrganizations.filter((org: any) =>

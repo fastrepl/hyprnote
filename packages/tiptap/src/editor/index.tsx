@@ -54,16 +54,19 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
   ) => {
     const previousContentRef = useRef<JSONContent>(initialContent);
 
-    const onUpdate = useDebounceCallback(({ editor }: { editor: TiptapEditor }) => {
-      if (!editor.isInitialized || !handleChange) {
-        return;
-      }
+    const onUpdate = useDebounceCallback(
+      ({ editor }: { editor: TiptapEditor }) => {
+        if (!editor.isInitialized || !handleChange) {
+          return;
+        }
 
-      safeRequestIdleCallback(() => {
-        const content = editor.getJSON();
-        handleChange(content);
-      });
-    }, 500);
+        safeRequestIdleCallback(() => {
+          const content = editor.getJSON();
+          handleChange(content);
+        });
+      },
+      500,
+    );
 
     const extensions = useMemo(
       () => [
@@ -79,7 +82,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
         scrollMargin: 32,
         handleKeyDown: (view, event) => {
           const allowedGlobalShortcuts = ["w", "n", "t", ",", "j", "l", "k"];
-          if ((event.metaKey || event.ctrlKey) && allowedGlobalShortcuts.includes(event.key)) {
+          if (
+            (event.metaKey || event.ctrlKey) &&
+            allowedGlobalShortcuts.includes(event.key)
+          ) {
             return false;
           }
 
@@ -94,7 +100,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
 
           if (event.key === "Tab") {
             const { state } = view;
-            const isInListItem = isNodeActive(state, "listItem") || isNodeActive(state, "taskItem");
+            const isInListItem =
+              isNodeActive(state, "listItem") ||
+              isNodeActive(state, "taskItem");
             if (isInListItem) {
               return false;
             }
@@ -137,7 +145,10 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
     }, [editor]);
 
     useEffect(() => {
-      if (editor && (setContentFromOutside || previousContentRef.current !== initialContent)) {
+      if (
+        editor &&
+        (setContentFromOutside || previousContentRef.current !== initialContent)
+      ) {
         previousContentRef.current = initialContent;
         if (setContentFromOutside) {
           const { from, to } = editor.state.selection;
@@ -164,7 +175,9 @@ const Editor = forwardRef<{ editor: TiptapEditor | null }, EditorProps>(
       }
     }, [editor, editable]);
 
-    return <EditorContent editor={editor} className="tiptap-root" role="textbox" />;
+    return (
+      <EditorContent editor={editor} className="tiptap-root" role="textbox" />
+    );
   },
 );
 

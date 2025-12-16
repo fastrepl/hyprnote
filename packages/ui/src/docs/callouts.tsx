@@ -16,7 +16,9 @@ export function Info({ children, className }: CalloutProps) {
       ])}
     >
       <InfoIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-stone-600 dark:text-stone-400" />
-      <div className="flex-1 text-sm text-stone-700 dark:text-stone-300">{children}</div>
+      <div className="flex-1 text-sm text-stone-700 dark:text-stone-300">
+        {children}
+      </div>
     </div>
   );
 }
@@ -30,7 +32,9 @@ export function Note({ children, className }: CalloutProps) {
       ])}
     >
       <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-neutral-600 dark:text-neutral-400" />
-      <div className="flex-1 text-sm text-neutral-700 dark:text-neutral-300">{children}</div>
+      <div className="flex-1 text-sm text-neutral-700 dark:text-neutral-300">
+        {children}
+      </div>
     </div>
   );
 }
@@ -44,7 +48,9 @@ export function Tip({ children, className }: CalloutProps) {
       ])}
     >
       <Lightbulb className="mt-0.5 h-4 w-4 flex-shrink-0 text-stone-600 dark:text-stone-400" />
-      <div className="flex-1 text-sm text-stone-700 dark:text-stone-300">{children}</div>
+      <div className="flex-1 text-sm text-stone-700 dark:text-stone-300">
+        {children}
+      </div>
     </div>
   );
 }

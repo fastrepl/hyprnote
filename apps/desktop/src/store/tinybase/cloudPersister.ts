@@ -102,7 +102,9 @@ const useCloudLoader = () => {
 
   const load = useCallback(async () => {
     const steams = main.TABLES.map((table) => {
-      const metaRow = Object.values(metaTable).find((row) => row.table === table);
+      const metaRow = Object.values(metaTable).find(
+        (row) => row.table === table,
+      );
 
       const resumable: {
         offset?: Offset;
@@ -140,7 +142,9 @@ const useCloudLoader = () => {
           const unsubscribe = stream.subscribe(
             (batch) => {
               messages.push(
-                ...(batch.filter((msg) => !msg.headers?.control) as IncomingChangeMessage[]),
+                ...(batch.filter(
+                  (msg) => !msg.headers?.control,
+                ) as IncomingChangeMessage[]),
               );
 
               if (batch.some((msg) => msg.headers?.control === "up-to-date")) {

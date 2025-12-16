@@ -1,6 +1,9 @@
 import { SearchXIcon } from "lucide-react";
 
-import { type GroupedSearchResults, useSearch } from "../../../../contexts/search/ui";
+import {
+  type GroupedSearchResults,
+  useSearch,
+} from "../../../../contexts/search/ui";
 import { SearchResultGroup } from "./group";
 
 export function SearchResults() {
@@ -19,7 +22,13 @@ export function SearchResults() {
   );
 }
 
-function SearchYesResults({ results, query }: { results: GroupedSearchResults; query: string }) {
+function SearchYesResults({
+  results,
+  query,
+}: {
+  results: GroupedSearchResults;
+  query: string;
+}) {
   return (
     <div className="h-full overflow-y-auto">
       <div className="px-3 py-3">
@@ -38,14 +47,21 @@ function SearchYesResults({ results, query }: { results: GroupedSearchResults; q
   );
 }
 
-function SearchNoResults({ query }: { query: string; setQuery: (query: string) => void }) {
+function SearchNoResults({
+  query,
+}: {
+  query: string;
+  setQuery: (query: string) => void;
+}) {
   return (
     <div className="h-full flex items-center justify-center">
       <div className="text-center px-4 max-w-xs">
         <div className="flex justify-center mb-3">
           <SearchXIcon className="h-10 w-10 text-neutral-300" />
         </div>
-        <p className="text-sm font-medium text-neutral-700">No results found for "{query}"</p>
+        <p className="text-sm font-medium text-neutral-700">
+          No results found for "{query}"
+        </p>
         <p className="text-xs text-neutral-500 mt-2 leading-relaxed underline">
           Help us improve search
         </p>

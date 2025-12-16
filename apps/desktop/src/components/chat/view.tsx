@@ -17,7 +17,8 @@ export function ChatView() {
   const { groupId, setGroupId } = chat;
   const { currentTab } = useTabs();
 
-  const attachedSessionId = currentTab?.type === "sessions" ? currentTab.id : undefined;
+  const attachedSessionId =
+    currentTab?.type === "sessions" ? currentTab.id : undefined;
 
   const stableSessionId = useStableSessionId(groupId);
   const model = useLanguageModel();
@@ -67,7 +68,11 @@ export function ChatView() {
   );
 
   const handleSendMessage = useCallback(
-    (content: string, parts: any[], sendMessage: (message: HyprUIMessage) => void) => {
+    (
+      content: string,
+      parts: any[],
+      sendMessage: (message: HyprUIMessage) => void,
+    ) => {
       const messageId = id();
       const uiMessage: HyprUIMessage = {
         id: messageId,
@@ -186,7 +191,9 @@ function ChatViewContent({
       />
       <ChatMessageInput
         disabled={!model || status !== "ready"}
-        onSendMessage={(content, parts) => handleSendMessage(content, parts, sendMessage)}
+        onSendMessage={(content, parts) =>
+          handleSendMessage(content, parts, sendMessage)
+        }
         attachedSession={attachedSession}
       />
     </>

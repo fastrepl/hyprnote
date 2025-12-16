@@ -9,7 +9,13 @@ import {
   UsersIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
@@ -216,7 +222,9 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
                         duration: 0.2,
                         ease: "easeInOut",
                       }}
-                      style={mainViewHeight ? { height: mainViewHeight } : undefined}
+                      style={
+                        mainViewHeight ? { height: mainViewHeight } : undefined
+                      }
                     >
                       <NotificationsMenuContent onBack={handleBackToMain} />
                     </motion.div>
@@ -229,13 +237,22 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
       </AnimatePresence>
 
       <div className="bg-neutral-50 rounded-xl overflow-hidden">
-        <ProfileButton isExpanded={isExpanded} onClick={() => setIsExpanded(!isExpanded)} />
+        <ProfileButton
+          isExpanded={isExpanded}
+          onClick={() => setIsExpanded(!isExpanded)}
+        />
       </div>
     </div>
   );
 }
 
-function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: () => void }) {
+function ProfileButton({
+  isExpanded,
+  onClick,
+}: {
+  isExpanded: boolean;
+  onClick: () => void;
+}) {
   const auth = useAuth();
   const name = useMyName(auth?.session?.user.email);
 
@@ -270,7 +287,11 @@ function ProfileButton({ isExpanded, onClick }: { isExpanded: boolean; onClick: 
         ])}
       >
         {profile.data && (
-          <img src={profile.data} alt="Profile" className="h-full w-full rounded-full" />
+          <img
+            src={profile.data}
+            alt="Profile"
+            className="h-full w-full rounded-full"
+          />
         )}
       </div>
       <div className="min-w-0 flex-1">

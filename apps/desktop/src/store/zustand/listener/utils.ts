@@ -1,4 +1,7 @@
-export function fixSpacingForWords(words: string[], transcript: string): string[] {
+export function fixSpacingForWords(
+  words: string[],
+  transcript: string,
+): string[] {
   const result: string[] = [];
   let pos = 0;
 

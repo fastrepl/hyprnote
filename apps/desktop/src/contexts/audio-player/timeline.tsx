@@ -5,7 +5,8 @@ import { cn } from "@hypr/utils";
 import { useAudioPlayer } from "./provider";
 
 export function Timeline() {
-  const { registerContainer, state, pause, resume, start, time } = useAudioPlayer();
+  const { registerContainer, state, pause, resume, start, time } =
+    useAudioPlayer();
 
   const handleClick = () => {
     if (state === "playing") {
@@ -19,7 +20,13 @@ export function Timeline() {
 
   return (
     <div className={cn(["w-full", "bg-neutral-50 rounded-lg"])}>
-      <div className={cn(["flex items-center gap-2.5", "px-4 py-2", "w-full max-w-full"])}>
+      <div
+        className={cn([
+          "flex items-center gap-2.5",
+          "px-4 py-2",
+          "w-full max-w-full",
+        ])}
+      >
         <button
           onClick={handleClick}
           className={cn([
@@ -31,9 +38,15 @@ export function Timeline() {
           ])}
         >
           {state === "playing" ? (
-            <Pause className={cn(["w-4 h-4", "text-neutral-900"])} fill="currentColor" />
+            <Pause
+              className={cn(["w-4 h-4", "text-neutral-900"])}
+              fill="currentColor"
+            />
           ) : (
-            <Play className={cn(["w-4 h-4", "text-neutral-900"])} fill="currentColor" />
+            <Play
+              className={cn(["w-4 h-4", "text-neutral-900"])}
+              fill="currentColor"
+            />
           )}
         </button>
 

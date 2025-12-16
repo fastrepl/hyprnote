@@ -13,7 +13,10 @@ import type { VFile } from "vfile";
 import * as main from "../store/tinybase/main";
 
 export function useKeywords(sessionId: string) {
-  const vocabsTable = main.UI.useResultTable(main.QUERIES.visibleVocabs, main.STORE_ID);
+  const vocabsTable = main.UI.useResultTable(
+    main.QUERIES.visibleVocabs,
+    main.STORE_ID,
+  );
   const rawMd = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
 
   return useMemo(() => {
@@ -54,7 +57,9 @@ export const extractKeywordsFromMarkdown = (
     Effect.runSync,
   );
 
-const processMarkdown = (markdown: string): Effect.Effect<VFile, UnknownException, never> =>
+const processMarkdown = (
+  markdown: string,
+): Effect.Effect<VFile, UnknownException, never> =>
   Effect.try(() =>
     unified()
       .use(retextEnglish)
@@ -81,7 +86,9 @@ const gatherKeywords = (
   );
 
   return {
-    keywords: [...hashtags, ...keywords].filter((keyword) => keyword.length >= 2),
+    keywords: [...hashtags, ...keywords].filter(
+      (keyword) => keyword.length >= 2,
+    ),
     keyphrases: keyphrases.filter((phrase) => phrase.length >= 2),
   };
 };
@@ -98,7 +105,9 @@ const extractKeyphraseMatches = (phrase: Keyphrase): string[] =>
     return text.length > 0 ? [text] : [];
   });
 
-const extractVocabs = (vocabsTable: Record<string, { text?: unknown }>): string[] =>
+const extractVocabs = (
+  vocabsTable: Record<string, { text?: unknown }>,
+): string[] =>
   Object.values(vocabsTable).flatMap(({ text }) =>
     pipe(
       Option.fromNullable(text),
@@ -113,12 +122,17 @@ const extractVocabs = (vocabsTable: Record<string, { text?: unknown }>): string[
   );
 
 const combineKeywords = (vocabs: string[], markdownWords: string[]): string[] =>
-  Array.from(new Set([...vocabs, ...markdownWords])).filter((keyword) => keyword.length >= 2);
+  Array.from(new Set([...vocabs, ...markdownWords])).filter(
+    (keyword) => keyword.length >= 2,
+  );
 
 const removeCodeBlocks = (text: string): string =>
   text.replace(/```[\s\S]*?```/g, "").replace(/`[^`]+`/g, "");
 
 const extractHashtags = (text: string): string[] =>
-  Array.from(text.matchAll(/#([\p{L}\p{N}_]+)/gu), (match) => match[1]).filter(Boolean);
+  Array.from(text.matchAll(/#([\p{L}\p{N}_]+)/gu), (match) => match[1]).filter(
+    Boolean,
+  );
 
-const stripMarkdownFormatting = (text: string): string => text.replace(/[#*_~`\[\]()]/g, " ");
+const stripMarkdownFormatting = (text: string): string =>
+  text.replace(/[#*_~`\[\]()]/g, " ");

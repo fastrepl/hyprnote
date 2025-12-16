@@ -22,8 +22,12 @@ export function ResourcePreviewHeader({
     <div className="px-6 py-4 border-b border-neutral-200">
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-semibold truncate">{title || "Untitled"}</h2>
-          {description && <p className="text-sm text-neutral-500 mt-1">{description}</p>}
+          <h2 className="text-lg font-semibold truncate">
+            {title || "Untitled"}
+          </h2>
+          {description && (
+            <p className="text-sm text-neutral-500 mt-1">{description}</p>
+          )}
         </div>
         <Button onClick={onClone} size="sm" className="ml-4 shrink-0">
           <Copy className="h-4 w-4 mr-2" />

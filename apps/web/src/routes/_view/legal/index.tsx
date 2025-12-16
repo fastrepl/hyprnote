@@ -9,12 +9,14 @@ export const Route = createFileRoute("/_view/legal/")({
       { title: "Legal - Hyprnote" },
       {
         name: "description",
-        content: "Terms, privacy policy, and other legal documents for Hyprnote",
+        content:
+          "Terms, privacy policy, and other legal documents for Hyprnote",
       },
       { property: "og:title", content: "Legal - Hyprnote" },
       {
         property: "og:description",
-        content: "Terms, privacy policy, and other legal documents for Hyprnote",
+        content:
+          "Terms, privacy policy, and other legal documents for Hyprnote",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://hyprnote.com/legal" },
@@ -22,7 +24,8 @@ export const Route = createFileRoute("/_view/legal/")({
       { name: "twitter:title", content: "Legal - Hyprnote" },
       {
         name: "twitter:description",
-        content: "Terms, privacy policy, and other legal documents for Hyprnote",
+        content:
+          "Terms, privacy policy, and other legal documents for Hyprnote",
       },
     ],
   }),
@@ -36,7 +39,9 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-x border-neutral-100 bg-white">
         <header className="mb-12">
-          <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">Legal</h1>
+          <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">
+            Legal
+          </h1>
           <p className="text-lg text-neutral-600">
             Terms, privacy policy, and other legal documents
           </p>
@@ -65,7 +70,9 @@ function LegalCard({ doc }: { doc: (typeof allLegals)[number] }) {
             <h3 className="text-lg font-serif text-stone-600 group-hover:text-stone-800 transition-colors mb-2">
               {doc.title}
             </h3>
-            <p className="text-sm text-neutral-500 line-clamp-2">{doc.summary}</p>
+            <p className="text-sm text-neutral-500 line-clamp-2">
+              {doc.summary}
+            </p>
           </div>
         </div>
 
@@ -78,7 +85,9 @@ function LegalCard({ doc }: { doc: (typeof allLegals)[number] }) {
               year: "numeric",
             })}
           </span>
-          <span className="group-hover:text-stone-600 transition-colors font-medium">Read →</span>
+          <span className="group-hover:text-stone-600 transition-colors font-medium">
+            Read →
+          </span>
         </div>
       </article>
     </Link>

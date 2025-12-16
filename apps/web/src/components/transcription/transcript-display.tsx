@@ -76,7 +76,9 @@ export function TranscriptDisplay({
   return (
     <div className="border border-neutral-200 rounded-sm p-6">
       <div className="prose prose-sm max-w-none">
-        <p className="text-neutral-700 leading-relaxed whitespace-pre-wrap">{transcript}</p>
+        <p className="text-neutral-700 leading-relaxed whitespace-pre-wrap">
+          {transcript}
+        </p>
       </div>
     </div>
   );
@@ -116,7 +118,9 @@ export function FileInfo({
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-stone-600 shrink-0" />
         )}
         <div>
-          <p className="text-sm font-medium text-neutral-700 truncate">{fileName}</p>
+          <p className="text-sm font-medium text-neutral-700 truncate">
+            {fileName}
+          </p>
           <p className="text-xs text-neutral-500">
             {isUploading ? "Uploading..." : formatSize(fileSize)}
           </p>
@@ -127,7 +131,8 @@ export function FileInfo({
         disabled={!canRemove}
         className={cn([
           "ml-4 px-3 py-1 text-sm border border-neutral-200 rounded-full transition-all",
-          canRemove && "text-neutral-600 hover:text-neutral-800 hover:bg-neutral-50",
+          canRemove &&
+            "text-neutral-600 hover:text-neutral-800 hover:bg-neutral-50",
           !canRemove && "text-neutral-400 cursor-not-allowed",
         ])}
       >

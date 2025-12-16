@@ -1,6 +1,11 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRightIcon, CheckIcon, ChevronDownIcon, SearchIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  SearchIcon,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
@@ -110,7 +115,10 @@ function HeroSection() {
                 style={{ width: "240px", maxWidth: "100%" }}
               >
                 your{" "}
-                <span className="inline-block relative" style={{ minWidth: "12ch" }}>
+                <span
+                  className="inline-block relative"
+                  style={{ minWidth: "12ch" }}
+                >
                   <span className="invisible">meetings</span>
                   <Typewriter
                     text={["meetings", "lectures", "thoughts"]}
@@ -129,7 +137,10 @@ function HeroSection() {
               style={{ width: "680px", maxWidth: "100%" }}
             >
               AI notetaking for your{" "}
-              <span className="inline-block relative" style={{ minWidth: "12ch" }}>
+              <span
+                className="inline-block relative"
+                style={{ minWidth: "12ch" }}
+              >
                 <span className="invisible">meetings</span>
                 <Typewriter
                   text={["meetings", "lectures", "thoughts"]}
@@ -144,7 +155,8 @@ function HeroSection() {
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
             Record meetings or upload audio files to get instant
-            <br className="hidden sm:inline" /> AI transcriptions and customizable summaries
+            <br className="hidden sm:inline" /> AI transcriptions and
+            customizable summaries
           </p>
           <div className="mt-8">
             <Link
@@ -177,10 +189,12 @@ function EditorSection() {
       <div className="hidden sm:grid sm:grid-cols-2">
         <div className="flex items-center p-8">
           <div className="flex flex-col gap-4">
-            <h2 className="text-3xl font-serif text-stone-600">Simple notetaking</h2>
+            <h2 className="text-3xl font-serif text-stone-600">
+              Simple notetaking
+            </h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Hyprnote comes with a easy-to-use text editor where you can jot down stuff in
-              markdown.
+              Hyprnote comes with a easy-to-use text editor where you can jot
+              down stuff in markdown.
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
@@ -191,7 +205,9 @@ function EditorSection() {
               </li>
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">Clean, distraction-free writing experience</span>
+                <span className="text-neutral-600">
+                  Clean, distraction-free writing experience
+                </span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
@@ -213,9 +229,12 @@ function EditorSection() {
 
       <div className="sm:hidden">
         <div className="p-6 border-b border-neutral-100">
-          <h2 className="text-2xl font-serif text-stone-600 mb-3">Simple notetaking</h2>
+          <h2 className="text-2xl font-serif text-stone-600 mb-3">
+            Simple notetaking
+          </h2>
           <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Hyprnote comes with a easy-to-use text editor where you can jot down stuff in markdown.
+            Hyprnote comes with a easy-to-use text editor where you can jot down
+            stuff in markdown.
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
@@ -333,7 +352,9 @@ function AudioTranscriptionDemo() {
 }
 
 function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
-  const [completedLines, setCompletedLines] = useState<React.ReactElement[]>([]);
+  const [completedLines, setCompletedLines] = useState<React.ReactElement[]>(
+    [],
+  );
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [typingText, setTypingText] = useState("");
   const [isTransformed, setIsTransformed] = useState(false);
@@ -403,7 +424,10 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
             setShowPlaceholder(false);
             timeout = setTimeout(typeCharacter, 60);
           }, 300); // Show placeholder duration
-        } else if (currentLine.type === "bold" && newText.match(/\*\*[^*]+\*\*/)) {
+        } else if (
+          currentLine.type === "bold" &&
+          newText.match(/\*\*[^*]+\*\*/)
+        ) {
           setIsTransformed(true);
           timeout = setTimeout(typeCharacter, 60);
         } else {
@@ -429,13 +453,22 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     return () => clearTimeout(timeout);
   }, [currentLineIndex, isMobile]);
 
-  const renderCompletedLine = (line: (typeof lines)[number], mobile: boolean) => {
+  const renderCompletedLine = (
+    line: (typeof lines)[number],
+    mobile: boolean,
+  ) => {
     const key = `completed-${currentLineIndex}`;
 
     if (line.type === "heading") {
       const text = line.text.replace("# ", "");
       return (
-        <h1 key={key} className={cn(["font-bold text-stone-700", mobile ? "text-xl" : "text-2xl"])}>
+        <h1
+          key={key}
+          className={cn([
+            "font-bold text-stone-700",
+            mobile ? "text-xl" : "text-2xl",
+          ])}
+        >
           {text}
         </h1>
       );
@@ -446,7 +479,10 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       return (
         <ul
           key={key}
-          className={cn(["list-disc pl-5 text-neutral-700", mobile ? "text-sm" : "text-base"])}
+          className={cn([
+            "list-disc pl-5 text-neutral-700",
+            mobile ? "text-sm" : "text-base",
+          ])}
         >
           <li>{text}</li>
         </ul>
@@ -456,7 +492,10 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (line.type === "bold") {
       const parts = line.text.split(/(\*\*.*?\*\*)/g);
       return (
-        <p key={key} className={cn(["text-neutral-700", mobile ? "text-sm" : "text-base"])}>
+        <p
+          key={key}
+          className={cn(["text-neutral-700", mobile ? "text-sm" : "text-base"])}
+        >
           {parts.map((part, i) => {
             if (part.startsWith("**") && part.endsWith("**")) {
               return (
@@ -496,10 +535,17 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
       // For bullets, show as list item
       if (currentLine.type === "bullet") {
         return (
-          <ul className={cn(["list-disc pl-5", isMobile ? "text-sm" : "text-base"])}>
+          <ul
+            className={cn([
+              "list-disc pl-5",
+              isMobile ? "text-sm" : "text-base",
+            ])}
+          >
             <li>
               <span className="animate-pulse">|</span>
-              <span className="text-neutral-400">{currentLine.placeholder}</span>
+              <span className="text-neutral-400">
+                {currentLine.placeholder}
+              </span>
             </li>
           </ul>
         );
@@ -507,7 +553,12 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
       // Default fallback (shouldn't reach here for current lines)
       return (
-        <div className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
+        <div
+          className={cn([
+            "text-neutral-700",
+            isMobile ? "text-sm" : "text-base",
+          ])}
+        >
           <span className="animate-pulse">|</span>
           <span className="text-neutral-400">{currentLine.placeholder}</span>
         </div>
@@ -518,7 +569,12 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "heading" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "# "
       return (
-        <h1 className={cn(["font-bold text-stone-700", isMobile ? "text-xl" : "text-2xl"])}>
+        <h1
+          className={cn([
+            "font-bold text-stone-700",
+            isMobile ? "text-xl" : "text-2xl",
+          ])}
+        >
           {displayText}
           <span className="animate-pulse">|</span>
         </h1>
@@ -529,7 +585,12 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "bullet" && isTransformed) {
       const displayText = typingText.slice(2); // Remove "- "
       return (
-        <ul className={cn(["list-disc pl-5 text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
+        <ul
+          className={cn([
+            "list-disc pl-5 text-neutral-700",
+            isMobile ? "text-sm" : "text-base",
+          ])}
+        >
           <li>
             {displayText}
             <span className="animate-pulse">|</span>
@@ -542,7 +603,12 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
     if (currentLine.type === "bold" && isTransformed) {
       const parts = typingText.split(/(\*\*.*?\*\*)/g);
       return (
-        <p className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
+        <p
+          className={cn([
+            "text-neutral-700",
+            isMobile ? "text-sm" : "text-base",
+          ])}
+        >
           {parts.map((part, i) => {
             if (part.startsWith("**") && part.endsWith("**")) {
               return (
@@ -560,7 +626,9 @@ function AnimatedMarkdownDemo({ isMobile = false }: { isMobile?: boolean }) {
 
     // Default typing state
     return (
-      <div className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}>
+      <div
+        className={cn(["text-neutral-700", isMobile ? "text-sm" : "text-base"])}
+      >
         {typingText}
         <span className="animate-pulse">|</span>
       </div>
@@ -579,7 +647,9 @@ function TranscriptionSection() {
   return (
     <section id="transcription" className="border-y border-neutral-100">
       <div className="text-center py-12 px-4 lg:px-0">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">Transcription</h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          Transcription
+        </h2>
         <p className="text-base text-neutral-600 max-w-2xl mx-auto">
           From live meetings to recorded audio, Hyprnote can transcribe it all
         </p>
@@ -592,15 +662,17 @@ function TranscriptionSection() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <Icon icon="mdi:chip" className="text-3xl text-stone-600" />
-                  <h3 className="text-2xl font-serif text-stone-600">Fully on-device</h3>
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Fully on-device
+                  </h3>
                 </div>
                 <div className="px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium whitespace-nowrap">
                   Apple Silicon only
                 </div>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                For Apple Silicon Macs, transcription happens entirely on your device. Fast,
-                private, and no internet required.
+                For Apple Silicon Macs, transcription happens entirely on your
+                device. Fast, private, and no internet required.
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -615,11 +687,13 @@ function TranscriptionSection() {
             <div className="p-8 flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <Icon icon="mdi:upload" className="text-3xl text-stone-600" />
-                <h3 className="text-2xl font-serif text-stone-600">Upload files</h3>
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Upload files
+                </h3>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT, TXT) to get AI
-                summaries and insights.
+                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT,
+                TXT) to get AI summaries and insights.
               </p>
             </div>
             <div className="flex-1 flex items-center justify-center overflow-hidden bg-neutral-100">
@@ -636,11 +710,13 @@ function TranscriptionSection() {
               </div>
               <div className="flex items-center gap-3 mb-3">
                 <Icon icon="mdi:chip" className="text-2xl text-stone-600" />
-                <h3 className="text-xl font-serif text-stone-600">Fully on-device</h3>
+                <h3 className="text-xl font-serif text-stone-600">
+                  Fully on-device
+                </h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-                For Apple Silicon Macs, transcription happens entirely on your device. Fast,
-                private, and no internet required.
+                For Apple Silicon Macs, transcription happens entirely on your
+                device. Fast, private, and no internet required.
               </p>
             </div>
             <div className="overflow-hidden bg-neutral-100">
@@ -655,11 +731,13 @@ function TranscriptionSection() {
             <div className="p-6">
               <div className="flex items-center gap-3 mb-3">
                 <Icon icon="mdi:upload" className="text-2xl text-stone-600" />
-                <h3 className="text-xl font-serif text-stone-600">Upload files</h3>
+                <h3 className="text-xl font-serif text-stone-600">
+                  Upload files
+                </h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT, TXT) to get AI
-                summaries and insights.
+                Upload audio files (M4A, MP3, WAV) or existing transcripts (VTT,
+                TXT) to get AI summaries and insights.
               </p>
             </div>
             <div className="overflow-hidden bg-neutral-100">
@@ -738,10 +816,12 @@ function SummariesSection() {
   return (
     <section id="summaries">
       <div className="text-center py-12 px-4 lg:px-0">
-        <h2 className="text-3xl font-serif text-stone-600 mb-4">AI summaries</h2>
+        <h2 className="text-3xl font-serif text-stone-600 mb-4">
+          AI summaries
+        </h2>
         <p className="text-base text-neutral-600">
-          Hyprnote combines your notes with transcripts to create intelligent summaries after your
-          meeting ends
+          Hyprnote combines your notes with transcripts to create intelligent
+          summaries after your meeting ends
         </p>
       </div>
       <div className="border-t border-neutral-100">
@@ -749,8 +829,9 @@ function SummariesSection() {
           <div className="border-r border-neutral-100 flex flex-col overflow-clip">
             <div className="p-8 flex flex-col gap-4">
               <p className="text-lg font-serif text-neutral-600 leading-relaxed">
-                <span className="font-semibold">While you take notes,</span> Hyprnote listens and
-                keeps track of everything that happens during the meeting.
+                <span className="font-semibold">While you take notes,</span>{" "}
+                Hyprnote listens and keeps track of everything that happens
+                during the meeting.
               </p>
             </div>
             <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -780,8 +861,11 @@ function SummariesSection() {
           <div className="flex flex-col overflow-clip">
             <div className="p-8 flex flex-col gap-4">
               <p className="text-lg font-serif text-neutral-600 leading-relaxed">
-                <span className="font-semibold">After the meeting is over,</span> Hyprnote combines
-                your notes with transcripts to create a perfect summary.
+                <span className="font-semibold">
+                  After the meeting is over,
+                </span>{" "}
+                Hyprnote combines your notes with transcripts to create a
+                perfect summary.
               </p>
             </div>
             <div className="flex-1 flex items-end justify-center px-8 pb-0 bg-stone-50/30">
@@ -803,8 +887,9 @@ function SummariesSection() {
                           enhancedLines >= 2 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        Sarah presented the new mobile UI update, which includes a streamlined
-                        navigation bar and improved button placements for better accessibility.
+                        Sarah presented the new mobile UI update, which includes
+                        a streamlined navigation bar and improved button
+                        placements for better accessibility.
                       </li>
                       <li
                         className={cn([
@@ -812,8 +897,9 @@ function SummariesSection() {
                           enhancedLines >= 3 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        Ben confirmed that API adjustments are needed to support dynamic UI changes,
-                        particularly for fetching personalized user data more efficiently.
+                        Ben confirmed that API adjustments are needed to support
+                        dynamic UI changes, particularly for fetching
+                        personalized user data more efficiently.
                       </li>
                       <li
                         className={cn([
@@ -821,9 +907,9 @@ function SummariesSection() {
                           enhancedLines >= 4 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        The UI update will be implemented in phases, starting with core navigation
-                        improvements. Ben will ensure API modifications are completed before
-                        development begins.
+                        The UI update will be implemented in phases, starting
+                        with core navigation improvements. Ben will ensure API
+                        modifications are completed before development begins.
                       </li>
                     </ul>
                   </div>
@@ -843,8 +929,8 @@ function SummariesSection() {
                           enhancedLines >= 6 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        Alice emphasized that the new analytics dashboard must be prioritized due to
-                        increasing stakeholder demand.
+                        Alice emphasized that the new analytics dashboard must
+                        be prioritized due to increasing stakeholder demand.
                       </li>
                       <li
                         className={cn([
@@ -852,8 +938,8 @@ function SummariesSection() {
                           enhancedLines >= 7 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        The new dashboard will feature real-time user engagement metrics and a
-                        customizable reporting system.
+                        The new dashboard will feature real-time user engagement
+                        metrics and a customizable reporting system.
                       </li>
                     </ul>
                   </div>
@@ -867,8 +953,9 @@ function SummariesSection() {
           <div className="border-b border-neutral-100">
             <div className="p-6 pb-2">
               <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
-                <span className="font-semibold">While you take notes,</span> Hyprnote listens and
-                keeps track of everything that happens during the meeting.
+                <span className="font-semibold">While you take notes,</span>{" "}
+                Hyprnote listens and keeps track of everything that happens
+                during the meeting.
               </p>
             </div>
             <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -898,8 +985,11 @@ function SummariesSection() {
           <div>
             <div className="p-6 pb-2">
               <p className="text-base font-serif text-neutral-600 leading-relaxed mb-4">
-                <span className="font-semibold">After the meeting is over,</span> Hyprnote combines
-                your notes with transcripts to create a perfect summary.
+                <span className="font-semibold">
+                  After the meeting is over,
+                </span>{" "}
+                Hyprnote combines your notes with transcripts to create a
+                perfect summary.
               </p>
             </div>
             <div className="px-6 pb-0 bg-stone-50/30 overflow-clip">
@@ -916,8 +1006,9 @@ function SummariesSection() {
                           enhancedLines >= 1 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        Sarah presented the new mobile UI update, which includes a streamlined
-                        navigation bar and improved button placements for better accessibility.
+                        Sarah presented the new mobile UI update, which includes
+                        a streamlined navigation bar and improved button
+                        placements for better accessibility.
                       </li>
                       <li
                         className={cn([
@@ -925,8 +1016,9 @@ function SummariesSection() {
                           enhancedLines >= 2 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        Ben confirmed that API adjustments are needed to support dynamic UI changes,
-                        particularly for fetching personalized user data more efficiently.
+                        Ben confirmed that API adjustments are needed to support
+                        dynamic UI changes, particularly for fetching
+                        personalized user data more efficiently.
                       </li>
                       <li
                         className={cn([
@@ -934,9 +1026,9 @@ function SummariesSection() {
                           enhancedLines >= 3 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        The UI update will be implemented in phases, starting with core navigation
-                        improvements. Ben will ensure API modifications are completed before
-                        development begins.
+                        The UI update will be implemented in phases, starting
+                        with core navigation improvements. Ben will ensure API
+                        modifications are completed before development begins.
                       </li>
                     </ul>
                   </div>
@@ -951,8 +1043,8 @@ function SummariesSection() {
                           enhancedLines >= 4 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        Alice emphasized that the new analytics dashboard must be prioritized due to
-                        increasing stakeholder demand.
+                        Alice emphasized that the new analytics dashboard must
+                        be prioritized due to increasing stakeholder demand.
                       </li>
                       <li
                         className={cn([
@@ -960,8 +1052,8 @@ function SummariesSection() {
                           enhancedLines >= 5 ? "opacity-100" : "opacity-0",
                         ])}
                       >
-                        The new dashboard will feature real-time user engagement metrics and a
-                        customizable reporting system.
+                        The new dashboard will feature real-time user engagement
+                        metrics and a customizable reporting system.
                       </li>
                     </ul>
                   </div>
@@ -995,10 +1087,12 @@ function SearchSection() {
       <div className="py-20 px-6">
         <div className="text-center space-y-12">
           <div>
-            <h2 className="text-3xl font-serif text-stone-50 mb-4">Find anything instantly</h2>
+            <h2 className="text-3xl font-serif text-stone-50 mb-4">
+              Find anything instantly
+            </h2>
             <p className="text-base text-neutral-100">
-              Search across all your notes by participant names, topics, keywords, or time—and jump
-              straight to what matters
+              Search across all your notes by participant names, topics,
+              keywords, or time—and jump straight to what matters
             </p>
           </div>
 
@@ -1078,7 +1172,9 @@ const CollaboratorsCell = memo(() => {
     scope: davidScope,
   };
 
-  const collaborators = showDavid ? [...baseCollaborators, davidKim] : baseCollaborators;
+  const collaborators = showDavid
+    ? [...baseCollaborators, davidKim]
+    : baseCollaborators;
 
   useEffect(() => {
     const runAnimation = () => {
@@ -1115,7 +1211,11 @@ const CollaboratorsCell = memo(() => {
               {collaborators.map((person) => (
                 <motion.div
                   key={person.name}
-                  initial={person.name === "David Kim" ? { opacity: 0, x: -100 } : false}
+                  initial={
+                    person.name === "David Kim"
+                      ? { opacity: 0, x: -100 }
+                      : false
+                  }
                   animate={{ opacity: 1, x: 0 }}
                   transition={{
                     duration: 0.5,
@@ -1132,12 +1232,15 @@ const CollaboratorsCell = memo(() => {
                     objectFit="cover"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-stone-700 truncate">{person.name}</div>
+                    <div className="text-sm font-medium text-stone-700 truncate">
+                      {person.name}
+                    </div>
                   </div>
                   <motion.div
                     key={`${person.name}-${person.scope}`}
                     initial={
-                      person.name === "David Kim" && davidScope === "Can comment"
+                      person.name === "David Kim" &&
+                      davidScope === "Can comment"
                         ? { scale: 1.1 }
                         : false
                     }
@@ -1178,7 +1281,9 @@ const CollaboratorsCell = memo(() => {
                             <CheckIcon
                               className={cn([
                                 "w-4 h-4",
-                                davidScope === "Can view" ? "text-green-600" : "text-transparent",
+                                davidScope === "Can view"
+                                  ? "text-green-600"
+                                  : "text-transparent",
                               ])}
                             />
                             <span>Can view</span>
@@ -1269,7 +1374,10 @@ const ShareLinksCell = memo(() => {
       const timer5 = setTimeout(() => setShowCopied(true), 3600);
       const timer6 = setTimeout(() => setSlackClicked(true), 4500);
       const timer7 = setTimeout(() => setShowSlackPopover(true), 4800);
-      const timer8 = setTimeout(() => setSelectedChannel("#team-meeting"), 5500);
+      const timer8 = setTimeout(
+        () => setSelectedChannel("#team-meeting"),
+        5500,
+      );
       const timer9 = setTimeout(() => setShowSlackPopover(false), 5800);
       const timer10 = setTimeout(() => setSendClicked(true), 6100);
       const timer11 = setTimeout(() => setShowSent(true), 6400);
@@ -1334,7 +1442,9 @@ const ShareLinksCell = memo(() => {
           <div className="flex-1 flex items-center justify-between gap-2 relative">
             <motion.div
               key={linkPermission}
-              initial={linkPermission !== "View only" ? { scale: 1.1 } : { scale: 1 }}
+              initial={
+                linkPermission !== "View only" ? { scale: 1.1 } : { scale: 1 }
+              }
               animate={{ scale: 1 }}
               transition={{ duration: 0.3 }}
               className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded relative w-32"
@@ -1360,7 +1470,9 @@ const ShareLinksCell = memo(() => {
                     <CheckIcon
                       className={cn([
                         "w-4 h-4",
-                        linkPermission === "Restricted" ? "text-green-600" : "text-transparent",
+                        linkPermission === "Restricted"
+                          ? "text-green-600"
+                          : "text-transparent",
                       ])}
                     />
                     <span>Restricted</span>
@@ -1374,7 +1486,9 @@ const ShareLinksCell = memo(() => {
                     <CheckIcon
                       className={cn([
                         "w-4 h-4",
-                        linkPermission === "View only" ? "text-green-600" : "text-transparent",
+                        linkPermission === "View only"
+                          ? "text-green-600"
+                          : "text-transparent",
                       ])}
                     />
                     <span>View only</span>
@@ -1388,7 +1502,9 @@ const ShareLinksCell = memo(() => {
                     <CheckIcon
                       className={cn([
                         "w-4 h-4",
-                        linkPermission === "Editable" ? "text-green-600" : "text-transparent",
+                        linkPermission === "Editable"
+                          ? "text-green-600"
+                          : "text-transparent",
                       ])}
                     />
                     <span>Editable</span>
@@ -1429,7 +1545,9 @@ const ShareLinksCell = memo(() => {
               transition={{ duration: 0.3 }}
               className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded relative w-32"
             >
-              <span className="flex-1 truncate">{selectedChannel || "Select channel"}</span>
+              <span className="flex-1 truncate">
+                {selectedChannel || "Select channel"}
+              </span>
               <ChevronDownIcon className="w-4 h-4 text-neutral-400 shrink-0" />
             </motion.div>
             <AnimatePresence>
@@ -1450,7 +1568,9 @@ const ShareLinksCell = memo(() => {
                     <CheckIcon
                       className={cn([
                         "w-4 h-4",
-                        selectedChannel === "#team-meeting" ? "text-green-600" : "text-transparent",
+                        selectedChannel === "#team-meeting"
+                          ? "text-green-600"
+                          : "text-transparent",
                       ])}
                     />
                     <span>#team-meeting</span>
@@ -1502,7 +1622,9 @@ const ShareLinksCell = memo(() => {
               transition={{ duration: 0.3 }}
               className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded relative w-32"
             >
-              <span className="flex-1 truncate">{selectedTeam || "Select team"}</span>
+              <span className="flex-1 truncate">
+                {selectedTeam || "Select team"}
+              </span>
               <ChevronDownIcon className="w-4 h-4 text-neutral-400 shrink-0" />
             </motion.div>
             <AnimatePresence>
@@ -1523,7 +1645,9 @@ const ShareLinksCell = memo(() => {
                     <CheckIcon
                       className={cn([
                         "w-4 h-4",
-                        selectedTeam === "Design Team" ? "text-green-600" : "text-transparent",
+                        selectedTeam === "Design Team"
+                          ? "text-green-600"
+                          : "text-transparent",
                       ])}
                     />
                     <span>Design Team</span>
@@ -1575,7 +1699,9 @@ const ShareLinksCell = memo(() => {
               transition={{ duration: 0.3 }}
               className="flex items-center gap-1 text-xs text-neutral-700 bg-white border border-stone-200 px-2 py-1 rounded relative w-32"
             >
-              <span className="flex-1 truncate">{selectedLead || "Select lead"}</span>
+              <span className="flex-1 truncate">
+                {selectedLead || "Select lead"}
+              </span>
               <ChevronDownIcon className="w-4 h-4 text-neutral-400 shrink-0" />
             </motion.div>
             <AnimatePresence>
@@ -1596,7 +1722,9 @@ const ShareLinksCell = memo(() => {
                     <CheckIcon
                       className={cn([
                         "w-4 h-4",
-                        selectedLead === "John Smith" ? "text-green-600" : "text-transparent",
+                        selectedLead === "John Smith"
+                          ? "text-green-600"
+                          : "text-transparent",
                       ])}
                     />
                     <span>John Smith</span>
@@ -1728,19 +1856,25 @@ const TrackProtectCell = memo(() => {
               </div>
 
               <div className="space-y-3 relative">
-                <div className="text-sm font-semibold text-stone-700">Mobile UI Update</div>
+                <div className="text-sm font-semibold text-stone-700">
+                  Mobile UI Update
+                </div>
                 <div className="space-y-2">
                   <div className="h-3 bg-stone-100 rounded w-full" />
                   <div className="h-3 bg-stone-100 rounded w-full" />
                   <div className="h-3 bg-stone-100 rounded w-5/6" />
                 </div>
-                <div className="text-sm font-semibold text-stone-700 mt-4">Dashboard Priority</div>
+                <div className="text-sm font-semibold text-stone-700 mt-4">
+                  Dashboard Priority
+                </div>
                 <div className="space-y-2">
                   <div className="h-3 bg-stone-100 rounded w-full" />
                   <div className="h-3 bg-stone-100 rounded w-full" />
                   <div className="h-3 bg-stone-100 rounded w-4/5" />
                 </div>
-                <div className="text-sm font-semibold text-stone-700 mt-4">Next Steps</div>
+                <div className="text-sm font-semibold text-stone-700 mt-4">
+                  Next Steps
+                </div>
                 <div className="space-y-2">
                   <div className="h-3 bg-stone-100 rounded w-full" />
                   <div className="h-3 bg-stone-100 rounded w-5/6" />
@@ -1806,8 +1940,8 @@ function SharingSection() {
         </div>
         <h2 className="text-3xl font-serif text-stone-600 mb-4">Share notes</h2>
         <p className="text-base text-neutral-600">
-          Collaborate seamlessly by sharing meeting notes, transcripts, and summaries with your
-          team.
+          Collaborate seamlessly by sharing meeting notes, transcripts, and
+          summaries with your team.
         </p>
       </div>
       <div className="border-t border-neutral-100">
@@ -1815,12 +1949,17 @@ function SharingSection() {
           <div className="border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
             <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
               <div className="flex items-center gap-3">
-                <Icon icon="mdi:account-group" className="text-3xl text-stone-600" />
-                <h3 className="text-2xl font-serif text-stone-600">Control who can access</h3>
+                <Icon
+                  icon="mdi:account-group"
+                  className="text-3xl text-stone-600"
+                />
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Control who can access
+                </h3>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                Invite selected people or teams to collaborate on notes with granular access
-                controls.
+                Invite selected people or teams to collaborate on notes with
+                granular access controls.
               </p>
             </div>
             <CollaboratorsCell />
@@ -1828,12 +1967,17 @@ function SharingSection() {
           <div className="border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
             <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
               <div className="flex items-center gap-3">
-                <Icon icon="mdi:link-variant" className="text-3xl text-stone-600" />
-                <h3 className="text-2xl font-serif text-stone-600">Share instantly</h3>
+                <Icon
+                  icon="mdi:link-variant"
+                  className="text-3xl text-stone-600"
+                />
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Share instantly
+                </h3>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                Send links or publish notes directly to Slack, Teams, or generate public shareable
-                links.
+                Send links or publish notes directly to Slack, Teams, or
+                generate public shareable links.
               </p>
             </div>
             <ShareLinksCell />
@@ -1841,12 +1985,17 @@ function SharingSection() {
           <div className="flex flex-col bg-linear-to-b from-white to-stone-50/30">
             <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
               <div className="flex items-center gap-3">
-                <Icon icon="mdi:shield-lock" className="text-3xl text-stone-600" />
-                <h3 className="text-2xl font-serif text-stone-600">Track and protect</h3>
+                <Icon
+                  icon="mdi:shield-lock"
+                  className="text-3xl text-stone-600"
+                />
+                <h3 className="text-2xl font-serif text-stone-600">
+                  Track and protect
+                </h3>
               </div>
               <p className="text-base text-neutral-600 leading-relaxed">
-                DocSend-like features including view tracking, expiration dates, copy protection,
-                and watermarks.
+                DocSend-like features including view tracking, expiration dates,
+                copy protection, and watermarks.
               </p>
             </div>
             <TrackProtectCell />
@@ -1858,12 +2007,17 @@ function SharingSection() {
             <div className="w-[400px] border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
               <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
                 <div className="flex items-center gap-3">
-                  <Icon icon="mdi:account-group" className="text-3xl text-stone-600" />
-                  <h3 className="text-2xl font-serif text-stone-600">Control who can access</h3>
+                  <Icon
+                    icon="mdi:account-group"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Control who can access
+                  </h3>
                 </div>
                 <p className="text-base text-neutral-600 leading-relaxed">
-                  Invite selected people or teams to collaborate on notes with granular access
-                  controls.
+                  Invite selected people or teams to collaborate on notes with
+                  granular access controls.
                 </p>
               </div>
               <CollaboratorsCell />
@@ -1871,12 +2025,17 @@ function SharingSection() {
             <div className="w-[400px] border-r border-neutral-100 flex flex-col bg-linear-to-b from-white to-stone-50/30">
               <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
                 <div className="flex items-center gap-3">
-                  <Icon icon="mdi:link-variant" className="text-3xl text-stone-600" />
-                  <h3 className="text-2xl font-serif text-stone-600">Share instantly</h3>
+                  <Icon
+                    icon="mdi:link-variant"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Share instantly
+                  </h3>
                 </div>
                 <p className="text-base text-neutral-600 leading-relaxed">
-                  Send links or publish notes directly to Slack, Teams, or generate public shareable
-                  links.
+                  Send links or publish notes directly to Slack, Teams, or
+                  generate public shareable links.
                 </p>
               </div>
               <ShareLinksCell />
@@ -1884,12 +2043,17 @@ function SharingSection() {
             <div className="w-[400px] flex flex-col bg-linear-to-b from-white to-stone-50/30">
               <div className="p-4 flex flex-col gap-4 flex-1 border-b border-neutral-100">
                 <div className="flex items-center gap-3">
-                  <Icon icon="mdi:shield-lock" className="text-3xl text-stone-600" />
-                  <h3 className="text-2xl font-serif text-stone-600">Track and protect</h3>
+                  <Icon
+                    icon="mdi:shield-lock"
+                    className="text-3xl text-stone-600"
+                  />
+                  <h3 className="text-2xl font-serif text-stone-600">
+                    Track and protect
+                  </h3>
                 </div>
                 <p className="text-base text-neutral-600 leading-relaxed">
-                  DocSend-like features including view tracking, expiration dates, copy protection,
-                  and watermarks.
+                  DocSend-like features including view tracking, expiration
+                  dates, copy protection, and watermarks.
                 </p>
               </div>
               <TrackProtectCell />
@@ -1901,12 +2065,17 @@ function SharingSection() {
           <div className="border-b border-neutral-100 bg-linear-to-b from-white to-stone-50/30">
             <div className="p-4 border-b border-neutral-100">
               <div className="flex items-center gap-3 mb-3">
-                <Icon icon="mdi:account-group" className="text-2xl text-stone-600" />
-                <h3 className="text-xl font-serif text-stone-600">Control who can access</h3>
+                <Icon
+                  icon="mdi:account-group"
+                  className="text-2xl text-stone-600"
+                />
+                <h3 className="text-xl font-serif text-stone-600">
+                  Control who can access
+                </h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed">
-                Invite selected people or teams to collaborate on notes with granular access
-                controls.
+                Invite selected people or teams to collaborate on notes with
+                granular access controls.
               </p>
             </div>
             <CollaboratorsCell />
@@ -1914,12 +2083,17 @@ function SharingSection() {
           <div className="border-b border-neutral-100 bg-linear-to-b from-white to-stone-50/30">
             <div className="p-4 border-b border-neutral-100">
               <div className="flex items-center gap-3 mb-3">
-                <Icon icon="mdi:link-variant" className="text-2xl text-stone-600" />
-                <h3 className="text-xl font-serif text-stone-600">Share instantly</h3>
+                <Icon
+                  icon="mdi:link-variant"
+                  className="text-2xl text-stone-600"
+                />
+                <h3 className="text-xl font-serif text-stone-600">
+                  Share instantly
+                </h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed">
-                Send links or publish notes directly to Slack, Teams, or generate public shareable
-                links.
+                Send links or publish notes directly to Slack, Teams, or
+                generate public shareable links.
               </p>
             </div>
             <ShareLinksCell />
@@ -1927,12 +2101,17 @@ function SharingSection() {
           <div className="bg-linear-to-b from-white to-stone-50/30">
             <div className="p-4 border-b border-neutral-100">
               <div className="flex items-center gap-3 mb-3">
-                <Icon icon="mdi:shield-lock" className="text-2xl text-stone-600" />
-                <h3 className="text-xl font-serif text-stone-600">Track and protect</h3>
+                <Icon
+                  icon="mdi:shield-lock"
+                  className="text-2xl text-stone-600"
+                />
+                <h3 className="text-xl font-serif text-stone-600">
+                  Track and protect
+                </h3>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed">
-                DocSend-like features including view tracking, expiration dates, copy protection,
-                and watermarks.
+                DocSend-like features including view tracking, expiration dates,
+                copy protection, and watermarks.
               </p>
             </div>
             <TrackProtectCell />
@@ -1945,22 +2124,26 @@ function SharingSection() {
 const floatingPanelTabs = [
   {
     title: "Compact Mode",
-    description: "Minimal overlay that indicates recording is active. Stays out of your way.",
+    description:
+      "Minimal overlay that indicates recording is active. Stays out of your way.",
     image: "/api/images/hyprnote/float-compact.jpg",
   },
   {
     title: "Memos",
-    description: "Take quick notes during the meeting without losing focus on the conversation.",
+    description:
+      "Take quick notes during the meeting without losing focus on the conversation.",
     image: "/api/images/hyprnote/float-memos.jpg",
   },
   {
     title: "Transcript",
-    description: "Watch the live transcript as the conversation unfolds in real-time.",
+    description:
+      "Watch the live transcript as the conversation unfolds in real-time.",
     image: "/api/images/hyprnote/float-transcript.jpg",
   },
   {
     title: "Live Insights",
-    description: "Rolling summary of the past 5 minutes with AI suggestions and next steps.",
+    description:
+      "Rolling summary of the past 5 minutes with AI suggestions and next steps.",
     image: "/api/images/hyprnote/float-insights.jpg",
   },
   {
@@ -1987,10 +2170,12 @@ function FloatingPanelHeader() {
       <div className="inline-block px-4 py-1.5 bg-linear-to-t from-neutral-200 to-neutral-100 text-neutral-900 rounded-full shadow-sm text-xs font-medium mb-4">
         Coming Soon
       </div>
-      <h2 className="text-3xl font-serif text-stone-600 mb-4">Floating panel for meetings</h2>
+      <h2 className="text-3xl font-serif text-stone-600 mb-4">
+        Floating panel for meetings
+      </h2>
       <p className="text-base text-neutral-600 max-w-3xl mx-auto">
-        A compact overlay that stays on top during meetings but won't show when you share your
-        screen.
+        A compact overlay that stays on top during meetings but won't show when
+        you share your screen.
       </p>
     </div>
   );
@@ -2012,12 +2197,16 @@ function FloatingPanelContent() {
   useEffect(() => {
     if (isPaused) return;
 
-    const startTime = Date.now() - (progressRef.current / 100) * AUTO_ADVANCE_DURATION;
+    const startTime =
+      Date.now() - (progressRef.current / 100) * AUTO_ADVANCE_DURATION;
     let animationId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
-      const newProgress = Math.min((elapsed / AUTO_ADVANCE_DURATION) * 100, 100);
+      const newProgress = Math.min(
+        (elapsed / AUTO_ADVANCE_DURATION) * 100,
+        100,
+      );
       setProgress(newProgress);
       progressRef.current = newProgress;
 
@@ -2100,8 +2289,12 @@ function FloatingPanelTablet({
               <button
                 key={index}
                 onClick={() => onTabClick(index)}
-                onMouseEnter={() => selectedTab === index && onPauseChange(true)}
-                onMouseLeave={() => selectedTab === index && onPauseChange(false)}
+                onMouseEnter={() =>
+                  selectedTab === index && onPauseChange(true)
+                }
+                onMouseLeave={() =>
+                  selectedTab === index && onPauseChange(false)
+                }
                 className={cn([
                   "flex flex-col items-start cursor-pointer p-6 border-r border-neutral-100 last:border-r-0 min-w-[280px] text-left transition-colors relative overflow-hidden",
                   selectedTab !== index && "hover:bg-neutral-50",
@@ -2149,12 +2342,16 @@ function FloatingPanelDesktop() {
   useEffect(() => {
     if (isPaused) return;
 
-    const startTime = Date.now() - (progressRef.current / 100) * AUTO_ADVANCE_DURATION;
+    const startTime =
+      Date.now() - (progressRef.current / 100) * AUTO_ADVANCE_DURATION;
     let animationId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
-      const newProgress = Math.min((elapsed / AUTO_ADVANCE_DURATION) * 100, 100);
+      const newProgress = Math.min(
+        (elapsed / AUTO_ADVANCE_DURATION) * 100,
+        100,
+      );
       setProgress(newProgress);
       progressRef.current = newProgress;
 
@@ -2269,8 +2466,10 @@ function FloatingPanelMobile({
                 </div>
                 <div className="p-6">
                   <p className="text-sm text-neutral-600 leading-relaxed">
-                    <span className="font-semibold text-stone-800">{tab.title}</span> –{" "}
-                    {tab.description}
+                    <span className="font-semibold text-stone-800">
+                      {tab.title}
+                    </span>{" "}
+                    – {tab.description}
                   </p>
                 </div>
               </div>
@@ -2318,10 +2517,12 @@ function CTASection() {
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif">The complete AI notetaking solution</h2>
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          The complete AI notetaking solution
+        </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          From live meetings to archived recordings, handle all your audio transcription and AI
-          summary needs with one powerful tool
+          From live meetings to archived recordings, handle all your audio
+          transcription and AI summary needs with one powerful tool
         </p>
         <div className="pt-6">
           <Link

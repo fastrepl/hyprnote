@@ -7,7 +7,11 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { useTabs } from "../../store/zustand/tabs";
 import { id } from "../../utils";
 
-export function useNewNote({ behavior = "new" }: { behavior?: "new" | "current" }) {
+export function useNewNote({
+  behavior = "new",
+}: {
+  behavior?: "new" | "current";
+}) {
   const { persistedStore, internalStore } = useRouteContext({
     from: "__root__",
   });

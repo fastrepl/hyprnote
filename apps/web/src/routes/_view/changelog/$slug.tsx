@@ -16,7 +16,11 @@ import {
 import { useIsMobile } from "@hypr/ui/hooks/use-mobile";
 import { cn } from "@hypr/utils";
 
-import { type ChangelogWithMeta, getChangelogBySlug, getChangelogList } from "@/changelog";
+import {
+  type ChangelogWithMeta,
+  getChangelogBySlug,
+  getChangelogList,
+} from "@/changelog";
 import { defaultMDXComponents } from "@/components/mdx";
 import { MockWindow } from "@/components/mock-window";
 import { NotFoundContent } from "@/components/not-found";
@@ -107,7 +111,10 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection changelog={changelog} />
-        <ChangelogContentSection changelog={changelog} allChangelogs={allChangelogs} />
+        <ChangelogContentSection
+          changelog={changelog}
+          allChangelogs={allChangelogs}
+        />
       </div>
     </div>
   );
@@ -174,7 +181,8 @@ function DownloadButtons({ version }: { version: string }) {
     },
   ];
 
-  const primaryPlatform = platforms.find((p) => p.id === detectedOS) || platforms[0];
+  const primaryPlatform =
+    platforms.find((p) => p.id === detectedOS) || platforms[0];
   const otherPlatforms = platforms.filter((p) => p.id !== detectedOS);
 
   return (
@@ -226,8 +234,13 @@ function DownloadButtons({ version }: { version: string }) {
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50 transition-colors border-b border-stone-100 last:border-b-0"
                 >
-                  <Icon icon={platform.icon} className="text-base text-stone-600" />
-                  <span className="text-sm font-medium text-stone-700">{platform.label}</span>
+                  <Icon
+                    icon={platform.icon}
+                    className="text-base text-stone-600"
+                  />
+                  <span className="text-sm font-medium text-stone-700">
+                    {platform.label}
+                  </span>
                 </a>
               ))}
             </motion.div>
@@ -253,7 +266,11 @@ function ChangelogContentSection({
     <section className="px-6 pb-16 lg:pb-24">
       <div className="max-w-4xl mx-auto">
         <MockWindow
-          title={isMobile ? undefined : `Version ${changelog.version} · ${relativeTimeText}`}
+          title={
+            isMobile
+              ? undefined
+              : `Version ${changelog.version} · ${relativeTimeText}`
+          }
           className="rounded-lg w-full max-w-none"
           prefixIcons={
             isMobile && (
@@ -279,7 +296,10 @@ function ChangelogContentSection({
                 <ChangelogContent changelog={changelog} />
               </>
             ) : (
-              <ChangelogSplitView changelog={changelog} allChangelogs={allChangelogs} />
+              <ChangelogSplitView
+                changelog={changelog}
+                allChangelogs={allChangelogs}
+              />
             )}
           </div>
           <ChangelogStatusBar changelog={changelog} />
@@ -344,7 +364,9 @@ function MobileSidebarDrawer({
             }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
-              <span className="text-sm font-medium text-stone-600">All Versions</span>
+              <span className="text-sm font-medium text-stone-600">
+                All Versions
+              </span>
               <button
                 onClick={onClose}
                 className="p-1 hover:bg-neutral-200 rounded transition-colors"

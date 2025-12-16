@@ -24,13 +24,19 @@ export function CalendarDay({
   const contentRef = useRef<HTMLDivElement>(null);
   const [maxVisibleItems, setMaxVisibleItems] = useState(5);
 
-  const allEventIds = store.UI.useSliceRowIds(store.INDEXES.eventsByDate, day, store.STORE_ID);
+  const allEventIds = store.UI.useSliceRowIds(
+    store.INDEXES.eventsByDate,
+    day,
+    store.STORE_ID,
+  );
 
   const storeInstance = store.UI.useStore(store.STORE_ID);
 
   const eventIds = allEventIds.filter((eventId) => {
     const event = storeInstance?.getRow("events", eventId);
-    return event?.calendar_id && selectedCalendars.has(event.calendar_id as string);
+    return (
+      event?.calendar_id && selectedCalendars.has(event.calendar_id as string)
+    );
   });
 
   const sessionIds = store.UI.useSliceRowIds(
@@ -53,7 +59,9 @@ export function CalendarDay({
         const EVENT_HEIGHT = 20;
         const SPACING = 4;
 
-        const itemsWithSpacing = Math.floor((availableHeight + SPACING) / (EVENT_HEIGHT + SPACING));
+        const itemsWithSpacing = Math.floor(
+          (availableHeight + SPACING) / (EVENT_HEIGHT + SPACING),
+        );
         setMaxVisibleItems(Math.max(1, itemsWithSpacing));
       }
     };
@@ -65,7 +73,8 @@ export function CalendarDay({
   }, []);
 
   const totalItems = eventIds.length + sessionIds.length;
-  const visibleCount = totalItems > maxVisibleItems ? maxVisibleItems - 1 : totalItems;
+  const visibleCount =
+    totalItems > maxVisibleItems ? maxVisibleItems - 1 : totalItems;
   const hiddenCount = totalItems - visibleCount;
 
   const allItems = [
@@ -76,7 +85,9 @@ export function CalendarDay({
   const visibleItems = allItems.slice(0, visibleCount);
   const hiddenItems = allItems.slice(visibleCount);
 
-  const hiddenEventIds = hiddenItems.filter((item) => item.type === "event").map((item) => item.id);
+  const hiddenEventIds = hiddenItems
+    .filter((item) => item.type === "event")
+    .map((item) => item.id);
   const hiddenSessionIds = hiddenItems
     .filter((item) => item.type === "session")
     .map((item) => item.id);

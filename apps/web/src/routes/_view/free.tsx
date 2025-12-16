@@ -151,8 +151,8 @@ function HeroSection() {
           <span className="text-stone-400">without the price tag</span>
         </h1>
         <p className="text-lg sm:text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
-          Record meetings, get AI transcriptions, and generate smart summaries. All for free, with
-          no usage limits and complete privacy.
+          Record meetings, get AI transcriptions, and generate smart summaries.
+          All for free, with no usage limits and complete privacy.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
@@ -203,9 +203,16 @@ function FeaturesSection() {
               key={feature.title}
               className="p-6 border border-neutral-200 rounded-lg hover:border-neutral-300 transition-colors"
             >
-              <Icon icon={feature.icon} className="text-3xl text-stone-600 mb-4" />
-              <h3 className="text-lg font-medium text-stone-700 mb-2">{feature.title}</h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">{feature.description}</p>
+              <Icon
+                icon={feature.icon}
+                className="text-3xl text-stone-600 mb-4"
+              />
+              <h3 className="text-lg font-medium text-stone-700 mb-2">
+                {feature.title}
+              </h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">
+                {feature.description}
+              </p>
             </div>
           ))}
         </div>
@@ -235,29 +242,43 @@ function ComparisonSection() {
                 Free
               </span>
             </div>
-            <div className="p-4 font-medium text-neutral-500 text-center">Others</div>
+            <div className="p-4 font-medium text-neutral-500 text-center">
+              Others
+            </div>
           </div>
           {comparisonFeatures.map((row, index) => (
             <div
               key={row.feature}
               className={cn([
                 "grid grid-cols-3",
-                index !== comparisonFeatures.length - 1 && "border-b border-neutral-100",
+                index !== comparisonFeatures.length - 1 &&
+                  "border-b border-neutral-100",
               ])}
             >
               <div className="p-4 text-neutral-700 text-sm">{row.feature}</div>
               <div className="p-4 text-center border-x border-neutral-100">
                 {row.hyprnote === true ? (
-                  <Icon icon="mdi:check-circle" className="text-xl text-green-600" />
+                  <Icon
+                    icon="mdi:check-circle"
+                    className="text-xl text-green-600"
+                  />
                 ) : (
-                  <span className="text-sm text-neutral-500">{row.hyprnote}</span>
+                  <span className="text-sm text-neutral-500">
+                    {row.hyprnote}
+                  </span>
                 )}
               </div>
               <div className="p-4 text-center">
                 {row.others === true ? (
-                  <Icon icon="mdi:check-circle" className="text-xl text-green-600" />
+                  <Icon
+                    icon="mdi:check-circle"
+                    className="text-xl text-green-600"
+                  />
                 ) : row.others === false ? (
-                  <Icon icon="mdi:close-circle" className="text-xl text-red-400" />
+                  <Icon
+                    icon="mdi:close-circle"
+                    className="text-xl text-red-400"
+                  />
                 ) : (
                   <span className="text-sm text-neutral-500">{row.others}</span>
                 )}
@@ -288,9 +309,16 @@ function UseCasesSection() {
               key={useCase.title}
               className="p-6 bg-stone-50/50 rounded-lg hover:bg-stone-50 transition-colors"
             >
-              <Icon icon={useCase.icon} className="text-3xl text-stone-500 mb-4" />
-              <h3 className="text-lg font-medium text-stone-700 mb-2">{useCase.title}</h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">{useCase.description}</p>
+              <Icon
+                icon={useCase.icon}
+                className="text-3xl text-stone-500 mb-4"
+              />
+              <h3 className="text-lg font-medium text-stone-700 mb-2">
+                {useCase.title}
+              </h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">
+                {useCase.description}
+              </p>
             </div>
           ))}
         </div>
@@ -313,8 +341,9 @@ function OpenSourceSection() {
               Transparent by design
             </h2>
             <p className="text-neutral-600 mb-6 leading-relaxed">
-              Hyprnote is fully open source. Inspect the code, contribute improvements, or self-host
-              on your own infrastructure. No vendor lock-in, no hidden data collection.
+              Hyprnote is fully open source. Inspect the code, contribute
+              improvements, or self-host on your own infrastructure. No vendor
+              lock-in, no hidden data collection.
             </p>
             <div className="flex flex-wrap gap-4">
               <a
@@ -344,7 +373,9 @@ function OpenSourceSection() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-6 bg-white border border-neutral-200 rounded-lg text-center">
-              <div className="text-3xl font-serif text-stone-600 mb-1">100%</div>
+              <div className="text-3xl font-serif text-stone-600 mb-1">
+                100%
+              </div>
               <div className="text-sm text-neutral-600">Open Source</div>
             </div>
             <div className="p-6 bg-white border border-neutral-200 rounded-lg text-center">
@@ -352,11 +383,15 @@ function OpenSourceSection() {
               <div className="text-sm text-neutral-600">Data Collection</div>
             </div>
             <div className="p-6 bg-white border border-neutral-200 rounded-lg text-center">
-              <div className="text-3xl font-serif text-stone-600 mb-1">Local</div>
+              <div className="text-3xl font-serif text-stone-600 mb-1">
+                Local
+              </div>
               <div className="text-sm text-neutral-600">AI Processing</div>
             </div>
             <div className="p-6 bg-white border border-neutral-200 rounded-lg text-center">
-              <div className="text-3xl font-serif text-stone-600 mb-1">Free</div>
+              <div className="text-3xl font-serif text-stone-600 mb-1">
+                Free
+              </div>
               <div className="text-sm text-neutral-600">Forever</div>
             </div>
           </div>
@@ -374,7 +409,8 @@ function CTASection() {
           Ready to try Hyprnote?
         </h2>
         <p className="text-lg text-neutral-600 mb-8">
-          Download now and start capturing better meeting notes in minutes. No signup required.
+          Download now and start capturing better meeting notes in minutes. No
+          signup required.
         </p>
         <Link
           to="/download"

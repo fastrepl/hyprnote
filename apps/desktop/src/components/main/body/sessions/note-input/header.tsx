@@ -3,8 +3,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { md2json } from "@hypr/tiptap/shared";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
@@ -13,7 +21,10 @@ import {
   useCreateEnhancedNote,
   useEnsureDefaultSummary,
 } from "../../../../../hooks/useEnhancedNotes";
-import { useLanguageModel, useLLMConnectionStatus } from "../../../../../hooks/useLLMConnection";
+import {
+  useLanguageModel,
+  useLLMConnectionStatus,
+} from "../../../../../hooks/useLLMConnection";
 import * as main from "../../../../../store/tinybase/main";
 import { createTaskId } from "../../../../../store/zustand/ai-task/task-configs";
 import { useTabs } from "../../../../../store/zustand/tabs";
@@ -38,7 +49,11 @@ function HeaderTab({
         "relative my-2 border-b-2 px-1 py-0.5 text-xs font-medium transition-all duration-200",
         isActive
           ? ["border-neutral-900", "text-neutral-900"]
-          : ["border-transparent", "text-neutral-600", "hover:text-neutral-800"],
+          : [
+              "border-transparent",
+              "text-neutral-600",
+              "hover:text-neutral-800",
+            ],
       ])}
     >
       {children}
@@ -46,9 +61,19 @@ function HeaderTab({
   );
 }
 
-function TruncatedTitle({ title, isActive }: { title: string; isActive: boolean }) {
+function TruncatedTitle({
+  title,
+  isActive,
+}: {
+  title: string;
+  isActive: boolean;
+}) {
   return (
-    <span className={cn(["truncate", isActive ? "max-w-[120px]" : "max-w-[60px]"])}>{title}</span>
+    <span
+      className={cn(["truncate", isActive ? "max-w-[120px]" : "max-w-[60px]"])}
+    >
+      {title}
+    </span>
   );
 }
 
@@ -63,10 +88,14 @@ function HeaderTabEnhanced({
   sessionId: string;
   enhancedNoteId: string;
 }) {
-  const { isGenerating, isError, error, onRegenerate } = useEnhanceLogic(sessionId, enhancedNoteId);
+  const { isGenerating, isError, error, onRegenerate } = useEnhanceLogic(
+    sessionId,
+    enhancedNoteId,
+  );
 
   const title =
-    main.UI.useCell("enhanced_notes", enhancedNoteId, "title", main.STORE_ID) || "Summary";
+    main.UI.useCell("enhanced_notes", enhancedNoteId, "title", main.STORE_ID) ||
+    "Summary";
 
   const handleRegenerateClick = useCallback(
     (e: React.MouseEvent) => {
@@ -123,7 +152,11 @@ function HeaderTabEnhanced({
         "relative my-2 py-0.5 px-1 text-xs font-medium transition-all duration-200 border-b-2",
         isActive
           ? ["text-neutral-900", "border-neutral-900"]
-          : ["text-neutral-600", "border-transparent", "hover:text-neutral-800"],
+          : [
+              "text-neutral-600",
+              "border-transparent",
+              "hover:text-neutral-800",
+            ],
       ])}
     >
       <span className="flex items-center gap-1">
@@ -164,7 +197,10 @@ function CreateOtherFormatButton({
     templateId: string;
   } | null>(null);
   const startedTasksRef = useRef(new Set<string>());
-  const templates = main.UI.useResultTable(main.QUERIES.visibleTemplates, main.STORE_ID);
+  const templates = main.UI.useResultTable(
+    main.QUERIES.visibleTemplates,
+    main.STORE_ID,
+  );
   const createEnhancedNote = useCreateEnhancedNote();
   const model = useLanguageModel();
   const openNew = useTabs((state) => state.openNew);
@@ -246,7 +282,10 @@ function CreateOtherFormatButton({
           {Object.entries(templates).length > 0 ? (
             <>
               {Object.entries(templates).map(([templateId, template]) => (
-                <TemplateButton key={templateId} onClick={() => handleTemplateClick(templateId)}>
+                <TemplateButton
+                  key={templateId}
+                  onClick={() => handleTemplateClick(templateId)}
+                >
                   {template.title}
                 </TemplateButton>
               ))}
@@ -300,7 +339,8 @@ export function Header({
     return null;
   }
 
-  const showProgress = currentTab.type === "transcript" && !isLiveProcessing && isBatchProcessing;
+  const showProgress =
+    currentTab.type === "transcript" && !isLiveProcessing && isBatchProcessing;
   const showEditingControls =
     currentTab.type === "transcript" && isLiveProcessing && !isBatchProcessing;
 
@@ -315,7 +355,9 @@ export function Header({
                   key={`enhanced-${view.id}`}
                   sessionId={sessionId}
                   enhancedNoteId={view.id}
-                  isActive={currentTab.type === "enhanced" && currentTab.id === view.id}
+                  isActive={
+                    currentTab.type === "enhanced" && currentTab.id === view.id
+                  }
                   onClick={() => handleTabChange(view)}
                 />
               );
@@ -332,7 +374,10 @@ export function Header({
             );
           })}
           {currentTab.type === "enhanced" && (
-            <CreateOtherFormatButton sessionId={sessionId} handleTabChange={handleTabChange} />
+            <CreateOtherFormatButton
+              sessionId={sessionId}
+              handleTabChange={handleTabChange}
+            />
           )}
         </div>
         {showProgress && <TranscriptionProgress sessionId={sessionId} />}
@@ -348,7 +393,11 @@ export function Header({
   );
 }
 
-export function useEditorTabs({ sessionId }: { sessionId: string }): EditorView[] {
+export function useEditorTabs({
+  sessionId,
+}: {
+  sessionId: string;
+}): EditorView[] {
   useEnsureDefaultSummary(sessionId);
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
@@ -391,7 +440,9 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
   const model = useLanguageModel();
   const llmStatus = useLLMConnectionStatus();
   const taskId = createTaskId(enhancedNoteId, "enhance");
-  const [missingModelError, setMissingModelError] = useState<Error | null>(null);
+  const [missingModelError, setMissingModelError] = useState<Error | null>(
+    null,
+  );
 
   const store = main.UI.useStore(main.STORE_ID);
 
@@ -413,7 +464,9 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
   const onRegenerate = useCallback(
     async (templateId: string | null) => {
       if (!model) {
-        setMissingModelError(new Error("Intelligence provider not configured."));
+        setMissingModelError(
+          new Error("Intelligence provider not configured."),
+        );
         return;
       }
 
@@ -445,12 +498,14 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
   const isConfigError =
     llmStatus.status === "pending" ||
     (llmStatus.status === "error" &&
-      (llmStatus.reason === "missing_config" || llmStatus.reason === "unauthenticated"));
+      (llmStatus.reason === "missing_config" ||
+        llmStatus.reason === "unauthenticated"));
 
   const isIdleWithConfigError = enhanceTask.isIdle && isConfigError;
 
   const error = missingModelError ?? enhanceTask.error;
-  const isError = !!missingModelError || enhanceTask.isError || isIdleWithConfigError;
+  const isError =
+    !!missingModelError || enhanceTask.isError || isIdleWithConfigError;
 
   return {
     isGenerating: enhanceTask.isGenerating,

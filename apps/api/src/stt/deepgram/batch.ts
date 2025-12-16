@@ -44,7 +44,9 @@ export const transcribeWithDeepgram = async (
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Deepgram batch transcription failed: ${response.status} - ${errorText}`);
+    throw new Error(
+      `Deepgram batch transcription failed: ${response.status} - ${errorText}`,
+    );
   }
 
   return response.json() as Promise<BatchResponse>;

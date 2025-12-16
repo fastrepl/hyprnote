@@ -138,7 +138,9 @@ function HeroSection({
               className="size-36 rounded-[40px] border border-neutral-100"
             />
           </div>
-          <div className="text-3xl sm:text-4xl text-neutral-400 font-light pl-6 pr-8">vs</div>
+          <div className="text-3xl sm:text-4xl text-neutral-400 font-light pl-6 pr-8">
+            vs
+          </div>
           <div className="size-40 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[48px] bg-transparent scale-110">
             <img
               src="/api/images/hyprnote/icon.png"
@@ -151,7 +153,9 @@ function HeroSection({
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-stone-600 mb-6">
           {headline}
         </h1>
-        <p className="text-lg sm:text-xl text-neutral-600 mb-8">{description}</p>
+        <p className="text-lg sm:text-xl text-neutral-600 mb-8">
+          {description}
+        </p>
 
         <div className="mt-8">
           <Link

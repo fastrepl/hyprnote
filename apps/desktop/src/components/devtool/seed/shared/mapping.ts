@@ -4,7 +4,10 @@ import type { mappingSessionParticipant, MappingTagSession } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
-export const createmappingSessionParticipant = (session_id: string, human_id: string) => ({
+export const createmappingSessionParticipant = (
+  session_id: string,
+  human_id: string,
+) => ({
   id: id(),
   data: {
     user_id: DEFAULT_USER_ID,
@@ -14,7 +17,10 @@ export const createmappingSessionParticipant = (session_id: string, human_id: st
   } satisfies mappingSessionParticipant,
 });
 
-export const createMappingTagSession = (tag_id: string, session_id: string) => ({
+export const createMappingTagSession = (
+  tag_id: string,
+  session_id: string,
+) => ({
   id: id(),
   data: {
     user_id: DEFAULT_USER_ID,

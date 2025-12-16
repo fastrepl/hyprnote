@@ -5,7 +5,11 @@ import { Button } from "@hypr/ui/components/ui/button";
 
 import { useTabs } from "../../../store/zustand/tabs";
 
-export function ChatBodyEmpty({ isModelConfigured = true }: { isModelConfigured?: boolean }) {
+export function ChatBodyEmpty({
+  isModelConfigured = true,
+}: {
+  isModelConfigured?: boolean;
+}) {
   const openNew = useTabs((state) => state.openNew);
 
   const handleGoToSettings = useCallback(() => {
@@ -26,13 +30,25 @@ export function ChatBodyEmpty({ isModelConfigured = true }: { isModelConfigured?
         <div className="flex flex-col max-w-[80%]">
           <div className="rounded-2xl px-3 py-1 text-sm bg-neutral-100 text-neutral-800">
             <div className="flex items-center gap-2 mb-1 py-1">
-              <img src="/assets/dynamic.gif" alt="Hyprnote" className="w-5 h-5" />
-              <span className="text-sm font-medium text-neutral-800">Hyprnote AI</span>
+              <img
+                src="/assets/dynamic.gif"
+                alt="Hyprnote"
+                className="w-5 h-5"
+              />
+              <span className="text-sm font-medium text-neutral-800">
+                Hyprnote AI
+              </span>
             </div>
             <p className="text-sm text-neutral-700 mb-2">
-              Hey! I need you to configure a language model to start chatting with me!
+              Hey! I need you to configure a language model to start chatting
+              with me!
             </p>
-            <Button onClick={handleGoToSettings} variant="default" size="sm" className="mb-1">
+            <Button
+              onClick={handleGoToSettings}
+              variant="default"
+              size="sm"
+              className="mb-1"
+            >
               Go to settings
             </Button>
           </div>
@@ -47,7 +63,9 @@ export function ChatBodyEmpty({ isModelConfigured = true }: { isModelConfigured?
         <div className="rounded-2xl px-3 py-1 text-sm bg-neutral-100 text-neutral-800">
           <div className="flex items-center gap-2 mb-1 py-1">
             <img src="/assets/dynamic.gif" alt="Hyprnote" className="w-5 h-5" />
-            <span className="text-sm font-medium text-neutral-800">Hyprnote AI</span>
+            <span className="text-sm font-medium text-neutral-800">
+              Hyprnote AI
+            </span>
           </div>
           <p className="text-sm text-neutral-700 mb-2">
             Hey! I can help you with a lot of cool stuff :)

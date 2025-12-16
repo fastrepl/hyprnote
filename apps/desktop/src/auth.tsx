@@ -11,7 +11,13 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import { commands } from "@hypr/plugin-auth";
 
@@ -37,7 +43,8 @@ const clearAuthStorage = async (): Promise<void> => {
 };
 
 // Check if we're in an iframe (extension host) context where Tauri APIs are not available
-const isIframeContext = typeof window !== "undefined" && window.self !== window.top;
+const isIframeContext =
+  typeof window !== "undefined" && window.self !== window.top;
 
 // Only create Tauri storage if we're not in an iframe context
 const tauriStorage: SupportedStorage | null = isIframeContext
@@ -60,7 +67,10 @@ const tauriStorage: SupportedStorage | null = isIframeContext
 
 // Only create Supabase client if we're not in an iframe context and have valid config
 const supabase =
-  !isIframeContext && env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY && tauriStorage
+  !isIframeContext &&
+  env.VITE_SUPABASE_URL &&
+  env.VITE_SUPABASE_ANON_KEY &&
+  tauriStorage
     ? createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY, {
         global: {
           fetch: tauriFetch,
@@ -82,7 +92,10 @@ const AuthContext = createContext<{
   signOut: () => Promise<void>;
   refreshSession: () => Promise<Session | null>;
   handleAuthCallback: (url: string) => Promise<void>;
-  setSessionFromTokens: (accessToken: string, refreshToken: string) => Promise<void>;
+  setSessionFromTokens: (
+    accessToken: string,
+    refreshToken: string,
+  ) => Promise<void>;
   getHeaders: () => Record<string, string> | null;
   getAvatarUrl: () => Promise<string>;
 } | null>(null);
@@ -91,7 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [serverReachable, setServerReachable] = useState(true);
 
-  const setSessionFromTokens = async (accessToken: string, refreshToken: string) => {
+  const setSessionFromTokens = async (
+    accessToken: string,
+    refreshToken: string,
+  ) => {
     if (!supabase) {
       console.error("Supabase client not found");
       return;
@@ -168,7 +184,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         if (data.session) {
-          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          const { data: refreshData, error: refreshError } =
+            await supabase.auth.refreshSession();
           if (refreshError) {
             if (refreshError instanceof AuthSessionMissingError) {
               await clearAuthStorage();
@@ -197,7 +214,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(null);
           return;
         }
-        if (e instanceof AuthRetryableFetchError && isLocalAuthServer(env.VITE_SUPABASE_URL)) {
+        if (
+          e instanceof AuthRetryableFetchError &&
+          isLocalAuthServer(env.VITE_SUPABASE_URL)
+        ) {
           setServerReachable(false);
         }
       }
@@ -236,7 +256,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        if (error instanceof AuthRetryableFetchError || error instanceof AuthSessionMissingError) {
+        if (
+          error instanceof AuthRetryableFetchError ||
+          error instanceof AuthSessionMissingError
+        ) {
           await clearAuthStorage();
           setSession(null);
           return;
@@ -244,7 +267,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error(error);
       }
     } catch (e) {
-      if (e instanceof AuthRetryableFetchError || e instanceof AuthSessionMissingError) {
+      if (
+        e instanceof AuthRetryableFetchError ||
+        e instanceof AuthSessionMissingError
+      ) {
         await clearAuthStorage();
         setSession(null);
       }

@@ -148,9 +148,9 @@ function HeroSection() {
             for everyone
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto">
-            Hyprnote is fully open source under GPL-3.0. Every line of code is auditable, every
-            decision is transparent, and every user has the freedom to inspect, modify, and
-            contribute.
+            Hyprnote is fully open source under GPL-3.0. Every line of code is
+            auditable, every decision is transparent, and every user has the
+            freedom to inspect, modify, and contribute.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
@@ -195,27 +195,30 @@ function LetterSection() {
             <p className="text-lg">Hey friends,</p>
 
             <p>
-              We're watching software change faster than any of us expected. AI isn't a concept
-              anymore. It's in your meetings, it's inside your documents, and it has context on
-              things that used to live only in your mind.
+              We're watching software change faster than any of us expected. AI
+              isn't a concept anymore. It's in your meetings, it's inside your
+              documents, and it has context on things that used to live only in
+              your mind.
             </p>
 
             <p>
-              When software listens to you, when it transcribes you, when it summarizes your
-              thinking, trust can't just be a marketing claim.
+              When software listens to you, when it transcribes you, when it
+              summarizes your thinking, trust can't just be a marketing claim.
             </p>
 
             <p>That's why open source is not a nice-to-have. It's mandatory.</p>
 
             <p>
-              If an AI tool captures your voice, your discussions, your strategy, you should be able
-              to see exactly what it does with that information. Not a PDF saying "we care about
-              privacy." Not a privacy policy written by lawyers. Actual code.
+              If an AI tool captures your voice, your discussions, your
+              strategy, you should be able to see exactly what it does with that
+              information. Not a PDF saying "we care about privacy." Not a
+              privacy policy written by lawyers. Actual code.
             </p>
 
             <p>
-              Closed-source AI tools say "trust us." But you can't audit "trust us." You can't fork
-              it, stress-test it, or guarantee your own compliance.
+              Closed-source AI tools say "trust us." But you can't audit "trust
+              us." You can't fork it, stress-test it, or guarantee your own
+              compliance.
             </p>
 
             <p>In the age of AI, blind trust is basically an attack vector.</p>
@@ -232,28 +235,30 @@ function LetterSection() {
             <p>That's why we built Hyprnote in the open.</p>
 
             <p>
-              We don't want you to trust us more. We want you to need to trust us less. If you can
-              inspect it, run it locally, modify it, or audit it, the entire idea of trust changes.
+              We don't want you to trust us more. We want you to need to trust
+              us less. If you can inspect it, run it locally, modify it, or
+              audit it, the entire idea of trust changes.
             </p>
 
             <p>This isn't ideology. It's durability.</p>
 
             <p>
-              Companies die. Pricing changes. Terms change. Acquisitions happen. Compliance
-              requirements evolve.
+              Companies die. Pricing changes. Terms change. Acquisitions happen.
+              Compliance requirements evolve.
             </p>
 
             <p>Open source survives all of that.</p>
 
             <p>
-              What AI is capable of today demands a different contract between software and the
-              people who rely on it. That contract should be inspectable, forkable, and owned by its
-              users, not hidden behind opaque servers.
+              What AI is capable of today demands a different contract between
+              software and the people who rely on it. That contract should be
+              inspectable, forkable, and owned by its users, not hidden behind
+              opaque servers.
             </p>
 
             <p>
-              If AI ends up shaping how we work, think, and communicate, then the people using it
-              deserve transparency—not promises.
+              If AI ends up shaping how we work, think, and communicate, then
+              the people using it deserve transparency—not promises.
             </p>
 
             <div className="flex flex-col gap-4">
@@ -420,9 +425,12 @@ function TechStackSection() {
     <section>
       <div>
         <div className="py-12 lg:py-16">
-          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">Our Tech Stack</h2>
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            Our Tech Stack
+          </h2>
           <p className="text-neutral-600 text-center max-w-2xl mx-auto">
-            Built with modern, privacy-respecting technologies that run locally on your device.
+            Built with modern, privacy-respecting technologies that run locally
+            on your device.
           </p>
         </div>
 
@@ -431,7 +439,9 @@ function TechStackSection() {
             return (
               <Fragment key={section.category}>
                 <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50">
-                  <h3 className="text-xl font-serif text-stone-600">{section.category}</h3>
+                  <h3 className="text-xl font-serif text-stone-600">
+                    {section.category}
+                  </h3>
                 </div>
                 {section.items.map((tech, techIndex) => {
                   const itemCount = section.items.length;
@@ -488,7 +498,9 @@ function TechStackSection() {
                           {tech.name}
                         </h4>
                       </div>
-                      <p className="text-sm text-neutral-600">{tech.description}</p>
+                      <p className="text-sm text-neutral-600">
+                        {tech.description}
+                      </p>
                     </a>
                   );
                 })}
@@ -506,16 +518,20 @@ function SponsorsSection() {
     <section>
       <div>
         <div className="py-12 lg:py-16">
-          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">Paying It Forward</h2>
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            Paying It Forward
+          </h2>
           <p className="text-neutral-600 text-center max-w-2xl mx-auto">
-            We love giving back to the community that makes Hyprnote possible. As we grow, we hope
-            to sponsor even more projects and creators.
+            We love giving back to the community that makes Hyprnote possible.
+            As we grow, we hope to sponsor even more projects and creators.
           </p>
         </div>
 
         <div className="grid grid-cols-6">
           <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50">
-            <h3 className="text-xl font-serif text-stone-600">Projects We Sponsor</h3>
+            <h3 className="text-xl font-serif text-stone-600">
+              Projects We Sponsor
+            </h3>
           </div>
           {sponsors.map((sponsor, index) => {
             const hasBorderR = index < sponsors.length - 1;
@@ -552,15 +568,20 @@ function SponsorsSection() {
                     {sponsor.name}
                   </h4>
                 </div>
-                <p className="text-sm text-neutral-600">{sponsor.description}</p>
+                <p className="text-sm text-neutral-600">
+                  {sponsor.description}
+                </p>
               </a>
             );
           })}
           <div className="col-span-6 p-6 border-t border-b border-neutral-100 bg-stone-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h3 className="text-xl font-serif text-stone-600">We Appreciate Your Support</h3>
+              <h3 className="text-xl font-serif text-stone-600">
+                We Appreciate Your Support
+              </h3>
               <p className="text-sm text-neutral-600 mt-2">
-                Your sponsorship keeps Hyprnote free, open source, and independent for everyone.
+                Your sponsorship keeps Hyprnote free, open source, and
+                independent for everyone.
               </p>
             </div>
             <a
@@ -740,7 +761,9 @@ function ProgressSection() {
     <section>
       <div>
         <div className="py-12 lg:py-16">
-          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">How We're Doing</h2>
+          <h2 className="text-3xl font-serif text-stone-600 mb-4 text-center">
+            How We're Doing
+          </h2>
           <p className="text-neutral-600 text-center max-w-2xl mx-auto">
             Our progress is measured by the community we're building together.
           </p>
@@ -818,7 +841,8 @@ function JoinMovementSection() {
             Be Part of the Movement
           </h2>
           <p className="text-neutral-600 text-center max-w-2xl mx-auto">
-            Every contribution, no matter how small, helps build a more private future for AI.
+            Every contribution, no matter how small, helps build a more private
+            future for AI.
           </p>
         </div>
 
@@ -840,7 +864,9 @@ function JoinMovementSection() {
                 ])}
               >
                 <div>
-                  <h3 className="font-medium text-stone-600 mb-2">{item.title}</h3>
+                  <h3 className="font-medium text-stone-600 mb-2">
+                    {item.title}
+                  </h3>
                   <p className="text-sm text-neutral-600">{item.description}</p>
                 </div>
                 <div className="mt-4">

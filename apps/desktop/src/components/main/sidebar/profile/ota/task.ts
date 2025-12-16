@@ -21,7 +21,8 @@ export const checkForUpdate = async () => {
       }, 2000);
     }
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "Failed to check for updates";
+    const errorMessage =
+      err instanceof Error ? err.message : "Failed to check for updates";
     updateStore.trigger.checkError({ error: errorMessage });
   }
 };
@@ -96,7 +97,8 @@ const handleInstall = async () => {
       await relaunch();
     }
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "Installation failed";
+    const errorMessage =
+      err instanceof Error ? err.message : "Installation failed";
     updateStore.trigger.checkError({ error: errorMessage });
   }
 };

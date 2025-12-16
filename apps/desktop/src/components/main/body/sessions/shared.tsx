@@ -21,9 +21,12 @@ export function useHasTranscript(sessionId: string): boolean {
   return !!transcriptIds && transcriptIds.length > 0;
 }
 
-export function useCurrentNoteTab(tab: Extract<Tab, { type: "sessions" }>): EditorView {
+export function useCurrentNoteTab(
+  tab: Extract<Tab, { type: "sessions" }>,
+): EditorView {
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
-  const isListenerActive = sessionMode === "running_active" || sessionMode === "finalizing";
+  const isListenerActive =
+    sessionMode === "running_active" || sessionMode === "finalizing";
 
   const enhancedNoteIds = main.UI.useSliceRowIds(
     main.INDEXES.enhancedNotesBySession,
@@ -65,7 +68,8 @@ export function RecordingIcon({ disabled }: { disabled?: boolean }) {
 
 export function useListenButtonState(sessionId: string) {
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const active = sessionMode === "running_active" || sessionMode === "finalizing";
+  const active =
+    sessionMode === "running_active" || sessionMode === "finalizing";
   const batching = sessionMode === "running_batch";
 
   const taskId = createTaskId(sessionId, "enhance");

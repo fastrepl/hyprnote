@@ -95,9 +95,13 @@ export default function () {
       streamingTTFB.add(res.timings.waiting);
     }
 
-    console.log(`[${promptType}] ${STREAMING ? "stream" : "sync"} completed in ${latency}ms`);
+    console.log(
+      `[${promptType}] ${STREAMING ? "stream" : "sync"} completed in ${latency}ms`,
+    );
   } else {
-    console.log(`[${promptType}] failed with status ${res.status}: ${res.body}`);
+    console.log(
+      `[${promptType}] failed with status ${res.status}: ${res.body}`,
+    );
   }
 
   sleep(1);

@@ -16,8 +16,12 @@ export function Step({ title, children, className }: StepProps) {
         <div className="mt-1 h-full w-px bg-neutral-300 dark:bg-neutral-700" />
       </div>
       <div className="flex-1 pb-6">
-        <h3 className="mb-2 text-sm font-medium text-neutral-900 dark:text-neutral-100">{title}</h3>
-        <div className="text-sm text-neutral-700 dark:text-neutral-300">{children}</div>
+        <h3 className="mb-2 text-sm font-medium text-neutral-900 dark:text-neutral-100">
+          {title}
+        </h3>
+        <div className="text-sm text-neutral-700 dark:text-neutral-300">
+          {children}
+        </div>
       </div>
     </div>
   );

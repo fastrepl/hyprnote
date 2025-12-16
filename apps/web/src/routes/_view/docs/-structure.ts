@@ -12,7 +12,10 @@ export const docsStructure = {
 };
 
 export function getDocsBySection() {
-  const sectionGroups: Record<string, { title: string; docs: (typeof allDocs)[0][] }> = {};
+  const sectionGroups: Record<
+    string,
+    { title: string; docs: (typeof allDocs)[0][] }
+  > = {};
 
   allDocs.forEach((doc) => {
     if (doc.slug === "index" || doc.isIndex) {
@@ -41,7 +44,10 @@ export function getDocsBySection() {
         (group) => group.title.toLowerCase() === sectionId.toLowerCase(),
       );
     })
-    .filter((section): section is NonNullable<typeof section> => section !== undefined);
+    .filter(
+      (section): section is NonNullable<typeof section> =>
+        section !== undefined,
+    );
 
   return { sections };
 }

@@ -41,7 +41,9 @@ const Component = forwardRef<
   };
 
   const upHandler = () => {
-    setSelectedIndex((prev) => (prev + props.items.length - 1) % props.items.length);
+    setSelectedIndex(
+      (prev) => (prev + props.items.length - 1) % props.items.length,
+    );
   };
 
   const downHandler = () => {
@@ -60,7 +62,11 @@ const Component = forwardRef<
         return false;
       }
 
-      if (event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "Enter") {
+      if (
+        event.key === "ArrowUp" ||
+        event.key === "ArrowDown" ||
+        event.key === "Enter"
+      ) {
         event.preventDefault();
       }
 
@@ -110,7 +116,9 @@ const Component = forwardRef<
 });
 
 // https://github.com/ueberdosis/tiptap/blob/main/demos/src/Nodes/Mention/React/suggestion.js
-const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> => {
+const suggestion = (
+  config: MentionConfig,
+): Omit<SuggestionOptions, "editor"> => {
   let cachedItems: MentionItem[] = [];
   let loading = false;
   let currentQuery = "";
@@ -142,7 +150,12 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
     command: ({ editor, range, props }) => {
       const item = props as MentionItem;
       if (item.content) {
-        editor.chain().focus().deleteRange(range).insertContent(item.content).run();
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertContent(item.content)
+          .run();
       } else {
         editor
           .chain()
@@ -193,7 +206,9 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
           });
       }, 0);
 
-      return loading ? [{ id: "loading", type: "loading", label: "Loading..." }] : [];
+      return loading
+        ? [{ id: "loading", type: "loading", label: "Loading..." }]
+        : [];
     },
     render: () => {
       let renderer: ReactRenderer;
@@ -251,7 +266,8 @@ const suggestion = (config: MentionConfig): Omit<SuggestionOptions, "editor"> =>
             loading,
           });
           if (props.clientRect) {
-            referenceEl.getBoundingClientRect = () => props.clientRect?.() ?? new DOMRect();
+            referenceEl.getBoundingClientRect = () =>
+              props.clientRect?.() ?? new DOMRect();
           }
           update();
         },

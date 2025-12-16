@@ -4,7 +4,7 @@ import type { WordStorage } from "@hypr/store";
 
 import { DEFAULT_USER_ID, id } from "../../../../utils";
 
-const selectWeighted = <T>(choices: Array<{ weight: number; value: T }>): T =>
+const selectWeighted = <T,>(choices: Array<{ weight: number; value: T }>): T =>
   faker.helpers.weightedArrayElement(choices);
 
 const appendPhrase = (target: string[], phrase: string) => {
@@ -25,7 +25,16 @@ const durationForWord = (text: string) => {
 };
 
 const generateSentence = () => {
-  const starters = ["yeah", "so", "honestly", "right", "okay", "look", "listen", "alright"];
+  const starters = [
+    "yeah",
+    "so",
+    "honestly",
+    "right",
+    "okay",
+    "look",
+    "listen",
+    "alright",
+  ];
   const bridges = [
     "you know",
     "I mean",
@@ -54,11 +63,17 @@ const generateSentence = () => {
       { weight: 25, value: { min: 16, max: 22 } },
       { weight: 10, value: { min: 23, max: 30 } },
     ]);
-    appendPhrase(sentenceWords, faker.lorem.words(faker.number.int(lengthRange)));
+    appendPhrase(
+      sentenceWords,
+      faker.lorem.words(faker.number.int(lengthRange)),
+    );
 
     if (faker.datatype.boolean({ probability: 0.35 })) {
       appendPhrase(sentenceWords, faker.helpers.arrayElement(bridges));
-      appendPhrase(sentenceWords, faker.lorem.words(faker.number.int({ min: 3, max: 8 })));
+      appendPhrase(
+        sentenceWords,
+        faker.lorem.words(faker.number.int({ min: 3, max: 8 })),
+      );
     }
   }
 
@@ -85,7 +100,11 @@ export const generateTranscript = () => {
       { weight: 10, value: faker.number.int({ min: 9, max: 10 }) },
     ]);
 
-    for (let sentenceIndex = 0; sentenceIndex < sentenceCount; sentenceIndex++) {
+    for (
+      let sentenceIndex = 0;
+      sentenceIndex < sentenceCount;
+      sentenceIndex++
+    ) {
       const sentenceWords = generateSentence();
 
       for (const raw of sentenceWords) {

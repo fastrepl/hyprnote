@@ -22,8 +22,14 @@ export type TimelineSessionRow = {
   [key: string]: unknown;
 };
 
-export type EventsWithoutSessionTable = Record<string, TimelineEventRow> | null | undefined;
-export type SessionsWithMaybeEventTable = Record<string, TimelineSessionRow> | null | undefined;
+export type EventsWithoutSessionTable =
+  | Record<string, TimelineEventRow>
+  | null
+  | undefined;
+export type SessionsWithMaybeEventTable =
+  | Record<string, TimelineSessionRow>
+  | null
+  | undefined;
 
 export type TimelineItem =
   | { type: "event"; id: string; date: string; data: Event }
@@ -67,7 +73,9 @@ export function getBucketInfo(date: Date): {
 
     if (absDays <= 27) {
       const weeks = Math.max(1, Math.round(absDays / 7));
-      const weekStart = startOfDay(new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000));
+      const weekStart = startOfDay(
+        new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000),
+      );
       const weekSortKey = weekStart.getTime();
 
       return {
@@ -81,7 +89,9 @@ export function getBucketInfo(date: Date): {
     if (months === 0) {
       months = 1;
     }
-    const monthStart = startOfDay(new Date(targetDay.getFullYear(), targetDay.getMonth(), 1));
+    const monthStart = startOfDay(
+      new Date(targetDay.getFullYear(), targetDay.getMonth(), 1),
+    );
     return {
       label: months === 1 ? "a month ago" : `${months} months ago`,
       sortKey: monthStart.getTime(),
@@ -95,7 +105,9 @@ export function getBucketInfo(date: Date): {
 
   if (absDays <= 27) {
     const weeks = Math.max(1, Math.round(absDays / 7));
-    const weekStart = startOfDay(new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000));
+    const weekStart = startOfDay(
+      new Date(now.getTime() + weeks * 7 * 24 * 60 * 60 * 1000),
+    );
     const weekSortKey = weekStart.getTime();
 
     return {
@@ -109,7 +121,9 @@ export function getBucketInfo(date: Date): {
   if (months === 0) {
     months = 1;
   }
-  const monthStart = startOfDay(new Date(targetDay.getFullYear(), targetDay.getMonth(), 1));
+  const monthStart = startOfDay(
+    new Date(targetDay.getFullYear(), targetDay.getMonth(), 1),
+  );
   return {
     label: months === 1 ? "next month" : `in ${months} months`,
     sortKey: monthStart.getTime(),

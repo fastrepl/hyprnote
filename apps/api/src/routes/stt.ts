@@ -84,13 +84,15 @@ stt.post(
     const span = c.get("sentrySpan");
 
     const clientUrl = new URL(c.req.url, "http://localhost");
-    const provider = (clientUrl.searchParams.get("provider") as BatchProvider) ?? "deepgram";
+    const provider =
+      (clientUrl.searchParams.get("provider") as BatchProvider) ?? "deepgram";
 
     const languages = clientUrl.searchParams.getAll("language");
     const keywords = clientUrl.searchParams.getAll("keyword");
     const model = clientUrl.searchParams.get("model") ?? undefined;
 
-    const contentType = c.req.header("content-type") ?? "application/octet-stream";
+    const contentType =
+      c.req.header("content-type") ?? "application/octet-stream";
 
     const startTime = performance.now();
 
@@ -127,7 +129,8 @@ stt.post(
 
       return c.json(response, 200);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "unknown error";
       const isUpstreamError = errorMessage.includes("failed:");
 
       emit({

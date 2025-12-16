@@ -3,7 +3,12 @@ import { format } from "date-fns";
 import * as main from "../../../../../../store/tinybase/main";
 
 export function DateDisplay({ sessionId }: { sessionId: string }) {
-  const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
+  const createdAt = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "created_at",
+    main.STORE_ID,
+  );
   const { startedAt, endedAt } = useSessionRecordingTimes(sessionId);
 
   const displayDate = !startedAt
@@ -20,9 +25,14 @@ export function DateDisplay({ sessionId }: { sessionId: string }) {
 }
 
 function useSessionRecordingTimes(sessionId: string) {
-  const resultTable = main.UI.useResultTable(main.QUERIES.sessionRecordingTimes, main.STORE_ID);
+  const resultTable = main.UI.useResultTable(
+    main.QUERIES.sessionRecordingTimes,
+    main.STORE_ID,
+  );
 
-  const recordingTimes = Object.values(resultTable).find((row) => row.session_id === sessionId);
+  const recordingTimes = Object.values(resultTable).find(
+    (row) => row.session_id === sessionId,
+  );
 
   return {
     startedAt: recordingTimes?.min_started_at as number | undefined,

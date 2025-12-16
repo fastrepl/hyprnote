@@ -74,7 +74,10 @@ export async function transcribeWithCallback(
   return result.id;
 }
 
-export async function fetchTranscript(transcriptionId: string, apiKey: string): Promise<string> {
+export async function fetchTranscript(
+  transcriptionId: string,
+  apiKey: string,
+): Promise<string> {
   const response = await fetch(
     `${SONIOX_API_HOST}/v1/transcriptions/${transcriptionId}/transcript`,
     {
@@ -86,7 +89,9 @@ export async function fetchTranscript(transcriptionId: string, apiKey: string): 
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Soniox fetch transcript: ${response.status} - ${errorText}`);
+    throw new Error(
+      `Soniox fetch transcript: ${response.status} - ${errorText}`,
+    );
   }
 
   const result = (await response.json()) as SonioxTranscriptResponse;

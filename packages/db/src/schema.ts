@@ -109,9 +109,12 @@ export const folders: any = pgTable(
   {
     ...SHARED,
     name: text("name").notNull(),
-    parent_folder_id: uuid("parent_folder_id").references((): any => folders.id, {
-      onDelete: "cascade",
-    }),
+    parent_folder_id: uuid("parent_folder_id").references(
+      (): any => folders.id,
+      {
+        onDelete: "cascade",
+      },
+    ),
   },
   (table) => createPolicies(TABLE_FOLDERS, table.user_id),
 ).enableRLS();
@@ -332,7 +335,9 @@ export const sessionSchema = createSelectSchema(sessions);
 export const transcriptSchema = createSelectSchema(transcripts);
 export const wordSchema = createSelectSchema(words);
 export const speakerHintSchema = createSelectSchema(speakerHints);
-export const mappingSessionParticipantSchema = createSelectSchema(mappingSessionParticipant);
+export const mappingSessionParticipantSchema = createSelectSchema(
+  mappingSessionParticipant,
+);
 export const tagSchema = createSelectSchema(tags);
 export const mappingTagSessionSchema = createSelectSchema(mappingTagSession);
 export const templateSchema = createSelectSchema(templates);
@@ -348,4 +353,6 @@ export const providerSpeakerIndexSchema = z.object({
   channel: z.number().optional(),
 });
 
-export type ProviderSpeakerIndexHint = z.infer<typeof providerSpeakerIndexSchema>;
+export type ProviderSpeakerIndexHint = z.infer<
+  typeof providerSpeakerIndexSchema
+>;

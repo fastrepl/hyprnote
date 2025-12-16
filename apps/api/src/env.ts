@@ -8,7 +8,9 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string().min(1) // Set in `api_cd.yaml` via the Fly CLI
         : z.string().optional(),
-    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
     LOAD_TEST: z.coerce.boolean().default(false),
     DATABASE_URL: z.string().min(1),
     SUPABASE_URL: z.url(),

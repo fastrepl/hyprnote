@@ -1,9 +1,15 @@
 import { AlertCircleIcon, CheckCircleIcon, Loader2Icon } from "lucide-react";
 
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
-type Props = { status?: "success" | null } | { status: "pending" | "error"; tooltip: string };
+type Props =
+  | { status?: "success" | null }
+  | { status: "pending" | "error"; tooltip: string };
 
 export function ConnectionHealth(props: Props) {
   if (!props.status) {

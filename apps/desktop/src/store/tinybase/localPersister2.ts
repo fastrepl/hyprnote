@@ -29,10 +29,14 @@ export function createLocalPersister2<Schemas extends OptionalSchemas>(
         let filename: string;
         if (enhancedNote.template_id) {
           // @ts-ignore
-          const templateTitle = store.getCell("templates", enhancedNote.template_id, "title") as
-            | string
-            | undefined;
-          const safeName = sanitizeFilename(templateTitle || enhancedNote.template_id);
+          const templateTitle = store.getCell(
+            "templates",
+            enhancedNote.template_id,
+            "title",
+          ) as string | undefined;
+          const safeName = sanitizeFilename(
+            templateTitle || enhancedNote.template_id,
+          );
           filename = `${safeName}.md`;
         } else {
           filename = "_summary.md";

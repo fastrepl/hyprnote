@@ -111,7 +111,9 @@ function LeftSidebar({
             <span
               className={cn([
                 "text-xs px-2 py-0.5 rounded-full font-medium",
-                type === "template" ? "bg-blue-50 text-blue-600" : "bg-purple-50 text-purple-600",
+                type === "template"
+                  ? "bg-blue-50 text-blue-600"
+                  : "bg-purple-50 text-purple-600",
               ])}
             >
               {type === "template" ? "Template" : "Shortcut"}
@@ -193,7 +195,9 @@ function ItemHeader({
         <span
           className={cn([
             "text-xs px-2 py-0.5 rounded-full font-medium",
-            isTemplate ? "bg-blue-50 text-blue-600" : "bg-purple-50 text-purple-600",
+            isTemplate
+              ? "bg-blue-50 text-blue-600"
+              : "bg-purple-50 text-purple-600",
           ])}
         >
           {isTemplate ? "Template" : "Shortcut"}
@@ -203,7 +207,9 @@ function ItemHeader({
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-600 mb-4">
         {item.title}
       </h1>
-      <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed mb-6">{item.description}</p>
+      <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed mb-6">
+        {item.description}
+      </p>
 
       {isTemplate && "targets" in item && item.targets && (
         <div className="flex flex-wrap gap-2">
@@ -251,9 +257,13 @@ function ItemContent({
                     <span className="w-5 h-5 rounded-full bg-stone-200 text-stone-600 text-xs font-medium flex items-center justify-center">
                       {index + 1}
                     </span>
-                    <h4 className="font-medium text-stone-700 text-sm">{section.title}</h4>
+                    <h4 className="font-medium text-stone-700 text-sm">
+                      {section.title}
+                    </h4>
                   </div>
-                  <p className="text-xs text-neutral-600 ml-8">{section.description}</p>
+                  <p className="text-xs text-neutral-600 ml-8">
+                    {section.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -277,8 +287,12 @@ function SuggestedItems({
 }) {
   const suggestedItems =
     type === "template"
-      ? allTemplates.filter((t) => t.category === item.category && t.slug !== item.slug)
-      : allShortcuts.filter((s) => s.category === item.category && s.slug !== item.slug);
+      ? allTemplates.filter(
+          (t) => t.category === item.category && t.slug !== item.slug,
+        )
+      : allShortcuts.filter(
+          (s) => s.category === item.category && s.slug !== item.slug,
+        );
 
   if (suggestedItems.length === 0) return null;
 
@@ -298,7 +312,9 @@ function SuggestedItems({
             <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
               {t.title}
             </h3>
-            <p className="text-sm text-neutral-600 line-clamp-2">{t.description}</p>
+            <p className="text-sm text-neutral-600 line-clamp-2">
+              {t.description}
+            </p>
           </Link>
         ))}
       </div>
@@ -340,11 +356,13 @@ function RightSidebar({
             Use this {isTemplate ? "template" : "shortcut"}
           </h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Hyprnote to use this {isTemplate ? "template" : "shortcut"} and get AI-powered
-            meeting notes.
+            Download Hyprnote to use this {isTemplate ? "template" : "shortcut"}{" "}
+            and get AI-powered meeting notes.
           </p>
           <DownloadButton />
-          <p className="text-xs text-neutral-500 mt-4">Free to use. No credit card required.</p>
+          <p className="text-xs text-neutral-500 mt-4">
+            Free to use. No credit card required.
+          </p>
         </div>
 
         <a

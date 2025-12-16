@@ -1,4 +1,8 @@
-import { commands, type ExtensionInfo, type PanelInfo } from "@hypr/plugin-extensions";
+import {
+  commands,
+  type ExtensionInfo,
+  type PanelInfo,
+} from "@hypr/plugin-extensions";
 
 const loadedPanels: Map<string, PanelInfo> = new Map();
 const extensionPanels: Map<string, PanelInfo[]> = new Map();
@@ -13,7 +17,9 @@ export async function listInstalledExtensions(): Promise<ExtensionInfo[]> {
   return [];
 }
 
-export async function getExtension(extensionId: string): Promise<ExtensionInfo | null> {
+export async function getExtension(
+  extensionId: string,
+): Promise<ExtensionInfo | null> {
   const result = await commands.getExtension(extensionId);
   if (result.status === "ok") {
     return result.data;
@@ -33,7 +39,9 @@ export function getPanelInfo(panelId: string): PanelInfo | undefined {
   return loadedPanels.get(panelId);
 }
 
-export function getPanelInfoByExtensionId(extensionId: string): PanelInfo | undefined {
+export function getPanelInfoByExtensionId(
+  extensionId: string,
+): PanelInfo | undefined {
   const panels = extensionPanels.get(extensionId);
   return panels?.[0];
 }

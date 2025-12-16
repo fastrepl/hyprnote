@@ -89,10 +89,11 @@ export const getAudioPipelineStatus = createServerFn({ method: "GET" })
       },
     });
 
-    const { data: status, error } = await getFileTranscriptionStatusByPipelineId({
-      client,
-      path: { pipelineId: data.pipelineId },
-    });
+    const { data: status, error } =
+      await getFileTranscriptionStatusByPipelineId({
+        client,
+        path: { pipelineId: data.pipelineId },
+      });
 
     if (error || !status) {
       return { error: true, message: "Failed to get pipeline status" };
@@ -125,10 +126,11 @@ export const getAudioPipelineResult = createServerFn({ method: "GET" })
       },
     });
 
-    const { data: result, error } = await getFileTranscriptionResultByPipelineId({
-      client,
-      path: { pipelineId: data.pipelineId },
-    });
+    const { data: result, error } =
+      await getFileTranscriptionResultByPipelineId({
+        client,
+        path: { pipelineId: data.pipelineId },
+      });
 
     if (error || !result) {
       return { error: true, message: "Failed to get pipeline result" };
@@ -198,7 +200,8 @@ export const transcribeAudio = createServerFn({ method: "POST" })
         return { error: true, message: error.message };
       }
 
-      const transcript = result.results.channels[0].alternatives[0].transcript || "";
+      const transcript =
+        result.results.channels[0].alternatives[0].transcript || "";
 
       await supabase
         .from("transcriptions")

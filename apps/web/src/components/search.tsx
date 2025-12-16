@@ -1,6 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 import { FileText, Search as SearchIcon } from "lucide-react";
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 
 import {
@@ -52,7 +59,11 @@ function useSearchPalette() {
   return ctx;
 }
 
-export function SearchPaletteProvider({ children }: { children: React.ReactNode }) {
+export function SearchPaletteProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
 
   // Single global Cmd+K handler
@@ -314,7 +325,10 @@ function SearchCommandPalette({
           className="bg-white rounded-lg border border-neutral-200 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <Command shouldFilter={false} className="rounded-lg **:[[cmdk-input-wrapper]]:border-b-0">
+          <Command
+            shouldFilter={false}
+            className="rounded-lg **:[[cmdk-input-wrapper]]:border-b-0"
+          >
             <CommandInput
               ref={inputRef}
               placeholder="Search documentation..."
@@ -324,7 +338,9 @@ function SearchCommandPalette({
             <div className="border-t border-neutral-100" />
             <CommandList className="max-h-[400px] px-1">
               {isLoading && (
-                <div className="py-6 text-center text-sm text-neutral-500">Searching...</div>
+                <div className="py-6 text-center text-sm text-neutral-500">
+                  Searching...
+                </div>
               )}
               {!isLoading && query && results.length === 0 && (
                 <CommandEmpty>No results found.</CommandEmpty>
@@ -341,7 +357,10 @@ function SearchCommandPalette({
                       onSelect={() => handleSelect(result.url)}
                       className="flex items-start gap-3 px-2 py-3 cursor-pointer rounded-md hover:bg-neutral-100 data-[selected=true]:bg-neutral-100"
                     >
-                      <FileText size={16} className="mt-0.5 text-neutral-400 shrink-0" />
+                      <FileText
+                        size={16}
+                        className="mt-0.5 text-neutral-400 shrink-0"
+                      />
                       <div className="flex flex-col gap-1 min-w-0">
                         <span className="font-medium text-neutral-900 truncate">
                           {result.meta?.title || result.url}

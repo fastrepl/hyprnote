@@ -10,7 +10,10 @@ import {
   TooltipTrigger,
 } from "@hypr/ui/components/ui/tooltip";
 
-export function CodeBlock({ children, ...props }: ComponentPropsWithoutRef<"pre">) {
+export function CodeBlock({
+  children,
+  ...props
+}: ComponentPropsWithoutRef<"pre">) {
   const [copied, setCopied] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const preRef = useRef<HTMLPreElement>(null);
@@ -49,7 +52,11 @@ export function CodeBlock({ children, ...props }: ComponentPropsWithoutRef<"pre"
               className="cursor-pointer absolute top-2.5 right-2.5 p-1.5 rounded bg-stone-200/80 hover:bg-stone-300/80 text-stone-600 opacity-0 group-hover:opacity-100 transition-all"
               aria-label={copied ? "Copied" : "Copy code"}
             >
-              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+              {copied ? (
+                <Check className="w-4 h-4 text-green-600" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
             </button>
           </TooltipTrigger>
           <TooltipContent className="bg-black text-white rounded-md">

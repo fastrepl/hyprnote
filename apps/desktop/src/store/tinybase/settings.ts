@@ -11,7 +11,10 @@ import {
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
 
-import { createSettingsPersister, migrateKeysJsonToSettings } from "./jsonPersister";
+import {
+  createSettingsPersister,
+  migrateKeysJsonToSettings,
+} from "./jsonPersister";
 import * as main from "./main";
 import { registerSaveHandler } from "./save";
 
@@ -91,10 +94,18 @@ type DeriveValuesSchema<T extends Record<string, ValueMapping>> = {
 
 const SCHEMA = {
   value: Object.fromEntries(
-    Object.entries(SETTINGS_MAPPING.values).map(([key, config]) => [key, { type: config.type }]),
-  ) as DeriveValuesSchema<typeof SETTINGS_MAPPING.values> satisfies ValuesSchema,
+    Object.entries(SETTINGS_MAPPING.values).map(([key, config]) => [
+      key,
+      { type: config.type },
+    ]),
+  ) as DeriveValuesSchema<
+    typeof SETTINGS_MAPPING.values
+  > satisfies ValuesSchema,
   table: Object.fromEntries(
-    Object.entries(SETTINGS_MAPPING.tables).map(([key, config]) => [key, config.schema]),
+    Object.entries(SETTINGS_MAPPING.tables).map(([key, config]) => [
+      key,
+      config.schema,
+    ]),
   ) as {
     ai_providers: typeof SETTINGS_MAPPING.tables.ai_providers.schema;
   } satisfies TablesSchema,
@@ -125,7 +136,9 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const mainStore = main.UI.useStore(main.STORE_ID);
 
   const store = useCreateMergeableStore(() =>
-    createMergeableStore().setTablesSchema(SCHEMA.table).setValuesSchema(SCHEMA.value),
+    createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value),
   );
 
   const persister = useCreatePersister(
@@ -135,7 +148,9 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         await migrateKeysJsonToSettings();
       }
 
-      const settingsPersister = createSettingsPersister<Schemas>(store as Store);
+      const settingsPersister = createSettingsPersister<Schemas>(
+        store as Store,
+      );
 
       await settingsPersister.load();
 
@@ -174,18 +189,26 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
   const queries = useCreateQueries(store, (store) =>
     createQueries(store)
-      .setQueryDefinition(QUERIES.llmProviders, "ai_providers", ({ select, where }) => {
-        select("type");
-        select("base_url");
-        select("api_key");
-        where((getCell) => getCell("type") === "llm");
-      })
-      .setQueryDefinition(QUERIES.sttProviders, "ai_providers", ({ select, where }) => {
-        select("type");
-        select("base_url");
-        select("api_key");
-        where((getCell) => getCell("type") === "stt");
-      }),
+      .setQueryDefinition(
+        QUERIES.llmProviders,
+        "ai_providers",
+        ({ select, where }) => {
+          select("type");
+          select("base_url");
+          select("api_key");
+          where((getCell) => getCell("type") === "llm");
+        },
+      )
+      .setQueryDefinition(
+        QUERIES.sttProviders,
+        "ai_providers",
+        ({ select, where }) => {
+          select("type");
+          select("base_url");
+          select("api_key");
+          where((getCell) => getCell("type") === "stt");
+        },
+      ),
   );
 
   useProvideStore(STORE_ID, store);

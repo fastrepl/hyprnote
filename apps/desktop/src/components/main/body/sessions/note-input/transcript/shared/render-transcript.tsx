@@ -3,7 +3,11 @@ import { memo, useEffect, useMemo } from "react";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../../../../store/tinybase/main";
-import { PartialWord, RuntimeSpeakerHint, Segment } from "../../../../../../../utils/segment";
+import {
+  PartialWord,
+  RuntimeSpeakerHint,
+  Segment,
+} from "../../../../../../../utils/segment";
 import {
   defaultRenderLabelContext,
   SpeakerLabelManager,
@@ -42,9 +46,12 @@ export function RenderTranscript({
   const finalWords = useFinalWords(transcriptId);
   const finalSpeakerHints = useFinalSpeakerHints(transcriptId);
 
-  const sessionId = main.UI.useCell("transcripts", transcriptId, "session_id", main.STORE_ID) as
-    | string
-    | undefined;
+  const sessionId = main.UI.useCell(
+    "transcripts",
+    transcriptId,
+    "session_id",
+    main.STORE_ID,
+  ) as string | undefined;
   const numSpeakers = useSessionSpeakers(sessionId);
 
   const allSpeakerHints = useMemo(() => {
@@ -56,9 +63,14 @@ export function RenderTranscript({
     return [...finalSpeakerHints, ...adjustedPartialHints];
   }, [finalWords.length, finalSpeakerHints, partialHints]);
 
-  const segments = useStableSegments(finalWords, partialWords, allSpeakerHints, {
-    numSpeakers,
-  });
+  const segments = useStableSegments(
+    finalWords,
+    partialWords,
+    allSpeakerHints,
+    {
+      numSpeakers,
+    },
+  );
 
   const offsetMs = useTranscriptOffset(transcriptId);
 

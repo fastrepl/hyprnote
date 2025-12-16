@@ -11,7 +11,8 @@ export const EnhancedEditor = forwardRef<
   { sessionId: string; enhancedNoteId: string }
 >(({ enhancedNoteId }, ref) => {
   const store = main.UI.useStore(main.STORE_ID);
-  const [initialContent, setInitialContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
+  const [initialContent, setInitialContent] =
+    useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
   useEffect(() => {
     if (store) {

@@ -9,6 +9,13 @@ export const exa = new Exa(env.EXA_API_KEY);
 export const searchAndContentsInputSchema = z.object({
   query: z.string(),
   category: z
-    .enum(["company", "news", "linkedin profile", "github", "tweet", "personal site"])
+    .enum([
+      "company",
+      "news",
+      "linkedin profile",
+      "github",
+      "tweet",
+      "personal site",
+    ])
     .optional(),
 });

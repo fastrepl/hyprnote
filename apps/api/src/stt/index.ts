@@ -6,9 +6,21 @@ import { createSonioxProxy, transcribeWithSoniox } from "./soniox";
 
 export { WsProxyConnection, type WsProxyOptions } from "./connection";
 export { normalizeWsData, type WsPayload } from "./utils";
-export { buildDeepgramUrl, createDeepgramProxy, transcribeWithDeepgram } from "./deepgram";
-export { buildAssemblyAIUrl, createAssemblyAIProxy, transcribeWithAssemblyAI } from "./assemblyai";
-export { buildSonioxUrl, createSonioxProxy, transcribeWithSoniox } from "./soniox";
+export {
+  buildDeepgramUrl,
+  createDeepgramProxy,
+  transcribeWithDeepgram,
+} from "./deepgram";
+export {
+  buildAssemblyAIUrl,
+  createAssemblyAIProxy,
+  transcribeWithAssemblyAI,
+} from "./assemblyai";
+export {
+  buildSonioxUrl,
+  createSonioxProxy,
+  transcribeWithSoniox,
+} from "./soniox";
 export type { BatchParams, BatchProvider, BatchResponse } from "./batch-types";
 
 export const UPSTREAM_URL_HEADER = "x-owh-upstream-url";
@@ -34,20 +46,25 @@ export async function transcribeBatch(
   }
 }
 
-export function createProxyFromRequest(incomingUrl: URL, reqHeaders: Headers): WsProxyConnection {
+export function createProxyFromRequest(
+  incomingUrl: URL,
+  reqHeaders: Headers,
+): WsProxyConnection {
   const upstreamOverride = reqHeaders.get(UPSTREAM_URL_HEADER);
   const rawAuth = reqHeaders.get(UPSTREAM_AUTH_HEADER);
 
   if (upstreamOverride) {
     const url = new URL(upstreamOverride);
-    const headers = rawAuth && rawAuth.length > 0 ? { Authorization: rawAuth } : undefined;
+    const headers =
+      rawAuth && rawAuth.length > 0 ? { Authorization: rawAuth } : undefined;
 
     return new WsProxyConnection(url.toString(), {
       headers,
     });
   }
 
-  const provider = (incomingUrl.searchParams.get("provider") as SttProvider) || "deepgram";
+  const provider =
+    (incomingUrl.searchParams.get("provider") as SttProvider) || "deepgram";
 
   switch (provider) {
     case "assemblyai":

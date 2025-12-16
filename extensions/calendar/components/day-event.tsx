@@ -22,7 +22,11 @@ export function DayEvent({ eventId }: { eventId: string }) {
     store.STORE_ID,
   );
   const linkedSessionId = sessionIds[0];
-  const linkedSession = store.UI.useRow("sessions", linkedSessionId || "dummy", store.STORE_ID);
+  const linkedSession = store.UI.useRow(
+    "sessions",
+    linkedSessionId || "dummy",
+    store.STORE_ID,
+  );
 
   const handleOpenNote = () => {
     setOpen(false);
@@ -66,14 +70,18 @@ export function DayEvent({ eventId }: { eventId: string }) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4 bg-white border-neutral-200 m-2 shadow-lg outline-none focus:outline-none focus:ring-0">
-        <div className="font-semibold text-lg text-neutral-800 mb-2">{title}</div>
+        <div className="font-semibold text-lg text-neutral-800 mb-2">
+          {title}
+        </div>
 
         <p className="text-sm text-neutral-600 mb-4">{formatEventTime()}</p>
 
         {linkedSessionId ? (
           <Button className="w-full justify-start" onClick={handleOpenNote}>
             <StickyNoteIcon />
-            <p className="truncate">{(linkedSession?.title as string) || "Untitled Note"}</p>
+            <p className="truncate">
+              {(linkedSession?.title as string) || "Untitled Note"}
+            </p>
           </Button>
         ) : (
           <Button className="w-full" onClick={handleOpenNote}>

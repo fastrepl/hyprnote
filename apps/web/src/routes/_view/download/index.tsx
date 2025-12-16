@@ -33,8 +33,9 @@ function Component() {
           ])}
         >
           <span>
-            Mac (Apple Silicon) features on-device speech-to-text. Intel Mac available with
-            cloud-based transcription. Other platforms coming soon.
+            Mac (Apple Silicon) features on-device speech-to-text. Intel Mac
+            available with cloud-based transcription. Other platforms coming
+            soon.
           </span>
         </div>
 
@@ -50,7 +51,9 @@ function Component() {
             </div>
 
             <div className="mb-16">
-              <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">Desktop</h2>
+              <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
+                Desktop
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <DownloadCard
                   iconName="simple-icons:apple"
@@ -72,7 +75,9 @@ function Component() {
                 />
               </div>
 
-              <h2 className="text-2xl font-serif tracking-tight mb-6 mt-16 text-center">Linux</h2>
+              <h2 className="text-2xl font-serif tracking-tight mb-6 mt-16 text-center">
+                Linux
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                 <DownloadCard
                   iconName="simple-icons:linux"
@@ -91,7 +96,9 @@ function Component() {
 
             {isMacDesktop && (
               <div className="mb-16">
-                <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">Homebrew</h2>
+                <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
+                  Homebrew
+                </h2>
                 <div className="max-w-2xl mx-auto">
                   <HomebrewCard />
                 </div>
@@ -99,7 +106,9 @@ function Component() {
             )}
 
             <div>
-              <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">Mobile</h2>
+              <h2 className="text-2xl font-serif tracking-tight mb-6 text-center">
+                Mobile
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                 <DownloadCard
                   iconName="simple-icons:ios"
@@ -138,8 +147,13 @@ function HomebrewCard() {
 
   return (
     <div className="flex flex-col items-center p-6 rounded-sm border border-neutral-100 bg-white">
-      <Icon icon="simple-icons:homebrew" className="text-5xl text-neutral-700 mb-4" />
-      <p className="text-sm text-neutral-600 mb-4 text-center">Install via Homebrew on macOS</p>
+      <Icon
+        icon="simple-icons:homebrew"
+        className="text-5xl text-neutral-700 mb-4"
+      />
+      <p className="text-sm text-neutral-600 mb-4 text-center">
+        Install via Homebrew on macOS
+      </p>
       <div className="w-full group relative">
         <code className="flex items-center justify-between w-full px-4 py-3 bg-stone-50 border border-neutral-200 rounded-lg text-sm font-mono text-stone-700">
           <span className="flex-1 text-center">{command}</span>
@@ -150,10 +164,16 @@ function HomebrewCard() {
               "ml-2 px-2 py-1 rounded",
               copied
                 ? ["opacity-100 text-green-600"]
-                : ["opacity-30 group-hover:opacity-100 text-neutral-600 hover:bg-stone-100"],
+                : [
+                    "opacity-30 group-hover:opacity-100 text-neutral-600 hover:bg-stone-100",
+                  ],
             ])}
           >
-            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+            {copied ? (
+              <Check className="size-4" />
+            ) : (
+              <Copy className="size-4" />
+            )}
             {copied && (
               <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-stone-800 text-white text-xs rounded whitespace-nowrap">
                 Copied!
@@ -242,8 +262,13 @@ function FAQSection() {
         </h2>
         <div className="space-y-6">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="border-b border-neutral-100 pb-6 last:border-b-0">
-              <h3 className="text-lg font-medium text-neutral-900 mb-2">{faq.question}</h3>
+            <div
+              key={idx}
+              className="border-b border-neutral-100 pb-6 last:border-b-0"
+            >
+              <h3 className="text-lg font-medium text-neutral-900 mb-2">
+                {faq.question}
+              </h3>
               <p className="text-neutral-600">{faq.answer}</p>
             </div>
           ))}
@@ -266,7 +291,9 @@ function CTASection() {
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif">Need something else?</h2>
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          Need something else?
+        </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
           Book a call to discuss custom solutions for your specific needs
         </p>

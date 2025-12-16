@@ -29,7 +29,9 @@ type TabItemBaseProps = {
   handleCloseAll: () => void;
 };
 
-export type TabItem<T extends Tab = Tab> = (props: TabItemProps<T>) => React.ReactNode;
+export type TabItem<T extends Tab = Tab> = (
+  props: TabItemProps<T>,
+) => React.ReactNode;
 
 export function TabItemBase({
   icon,
@@ -56,7 +58,9 @@ export function TabItemBase({
   const contextMenu = !active ? (
     <>
       <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
-      <ContextMenuItem onClick={handleCloseOthers}>close others</ContextMenuItem>
+      <ContextMenuItem onClick={handleCloseOthers}>
+        close others
+      </ContextMenuItem>
       <ContextMenuItem onClick={handleCloseAll}>close all</ContextMenuItem>
     </>
   ) : undefined;
@@ -82,8 +86,14 @@ export function TabItemBase({
           "transition-colors duration-200",
           active && selected && ["bg-red-50", "text-red-600", "border-red-400"],
           active && !selected && ["bg-red-50", "text-red-500", "border-0"],
-          !active && selected && ["bg-neutral-50", "text-black", "border-stone-400"],
-          !active && !selected && ["bg-neutral-50", "text-neutral-500", "border-transparent"],
+          !active &&
+            selected && ["bg-neutral-50", "text-black", "border-stone-400"],
+          !active &&
+            !selected && [
+              "bg-neutral-50",
+              "text-neutral-500",
+              "border-transparent",
+            ],
         ])}
       >
         <div className="flex items-center gap-2 text-sm flex-1 min-w-0">
@@ -117,8 +127,12 @@ export function TabItemBase({
                 className={cn([
                   "flex items-center justify-center transition-colors",
                   active && "text-red-600 hover:text-red-700",
-                  !active && selected && "text-neutral-700 hover:text-neutral-900",
-                  !active && !selected && "text-neutral-500 hover:text-neutral-700",
+                  !active &&
+                    selected &&
+                    "text-neutral-700 hover:text-neutral-900",
+                  !active &&
+                    !selected &&
+                    "text-neutral-500 hover:text-neutral-700",
                 ])}
               >
                 <X size={16} />
@@ -131,7 +145,9 @@ export function TabItemBase({
           <div className="absolute top-[3px] right-2 pointer-events-none">
             <KbdGroup>
               <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>⌘</Kbd>
-              <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>{tabIndex}</Kbd>
+              <Kbd className={active ? "bg-red-200" : "bg-neutral-200"}>
+                {tabIndex}
+              </Kbd>
             </KbdGroup>
           </div>
         )}

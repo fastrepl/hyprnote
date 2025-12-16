@@ -50,13 +50,15 @@ export const fetchUser = createServerFn({ method: "GET" }).handler(async () => {
   };
 });
 
-export const signOutFn = createServerFn({ method: "POST" }).handler(async () => {
-  const supabase = getSupabaseServerClient();
-  const { error } = await supabase.auth.signOut();
+export const signOutFn = createServerFn({ method: "POST" }).handler(
+  async () => {
+    const supabase = getSupabaseServerClient();
+    const { error } = await supabase.auth.signOut();
 
-  if (error) {
-    return { success: false, message: error.message };
-  }
+    if (error) {
+      return { success: false, message: error.message };
+    }
 
-  return { success: true };
-});
+    return { success: true };
+  },
+);

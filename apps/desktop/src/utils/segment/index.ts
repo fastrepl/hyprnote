@@ -30,7 +30,10 @@ export {
   type WordLike,
 } from "./shared";
 
-export function buildSegments<TFinal extends WordLike, TPartial extends WordLike>(
+export function buildSegments<
+  TFinal extends WordLike,
+  TPartial extends WordLike,
+>(
   finalWords: readonly TFinal[],
   partialWords: readonly TPartial[],
   speakerHints: readonly RuntimeSpeakerHint[] = [],
@@ -43,7 +46,11 @@ export function buildSegments<TFinal extends WordLike, TPartial extends WordLike
   const context = createSegmentPassContext(speakerHints, options);
   const initialGraph: SegmentGraph = { finalWords, partialWords };
   const graph = runSegmentPipeline(initialGraph, context);
-  const segmentsGraph = ensureGraphKey(graph, "segments", "Segment pipeline must produce segments");
+  const segmentsGraph = ensureGraphKey(
+    graph,
+    "segments",
+    "Segment pipeline must produce segments",
+  );
   return finalizeSegments(segmentsGraph.segments);
 }
 
@@ -87,10 +94,19 @@ const SEGMENT_PIPELINE = [
   keyof SegmentGraph
 >[];
 
-function runSegmentPipeline(initialGraph: SegmentGraph, ctx: SegmentPassContext): SegmentGraph {
+function runSegmentPipeline(
+  initialGraph: SegmentGraph,
+  ctx: SegmentPassContext,
+): SegmentGraph {
   return SEGMENT_PIPELINE.reduce<SegmentGraph>((graph, stage) => {
     const ensuredGraph = ensureGraphHasKeys(graph, stage.needs, stage.pass.id);
-    return runPassAndExpectKey(stage.pass, ensuredGraph, ctx, stage.ensures, stage.errorMessage);
+    return runPassAndExpectKey(
+      stage.pass,
+      ensuredGraph,
+      ctx,
+      stage.ensures,
+      stage.errorMessage,
+    );
   }, initialGraph);
 }
 

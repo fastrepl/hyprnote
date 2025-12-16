@@ -43,4 +43,7 @@ const templateHighlightStyle = HighlightStyle.define([
   { tag: tags.comment, color: "#9ca3af", fontStyle: "italic" },
 ]);
 
-export const templateExtensions = [templateTheme, syntaxHighlighting(templateHighlightStyle)];
+export const templateExtensions = [
+  templateTheme,
+  syntaxHighlighting(templateHighlightStyle),
+];

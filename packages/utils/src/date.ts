@@ -60,5 +60,8 @@ export const formatDate = (date: Date, formatString: string): string => {
     p: `${date.getHours() % 12 || 12}:${pad(date.getMinutes())} ${date.getHours() >= 12 ? "PM" : "AM"}`,
   };
 
-  return formatString.replace(/yyyy|MMM|MM|dd|EEE|h|mm|a|p|d/g, (token) => replacements[token]);
+  return formatString.replace(
+    /yyyy|MMM|MM|dd|EEE|h|mm|a|p|d/g,
+    (token) => replacements[token],
+  );
 };

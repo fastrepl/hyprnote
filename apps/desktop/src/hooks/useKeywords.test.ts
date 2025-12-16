@@ -23,25 +23,29 @@ describe("extractKeywordsFromMarkdown", () => {
     },
     {
       description: "excludes code blocks and inline code",
-      input: "Use the `useState` hook\n```js\nconst value = 1;\n```\nKeep reading for keywords",
+      input:
+        "Use the `useState` hook\n```js\nconst value = 1;\n```\nKeep reading for keywords",
       keywords: ["hook", "keywords"],
       keyphrases: [],
     },
     {
       description: "extracts hashtags and keywords from markdown",
-      input: "# Hello World\n\nThis is a #test with some #keywords and important content",
+      input:
+        "# Hello World\n\nThis is a #test with some #keywords and important content",
       keywords: ["test", "keywords", "World", "content"],
       keyphrases: [],
     },
     {
       description: "removes code blocks before processing",
-      input: "Text before\n```js\nconst x = 1;\n```\nText after with important keywords",
+      input:
+        "Text before\n```js\nconst x = 1;\n```\nText after with important keywords",
       keywords: ["Text", "keywords"],
       keyphrases: [],
     },
     {
       description: "extracts keywords from natural language",
-      input: "Artificial intelligence and machine learning are transforming technology",
+      input:
+        "Artificial intelligence and machine learning are transforming technology",
       keywords: ["technology"],
       keyphrases: ["Artificial intelligence"],
     },

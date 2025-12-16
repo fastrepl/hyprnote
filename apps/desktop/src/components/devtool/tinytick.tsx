@@ -95,7 +95,12 @@ export function TinyTickMonitor() {
               {totalTasks}
             </span>
           )}
-          <span className={cn(["transition-transform", isExpanded ? "rotate-180" : "rotate-0"])}>
+          <span
+            className={cn([
+              "transition-transform",
+              isExpanded ? "rotate-180" : "rotate-0",
+            ])}
+          >
             ▼
           </span>
         </div>
@@ -167,7 +172,10 @@ function TaskCard({ task }: { task: TaskInfo }) {
     }
 
     const updateTimeUntil = () => {
-      const remaining = Math.max(0, Math.floor((task.nextTimestamp! - Date.now()) / 1000));
+      const remaining = Math.max(
+        0,
+        Math.floor((task.nextTimestamp! - Date.now()) / 1000),
+      );
       setTimeUntil(remaining);
     };
 
@@ -189,7 +197,9 @@ function TaskCard({ task }: { task: TaskInfo }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{task.taskId}</div>
-          <div className="text-white/40 text-[10px] truncate">{task.taskRunId.slice(0, 8)}...</div>
+          <div className="text-white/40 text-[10px] truncate">
+            {task.taskRunId.slice(0, 8)}...
+          </div>
         </div>
         {task.state === "running" && (
           <div

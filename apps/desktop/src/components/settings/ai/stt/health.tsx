@@ -4,7 +4,12 @@ import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import { AvailabilityHealth, ConnectionHealth } from "../shared/health";
-import { type ProviderId, PROVIDERS, sttModelQueries, sttProviderRequiresPro } from "./shared";
+import {
+  type ProviderId,
+  PROVIDERS,
+  sttModelQueries,
+  sttProviderRequiresPro,
+} from "./shared";
 
 export function HealthCheckForConnection() {
   const props = useConnectionHealth();
@@ -23,7 +28,9 @@ function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
     current_stt_provider !== "hyprnote";
 
   if (isCloud) {
-    return conn ? { status: "success" } : { status: "error", tooltip: "Provider not configured." };
+    return conn
+      ? { status: "success" }
+      : { status: "error", tooltip: "Provider not configured." };
   }
 
   const serverStatus = local.data?.status ?? "unavailable";
@@ -55,7 +62,9 @@ export function HealthCheckForAvailability() {
   return <AvailabilityHealth message={result.message} />;
 }
 
-function useAvailability(): { available: true } | { available: false; message: string } {
+function useAvailability():
+  | { available: true }
+  | { available: false; message: string } {
   const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
     "current_stt_model",
@@ -100,11 +109,14 @@ function useAvailability(): { available: true } | { available: false; message: s
       { id: "QuantizedSmallEn", isDownloaded: smallEn.data ?? false },
     ];
 
-    const hasAvailableModel = downloadedModels.some((model) => model.isDownloaded);
+    const hasAvailableModel = downloadedModels.some(
+      (model) => model.isDownloaded,
+    );
     if (!hasAvailableModel) {
       return {
         available: false,
-        message: "No Hyprnote models downloaded. Please download a model below.",
+        message:
+          "No Hyprnote models downloaded. Please download a model below.",
       };
     }
     return { available: true };

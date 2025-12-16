@@ -44,44 +44,46 @@ type LifecycleMiddlewareImpl = <
   f: StateCreator<T, [], []>,
 ) => StateCreator<T, [], []>;
 
-const lifecycleMiddlewareImpl: LifecycleMiddlewareImpl = (config) => (set, get, api) => {
-  return config(
-    (args) => {
-      const prevState = get();
-      const prevTabs = prevState.tabs;
-      const wasEmpty = prevTabs.length === 0;
+const lifecycleMiddlewareImpl: LifecycleMiddlewareImpl =
+  (config) => (set, get, api) => {
+    return config(
+      (args) => {
+        const prevState = get();
+        const prevTabs = prevState.tabs;
+        const wasEmpty = prevTabs.length === 0;
 
-      set(args);
+        set(args);
 
-      const nextState = get();
-      const nextTabs = nextState.tabs;
-      const isEmpty = nextTabs.length === 0;
+        const nextState = get();
+        const nextTabs = nextState.tabs;
+        const isEmpty = nextTabs.length === 0;
 
-      const closedTabs = prevTabs.filter(
-        (prevTab) => !nextTabs.some((nextTab) => isSameTab(prevTab, nextTab)),
-      );
+        const closedTabs = prevTabs.filter(
+          (prevTab) => !nextTabs.some((nextTab) => isSameTab(prevTab, nextTab)),
+        );
 
-      if (closedTabs.length > 0 && nextState.onClose) {
-        closedTabs.forEach((tab) => {
-          try {
-            nextState.onClose?.(tab);
-          } catch (error) {
-            console.error("onClose", error);
-          }
-        });
-      }
-
-      if (!wasEmpty && isEmpty && nextState.onEmpty) {
-        try {
-          nextState.onEmpty();
-        } catch (error) {
-          console.error("onEmpty", error);
+        if (closedTabs.length > 0 && nextState.onClose) {
+          closedTabs.forEach((tab) => {
+            try {
+              nextState.onClose?.(tab);
+            } catch (error) {
+              console.error("onClose", error);
+            }
+          });
         }
-      }
-    },
-    get,
-    api,
-  );
-};
 
-export const lifecycleMiddleware = lifecycleMiddlewareImpl as LifecycleMiddleware;
+        if (!wasEmpty && isEmpty && nextState.onEmpty) {
+          try {
+            nextState.onEmpty();
+          } catch (error) {
+            console.error("onEmpty", error);
+          }
+        }
+      },
+      get,
+      api,
+    );
+  };
+
+export const lifecycleMiddleware =
+  lifecycleMiddlewareImpl as LifecycleMiddleware;

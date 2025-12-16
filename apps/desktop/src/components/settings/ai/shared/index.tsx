@@ -21,8 +21,8 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import * as settings from "../../../../store/tinybase/settings";
 import {
-  getRequiredConfigFields,
   getProviderSelectionBlockers,
+  getRequiredConfigFields,
   type ProviderRequirement,
   requiresEntitlement,
 } from "./eligibility";
@@ -48,9 +48,14 @@ function useIsProviderConfigured(
 ) {
   const billing = useBillingAccess();
   const query =
-    providerType === "stt" ? settings.QUERIES.sttProviders : settings.QUERIES.llmProviders;
+    providerType === "stt"
+      ? settings.QUERIES.sttProviders
+      : settings.QUERIES.llmProviders;
 
-  const configuredProviders = settings.UI.useResultTable(query, settings.STORE_ID);
+  const configuredProviders = settings.UI.useResultTable(
+    query,
+    settings.STORE_ID,
+  );
   const providerDef = providers.find((p) => p.id === providerId);
   const config = configuredProviders[providerId];
 
@@ -83,8 +88,13 @@ export function NonHyprProviderCard({
 }) {
   const billing = useBillingAccess();
   const [provider, setProvider] = useProvider(config.id);
-  const locked = requiresEntitlement(config.requirements, "pro") && !billing.isPro;
-  const isConfigured = useIsProviderConfigured(config.id, providerType, providers);
+  const locked =
+    requiresEntitlement(config.requirements, "pro") && !billing.isPro;
+  const isConfigured = useIsProviderConfigured(
+    config.id,
+    providerType,
+    providers,
+  );
 
   const requiredFields = getRequiredConfigFields(config.requirements);
   const showApiKey = requiredFields.includes("api_key");
@@ -134,7 +144,9 @@ export function NonHyprProviderCard({
           )}
         </div>
       </AccordionTrigger>
-      <AccordionContent className={cn(["px-4", providerType === "llm" && "space-y-6"])}>
+      <AccordionContent
+        className={cn(["px-4", providerType === "llm" && "space-y-6"])}
+      >
         {providerContext}
 
         <form
@@ -146,7 +158,9 @@ export function NonHyprProviderCard({
         >
           {showBaseUrl && (
             <form.Field name="base_url">
-              {(field) => <FormField field={field} label="Base URL" icon="mdi:web" />}
+              {(field) => (
+                <FormField field={field} label="Base URL" icon="mdi:web" />
+              )}
             </form.Field>
           )}
           {showApiKey && (
@@ -169,7 +183,9 @@ export function NonHyprProviderCard({
               </summary>
               <div className="mt-4">
                 <form.Field name="base_url">
-                  {(field) => <FormField field={field} label="Base URL" icon="mdi:web" />}
+                  {(field) => (
+                    <FormField field={field} label="Base URL" icon="mdi:web" />
+                  )}
                 </form.Field>
               </div>
             </details>
@@ -183,12 +199,16 @@ export function NonHyprProviderCard({
 const streamdownComponents = {
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => {
     return (
-      <ul className="list-disc pl-6 mb-1 block relative">{props.children as React.ReactNode}</ul>
+      <ul className="list-disc pl-6 mb-1 block relative">
+        {props.children as React.ReactNode}
+      </ul>
     );
   },
   ol: (props: React.HTMLAttributes<HTMLOListElement>) => {
     return (
-      <ol className="list-decimal pl-6 mb-1 block relative">{props.children as React.ReactNode}</ol>
+      <ol className="list-decimal pl-6 mb-1 block relative">
+        {props.children as React.ReactNode}
+      </ol>
     );
   },
   li: (props: React.HTMLAttributes<HTMLLIElement>) => {

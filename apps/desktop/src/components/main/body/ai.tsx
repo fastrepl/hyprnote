@@ -69,7 +69,8 @@ function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
           onClick={() => setActiveTab("transcription")}
           className={cn([
             "px-1 gap-1.5 h-7 border border-transparent",
-            activeTab === "transcription" && "bg-neutral-100 border-neutral-200",
+            activeTab === "transcription" &&
+              "bg-neutral-100 border-neutral-200",
           ])}
         >
           <AudioLinesIcon size={14} />

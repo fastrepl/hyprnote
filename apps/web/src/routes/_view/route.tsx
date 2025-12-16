@@ -1,4 +1,9 @@
-import { createFileRoute, Outlet, useMatchRoute, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  useMatchRoute,
+  useRouterState,
+} from "@tanstack/react-router";
 import { allHandbooks } from "content-collections";
 import { useMemo, useRef, useState } from "react";
 
@@ -22,7 +27,8 @@ export const Route = createFileRoute("/_view")({
 function Component() {
   const router = useRouterState();
   const isDocsPage = router.location.pathname.startsWith("/docs");
-  const isHandbookPage = router.location.pathname.startsWith("/company-handbook");
+  const isHandbookPage =
+    router.location.pathname.startsWith("/company-handbook");
   const [onTrigger, setOnTrigger] = useState<(() => void) | null>(null);
   const [isDocsDrawerOpen, setIsDocsDrawerOpen] = useState(false);
   const [isHandbookDrawerOpen, setIsHandbookDrawerOpen] = useState(false);
@@ -73,20 +79,31 @@ function Component() {
   );
 }
 
-function MobileDocsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function MobileDocsDrawer({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const matchRoute = useMatchRoute();
   const match = matchRoute({ to: "/docs/$", fuzzy: true });
 
-  const currentSlug = (match && typeof match !== "boolean" ? match._splat : undefined) as
-    | string
-    | undefined;
+  const currentSlug = (
+    match && typeof match !== "boolean" ? match._splat : undefined
+  ) as string | undefined;
 
   const { sections } = getDocsBySection();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 top-[69px] z-40 md:hidden" onClick={onClose} />}
+      {isOpen && (
+        <div
+          className="fixed inset-0 top-[69px] z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
       <div
         className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-sm border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -95,7 +112,10 @@ function MobileDocsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           paddingLeft: "env(safe-area-inset-left)",
         }}
       >
-        <div ref={scrollContainerRef} className="h-full overflow-y-auto scrollbar-hide p-4">
+        <div
+          ref={scrollContainerRef}
+          className="h-full overflow-y-auto scrollbar-hide p-4"
+        >
           <SidebarNavigation
             sections={sections}
             currentSlug={currentSlug}
@@ -109,16 +129,25 @@ function MobileDocsDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   );
 }
 
-function MobileHandbookDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function MobileHandbookDrawer({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const matchRoute = useMatchRoute();
   const match = matchRoute({ to: "/company-handbook/$", fuzzy: true });
 
-  const currentSlug = (match && typeof match !== "boolean" ? match._splat : undefined) as
-    | string
-    | undefined;
+  const currentSlug = (
+    match && typeof match !== "boolean" ? match._splat : undefined
+  ) as string | undefined;
 
   const handbooksBySection = useMemo(() => {
-    const sectionGroups: Record<string, { title: string; docs: (typeof allHandbooks)[0][] }> = {};
+    const sectionGroups: Record<
+      string,
+      { title: string; docs: (typeof allHandbooks)[0][] }
+    > = {};
 
     allHandbooks.forEach((doc) => {
       if (doc.slug === "index" || doc.isIndex) {
@@ -143,7 +172,8 @@ function MobileHandbookDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
     const sections = handbookStructure.sections
       .map((sectionId) => {
-        const sectionName = sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
+        const sectionName =
+          sectionId.charAt(0).toUpperCase() + sectionId.slice(1);
         return sectionGroups[sectionName];
       })
       .filter(Boolean);
@@ -155,7 +185,12 @@ function MobileHandbookDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 top-[69px] z-40 md:hidden" onClick={onClose} />}
+      {isOpen && (
+        <div
+          className="fixed inset-0 top-[69px] z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
       <div
         className={`fixed top-[69px] left-0 h-[calc(100vh-69px)] w-72 bg-white/80 backdrop-blur-sm border-r border-neutral-100 shadow-2xl shadow-neutral-900/20 z-50 md:hidden transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -164,7 +199,10 @@ function MobileHandbookDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: (
           paddingLeft: "env(safe-area-inset-left)",
         }}
       >
-        <div ref={scrollContainerRef} className="h-full overflow-y-auto scrollbar-hide p-4">
+        <div
+          ref={scrollContainerRef}
+          className="h-full overflow-y-auto scrollbar-hide p-4"
+        >
           <SidebarNavigation
             sections={handbooksBySection.sections}
             currentSlug={currentSlug}

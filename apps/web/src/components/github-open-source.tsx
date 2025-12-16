@@ -220,12 +220,21 @@ const CURATED_PROFILES = [
   },
 ];
 
-function StatBadge({ type, count }: { type: "stars" | "forks"; count: number }) {
-  const renderCount = (n: number) => (n > 1000 ? `${(n / 1000).toFixed(1)}k` : n);
+function StatBadge({
+  type,
+  count,
+}: {
+  type: "stars" | "forks";
+  count: number;
+}) {
+  const renderCount = (n: number) =>
+    n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
 
   return (
     <div className="flex flex-col gap-1 text-stone-600 h-[84px] w-[84px] items-center justify-center border border-neutral-200 rounded-sm px-4 bg-neutral-100">
-      <p className="font-semibold font-serif text-sm">{type === "stars" ? "Stars" : "Forks"}</p>
+      <p className="font-semibold font-serif text-sm">
+        {type === "stars" ? "Stars" : "Forks"}
+      </p>
       <p className="text-sm font-medium text-center">{renderCount(count)}</p>
     </div>
   );
@@ -238,13 +247,16 @@ function OpenSourceButton({
   showStars?: boolean;
   starCount?: number;
 }) {
-  const renderCount = (n: number) => (n > 1000 ? `${(n / 1000).toFixed(1)}k` : n);
+  const renderCount = (n: number) =>
+    n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
 
   return (
     <div className="text-center space-y-4 w-full max-w-md mx-auto">
       <h2 className="text-2xl font-serif text-stone-600">Open source</h2>
       <p className="text-neutral-600">
-        {"Hyprnote values privacy and community, so it's been transparent from day one."}
+        {
+          "Hyprnote values privacy and community, so it's been transparent from day one."
+        }
       </p>
       <a
         href={`https://github.com/${GITHUB_ORG_REPO}`}
@@ -281,7 +293,11 @@ function Avatar({ username, avatar }: { username: string; avatar: string }) {
       rel="noopener noreferrer"
       className="size-10 rounded-sm overflow-hidden border-2 border-neutral-200 bg-neutral-100 shrink-0 hover:scale-110 hover:border-neutral-400 transition-all cursor-pointer"
     >
-      <img src={avatar} alt={`${username}'s avatar`} className="w-full h-full object-cover" />
+      <img
+        src={avatar}
+        alt={`${username}'s avatar`}
+        className="w-full h-full object-cover"
+      />
     </a>
   );
 }

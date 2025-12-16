@@ -9,33 +9,36 @@ export type ChatEvent =
   | { type: "SHIFT" }
   | { type: "TOGGLE" };
 
-const chatModeLogic = fromTransition((state: ChatMode, event: ChatEvent): ChatMode => {
-  switch (state) {
-    case "RightPanelOpen":
-      if (event.type === "CLOSE" || event.type === "TOGGLE") {
-        return "FloatingClosed";
-      }
-      if (event.type === "SHIFT") {
-        return "FloatingOpen";
-      }
-      return state;
-    case "FloatingClosed":
-      if (event.type === "OPEN" || event.type === "TOGGLE") {
-        return "FloatingOpen";
-      }
-      return state;
-    case "FloatingOpen":
-      if (event.type === "CLOSE" || event.type === "TOGGLE") {
-        return "FloatingClosed";
-      }
-      if (event.type === "SHIFT") {
-        return "RightPanelOpen";
-      }
-      return state;
-    default:
-      return state;
-  }
-}, "FloatingClosed" as ChatMode);
+const chatModeLogic = fromTransition(
+  (state: ChatMode, event: ChatEvent): ChatMode => {
+    switch (state) {
+      case "RightPanelOpen":
+        if (event.type === "CLOSE" || event.type === "TOGGLE") {
+          return "FloatingClosed";
+        }
+        if (event.type === "SHIFT") {
+          return "FloatingOpen";
+        }
+        return state;
+      case "FloatingClosed":
+        if (event.type === "OPEN" || event.type === "TOGGLE") {
+          return "FloatingOpen";
+        }
+        return state;
+      case "FloatingOpen":
+        if (event.type === "CLOSE" || event.type === "TOGGLE") {
+          return "FloatingClosed";
+        }
+        if (event.type === "SHIFT") {
+          return "RightPanelOpen";
+        }
+        return state;
+      default:
+        return state;
+    }
+  },
+  "FloatingClosed" as ChatMode,
+);
 
 export function useChatMode() {
   const [mode, setMode] = useState<ChatMode>("FloatingClosed");
@@ -48,7 +51,10 @@ export function useChatMode() {
     actorRef.start();
   }, [actorRef]);
 
-  const sendEvent = useCallback((event: ChatEvent) => actorRef.send(event), [actorRef]);
+  const sendEvent = useCallback(
+    (event: ChatEvent) => actorRef.send(event),
+    [actorRef],
+  );
 
   useHotkeys(
     "mod+j",

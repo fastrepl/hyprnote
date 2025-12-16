@@ -4,7 +4,12 @@ import type { StoreApi } from "zustand";
 
 import type { Store as PersistedStore } from "../../tinybase/main";
 import { applyTransforms } from "./shared/transform_infra";
-import { TASK_CONFIGS, type TaskArgsMap, type TaskId, type TaskType } from "./task-configs";
+import {
+  TASK_CONFIGS,
+  type TaskArgsMap,
+  type TaskId,
+  type TaskType,
+} from "./task-configs";
 
 export type TasksState = {
   tasks: Record<string, TaskState>;
@@ -66,7 +71,9 @@ export const createTasksSlice = <T extends TasksState>(
   deps: { persistedStore: PersistedStore },
 ): TasksState & TasksActions => ({
   ...initialState,
-  getState: <Task extends TaskType>(taskId: TaskId<Task>): TaskState<Task> | undefined => {
+  getState: <Task extends TaskType>(
+    taskId: TaskId<Task>,
+  ): TaskState<Task> | undefined => {
     const task = get().tasks[taskId];
     return task as TaskState<Task> | undefined;
   },
@@ -121,7 +128,10 @@ export const createTasksSlice = <T extends TasksState>(
     const taskConfig = TASK_CONFIGS[config.taskType];
 
     try {
-      const enrichedArgs = await taskConfig.transformArgs(config.args, deps.persistedStore);
+      const enrichedArgs = await taskConfig.transformArgs(
+        config.args,
+        deps.persistedStore,
+      );
 
       set((state) =>
         mutate(state, (draft) => {
@@ -204,7 +214,10 @@ export const createTasksSlice = <T extends TasksState>(
       console.log("fullText", fullText);
       config.onComplete?.(fullText);
     } catch (err) {
-      if (err instanceof Error && (err.name === "AbortError" || err.message === "Aborted")) {
+      if (
+        err instanceof Error &&
+        (err.name === "AbortError" || err.message === "Aborted")
+      ) {
         set((state) =>
           mutate(state, (draft) => {
             draft.tasks[taskId] = {

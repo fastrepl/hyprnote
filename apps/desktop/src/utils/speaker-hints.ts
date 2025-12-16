@@ -67,7 +67,9 @@ export function convertStorageHintsToRuntime(
   return hints;
 }
 
-const parseProviderSpeakerIndex = (raw: unknown): ProviderSpeakerIndexHint | undefined => {
+const parseProviderSpeakerIndex = (
+  raw: unknown,
+): ProviderSpeakerIndexHint | undefined => {
   if (raw == null) {
     return undefined;
   }

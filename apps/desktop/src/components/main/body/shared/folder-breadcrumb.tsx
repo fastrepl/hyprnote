@@ -13,7 +13,11 @@ export function FolderBreadcrumb({
   renderBefore?: () => ReactNode;
   renderAfter?: () => ReactNode;
   renderSeparator?: (props: { index: number }) => ReactNode;
-  renderCrumb: (props: { id: string; name: string; isLast: boolean }) => ReactNode;
+  renderCrumb: (props: {
+    id: string;
+    name: string;
+    isLast: boolean;
+  }) => ReactNode;
 }) {
   const folderChain = useFolderChain(folderId);
 
@@ -63,7 +67,11 @@ function FolderWrapper({
 }
 
 export function useFolderChain(folderId: string) {
-  const folderIds = main.UI.useLinkedRowIds("folderToParentFolder", folderId, main.STORE_ID);
+  const folderIds = main.UI.useLinkedRowIds(
+    "folderToParentFolder",
+    folderId,
+    main.STORE_ID,
+  );
 
   return useMemo(() => {
     if (!folderIds || folderIds.length === 0) {

@@ -23,7 +23,9 @@ export const defaultMDXComponents: MDXComponents = {
   Tweet,
 };
 
-export function createMDXComponents(customComponents?: Partial<MDXComponents>): MDXComponents {
+export function createMDXComponents(
+  customComponents?: Partial<MDXComponents>,
+): MDXComponents {
   return {
     ...defaultMDXComponents,
     ...(customComponents || {}),

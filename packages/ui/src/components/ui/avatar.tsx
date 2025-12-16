@@ -3,23 +3,26 @@ import * as React from "react";
 
 import { cn } from "@hypr/utils";
 
-interface AvatarProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> {
+interface AvatarProps extends React.ComponentPropsWithoutRef<
+  typeof AvatarPrimitive.Root
+> {
   variant?: "rounded" | "circle";
 }
 
-const Avatar = React.forwardRef<React.ComponentRef<typeof AvatarPrimitive.Root>, AvatarProps>(
-  ({ className, variant = "circle", ...props }, ref) => (
-    <AvatarPrimitive.Root
-      ref={ref}
-      className={cn([
-        "relative flex h-10 w-10 shrink-0 overflow-hidden",
-        variant === "circle" ? "rounded-full" : "rounded-lg",
-        className,
-      ])}
-      {...props}
-    />
-  ),
-);
+const Avatar = React.forwardRef<
+  React.ComponentRef<typeof AvatarPrimitive.Root>,
+  AvatarProps
+>(({ className, variant = "circle", ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn([
+      "relative flex h-10 w-10 shrink-0 overflow-hidden",
+      variant === "circle" ? "rounded-full" : "rounded-lg",
+      className,
+    ])}
+    {...props}
+  />
+));
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
 const AvatarImage = React.forwardRef<

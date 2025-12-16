@@ -4,10 +4,16 @@ import { z } from "zod";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 
-import { type OnboardingStepId, STEP_CONFIGS } from "../../../components/onboarding/config";
+import {
+  type OnboardingStepId,
+  STEP_CONFIGS,
+} from "../../../components/onboarding/config";
 import { commands } from "../../../types/tauri.gen";
 
-const ALL_STEP_IDS = STEP_CONFIGS.map((s) => s.id) as [OnboardingStepId, ...OnboardingStepId[]];
+const ALL_STEP_IDS = STEP_CONFIGS.map((s) => s.id) as [
+  OnboardingStepId,
+  ...OnboardingStepId[],
+];
 
 const validateSearch = z.object({
   step: z.enum(ALL_STEP_IDS).default("welcome"),
@@ -49,7 +55,10 @@ function Component() {
 
   return (
     <div className="flex flex-col h-full relative items-center justify-center p-8">
-      <div data-tauri-drag-region className="h-14 w-full absolute top-0 left-0 right-0" />
+      <div
+        data-tauri-drag-region
+        className="h-14 w-full absolute top-0 left-0 right-0"
+      />
       <StepComponent onNavigate={onNavigate} />
     </div>
   );

@@ -75,7 +75,8 @@ describe("General Listener Slice", () => {
   describe("Batch State", () => {
     test("handleBatchResponseStreamed tracks progress per session", () => {
       const sessionId = "session-progress";
-      const { handleBatchResponseStreamed, clearBatchSession } = store.getState();
+      const { handleBatchResponseStreamed, clearBatchSession } =
+        store.getState();
 
       const mockResponse = {
         type: "Results" as const,

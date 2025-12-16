@@ -1,5 +1,11 @@
 import { clsx } from "clsx";
-import { ArrowLeft, ArrowRight, Bell, CheckCheck, MessageSquare } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bell,
+  CheckCheck,
+  MessageSquare,
+} from "lucide-react";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -7,7 +13,14 @@ import { cn } from "@hypr/utils";
 import { MenuItem } from "./shared";
 
 export function NotificationsMenuHeader({ onClick }: { onClick: () => void }) {
-  return <MenuItem icon={Bell} label="Notifications" onClick={onClick} suffixIcon={ArrowRight} />;
+  return (
+    <MenuItem
+      icon={Bell}
+      label="Notifications"
+      onClick={onClick}
+      suffixIcon={ArrowRight}
+    />
+  );
 }
 
 interface Notification {
@@ -34,7 +47,12 @@ export function NotificationsMenuContent({ onBack }: { onBack: () => void }) {
   return (
     <div className="h-full flex flex-col px-2">
       <div className="flex w-full items-center gap-1 text-sm font-medium">
-        <Button size="icon" variant="ghost" onClick={onBack} className="shrink-0">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={onBack}
+          className="shrink-0"
+        >
           <ArrowLeft size={16} />
         </Button>
         Notifications
@@ -115,7 +133,9 @@ function NotificationItem({ notification }: { notification: Notification }) {
             <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500" />
           )}
         </div>
-        <p className="text-xs text-neutral-600 line-clamp-2 mb-1">{notification.description}</p>
+        <p className="text-xs text-neutral-600 line-clamp-2 mb-1">
+          {notification.description}
+        </p>
         <p className="text-xs text-neutral-400">{notification.timestamp}</p>
       </div>
     </button>

@@ -32,18 +32,22 @@ export function ConfigureProviders() {
         <HyprProviderCard
           providerId="hyprnote"
           providerName="Hyprnote"
-          icon={<img src="/assets/icon.png" alt="Hyprnote" className="size-5" />}
+          icon={
+            <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />
+          }
           badge={PROVIDERS.find((p) => p.id === "hyprnote")?.badge}
         />
-        {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map((provider) => (
-          <NonHyprProviderCard
-            key={provider.id}
-            config={provider}
-            providerType="stt"
-            providers={PROVIDERS}
-            providerContext={<ProviderContext providerId={provider.id} />}
-          />
-        ))}
+        {PROVIDERS.filter((provider) => provider.id !== "hyprnote").map(
+          (provider) => (
+            <NonHyprProviderCard
+              key={provider.id}
+              config={provider}
+              providerType="stt"
+              providers={PROVIDERS}
+              providerContext={<ProviderContext providerId={provider.id} />}
+            />
+          ),
+        )}
       </Accordion>
     </div>
   );
@@ -170,7 +174,10 @@ function HyprProviderCard({
 function HyprProviderRow({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className={cn(["flex items-center justify-between", "py-2 px-3 rounded-md border bg-white"])}
+      className={cn([
+        "flex items-center justify-between",
+        "py-2 px-3 rounded-md border bg-white",
+      ])}
     >
       {children}
     </div>
@@ -246,7 +253,10 @@ function LocalModelAction({
   return (
     <Button
       size="sm"
-      className={cn(["w-[110px] relative overflow-hidden group", hasError && "border-red-500"])}
+      className={cn([
+        "w-[110px] relative overflow-hidden group",
+        hasError && "border-red-500",
+      ])}
       variant={isDownloaded ? "outline" : hasError ? "destructive" : "default"}
       onClick={isDownloaded ? onOpen : showProgress ? onCancel : onDownload}
     >
@@ -298,8 +308,14 @@ function HyprProviderLocalRow({
 }) {
   const handleSelectModel = useSafeSelectModel();
 
-  const { progress, hasError, isDownloaded, showProgress, handleDownload, handleCancel } =
-    useLocalModelDownload(model, handleSelectModel);
+  const {
+    progress,
+    hasError,
+    isDownloaded,
+    showProgress,
+    handleDownload,
+    handleCancel,
+  } = useLocalModelDownload(model, handleSelectModel);
 
   const handleOpen = () =>
     localSttCommands.modelsDir().then((result) => {
@@ -339,7 +355,8 @@ function useLocalModelDownload(
   const isDownloaded = useQuery(sttModelQueries.isDownloaded(model));
   const isDownloading = useQuery(sttModelQueries.isDownloading(model));
 
-  const showProgress = !isDownloaded.data && (isStarting || (isDownloading.data ?? false));
+  const showProgress =
+    !isDownloaded.data && (isStarting || (isDownloading.data ?? false));
 
   useEffect(() => {
     if (isDownloading.data) {

@@ -19,7 +19,8 @@ export const Route = createFileRoute("/_view/roadmap/")({
       { title: "Roadmap - Hyprnote" },
       {
         name: "description",
-        content: "See what we're building next for Hyprnote. Our product roadmap and future plans.",
+        content:
+          "See what we're building next for Hyprnote. Our product roadmap and future plans.",
       },
     ],
   }),
@@ -73,8 +74,8 @@ function Component() {
               Product Roadmap
             </h1>
             <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-              See what we're building and what's coming next. We're always listening to feedback
-              from our community.
+              See what we're building and what's coming next. We're always
+              listening to feedback from our community.
             </p>
           </header>
 
@@ -158,9 +159,13 @@ function KanbanColumn({
       </div>
       <div className="flex flex-col gap-3 flex-1">
         {visibleItems.length === 0 ? (
-          <div className="text-center py-8 text-neutral-400 text-sm">No items</div>
+          <div className="text-center py-8 text-neutral-400 text-sm">
+            No items
+          </div>
         ) : (
-          visibleItems.map((item) => <RoadmapCard key={item.slug} item={item} compact />)
+          visibleItems.map((item) => (
+            <RoadmapCard key={item.slug} item={item} compact />
+          ))
         )}
         {hasMore && (
           <button
@@ -170,7 +175,9 @@ function KanbanColumn({
               "py-2 transition-colors",
             ])}
           >
-            {showAll ? "Show less" : `Show ${items.length - DEFAULT_VISIBLE_ITEMS} more`}
+            {showAll
+              ? "Show less"
+              : `Show ${items.length - DEFAULT_VISIBLE_ITEMS} more`}
           </button>
         )}
       </div>
@@ -201,7 +208,12 @@ function ColumnView({
         iconColor="text-blue-600"
         items={inProgress}
       />
-      <ColumnSection title="Done" icon="mdi:check-circle" iconColor="text-green-600" items={done} />
+      <ColumnSection
+        title="Done"
+        icon="mdi:check-circle"
+        iconColor="text-green-600"
+        items={done}
+      />
     </div>
   );
 }
@@ -246,7 +258,9 @@ function ColumnSection({
               "hover:border-neutral-300 transition-colors",
             ])}
           >
-            {showAll ? "Show less" : `Show ${items.length - mobileLimit} more items`}
+            {showAll
+              ? "Show less"
+              : `Show ${items.length - mobileLimit} more items`}
           </button>
         )}
       </div>
@@ -254,7 +268,13 @@ function ColumnSection({
   );
 }
 
-function RoadmapCard({ item, compact = false }: { item: RoadmapItem; compact?: boolean }) {
+function RoadmapCard({
+  item,
+  compact = false,
+}: {
+  item: RoadmapItem;
+  compact?: boolean;
+}) {
   return (
     <Link
       to="/roadmap/$slug"
@@ -304,7 +324,11 @@ function RoadmapCard({ item, compact = false }: { item: RoadmapItem; compact?: b
   );
 }
 
-function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputElement | null> }) {
+function CTASection({
+  heroInputRef,
+}: {
+  heroInputRef: React.RefObject<HTMLInputElement | null>;
+}) {
   const platform = usePlatform();
   const platformCTA = getPlatformCTA(platform);
 
@@ -321,7 +345,10 @@ function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputE
       setTimeout(() => {
         if (heroInputRef.current) {
           heroInputRef.current.focus();
-          heroInputRef.current.parentElement?.classList.add("animate-shake", "border-stone-600");
+          heroInputRef.current.parentElement?.classList.add(
+            "animate-shake",
+            "border-stone-600",
+          );
           setTimeout(() => {
             heroInputRef.current?.parentElement?.classList.remove(
               "animate-shake",
@@ -350,7 +377,8 @@ function CTASection({ heroInputRef }: { heroInputRef: React.RefObject<HTMLInputE
           <br className="sm:hidden" /> stay yours
         </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Start using Hyprnote today and bring clarity to your back-to-back meetings
+          Start using Hyprnote today and bring clarity to your back-to-back
+          meetings
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           {platformCTA.action === "download" ? (

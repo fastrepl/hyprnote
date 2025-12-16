@@ -3,7 +3,8 @@ import { Probot } from "probot";
 
 export type ProbotContext = Parameters<Parameters<Probot["on"]>[1]>[0];
 
-export type ChecksCreateParams = RestEndpointMethodTypes["checks"]["create"]["parameters"];
+export type ChecksCreateParams =
+  RestEndpointMethodTypes["checks"]["create"]["parameters"];
 
 export async function createOrUpdateCheck(
   context: ProbotContext,

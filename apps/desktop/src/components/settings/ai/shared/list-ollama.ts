@@ -57,7 +57,9 @@ const fetchOllamaInventory = (ollama: Ollama) =>
     ),
     Effect.map(([listResponse, psResponse]) => ({
       models: listResponse.models,
-      runningModelNames: new Set<string>(psResponse.models?.map((model) => model.name) ?? []),
+      runningModelNames: new Set<string>(
+        psResponse.models?.map((model) => model.name) ?? [],
+      ),
     })),
   );
 

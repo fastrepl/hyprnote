@@ -1,5 +1,11 @@
 import { Icon } from "@iconify-icon/react";
-import { Anthropic, LmStudio, Ollama, OpenAI, OpenRouter } from "@lobehub/icons";
+import {
+  Anthropic,
+  LmStudio,
+  Ollama,
+  OpenAI,
+  OpenRouter,
+} from "@lobehub/icons";
 import type { ReactNode } from "react";
 
 import {
@@ -25,7 +31,10 @@ const _PROVIDERS = [
     badge: "Recommended",
     icon: <img src="/assets/icon.png" alt="Hyprnote" className="size-5" />,
     baseUrl: "",
-    requirements: [{ kind: "requires_auth" }, { kind: "requires_entitlement", entitlement: "pro" }],
+    requirements: [
+      { kind: "requires_auth" },
+      { kind: "requires_entitlement", entitlement: "pro" },
+    ],
   },
   {
     id: "lmstudio",
@@ -81,7 +90,9 @@ const _PROVIDERS = [
     badge: null,
     icon: <Icon icon="mingcute:random-fill" />,
     baseUrl: undefined,
-    requirements: [{ kind: "requires_config", fields: ["base_url", "api_key"] }],
+    requirements: [
+      { kind: "requires_config", fields: ["base_url", "api_key"] },
+    ],
   },
 ] as const satisfies readonly Provider[];
 
@@ -95,5 +106,7 @@ export const llmProviderRequiresPro = (providerId: ProviderId) => {
 
 export const llmProviderRequiresApiKey = (providerId: ProviderId) => {
   const provider = PROVIDERS.find((p) => p.id === providerId);
-  return provider ? requiresConfigField(provider.requirements, "api_key") : false;
+  return provider
+    ? requiresConfigField(provider.requirements, "api_key")
+    : false;
 };

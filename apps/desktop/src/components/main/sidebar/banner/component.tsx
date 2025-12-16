@@ -4,7 +4,13 @@ import { cn } from "@hypr/utils";
 
 import type { BannerType } from "./types";
 
-export function Banner({ banner, onDismiss }: { banner: BannerType; onDismiss?: () => void }) {
+export function Banner({
+  banner,
+  onDismiss,
+}: {
+  banner: BannerType;
+  onDismiss?: () => void;
+}) {
   return (
     <div className="overflow-hidden p-1">
       <div
@@ -32,7 +38,11 @@ export function Banner({ banner, onDismiss }: { banner: BannerType; onDismiss?: 
         {(banner.icon || banner.title) && (
           <div className="flex items-center gap-2">
             {banner.icon}
-            {banner.title && <h3 className="text-lg font-bold text-neutral-900">{banner.title}</h3>}
+            {banner.title && (
+              <h3 className="text-lg font-bold text-neutral-900">
+                {banner.title}
+              </h3>
+            )}
           </div>
         )}
 

@@ -1,4 +1,9 @@
-import type { ChannelProfile, ProtoSegment, SegmentPass, SpeakerState } from "./shared";
+import type {
+  ChannelProfile,
+  ProtoSegment,
+  SegmentPass,
+  SpeakerState,
+} from "./shared";
 import { SegmentKey as SegmentKeyUtils } from "./shared";
 
 export const identityPropagationPass: SegmentPass<"segments"> = {
@@ -9,7 +14,10 @@ export const identityPropagationPass: SegmentPass<"segments"> = {
   },
 };
 
-function postProcessSegments(segments: ProtoSegment[], state: SpeakerState): void {
+function postProcessSegments(
+  segments: ProtoSegment[],
+  state: SpeakerState,
+): void {
   let writeIndex = 0;
   let lastKept: ProtoSegment | undefined;
 
@@ -33,7 +41,10 @@ function postProcessSegments(segments: ProtoSegment[], state: SpeakerState): voi
   segments.length = writeIndex;
 }
 
-function assignCompleteChannelHumanId(segment: ProtoSegment, state: SpeakerState): void {
+function assignCompleteChannelHumanId(
+  segment: ProtoSegment,
+  state: SpeakerState,
+): void {
   if (segment.key.speaker_human_id !== undefined) {
     return;
   }

@@ -2,7 +2,9 @@ export type WsPayload = string | Uint8Array;
 
 const TEXT_ENCODER = new TextEncoder();
 
-export const normalizeWsData = async (data: unknown): Promise<WsPayload | null> => {
+export const normalizeWsData = async (
+  data: unknown,
+): Promise<WsPayload | null> => {
   if (typeof data === "string") {
     return data;
   }
@@ -54,7 +56,11 @@ export const payloadIsControlMessage = (
 
   try {
     const parsed = JSON.parse(payload);
-    if (typeof parsed === "object" && parsed !== null && controlMessageTypes.has(parsed.type)) {
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      controlMessageTypes.has(parsed.type)
+    ) {
       return true;
     }
   } catch {

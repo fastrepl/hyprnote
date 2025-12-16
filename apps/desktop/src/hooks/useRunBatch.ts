@@ -69,7 +69,9 @@ export const useRunBatch = (sessionId: string) => {
       })();
 
       if (!provider) {
-        throw new Error(`Batch transcription is not supported for provider: ${conn.provider}`);
+        throw new Error(
+          `Batch transcription is not supported for provider: ${conn.provider}`,
+        );
       }
 
       if (sessionTabRef.current) {
@@ -88,7 +90,8 @@ export const useRunBatch = (sessionId: string) => {
         started_at: Date.now(),
       });
 
-      const handlePersist: HandlePersistCallback | undefined = options?.handlePersist;
+      const handlePersist: HandlePersistCallback | undefined =
+        options?.handlePersist;
 
       const persist =
         handlePersist ??
@@ -155,6 +158,15 @@ export const useRunBatch = (sessionId: string) => {
 
       await runBatch(params, { handlePersist: persist, sessionId });
     },
-    [conn, keywords, languages, runBatch, sessionId, store, updateSessionTabState, user_id],
+    [
+      conn,
+      keywords,
+      languages,
+      runBatch,
+      sessionId,
+      store,
+      updateSessionTabState,
+      user_id,
+    ],
   );
 };

@@ -1,6 +1,10 @@
 import { Probot } from "probot";
 
-import { DevinSessionStatus, getDevinSessionDetail, listDevinSessions } from "./index.js";
+import {
+  DevinSessionStatus,
+  getDevinSessionDetail,
+  listDevinSessions,
+} from "./index.js";
 
 const CHECK_NAME = "Devin";
 const DEFAULT_POLL_INTERVAL_MS = 60_000;
@@ -65,7 +69,11 @@ export interface OctokitLike {
     }) => Promise<unknown>;
   };
   pulls: {
-    get: (params: { owner: string; repo: string; pull_number: number }) => Promise<{
+    get: (params: {
+      owner: string;
+      repo: string;
+      pull_number: number;
+    }) => Promise<{
       data: {
         state: string;
         head: { sha: string };
@@ -133,12 +141,16 @@ export class DevinStatusPoller {
     const key = pr.prUrl;
     if (!this.trackedPRs.has(key)) {
       this.trackedPRs.set(key, pr);
-      this.logger.info(`Now tracking PR ${pr.prUrl} with session ${pr.sessionId}`);
+      this.logger.info(
+        `Now tracking PR ${pr.prUrl} with session ${pr.sessionId}`,
+      );
     } else {
       const existing = this.trackedPRs.get(key)!;
       existing.headSha = pr.headSha;
       existing.sessionId = pr.sessionId;
-      this.logger.info(`Updated tracking for PR ${pr.prUrl} with session ${pr.sessionId}`);
+      this.logger.info(
+        `Updated tracking for PR ${pr.prUrl} with session ${pr.sessionId}`,
+      );
     }
   }
 
@@ -240,13 +252,17 @@ export class DevinStatusPoller {
         }
       }
 
-      this.logger.info(`Discovered ${this.trackedPRs.size} PRs with active Devin sessions`);
+      this.logger.info(
+        `Discovered ${this.trackedPRs.size} PRs with active Devin sessions`,
+      );
     } catch (error) {
       this.logger.error(`Failed to discover existing sessions: ${error}`);
     }
   }
 
-  private parsePRUrl(prUrl: string): { owner: string; repo: string; prNumber: number } | null {
+  private parsePRUrl(
+    prUrl: string,
+  ): { owner: string; repo: string; prNumber: number } | null {
     const match = prUrl.match(/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
     if (!match) {
       return null;
@@ -269,14 +285,18 @@ export class DevinStatusPoller {
     // Fetch running sessions once per poll cycle to avoid repeated API calls
     const { sessions } = await listDevinSessions({ status: "running" });
     const sessionsByPrUrl = new Map(
-      sessions.filter((s) => s.pull_request?.url).map((s) => [s.pull_request!.url, s]),
+      sessions
+        .filter((s) => s.pull_request?.url)
+        .map((s) => [s.pull_request!.url, s]),
     );
 
     for (const pr of prs) {
       try {
         await this.checkPRStatus(pr, sessionsByPrUrl);
       } catch (error) {
-        this.logger.error(`Failed to check status for PR ${pr.prUrl}: ${error}`);
+        this.logger.error(
+          `Failed to check status for PR ${pr.prUrl}: ${error}`,
+        );
       }
     }
   }
@@ -287,7 +307,9 @@ export class DevinStatusPoller {
   ): Promise<void> {
     // Clean up old tracked PRs (older than 24 hours)
     if (Date.now() - pr.addedAt > MAX_TRACKING_AGE_MS) {
-      this.logger.info(`PR ${pr.prUrl} has been tracked for too long, untracking`);
+      this.logger.info(
+        `PR ${pr.prUrl} has been tracked for too long, untracking`,
+      );
       this.untrackPR(pr.prUrl);
       return;
     }
@@ -357,7 +379,9 @@ export class DevinStatusPoller {
         }
         this.untrackPR(pr.prUrl);
       } catch (error) {
-        this.logger.error(`Failed to verify session status for ${pr.sessionId}: ${error}`);
+        this.logger.error(
+          `Failed to verify session status for ${pr.sessionId}: ${error}`,
+        );
       }
       return;
     }
@@ -423,7 +447,9 @@ export class DevinStatusPoller {
       return;
     }
 
-    this.logger.info(`PR ${pr.prUrl} session ${session.session_id} status: ${detail.status_enum}`);
+    this.logger.info(
+      `PR ${pr.prUrl} session ${session.session_id} status: ${detail.status_enum}`,
+    );
   }
 
   private async updateCheckStatus(
@@ -480,7 +506,9 @@ export class DevinStatusPoller {
         });
       }
 
-      this.logger.info(`Updated check for PR ${pr.prUrl}: ${status} ${conclusion ?? ""}`);
+      this.logger.info(
+        `Updated check for PR ${pr.prUrl}: ${status} ${conclusion ?? ""}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to update check for PR ${pr.prUrl}: ${error}`);
     }

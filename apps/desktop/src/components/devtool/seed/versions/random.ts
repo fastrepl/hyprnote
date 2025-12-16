@@ -65,10 +65,14 @@ const RANDOM_DATA = (() => {
 
   const { transcripts, words } = buildTranscriptsForSessions(sessionIds);
 
-  const mapping_session_participant = buildSessionParticipants(sessionIds, humanIds, {
-    min: 1,
-    max: 4,
-  });
+  const mapping_session_participant = buildSessionParticipants(
+    sessionIds,
+    humanIds,
+    {
+      min: 1,
+      max: 4,
+    },
+  );
 
   const mapping_tag_session = buildSessionTags(sessionIds, tagIds, {
     tagProbability: 0.6,
@@ -80,10 +84,14 @@ const RANDOM_DATA = (() => {
 
   const chat_messages = buildChatMessages(chatGroupIds, { min: 3, max: 10 });
 
-  const enhanced_notes = buildEnhancedNotesForSessions(sessionIds, templateIds, {
-    notesPerSession: { min: 0, max: 3 },
-    templateProbability: 0.3,
-  });
+  const enhanced_notes = buildEnhancedNotesForSessions(
+    sessionIds,
+    templateIds,
+    {
+      notesPerSession: { min: 0, max: 3 },
+      templateProbability: 0.3,
+    },
+  );
 
   const chat_shortcuts = buildChatShortcuts(5);
 

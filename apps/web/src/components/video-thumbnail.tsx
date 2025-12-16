@@ -9,10 +9,17 @@ interface VideoThumbnailProps {
   onPlay?: () => void;
 }
 
-export function VideoThumbnail({ playbackId, className, onPlay }: VideoThumbnailProps) {
+export function VideoThumbnail({
+  playbackId,
+  className,
+  onPlay,
+}: VideoThumbnailProps) {
   return (
     <div
-      className={cn(["relative w-full h-full overflow-hidden group cursor-pointer", className])}
+      className={cn([
+        "relative w-full h-full overflow-hidden group cursor-pointer",
+        className,
+      ])}
       onClick={onPlay}
     >
       <MuxPlayer

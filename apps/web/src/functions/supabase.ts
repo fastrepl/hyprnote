@@ -5,12 +5,16 @@ import { getCookies, setCookie } from "@tanstack/react-start/server";
 import { env } from "@/env";
 
 export const getSupabaseBrowserClient = createClientOnlyFn(() => {
-  return createBrowserClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY, {
-    auth: {
-      detectSessionInUrl: true,
-      flowType: "pkce",
+  return createBrowserClient(
+    env.VITE_SUPABASE_URL,
+    env.VITE_SUPABASE_ANON_KEY,
+    {
+      auth: {
+        detectSessionInUrl: true,
+        flowType: "pkce",
+      },
     },
-  });
+  );
 });
 
 export const getSupabaseServerClient = createServerOnlyFn(() => {

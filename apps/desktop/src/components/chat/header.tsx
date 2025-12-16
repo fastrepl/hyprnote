@@ -41,8 +41,15 @@ export function ChatHeader({
       ])}
     >
       <div className="flex items-center">
-        <ChatGroups currentChatGroupId={currentChatGroupId} onSelectChat={onSelectChat} />
-        <ChatActionButton icon={<Plus size={16} />} onClick={onNewChat} title="New chat" />
+        <ChatGroups
+          currentChatGroupId={currentChatGroupId}
+          onSelectChat={onSelectChat}
+        />
+        <ChatActionButton
+          icon={<Plus size={16} />}
+          onClick={onNewChat}
+          title="New chat"
+        />
       </div>
 
       <div className="flex items-center">
@@ -57,7 +64,11 @@ export function ChatHeader({
           onClick={() => chat.sendEvent({ type: "SHIFT" })}
           title="Toggle"
         />
-        <ChatActionButton icon={<X size={16} />} onClick={handleClose} title="Close" />
+        <ChatActionButton
+          icon={<X size={16} />}
+          onClick={handleClose}
+          title="Close"
+        />
       </div>
     </div>
   );
@@ -106,7 +117,10 @@ function ChatGroups({
   return (
     <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2 h-auto px-2 py-1.5 group">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 h-auto px-2 py-1.5 group"
+        >
           <MessageCircle className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 transition-colors" />
           <h3 className="font-medium text-neutral-700 text-xs truncate">
             {currentChatTitle || "Ask Hyprnote anything"}
@@ -189,7 +203,9 @@ function ChatGroupItem({
           <MessageCircle
             className={cn([
               "w-3.5 h-3.5 transition-colors",
-              isActive ? "text-neutral-700" : "text-neutral-400 group-hover:text-neutral-600",
+              isActive
+                ? "text-neutral-700"
+                : "text-neutral-400 group-hover:text-neutral-600",
             ])}
           />
         </div>
@@ -202,7 +218,9 @@ function ChatGroupItem({
           >
             {chatGroup.title}
           </div>
-          <div className="text-[11px] text-neutral-500 mt-0.5">{formattedTime}</div>
+          <div className="text-[11px] text-neutral-500 mt-0.5">
+            {formattedTime}
+          </div>
         </div>
       </div>
     </Button>

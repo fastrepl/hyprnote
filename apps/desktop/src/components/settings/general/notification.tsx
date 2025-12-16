@@ -3,7 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { commands as detectCommands, type InstalledApp, type Result } from "@hypr/plugin-detect";
+import {
+  commands as detectCommands,
+  type InstalledApp,
+  type Result,
+} from "@hypr/plugin-detect";
 import { commands as notificationCommands } from "@hypr/plugin-notification";
 import { Badge } from "@hypr/ui/components/ui/badge";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -126,12 +130,15 @@ export function NotificationSettingsView() {
       handleSetNotificationEvent(value.notification_event);
       handleSetNotificationDetect(value.notification_detect);
       handleSetRespectDnd(value.respect_dnd);
-      handleSetIgnoredPlatforms(JSON.stringify(value.ignored_platforms.map(nameToBundleId)));
+      handleSetIgnoredPlatforms(
+        JSON.stringify(value.ignored_platforms.map(nameToBundleId)),
+      );
       handleSetQuitIntercept(value.quit_intercept);
     },
   });
 
-  const anyNotificationEnabled = configs.notification_event || configs.notification_detect;
+  const anyNotificationEnabled =
+    configs.notification_event || configs.notification_detect;
   const ignoredPlatforms = form.getFieldValue("ignored_platforms");
 
   const installedApps = allInstalledApps?.map((app) => app.name) ?? [];
@@ -147,11 +154,17 @@ export function NotificationSettingsView() {
     inputValue.trim() &&
     !filteredApps.some((app) => app.toLowerCase() === inputValue.toLowerCase());
 
-  const dropdownOptions = showCustomOption ? [inputValue.trim(), ...filteredApps] : filteredApps;
+  const dropdownOptions = showCustomOption
+    ? [inputValue.trim(), ...filteredApps]
+    : filteredApps;
 
   const handleAddIgnoredApp = (appName: string) => {
     const trimmedName = appName.trim();
-    if (!trimmedName || ignoredPlatforms.includes(trimmedName) || isDefaultIgnored(trimmedName)) {
+    if (
+      !trimmedName ||
+      ignoredPlatforms.includes(trimmedName) ||
+      isDefaultIgnored(trimmedName)
+    ) {
       return;
     }
 
@@ -176,14 +189,20 @@ export function NotificationSettingsView() {
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev < dropdownOptions.length - 1 ? prev + 1 : prev));
+      setSelectedIndex((prev) =>
+        prev < dropdownOptions.length - 1 ? prev + 1 : prev,
+      );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
     } else if (e.key === "Escape") {
       setShowDropdown(false);
       setSelectedIndex(0);
-    } else if (e.key === "Backspace" && !inputValue && ignoredPlatforms.length > 0) {
+    } else if (
+      e.key === "Backspace" &&
+      !inputValue &&
+      ignoredPlatforms.length > 0
+    ) {
       const lastApp = ignoredPlatforms[ignoredPlatforms.length - 1];
       if (!isDefaultIgnored(lastApp)) {
         handleRemoveIgnoredApp(lastApp);
@@ -199,7 +218,10 @@ export function NotificationSettingsView() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setShowDropdown(false);
       }
     };
@@ -214,12 +236,18 @@ export function NotificationSettingsView() {
         {(field) => (
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <h3 className="mb-1 text-sm font-medium">Event notifications (Not-available)</h3>
+              <h3 className="mb-1 text-sm font-medium">
+                Event notifications (Not-available)
+              </h3>
               <p className="text-xs text-neutral-600">
                 Get notified about upcoming calendar events
               </p>
             </div>
-            <Switch checked={false} onCheckedChange={field.handleChange} disabled />
+            <Switch
+              checked={false}
+              onCheckedChange={field.handleChange}
+              disabled
+            />
           </div>
         )}
       </form.Field>
@@ -229,19 +257,29 @@ export function NotificationSettingsView() {
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h3 className="mb-1 text-sm font-medium">Microphone detection</h3>
+                <h3 className="mb-1 text-sm font-medium">
+                  Microphone detection
+                </h3>
                 <p className="text-xs text-neutral-600">
-                  Automatically detect when a meeting starts based on microphone activity.
+                  Automatically detect when a meeting starts based on microphone
+                  activity.
                 </p>
               </div>
-              <Switch checked={field.state.value} onCheckedChange={field.handleChange} />
+              <Switch
+                checked={field.state.value}
+                onCheckedChange={field.handleChange}
+              />
             </div>
 
             {field.state.value && (
               <div className={cn(["ml-6 border-l-2 border-muted pl-6 pt-2"])}>
                 <div className="mb-3 space-y-1">
-                  <h4 className="text-sm font-medium">Exclude apps from detection</h4>
-                  <p className="text-xs text-neutral-600">These apps will not trigger detection.</p>
+                  <h4 className="text-sm font-medium">
+                    Exclude apps from detection
+                  </h4>
+                  <p className="text-xs text-neutral-600">
+                    These apps will not trigger detection.
+                  </p>
                 </div>
                 <div className="relative" ref={containerRef}>
                   <div
@@ -256,12 +294,18 @@ export function NotificationSettingsView() {
                           variant="secondary"
                           className={cn([
                             "flex items-center gap-1 px-2 py-0.5 text-xs",
-                            isDefault ? ["bg-neutral-200 text-neutral-700"] : ["bg-muted"],
+                            isDefault
+                              ? ["bg-neutral-200 text-neutral-700"]
+                              : ["bg-muted"],
                           ])}
                           title={isDefault ? "default" : undefined}
                         >
                           {app}
-                          {isDefault && <span className="text-[10px] opacity-70">(default)</span>}
+                          {isDefault && (
+                            <span className="text-[10px] opacity-70">
+                              (default)
+                            </span>
+                          )}
                           {!isDefault && (
                             <Button
                               type="button"
@@ -280,7 +324,11 @@ export function NotificationSettingsView() {
                       ref={inputRef}
                       type="text"
                       className="flex-1 min-w-[120px] bg-transparent outline-none text-sm placeholder:text-muted-foreground"
-                      placeholder={ignoredPlatforms.length === 0 ? "Type to add apps..." : ""}
+                      placeholder={
+                        ignoredPlatforms.length === 0
+                          ? "Type to add apps..."
+                          : ""
+                      }
                       value={inputValue}
                       onChange={(e) => handleInputChange(e.target.value)}
                       onKeyDown={handleKeyDown}
@@ -299,14 +347,16 @@ export function NotificationSettingsView() {
                               className={cn([
                                 "w-full px-3 py-1.5 text-left text-sm transition-colors",
                                 "hover:bg-accent hover:text-accent-foreground",
-                                selectedIndex === index && "bg-accent text-accent-foreground",
+                                selectedIndex === index &&
+                                  "bg-accent text-accent-foreground",
                               ])}
                               onClick={() => handleAddIgnoredApp(app)}
                               onMouseEnter={() => setSelectedIndex(index)}
                             >
                               {isCustom ? (
                                 <span>
-                                  Add "<span className="font-medium">{app}</span>"
+                                  Add "
+                                  <span className="font-medium">{app}</span>"
                                 </span>
                               ) : (
                                 app
@@ -336,12 +386,19 @@ export function NotificationSettingsView() {
           {(field) => (
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h3 className="mb-1 text-sm font-medium">Quit intercept (Read-only)</h3>
+                <h3 className="mb-1 text-sm font-medium">
+                  Quit intercept (Read-only)
+                </h3>
                 <p className="text-xs text-neutral-600">
-                  Prevents Hyprnote from quitting, which is required for notifications to work.
+                  Prevents Hyprnote from quitting, which is required for
+                  notifications to work.
                 </p>
               </div>
-              <Switch checked={field.state.value} onCheckedChange={field.handleChange} disabled />
+              <Switch
+                checked={field.state.value}
+                onCheckedChange={field.handleChange}
+                disabled
+              />
             </div>
           )}
         </form.Field>
@@ -350,9 +407,12 @@ export function NotificationSettingsView() {
           {(field) => (
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h3 className="mb-1 text-sm font-medium">Respect Do-Not-Disturb mode</h3>
+                <h3 className="mb-1 text-sm font-medium">
+                  Respect Do-Not-Disturb mode
+                </h3>
                 <p className="text-xs text-neutral-600">
-                  Don't show notifications when Do-Not-Disturb is enabled on your system
+                  Don't show notifications when Do-Not-Disturb is enabled on
+                  your system
                 </p>
               </div>
               <Switch

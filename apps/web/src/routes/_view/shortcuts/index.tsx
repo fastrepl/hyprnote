@@ -18,7 +18,8 @@ export const Route = createFileRoute("/_view/shortcuts/")({
   component: Component,
   validateSearch: (search: Record<string, unknown>): ShortcutsSearch => {
     return {
-      category: typeof search.category === "string" ? search.category : undefined,
+      category:
+        typeof search.category === "string" ? search.category : undefined,
     };
   },
   head: () => ({
@@ -45,7 +46,9 @@ function Component() {
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedShortcut, setSelectedShortcut] = useState<(typeof allShortcuts)[0] | null>(null);
+  const [selectedShortcut, setSelectedShortcut] = useState<
+    (typeof allShortcuts)[0] | null
+  >(null);
 
   const selectedCategory = search.category || null;
 
@@ -117,7 +120,10 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <ContributeBanner />
-        <HeroSection searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <HeroSection
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
         <QuoteSection />
         <MobileCategoriesSection
           categories={categories}
@@ -136,7 +142,9 @@ function Component() {
         <CTASection />
       </div>
 
-      {selectedShortcut && <ShortcutModal shortcut={selectedShortcut} onClose={handleModalClose} />}
+      {selectedShortcut && (
+        <ShortcutModal shortcut={selectedShortcut} onClose={handleModalClose} />
+      )}
     </div>
   );
 }
@@ -181,8 +189,9 @@ function HeroSection({
             Shortcuts
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
-            Quick AI commands for your meeting conversations. Use shortcuts in the chat assistant to
-            extract insights, draft emails, and analyze discussions instantly.
+            Quick AI commands for your meeting conversations. Use shortcuts in
+            the chat assistant to extract insights, draft emails, and analyze
+            discussions instantly.
           </p>
         </div>
 
@@ -278,7 +287,10 @@ function ShortcutsSection({
           setSelectedCategory={setSelectedCategory}
           shortcutsByCategory={shortcutsByCategory}
         />
-        <ShortcutsGrid filteredShortcuts={filteredShortcuts} onShortcutClick={onShortcutClick} />
+        <ShortcutsGrid
+          filteredShortcuts={filteredShortcuts}
+          onShortcutClick={onShortcutClick}
+        />
       </div>
     </div>
   );
@@ -312,7 +324,9 @@ function DesktopSidebar({
             ])}
           >
             All Shortcuts
-            <span className="ml-2 text-xs text-neutral-400">({allShortcuts.length})</span>
+            <span className="ml-2 text-xs text-neutral-400">
+              ({allShortcuts.length})
+            </span>
           </button>
           {categories.map((category) => (
             <button
@@ -348,8 +362,13 @@ function ShortcutsGrid({
     return (
       <section className="flex-1 min-w-0">
         <div className="text-center py-12">
-          <Icon icon="mdi:file-search" className="text-6xl text-neutral-300 mb-4 mx-auto" />
-          <p className="text-neutral-600">No shortcuts found matching your search.</p>
+          <Icon
+            icon="mdi:file-search"
+            className="text-6xl text-neutral-300 mb-4 mx-auto"
+          />
+          <p className="text-neutral-600">
+            No shortcuts found matching your search.
+          </p>
         </div>
       </section>
     );
@@ -392,7 +411,9 @@ function ShortcutCard({
         <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
           {shortcut.title}
         </h3>
-        <p className="text-sm text-neutral-600 line-clamp-2">{shortcut.description}</p>
+        <p className="text-sm text-neutral-600 line-clamp-2">
+          {shortcut.description}
+        </p>
       </div>
     </button>
   );
@@ -401,7 +422,9 @@ function ShortcutCard({
 function ContributeCard() {
   return (
     <div className="p-4 border border-dashed border-neutral-300 rounded-sm bg-stone-50/50 flex flex-col items-center justify-center text-center">
-      <h3 className="font-serif text-lg text-stone-600 mb-2">Contribute a shortcut</h3>
+      <h3 className="font-serif text-lg text-stone-600 mb-2">
+        Contribute a shortcut
+      </h3>
       <p className="text-sm text-neutral-500 mb-4">
         Have a shortcut idea? Submit a PR and help the community.
       </p>
@@ -431,12 +454,14 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Hyprnote and start using these shortcuts to get instant insights from your
-          meeting conversations.
+          Download Hyprnote and start using these shortcuts to get instant
+          insights from your meeting conversations.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />
-          <p className="text-sm text-neutral-500">Free to use. No credit card required.</p>
+          <p className="text-sm text-neutral-500">
+            Free to use. No credit card required.
+          </p>
         </div>
       </div>
     </section>
@@ -452,7 +477,10 @@ function ShortcutModal({
 }) {
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
       <div className="absolute inset-4 sm:inset-8 lg:inset-16 flex items-start justify-center overflow-y-auto">
         <div
           className={cn([

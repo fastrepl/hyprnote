@@ -58,7 +58,9 @@ function Component() {
   }, [search]);
 
   const isSearching = search.trim().length > 0;
-  const displayedFriends = isSearching ? filteredFriends : filteredFriends.slice(0, displayCount);
+  const displayedFriends = isSearching
+    ? filteredFriends
+    : filteredFriends.slice(0, displayCount);
   const hasMore = !isSearching && displayCount < filteredFriends.length;
 
   const handleLoadMore = () => {
@@ -73,7 +75,11 @@ function Component() {
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection search={search} onSearchChange={setSearch} />
         <SlashSeparator />
-        <FriendsSection friends={displayedFriends} hasMore={hasMore} onLoadMore={handleLoadMore} />
+        <FriendsSection
+          friends={displayedFriends}
+          hasMore={hasMore}
+          onLoadMore={handleLoadMore}
+        />
         <SlashSeparator />
         <JoinSection />
       </div>
@@ -96,8 +102,9 @@ function HeroSection({
             OSS Friends
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-3xl mx-auto mb-8">
-            Discover amazing open source projects and tools built by our friends in the community.
-            We believe in the power of open source and are proud to be part of this ecosystem.
+            Discover amazing open source projects and tools built by our friends
+            in the community. We believe in the power of open source and are
+            proud to be part of this ecosystem.
           </p>
           <div className="max-w-md mx-auto">
             <div
@@ -107,7 +114,10 @@ function HeroSection({
                 "focus-within:border-stone-400 transition-colors",
               ])}
             >
-              <Icon icon="mdi:magnify" className="absolute left-4 text-xl text-neutral-400" />
+              <Icon
+                icon="mdi:magnify"
+                className="absolute left-4 text-xl text-neutral-400"
+              />
               <input
                 type="text"
                 placeholder="Search projects..."
@@ -206,10 +216,12 @@ function JoinSection() {
   return (
     <section className="px-6 py-12 lg:py-16 bg-stone-50/30">
       <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">Want to be listed?</h2>
+        <h2 className="text-2xl sm:text-3xl font-serif text-stone-600 mb-4">
+          Want to be listed?
+        </h2>
         <p className="text-neutral-600 mb-6">
-          If you're building an open source project and would like to be featured on this page, we'd
-          love to hear from you.
+          If you're building an open source project and would like to be
+          featured on this page, we'd love to hear from you.
         </p>
         <a
           href="https://github.com/fastrepl/hyprnote/issues/new?title=OSS%20Friends%20Request&body=Project%20Name:%0AProject%20URL:%0ADescription:"

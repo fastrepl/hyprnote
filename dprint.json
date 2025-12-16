@@ -41,6 +41,10 @@
       {
         "command": "swift-format format",
         "exts": ["swift"]
+      },
+      {
+        "command": "pnpm exec prettier --config .prettierrc --write",
+        "exts": ["js", "ts", "jsx", "tsx", "mjs", "mts"]
       }
     ]
   },

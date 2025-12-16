@@ -90,7 +90,9 @@ export const getExtensions = (
           return false;
         }
 
-        const allowedProtocols = ctx.protocols.map((p) => (typeof p === "string" ? p : p.scheme));
+        const allowedProtocols = ctx.protocols.map((p) =>
+          typeof p === "string" ? p : p.scheme,
+        );
 
         if (!allowedProtocols.includes(protocol)) {
           return false;
@@ -101,7 +103,8 @@ export const getExtensions = (
         return false;
       }
     },
-    shouldAutoLink: (url) => url.startsWith("https://") || url.startsWith("http://"),
+    shouldAutoLink: (url) =>
+      url.startsWith("https://") || url.startsWith("http://"),
   }),
   TaskList,
   TaskItem.configure({ nested: true }),
@@ -117,10 +120,19 @@ export const getExtensions = (
   ...(fileHandlerConfig
     ? [
         FileHandler.configure({
-          allowedMimeTypes: ["image/png", "image/jpeg", "image/gif", "image/webp"],
+          allowedMimeTypes: [
+            "image/png",
+            "image/jpeg",
+            "image/gif",
+            "image/webp",
+          ],
           onDrop: (currentEditor, files, pos) => {
             if (fileHandlerConfig.onDrop) {
-              const result = fileHandlerConfig.onDrop(files, currentEditor, pos);
+              const result = fileHandlerConfig.onDrop(
+                files,
+                currentEditor,
+                pos,
+              );
               if (result === false) return false;
             }
 

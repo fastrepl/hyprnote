@@ -38,7 +38,9 @@ turndown.addRule("p", {
 
 turndown.addRule("taskList", {
   filter: function (node) {
-    return node.nodeName === "UL" && node.getAttribute("data-type") === "taskList";
+    return (
+      node.nodeName === "UL" && node.getAttribute("data-type") === "taskList"
+    );
   },
   replacement: function (content) {
     return content;
@@ -51,10 +53,15 @@ turndown.addRule("taskItem", {
       return false;
     }
     const parent = node.parentNode as HTMLElement;
-    return parent.nodeName === "UL" && parent.getAttribute("data-type") === "taskList";
+    return (
+      parent.nodeName === "UL" &&
+      parent.getAttribute("data-type") === "taskList"
+    );
   },
   replacement: function (content, node) {
-    const checkbox = node.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    const checkbox = node.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
     const isChecked = checkbox ? checkbox.checked : false;
     const checkboxSymbol = isChecked ? "[x]" : "[ ]";
 

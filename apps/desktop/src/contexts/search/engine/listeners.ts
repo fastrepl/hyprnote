@@ -3,7 +3,10 @@ import { RowListener } from "tinybase/with-schemas";
 
 import { Schemas } from "../../../store/tinybase/main";
 import { type Store as PersistedStore } from "../../../store/tinybase/main";
-import { createHumanSearchableContent, createSessionSearchableContent } from "./content";
+import {
+  createHumanSearchableContent,
+  createSessionSearchableContent,
+} from "./content";
 import type { Index } from "./types";
 import { collectCells, toNumber, toTrimmedString } from "./utils";
 
@@ -17,7 +20,14 @@ export function createSessionListener(
       if (!rowExists) {
         void remove(index, rowId);
       } else {
-        const fields = ["user_id", "created_at", "title", "raw_md", "enhanced_md", "transcript"];
+        const fields = [
+          "user_id",
+          "created_at",
+          "title",
+          "raw_md",
+          "enhanced_md",
+          "transcript",
+        ];
         const row = collectCells(store, "sessions", rowId, fields);
         const title = toTrimmedString(row.title) || "Untitled";
 

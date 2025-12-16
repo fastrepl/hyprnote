@@ -23,7 +23,9 @@ export const Route = createFileRoute("/_view/brand")({
   validateSearch: (search: Record<string, unknown>): BrandSearch => {
     return {
       type:
-        search.type === "visual" || search.type === "typography" || search.type === "color"
+        search.type === "visual" ||
+        search.type === "typography" ||
+        search.type === "color"
           ? search.type
           : undefined,
       id: typeof search.id === "string" ? search.id : undefined,
@@ -194,7 +196,10 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection />
-        <BrandContentSection selectedItem={selectedItem} setSelectedItem={handleSetSelectedItem} />
+        <BrandContentSection
+          selectedItem={selectedItem}
+          setSelectedItem={handleSetSelectedItem}
+        />
       </div>
     </div>
   );
@@ -208,8 +213,8 @@ function HeroSection() {
           Brand
         </h1>
         <p className="text-lg sm:text-xl text-neutral-600">
-          Download Hyprnote logos, icons, and brand assets. Learn about our visual identity,
-          typography, and color palette.
+          Download Hyprnote logos, icons, and brand assets. Learn about our
+          visual identity, typography, and color palette.
         </p>
       </div>
     </div>
@@ -256,10 +261,16 @@ function BrandContentSection({
                   selectedItem={selectedItem}
                   setSelectedItem={setSelectedItem}
                 />
-                <BrandDetailContent selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+                <BrandDetailContent
+                  selectedItem={selectedItem}
+                  setSelectedItem={setSelectedItem}
+                />
               </>
             ) : (
-              <BrandDetailView selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+              <BrandDetailView
+                selectedItem={selectedItem}
+                setSelectedItem={setSelectedItem}
+              />
             )}
           </div>
 
@@ -270,7 +281,11 @@ function BrandContentSection({
   );
 }
 
-function BrandGridView({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
+function BrandGridView({
+  setSelectedItem,
+}: {
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
   return (
     <div className="p-8 overflow-y-auto h-[480px]">
       <VisualAssetsGrid setSelectedItem={setSelectedItem} />
@@ -280,7 +295,11 @@ function BrandGridView({ setSelectedItem }: { setSelectedItem: (item: SelectedIt
   );
 }
 
-function VisualAssetsGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
+function VisualAssetsGrid({
+  setSelectedItem,
+}: {
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
   return (
     <div className="mb-8">
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
@@ -308,7 +327,11 @@ function VisualAssetsGrid({ setSelectedItem }: { setSelectedItem: (item: Selecte
   );
 }
 
-function TypographyGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
+function TypographyGrid({
+  setSelectedItem,
+}: {
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
   return (
     <div className="mb-8 border-t border-neutral-100 pt-8">
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
@@ -327,7 +350,10 @@ function TypographyGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedI
             >
               Aa
             </div>
-            <div className="font-medium text-stone-600" style={{ fontFamily: font.fontFamily }}>
+            <div
+              className="font-medium text-stone-600"
+              style={{ fontFamily: font.fontFamily }}
+            >
               {font.name}
             </div>
           </button>
@@ -337,7 +363,11 @@ function TypographyGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedI
   );
 }
 
-function ColorsGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
+function ColorsGrid({
+  setSelectedItem,
+}: {
+  setSelectedItem: (item: SelectedItem) => void;
+}) {
   return (
     <div className="border-t border-neutral-100 pt-8">
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
@@ -373,9 +403,15 @@ function BrandDetailView({
 }) {
   return (
     <ResizablePanelGroup direction="horizontal" className="h-[480px]">
-      <BrandSidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+      <BrandSidebar
+        selectedItem={selectedItem}
+        setSelectedItem={setSelectedItem}
+      />
       <ResizableHandle withHandle className="bg-neutral-200 w-px" />
-      <BrandDetailPanel selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+      <BrandDetailPanel
+        selectedItem={selectedItem}
+        setSelectedItem={setSelectedItem}
+      />
     </ResizablePanelGroup>
   );
 }
@@ -415,7 +451,9 @@ function MobileSidebarDrawer({
             }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
-              <span className="text-sm font-medium text-stone-600">Navigation</span>
+              <span className="text-sm font-medium text-stone-600">
+                Navigation
+              </span>
               <button
                 onClick={onClose}
                 className="p-1 hover:bg-neutral-200 rounded transition-colors"
@@ -464,13 +502,22 @@ function BrandDetailContent({
   return (
     <div className="h-full flex flex-col">
       {selectedItem.type === "visual" && (
-        <VisualAssetDetail asset={selectedItem.data} onClose={() => setSelectedItem(null)} />
+        <VisualAssetDetail
+          asset={selectedItem.data}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
       {selectedItem.type === "typography" && (
-        <TypographyDetail font={selectedItem.data} onClose={() => setSelectedItem(null)} />
+        <TypographyDetail
+          font={selectedItem.data}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
       {selectedItem.type === "color" && (
-        <ColorDetail color={selectedItem.data} onClose={() => setSelectedItem(null)} />
+        <ColorDetail
+          color={selectedItem.data}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
     </div>
   );
@@ -486,9 +533,18 @@ function BrandSidebar({
   return (
     <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
       <div className="h-full overflow-y-auto p-4">
-        <VisualAssetsSidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
-        <TypographySidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
-        <ColorsSidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+        <VisualAssetsSidebar
+          selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
+        />
+        <TypographySidebar
+          selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
+        />
+        <ColorsSidebar
+          selectedItem={selectedItem}
+          setSelectedItem={setSelectedItem}
+        />
       </div>
     </ResizablePanel>
   );
@@ -513,7 +569,8 @@ function VisualAssetsSidebar({
             onClick={() => setSelectedItem({ type: "visual", data: asset })}
             className={cn([
               "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
-              selectedItem?.type === "visual" && selectedItem.data.id === asset.id
+              selectedItem?.type === "visual" &&
+              selectedItem.data.id === asset.id
                 ? "border-stone-600 bg-stone-100"
                 : "border-neutral-200",
             ])}
@@ -526,8 +583,12 @@ function VisualAssetsSidebar({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-600 truncate">{asset.name}</p>
-              <p className="text-xs text-neutral-500 truncate">{asset.description}</p>
+              <p className="text-sm font-medium text-stone-600 truncate">
+                {asset.name}
+              </p>
+              <p className="text-xs text-neutral-500 truncate">
+                {asset.description}
+              </p>
             </div>
           </button>
         ))}
@@ -555,7 +616,8 @@ function TypographySidebar({
             onClick={() => setSelectedItem({ type: "typography", data: font })}
             className={cn([
               "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
-              selectedItem?.type === "typography" && selectedItem.data.id === font.id
+              selectedItem?.type === "typography" &&
+              selectedItem.data.id === font.id
                 ? "border-stone-600 bg-stone-100"
                 : "border-neutral-200",
             ])}
@@ -606,7 +668,8 @@ function ColorsSidebar({
             onClick={() => setSelectedItem({ type: "color", data: color })}
             className={cn([
               "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
-              selectedItem?.type === "color" && selectedItem.data.id === color.id
+              selectedItem?.type === "color" &&
+              selectedItem.data.id === color.id
                 ? "border-stone-600 bg-stone-100"
                 : "border-neutral-200",
             ])}
@@ -618,8 +681,12 @@ function ColorsSidebar({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-600 truncate">{color.name}</p>
-              <p className="text-xs text-neutral-500 truncate font-mono">{color.hex}</p>
+              <p className="text-sm font-medium text-stone-600 truncate">
+                {color.name}
+              </p>
+              <p className="text-xs text-neutral-500 truncate font-mono">
+                {color.hex}
+              </p>
             </div>
           </button>
         ))}
@@ -639,13 +706,22 @@ function BrandDetailPanel({
     <ResizablePanel defaultSize={65}>
       <div className="h-full flex flex-col">
         {selectedItem.type === "visual" && (
-          <VisualAssetDetail asset={selectedItem.data} onClose={() => setSelectedItem(null)} />
+          <VisualAssetDetail
+            asset={selectedItem.data}
+            onClose={() => setSelectedItem(null)}
+          />
         )}
         {selectedItem.type === "typography" && (
-          <TypographyDetail font={selectedItem.data} onClose={() => setSelectedItem(null)} />
+          <TypographyDetail
+            font={selectedItem.data}
+            onClose={() => setSelectedItem(null)}
+          />
         )}
         {selectedItem.type === "color" && (
-          <ColorDetail color={selectedItem.data} onClose={() => setSelectedItem(null)} />
+          <ColorDetail
+            color={selectedItem.data}
+            onClose={() => setSelectedItem(null)}
+          />
         )}
       </div>
     </ResizablePanel>
@@ -735,7 +811,10 @@ function TypographyDetail({
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
               Font Family
             </h3>
-            <p className="text-lg text-stone-600" style={{ fontFamily: font.fontFamily }}>
+            <p
+              className="text-lg text-stone-600"
+              style={{ fontFamily: font.fontFamily }}
+            >
               {font.fontFamily}
             </p>
           </div>
@@ -744,7 +823,9 @@ function TypographyDetail({
             <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
               Description
             </h3>
-            <p className="text-sm text-neutral-600 leading-relaxed">{font.description}</p>
+            <p className="text-sm text-neutral-600 leading-relaxed">
+              {font.description}
+            </p>
           </div>
 
           <div>
@@ -759,16 +840,28 @@ function TypographyDetail({
               Preview
             </h3>
             <div className="space-y-4 p-6 bg-stone-50 border border-neutral-200 rounded-lg">
-              <div className="text-4xl text-stone-600" style={{ fontFamily: font.fontFamily }}>
+              <div
+                className="text-4xl text-stone-600"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.preview}
               </div>
-              <div className="text-2xl text-stone-600" style={{ fontFamily: font.fontFamily }}>
+              <div
+                className="text-2xl text-stone-600"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.preview}
               </div>
-              <div className="text-base text-stone-600" style={{ fontFamily: font.fontFamily }}>
+              <div
+                className="text-base text-stone-600"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.preview}
               </div>
-              <div className="text-sm text-stone-600" style={{ fontFamily: font.fontFamily }}>
+              <div
+                className="text-sm text-stone-600"
+                style={{ fontFamily: font.fontFamily }}
+              >
                 {font.preview}
               </div>
             </div>
@@ -779,7 +872,13 @@ function TypographyDetail({
   );
 }
 
-function ColorDetail({ color, onClose }: { color: (typeof COLORS)[0]; onClose: () => void }) {
+function ColorDetail({
+  color,
+  onClose,
+}: {
+  color: (typeof COLORS)[0];
+  onClose: () => void;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -828,13 +927,19 @@ function ColorDetail({ color, onClose }: { color: (typeof COLORS)[0]; onClose: (
   );
 }
 
-function BrandStatusBar({ selectedItem }: { selectedItem: SelectedItem | null }) {
+function BrandStatusBar({
+  selectedItem,
+}: {
+  selectedItem: SelectedItem | null;
+}) {
   const totalItems = VISUAL_ASSETS.length + TYPOGRAPHY.length + COLORS.length;
 
   return (
     <div className="bg-stone-50 border-t border-neutral-200 px-4 py-2">
       <span className="text-xs text-neutral-500">
-        {selectedItem ? `Viewing ${selectedItem.data.name}` : `${totalItems} items, 3 groups`}
+        {selectedItem
+          ? `Viewing ${selectedItem.data.name}`
+          : `${totalItems} items, 3 groups`}
       </span>
     </div>
   );

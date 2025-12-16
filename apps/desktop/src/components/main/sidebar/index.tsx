@@ -1,6 +1,6 @@
+import { platform } from "@tauri-apps/plugin-os";
 import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
 import { useState } from "react";
-import { platform } from "@tauri-apps/plugin-os";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
@@ -37,11 +37,19 @@ export function LeftSidebar() {
         {isLinux && <TrafficLights />}
         <div className="flex items-center">
           {import.meta.env.DEV && (
-            <Button size="icon" variant="ghost" onClick={leftsidebar.toggleDevtool}>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={leftsidebar.toggleDevtool}
+            >
               <AxeIcon size={16} />
             </Button>
           )}
-          <Button size="icon" variant="ghost" onClick={leftsidebar.toggleExpanded}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={leftsidebar.toggleExpanded}
+          >
             <PanelLeftCloseIcon size={16} />
           </Button>
         </div>
@@ -56,7 +64,9 @@ export function LeftSidebar() {
           ) : (
             <TimelineView />
           )}
-          {!leftsidebar.showDevtool && <BannerArea isProfileExpanded={isProfileExpanded} />}
+          {!leftsidebar.showDevtool && (
+            <BannerArea isProfileExpanded={isProfileExpanded} />
+          )}
         </div>
         <div className="relative z-30">
           <ProfileSection onExpandChange={setIsProfileExpanded} />

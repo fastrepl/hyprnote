@@ -19,7 +19,9 @@ export function requiresConfigField(
   requirements: readonly ProviderRequirement[],
   field: ConfigField,
 ): boolean {
-  return requirements.some((r) => r.kind === "requires_config" && r.fields.includes(field));
+  return requirements.some(
+    (r) => r.kind === "requires_config" && r.fields.includes(field),
+  );
 }
 
 export function getRequiredConfigFields(

@@ -24,7 +24,9 @@ export async function* applyTransforms<TOOLS extends ToolSet = ToolSet>(
   let readableStream = streamToReadable(stream);
 
   for (const transform of transforms) {
-    readableStream = readableStream.pipeThrough(transform({ tools, stopStream }));
+    readableStream = readableStream.pipeThrough(
+      transform({ tools, stopStream }),
+    );
   }
 
   yield* streamToAsyncIterable(readableStream);
@@ -45,7 +47,9 @@ function streamToReadable<T>(stream: AsyncIterable<T>): ReadableStream<T> {
   });
 }
 
-async function* streamToAsyncIterable<T>(stream: ReadableStream<T>): AsyncIterable<T> {
+async function* streamToAsyncIterable<T>(
+  stream: ReadableStream<T>,
+): AsyncIterable<T> {
   const reader = stream.getReader();
   try {
     while (true) {

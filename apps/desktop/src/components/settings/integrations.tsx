@@ -9,7 +9,13 @@ import { Spinner } from "@hypr/ui/components/ui/spinner";
 
 import { ConnectedServiceCard } from "./shared";
 
-type IntegrationProvider = "slack" | "notion" | "discord" | "linear" | "github" | "jira";
+type IntegrationProvider =
+  | "slack"
+  | "notion"
+  | "discord"
+  | "linear"
+  | "github"
+  | "jira";
 
 interface Integration {
   id: string;
@@ -175,7 +181,9 @@ export function SettingsIntegrations() {
             <div className="text-center py-12 text-neutral-500">
               <Puzzle size={48} className="mx-auto mb-4 text-neutral-300" />
               <p className="text-sm">No integrations found</p>
-              <p className="text-xs text-neutral-400 mt-1">Try a different search term</p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Try a different search term
+              </p>
             </div>
           ) : (
             filteredIntegrations.map((integration) => (
@@ -235,7 +243,9 @@ function IntegrationCard({
           <div className="mt-1">{getProviderIcon(integration.provider)}</div>
           <div className="flex-1">
             <h3 className="text-sm font-medium mb-1">{integration.name}</h3>
-            <p className="text-xs text-neutral-600">{integration.description}</p>
+            <p className="text-xs text-neutral-600">
+              {integration.description}
+            </p>
           </div>
           <Button
             size="sm"
@@ -271,8 +281,8 @@ function IntegrationCard({
       disconnectDialogDescription={
         <>
           Are you sure you want to disconnect {integration.name}
-          {integration.accountInfo && ` (${integration.accountInfo})`}? This integration will no
-          longer sync with Hyprnote.
+          {integration.accountInfo && ` (${integration.accountInfo})`}? This
+          integration will no longer sync with Hyprnote.
         </>
       }
     >

@@ -1,4 +1,10 @@
-import { flip, FloatingPortal, offset, shift, useFloating } from "@floating-ui/react";
+import {
+  flip,
+  FloatingPortal,
+  offset,
+  shift,
+  useFloating,
+} from "@floating-ui/react";
 import {
   type ChangeEvent,
   type KeyboardEvent,
@@ -34,7 +40,11 @@ export function SelectionMenu({
   onAction,
 }: {
   containerRef: React.RefObject<HTMLElement | null>;
-  onAction?: (action: string, selectedText: string, replaceWith?: string) => void;
+  onAction?: (
+    action: string,
+    selectedText: string,
+    replaceWith?: string,
+  ) => void;
 }) {
   const { isVisible, selectedText, hide, refs, floatingStyles, storedRange } =
     useSelectionMenuState({ containerRef });
@@ -109,7 +119,13 @@ export function SelectionMenu({
   );
 }
 
-function MainMenu({ onRemove, onReplace }: { onRemove: () => void; onReplace: () => void }) {
+function MainMenu({
+  onRemove,
+  onReplace,
+}: {
+  onRemove: () => void;
+  onReplace: () => void;
+}) {
   return (
     <>
       <button onClick={onRemove} className={cn(MENU_BUTTON_CLASSES)}>

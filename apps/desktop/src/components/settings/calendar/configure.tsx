@@ -1,15 +1,17 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 import { platform } from "@tauri-apps/plugin-os";
+import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
-import { commands as permissionsCommands, PermissionStatus } from "@hypr/plugin-permissions";
+import {
+  commands as permissionsCommands,
+  PermissionStatus,
+} from "@hypr/plugin-permissions";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@hypr/ui/components/ui/accordion";
-
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
@@ -41,7 +43,8 @@ export function ConfigureProviders() {
 function useAccessPermission(config: {
   queryKey: string;
   checkPermission: () => Promise<
-    { status: "ok"; data: PermissionStatus } | { status: "error"; error: string }
+    | { status: "ok"; data: PermissionStatus }
+    | { status: "error"; error: string }
   >;
   requestPermission: () => Promise<unknown>;
   openSettings: () => Promise<unknown>;
@@ -99,7 +102,12 @@ function AccessPermissionRow({
   return (
     <div className="flex items-center justify-between gap-4 py-2">
       <div className="flex-1">
-        <div className={cn(["flex items-center gap-2 mb-1", !isAuthorized && "text-red-500"])}>
+        <div
+          className={cn([
+            "flex items-center gap-2 mb-1",
+            !isAuthorized && "text-red-500",
+          ])}
+        >
           {!isAuthorized && <AlertCircleIcon className="size-4" />}
           <h3 className="text-sm font-medium">{title}</h3>
         </div>
@@ -112,12 +120,21 @@ function AccessPermissionRow({
         size="icon"
         onClick={onAction}
         disabled={isPending}
-        className={cn(["size-8", isAuthorized && "bg-stone-100 text-stone-800 hover:bg-stone-200"])}
+        className={cn([
+          "size-8",
+          isAuthorized && "bg-stone-100 text-stone-800 hover:bg-stone-200",
+        ])}
         aria-label={
-          isAuthorized ? `Open ${title.toLowerCase()} settings` : `Request ${title.toLowerCase()}`
+          isAuthorized
+            ? `Open ${title.toLowerCase()} settings`
+            : `Request ${title.toLowerCase()}`
         }
       >
-        {isAuthorized ? <CheckIcon className="size-5" /> : <ArrowRightIcon className="size-5" />}
+        {isAuthorized ? (
+          <CheckIcon className="size-5" />
+        ) : (
+          <ArrowRightIcon className="size-5" />
+        )}
       </Button>
     </div>
   );
@@ -141,7 +158,10 @@ function AppleCalendarProviderCard() {
   });
 
   return (
-    <AccordionItem value={config.id} className="rounded-xl border-2 border-dashed bg-neutral-50">
+    <AccordionItem
+      value={config.id}
+      className="rounded-xl border-2 border-dashed bg-neutral-50"
+    >
       <AccordionTrigger className="capitalize gap-2 px-4">
         <div className="flex items-center gap-2">
           {config.icon}
@@ -172,14 +192,23 @@ function AppleCalendarProviderCard() {
   );
 }
 
-function DisabledProviderCard({ config }: { config: (typeof PROVIDERS)[number] }) {
+function DisabledProviderCard({
+  config,
+}: {
+  config: (typeof PROVIDERS)[number];
+}) {
   return (
     <AccordionItem
       disabled
       value={config.id}
       className="rounded-xl border-2 border-dashed bg-neutral-50"
     >
-      <AccordionTrigger className={cn(["capitalize gap-2 px-4", "cursor-not-allowed opacity-50"])}>
+      <AccordionTrigger
+        className={cn([
+          "capitalize gap-2 px-4",
+          "cursor-not-allowed opacity-50",
+        ])}
+      >
         <div className="flex items-center gap-2">
           {config.icon}
           <span>{config.displayName}</span>

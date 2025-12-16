@@ -36,7 +36,11 @@ export const TabItemPrompt: TabItem<Extract<Tab, { type: "prompts" }>> = ({
   );
 };
 
-export function TabContentPrompt({ tab }: { tab: Extract<Tab, { type: "prompts" }> }) {
+export function TabContentPrompt({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "prompts" }>;
+}) {
   return (
     <StandardTabWrapper>
       <PromptView tab={tab} />

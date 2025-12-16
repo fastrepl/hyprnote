@@ -28,7 +28,9 @@ function sameSection(draft: SectionDraft, section?: TemplateSection) {
   if (!section) {
     return false;
   }
-  return draft.title === section.title && draft.description === section.description;
+  return (
+    draft.title === section.title && draft.description === section.description
+  );
 }
 
 function useEditableSections({
@@ -54,7 +56,9 @@ function useEditableSections({
         return prev;
       }
 
-      return initialItems.map((section, index) => createDraft(section, prev[index]?.key));
+      return initialItems.map((section, index) =>
+        createDraft(section, prev[index]?.key),
+      );
     });
   }, [initialItems]);
 
@@ -71,7 +75,9 @@ function useEditableSections({
 
   const changeSection = useCallback(
     (draft: SectionDraft) => {
-      commitDrafts((prev) => prev.map((section) => (section.key === draft.key ? draft : section)));
+      commitDrafts((prev) =>
+        prev.map((section) => (section.key === draft.key ? draft : section)),
+      );
     },
     [commitDrafts],
   );
@@ -94,7 +100,10 @@ function useEditableSections({
   );
 
   const addSection = useCallback(() => {
-    commitDrafts((prev) => [...prev, createDraft({ title: "", description: "" })]);
+    commitDrafts((prev) => [
+      ...prev,
+      createDraft({ title: "", description: "" }),
+    ]);
   }, [commitDrafts]);
 
   return {
@@ -116,13 +125,12 @@ export function SectionsList({
   onChange: (items: TemplateSection[]) => void;
 }) {
   const controls = useDragControls();
-  const { drafts, addSection, changeSection, deleteSection, reorderSections } = useEditableSections(
-    {
+  const { drafts, addSection, changeSection, deleteSection, reorderSections } =
+    useEditableSections({
       disabled,
       initialItems: _items,
       onChange,
-    },
-  );
+    });
 
   return (
     <div className="flex flex-col space-y-3">

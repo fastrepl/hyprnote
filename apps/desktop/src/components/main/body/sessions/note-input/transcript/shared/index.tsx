@@ -26,11 +26,17 @@ export function TranscriptContainer({
   );
 
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
-  const currentActive = sessionMode === "running_active" || sessionMode === "finalizing";
-  const editable = sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
+  const currentActive =
+    sessionMode === "running_active" || sessionMode === "finalizing";
+  const editable =
+    sessionMode === "inactive" && Object.keys(operations ?? {}).length > 0;
 
-  const partialWordsByChannel = useListener((state) => state.partialWordsByChannel);
-  const partialHintsByChannel = useListener((state) => state.partialHintsByChannel);
+  const partialWordsByChannel = useListener(
+    (state) => state.partialWordsByChannel,
+  );
+  const partialHintsByChannel = useListener(
+    (state) => state.partialHintsByChannel,
+  );
 
   const partialWords = useMemo(
     () => Object.values(partialWordsByChannel).flat(),
@@ -65,14 +71,21 @@ export function TranscriptContainer({
   }, [partialWordsByChannel, partialHintsByChannel]);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+    null,
+  );
   const handleContainerRef = useCallback((node: HTMLDivElement | null) => {
     containerRef.current = node;
     setScrollElement(node);
   }, []);
 
-  const { isAtBottom, autoScrollEnabled, scrollToBottom } = useScrollDetection(containerRef);
-  useAutoScroll(containerRef, [transcriptIds, partialWords, autoScrollEnabled], autoScrollEnabled);
+  const { isAtBottom, autoScrollEnabled, scrollToBottom } =
+    useScrollDetection(containerRef);
+  useAutoScroll(
+    containerRef,
+    [transcriptIds, partialWords, autoScrollEnabled],
+    autoScrollEnabled,
+  );
 
   const shouldShowButton = !isAtBottom && currentActive;
 
@@ -104,15 +117,24 @@ export function TranscriptContainer({
               isAtBottom={isAtBottom}
               editable={editable}
               transcriptId={transcriptId}
-              partialWords={index === transcriptIds.length - 1 ? partialWords : []}
-              partialHints={index === transcriptIds.length - 1 ? partialHints : []}
+              partialWords={
+                index === transcriptIds.length - 1 ? partialWords : []
+              }
+              partialHints={
+                index === transcriptIds.length - 1 ? partialHints : []
+              }
               operations={operations}
             />
             {index < transcriptIds.length - 1 && <TranscriptSeparator />}
           </div>
         ))}
 
-        {editable && <SelectionMenu containerRef={containerRef} onAction={handleSelectionAction} />}
+        {editable && (
+          <SelectionMenu
+            containerRef={containerRef}
+            onAction={handleSelectionAction}
+          />
+        )}
       </div>
 
       <button
@@ -135,7 +157,12 @@ export function TranscriptContainer({
 
 function TranscriptSeparator() {
   return (
-    <div className={cn(["flex items-center gap-3", "text-neutral-400 text-xs font-light"])}>
+    <div
+      className={cn([
+        "flex items-center gap-3",
+        "text-neutral-400 text-xs font-light",
+      ])}
+    >
       <div className="flex-1 border-t border-neutral-200/40" />
       <span>~ ~ ~ ~ ~ ~ ~ ~ ~</span>
       <div className="flex-1 border-t border-neutral-200/40" />

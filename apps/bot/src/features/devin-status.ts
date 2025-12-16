@@ -13,7 +13,11 @@ const CHECK_NAME = "Devin";
 
 export function registerDevinStatusHandler(app: Probot): void {
   app.on(
-    ["pull_request.opened", "pull_request.synchronize", "pull_request.reopened"],
+    [
+      "pull_request.opened",
+      "pull_request.synchronize",
+      "pull_request.reopened",
+    ],
     async (context) => {
       const pr = context.payload.pull_request;
       const owner = context.payload.repository.owner.login;
@@ -22,7 +26,9 @@ export function registerDevinStatusHandler(app: Probot): void {
       const prUrl = pr.html_url;
       const prNumber = pr.number;
 
-      context.log.info(`[Devin] PR ${context.payload.action} for ${owner}/${repo}#${prNumber}`);
+      context.log.info(
+        `[Devin] PR ${context.payload.action} for ${owner}/${repo}#${prNumber}`,
+      );
 
       // Skip Devin API calls during tests to avoid network requests
       if (process.env.NODE_ENV === "test") {

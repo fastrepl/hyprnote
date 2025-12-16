@@ -57,7 +57,8 @@ export const HYPR_MODULES = {
   },
   "@hypr/store": {
     global: "__hypr_store",
-    description: "TinyBase store with app data (sessions, events, humans, etc.)",
+    description:
+      "TinyBase store with app data (sessions, events, humans, etc.)",
     exports: {
       STORE_ID: {
         type: '"main"',

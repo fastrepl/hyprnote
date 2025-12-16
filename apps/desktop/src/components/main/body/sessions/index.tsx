@@ -13,7 +13,10 @@ import { type TabItem, TabItemBase } from "../shared";
 import { FloatingActionButton } from "./floating";
 import { NoteInput } from "./note-input";
 import { SearchBar } from "./note-input/transcript/search-bar";
-import { SearchProvider, useTranscriptSearch } from "./note-input/transcript/search-context";
+import {
+  SearchProvider,
+  useTranscriptSearch,
+} from "./note-input/transcript/search-context";
 import { OuterHeader } from "./outer-header";
 import { TitleInput } from "./title-input";
 
@@ -25,9 +28,15 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   handleCloseOthers,
   handleCloseAll,
 }) => {
-  const title = main.UI.useCell("sessions", rowIdfromTab(tab), "title", main.STORE_ID);
+  const title = main.UI.useCell(
+    "sessions",
+    rowIdfromTab(tab),
+    "title",
+    main.STORE_ID,
+  );
   const sessionMode = useListener((state) => state.getSessionMode(tab.id));
-  const isActive = sessionMode === "running_active" || sessionMode === "finalizing";
+  const isActive =
+    sessionMode === "running_active" || sessionMode === "finalizing";
 
   return (
     <TabItemBase
@@ -44,7 +53,11 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
   );
 };
 
-export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+export function TabContentNote({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
   const listenerStatus = useListener((state) => state.live.status);
   const { data: audioUrl } = useQuery({
     enabled: listenerStatus === "inactive",
@@ -59,7 +72,9 @@ export function TabContentNote({ tab }: { tab: Extract<Tab, { type: "sessions" }
   });
 
   const showTimeline =
-    tab.state.editor?.type === "transcript" && Boolean(audioUrl) && listenerStatus === "inactive";
+    tab.state.editor?.type === "transcript" &&
+    Boolean(audioUrl) &&
+    listenerStatus === "inactive";
 
   return (
     <SearchProvider>

@@ -91,7 +91,9 @@ export function ChatSession({
   const prevMessagesRef = useRef<HyprUIMessage[]>(initialMessages);
 
   useEffect(() => {
-    persistedAssistantIds.current = new Set(initialAssistantMessages.map((message) => message.id));
+    persistedAssistantIds.current = new Set(
+      initialAssistantMessages.map((message) => message.id),
+    );
   }, [initialAssistantMessages]);
 
   const { messages, sendMessage, regenerate, stop, status, error } = useChat({
@@ -130,7 +132,10 @@ export function ChatSession({
     }
 
     for (const message of messages) {
-      if (message.role !== "assistant" || persistedAssistantIds.current.has(message.id)) {
+      if (
+        message.role !== "assistant" ||
+        persistedAssistantIds.current.has(message.id)
+      ) {
         continue;
       }
 
@@ -173,7 +178,9 @@ function useTransport(attachedSessionId?: string) {
   const language = main.UI.useValue("ai_language", main.STORE_ID) ?? "en";
   const [systemPrompt, setSystemPrompt] = useState<string | undefined>();
 
-  const { title, rawMd, enhancedMd, createdAt } = useSession(attachedSessionId ?? "");
+  const { title, rawMd, enhancedMd, createdAt } = useSession(
+    attachedSessionId ?? "",
+  );
 
   const transcriptIds = main.UI.useSliceRowIds(
     main.INDEXES.transcriptBySession,

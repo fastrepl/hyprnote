@@ -12,7 +12,10 @@ import {
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
-import { commands as listener2Commands, type VttWord } from "@hypr/plugin-listener2";
+import {
+  commands as listener2Commands,
+  type VttWord,
+} from "@hypr/plugin-listener2";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
 import {
@@ -73,14 +76,24 @@ function Copy() {
   const handleCopyLink = () => {};
 
   return (
-    <DropdownMenuItem disabled={true} className="cursor-pointer" onClick={handleCopyLink}>
+    <DropdownMenuItem
+      disabled={true}
+      className="cursor-pointer"
+      onClick={handleCopyLink}
+    >
       <Link2Icon />
       <span>Copy link</span>
     </DropdownMenuItem>
   );
 }
 
-function Folder({ sessionId, setOpen }: { sessionId: string; setOpen?: (open: boolean) => void }) {
+function Folder({
+  sessionId,
+  setOpen,
+}: {
+  sessionId: string;
+  setOpen?: (open: boolean) => void;
+}) {
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger className="cursor-pointer">
@@ -124,7 +137,10 @@ function ExportTranscript({ sessionId }: { sessionId: string }) {
     const allWords: VttWord[] = [];
 
     for (const transcriptId of transcriptIds) {
-      const wordIds = indexes.getSliceRowIds(main.INDEXES.wordsByTranscript, transcriptId);
+      const wordIds = indexes.getSliceRowIds(
+        main.INDEXES.wordsByTranscript,
+        transcriptId,
+      );
 
       for (const wordId of wordIds ?? []) {
         const row = store.getRow("words", wordId);
@@ -186,7 +202,11 @@ function ShowInFinder({ sessionId }: { sessionId: string }) {
       disabled={isPending}
       className="cursor-pointer"
     >
-      {isPending ? <Loader2Icon className="animate-spin" /> : <Icon icon="ri:finder-line" />}
+      {isPending ? (
+        <Loader2Icon className="animate-spin" />
+      ) : (
+        <Icon icon="ri:finder-line" />
+      )}
       <span>{isPending ? "Opening..." : "Show in Finder"}</span>
     </DropdownMenuItem>
   );
@@ -222,14 +242,22 @@ function Listening({ sessionId }: { sessionId: string }) {
     >
       {isListening ? <MicOffIcon /> : <MicIcon />}
       <span>
-        {isBatching ? "Batch processing" : isListening ? "Stop listening" : "Start listening"}
+        {isBatching
+          ? "Batch processing"
+          : isListening
+            ? "Stop listening"
+            : "Start listening"}
       </span>
     </DropdownMenuItem>
   );
 }
 
 function DeleteNote({ sessionId }: { sessionId: string }) {
-  const deleteRow = main.UI.useDelRowCallback("sessions", sessionId, main.STORE_ID);
+  const deleteRow = main.UI.useDelRowCallback(
+    "sessions",
+    sessionId,
+    main.STORE_ID,
+  );
 
   const handleDeleteNote = useCallback(() => {
     deleteRow();
@@ -288,7 +316,11 @@ function DeleteRecording({ sessionId }: { sessionId: string }) {
     >
       {isPending ? <Loader2Icon className="animate-spin" /> : <TrashIcon />}
       <span>
-        {isPending ? "Deleting..." : isError ? "Failed to delete" : "Delete only recording"}
+        {isPending
+          ? "Deleting..."
+          : isError
+            ? "Failed to delete"
+            : "Delete only recording"}
       </span>
     </DropdownMenuItem>
   );

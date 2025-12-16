@@ -10,8 +10,16 @@ import {
   CommandItem,
   CommandList,
 } from "@hypr/ui/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useModelMetadata } from "../../../../hooks/useModelMetadata";
@@ -69,11 +77,21 @@ export function ModelCombobox({
     isFetching,
   } = useModelMetadata(providerId, listModels, { enabled: !disabled });
 
-  const options: string[] = useMemo(() => fetchedResult?.models ?? [], [fetchedResult]);
-  const ignoredOptions = useMemo(() => fetchedResult?.ignored ?? [], [fetchedResult]);
+  const options: string[] = useMemo(
+    () => fetchedResult?.models ?? [],
+    [fetchedResult],
+  );
+  const ignoredOptions = useMemo(
+    () => fetchedResult?.ignored ?? [],
+    [fetchedResult],
+  );
   const trimmedQuery = query.trim();
   const hasExactMatch = useMemo(
-    () => options.some((option) => option.toLocaleLowerCase() === trimmedQuery.toLocaleLowerCase()),
+    () =>
+      options.some(
+        (option) =>
+          option.toLocaleLowerCase() === trimmedQuery.toLocaleLowerCase(),
+      ),
     [options, trimmedQuery],
   );
   const canSelectFreeform = trimmedQuery.length > 0 && !hasExactMatch;
@@ -88,7 +106,10 @@ export function ModelCombobox({
     [onChange],
   );
 
-  const toggleShowIgnored = useCallback(() => setShowIgnored((prev) => !prev), []);
+  const toggleShowIgnored = useCallback(
+    () => setShowIgnored((prev) => !prev),
+    [],
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -187,7 +208,9 @@ export function ModelCombobox({
                       <TooltipContent side="right" className="text-xs">
                         <div className="flex flex-col gap-0.5">
                           {option.reasons.map((reason) => (
-                            <div key={reason}>• {formatIgnoreReason(reason)}</div>
+                            <div key={reason}>
+                              • {formatIgnoreReason(reason)}
+                            </div>
                           ))}
                         </div>
                       </TooltipContent>
@@ -227,7 +250,11 @@ export function ModelCombobox({
               onClick={toggleShowIgnored}
               className="flex items-center gap-1 text-xs hover:text-foreground transition-colors mr-1"
             >
-              {showIgnored ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              {showIgnored ? (
+                <EyeOff className="h-3 w-3" />
+              ) : (
+                <Eye className="h-3 w-3" />
+              )}
             </button>
 
             {hasIgnoredOptions && (
@@ -244,7 +271,9 @@ export function ModelCombobox({
               disabled={isFetching}
               className="flex items-center gap-1 text-xs hover:text-foreground transition-colors disabled:opacity-50 ml-auto"
             >
-              <RefreshCcw className={cn(["h-3 w-3", isFetching && "animate-spin"])} />
+              <RefreshCcw
+                className={cn(["h-3 w-3", isFetching && "animate-spin"])}
+              />
             </button>
           </div>
         </Command>

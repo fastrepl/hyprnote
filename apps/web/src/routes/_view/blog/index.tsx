@@ -12,7 +12,12 @@ const AUTHOR_AVATARS: Record<string, string> = {
   "Yujong Lee": "/api/images/team/yujong.png",
 };
 
-const CATEGORIES = ["Case Study", "Hyprnote Weekly", "Productivity Hack", "Engineering"] as const;
+const CATEGORIES = [
+  "Case Study",
+  "Hyprnote Weekly",
+  "Productivity Hack",
+  "Engineering",
+] as const;
 
 type BlogSearch = {
   category?: string;
@@ -22,7 +27,8 @@ export const Route = createFileRoute("/_view/blog/")({
   component: Component,
   validateSearch: (search: Record<string, unknown>): BlogSearch => {
     return {
-      category: typeof search.category === "string" ? search.category : undefined,
+      category:
+        typeof search.category === "string" ? search.category : undefined,
     };
   },
   head: () => ({
@@ -47,7 +53,9 @@ function Component() {
   const navigate = useNavigate({ from: Route.fullPath });
   const search = Route.useSearch();
 
-  const publishedArticles = allArticles.filter((a) => import.meta.env.DEV || a.published === true);
+  const publishedArticles = allArticles.filter(
+    (a) => import.meta.env.DEV || a.published === true,
+  );
   const sortedArticles = [...publishedArticles].sort((a, b) => {
     const aDate = a.updated || a.created;
     const bDate = b.updated || b.created;
@@ -88,7 +96,9 @@ function Component() {
     return sortedArticles;
   }, [sortedArticles, selectedCategory, featuredArticles]);
 
-  const categoriesWithCount = CATEGORIES.filter((cat) => articlesByCategory[cat]?.length);
+  const categoriesWithCount = CATEGORIES.filter(
+    (cat) => articlesByCategory[cat]?.length,
+  );
 
   return (
     <div
@@ -97,7 +107,9 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white min-h-screen">
         <Header />
-        {featuredArticles.length > 0 && <FeaturedSection articles={featuredArticles} />}
+        {featuredArticles.length > 0 && (
+          <FeaturedSection articles={featuredArticles} />
+        )}
         <SlashSeparator />
         <MobileCategoriesSection
           categories={categoriesWithCount}
@@ -116,7 +128,10 @@ function Component() {
               totalArticles={sortedArticles.length}
             />
             <div className="flex-1 min-w-0">
-              <AllArticlesSection articles={filteredArticles} selectedCategory={selectedCategory} />
+              <AllArticlesSection
+                articles={filteredArticles}
+                selectedCategory={selectedCategory}
+              />
             </div>
           </div>
         </div>
@@ -128,7 +143,9 @@ function Component() {
 function Header() {
   return (
     <header className="py-16 text-center border-b border-neutral-100 bg-linear-to-b from-stone-50/30 to-stone-100/30">
-      <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">Blog</h1>
+      <h1 className="text-4xl sm:text-5xl font-serif text-stone-600 mb-4">
+        Blog
+      </h1>
       <p className="text-lg text-neutral-600 max-w-2xl mx-auto px-4">
         Insights, updates, and stories from the Hyprnote team
       </p>
@@ -225,7 +242,9 @@ function DesktopSidebar({
             ])}
           >
             All Articles
-            <span className="ml-2 text-xs text-neutral-400">({totalArticles})</span>
+            <span className="ml-2 text-xs text-neutral-400">
+              ({totalArticles})
+            </span>
           </button>
           {featuredCount > 0 && (
             <button
@@ -238,7 +257,9 @@ function DesktopSidebar({
               ])}
             >
               Featured
-              <span className="ml-2 text-xs text-neutral-400">({featuredCount})</span>
+              <span className="ml-2 text-xs text-neutral-400">
+                ({featuredCount})
+              </span>
             </button>
           )}
           {categories.map((category) => (
@@ -274,10 +295,22 @@ function FeaturedSection({ articles }: { articles: Article[] }) {
 
   return (
     <section className="px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-      <div className={cn(["flex flex-col gap-3", "md:gap-4", "lg:grid lg:grid-cols-2"])}>
+      <div
+        className={cn([
+          "flex flex-col gap-3",
+          "md:gap-4",
+          "lg:grid lg:grid-cols-2",
+        ])}
+      >
         <MostRecentFeaturedCard article={mostRecent} />
         {displayedOthers.length > 0 && (
-          <div className={cn(["flex flex-col gap-3", "md:flex-row md:gap-3", "lg:flex-col"])}>
+          <div
+            className={cn([
+              "flex flex-col gap-3",
+              "md:flex-row md:gap-3",
+              "lg:flex-col",
+            ])}
+          >
             {displayedOthers.map((article, index) => (
               <OtherFeaturedCard
                 key={article._meta.filePath}
@@ -307,7 +340,8 @@ function AllArticlesSection({
     );
   }
 
-  const title = selectedCategory === "featured" ? "Featured" : selectedCategory || "All";
+  const title =
+    selectedCategory === "featured" ? "Featured" : selectedCategory || "All";
 
   return (
     <section>
@@ -338,7 +372,11 @@ function MostRecentFeaturedCard({ article }: { article: Article }) {
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
-    <Link to="/blog/$slug" params={{ slug: article.slug }} className="group block">
+    <Link
+      to="/blog/$slug"
+      params={{ slug: article.slug }}
+      className="group block"
+    >
       <article
         className={cn([
           "h-full border border-neutral-100 rounded-sm overflow-hidden bg-white",
@@ -400,7 +438,13 @@ function MostRecentFeaturedCard({ article }: { article: Article }) {
   );
 }
 
-function OtherFeaturedCard({ article, className }: { article: Article; className?: string }) {
+function OtherFeaturedCard({
+  article,
+  className,
+}: {
+  article: Article;
+  className?: string;
+}) {
   const [coverImageError, setCoverImageError] = useState(false);
   const [coverImageLoaded, setCoverImageLoaded] = useState(false);
   const hasCoverImage = !coverImageError;
@@ -411,7 +455,10 @@ function OtherFeaturedCard({ article, className }: { article: Article; className
     <Link
       to="/blog/$slug"
       params={{ slug: article.slug }}
-      className={cn(["group block md:flex-1 md:min-w-0 lg:flex-auto", className])}
+      className={cn([
+        "group block md:flex-1 md:min-w-0 lg:flex-auto",
+        className,
+      ])}
     >
       <article
         className={cn([
@@ -444,7 +491,12 @@ function OtherFeaturedCard({ article, className }: { article: Article; className
           </div>
         )}
 
-        <div className={cn(["flex-1 min-w-0 p-4 flex flex-col justify-center", "lg:p-4"])}>
+        <div
+          className={cn([
+            "flex-1 min-w-0 p-4 flex flex-col justify-center",
+            "lg:p-4",
+          ])}
+        >
           {article.category && (
             <span className="text-xs font-medium text-stone-500 uppercase tracking-wider mb-1">
               {article.category}
@@ -487,7 +539,11 @@ function ArticleListItem({ article }: { article: Article }) {
   const avatarUrl = AUTHOR_AVATARS[article.author];
 
   return (
-    <Link to="/blog/$slug" params={{ slug: article.slug }} className="group block">
+    <Link
+      to="/blog/$slug"
+      params={{ slug: article.slug }}
+      className="group block"
+    >
       <article className="py-4 hover:bg-stone-50/50 transition-colors duration-200">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-3 min-w-0 sm:max-w-2xl">
@@ -507,7 +563,9 @@ function ArticleListItem({ article }: { article: Article }) {
                   className="w-5 h-5 rounded-full object-cover"
                 />
               )}
-              <span className="text-sm text-neutral-500 whitespace-nowrap">{article.author}</span>
+              <span className="text-sm text-neutral-500 whitespace-nowrap">
+                {article.author}
+              </span>
             </div>
           </div>
           <div className="flex items-center justify-between gap-3 sm:hidden">
@@ -526,7 +584,10 @@ function ArticleListItem({ article }: { article: Article }) {
               )}
               <span className="text-sm text-neutral-500">{article.author}</span>
             </div>
-            <time dateTime={displayDate} className="text-sm text-neutral-500 shrink-0 font-mono">
+            <time
+              dateTime={displayDate}
+              className="text-sm text-neutral-500 shrink-0 font-mono"
+            >
               {new Date(displayDate).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",

@@ -10,19 +10,27 @@ import { Banner } from "./component";
 import { createBannerRegistry, getBannerToShow } from "./registry";
 import { useDismissedBanners } from "./useDismissedBanners";
 
-export function BannerArea({ isProfileExpanded }: { isProfileExpanded: boolean }) {
+export function BannerArea({
+  isProfileExpanded,
+}: {
+  isProfileExpanded: boolean;
+}) {
   const auth = useAuth();
   const { dismissBanner, isDismissed } = useDismissedBanners();
   const shouldShowBanner = useShouldShowBanner(isProfileExpanded);
 
   const isAuthenticated = !!auth?.session;
-  const { current_llm_provider, current_llm_model, current_stt_provider, current_stt_model } =
-    useConfigValues([
-      "current_llm_provider",
-      "current_llm_model",
-      "current_stt_provider",
-      "current_stt_model",
-    ] as const);
+  const {
+    current_llm_provider,
+    current_llm_model,
+    current_stt_provider,
+    current_stt_model,
+  } = useConfigValues([
+    "current_llm_provider",
+    "current_llm_model",
+    "current_stt_provider",
+    "current_stt_model",
+  ] as const);
   const hasLLMConfigured = !!(current_llm_provider && current_llm_model);
   const hasSttConfigured = !!(current_stt_provider && current_stt_model);
 
@@ -102,7 +110,10 @@ export function BannerArea({ isProfileExpanded }: { isProfileExpanded: boolean }
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 16 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={cn(["absolute bottom-0 left-0 right-0 z-20", "pointer-events-none"])}
+          className={cn([
+            "absolute bottom-0 left-0 right-0 z-20",
+            "pointer-events-none",
+          ])}
         >
           <div className="pointer-events-auto">
             <Banner

@@ -15,10 +15,30 @@ import * as main from "../store/tinybase/main";
 export function useSession(sessionId: string) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
   const rawMd = main.UI.useCell("sessions", sessionId, "raw_md", main.STORE_ID);
-  const enhancedMd = main.UI.useCell("sessions", sessionId, "enhanced_md", main.STORE_ID);
-  const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
-  const eventId = main.UI.useCell("sessions", sessionId, "event_id", main.STORE_ID);
-  const folderId = main.UI.useCell("sessions", sessionId, "folder_id", main.STORE_ID);
+  const enhancedMd = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "enhanced_md",
+    main.STORE_ID,
+  );
+  const createdAt = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "created_at",
+    main.STORE_ID,
+  );
+  const eventId = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "event_id",
+    main.STORE_ID,
+  );
+  const folderId = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "folder_id",
+    main.STORE_ID,
+  );
 
   return useMemo(
     () => ({ title, rawMd, enhancedMd, createdAt, eventId, folderId }),
@@ -54,8 +74,18 @@ export function useHuman(humanId: string) {
   const name = main.UI.useCell("humans", humanId, "name", main.STORE_ID);
   const email = main.UI.useCell("humans", humanId, "email", main.STORE_ID);
   const orgId = main.UI.useCell("humans", humanId, "org_id", main.STORE_ID);
-  const jobTitle = main.UI.useCell("humans", humanId, "job_title", main.STORE_ID);
-  const linkedinUsername = main.UI.useCell("humans", humanId, "linkedin_username", main.STORE_ID);
+  const jobTitle = main.UI.useCell(
+    "humans",
+    humanId,
+    "job_title",
+    main.STORE_ID,
+  );
+  const linkedinUsername = main.UI.useCell(
+    "humans",
+    humanId,
+    "linkedin_username",
+    main.STORE_ID,
+  );
   const isUser = main.UI.useCell("humans", humanId, "is_user", main.STORE_ID);
 
   return useMemo(
@@ -66,24 +96,62 @@ export function useHuman(humanId: string) {
 
 export function useOrganization(orgId: string) {
   const name = main.UI.useCell("organizations", orgId, "name", main.STORE_ID);
-  const createdAt = main.UI.useCell("organizations", orgId, "created_at", main.STORE_ID);
+  const createdAt = main.UI.useCell(
+    "organizations",
+    orgId,
+    "created_at",
+    main.STORE_ID,
+  );
 
   return useMemo(() => ({ name, createdAt }), [name, createdAt]);
 }
 
 export function useFolder(folderId: string) {
   const name = main.UI.useCell("folders", folderId, "name", main.STORE_ID);
-  const parentFolderId = main.UI.useCell("folders", folderId, "parent_folder_id", main.STORE_ID);
-  const createdAt = main.UI.useCell("folders", folderId, "created_at", main.STORE_ID);
+  const parentFolderId = main.UI.useCell(
+    "folders",
+    folderId,
+    "parent_folder_id",
+    main.STORE_ID,
+  );
+  const createdAt = main.UI.useCell(
+    "folders",
+    folderId,
+    "created_at",
+    main.STORE_ID,
+  );
 
-  return useMemo(() => ({ name, parentFolderId, createdAt }), [name, parentFolderId, createdAt]);
+  return useMemo(
+    () => ({ name, parentFolderId, createdAt }),
+    [name, parentFolderId, createdAt],
+  );
 }
 
 export function useTemplate(templateId: string) {
-  const title = main.UI.useCell("templates", templateId, "title", main.STORE_ID);
-  const description = main.UI.useCell("templates", templateId, "description", main.STORE_ID);
-  const sections = main.UI.useCell("templates", templateId, "sections", main.STORE_ID);
-  const createdAt = main.UI.useCell("templates", templateId, "created_at", main.STORE_ID);
+  const title = main.UI.useCell(
+    "templates",
+    templateId,
+    "title",
+    main.STORE_ID,
+  );
+  const description = main.UI.useCell(
+    "templates",
+    templateId,
+    "description",
+    main.STORE_ID,
+  );
+  const sections = main.UI.useCell(
+    "templates",
+    templateId,
+    "sections",
+    main.STORE_ID,
+  );
+  const createdAt = main.UI.useCell(
+    "templates",
+    templateId,
+    "created_at",
+    main.STORE_ID,
+  );
 
   return useMemo(
     () => ({ title, description, sections, createdAt }),
@@ -129,7 +197,9 @@ export function TinyBaseTestWrapper({
   } = main.testUtils;
 
   const store = useCreateMergeableStore(() => {
-    const s = createMergeableStore().setTablesSchema(SCHEMA.table).setValuesSchema(SCHEMA.value);
+    const s = createMergeableStore()
+      .setTablesSchema(SCHEMA.table)
+      .setValuesSchema(SCHEMA.value);
 
     if (initialValues?.user_id) {
       s.setValue("user_id", initialValues.user_id);
@@ -181,15 +251,30 @@ export function TinyBaseTestWrapper({
         "mapping_session_participant",
         "session_id",
       )
-      .setIndexDefinition(main.INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
-      .setIndexDefinition(main.INDEXES.foldersByParent, "folders", "parent_folder_id", "name")
+      .setIndexDefinition(
+        main.INDEXES.sessionsByFolder,
+        "sessions",
+        "folder_id",
+        "created_at",
+      )
+      .setIndexDefinition(
+        main.INDEXES.foldersByParent,
+        "folders",
+        "parent_folder_id",
+        "name",
+      )
       .setIndexDefinition(
         main.INDEXES.transcriptBySession,
         "transcripts",
         "session_id",
         "created_at",
       )
-      .setIndexDefinition(main.INDEXES.wordsByTranscript, "words", "transcript_id", "start_ms")
+      .setIndexDefinition(
+        main.INDEXES.wordsByTranscript,
+        "words",
+        "transcript_id",
+        "start_ms",
+      )
       .setIndexDefinition(
         main.INDEXES.enhancedNotesBySession,
         "enhanced_notes",
@@ -222,35 +307,55 @@ export function TinyBaseTestWrapper({
 
   const queries = useCreateQueries(store, (store) =>
     createQueries(store)
-      .setQueryDefinition(main.QUERIES.visibleHumans, "humans", ({ select }) => {
-        select("name");
-        select("email");
-        select("org_id");
-        select("job_title");
-        select("linkedin_username");
-        select("is_user");
-        select("created_at");
-      })
-      .setQueryDefinition(main.QUERIES.visibleOrganizations, "organizations", ({ select }) => {
-        select("name");
-        select("created_at");
-      })
-      .setQueryDefinition(main.QUERIES.visibleTemplates, "templates", ({ select }) => {
-        select("title");
-        select("description");
-        select("sections");
-        select("created_at");
-      })
-      .setQueryDefinition(main.QUERIES.visibleFolders, "folders", ({ select }) => {
-        select("name");
-        select("parent_folder_id");
-        select("created_at");
-      })
-      .setQueryDefinition(main.QUERIES.visibleVocabs, "memories", ({ select, where }) => {
-        select("text");
-        select("created_at");
-        where((getCell) => getCell("type") === "vocab");
-      }),
+      .setQueryDefinition(
+        main.QUERIES.visibleHumans,
+        "humans",
+        ({ select }) => {
+          select("name");
+          select("email");
+          select("org_id");
+          select("job_title");
+          select("linkedin_username");
+          select("is_user");
+          select("created_at");
+        },
+      )
+      .setQueryDefinition(
+        main.QUERIES.visibleOrganizations,
+        "organizations",
+        ({ select }) => {
+          select("name");
+          select("created_at");
+        },
+      )
+      .setQueryDefinition(
+        main.QUERIES.visibleTemplates,
+        "templates",
+        ({ select }) => {
+          select("title");
+          select("description");
+          select("sections");
+          select("created_at");
+        },
+      )
+      .setQueryDefinition(
+        main.QUERIES.visibleFolders,
+        "folders",
+        ({ select }) => {
+          select("name");
+          select("parent_folder_id");
+          select("created_at");
+        },
+      )
+      .setQueryDefinition(
+        main.QUERIES.visibleVocabs,
+        "memories",
+        ({ select, where }) => {
+          select("text");
+          select("created_at");
+          where((getCell) => getCell("type") === "vocab");
+        },
+      ),
   );
 
   useProvideStore(main.STORE_ID, store);

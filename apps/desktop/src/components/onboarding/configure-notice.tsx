@@ -21,12 +21,17 @@ export function ConfigureNotice({
           description="Deepgram, AssemblyAI, etc."
           required
         />
-        <Requirement title="Language Model" description="OpenAI, OpenRouter etc." />
+        <Requirement
+          title="Language Model"
+          description="OpenAI, OpenRouter etc."
+        />
       </div>
 
       <div className="flex flex-col gap-3 mt-4">
         <button
-          onClick={() => onNavigate(currentPlatform === "macos" ? "permissions" : "done")}
+          onClick={() =>
+            onNavigate(currentPlatform === "macos" ? "permissions" : "done")
+          }
           className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
         >
           I will configure it later

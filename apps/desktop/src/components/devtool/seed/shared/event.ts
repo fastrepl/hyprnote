@@ -57,7 +57,11 @@ const PROVIDERS: MeetingProvider[] = [
     name: "Zoom",
     domain: "zoom.us",
     generateInvite: ({ title, host, meetingId, passcode, link }) => {
-      const dialInNumbers = ["+1 646 931 3860", "+1 929 205 6099", "+1 301 715 8592"];
+      const dialInNumbers = [
+        "+1 646 931 3860",
+        "+1 929 205 6099",
+        "+1 301 715 8592",
+      ];
       const sipAddress = `${meetingId.replace(/\s/g, "")}@zoomcrc.com`;
       const aiCompanionLink = `https://hyprnote.${PROVIDERS[0].domain}/launch/edl?muid=${faker.string.uuid()}`;
       const joinInstructionsLink = `https://hyprnote.${PROVIDERS[0].domain}/meetings/${meetingId.replace(
@@ -111,7 +115,12 @@ export const createEvent = (calendar_id: string) => {
   const hoursOffset = faker.number.int({ min: 8, max: 18 });
   const startsAt = new Date(now);
   startsAt.setDate(startsAt.getDate() + daysOffset);
-  startsAt.setHours(hoursOffset, faker.helpers.arrayElement([0, 15, 30, 45]), 0, 0);
+  startsAt.setHours(
+    hoursOffset,
+    faker.helpers.arrayElement([0, 15, 30, 45]),
+    0,
+    0,
+  );
 
   const durationMinutes = faker.helpers.arrayElement([15, 30, 45, 60, 90, 120]);
   const endsAt = new Date(startsAt.getTime() + durationMinutes * 60 * 1000);

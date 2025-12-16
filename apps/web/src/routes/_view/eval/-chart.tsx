@@ -36,7 +36,10 @@ export function ChartSkeleton() {
       </div>
       <div className="h-8 flex justify-around">
         {Array.from({ length: barCount }).map((_, i) => (
-          <div key={i} className="w-6 h-3 bg-neutral-200 rounded animate-pulse" />
+          <div
+            key={i}
+            className="w-6 h-3 bg-neutral-200 rounded animate-pulse"
+          />
         ))}
       </div>
     </div>
@@ -93,7 +96,11 @@ const chartOptions = {
   },
 };
 
-export function EvalChart({ data }: { data: Array<{ model: string; rate: number }> }) {
+export function EvalChart({
+  data,
+}: {
+  data: Array<{ model: string; rate: number }>;
+}) {
   const sortedData = [...data].sort((a, b) => b.rate - a.rate);
   const colors = generateRainbowColors(sortedData.length);
 

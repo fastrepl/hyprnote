@@ -35,7 +35,9 @@ export function SpokenLanguagesView({
     const query = languageSearchQuery.toLowerCase();
     return supportedLanguages.filter((langCode) => {
       const langName = LANGUAGES_ISO_639_1[langCode].name;
-      return !value.includes(langCode) && langName.toLowerCase().includes(query);
+      return (
+        !value.includes(langCode) && langName.toLowerCase().includes(query)
+      );
     });
   }, [languageSearchQuery, value, supportedLanguages]);
 
@@ -52,13 +54,18 @@ export function SpokenLanguagesView({
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setLanguageSelectedIndex((prev) => (prev < filteredLanguages.length - 1 ? prev + 1 : prev));
+      setLanguageSelectedIndex((prev) =>
+        prev < filteredLanguages.length - 1 ? prev + 1 : prev,
+      );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setLanguageSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (languageSelectedIndex >= 0 && languageSelectedIndex < filteredLanguages.length) {
+      if (
+        languageSelectedIndex >= 0 &&
+        languageSelectedIndex < filteredLanguages.length
+      ) {
         const selectedCode = filteredLanguages[languageSelectedIndex];
         onChange([...value, selectedCode]);
         setLanguageSearchQuery("");
@@ -83,7 +90,9 @@ export function SpokenLanguagesView({
             "flex flex-wrap items-center w-full px-2 py-1.5 gap-1.5 rounded-lg bg-white border border-neutral-200 focus-within:border-neutral-300 min-h-[38px]",
             languageInputFocused && "border-neutral-300",
           ])}
-          onClick={() => document.getElementById("language-search-input")?.focus()}
+          onClick={() =>
+            document.getElementById("language-search-input")?.focus()
+          }
         >
           {value.map((code) => (
             <Badge
@@ -106,7 +115,9 @@ export function SpokenLanguagesView({
               </Button>
             </Badge>
           ))}
-          {value.length === 0 && <Search className="size-4 text-neutral-700 flex-shrink-0" />}
+          {value.length === 0 && (
+            <Search className="size-4 text-neutral-700 flex-shrink-0" />
+          )}
           <input
             id="language-search-input"
             type="text"
@@ -123,7 +134,9 @@ export function SpokenLanguagesView({
             aria-expanded={languageInputFocused && !!languageSearchQuery.trim()}
             aria-controls="language-options"
             aria-activedescendant={
-              languageSelectedIndex >= 0 ? `language-option-${languageSelectedIndex}` : undefined
+              languageSelectedIndex >= 0
+                ? `language-option-${languageSelectedIndex}`
+                : undefined
             }
             aria-label="Add spoken language"
             placeholder={value.length === 0 ? "Add language" : ""}
@@ -154,10 +167,14 @@ export function SpokenLanguagesView({
                   onMouseEnter={() => setLanguageSelectedIndex(index)}
                   className={cn([
                     "flex items-center justify-between px-3 py-2 text-sm text-left transition-colors w-full",
-                    languageSelectedIndex === index ? "bg-neutral-200" : "hover:bg-neutral-100",
+                    languageSelectedIndex === index
+                      ? "bg-neutral-200"
+                      : "hover:bg-neutral-100",
                   ])}
                 >
-                  <span className="font-medium truncate">{getLanguageName(langCode)}</span>
+                  <span className="font-medium truncate">
+                    {getLanguageName(langCode)}
+                  </span>
                 </button>
               ))
             ) : (

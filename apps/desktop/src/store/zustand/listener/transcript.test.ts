@@ -4,7 +4,11 @@ import { createStore } from "zustand";
 import type { StreamResponse, StreamWord } from "@hypr/plugin-listener";
 
 import type { RuntimeSpeakerHint, WordLike } from "../../../utils/segment";
-import { createTranscriptSlice, type TranscriptActions, type TranscriptState } from "./transcript";
+import {
+  createTranscriptSlice,
+  type TranscriptActions,
+  type TranscriptState,
+} from "./transcript";
 
 const createTranscriptStore = () => {
   return createStore<TranscriptState & TranscriptActions>((set, get) =>
@@ -93,7 +97,10 @@ describe("transcript slice", () => {
     const stateAfterFirst = store.getState();
     const firstChannelWords = stateAfterFirst.partialWordsByChannel[0];
     expect(firstChannelWords).toHaveLength(2);
-    expect(firstChannelWords?.map((word) => word.text)).toEqual([" Another", " problem"]);
+    expect(firstChannelWords?.map((word) => word.text)).toEqual([
+      " Another",
+      " problem",
+    ]);
     expect(stateAfterFirst.partialHintsByChannel[0]).toHaveLength(2);
     expect(stateAfterFirst.partialHintsByChannel[0]?.[0]?.wordIndex).toBe(0);
     expect(stateAfterFirst.partialHintsByChannel[0]?.[1]?.wordIndex).toBe(1);
@@ -120,7 +127,11 @@ describe("transcript slice", () => {
     const stateAfterSecond = store.getState();
     const updatedWords = stateAfterSecond.partialWordsByChannel[0];
     expect(updatedWords).toHaveLength(3);
-    expect(updatedWords?.map((word) => word.text)).toEqual([" Another", " problem", " exists"]);
+    expect(updatedWords?.map((word) => word.text)).toEqual([
+      " Another",
+      " problem",
+      " exists",
+    ]);
     const channelHints = stateAfterSecond.partialHintsByChannel[0] ?? [];
     expect(channelHints).toHaveLength(3);
     const lastPartialHint = channelHints[channelHints.length - 1];
@@ -159,7 +170,10 @@ describe("transcript slice", () => {
     store.getState().handleTranscriptResponse(finalResponse);
     expect(persist).toHaveBeenCalledTimes(1);
 
-    const [words, hints] = persist.mock.calls[0] as [WordLike[], RuntimeSpeakerHint[]];
+    const [words, hints] = persist.mock.calls[0] as [
+      WordLike[],
+      RuntimeSpeakerHint[],
+    ];
     expect(words.map((word) => word.text)).toEqual([" Hello", " world"]);
     expect(words.map((word) => word.end_ms)).toEqual([500, 1500]);
     expect(hints).toEqual([
@@ -255,7 +269,8 @@ describe("transcript slice", () => {
     expect(remainingHints).toHaveLength(1);
     expect(remainingHints[0]?.wordIndex).toBe(0);
 
-    const hintedWord = remainingPartialWords?.[remainingHints[0]?.wordIndex ?? -1];
+    const hintedWord =
+      remainingPartialWords?.[remainingHints[0]?.wordIndex ?? -1];
     expect(hintedWord).toBeDefined();
     expect(hintedWord?.text).toBe(" test");
   });

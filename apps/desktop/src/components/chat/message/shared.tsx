@@ -11,7 +11,12 @@ export function MessageContainer({
   children: ReactNode;
 }) {
   return (
-    <div className={cn(["flex px-3 py-2", align === "end" ? "justify-end" : "justify-start"])}>
+    <div
+      className={cn([
+        "flex px-3 py-2",
+        align === "end" ? "justify-end" : "justify-start",
+      ])}
+    >
       {children}
     </div>
   );
@@ -66,7 +71,10 @@ export function ActionButton({
           "bg-neutral-200 hover:bg-neutral-300",
           "text-neutral-600 hover:text-neutral-800",
         ],
-        variant === "error" && ["bg-red-100 hover:bg-red-200", "text-red-600 hover:text-red-800"],
+        variant === "error" && [
+          "bg-red-100 hover:bg-red-200",
+          "text-red-600 hover:text-red-800",
+        ],
       ])}
     >
       <Icon className="w-3 h-3" />
@@ -102,10 +110,14 @@ export function Disclosure({
       >
         {disabled ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
         {!disabled && icon && <span className="flex-shrink-0">{icon}</span>}
-        <span className={cn(["flex-1 truncate", "group-open:font-medium"])}>{title}</span>
+        <span className={cn(["flex-1 truncate", "group-open:font-medium"])}>
+          {title}
+        </span>
         <ChevronRight className="w-3 h-3 flex-shrink-0 transition-transform group-open:rotate-90" />
       </summary>
-      <div className="mt-1 pt-2 px-1 border-t border-neutral-200">{children}</div>
+      <div className="mt-1 pt-2 px-1 border-t border-neutral-200">
+        {children}
+      </div>
     </details>
   );
 }

@@ -2,7 +2,11 @@ import { Icon } from "@iconify-icon/react";
 
 import { cn } from "@hypr/utils";
 
-import { GITHUB_LAST_SEEN_STARS, GITHUB_ORG_REPO, useGitHubStats } from "../queries";
+import {
+  GITHUB_LAST_SEEN_STARS,
+  GITHUB_ORG_REPO,
+  useGitHubStats,
+} from "../queries";
 
 export function GithubStars() {
   const githubStats = useGitHubStats();

@@ -40,7 +40,9 @@ export function SidebarNavigation<T extends { slug: string; title: string }>({
     <nav className="space-y-4">
       {sections.map((section) => (
         <div key={section.title}>
-          <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">{section.title}</h3>
+          <h3 className="px-3 text-sm font-semibold text-neutral-700 mb-2">
+            {section.title}
+          </h3>
           <div className="space-y-0.5">
             {section.docs.map((doc) => {
               const isActive = currentSlug === doc.slug;

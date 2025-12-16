@@ -52,7 +52,9 @@ export function SegmentHeader({
     const firstWord = segment.words[0];
     const lastWord = segment.words[segment.words.length - 1];
 
-    const [from, to] = [firstWord.start_ms, lastWord.end_ms].map(formatTimestamp);
+    const [from, to] = [firstWord.start_ms, lastWord.end_ms].map(
+      formatTimestamp,
+    );
     return `${from} - ${to}`;
   }, [segment.words.length, formatTimestamp]);
 
@@ -60,7 +62,8 @@ export function SegmentHeader({
   const label = useSpeakerLabel(segment.key, speakerLabelManager);
   const participants = useSessionParticipants(sessionId);
 
-  const mode = operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
+  const mode =
+    operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
   const wordIds = segment.words.filter((w) => w.id).map((w) => w.id!);
   const headerClassName = cn([
     "sticky top-0 z-20 bg-background",
@@ -84,7 +87,10 @@ export function SegmentHeader({
       <p className={headerClassName}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <span style={{ color }} className="cursor-pointer rounded hover:bg-neutral-100">
+            <span
+              style={{ color }}
+              className="cursor-pointer rounded hover:bg-neutral-100"
+            >
               {label}
             </span>
           </DropdownMenuTrigger>
@@ -101,7 +107,9 @@ export function SegmentHeader({
                   </DropdownMenuItem>
                 ))}
                 {participants.length === 0 && (
-                  <DropdownMenuItem disabled>No participants available</DropdownMenuItem>
+                  <DropdownMenuItem disabled>
+                    No participants available
+                  </DropdownMenuItem>
                 )}
               </DropdownMenuSubContent>
             </DropdownMenuSub>
@@ -168,7 +176,10 @@ function useSessionParticipants(sessionId?: string) {
     const participants: Array<{ humanId: string; name: string }> = [];
 
     for (const mappingId of mappingIds) {
-      const result = queries.getResultRow(main.QUERIES.sessionParticipantsWithDetails, mappingId);
+      const result = queries.getResultRow(
+        main.QUERIES.sessionParticipantsWithDetails,
+        mappingId,
+      );
 
       if (!result) {
         continue;

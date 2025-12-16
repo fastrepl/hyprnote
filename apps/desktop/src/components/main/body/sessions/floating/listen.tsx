@@ -4,15 +4,27 @@ import { downloadDir } from "@tauri-apps/api/path";
 import { open as selectFile } from "@tauri-apps/plugin-dialog";
 import { useMediaQuery } from "@uidotdev/usehooks";
 import { Effect, pipe } from "effect";
-import { EllipsisVerticalIcon, FileTextIcon, UploadCloudIcon } from "lucide-react";
+import {
+  EllipsisVerticalIcon,
+  FileTextIcon,
+  UploadCloudIcon,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { commands as listener2Commands } from "@hypr/plugin-listener2";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@hypr/ui/components/ui/popover";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import { useListener } from "../../../../../contexts/listener";
@@ -25,7 +37,11 @@ import { ChannelProfile } from "../../../../../utils/segment";
 import { RecordingIcon, useListenButtonState } from "../shared";
 import { ActionableTooltipContent, FloatingButton } from "./shared";
 
-export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+export function ListenButton({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
   const { shouldRender } = useListenButtonState(tab.id);
   const { loading, stop } = useListener((state) => ({
     loading: state.live.loading,
@@ -47,7 +63,11 @@ export function ListenButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> 
   return null;
 }
 
-function BeforeMeeingButton({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+function BeforeMeeingButton({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
   const remote = useRemoteMeeting(tab.id);
   const isNarrow = useMediaQuery("(max-width: 870px)");
 
@@ -189,7 +209,10 @@ function OptionsMenu({
       const normalizedPath = path.toLowerCase();
 
       if (kind === "transcript") {
-        if (!normalizedPath.endsWith(".vtt") && !normalizedPath.endsWith(".srt")) {
+        if (
+          !normalizedPath.endsWith(".vtt") &&
+          !normalizedPath.endsWith(".srt")
+        ) {
           return Effect.void;
         }
 
@@ -254,10 +277,20 @@ function OptionsMenu({
             });
           }),
         ),
-        Effect.flatMap((importedPath) => Effect.promise(() => runBatch(importedPath))),
+        Effect.flatMap((importedPath) =>
+          Effect.promise(() => runBatch(importedPath)),
+        ),
       );
     },
-    [queryClient, runBatch, sessionId, sessionTab, store, updateSessionTabState, user_id],
+    [
+      queryClient,
+      runBatch,
+      sessionId,
+      sessionTab,
+      store,
+      updateSessionTabState,
+      user_id,
+    ],
   );
 
   const selectAndHandleFile = useCallback(
@@ -402,7 +435,10 @@ type RemoteMeeting = {
 };
 
 function useRemoteMeeting(sessionId: string): RemoteMeeting | null {
-  const eventId = main.UI.useRemoteRowId(main.RELATIONSHIPS.sessionToEvent, sessionId);
+  const eventId = main.UI.useRemoteRowId(
+    main.RELATIONSHIPS.sessionToEvent,
+    sessionId,
+  );
   const note = main.UI.useCell("events", eventId ?? "", "note", main.STORE_ID);
 
   if (!note) {

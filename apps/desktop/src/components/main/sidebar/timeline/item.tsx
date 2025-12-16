@@ -7,7 +7,10 @@ import { cn } from "@hypr/utils";
 import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
-import { type TimelineItem, TimelinePrecision } from "../../../../utils/timeline";
+import {
+  type TimelineItem,
+  TimelinePrecision,
+} from "../../../../utils/timeline";
 import { InteractiveButton } from "../../../interactive-button";
 
 export const TimelineItemComponent = memo(
@@ -26,10 +29,12 @@ export const TimelineItemComponent = memo(
 
     const store = main.UI.useStore(main.STORE_ID);
 
-    const eventId = item.type === "event" ? item.id : item.data.event_id || undefined;
+    const eventId =
+      item.type === "event" ? item.id : item.data.event_id || undefined;
 
     const title = item.data.title || "Untitled";
-    const timestamp = item.type === "event" ? item.data.started_at : item.data.created_at;
+    const timestamp =
+      item.type === "event" ? item.data.started_at : item.data.created_at;
 
     const handleClick = () => {
       if (item.type === "event") {
@@ -108,7 +113,10 @@ export const TimelineItemComponent = memo(
 
     const contextMenu = (
       <>
-        <ContextMenuItem className="cursor-pointer" onClick={() => handleCmdClick()}>
+        <ContextMenuItem
+          className="cursor-pointer"
+          onClick={() => handleCmdClick()}
+        >
           Open in New Tab
         </ContextMenuItem>
         <ContextMenuItem
@@ -165,7 +173,9 @@ export const TimelineItemComponent = memo(
       >
         <div className="flex flex-col gap-0.5">
           <div className="text-sm font-normal truncate">{title}</div>
-          {displayTime && <div className="text-xs text-neutral-500">{displayTime}</div>}
+          {displayTime && (
+            <div className="text-xs text-neutral-500">{displayTime}</div>
+          )}
         </div>
       </InteractiveButton>
     );

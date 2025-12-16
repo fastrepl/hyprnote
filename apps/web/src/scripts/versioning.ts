@@ -64,13 +64,17 @@ async function fetchGithubDesktopTags(options?: {
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch GitHub tags: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch GitHub tags: ${response.status} ${response.statusText}`,
+    );
   }
 
   const data = (await response.json()) as GithubTagResponse[];
 
   const filteredTags = data.filter(
-    (tag) => tag.name.startsWith("desktop_v1") && !tag.name.includes("1.0.0-nightly.0"),
+    (tag) =>
+      tag.name.startsWith("desktop_v1") &&
+      !tag.name.includes("1.0.0-nightly.0"),
   );
 
   const tagsWithDates = await Promise.all(

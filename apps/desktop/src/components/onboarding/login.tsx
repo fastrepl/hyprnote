@@ -1,10 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
+import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
 import { createClient, createConfig } from "@hypr/api-client/client";
-
-import { platform } from "@tauri-apps/plugin-os";
 
 import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
@@ -13,7 +12,11 @@ import * as settings from "../../store/tinybase/settings";
 import type { OnboardingStepId } from "./config";
 import { Divider, OnboardingContainer } from "./shared";
 
-export function Login({ onNavigate }: { onNavigate: (step: OnboardingStepId | "done") => void }) {
+export function Login({
+  onNavigate,
+}: {
+  onNavigate: (step: OnboardingStepId | "done") => void;
+}) {
   const auth = useAuth();
   const currentPlatform = platform();
   const [callbackUrl, setCallbackUrl] = useState("");
@@ -68,7 +71,9 @@ export function Login({ onNavigate }: { onNavigate: (step: OnboardingStepId | "d
 
       const newSession = await auth!.refreshSession();
       return newSession
-        ? getEntitlementsFromToken(newSession.access_token).includes("hyprnote_pro")
+        ? getEntitlementsFromToken(newSession.access_token).includes(
+            "hyprnote_pro",
+          )
         : false;
     },
     onSuccess: (isPro) => {

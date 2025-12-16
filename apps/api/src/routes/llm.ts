@@ -65,8 +65,14 @@ llm.post(
     } = requestBody;
 
     const timeoutController = new AbortController();
-    const timeoutId = setTimeout(() => timeoutController.abort(), REQUEST_TIMEOUT_MS);
-    const signal = AbortSignal.any([c.req.raw.signal, timeoutController.signal]);
+    const timeoutId = setTimeout(
+      () => timeoutController.abort(),
+      REQUEST_TIMEOUT_MS,
+    );
+    const signal = AbortSignal.any([
+      c.req.raw.signal,
+      timeoutController.signal,
+    ]);
 
     const body = JSON.stringify({
       messages,
@@ -81,15 +87,18 @@ llm.post(
     });
 
     try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+          },
+          body,
+          signal,
         },
-        body,
-        signal,
-      });
+      );
 
       if (stream) {
         return new Response(response.body, {
@@ -108,9 +117,12 @@ llm.post(
     } catch (error) {
       if (signal.aborted) {
         const isTimeout = timeoutController.signal.aborted;
-        return new Response(isTimeout ? "Request timeout" : "Client disconnected", {
-          status: isTimeout ? 504 : 499,
-        });
+        return new Response(
+          isTimeout ? "Request timeout" : "Client disconnected",
+          {
+            status: isTimeout ? 504 : 499,
+          },
+        );
       }
       throw error;
     } finally {

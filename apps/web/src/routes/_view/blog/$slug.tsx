@@ -26,7 +26,11 @@ export const Route = createFileRoute("/_view/blog/$slug")({
     }
 
     const relatedArticles = allArticles
-      .filter((a) => a.slug !== article.slug && (import.meta.env.DEV || a.published === true))
+      .filter(
+        (a) =>
+          a.slug !== article.slug &&
+          (import.meta.env.DEV || a.published === true),
+      )
       .sort((a, b) => {
         const aScore = a.author === article.author ? 1 : 0;
         const bScore = b.author === article.author ? 1 : 0;
@@ -77,7 +81,9 @@ export const Route = createFileRoute("/_view/blog/$slug")({
           content: article.meta_description,
         },
         { name: "twitter:image", content: ogImage },
-        ...(article.author ? [{ name: "author", content: article.author }] : []),
+        ...(article.author
+          ? [{ name: "author", content: article.author }]
+          : []),
         {
           property: "article:published_time",
           content: article.created,
@@ -154,7 +160,10 @@ function HeroSection({ article }: { article: any }) {
         </div>
       )}
 
-      <time dateTime={article.created} className="text-xs font-mono text-neutral-500">
+      <time
+        dateTime={article.created}
+        className="text-xs font-mono text-neutral-500"
+      >
         {new Date(article.created).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
@@ -168,12 +177,19 @@ function HeroSection({ article }: { article: any }) {
 function ArticleContent({ article }: { article: any }) {
   return (
     <article className="prose prose-stone prose-headings:font-serif prose-headings:font-semibold prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4 prose-h4:text-lg prose-h4:mt-6 prose-h4:mb-3 prose-a:text-stone-600 prose-a:underline prose-a:decoration-dotted hover:prose-a:text-stone-800 prose-code:bg-stone-50 prose-code:border prose-code:border-neutral-200 prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:text-stone-700 prose-pre:bg-stone-50 prose-pre:border prose-pre:border-neutral-200 prose-pre:rounded-sm prose-pre:prose-code:bg-transparent prose-pre:prose-code:border-0 prose-pre:prose-code:p-0 prose-img:rounded-sm prose-img:border prose-img:border-neutral-200 prose-img:my-8 max-w-none">
-      <MDXContent code={article.mdx} components={createMDXComponents({ CtaCard })} />
+      <MDXContent
+        code={article.mdx}
+        components={createMDXComponents({ CtaCard })}
+      />
     </article>
   );
 }
 
-function RelatedArticlesSection({ relatedArticles }: { relatedArticles: any[] }) {
+function RelatedArticlesSection({
+  relatedArticles,
+}: {
+  relatedArticles: any[];
+}) {
   if (relatedArticles.length === 0) {
     return null;
   }
@@ -214,10 +230,12 @@ function CTASection() {
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif">Try Hyprnote for yourself</h2>
+        <h2 className="text-2xl sm:text-3xl font-serif">
+          Try Hyprnote for yourself
+        </h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          The AI notepad for people in back-to-back meetings. Local-first, privacy-focused, and open
-          source.
+          The AI notepad for people in back-to-back meetings. Local-first,
+          privacy-focused, and open source.
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           {platformCTA.action === "download" ? (
@@ -323,12 +341,20 @@ function RelatedArticleCard({ article }: { article: any }) {
         <h4 className="font-serif text-sm text-stone-600 group-hover:text-stone-800 transition-colors line-clamp-2 mb-2">
           {article.title}
         </h4>
-        <p className="text-xs text-neutral-500 line-clamp-2 mb-2">{article.summary}</p>
-        <time dateTime={article.updated || article.created} className="text-xs text-neutral-400">
-          {new Date(article.updated || article.created).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          })}
+        <p className="text-xs text-neutral-500 line-clamp-2 mb-2">
+          {article.summary}
+        </p>
+        <time
+          dateTime={article.updated || article.created}
+          className="text-xs text-neutral-400"
+        >
+          {new Date(article.updated || article.created).toLocaleDateString(
+            "en-US",
+            {
+              month: "short",
+              day: "numeric",
+            },
+          )}
         </time>
       </div>
     </Link>

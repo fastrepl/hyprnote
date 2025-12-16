@@ -37,7 +37,8 @@ export function ChatBody({
       ref={scrollRef}
       className={cn([
         "flex-1 overflow-y-auto flex flex-col",
-        chat.mode === "RightPanelOpen" && "border border-neutral-200 rounded-xl rounded-b-none",
+        chat.mode === "RightPanelOpen" &&
+          "border border-neutral-200 rounded-xl rounded-b-none",
       ])}
     >
       <div className="flex-1" />

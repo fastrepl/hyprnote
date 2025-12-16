@@ -26,8 +26,12 @@ export const Route = createFileRoute("/_view/gallery/")({
   component: Component,
   validateSearch: (search: Record<string, unknown>): GallerySearch => {
     return {
-      type: search.type === "template" || search.type === "shortcut" ? search.type : undefined,
-      category: typeof search.category === "string" ? search.category : undefined,
+      type:
+        search.type === "template" || search.type === "shortcut"
+          ? search.type
+          : undefined,
+      category:
+        typeof search.category === "string" ? search.category : undefined,
     };
   },
   head: () => ({
@@ -231,7 +235,9 @@ function HeroSection({
     <div className="bg-linear-to-b from-stone-50/30 to-stone-100/30">
       <section className="flex flex-col items-center text-center gap-8 py-24 px-4 laptop:px-0">
         <div className="space-y-6 max-w-3xl">
-          <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">Gallery</h1>
+          <h1 className="text-4xl sm:text-5xl font-serif tracking-tight text-stone-600">
+            Gallery
+          </h1>
           <p className="text-lg sm:text-xl text-neutral-600">
             Browse and discover{" "}
             <TooltipProvider>
@@ -434,7 +440,9 @@ function DesktopSidebar({
             ])}
           >
             All
-            <span className="ml-2 text-xs text-neutral-400">({totalCount})</span>
+            <span className="ml-2 text-xs text-neutral-400">
+              ({totalCount})
+            </span>
           </button>
           {categories.map((category) => (
             <button
@@ -464,8 +472,13 @@ function GalleryGrid({ filteredItems }: { filteredItems: GalleryItem[] }) {
     return (
       <section className="flex-1 min-w-0">
         <div className="text-center py-12">
-          <Icon icon="mdi:file-search" className="text-6xl text-neutral-300 mb-4 mx-auto" />
-          <p className="text-neutral-600">No items found matching your search.</p>
+          <Icon
+            icon="mdi:file-search"
+            className="text-6xl text-neutral-300 mb-4 mx-auto"
+          />
+          <p className="text-neutral-600">
+            No items found matching your search.
+          </p>
         </div>
       </section>
     );
@@ -493,23 +506,31 @@ function ItemCard({ item }: { item: GalleryItem }) {
     >
       <div className="mb-4 w-full">
         <p className="text-xs text-neutral-500 mb-2">
-          <span className="font-medium">{isTemplate ? "Template" : "Shortcut"}</span>
+          <span className="font-medium">
+            {isTemplate ? "Template" : "Shortcut"}
+          </span>
           <span className="mx-1">/</span>
           <span>{item.item.category}</span>
         </p>
         <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
           {item.item.title}
         </h3>
-        <p className="text-sm text-neutral-600 line-clamp-2">{item.item.description}</p>
+        <p className="text-sm text-neutral-600 line-clamp-2">
+          {item.item.description}
+        </p>
       </div>
-      {"targets" in item.item && item.item.targets && item.item.targets.length > 0 && (
-        <div className="pt-4 border-t border-neutral-100 w-full">
-          <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
-            For
+      {"targets" in item.item &&
+        item.item.targets &&
+        item.item.targets.length > 0 && (
+          <div className="pt-4 border-t border-neutral-100 w-full">
+            <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">
+              For
+            </div>
+            <div className="text-xs text-stone-600">
+              {item.item.targets.join(", ")}
+            </div>
           </div>
-          <div className="text-xs text-stone-600">{item.item.targets.join(", ")}</div>
-        </div>
-      )}
+        )}
     </a>
   );
 }
@@ -547,12 +568,14 @@ function CTASection() {
           Ready to transform your meetings?
         </h2>
         <p className="text-lg text-neutral-600">
-          Download Hyprnote and start using these templates and shortcuts to capture perfect meeting
-          notes with AI.
+          Download Hyprnote and start using these templates and shortcuts to
+          capture perfect meeting notes with AI.
         </p>
         <div className="flex flex-col items-center gap-4 pt-4">
           <DownloadButton />
-          <p className="text-sm text-neutral-500">Free to use. No credit card required.</p>
+          <p className="text-sm text-neutral-500">
+            Free to use. No credit card required.
+          </p>
         </div>
       </div>
     </section>

@@ -91,7 +91,9 @@ export function flattenTranscript(transcript: unknown): string {
   }
 
   if (typeof parsed === "object" && parsed !== null) {
-    return mergeContent(Object.values(parsed).map((value) => flattenTranscript(value)));
+    return mergeContent(
+      Object.values(parsed).map((value) => flattenTranscript(value)),
+    );
   }
 
   return "";

@@ -44,9 +44,15 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
   },
 
   addProseMirrorPlugins() {
-    const containers = new Map<number, { container: HTMLElement; root: ReactDOM.Root }>();
+    const containers = new Map<
+      number,
+      { container: HTMLElement; root: ReactDOM.Root }
+    >();
 
-    const scheduleReactRender = (root: ReactDOM.Root, element: ReactElement) => {
+    const scheduleReactRender = (
+      root: ReactDOM.Root,
+      element: ReactElement,
+    ) => {
       queueMicrotask(() => root.render(element));
     };
 
@@ -55,7 +61,8 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
         key: new PluginKey("reactPlaceholder"),
         props: {
           decorations: ({ doc, selection }) => {
-            const active = this.editor.isEditable || !this.options.showOnlyWhenEditable;
+            const active =
+              this.editor.isEditable || !this.options.showOnlyWhenEditable;
             const { anchor } = selection;
             const decorations: Decoration[] = [];
 

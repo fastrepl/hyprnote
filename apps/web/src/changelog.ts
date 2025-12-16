@@ -106,10 +106,13 @@ function buildChangelogMeta(): ChangelogWithMeta[] {
 
   descOrder.forEach((idxInParsed, position) => {
     const newerIdx = position > 0 ? descOrder[position - 1] : undefined;
-    const olderIdx = position < descOrder.length - 1 ? descOrder[position + 1] : undefined;
+    const olderIdx =
+      position < descOrder.length - 1 ? descOrder[position + 1] : undefined;
 
-    withMeta[idxInParsed].newerSlug = newerIdx !== undefined ? parsed[newerIdx].doc.slug : null;
-    withMeta[idxInParsed].olderSlug = olderIdx !== undefined ? parsed[olderIdx].doc.slug : null;
+    withMeta[idxInParsed].newerSlug =
+      newerIdx !== undefined ? parsed[newerIdx].doc.slug : null;
+    withMeta[idxInParsed].olderSlug =
+      olderIdx !== undefined ? parsed[olderIdx].doc.slug : null;
   });
 
   // Return in descending order to match UI expectations
@@ -130,6 +133,8 @@ export function getChangelogList(): ChangelogWithMeta[] {
   return getAllChangelogMeta();
 }
 
-export function getChangelogBySlug(slug: string): ChangelogWithMeta | undefined {
+export function getChangelogBySlug(
+  slug: string,
+): ChangelogWithMeta | undefined {
   return getAllChangelogMeta().find((entry) => entry.slug === slug);
 }

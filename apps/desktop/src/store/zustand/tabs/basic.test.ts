@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { type Tab, useTabs } from ".";
 import "./test-matchers";
-import { createContactsTab, createSessionTab, resetTabsStore } from "./test-utils";
+import {
+  createContactsTab,
+  createSessionTab,
+  resetTabsStore,
+} from "./test-utils";
 
 const isSessionsTab = (tab: Tab): tab is Extract<Tab, { type: "sessions" }> =>
   tab.type === "sessions";
@@ -73,7 +77,9 @@ describe("Basic Tab Actions", () => {
     useTabs.getState().openCurrent(next);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: "first" }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "first" }),
+    );
   });
 
   test("openNew is idempotent - switches to existing tab instead of duplicating", () => {
@@ -122,7 +128,9 @@ describe("Basic Tab Actions", () => {
 
     useTabs.getState().close(active);
 
-    expect(useTabs.getState()).toMatchTabsInOrder([{ id: next.id, active: true }]);
+    expect(useTabs.getState()).toMatchTabsInOrder([
+      { id: next.id, active: true },
+    ]);
     expect(useTabs.getState()).toHaveCurrentTab({ id: next.id });
     expect(useTabs.getState().history.size).toBe(1);
     expect(useTabs.getState()).toHaveNavigationState({
@@ -187,8 +195,12 @@ describe("Basic Tab Actions", () => {
     });
     expect(state.history.size).toBe(1);
     expect(handler).toHaveBeenCalledTimes(2);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: session1.id }));
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: session3.id }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: session1.id }),
+    );
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: session3.id }),
+    );
   });
 
   test("closeAll clears store state and notifies handlers", () => {
@@ -213,8 +225,12 @@ describe("Basic Tab Actions", () => {
       canGoNext: false,
     });
     expect(onClose).toHaveBeenCalledTimes(2);
-    expect(onClose).toHaveBeenCalledWith(expect.objectContaining({ id: first.id }));
-    expect(onClose).toHaveBeenCalledWith(expect.objectContaining({ type: "contacts" }));
+    expect(onClose).toHaveBeenCalledWith(
+      expect.objectContaining({ id: first.id }),
+    );
+    expect(onClose).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "contacts" }),
+    );
     expect(onEmpty).toHaveBeenCalledTimes(1);
   });
 });

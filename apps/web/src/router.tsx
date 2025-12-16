@@ -18,7 +18,9 @@ export function getRouter() {
     Wrap: (props: { children: React.ReactNode }) => {
       return (
         <PostHogProvider>
-          <QueryClientProvider client={queryClient}>{props.children}</QueryClientProvider>
+          <QueryClientProvider client={queryClient}>
+            {props.children}
+          </QueryClientProvider>
         </PostHogProvider>
       );
     },
@@ -27,7 +29,9 @@ export function getRouter() {
   if (!router.isServer && env.VITE_SENTRY_DSN) {
     Sentry.init({
       dsn: env.VITE_SENTRY_DSN,
-      release: env.VITE_APP_VERSION ? `hyprnote-web@${env.VITE_APP_VERSION}` : undefined,
+      release: env.VITE_APP_VERSION
+        ? `hyprnote-web@${env.VITE_APP_VERSION}`
+        : undefined,
       sendDefaultPii: true,
       integrations: [
         Sentry.tanstackRouterBrowserTracingIntegration(router),

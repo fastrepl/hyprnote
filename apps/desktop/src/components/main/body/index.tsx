@@ -1,15 +1,24 @@
-import { ArrowLeftIcon, ArrowRightIcon, PanelLeftOpenIcon, PlusIcon } from "lucide-react";
+import { platform } from "@tauri-apps/plugin-os";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  PanelLeftOpenIcon,
+  PlusIcon,
+} from "lucide-react";
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useShallow } from "zustand/shallow";
-import { platform } from "@tauri-apps/plugin-os";
 
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../../contexts/shell";
-import { type Tab, uniqueIdfromTab, useTabs } from "../../../store/zustand/tabs";
+import {
+  type Tab,
+  uniqueIdfromTab,
+  useTabs,
+} from "../../../store/zustand/tabs";
 import { ChatFloatingButton } from "../../chat";
 import { TrafficLights } from "../../window/traffic-lights";
 import { useNewNote } from "../shared";
@@ -65,20 +74,29 @@ export function Body() {
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
   const isLinux = platform() === "linux";
-  const { select, close, reorder, goBack, goNext, canGoBack, canGoNext, closeOthers, closeAll } =
-    useTabs(
-      useShallow((state) => ({
-        select: state.select,
-        close: state.close,
-        reorder: state.reorder,
-        goBack: state.goBack,
-        goNext: state.goNext,
-        canGoBack: state.canGoBack,
-        canGoNext: state.canGoNext,
-        closeOthers: state.closeOthers,
-        closeAll: state.closeAll,
-      })),
-    );
+  const {
+    select,
+    close,
+    reorder,
+    goBack,
+    goNext,
+    canGoBack,
+    canGoNext,
+    closeOthers,
+    closeAll,
+  } = useTabs(
+    useShallow((state) => ({
+      select: state.select,
+      close: state.close,
+      reorder: state.reorder,
+      goBack: state.goBack,
+      goNext: state.goNext,
+      canGoBack: state.canGoBack,
+      canGoNext: state.canGoNext,
+      closeOthers: state.closeOthers,
+      closeAll: state.closeAll,
+    })),
+  );
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
   const [scrollState, setScrollState] = useState({
@@ -124,16 +142,30 @@ function Header({ tabs }: { tabs: Tab[] }) {
     >
       {!leftsidebar.expanded && isLinux && <TrafficLights className="mr-2" />}
       {!leftsidebar.expanded && (
-        <Button size="icon" variant="ghost" onClick={() => leftsidebar.setExpanded(true)}>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => leftsidebar.setExpanded(true)}
+        >
           <PanelLeftOpenIcon size={16} className="text-neutral-600" />
         </Button>
       )}
 
       <div className="flex items-center h-full shrink-0">
-        <Button onClick={goBack} disabled={!canGoBack} variant="ghost" size="icon">
+        <Button
+          onClick={goBack}
+          disabled={!canGoBack}
+          variant="ghost"
+          size="icon"
+        >
           <ArrowLeftIcon size={16} />
         </Button>
-        <Button onClick={goNext} disabled={!canGoNext} variant="ghost" size="icon">
+        <Button
+          onClick={goNext}
+          disabled={!canGoNext}
+          variant="ghost"
+          size="icon"
+        >
           <ArrowRightIcon size={16} />
         </Button>
       </div>
@@ -157,7 +189,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
           >
             {tabs.map((tab, index) => {
               const isLastTab = index === tabs.length - 1;
-              const shortcutIndex = index < 8 ? index + 1 : isLastTab ? 9 : undefined;
+              const shortcutIndex =
+                index < 8 ? index + 1 : isLastTab ? 9 : undefined;
 
               return (
                 <Reorder.Item
@@ -190,7 +223,10 @@ function Header({ tabs }: { tabs: Tab[] }) {
         )}
       </div>
 
-      <div data-tauri-drag-region className="flex-1 flex h-full items-center justify-between">
+      <div
+        data-tauri-drag-region
+        className="flex-1 flex h-full items-center justify-between"
+      >
         <Button
           onClick={handleNewEmptyTab}
           variant="ghost"
@@ -585,7 +621,8 @@ function useTabsShortcuts() {
     "mod+1, mod+2, mod+3, mod+4, mod+5, mod+6, mod+7, mod+8, mod+9",
     (event) => {
       const key = event.key;
-      const targetIndex = key === "9" ? tabs.length - 1 : Number.parseInt(key, 10) - 1;
+      const targetIndex =
+        key === "9" ? tabs.length - 1 : Number.parseInt(key, 10) - 1;
       const target = tabs[targetIndex];
       if (target) {
         select(target);

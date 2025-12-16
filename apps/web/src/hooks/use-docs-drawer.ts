@@ -5,7 +5,9 @@ interface DocsDrawerContextType {
   setIsOpen: (open: boolean) => void;
 }
 
-export const DocsDrawerContext = createContext<DocsDrawerContextType | null>(null);
+export const DocsDrawerContext = createContext<DocsDrawerContextType | null>(
+  null,
+);
 
 export function useDocsDrawer() {
   return useContext(DocsDrawerContext);

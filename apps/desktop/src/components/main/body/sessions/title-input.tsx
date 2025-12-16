@@ -3,7 +3,11 @@ import { cn } from "@hypr/utils";
 import * as main from "../../../../store/tinybase/main";
 import { type Tab } from "../../../../store/zustand/tabs";
 
-export function TitleInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
+export function TitleInput({
+  tab,
+}: {
+  tab: Extract<Tab, { type: "sessions" }>;
+}) {
   const {
     id: sessionId,
     state: { editor },

@@ -5,7 +5,8 @@ interface HandbookDrawerContextType {
   setIsOpen: (open: boolean) => void;
 }
 
-export const HandbookDrawerContext = createContext<HandbookDrawerContextType | null>(null);
+export const HandbookDrawerContext =
+  createContext<HandbookDrawerContextType | null>(null);
 
 export function useHandbookDrawer() {
   return useContext(HandbookDrawerContext);

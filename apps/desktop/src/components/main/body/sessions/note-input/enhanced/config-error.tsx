@@ -16,8 +16,14 @@ export function ConfigError({ status }: { status: LLMConnectionStatus }) {
 
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[400px]">
-      <p className="text-sm text-center text-neutral-700 mb-6 max-w-lg">{message}</p>
-      <Button onClick={handleConfigureClick} className="flex items-center gap-2" variant="default">
+      <p className="text-sm text-center text-neutral-700 mb-6 max-w-lg">
+        {message}
+      </p>
+      <Button
+        onClick={handleConfigureClick}
+        className="flex items-center gap-2"
+        variant="default"
+      >
         <span>Configure</span>
         <ArrowRightIcon size={16} />
       </Button>

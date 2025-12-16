@@ -20,9 +20,11 @@ export function useCreateEnhancedNote() {
       );
 
       const existingId = existingNoteIds.find((id) => {
-        const existingTemplateId = store.getCell("enhanced_notes", id, "template_id") as
-          | string
-          | undefined;
+        const existingTemplateId = store.getCell(
+          "enhanced_notes",
+          id,
+          "template_id",
+        ) as string | undefined;
         const normalizedExisting = existingTemplateId || undefined;
         return normalizedExisting === normalizedTemplateId;
       });
@@ -36,7 +38,11 @@ export function useCreateEnhancedNote() {
 
       let title = "Summary";
       if (normalizedTemplateId) {
-        const templateTitle = store.getCell("templates", normalizedTemplateId, "title");
+        const templateTitle = store.getCell(
+          "templates",
+          normalizedTemplateId,
+          "title",
+        );
         if (typeof templateTitle === "string") {
           title = templateTitle;
         }
@@ -87,13 +93,32 @@ export function useRenameEnhancedNote() {
 }
 
 export function useEnhancedNotes(sessionId: string) {
-  return main.UI.useSliceRowIds(main.INDEXES.enhancedNotesBySession, sessionId, main.STORE_ID);
+  return main.UI.useSliceRowIds(
+    main.INDEXES.enhancedNotesBySession,
+    sessionId,
+    main.STORE_ID,
+  );
 }
 
 export function useEnhancedNote(enhancedNoteId: string) {
-  const title = main.UI.useCell("enhanced_notes", enhancedNoteId, "title", main.STORE_ID);
-  const content = main.UI.useCell("enhanced_notes", enhancedNoteId, "content", main.STORE_ID);
-  const position = main.UI.useCell("enhanced_notes", enhancedNoteId, "position", main.STORE_ID);
+  const title = main.UI.useCell(
+    "enhanced_notes",
+    enhancedNoteId,
+    "title",
+    main.STORE_ID,
+  );
+  const content = main.UI.useCell(
+    "enhanced_notes",
+    enhancedNoteId,
+    "content",
+    main.STORE_ID,
+  );
+  const position = main.UI.useCell(
+    "enhanced_notes",
+    enhancedNoteId,
+    "position",
+    main.STORE_ID,
+  );
   const templateId = main.UI.useCell(
     "enhanced_notes",
     enhancedNoteId,
@@ -112,7 +137,12 @@ export function useEnsureDefaultSummary(sessionId: string) {
     sessionId,
     main.STORE_ID,
   );
-  const existingEnhancedMd = main.UI.useCell("sessions", sessionId, "enhanced_md", main.STORE_ID);
+  const existingEnhancedMd = main.UI.useCell(
+    "sessions",
+    sessionId,
+    "enhanced_md",
+    main.STORE_ID,
+  );
   const createEnhancedNote = useCreateEnhancedNote();
 
   useEffect(() => {

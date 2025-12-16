@@ -95,7 +95,9 @@ function EditorWithState() {
         handleChange={setContent}
         initialContent={content}
       />
-      <pre style={{ marginTop: "20px", fontSize: "12px" }}>{JSON.stringify(content, null, 2)}</pre>
+      <pre style={{ marginTop: "20px", fontSize: "12px" }}>
+        {JSON.stringify(content, null, 2)}
+      </pre>
     </div>
   );
 }

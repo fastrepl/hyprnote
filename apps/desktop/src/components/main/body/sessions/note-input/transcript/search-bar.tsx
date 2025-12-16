@@ -17,7 +17,15 @@ export function SearchBar() {
     return null;
   }
 
-  const { query, setQuery, currentMatchIndex, totalMatches, onNext, onPrev, close } = search;
+  const {
+    query,
+    setQuery,
+    currentMatchIndex,
+    totalMatches,
+    onNext,
+    onPrev,
+    close,
+  } = search;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -30,7 +38,8 @@ export function SearchBar() {
     }
   };
 
-  const displayCount = totalMatches > 0 ? `${currentMatchIndex + 1}/${totalMatches}` : "0/0";
+  const displayCount =
+    totalMatches > 0 ? `${currentMatchIndex + 1}/${totalMatches}` : "0/0";
 
   return (
     <div className="w-full pt-1 pr-1">

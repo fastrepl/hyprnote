@@ -124,8 +124,8 @@ function HeroSection() {
             with AI-powered notes
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
-            Focus on leading your projects, not taking notes. Hyprnote captures every meeting detail
-            so nothing falls through the cracks.
+            Focus on leading your projects, not taking notes. Hyprnote captures
+            every meeting detail so nothing falls through the cracks.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -171,8 +171,12 @@ function FeaturesSection() {
               <div className="w-12 h-12 rounded-xl bg-stone-100 flex items-center justify-center">
                 <Icon icon={feature.icon} className="text-2xl text-stone-600" />
               </div>
-              <h3 className="text-lg font-medium text-stone-700">{feature.title}</h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">{feature.description}</p>
+              <h3 className="text-lg font-medium text-stone-700">
+                {feature.title}
+              </h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">
+                {feature.description}
+              </p>
             </div>
           ))}
         </div>
@@ -193,9 +197,16 @@ function UseCasesSection() {
         </p>
         <div className="grid md:grid-cols-2 gap-6">
           {useCases.map((useCase) => (
-            <div key={useCase.title} className="bg-white p-6 rounded-xl border border-neutral-100">
-              <h3 className="text-lg font-medium text-stone-700 mb-2">{useCase.title}</h3>
-              <p className="text-neutral-600 text-sm leading-relaxed">{useCase.description}</p>
+            <div
+              key={useCase.title}
+              className="bg-white p-6 rounded-xl border border-neutral-100"
+            >
+              <h3 className="text-lg font-medium text-stone-700 mb-2">
+                {useCase.title}
+              </h3>
+              <p className="text-neutral-600 text-sm leading-relaxed">
+                {useCase.description}
+              </p>
             </div>
           ))}
         </div>
@@ -212,7 +223,8 @@ function CTASection() {
           Ready to improve project delivery?
         </h2>
         <p className="text-neutral-600 mb-8">
-          Join project managers who are keeping projects on track with AI-powered meeting notes.
+          Join project managers who are keeping projects on track with
+          AI-powered meeting notes.
         </p>
         <Link
           to="/download"

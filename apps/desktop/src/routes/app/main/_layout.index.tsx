@@ -35,7 +35,12 @@ function Component() {
         {isChatOpen && (
           <>
             <ResizableHandle className="w-0" />
-            <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="pl-1">
+            <ResizablePanel
+              defaultSize={30}
+              minSize={20}
+              maxSize={50}
+              className="pl-1"
+            >
               <ChatView />
             </ResizablePanel>
           </>

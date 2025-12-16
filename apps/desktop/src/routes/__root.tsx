@@ -1,4 +1,8 @@
-import { createRootRouteWithContext, type LinkProps, Outlet } from "@tanstack/react-router";
+import {
+  createRootRouteWithContext,
+  type LinkProps,
+  Outlet,
+} from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
 import type { DeepLink } from "@hypr/plugin-deeplink2";
@@ -19,7 +23,8 @@ export const Route = createRootRouteWithContext<Partial<Context>>()({
 });
 
 function Component() {
-  const isExtHost = typeof window !== "undefined" && isExtHostPath(window.location.pathname);
+  const isExtHost =
+    typeof window !== "undefined" && isExtHostPath(window.location.pathname);
 
   if (isExtHost) {
     return <Outlet />;
@@ -37,8 +42,8 @@ export const TanStackRouterDevtools =
     ? () => null
     : lazy(() =>
         import("@tanstack/react-router-devtools").then((res) => ({
-          default: (props: React.ComponentProps<typeof res.TanStackRouterDevtools>) => (
-            <res.TanStackRouterDevtools {...props} />
-          ),
+          default: (
+            props: React.ComponentProps<typeof res.TanStackRouterDevtools>,
+          ) => <res.TanStackRouterDevtools {...props} />,
         })),
       );

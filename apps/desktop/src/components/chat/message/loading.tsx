@@ -2,7 +2,11 @@ import { Loader2, X } from "lucide-react";
 
 import { ActionButton, MessageBubble, MessageContainer } from "./shared";
 
-export function LoadingMessage({ onCancelAndRetry }: { onCancelAndRetry?: () => void }) {
+export function LoadingMessage({
+  onCancelAndRetry,
+}: {
+  onCancelAndRetry?: () => void;
+}) {
   return (
     <MessageContainer align="start">
       <MessageBubble variant="loading" withActionButton={!!onCancelAndRetry}>

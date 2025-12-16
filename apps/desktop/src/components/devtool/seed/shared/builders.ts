@@ -27,14 +27,19 @@ import { createEnhancedNote } from "./enhanced-note";
 import { createEvent } from "./event";
 import { createFolder } from "./folder";
 import { createHuman } from "./human";
-import { createmappingSessionParticipant, createMappingTagSession } from "./mapping";
+import {
+  createmappingSessionParticipant,
+  createMappingTagSession,
+} from "./mapping";
 import { createOrganization } from "./organization";
 import { createSession } from "./session";
 import { createTag } from "./tag";
 import { createTemplate } from "./template";
 import { generateTranscript } from "./transcript";
 
-export const buildOrganizations = (count: number): Record<string, Organization> => {
+export const buildOrganizations = (
+  count: number,
+): Record<string, Organization> => {
   const organizations: Record<string, Organization> = {};
 
   for (let i = 0; i < count; i++) {
@@ -162,7 +167,9 @@ export const buildTags = (count: number): Record<string, Tag> => {
   return tags;
 };
 
-export const buildTemplates = (count: number): Record<string, TemplateStorage> => {
+export const buildTemplates = (
+  count: number,
+): Record<string, TemplateStorage> => {
   const templates: Record<string, TemplateStorage> = {};
 
   for (let i = 0; i < count; i++) {
@@ -192,12 +199,18 @@ export const buildSessions = (
 
   for (let i = 0; i < count; i++) {
     const shouldLinkToEvent =
-      eventIds.length > 0 && faker.datatype.boolean({ probability: eventLinkProbability });
+      eventIds.length > 0 &&
+      faker.datatype.boolean({ probability: eventLinkProbability });
     const shouldAddToFolder =
-      folderIds.length > 0 && faker.datatype.boolean({ probability: folderProbability });
+      folderIds.length > 0 &&
+      faker.datatype.boolean({ probability: folderProbability });
 
-    const eventId = shouldLinkToEvent ? faker.helpers.arrayElement(eventIds) : undefined;
-    const folderId = shouldAddToFolder ? faker.helpers.arrayElement(folderIds) : undefined;
+    const eventId = shouldLinkToEvent
+      ? faker.helpers.arrayElement(eventIds)
+      : undefined;
+    const folderId = shouldAddToFolder
+      ? faker.helpers.arrayElement(folderIds)
+      : undefined;
 
     const session = createSession(eventId, folderId);
     sessions[session.id] = session.data;
@@ -230,12 +243,18 @@ export const buildSessionsPerHuman = (
 
     for (let i = 0; i < sessionCount; i++) {
       const shouldLinkToEvent =
-        humanEventIds.length > 0 && faker.datatype.boolean({ probability: eventLinkProbability });
+        humanEventIds.length > 0 &&
+        faker.datatype.boolean({ probability: eventLinkProbability });
       const shouldAddToFolder =
-        folderIds.length > 0 && faker.datatype.boolean({ probability: folderProbability });
+        folderIds.length > 0 &&
+        faker.datatype.boolean({ probability: folderProbability });
 
-      const eventId = shouldLinkToEvent ? faker.helpers.arrayElement(humanEventIds) : undefined;
-      const folderId = shouldAddToFolder ? faker.helpers.arrayElement(folderIds) : undefined;
+      const eventId = shouldLinkToEvent
+        ? faker.helpers.arrayElement(humanEventIds)
+        : undefined;
+      const folderId = shouldAddToFolder
+        ? faker.helpers.arrayElement(folderIds)
+        : undefined;
 
       const session = createSession(eventId, folderId);
       sessions[session.id] = session.data;
@@ -295,11 +314,15 @@ export const buildSessionParticipants = (
   humanIds: string[],
   participantsPerSession: { min: number; max: number },
 ): Record<string, mappingSessionParticipant> => {
-  const mapping_session_participant: Record<string, mappingSessionParticipant> = {};
+  const mapping_session_participant: Record<string, mappingSessionParticipant> =
+    {};
 
   sessionIds.forEach((sessionId) => {
     const participantCount = faker.number.int(participantsPerSession);
-    const selectedHumans = faker.helpers.arrayElements(humanIds, participantCount);
+    const selectedHumans = faker.helpers.arrayElements(
+      humanIds,
+      participantCount,
+    );
 
     selectedHumans.forEach((humanId) => {
       const mapping = createmappingSessionParticipant(sessionId, humanId);
@@ -376,14 +399,18 @@ export const buildEnhancedNotesForSessions = (
   } = {},
 ): Record<string, EnhancedNoteStorage> => {
   const enhanced_notes: Record<string, EnhancedNoteStorage> = {};
-  const { notesPerSession = { min: 0, max: 3 }, templateProbability = 0.3 } = options;
+  const { notesPerSession = { min: 0, max: 3 }, templateProbability = 0.3 } =
+    options;
 
   sessionIds.forEach((sessionId) => {
     const noteCount = faker.number.int(notesPerSession);
     for (let i = 0; i < noteCount; i++) {
       const shouldUseTemplate =
-        templateIds.length > 0 && faker.datatype.boolean({ probability: templateProbability });
-      const templateId = shouldUseTemplate ? faker.helpers.arrayElement(templateIds) : undefined;
+        templateIds.length > 0 &&
+        faker.datatype.boolean({ probability: templateProbability });
+      const templateId = shouldUseTemplate
+        ? faker.helpers.arrayElement(templateIds)
+        : undefined;
       const note = createEnhancedNote(sessionId, i, templateId);
       enhanced_notes[note.id] = note.data;
     }
@@ -392,7 +419,9 @@ export const buildEnhancedNotesForSessions = (
   return enhanced_notes;
 };
 
-export const buildChatShortcuts = (count: number): Record<string, ChatShortcutStorage> => {
+export const buildChatShortcuts = (
+  count: number,
+): Record<string, ChatShortcutStorage> => {
   const chat_shortcuts: Record<string, ChatShortcutStorage> = {};
 
   for (let i = 0; i < count; i++) {

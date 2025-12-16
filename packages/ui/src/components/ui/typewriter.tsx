@@ -115,7 +115,8 @@ const Typewriter = ({
           variants={cursorAnimationVariants}
           className={cn([
             cursorClassName,
-            hideCursorOnType && (currentIndex < texts[currentTextIndex].length || isDeleting)
+            hideCursorOnType &&
+            (currentIndex < texts[currentTextIndex].length || isDeleting)
               ? "hidden"
               : "",
           ])}

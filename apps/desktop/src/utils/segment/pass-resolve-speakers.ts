@@ -1,8 +1,16 @@
-import type { SegmentPass, SegmentWord, SpeakerIdentity, SpeakerState } from "./shared";
+import type {
+  SegmentPass,
+  SegmentWord,
+  SpeakerIdentity,
+  SpeakerState,
+} from "./shared";
 
 type SpeakerStateSnapshot = Pick<
   SpeakerState,
-  "completeChannels" | "humanIdByChannel" | "humanIdBySpeakerIndex" | "lastSpeakerByChannel"
+  | "completeChannels"
+  | "humanIdByChannel"
+  | "humanIdBySpeakerIndex"
+  | "lastSpeakerByChannel"
 >;
 
 type IdentityRuleArgs = {
@@ -11,7 +19,10 @@ type IdentityRuleArgs = {
   word: SegmentWord;
 };
 
-type IdentityRule = (identity: SpeakerIdentity, args: IdentityRuleArgs) => SpeakerIdentity;
+type IdentityRule = (
+  identity: SpeakerIdentity,
+  args: IdentityRuleArgs,
+) => SpeakerIdentity;
 
 export const resolveIdentitiesPass: SegmentPass<"words"> = {
   id: "resolve_speakers",
@@ -49,7 +60,10 @@ function applyIdentityRules(
     word,
   };
 
-  return rules.reduce((identity, rule) => rule(identity, args), {} as SpeakerIdentity);
+  return rules.reduce(
+    (identity, rule) => rule(identity, args),
+    {} as SpeakerIdentity,
+  );
 }
 
 function rememberIdentity(
@@ -60,7 +74,8 @@ function rememberIdentity(
 ): void {
   const hasExplicitAssignment =
     assignment !== undefined &&
-    (assignment.speaker_index !== undefined || assignment.human_id !== undefined);
+    (assignment.speaker_index !== undefined ||
+      assignment.human_id !== undefined);
 
   if (identity.speaker_index !== undefined && identity.human_id !== undefined) {
     state.humanIdBySpeakerIndex.set(identity.speaker_index, identity.human_id);
@@ -74,8 +89,15 @@ function rememberIdentity(
     state.humanIdByChannel.set(word.channel, identity.human_id);
   }
 
-  if (!word.isFinal || identity.speaker_index !== undefined || hasExplicitAssignment) {
-    if (identity.speaker_index !== undefined || identity.human_id !== undefined) {
+  if (
+    !word.isFinal ||
+    identity.speaker_index !== undefined ||
+    hasExplicitAssignment
+  ) {
+    if (
+      identity.speaker_index !== undefined ||
+      identity.human_id !== undefined
+    ) {
       state.lastSpeakerByChannel.set(word.channel, { ...identity });
     }
   }
@@ -94,7 +116,9 @@ const applyExplicitAssignment: IdentityRule = (identity, { assignment }) => {
     updates.human_id = assignment.human_id;
   }
 
-  return Object.keys(updates).length > 0 ? { ...identity, ...updates } : identity;
+  return Object.keys(updates).length > 0
+    ? { ...identity, ...updates }
+    : identity;
 };
 
 const applySpeakerIndexHumanId: IdentityRule = (identity, { snapshot }) => {
@@ -127,8 +151,14 @@ const applyChannelHumanId: IdentityRule = (identity, { snapshot, word }) => {
   return identity;
 };
 
-const carryPartialIdentityForward: IdentityRule = (identity, { snapshot, word }) => {
-  if (word.isFinal || (identity.speaker_index !== undefined && identity.human_id !== undefined)) {
+const carryPartialIdentityForward: IdentityRule = (
+  identity,
+  { snapshot, word },
+) => {
+  if (
+    word.isFinal ||
+    (identity.speaker_index !== undefined && identity.human_id !== undefined)
+  ) {
     return identity;
   }
 
@@ -138,12 +168,17 @@ const carryPartialIdentityForward: IdentityRule = (identity, { snapshot, word })
   }
 
   const updates: Partial<SpeakerIdentity> = {};
-  if (identity.speaker_index === undefined && last.speaker_index !== undefined) {
+  if (
+    identity.speaker_index === undefined &&
+    last.speaker_index !== undefined
+  ) {
     updates.speaker_index = last.speaker_index;
   }
   if (identity.human_id === undefined && last.human_id !== undefined) {
     updates.human_id = last.human_id;
   }
 
-  return Object.keys(updates).length > 0 ? { ...identity, ...updates } : identity;
+  return Object.keys(updates).length > 0
+    ? { ...identity, ...updates }
+    : identity;
 };

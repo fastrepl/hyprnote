@@ -11,7 +11,10 @@ export const createEnhancedNote = (
   templateId?: string,
 ): { id: string; data: EnhancedNoteStorage } => {
   const title = faker.lorem.sentence({ min: 2, max: 5 });
-  const contentMarkdown = faker.lorem.paragraphs(faker.number.int({ min: 1, max: 3 }), "\n\n");
+  const contentMarkdown = faker.lorem.paragraphs(
+    faker.number.int({ min: 1, max: 3 }),
+    "\n\n",
+  );
 
   return {
     id: id(),

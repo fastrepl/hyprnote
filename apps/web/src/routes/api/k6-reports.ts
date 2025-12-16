@@ -43,12 +43,19 @@ async function fetchReportsList() {
 
   const reports = data.artifacts
     .filter((a: { expired: boolean }) => !a.expired)
-    .map((a: { id: number; name: string; created_at: string; workflow_run: { id: number } }) => ({
-      id: a.id,
-      name: a.name,
-      created_at: a.created_at,
-      run_id: a.workflow_run?.id,
-    }));
+    .map(
+      (a: {
+        id: number;
+        name: string;
+        created_at: string;
+        workflow_run: { id: number };
+      }) => ({
+        id: a.id,
+        name: a.name,
+        created_at: a.created_at,
+        run_id: a.workflow_run?.id,
+      }),
+    );
 
   return json({ reports });
 }
@@ -71,7 +78,9 @@ async function fetchReportContent(artifactId: string) {
   const buffer = await res.arrayBuffer();
   const zip = await JSZip.loadAsync(buffer);
 
-  const jsonFile = Object.keys(zip.files).find((name) => name.endsWith(".json"));
+  const jsonFile = Object.keys(zip.files).find((name) =>
+    name.endsWith(".json"),
+  );
   if (!jsonFile) {
     return json({ error: "No JSON file in artifact" }, { status: 404 });
   }

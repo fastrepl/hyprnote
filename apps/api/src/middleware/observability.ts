@@ -23,7 +23,9 @@ const emit: Emitter = (event: ObservabilityEvent) => {
   }
 };
 
-export const observabilityMiddleware = createMiddleware<AppBindings>(async (c, next) => {
-  c.set("emit", emit);
-  await next();
-});
+export const observabilityMiddleware = createMiddleware<AppBindings>(
+  async (c, next) => {
+    c.set("emit", emit);
+    await next();
+  },
+);

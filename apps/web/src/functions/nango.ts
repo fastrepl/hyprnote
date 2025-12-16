@@ -22,7 +22,9 @@ export const nangoCreateConnectSession = createServerFn({ method: "POST" })
         id: data.userId,
         email: data.userEmail,
         display_name: data.userName,
-        tags: data.organizationId ? { organizationId: data.organizationId } : undefined,
+        tags: data.organizationId
+          ? { organizationId: data.organizationId }
+          : undefined,
       },
       allowed_integrations: data.allowedIntegrations,
     });

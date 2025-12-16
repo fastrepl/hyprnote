@@ -13,7 +13,11 @@ import {
   type TaskType,
 } from "../../../../store/tinybase/prompts";
 
-export function PromptDetailsColumn({ selectedTask }: { selectedTask: TaskType | null }) {
+export function PromptDetailsColumn({
+  selectedTask,
+}: {
+  selectedTask: TaskType | null;
+}) {
   if (!selectedTask) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -29,7 +33,12 @@ export function PromptDetailsColumn({ selectedTask }: { selectedTask: TaskType |
 
 function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
   const store = main.UI.useStore(main.STORE_ID) as main.Store | undefined;
-  const customContent = main.UI.useCell("prompts", selectedTask, "content", main.STORE_ID);
+  const customContent = main.UI.useCell(
+    "prompts",
+    selectedTask,
+    "content",
+    main.STORE_ID,
+  );
 
   const [defaultContent, setDefaultContent] = useState("");
   const [localValue, setLocalValue] = useState(customContent || "");
@@ -40,7 +49,9 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
 
   useEffect(() => {
     setIsLoading(true);
-    const templateName = `${selectedTask}.user` as Parameters<typeof templateCommands.render>[0];
+    const templateName = `${selectedTask}.user` as Parameters<
+      typeof templateCommands.render
+    >[0];
 
     templateCommands
       .render(templateName, {})
@@ -83,7 +94,9 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">{taskConfig?.label}</h2>
-            <p className="text-sm text-neutral-500 mt-1">{taskConfig?.description}</p>
+            <p className="text-sm text-neutral-500 mt-1">
+              {taskConfig?.description}
+            </p>
           </div>
           <div className="flex gap-2">
             {hasCustomPrompt && (
@@ -99,7 +112,9 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
       </div>
 
       <div className="px-6 py-3 border-b border-neutral-200 bg-neutral-50">
-        <h3 className="text-xs font-medium text-neutral-600 mb-2">Available Variables</h3>
+        <h3 className="text-xs font-medium text-neutral-600 mb-2">
+          Available Variables
+        </h3>
         <div className="flex flex-wrap gap-1.5">
           {variables.map((variable) => (
             <code
@@ -116,7 +131,9 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
           <span className="font-medium">Filters:</span>{" "}
           {AVAILABLE_FILTERS.map((filter, i) => (
             <span key={filter}>
-              <code className="bg-white border border-neutral-200 px-1 rounded">{filter}</code>
+              <code className="bg-white border border-neutral-200 px-1 rounded">
+                {filter}
+              </code>
               {i < AVAILABLE_FILTERS.length - 1 && ", "}
             </span>
           ))}

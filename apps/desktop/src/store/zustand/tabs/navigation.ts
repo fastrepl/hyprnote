@@ -85,7 +85,9 @@ export const createNavigationSlice = <T extends NavigationState & BasicState>(
     let hasChanges = false;
 
     for (const [slotId, tabHistory] of history.entries()) {
-      const cleaned = cleanHistoryStack(tabHistory, (tab) => isResourceMatch(tab, type, id));
+      const cleaned = cleanHistoryStack(tabHistory, (tab) =>
+        isResourceMatch(tab, type, id),
+      );
       if (cleaned) {
         nextHistory.set(slotId, cleaned);
       } else {
@@ -128,7 +130,9 @@ export const computeHistoryFlags = (
 
   return {
     canGoBack: tabHistory ? tabHistory.currentIndex > 0 : false,
-    canGoNext: tabHistory ? tabHistory.currentIndex < tabHistory.stack.length - 1 : false,
+    canGoNext: tabHistory
+      ? tabHistory.currentIndex < tabHistory.stack.length - 1
+      : false,
   };
 };
 
@@ -144,7 +148,9 @@ export const pushHistory = (
   const slotId = tab.slotId;
   const existing = newHistory.get(slotId);
 
-  const stack = existing ? [...existing.stack.slice(0, existing.currentIndex + 1), tab] : [tab];
+  const stack = existing
+    ? [...existing.stack.slice(0, existing.currentIndex + 1), tab]
+    : [tab];
 
   newHistory.set(slotId, { stack, currentIndex: stack.length - 1 });
   return newHistory;
@@ -169,7 +175,11 @@ export const updateHistoryCurrent = (
   return newHistory;
 };
 
-export const isResourceMatch = (tab: Tab, type: InvalidatableResourceType, id: string): boolean => {
+export const isResourceMatch = (
+  tab: Tab,
+  type: InvalidatableResourceType,
+  id: string,
+): boolean => {
   if (tab.type !== type) {
     return false;
   }
@@ -195,7 +205,10 @@ export const cleanHistoryStack = (
 
   const newIndex = Math.max(
     0,
-    Math.min(tabHistory.currentIndex - removedBeforeCurrent, cleanedStack.length - 1),
+    Math.min(
+      tabHistory.currentIndex - removedBeforeCurrent,
+      cleanedStack.length - 1,
+    ),
   );
   return { stack: cleanedStack, currentIndex: newIndex };
 };
@@ -238,7 +251,10 @@ const navigationMiddlewareImpl =
         const state = get();
         const nextFlags = computeHistoryFlags(state.history, state.currentTab);
 
-        if (state.canGoBack === nextFlags.canGoBack && state.canGoNext === nextFlags.canGoNext) {
+        if (
+          state.canGoBack === nextFlags.canGoBack &&
+          state.canGoNext === nextFlags.canGoNext
+        ) {
           return;
         }
 
@@ -254,4 +270,5 @@ const navigationMiddlewareImpl =
     );
   };
 
-export const navigationMiddleware = navigationMiddlewareImpl as NavigationMiddleware;
+export const navigationMiddleware =
+  navigationMiddlewareImpl as NavigationMiddleware;

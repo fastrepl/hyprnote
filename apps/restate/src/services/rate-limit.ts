@@ -3,7 +3,10 @@ import * as restate from "@restatedev/restate-sdk-cloudflare-workers/fetch";
 export const rateLimiter = restate.object({
   name: "RateLimiter",
   handlers: {
-    checkAndConsume: async (ctx: restate.ObjectContext, config: RateLimitConfig): Promise<void> => {
+    checkAndConsume: async (
+      ctx: restate.ObjectContext,
+      config: RateLimitConfig,
+    ): Promise<void> => {
       const now = await ctx.run("timestamp", () => Date.now());
       const state = (await ctx.get<RateLimitState>("state")) ?? {
         windowStartMs: now,

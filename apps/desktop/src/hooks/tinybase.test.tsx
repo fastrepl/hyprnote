@@ -16,7 +16,9 @@ describe("TinyBase hooks", () => {
   describe("useSession", () => {
     it("returns an object with session fields", () => {
       const { result } = renderHook(() => useSession("test-session"), {
-        wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+        wrapper: ({ children }) => (
+          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+        ),
       });
 
       expect(result.current).toHaveProperty("title");
@@ -29,7 +31,9 @@ describe("TinyBase hooks", () => {
 
     it("returns undefined for non-existent session", () => {
       const { result } = renderHook(() => useSession("non-existent"), {
-        wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+        wrapper: ({ children }) => (
+          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+        ),
       });
 
       expect(result.current.title).toBeUndefined();
@@ -40,7 +44,9 @@ describe("TinyBase hooks", () => {
   describe("useSetSessionTitle", () => {
     it("returns a function", () => {
       const { result } = renderHook(() => useSetSessionTitle(), {
-        wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+        wrapper: ({ children }) => (
+          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+        ),
       });
 
       expect(typeof result.current).toBe("function");
@@ -50,7 +56,9 @@ describe("TinyBase hooks", () => {
   describe("useSetSessionRawMd", () => {
     it("returns a function", () => {
       const { result } = renderHook(() => useSetSessionRawMd(), {
-        wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+        wrapper: ({ children }) => (
+          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+        ),
       });
 
       expect(typeof result.current).toBe("function");
@@ -60,7 +68,9 @@ describe("TinyBase hooks", () => {
   describe("useHuman", () => {
     it("returns an object with human fields", () => {
       const { result } = renderHook(() => useHuman("test-human"), {
-        wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+        wrapper: ({ children }) => (
+          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+        ),
       });
 
       expect(result.current).toHaveProperty("name");
@@ -75,7 +85,9 @@ describe("TinyBase hooks", () => {
   describe("useOrganization", () => {
     it("returns an object with organization fields", () => {
       const { result } = renderHook(() => useOrganization("test-org"), {
-        wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+        wrapper: ({ children }) => (
+          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+        ),
       });
 
       expect(result.current).toHaveProperty("name");
@@ -86,7 +98,9 @@ describe("TinyBase hooks", () => {
   describe("useFolder", () => {
     it("returns an object with folder fields", () => {
       const { result } = renderHook(() => useFolder("test-folder"), {
-        wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+        wrapper: ({ children }) => (
+          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+        ),
       });
 
       expect(result.current).toHaveProperty("name");
@@ -98,7 +112,9 @@ describe("TinyBase hooks", () => {
   describe("useTemplate", () => {
     it("returns an object with template fields", () => {
       const { result } = renderHook(() => useTemplate("test-template"), {
-        wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+        wrapper: ({ children }) => (
+          <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+        ),
       });
 
       expect(result.current).toHaveProperty("title");
@@ -116,7 +132,9 @@ describe("TinyBase hooks", () => {
           human: useHuman("human-1"),
         }),
         {
-          wrapper: ({ children }) => <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>,
+          wrapper: ({ children }) => (
+            <TinyBaseTestWrapper>{children}</TinyBaseTestWrapper>
+          ),
         },
       );
 

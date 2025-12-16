@@ -17,7 +17,9 @@ describe("Tab Lifecycle", () => {
     useTabs.getState().close(tab);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ id: tab.id, type: "sessions" }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ id: tab.id, type: "sessions" }),
+    );
   });
 
   test("registerOnClose triggers handler when openCurrent replaces tab", () => {

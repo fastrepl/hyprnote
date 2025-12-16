@@ -7,7 +7,11 @@ import {
   type GeneralState,
   type SessionMode,
 } from "./general";
-import { createTranscriptSlice, type TranscriptActions, type TranscriptState } from "./transcript";
+import {
+  createTranscriptSlice,
+  type TranscriptActions,
+  type TranscriptState,
+} from "./transcript";
 
 type State = GeneralState & TranscriptState & BatchState;
 type Actions = GeneralActions & TranscriptActions & BatchActions;

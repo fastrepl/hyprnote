@@ -29,7 +29,11 @@ export const TabItemHuman: TabItem<Extract<Tab, { type: "humans" }>> = ({
   );
 };
 
-export function TabContentHuman({ tab: _ }: { tab: Extract<Tab, { type: "humans" }> }) {
+export function TabContentHuman({
+  tab: _,
+}: {
+  tab: Extract<Tab, { type: "humans" }>;
+}) {
   return (
     <StandardTabWrapper>
       <div>Human</div>

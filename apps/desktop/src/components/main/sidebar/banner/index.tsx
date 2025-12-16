@@ -1,3 +1,4 @@
+import type { ServerStatus } from "@hypr/plugin-local-stt";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -5,6 +6,7 @@ import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../../../auth";
 import { useConfigValues } from "../../../../config/use-config";
+import { useSTTConnection } from "../../../../hooks/useSTTConnection";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { Banner } from "./component";
 import { createBannerRegistry, getBannerToShow } from "./registry";
@@ -32,7 +34,18 @@ export function BannerArea({
     "current_stt_model",
   ] as const);
   const hasLLMConfigured = !!(current_llm_provider && current_llm_model);
-  const hasSttConfigured = !!(current_stt_provider && current_stt_model);
+
+  const { conn: sttConnection, local: sttLocal } = useSTTConnection();
+  const sttServerStatus = sttLocal.data?.status as ServerStatus | undefined;
+
+  const isLocalSttModel =
+    current_stt_provider === "hyprnote" &&
+    !!current_stt_model &&
+    current_stt_model !== "cloud";
+
+  const hasSttConfigured = isLocalSttModel
+    ? !!sttConnection
+    : !!(current_stt_provider && current_stt_model && sttConnection);
 
   const currentTab = useTabs((state) => state.currentTab);
   const isAiTranscriptionTabActive =
@@ -72,6 +85,8 @@ export function BannerArea({
         isAuthenticated,
         hasLLMConfigured,
         hasSttConfigured,
+        sttServerStatus,
+        isLocalSttModel,
         isAiTranscriptionTabActive,
         isAiIntelligenceTabActive,
         onSignIn: handleSignIn,
@@ -82,6 +97,8 @@ export function BannerArea({
       isAuthenticated,
       hasLLMConfigured,
       hasSttConfigured,
+      sttServerStatus,
+      isLocalSttModel,
       isAiTranscriptionTabActive,
       isAiIntelligenceTabActive,
       handleSignIn,

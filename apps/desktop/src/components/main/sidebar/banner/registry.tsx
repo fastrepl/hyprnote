@@ -1,3 +1,5 @@
+import type { ServerStatus } from "@hypr/plugin-local-stt";
+
 import type { BannerCondition, BannerType } from "./types";
 
 type BannerRegistryEntry = {
@@ -9,6 +11,8 @@ type BannerRegistryParams = {
   isAuthenticated: boolean;
   hasLLMConfigured: boolean;
   hasSttConfigured: boolean;
+  sttServerStatus: ServerStatus | undefined;
+  isLocalSttModel: boolean;
   isAiTranscriptionTabActive: boolean;
   isAiIntelligenceTabActive: boolean;
   onSignIn: () => void | Promise<void>;
@@ -20,6 +24,8 @@ export function createBannerRegistry({
   isAuthenticated,
   hasLLMConfigured,
   hasSttConfigured,
+  sttServerStatus,
+  isLocalSttModel,
   isAiTranscriptionTabActive,
   isAiIntelligenceTabActive,
   onSignIn,
@@ -43,7 +49,8 @@ export function createBannerRegistry({
         },
         dismissible: false,
       },
-      condition: () => !hasSttConfigured && !isAiTranscriptionTabActive,
+      condition: () =>
+        !hasSttConfigured && !isLocalSttModel && !isAiTranscriptionTabActive,
     },
     {
       banner: {

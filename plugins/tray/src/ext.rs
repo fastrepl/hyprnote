@@ -1,7 +1,7 @@
 use tauri::{
     AppHandle, Result,
     image::Image,
-    menu::{Menu, MenuItemKind, PredefinedMenuItem},
+    menu::{Menu, MenuItemKind, PredefinedMenuItem, Submenu},
     tray::TrayIconBuilder,
 };
 
@@ -34,14 +34,32 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
             let items = menu.items()?;
 
             if !items.is_empty()
-                && let MenuItemKind::Submenu(submenu) = &items[0]
+                && let MenuItemKind::Submenu(old_submenu) = &items[0]
             {
-                submenu.remove_at(0)?;
-                submenu.remove_at(0)?;
-                submenu.prepend(&cli_item)?;
-                submenu.prepend(&settings_item)?;
-                submenu.prepend(&check_update_item)?;
-                submenu.prepend(&info_item)?;
+                let app_name = old_submenu.text()?;
+
+                let new_app_submenu = Submenu::with_items(
+                    app,
+                    &app_name,
+                    true,
+                    &[
+                        &info_item,
+                        &check_update_item,
+                        &settings_item,
+                        &cli_item,
+                        &PredefinedMenuItem::separator(app)?,
+                        &PredefinedMenuItem::services(app, None)?,
+                        &PredefinedMenuItem::separator(app)?,
+                        &PredefinedMenuItem::hide(app, None)?,
+                        &PredefinedMenuItem::hide_others(app, None)?,
+                        &PredefinedMenuItem::show_all(app, None)?,
+                        &PredefinedMenuItem::separator(app)?,
+                        &PredefinedMenuItem::quit(app, None)?,
+                    ],
+                )?;
+
+                menu.remove(old_submenu)?;
+                menu.prepend(&new_app_submenu)?;
             }
 
             if items.len() > 1

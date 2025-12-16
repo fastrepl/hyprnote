@@ -10,6 +10,8 @@ import type {
   WhisperModel,
 } from "@hypr/plugin-local-stt";
 
+import type { ProviderRequirement } from "../shared/eligibility";
+
 type Provider = {
   disabled: boolean;
   id: string;
@@ -19,6 +21,7 @@ type Provider = {
   models: SupportedSttModel[] | string[];
   badge?: string | null;
   requiresPro?: boolean;
+  requirements: ProviderRequirement[];
 };
 
 export type ProviderId = (typeof _PROVIDERS)[number]["id"];
@@ -95,6 +98,7 @@ const _PROVIDERS = [
       "QuantizedSmallEn",
     ],
     requiresPro: false,
+    requirements: [],
   },
   {
     disabled: false,
@@ -105,6 +109,7 @@ const _PROVIDERS = [
     baseUrl: "https://api.assemblyai.com",
     models: ["universal"],
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -129,6 +134,7 @@ const _PROVIDERS = [
       "nova-2-atc",
     ],
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -141,6 +147,7 @@ const _PROVIDERS = [
     baseUrl: "https://api.gladia.io",
     models: ["solaria-1"],
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -151,6 +158,7 @@ const _PROVIDERS = [
     baseUrl: "https://api.openai.com/v1",
     models: ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"],
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -163,6 +171,7 @@ const _PROVIDERS = [
     baseUrl: "https://api.soniox.com",
     models: ["stt-v3"],
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     disabled: false,
@@ -173,6 +182,9 @@ const _PROVIDERS = [
     baseUrl: undefined,
     models: [],
     requiresPro: false,
+    requirements: [
+      { kind: "requires_config", fields: ["base_url", "api_key"] },
+    ],
   },
   {
     disabled: true,
@@ -183,6 +195,7 @@ const _PROVIDERS = [
     baseUrl: "https://api.fireworks.ai",
     models: ["Default"],
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
 ] as const satisfies readonly Provider[];
 

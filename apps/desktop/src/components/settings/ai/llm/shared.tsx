@@ -8,6 +8,8 @@ import {
 } from "@lobehub/icons";
 import type { ReactNode } from "react";
 
+import type { ProviderRequirement } from "../shared/eligibility";
+
 type Provider = {
   id: string;
   displayName: string;
@@ -16,6 +18,7 @@ type Provider = {
   apiKey: boolean;
   baseUrl?: string;
   requiresPro?: boolean;
+  requirements: ProviderRequirement[];
 };
 
 export type ProviderId = (typeof PROVIDERS)[number]["id"];
@@ -29,6 +32,10 @@ export const PROVIDERS = [
     apiKey: false,
     baseUrl: "",
     requiresPro: true,
+    requirements: [
+      { kind: "requires_auth" },
+      { kind: "requires_entitlement", entitlement: "pro" },
+    ],
   },
   {
     id: "openrouter",
@@ -38,6 +45,7 @@ export const PROVIDERS = [
     apiKey: true,
     baseUrl: "https://openrouter.ai/api/v1",
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     id: "openai",
@@ -47,6 +55,7 @@ export const PROVIDERS = [
     apiKey: true,
     baseUrl: "https://api.openai.com/v1",
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     id: "anthropic",
@@ -56,6 +65,7 @@ export const PROVIDERS = [
     apiKey: true,
     baseUrl: "https://api.anthropic.com/v1",
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     id: "google_generative_ai",
@@ -65,6 +75,7 @@ export const PROVIDERS = [
     apiKey: true,
     baseUrl: "https://generativelanguage.googleapis.com/v1beta",
     requiresPro: false,
+    requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
     id: "custom",
@@ -74,6 +85,9 @@ export const PROVIDERS = [
     apiKey: true,
     baseUrl: undefined,
     requiresPro: false,
+    requirements: [
+      { kind: "requires_config", fields: ["base_url", "api_key"] },
+    ],
   },
   {
     id: "lmstudio",
@@ -83,6 +97,7 @@ export const PROVIDERS = [
     apiKey: false,
     baseUrl: "http://127.0.0.1:1234/v1",
     requiresPro: false,
+    requirements: [],
   },
   {
     id: "ollama",
@@ -92,6 +107,7 @@ export const PROVIDERS = [
     apiKey: false,
     baseUrl: "http://127.0.0.1:11434/v1",
     requiresPro: false,
+    requirements: [],
   },
 ] as const satisfies readonly Provider[];
 

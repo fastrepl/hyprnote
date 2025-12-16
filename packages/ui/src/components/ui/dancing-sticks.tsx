@@ -18,13 +18,7 @@ type EqualizerStickProps = {
   stickWidth: number;
 };
 
-function EqualizerStick({
-  baseLength,
-  amplitude,
-  color,
-  height,
-  stickWidth,
-}: EqualizerStickProps) {
+function EqualizerStick({ baseLength, amplitude, color, height, stickWidth }: EqualizerStickProps) {
   const scaledBaseLength = baseLength * Math.max(0.2, Math.max(amplitude, 0.1));
 
   const animationHeights = useMemo(

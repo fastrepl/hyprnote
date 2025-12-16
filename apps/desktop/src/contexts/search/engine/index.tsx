@@ -1,13 +1,6 @@
 import { create, search as oramaSearch } from "@orama/orama";
 import { pluginQPS } from "@orama/plugin-qps";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import { type Store as PersistedStore } from "../../../store/tinybase/main";
 import { buildOramaFilters } from "./filters";
@@ -21,18 +14,10 @@ import type { Index, SearchFilters, SearchHit } from "./types";
 import { SEARCH_SCHEMA } from "./types";
 import { normalizeQuery } from "./utils";
 
-export type {
-  SearchDocument,
-  SearchEntityType,
-  SearchFilters,
-  SearchHit,
-} from "./types";
+export type { SearchDocument, SearchEntityType, SearchFilters, SearchHit } from "./types";
 
 const SearchEngineContext = createContext<{
-  search: (
-    query: string,
-    filters?: SearchFilters | null,
-  ) => Promise<SearchHit[]>;
+  search: (query: string, filters?: SearchFilters | null) => Promise<SearchHit[]>;
   isIndexing: boolean;
 } | null>(null);
 
@@ -102,10 +87,7 @@ export function SearchEngineProvider({
   }, [store]);
 
   const search = useCallback(
-    async (
-      query: string,
-      filters: SearchFilters | null = null,
-    ): Promise<SearchHit[]> => {
+    async (query: string, filters: SearchFilters | null = null): Promise<SearchHit[]> => {
       const normalizedQuery = normalizeQuery(query);
 
       if (normalizedQuery.length < 1) {
@@ -144,11 +126,7 @@ export function SearchEngineProvider({
     isIndexing,
   };
 
-  return (
-    <SearchEngineContext.Provider value={value}>
-      {children}
-    </SearchEngineContext.Provider>
-  );
+  return <SearchEngineContext.Provider value={value}>{children}</SearchEngineContext.Provider>;
 }
 
 export function useSearchEngine() {

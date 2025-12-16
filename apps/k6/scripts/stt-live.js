@@ -163,10 +163,8 @@ export function handleSummary(data) {
       },
       transcripts: {
         received: data.metrics.ws_transcripts_received?.values?.count || 0,
-        first_latency_avg_ms:
-          data.metrics.ws_first_transcript_latency?.values?.avg || 0,
-        first_latency_p95_ms:
-          data.metrics.ws_first_transcript_latency?.values?.["p(95)"] || 0,
+        first_latency_avg_ms: data.metrics.ws_first_transcript_latency?.values?.avg || 0,
+        first_latency_p95_ms: data.metrics.ws_first_transcript_latency?.values?.["p(95)"] || 0,
       },
       connection_duration: {
         avg_ms: data.metrics.ws_connection_duration?.values?.avg || 0,
@@ -178,10 +176,7 @@ export function handleSummary(data) {
     thresholds: Object.fromEntries(
       Object.entries(data.metrics)
         .filter(([_, v]) => v.thresholds)
-        .map(([k, v]) => [
-          k,
-          { ok: Object.values(v.thresholds).every((t) => t.ok) },
-        ]),
+        .map(([k, v]) => [k, { ok: Object.values(v.thresholds).every((t) => t.ok) }]),
     ),
   };
 
@@ -224,9 +219,7 @@ function fetchFlyMetrics(durationMs) {
         const values = data.data?.result?.[0]?.values || [];
 
         if (values.length > 0) {
-          const nums = values
-            .map((v) => parseFloat(v[1]))
-            .filter((n) => !isNaN(n));
+          const nums = values.map((v) => parseFloat(v[1])).filter((n) => !isNaN(n));
           results[name] = {
             avg: nums.reduce((a, b) => a + b, 0) / nums.length,
             max: Math.max(...nums),

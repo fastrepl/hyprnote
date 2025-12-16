@@ -31,12 +31,7 @@ function PermissionRow({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1">
-        <div
-          className={cn([
-            "flex items-center gap-2 mb-1",
-            !isAuthorized && "text-red-500",
-          ])}
-        >
+        <div className={cn(["flex items-center gap-2 mb-1", !isAuthorized && "text-red-500"])}>
           {!isAuthorized && <AlertCircleIcon className="size-4" />}
           <h3 className="text-sm font-medium">{title}</h3>
         </div>
@@ -47,21 +42,12 @@ function PermissionRow({
         size="icon"
         onClick={onAction}
         disabled={isPending || isAuthorized}
-        className={cn([
-          "size-8",
-          isAuthorized && "bg-stone-100 text-stone-800",
-        ])}
+        className={cn(["size-8", isAuthorized && "bg-stone-100 text-stone-800"])}
         aria-label={
-          isAuthorized
-            ? `${title} permission granted`
-            : `Request ${title.toLowerCase()} permission`
+          isAuthorized ? `${title} permission granted` : `Request ${title.toLowerCase()} permission`
         }
       >
-        {isAuthorized ? (
-          <CheckIcon className="size-5" />
-        ) : (
-          <ArrowRightIcon className="size-5" />
-        )}
+        {isAuthorized ? <CheckIcon className="size-5" /> : <ArrowRightIcon className="size-5" />}
       </Button>
     </div>
   );

@@ -51,20 +51,9 @@ export function RelatedSessions({ templateId }: { templateId: string }) {
   );
 }
 
-function RelatedSessionItem({
-  sessionId,
-  onClick,
-}: {
-  sessionId: string;
-  onClick: () => void;
-}) {
+function RelatedSessionItem({ sessionId, onClick }: { sessionId: string; onClick: () => void }) {
   const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID);
-  const createdAt = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "created_at",
-    main.STORE_ID,
-  );
+  const createdAt = main.UI.useCell("sessions", sessionId, "created_at", main.STORE_ID);
 
   const timeAgo = useMemo(() => {
     if (!createdAt) return "";
@@ -84,9 +73,7 @@ function RelatedSessionItem({
     >
       <StickyNote className="w-4 h-4 text-neutral-400 shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-neutral-900 truncate">
-          {title || "Untitled"}
-        </div>
+        <div className="text-sm font-medium text-neutral-900 truncate">{title || "Untitled"}</div>
         {timeAgo && <div className="text-xs text-neutral-500">{timeAgo}</div>}
       </div>
     </button>

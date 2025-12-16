@@ -1,34 +1,16 @@
-import {
-  generateObject,
-  type LanguageModel,
-  smoothStream,
-  streamText,
-} from "ai";
+import { generateObject, type LanguageModel, smoothStream, streamText } from "ai";
 import { z } from "zod";
 
 import { commands as templateCommands } from "@hypr/plugin-template";
-import {
-  type Template,
-  type TemplateSection,
-  templateSectionSchema,
-} from "@hypr/store";
+import { type Template, type TemplateSection, templateSectionSchema } from "@hypr/store";
 
 import type { TaskArgsMapTransformed, TaskConfig } from ".";
 import type { Store } from "../../../tinybase/main";
 import { getCustomPrompt } from "../../../tinybase/prompts";
-import {
-  addMarkdownSectionSeparators,
-  trimBeforeMarker,
-} from "../shared/transform_impl";
-import {
-  type EarlyValidatorFn,
-  withEarlyValidationRetry,
-} from "../shared/validate";
+import { addMarkdownSectionSeparators, trimBeforeMarker } from "../shared/transform_impl";
+import { type EarlyValidatorFn, withEarlyValidationRetry } from "../shared/validate";
 
-export const enhanceWorkflow: Pick<
-  TaskConfig<"enhance">,
-  "executeWorkflow" | "transforms"
-> = {
+export const enhanceWorkflow: Pick<TaskConfig<"enhance">, "executeWorkflow" | "transforms"> = {
   executeWorkflow,
   transforms: [
     trimBeforeMarker("#"),
@@ -84,10 +66,7 @@ async function getSystemPrompt(args: TaskArgsMapTransformed["enhance"]) {
   return result.data;
 }
 
-async function getUserPrompt(
-  args: TaskArgsMapTransformed["enhance"],
-  store: Store,
-) {
+async function getUserPrompt(args: TaskArgsMapTransformed["enhance"], store: Store) {
   const { rawMd, sessionData, participants, template, segments } = args;
 
   const ctx = {
@@ -224,16 +203,13 @@ IMPORTANT: Previous attempt failed. ${previousFeedback}`;
   );
 }
 
-function createValidator(
-  template?: Pick<Template, "sections">,
-): EarlyValidatorFn {
+function createValidator(template?: Pick<Template, "sections">): EarlyValidatorFn {
   return (textSoFar: string) => {
     const normalized = textSoFar.trim();
 
     if (!template?.sections || template.sections.length === 0) {
       if (!normalized.startsWith("# ")) {
-        const feedback =
-          "Output must start with a markdown h1 heading (# Title).";
+        const feedback = "Output must start with a markdown h1 heading (# Title).";
         return { valid: false, feedback };
       }
 
@@ -242,9 +218,7 @@ function createValidator(
 
     const firstSection = template.sections[0];
     const expectedStart = `# ${firstSection.title}`;
-    const isValid =
-      expectedStart.startsWith(normalized) ||
-      normalized.startsWith(expectedStart);
+    const isValid = expectedStart.startsWith(normalized) || normalized.startsWith(expectedStart);
     if (!isValid) {
       const feedback = `Output must start with the first template section heading: "${expectedStart}"`;
       return { valid: false, feedback };

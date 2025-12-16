@@ -33,8 +33,8 @@ export function createBannerRegistry({
         id: "missing-stt",
         description: (
           <>
-            <strong className="font-mono">Transcription model</strong> is needed
-            to make Hyprnote listen to your conversations.
+            <strong className="font-mono">Transcription model</strong> is needed to make Hyprnote
+            listen to your conversations.
           </>
         ),
         primaryAction: {
@@ -50,8 +50,8 @@ export function createBannerRegistry({
         id: "missing-llm",
         description: (
           <>
-            <strong className="font-mono">Language model</strong> is needed to
-            make Hyprnote summarize and chat about your conversations.
+            <strong className="font-mono">Language model</strong> is needed to make Hyprnote
+            summarize and chat about your conversations.
           </>
         ),
         primaryAction: {
@@ -60,22 +60,14 @@ export function createBannerRegistry({
         },
         dismissible: false,
       },
-      condition: () =>
-        hasSttConfigured && !hasLLMConfigured && !isAiIntelligenceTabActive,
+      condition: () => hasSttConfigured && !hasLLMConfigured && !isAiIntelligenceTabActive,
     },
     {
       banner: {
         id: "upgrade-to-pro",
-        icon: (
-          <img
-            src="/assets/hyprnote-pro.png"
-            alt="Hyprnote Pro"
-            className="size-5"
-          />
-        ),
+        icon: <img src="/assets/hyprnote-pro.png" alt="Hyprnote Pro" className="size-5" />,
         title: "Keep the magic going",
-        description:
-          "Transcription stays free. Pro unlocks other magic you'll love.",
+        description: "Transcription stays free. Pro unlocks other magic you'll love.",
         primaryAction: {
           label: "Upgrade to Pro",
           onClick: onSignIn,

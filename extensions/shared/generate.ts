@@ -23,9 +23,7 @@ function extractExports(filePath: string): string[] {
   const content = Deno.readTextFileSync(filePath);
   const exports: string[] = [];
 
-  const namedExportMatch = content.match(
-    /export\s*\{\s*([^}]+)\s*\}\s*;?\s*$/m,
-  );
+  const namedExportMatch = content.match(/export\s*\{\s*([^}]+)\s*\}\s*;?\s*$/m);
   if (namedExportMatch) {
     const names = namedExportMatch[1]
       .split(",")
@@ -34,9 +32,7 @@ function extractExports(filePath: string): string[] {
     exports.push(...names);
   }
 
-  const inlineExports = content.matchAll(
-    /export\s+(?:const|function|class)\s+(\w+)/g,
-  );
+  const inlineExports = content.matchAll(/export\s+(?:const|function|class)\s+(\w+)/g);
   for (const match of inlineExports) {
     if (!exports.includes(match[1])) {
       exports.push(match[1]);
@@ -57,14 +53,9 @@ function collectUiModules(): UiModuleDefinition[] {
         continue;
       }
 
-      if (
-        entry.isFile &&
-        (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx"))
-      ) {
+      if (entry.isFile && (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx"))) {
         const relativeFromUiSrc = toPosixPath(
-          entryPath
-            .replace(UI_SRC_DIR + "/", "")
-            .replace(UI_SRC_DIR + "\\", ""),
+          entryPath.replace(UI_SRC_DIR + "/", "").replace(UI_SRC_DIR + "\\", ""),
         );
         const subpath = relativeFromUiSrc.replace(/\.(ts|tsx)$/i, "");
         const exports = extractExports(entryPath);
@@ -87,9 +78,7 @@ function printGlobalsChecklist(uiModules: UiModuleDefinition[]) {
   console.log(`  window.${HYPR_MODULES["@hypr/store"].global}  // @hypr/store`);
   console.log(`  window.${HYPR_MODULES["@hypr/tabs"].global}  // @hypr/tabs`);
   console.log(`  window.${HYPR_MODULES["@hypr/ui"].global}  // @hypr/ui/*`);
-  console.log(
-    `\nRequired UI subpaths in window.${HYPR_MODULES["@hypr/ui"].global}:\n`,
-  );
+  console.log(`\nRequired UI subpaths in window.${HYPR_MODULES["@hypr/ui"].global}:\n`);
   for (const module of uiModules) {
     console.log(`  "${module.subpath}"`);
   }

@@ -1,10 +1,5 @@
 import { listen, TauriEvent, type UnlistenFn } from "@tauri-apps/api/event";
-import {
-  BaseDirectory,
-  exists,
-  mkdir,
-  writeTextFile,
-} from "@tauri-apps/plugin-fs";
+import { BaseDirectory, exists, mkdir, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useEffect } from "react";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
 import * as _UI from "tinybase/ui-react/with-schemas";
@@ -32,9 +27,7 @@ import { registerSaveHandler } from "./save";
 
 export const STORE_ID = "main";
 
-export const TABLES = Object.keys(
-  SCHEMA.table,
-) as (keyof typeof SCHEMA.table)[];
+export const TABLES = Object.keys(SCHEMA.table) as (keyof typeof SCHEMA.table)[];
 
 const {
   useCreateMergeableStore,
@@ -78,9 +71,7 @@ export const testUtils = {
 
 export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const store = useCreateMergeableStore(() =>
-    createMergeableStore()
-      .setTablesSchema(SCHEMA.table)
-      .setValuesSchema(SCHEMA.value),
+    createMergeableStore().setTablesSchema(SCHEMA.table).setValuesSchema(SCHEMA.value),
   );
 
   useDidFinishTransactionListener(
@@ -137,10 +128,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           });
         }
 
-        if (
-          !store.getTableIds().includes("sessions") ||
-          store.getRowIds("sessions").length === 0
-        ) {
+        if (!store.getTableIds().includes("sessions") || store.getRowIds("sessions").length === 0) {
           const sessionId = crypto.randomUUID();
           const now = new Date().toISOString();
 
@@ -258,10 +246,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   }, [localPersister, localPersister2, persist]);
 
   const synchronizer = useCreateSynchronizer(store, async (store) =>
-    createBroadcastChannelSynchronizer(
-      store,
-      "hypr-sync-persisted",
-    ).startSync(),
+    createBroadcastChannelSynchronizer(store, "hypr-sync-persisted").startSync(),
   );
 
   const relationships = useCreateRelationships(
@@ -280,12 +265,7 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           "folders",
           "folder_id",
         )
-        .setRelationshipDefinition(
-          RELATIONSHIPS.sessionToEvent,
-          "sessions",
-          "events",
-          "event_id",
-        )
+        .setRelationshipDefinition(RELATIONSHIPS.sessionToEvent, "sessions", "events", "event_id")
         .setRelationshipDefinition(
           RELATIONSHIPS.folderToParentFolder,
           "folders",
@@ -365,42 +345,32 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
     store,
     (store) =>
       createQueries(store)
-        .setQueryDefinition(
-          QUERIES.eventsWithoutSession,
-          "events",
-          ({ select, join, where }) => {
-            select("title");
-            select("started_at");
-            select("ended_at");
-            select("calendar_id");
+        .setQueryDefinition(QUERIES.eventsWithoutSession, "events", ({ select, join, where }) => {
+          select("title");
+          select("started_at");
+          select("ended_at");
+          select("calendar_id");
 
-            join("sessions", (_getCell, rowId) => {
-              let id: string | undefined;
-              store.forEachRow("sessions", (sessionRowId, _forEachCell) => {
-                if (
-                  store.getCell("sessions", sessionRowId, "event_id") === rowId
-                ) {
-                  id = sessionRowId;
-                }
-              });
-              return id;
-            }).as("session");
-            where((getTableCell) => !getTableCell("session", "user_id"));
-          },
-        )
-        .setQueryDefinition(
-          QUERIES.sessionsWithMaybeEvent,
-          "sessions",
-          ({ select, join }) => {
-            select("title");
-            select("created_at");
-            select("event_id");
-            select("folder_id");
+          join("sessions", (_getCell, rowId) => {
+            let id: string | undefined;
+            store.forEachRow("sessions", (sessionRowId, _forEachCell) => {
+              if (store.getCell("sessions", sessionRowId, "event_id") === rowId) {
+                id = sessionRowId;
+              }
+            });
+            return id;
+          }).as("session");
+          where((getTableCell) => !getTableCell("session", "user_id"));
+        })
+        .setQueryDefinition(QUERIES.sessionsWithMaybeEvent, "sessions", ({ select, join }) => {
+          select("title");
+          select("created_at");
+          select("event_id");
+          select("folder_id");
 
-            join("events", "event_id").as("event");
-            select("event", "started_at").as("event_started_at");
-          },
-        )
+          join("events", "event_id").as("event");
+          select("event", "started_at").as("event_started_at");
+        })
         .setQueryDefinition(QUERIES.visibleHumans, "humans", ({ select }) => {
           select("name");
           select("email");
@@ -410,48 +380,32 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
           select("is_user");
           select("created_at");
         })
-        .setQueryDefinition(
-          QUERIES.visibleOrganizations,
-          "organizations",
-          ({ select }) => {
-            select("name");
-            select("created_at");
-          },
-        )
-        .setQueryDefinition(
-          QUERIES.visibleTemplates,
-          "templates",
-          ({ select }) => {
-            select("title");
-            select("description");
-            select("sections");
-            select("created_at");
-          },
-        )
-        .setQueryDefinition(
-          QUERIES.visibleChatShortcuts,
-          "chat_shortcuts",
-          ({ select }) => {
-            select("user_id");
-            select("title");
-            select("content");
-            select("created_at");
-          },
-        )
+        .setQueryDefinition(QUERIES.visibleOrganizations, "organizations", ({ select }) => {
+          select("name");
+          select("created_at");
+        })
+        .setQueryDefinition(QUERIES.visibleTemplates, "templates", ({ select }) => {
+          select("title");
+          select("description");
+          select("sections");
+          select("created_at");
+        })
+        .setQueryDefinition(QUERIES.visibleChatShortcuts, "chat_shortcuts", ({ select }) => {
+          select("user_id");
+          select("title");
+          select("content");
+          select("created_at");
+        })
         .setQueryDefinition(QUERIES.visibleFolders, "folders", ({ select }) => {
           select("name");
           select("parent_folder_id");
           select("created_at");
         })
-        .setQueryDefinition(
-          QUERIES.visibleVocabs,
-          "memories",
-          ({ select, where }) => {
-            select("text");
-            select("created_at");
-            where((getCell) => getCell("type") === "vocab");
-          },
-        )
+        .setQueryDefinition(QUERIES.visibleVocabs, "memories", ({ select, where }) => {
+          select("text");
+          select("created_at");
+          where((getCell) => getCell("type") === "vocab");
+        })
         .setQueryDefinition(
           QUERIES.sessionParticipantsWithDetails,
           "mapping_session_participant",
@@ -472,18 +426,14 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
             select("org", "name").as("org_name");
           },
         )
-        .setQueryDefinition(
-          QUERIES.sessionRecordingTimes,
-          "transcripts",
-          ({ select, group }) => {
-            select("session_id");
-            select("started_at");
-            select("ended_at");
+        .setQueryDefinition(QUERIES.sessionRecordingTimes, "transcripts", ({ select, group }) => {
+          select("session_id");
+          select("started_at");
+          select("ended_at");
 
-            group("started_at", "min").as("min_started_at");
-            group("ended_at", "max").as("max_ended_at");
-          },
-        ),
+          group("started_at", "min").as("min_started_at");
+          group("ended_at", "max").as("max_ended_at");
+        }),
     [],
   )!;
 
@@ -495,52 +445,19 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         "mapping_session_participant",
         "session_id",
       )
-      .setIndexDefinition(
-        INDEXES.sessionsByHuman,
-        "mapping_session_participant",
-        "human_id",
-      )
-      .setIndexDefinition(
-        INDEXES.foldersByParent,
-        "folders",
-        "parent_folder_id",
-        "name",
-      )
-      .setIndexDefinition(
-        INDEXES.sessionsByFolder,
-        "sessions",
-        "folder_id",
-        "created_at",
-      )
-      .setIndexDefinition(
-        INDEXES.transcriptBySession,
-        "transcripts",
-        "session_id",
-        "created_at",
-      )
-      .setIndexDefinition(
-        INDEXES.wordsByTranscript,
-        "words",
-        "transcript_id",
-        "start_ms",
-      )
+      .setIndexDefinition(INDEXES.sessionsByHuman, "mapping_session_participant", "human_id")
+      .setIndexDefinition(INDEXES.foldersByParent, "folders", "parent_folder_id", "name")
+      .setIndexDefinition(INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
+      .setIndexDefinition(INDEXES.transcriptBySession, "transcripts", "session_id", "created_at")
+      .setIndexDefinition(INDEXES.wordsByTranscript, "words", "transcript_id", "start_ms")
       .setIndexDefinition(
         INDEXES.speakerHintsByTranscript,
         "speaker_hints",
         "transcript_id",
         "created_at",
       )
-      .setIndexDefinition(
-        INDEXES.speakerHintsByWord,
-        "speaker_hints",
-        "word_id",
-      )
-      .setIndexDefinition(
-        INDEXES.eventsByCalendar,
-        "events",
-        "calendar_id",
-        "started_at",
-      )
+      .setIndexDefinition(INDEXES.speakerHintsByWord, "speaker_hints", "word_id")
+      .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
       .setIndexDefinition(
         INDEXES.eventsByDate,
         "events",
@@ -585,23 +502,10 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
         (a, b) => a.localeCompare(b),
         (a, b) => String(a).localeCompare(String(b)),
       )
-      .setIndexDefinition(
-        INDEXES.sessionsByEvent,
-        "sessions",
-        "event_id",
-        "created_at",
-      )
+      .setIndexDefinition(INDEXES.sessionsByEvent, "sessions", "event_id", "created_at")
       .setIndexDefinition(INDEXES.tagsByName, "tags", "name")
-      .setIndexDefinition(
-        INDEXES.tagSessionsBySession,
-        "mapping_tag_session",
-        "session_id",
-      )
-      .setIndexDefinition(
-        INDEXES.tagSessionsByTag,
-        "mapping_tag_session",
-        "tag_id",
-      )
+      .setIndexDefinition(INDEXES.tagSessionsBySession, "mapping_tag_session", "session_id")
+      .setIndexDefinition(INDEXES.tagSessionsByTag, "mapping_tag_session", "tag_id")
       .setIndexDefinition(
         INDEXES.chatMessagesByGroup,
         "chat_messages",
@@ -625,23 +529,13 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
   const metrics = useCreateMetrics(store, (store) =>
     createMetrics(store)
       .setMetricDefinition(METRICS.totalHumans, "humans", "sum", () => 1)
-      .setMetricDefinition(
-        METRICS.totalOrganizations,
-        "organizations",
-        "sum",
-        () => 1,
-      )
-      .setMetricDefinition(
-        METRICS.totalCustomVocabs,
-        "memories",
-        "sum",
-        (getCell) => (getCell("type") === "vocab" ? 1 : 0),
+      .setMetricDefinition(METRICS.totalOrganizations, "organizations", "sum", () => 1)
+      .setMetricDefinition(METRICS.totalCustomVocabs, "memories", "sum", (getCell) =>
+        getCell("type") === "vocab" ? 1 : 0,
       ),
   );
 
-  const checkpoints = useCreateCheckpoints(store, (store) =>
-    createCheckpoints(store),
-  );
+  const checkpoints = useCreateCheckpoints(store, (store) => createCheckpoints(store));
 
   useProvideStore(STORE_ID, store);
   useProvideRelationships(STORE_ID, relationships);
@@ -748,10 +642,6 @@ async function saveEnhancedNoteToFile(
       baseDir: BaseDirectory.Data,
     });
   } catch (error) {
-    console.error(
-      "Failed to save enhanced note markdown:",
-      enhancedNote.id,
-      error,
-    );
+    console.error("Failed to save enhanced note markdown:", enhancedNote.id, error);
   }
 }

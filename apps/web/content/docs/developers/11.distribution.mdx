@@ -119,17 +119,20 @@ Before submitting to Flathub, ensure:
 1. Fork the `flathub/flathub` repository on GitHub
 
 2. Clone your fork and checkout the `new-pr` branch:
+
    ```bash
    git clone --branch=new-pr git@github.com:YOUR_USERNAME/flathub.git
    cd flathub
    ```
 
 3. Create a new branch for your app:
+
    ```bash
    git checkout -b com.hyprnote.Hyprnote
    ```
 
 4. Create the app directory and copy files:
+
    ```bash
    mkdir com.hyprnote.Hyprnote
    cp /path/to/hyprnote/apps/desktop/flatpak/com.hyprnote.Hyprnote.yml com.hyprnote.Hyprnote/
@@ -140,6 +143,7 @@ Before submitting to Flathub, ensure:
    ```
 
 5. Update the manifest to use a git source instead of a local directory:
+
    ```yaml
    sources:
      - type: git
@@ -149,6 +153,7 @@ Before submitting to Flathub, ensure:
    ```
 
 6. Commit and push:
+
    ```bash
    git add .
    git commit -m "Add com.hyprnote.Hyprnote"
@@ -162,6 +167,7 @@ Before submitting to Flathub, ensure:
 ### After Approval
 
 Once approved:
+
 - Flathub creates a dedicated repository: `flathub/com.hyprnote.Hyprnote`
 - You are invited as a maintainer
 - Future updates are done by pushing to that repository
@@ -205,6 +211,7 @@ The Flatpak manifest includes the following permissions:
 ### Build fails with missing dependencies
 
 Regenerate the vendored dependency files:
+
 ```bash
 python3 flatpak-builder-tools/node/flatpak-node-generator.py pnpm -o apps/desktop/flatpak/pnpm-sources.json pnpm-lock.yaml
 python3 flatpak-builder-tools/cargo/flatpak-cargo-generator.py -d Cargo.lock -o apps/desktop/flatpak/cargo-sources.json

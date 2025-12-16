@@ -1,7 +1,4 @@
-export function wrapSliceWithLogging<T extends Record<string, unknown>>(
-  name: string,
-  slice: T,
-): T {
+export function wrapSliceWithLogging<T extends Record<string, unknown>>(name: string, slice: T): T {
   if (process.env.NODE_ENV === "production") {
     return slice;
   }

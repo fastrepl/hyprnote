@@ -27,9 +27,7 @@ export function SettingsGeneral() {
     (row: Partial<General>) =>
       ({
         ...row,
-        spoken_languages: row.spoken_languages
-          ? JSON.stringify(row.spoken_languages)
-          : undefined,
+        spoken_languages: row.spoken_languages ? JSON.stringify(row.spoken_languages) : undefined,
         ignored_platforms: row.ignored_platforms
           ? JSON.stringify(row.ignored_platforms)
           : undefined,
@@ -91,29 +89,25 @@ export function SettingsGeneral() {
                           onChange: (val) => autostartField.handleChange(val),
                         }}
                         notificationDetect={{
-                          title:
-                            "Start/Stop listening to meetings automatically",
+                          title: "Start/Stop listening to meetings automatically",
                           description:
                             "You don't have to press button every time — we'll start/stop listening for you",
                           value: notificationDetectField.state.value,
-                          onChange: (val) =>
-                            notificationDetectField.handleChange(val),
+                          onChange: (val) => notificationDetectField.handleChange(val),
                         }}
                         saveRecordings={{
                           title: "Save recordings",
                           description:
                             "Audio files of meetings will be saved locally and won't be leaving your device",
                           value: saveRecordingsField.state.value,
-                          onChange: (val) =>
-                            saveRecordingsField.handleChange(val),
+                          onChange: (val) => saveRecordingsField.handleChange(val),
                         }}
                         telemetryConsent={{
                           title: "Share usage data",
                           description:
                             "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
                           value: telemetryConsentField.state.value,
-                          onChange: (val) =>
-                            telemetryConsentField.handleChange(val),
+                          onChange: (val) => telemetryConsentField.handleChange(val),
                         }}
                       />
                     )}

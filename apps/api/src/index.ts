@@ -70,10 +70,7 @@ app.onError((err, c) => {
 
 app.notFound((c) => c.text("not_found", 404));
 
-app.get(
-  "/openapi.gen.json",
-  openAPISpecs(routes, { documentation: openAPIDocumentation }),
-);
+app.get("/openapi.gen.json", openAPISpecs(routes, { documentation: openAPIDocumentation }));
 
 app.get(
   "/docs",

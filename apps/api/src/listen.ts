@@ -2,11 +2,7 @@ import type { Handler } from "hono";
 import { upgradeWebSocket } from "hono/bun";
 
 import type { AppBindings } from "./hono-bindings";
-import {
-  createProxyFromRequest,
-  normalizeWsData,
-  WsProxyConnection,
-} from "./stt";
+import { createProxyFromRequest, normalizeWsData, WsProxyConnection } from "./stt";
 
 export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
   const emit = c.get("emit");
@@ -25,11 +21,9 @@ export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
       type: "stt.websocket.error",
       userId,
       provider,
-      error:
-        error instanceof Error ? error : new Error("upstream_connect_failed"),
+      error: error instanceof Error ? error : new Error("upstream_connect_failed"),
     });
-    const detail =
-      error instanceof Error ? error.message : "upstream_connect_failed";
+    const detail = error instanceof Error ? error.message : "upstream_connect_failed";
     const status = detail === "upstream_connect_timeout" ? 504 : 502;
     return c.json({ error: "upstream_connect_failed", detail }, status);
   }
@@ -64,10 +58,7 @@ export const listenSocketHandler: Handler<AppBindings> = async (c, next) => {
           type: "stt.websocket.error",
           userId,
           provider,
-          error:
-            event instanceof Error
-              ? event
-              : new Error("websocket_client_error"),
+          error: event instanceof Error ? event : new Error("websocket_client_error"),
         });
         connection.closeConnections(1011, "client_error");
       },

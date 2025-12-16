@@ -25,9 +25,7 @@ export const Route = createFileRoute("/_view/about")({
   validateSearch: (search: Record<string, unknown>): AboutSearch => {
     return {
       type:
-        search.type === "story" ||
-        search.type === "founder" ||
-        search.type === "photo"
+        search.type === "story" || search.type === "founder" || search.type === "photo"
           ? search.type
           : undefined,
       id: typeof search.id === "string" ? search.id : undefined,
@@ -204,10 +202,7 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection />
-        <AboutContentSection
-          selectedItem={selectedItem}
-          setSelectedItem={handleSetSelectedItem}
-        />
+        <AboutContentSection selectedItem={selectedItem} setSelectedItem={handleSetSelectedItem} />
       </div>
     </div>
   );
@@ -221,8 +216,8 @@ function HeroSection() {
           About
         </h1>
         <p className="text-lg sm:text-xl text-neutral-600">
-          Learn about Hyprnote, meet our team, and discover the story behind our
-          privacy-first note-taking platform.
+          Learn about Hyprnote, meet our team, and discover the story behind our privacy-first
+          note-taking platform.
         </p>
       </div>
     </div>
@@ -269,16 +264,10 @@ function AboutContentSection({
                   selectedItem={selectedItem}
                   setSelectedItem={setSelectedItem}
                 />
-                <AboutDetailContent
-                  selectedItem={selectedItem}
-                  setSelectedItem={setSelectedItem}
-                />
+                <AboutDetailContent selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
               </>
             ) : (
-              <AboutDetailView
-                selectedItem={selectedItem}
-                setSelectedItem={setSelectedItem}
-              />
+              <AboutDetailView selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
             )}
           </div>
 
@@ -289,11 +278,7 @@ function AboutContentSection({
   );
 }
 
-function AboutGridView({
-  setSelectedItem,
-}: {
-  setSelectedItem: (item: SelectedItem) => void;
-}) {
+function AboutGridView({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
   return (
     <div className="p-8 overflow-y-auto h-[480px]">
       <OurStoryGrid setSelectedItem={setSelectedItem} />
@@ -303,11 +288,7 @@ function AboutGridView({
   );
 }
 
-function OurStoryGrid({
-  setSelectedItem,
-}: {
-  setSelectedItem: (item: SelectedItem) => void;
-}) {
+function OurStoryGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
   return (
     <div className="mb-8">
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
@@ -334,11 +315,7 @@ function OurStoryGrid({
   );
 }
 
-function FoundersGrid({
-  setSelectedItem,
-}: {
-  setSelectedItem: (item: SelectedItem) => void;
-}) {
+function FoundersGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
   return (
     <div className="mb-8 border-t border-neutral-100 pt-8">
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
@@ -373,11 +350,7 @@ function FoundersGrid({
   );
 }
 
-function TeamPhotosGrid({
-  setSelectedItem,
-}: {
-  setSelectedItem: (item: SelectedItem) => void;
-}) {
+function TeamPhotosGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
   return (
     <div className="border-t border-neutral-100 pt-8">
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
@@ -399,9 +372,7 @@ function TeamPhotosGrid({
                 className="w-16 h-16 rounded-lg border border-neutral-200 object-cover group-hover:scale-110 transition-transform"
               />
             </div>
-            <div className="font-medium text-stone-600 text-sm truncate w-full">
-              {photo.name}
-            </div>
+            <div className="font-medium text-stone-600 text-sm truncate w-full">{photo.name}</div>
           </button>
         ))}
       </div>
@@ -418,15 +389,9 @@ function AboutDetailView({
 }) {
   return (
     <ResizablePanelGroup direction="horizontal" className="h-[480px]">
-      <AboutSidebar
-        selectedItem={selectedItem}
-        setSelectedItem={setSelectedItem}
-      />
+      <AboutSidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
       <ResizableHandle withHandle className="bg-neutral-200 w-px" />
-      <AboutDetailPanel
-        selectedItem={selectedItem}
-        setSelectedItem={setSelectedItem}
-      />
+      <AboutDetailPanel selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
     </ResizablePanelGroup>
   );
 }
@@ -466,9 +431,7 @@ function MobileSidebarDrawer({
             }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
-              <span className="text-sm font-medium text-stone-600">
-                Navigation
-              </span>
+              <span className="text-sm font-medium text-stone-600">Navigation</span>
               <button
                 onClick={onClose}
                 className="p-1 hover:bg-neutral-200 rounded transition-colors"
@@ -516,20 +479,12 @@ function AboutDetailContent({
 }) {
   return (
     <div className="h-full flex flex-col">
-      {selectedItem?.type === "story" && (
-        <StoryDetail onClose={() => setSelectedItem(null)} />
-      )}
+      {selectedItem?.type === "story" && <StoryDetail onClose={() => setSelectedItem(null)} />}
       {selectedItem?.type === "founder" && (
-        <FounderDetail
-          founder={selectedItem.data}
-          onClose={() => setSelectedItem(null)}
-        />
+        <FounderDetail founder={selectedItem.data} onClose={() => setSelectedItem(null)} />
       )}
       {selectedItem?.type === "photo" && (
-        <PhotoDetail
-          photo={selectedItem.data}
-          onClose={() => setSelectedItem(null)}
-        />
+        <PhotoDetail photo={selectedItem.data} onClose={() => setSelectedItem(null)} />
       )}
     </div>
   );
@@ -545,18 +500,9 @@ function AboutSidebar({
   return (
     <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
       <div className="p-4 h-full overflow-y-auto">
-        <OurStorySidebar
-          selectedItem={selectedItem}
-          setSelectedItem={setSelectedItem}
-        />
-        <FoundersSidebar
-          selectedItem={selectedItem}
-          setSelectedItem={setSelectedItem}
-        />
-        <TeamPhotosSidebar
-          selectedItem={selectedItem}
-          setSelectedItem={setSelectedItem}
-        />
+        <OurStorySidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+        <FoundersSidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
+        <TeamPhotosSidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
       </div>
     </ResizablePanel>
   );
@@ -578,9 +524,7 @@ function OurStorySidebar({
         onClick={() => setSelectedItem({ type: "story" })}
         className={cn([
           "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
-          selectedItem?.type === "story"
-            ? "border-stone-600 bg-stone-100"
-            : "border-neutral-200",
+          selectedItem?.type === "story" ? "border-stone-600 bg-stone-100" : "border-neutral-200",
         ])}
       >
         <div className="w-12 h-12 shrink-0 flex items-center justify-center">
@@ -593,9 +537,7 @@ function OurStorySidebar({
           />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-stone-600 truncate">
-            Our Story.txt
-          </p>
+          <p className="text-sm font-medium text-stone-600 truncate">Our Story.txt</p>
         </div>
       </button>
     </div>
@@ -626,8 +568,7 @@ function FoundersSidebar({
             }
             className={cn([
               "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
-              selectedItem?.type === "founder" &&
-              selectedItem.data.id === founder.id
+              selectedItem?.type === "founder" && selectedItem.data.id === founder.id
                 ? "border-stone-600 bg-stone-100"
                 : "border-neutral-200",
             ])}
@@ -642,12 +583,8 @@ function FoundersSidebar({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-600 truncate">
-                {founder.name}
-              </p>
-              <p className="text-xs text-neutral-500 truncate">
-                {founder.role}
-              </p>
+              <p className="text-sm font-medium text-stone-600 truncate">{founder.name}</p>
+              <p className="text-xs text-neutral-500 truncate">{founder.role}</p>
             </div>
           </button>
         ))}
@@ -680,8 +617,7 @@ function TeamPhotosSidebar({
             }
             className={cn([
               "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
-              selectedItem?.type === "photo" &&
-              selectedItem.data.id === photo.id
+              selectedItem?.type === "photo" && selectedItem.data.id === photo.id
                 ? "border-stone-600 bg-stone-100"
                 : "border-neutral-200",
             ])}
@@ -696,9 +632,7 @@ function TeamPhotosSidebar({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-600 truncate">
-                {photo.name}
-              </p>
+              <p className="text-sm font-medium text-stone-600 truncate">{photo.name}</p>
             </div>
           </button>
         ))}
@@ -717,20 +651,12 @@ function AboutDetailPanel({
   return (
     <ResizablePanel defaultSize={65}>
       <div className="h-full flex flex-col">
-        {selectedItem?.type === "story" && (
-          <StoryDetail onClose={() => setSelectedItem(null)} />
-        )}
+        {selectedItem?.type === "story" && <StoryDetail onClose={() => setSelectedItem(null)} />}
         {selectedItem?.type === "founder" && (
-          <FounderDetail
-            founder={selectedItem.data}
-            onClose={() => setSelectedItem(null)}
-          />
+          <FounderDetail founder={selectedItem.data} onClose={() => setSelectedItem(null)} />
         )}
         {selectedItem?.type === "photo" && (
-          <PhotoDetail
-            photo={selectedItem.data}
-            onClose={() => setSelectedItem(null)}
-          />
+          <PhotoDetail photo={selectedItem.data} onClose={() => setSelectedItem(null)} />
         )}
       </div>
     </ResizablePanel>
@@ -760,79 +686,62 @@ function StoryDetail({ onClose }: { onClose: () => void }) {
 
       <div ref={scrollRef} className="p-4 overflow-y-auto">
         <div className="prose prose-stone max-w-none">
-          <h2 className="text-3xl font-serif text-stone-600 mb-4">
-            How We Landed on Hyprnote
-          </h2>
-          <p className="text-base text-neutral-500 italic mb-8">
-            Our story and what we believe
+          <h2 className="text-3xl font-serif text-stone-600 mb-4">How We Landed on Hyprnote</h2>
+          <p className="text-base text-neutral-500 italic mb-8">Our story and what we believe</p>
+
+          <p className="text-base text-neutral-600 leading-relaxed mb-4">
+            Hyprnote didn't start as a note-app. We were actually building an AI hardware toy for
+            kids. It was fun, but for two people, hardware was too slow and too heavy. When we
+            stepped back, we realized the thing we cared about wasn't the toy — it was helping
+            people capture and understand conversations.
           </p>
 
           <p className="text-base text-neutral-600 leading-relaxed mb-4">
-            Hyprnote didn't start as a note-app. We were actually building an AI
-            hardware toy for kids. It was fun, but for two people, hardware was
-            too slow and too heavy. When we stepped back, we realized the thing
-            we cared about wasn't the toy — it was helping people capture and
-            understand conversations.
-          </p>
-
-          <p className="text-base text-neutral-600 leading-relaxed mb-4">
-            At the same time, I was drowning in meetings and trying every AI
-            notetaker out there. They were slow, distracting, or shipped every
-            word to the cloud. None of them felt like something I'd trust or
-            enjoy using. That became the real beginning of Hyprnote.
+            At the same time, I was drowning in meetings and trying every AI notetaker out there.
+            They were slow, distracting, or shipped every word to the cloud. None of them felt like
+            something I'd trust or enjoy using. That became the real beginning of Hyprnote.
           </p>
 
           <p className="text-base text-neutral-600 leading-relaxed mb-8">
-            We built the first version quickly. And it showed. Too many
-            features, too many ideas, no clear philosophy. Even after YC, we
-            kept moving without asking the hard questions. The product worked,
-            but it didn't feel right. So we made the hard call: stop patching,
-            start over. Burn it down and rebuild from scratch with a simple,
-            focused point of view.
+            We built the first version quickly. And it showed. Too many features, too many ideas, no
+            clear philosophy. Even after YC, we kept moving without asking the hard questions. The
+            product worked, but it didn't feel right. So we made the hard call: stop patching, start
+            over. Burn it down and rebuild from scratch with a simple, focused point of view.
           </p>
 
-          <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">
-            Our manifesto
-          </h3>
+          <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">Our manifesto</h3>
           <p className="text-base text-neutral-600 leading-relaxed mb-4">
-            We believe in the power of notetaking, not notetakers. Meetings
-            should be moments of presence. If you're not adding value, your time
-            is better spent elsewhere — for you and for your team.
+            We believe in the power of notetaking, not notetakers. Meetings should be moments of
+            presence. If you're not adding value, your time is better spent elsewhere — for you and
+            for your team.
           </p>
 
           <p className="text-base text-neutral-600 leading-relaxed mb-4">
-            Hyprnote exists to preserve what makes us human: conversations that
-            spark ideas and collaboration that moves work forward. We build
-            tools that amplify human agency, not replace it. No ghost bots. No
-            silent note lurkers. Just people, thinking together.
+            Hyprnote exists to preserve what makes us human: conversations that spark ideas and
+            collaboration that moves work forward. We build tools that amplify human agency, not
+            replace it. No ghost bots. No silent note lurkers. Just people, thinking together.
           </p>
 
           <p className="text-base text-neutral-600 leading-relaxed mb-8">
             We stand with those who value real connection and purposeful work.
           </p>
 
-          <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">
-            Where we are now
-          </h3>
+          <h3 className="text-2xl font-serif text-stone-600 mb-4 mt-8">Where we are now</h3>
           <p className="text-base text-neutral-600 leading-relaxed mb-8">
-            Hyprnote today is the result of that reset. A fast, private,
-            local-first notetaker built for people like us: meeting-heavy,
-            privacy-conscious, and tired of complicated tools. It stays on your
-            device. It respects your data. And it helps you think better, not
-            attend meetings on autopilot.
+            Hyprnote today is the result of that reset. A fast, private, local-first notetaker built
+            for people like us: meeting-heavy, privacy-conscious, and tired of complicated tools. It
+            stays on your device. It respects your data. And it helps you think better, not attend
+            meetings on autopilot.
           </p>
 
           <p className="text-base text-neutral-600 leading-relaxed mb-2">
-            This is how we got here: a messy start, a full rewrite, and a clear
-            belief that great work comes from humans — not from machines
-            pretending to be in the room.
+            This is how we got here: a messy start, a full rewrite, and a clear belief that great
+            work comes from humans — not from machines pretending to be in the room.
           </p>
 
           <div className="space-y-2">
             <div>
-              <p className="text-base text-neutral-600 font-medium italic font-serif">
-                Hyprnote
-              </p>
+              <p className="text-base text-neutral-600 font-medium italic font-serif">Hyprnote</p>
               <p className="text-sm text-neutral-500">John Jeong, Yujong Lee</p>
             </div>
 
@@ -903,15 +812,9 @@ function FounderDetail({
         </div>
 
         <div>
-          <h3 className="text-2xl font-serif text-stone-600 mb-1">
-            {founder.name}
-          </h3>
-          <p className="text-sm text-neutral-500 uppercase tracking-wider mb-4">
-            {founder.role}
-          </p>
-          <p className="text-sm text-neutral-600 leading-relaxed mb-6">
-            {founder.bio}
-          </p>
+          <h3 className="text-2xl font-serif text-stone-600 mb-1">{founder.name}</h3>
+          <p className="text-sm text-neutral-500 uppercase tracking-wider mb-4">{founder.role}</p>
+          <p className="text-sm text-neutral-600 leading-relaxed mb-6">{founder.bio}</p>
 
           <div className="flex flex-wrap gap-2">
             {founder.links.email && (
@@ -967,13 +870,7 @@ function FounderDetail({
   );
 }
 
-function PhotoDetail({
-  photo,
-  onClose,
-}: {
-  photo: (typeof teamPhotos)[0];
-  onClose: () => void;
-}) {
+function PhotoDetail({ photo, onClose }: { photo: (typeof teamPhotos)[0]; onClose: () => void }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1006,25 +903,15 @@ function PhotoDetail({
       </div>
 
       <div ref={scrollRef} className="p-4 overflow-y-auto">
-        <Image
-          src={photo.url}
-          alt={photo.name}
-          className="w-full object-cover mb-6 rounded-lg"
-        />
+        <Image src={photo.url} alt={photo.name} className="w-full object-cover mb-6 rounded-lg" />
 
-        <p className="text-sm text-neutral-600">
-          Team photo from the Hyprnote team.
-        </p>
+        <p className="text-sm text-neutral-600">Team photo from the Hyprnote team.</p>
       </div>
     </>
   );
 }
 
-function AboutStatusBar({
-  selectedItem,
-}: {
-  selectedItem: SelectedItem | null;
-}) {
+function AboutStatusBar({ selectedItem }: { selectedItem: SelectedItem | null }) {
   const totalItems = 1 + founders.length + teamPhotos.length;
 
   return (

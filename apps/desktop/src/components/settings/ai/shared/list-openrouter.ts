@@ -27,9 +27,7 @@ const OpenRouterModelSchema = Schema.Struct({
   ),
 });
 
-type OpenRouterModel = Schema.Schema.Type<
-  typeof OpenRouterModelSchema
->["data"][number];
+type OpenRouterModel = Schema.Schema.Type<typeof OpenRouterModelSchema>["data"][number];
 
 export async function listOpenRouterModels(
   baseUrl: string,
@@ -48,13 +46,9 @@ export async function listOpenRouterModels(
 
   const supportsToolUse = (model: OpenRouterModel): boolean =>
     !model.supported_parameters ||
-    ["tools", "tool_choice"].every((parameter) =>
-      model.supported_parameters?.includes(parameter),
-    );
+    ["tools", "tool_choice"].every((parameter) => model.supported_parameters?.includes(parameter));
 
-  const getIgnoreReasons = (
-    model: OpenRouterModel,
-  ): ModelIgnoreReason[] | null => {
+  const getIgnoreReasons = (model: OpenRouterModel): ModelIgnoreReason[] | null => {
     const reasons: ModelIgnoreReason[] = [];
     if (hasCommonIgnoreKeywords(model)) {
       reasons.push("common_keyword");
@@ -89,11 +83,7 @@ const getInputModalities = (model: OpenRouterModel): InputModality[] => {
   const modalities = model.architecture?.input_modalities ?? [];
 
   return [
-    ...((modalities.includes("text")
-      ? ["text"]
-      : []) satisfies InputModality[]),
-    ...((modalities.includes("image")
-      ? ["image"]
-      : []) satisfies InputModality[]),
+    ...((modalities.includes("text") ? ["text"] : []) satisfies InputModality[]),
+    ...((modalities.includes("image") ? ["image"] : []) satisfies InputModality[]),
   ];
 };

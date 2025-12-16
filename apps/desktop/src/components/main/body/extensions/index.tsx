@@ -71,9 +71,7 @@ export function TabContentExtensions({ tab }: { tab: ExtensionsTab }) {
 }
 
 function ExtensionsView({ tab }: { tab: ExtensionsTab }) {
-  const updateExtensionsTabState = useTabs(
-    (state) => state.updateExtensionsTabState,
-  );
+  const updateExtensionsTabState = useTabs((state) => state.updateExtensionsTabState);
 
   const { selectedExtension } = tab.state;
 
@@ -137,10 +135,7 @@ class ExtensionErrorBoundary extends Component<
       return (
         <div className="flex items-center justify-center h-full">
           <div className="max-w-md space-y-4 text-center p-4">
-            <AlertTriangleIcon
-              size={48}
-              className="mx-auto text-amber-500 mb-4"
-            />
+            <AlertTriangleIcon size={48} className="mx-auto text-amber-500 mb-4" />
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Extension Error</h3>
               <p className="text-sm text-neutral-500">
@@ -198,14 +193,8 @@ export function TabItemExtension({
           onPointerDown={(e: PointerEvent) => controls.start(e)}
         >
           <PuzzleIcon size={14} className="text-neutral-500 shrink-0" />
-          <span className="text-sm truncate max-w-[120px]">
-            {tab.extensionId}
-          </span>
-          {tabIndex && (
-            <span className="text-xs text-neutral-400 shrink-0">
-              {tabIndex}
-            </span>
-          )}
+          <span className="text-sm truncate max-w-[120px]">{tab.extensionId}</span>
+          {tabIndex && <span className="text-xs text-neutral-400 shrink-0">{tabIndex}</span>}
           <Button
             variant="ghost"
             size="icon"
@@ -220,12 +209,8 @@ export function TabItemExtension({
         </Reorder.Item>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={() => handleCloseThis(tab)}>
-          Close
-        </ContextMenuItem>
-        <ContextMenuItem onClick={handleCloseOthers}>
-          Close Others
-        </ContextMenuItem>
+        <ContextMenuItem onClick={() => handleCloseThis(tab)}>Close</ContextMenuItem>
+        <ContextMenuItem onClick={handleCloseOthers}>Close Others</ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={handleCloseAll}>Close All</ContextMenuItem>
       </ContextMenuContent>
@@ -238,9 +223,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
   const store = stores[STORE_ID] as unknown as Store | undefined;
   const panelInfo = getPanelInfoByExtensionId(tab.extensionId);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const synchronizerRef = useRef<ReturnType<
-    typeof createIframeSynchronizer
-  > | null>(null);
+  const synchronizerRef = useRef<ReturnType<typeof createIframeSynchronizer> | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
   const handleIframeLoad = useCallback(() => {
@@ -256,10 +239,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
     );
     synchronizerRef.current = synchronizer;
     synchronizer.startSync().catch((err) => {
-      console.error(
-        `[extensions] Failed to start sync for extension ${tab.extensionId}:`,
-        err,
-      );
+      console.error(`[extensions] Failed to start sync for extension ${tab.extensionId}:`, err);
     });
   }, [store, tab.extensionId]);
 
@@ -282,9 +262,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <PuzzleIcon size={48} className="mx-auto text-neutral-300 mb-4" />
-            <p className="text-neutral-500">
-              Extension not found: {tab.extensionId}
-            </p>
+            <p className="text-neutral-500">Extension not found: {tab.extensionId}</p>
           </div>
         </div>
       </StandardTabWrapper>
@@ -303,11 +281,7 @@ export function TabContentExtension({ tab }: { tab: ExtensionTab }) {
 
   return (
     <StandardTabWrapper>
-      <ExtensionErrorBoundary
-        key={retryKey}
-        extensionId={tab.extensionId}
-        onRetry={handleRetry}
-      >
+      <ExtensionErrorBoundary key={retryKey} extensionId={tab.extensionId} onRetry={handleRetry}>
         <iframe
           ref={iframeRef}
           src={iframeSrc}

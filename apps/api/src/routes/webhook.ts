@@ -54,10 +54,7 @@ webhook.post(
       if (env.NODE_ENV !== "production") {
         console.error(error);
       } else {
-        if (
-          error instanceof Error &&
-          error.message === "Unhandled webhook event"
-        ) {
+        if (error instanceof Error && error.message === "Unhandled webhook event") {
           // stripe-sync-engine doesn't support this event type, skip silently
         } else {
           Sentry.captureException(error, {
@@ -104,9 +101,7 @@ function extractEmailFromLoopsMessage(text: string): string | null {
   if (mailtoMatch) {
     return mailtoMatch[1];
   }
-  const emailMatch = text.match(
-    /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/,
-  );
+  const emailMatch = text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
   return emailMatch ? emailMatch[0] : null;
 }
 
@@ -153,10 +148,7 @@ webhook.post(
       return c.json({ ok: true }, 200);
     }
 
-    if (
-      env.LOOPS_SLACK_CHANNEL_ID &&
-      event.channel !== env.LOOPS_SLACK_CHANNEL_ID
-    ) {
+    if (env.LOOPS_SLACK_CHANNEL_ID && event.channel !== env.LOOPS_SLACK_CHANNEL_ID) {
       return c.json({ ok: true }, 200);
     }
 
@@ -190,11 +182,7 @@ webhook.post(
         .filter(Boolean)
         .join(", ");
 
-      await postThreadReply(
-        event.channel,
-        event.ts,
-        `Status: ${status} (${details})`,
-      );
+      await postThreadReply(event.channel, event.ts, `Status: ${status} (${details})`);
     } catch (error) {
       Sentry.captureException(error, {
         tags: { webhook: "slack", step: "loops_source_thread" },

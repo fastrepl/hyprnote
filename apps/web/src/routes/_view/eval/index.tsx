@@ -31,9 +31,7 @@ function Component() {
   }, [search.task]);
 
   const selectedTask =
-    search.task && tasks.includes(search.task as TaskName)
-      ? (search.task as TaskName)
-      : tasks[0];
+    search.task && tasks.includes(search.task as TaskName) ? (search.task as TaskName) : tasks[0];
 
   const handleTaskClick = (task: TaskName) => {
     navigate({
@@ -67,11 +65,7 @@ function Component() {
         </div>
 
         <div className="h-[600px] w-full">
-          {isChartReady ? (
-            <EvalChart data={evalData[selectedTask]} />
-          ) : (
-            <ChartSkeleton />
-          )}
+          {isChartReady ? <EvalChart data={evalData[selectedTask]} /> : <ChartSkeleton />}
         </div>
       </div>
     </main>

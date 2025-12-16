@@ -28,15 +28,7 @@ interface ChatEditorProps {
 }
 
 const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
-  (
-    {
-      initialContent,
-      editable = true,
-      placeholderComponent,
-      slashCommandConfig,
-    },
-    ref,
-  ) => {
+  ({ initialContent, editable = true, placeholderComponent, slashCommandConfig }, ref) => {
     const previousContentRef = useRef<JSONContent>(initialContent);
 
     const mentionConfigs = useMemo(() => {
@@ -105,9 +97,7 @@ const ChatEditor = forwardRef<{ editor: TiptapEditor | null }, ChatEditorProps>(
       }
     }, [editor, editable]);
 
-    return (
-      <EditorContent editor={editor} className="tiptap-root" role="textbox" />
-    );
+    return <EditorContent editor={editor} className="tiptap-root" role="textbox" />;
   },
 );
 

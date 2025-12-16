@@ -15,11 +15,7 @@ import { useEffect, useState } from "react";
 
 import { CalendarCheckboxRow } from "./components/calendar-checkbox-row";
 import { CalendarDay } from "./components/calendar-day";
-import {
-  CalendarDaysIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "./components/icons";
+import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon } from "./components/icons";
 
 const { Button } = ui.button;
 const { ButtonGroup } = ui.buttonGroup;
@@ -122,11 +118,7 @@ export default function CalendarExtensionView({
         <header className="flex-shrink-0">
           <div className="p-2 flex items-center relative">
             {!sidebarOpen && (
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => setSidebarOpen(true)}
-              >
+              <Button size="icon" variant="ghost" onClick={() => setSidebarOpen(true)}>
                 <CalendarDaysIcon />
               </Button>
             )}
@@ -181,18 +173,16 @@ export default function CalendarExtensionView({
         <div className="flex-1 flex flex-col overflow-hidden">
           {Array.from({ length: 6 }).map((_, weekIndex) => (
             <div key={weekIndex} className="flex flex-1 min-h-0">
-              {allDays
-                .slice(weekIndex * 7, (weekIndex + 1) * 7)
-                .map((day, dayIndex) => (
-                  <CalendarDay
-                    key={day}
-                    day={day}
-                    isCurrentMonth={isSameMonth(new Date(day), month)}
-                    isFirstColumn={dayIndex === 0}
-                    isLastRow={weekIndex === 5}
-                    selectedCalendars={selectedCalendars}
-                  />
-                ))}
+              {allDays.slice(weekIndex * 7, (weekIndex + 1) * 7).map((day, dayIndex) => (
+                <CalendarDay
+                  key={day}
+                  day={day}
+                  isCurrentMonth={isSameMonth(new Date(day), month)}
+                  isFirstColumn={dayIndex === 0}
+                  isLastRow={weekIndex === 5}
+                  selectedCalendars={selectedCalendars}
+                />
+              ))}
             </div>
           ))}
         </div>

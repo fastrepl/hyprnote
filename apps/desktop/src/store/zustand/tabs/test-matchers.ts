@@ -5,10 +5,7 @@ import type { Tab, useTabs } from ".";
 type TabsState = ReturnType<typeof useTabs.getState>;
 
 interface CustomMatchers<R = unknown> {
-  toHaveNavigationState: (expected: {
-    canGoBack: boolean;
-    canGoNext: boolean;
-  }) => R;
+  toHaveNavigationState: (expected: { canGoBack: boolean; canGoNext: boolean }) => R;
   toHaveCurrentTab: (expected: Partial<Tab>) => R;
   toHaveHistoryLength: (length: number) => R;
   toHaveLastHistoryEntry: (expected: Partial<Tab>) => R;
@@ -20,13 +17,8 @@ declare module "vitest" {
 }
 
 expect.extend({
-  toHaveNavigationState(
-    state: TabsState,
-    expected: { canGoBack: boolean; canGoNext: boolean },
-  ) {
-    const pass =
-      state.canGoBack === expected.canGoBack &&
-      state.canGoNext === expected.canGoNext;
+  toHaveNavigationState(state: TabsState, expected: { canGoBack: boolean; canGoNext: boolean }) {
+    const pass = state.canGoBack === expected.canGoBack && state.canGoNext === expected.canGoNext;
 
     return {
       pass,
@@ -43,8 +35,7 @@ expect.extend({
     if (!state.currentTab) {
       return {
         pass: false,
-        message: () =>
-          `Expected currentTab to match ${JSON.stringify(expected)}, but got null`,
+        message: () => `Expected currentTab to match ${JSON.stringify(expected)}, but got null`,
         actual: null,
         expected,
       };
@@ -52,8 +43,7 @@ expect.extend({
 
     const pass = Object.entries(expected).every(
       ([key, value]) =>
-        JSON.stringify(state.currentTab![key as keyof Tab]) ===
-        JSON.stringify(value),
+        JSON.stringify(state.currentTab![key as keyof Tab]) === JSON.stringify(value),
     );
 
     return {
@@ -71,8 +61,7 @@ expect.extend({
     if (!state.currentTab) {
       return {
         pass: length === 0,
-        message: () =>
-          `Expected history length to be ${length}, but no current tab`,
+        message: () => `Expected history length to be ${length}, but no current tab`,
         actual: 0,
         expected: length,
       };
@@ -120,8 +109,7 @@ expect.extend({
 
     const lastEntry = stack[stack.length - 1];
     const pass = Object.entries(expected).every(
-      ([key, value]) =>
-        JSON.stringify(lastEntry[key as keyof Tab]) === JSON.stringify(value),
+      ([key, value]) => JSON.stringify(lastEntry[key as keyof Tab]) === JSON.stringify(value),
     );
 
     return {
@@ -141,8 +129,7 @@ expect.extend({
     if (tabs.length !== expected.length) {
       return {
         pass: false,
-        message: () =>
-          `Expected ${expected.length} tabs, but got ${tabs.length}`,
+        message: () => `Expected ${expected.length} tabs, but got ${tabs.length}`,
         actual: tabs.length,
         expected: expected.length,
       };
@@ -156,9 +143,7 @@ expect.extend({
 
     expected.forEach((partial, index) => {
       const matches = Object.entries(partial).every(
-        ([key, value]) =>
-          JSON.stringify(tabs[index][key as keyof Tab]) ===
-          JSON.stringify(value),
+        ([key, value]) => JSON.stringify(tabs[index][key as keyof Tab]) === JSON.stringify(value),
       );
 
       if (!matches) {

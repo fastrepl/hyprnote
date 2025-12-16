@@ -20,10 +20,7 @@ import { CurrentTimeIndicator, useCurrentTimeMs } from "./realtime";
 
 export function TimelineView() {
   const buckets = useTimelineData();
-  const hasToday = useMemo(
-    () => buckets.some((bucket) => bucket.label === "Today"),
-    [buckets],
-  );
+  const hasToday = useMemo(() => buckets.some((bucket) => bucket.label === "Today"), [buckets]);
 
   const currentTab = useTabs((state) => state.currentTab);
   const store = main.UI.useStore(main.STORE_ID);
@@ -72,9 +69,7 @@ export function TimelineView() {
         (() => {
           const firstItem = bucket.items[0];
           const timestamp =
-            firstItem.type === "event"
-              ? firstItem.data.started_at
-              : firstItem.data.created_at;
+            firstItem.type === "event" ? firstItem.data.started_at : firstItem.data.created_at;
           if (!timestamp) {
             return false;
           }
@@ -95,20 +90,15 @@ export function TimelineView() {
       >
         {buckets.map((bucket, index) => {
           const isToday = bucket.label === "Today";
-          const shouldRenderIndicatorBefore =
-            !hasToday && indicatorIndex === index;
+          const shouldRenderIndicatorBefore = !hasToday && indicatorIndex === index;
 
           return (
             <div key={bucket.label}>
               {shouldRenderIndicatorBefore && (
                 <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
               )}
-              <div
-                className={cn(["sticky top-0 z-10", "bg-neutral-50 px-2 py-1"])}
-              >
-                <div className="text-base font-bold text-neutral-900">
-                  {bucket.label}
-                </div>
+              <div className={cn(["sticky top-0 z-10", "bg-neutral-50 px-2 py-1"])}>
+                <div className="text-base font-bold text-neutral-900">{bucket.label}</div>
               </div>
               {isToday ? (
                 <TodayBucket
@@ -137,10 +127,9 @@ export function TimelineView() {
             </div>
           );
         })}
-        {!hasToday &&
-          (indicatorIndex === -1 || indicatorIndex === buckets.length) && (
-            <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
-          )}
+        {!hasToday && (indicatorIndex === -1 || indicatorIndex === buckets.length) && (
+          <CurrentTimeIndicator ref={setCurrentTimeIndicatorRef} />
+        )}
       </div>
 
       {!isTodayVisible && (
@@ -157,11 +146,7 @@ export function TimelineView() {
           ])}
           variant="outline"
         >
-          {!isScrolledPastToday ? (
-            <ChevronDownIcon size={12} />
-          ) : (
-            <ChevronUpIcon size={12} />
-          )}
+          {!isScrolledPastToday ? <ChevronDownIcon size={12} /> : <ChevronUpIcon size={12} />}
           <span className="text-xs">Go back to now</span>
         </Button>
       )}
@@ -205,9 +190,7 @@ function TodayBucket({
       return (
         <>
           <CurrentTimeIndicator ref={registerIndicator} />
-          <div className="px-3 py-4 text-sm text-neutral-400 text-center">
-            No items today
-          </div>
+          <div className="px-3 py-4 text-sm text-neutral-400 text-center">No items today</div>
         </>
       );
     }
@@ -216,12 +199,7 @@ function TodayBucket({
 
     entries.forEach((entry, index) => {
       if (index === indicatorIndex) {
-        nodes.push(
-          <CurrentTimeIndicator
-            ref={registerIndicator}
-            key="current-time-indicator"
-          />,
-        );
+        nodes.push(<CurrentTimeIndicator ref={registerIndicator} key="current-time-indicator" />);
       }
 
       const selected =
@@ -240,23 +218,11 @@ function TodayBucket({
     });
 
     if (indicatorIndex === entries.length) {
-      nodes.push(
-        <CurrentTimeIndicator
-          ref={registerIndicator}
-          key="current-time-indicator-end"
-        />,
-      );
+      nodes.push(<CurrentTimeIndicator ref={registerIndicator} key="current-time-indicator-end" />);
     }
 
     return <>{nodes}</>;
-  }, [
-    entries,
-    indicatorIndex,
-    precision,
-    registerIndicator,
-    selectedSessionId,
-    selectedEventId,
-  ]);
+  }, [entries, indicatorIndex, precision, registerIndicator, selectedSessionId, selectedEventId]);
 
   return renderedEntries;
 }
@@ -282,8 +248,7 @@ function useTimelineData(): TimelineBucket[] {
 }
 
 function getItemTimestamp(item: TimelineItem): Date | null {
-  const value =
-    item.type === "event" ? item.data.started_at : item.data.created_at;
+  const value = item.type === "event" ? item.data.started_at : item.data.created_at;
 
   if (!value) {
     return null;

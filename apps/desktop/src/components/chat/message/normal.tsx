@@ -6,12 +6,7 @@ import { formatDistanceToNow } from "@hypr/utils";
 import type { ToolPartType } from "../../../chat/tools";
 import type { HyprUIMessage } from "../../../chat/types";
 import { hasRenderableContent } from "../shared";
-import {
-  ActionButton,
-  Disclosure,
-  MessageBubble,
-  MessageContainer,
-} from "./shared";
+import { ActionButton, Disclosure, MessageBubble, MessageContainer } from "./shared";
 import { Tool } from "./tool";
 import type { Part } from "./types";
 
@@ -92,14 +87,8 @@ function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
   const title = streaming ? cleaned.slice(-150) : cleaned;
 
   return (
-    <Disclosure
-      icon={<BrainIcon className="w-3 h-3" />}
-      title={title}
-      disabled={streaming}
-    >
-      <div className="text-sm text-neutral-500 whitespace-pre-wrap">
-        {part.text}
-      </div>
+    <Disclosure icon={<BrainIcon className="w-3 h-3" />} title={title} disabled={streaming}>
+      <div className="text-sm text-neutral-500 whitespace-pre-wrap">{part.text}</div>
     </Disclosure>
   );
 }
@@ -107,11 +96,7 @@ function Reasoning({ part }: { part: Extract<Part, { type: "reasoning" }> }) {
 function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
   const components = {
     h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
-      return (
-        <h2 className="text-lg font-bold pt-2">
-          {props.children as React.ReactNode}
-        </h2>
-      );
+      return <h2 className="text-lg font-bold pt-2">{props.children as React.ReactNode}</h2>;
     },
     ul: (props: React.HTMLAttributes<HTMLUListElement>) => {
       return (
@@ -135,11 +120,7 @@ function Text({ part }: { part: Extract<Part, { type: "text" }> }) {
   const isAnimating = part.state !== "done";
 
   return (
-    <Streamdown
-      components={components}
-      className="px-0.5 py-1"
-      isAnimating={isAnimating}
-    >
+    <Streamdown components={components} className="px-0.5 py-1" isAnimating={isAnimating}>
       {part.text}
     </Streamdown>
   );

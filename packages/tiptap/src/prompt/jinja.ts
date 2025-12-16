@@ -40,10 +40,7 @@ function filterCompletionSource(filters: string[]): CompletionSource {
   };
 }
 
-export function jinjaLanguage(
-  variables: string[],
-  filters: string[],
-): Extension {
+export function jinjaLanguage(variables: string[], filters: string[]): Extension {
   const variableCompletions: Completion[] = variables.map((v) => ({
     label: v,
     type: "variable",
@@ -68,9 +65,7 @@ export function jinjaLanguage(
 
 const readonlyMark = Decoration.mark({ class: "cm-readonly-region" });
 
-export function readonlyVisuals(
-  getRanges: () => Array<{ from: number; to: number }>,
-): Extension {
+export function readonlyVisuals(getRanges: () => Array<{ from: number; to: number }>): Extension {
   return ViewPlugin.fromClass(
     class {
       decorations: DecorationSet;
@@ -204,10 +199,7 @@ export function jinjaLinter(): Extension {
           });
         }
       } else if (keyword === "elif" || keyword === "else") {
-        if (
-          blockStack.length === 0 ||
-          blockStack[blockStack.length - 1].type !== "if"
-        ) {
+        if (blockStack.length === 0 || blockStack[blockStack.length - 1].type !== "if") {
           diagnostics.push({
             from: match.index,
             to: match.index + match[0].length,

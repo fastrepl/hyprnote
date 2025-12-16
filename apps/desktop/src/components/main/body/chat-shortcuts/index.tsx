@@ -4,11 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { ChatShortcut } from "@hypr/store";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
@@ -18,9 +14,7 @@ import { ResourceListLayout, useWebResources } from "../resource-list";
 import { type TabItem, TabItemBase } from "../shared";
 import { ChatShortcutDetailsColumn } from "./details";
 
-export const TabItemChatShortcut: TabItem<
-  Extract<Tab, { type: "chat_shortcuts" }>
-> = ({
+export const TabItemChatShortcut: TabItem<Extract<Tab, { type: "chat_shortcuts" }>> = ({
   tab,
   tabIndex,
   handleCloseThis,
@@ -42,11 +36,7 @@ export const TabItemChatShortcut: TabItem<
   );
 };
 
-export function TabContentChatShortcut({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "chat_shortcuts" }>;
-}) {
+export function TabContentChatShortcut({ tab }: { tab: Extract<Tab, { type: "chat_shortcuts" }> }) {
   return (
     <StandardTabWrapper>
       <ChatShortcutView tab={tab} />
@@ -66,26 +56,17 @@ export type WebShortcut = {
 type UserShortcut = ChatShortcut & { id: string };
 
 function useChatShortcuts(): UserShortcut[] {
-  const shortcuts = main.UI.useResultTable(
-    main.QUERIES.visibleChatShortcuts,
-    main.STORE_ID,
-  );
+  const shortcuts = main.UI.useResultTable(main.QUERIES.visibleChatShortcuts, main.STORE_ID);
 
   return useMemo(() => {
-    return Object.entries(shortcuts as Record<string, ChatShortcut>).map(
-      ([id, shortcut]) => ({
-        id,
-        ...shortcut,
-      }),
-    );
+    return Object.entries(shortcuts as Record<string, ChatShortcut>).map(([id, shortcut]) => ({
+      id,
+      ...shortcut,
+    }));
   }, [shortcuts]);
 }
 
-function ChatShortcutView({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "chat_shortcuts" }>;
-}) {
+function ChatShortcutView({ tab }: { tab: Extract<Tab, { type: "chat_shortcuts" }> }) {
   const updateTabState = useTabs((state) => state.updateChatShortcutsTabState);
   const { user_id } = main.UI.useValues(main.STORE_ID);
 
@@ -134,20 +115,9 @@ function ChatShortcutView({
 
   const setRow = main.UI.useSetRowCallback(
     "chat_shortcuts",
-    (p: {
-      id: string;
-      user_id: string;
-      created_at: string;
-      title: string;
-      content: string;
-    }) => p.id,
-    (p: {
-      id: string;
-      user_id: string;
-      created_at: string;
-      title: string;
-      content: string;
-    }) => ({
+    (p: { id: string; user_id: string; created_at: string; title: string; content: string }) =>
+      p.id,
+    (p: { id: string; user_id: string; created_at: string; title: string; content: string }) => ({
       user_id: p.user_id,
       created_at: p.created_at,
       title: p.title,
@@ -287,17 +257,11 @@ function ShortcutListColumn({
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5 px-2">
                   <Globe size={14} className="text-neutral-400" />
-                  <Switch
-                    size="sm"
-                    checked={isWebMode}
-                    onCheckedChange={setIsWebMode}
-                  />
+                  <Switch size="sm" checked={isWebMode} onCheckedChange={setIsWebMode} />
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {isWebMode
-                  ? "Showing community shortcuts"
-                  : "Showing your shortcuts"}
+                {isWebMode ? "Showing community shortcuts" : "Showing your shortcuts"}
               </TooltipContent>
             </Tooltip>
             <Button
@@ -333,10 +297,7 @@ function ShortcutListColumn({
               autoFocus
             />
             {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="p-1 rounded hover:bg-neutral-100"
-              >
+              <button onClick={() => setSearch("")} className="p-1 rounded hover:bg-neutral-100">
                 <X className="h-4 w-4 text-neutral-400" />
               </button>
             )}
@@ -356,10 +317,7 @@ function ShortcutListColumn({
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-8 text-neutral-500">
-            <MessageSquare
-              size={32}
-              className="mx-auto mb-2 text-neutral-300"
-            />
+            <MessageSquare size={32} className="mx-auto mb-2 text-neutral-300" />
             <p className="text-sm">
               {search
                 ? "No shortcuts found"
@@ -392,9 +350,7 @@ function ShortcutListColumn({
                     )}
                   </div>
                   {item.description && (
-                    <div className="text-xs text-neutral-500 truncate">
-                      {item.description}
-                    </div>
+                    <div className="text-xs text-neutral-500 truncate">{item.description}</div>
                   )}
                 </div>
               </div>
@@ -415,9 +371,7 @@ function ShortcutListColumn({
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-neutral-500 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">
-                    {getMineTitle(item)}
-                  </div>
+                  <div className="font-medium truncate">{getMineTitle(item)}</div>
                 </div>
               </div>
             </button>

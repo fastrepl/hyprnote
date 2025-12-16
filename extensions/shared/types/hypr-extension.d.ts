@@ -149,9 +149,7 @@ declare module "@hypr/ui/components/ui/breadcrumb" {
   export const BreadcrumbLink: React.ComponentType<Record<string, unknown>>;
   export const BreadcrumbList: React.ComponentType<Record<string, unknown>>;
   export const BreadcrumbPage: React.ComponentType<Record<string, unknown>>;
-  export const BreadcrumbSeparator: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const BreadcrumbSeparator: React.ComponentType<Record<string, unknown>>;
 }
 
 declare module "@hypr/ui/components/ui/button" {
@@ -163,13 +161,9 @@ declare module "@hypr/ui/components/ui/button" {
 declare module "@hypr/ui/components/ui/button-group" {
   import type * as React from "react";
   export const ButtonGroup: React.ComponentType<Record<string, unknown>>;
-  export const ButtonGroupSeparator: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const ButtonGroupSeparator: React.ComponentType<Record<string, unknown>>;
   export const ButtonGroupText: React.ComponentType<Record<string, unknown>>;
-  export const buttonGroupVariants: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const buttonGroupVariants: React.ComponentType<Record<string, unknown>>;
 }
 
 declare module "@hypr/ui/components/ui/card" {
@@ -212,33 +206,19 @@ declare module "@hypr/ui/components/ui/command" {
 declare module "@hypr/ui/components/ui/context-menu" {
   import type * as React from "react";
   export const ContextMenu: React.ComponentType<Record<string, unknown>>;
-  export const ContextMenuCheckboxItem: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const ContextMenuCheckboxItem: React.ComponentType<Record<string, unknown>>;
   export const ContextMenuContent: React.ComponentType<Record<string, unknown>>;
   export const ContextMenuGroup: React.ComponentType<Record<string, unknown>>;
   export const ContextMenuItem: React.ComponentType<Record<string, unknown>>;
   export const ContextMenuLabel: React.ComponentType<Record<string, unknown>>;
   export const ContextMenuPortal: React.ComponentType<Record<string, unknown>>;
-  export const ContextMenuRadioGroup: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const ContextMenuRadioItem: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const ContextMenuSeparator: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const ContextMenuShortcut: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const ContextMenuRadioGroup: React.ComponentType<Record<string, unknown>>;
+  export const ContextMenuRadioItem: React.ComponentType<Record<string, unknown>>;
+  export const ContextMenuSeparator: React.ComponentType<Record<string, unknown>>;
+  export const ContextMenuShortcut: React.ComponentType<Record<string, unknown>>;
   export const ContextMenuSub: React.ComponentType<Record<string, unknown>>;
-  export const ContextMenuSubContent: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const ContextMenuSubTrigger: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const ContextMenuSubContent: React.ComponentType<Record<string, unknown>>;
+  export const ContextMenuSubTrigger: React.ComponentType<Record<string, unknown>>;
   export const ContextMenuTrigger: React.ComponentType<Record<string, unknown>>;
 }
 
@@ -264,38 +244,20 @@ declare module "@hypr/ui/components/ui/dialog" {
 declare module "@hypr/ui/components/ui/dropdown-menu" {
   import type * as React from "react";
   export const DropdownMenu: React.ComponentType<Record<string, unknown>>;
-  export const DropdownMenuCheckboxItem: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const DropdownMenuContent: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const DropdownMenuCheckboxItem: React.ComponentType<Record<string, unknown>>;
+  export const DropdownMenuContent: React.ComponentType<Record<string, unknown>>;
   export const DropdownMenuGroup: React.ComponentType<Record<string, unknown>>;
   export const DropdownMenuItem: React.ComponentType<Record<string, unknown>>;
   export const DropdownMenuLabel: React.ComponentType<Record<string, unknown>>;
   export const DropdownMenuPortal: React.ComponentType<Record<string, unknown>>;
-  export const DropdownMenuRadioGroup: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const DropdownMenuRadioItem: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const DropdownMenuSeparator: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const DropdownMenuShortcut: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const DropdownMenuRadioGroup: React.ComponentType<Record<string, unknown>>;
+  export const DropdownMenuRadioItem: React.ComponentType<Record<string, unknown>>;
+  export const DropdownMenuSeparator: React.ComponentType<Record<string, unknown>>;
+  export const DropdownMenuShortcut: React.ComponentType<Record<string, unknown>>;
   export const DropdownMenuSub: React.ComponentType<Record<string, unknown>>;
-  export const DropdownMenuSubContent: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const DropdownMenuSubTrigger: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const DropdownMenuTrigger: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const DropdownMenuSubContent: React.ComponentType<Record<string, unknown>>;
+  export const DropdownMenuSubTrigger: React.ComponentType<Record<string, unknown>>;
+  export const DropdownMenuTrigger: React.ComponentType<Record<string, unknown>>;
 }
 
 declare module "@hypr/ui/components/ui/form" {
@@ -387,9 +349,7 @@ declare module "@hypr/ui/components/ui/resizable" {
   import type * as React from "react";
   export const ResizableHandle: React.ComponentType<Record<string, unknown>>;
   export const ResizablePanel: React.ComponentType<Record<string, unknown>>;
-  export const ResizablePanelGroup: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const ResizablePanelGroup: React.ComponentType<Record<string, unknown>>;
 }
 
 declare module "@hypr/ui/components/ui/select" {
@@ -399,12 +359,8 @@ declare module "@hypr/ui/components/ui/select" {
   export const SelectGroup: React.ComponentType<Record<string, unknown>>;
   export const SelectItem: React.ComponentType<Record<string, unknown>>;
   export const SelectLabel: React.ComponentType<Record<string, unknown>>;
-  export const SelectScrollDownButton: React.ComponentType<
-    Record<string, unknown>
-  >;
-  export const SelectScrollUpButton: React.ComponentType<
-    Record<string, unknown>
-  >;
+  export const SelectScrollDownButton: React.ComponentType<Record<string, unknown>>;
+  export const SelectScrollUpButton: React.ComponentType<Record<string, unknown>>;
   export const SelectSeparator: React.ComponentType<Record<string, unknown>>;
   export const SelectTrigger: React.ComponentType<Record<string, unknown>>;
   export const SelectValue: React.ComponentType<Record<string, unknown>>;

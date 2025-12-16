@@ -6,9 +6,8 @@
   "exports": {
     "./template": "./src/template/index.tsx"
   },
-  "peerDependencies": {
-    "react": "^19.2",
-    "react-dom": "^19.2"
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@codemirror/lang-jinja": "^6.0.0",
@@ -24,7 +23,8 @@
     "@types/react-dom": "^19.2.3",
     "typescript": "^5.9.3"
   },
-  "scripts": {
-    "typecheck": "tsc --noEmit"
+  "peerDependencies": {
+    "react": "^19.2",
+    "react-dom": "^19.2"
   }
 }

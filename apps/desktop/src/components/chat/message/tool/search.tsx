@@ -19,8 +19,7 @@ type Renderer = ToolRenderer<"tool-search_sessions">;
 type Part = Parameters<Renderer>[0]["part"];
 
 export const ToolSearchSessions: Renderer = ({ part }) => {
-  const disabled =
-    part.state === "input-streaming" || part.state === "input-available";
+  const disabled = part.state === "input-streaming" || part.state === "input-available";
 
   return (
     <Disclosure
@@ -50,11 +49,7 @@ const getTitle = (part: Part) => {
 };
 
 function RenderContent({ part }: { part: Part }) {
-  if (
-    part.state === "output-available" &&
-    part.output &&
-    "results" in part.output
-  ) {
+  if (part.state === "output-available" && part.output && "results" in part.output) {
     const { results } = part.output;
 
     if (!results || results.length === 0) {
@@ -105,18 +100,12 @@ function RenderSession({ sessionId }: { sessionId: string }) {
   }, [openNew, sessionId]);
 
   if (!session) {
-    return (
-      <div className="text-xs text-muted-foreground italic">
-        Session unavailable
-      </div>
-    );
+    return <div className="text-xs text-muted-foreground italic">Session unavailable</div>;
   }
 
   return (
     <div className="text-xs flex flex-col gap-1" onClick={handleClick}>
-      <span className="font-medium truncate">
-        {session.title || "Untitled"}
-      </span>
+      <span className="font-medium truncate">{session.title || "Untitled"}</span>
       <span className="text-muted-foreground truncate">
         {session.enhanced_md ?? session.raw_md}
       </span>

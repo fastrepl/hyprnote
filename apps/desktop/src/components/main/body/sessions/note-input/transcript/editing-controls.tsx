@@ -3,11 +3,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { Button } from "@hypr/ui/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@hypr/ui/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { cn } from "@hypr/utils";
 
 import { useAudioPlayer } from "../../../../../../contexts/audio-player/provider";
@@ -45,10 +41,7 @@ export function EditingControls({
 
       const result = await miscCommands.audioPath(sessionId);
       if (result.status === "error") {
-        console.error(
-          "[redo_transcript] failed to retrieve audio path",
-          result.error,
-        );
+        console.error("[redo_transcript] failed to retrieve audio path", result.error);
         return;
       }
 
@@ -75,18 +68,11 @@ export function EditingControls({
   ]);
 
   const [open, setOpen] = useState(false);
-  const {
-    canUndo,
-    canRedo,
-    handleUndo,
-    handleRedo,
-    handleEdit,
-    handleSave,
-    handleCancel,
-  } = useTranscriptEditing({
-    isEditing,
-    setIsEditing,
-  });
+  const { canUndo, canRedo, handleUndo, handleRedo, handleEdit, handleSave, handleCancel } =
+    useTranscriptEditing({
+      isEditing,
+      setIsEditing,
+    });
 
   const handleRedoClick = useCallback(() => {
     setOpen(false);
@@ -118,10 +104,7 @@ export function EditingControls({
             ])}
           >
             <ChevronDownIcon
-              className={cn([
-                "w-4 h-4 transition-transform",
-                open && "rotate-180",
-              ])}
+              className={cn(["w-4 h-4 transition-transform", open && "rotate-180"])}
             />
             <span className="sr-only">More options</span>
           </Button>
@@ -141,9 +124,7 @@ export function EditingControls({
             >
               <RefreshCcwIcon
                 size={12}
-                className={cn([
-                  (isBatchProcessing || isRedoing) && "animate-spin",
-                ])}
+                className={cn([(isBatchProcessing || isRedoing) && "animate-spin"])}
               />
               <span className="text-xs">Rerun transcription</span>
             </button>
@@ -231,28 +212,18 @@ function useTranscriptEditing({
   setIsEditing: (isEditing: boolean) => void;
 }) {
   const checkpoints = main.UI.useCheckpoints(main.STORE_ID);
-  const checkpointIds = main.UI.useCheckpointIds(main.STORE_ID) ?? [
-    [],
-    undefined,
-    [],
-  ];
+  const checkpointIds = main.UI.useCheckpointIds(main.STORE_ID) ?? [[], undefined, []];
   const [, currentId, forwardIds] = checkpointIds;
 
   const baselineIdRef = useRef<string | undefined>(undefined);
 
   const canUndo = useMemo(
     () =>
-      isEditing &&
-      !!baselineIdRef.current &&
-      !!currentId &&
-      currentId !== baselineIdRef.current,
+      isEditing && !!baselineIdRef.current && !!currentId && currentId !== baselineIdRef.current,
     [isEditing, currentId],
   );
 
-  const canRedo = useMemo(
-    () => isEditing && forwardIds.length > 0,
-    [isEditing, forwardIds.length],
-  );
+  const canRedo = useMemo(() => isEditing && forwardIds.length > 0, [isEditing, forwardIds.length]);
 
   const handleUndo = useCallback(() => {
     if (canUndo && checkpoints) {
@@ -271,8 +242,7 @@ function useTranscriptEditing({
       return;
     }
     const [, id] = checkpoints.getCheckpointIds();
-    baselineIdRef.current =
-      id ?? checkpoints.addCheckpoint("transcript_edit:baseline");
+    baselineIdRef.current = id ?? checkpoints.addCheckpoint("transcript_edit:baseline");
     setIsEditing(true);
   }, [checkpoints, setIsEditing]);
 
@@ -332,24 +302,14 @@ function useClearTranscript(sessionId: string) {
 
     store.forEachRow("words", (wordId, _forEachCell) => {
       const transcriptId = store.getCell("words", wordId, "transcript_id");
-      if (
-        typeof transcriptId === "string" &&
-        transcriptIdSet.has(transcriptId)
-      ) {
+      if (typeof transcriptId === "string" && transcriptIdSet.has(transcriptId)) {
         wordIds.push(wordId);
       }
     });
 
     store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
-      const transcriptId = store.getCell(
-        "speaker_hints",
-        hintId,
-        "transcript_id",
-      );
-      if (
-        typeof transcriptId === "string" &&
-        transcriptIdSet.has(transcriptId)
-      ) {
+      const transcriptId = store.getCell("speaker_hints", hintId, "transcript_id");
+      if (typeof transcriptId === "string" && transcriptIdSet.has(transcriptId)) {
         hintIds.push(hintId);
       }
     });

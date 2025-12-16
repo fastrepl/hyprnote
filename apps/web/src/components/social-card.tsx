@@ -65,9 +65,7 @@ export function SocialCard({
               {config.userPrefix}
               {author}
             </p>
-            {config.subtitle && (
-              <p className="text-sm text-neutral-600">{config.subtitle}</p>
-            )}
+            {config.subtitle && <p className="text-sm text-neutral-600">{config.subtitle}</p>}
           </div>
           <a
             href={url}

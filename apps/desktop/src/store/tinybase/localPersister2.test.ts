@@ -6,9 +6,7 @@ import { SCHEMA, type Schemas } from "@hypr/store";
 import { createLocalPersister2 } from "./localPersister2";
 
 function createTestStore() {
-  return createMergeableStore()
-    .setTablesSchema(SCHEMA.table)
-    .setValuesSchema(SCHEMA.value);
+  return createMergeableStore().setTablesSchema(SCHEMA.table).setValuesSchema(SCHEMA.value);
 }
 
 describe("createLocalPersister2", () => {
@@ -129,10 +127,7 @@ describe("createLocalPersister2", () => {
       await persister.save();
 
       expect(handleSyncToSession).toHaveBeenCalledTimes(1);
-      expect(handleSyncToSession).toHaveBeenCalledWith(
-        "session-1",
-        "sync content",
-      );
+      expect(handleSyncToSession).toHaveBeenCalledWith("session-1", "sync content");
     });
 
     test("does not call handleSyncToSession when has template_id", async () => {

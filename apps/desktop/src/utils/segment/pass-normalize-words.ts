@@ -3,13 +3,12 @@ import type { SegmentPass, SegmentWord, WordLike } from "./shared";
 export const normalizeWordsPass: SegmentPass = {
   id: "normalize_words",
   run(graph) {
-    const normalized = normalizeWords(
-      graph.finalWords ?? [],
-      graph.partialWords ?? [],
-    ).map((word, order) => ({
-      ...word,
-      order,
-    }));
+    const normalized = normalizeWords(graph.finalWords ?? [], graph.partialWords ?? []).map(
+      (word, order) => ({
+        ...word,
+        order,
+      }),
+    );
 
     return { ...graph, words: normalized };
   },

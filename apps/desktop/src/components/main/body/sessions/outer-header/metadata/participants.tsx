@@ -24,12 +24,7 @@ function createHuman(store: any, userId: string, name: string) {
   return humanId;
 }
 
-function linkHumanToSession(
-  store: any,
-  userId: string,
-  sessionId: string,
-  humanId: string,
-) {
+function linkHumanToSession(store: any, userId: string, sessionId: string, humanId: string) {
   const mappingId = crypto.randomUUID();
   store.setRow("mapping_session_participant", mappingId, {
     user_id: userId,
@@ -39,12 +34,7 @@ function linkHumanToSession(
   });
 }
 
-function createAndLinkHuman(
-  store: any,
-  userId: string,
-  sessionId: string,
-  name: string,
-) {
+function createAndLinkHuman(store: any, userId: string, sessionId: string, name: string) {
   const humanId = createHuman(store, userId, name);
   linkHumanToSession(store, userId, sessionId, humanId);
   return humanId;
@@ -82,8 +72,7 @@ function useParticipantDetails(mappingId: string) {
     humanName: (result.human_name as string) || "",
     humanEmail: (result.human_email as string | undefined) || undefined,
     humanJobTitle: (result.human_job_title as string | undefined) || undefined,
-    humanLinkedinUsername:
-      (result.human_linkedin_username as string | undefined) || undefined,
+    humanLinkedinUsername: (result.human_linkedin_username as string | undefined) || undefined,
     humanIsUser: result.human_is_user as boolean,
     orgId: (result.org_id as string | undefined) || undefined,
     orgName: result.org_name as string | undefined,
@@ -131,9 +120,7 @@ function useRemoveParticipant({
       const hintIdsToDelete: string[] = [];
 
       store.forEachRow("speaker_hints", (hintId, _forEachCell) => {
-        const hint = store.getRow("speaker_hints", hintId) as
-          | SpeakerHintStorage
-          | undefined;
+        const hint = store.getRow("speaker_hints", hintId) as SpeakerHintStorage | undefined;
         if (!hint || hint.type !== "user_speaker_assignment") {
           return;
         }
@@ -143,9 +130,7 @@ function useRemoveParticipant({
           return;
         }
 
-        const transcript = store.getRow("transcripts", transcriptId) as
-          | Transcript
-          | undefined;
+        const transcript = store.getRow("transcripts", transcriptId) as Transcript | undefined;
         if (!transcript || transcript.session_id !== sessionId) {
           return;
         }
@@ -184,10 +169,7 @@ function ParticipantChip({ mappingId }: { mappingId: string }) {
   const { humanName } = details;
 
   return (
-    <Badge
-      variant="secondary"
-      className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
-    >
+    <Badge variant="secondary" className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted">
       {humanName || "Unknown"}
       <Button
         type="button"
@@ -229,10 +211,7 @@ function ParticipantChipInput({
 
     const ids = new Set<string>();
     for (const mappingId of mappingIds) {
-      const result = queries.getResultRow(
-        main.QUERIES.sessionParticipantsWithDetails,
-        mappingId,
-      );
+      const result = queries.getResultRow(main.QUERIES.sessionParticipantsWithDetails, mappingId);
       if (result?.human_id) {
         ids.add(result.human_id as string);
       }
@@ -272,8 +251,7 @@ function ParticipantChipInput({
   }, [inputValue, allHumanIds, existingHumanIds, store]);
 
   const showCustomOption =
-    inputValue.trim() &&
-    !candidates.some((c) => c.name.toLowerCase() === inputValue.toLowerCase());
+    inputValue.trim() && !candidates.some((c) => c.name.toLowerCase() === inputValue.toLowerCase());
 
   const dropdownOptions = showCustomOption
     ? [
@@ -323,9 +301,7 @@ function ParticipantChipInput({
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) =>
-        prev < dropdownOptions.length - 1 ? prev + 1 : prev,
-      );
+      setSelectedIndex((prev) => (prev < dropdownOptions.length - 1 ? prev + 1 : prev));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
@@ -348,10 +324,7 @@ function ParticipantChipInput({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
     };
@@ -403,9 +376,7 @@ function ParticipantChipInput({
                   <span className="flex items-center gap-2">
                     <span className="font-medium">{option.name}</span>
                     {option.jobTitle && (
-                      <span className="text-xs text-muted-foreground">
-                        {option.jobTitle}
-                      </span>
+                      <span className="text-xs text-muted-foreground">{option.jobTitle}</span>
                     )}
                   </span>
                 )}

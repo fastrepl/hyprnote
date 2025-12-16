@@ -5,11 +5,7 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
 
 import * as main from "../../../../store/tinybase/main";
-import {
-  DangerZone,
-  ResourceDetailEmpty,
-  ResourcePreviewHeader,
-} from "../resource-list";
+import { DangerZone, ResourceDetailEmpty, ResourcePreviewHeader } from "../resource-list";
 
 type WebShortcut = {
   slug: string;
@@ -37,12 +33,7 @@ export function ChatShortcutDetailsColumn({
     if (!selectedWebShortcut) {
       return <ResourceDetailEmpty message="Select a shortcut to preview" />;
     }
-    return (
-      <WebShortcutPreview
-        shortcut={selectedWebShortcut}
-        onClone={handleCloneShortcut}
-      />
-    );
+    return <WebShortcutPreview shortcut={selectedWebShortcut} onClone={handleCloneShortcut} />;
   }
 
   if (!selectedMineId) {
@@ -76,13 +67,9 @@ function WebShortcutPreview({
       />
 
       <div className="flex-1 p-6">
-        <h3 className="text-sm font-medium text-neutral-600 mb-3">
-          Prompt Content
-        </h3>
+        <h3 className="text-sm font-medium text-neutral-600 mb-3">Prompt Content</h3>
         <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-          <p className="text-sm text-neutral-700 whitespace-pre-wrap">
-            {shortcut.prompt}
-          </p>
+          <p className="text-sm text-neutral-700 whitespace-pre-wrap">{shortcut.prompt}</p>
         </div>
       </div>
     </div>
@@ -97,12 +84,7 @@ function ChatShortcutForm({
   setSelectedMineId: (id: string | null) => void;
 }) {
   const title = main.UI.useCell("chat_shortcuts", id, "title", main.STORE_ID);
-  const content = main.UI.useCell(
-    "chat_shortcuts",
-    id,
-    "content",
-    main.STORE_ID,
-  );
+  const content = main.UI.useCell("chat_shortcuts", id, "content", main.STORE_ID);
   const [localTitle, setLocalTitle] = useState(title || "");
   const [localContent, setLocalContent] = useState(content || "");
 
@@ -119,11 +101,7 @@ function ChatShortcutForm({
     main.STORE_ID,
   );
 
-  const handleDelete = main.UI.useDelRowCallback(
-    "chat_shortcuts",
-    () => id,
-    main.STORE_ID,
-  );
+  const handleDelete = main.UI.useDelRowCallback("chat_shortcuts", () => id, main.STORE_ID);
 
   const handleSave = useCallback(() => {
     handleUpdate({ title: localTitle, content: localContent });
@@ -134,8 +112,7 @@ function ChatShortcutForm({
     setSelectedMineId(null);
   }, [handleDelete, setSelectedMineId]);
 
-  const hasChanges =
-    localTitle !== (title || "") || localContent !== (content || "");
+  const hasChanges = localTitle !== (title || "") || localContent !== (content || "");
 
   return (
     <div className="flex flex-col h-full">
@@ -143,9 +120,7 @@ function ChatShortcutForm({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">Edit Shortcut</h2>
-            <p className="text-sm text-neutral-500 mt-1">
-              Create a quick shortcut for chat inputs
-            </p>
+            <p className="text-sm text-neutral-500 mt-1">Create a quick shortcut for chat inputs</p>
           </div>
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSave} disabled={!hasChanges}>
@@ -157,9 +132,7 @@ function ChatShortcutForm({
 
       <div className="flex-1 p-6 space-y-4">
         <div>
-          <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
-            Title
-          </label>
+          <label className="text-sm font-medium text-neutral-700 mb-1.5 block">Title</label>
           <Input
             value={localTitle}
             onChange={(e) => setLocalTitle(e.target.value)}
@@ -167,9 +140,7 @@ function ChatShortcutForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
-            Content
-          </label>
+          <label className="text-sm font-medium text-neutral-700 mb-1.5 block">Content</label>
           <Textarea
             value={localContent}
             onChange={(e) => setLocalContent(e.target.value)}

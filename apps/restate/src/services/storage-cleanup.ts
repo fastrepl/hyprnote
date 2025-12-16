@@ -25,10 +25,7 @@ export const storageCleanup = restate.service({
   handlers: {
     cleanupOldFiles: restate.handlers.handler(
       { input: serde.zod(CleanupInput) },
-      async (
-        ctx: restate.Context,
-        input: CleanupInputType,
-      ): Promise<CleanupResultType> => {
+      async (ctx: restate.Context, input: CleanupInputType): Promise<CleanupResultType> => {
         const env = ctx.request().extraArgs[0] as Env;
         const cutoffMs = input.cutoffHours * 60 * 60 * 1000;
         const cutoffDate = new Date(Date.now() - cutoffMs);
@@ -44,14 +41,11 @@ export const storageCleanup = restate.service({
           if (fileDate < cutoffDate) {
             const filePath = file.name;
             try {
-              await ctx.run(`delete-${filePath}`, () =>
-                deleteFile(env, filePath),
-              );
+              await ctx.run(`delete-${filePath}`, () => deleteFile(env, filePath));
               deletedCount++;
             } catch (err) {
               failedCount++;
-              const errorMsg =
-                err instanceof Error ? err.message : "Unknown error";
+              const errorMsg = err instanceof Error ? err.message : "Unknown error";
               errors.push(`Failed to delete ${filePath}: ${errorMsg}`);
               if (errors.length >= 10) {
                 errors.push("... (truncated, too many errors)");

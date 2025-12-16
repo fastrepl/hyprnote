@@ -57,22 +57,14 @@ export function PromptEditor({
     }
 
     return exts;
-  }, [
-    readOnly,
-    readOnlyRanges,
-    getReadOnlyRanges,
-    getRangesForVisuals,
-    variables,
-    filters,
-  ]);
+  }, [readOnly, readOnlyRanges, getReadOnlyRanges, getRangesForVisuals, variables, filters]);
 
   const theme = useMemo(
     () =>
       EditorView.theme({
         "&": {
           height: "100%",
-          fontFamily:
-            "var(--font-mono, 'Menlo', 'Monaco', 'Courier New', monospace)",
+          fontFamily: "var(--font-mono, 'Menlo', 'Monaco', 'Courier New', monospace)",
           fontSize: "13px",
           lineHeight: "1.6",
         },

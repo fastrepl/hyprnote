@@ -1,9 +1,6 @@
 import { Probot } from "probot";
 
-import {
-  findRunningSessionForPR,
-  sendMessageToDevinSession,
-} from "../devin/index.js";
+import { findRunningSessionForPR, sendMessageToDevinSession } from "../devin/index.js";
 
 export function registerFixMergeConflictHandler(app: Probot): void {
   app.on("check_suite.completed", async (context) => {
@@ -34,9 +31,7 @@ export function registerFixMergeConflictHandler(app: Probot): void {
         if (pullRequest.mergeable_state === "dirty") {
           const prUrl = pullRequest.html_url;
 
-          context.log.info(
-            `PR ${prUrl} has all checks passed but is unmergeable due to conflicts`,
-          );
+          context.log.info(`PR ${prUrl} has all checks passed but is unmergeable due to conflicts`);
 
           const session = await findRunningSessionForPR(prUrl);
 
@@ -47,9 +42,7 @@ export function registerFixMergeConflictHandler(app: Probot): void {
 
           const message = `All checks have passed for PR ${prUrl}, but it cannot be merged due to merge conflicts. Please resolve the conflicts.`;
 
-          context.log.info(
-            `Sending conflict notification to Devin session ${session.session_id}`,
-          );
+          context.log.info(`Sending conflict notification to Devin session ${session.session_id}`);
 
           await sendMessageToDevinSession(session.session_id, message);
 
@@ -58,9 +51,7 @@ export function registerFixMergeConflictHandler(app: Probot): void {
           );
         }
       } catch (error) {
-        context.log.error(
-          `Failed to handle merge conflict check for PR #${pr.number}: ${error}`,
-        );
+        context.log.error(`Failed to handle merge conflict check for PR #${pr.number}: ${error}`);
       }
     }
   });

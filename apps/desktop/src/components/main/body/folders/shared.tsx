@@ -15,12 +15,7 @@ export function Section({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <div
-        className={cn([
-          "bg-neutral-50 px-4 py-1",
-          "flex items-center justify-between",
-        ])}
-      >
+      <div className={cn(["bg-neutral-50 px-4 py-1", "flex items-center justify-between"])}>
         <div className="flex items-center gap-2">
           {icon}
           <h3 className="text-sm font-medium">{title}</h3>
@@ -28,9 +23,7 @@ export function Section({
         {action}
       </div>
 
-      {children || (
-        <div className="text-sm text-muted-foreground py-4">Empty</div>
-      )}
+      {children || <div className="text-sm text-muted-foreground py-4">Empty</div>}
     </div>
   );
 }

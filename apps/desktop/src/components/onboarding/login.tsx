@@ -13,11 +13,7 @@ import * as settings from "../../store/tinybase/settings";
 import type { OnboardingStepId } from "./config";
 import { Divider, OnboardingContainer } from "./shared";
 
-export function Login({
-  onNavigate,
-}: {
-  onNavigate: (step: OnboardingStepId | "done") => void;
-}) {
+export function Login({ onNavigate }: { onNavigate: (step: OnboardingStepId | "done") => void }) {
   const auth = useAuth();
   const currentPlatform = platform();
   const [callbackUrl, setCallbackUrl] = useState("");
@@ -72,9 +68,7 @@ export function Login({
 
       const newSession = await auth!.refreshSession();
       return newSession
-        ? getEntitlementsFromToken(newSession.access_token).includes(
-            "hyprnote_pro",
-          )
+        ? getEntitlementsFromToken(newSession.access_token).includes("hyprnote_pro")
         : false;
     },
     onSuccess: (isPro) => {

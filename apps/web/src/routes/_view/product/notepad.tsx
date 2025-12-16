@@ -71,9 +71,7 @@ function Component() {
                     "hover:scale-105 active:scale-95 transition-transform",
                   ])}
                 >
-                  <span className="hidden sm:inline">
-                    {primaryCTA.labelFull}
-                  </span>
+                  <span className="hidden sm:inline">{primaryCTA.labelFull}</span>
                   <span className="sm:hidden">{primaryCTA.labelShort}</span>
                 </a>
               ) : (
@@ -85,9 +83,7 @@ function Component() {
                     "hover:scale-105 active:scale-95 transition-transform",
                   ])}
                 >
-                  <span className="hidden sm:inline">
-                    {primaryCTA.labelFull}
-                  </span>
+                  <span className="hidden sm:inline">{primaryCTA.labelFull}</span>
                   <span className="sm:hidden">{primaryCTA.labelShort}</span>
                 </Link>
               )}
@@ -196,9 +192,8 @@ function AnimatedNotesDemo() {
                   enhancedLines >= 2 ? "opacity-100" : "opacity-0",
                 ])}
               >
-                Sarah presented the new mobile UI update, which includes a
-                streamlined navigation bar and improved button placements for
-                better accessibility.
+                Sarah presented the new mobile UI update, which includes a streamlined navigation
+                bar and improved button placements for better accessibility.
               </li>
               <li
                 className={cn([
@@ -206,9 +201,8 @@ function AnimatedNotesDemo() {
                   enhancedLines >= 3 ? "opacity-100" : "opacity-0",
                 ])}
               >
-                Ben confirmed that API adjustments are needed to support dynamic
-                UI changes, particularly for fetching personalized user data
-                more efficiently.
+                Ben confirmed that API adjustments are needed to support dynamic UI changes,
+                particularly for fetching personalized user data more efficiently.
               </li>
               <li
                 className={cn([
@@ -216,9 +210,9 @@ function AnimatedNotesDemo() {
                   enhancedLines >= 4 ? "opacity-100" : "opacity-0",
                 ])}
               >
-                The UI update will be implemented in phases, starting with core
-                navigation improvements. Ben will ensure API modifications are
-                completed before development begins.
+                The UI update will be implemented in phases, starting with core navigation
+                improvements. Ben will ensure API modifications are completed before development
+                begins.
               </li>
             </ul>
           </div>
@@ -238,8 +232,8 @@ function AnimatedNotesDemo() {
                   enhancedLines >= 6 ? "opacity-100" : "opacity-0",
                 ])}
               >
-                Alice emphasized that the new analytics dashboard must be
-                prioritized due to increasing stakeholder demand.
+                Alice emphasized that the new analytics dashboard must be prioritized due to
+                increasing stakeholder demand.
               </li>
             </ul>
           </div>

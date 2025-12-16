@@ -42,23 +42,15 @@ Examples:
   process.exit(0);
 }
 
-const createdGte = values["created-gte"]
-  ? parseInt(values["created-gte"], 10)
-  : undefined;
-const createdLte = values["created-lte"]
-  ? parseInt(values["created-lte"], 10)
-  : undefined;
+const createdGte = values["created-gte"] ? parseInt(values["created-gte"], 10) : undefined;
+const createdLte = values["created-lte"] ? parseInt(values["created-lte"], 10) : undefined;
 
 if (values["created-gte"] && isNaN(createdGte!)) {
-  throw new Error(
-    "Invalid --created-gte value: must be a valid unix timestamp",
-  );
+  throw new Error("Invalid --created-gte value: must be a valid unix timestamp");
 }
 
 if (values["created-lte"] && isNaN(createdLte!)) {
-  throw new Error(
-    "Invalid --created-lte value: must be a valid unix timestamp",
-  );
+  throw new Error("Invalid --created-lte value: must be a valid unix timestamp");
 }
 
 const created: { gte?: number; lte?: number } | undefined =
@@ -82,9 +74,7 @@ const sync = new StripeSync({
 });
 
 if (created) {
-  console.log(
-    `Starting Stripe backfill with date filter: ${JSON.stringify(created)}`,
-  );
+  console.log(`Starting Stripe backfill with date filter: ${JSON.stringify(created)}`);
 } else {
   console.log("Starting Stripe backfill (all objects)...");
 }

@@ -18,16 +18,13 @@ const hyprUiModules = Object.entries(rawHyprUiModules).reduce<
   Record<string, Record<string, unknown>>
 >((acc, [modulePath, moduleExports]) => {
   const relativeFromSrc =
-    modulePath.split("packages/ui/src/")[1] ??
-    modulePath.split("packages\\ui\\src\\")[1];
+    modulePath.split("packages/ui/src/")[1] ?? modulePath.split("packages\\ui\\src\\")[1];
 
   if (!relativeFromSrc) {
     return acc;
   }
 
-  const normalized = relativeFromSrc
-    .replace(/\\/g, "/")
-    .replace(/\.(ts|tsx)$/, "");
+  const normalized = relativeFromSrc.replace(/\\/g, "/").replace(/\.(ts|tsx)$/, "");
 
   if (!normalized.startsWith("components/")) {
     return acc;

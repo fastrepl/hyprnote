@@ -24,9 +24,7 @@ export function DaySession({ sessionId }: { sessionId: string }) {
     >
       <StickyNoteIcon />
       <p className="truncate">
-        {event && eventId
-          ? (event.title as string)
-          : (session?.title as string) || "Untitled"}
+        {event && eventId ? (event.title as string) : (session?.title as string) || "Untitled"}
       </p>
     </Button>
   );

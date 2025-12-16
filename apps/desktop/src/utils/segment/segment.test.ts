@@ -46,10 +46,7 @@ describe("buildSegments", () => {
       expected: [
         expect.objectContaining({
           key: SegmentKey.make({ channel: 0 }),
-          words: [
-            expect.objectContaining({ text: "1" }),
-            expect.objectContaining({ text: "2" }),
-          ],
+          words: [expect.objectContaining({ text: "1" }), expect.objectContaining({ text: "2" })],
         }),
         expect.objectContaining({
           key: SegmentKey.make({ channel: 1 }),
@@ -110,10 +107,7 @@ describe("buildSegments", () => {
       expected: [
         expect.objectContaining({
           key: SegmentKey.make({ channel: 0 }),
-          words: [
-            expect.objectContaining({ text: "0" }),
-            expect.objectContaining({ text: "1" }),
-          ],
+          words: [expect.objectContaining({ text: "0" }), expect.objectContaining({ text: "1" })],
         }),
       ],
     },
@@ -218,10 +212,7 @@ describe("buildSegments", () => {
         }),
         expect.objectContaining({
           key: SegmentKey.make({ channel: 1 }),
-          words: [
-            expect.objectContaining({ text: "1" }),
-            expect.objectContaining({ text: "3" }),
-          ],
+          words: [expect.objectContaining({ text: "1" }), expect.objectContaining({ text: "3" })],
         }),
       ],
     },
@@ -262,10 +253,7 @@ describe("buildSegments", () => {
             speaker_index: 1,
             speaker_human_id: "alice",
           }),
-          words: [
-            expect.objectContaining({ text: "0" }),
-            expect.objectContaining({ text: "1" }),
-          ],
+          words: [expect.objectContaining({ text: "0" }), expect.objectContaining({ text: "1" })],
         }),
       ],
     },
@@ -296,10 +284,7 @@ describe("buildSegments", () => {
             speaker_index: 2,
             speaker_human_id: "bob",
           }),
-          words: [
-            expect.objectContaining({ text: "0" }),
-            expect.objectContaining({ text: "1" }),
-          ],
+          words: [expect.objectContaining({ text: "0" }), expect.objectContaining({ text: "1" })],
         }),
       ],
     },
@@ -819,10 +804,7 @@ describe("buildSegments", () => {
       expected: [
         expect.objectContaining({
           key: SegmentKey.make({ channel: 0 }),
-          words: [
-            expect.objectContaining({ text: "0" }),
-            expect.objectContaining({ text: "1" }),
-          ],
+          words: [expect.objectContaining({ text: "0" }), expect.objectContaining({ text: "1" })],
         }),
         expect.objectContaining({
           key: SegmentKey.make({ channel: 0 }),
@@ -942,35 +924,26 @@ describe("buildSegments", () => {
     },
   ];
 
-  test.each(testCases)("$name", ({
-    finalWords,
-    partialWords,
-    speakerHints,
-    expected,
-    maxGapMs,
-    numSpeakers,
-  }) => {
-    finalWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
-    partialWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
+  test.each(testCases)(
+    "$name",
+    ({ finalWords, partialWords, speakerHints, expected, maxGapMs, numSpeakers }) => {
+      finalWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
+      partialWords.forEach((word) => expect(word.channel).toBeLessThanOrEqual(2));
 
-    const options =
-      maxGapMs !== undefined || numSpeakers !== undefined
-        ? {
-            ...(maxGapMs !== undefined && { maxGapMs }),
-            ...(numSpeakers !== undefined && { numSpeakers }),
-          }
-        : undefined;
+      const options =
+        maxGapMs !== undefined || numSpeakers !== undefined
+          ? {
+              ...(maxGapMs !== undefined && { maxGapMs }),
+              ...(numSpeakers !== undefined && { numSpeakers }),
+            }
+          : undefined;
 
-    const segments = buildSegments(
-      finalWords,
-      partialWords,
-      speakerHints,
-      options,
-    );
-    expect(segments).toEqual(expected);
+      const segments = buildSegments(finalWords, partialWords, speakerHints, options);
+      expect(segments).toEqual(expected);
 
-    console.error(visualizeSegments(finalWords, partialWords));
-  });
+      console.error(visualizeSegments(finalWords, partialWords));
+    },
+  );
 });
 
 function visualizeSegments(
@@ -1007,23 +980,20 @@ function visualizeSegments(
     wordOrder.set(word, index);
   });
 
-  const header = sortedTimestamps
-    .map((time) => String(time).padEnd(CELL_WIDTH, " "))
-    .join("");
+  const header = sortedTimestamps.map((time) => String(time).padEnd(CELL_WIDTH, " ")).join("");
 
   let result = `//    ${header.trimEnd()}\n`;
 
-  const sortedChannels = Array.from(
-    new Set(allWords.map((word) => word.channel)),
-  ).sort((a, b) => a - b);
+  const sortedChannels = Array.from(new Set(allWords.map((word) => word.channel))).sort(
+    (a, b) => a - b,
+  );
 
   sortedChannels.forEach((channel) => {
     const line = Array(totalWidth).fill(" ");
     const channelWords = allWords
       .filter((word) => word.channel === channel)
       .sort((a, b) => {
-        const startDiff =
-          slotIndex.get(a.start_ms)! - slotIndex.get(b.start_ms)!;
+        const startDiff = slotIndex.get(a.start_ms)! - slotIndex.get(b.start_ms)!;
         if (startDiff !== 0) {
           return startDiff;
         }
@@ -1042,10 +1012,7 @@ function visualizeSegments(
       const startColBase = startSlot * CELL_WIDTH;
       const slotSpan = Math.max(1, endSlot - startSlot);
       const widthOffset = slotSpan === 1 ? CELL_WIDTH - MIN_SEGMENT_WIDTH : 0;
-      const baseSegmentWidth = Math.max(
-        MIN_SEGMENT_WIDTH,
-        slotSpan * CELL_WIDTH - widthOffset,
-      );
+      const baseSegmentWidth = Math.max(MIN_SEGMENT_WIDTH, slotSpan * CELL_WIDTH - widthOffset);
       let startCol = startColBase;
       let endCol = startCol + baseSegmentWidth - 1;
 
@@ -1066,8 +1033,7 @@ function visualizeSegments(
 
       const wordIndex = String(wordOrder.get(word)!);
       const label = word.is_final ? wordIndex : `${wordIndex}-p`;
-      const desiredWidth =
-        label.length > 0 ? label.length + 2 : baseSegmentWidth;
+      const desiredWidth = label.length > 0 ? label.length + 2 : baseSegmentWidth;
       if (desiredWidth > endCol - startCol + 1) {
         const extendedEnd = startCol + desiredWidth - 1;
         if (extendedEnd < line.length) {
@@ -1082,8 +1048,7 @@ function visualizeSegments(
       if (label.length > 0 && interiorEnd >= interiorStart) {
         const interiorWidth = interiorEnd - interiorStart + 1;
         if (label.length <= interiorWidth) {
-          const labelStart =
-            interiorStart + Math.floor((interiorWidth - label.length) / 2);
+          const labelStart = interiorStart + Math.floor((interiorWidth - label.length) / 2);
           for (let i = 0; i < label.length; i++) {
             line[labelStart + i] = label[i];
           }

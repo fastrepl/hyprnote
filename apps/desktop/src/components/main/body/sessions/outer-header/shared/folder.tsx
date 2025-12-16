@@ -26,10 +26,7 @@ export function SearchableFolderDropdown({
   trigger: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const folders = main.UI.useResultTable(
-    main.QUERIES.visibleFolders,
-    main.STORE_ID,
-  );
+  const folders = main.UI.useResultTable(main.QUERIES.visibleFolders, main.STORE_ID);
 
   const handleSelectFolder = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -50,9 +47,7 @@ export function SearchableFolderDropdown({
             setOpen={setOpen}
           />
         ) : (
-          <div className="py-6 text-center text-sm text-muted-foreground">
-            No folders available
-          </div>
+          <div className="py-6 text-center text-sm text-muted-foreground">No folders available</div>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -66,10 +61,7 @@ export function SearchableFolderSubmenuContent({
   sessionId: string;
   setOpen?: (open: boolean) => void;
 }) {
-  const folders = main.UI.useResultTable(
-    main.QUERIES.visibleFolders,
-    main.STORE_ID,
-  );
+  const folders = main.UI.useResultTable(main.QUERIES.visibleFolders, main.STORE_ID);
 
   const handleSelectFolder = main.UI.useSetPartialRowCallback(
     "sessions",
@@ -88,9 +80,7 @@ export function SearchableFolderSubmenuContent({
           setOpen={setOpen}
         />
       ) : (
-        <div className="py-6 text-center text-sm text-muted-foreground">
-          No folders available
-        </div>
+        <div className="py-6 text-center text-sm text-muted-foreground">No folders available</div>
       )}
     </DropdownMenuSubContent>
   );
@@ -117,11 +107,7 @@ function SearchableFolderContent({
         <CommandEmpty>No folders found.</CommandEmpty>
         <CommandGroup>
           {Object.entries(folders).map(([folderId, folder]) => (
-            <CommandItem
-              key={folderId}
-              value={folder.name}
-              onSelect={() => handleSelect(folderId)}
-            >
+            <CommandItem key={folderId} value={folder.name} onSelect={() => handleSelect(folderId)}>
               <FolderIcon />
               {folder.name}
             </CommandItem>

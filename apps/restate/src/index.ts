@@ -10,9 +10,7 @@ export default {
     const env = envSchema.parse(_env);
     return restate.createEndpointHandler({
       services: [rateLimiter, sttFile, storageCleanup],
-      ...(env.RESTATE_IDENTITY_KEY
-        ? { identityKeys: [env.RESTATE_IDENTITY_KEY] }
-        : {}),
+      ...(env.RESTATE_IDENTITY_KEY ? { identityKeys: [env.RESTATE_IDENTITY_KEY] } : {}),
     })(request, env);
   },
 };

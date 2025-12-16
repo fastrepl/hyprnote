@@ -3,10 +3,7 @@ import { CheckIcon, SparklesIcon } from "lucide-react";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
-import {
-  TASK_CONFIGS,
-  type TaskType,
-} from "../../../../store/tinybase/prompts";
+import { TASK_CONFIGS, type TaskType } from "../../../../store/tinybase/prompts";
 
 export function PromptsListColumn({
   selectedTask,
@@ -52,12 +49,7 @@ function TaskItem({
   isSelected: boolean;
   onClick: () => void;
 }) {
-  const content = main.UI.useCell(
-    "prompts",
-    taskType,
-    "content",
-    main.STORE_ID,
-  );
+  const content = main.UI.useCell("prompts", taskType, "content", main.STORE_ID);
   const hasCustomPrompt = !!content;
 
   return (

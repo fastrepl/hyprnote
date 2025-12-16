@@ -40,10 +40,7 @@ export const updateStore = createStore({
       ...context,
       state: event.state,
     }),
-    checkSuccess: (
-      context,
-      event: { update: Update | null; currentVersion: string },
-    ) => ({
+    checkSuccess: (context, event: { update: Update | null; currentVersion: string }) => ({
       ...context,
       update: event.update,
       error: null,
@@ -65,10 +62,7 @@ export const updateStore = createStore({
       },
       state: "downloading" as State,
     }),
-    downloadProgress: (
-      context,
-      event: { chunkLength: number; contentLength?: number },
-    ) => ({
+    downloadProgress: (context, event: { chunkLength: number; contentLength?: number }) => ({
       ...context,
       downloadProgress: {
         downloaded: context.downloadProgress.downloaded + event.chunkLength,
@@ -79,9 +73,7 @@ export const updateStore = createStore({
                 100,
                 Math.round(
                   ((context.downloadProgress.downloaded + event.chunkLength) /
-                    (event.contentLength ??
-                      context.downloadProgress.total ??
-                      1)) *
+                    (event.contentLength ?? context.downloadProgress.total ?? 1)) *
                     100,
                 ),
               )

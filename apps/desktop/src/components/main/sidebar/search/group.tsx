@@ -22,9 +22,7 @@ export function SearchResultGroup({ group }: { group: SearchGroup }) {
   return (
     <div className={cn(["mb-6"])}>
       <div className={cn(["sticky top-0 z-10", "px-2 py-2 mb-2"])}>
-        <h3 className={cn(["text-sm font-semibold text-neutral-900"])}>
-          {group.title}
-        </h3>
+        <h3 className={cn(["text-sm font-semibold text-neutral-900"])}>{group.title}</h3>
       </div>
       <div className={cn(["space-y-0.5"])}>
         {visibleResults.map((result) => (

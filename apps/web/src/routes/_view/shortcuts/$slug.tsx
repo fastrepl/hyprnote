@@ -11,9 +11,7 @@ import { MDXLink } from "@/components/mdx";
 export const Route = createFileRoute("/_view/shortcuts/$slug")({
   component: Component,
   loader: async ({ params }) => {
-    const shortcut = allShortcuts.find(
-      (shortcut) => shortcut.slug === params.slug,
-    );
+    const shortcut = allShortcuts.find((shortcut) => shortcut.slug === params.slug);
     if (!shortcut) {
       throw notFound();
     }
@@ -147,9 +145,7 @@ function ShortcutHeader({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-stone-600 mb-4">
         {shortcut.title}
       </h1>
-      <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed">
-        {shortcut.description}
-      </p>
+      <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed">{shortcut.description}</p>
     </header>
   );
 }
@@ -167,11 +163,7 @@ function ShortcutContent({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
   );
 }
 
-function SuggestedShortcuts({
-  shortcut,
-}: {
-  shortcut: (typeof allShortcuts)[0];
-}) {
+function SuggestedShortcuts({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
   const suggestedShortcuts = allShortcuts.filter(
     (s) => s.category === shortcut.category && s.slug !== shortcut.slug,
   );
@@ -194,9 +186,7 @@ function SuggestedShortcuts({
             <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
               {s.title}
             </h3>
-            <p className="text-sm text-neutral-600 line-clamp-2">
-              {s.description}
-            </p>
+            <p className="text-sm text-neutral-600 line-clamp-2">{s.description}</p>
           </Link>
         ))}
       </div>
@@ -225,17 +215,12 @@ function RightSidebar({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
     <aside className="hidden sm:block w-80 shrink-0">
       <div className="sticky top-[69px] space-y-4 px-4 py-6">
         <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-6 text-center">
-          <h3 className="font-serif text-lg text-stone-600 mb-3">
-            Use this shortcut
-          </h3>
+          <h3 className="font-serif text-lg text-stone-600 mb-3">Use this shortcut</h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Hyprnote to use this shortcut and get AI-powered meeting
-            insights.
+            Download Hyprnote to use this shortcut and get AI-powered meeting insights.
           </p>
           <DownloadButton />
-          <p className="text-xs text-neutral-500 mt-4">
-            Free to use. No credit card required.
-          </p>
+          <p className="text-xs text-neutral-500 mt-4">Free to use. No credit card required.</p>
         </div>
 
         <a
@@ -249,9 +234,7 @@ function RightSidebar({ shortcut }: { shortcut: (typeof allShortcuts)[0] }) {
         </a>
 
         <div className="border border-dashed border-neutral-300 rounded-sm p-6 bg-stone-50/50 text-center">
-          <h3 className="font-serif text-lg text-stone-600 mb-3">
-            Contribute a shortcut
-          </h3>
+          <h3 className="font-serif text-lg text-stone-600 mb-3">Contribute a shortcut</h3>
           <p className="text-sm text-neutral-600 mb-6">
             Have a shortcut idea? Submit a PR and help the community.
           </p>

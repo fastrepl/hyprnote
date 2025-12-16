@@ -52,9 +52,7 @@ function Component() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold">K6 Load Test Reports</h1>
-      <p className="text-neutral-600 mt-2">
-        WebSocket stability test results from CI
-      </p>
+      <p className="text-neutral-600 mt-2">WebSocket stability test results from CI</p>
 
       {reports.length === 0 ? (
         <div className="mt-8 p-8 bg-neutral-50 rounded-lg text-center">

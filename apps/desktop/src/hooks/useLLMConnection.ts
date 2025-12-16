@@ -4,11 +4,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import {
-  extractReasoningMiddleware,
-  type LanguageModel,
-  wrapLanguageModel,
-} from "ai";
+import { extractReasoningMiddleware, type LanguageModel, wrapLanguageModel } from "ai";
 import { useMemo } from "react";
 
 import type { AIProviderStorage } from "@hypr/store";
@@ -19,10 +15,7 @@ import {
   getProviderSelectionBlockers,
   type ProviderEligibilityContext,
 } from "../components/settings/ai/shared/eligibility";
-import {
-  type ProviderId,
-  PROVIDERS,
-} from "../components/settings/ai/llm/shared";
+import { type ProviderId, PROVIDERS } from "../components/settings/ai/llm/shared";
 import { env } from "../env";
 import * as settings from "../store/tinybase/settings";
 import { tracedFetch } from "../utils/traced-fetch";
@@ -62,9 +55,7 @@ export const useLLMConnection = (): LLMConnectionResult => {
   const auth = useAuth();
   const billing = useBillingAccess();
 
-  const { current_llm_provider, current_llm_model } = settings.UI.useValues(
-    settings.STORE_ID,
-  );
+  const { current_llm_provider, current_llm_model } = settings.UI.useValues(settings.STORE_ID);
   const providerConfig = settings.UI.useRow(
     "ai_providers",
     current_llm_provider ?? "",
@@ -80,13 +71,7 @@ export const useLLMConnection = (): LLMConnectionResult => {
         session: auth?.session,
         isPro: billing.isPro,
       }),
-    [
-      auth,
-      billing.isPro,
-      current_llm_model,
-      current_llm_provider,
-      providerConfig,
-    ],
+    [auth, billing.isPro, current_llm_model, current_llm_provider, providerConfig],
   );
 };
 
@@ -102,13 +87,7 @@ const resolveLLMConnection = (params: {
   session: { access_token: string } | null | undefined;
   isPro: boolean;
 }): LLMConnectionResult => {
-  const {
-    providerId: rawProviderId,
-    modelId,
-    providerConfig,
-    session,
-    isPro,
-  } = params;
+  const { providerId: rawProviderId, modelId, providerConfig, session, isPro } = params;
 
   if (!rawProviderId) {
     return {
@@ -139,10 +118,7 @@ const resolveLLMConnection = (params: {
     };
   }
 
-  const baseUrl =
-    providerConfig?.base_url?.trim() ||
-    providerDefinition.baseUrl?.trim() ||
-    "";
+  const baseUrl = providerConfig?.base_url?.trim() || providerDefinition.baseUrl?.trim() || "";
   const apiKey = providerConfig?.api_key?.trim() || "";
 
   const context: ProviderEligibilityContext = {
@@ -151,10 +127,7 @@ const resolveLLMConnection = (params: {
     config: { base_url: baseUrl, api_key: apiKey },
   };
 
-  const blockers = getProviderSelectionBlockers(
-    providerDefinition.requirements,
-    context,
-  );
+  const blockers = getProviderSelectionBlockers(providerDefinition.requirements, context);
 
   if (blockers.length > 0) {
     const blocker = blockers[0];
@@ -211,9 +184,7 @@ const wrapWithThinkingMiddleware = (model: Exclude<LanguageModel, string>) => {
   });
 };
 
-const createLanguageModel = (
-  conn: LLMConnectionInfo,
-): Exclude<LanguageModel, string> => {
+const createLanguageModel = (conn: LLMConnectionInfo): Exclude<LanguageModel, string> => {
   switch (conn.providerId) {
     case "hyprnote": {
       const provider = createOpenAICompatible({

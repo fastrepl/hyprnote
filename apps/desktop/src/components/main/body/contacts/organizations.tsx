@@ -17,8 +17,7 @@ export function OrganizationsColumn({
 }) {
   const [showNewOrg, setShowNewOrg] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const { organizationIds, sortOption, setSortOption } =
-    useSortedOrganizationIds();
+  const { organizationIds, sortOption, setSortOption } = useSortedOrganizationIds();
 
   const allOrgs = main.UI.useTable("organizations", main.STORE_ID);
 
@@ -67,9 +66,7 @@ export function OrganizationsColumn({
               key={orgId}
               organizationId={orgId}
               isSelected={selectedOrganization === orgId}
-              isViewingDetails={
-                isViewingOrgDetails && selectedOrganization === orgId
-              }
+              isViewingDetails={isViewingOrgDetails && selectedOrganization === orgId}
               setSelectedOrganization={setSelectedOrganization}
             />
           ))}
@@ -138,11 +135,7 @@ function OrganizationItem({
   isViewingDetails: boolean;
   setSelectedOrganization: (id: string | null) => void;
 }) {
-  const organization = main.UI.useRow(
-    "organizations",
-    organizationId,
-    main.STORE_ID,
-  );
+  const organization = main.UI.useRow("organizations", organizationId, main.STORE_ID);
   if (!organization) {
     return null;
   }
@@ -166,13 +159,7 @@ function OrganizationItem({
   );
 }
 
-function NewOrganizationForm({
-  onSave,
-  onCancel,
-}: {
-  onSave: () => void;
-  onCancel: () => void;
-}) {
+function NewOrganizationForm({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
   const [name, setName] = useState("");
 
   const handleAdd = main.UI.useAddRowCallback(

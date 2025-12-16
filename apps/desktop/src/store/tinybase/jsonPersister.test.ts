@@ -144,9 +144,7 @@ describe("jsonPersister roundtrip", () => {
     };
 
     expect(result.ai?.llm).toEqual(original.ai?.llm);
-    expect(result.ai?.current_llm_provider).toEqual(
-      original.ai?.current_llm_provider,
-    );
+    expect(result.ai?.current_llm_provider).toEqual(original.ai?.current_llm_provider);
   });
 
   test("handles partial data - only notification settings", () => {

@@ -36,11 +36,7 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  return (
-    <NetworkContext.Provider value={{ isOnline }}>
-      {children}
-    </NetworkContext.Provider>
-  );
+  return <NetworkContext.Provider value={{ isOnline }}>{children}</NetworkContext.Provider>;
 }
 
 export function useNetwork(): NetworkContextValue {

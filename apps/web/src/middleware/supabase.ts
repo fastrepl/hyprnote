@@ -3,37 +3,29 @@ import { createMiddleware } from "@tanstack/react-start";
 
 import { env } from "@/env";
 
-export const supabaseAuthMiddleware = createMiddleware().server(
-  async ({ next, request }) => {
-    const authHeader = request.headers.get("Authorization");
-    const token = authHeader?.replace(/^bearer /i, "");
+export const supabaseAuthMiddleware = createMiddleware().server(async ({ next, request }) => {
+  const authHeader = request.headers.get("Authorization");
+  const token = authHeader?.replace(/^bearer /i, "");
 
-    if (!token) {
-      throw new Response(
-        JSON.stringify({ error: "missing_authorization_header" }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
+  if (!token) {
+    throw new Response(JSON.stringify({ error: "missing_authorization_header" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
     });
+  }
 
-    const { data, error } = await supabase.auth.getUser();
+  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
 
-    if (error || !data?.user) {
-      throw new Response(
-        JSON.stringify({ error: "invalid_authorization_header" }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+  const { data, error } = await supabase.auth.getUser();
 
-    return next({ context: { supabase, user: data.user } });
-  },
-);
+  if (error || !data?.user) {
+    throw new Response(JSON.stringify({ error: "invalid_authorization_header" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  return next({ context: { supabase, user: data.user } });
+});

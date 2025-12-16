@@ -1,11 +1,5 @@
 export const handbookStructure = {
-  sections: [
-    "about",
-    "how-we-work",
-    "who-we-want",
-    "go-to-market",
-    "communication",
-  ],
+  sections: ["about", "how-we-work", "who-we-want", "go-to-market", "communication"],
   defaultPages: {
     about: "about/what-hyprnote-is",
     "how-we-work": "how-we-work/work-styles",

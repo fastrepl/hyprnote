@@ -26,14 +26,11 @@ export type {
   TemplatesState,
 };
 
-export const isEnhancedView = (
-  view: EditorView,
-): view is { type: "enhanced"; id: string } => view.type === "enhanced";
-export const isRawView = (view: EditorView): view is { type: "raw" } =>
-  view.type === "raw";
-export const isTranscriptView = (
-  view: EditorView,
-): view is { type: "transcript" } => view.type === "transcript";
+export const isEnhancedView = (view: EditorView): view is { type: "enhanced"; id: string } =>
+  view.type === "enhanced";
+export const isRawView = (view: EditorView): view is { type: "raw" } => view.type === "raw";
+export const isTranscriptView = (view: EditorView): view is { type: "transcript" } =>
+  view.type === "transcript";
 
 type BaseTab = {
   active: boolean;

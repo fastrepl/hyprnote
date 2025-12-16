@@ -11,9 +11,7 @@ import { MDXLink } from "@/components/mdx";
 export const Route = createFileRoute("/_view/templates/$slug")({
   component: Component,
   loader: async ({ params }) => {
-    const template = allTemplates.find(
-      (template) => template.slug === params.slug,
-    );
+    const template = allTemplates.find((template) => template.slug === params.slug);
     if (!template) {
       throw notFound();
     }
@@ -187,19 +185,13 @@ function ExamplesSection() {
     <section id="examples" className="mt-12 scroll-mt-20">
       <h2 className="text-xl font-serif text-stone-700 mb-4">Examples</h2>
       <div className="border border-neutral-200 rounded-sm p-6 lg:p-8 bg-white">
-        <p className="text-neutral-500 text-center py-8">
-          Examples coming soon
-        </p>
+        <p className="text-neutral-500 text-center py-8">Examples coming soon</p>
       </div>
     </section>
   );
 }
 
-function SuggestedTemplates({
-  template,
-}: {
-  template: (typeof allTemplates)[0];
-}) {
+function SuggestedTemplates({ template }: { template: (typeof allTemplates)[0] }) {
   const suggestedTemplates = allTemplates.filter(
     (t) => t.category === template.category && t.slug !== template.slug,
   );
@@ -222,9 +214,7 @@ function SuggestedTemplates({
             <h3 className="font-serif text-lg text-stone-600 mb-1 group-hover:text-stone-800 transition-colors">
               {t.title}
             </h3>
-            <p className="text-sm text-neutral-600 line-clamp-2">
-              {t.description}
-            </p>
+            <p className="text-sm text-neutral-600 line-clamp-2">{t.description}</p>
           </Link>
         ))}
       </div>
@@ -251,23 +241,16 @@ function RightSidebar() {
     <aside className="hidden sm:block w-80 shrink-0">
       <div className="sticky top-[69px] space-y-4 px-4 py-6">
         <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-6 text-center">
-          <h3 className="font-serif text-lg text-stone-600 mb-3">
-            Use this template
-          </h3>
+          <h3 className="font-serif text-lg text-stone-600 mb-3">Use this template</h3>
           <p className="text-sm text-neutral-600 mb-6">
-            Download Hyprnote to use this template and get AI-powered meeting
-            notes.
+            Download Hyprnote to use this template and get AI-powered meeting notes.
           </p>
           <DownloadButton />
-          <p className="text-xs text-neutral-500 mt-4">
-            Free to use. No credit card required.
-          </p>
+          <p className="text-xs text-neutral-500 mt-4">Free to use. No credit card required.</p>
         </div>
 
         <div className="border border-dashed border-neutral-300 rounded-sm p-6 bg-stone-50/50 text-center">
-          <h3 className="font-serif text-lg text-stone-600 mb-3">
-            Contribute a template
-          </h3>
+          <h3 className="font-serif text-lg text-stone-600 mb-3">Contribute a template</h3>
           <p className="text-sm text-neutral-600 mb-6">
             Have a template idea? Submit a PR and help the community.
           </p>

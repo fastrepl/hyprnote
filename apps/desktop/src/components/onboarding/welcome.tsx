@@ -5,28 +5,18 @@ import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
 import type { OnboardingStepId } from "./config";
 
-export function Welcome({
-  onNavigate,
-}: {
-  onNavigate: (step: OnboardingStepId | "done") => void;
-}) {
+export function Welcome({ onNavigate }: { onNavigate: (step: OnboardingStepId | "done") => void }) {
   const currentPlatform = platform();
   const archQuery = useQuery({
     queryKey: ["arch"],
     queryFn: () => arch(),
   });
 
-  const isAppleSilicon =
-    currentPlatform === "macos" && archQuery.data === "aarch64";
+  const isAppleSilicon = currentPlatform === "macos" && archQuery.data === "aarch64";
 
   return (
     <>
-      <img
-        src="/assets/logo.svg"
-        alt="HYPRNOTE"
-        className="mb-6 w-[300px]"
-        draggable={false}
-      />
+      <img src="/assets/logo.svg" alt="HYPRNOTE" className="mb-6 w-[300px]" draggable={false} />
 
       <TextAnimate
         animation="slideUp"

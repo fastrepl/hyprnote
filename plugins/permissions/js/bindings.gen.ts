@@ -1,9 +1,6 @@
 // @ts-nocheck
 /** tauri-specta globals **/
-import {
-  Channel as TAURI_CHANNEL,
-  invoke as TAURI_INVOKE,
-} from "@tauri-apps/api/core";
+import { Channel as TAURI_CHANNEL, invoke as TAURI_INVOKE } from "@tauri-apps/api/core";
 import * as TAURI_API_EVENT from "@tauri-apps/api/event";
 import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
 
@@ -16,9 +13,7 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|check_microphone_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|check_microphone_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -29,24 +24,18 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|request_microphone_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|request_microphone_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
       else return { status: "error", error: e as any };
     }
   },
-  async checkSystemAudioPermission(): Promise<
-    Result<PermissionStatus, string>
-  > {
+  async checkSystemAudioPermission(): Promise<Result<PermissionStatus, string>> {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|check_system_audio_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|check_system_audio_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -57,24 +46,18 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|request_system_audio_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|request_system_audio_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
       else return { status: "error", error: e as any };
     }
   },
-  async checkAccessibilityPermission(): Promise<
-    Result<PermissionStatus, string>
-  > {
+  async checkAccessibilityPermission(): Promise<Result<PermissionStatus, string>> {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|check_accessibility_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|check_accessibility_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -85,9 +68,7 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|request_accessibility_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|request_accessibility_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -98,9 +79,7 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|check_calendar_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|check_calendar_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -111,9 +90,7 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|request_calendar_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|request_calendar_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -124,9 +101,7 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|check_contacts_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|check_contacts_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -137,9 +112,7 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:permissions|request_contacts_permission",
-        ),
+        data: await TAURI_INVOKE("plugin:permissions|request_contacts_permission"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -179,24 +152,16 @@ export const commands = {
 export type PermissionStatus = "neverRequested" | "denied" | "authorized";
 
 type __EventObj__<T> = {
-  listen: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
-  once: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
+  listen: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
+  once: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
   emit: null extends T
     ? (payload?: T) => ReturnType<typeof TAURI_API_EVENT.emit>
     : (payload: T) => ReturnType<typeof TAURI_API_EVENT.emit>;
 };
 
-export type Result<T, E> =
-  | { status: "ok"; data: T }
-  | { status: "error"; error: E };
+export type Result<T, E> = { status: "ok"; data: T } | { status: "error"; error: E };
 
-function __makeEvents__<T extends Record<string, any>>(
-  mappings: Record<keyof T, string>,
-) {
+function __makeEvents__<T extends Record<string, any>>(mappings: Record<keyof T, string>) {
   return new Proxy(
     {} as unknown as {
       [K in keyof T]: __EventObj__<T[K]> & {

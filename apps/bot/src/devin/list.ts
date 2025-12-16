@@ -46,9 +46,7 @@ export async function listDevinSessions(
   return (await response.json()) as ListSessionsResponse;
 }
 
-export async function findRunningSessionForPR(
-  prUrl: string,
-): Promise<DevinSession | null> {
+export async function findRunningSessionForPR(prUrl: string): Promise<DevinSession | null> {
   let offset = 0;
   const limit = DEFAULT_PAGE_SIZE;
 
@@ -63,9 +61,7 @@ export async function findRunningSessionForPR(
       break;
     }
 
-    const match = sessions.find(
-      (session) => session.pull_request?.url === prUrl,
-    );
+    const match = sessions.find((session) => session.pull_request?.url === prUrl);
     if (match) {
       return match;
     }

@@ -6,11 +6,7 @@ import type { ExtensionInfo } from "@hypr/plugin-extensions";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import {
-  getExtensionsDir,
-  listInstalledExtensions,
-  loadExtensionPanels,
-} from "./registry";
+import { getExtensionsDir, listInstalledExtensions, loadExtensionPanels } from "./registry";
 
 export function ExtensionsListColumn({
   selectedExtension,
@@ -69,9 +65,7 @@ export function ExtensionsListColumn({
             <div className="text-center py-8 text-neutral-500">
               <Blocks size={32} className="mx-auto mb-2 text-neutral-300" />
               <p className="text-sm">
-                {searchValue
-                  ? "No extensions found"
-                  : "No extensions installed"}
+                {searchValue ? "No extensions found" : "No extensions installed"}
               </p>
               <p className="text-xs text-neutral-400 mt-1">
                 Add extensions to the extensions folder
@@ -126,28 +120,13 @@ function ExtensionColumnHeader({
       <div className="py-2 pl-3 pr-1 flex items-center justify-between h-12 min-w-0">
         <h3 className="text-sm font-medium">Extensions</h3>
         <div className="flex items-center flex-shrink-0">
-          <Button
-            onClick={handleSearchToggle}
-            size="icon"
-            variant="ghost"
-            title="Search"
-          >
+          <Button onClick={handleSearchToggle} size="icon" variant="ghost" title="Search">
             <Search size={16} />
           </Button>
-          <Button
-            onClick={onRefresh}
-            size="icon"
-            variant="ghost"
-            title="Refresh"
-          >
+          <Button onClick={onRefresh} size="icon" variant="ghost" title="Refresh">
             <RefreshCw size={16} />
           </Button>
-          <Button
-            onClick={onOpenDir}
-            size="icon"
-            variant="ghost"
-            title="Open Extensions Folder"
-          >
+          <Button onClick={onOpenDir} size="icon" variant="ghost" title="Open Extensions Folder">
             <FolderOpen size={16} />
           </Button>
         </div>
@@ -200,14 +179,10 @@ function ExtensionItem({
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate flex items-center gap-1">
             {extension.name}
-            <span className="text-xs text-stone-400 font-mono">
-              v{extension.version}
-            </span>
+            <span className="text-xs text-stone-400 font-mono">v{extension.version}</span>
           </div>
           {extension.description && (
-            <div className="text-xs text-neutral-500 truncate">
-              {extension.description}
-            </div>
+            <div className="text-xs text-neutral-500 truncate">{extension.description}</div>
           )}
         </div>
       </div>

@@ -1,15 +1,6 @@
-import {
-  BaseDirectory,
-  exists,
-  readTextFile,
-  remove,
-} from "@tauri-apps/plugin-fs";
+import { BaseDirectory, exists, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { createCustomPersister } from "tinybase/persisters/with-schemas";
-import type {
-  Content,
-  MergeableStore,
-  OptionalSchemas,
-} from "tinybase/with-schemas";
+import type { Content, MergeableStore, OptionalSchemas } from "tinybase/with-schemas";
 
 import { commands } from "@hypr/plugin-settings";
 
@@ -44,19 +35,12 @@ function settingsToStoreValues(settings: unknown): Record<string, unknown> {
   return values;
 }
 
-function settingsToProviderRows(
-  settings: unknown,
-): Record<string, ProviderRow> {
+function settingsToProviderRows(settings: unknown): Record<string, ProviderRow> {
   const rows: Record<string, ProviderRow> = {};
-  const ai = (settings as Record<string, unknown>)?.ai as
-    | Record<string, unknown>
-    | undefined;
+  const ai = (settings as Record<string, unknown>)?.ai as Record<string, unknown> | undefined;
 
   for (const providerType of ["llm", "stt"] as const) {
-    const providers = (ai?.[providerType] ?? {}) as Record<
-      string,
-      ProviderData
-    >;
+    const providers = (ai?.[providerType] ?? {}) as Record<string, ProviderData>;
     for (const [id, data] of Object.entries(providers)) {
       if (data) {
         rows[id] = {
@@ -70,9 +54,7 @@ function settingsToProviderRows(
   return rows;
 }
 
-export function storeValuesToSettings(
-  values: Record<string, unknown>,
-): Record<string, unknown> {
+export function storeValuesToSettings(values: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, Record<string, unknown>> = {
     ai: { llm: {}, stt: {} },
     notification: {},
@@ -119,10 +101,7 @@ export function settingsToContent<Schemas extends OptionalSchemas>(
 export function storeToSettings<Schemas extends OptionalSchemas>(
   store: MergeableStore<Schemas>,
 ): Record<string, unknown> {
-  const rows = (store.getTable("ai_providers") ?? {}) as unknown as Record<
-    string,
-    ProviderRow
-  >;
+  const rows = (store.getTable("ai_providers") ?? {}) as unknown as Record<string, ProviderRow>;
   const providers = providerRowsToSettings(rows);
 
   const storeValues = store.getValues() as unknown as Record<string, unknown>;
@@ -172,16 +151,11 @@ export async function migrateKeysJsonToSettings(): Promise<boolean> {
     }
 
     await remove(keysPath, options);
-    console.info(
-      "[migrateKeysJsonToSettings] migrated keys.json to settings.json",
-    );
+    console.info("[migrateKeysJsonToSettings] migrated keys.json to settings.json");
     return true;
   } catch (error) {
     const errorStr = String(error);
-    if (
-      errorStr.includes("No such file or directory") ||
-      errorStr.includes("ENOENT")
-    ) {
+    if (errorStr.includes("No such file or directory") || errorStr.includes("ENOENT")) {
       return false;
     }
     console.error("[migrateKeysJsonToSettings] error:", error);
@@ -204,9 +178,7 @@ export function createSettingsPersister<Schemas extends OptionalSchemas>(
     },
     async () => {
       const settings = storeToSettings(store);
-      const result = await commands.save(
-        settings as Parameters<typeof commands.save>[0],
-      );
+      const result = await commands.save(settings as Parameters<typeof commands.save>[0]);
       if (result.status === "error") {
         console.error("[SettingsPersister] save error:", result.error);
       }

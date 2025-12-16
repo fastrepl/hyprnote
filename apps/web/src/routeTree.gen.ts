@@ -8,1821 +8,1811 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as YoutubeRouteImport } from './routes/youtube'
-import { Route as XRouteImport } from './routes/x'
-import { Route as LinkedinRouteImport } from './routes/linkedin'
-import { Route as JoinWaitlistRouteImport } from './routes/join-waitlist'
-import { Route as GithubRouteImport } from './routes/github'
-import { Route as FoundersRouteImport } from './routes/founders'
-import { Route as DiscordRouteImport } from './routes/discord'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ViewRouteRouteImport } from './routes/_view/route'
-import { Route as ViewIndexRouteImport } from './routes/_view/index'
-import { Route as WebhookNangoRouteImport } from './routes/webhook/nango'
-import { Route as ApiTemplatesRouteImport } from './routes/api/templates'
-import { Route as ApiShortcutsRouteImport } from './routes/api/shortcuts'
-import { Route as ApiK6ReportsRouteImport } from './routes/api/k6-reports'
-import { Route as ViewSecurityRouteImport } from './routes/_view/security'
-import { Route as ViewPrivacyRouteImport } from './routes/_view/privacy'
-import { Route as ViewPricingRouteImport } from './routes/_view/pricing'
-import { Route as ViewOssFriendsRouteImport } from './routes/_view/oss-friends'
-import { Route as ViewOpensourceRouteImport } from './routes/_view/opensource'
-import { Route as ViewFreeRouteImport } from './routes/_view/free'
-import { Route as ViewFileTranscriptionRouteImport } from './routes/_view/file-transcription'
-import { Route as ViewEnterpriseRouteImport } from './routes/_view/enterprise'
-import { Route as ViewBrandRouteImport } from './routes/_view/brand'
-import { Route as ViewAboutRouteImport } from './routes/_view/about'
-import { Route as ViewDocsRouteRouteImport } from './routes/_view/docs/route'
-import { Route as ViewCompanyHandbookRouteRouteImport } from './routes/_view/company-handbook/route'
-import { Route as ViewAppRouteRouteImport } from './routes/_view/app/route'
-import { Route as ViewTemplatesIndexRouteImport } from './routes/_view/templates/index'
-import { Route as ViewShortcutsIndexRouteImport } from './routes/_view/shortcuts/index'
-import { Route as ViewRoadmapIndexRouteImport } from './routes/_view/roadmap/index'
-import { Route as ViewPressKitIndexRouteImport } from './routes/_view/press-kit/index'
-import { Route as ViewLegalIndexRouteImport } from './routes/_view/legal/index'
-import { Route as ViewK6ReportsIndexRouteImport } from './routes/_view/k6-reports/index'
-import { Route as ViewGalleryIndexRouteImport } from './routes/_view/gallery/index'
-import { Route as ViewEvalIndexRouteImport } from './routes/_view/eval/index'
-import { Route as ViewDownloadIndexRouteImport } from './routes/_view/download/index'
-import { Route as ViewDocsIndexRouteImport } from './routes/_view/docs/index'
-import { Route as ViewCompanyHandbookIndexRouteImport } from './routes/_view/company-handbook/index'
-import { Route as ViewChangelogIndexRouteImport } from './routes/_view/changelog/index'
-import { Route as ViewBlogIndexRouteImport } from './routes/_view/blog/index'
-import { Route as ViewAppIndexRouteImport } from './routes/_view/app/index'
-import { Route as ApiTweetIdRouteImport } from './routes/api/tweet.$id'
-import { Route as ApiImagesSplatRouteImport } from './routes/api/images.$'
-import { Route as ViewVsSlugRouteImport } from './routes/_view/vs/$slug'
-import { Route as ViewTemplatesSlugRouteImport } from './routes/_view/templates/$slug'
-import { Route as ViewSolutionSalesRouteImport } from './routes/_view/solution/sales'
-import { Route as ViewSolutionResearchRouteImport } from './routes/_view/solution/research'
-import { Route as ViewSolutionRecruitingRouteImport } from './routes/_view/solution/recruiting'
-import { Route as ViewSolutionProjectManagementRouteImport } from './routes/_view/solution/project-management'
-import { Route as ViewSolutionMediaRouteImport } from './routes/_view/solution/media'
-import { Route as ViewSolutionLegalRouteImport } from './routes/_view/solution/legal'
-import { Route as ViewSolutionJournalismRouteImport } from './routes/_view/solution/journalism'
-import { Route as ViewSolutionHealthcareRouteImport } from './routes/_view/solution/healthcare'
-import { Route as ViewSolutionGovernmentRouteImport } from './routes/_view/solution/government'
-import { Route as ViewSolutionFieldEngineeringRouteImport } from './routes/_view/solution/field-engineering'
-import { Route as ViewSolutionCustomerSuccessRouteImport } from './routes/_view/solution/customer-success'
-import { Route as ViewSolutionConsultingRouteImport } from './routes/_view/solution/consulting'
-import { Route as ViewSolutionCoachingRouteImport } from './routes/_view/solution/coaching'
-import { Route as ViewShortcutsSlugRouteImport } from './routes/_view/shortcuts/$slug'
-import { Route as ViewRoadmapSlugRouteImport } from './routes/_view/roadmap/$slug'
-import { Route as ViewProductWorkflowsRouteImport } from './routes/_view/product/workflows'
-import { Route as ViewProductSelfHostingRouteImport } from './routes/_view/product/self-hosting'
-import { Route as ViewProductNotepadRouteImport } from './routes/_view/product/notepad'
-import { Route as ViewProductMiniAppsRouteImport } from './routes/_view/product/mini-apps'
-import { Route as ViewProductMemoryRouteImport } from './routes/_view/product/memory'
-import { Route as ViewProductLocalAiRouteImport } from './routes/_view/product/local-ai'
-import { Route as ViewProductExtensionsRouteImport } from './routes/_view/product/extensions'
-import { Route as ViewProductBotRouteImport } from './routes/_view/product/bot'
-import { Route as ViewProductApiRouteImport } from './routes/_view/product/api'
-import { Route as ViewProductAiNotetakingRouteImport } from './routes/_view/product/ai-notetaking'
-import { Route as ViewProductAiAssistantRouteImport } from './routes/_view/product/ai-assistant'
-import { Route as ViewPressKitAppRouteImport } from './routes/_view/press-kit/app'
-import { Route as ViewLegalSlugRouteImport } from './routes/_view/legal/$slug'
-import { Route as ViewK6ReportsIdRouteImport } from './routes/_view/k6-reports/$id'
-import { Route as ViewDownloadWindowsRouteImport } from './routes/_view/download/windows'
-import { Route as ViewDownloadLinuxDebRouteImport } from './routes/_view/download/linux-deb'
-import { Route as ViewDownloadLinuxAppimageRouteImport } from './routes/_view/download/linux-appimage'
-import { Route as ViewDownloadLinuxRouteImport } from './routes/_view/download/linux'
-import { Route as ViewDownloadAppleSiliconRouteImport } from './routes/_view/download/apple-silicon'
-import { Route as ViewDownloadAppleIntelRouteImport } from './routes/_view/download/apple-intel'
-import { Route as ViewDownloadAppleRouteImport } from './routes/_view/download/apple'
-import { Route as ViewDocsSplatRouteImport } from './routes/_view/docs/$'
-import { Route as ViewCompanyHandbookSplatRouteImport } from './routes/_view/company-handbook/$'
-import { Route as ViewChangelogSlugRouteImport } from './routes/_view/changelog/$slug'
-import { Route as ViewCallbackAuthRouteImport } from './routes/_view/callback/auth'
-import { Route as ViewBlogSlugRouteImport } from './routes/_view/blog/$slug'
-import { Route as ViewAppIntegrationRouteImport } from './routes/_view/app/integration'
-import { Route as ViewAppFileTranscriptionRouteImport } from './routes/_view/app/file-transcription'
-import { Route as ViewAppCheckoutRouteImport } from './routes/_view/app/checkout'
-import { Route as ViewAppAccountRouteImport } from './routes/_view/app/account'
-import { Route as ViewIntegrationsCategorySlugRouteImport } from './routes/_view/integrations/$category.$slug'
-import { Route as ViewGalleryTypeSlugRouteImport } from './routes/_view/gallery/$type.$slug'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as YoutubeRouteImport } from "./routes/youtube";
+import { Route as XRouteImport } from "./routes/x";
+import { Route as LinkedinRouteImport } from "./routes/linkedin";
+import { Route as JoinWaitlistRouteImport } from "./routes/join-waitlist";
+import { Route as GithubRouteImport } from "./routes/github";
+import { Route as FoundersRouteImport } from "./routes/founders";
+import { Route as DiscordRouteImport } from "./routes/discord";
+import { Route as ContactRouteImport } from "./routes/contact";
+import { Route as AuthRouteImport } from "./routes/auth";
+import { Route as ViewRouteRouteImport } from "./routes/_view/route";
+import { Route as ViewIndexRouteImport } from "./routes/_view/index";
+import { Route as WebhookNangoRouteImport } from "./routes/webhook/nango";
+import { Route as ApiTemplatesRouteImport } from "./routes/api/templates";
+import { Route as ApiShortcutsRouteImport } from "./routes/api/shortcuts";
+import { Route as ApiK6ReportsRouteImport } from "./routes/api/k6-reports";
+import { Route as ViewSecurityRouteImport } from "./routes/_view/security";
+import { Route as ViewPrivacyRouteImport } from "./routes/_view/privacy";
+import { Route as ViewPricingRouteImport } from "./routes/_view/pricing";
+import { Route as ViewOssFriendsRouteImport } from "./routes/_view/oss-friends";
+import { Route as ViewOpensourceRouteImport } from "./routes/_view/opensource";
+import { Route as ViewFreeRouteImport } from "./routes/_view/free";
+import { Route as ViewFileTranscriptionRouteImport } from "./routes/_view/file-transcription";
+import { Route as ViewEnterpriseRouteImport } from "./routes/_view/enterprise";
+import { Route as ViewBrandRouteImport } from "./routes/_view/brand";
+import { Route as ViewAboutRouteImport } from "./routes/_view/about";
+import { Route as ViewDocsRouteRouteImport } from "./routes/_view/docs/route";
+import { Route as ViewCompanyHandbookRouteRouteImport } from "./routes/_view/company-handbook/route";
+import { Route as ViewAppRouteRouteImport } from "./routes/_view/app/route";
+import { Route as ViewTemplatesIndexRouteImport } from "./routes/_view/templates/index";
+import { Route as ViewShortcutsIndexRouteImport } from "./routes/_view/shortcuts/index";
+import { Route as ViewRoadmapIndexRouteImport } from "./routes/_view/roadmap/index";
+import { Route as ViewPressKitIndexRouteImport } from "./routes/_view/press-kit/index";
+import { Route as ViewLegalIndexRouteImport } from "./routes/_view/legal/index";
+import { Route as ViewK6ReportsIndexRouteImport } from "./routes/_view/k6-reports/index";
+import { Route as ViewGalleryIndexRouteImport } from "./routes/_view/gallery/index";
+import { Route as ViewEvalIndexRouteImport } from "./routes/_view/eval/index";
+import { Route as ViewDownloadIndexRouteImport } from "./routes/_view/download/index";
+import { Route as ViewDocsIndexRouteImport } from "./routes/_view/docs/index";
+import { Route as ViewCompanyHandbookIndexRouteImport } from "./routes/_view/company-handbook/index";
+import { Route as ViewChangelogIndexRouteImport } from "./routes/_view/changelog/index";
+import { Route as ViewBlogIndexRouteImport } from "./routes/_view/blog/index";
+import { Route as ViewAppIndexRouteImport } from "./routes/_view/app/index";
+import { Route as ApiTweetIdRouteImport } from "./routes/api/tweet.$id";
+import { Route as ApiImagesSplatRouteImport } from "./routes/api/images.$";
+import { Route as ViewVsSlugRouteImport } from "./routes/_view/vs/$slug";
+import { Route as ViewTemplatesSlugRouteImport } from "./routes/_view/templates/$slug";
+import { Route as ViewSolutionSalesRouteImport } from "./routes/_view/solution/sales";
+import { Route as ViewSolutionResearchRouteImport } from "./routes/_view/solution/research";
+import { Route as ViewSolutionRecruitingRouteImport } from "./routes/_view/solution/recruiting";
+import { Route as ViewSolutionProjectManagementRouteImport } from "./routes/_view/solution/project-management";
+import { Route as ViewSolutionMediaRouteImport } from "./routes/_view/solution/media";
+import { Route as ViewSolutionLegalRouteImport } from "./routes/_view/solution/legal";
+import { Route as ViewSolutionJournalismRouteImport } from "./routes/_view/solution/journalism";
+import { Route as ViewSolutionHealthcareRouteImport } from "./routes/_view/solution/healthcare";
+import { Route as ViewSolutionGovernmentRouteImport } from "./routes/_view/solution/government";
+import { Route as ViewSolutionFieldEngineeringRouteImport } from "./routes/_view/solution/field-engineering";
+import { Route as ViewSolutionCustomerSuccessRouteImport } from "./routes/_view/solution/customer-success";
+import { Route as ViewSolutionConsultingRouteImport } from "./routes/_view/solution/consulting";
+import { Route as ViewSolutionCoachingRouteImport } from "./routes/_view/solution/coaching";
+import { Route as ViewShortcutsSlugRouteImport } from "./routes/_view/shortcuts/$slug";
+import { Route as ViewRoadmapSlugRouteImport } from "./routes/_view/roadmap/$slug";
+import { Route as ViewProductWorkflowsRouteImport } from "./routes/_view/product/workflows";
+import { Route as ViewProductSelfHostingRouteImport } from "./routes/_view/product/self-hosting";
+import { Route as ViewProductNotepadRouteImport } from "./routes/_view/product/notepad";
+import { Route as ViewProductMiniAppsRouteImport } from "./routes/_view/product/mini-apps";
+import { Route as ViewProductMemoryRouteImport } from "./routes/_view/product/memory";
+import { Route as ViewProductLocalAiRouteImport } from "./routes/_view/product/local-ai";
+import { Route as ViewProductExtensionsRouteImport } from "./routes/_view/product/extensions";
+import { Route as ViewProductBotRouteImport } from "./routes/_view/product/bot";
+import { Route as ViewProductApiRouteImport } from "./routes/_view/product/api";
+import { Route as ViewProductAiNotetakingRouteImport } from "./routes/_view/product/ai-notetaking";
+import { Route as ViewProductAiAssistantRouteImport } from "./routes/_view/product/ai-assistant";
+import { Route as ViewPressKitAppRouteImport } from "./routes/_view/press-kit/app";
+import { Route as ViewLegalSlugRouteImport } from "./routes/_view/legal/$slug";
+import { Route as ViewK6ReportsIdRouteImport } from "./routes/_view/k6-reports/$id";
+import { Route as ViewDownloadWindowsRouteImport } from "./routes/_view/download/windows";
+import { Route as ViewDownloadLinuxDebRouteImport } from "./routes/_view/download/linux-deb";
+import { Route as ViewDownloadLinuxAppimageRouteImport } from "./routes/_view/download/linux-appimage";
+import { Route as ViewDownloadLinuxRouteImport } from "./routes/_view/download/linux";
+import { Route as ViewDownloadAppleSiliconRouteImport } from "./routes/_view/download/apple-silicon";
+import { Route as ViewDownloadAppleIntelRouteImport } from "./routes/_view/download/apple-intel";
+import { Route as ViewDownloadAppleRouteImport } from "./routes/_view/download/apple";
+import { Route as ViewDocsSplatRouteImport } from "./routes/_view/docs/$";
+import { Route as ViewCompanyHandbookSplatRouteImport } from "./routes/_view/company-handbook/$";
+import { Route as ViewChangelogSlugRouteImport } from "./routes/_view/changelog/$slug";
+import { Route as ViewCallbackAuthRouteImport } from "./routes/_view/callback/auth";
+import { Route as ViewBlogSlugRouteImport } from "./routes/_view/blog/$slug";
+import { Route as ViewAppIntegrationRouteImport } from "./routes/_view/app/integration";
+import { Route as ViewAppFileTranscriptionRouteImport } from "./routes/_view/app/file-transcription";
+import { Route as ViewAppCheckoutRouteImport } from "./routes/_view/app/checkout";
+import { Route as ViewAppAccountRouteImport } from "./routes/_view/app/account";
+import { Route as ViewIntegrationsCategorySlugRouteImport } from "./routes/_view/integrations/$category.$slug";
+import { Route as ViewGalleryTypeSlugRouteImport } from "./routes/_view/gallery/$type.$slug";
 
 const YoutubeRoute = YoutubeRouteImport.update({
-  id: '/youtube',
-  path: '/youtube',
+  id: "/youtube",
+  path: "/youtube",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const XRoute = XRouteImport.update({
-  id: '/x',
-  path: '/x',
+  id: "/x",
+  path: "/x",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LinkedinRoute = LinkedinRouteImport.update({
-  id: '/linkedin',
-  path: '/linkedin',
+  id: "/linkedin",
+  path: "/linkedin",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const JoinWaitlistRoute = JoinWaitlistRouteImport.update({
-  id: '/join-waitlist',
-  path: '/join-waitlist',
+  id: "/join-waitlist",
+  path: "/join-waitlist",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const GithubRoute = GithubRouteImport.update({
-  id: '/github',
-  path: '/github',
+  id: "/github",
+  path: "/github",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const FoundersRoute = FoundersRouteImport.update({
-  id: '/founders',
-  path: '/founders',
+  id: "/founders",
+  path: "/founders",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DiscordRoute = DiscordRouteImport.update({
-  id: '/discord',
-  path: '/discord',
+  id: "/discord",
+  path: "/discord",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
+  id: "/contact",
+  path: "/contact",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+  id: "/auth",
+  path: "/auth",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ViewRouteRoute = ViewRouteRouteImport.update({
-  id: '/_view',
+  id: "/_view",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ViewIndexRoute = ViewIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const WebhookNangoRoute = WebhookNangoRouteImport.update({
-  id: '/webhook/nango',
-  path: '/webhook/nango',
+  id: "/webhook/nango",
+  path: "/webhook/nango",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiTemplatesRoute = ApiTemplatesRouteImport.update({
-  id: '/api/templates',
-  path: '/api/templates',
+  id: "/api/templates",
+  path: "/api/templates",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiShortcutsRoute = ApiShortcutsRouteImport.update({
-  id: '/api/shortcuts',
-  path: '/api/shortcuts',
+  id: "/api/shortcuts",
+  path: "/api/shortcuts",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiK6ReportsRoute = ApiK6ReportsRouteImport.update({
-  id: '/api/k6-reports',
-  path: '/api/k6-reports',
+  id: "/api/k6-reports",
+  path: "/api/k6-reports",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ViewSecurityRoute = ViewSecurityRouteImport.update({
-  id: '/security',
-  path: '/security',
+  id: "/security",
+  path: "/security",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewPrivacyRoute = ViewPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
+  id: "/privacy",
+  path: "/privacy",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewPricingRoute = ViewPricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
+  id: "/pricing",
+  path: "/pricing",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewOssFriendsRoute = ViewOssFriendsRouteImport.update({
-  id: '/oss-friends',
-  path: '/oss-friends',
+  id: "/oss-friends",
+  path: "/oss-friends",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewOpensourceRoute = ViewOpensourceRouteImport.update({
-  id: '/opensource',
-  path: '/opensource',
+  id: "/opensource",
+  path: "/opensource",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewFreeRoute = ViewFreeRouteImport.update({
-  id: '/free',
-  path: '/free',
+  id: "/free",
+  path: "/free",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewFileTranscriptionRoute = ViewFileTranscriptionRouteImport.update({
-  id: '/file-transcription',
-  path: '/file-transcription',
+  id: "/file-transcription",
+  path: "/file-transcription",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewEnterpriseRoute = ViewEnterpriseRouteImport.update({
-  id: '/enterprise',
-  path: '/enterprise',
+  id: "/enterprise",
+  path: "/enterprise",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewBrandRoute = ViewBrandRouteImport.update({
-  id: '/brand',
-  path: '/brand',
+  id: "/brand",
+  path: "/brand",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewAboutRoute = ViewAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+  id: "/about",
+  path: "/about",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewDocsRouteRoute = ViewDocsRouteRouteImport.update({
-  id: '/docs',
-  path: '/docs',
+  id: "/docs",
+  path: "/docs",
   getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewCompanyHandbookRouteRoute =
-  ViewCompanyHandbookRouteRouteImport.update({
-    id: '/company-handbook',
-    path: '/company-handbook',
-    getParentRoute: () => ViewRouteRoute,
-  } as any)
+} as any);
+const ViewCompanyHandbookRouteRoute = ViewCompanyHandbookRouteRouteImport.update({
+  id: "/company-handbook",
+  path: "/company-handbook",
+  getParentRoute: () => ViewRouteRoute,
+} as any);
 const ViewAppRouteRoute = ViewAppRouteRouteImport.update({
-  id: '/app',
-  path: '/app',
+  id: "/app",
+  path: "/app",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewTemplatesIndexRoute = ViewTemplatesIndexRouteImport.update({
-  id: '/templates/',
-  path: '/templates/',
+  id: "/templates/",
+  path: "/templates/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewShortcutsIndexRoute = ViewShortcutsIndexRouteImport.update({
-  id: '/shortcuts/',
-  path: '/shortcuts/',
+  id: "/shortcuts/",
+  path: "/shortcuts/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewRoadmapIndexRoute = ViewRoadmapIndexRouteImport.update({
-  id: '/roadmap/',
-  path: '/roadmap/',
+  id: "/roadmap/",
+  path: "/roadmap/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewPressKitIndexRoute = ViewPressKitIndexRouteImport.update({
-  id: '/press-kit/',
-  path: '/press-kit/',
+  id: "/press-kit/",
+  path: "/press-kit/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewLegalIndexRoute = ViewLegalIndexRouteImport.update({
-  id: '/legal/',
-  path: '/legal/',
+  id: "/legal/",
+  path: "/legal/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewK6ReportsIndexRoute = ViewK6ReportsIndexRouteImport.update({
-  id: '/k6-reports/',
-  path: '/k6-reports/',
+  id: "/k6-reports/",
+  path: "/k6-reports/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewGalleryIndexRoute = ViewGalleryIndexRouteImport.update({
-  id: '/gallery/',
-  path: '/gallery/',
+  id: "/gallery/",
+  path: "/gallery/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewEvalIndexRoute = ViewEvalIndexRouteImport.update({
-  id: '/eval/',
-  path: '/eval/',
+  id: "/eval/",
+  path: "/eval/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewDownloadIndexRoute = ViewDownloadIndexRouteImport.update({
-  id: '/download/',
-  path: '/download/',
+  id: "/download/",
+  path: "/download/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewDocsIndexRoute = ViewDocsIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => ViewDocsRouteRoute,
-} as any)
-const ViewCompanyHandbookIndexRoute =
-  ViewCompanyHandbookIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => ViewCompanyHandbookRouteRoute,
-  } as any)
+} as any);
+const ViewCompanyHandbookIndexRoute = ViewCompanyHandbookIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => ViewCompanyHandbookRouteRoute,
+} as any);
 const ViewChangelogIndexRoute = ViewChangelogIndexRouteImport.update({
-  id: '/changelog/',
-  path: '/changelog/',
+  id: "/changelog/",
+  path: "/changelog/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewBlogIndexRoute = ViewBlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
+  id: "/blog/",
+  path: "/blog/",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewAppIndexRoute = ViewAppIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => ViewAppRouteRoute,
-} as any)
+} as any);
 const ApiTweetIdRoute = ApiTweetIdRouteImport.update({
-  id: '/api/tweet/$id',
-  path: '/api/tweet/$id',
+  id: "/api/tweet/$id",
+  path: "/api/tweet/$id",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
-  id: '/api/images/$',
-  path: '/api/images/$',
+  id: "/api/images/$",
+  path: "/api/images/$",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ViewVsSlugRoute = ViewVsSlugRouteImport.update({
-  id: '/vs/$slug',
-  path: '/vs/$slug',
+  id: "/vs/$slug",
+  path: "/vs/$slug",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewTemplatesSlugRoute = ViewTemplatesSlugRouteImport.update({
-  id: '/templates/$slug',
-  path: '/templates/$slug',
+  id: "/templates/$slug",
+  path: "/templates/$slug",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewSolutionSalesRoute = ViewSolutionSalesRouteImport.update({
-  id: '/solution/sales',
-  path: '/solution/sales',
+  id: "/solution/sales",
+  path: "/solution/sales",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewSolutionResearchRoute = ViewSolutionResearchRouteImport.update({
-  id: '/solution/research',
-  path: '/solution/research',
+  id: "/solution/research",
+  path: "/solution/research",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewSolutionRecruitingRoute = ViewSolutionRecruitingRouteImport.update({
-  id: '/solution/recruiting',
-  path: '/solution/recruiting',
+  id: "/solution/recruiting",
+  path: "/solution/recruiting",
   getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewSolutionProjectManagementRoute =
-  ViewSolutionProjectManagementRouteImport.update({
-    id: '/solution/project-management',
-    path: '/solution/project-management',
-    getParentRoute: () => ViewRouteRoute,
-  } as any)
+} as any);
+const ViewSolutionProjectManagementRoute = ViewSolutionProjectManagementRouteImport.update({
+  id: "/solution/project-management",
+  path: "/solution/project-management",
+  getParentRoute: () => ViewRouteRoute,
+} as any);
 const ViewSolutionMediaRoute = ViewSolutionMediaRouteImport.update({
-  id: '/solution/media',
-  path: '/solution/media',
+  id: "/solution/media",
+  path: "/solution/media",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewSolutionLegalRoute = ViewSolutionLegalRouteImport.update({
-  id: '/solution/legal',
-  path: '/solution/legal',
+  id: "/solution/legal",
+  path: "/solution/legal",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewSolutionJournalismRoute = ViewSolutionJournalismRouteImport.update({
-  id: '/solution/journalism',
-  path: '/solution/journalism',
+  id: "/solution/journalism",
+  path: "/solution/journalism",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewSolutionHealthcareRoute = ViewSolutionHealthcareRouteImport.update({
-  id: '/solution/healthcare',
-  path: '/solution/healthcare',
+  id: "/solution/healthcare",
+  path: "/solution/healthcare",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewSolutionGovernmentRoute = ViewSolutionGovernmentRouteImport.update({
-  id: '/solution/government',
-  path: '/solution/government',
+  id: "/solution/government",
+  path: "/solution/government",
   getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewSolutionFieldEngineeringRoute =
-  ViewSolutionFieldEngineeringRouteImport.update({
-    id: '/solution/field-engineering',
-    path: '/solution/field-engineering',
-    getParentRoute: () => ViewRouteRoute,
-  } as any)
-const ViewSolutionCustomerSuccessRoute =
-  ViewSolutionCustomerSuccessRouteImport.update({
-    id: '/solution/customer-success',
-    path: '/solution/customer-success',
-    getParentRoute: () => ViewRouteRoute,
-  } as any)
+} as any);
+const ViewSolutionFieldEngineeringRoute = ViewSolutionFieldEngineeringRouteImport.update({
+  id: "/solution/field-engineering",
+  path: "/solution/field-engineering",
+  getParentRoute: () => ViewRouteRoute,
+} as any);
+const ViewSolutionCustomerSuccessRoute = ViewSolutionCustomerSuccessRouteImport.update({
+  id: "/solution/customer-success",
+  path: "/solution/customer-success",
+  getParentRoute: () => ViewRouteRoute,
+} as any);
 const ViewSolutionConsultingRoute = ViewSolutionConsultingRouteImport.update({
-  id: '/solution/consulting',
-  path: '/solution/consulting',
+  id: "/solution/consulting",
+  path: "/solution/consulting",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewSolutionCoachingRoute = ViewSolutionCoachingRouteImport.update({
-  id: '/solution/coaching',
-  path: '/solution/coaching',
+  id: "/solution/coaching",
+  path: "/solution/coaching",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewShortcutsSlugRoute = ViewShortcutsSlugRouteImport.update({
-  id: '/shortcuts/$slug',
-  path: '/shortcuts/$slug',
+  id: "/shortcuts/$slug",
+  path: "/shortcuts/$slug",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewRoadmapSlugRoute = ViewRoadmapSlugRouteImport.update({
-  id: '/roadmap/$slug',
-  path: '/roadmap/$slug',
+  id: "/roadmap/$slug",
+  path: "/roadmap/$slug",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductWorkflowsRoute = ViewProductWorkflowsRouteImport.update({
-  id: '/product/workflows',
-  path: '/product/workflows',
+  id: "/product/workflows",
+  path: "/product/workflows",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductSelfHostingRoute = ViewProductSelfHostingRouteImport.update({
-  id: '/product/self-hosting',
-  path: '/product/self-hosting',
+  id: "/product/self-hosting",
+  path: "/product/self-hosting",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductNotepadRoute = ViewProductNotepadRouteImport.update({
-  id: '/product/notepad',
-  path: '/product/notepad',
+  id: "/product/notepad",
+  path: "/product/notepad",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductMiniAppsRoute = ViewProductMiniAppsRouteImport.update({
-  id: '/product/mini-apps',
-  path: '/product/mini-apps',
+  id: "/product/mini-apps",
+  path: "/product/mini-apps",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductMemoryRoute = ViewProductMemoryRouteImport.update({
-  id: '/product/memory',
-  path: '/product/memory',
+  id: "/product/memory",
+  path: "/product/memory",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductLocalAiRoute = ViewProductLocalAiRouteImport.update({
-  id: '/product/local-ai',
-  path: '/product/local-ai',
+  id: "/product/local-ai",
+  path: "/product/local-ai",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductExtensionsRoute = ViewProductExtensionsRouteImport.update({
-  id: '/product/extensions',
-  path: '/product/extensions',
+  id: "/product/extensions",
+  path: "/product/extensions",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductBotRoute = ViewProductBotRouteImport.update({
-  id: '/product/bot',
-  path: '/product/bot',
+  id: "/product/bot",
+  path: "/product/bot",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductApiRoute = ViewProductApiRouteImport.update({
-  id: '/product/api',
-  path: '/product/api',
+  id: "/product/api",
+  path: "/product/api",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductAiNotetakingRoute = ViewProductAiNotetakingRouteImport.update({
-  id: '/product/ai-notetaking',
-  path: '/product/ai-notetaking',
+  id: "/product/ai-notetaking",
+  path: "/product/ai-notetaking",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewProductAiAssistantRoute = ViewProductAiAssistantRouteImport.update({
-  id: '/product/ai-assistant',
-  path: '/product/ai-assistant',
+  id: "/product/ai-assistant",
+  path: "/product/ai-assistant",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewPressKitAppRoute = ViewPressKitAppRouteImport.update({
-  id: '/press-kit/app',
-  path: '/press-kit/app',
+  id: "/press-kit/app",
+  path: "/press-kit/app",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewLegalSlugRoute = ViewLegalSlugRouteImport.update({
-  id: '/legal/$slug',
-  path: '/legal/$slug',
+  id: "/legal/$slug",
+  path: "/legal/$slug",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewK6ReportsIdRoute = ViewK6ReportsIdRouteImport.update({
-  id: '/k6-reports/$id',
-  path: '/k6-reports/$id',
+  id: "/k6-reports/$id",
+  path: "/k6-reports/$id",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewDownloadWindowsRoute = ViewDownloadWindowsRouteImport.update({
-  id: '/download/windows',
-  path: '/download/windows',
+  id: "/download/windows",
+  path: "/download/windows",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewDownloadLinuxDebRoute = ViewDownloadLinuxDebRouteImport.update({
-  id: '/download/linux-deb',
-  path: '/download/linux-deb',
+  id: "/download/linux-deb",
+  path: "/download/linux-deb",
   getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewDownloadLinuxAppimageRoute =
-  ViewDownloadLinuxAppimageRouteImport.update({
-    id: '/download/linux-appimage',
-    path: '/download/linux-appimage',
-    getParentRoute: () => ViewRouteRoute,
-  } as any)
+} as any);
+const ViewDownloadLinuxAppimageRoute = ViewDownloadLinuxAppimageRouteImport.update({
+  id: "/download/linux-appimage",
+  path: "/download/linux-appimage",
+  getParentRoute: () => ViewRouteRoute,
+} as any);
 const ViewDownloadLinuxRoute = ViewDownloadLinuxRouteImport.update({
-  id: '/download/linux',
-  path: '/download/linux',
+  id: "/download/linux",
+  path: "/download/linux",
   getParentRoute: () => ViewRouteRoute,
-} as any)
-const ViewDownloadAppleSiliconRoute =
-  ViewDownloadAppleSiliconRouteImport.update({
-    id: '/download/apple-silicon',
-    path: '/download/apple-silicon',
-    getParentRoute: () => ViewRouteRoute,
-  } as any)
+} as any);
+const ViewDownloadAppleSiliconRoute = ViewDownloadAppleSiliconRouteImport.update({
+  id: "/download/apple-silicon",
+  path: "/download/apple-silicon",
+  getParentRoute: () => ViewRouteRoute,
+} as any);
 const ViewDownloadAppleIntelRoute = ViewDownloadAppleIntelRouteImport.update({
-  id: '/download/apple-intel',
-  path: '/download/apple-intel',
+  id: "/download/apple-intel",
+  path: "/download/apple-intel",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewDownloadAppleRoute = ViewDownloadAppleRouteImport.update({
-  id: '/download/apple',
-  path: '/download/apple',
+  id: "/download/apple",
+  path: "/download/apple",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewDocsSplatRoute = ViewDocsSplatRouteImport.update({
-  id: '/$',
-  path: '/$',
+  id: "/$",
+  path: "/$",
   getParentRoute: () => ViewDocsRouteRoute,
-} as any)
-const ViewCompanyHandbookSplatRoute =
-  ViewCompanyHandbookSplatRouteImport.update({
-    id: '/$',
-    path: '/$',
-    getParentRoute: () => ViewCompanyHandbookRouteRoute,
-  } as any)
+} as any);
+const ViewCompanyHandbookSplatRoute = ViewCompanyHandbookSplatRouteImport.update({
+  id: "/$",
+  path: "/$",
+  getParentRoute: () => ViewCompanyHandbookRouteRoute,
+} as any);
 const ViewChangelogSlugRoute = ViewChangelogSlugRouteImport.update({
-  id: '/changelog/$slug',
-  path: '/changelog/$slug',
+  id: "/changelog/$slug",
+  path: "/changelog/$slug",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewCallbackAuthRoute = ViewCallbackAuthRouteImport.update({
-  id: '/callback/auth',
-  path: '/callback/auth',
+  id: "/callback/auth",
+  path: "/callback/auth",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewBlogSlugRoute = ViewBlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
+  id: "/blog/$slug",
+  path: "/blog/$slug",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
 const ViewAppIntegrationRoute = ViewAppIntegrationRouteImport.update({
-  id: '/integration',
-  path: '/integration',
+  id: "/integration",
+  path: "/integration",
   getParentRoute: () => ViewAppRouteRoute,
-} as any)
-const ViewAppFileTranscriptionRoute =
-  ViewAppFileTranscriptionRouteImport.update({
-    id: '/file-transcription',
-    path: '/file-transcription',
-    getParentRoute: () => ViewAppRouteRoute,
-  } as any)
+} as any);
+const ViewAppFileTranscriptionRoute = ViewAppFileTranscriptionRouteImport.update({
+  id: "/file-transcription",
+  path: "/file-transcription",
+  getParentRoute: () => ViewAppRouteRoute,
+} as any);
 const ViewAppCheckoutRoute = ViewAppCheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
+  id: "/checkout",
+  path: "/checkout",
   getParentRoute: () => ViewAppRouteRoute,
-} as any)
+} as any);
 const ViewAppAccountRoute = ViewAppAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
+  id: "/account",
+  path: "/account",
   getParentRoute: () => ViewAppRouteRoute,
-} as any)
-const ViewIntegrationsCategorySlugRoute =
-  ViewIntegrationsCategorySlugRouteImport.update({
-    id: '/integrations/$category/$slug',
-    path: '/integrations/$category/$slug',
-    getParentRoute: () => ViewRouteRoute,
-  } as any)
-const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
-  id: '/gallery/$type/$slug',
-  path: '/gallery/$type/$slug',
+} as any);
+const ViewIntegrationsCategorySlugRoute = ViewIntegrationsCategorySlugRouteImport.update({
+  id: "/integrations/$category/$slug",
+  path: "/integrations/$category/$slug",
   getParentRoute: () => ViewRouteRoute,
-} as any)
+} as any);
+const ViewGalleryTypeSlugRoute = ViewGalleryTypeSlugRouteImport.update({
+  id: "/gallery/$type/$slug",
+  path: "/gallery/$type/$slug",
+  getParentRoute: () => ViewRouteRoute,
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/auth': typeof AuthRoute
-  '/contact': typeof ContactRoute
-  '/discord': typeof DiscordRoute
-  '/founders': typeof FoundersRoute
-  '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
-  '/linkedin': typeof LinkedinRoute
-  '/x': typeof XRoute
-  '/youtube': typeof YoutubeRoute
-  '/app': typeof ViewAppRouteRouteWithChildren
-  '/company-handbook': typeof ViewCompanyHandbookRouteRouteWithChildren
-  '/docs': typeof ViewDocsRouteRouteWithChildren
-  '/about': typeof ViewAboutRoute
-  '/brand': typeof ViewBrandRoute
-  '/enterprise': typeof ViewEnterpriseRoute
-  '/file-transcription': typeof ViewFileTranscriptionRoute
-  '/free': typeof ViewFreeRoute
-  '/opensource': typeof ViewOpensourceRoute
-  '/oss-friends': typeof ViewOssFriendsRoute
-  '/pricing': typeof ViewPricingRoute
-  '/privacy': typeof ViewPrivacyRoute
-  '/security': typeof ViewSecurityRoute
-  '/api/k6-reports': typeof ApiK6ReportsRoute
-  '/api/shortcuts': typeof ApiShortcutsRoute
-  '/api/templates': typeof ApiTemplatesRoute
-  '/webhook/nango': typeof WebhookNangoRoute
-  '/': typeof ViewIndexRoute
-  '/app/account': typeof ViewAppAccountRoute
-  '/app/checkout': typeof ViewAppCheckoutRoute
-  '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
-  '/app/integration': typeof ViewAppIntegrationRoute
-  '/blog/$slug': typeof ViewBlogSlugRoute
-  '/callback/auth': typeof ViewCallbackAuthRoute
-  '/changelog/$slug': typeof ViewChangelogSlugRoute
-  '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
-  '/docs/$': typeof ViewDocsSplatRoute
-  '/download/apple': typeof ViewDownloadAppleRoute
-  '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
-  '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/download/linux': typeof ViewDownloadLinuxRoute
-  '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
-  '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
-  '/download/windows': typeof ViewDownloadWindowsRoute
-  '/k6-reports/$id': typeof ViewK6ReportsIdRoute
-  '/legal/$slug': typeof ViewLegalSlugRoute
-  '/press-kit/app': typeof ViewPressKitAppRoute
-  '/product/ai-assistant': typeof ViewProductAiAssistantRoute
-  '/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
-  '/product/api': typeof ViewProductApiRoute
-  '/product/bot': typeof ViewProductBotRoute
-  '/product/extensions': typeof ViewProductExtensionsRoute
-  '/product/local-ai': typeof ViewProductLocalAiRoute
-  '/product/memory': typeof ViewProductMemoryRoute
-  '/product/mini-apps': typeof ViewProductMiniAppsRoute
-  '/product/notepad': typeof ViewProductNotepadRoute
-  '/product/self-hosting': typeof ViewProductSelfHostingRoute
-  '/product/workflows': typeof ViewProductWorkflowsRoute
-  '/roadmap/$slug': typeof ViewRoadmapSlugRoute
-  '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
-  '/solution/coaching': typeof ViewSolutionCoachingRoute
-  '/solution/consulting': typeof ViewSolutionConsultingRoute
-  '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
-  '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
-  '/solution/government': typeof ViewSolutionGovernmentRoute
-  '/solution/healthcare': typeof ViewSolutionHealthcareRoute
-  '/solution/journalism': typeof ViewSolutionJournalismRoute
-  '/solution/legal': typeof ViewSolutionLegalRoute
-  '/solution/media': typeof ViewSolutionMediaRoute
-  '/solution/project-management': typeof ViewSolutionProjectManagementRoute
-  '/solution/recruiting': typeof ViewSolutionRecruitingRoute
-  '/solution/research': typeof ViewSolutionResearchRoute
-  '/solution/sales': typeof ViewSolutionSalesRoute
-  '/templates/$slug': typeof ViewTemplatesSlugRoute
-  '/vs/$slug': typeof ViewVsSlugRoute
-  '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/tweet/$id': typeof ApiTweetIdRoute
-  '/app/': typeof ViewAppIndexRoute
-  '/blog': typeof ViewBlogIndexRoute
-  '/changelog': typeof ViewChangelogIndexRoute
-  '/company-handbook/': typeof ViewCompanyHandbookIndexRoute
-  '/docs/': typeof ViewDocsIndexRoute
-  '/download': typeof ViewDownloadIndexRoute
-  '/eval': typeof ViewEvalIndexRoute
-  '/gallery': typeof ViewGalleryIndexRoute
-  '/k6-reports': typeof ViewK6ReportsIndexRoute
-  '/legal': typeof ViewLegalIndexRoute
-  '/press-kit': typeof ViewPressKitIndexRoute
-  '/roadmap': typeof ViewRoadmapIndexRoute
-  '/shortcuts': typeof ViewShortcutsIndexRoute
-  '/templates': typeof ViewTemplatesIndexRoute
-  '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
-  '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  "/auth": typeof AuthRoute;
+  "/contact": typeof ContactRoute;
+  "/discord": typeof DiscordRoute;
+  "/founders": typeof FoundersRoute;
+  "/github": typeof GithubRoute;
+  "/join-waitlist": typeof JoinWaitlistRoute;
+  "/linkedin": typeof LinkedinRoute;
+  "/x": typeof XRoute;
+  "/youtube": typeof YoutubeRoute;
+  "/app": typeof ViewAppRouteRouteWithChildren;
+  "/company-handbook": typeof ViewCompanyHandbookRouteRouteWithChildren;
+  "/docs": typeof ViewDocsRouteRouteWithChildren;
+  "/about": typeof ViewAboutRoute;
+  "/brand": typeof ViewBrandRoute;
+  "/enterprise": typeof ViewEnterpriseRoute;
+  "/file-transcription": typeof ViewFileTranscriptionRoute;
+  "/free": typeof ViewFreeRoute;
+  "/opensource": typeof ViewOpensourceRoute;
+  "/oss-friends": typeof ViewOssFriendsRoute;
+  "/pricing": typeof ViewPricingRoute;
+  "/privacy": typeof ViewPrivacyRoute;
+  "/security": typeof ViewSecurityRoute;
+  "/api/k6-reports": typeof ApiK6ReportsRoute;
+  "/api/shortcuts": typeof ApiShortcutsRoute;
+  "/api/templates": typeof ApiTemplatesRoute;
+  "/webhook/nango": typeof WebhookNangoRoute;
+  "/": typeof ViewIndexRoute;
+  "/app/account": typeof ViewAppAccountRoute;
+  "/app/checkout": typeof ViewAppCheckoutRoute;
+  "/app/file-transcription": typeof ViewAppFileTranscriptionRoute;
+  "/app/integration": typeof ViewAppIntegrationRoute;
+  "/blog/$slug": typeof ViewBlogSlugRoute;
+  "/callback/auth": typeof ViewCallbackAuthRoute;
+  "/changelog/$slug": typeof ViewChangelogSlugRoute;
+  "/company-handbook/$": typeof ViewCompanyHandbookSplatRoute;
+  "/docs/$": typeof ViewDocsSplatRoute;
+  "/download/apple": typeof ViewDownloadAppleRoute;
+  "/download/apple-intel": typeof ViewDownloadAppleIntelRoute;
+  "/download/apple-silicon": typeof ViewDownloadAppleSiliconRoute;
+  "/download/linux": typeof ViewDownloadLinuxRoute;
+  "/download/linux-appimage": typeof ViewDownloadLinuxAppimageRoute;
+  "/download/linux-deb": typeof ViewDownloadLinuxDebRoute;
+  "/download/windows": typeof ViewDownloadWindowsRoute;
+  "/k6-reports/$id": typeof ViewK6ReportsIdRoute;
+  "/legal/$slug": typeof ViewLegalSlugRoute;
+  "/press-kit/app": typeof ViewPressKitAppRoute;
+  "/product/ai-assistant": typeof ViewProductAiAssistantRoute;
+  "/product/ai-notetaking": typeof ViewProductAiNotetakingRoute;
+  "/product/api": typeof ViewProductApiRoute;
+  "/product/bot": typeof ViewProductBotRoute;
+  "/product/extensions": typeof ViewProductExtensionsRoute;
+  "/product/local-ai": typeof ViewProductLocalAiRoute;
+  "/product/memory": typeof ViewProductMemoryRoute;
+  "/product/mini-apps": typeof ViewProductMiniAppsRoute;
+  "/product/notepad": typeof ViewProductNotepadRoute;
+  "/product/self-hosting": typeof ViewProductSelfHostingRoute;
+  "/product/workflows": typeof ViewProductWorkflowsRoute;
+  "/roadmap/$slug": typeof ViewRoadmapSlugRoute;
+  "/shortcuts/$slug": typeof ViewShortcutsSlugRoute;
+  "/solution/coaching": typeof ViewSolutionCoachingRoute;
+  "/solution/consulting": typeof ViewSolutionConsultingRoute;
+  "/solution/customer-success": typeof ViewSolutionCustomerSuccessRoute;
+  "/solution/field-engineering": typeof ViewSolutionFieldEngineeringRoute;
+  "/solution/government": typeof ViewSolutionGovernmentRoute;
+  "/solution/healthcare": typeof ViewSolutionHealthcareRoute;
+  "/solution/journalism": typeof ViewSolutionJournalismRoute;
+  "/solution/legal": typeof ViewSolutionLegalRoute;
+  "/solution/media": typeof ViewSolutionMediaRoute;
+  "/solution/project-management": typeof ViewSolutionProjectManagementRoute;
+  "/solution/recruiting": typeof ViewSolutionRecruitingRoute;
+  "/solution/research": typeof ViewSolutionResearchRoute;
+  "/solution/sales": typeof ViewSolutionSalesRoute;
+  "/templates/$slug": typeof ViewTemplatesSlugRoute;
+  "/vs/$slug": typeof ViewVsSlugRoute;
+  "/api/images/$": typeof ApiImagesSplatRoute;
+  "/api/tweet/$id": typeof ApiTweetIdRoute;
+  "/app/": typeof ViewAppIndexRoute;
+  "/blog": typeof ViewBlogIndexRoute;
+  "/changelog": typeof ViewChangelogIndexRoute;
+  "/company-handbook/": typeof ViewCompanyHandbookIndexRoute;
+  "/docs/": typeof ViewDocsIndexRoute;
+  "/download": typeof ViewDownloadIndexRoute;
+  "/eval": typeof ViewEvalIndexRoute;
+  "/gallery": typeof ViewGalleryIndexRoute;
+  "/k6-reports": typeof ViewK6ReportsIndexRoute;
+  "/legal": typeof ViewLegalIndexRoute;
+  "/press-kit": typeof ViewPressKitIndexRoute;
+  "/roadmap": typeof ViewRoadmapIndexRoute;
+  "/shortcuts": typeof ViewShortcutsIndexRoute;
+  "/templates": typeof ViewTemplatesIndexRoute;
+  "/gallery/$type/$slug": typeof ViewGalleryTypeSlugRoute;
+  "/integrations/$category/$slug": typeof ViewIntegrationsCategorySlugRoute;
 }
 export interface FileRoutesByTo {
-  '/auth': typeof AuthRoute
-  '/contact': typeof ContactRoute
-  '/discord': typeof DiscordRoute
-  '/founders': typeof FoundersRoute
-  '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
-  '/linkedin': typeof LinkedinRoute
-  '/x': typeof XRoute
-  '/youtube': typeof YoutubeRoute
-  '/about': typeof ViewAboutRoute
-  '/brand': typeof ViewBrandRoute
-  '/enterprise': typeof ViewEnterpriseRoute
-  '/file-transcription': typeof ViewFileTranscriptionRoute
-  '/free': typeof ViewFreeRoute
-  '/opensource': typeof ViewOpensourceRoute
-  '/oss-friends': typeof ViewOssFriendsRoute
-  '/pricing': typeof ViewPricingRoute
-  '/privacy': typeof ViewPrivacyRoute
-  '/security': typeof ViewSecurityRoute
-  '/api/k6-reports': typeof ApiK6ReportsRoute
-  '/api/shortcuts': typeof ApiShortcutsRoute
-  '/api/templates': typeof ApiTemplatesRoute
-  '/webhook/nango': typeof WebhookNangoRoute
-  '/': typeof ViewIndexRoute
-  '/app/account': typeof ViewAppAccountRoute
-  '/app/checkout': typeof ViewAppCheckoutRoute
-  '/app/file-transcription': typeof ViewAppFileTranscriptionRoute
-  '/app/integration': typeof ViewAppIntegrationRoute
-  '/blog/$slug': typeof ViewBlogSlugRoute
-  '/callback/auth': typeof ViewCallbackAuthRoute
-  '/changelog/$slug': typeof ViewChangelogSlugRoute
-  '/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
-  '/docs/$': typeof ViewDocsSplatRoute
-  '/download/apple': typeof ViewDownloadAppleRoute
-  '/download/apple-intel': typeof ViewDownloadAppleIntelRoute
-  '/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/download/linux': typeof ViewDownloadLinuxRoute
-  '/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
-  '/download/linux-deb': typeof ViewDownloadLinuxDebRoute
-  '/download/windows': typeof ViewDownloadWindowsRoute
-  '/k6-reports/$id': typeof ViewK6ReportsIdRoute
-  '/legal/$slug': typeof ViewLegalSlugRoute
-  '/press-kit/app': typeof ViewPressKitAppRoute
-  '/product/ai-assistant': typeof ViewProductAiAssistantRoute
-  '/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
-  '/product/api': typeof ViewProductApiRoute
-  '/product/bot': typeof ViewProductBotRoute
-  '/product/extensions': typeof ViewProductExtensionsRoute
-  '/product/local-ai': typeof ViewProductLocalAiRoute
-  '/product/memory': typeof ViewProductMemoryRoute
-  '/product/mini-apps': typeof ViewProductMiniAppsRoute
-  '/product/notepad': typeof ViewProductNotepadRoute
-  '/product/self-hosting': typeof ViewProductSelfHostingRoute
-  '/product/workflows': typeof ViewProductWorkflowsRoute
-  '/roadmap/$slug': typeof ViewRoadmapSlugRoute
-  '/shortcuts/$slug': typeof ViewShortcutsSlugRoute
-  '/solution/coaching': typeof ViewSolutionCoachingRoute
-  '/solution/consulting': typeof ViewSolutionConsultingRoute
-  '/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
-  '/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
-  '/solution/government': typeof ViewSolutionGovernmentRoute
-  '/solution/healthcare': typeof ViewSolutionHealthcareRoute
-  '/solution/journalism': typeof ViewSolutionJournalismRoute
-  '/solution/legal': typeof ViewSolutionLegalRoute
-  '/solution/media': typeof ViewSolutionMediaRoute
-  '/solution/project-management': typeof ViewSolutionProjectManagementRoute
-  '/solution/recruiting': typeof ViewSolutionRecruitingRoute
-  '/solution/research': typeof ViewSolutionResearchRoute
-  '/solution/sales': typeof ViewSolutionSalesRoute
-  '/templates/$slug': typeof ViewTemplatesSlugRoute
-  '/vs/$slug': typeof ViewVsSlugRoute
-  '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/tweet/$id': typeof ApiTweetIdRoute
-  '/app': typeof ViewAppIndexRoute
-  '/blog': typeof ViewBlogIndexRoute
-  '/changelog': typeof ViewChangelogIndexRoute
-  '/company-handbook': typeof ViewCompanyHandbookIndexRoute
-  '/docs': typeof ViewDocsIndexRoute
-  '/download': typeof ViewDownloadIndexRoute
-  '/eval': typeof ViewEvalIndexRoute
-  '/gallery': typeof ViewGalleryIndexRoute
-  '/k6-reports': typeof ViewK6ReportsIndexRoute
-  '/legal': typeof ViewLegalIndexRoute
-  '/press-kit': typeof ViewPressKitIndexRoute
-  '/roadmap': typeof ViewRoadmapIndexRoute
-  '/shortcuts': typeof ViewShortcutsIndexRoute
-  '/templates': typeof ViewTemplatesIndexRoute
-  '/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
-  '/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  "/auth": typeof AuthRoute;
+  "/contact": typeof ContactRoute;
+  "/discord": typeof DiscordRoute;
+  "/founders": typeof FoundersRoute;
+  "/github": typeof GithubRoute;
+  "/join-waitlist": typeof JoinWaitlistRoute;
+  "/linkedin": typeof LinkedinRoute;
+  "/x": typeof XRoute;
+  "/youtube": typeof YoutubeRoute;
+  "/about": typeof ViewAboutRoute;
+  "/brand": typeof ViewBrandRoute;
+  "/enterprise": typeof ViewEnterpriseRoute;
+  "/file-transcription": typeof ViewFileTranscriptionRoute;
+  "/free": typeof ViewFreeRoute;
+  "/opensource": typeof ViewOpensourceRoute;
+  "/oss-friends": typeof ViewOssFriendsRoute;
+  "/pricing": typeof ViewPricingRoute;
+  "/privacy": typeof ViewPrivacyRoute;
+  "/security": typeof ViewSecurityRoute;
+  "/api/k6-reports": typeof ApiK6ReportsRoute;
+  "/api/shortcuts": typeof ApiShortcutsRoute;
+  "/api/templates": typeof ApiTemplatesRoute;
+  "/webhook/nango": typeof WebhookNangoRoute;
+  "/": typeof ViewIndexRoute;
+  "/app/account": typeof ViewAppAccountRoute;
+  "/app/checkout": typeof ViewAppCheckoutRoute;
+  "/app/file-transcription": typeof ViewAppFileTranscriptionRoute;
+  "/app/integration": typeof ViewAppIntegrationRoute;
+  "/blog/$slug": typeof ViewBlogSlugRoute;
+  "/callback/auth": typeof ViewCallbackAuthRoute;
+  "/changelog/$slug": typeof ViewChangelogSlugRoute;
+  "/company-handbook/$": typeof ViewCompanyHandbookSplatRoute;
+  "/docs/$": typeof ViewDocsSplatRoute;
+  "/download/apple": typeof ViewDownloadAppleRoute;
+  "/download/apple-intel": typeof ViewDownloadAppleIntelRoute;
+  "/download/apple-silicon": typeof ViewDownloadAppleSiliconRoute;
+  "/download/linux": typeof ViewDownloadLinuxRoute;
+  "/download/linux-appimage": typeof ViewDownloadLinuxAppimageRoute;
+  "/download/linux-deb": typeof ViewDownloadLinuxDebRoute;
+  "/download/windows": typeof ViewDownloadWindowsRoute;
+  "/k6-reports/$id": typeof ViewK6ReportsIdRoute;
+  "/legal/$slug": typeof ViewLegalSlugRoute;
+  "/press-kit/app": typeof ViewPressKitAppRoute;
+  "/product/ai-assistant": typeof ViewProductAiAssistantRoute;
+  "/product/ai-notetaking": typeof ViewProductAiNotetakingRoute;
+  "/product/api": typeof ViewProductApiRoute;
+  "/product/bot": typeof ViewProductBotRoute;
+  "/product/extensions": typeof ViewProductExtensionsRoute;
+  "/product/local-ai": typeof ViewProductLocalAiRoute;
+  "/product/memory": typeof ViewProductMemoryRoute;
+  "/product/mini-apps": typeof ViewProductMiniAppsRoute;
+  "/product/notepad": typeof ViewProductNotepadRoute;
+  "/product/self-hosting": typeof ViewProductSelfHostingRoute;
+  "/product/workflows": typeof ViewProductWorkflowsRoute;
+  "/roadmap/$slug": typeof ViewRoadmapSlugRoute;
+  "/shortcuts/$slug": typeof ViewShortcutsSlugRoute;
+  "/solution/coaching": typeof ViewSolutionCoachingRoute;
+  "/solution/consulting": typeof ViewSolutionConsultingRoute;
+  "/solution/customer-success": typeof ViewSolutionCustomerSuccessRoute;
+  "/solution/field-engineering": typeof ViewSolutionFieldEngineeringRoute;
+  "/solution/government": typeof ViewSolutionGovernmentRoute;
+  "/solution/healthcare": typeof ViewSolutionHealthcareRoute;
+  "/solution/journalism": typeof ViewSolutionJournalismRoute;
+  "/solution/legal": typeof ViewSolutionLegalRoute;
+  "/solution/media": typeof ViewSolutionMediaRoute;
+  "/solution/project-management": typeof ViewSolutionProjectManagementRoute;
+  "/solution/recruiting": typeof ViewSolutionRecruitingRoute;
+  "/solution/research": typeof ViewSolutionResearchRoute;
+  "/solution/sales": typeof ViewSolutionSalesRoute;
+  "/templates/$slug": typeof ViewTemplatesSlugRoute;
+  "/vs/$slug": typeof ViewVsSlugRoute;
+  "/api/images/$": typeof ApiImagesSplatRoute;
+  "/api/tweet/$id": typeof ApiTweetIdRoute;
+  "/app": typeof ViewAppIndexRoute;
+  "/blog": typeof ViewBlogIndexRoute;
+  "/changelog": typeof ViewChangelogIndexRoute;
+  "/company-handbook": typeof ViewCompanyHandbookIndexRoute;
+  "/docs": typeof ViewDocsIndexRoute;
+  "/download": typeof ViewDownloadIndexRoute;
+  "/eval": typeof ViewEvalIndexRoute;
+  "/gallery": typeof ViewGalleryIndexRoute;
+  "/k6-reports": typeof ViewK6ReportsIndexRoute;
+  "/legal": typeof ViewLegalIndexRoute;
+  "/press-kit": typeof ViewPressKitIndexRoute;
+  "/roadmap": typeof ViewRoadmapIndexRoute;
+  "/shortcuts": typeof ViewShortcutsIndexRoute;
+  "/templates": typeof ViewTemplatesIndexRoute;
+  "/gallery/$type/$slug": typeof ViewGalleryTypeSlugRoute;
+  "/integrations/$category/$slug": typeof ViewIntegrationsCategorySlugRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/_view': typeof ViewRouteRouteWithChildren
-  '/auth': typeof AuthRoute
-  '/contact': typeof ContactRoute
-  '/discord': typeof DiscordRoute
-  '/founders': typeof FoundersRoute
-  '/github': typeof GithubRoute
-  '/join-waitlist': typeof JoinWaitlistRoute
-  '/linkedin': typeof LinkedinRoute
-  '/x': typeof XRoute
-  '/youtube': typeof YoutubeRoute
-  '/_view/app': typeof ViewAppRouteRouteWithChildren
-  '/_view/company-handbook': typeof ViewCompanyHandbookRouteRouteWithChildren
-  '/_view/docs': typeof ViewDocsRouteRouteWithChildren
-  '/_view/about': typeof ViewAboutRoute
-  '/_view/brand': typeof ViewBrandRoute
-  '/_view/enterprise': typeof ViewEnterpriseRoute
-  '/_view/file-transcription': typeof ViewFileTranscriptionRoute
-  '/_view/free': typeof ViewFreeRoute
-  '/_view/opensource': typeof ViewOpensourceRoute
-  '/_view/oss-friends': typeof ViewOssFriendsRoute
-  '/_view/pricing': typeof ViewPricingRoute
-  '/_view/privacy': typeof ViewPrivacyRoute
-  '/_view/security': typeof ViewSecurityRoute
-  '/api/k6-reports': typeof ApiK6ReportsRoute
-  '/api/shortcuts': typeof ApiShortcutsRoute
-  '/api/templates': typeof ApiTemplatesRoute
-  '/webhook/nango': typeof WebhookNangoRoute
-  '/_view/': typeof ViewIndexRoute
-  '/_view/app/account': typeof ViewAppAccountRoute
-  '/_view/app/checkout': typeof ViewAppCheckoutRoute
-  '/_view/app/file-transcription': typeof ViewAppFileTranscriptionRoute
-  '/_view/app/integration': typeof ViewAppIntegrationRoute
-  '/_view/blog/$slug': typeof ViewBlogSlugRoute
-  '/_view/callback/auth': typeof ViewCallbackAuthRoute
-  '/_view/changelog/$slug': typeof ViewChangelogSlugRoute
-  '/_view/company-handbook/$': typeof ViewCompanyHandbookSplatRoute
-  '/_view/docs/$': typeof ViewDocsSplatRoute
-  '/_view/download/apple': typeof ViewDownloadAppleRoute
-  '/_view/download/apple-intel': typeof ViewDownloadAppleIntelRoute
-  '/_view/download/apple-silicon': typeof ViewDownloadAppleSiliconRoute
-  '/_view/download/linux': typeof ViewDownloadLinuxRoute
-  '/_view/download/linux-appimage': typeof ViewDownloadLinuxAppimageRoute
-  '/_view/download/linux-deb': typeof ViewDownloadLinuxDebRoute
-  '/_view/download/windows': typeof ViewDownloadWindowsRoute
-  '/_view/k6-reports/$id': typeof ViewK6ReportsIdRoute
-  '/_view/legal/$slug': typeof ViewLegalSlugRoute
-  '/_view/press-kit/app': typeof ViewPressKitAppRoute
-  '/_view/product/ai-assistant': typeof ViewProductAiAssistantRoute
-  '/_view/product/ai-notetaking': typeof ViewProductAiNotetakingRoute
-  '/_view/product/api': typeof ViewProductApiRoute
-  '/_view/product/bot': typeof ViewProductBotRoute
-  '/_view/product/extensions': typeof ViewProductExtensionsRoute
-  '/_view/product/local-ai': typeof ViewProductLocalAiRoute
-  '/_view/product/memory': typeof ViewProductMemoryRoute
-  '/_view/product/mini-apps': typeof ViewProductMiniAppsRoute
-  '/_view/product/notepad': typeof ViewProductNotepadRoute
-  '/_view/product/self-hosting': typeof ViewProductSelfHostingRoute
-  '/_view/product/workflows': typeof ViewProductWorkflowsRoute
-  '/_view/roadmap/$slug': typeof ViewRoadmapSlugRoute
-  '/_view/shortcuts/$slug': typeof ViewShortcutsSlugRoute
-  '/_view/solution/coaching': typeof ViewSolutionCoachingRoute
-  '/_view/solution/consulting': typeof ViewSolutionConsultingRoute
-  '/_view/solution/customer-success': typeof ViewSolutionCustomerSuccessRoute
-  '/_view/solution/field-engineering': typeof ViewSolutionFieldEngineeringRoute
-  '/_view/solution/government': typeof ViewSolutionGovernmentRoute
-  '/_view/solution/healthcare': typeof ViewSolutionHealthcareRoute
-  '/_view/solution/journalism': typeof ViewSolutionJournalismRoute
-  '/_view/solution/legal': typeof ViewSolutionLegalRoute
-  '/_view/solution/media': typeof ViewSolutionMediaRoute
-  '/_view/solution/project-management': typeof ViewSolutionProjectManagementRoute
-  '/_view/solution/recruiting': typeof ViewSolutionRecruitingRoute
-  '/_view/solution/research': typeof ViewSolutionResearchRoute
-  '/_view/solution/sales': typeof ViewSolutionSalesRoute
-  '/_view/templates/$slug': typeof ViewTemplatesSlugRoute
-  '/_view/vs/$slug': typeof ViewVsSlugRoute
-  '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/tweet/$id': typeof ApiTweetIdRoute
-  '/_view/app/': typeof ViewAppIndexRoute
-  '/_view/blog/': typeof ViewBlogIndexRoute
-  '/_view/changelog/': typeof ViewChangelogIndexRoute
-  '/_view/company-handbook/': typeof ViewCompanyHandbookIndexRoute
-  '/_view/docs/': typeof ViewDocsIndexRoute
-  '/_view/download/': typeof ViewDownloadIndexRoute
-  '/_view/eval/': typeof ViewEvalIndexRoute
-  '/_view/gallery/': typeof ViewGalleryIndexRoute
-  '/_view/k6-reports/': typeof ViewK6ReportsIndexRoute
-  '/_view/legal/': typeof ViewLegalIndexRoute
-  '/_view/press-kit/': typeof ViewPressKitIndexRoute
-  '/_view/roadmap/': typeof ViewRoadmapIndexRoute
-  '/_view/shortcuts/': typeof ViewShortcutsIndexRoute
-  '/_view/templates/': typeof ViewTemplatesIndexRoute
-  '/_view/gallery/$type/$slug': typeof ViewGalleryTypeSlugRoute
-  '/_view/integrations/$category/$slug': typeof ViewIntegrationsCategorySlugRoute
+  __root__: typeof rootRouteImport;
+  "/_view": typeof ViewRouteRouteWithChildren;
+  "/auth": typeof AuthRoute;
+  "/contact": typeof ContactRoute;
+  "/discord": typeof DiscordRoute;
+  "/founders": typeof FoundersRoute;
+  "/github": typeof GithubRoute;
+  "/join-waitlist": typeof JoinWaitlistRoute;
+  "/linkedin": typeof LinkedinRoute;
+  "/x": typeof XRoute;
+  "/youtube": typeof YoutubeRoute;
+  "/_view/app": typeof ViewAppRouteRouteWithChildren;
+  "/_view/company-handbook": typeof ViewCompanyHandbookRouteRouteWithChildren;
+  "/_view/docs": typeof ViewDocsRouteRouteWithChildren;
+  "/_view/about": typeof ViewAboutRoute;
+  "/_view/brand": typeof ViewBrandRoute;
+  "/_view/enterprise": typeof ViewEnterpriseRoute;
+  "/_view/file-transcription": typeof ViewFileTranscriptionRoute;
+  "/_view/free": typeof ViewFreeRoute;
+  "/_view/opensource": typeof ViewOpensourceRoute;
+  "/_view/oss-friends": typeof ViewOssFriendsRoute;
+  "/_view/pricing": typeof ViewPricingRoute;
+  "/_view/privacy": typeof ViewPrivacyRoute;
+  "/_view/security": typeof ViewSecurityRoute;
+  "/api/k6-reports": typeof ApiK6ReportsRoute;
+  "/api/shortcuts": typeof ApiShortcutsRoute;
+  "/api/templates": typeof ApiTemplatesRoute;
+  "/webhook/nango": typeof WebhookNangoRoute;
+  "/_view/": typeof ViewIndexRoute;
+  "/_view/app/account": typeof ViewAppAccountRoute;
+  "/_view/app/checkout": typeof ViewAppCheckoutRoute;
+  "/_view/app/file-transcription": typeof ViewAppFileTranscriptionRoute;
+  "/_view/app/integration": typeof ViewAppIntegrationRoute;
+  "/_view/blog/$slug": typeof ViewBlogSlugRoute;
+  "/_view/callback/auth": typeof ViewCallbackAuthRoute;
+  "/_view/changelog/$slug": typeof ViewChangelogSlugRoute;
+  "/_view/company-handbook/$": typeof ViewCompanyHandbookSplatRoute;
+  "/_view/docs/$": typeof ViewDocsSplatRoute;
+  "/_view/download/apple": typeof ViewDownloadAppleRoute;
+  "/_view/download/apple-intel": typeof ViewDownloadAppleIntelRoute;
+  "/_view/download/apple-silicon": typeof ViewDownloadAppleSiliconRoute;
+  "/_view/download/linux": typeof ViewDownloadLinuxRoute;
+  "/_view/download/linux-appimage": typeof ViewDownloadLinuxAppimageRoute;
+  "/_view/download/linux-deb": typeof ViewDownloadLinuxDebRoute;
+  "/_view/download/windows": typeof ViewDownloadWindowsRoute;
+  "/_view/k6-reports/$id": typeof ViewK6ReportsIdRoute;
+  "/_view/legal/$slug": typeof ViewLegalSlugRoute;
+  "/_view/press-kit/app": typeof ViewPressKitAppRoute;
+  "/_view/product/ai-assistant": typeof ViewProductAiAssistantRoute;
+  "/_view/product/ai-notetaking": typeof ViewProductAiNotetakingRoute;
+  "/_view/product/api": typeof ViewProductApiRoute;
+  "/_view/product/bot": typeof ViewProductBotRoute;
+  "/_view/product/extensions": typeof ViewProductExtensionsRoute;
+  "/_view/product/local-ai": typeof ViewProductLocalAiRoute;
+  "/_view/product/memory": typeof ViewProductMemoryRoute;
+  "/_view/product/mini-apps": typeof ViewProductMiniAppsRoute;
+  "/_view/product/notepad": typeof ViewProductNotepadRoute;
+  "/_view/product/self-hosting": typeof ViewProductSelfHostingRoute;
+  "/_view/product/workflows": typeof ViewProductWorkflowsRoute;
+  "/_view/roadmap/$slug": typeof ViewRoadmapSlugRoute;
+  "/_view/shortcuts/$slug": typeof ViewShortcutsSlugRoute;
+  "/_view/solution/coaching": typeof ViewSolutionCoachingRoute;
+  "/_view/solution/consulting": typeof ViewSolutionConsultingRoute;
+  "/_view/solution/customer-success": typeof ViewSolutionCustomerSuccessRoute;
+  "/_view/solution/field-engineering": typeof ViewSolutionFieldEngineeringRoute;
+  "/_view/solution/government": typeof ViewSolutionGovernmentRoute;
+  "/_view/solution/healthcare": typeof ViewSolutionHealthcareRoute;
+  "/_view/solution/journalism": typeof ViewSolutionJournalismRoute;
+  "/_view/solution/legal": typeof ViewSolutionLegalRoute;
+  "/_view/solution/media": typeof ViewSolutionMediaRoute;
+  "/_view/solution/project-management": typeof ViewSolutionProjectManagementRoute;
+  "/_view/solution/recruiting": typeof ViewSolutionRecruitingRoute;
+  "/_view/solution/research": typeof ViewSolutionResearchRoute;
+  "/_view/solution/sales": typeof ViewSolutionSalesRoute;
+  "/_view/templates/$slug": typeof ViewTemplatesSlugRoute;
+  "/_view/vs/$slug": typeof ViewVsSlugRoute;
+  "/api/images/$": typeof ApiImagesSplatRoute;
+  "/api/tweet/$id": typeof ApiTweetIdRoute;
+  "/_view/app/": typeof ViewAppIndexRoute;
+  "/_view/blog/": typeof ViewBlogIndexRoute;
+  "/_view/changelog/": typeof ViewChangelogIndexRoute;
+  "/_view/company-handbook/": typeof ViewCompanyHandbookIndexRoute;
+  "/_view/docs/": typeof ViewDocsIndexRoute;
+  "/_view/download/": typeof ViewDownloadIndexRoute;
+  "/_view/eval/": typeof ViewEvalIndexRoute;
+  "/_view/gallery/": typeof ViewGalleryIndexRoute;
+  "/_view/k6-reports/": typeof ViewK6ReportsIndexRoute;
+  "/_view/legal/": typeof ViewLegalIndexRoute;
+  "/_view/press-kit/": typeof ViewPressKitIndexRoute;
+  "/_view/roadmap/": typeof ViewRoadmapIndexRoute;
+  "/_view/shortcuts/": typeof ViewShortcutsIndexRoute;
+  "/_view/templates/": typeof ViewTemplatesIndexRoute;
+  "/_view/gallery/$type/$slug": typeof ViewGalleryTypeSlugRoute;
+  "/_view/integrations/$category/$slug": typeof ViewIntegrationsCategorySlugRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/auth'
-    | '/contact'
-    | '/discord'
-    | '/founders'
-    | '/github'
-    | '/join-waitlist'
-    | '/linkedin'
-    | '/x'
-    | '/youtube'
-    | '/app'
-    | '/company-handbook'
-    | '/docs'
-    | '/about'
-    | '/brand'
-    | '/enterprise'
-    | '/file-transcription'
-    | '/free'
-    | '/opensource'
-    | '/oss-friends'
-    | '/pricing'
-    | '/privacy'
-    | '/security'
-    | '/api/k6-reports'
-    | '/api/shortcuts'
-    | '/api/templates'
-    | '/webhook/nango'
-    | '/'
-    | '/app/account'
-    | '/app/checkout'
-    | '/app/file-transcription'
-    | '/app/integration'
-    | '/blog/$slug'
-    | '/callback/auth'
-    | '/changelog/$slug'
-    | '/company-handbook/$'
-    | '/docs/$'
-    | '/download/apple'
-    | '/download/apple-intel'
-    | '/download/apple-silicon'
-    | '/download/linux'
-    | '/download/linux-appimage'
-    | '/download/linux-deb'
-    | '/download/windows'
-    | '/k6-reports/$id'
-    | '/legal/$slug'
-    | '/press-kit/app'
-    | '/product/ai-assistant'
-    | '/product/ai-notetaking'
-    | '/product/api'
-    | '/product/bot'
-    | '/product/extensions'
-    | '/product/local-ai'
-    | '/product/memory'
-    | '/product/mini-apps'
-    | '/product/notepad'
-    | '/product/self-hosting'
-    | '/product/workflows'
-    | '/roadmap/$slug'
-    | '/shortcuts/$slug'
-    | '/solution/coaching'
-    | '/solution/consulting'
-    | '/solution/customer-success'
-    | '/solution/field-engineering'
-    | '/solution/government'
-    | '/solution/healthcare'
-    | '/solution/journalism'
-    | '/solution/legal'
-    | '/solution/media'
-    | '/solution/project-management'
-    | '/solution/recruiting'
-    | '/solution/research'
-    | '/solution/sales'
-    | '/templates/$slug'
-    | '/vs/$slug'
-    | '/api/images/$'
-    | '/api/tweet/$id'
-    | '/app/'
-    | '/blog'
-    | '/changelog'
-    | '/company-handbook/'
-    | '/docs/'
-    | '/download'
-    | '/eval'
-    | '/gallery'
-    | '/k6-reports'
-    | '/legal'
-    | '/press-kit'
-    | '/roadmap'
-    | '/shortcuts'
-    | '/templates'
-    | '/gallery/$type/$slug'
-    | '/integrations/$category/$slug'
-  fileRoutesByTo: FileRoutesByTo
+    | "/auth"
+    | "/contact"
+    | "/discord"
+    | "/founders"
+    | "/github"
+    | "/join-waitlist"
+    | "/linkedin"
+    | "/x"
+    | "/youtube"
+    | "/app"
+    | "/company-handbook"
+    | "/docs"
+    | "/about"
+    | "/brand"
+    | "/enterprise"
+    | "/file-transcription"
+    | "/free"
+    | "/opensource"
+    | "/oss-friends"
+    | "/pricing"
+    | "/privacy"
+    | "/security"
+    | "/api/k6-reports"
+    | "/api/shortcuts"
+    | "/api/templates"
+    | "/webhook/nango"
+    | "/"
+    | "/app/account"
+    | "/app/checkout"
+    | "/app/file-transcription"
+    | "/app/integration"
+    | "/blog/$slug"
+    | "/callback/auth"
+    | "/changelog/$slug"
+    | "/company-handbook/$"
+    | "/docs/$"
+    | "/download/apple"
+    | "/download/apple-intel"
+    | "/download/apple-silicon"
+    | "/download/linux"
+    | "/download/linux-appimage"
+    | "/download/linux-deb"
+    | "/download/windows"
+    | "/k6-reports/$id"
+    | "/legal/$slug"
+    | "/press-kit/app"
+    | "/product/ai-assistant"
+    | "/product/ai-notetaking"
+    | "/product/api"
+    | "/product/bot"
+    | "/product/extensions"
+    | "/product/local-ai"
+    | "/product/memory"
+    | "/product/mini-apps"
+    | "/product/notepad"
+    | "/product/self-hosting"
+    | "/product/workflows"
+    | "/roadmap/$slug"
+    | "/shortcuts/$slug"
+    | "/solution/coaching"
+    | "/solution/consulting"
+    | "/solution/customer-success"
+    | "/solution/field-engineering"
+    | "/solution/government"
+    | "/solution/healthcare"
+    | "/solution/journalism"
+    | "/solution/legal"
+    | "/solution/media"
+    | "/solution/project-management"
+    | "/solution/recruiting"
+    | "/solution/research"
+    | "/solution/sales"
+    | "/templates/$slug"
+    | "/vs/$slug"
+    | "/api/images/$"
+    | "/api/tweet/$id"
+    | "/app/"
+    | "/blog"
+    | "/changelog"
+    | "/company-handbook/"
+    | "/docs/"
+    | "/download"
+    | "/eval"
+    | "/gallery"
+    | "/k6-reports"
+    | "/legal"
+    | "/press-kit"
+    | "/roadmap"
+    | "/shortcuts"
+    | "/templates"
+    | "/gallery/$type/$slug"
+    | "/integrations/$category/$slug";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/auth'
-    | '/contact'
-    | '/discord'
-    | '/founders'
-    | '/github'
-    | '/join-waitlist'
-    | '/linkedin'
-    | '/x'
-    | '/youtube'
-    | '/about'
-    | '/brand'
-    | '/enterprise'
-    | '/file-transcription'
-    | '/free'
-    | '/opensource'
-    | '/oss-friends'
-    | '/pricing'
-    | '/privacy'
-    | '/security'
-    | '/api/k6-reports'
-    | '/api/shortcuts'
-    | '/api/templates'
-    | '/webhook/nango'
-    | '/'
-    | '/app/account'
-    | '/app/checkout'
-    | '/app/file-transcription'
-    | '/app/integration'
-    | '/blog/$slug'
-    | '/callback/auth'
-    | '/changelog/$slug'
-    | '/company-handbook/$'
-    | '/docs/$'
-    | '/download/apple'
-    | '/download/apple-intel'
-    | '/download/apple-silicon'
-    | '/download/linux'
-    | '/download/linux-appimage'
-    | '/download/linux-deb'
-    | '/download/windows'
-    | '/k6-reports/$id'
-    | '/legal/$slug'
-    | '/press-kit/app'
-    | '/product/ai-assistant'
-    | '/product/ai-notetaking'
-    | '/product/api'
-    | '/product/bot'
-    | '/product/extensions'
-    | '/product/local-ai'
-    | '/product/memory'
-    | '/product/mini-apps'
-    | '/product/notepad'
-    | '/product/self-hosting'
-    | '/product/workflows'
-    | '/roadmap/$slug'
-    | '/shortcuts/$slug'
-    | '/solution/coaching'
-    | '/solution/consulting'
-    | '/solution/customer-success'
-    | '/solution/field-engineering'
-    | '/solution/government'
-    | '/solution/healthcare'
-    | '/solution/journalism'
-    | '/solution/legal'
-    | '/solution/media'
-    | '/solution/project-management'
-    | '/solution/recruiting'
-    | '/solution/research'
-    | '/solution/sales'
-    | '/templates/$slug'
-    | '/vs/$slug'
-    | '/api/images/$'
-    | '/api/tweet/$id'
-    | '/app'
-    | '/blog'
-    | '/changelog'
-    | '/company-handbook'
-    | '/docs'
-    | '/download'
-    | '/eval'
-    | '/gallery'
-    | '/k6-reports'
-    | '/legal'
-    | '/press-kit'
-    | '/roadmap'
-    | '/shortcuts'
-    | '/templates'
-    | '/gallery/$type/$slug'
-    | '/integrations/$category/$slug'
+    | "/auth"
+    | "/contact"
+    | "/discord"
+    | "/founders"
+    | "/github"
+    | "/join-waitlist"
+    | "/linkedin"
+    | "/x"
+    | "/youtube"
+    | "/about"
+    | "/brand"
+    | "/enterprise"
+    | "/file-transcription"
+    | "/free"
+    | "/opensource"
+    | "/oss-friends"
+    | "/pricing"
+    | "/privacy"
+    | "/security"
+    | "/api/k6-reports"
+    | "/api/shortcuts"
+    | "/api/templates"
+    | "/webhook/nango"
+    | "/"
+    | "/app/account"
+    | "/app/checkout"
+    | "/app/file-transcription"
+    | "/app/integration"
+    | "/blog/$slug"
+    | "/callback/auth"
+    | "/changelog/$slug"
+    | "/company-handbook/$"
+    | "/docs/$"
+    | "/download/apple"
+    | "/download/apple-intel"
+    | "/download/apple-silicon"
+    | "/download/linux"
+    | "/download/linux-appimage"
+    | "/download/linux-deb"
+    | "/download/windows"
+    | "/k6-reports/$id"
+    | "/legal/$slug"
+    | "/press-kit/app"
+    | "/product/ai-assistant"
+    | "/product/ai-notetaking"
+    | "/product/api"
+    | "/product/bot"
+    | "/product/extensions"
+    | "/product/local-ai"
+    | "/product/memory"
+    | "/product/mini-apps"
+    | "/product/notepad"
+    | "/product/self-hosting"
+    | "/product/workflows"
+    | "/roadmap/$slug"
+    | "/shortcuts/$slug"
+    | "/solution/coaching"
+    | "/solution/consulting"
+    | "/solution/customer-success"
+    | "/solution/field-engineering"
+    | "/solution/government"
+    | "/solution/healthcare"
+    | "/solution/journalism"
+    | "/solution/legal"
+    | "/solution/media"
+    | "/solution/project-management"
+    | "/solution/recruiting"
+    | "/solution/research"
+    | "/solution/sales"
+    | "/templates/$slug"
+    | "/vs/$slug"
+    | "/api/images/$"
+    | "/api/tweet/$id"
+    | "/app"
+    | "/blog"
+    | "/changelog"
+    | "/company-handbook"
+    | "/docs"
+    | "/download"
+    | "/eval"
+    | "/gallery"
+    | "/k6-reports"
+    | "/legal"
+    | "/press-kit"
+    | "/roadmap"
+    | "/shortcuts"
+    | "/templates"
+    | "/gallery/$type/$slug"
+    | "/integrations/$category/$slug";
   id:
-    | '__root__'
-    | '/_view'
-    | '/auth'
-    | '/contact'
-    | '/discord'
-    | '/founders'
-    | '/github'
-    | '/join-waitlist'
-    | '/linkedin'
-    | '/x'
-    | '/youtube'
-    | '/_view/app'
-    | '/_view/company-handbook'
-    | '/_view/docs'
-    | '/_view/about'
-    | '/_view/brand'
-    | '/_view/enterprise'
-    | '/_view/file-transcription'
-    | '/_view/free'
-    | '/_view/opensource'
-    | '/_view/oss-friends'
-    | '/_view/pricing'
-    | '/_view/privacy'
-    | '/_view/security'
-    | '/api/k6-reports'
-    | '/api/shortcuts'
-    | '/api/templates'
-    | '/webhook/nango'
-    | '/_view/'
-    | '/_view/app/account'
-    | '/_view/app/checkout'
-    | '/_view/app/file-transcription'
-    | '/_view/app/integration'
-    | '/_view/blog/$slug'
-    | '/_view/callback/auth'
-    | '/_view/changelog/$slug'
-    | '/_view/company-handbook/$'
-    | '/_view/docs/$'
-    | '/_view/download/apple'
-    | '/_view/download/apple-intel'
-    | '/_view/download/apple-silicon'
-    | '/_view/download/linux'
-    | '/_view/download/linux-appimage'
-    | '/_view/download/linux-deb'
-    | '/_view/download/windows'
-    | '/_view/k6-reports/$id'
-    | '/_view/legal/$slug'
-    | '/_view/press-kit/app'
-    | '/_view/product/ai-assistant'
-    | '/_view/product/ai-notetaking'
-    | '/_view/product/api'
-    | '/_view/product/bot'
-    | '/_view/product/extensions'
-    | '/_view/product/local-ai'
-    | '/_view/product/memory'
-    | '/_view/product/mini-apps'
-    | '/_view/product/notepad'
-    | '/_view/product/self-hosting'
-    | '/_view/product/workflows'
-    | '/_view/roadmap/$slug'
-    | '/_view/shortcuts/$slug'
-    | '/_view/solution/coaching'
-    | '/_view/solution/consulting'
-    | '/_view/solution/customer-success'
-    | '/_view/solution/field-engineering'
-    | '/_view/solution/government'
-    | '/_view/solution/healthcare'
-    | '/_view/solution/journalism'
-    | '/_view/solution/legal'
-    | '/_view/solution/media'
-    | '/_view/solution/project-management'
-    | '/_view/solution/recruiting'
-    | '/_view/solution/research'
-    | '/_view/solution/sales'
-    | '/_view/templates/$slug'
-    | '/_view/vs/$slug'
-    | '/api/images/$'
-    | '/api/tweet/$id'
-    | '/_view/app/'
-    | '/_view/blog/'
-    | '/_view/changelog/'
-    | '/_view/company-handbook/'
-    | '/_view/docs/'
-    | '/_view/download/'
-    | '/_view/eval/'
-    | '/_view/gallery/'
-    | '/_view/k6-reports/'
-    | '/_view/legal/'
-    | '/_view/press-kit/'
-    | '/_view/roadmap/'
-    | '/_view/shortcuts/'
-    | '/_view/templates/'
-    | '/_view/gallery/$type/$slug'
-    | '/_view/integrations/$category/$slug'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/_view"
+    | "/auth"
+    | "/contact"
+    | "/discord"
+    | "/founders"
+    | "/github"
+    | "/join-waitlist"
+    | "/linkedin"
+    | "/x"
+    | "/youtube"
+    | "/_view/app"
+    | "/_view/company-handbook"
+    | "/_view/docs"
+    | "/_view/about"
+    | "/_view/brand"
+    | "/_view/enterprise"
+    | "/_view/file-transcription"
+    | "/_view/free"
+    | "/_view/opensource"
+    | "/_view/oss-friends"
+    | "/_view/pricing"
+    | "/_view/privacy"
+    | "/_view/security"
+    | "/api/k6-reports"
+    | "/api/shortcuts"
+    | "/api/templates"
+    | "/webhook/nango"
+    | "/_view/"
+    | "/_view/app/account"
+    | "/_view/app/checkout"
+    | "/_view/app/file-transcription"
+    | "/_view/app/integration"
+    | "/_view/blog/$slug"
+    | "/_view/callback/auth"
+    | "/_view/changelog/$slug"
+    | "/_view/company-handbook/$"
+    | "/_view/docs/$"
+    | "/_view/download/apple"
+    | "/_view/download/apple-intel"
+    | "/_view/download/apple-silicon"
+    | "/_view/download/linux"
+    | "/_view/download/linux-appimage"
+    | "/_view/download/linux-deb"
+    | "/_view/download/windows"
+    | "/_view/k6-reports/$id"
+    | "/_view/legal/$slug"
+    | "/_view/press-kit/app"
+    | "/_view/product/ai-assistant"
+    | "/_view/product/ai-notetaking"
+    | "/_view/product/api"
+    | "/_view/product/bot"
+    | "/_view/product/extensions"
+    | "/_view/product/local-ai"
+    | "/_view/product/memory"
+    | "/_view/product/mini-apps"
+    | "/_view/product/notepad"
+    | "/_view/product/self-hosting"
+    | "/_view/product/workflows"
+    | "/_view/roadmap/$slug"
+    | "/_view/shortcuts/$slug"
+    | "/_view/solution/coaching"
+    | "/_view/solution/consulting"
+    | "/_view/solution/customer-success"
+    | "/_view/solution/field-engineering"
+    | "/_view/solution/government"
+    | "/_view/solution/healthcare"
+    | "/_view/solution/journalism"
+    | "/_view/solution/legal"
+    | "/_view/solution/media"
+    | "/_view/solution/project-management"
+    | "/_view/solution/recruiting"
+    | "/_view/solution/research"
+    | "/_view/solution/sales"
+    | "/_view/templates/$slug"
+    | "/_view/vs/$slug"
+    | "/api/images/$"
+    | "/api/tweet/$id"
+    | "/_view/app/"
+    | "/_view/blog/"
+    | "/_view/changelog/"
+    | "/_view/company-handbook/"
+    | "/_view/docs/"
+    | "/_view/download/"
+    | "/_view/eval/"
+    | "/_view/gallery/"
+    | "/_view/k6-reports/"
+    | "/_view/legal/"
+    | "/_view/press-kit/"
+    | "/_view/roadmap/"
+    | "/_view/shortcuts/"
+    | "/_view/templates/"
+    | "/_view/gallery/$type/$slug"
+    | "/_view/integrations/$category/$slug";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  ViewRouteRoute: typeof ViewRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
-  ContactRoute: typeof ContactRoute
-  DiscordRoute: typeof DiscordRoute
-  FoundersRoute: typeof FoundersRoute
-  GithubRoute: typeof GithubRoute
-  JoinWaitlistRoute: typeof JoinWaitlistRoute
-  LinkedinRoute: typeof LinkedinRoute
-  XRoute: typeof XRoute
-  YoutubeRoute: typeof YoutubeRoute
-  ApiK6ReportsRoute: typeof ApiK6ReportsRoute
-  ApiShortcutsRoute: typeof ApiShortcutsRoute
-  ApiTemplatesRoute: typeof ApiTemplatesRoute
-  WebhookNangoRoute: typeof WebhookNangoRoute
-  ApiImagesSplatRoute: typeof ApiImagesSplatRoute
-  ApiTweetIdRoute: typeof ApiTweetIdRoute
+  ViewRouteRoute: typeof ViewRouteRouteWithChildren;
+  AuthRoute: typeof AuthRoute;
+  ContactRoute: typeof ContactRoute;
+  DiscordRoute: typeof DiscordRoute;
+  FoundersRoute: typeof FoundersRoute;
+  GithubRoute: typeof GithubRoute;
+  JoinWaitlistRoute: typeof JoinWaitlistRoute;
+  LinkedinRoute: typeof LinkedinRoute;
+  XRoute: typeof XRoute;
+  YoutubeRoute: typeof YoutubeRoute;
+  ApiK6ReportsRoute: typeof ApiK6ReportsRoute;
+  ApiShortcutsRoute: typeof ApiShortcutsRoute;
+  ApiTemplatesRoute: typeof ApiTemplatesRoute;
+  WebhookNangoRoute: typeof WebhookNangoRoute;
+  ApiImagesSplatRoute: typeof ApiImagesSplatRoute;
+  ApiTweetIdRoute: typeof ApiTweetIdRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/youtube': {
-      id: '/youtube'
-      path: '/youtube'
-      fullPath: '/youtube'
-      preLoaderRoute: typeof YoutubeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/x': {
-      id: '/x'
-      path: '/x'
-      fullPath: '/x'
-      preLoaderRoute: typeof XRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/linkedin': {
-      id: '/linkedin'
-      path: '/linkedin'
-      fullPath: '/linkedin'
-      preLoaderRoute: typeof LinkedinRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/join-waitlist': {
-      id: '/join-waitlist'
-      path: '/join-waitlist'
-      fullPath: '/join-waitlist'
-      preLoaderRoute: typeof JoinWaitlistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/github': {
-      id: '/github'
-      path: '/github'
-      fullPath: '/github'
-      preLoaderRoute: typeof GithubRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/founders': {
-      id: '/founders'
-      path: '/founders'
-      fullPath: '/founders'
-      preLoaderRoute: typeof FoundersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/discord': {
-      id: '/discord'
-      path: '/discord'
-      fullPath: '/discord'
-      preLoaderRoute: typeof DiscordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_view': {
-      id: '/_view'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof ViewRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_view/': {
-      id: '/_view/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof ViewIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/webhook/nango': {
-      id: '/webhook/nango'
-      path: '/webhook/nango'
-      fullPath: '/webhook/nango'
-      preLoaderRoute: typeof WebhookNangoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/templates': {
-      id: '/api/templates'
-      path: '/api/templates'
-      fullPath: '/api/templates'
-      preLoaderRoute: typeof ApiTemplatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/shortcuts': {
-      id: '/api/shortcuts'
-      path: '/api/shortcuts'
-      fullPath: '/api/shortcuts'
-      preLoaderRoute: typeof ApiShortcutsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/k6-reports': {
-      id: '/api/k6-reports'
-      path: '/api/k6-reports'
-      fullPath: '/api/k6-reports'
-      preLoaderRoute: typeof ApiK6ReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_view/security': {
-      id: '/_view/security'
-      path: '/security'
-      fullPath: '/security'
-      preLoaderRoute: typeof ViewSecurityRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/privacy': {
-      id: '/_view/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof ViewPrivacyRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/pricing': {
-      id: '/_view/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof ViewPricingRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/oss-friends': {
-      id: '/_view/oss-friends'
-      path: '/oss-friends'
-      fullPath: '/oss-friends'
-      preLoaderRoute: typeof ViewOssFriendsRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/opensource': {
-      id: '/_view/opensource'
-      path: '/opensource'
-      fullPath: '/opensource'
-      preLoaderRoute: typeof ViewOpensourceRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/free': {
-      id: '/_view/free'
-      path: '/free'
-      fullPath: '/free'
-      preLoaderRoute: typeof ViewFreeRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/file-transcription': {
-      id: '/_view/file-transcription'
-      path: '/file-transcription'
-      fullPath: '/file-transcription'
-      preLoaderRoute: typeof ViewFileTranscriptionRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/enterprise': {
-      id: '/_view/enterprise'
-      path: '/enterprise'
-      fullPath: '/enterprise'
-      preLoaderRoute: typeof ViewEnterpriseRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/brand': {
-      id: '/_view/brand'
-      path: '/brand'
-      fullPath: '/brand'
-      preLoaderRoute: typeof ViewBrandRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/about': {
-      id: '/_view/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof ViewAboutRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/docs': {
-      id: '/_view/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof ViewDocsRouteRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/company-handbook': {
-      id: '/_view/company-handbook'
-      path: '/company-handbook'
-      fullPath: '/company-handbook'
-      preLoaderRoute: typeof ViewCompanyHandbookRouteRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/app': {
-      id: '/_view/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof ViewAppRouteRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/templates/': {
-      id: '/_view/templates/'
-      path: '/templates'
-      fullPath: '/templates'
-      preLoaderRoute: typeof ViewTemplatesIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/shortcuts/': {
-      id: '/_view/shortcuts/'
-      path: '/shortcuts'
-      fullPath: '/shortcuts'
-      preLoaderRoute: typeof ViewShortcutsIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/roadmap/': {
-      id: '/_view/roadmap/'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof ViewRoadmapIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/press-kit/': {
-      id: '/_view/press-kit/'
-      path: '/press-kit'
-      fullPath: '/press-kit'
-      preLoaderRoute: typeof ViewPressKitIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/legal/': {
-      id: '/_view/legal/'
-      path: '/legal'
-      fullPath: '/legal'
-      preLoaderRoute: typeof ViewLegalIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/k6-reports/': {
-      id: '/_view/k6-reports/'
-      path: '/k6-reports'
-      fullPath: '/k6-reports'
-      preLoaderRoute: typeof ViewK6ReportsIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/gallery/': {
-      id: '/_view/gallery/'
-      path: '/gallery'
-      fullPath: '/gallery'
-      preLoaderRoute: typeof ViewGalleryIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/eval/': {
-      id: '/_view/eval/'
-      path: '/eval'
-      fullPath: '/eval'
-      preLoaderRoute: typeof ViewEvalIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/': {
-      id: '/_view/download/'
-      path: '/download'
-      fullPath: '/download'
-      preLoaderRoute: typeof ViewDownloadIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/docs/': {
-      id: '/_view/docs/'
-      path: '/'
-      fullPath: '/docs/'
-      preLoaderRoute: typeof ViewDocsIndexRouteImport
-      parentRoute: typeof ViewDocsRouteRoute
-    }
-    '/_view/company-handbook/': {
-      id: '/_view/company-handbook/'
-      path: '/'
-      fullPath: '/company-handbook/'
-      preLoaderRoute: typeof ViewCompanyHandbookIndexRouteImport
-      parentRoute: typeof ViewCompanyHandbookRouteRoute
-    }
-    '/_view/changelog/': {
-      id: '/_view/changelog/'
-      path: '/changelog'
-      fullPath: '/changelog'
-      preLoaderRoute: typeof ViewChangelogIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/blog/': {
-      id: '/_view/blog/'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof ViewBlogIndexRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/app/': {
-      id: '/_view/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof ViewAppIndexRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/api/tweet/$id': {
-      id: '/api/tweet/$id'
-      path: '/api/tweet/$id'
-      fullPath: '/api/tweet/$id'
-      preLoaderRoute: typeof ApiTweetIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/images/$': {
-      id: '/api/images/$'
-      path: '/api/images/$'
-      fullPath: '/api/images/$'
-      preLoaderRoute: typeof ApiImagesSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_view/vs/$slug': {
-      id: '/_view/vs/$slug'
-      path: '/vs/$slug'
-      fullPath: '/vs/$slug'
-      preLoaderRoute: typeof ViewVsSlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/templates/$slug': {
-      id: '/_view/templates/$slug'
-      path: '/templates/$slug'
-      fullPath: '/templates/$slug'
-      preLoaderRoute: typeof ViewTemplatesSlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/sales': {
-      id: '/_view/solution/sales'
-      path: '/solution/sales'
-      fullPath: '/solution/sales'
-      preLoaderRoute: typeof ViewSolutionSalesRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/research': {
-      id: '/_view/solution/research'
-      path: '/solution/research'
-      fullPath: '/solution/research'
-      preLoaderRoute: typeof ViewSolutionResearchRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/recruiting': {
-      id: '/_view/solution/recruiting'
-      path: '/solution/recruiting'
-      fullPath: '/solution/recruiting'
-      preLoaderRoute: typeof ViewSolutionRecruitingRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/project-management': {
-      id: '/_view/solution/project-management'
-      path: '/solution/project-management'
-      fullPath: '/solution/project-management'
-      preLoaderRoute: typeof ViewSolutionProjectManagementRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/media': {
-      id: '/_view/solution/media'
-      path: '/solution/media'
-      fullPath: '/solution/media'
-      preLoaderRoute: typeof ViewSolutionMediaRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/legal': {
-      id: '/_view/solution/legal'
-      path: '/solution/legal'
-      fullPath: '/solution/legal'
-      preLoaderRoute: typeof ViewSolutionLegalRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/journalism': {
-      id: '/_view/solution/journalism'
-      path: '/solution/journalism'
-      fullPath: '/solution/journalism'
-      preLoaderRoute: typeof ViewSolutionJournalismRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/healthcare': {
-      id: '/_view/solution/healthcare'
-      path: '/solution/healthcare'
-      fullPath: '/solution/healthcare'
-      preLoaderRoute: typeof ViewSolutionHealthcareRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/government': {
-      id: '/_view/solution/government'
-      path: '/solution/government'
-      fullPath: '/solution/government'
-      preLoaderRoute: typeof ViewSolutionGovernmentRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/field-engineering': {
-      id: '/_view/solution/field-engineering'
-      path: '/solution/field-engineering'
-      fullPath: '/solution/field-engineering'
-      preLoaderRoute: typeof ViewSolutionFieldEngineeringRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/customer-success': {
-      id: '/_view/solution/customer-success'
-      path: '/solution/customer-success'
-      fullPath: '/solution/customer-success'
-      preLoaderRoute: typeof ViewSolutionCustomerSuccessRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/consulting': {
-      id: '/_view/solution/consulting'
-      path: '/solution/consulting'
-      fullPath: '/solution/consulting'
-      preLoaderRoute: typeof ViewSolutionConsultingRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/solution/coaching': {
-      id: '/_view/solution/coaching'
-      path: '/solution/coaching'
-      fullPath: '/solution/coaching'
-      preLoaderRoute: typeof ViewSolutionCoachingRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/shortcuts/$slug': {
-      id: '/_view/shortcuts/$slug'
-      path: '/shortcuts/$slug'
-      fullPath: '/shortcuts/$slug'
-      preLoaderRoute: typeof ViewShortcutsSlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/roadmap/$slug': {
-      id: '/_view/roadmap/$slug'
-      path: '/roadmap/$slug'
-      fullPath: '/roadmap/$slug'
-      preLoaderRoute: typeof ViewRoadmapSlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/workflows': {
-      id: '/_view/product/workflows'
-      path: '/product/workflows'
-      fullPath: '/product/workflows'
-      preLoaderRoute: typeof ViewProductWorkflowsRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/self-hosting': {
-      id: '/_view/product/self-hosting'
-      path: '/product/self-hosting'
-      fullPath: '/product/self-hosting'
-      preLoaderRoute: typeof ViewProductSelfHostingRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/notepad': {
-      id: '/_view/product/notepad'
-      path: '/product/notepad'
-      fullPath: '/product/notepad'
-      preLoaderRoute: typeof ViewProductNotepadRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/mini-apps': {
-      id: '/_view/product/mini-apps'
-      path: '/product/mini-apps'
-      fullPath: '/product/mini-apps'
-      preLoaderRoute: typeof ViewProductMiniAppsRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/memory': {
-      id: '/_view/product/memory'
-      path: '/product/memory'
-      fullPath: '/product/memory'
-      preLoaderRoute: typeof ViewProductMemoryRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/local-ai': {
-      id: '/_view/product/local-ai'
-      path: '/product/local-ai'
-      fullPath: '/product/local-ai'
-      preLoaderRoute: typeof ViewProductLocalAiRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/extensions': {
-      id: '/_view/product/extensions'
-      path: '/product/extensions'
-      fullPath: '/product/extensions'
-      preLoaderRoute: typeof ViewProductExtensionsRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/bot': {
-      id: '/_view/product/bot'
-      path: '/product/bot'
-      fullPath: '/product/bot'
-      preLoaderRoute: typeof ViewProductBotRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/api': {
-      id: '/_view/product/api'
-      path: '/product/api'
-      fullPath: '/product/api'
-      preLoaderRoute: typeof ViewProductApiRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/ai-notetaking': {
-      id: '/_view/product/ai-notetaking'
-      path: '/product/ai-notetaking'
-      fullPath: '/product/ai-notetaking'
-      preLoaderRoute: typeof ViewProductAiNotetakingRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/product/ai-assistant': {
-      id: '/_view/product/ai-assistant'
-      path: '/product/ai-assistant'
-      fullPath: '/product/ai-assistant'
-      preLoaderRoute: typeof ViewProductAiAssistantRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/press-kit/app': {
-      id: '/_view/press-kit/app'
-      path: '/press-kit/app'
-      fullPath: '/press-kit/app'
-      preLoaderRoute: typeof ViewPressKitAppRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/legal/$slug': {
-      id: '/_view/legal/$slug'
-      path: '/legal/$slug'
-      fullPath: '/legal/$slug'
-      preLoaderRoute: typeof ViewLegalSlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/k6-reports/$id': {
-      id: '/_view/k6-reports/$id'
-      path: '/k6-reports/$id'
-      fullPath: '/k6-reports/$id'
-      preLoaderRoute: typeof ViewK6ReportsIdRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/windows': {
-      id: '/_view/download/windows'
-      path: '/download/windows'
-      fullPath: '/download/windows'
-      preLoaderRoute: typeof ViewDownloadWindowsRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/linux-deb': {
-      id: '/_view/download/linux-deb'
-      path: '/download/linux-deb'
-      fullPath: '/download/linux-deb'
-      preLoaderRoute: typeof ViewDownloadLinuxDebRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/linux-appimage': {
-      id: '/_view/download/linux-appimage'
-      path: '/download/linux-appimage'
-      fullPath: '/download/linux-appimage'
-      preLoaderRoute: typeof ViewDownloadLinuxAppimageRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/linux': {
-      id: '/_view/download/linux'
-      path: '/download/linux'
-      fullPath: '/download/linux'
-      preLoaderRoute: typeof ViewDownloadLinuxRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/apple-silicon': {
-      id: '/_view/download/apple-silicon'
-      path: '/download/apple-silicon'
-      fullPath: '/download/apple-silicon'
-      preLoaderRoute: typeof ViewDownloadAppleSiliconRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/apple-intel': {
-      id: '/_view/download/apple-intel'
-      path: '/download/apple-intel'
-      fullPath: '/download/apple-intel'
-      preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/download/apple': {
-      id: '/_view/download/apple'
-      path: '/download/apple'
-      fullPath: '/download/apple'
-      preLoaderRoute: typeof ViewDownloadAppleRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/docs/$': {
-      id: '/_view/docs/$'
-      path: '/$'
-      fullPath: '/docs/$'
-      preLoaderRoute: typeof ViewDocsSplatRouteImport
-      parentRoute: typeof ViewDocsRouteRoute
-    }
-    '/_view/company-handbook/$': {
-      id: '/_view/company-handbook/$'
-      path: '/$'
-      fullPath: '/company-handbook/$'
-      preLoaderRoute: typeof ViewCompanyHandbookSplatRouteImport
-      parentRoute: typeof ViewCompanyHandbookRouteRoute
-    }
-    '/_view/changelog/$slug': {
-      id: '/_view/changelog/$slug'
-      path: '/changelog/$slug'
-      fullPath: '/changelog/$slug'
-      preLoaderRoute: typeof ViewChangelogSlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/callback/auth': {
-      id: '/_view/callback/auth'
-      path: '/callback/auth'
-      fullPath: '/callback/auth'
-      preLoaderRoute: typeof ViewCallbackAuthRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/blog/$slug': {
-      id: '/_view/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof ViewBlogSlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/app/integration': {
-      id: '/_view/app/integration'
-      path: '/integration'
-      fullPath: '/app/integration'
-      preLoaderRoute: typeof ViewAppIntegrationRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/_view/app/file-transcription': {
-      id: '/_view/app/file-transcription'
-      path: '/file-transcription'
-      fullPath: '/app/file-transcription'
-      preLoaderRoute: typeof ViewAppFileTranscriptionRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/_view/app/checkout': {
-      id: '/_view/app/checkout'
-      path: '/checkout'
-      fullPath: '/app/checkout'
-      preLoaderRoute: typeof ViewAppCheckoutRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/_view/app/account': {
-      id: '/_view/app/account'
-      path: '/account'
-      fullPath: '/app/account'
-      preLoaderRoute: typeof ViewAppAccountRouteImport
-      parentRoute: typeof ViewAppRouteRoute
-    }
-    '/_view/integrations/$category/$slug': {
-      id: '/_view/integrations/$category/$slug'
-      path: '/integrations/$category/$slug'
-      fullPath: '/integrations/$category/$slug'
-      preLoaderRoute: typeof ViewIntegrationsCategorySlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
-    '/_view/gallery/$type/$slug': {
-      id: '/_view/gallery/$type/$slug'
-      path: '/gallery/$type/$slug'
-      fullPath: '/gallery/$type/$slug'
-      preLoaderRoute: typeof ViewGalleryTypeSlugRouteImport
-      parentRoute: typeof ViewRouteRoute
-    }
+    "/youtube": {
+      id: "/youtube";
+      path: "/youtube";
+      fullPath: "/youtube";
+      preLoaderRoute: typeof YoutubeRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/x": {
+      id: "/x";
+      path: "/x";
+      fullPath: "/x";
+      preLoaderRoute: typeof XRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/linkedin": {
+      id: "/linkedin";
+      path: "/linkedin";
+      fullPath: "/linkedin";
+      preLoaderRoute: typeof LinkedinRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/join-waitlist": {
+      id: "/join-waitlist";
+      path: "/join-waitlist";
+      fullPath: "/join-waitlist";
+      preLoaderRoute: typeof JoinWaitlistRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/github": {
+      id: "/github";
+      path: "/github";
+      fullPath: "/github";
+      preLoaderRoute: typeof GithubRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/founders": {
+      id: "/founders";
+      path: "/founders";
+      fullPath: "/founders";
+      preLoaderRoute: typeof FoundersRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/discord": {
+      id: "/discord";
+      path: "/discord";
+      fullPath: "/discord";
+      preLoaderRoute: typeof DiscordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/contact": {
+      id: "/contact";
+      path: "/contact";
+      fullPath: "/contact";
+      preLoaderRoute: typeof ContactRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/auth": {
+      id: "/auth";
+      path: "/auth";
+      fullPath: "/auth";
+      preLoaderRoute: typeof AuthRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_view": {
+      id: "/_view";
+      path: "";
+      fullPath: "";
+      preLoaderRoute: typeof ViewRouteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_view/": {
+      id: "/_view/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof ViewIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/webhook/nango": {
+      id: "/webhook/nango";
+      path: "/webhook/nango";
+      fullPath: "/webhook/nango";
+      preLoaderRoute: typeof WebhookNangoRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/templates": {
+      id: "/api/templates";
+      path: "/api/templates";
+      fullPath: "/api/templates";
+      preLoaderRoute: typeof ApiTemplatesRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/shortcuts": {
+      id: "/api/shortcuts";
+      path: "/api/shortcuts";
+      fullPath: "/api/shortcuts";
+      preLoaderRoute: typeof ApiShortcutsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/k6-reports": {
+      id: "/api/k6-reports";
+      path: "/api/k6-reports";
+      fullPath: "/api/k6-reports";
+      preLoaderRoute: typeof ApiK6ReportsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_view/security": {
+      id: "/_view/security";
+      path: "/security";
+      fullPath: "/security";
+      preLoaderRoute: typeof ViewSecurityRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/privacy": {
+      id: "/_view/privacy";
+      path: "/privacy";
+      fullPath: "/privacy";
+      preLoaderRoute: typeof ViewPrivacyRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/pricing": {
+      id: "/_view/pricing";
+      path: "/pricing";
+      fullPath: "/pricing";
+      preLoaderRoute: typeof ViewPricingRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/oss-friends": {
+      id: "/_view/oss-friends";
+      path: "/oss-friends";
+      fullPath: "/oss-friends";
+      preLoaderRoute: typeof ViewOssFriendsRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/opensource": {
+      id: "/_view/opensource";
+      path: "/opensource";
+      fullPath: "/opensource";
+      preLoaderRoute: typeof ViewOpensourceRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/free": {
+      id: "/_view/free";
+      path: "/free";
+      fullPath: "/free";
+      preLoaderRoute: typeof ViewFreeRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/file-transcription": {
+      id: "/_view/file-transcription";
+      path: "/file-transcription";
+      fullPath: "/file-transcription";
+      preLoaderRoute: typeof ViewFileTranscriptionRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/enterprise": {
+      id: "/_view/enterprise";
+      path: "/enterprise";
+      fullPath: "/enterprise";
+      preLoaderRoute: typeof ViewEnterpriseRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/brand": {
+      id: "/_view/brand";
+      path: "/brand";
+      fullPath: "/brand";
+      preLoaderRoute: typeof ViewBrandRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/about": {
+      id: "/_view/about";
+      path: "/about";
+      fullPath: "/about";
+      preLoaderRoute: typeof ViewAboutRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/docs": {
+      id: "/_view/docs";
+      path: "/docs";
+      fullPath: "/docs";
+      preLoaderRoute: typeof ViewDocsRouteRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/company-handbook": {
+      id: "/_view/company-handbook";
+      path: "/company-handbook";
+      fullPath: "/company-handbook";
+      preLoaderRoute: typeof ViewCompanyHandbookRouteRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/app": {
+      id: "/_view/app";
+      path: "/app";
+      fullPath: "/app";
+      preLoaderRoute: typeof ViewAppRouteRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/templates/": {
+      id: "/_view/templates/";
+      path: "/templates";
+      fullPath: "/templates";
+      preLoaderRoute: typeof ViewTemplatesIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/shortcuts/": {
+      id: "/_view/shortcuts/";
+      path: "/shortcuts";
+      fullPath: "/shortcuts";
+      preLoaderRoute: typeof ViewShortcutsIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/roadmap/": {
+      id: "/_view/roadmap/";
+      path: "/roadmap";
+      fullPath: "/roadmap";
+      preLoaderRoute: typeof ViewRoadmapIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/press-kit/": {
+      id: "/_view/press-kit/";
+      path: "/press-kit";
+      fullPath: "/press-kit";
+      preLoaderRoute: typeof ViewPressKitIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/legal/": {
+      id: "/_view/legal/";
+      path: "/legal";
+      fullPath: "/legal";
+      preLoaderRoute: typeof ViewLegalIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/k6-reports/": {
+      id: "/_view/k6-reports/";
+      path: "/k6-reports";
+      fullPath: "/k6-reports";
+      preLoaderRoute: typeof ViewK6ReportsIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/gallery/": {
+      id: "/_view/gallery/";
+      path: "/gallery";
+      fullPath: "/gallery";
+      preLoaderRoute: typeof ViewGalleryIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/eval/": {
+      id: "/_view/eval/";
+      path: "/eval";
+      fullPath: "/eval";
+      preLoaderRoute: typeof ViewEvalIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/download/": {
+      id: "/_view/download/";
+      path: "/download";
+      fullPath: "/download";
+      preLoaderRoute: typeof ViewDownloadIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/docs/": {
+      id: "/_view/docs/";
+      path: "/";
+      fullPath: "/docs/";
+      preLoaderRoute: typeof ViewDocsIndexRouteImport;
+      parentRoute: typeof ViewDocsRouteRoute;
+    };
+    "/_view/company-handbook/": {
+      id: "/_view/company-handbook/";
+      path: "/";
+      fullPath: "/company-handbook/";
+      preLoaderRoute: typeof ViewCompanyHandbookIndexRouteImport;
+      parentRoute: typeof ViewCompanyHandbookRouteRoute;
+    };
+    "/_view/changelog/": {
+      id: "/_view/changelog/";
+      path: "/changelog";
+      fullPath: "/changelog";
+      preLoaderRoute: typeof ViewChangelogIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/blog/": {
+      id: "/_view/blog/";
+      path: "/blog";
+      fullPath: "/blog";
+      preLoaderRoute: typeof ViewBlogIndexRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/app/": {
+      id: "/_view/app/";
+      path: "/";
+      fullPath: "/app/";
+      preLoaderRoute: typeof ViewAppIndexRouteImport;
+      parentRoute: typeof ViewAppRouteRoute;
+    };
+    "/api/tweet/$id": {
+      id: "/api/tweet/$id";
+      path: "/api/tweet/$id";
+      fullPath: "/api/tweet/$id";
+      preLoaderRoute: typeof ApiTweetIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/images/$": {
+      id: "/api/images/$";
+      path: "/api/images/$";
+      fullPath: "/api/images/$";
+      preLoaderRoute: typeof ApiImagesSplatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/_view/vs/$slug": {
+      id: "/_view/vs/$slug";
+      path: "/vs/$slug";
+      fullPath: "/vs/$slug";
+      preLoaderRoute: typeof ViewVsSlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/templates/$slug": {
+      id: "/_view/templates/$slug";
+      path: "/templates/$slug";
+      fullPath: "/templates/$slug";
+      preLoaderRoute: typeof ViewTemplatesSlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/sales": {
+      id: "/_view/solution/sales";
+      path: "/solution/sales";
+      fullPath: "/solution/sales";
+      preLoaderRoute: typeof ViewSolutionSalesRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/research": {
+      id: "/_view/solution/research";
+      path: "/solution/research";
+      fullPath: "/solution/research";
+      preLoaderRoute: typeof ViewSolutionResearchRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/recruiting": {
+      id: "/_view/solution/recruiting";
+      path: "/solution/recruiting";
+      fullPath: "/solution/recruiting";
+      preLoaderRoute: typeof ViewSolutionRecruitingRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/project-management": {
+      id: "/_view/solution/project-management";
+      path: "/solution/project-management";
+      fullPath: "/solution/project-management";
+      preLoaderRoute: typeof ViewSolutionProjectManagementRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/media": {
+      id: "/_view/solution/media";
+      path: "/solution/media";
+      fullPath: "/solution/media";
+      preLoaderRoute: typeof ViewSolutionMediaRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/legal": {
+      id: "/_view/solution/legal";
+      path: "/solution/legal";
+      fullPath: "/solution/legal";
+      preLoaderRoute: typeof ViewSolutionLegalRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/journalism": {
+      id: "/_view/solution/journalism";
+      path: "/solution/journalism";
+      fullPath: "/solution/journalism";
+      preLoaderRoute: typeof ViewSolutionJournalismRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/healthcare": {
+      id: "/_view/solution/healthcare";
+      path: "/solution/healthcare";
+      fullPath: "/solution/healthcare";
+      preLoaderRoute: typeof ViewSolutionHealthcareRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/government": {
+      id: "/_view/solution/government";
+      path: "/solution/government";
+      fullPath: "/solution/government";
+      preLoaderRoute: typeof ViewSolutionGovernmentRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/field-engineering": {
+      id: "/_view/solution/field-engineering";
+      path: "/solution/field-engineering";
+      fullPath: "/solution/field-engineering";
+      preLoaderRoute: typeof ViewSolutionFieldEngineeringRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/customer-success": {
+      id: "/_view/solution/customer-success";
+      path: "/solution/customer-success";
+      fullPath: "/solution/customer-success";
+      preLoaderRoute: typeof ViewSolutionCustomerSuccessRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/consulting": {
+      id: "/_view/solution/consulting";
+      path: "/solution/consulting";
+      fullPath: "/solution/consulting";
+      preLoaderRoute: typeof ViewSolutionConsultingRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/solution/coaching": {
+      id: "/_view/solution/coaching";
+      path: "/solution/coaching";
+      fullPath: "/solution/coaching";
+      preLoaderRoute: typeof ViewSolutionCoachingRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/shortcuts/$slug": {
+      id: "/_view/shortcuts/$slug";
+      path: "/shortcuts/$slug";
+      fullPath: "/shortcuts/$slug";
+      preLoaderRoute: typeof ViewShortcutsSlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/roadmap/$slug": {
+      id: "/_view/roadmap/$slug";
+      path: "/roadmap/$slug";
+      fullPath: "/roadmap/$slug";
+      preLoaderRoute: typeof ViewRoadmapSlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/workflows": {
+      id: "/_view/product/workflows";
+      path: "/product/workflows";
+      fullPath: "/product/workflows";
+      preLoaderRoute: typeof ViewProductWorkflowsRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/self-hosting": {
+      id: "/_view/product/self-hosting";
+      path: "/product/self-hosting";
+      fullPath: "/product/self-hosting";
+      preLoaderRoute: typeof ViewProductSelfHostingRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/notepad": {
+      id: "/_view/product/notepad";
+      path: "/product/notepad";
+      fullPath: "/product/notepad";
+      preLoaderRoute: typeof ViewProductNotepadRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/mini-apps": {
+      id: "/_view/product/mini-apps";
+      path: "/product/mini-apps";
+      fullPath: "/product/mini-apps";
+      preLoaderRoute: typeof ViewProductMiniAppsRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/memory": {
+      id: "/_view/product/memory";
+      path: "/product/memory";
+      fullPath: "/product/memory";
+      preLoaderRoute: typeof ViewProductMemoryRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/local-ai": {
+      id: "/_view/product/local-ai";
+      path: "/product/local-ai";
+      fullPath: "/product/local-ai";
+      preLoaderRoute: typeof ViewProductLocalAiRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/extensions": {
+      id: "/_view/product/extensions";
+      path: "/product/extensions";
+      fullPath: "/product/extensions";
+      preLoaderRoute: typeof ViewProductExtensionsRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/bot": {
+      id: "/_view/product/bot";
+      path: "/product/bot";
+      fullPath: "/product/bot";
+      preLoaderRoute: typeof ViewProductBotRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/api": {
+      id: "/_view/product/api";
+      path: "/product/api";
+      fullPath: "/product/api";
+      preLoaderRoute: typeof ViewProductApiRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/ai-notetaking": {
+      id: "/_view/product/ai-notetaking";
+      path: "/product/ai-notetaking";
+      fullPath: "/product/ai-notetaking";
+      preLoaderRoute: typeof ViewProductAiNotetakingRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/product/ai-assistant": {
+      id: "/_view/product/ai-assistant";
+      path: "/product/ai-assistant";
+      fullPath: "/product/ai-assistant";
+      preLoaderRoute: typeof ViewProductAiAssistantRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/press-kit/app": {
+      id: "/_view/press-kit/app";
+      path: "/press-kit/app";
+      fullPath: "/press-kit/app";
+      preLoaderRoute: typeof ViewPressKitAppRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/legal/$slug": {
+      id: "/_view/legal/$slug";
+      path: "/legal/$slug";
+      fullPath: "/legal/$slug";
+      preLoaderRoute: typeof ViewLegalSlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/k6-reports/$id": {
+      id: "/_view/k6-reports/$id";
+      path: "/k6-reports/$id";
+      fullPath: "/k6-reports/$id";
+      preLoaderRoute: typeof ViewK6ReportsIdRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/download/windows": {
+      id: "/_view/download/windows";
+      path: "/download/windows";
+      fullPath: "/download/windows";
+      preLoaderRoute: typeof ViewDownloadWindowsRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/download/linux-deb": {
+      id: "/_view/download/linux-deb";
+      path: "/download/linux-deb";
+      fullPath: "/download/linux-deb";
+      preLoaderRoute: typeof ViewDownloadLinuxDebRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/download/linux-appimage": {
+      id: "/_view/download/linux-appimage";
+      path: "/download/linux-appimage";
+      fullPath: "/download/linux-appimage";
+      preLoaderRoute: typeof ViewDownloadLinuxAppimageRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/download/linux": {
+      id: "/_view/download/linux";
+      path: "/download/linux";
+      fullPath: "/download/linux";
+      preLoaderRoute: typeof ViewDownloadLinuxRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/download/apple-silicon": {
+      id: "/_view/download/apple-silicon";
+      path: "/download/apple-silicon";
+      fullPath: "/download/apple-silicon";
+      preLoaderRoute: typeof ViewDownloadAppleSiliconRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/download/apple-intel": {
+      id: "/_view/download/apple-intel";
+      path: "/download/apple-intel";
+      fullPath: "/download/apple-intel";
+      preLoaderRoute: typeof ViewDownloadAppleIntelRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/download/apple": {
+      id: "/_view/download/apple";
+      path: "/download/apple";
+      fullPath: "/download/apple";
+      preLoaderRoute: typeof ViewDownloadAppleRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/docs/$": {
+      id: "/_view/docs/$";
+      path: "/$";
+      fullPath: "/docs/$";
+      preLoaderRoute: typeof ViewDocsSplatRouteImport;
+      parentRoute: typeof ViewDocsRouteRoute;
+    };
+    "/_view/company-handbook/$": {
+      id: "/_view/company-handbook/$";
+      path: "/$";
+      fullPath: "/company-handbook/$";
+      preLoaderRoute: typeof ViewCompanyHandbookSplatRouteImport;
+      parentRoute: typeof ViewCompanyHandbookRouteRoute;
+    };
+    "/_view/changelog/$slug": {
+      id: "/_view/changelog/$slug";
+      path: "/changelog/$slug";
+      fullPath: "/changelog/$slug";
+      preLoaderRoute: typeof ViewChangelogSlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/callback/auth": {
+      id: "/_view/callback/auth";
+      path: "/callback/auth";
+      fullPath: "/callback/auth";
+      preLoaderRoute: typeof ViewCallbackAuthRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/blog/$slug": {
+      id: "/_view/blog/$slug";
+      path: "/blog/$slug";
+      fullPath: "/blog/$slug";
+      preLoaderRoute: typeof ViewBlogSlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/app/integration": {
+      id: "/_view/app/integration";
+      path: "/integration";
+      fullPath: "/app/integration";
+      preLoaderRoute: typeof ViewAppIntegrationRouteImport;
+      parentRoute: typeof ViewAppRouteRoute;
+    };
+    "/_view/app/file-transcription": {
+      id: "/_view/app/file-transcription";
+      path: "/file-transcription";
+      fullPath: "/app/file-transcription";
+      preLoaderRoute: typeof ViewAppFileTranscriptionRouteImport;
+      parentRoute: typeof ViewAppRouteRoute;
+    };
+    "/_view/app/checkout": {
+      id: "/_view/app/checkout";
+      path: "/checkout";
+      fullPath: "/app/checkout";
+      preLoaderRoute: typeof ViewAppCheckoutRouteImport;
+      parentRoute: typeof ViewAppRouteRoute;
+    };
+    "/_view/app/account": {
+      id: "/_view/app/account";
+      path: "/account";
+      fullPath: "/app/account";
+      preLoaderRoute: typeof ViewAppAccountRouteImport;
+      parentRoute: typeof ViewAppRouteRoute;
+    };
+    "/_view/integrations/$category/$slug": {
+      id: "/_view/integrations/$category/$slug";
+      path: "/integrations/$category/$slug";
+      fullPath: "/integrations/$category/$slug";
+      preLoaderRoute: typeof ViewIntegrationsCategorySlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
+    "/_view/gallery/$type/$slug": {
+      id: "/_view/gallery/$type/$slug";
+      path: "/gallery/$type/$slug";
+      fullPath: "/gallery/$type/$slug";
+      preLoaderRoute: typeof ViewGalleryTypeSlugRouteImport;
+      parentRoute: typeof ViewRouteRoute;
+    };
   }
 }
 
 interface ViewAppRouteRouteChildren {
-  ViewAppAccountRoute: typeof ViewAppAccountRoute
-  ViewAppCheckoutRoute: typeof ViewAppCheckoutRoute
-  ViewAppFileTranscriptionRoute: typeof ViewAppFileTranscriptionRoute
-  ViewAppIntegrationRoute: typeof ViewAppIntegrationRoute
-  ViewAppIndexRoute: typeof ViewAppIndexRoute
+  ViewAppAccountRoute: typeof ViewAppAccountRoute;
+  ViewAppCheckoutRoute: typeof ViewAppCheckoutRoute;
+  ViewAppFileTranscriptionRoute: typeof ViewAppFileTranscriptionRoute;
+  ViewAppIntegrationRoute: typeof ViewAppIntegrationRoute;
+  ViewAppIndexRoute: typeof ViewAppIndexRoute;
 }
 
 const ViewAppRouteRouteChildren: ViewAppRouteRouteChildren = {
@@ -1831,111 +1821,107 @@ const ViewAppRouteRouteChildren: ViewAppRouteRouteChildren = {
   ViewAppFileTranscriptionRoute: ViewAppFileTranscriptionRoute,
   ViewAppIntegrationRoute: ViewAppIntegrationRoute,
   ViewAppIndexRoute: ViewAppIndexRoute,
-}
+};
 
-const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(
-  ViewAppRouteRouteChildren,
-)
+const ViewAppRouteRouteWithChildren = ViewAppRouteRoute._addFileChildren(ViewAppRouteRouteChildren);
 
 interface ViewCompanyHandbookRouteRouteChildren {
-  ViewCompanyHandbookSplatRoute: typeof ViewCompanyHandbookSplatRoute
-  ViewCompanyHandbookIndexRoute: typeof ViewCompanyHandbookIndexRoute
+  ViewCompanyHandbookSplatRoute: typeof ViewCompanyHandbookSplatRoute;
+  ViewCompanyHandbookIndexRoute: typeof ViewCompanyHandbookIndexRoute;
 }
 
-const ViewCompanyHandbookRouteRouteChildren: ViewCompanyHandbookRouteRouteChildren =
-  {
-    ViewCompanyHandbookSplatRoute: ViewCompanyHandbookSplatRoute,
-    ViewCompanyHandbookIndexRoute: ViewCompanyHandbookIndexRoute,
-  }
+const ViewCompanyHandbookRouteRouteChildren: ViewCompanyHandbookRouteRouteChildren = {
+  ViewCompanyHandbookSplatRoute: ViewCompanyHandbookSplatRoute,
+  ViewCompanyHandbookIndexRoute: ViewCompanyHandbookIndexRoute,
+};
 
-const ViewCompanyHandbookRouteRouteWithChildren =
-  ViewCompanyHandbookRouteRoute._addFileChildren(
-    ViewCompanyHandbookRouteRouteChildren,
-  )
+const ViewCompanyHandbookRouteRouteWithChildren = ViewCompanyHandbookRouteRoute._addFileChildren(
+  ViewCompanyHandbookRouteRouteChildren,
+);
 
 interface ViewDocsRouteRouteChildren {
-  ViewDocsSplatRoute: typeof ViewDocsSplatRoute
-  ViewDocsIndexRoute: typeof ViewDocsIndexRoute
+  ViewDocsSplatRoute: typeof ViewDocsSplatRoute;
+  ViewDocsIndexRoute: typeof ViewDocsIndexRoute;
 }
 
 const ViewDocsRouteRouteChildren: ViewDocsRouteRouteChildren = {
   ViewDocsSplatRoute: ViewDocsSplatRoute,
   ViewDocsIndexRoute: ViewDocsIndexRoute,
-}
+};
 
 const ViewDocsRouteRouteWithChildren = ViewDocsRouteRoute._addFileChildren(
   ViewDocsRouteRouteChildren,
-)
+);
 
 interface ViewRouteRouteChildren {
-  ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren
-  ViewCompanyHandbookRouteRoute: typeof ViewCompanyHandbookRouteRouteWithChildren
-  ViewDocsRouteRoute: typeof ViewDocsRouteRouteWithChildren
-  ViewAboutRoute: typeof ViewAboutRoute
-  ViewBrandRoute: typeof ViewBrandRoute
-  ViewEnterpriseRoute: typeof ViewEnterpriseRoute
-  ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute
-  ViewFreeRoute: typeof ViewFreeRoute
-  ViewOpensourceRoute: typeof ViewOpensourceRoute
-  ViewOssFriendsRoute: typeof ViewOssFriendsRoute
-  ViewPricingRoute: typeof ViewPricingRoute
-  ViewPrivacyRoute: typeof ViewPrivacyRoute
-  ViewSecurityRoute: typeof ViewSecurityRoute
-  ViewIndexRoute: typeof ViewIndexRoute
-  ViewBlogSlugRoute: typeof ViewBlogSlugRoute
-  ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute
-  ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute
-  ViewDownloadAppleRoute: typeof ViewDownloadAppleRoute
-  ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute
-  ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute
-  ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute
-  ViewDownloadLinuxAppimageRoute: typeof ViewDownloadLinuxAppimageRoute
-  ViewDownloadLinuxDebRoute: typeof ViewDownloadLinuxDebRoute
-  ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute
-  ViewK6ReportsIdRoute: typeof ViewK6ReportsIdRoute
-  ViewLegalSlugRoute: typeof ViewLegalSlugRoute
-  ViewPressKitAppRoute: typeof ViewPressKitAppRoute
-  ViewProductAiAssistantRoute: typeof ViewProductAiAssistantRoute
-  ViewProductAiNotetakingRoute: typeof ViewProductAiNotetakingRoute
-  ViewProductApiRoute: typeof ViewProductApiRoute
-  ViewProductBotRoute: typeof ViewProductBotRoute
-  ViewProductExtensionsRoute: typeof ViewProductExtensionsRoute
-  ViewProductLocalAiRoute: typeof ViewProductLocalAiRoute
-  ViewProductMemoryRoute: typeof ViewProductMemoryRoute
-  ViewProductMiniAppsRoute: typeof ViewProductMiniAppsRoute
-  ViewProductNotepadRoute: typeof ViewProductNotepadRoute
-  ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute
-  ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute
-  ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute
-  ViewShortcutsSlugRoute: typeof ViewShortcutsSlugRoute
-  ViewSolutionCoachingRoute: typeof ViewSolutionCoachingRoute
-  ViewSolutionConsultingRoute: typeof ViewSolutionConsultingRoute
-  ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute
-  ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute
-  ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute
-  ViewSolutionHealthcareRoute: typeof ViewSolutionHealthcareRoute
-  ViewSolutionJournalismRoute: typeof ViewSolutionJournalismRoute
-  ViewSolutionLegalRoute: typeof ViewSolutionLegalRoute
-  ViewSolutionMediaRoute: typeof ViewSolutionMediaRoute
-  ViewSolutionProjectManagementRoute: typeof ViewSolutionProjectManagementRoute
-  ViewSolutionRecruitingRoute: typeof ViewSolutionRecruitingRoute
-  ViewSolutionResearchRoute: typeof ViewSolutionResearchRoute
-  ViewSolutionSalesRoute: typeof ViewSolutionSalesRoute
-  ViewTemplatesSlugRoute: typeof ViewTemplatesSlugRoute
-  ViewVsSlugRoute: typeof ViewVsSlugRoute
-  ViewBlogIndexRoute: typeof ViewBlogIndexRoute
-  ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute
-  ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute
-  ViewEvalIndexRoute: typeof ViewEvalIndexRoute
-  ViewGalleryIndexRoute: typeof ViewGalleryIndexRoute
-  ViewK6ReportsIndexRoute: typeof ViewK6ReportsIndexRoute
-  ViewLegalIndexRoute: typeof ViewLegalIndexRoute
-  ViewPressKitIndexRoute: typeof ViewPressKitIndexRoute
-  ViewRoadmapIndexRoute: typeof ViewRoadmapIndexRoute
-  ViewShortcutsIndexRoute: typeof ViewShortcutsIndexRoute
-  ViewTemplatesIndexRoute: typeof ViewTemplatesIndexRoute
-  ViewGalleryTypeSlugRoute: typeof ViewGalleryTypeSlugRoute
-  ViewIntegrationsCategorySlugRoute: typeof ViewIntegrationsCategorySlugRoute
+  ViewAppRouteRoute: typeof ViewAppRouteRouteWithChildren;
+  ViewCompanyHandbookRouteRoute: typeof ViewCompanyHandbookRouteRouteWithChildren;
+  ViewDocsRouteRoute: typeof ViewDocsRouteRouteWithChildren;
+  ViewAboutRoute: typeof ViewAboutRoute;
+  ViewBrandRoute: typeof ViewBrandRoute;
+  ViewEnterpriseRoute: typeof ViewEnterpriseRoute;
+  ViewFileTranscriptionRoute: typeof ViewFileTranscriptionRoute;
+  ViewFreeRoute: typeof ViewFreeRoute;
+  ViewOpensourceRoute: typeof ViewOpensourceRoute;
+  ViewOssFriendsRoute: typeof ViewOssFriendsRoute;
+  ViewPricingRoute: typeof ViewPricingRoute;
+  ViewPrivacyRoute: typeof ViewPrivacyRoute;
+  ViewSecurityRoute: typeof ViewSecurityRoute;
+  ViewIndexRoute: typeof ViewIndexRoute;
+  ViewBlogSlugRoute: typeof ViewBlogSlugRoute;
+  ViewCallbackAuthRoute: typeof ViewCallbackAuthRoute;
+  ViewChangelogSlugRoute: typeof ViewChangelogSlugRoute;
+  ViewDownloadAppleRoute: typeof ViewDownloadAppleRoute;
+  ViewDownloadAppleIntelRoute: typeof ViewDownloadAppleIntelRoute;
+  ViewDownloadAppleSiliconRoute: typeof ViewDownloadAppleSiliconRoute;
+  ViewDownloadLinuxRoute: typeof ViewDownloadLinuxRoute;
+  ViewDownloadLinuxAppimageRoute: typeof ViewDownloadLinuxAppimageRoute;
+  ViewDownloadLinuxDebRoute: typeof ViewDownloadLinuxDebRoute;
+  ViewDownloadWindowsRoute: typeof ViewDownloadWindowsRoute;
+  ViewK6ReportsIdRoute: typeof ViewK6ReportsIdRoute;
+  ViewLegalSlugRoute: typeof ViewLegalSlugRoute;
+  ViewPressKitAppRoute: typeof ViewPressKitAppRoute;
+  ViewProductAiAssistantRoute: typeof ViewProductAiAssistantRoute;
+  ViewProductAiNotetakingRoute: typeof ViewProductAiNotetakingRoute;
+  ViewProductApiRoute: typeof ViewProductApiRoute;
+  ViewProductBotRoute: typeof ViewProductBotRoute;
+  ViewProductExtensionsRoute: typeof ViewProductExtensionsRoute;
+  ViewProductLocalAiRoute: typeof ViewProductLocalAiRoute;
+  ViewProductMemoryRoute: typeof ViewProductMemoryRoute;
+  ViewProductMiniAppsRoute: typeof ViewProductMiniAppsRoute;
+  ViewProductNotepadRoute: typeof ViewProductNotepadRoute;
+  ViewProductSelfHostingRoute: typeof ViewProductSelfHostingRoute;
+  ViewProductWorkflowsRoute: typeof ViewProductWorkflowsRoute;
+  ViewRoadmapSlugRoute: typeof ViewRoadmapSlugRoute;
+  ViewShortcutsSlugRoute: typeof ViewShortcutsSlugRoute;
+  ViewSolutionCoachingRoute: typeof ViewSolutionCoachingRoute;
+  ViewSolutionConsultingRoute: typeof ViewSolutionConsultingRoute;
+  ViewSolutionCustomerSuccessRoute: typeof ViewSolutionCustomerSuccessRoute;
+  ViewSolutionFieldEngineeringRoute: typeof ViewSolutionFieldEngineeringRoute;
+  ViewSolutionGovernmentRoute: typeof ViewSolutionGovernmentRoute;
+  ViewSolutionHealthcareRoute: typeof ViewSolutionHealthcareRoute;
+  ViewSolutionJournalismRoute: typeof ViewSolutionJournalismRoute;
+  ViewSolutionLegalRoute: typeof ViewSolutionLegalRoute;
+  ViewSolutionMediaRoute: typeof ViewSolutionMediaRoute;
+  ViewSolutionProjectManagementRoute: typeof ViewSolutionProjectManagementRoute;
+  ViewSolutionRecruitingRoute: typeof ViewSolutionRecruitingRoute;
+  ViewSolutionResearchRoute: typeof ViewSolutionResearchRoute;
+  ViewSolutionSalesRoute: typeof ViewSolutionSalesRoute;
+  ViewTemplatesSlugRoute: typeof ViewTemplatesSlugRoute;
+  ViewVsSlugRoute: typeof ViewVsSlugRoute;
+  ViewBlogIndexRoute: typeof ViewBlogIndexRoute;
+  ViewChangelogIndexRoute: typeof ViewChangelogIndexRoute;
+  ViewDownloadIndexRoute: typeof ViewDownloadIndexRoute;
+  ViewEvalIndexRoute: typeof ViewEvalIndexRoute;
+  ViewGalleryIndexRoute: typeof ViewGalleryIndexRoute;
+  ViewK6ReportsIndexRoute: typeof ViewK6ReportsIndexRoute;
+  ViewLegalIndexRoute: typeof ViewLegalIndexRoute;
+  ViewPressKitIndexRoute: typeof ViewPressKitIndexRoute;
+  ViewRoadmapIndexRoute: typeof ViewRoadmapIndexRoute;
+  ViewShortcutsIndexRoute: typeof ViewShortcutsIndexRoute;
+  ViewTemplatesIndexRoute: typeof ViewTemplatesIndexRoute;
+  ViewGalleryTypeSlugRoute: typeof ViewGalleryTypeSlugRoute;
+  ViewIntegrationsCategorySlugRoute: typeof ViewIntegrationsCategorySlugRoute;
 }
 
 const ViewRouteRouteChildren: ViewRouteRouteChildren = {
@@ -2007,11 +1993,9 @@ const ViewRouteRouteChildren: ViewRouteRouteChildren = {
   ViewTemplatesIndexRoute: ViewTemplatesIndexRoute,
   ViewGalleryTypeSlugRoute: ViewGalleryTypeSlugRoute,
   ViewIntegrationsCategorySlugRoute: ViewIntegrationsCategorySlugRoute,
-}
+};
 
-const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(
-  ViewRouteRouteChildren,
-)
+const ViewRouteRouteWithChildren = ViewRouteRoute._addFileChildren(ViewRouteRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   ViewRouteRoute: ViewRouteRouteWithChildren,
@@ -2030,17 +2014,17 @@ const rootRouteChildren: RootRouteChildren = {
   WebhookNangoRoute: WebhookNangoRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiTweetIdRoute: ApiTweetIdRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
+import type { getRouter } from "./router.tsx";
+import type { startInstance } from "./start.ts";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>;
   }
 }

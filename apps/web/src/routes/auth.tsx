@@ -26,18 +26,8 @@ function Component() {
     <Container>
       <Header />
       <div className="space-y-2">
-        <OAuthButton
-          flow={flow}
-          scheme={scheme}
-          redirect={redirect}
-          provider="google"
-        />
-        <OAuthButton
-          flow={flow}
-          scheme={scheme}
-          redirect={redirect}
-          provider="github"
-        />
+        <OAuthButton flow={flow} scheme={scheme} redirect={redirect} provider="google" />
+        <OAuthButton flow={flow} scheme={scheme} redirect={redirect} provider="github" />
       </div>
       <PrivacyPolicy />
     </Container>
@@ -78,9 +68,7 @@ function Header() {
           className={cn(["size-24", "rounded-3xl border border-neutral-200"])}
         />
       </div>
-      <h1 className="text-3xl font-serif text-stone-800 mb-2">
-        Welcome to Hyprnote
-      </h1>
+      <h1 className="text-3xl font-serif text-stone-800 mb-2">Welcome to Hyprnote</h1>
     </div>
   );
 }

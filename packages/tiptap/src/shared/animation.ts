@@ -27,8 +27,7 @@ export const StreamingAnimation = Extension.create({
           });
 
           setTimeout(() => {
-            const animatingElements =
-              editorEl.querySelectorAll(".tiptap-animating");
+            const animatingElements = editorEl.querySelectorAll(".tiptap-animating");
             animatingElements.forEach((el) => {
               el.classList.remove("tiptap-animating");
             });

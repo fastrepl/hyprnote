@@ -98,11 +98,10 @@ fileTranscription.post(
 
     try {
       const restateClient = getRestateClient();
-      const workflowClient: SttFileClient =
-        restateClient.workflowClient<SttFileDefinition>(
-          { name: "SttFile" },
-          pipelineId,
-        );
+      const workflowClient: SttFileClient = restateClient.workflowClient<SttFileDefinition>(
+        { name: "SttFile" },
+        pipelineId,
+      );
       const handle = await workflowClient.workflowSubmit({
         userId,
         fileId: safeFileId,
@@ -151,11 +150,10 @@ fileTranscription.get(
 
     try {
       const restateClient = getRestateClient();
-      const workflowClient: SttFileClient =
-        restateClient.workflowClient<SttFileDefinition>(
-          { name: "SttFile" },
-          pipelineId,
-        );
+      const workflowClient: SttFileClient = restateClient.workflowClient<SttFileDefinition>(
+        { name: "SttFile" },
+        pipelineId,
+      );
       const status = await workflowClient.getStatus();
 
       return c.json(status);
@@ -198,11 +196,10 @@ fileTranscription.get(
 
     try {
       const restateClient = getRestateClient();
-      const workflowClient: SttFileClient =
-        restateClient.workflowClient<SttFileDefinition>(
-          { name: "SttFile" },
-          pipelineId,
-        );
+      const workflowClient: SttFileClient = restateClient.workflowClient<SttFileDefinition>(
+        { name: "SttFile" },
+        pipelineId,
+      );
       const result = await workflowClient.workflowAttach();
 
       return c.json(result);

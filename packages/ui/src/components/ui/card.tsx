@@ -59,19 +59,13 @@ export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
 );
 CardTitle.displayName = "CardTitle";
 
-interface CardDescriptionProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {}
+interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
 
-export const CardDescription = forwardRef<
-  HTMLParagraphElement,
-  CardDescriptionProps
->(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn(["text-sm text-neutral-500", className])}
-    {...props}
-  />
-));
+export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>(
+  ({ className, ...props }, ref) => (
+    <p ref={ref} className={cn(["text-sm text-neutral-500", className])} {...props} />
+  ),
+);
 CardDescription.displayName = "CardDescription";
 
 interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {

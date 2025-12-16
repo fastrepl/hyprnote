@@ -132,10 +132,7 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         <HeroSection />
-        <AppContentSection
-          selectedItem={selectedItem}
-          setSelectedItem={handleSetSelectedItem}
-        />
+        <AppContentSection selectedItem={selectedItem} setSelectedItem={handleSetSelectedItem} />
       </div>
     </div>
   );
@@ -149,8 +146,7 @@ function HeroSection() {
           App Screenshots
         </h1>
         <p className="text-lg sm:text-xl text-neutral-600">
-          Download high-quality screenshots of Hyprnote for press and marketing
-          materials.
+          Download high-quality screenshots of Hyprnote for press and marketing materials.
         </p>
       </div>
     </div>
@@ -197,16 +193,10 @@ function AppContentSection({
                   selectedItem={selectedItem}
                   setSelectedItem={setSelectedItem}
                 />
-                <AppDetailContent
-                  selectedItem={selectedItem}
-                  setSelectedItem={setSelectedItem}
-                />
+                <AppDetailContent selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
               </>
             ) : (
-              <AppDetailView
-                selectedItem={selectedItem}
-                setSelectedItem={setSelectedItem}
-              />
+              <AppDetailView selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
             )}
           </div>
 
@@ -217,11 +207,7 @@ function AppContentSection({
   );
 }
 
-function AppGridView({
-  setSelectedItem,
-}: {
-  setSelectedItem: (item: SelectedItem) => void;
-}) {
+function AppGridView({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
   return (
     <div className="p-8 overflow-y-auto h-[480px]">
       <ScreenshotsGrid setSelectedItem={setSelectedItem} />
@@ -229,11 +215,7 @@ function AppGridView({
   );
 }
 
-function ScreenshotsGrid({
-  setSelectedItem,
-}: {
-  setSelectedItem: (item: SelectedItem) => void;
-}) {
+function ScreenshotsGrid({ setSelectedItem }: { setSelectedItem: (item: SelectedItem) => void }) {
   return (
     <div>
       <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4 px-2">
@@ -302,10 +284,7 @@ function AppDetailView({
         scrollRef={sidebarScrollRef}
       />
       <ResizableHandle withHandle className="bg-neutral-200 w-px" />
-      <AppDetailPanel
-        selectedItem={selectedItem}
-        setSelectedItem={setSelectedItem}
-      />
+      <AppDetailPanel selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
     </ResizablePanelGroup>
   );
 }
@@ -345,9 +324,7 @@ function MobileSidebarDrawer({
             }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-stone-50">
-              <span className="text-sm font-medium text-stone-600">
-                Navigation
-              </span>
+              <span className="text-sm font-medium text-stone-600">Navigation</span>
               <button
                 onClick={onClose}
                 className="p-1 hover:bg-neutral-200 rounded transition-colors"
@@ -382,10 +359,7 @@ function AppDetailContent({
   return (
     <div className="h-full flex flex-col">
       {selectedItem?.type === "screenshot" && (
-        <ScreenshotDetail
-          screenshot={selectedItem.data}
-          onClose={() => setSelectedItem(null)}
-        />
+        <ScreenshotDetail screenshot={selectedItem.data} onClose={() => setSelectedItem(null)} />
       )}
     </div>
   );
@@ -403,10 +377,7 @@ function AppSidebar({
   return (
     <ResizablePanel defaultSize={35} minSize={25} maxSize={45}>
       <div ref={scrollRef} className="p-4 h-full overflow-y-auto">
-        <ScreenshotsSidebar
-          selectedItem={selectedItem}
-          setSelectedItem={setSelectedItem}
-        />
+        <ScreenshotsSidebar selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
       </div>
     </ResizablePanel>
   );
@@ -436,8 +407,7 @@ function ScreenshotsSidebar({
             }
             className={cn([
               "w-full bg-stone-50 border rounded-lg p-3 hover:border-stone-400 hover:bg-stone-100 transition-colors text-left flex items-center gap-3 cursor-pointer",
-              selectedItem?.type === "screenshot" &&
-              selectedItem.data.id === screenshot.id
+              selectedItem?.type === "screenshot" && selectedItem.data.id === screenshot.id
                 ? "border-stone-600 bg-stone-100"
                 : "border-neutral-200",
             ])}
@@ -452,9 +422,7 @@ function ScreenshotsSidebar({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-stone-600 truncate">
-                {screenshot.name}
-              </p>
+              <p className="text-sm font-medium text-stone-600 truncate">{screenshot.name}</p>
             </div>
           </button>
         ))}
@@ -474,10 +442,7 @@ function AppDetailPanel({
     <ResizablePanel defaultSize={65}>
       <div className="h-full flex flex-col">
         {selectedItem?.type === "screenshot" && (
-          <ScreenshotDetail
-            screenshot={selectedItem.data}
-            onClose={() => setSelectedItem(null)}
-          />
+          <ScreenshotDetail screenshot={selectedItem.data} onClose={() => setSelectedItem(null)} />
         )}
       </div>
     </ResizablePanel>

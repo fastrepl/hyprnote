@@ -1,16 +1,8 @@
 import type { StoreApi } from "zustand";
 
-import type {
-  BatchAlternatives,
-  BatchResponse,
-  StreamResponse,
-} from "@hypr/plugin-listener2";
+import type { BatchAlternatives, BatchResponse, StreamResponse } from "@hypr/plugin-listener2";
 
-import {
-  ChannelProfile,
-  type RuntimeSpeakerHint,
-  type WordLike,
-} from "../../../utils/segment";
+import { ChannelProfile, type RuntimeSpeakerHint, type WordLike } from "../../../utils/segment";
 import type { HandlePersistCallback } from "./transcript";
 import { fixSpacingForWords } from "./utils";
 
@@ -110,9 +102,7 @@ export const createBatchSlice = <
   },
 });
 
-function transformBatch(
-  response: BatchResponse,
-): [WordLike[], RuntimeSpeakerHint[]] {
+function transformBatch(response: BatchResponse): [WordLike[], RuntimeSpeakerHint[]] {
   const allWords: WordLike[] = [];
   const allHints: RuntimeSpeakerHint[] = [];
   let wordOffset = 0;
@@ -123,10 +113,7 @@ function transformBatch(
       return;
     }
 
-    const [words, hints] = transformAlternativeWords(
-      alternative.words,
-      alternative.transcript,
-    );
+    const [words, hints] = transformAlternativeWords(alternative.words, alternative.transcript);
 
     hints.forEach((hint) => {
       allHints.push({

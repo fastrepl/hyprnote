@@ -36,13 +36,7 @@ const TooltipContent = React.forwardRef<
 
   return (
     <TooltipPrimitive.Portal>
-      <TooltipPrimitive.Content
-        ref={ref}
-        sideOffset={sideOffset}
-        side={side}
-        asChild
-        {...props}
-      >
+      <TooltipPrimitive.Content ref={ref} sideOffset={sideOffset} side={side} asChild {...props}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95, ...initialPosition }}
           animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}

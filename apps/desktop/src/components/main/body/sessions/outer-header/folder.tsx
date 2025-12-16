@@ -16,15 +16,8 @@ import { FolderBreadcrumb } from "../../shared/folder-breadcrumb";
 import { SearchableFolderDropdown } from "./shared/folder";
 
 export function FolderChain({ sessionId }: { sessionId: string }) {
-  const folderId = main.UI.useCell(
-    "sessions",
-    sessionId,
-    "folder_id",
-    main.STORE_ID,
-  );
-  const title =
-    main.UI.useCell("sessions", sessionId, "title", main.STORE_ID) ??
-    "Untitled";
+  const folderId = main.UI.useCell("sessions", sessionId, "folder_id", main.STORE_ID);
+  const title = main.UI.useCell("sessions", sessionId, "title", main.STORE_ID) ?? "Untitled";
 
   const handleChangeTitle = main.UI.useSetPartialRowCallback(
     "sessions",

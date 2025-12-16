@@ -35,9 +35,7 @@ export const ErrorComponent: ErrorRouteComponent = ({ error, reset }) => {
             </motion.div>
 
             <div className="space-y-1.5">
-              <h2 className="text-base font-semibold text-neutral-900">
-                Something went wrong
-              </h2>
+              <h2 className="text-base font-semibold text-neutral-900">Something went wrong</h2>
               <p className="text-sm text-neutral-500 leading-relaxed max-w-[260px]">
                 {error.message || "An unexpected error occurred."}
               </p>
@@ -99,12 +97,8 @@ export const NotFoundComponent: NotFoundRouteComponent = () => {
               >
                 404
               </motion.span>
-              <h2 className="text-base font-semibold text-neutral-900">
-                Page not found
-              </h2>
-              <p className="text-sm text-neutral-500">
-                The page you're looking for doesn't exist.
-              </p>
+              <h2 className="text-base font-semibold text-neutral-900">Page not found</h2>
+              <p className="text-sm text-neutral-500">The page you're looking for doesn't exist.</p>
             </div>
 
             <div className="pt-2">

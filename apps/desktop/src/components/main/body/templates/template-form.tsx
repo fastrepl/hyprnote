@@ -10,9 +10,10 @@ import { RelatedSessions } from "./related-sessions";
 import { SectionsList } from "./sections-editor";
 
 function normalizeTemplatePayload(template: unknown): Template {
-  const record = (
-    template && typeof template === "object" ? template : {}
-  ) as Record<string, unknown>;
+  const record = (template && typeof template === "object" ? template : {}) as Record<
+    string,
+    unknown
+  >;
 
   let sections: TemplateSection[] = [];
   if (typeof record.sections === "string") {
@@ -46,8 +47,7 @@ function normalizeTemplatePayload(template: unknown): Template {
     user_id: typeof record.user_id === "string" ? record.user_id : "",
     created_at: typeof record.created_at === "string" ? record.created_at : "",
     title: typeof record.title === "string" ? record.title : "",
-    description:
-      typeof record.description === "string" ? record.description : "",
+    description: typeof record.description === "string" ? record.description : "",
     sections,
     targets,
   };
@@ -147,9 +147,7 @@ export function TemplateForm({
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 border-b border-neutral-200">
-          <h3 className="text-sm font-medium text-neutral-600 mb-3">
-            Sections
-          </h3>
+          <h3 className="text-sm font-medium text-neutral-600 mb-3">Sections</h3>
           <form.Field name="sections">
             {(field) => (
               <SectionsList
@@ -162,9 +160,7 @@ export function TemplateForm({
         </div>
 
         <div className="p-6 border-b border-neutral-200">
-          <h3 className="text-sm font-medium text-neutral-600 mb-4">
-            Related Notes
-          </h3>
+          <h3 className="text-sm font-medium text-neutral-600 mb-4">Related Notes</h3>
           <RelatedSessions templateId={id} />
         </div>
 

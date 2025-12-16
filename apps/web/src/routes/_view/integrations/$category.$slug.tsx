@@ -137,15 +137,9 @@ function HeroSection({
       <header className="text-center max-w-4xl mx-auto">
         <div className="flex items-center justify-center mb-12">
           <div className="size-32 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[36px] bg-white">
-            <img
-              src={platformIcon}
-              alt={platformName}
-              className="size-24 rounded-[28px]"
-            />
+            <img src={platformIcon} alt={platformName} className="size-24 rounded-[28px]" />
           </div>
-          <div className="text-2xl sm:text-3xl text-neutral-400 font-light px-6">
-            +
-          </div>
+          <div className="text-2xl sm:text-3xl text-neutral-400 font-light px-6">+</div>
           <div className="size-32 shadow-2xl border border-neutral-100 flex justify-center items-center rounded-[36px] bg-white">
             <img
               src="/api/images/hyprnote/icon.png"
@@ -158,9 +152,7 @@ function HeroSection({
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-stone-600 mb-6">
           {headline}
         </h1>
-        <p className="text-lg sm:text-xl text-neutral-600 mb-8">
-          {description}
-        </p>
+        <p className="text-lg sm:text-xl text-neutral-600 mb-8">{description}</p>
 
         {features && features.length > 0 && (
           <div className="flex flex-wrap justify-center gap-3 mb-8">

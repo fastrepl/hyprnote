@@ -78,10 +78,7 @@ interface BottomSheetContentProps {
   className?: string;
 }
 
-export function BottomSheetContent({
-  children,
-  className,
-}: BottomSheetContentProps) {
+export function BottomSheetContent({ children, className }: BottomSheetContentProps) {
   return <div className={cn(["p-4", className])}>{children}</div>;
 }
 
@@ -91,11 +88,7 @@ interface BottomSheetTriggerProps {
   className?: string;
 }
 
-export function BottomSheetTrigger({
-  children,
-  onClick,
-  className,
-}: BottomSheetTriggerProps) {
+export function BottomSheetTrigger({ children, onClick, className }: BottomSheetTriggerProps) {
   return (
     <div onClick={onClick} className={cn(["cursor-pointer", className])}>
       {children}

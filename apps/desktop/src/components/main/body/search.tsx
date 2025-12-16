@@ -47,12 +47,7 @@ export function Search() {
   };
 
   if (shouldShowExpanded) {
-    return (
-      <ExpandedSearch
-        onFocus={handleExpandedFocus}
-        onBlur={handleExpandedBlur}
-      />
-    );
+    return <ExpandedSearch onFocus={handleExpandedFocus} onBlur={handleExpandedBlur} />;
   }
 
   return <CollapsedSearch onClick={handleCollapsedClick} />;
@@ -63,12 +58,7 @@ function CollapsedSearch({ onClick }: { onClick: () => void }) {
   const showLoading = isSearching || isIndexing;
 
   return (
-    <Button
-      onClick={onClick}
-      size="icon"
-      variant="ghost"
-      className="text-neutral-400"
-    >
+    <Button onClick={onClick} size="icon" variant="ghost" className="text-neutral-400">
       {showLoading ? (
         <Loader2Icon className="size-4 animate-spin" />
       ) : (
@@ -78,13 +68,7 @@ function CollapsedSearch({ onClick }: { onClick: () => void }) {
   );
 }
 
-function ExpandedSearch({
-  onFocus,
-  onBlur,
-}: {
-  onFocus?: () => void;
-  onBlur?: () => void;
-}) {
+function ExpandedSearch({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => void }) {
   const { query, setQuery, isSearching, isIndexing, inputRef } = useSearch();
   const [isFocused, setIsFocused] = useState(false);
   const isCmdPressed = useCmdKeyPressed();
@@ -94,31 +78,18 @@ function ExpandedSearch({
   const showShortcut = isCmdPressed && !query;
 
   // On narrow screens, always show the focused width when expanded
-  const width = hasSpace
-    ? isFocused
-      ? "w-[250px]"
-      : "w-[180px]"
-    : "w-[250px]";
+  const width = hasSpace ? (isFocused ? "w-[250px]" : "w-[180px]") : "w-[250px]";
 
   return (
     <div
       data-tauri-drag-region
-      className={cn([
-        "flex items-center h-full transition-all duration-300",
-        width,
-      ])}
+      className={cn(["flex items-center h-full transition-all duration-300", width])}
     >
       <div className="relative flex items-center w-full h-full">
         {showLoading ? (
-          <Loader2Icon
-            className={cn([
-              "h-4 w-4 absolute left-3 text-neutral-400 animate-spin",
-            ])}
-          />
+          <Loader2Icon className={cn(["h-4 w-4 absolute left-3 text-neutral-400 animate-spin"])} />
         ) : (
-          <SearchIcon
-            className={cn(["h-4 w-4 absolute left-3 text-neutral-400"])}
-          />
+          <SearchIcon className={cn(["h-4 w-4 absolute left-3 text-neutral-400"])} />
         )}
         <input
           ref={inputRef}

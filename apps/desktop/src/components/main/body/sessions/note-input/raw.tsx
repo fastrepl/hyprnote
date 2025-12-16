@@ -1,17 +1,7 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
-import NoteEditor, {
-  type JSONContent,
-  type TiptapEditor,
-} from "@hypr/tiptap/editor";
+import NoteEditor, { type JSONContent, type TiptapEditor } from "@hypr/tiptap/editor";
 import {
   EMPTY_TIPTAP_DOC,
   isValidTiptapContent,
@@ -20,92 +10,89 @@ import {
 
 import * as main from "../../../../../store/tinybase/main";
 
-export const RawEditor = forwardRef<
-  { editor: TiptapEditor | null },
-  { sessionId: string }
->(({ sessionId }, ref) => {
-  const store = main.UI.useStore(main.STORE_ID);
+export const RawEditor = forwardRef<{ editor: TiptapEditor | null }, { sessionId: string }>(
+  ({ sessionId }, ref) => {
+    const store = main.UI.useStore(main.STORE_ID);
 
-  const [initialContent, setInitialContent] =
-    useState<JSONContent>(EMPTY_TIPTAP_DOC);
+    const [initialContent, setInitialContent] = useState<JSONContent>(EMPTY_TIPTAP_DOC);
 
-  useEffect(() => {
-    if (store) {
-      const value = store.getCell("sessions", sessionId, "raw_md");
-      if (value && typeof value === "string" && value.trim()) {
-        try {
-          const parsed = JSON.parse(value);
-          if (isValidTiptapContent(parsed)) {
-            setInitialContent(parsed);
-          } else {
+    useEffect(() => {
+      if (store) {
+        const value = store.getCell("sessions", sessionId, "raw_md");
+        if (value && typeof value === "string" && value.trim()) {
+          try {
+            const parsed = JSON.parse(value);
+            if (isValidTiptapContent(parsed)) {
+              setInitialContent(parsed);
+            } else {
+              setInitialContent(EMPTY_TIPTAP_DOC);
+            }
+          } catch {
             setInitialContent(EMPTY_TIPTAP_DOC);
           }
-        } catch {
+        } else {
           setInitialContent(EMPTY_TIPTAP_DOC);
         }
-      } else {
-        setInitialContent(EMPTY_TIPTAP_DOC);
       }
-    }
-  }, [store, sessionId]);
+    }, [store, sessionId]);
 
-  const persistChange = main.UI.useSetPartialRowCallback(
-    "sessions",
-    sessionId,
-    (input: JSONContent) => ({ raw_md: JSON.stringify(input) }),
-    [],
-    main.STORE_ID,
-  );
+    const persistChange = main.UI.useSetPartialRowCallback(
+      "sessions",
+      sessionId,
+      (input: JSONContent) => ({ raw_md: JSON.stringify(input) }),
+      [],
+      main.STORE_ID,
+    );
 
-  const hasTrackedWriteRef = useRef(false);
+    const hasTrackedWriteRef = useRef(false);
 
-  useEffect(() => {
-    hasTrackedWriteRef.current = false;
-  }, [sessionId]);
+    useEffect(() => {
+      hasTrackedWriteRef.current = false;
+    }, [sessionId]);
 
-  const hasNonEmptyText = (node?: JSONContent): boolean =>
-    !!node?.text?.trim() ||
-    !!node?.content?.some((child) => hasNonEmptyText(child));
+    const hasNonEmptyText = (node?: JSONContent): boolean =>
+      !!node?.text?.trim() || !!node?.content?.some((child) => hasNonEmptyText(child));
 
-  const handleChange = useCallback(
-    (input: JSONContent) => {
-      persistChange(input);
+    const handleChange = useCallback(
+      (input: JSONContent) => {
+        persistChange(input);
 
-      if (!hasTrackedWriteRef.current) {
-        const hasContent = hasNonEmptyText(input);
-        if (hasContent) {
-          hasTrackedWriteRef.current = true;
-          analyticsCommands.event({
-            event: "note_written",
-            has_content: true,
-          });
+        if (!hasTrackedWriteRef.current) {
+          const hasContent = hasNonEmptyText(input);
+          if (hasContent) {
+            hasTrackedWriteRef.current = true;
+            analyticsCommands.event({
+              event: "note_written",
+              has_content: true,
+            });
+          }
         }
-      }
-    },
-    [persistChange],
-  );
-
-  const mentionConfig = useMemo(
-    () => ({
-      trigger: "@",
-      handleSearch: async () => {
-        return [];
       },
-    }),
-    [],
-  );
+      [persistChange],
+    );
 
-  return (
-    <NoteEditor
-      ref={ref}
-      key={`session-${sessionId}-raw`}
-      initialContent={initialContent}
-      handleChange={handleChange}
-      mentionConfig={mentionConfig}
-      placeholderComponent={Placeholder}
-    />
-  );
-});
+    const mentionConfig = useMemo(
+      () => ({
+        trigger: "@",
+        handleSearch: async () => {
+          return [];
+        },
+      }),
+      [],
+    );
+
+    return (
+      <NoteEditor
+        ref={ref}
+        key={`session-${sessionId}-raw`}
+        initialContent={initialContent}
+        handleChange={handleChange}
+        mentionConfig={mentionConfig}
+        placeholderComponent={Placeholder}
+      />
+    );
+  },
+);
 
 const Placeholder: PlaceholderFunction = ({ node, pos }) => {
   if (node.type.name === "paragraph" && pos === 0) {

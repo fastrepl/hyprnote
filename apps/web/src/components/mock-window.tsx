@@ -33,15 +33,11 @@ export function MockWindow({
           <div className="size-3 rounded-full bg-green-400"></div>
         </div>
 
-        {prefixIcons && (
-          <div className="flex items-center gap-1 ml-1">{prefixIcons}</div>
-        )}
+        {prefixIcons && <div className="flex items-center gap-1 ml-1">{prefixIcons}</div>}
 
         {title && (
           <div className="absolute left-1/2 -translate-x-1/2">
-            <span className="text-sm text-neutral-600 font-medium">
-              {title}
-            </span>
+            <span className="text-sm text-neutral-600 font-medium">{title}</span>
           </div>
         )}
 

@@ -5,11 +5,7 @@ import { Login } from "./login";
 import { Permissions } from "./permissions";
 import { Welcome } from "./welcome";
 
-export type OnboardingStepId =
-  | "welcome"
-  | "login"
-  | "configure-notice"
-  | "permissions";
+export type OnboardingStepId = "welcome" | "login" | "configure-notice" | "permissions";
 
 type StepConfig = {
   id: OnboardingStepId;

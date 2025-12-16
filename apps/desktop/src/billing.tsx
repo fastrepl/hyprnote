@@ -1,12 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { jwtDecode } from "jwt-decode";
-import {
-  createContext,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useMemo,
-} from "react";
+import { createContext, type ReactNode, useCallback, useContext, useMemo } from "react";
 
 import { useAuth } from "./auth";
 import { env } from "./env";
@@ -40,10 +34,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     return getEntitlementsFromToken(auth.session.access_token);
   }, [auth?.session?.access_token]);
 
-  const isPro = useMemo(
-    () => entitlements.includes("hyprnote_pro"),
-    [entitlements],
-  );
+  const isPro = useMemo(() => entitlements.includes("hyprnote_pro"), [entitlements]);
 
   const upgradeToPro = useCallback(() => {
     openUrl(`${env.VITE_APP_URL}/app/checkout?period=monthly`);
@@ -58,9 +49,7 @@ export function BillingProvider({ children }: { children: ReactNode }) {
     [entitlements, isPro, upgradeToPro],
   );
 
-  return (
-    <BillingContext.Provider value={value}>{children}</BillingContext.Provider>
-  );
+  return <BillingContext.Provider value={value}>{children}</BillingContext.Provider>;
 }
 
 export function useBillingAccess() {

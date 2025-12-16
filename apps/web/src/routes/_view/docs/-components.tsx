@@ -2,16 +2,7 @@ import { MDXContent } from "@content-collections/mdx/react";
 import { Link } from "@tanstack/react-router";
 import { allDocs } from "content-collections";
 
-import {
-  Accordion,
-  Card,
-  Columns,
-  Info,
-  Note,
-  Step,
-  Steps,
-  Tip,
-} from "@hypr/ui/docs";
+import { Accordion, Card, Columns, Info, Note, Step, Steps, Tip } from "@hypr/ui/docs";
 import { cn } from "@hypr/utils";
 
 import { CtaCard } from "@/components/cta-card";
@@ -40,16 +31,9 @@ export function DocLayout({
   );
 }
 
-function ArticleHeader({
-  doc,
-  showSectionTitle,
-}: {
-  doc: any;
-  showSectionTitle: boolean;
-}) {
+function ArticleHeader({ doc, showSectionTitle }: { doc: any; showSectionTitle: boolean }) {
   const sectionTitle =
-    allDocs.find((d) => d.sectionFolder === doc.sectionFolder && d.isIndex)
-      ?.title ||
+    allDocs.find((d) => d.sectionFolder === doc.sectionFolder && d.isIndex)?.title ||
     doc.sectionFolder
       .split("-")
       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -62,13 +46,9 @@ function ArticleHeader({
           <span>{sectionTitle}</span>
         </div>
       )}
-      <h1 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-4">
-        {doc.title}
-      </h1>
+      <h1 className="text-3xl sm:text-4xl font-serif text-stone-600 mb-4">{doc.title}</h1>
       {doc.summary && (
-        <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed mb-6">
-          {doc.summary}
-        </p>
+        <p className="text-lg lg:text-xl text-neutral-600 leading-relaxed mb-6">{doc.summary}</p>
       )}
 
       {(doc.author || doc.created) && (
@@ -134,11 +114,7 @@ function ArticleContent({ doc }: { doc: any }) {
   );
 }
 
-function RightSidebar({
-  toc,
-}: {
-  toc: Array<{ id: string; text: string; level: number }>;
-}) {
+function RightSidebar({ toc }: { toc: Array<{ id: string; text: string; level: number }> }) {
   return (
     <aside className="hidden lg:block w-64 shrink-0">
       <div className="sticky top-[69px] max-h-[calc(100vh-69px)] overflow-y-auto space-y-6 px-4 py-6">
@@ -166,9 +142,7 @@ function RightSidebar({
         )}
 
         <div className="border border-neutral-200 rounded-sm overflow-hidden bg-white bg-[linear-gradient(to_right,#f5f5f5_1px,transparent_1px),linear-gradient(to_bottom,#f5f5f5_1px,transparent_1px)] bg-size-[24px_24px] bg-position-[12px_12px,12px_12px] p-4">
-          <h3 className="font-serif text-sm text-stone-600 mb-3">
-            Try Hyprnote for yourself
-          </h3>
+          <h3 className="font-serif text-sm text-stone-600 mb-3">Try Hyprnote for yourself</h3>
           <Link
             to="/download"
             className={cn([

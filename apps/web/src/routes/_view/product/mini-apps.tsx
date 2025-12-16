@@ -54,8 +54,7 @@ function HeroSection() {
           Everything in one place
         </h1>
         <p className="text-lg sm:text-xl text-neutral-600">
-          Built-in mini apps for contacts, calendar, daily notes, and your
-          personal knowledge base.
+          Built-in mini apps for contacts, calendar, daily notes, and your personal knowledge base.
         </p>
         <div className="mt-8">
           <Link
@@ -95,13 +94,10 @@ function ContactsSection() {
       <div>
         <div className="text-center">
           <div className="py-12 px-6">
-            <h2 className="text-3xl font-serif text-stone-600 mb-4">
-              Contacts
-            </h2>
+            <h2 className="text-3xl font-serif text-stone-600 mb-4">Contacts</h2>
             <p className="text-base text-neutral-600 max-w-2xl mx-auto">
-              A relationship-focused CRM that builds itself from your meetings.
-              Import contacts and watch them come alive with context once you
-              actually meet.
+              A relationship-focused CRM that builds itself from your meetings. Import contacts and
+              watch them come alive with context once you actually meet.
             </p>
           </div>
 
@@ -113,9 +109,7 @@ function ContactsSection() {
                 alt="Contacts interface"
                 className={cn([
                   "w-full h-auto object-cover transition-opacity duration-1000",
-                  index === currentImage
-                    ? "opacity-100"
-                    : "opacity-0 absolute inset-0",
+                  index === currentImage ? "opacity-100" : "opacity-0 absolute inset-0",
                 ])}
               />
             ))}
@@ -134,27 +128,21 @@ function CalendarSection() {
           <div className="flex flex-col gap-4">
             <h2 className="text-3xl font-serif text-stone-600">Calendar</h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Connect your calendar for intelligent meeting preparation and
-              automatic note organization.
+              Connect your calendar for intelligent meeting preparation and automatic note
+              organization.
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  Automatic meeting linking
-                </span>
+                <span className="text-neutral-600">Automatic meeting linking</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  Pre-meeting context and preparation
-                </span>
+                <span className="text-neutral-600">Pre-meeting context and preparation</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  Timeline view with notes
-                </span>
+                <span className="text-neutral-600">Timeline view with notes</span>
               </li>
             </ul>
           </div>
@@ -162,17 +150,10 @@ function CalendarSection() {
         <div className="flex items-center justify-center px-8 py-8 bg-stone-50 overflow-hidden">
           <div className="max-w-lg w-full bg-white border-2 border-stone-200 rounded-lg p-6 shadow-lg">
             <div className="flex items-start gap-4 mb-4">
-              <Icon
-                icon="mdi:calendar"
-                className="text-2xl text-stone-700 shrink-0 mt-1"
-              />
+              <Icon icon="mdi:calendar" className="text-2xl text-stone-700 shrink-0 mt-1" />
               <div className="flex-1">
-                <h4 className="text-lg font-serif text-stone-600 mb-1">
-                  Weekly Team Sync
-                </h4>
-                <p className="text-sm text-neutral-600">
-                  Today at 10:00 AM · 30 minutes
-                </p>
+                <h4 className="text-lg font-serif text-stone-600 mb-1">Weekly Team Sync</h4>
+                <p className="text-sm text-neutral-600">Today at 10:00 AM · 30 minutes</p>
               </div>
               <button className="px-3 py-1 text-xs bg-stone-600 text-white rounded-full">
                 Start Recording
@@ -180,16 +161,14 @@ function CalendarSection() {
             </div>
             <div className="space-y-3">
               <div>
-                <h5 className="text-sm font-medium text-stone-600 mb-2">
-                  Last meeting context
-                </h5>
+                <h5 className="text-sm font-medium text-stone-600 mb-2">Last meeting context</h5>
                 <div className="p-3 bg-stone-50 border border-stone-300 rounded text-xs">
                   <div className="font-medium text-stone-900 mb-1">
                     Jan 8, 2025 - Weekly Team Sync
                   </div>
                   <p className="text-stone-800">
-                    Discussed Q1 roadmap, decided to prioritize mobile app.
-                    Sarah to review designs by Jan 15.
+                    Discussed Q1 roadmap, decided to prioritize mobile app. Sarah to review designs
+                    by Jan 15.
                   </p>
                 </div>
               </div>
@@ -202,44 +181,31 @@ function CalendarSection() {
         <div className="p-6 border-b border-neutral-100">
           <h2 className="text-2xl font-serif text-stone-600 mb-3">Calendar</h2>
           <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Connect your calendar for intelligent meeting preparation and
-            automatic note organization.
+            Connect your calendar for intelligent meeting preparation and automatic note
+            organization.
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-              <span className="text-neutral-600 text-sm">
-                Automatic meeting linking
-              </span>
+              <span className="text-neutral-600 text-sm">Automatic meeting linking</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-              <span className="text-neutral-600 text-sm">
-                Pre-meeting context and preparation
-              </span>
+              <span className="text-neutral-600 text-sm">Pre-meeting context and preparation</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-              <span className="text-neutral-600 text-sm">
-                Timeline view with notes
-              </span>
+              <span className="text-neutral-600 text-sm">Timeline view with notes</span>
             </li>
           </ul>
         </div>
         <div className="px-6 pb-0 bg-stone-50 overflow-clip">
           <div className="bg-white border-2 border-stone-200 rounded-lg p-6 shadow-lg">
             <div className="flex items-start gap-4 mb-4">
-              <Icon
-                icon="mdi:calendar"
-                className="text-2xl text-stone-700 shrink-0 mt-1"
-              />
+              <Icon icon="mdi:calendar" className="text-2xl text-stone-700 shrink-0 mt-1" />
               <div className="flex-1">
-                <h4 className="text-lg font-serif text-stone-600 mb-1">
-                  Weekly Team Sync
-                </h4>
-                <p className="text-sm text-neutral-600">
-                  Today at 10:00 AM · 30 minutes
-                </p>
+                <h4 className="text-lg font-serif text-stone-600 mb-1">Weekly Team Sync</h4>
+                <p className="text-sm text-neutral-600">Today at 10:00 AM · 30 minutes</p>
               </div>
               <button className="px-3 py-1 text-xs bg-stone-600 text-white rounded-full shrink-0">
                 Start Recording
@@ -247,16 +213,14 @@ function CalendarSection() {
             </div>
             <div className="space-y-3">
               <div>
-                <h5 className="text-sm font-medium text-stone-600 mb-2">
-                  Last meeting context
-                </h5>
+                <h5 className="text-sm font-medium text-stone-600 mb-2">Last meeting context</h5>
                 <div className="p-3 bg-stone-50 border border-stone-300 rounded text-xs">
                   <div className="font-medium text-stone-900 mb-1">
                     Jan 8, 2025 - Weekly Team Sync
                   </div>
                   <p className="text-stone-800">
-                    Discussed Q1 roadmap, decided to prioritize mobile app.
-                    Sarah to review designs by Jan 15.
+                    Discussed Q1 roadmap, decided to prioritize mobile app. Sarah to review designs
+                    by Jan 15.
                   </p>
                 </div>
               </div>
@@ -276,33 +240,26 @@ function DailyNotesSection() {
           <div className="flex flex-col gap-4">
             <h2 className="text-3xl font-serif text-stone-600">Daily Notes</h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Consolidate all your meetings, action items, and insights in one
-              place.
+              Consolidate all your meetings, action items, and insights in one place.
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  Automatic aggregation of meetings
-                </span>
+                <span className="text-neutral-600">Automatic aggregation of meetings</span>
                 <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full">
                   Coming soon
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  Chronological timeline view
-                </span>
+                <span className="text-neutral-600">Chronological timeline view</span>
                 <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full">
                   Coming soon
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  AI-generated daily summary
-                </span>
+                <span className="text-neutral-600">AI-generated daily summary</span>
                 <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full">
                   Coming soon
                 </span>
@@ -319,37 +276,28 @@ function DailyNotesSection() {
 
       <div className="sm:hidden">
         <div className="p-6 border-b border-neutral-100">
-          <h2 className="text-2xl font-serif text-stone-600 mb-3">
-            Daily Notes
-          </h2>
+          <h2 className="text-2xl font-serif text-stone-600 mb-3">Daily Notes</h2>
           <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Consolidate all your meetings, action items, and insights in one
-            place.
+            Consolidate all your meetings, action items, and insights in one place.
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-              <span className="text-neutral-600 text-sm">
-                Automatic aggregation of meetings
-              </span>
+              <span className="text-neutral-600 text-sm">Automatic aggregation of meetings</span>
               <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full shrink-0">
                 Coming soon
               </span>
             </li>
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-              <span className="text-neutral-600 text-sm">
-                Chronological timeline view
-              </span>
+              <span className="text-neutral-600 text-sm">Chronological timeline view</span>
               <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full shrink-0">
                 Coming soon
               </span>
             </li>
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-              <span className="text-neutral-600 text-sm">
-                AI-generated daily summary
-              </span>
+              <span className="text-neutral-600 text-sm">AI-generated daily summary</span>
               <span className="px-2 py-0.5 text-xs bg-stone-100 text-stone-600 rounded-full shrink-0">
                 Coming soon
               </span>
@@ -374,27 +322,20 @@ function FoldersSection() {
           <div className="flex flex-col gap-4">
             <h2 className="text-3xl font-serif text-stone-600">Folders</h2>
             <p className="text-base text-neutral-600 leading-relaxed">
-              Organize your meetings and notes into folders for easy access and
-              better structure.
+              Organize your meetings and notes into folders for easy access and better structure.
             </p>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  Group related meetings together
-                </span>
+                <span className="text-neutral-600">Group related meetings together</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  Organize by project, client, or topic
-                </span>
+                <span className="text-neutral-600">Organize by project, client, or topic</span>
               </li>
               <li className="flex items-start gap-3">
                 <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-                <span className="text-neutral-600">
-                  Quick navigation and filtering
-                </span>
+                <span className="text-neutral-600">Quick navigation and filtering</span>
               </li>
             </ul>
           </div>
@@ -412,15 +353,12 @@ function FoldersSection() {
         <div className="p-6 border-b border-neutral-100">
           <h2 className="text-2xl font-serif text-stone-600 mb-3">Folders</h2>
           <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-            Organize your meetings and notes into folders for easy access and
-            better structure.
+            Organize your meetings and notes into folders for easy access and better structure.
           </p>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-              <span className="text-neutral-600 text-sm">
-                Group related meetings together
-              </span>
+              <span className="text-neutral-600 text-sm">Group related meetings together</span>
             </li>
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
@@ -430,9 +368,7 @@ function FoldersSection() {
             </li>
             <li className="flex items-start gap-3">
               <CheckIcon className="text-green-600 shrink-0 mt-0.5 size-5" />
-              <span className="text-neutral-600 text-sm">
-                Quick navigation and filtering
-              </span>
+              <span className="text-neutral-600 text-sm">Quick navigation and filtering</span>
             </li>
           </ul>
         </div>
@@ -455,8 +391,7 @@ const advancedSearchImages = [
     id: 1,
     url: "/api/images/hyprnote/mini-apps/search-default.jpg",
     title: "Suggestions",
-    description:
-      "Get instant search result suggestions based on recent activities",
+    description: "Get instant search result suggestions based on recent activities",
   },
   {
     id: 2,
@@ -482,23 +417,17 @@ function AdvancedSearchSection() {
     if (isPaused) return;
 
     const startTime =
-      Date.now() -
-      (progressRef.current / 100) * ADVANCED_SEARCH_AUTO_ADVANCE_DURATION;
+      Date.now() - (progressRef.current / 100) * ADVANCED_SEARCH_AUTO_ADVANCE_DURATION;
     let animationId: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
-      const newProgress = Math.min(
-        (elapsed / ADVANCED_SEARCH_AUTO_ADVANCE_DURATION) * 100,
-        100,
-      );
+      const newProgress = Math.min((elapsed / ADVANCED_SEARCH_AUTO_ADVANCE_DURATION) * 100, 100);
       setProgress(newProgress);
       progressRef.current = newProgress;
 
       if (newProgress >= 100) {
-        const currentIndex = advancedSearchImages.findIndex(
-          (img) => img.id === selectedImage,
-        );
+        const currentIndex = advancedSearchImages.findIndex((img) => img.id === selectedImage);
         const nextIndex = (currentIndex + 1) % advancedSearchImages.length;
         setSelectedImage(advancedSearchImages[nextIndex].id);
         setProgress(0);
@@ -526,9 +455,7 @@ function AdvancedSearchSection() {
             <div className="inline-block px-4 py-1.5 rounded-full bg-linear-to-t from-stone-600 to-stone-500 text-white opacity-50 text-xs font-medium mb-4">
               Coming Soon
             </div>
-            <h2 className="text-3xl font-serif text-stone-600 mb-4">
-              Advanced Search
-            </h2>
+            <h2 className="text-3xl font-serif text-stone-600 mb-4">Advanced Search</h2>
             <p className="text-base text-neutral-600">
               Complex queries with boolean operators and custom filters
             </p>
@@ -540,16 +467,11 @@ function AdvancedSearchSection() {
                 key={image.id}
                 className={cn([
                   "text-center cursor-pointer transition-colors relative overflow-hidden",
-                  index < advancedSearchImages.length - 1 &&
-                    "border-r border-neutral-100",
+                  index < advancedSearchImages.length - 1 && "border-r border-neutral-100",
                 ])}
                 onClick={() => handleTabClick(image.id)}
-                onMouseEnter={() =>
-                  selectedImage === image.id && setIsPaused(true)
-                }
-                onMouseLeave={() =>
-                  selectedImage === image.id && setIsPaused(false)
-                }
+                onMouseEnter={() => selectedImage === image.id && setIsPaused(true)}
+                onMouseLeave={() => selectedImage === image.id && setIsPaused(false)}
               >
                 {selectedImage === image.id && (
                   <div
@@ -558,21 +480,15 @@ function AdvancedSearchSection() {
                   />
                 )}
                 <div className="p-6 relative">
-                  <h3 className="text-lg font-serif text-stone-600 mb-2">
-                    {image.title}
-                  </h3>
-                  <p className="text-sm text-neutral-600">
-                    {image.description}
-                  </p>
+                  <h3 className="text-lg font-serif text-stone-600 mb-2">{image.title}</h3>
+                  <p className="text-sm text-neutral-600">{image.description}</p>
                 </div>
               </button>
             ))}
           </div>
 
           <img
-            src={
-              advancedSearchImages.find((img) => img.id === selectedImage)?.url
-            }
+            src={advancedSearchImages.find((img) => img.id === selectedImage)?.url}
             alt="Advanced search interface"
             className="w-full h-auto object-cover"
             onMouseEnter={() => setIsPaused(true)}
@@ -597,12 +513,10 @@ function CTASection() {
             className="size-36 mx-auto rounded-[40px] border border-neutral-100"
           />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif">
-          Get the complete experience
-        </h2>
+        <h2 className="text-2xl sm:text-3xl font-serif">Get the complete experience</h2>
         <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-          Download Hyprnote to start using contacts, calendar, and folders
-          today. Daily notes coming soon
+          Download Hyprnote to start using contacts, calendar, and folders today. Daily notes coming
+          soon
         </p>
         <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link

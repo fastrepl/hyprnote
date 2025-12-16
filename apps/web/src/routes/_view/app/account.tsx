@@ -31,15 +31,11 @@ function Component() {
 
         <div className="mt-8 space-y-6 px-4 pb-20 max-w-4xl mx-auto">
           <section>
-            <h2 className="text-lg font-medium mb-4 font-serif">
-              Profile info
-            </h2>
+            <h2 className="text-lg font-medium mb-4 font-serif">Profile info</h2>
             <div className="space-y-2">
               <div>
                 <div className="text-sm text-neutral-500">Email</div>
-                <div className="text-base">
-                  {user?.email || "Not available"}
-                </div>
+                <div className="text-base">{user?.email || "Not available"}</div>
               </div>
             </div>
           </section>
@@ -98,11 +94,7 @@ function AccountSettingsCard() {
 
   const renderPlanButton = () => {
     if (billingQuery.isLoading || canTrialQuery.isLoading) {
-      return (
-        <div className="px-4 h-8 flex items-center text-sm text-neutral-400">
-          Loading...
-        </div>
-      );
+      return <div className="px-4 h-8 flex items-center text-sm text-neutral-400">Loading...</div>;
     }
 
     if (currentPlan === "free") {
@@ -150,9 +142,7 @@ function AccountSettingsCard() {
   return (
     <div className="border border-neutral-100 rounded-sm">
       <div className="p-4">
-        <h3 className="font-serif text-lg font-semibold mb-2">
-          Account Settings
-        </h3>
+        <h3 className="font-serif text-lg font-semibold mb-2">Account Settings</h3>
         <p className="text-sm text-neutral-600">
           Manage your account preferences and billing settings
         </p>
@@ -174,9 +164,7 @@ function IntegrationsSettingsCard() {
   return (
     <div className="border border-neutral-100 rounded-sm">
       <div className="p-4">
-        <h3 className="font-serif text-lg font-semibold mb-2">
-          Integrations Settings
-        </h3>
+        <h3 className="font-serif text-lg font-semibold mb-2">Integrations Settings</h3>
         <p className="text-sm text-neutral-600">
           Save your time by streamlining your work related to meetings
         </p>
@@ -184,8 +172,7 @@ function IntegrationsSettingsCard() {
 
       <div className="flex items-center justify-between border-t border-neutral-100 p-4">
         <div className="text-sm">
-          {connectedApps} {connectedApps === 1 ? "app is" : "apps are"}{" "}
-          connected to Hyprnote
+          {connectedApps} {connectedApps === 1 ? "app is" : "apps are"} connected to Hyprnote
         </div>
         <Link
           to="/app/integration"
@@ -233,19 +220,16 @@ function ProWaitlistCard({ userEmail }: { userEmail?: string }) {
   return (
     <div className="border border-neutral-100 rounded-sm">
       <div className="p-4">
-        <h3 className="font-serif text-lg font-semibold mb-2">
-          Join Pro Waitlist
-        </h3>
+        <h3 className="font-serif text-lg font-semibold mb-2">Join Pro Waitlist</h3>
         <p className="text-sm text-neutral-600 mb-4">
-          Get notified when Pro features are available, including cloud
-          services, templates, chat, and more.
+          Get notified when Pro features are available, including cloud services, templates, chat,
+          and more.
         </p>
 
         {addContactMutation.isSuccess ? (
           <div className="p-4 bg-green-50 border border-green-200 rounded-sm">
             <p className="text-sm text-green-700">
-              Thanks for joining the waitlist! We'll notify you when Pro is
-              ready.
+              Thanks for joining the waitlist! We'll notify you when Pro is ready.
             </p>
           </div>
         ) : (
@@ -260,8 +244,7 @@ function ProWaitlistCard({ userEmail }: { userEmail?: string }) {
             <form.Field
               name="email"
               validators={{
-                onChange: ({ value }) =>
-                  !value ? "Email is required" : undefined,
+                onChange: ({ value }) => (!value ? "Email is required" : undefined),
               }}
             >
               {(field) => (

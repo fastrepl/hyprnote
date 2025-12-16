@@ -37,10 +37,7 @@ export function VideoPlayer({
 
   return (
     <div
-      className={cn([
-        "relative w-full h-full overflow-hidden group",
-        className,
-      ])}
+      className={cn(["relative w-full h-full overflow-hidden group", className])}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -66,9 +63,7 @@ export function VideoPlayer({
             "absolute bottom-0 left-0 right-0",
             "transition-all duration-300 ease-out",
             "flex gap-0",
-            isHovered
-              ? "translate-y-0 opacity-100"
-              : "translate-y-full opacity-0",
+            isHovered ? "translate-y-0 opacity-100" : "translate-y-full opacity-0",
           ])}
         >
           <button

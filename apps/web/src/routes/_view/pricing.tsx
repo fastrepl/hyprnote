@@ -111,8 +111,8 @@ function TeamPricingBanner() {
       ])}
     >
       <span>
-        <strong>Early Bird Discount:</strong> Get 60% off as we launch our new
-        version and help with migration
+        <strong>Early Bird Discount:</strong> Get 60% off as we launch our new version and help with
+        migration
       </span>
     </div>
   );
@@ -126,8 +126,8 @@ function HeroSection() {
           Hyprnote Pricing
         </h1>
         <p className="text-lg sm:text-xl text-neutral-600">
-          Choose the plan that fits your needs. Start for free, upgrade when you
-          need cloud features.
+          Choose the plan that fits your needs. Start for free, upgrade when you need cloud
+          features.
         </p>
       </div>
     </section>
@@ -151,9 +151,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
     <div
       className={cn([
         "border rounded-sm overflow-hidden flex flex-col transition-transform",
-        plan.popular
-          ? "border-stone-600 shadow-lg relative scale-105"
-          : "border-neutral-100",
+        plan.popular ? "border-stone-600 shadow-lg relative scale-105" : "border-neutral-100",
       ])}
     >
       {plan.popular && (
@@ -164,17 +162,13 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
 
       <div className="p-8 flex-1 flex flex-col">
         <div className="mb-6">
-          <h2 className="text-2xl font-serif text-stone-600 mb-2">
-            {plan.name}
-          </h2>
+          <h2 className="text-2xl font-serif text-stone-600 mb-2">{plan.name}</h2>
           <p className="text-sm text-neutral-600 mb-4">{plan.description}</p>
 
           {plan.price ? (
             <div className="space-y-2">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-serif text-stone-600">
-                  ${plan.price.monthly}
-                </span>
+                <span className="text-4xl font-serif text-stone-600">${plan.price.monthly}</span>
                 {plan.originalPrice && (
                   <span className="text-xl text-neutral-400 line-through">
                     ${plan.originalPrice.monthly}
@@ -239,9 +233,7 @@ function PricingCard({ plan }: { plan: PricingPlan }) {
                     )}
                   </div>
                   {feature.tooltip && (
-                    <div className="text-xs text-neutral-500 italic mt-0.5">
-                      {feature.tooltip}
-                    </div>
+                    <div className="text-xs text-neutral-500 italic mt-0.5">{feature.tooltip}</div>
                   )}
                 </div>
               </div>
@@ -312,13 +304,8 @@ function FAQSection() {
         </h2>
         <div className="space-y-6">
           {faqs.map((faq, idx) => (
-            <div
-              key={idx}
-              className="border-b border-neutral-100 pb-6 last:border-b-0"
-            >
-              <h3 className="text-lg font-medium text-neutral-900 mb-2">
-                {faq.question}
-              </h3>
+            <div key={idx} className="border-b border-neutral-100 pb-6 last:border-b-0">
+              <h3 className="text-lg font-medium text-neutral-900 mb-2">{faq.question}</h3>
               <p className="text-neutral-600">{faq.answer}</p>
             </div>
           ))}

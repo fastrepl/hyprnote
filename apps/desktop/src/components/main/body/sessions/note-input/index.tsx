@@ -14,11 +14,7 @@ import { Header, useEditorTabs } from "./header";
 import { RawEditor } from "./raw";
 import { Transcript } from "./transcript";
 
-export function NoteInput({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "sessions" }>;
-}) {
+export function NoteInput({ tab }: { tab: Extract<Tab, { type: "sessions" }> }) {
   const editorTabs = useEditorTabs({ sessionId: tab.id });
   const updateSessionTabState = useTabs((state) => state.updateSessionTabState);
   const editorRef = useRef<{ editor: TiptapEditor | null }>(null);
@@ -75,21 +71,13 @@ export function NoteInput({
         onClick={handleContainerClick}
         className={cn([
           "flex-1 mt-2 px-3",
-          currentTab.type === "transcript"
-            ? "overflow-hidden"
-            : ["overflow-auto", "pb-6"],
+          currentTab.type === "transcript" ? "overflow-hidden" : ["overflow-auto", "pb-6"],
         ])}
       >
         {currentTab.type === "enhanced" && (
-          <Enhanced
-            ref={editorRef}
-            sessionId={sessionId}
-            enhancedNoteId={currentTab.id}
-          />
+          <Enhanced ref={editorRef} sessionId={sessionId} enhancedNoteId={currentTab.id} />
         )}
-        {currentTab.type === "raw" && (
-          <RawEditor ref={editorRef} sessionId={sessionId} />
-        )}
+        {currentTab.type === "raw" && <RawEditor ref={editorRef} sessionId={sessionId} />}
         {currentTab.type === "transcript" && (
           <Transcript sessionId={sessionId} isEditing={isEditing} />
         )}

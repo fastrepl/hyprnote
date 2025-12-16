@@ -114,9 +114,7 @@ function Component() {
   const containerRef = useRef<HTMLDivElement>(null);
   const fixedIconRef = useRef<HTMLDivElement>(null);
   const [fixedIconRect, setFixedIconRect] = useState<DOMRect | null>(null);
-  const [draggablePositions, setDraggablePositions] = useState<
-    { x: number; y: number }[]
-  >([]);
+  const [draggablePositions, setDraggablePositions] = useState<{ x: number; y: number }[]>([]);
 
   useEffect(() => {
     const updateFixedIconRect = () => {
@@ -153,35 +151,17 @@ function Component() {
     >
       <div className="max-w-6xl mx-auto border-x border-neutral-100 bg-white">
         {/* Hero Section */}
-        <div
-          ref={containerRef}
-          className="h-[calc(100vh-65px)] relative overflow-hidden"
-        >
+        <div ref={containerRef} className="h-[calc(100vh-65px)] relative overflow-hidden">
           {/* SVG for connection lines - fixed position */}
           {fixedIconRect && (
-            <svg
-              className="fixed inset-0 w-full h-full pointer-events-none"
-              style={{ zIndex: 15 }}
-            >
+            <svg className="fixed inset-0 w-full h-full pointer-events-none" style={{ zIndex: 15 }}>
               <defs>
-                <linearGradient
-                  id="beam-gradient-in"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="0%"
-                >
+                <linearGradient id="beam-gradient-in" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="rgba(120, 113, 108, 0)" />
                   <stop offset="50%" stopColor="rgba(120, 113, 108, 0.4)" />
                   <stop offset="100%" stopColor="rgba(120, 113, 108, 0)" />
                 </linearGradient>
-                <linearGradient
-                  id="beam-gradient-out"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="0%"
-                >
+                <linearGradient id="beam-gradient-out" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="rgba(120, 113, 108, 0)" />
                   <stop offset="50%" stopColor="rgba(120, 113, 108, 0.4)" />
                   <stop offset="100%" stopColor="rgba(120, 113, 108, 0)" />
@@ -244,9 +224,7 @@ function Component() {
               }}
               size={icon.size}
               image={icon.image}
-              onPositionChange={(pos) =>
-                handleDraggablePositionChange(idx, pos)
-              }
+              onPositionChange={(pos) => handleDraggablePositionChange(idx, pos)}
             />
           ))}
 
@@ -270,8 +248,7 @@ function Component() {
                 Automate your workflow with powerful automation
               </h1>
               <p className="text-lg sm:text-xl text-neutral-600">
-                Automate repetitive tasks with powerful workflows. No coding
-                required.
+                Automate repetitive tasks with powerful workflows. No coding required.
               </p>
               <div className="mt-8">
                 <button
@@ -384,9 +361,7 @@ function IntegrationsSection() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-medium text-stone-700 mb-1">
-                    {integration.name}
-                  </h3>
+                  <h3 className="font-medium text-stone-700 mb-1">{integration.name}</h3>
                   <p className="text-xs text-neutral-500 leading-relaxed">
                     {integration.description}
                   </p>
@@ -397,9 +372,7 @@ function IntegrationsSection() {
         </div>
 
         <div className="mt-12 text-center">
-          <p className="text-sm text-neutral-500 mb-4">
-            More integrations coming soon
-          </p>
+          <p className="text-sm text-neutral-500 mb-4">More integrations coming soon</p>
           <button
             disabled
             className={cn([
@@ -427,9 +400,7 @@ function DraggableIcon({
   image: string;
   onPositionChange?: (pos: { x: number; y: number }) => void;
 }) {
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
-    null,
-  );
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
   const iconRef = useRef<HTMLDivElement>(null);
@@ -447,10 +418,8 @@ function DraggableIcon({
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
 
-    const x =
-      (containerWidth * parseInt(initialPosition.left)) / 100 - size / 2;
-    const y =
-      (containerHeight * parseInt(initialPosition.top)) / 100 - size / 2;
+    const x = (containerWidth * parseInt(initialPosition.left)) / 100 - size / 2;
+    const y = (containerHeight * parseInt(initialPosition.top)) / 100 - size / 2;
 
     return { x, y };
   }, [initialPosition, size]);

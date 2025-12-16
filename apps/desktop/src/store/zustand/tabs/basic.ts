@@ -21,9 +21,7 @@ export type BasicActions = {
   closeAll: () => void;
 };
 
-export const createBasicSlice = <
-  T extends BasicState & NavigationState & LifecycleState,
->(
+export const createBasicSlice = <T extends BasicState & NavigationState & LifecycleState>(
   set: StoreApi<T>["setState"],
   get: StoreApi<T>["getState"],
 ): BasicState & BasicActions => ({
@@ -66,10 +64,7 @@ export const createBasicSlice = <
 
     const closedTabIndex = tabs.findIndex((t) => isSameTab(t, tab));
     const nextActiveIndex = findNextActiveIndex(remainingTabs, closedTabIndex);
-    const nextTabs = setActiveFlags(
-      remainingTabs,
-      remainingTabs[nextActiveIndex],
-    );
+    const nextTabs = setActiveFlags(remainingTabs, remainingTabs[nextActiveIndex]);
     const nextCurrentTab = nextTabs[nextActiveIndex];
 
     const nextHistory = new Map(history);

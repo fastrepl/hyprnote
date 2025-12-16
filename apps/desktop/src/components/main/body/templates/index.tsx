@@ -5,11 +5,7 @@ import { createQueries } from "tinybase/with-schemas";
 import type { Template, TemplateSection, TemplateStorage } from "@hypr/store";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Switch } from "@hypr/ui/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@hypr/ui/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../store/tinybase/main";
@@ -45,11 +41,7 @@ function BookTextIcon({ className }: { className?: string }) {
   return <BookText className={className} />;
 }
 
-export function TabContentTemplate({
-  tab,
-}: {
-  tab: Extract<Tab, { type: "templates" }>;
-}) {
+export function TabContentTemplate({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
   return (
     <StandardTabWrapper>
       <TemplateView tab={tab} />
@@ -95,16 +87,17 @@ export function useUserTemplates(): UserTemplate[] {
   const templates = main.UI.useResultTable(USER_TEMPLATE_QUERY, queries);
 
   return useMemo(() => {
-    return Object.entries(templates as Record<string, unknown>).map(
-      ([id, template]) => normalizeTemplateWithId(id, template),
+    return Object.entries(templates as Record<string, unknown>).map(([id, template]) =>
+      normalizeTemplateWithId(id, template),
     );
   }, [templates]);
 }
 
 function normalizeTemplatePayload(template: unknown): Template {
-  const record = (
-    template && typeof template === "object" ? template : {}
-  ) as Record<string, unknown>;
+  const record = (template && typeof template === "object" ? template : {}) as Record<
+    string,
+    unknown
+  >;
 
   let sections: Array<{ title: string; description: string }> = [];
   if (typeof record.sections === "string") {
@@ -121,8 +114,7 @@ function normalizeTemplatePayload(template: unknown): Template {
     user_id: typeof record.user_id === "string" ? record.user_id : "",
     created_at: typeof record.created_at === "string" ? record.created_at : "",
     title: typeof record.title === "string" ? record.title : "",
-    description:
-      typeof record.description === "string" ? record.description : "",
+    description: typeof record.description === "string" ? record.description : "",
     sections,
   };
 }
@@ -222,11 +214,7 @@ function TemplateView({ tab }: { tab: Extract<Tab, { type: "templates" }> }) {
   );
 
   const handleCloneTemplate = useCallback(
-    (template: {
-      title: string;
-      description: string;
-      sections: TemplateSection[];
-    }) => {
+    (template: { title: string; description: string; sections: TemplateSection[] }) => {
       if (!user_id) return;
 
       const newId = crypto.randomUUID();
@@ -303,9 +291,7 @@ function TemplateListColumn({
     if (!search.trim()) return userTemplates;
     const q = search.toLowerCase();
     return userTemplates.filter(
-      (t) =>
-        t.title?.toLowerCase().includes(q) ||
-        t.description?.toLowerCase().includes(q),
+      (t) => t.title?.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q),
     );
   }, [userTemplates, search]);
 
@@ -332,17 +318,11 @@ function TemplateListColumn({
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5 px-2">
                   <Globe size={14} className="text-neutral-400" />
-                  <Switch
-                    size="sm"
-                    checked={isWebMode}
-                    onCheckedChange={setIsWebMode}
-                  />
+                  <Switch size="sm" checked={isWebMode} onCheckedChange={setIsWebMode} />
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {isWebMode
-                  ? "Showing community templates"
-                  : "Showing your templates"}
+                {isWebMode ? "Showing community templates" : "Showing your templates"}
               </TooltipContent>
             </Tooltip>
             <Button
@@ -375,10 +355,7 @@ function TemplateListColumn({
               autoFocus
             />
             {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="p-1 rounded hover:bg-neutral-100"
-              >
+              <button onClick={() => setSearch("")} className="p-1 rounded hover:bg-neutral-100">
                 <X className="h-4 w-4 text-neutral-400" />
               </button>
             )}
@@ -431,9 +408,7 @@ function TemplateListColumn({
                     )}
                   </div>
                   {item.description && (
-                    <div className="text-xs text-neutral-500 truncate">
-                      {item.description}
-                    </div>
+                    <div className="text-xs text-neutral-500 truncate">{item.description}</div>
                   )}
                 </div>
               </div>
@@ -454,13 +429,9 @@ function TemplateListColumn({
               <div className="flex items-center gap-2">
                 <BookText className="h-4 w-4 text-neutral-500 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">
-                    {item.title?.trim() || "Untitled"}
-                  </div>
+                  <div className="font-medium truncate">{item.title?.trim() || "Untitled"}</div>
                   {item.description && (
-                    <div className="text-xs text-neutral-500 truncate">
-                      {item.description}
-                    </div>
+                    <div className="text-xs text-neutral-500 truncate">{item.description}</div>
                   )}
                 </div>
               </div>

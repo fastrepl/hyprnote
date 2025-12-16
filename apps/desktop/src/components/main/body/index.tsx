@@ -103,6 +103,27 @@ function Header({ tabs }: { tabs: Tab[] }) {
     atStart: true,
     atEnd: true,
   });
+  const [isSearchManuallyExpanded, setIsSearchManuallyExpanded] =
+    useState(false);
+  const rightContainerRef = useRef<HTMLDivElement>(null);
+  const [hasSpaceForSearch, setHasSpaceForSearch] = useState(true);
+
+  useEffect(() => {
+    const container = rightContainerRef.current;
+    if (!container) return;
+
+    const checkSpace = () => {
+      setHasSpaceForSearch(container.clientWidth >= 220);
+    };
+
+    checkSpace();
+    const resizeObserver = new ResizeObserver(checkSpace);
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   const updateScrollState = useCallback(() => {
     const container = tabsScrollContainerRef.current;
@@ -145,6 +166,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
         <Button
           size="icon"
           variant="ghost"
+          className="shrink-0"
           onClick={() => leftsidebar.setExpanded(true)}
         >
           <PanelLeftOpenIcon size={16} className="text-neutral-600" />
@@ -224,21 +246,27 @@ function Header({ tabs }: { tabs: Tab[] }) {
       </div>
 
       <div
+        ref={rightContainerRef}
         data-tauri-drag-region
         className="flex-1 flex h-full items-center justify-between"
       >
-        <Button
-          onClick={handleNewEmptyTab}
-          variant="ghost"
-          size="icon"
-          className="text-neutral-600"
-        >
-          <PlusIcon size={16} />
-        </Button>
+        {!(isSearchManuallyExpanded && !hasSpaceForSearch) && (
+          <Button
+            onClick={handleNewEmptyTab}
+            variant="ghost"
+            size="icon"
+            className="text-neutral-600"
+          >
+            <PlusIcon size={16} />
+          </Button>
+        )}
 
-        <div className="flex items-center gap-1 h-full">
+        <div className="flex items-center gap-1 h-full ml-auto">
           <Update />
-          <Search />
+          <Search
+            hasSpace={hasSpaceForSearch}
+            onManualExpandChange={setIsSearchManuallyExpanded}
+          />
         </div>
       </div>
     </div>

@@ -82,7 +82,7 @@ impl AppWindow {
 
             let app_clone = app.clone();
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = app_clone.event(e).await {
+                if let Err(e) = app_clone.analytics().event(e).await {
                     tracing::error!("failed_to_send_analytics: {:?}", e);
                 }
             });

@@ -92,3 +92,31 @@ where
     #[cfg(all(feature = "legacy", target_os = "linux"))]
     hypr_notification_linux::setup_notification_confirm_handler(f);
 }
+
+pub fn setup_notification_accept_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    #[cfg(feature = "new")]
+    hypr_notification_gpui::setup_notification_accept_handler(f);
+
+    #[cfg(all(feature = "legacy", target_os = "macos"))]
+    hypr_notification_macos::setup_notification_accept_handler(f);
+
+    #[cfg(all(feature = "legacy", target_os = "linux"))]
+    hypr_notification_linux::setup_notification_accept_handler(f);
+}
+
+pub fn setup_notification_timeout_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    #[cfg(feature = "new")]
+    hypr_notification_gpui::setup_notification_timeout_handler(f);
+
+    #[cfg(all(feature = "legacy", target_os = "macos"))]
+    hypr_notification_macos::setup_notification_timeout_handler(f);
+
+    #[cfg(all(feature = "legacy", target_os = "linux"))]
+    hypr_notification_linux::setup_notification_timeout_handler(f);
+}

@@ -25,9 +25,8 @@ deepLinkEvent: "plugin:deeplink2:deep-link-event"
 /** user-defined types **/
 
 export type AuthCallbackSearch = { access_token: string; refresh_token: string }
-export type DeepLink = { to: "/notification"; search: NotificationSearch } | { to: "/auth/callback"; search: AuthCallbackSearch }
+export type DeepLink = { to: "/auth/callback"; search: AuthCallbackSearch }
 export type DeepLinkEvent = DeepLink
-export type NotificationSearch = { key: string }
 
 /** tauri-specta globals **/
 

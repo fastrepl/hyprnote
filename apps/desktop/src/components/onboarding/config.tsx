@@ -11,11 +11,29 @@ export type OnboardingStepId =
   | "configure-notice"
   | "permissions";
 
+export type StepProps = {
+  onNavigate: (step: OnboardingStepId | "done") => void;
+};
+
+export function getNextAfterLogin(
+  platform: string,
+  isPro: boolean,
+): OnboardingStepId | "done" {
+  if (!isPro) {
+    return "configure-notice";
+  }
+  return platform === "macos" ? "permissions" : "done";
+}
+
+export function getNextAfterConfigureNotice(
+  platform: string,
+): OnboardingStepId | "done" {
+  return platform === "macos" ? "permissions" : "done";
+}
+
 type StepConfig = {
   id: OnboardingStepId;
-  component: ComponentType<{
-    onNavigate: (step: OnboardingStepId | "done") => void;
-  }>;
+  component: ComponentType<StepProps>;
 };
 
 export const STEP_CONFIGS: StepConfig[] = [

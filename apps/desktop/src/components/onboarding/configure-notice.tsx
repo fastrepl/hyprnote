@@ -1,13 +1,9 @@
 import { platform } from "@tauri-apps/plugin-os";
 
-import type { OnboardingStepId } from "./config";
+import { getNextAfterConfigureNotice, type StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
-export function ConfigureNotice({
-  onNavigate,
-}: {
-  onNavigate: (step: OnboardingStepId | "done") => void;
-}) {
+export function ConfigureNotice({ onNavigate }: StepProps) {
   const currentPlatform = platform();
 
   return (
@@ -30,7 +26,7 @@ export function ConfigureNotice({
       <div className="flex flex-col gap-3 mt-4">
         <button
           onClick={() =>
-            onNavigate(currentPlatform === "macos" ? "permissions" : "done")
+            onNavigate(getNextAfterConfigureNotice(currentPlatform))
           }
           className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
         >

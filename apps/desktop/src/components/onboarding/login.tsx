@@ -9,14 +9,10 @@ import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
 import * as settings from "../../store/tinybase/settings";
-import type { OnboardingStepId } from "./config";
+import { getNextAfterLogin, type StepProps } from "./config";
 import { Divider, OnboardingContainer } from "./shared";
 
-export function Login({
-  onNavigate,
-}: {
-  onNavigate: (step: OnboardingStepId | "done") => void;
-}) {
+export function Login({ onNavigate }: StepProps) {
   const auth = useAuth();
   const currentPlatform = platform();
   const [callbackUrl, setCallbackUrl] = useState("");
@@ -79,10 +75,8 @@ export function Login({
     onSuccess: (isPro) => {
       if (isPro) {
         setTrialDefaults();
-        onNavigate(currentPlatform === "macos" ? "permissions" : "done");
-      } else {
-        onNavigate("configure-notice");
       }
+      onNavigate(getNextAfterLogin(currentPlatform, isPro));
     },
     onError: (e) => {
       console.error(e);

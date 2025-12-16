@@ -2,14 +2,10 @@ import { Icon } from "@iconify-icon/react";
 import { platform } from "@tauri-apps/plugin-os";
 
 import { useAuth } from "../../auth";
-import type { OnboardingStepId } from "./config";
+import { getNextAfterConfigureNotice, type StepProps } from "./config";
 import { Divider, IntegrationRow, OnboardingContainer } from "./shared";
 
-export function Calendars({
-  onNavigate,
-}: {
-  onNavigate: (step: OnboardingStepId | "done") => void;
-}) {
+export function Calendars({ onNavigate }: StepProps) {
   const auth = useAuth();
   const currentPlatform = platform();
   const isLoggedIn = !!auth?.session;
@@ -55,9 +51,7 @@ export function Calendars({
       </div>
 
       <button
-        onClick={() =>
-          onNavigate(currentPlatform === "macos" ? "permissions" : "done")
-        }
+        onClick={() => onNavigate(getNextAfterConfigureNotice(currentPlatform))}
         className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
       >
         skip

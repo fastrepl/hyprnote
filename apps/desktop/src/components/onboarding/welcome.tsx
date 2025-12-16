@@ -3,13 +3,9 @@ import { arch, platform } from "@tauri-apps/plugin-os";
 
 import { TextAnimate } from "@hypr/ui/components/ui/text-animate";
 
-import type { OnboardingStepId } from "./config";
+import type { StepProps } from "./config";
 
-export function Welcome({
-  onNavigate,
-}: {
-  onNavigate: (step: OnboardingStepId | "done") => void;
-}) {
+export function Welcome({ onNavigate }: StepProps) {
   const currentPlatform = platform();
   const archQuery = useQuery({
     queryKey: ["arch"],

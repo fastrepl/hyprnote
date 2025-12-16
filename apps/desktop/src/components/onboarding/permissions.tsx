@@ -4,7 +4,7 @@ import { cn } from "@hypr/utils";
 
 import { useAuth } from "../../auth";
 import { usePermissions } from "../../hooks/use-permissions";
-import type { OnboardingStepId } from "./config";
+import type { StepProps } from "./config";
 import { OnboardingContainer } from "./shared";
 
 function PermissionBlock({
@@ -71,11 +71,7 @@ function PermissionBlock({
   );
 }
 
-export function Permissions({
-  onNavigate,
-}: {
-  onNavigate: (step: OnboardingStepId | "done") => void;
-}) {
+export function Permissions({ onNavigate }: StepProps) {
   const auth = useAuth();
   const {
     micPermissionStatus,

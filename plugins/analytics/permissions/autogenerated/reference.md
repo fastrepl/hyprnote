@@ -17,6 +17,7 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
 <tr>
 <td>
 

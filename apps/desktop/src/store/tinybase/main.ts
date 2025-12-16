@@ -26,6 +26,7 @@ import { isValidTiptapContent, json2md } from "@hypr/tiptap/shared";
 import { format } from "@hypr/utils";
 
 import { DEFAULT_USER_ID } from "../../utils";
+import { maybeImportFromJson } from "./importer";
 import { createLocalPersister } from "./localPersister";
 import { createLocalPersister2 } from "./localPersister2";
 import { registerSaveHandler } from "./save";
@@ -120,6 +121,16 @@ export const StoreComponent = ({ persist = true }: { persist?: boolean }) => {
 
       if (!persist) {
         return undefined;
+      }
+
+      const importResult = await maybeImportFromJson(
+        store as Store,
+        async () => {
+          await persister.save();
+        },
+      );
+      if (importResult.status === "error") {
+        console.error("[Store] Import failed:", importResult.error);
       }
 
       const initializer = async (cb: () => void) => {

@@ -34,20 +34,7 @@ export const useSTTConnection = () => {
     settings.STORE_ID,
   ) as AIProviderStorage | undefined;
 
-<<<<<<< ours
   const isLocalModel = isLocalSttModel(current_stt_provider, current_stt_model);
-||||||| ancestor
-  const isLocalModel =
-    current_stt_provider === "hyprnote" &&
-    !!current_stt_model &&
-    (current_stt_model.startsWith("am-") || current_stt_model.startsWith("Quantized"));
-=======
-  const isLocalModel =
-    current_stt_provider === "hyprnote" &&
-    !!current_stt_model &&
-    (current_stt_model.startsWith("am-") ||
-      current_stt_model.startsWith("Quantized"));
->>>>>>> theirs
 
   const isCloudModel =
     current_stt_provider === "hyprnote" && current_stt_model === "cloud";

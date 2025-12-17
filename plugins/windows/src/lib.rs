@@ -114,6 +114,12 @@ mod test {
 
     #[test]
     fn test_version() {
-        println!("version: {}", tauri_plugin_os::version());
+        let version = tauri_plugin_os::version()
+            .to_string()
+            .split('.')
+            .next()
+            .and_then(|v| v.parse::<u32>().ok())
+            .unwrap_or(0);
+        println!("version: {}", version);
     }
 }

@@ -59,7 +59,7 @@ impl AppWindow {
                     .and_then(|v| v.parse::<u32>().ok())
                     .unwrap_or(0);
 
-                if major >= 26 { 24.0 } else { 18.0 }
+                if major >= 26 { 18.0 } else { 18.0 }
             };
 
             builder = builder

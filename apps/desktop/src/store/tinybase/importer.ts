@@ -42,7 +42,10 @@ export const maybeImportFromJson = async (
 
   try {
     if (hasImportFile) {
-      await rename(IMPORT_PATH, IMPORT_PROCESSING_PATH, { baseDir: BASE_DIR });
+      await rename(IMPORT_PATH, IMPORT_PROCESSING_PATH, {
+        oldPathBaseDir: BASE_DIR,
+        newPathBaseDir: BASE_DIR,
+      });
     }
 
     const content = await readTextFile(workingPath, { baseDir: BASE_DIR });

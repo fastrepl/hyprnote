@@ -3,7 +3,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("granola error: {0}")]
-    Granola(#[from] granola::error::Error),
+    Granola(#[from] hypr_granola::error::Error),
 
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),

@@ -16807,6 +16807,8 @@ dependencies = [
 name = "tauri-plugin-importer"
 version = "0.1.0"
 dependencies = [
+ "db-user",
+ "dirs 6.0.0",
  "granola",
  "serde",
  "specta",

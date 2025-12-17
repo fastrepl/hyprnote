@@ -27,8 +27,6 @@
       "identifier": "opener:allow-open-path",
       "allow": [
         { "path": "$DATA/hyprnote/**/*" },
-        { "path": "$DATA/com.hyprnote.stable/**/*" },
-        { "path": "$DATA/com.hyprnote.nightly/**/*" },
         { "path": "$DOWNLOAD/**/*" }
       ]
     },

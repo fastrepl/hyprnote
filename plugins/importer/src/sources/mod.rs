@@ -1,6 +1,8 @@
 mod granola;
+mod hyprnote;
 
 pub use granola::GranolaSource;
+pub use hyprnote::{HyprnoteV0NightlySource, HyprnoteV0StableSource};
 
 use crate::error::Result;
 use crate::types::{ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript};
@@ -39,11 +41,27 @@ impl Default for ImportConfig {
 pub fn get_source(kind: ImportSourceKind) -> Box<dyn ImportSourceDyn> {
     match kind {
         ImportSourceKind::Granola => Box::new(GranolaSource),
+        ImportSourceKind::HyprnoteV0Stable => Box::new(HyprnoteV0StableSource),
+        ImportSourceKind::HyprnoteV0Nightly => Box::new(HyprnoteV0NightlySource),
     }
 }
 
 pub fn list_sources() -> Vec<ImportSourceInfo> {
-    vec![ImportSource::info(&GranolaSource)]
+    let mut sources = Vec::new();
+
+    if hypr_granola::default_supabase_path().exists() {
+        sources.push(ImportSource::info(&GranolaSource));
+    }
+
+    if hyprnote::stable_exists() {
+        sources.push(ImportSource::info(&HyprnoteV0StableSource));
+    }
+
+    if hyprnote::nightly_exists() {
+        sources.push(ImportSource::info(&HyprnoteV0NightlySource));
+    }
+
+    sources
 }
 
 pub trait ImportSourceDyn: Send + Sync {

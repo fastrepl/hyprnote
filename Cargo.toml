@@ -80,6 +80,8 @@ hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whi
 hypr-ws = { path = "crates/ws", package = "ws" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
+hypr-granola = { path = "crates/granola", package = "granola" }
+
 owhisper-client = { path = "owhisper/owhisper-client", package = "owhisper-client" }
 owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }

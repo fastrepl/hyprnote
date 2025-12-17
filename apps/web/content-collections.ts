@@ -24,6 +24,7 @@ async function embedGithubCode(content: string): Promise<string> {
     );
     if (repoMatch) {
       const filePath = repoMatch[1];
+      const fileName = path.basename(filePath);
       // Use process.cwd() which is the apps/web directory during content-collections build
       const localPath = path.resolve(process.cwd(), "..", "..", filePath);
 
@@ -34,10 +35,19 @@ async function embedGithubCode(content: string): Promise<string> {
         const codeBlockMatch = fileContent.match(/```(\w+)\n([\s\S]*?)```/);
         if (codeBlockMatch) {
           const [, lang, code] = codeBlockMatch;
-          result = result.replace(fullMatch, `\`\`\`${lang}\n${code}\`\`\``);
+          // Generate GithubEmbed component with escaped code
+          const escapedCode = JSON.stringify(code.trimEnd());
+          result = result.replace(
+            fullMatch,
+            `<GithubEmbed code={${escapedCode}} fileName="${fileName}" language="${lang}" />`,
+          );
         } else {
           // If no code block, embed the whole file as plain text
-          result = result.replace(fullMatch, `\`\`\`\n${fileContent}\`\`\``);
+          const escapedCode = JSON.stringify(fileContent.trimEnd());
+          result = result.replace(
+            fullMatch,
+            `<GithubEmbed code={${escapedCode}} fileName="${fileName}" />`,
+          );
         }
       } catch {
         console.warn(`Failed to read local file: ${localPath}`);

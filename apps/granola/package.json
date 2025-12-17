@@ -1,0 +1,27 @@
+{
+  "name": "export-granola",
+  "version": "0.1.0",
+  "description": "Export your Granola notes and transcripts to local files",
+  "bin": {
+    "export-granola": "./bin/export-granola.js"
+  },
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js"
+  },
+  "keywords": ["granola", "export", "notes", "transcripts", "cli"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fastrepl/hyprnote.git",
+    "directory": "apps/granola"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "os": ["darwin", "linux", "win32"],
+  "cpu": ["x64", "arm64"],
+  "license": "MIT",
+  "files": [
+    "bin/**",
+    "scripts/**"
+  ]
+}

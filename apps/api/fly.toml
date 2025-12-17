@@ -9,9 +9,6 @@ kill_signal = 'SIGTERM'
 kill_timeout = 30
 swap_size_mb = 512
 
-[build]
-dockerfile = "Dockerfile"
-
 [deploy]
 strategy = "bluegreen"
 

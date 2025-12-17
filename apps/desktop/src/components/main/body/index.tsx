@@ -86,6 +86,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
     canGoNext,
     closeOthers,
     closeAll,
+    pin,
+    unpin,
   } = useTabs(
     useShallow((state) => ({
       select: state.select,
@@ -97,6 +99,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
       canGoNext: state.canGoNext,
       closeOthers: state.closeOthers,
       closeAll: state.closeAll,
+      pin: state.pin,
+      unpin: state.unpin,
     })),
   );
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
@@ -187,6 +191,8 @@ function Header({ tabs }: { tabs: Tab[] }) {
                     handleSelect={select}
                     handleCloseOthersCallback={closeOthers}
                     handleCloseAll={closeAll}
+                    handlePin={pin}
+                    handleUnpin={unpin}
                     tabIndex={shortcutIndex}
                   />
                 </Reorder.Item>
@@ -236,6 +242,8 @@ function TabItem({
   handleSelect,
   handleCloseOthersCallback,
   handleCloseAll,
+  handlePin,
+  handleUnpin,
   tabIndex,
 }: {
   tab: Tab;
@@ -243,9 +251,13 @@ function TabItem({
   handleSelect: (tab: Tab) => void;
   handleCloseOthersCallback: (tab: Tab) => void;
   handleCloseAll: () => void;
+  handlePin: (tab: Tab) => void;
+  handleUnpin: (tab: Tab) => void;
   tabIndex?: number;
 }) {
   const handleCloseOthers = () => handleCloseOthersCallback(tab);
+  const handlePinThis = () => handlePin(tab);
+  const handleUnpinThis = () => handleUnpin(tab);
 
   if (tab.type === "sessions") {
     return (
@@ -256,6 +268,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -268,6 +282,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -280,6 +296,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -292,6 +310,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -304,6 +324,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -316,6 +338,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -328,6 +352,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -340,6 +366,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -352,6 +380,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -364,6 +394,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -376,6 +408,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -388,6 +422,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -400,6 +436,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -412,6 +450,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -424,6 +464,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }
@@ -436,6 +478,8 @@ function TabItem({
         handleSelectThis={handleSelect}
         handleCloseOthers={handleCloseOthers}
         handleCloseAll={handleCloseAll}
+        handlePinThis={handlePinThis}
+        handleUnpinThis={handleUnpinThis}
       />
     );
   }

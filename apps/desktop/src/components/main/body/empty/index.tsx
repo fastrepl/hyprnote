@@ -1,4 +1,4 @@
-import { ArrowUpRight, ChevronDown, FileIcon } from "lucide-react";
+import { AppWindowIcon, ArrowUpRight, ChevronDown } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
@@ -19,7 +19,7 @@ export const TabItemEmpty: TabItem<Extract<Tab, { type: "empty" }>> = ({
 }) => {
   return (
     <TabItemBase
-      icon={<FileIcon className="w-4 h-4" />}
+      icon={<AppWindowIcon className="w-4 h-4" />}
       title="New tab"
       selected={tab.active}
       tabIndex={tabIndex}

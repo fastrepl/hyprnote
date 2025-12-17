@@ -51,7 +51,7 @@ export function TabContentAI({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
 
 function AIView({ tab }: { tab: Extract<Tab, { type: "ai" }> }) {
   const updateAiTabState = useTabs((state) => state.updateAiTabState);
-  const activeTab = tab.state.tab ?? "intelligence";
+  const activeTab = tab.state.tab ?? "transcription";
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [scrollState, setScrollState] = useState({
     atStart: true,

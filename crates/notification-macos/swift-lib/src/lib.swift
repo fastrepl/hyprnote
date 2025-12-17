@@ -16,7 +16,7 @@ class NotificationInstance {
   func startDismissTimer(timeoutSeconds: Double) {
     dismissTimer?.cancel()
     let timer = DispatchWorkItem { [weak self] in
-      self?.dismiss()
+      self?.dismissWithTimeout()
     }
     dismissTimer = timer
     DispatchQueue.main.asyncAfter(deadline: .now() + timeoutSeconds, execute: timer)
@@ -39,6 +39,13 @@ class NotificationInstance {
   func dismissWithUserAction() {
     self.id.uuidString.withCString { idPtr in
       rustOnNotificationDismiss(idPtr)
+    }
+    dismiss()
+  }
+
+  func dismissWithTimeout() {
+    self.id.uuidString.withCString { idPtr in
+      rustOnNotificationTimeout(idPtr)
     }
     dismiss()
   }
@@ -256,6 +263,19 @@ class ActionButton: NSButton {
     s.width += 22
     s.height = max(28, s.height + 4)
     return s
+  }
+
+  override func mouseDown(with event: NSEvent) {
+    layer?.backgroundColor = NSColor(calibratedWhite: 0.85, alpha: 0.9).cgColor
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+      self.layer?.backgroundColor = NSColor(calibratedWhite: 0.95, alpha: 0.9).cgColor
+    }
+    if let notification = notification {
+      notification.id.uuidString.withCString { idPtr in
+        rustOnNotificationAccept(idPtr)
+      }
+      notification.dismiss()
+    }
   }
 }
 
@@ -745,8 +765,14 @@ class NotificationManager {
 @_silgen_name("rust_on_notification_confirm")
 func rustOnNotificationConfirm(_ idPtr: UnsafePointer<CChar>)
 
+@_silgen_name("rust_on_notification_accept")
+func rustOnNotificationAccept(_ idPtr: UnsafePointer<CChar>)
+
 @_silgen_name("rust_on_notification_dismiss")
 func rustOnNotificationDismiss(_ idPtr: UnsafePointer<CChar>)
+
+@_silgen_name("rust_on_notification_timeout")
+func rustOnNotificationTimeout(_ idPtr: UnsafePointer<CChar>)
 
 @_cdecl("_show_notification")
 public func _showNotification(

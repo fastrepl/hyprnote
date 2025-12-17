@@ -58,16 +58,16 @@ export function SettingsGeneral() {
         if (errors.length > 0) {
           console.log(errors);
         }
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: ({ value }) => {
       setPartialValues(value);
 
       if (value.autostart) {
-        enable();
+        void enable();
       } else {
-        disable();
+        void disable();
       }
     },
   });

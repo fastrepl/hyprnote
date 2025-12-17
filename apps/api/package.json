@@ -10,10 +10,10 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@hypr/api-client": "workspace:*",
-    "@restatedev/restate-sdk-clients": "^1.9.1",
     "@hono/zod-validator": "^0.7.5",
+    "@hypr/api-client": "workspace:*",
     "@posthog/ai": "^7.2.1",
+    "@restatedev/restate-sdk-clients": "^1.9.1",
     "@scalar/hono-api-reference": "^0.5.184",
     "@sentry/bun": "^10.29.0",
     "@supabase/stripe-sync-engine": "^0.45.0",
@@ -24,7 +24,7 @@
     "openai": "^6.10.0",
     "posthog-node": "^5.17.2",
     "stripe": "^19.3.1",
-    "zod": "^4.1.13",
+    "zod": "^4.2.1",
     "zod-openapi": "^5.4.5"
   },
   "devDependencies": {

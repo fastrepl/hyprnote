@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { platform } from "@tauri-apps/plugin-os";
 import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
 import {
@@ -14,11 +15,10 @@ import {
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
-import { useIsMacos } from "../../../hooks/usePlatform";
 import { PROVIDERS } from "./shared";
 
 export function ConfigureProviders() {
-  const isMacos = useIsMacos();
+  const isMacos = platform() === "macos";
 
   const visibleProviders = PROVIDERS.filter(
     (p) => p.platform === "all" || (p.platform === "macos" && isMacos),

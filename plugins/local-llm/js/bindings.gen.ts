@@ -1,9 +1,6 @@
 // @ts-nocheck
 /** tauri-specta globals **/
-import {
-  Channel as TAURI_CHANNEL,
-  invoke as TAURI_INVOKE,
-} from "@tauri-apps/api/core";
+import { Channel as TAURI_CHANNEL, invoke as TAURI_INVOKE } from "@tauri-apps/api/core";
 import * as TAURI_API_EVENT from "@tauri-apps/api/event";
 import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
 
@@ -37,9 +34,7 @@ export const commands = {
   async isServerRunning(): Promise<boolean> {
     return await TAURI_INVOKE("plugin:local-llm|is_server_running");
   },
-  async isModelDownloaded(
-    model: SupportedModel,
-  ): Promise<Result<boolean, string>> {
+  async isModelDownloaded(model: SupportedModel): Promise<Result<boolean, string>> {
     try {
       return {
         status: "ok",
@@ -52,9 +47,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async isModelDownloading(
-    model: SupportedModel,
-  ): Promise<Result<boolean, string>> {
+  async isModelDownloading(model: SupportedModel): Promise<Result<boolean, string>> {
     try {
       return {
         status: "ok",
@@ -167,25 +160,18 @@ export const commands = {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:local-llm|get_current_model_selection",
-        ),
+        data: await TAURI_INVOKE("plugin:local-llm|get_current_model_selection"),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
       else return { status: "error", error: e as any };
     }
   },
-  async setCurrentModelSelection(
-    model: ModelSelection,
-  ): Promise<Result<null, string>> {
+  async setCurrentModelSelection(model: ModelSelection): Promise<Result<null, string>> {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:local-llm|set_current_model_selection",
-          { model },
-        ),
+        data: await TAURI_INVOKE("plugin:local-llm|set_current_model_selection", { model }),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -221,24 +207,16 @@ export type SupportedModel = "Llama3p2_3bQ4" | "Gemma3_4bQ4" | "HyprLLM";
 export type TAURI_CHANNEL<TSend> = null;
 
 type __EventObj__<T> = {
-  listen: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
-  once: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
+  listen: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
+  once: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
   emit: null extends T
     ? (payload?: T) => ReturnType<typeof TAURI_API_EVENT.emit>
     : (payload: T) => ReturnType<typeof TAURI_API_EVENT.emit>;
 };
 
-export type Result<T, E> =
-  | { status: "ok"; data: T }
-  | { status: "error"; error: E };
+export type Result<T, E> = { status: "ok"; data: T } | { status: "error"; error: E };
 
-function __makeEvents__<T extends Record<string, any>>(
-  mappings: Record<keyof T, string>,
-) {
+function __makeEvents__<T extends Record<string, any>>(mappings: Record<keyof T, string>) {
   return new Proxy(
     {} as unknown as {
       [K in keyof T]: __EventObj__<T[K]> & {

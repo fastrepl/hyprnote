@@ -110,14 +110,12 @@ export class WsProxyConnection {
         ? { headers: this.headers }
         : {};
 
-    this.upstream = new (
-      globalThis.WebSocket as {
-        new (
-          url: string | URL,
-          options?: WebSocketOptions,
-        ): InstanceType<typeof WebSocket>;
-      }
-    )(this.upstreamUrl, wsOptions);
+    this.upstream = new (globalThis.WebSocket as {
+      new (
+        url: string | URL,
+        options?: WebSocketOptions,
+      ): InstanceType<typeof WebSocket>;
+    })(this.upstreamUrl, wsOptions);
 
     this.upstream.binaryType = "arraybuffer";
     this.setupUpstreamHandlers();

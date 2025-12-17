@@ -1,9 +1,6 @@
 // @ts-nocheck
 /** tauri-specta globals **/
-import {
-  Channel as TAURI_CHANNEL,
-  invoke as TAURI_INVOKE,
-} from "@tauri-apps/api/core";
+import { Channel as TAURI_CHANNEL, invoke as TAURI_INVOKE } from "@tauri-apps/api/core";
 import * as TAURI_API_EVENT from "@tauri-apps/api/event";
 import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
 
@@ -23,9 +20,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async listEvents(
-    filter: ListEventFilter | null,
-  ): Promise<Result<Event[], string>> {
+  async listEvents(filter: ListEventFilter | null): Promise<Result<Event[], string>> {
     try {
       return {
         status: "ok",
@@ -36,9 +31,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async getCalendar(
-    calendarId: string,
-  ): Promise<Result<Calendar | null, string>> {
+  async getCalendar(calendarId: string): Promise<Result<Calendar | null, string>> {
     try {
       return {
         status: "ok",
@@ -71,9 +64,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async toggleCalendarSelected(
-    trackingId: string,
-  ): Promise<Result<Calendar, string>> {
+  async toggleCalendarSelected(trackingId: string): Promise<Result<Calendar, string>> {
     try {
       return {
         status: "ok",
@@ -163,9 +154,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async listSessions(
-    filter: ListSessionFilter | null,
-  ): Promise<Result<Session[], string>> {
+  async listSessions(filter: ListSessionFilter | null): Promise<Result<Session[], string>> {
     try {
       return {
         status: "ok",
@@ -187,9 +176,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async getSession(
-    filter: GetSessionFilter,
-  ): Promise<Result<Session | null, string>> {
+  async getSession(filter: GetSessionFilter): Promise<Result<Session | null, string>> {
     try {
       return {
         status: "ok",
@@ -200,10 +187,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async setSessionEvent(
-    sessionId: string,
-    eventId: string | null,
-  ): Promise<Result<null, string>> {
+  async setSessionEvent(sessionId: string, eventId: string | null): Promise<Result<null, string>> {
     try {
       return {
         status: "ok",
@@ -217,10 +201,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async sessionAddParticipant(
-    sessionId: string,
-    humanId: string,
-  ): Promise<Result<null, string>> {
+  async sessionAddParticipant(sessionId: string, humanId: string): Promise<Result<null, string>> {
     try {
       return {
         status: "ok",
@@ -234,16 +215,11 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async sessionListDeletedParticipantIds(
-    sessionId: string,
-  ): Promise<Result<string[], string>> {
+  async sessionListDeletedParticipantIds(sessionId: string): Promise<Result<string[], string>> {
     try {
       return {
         status: "ok",
-        data: await TAURI_INVOKE(
-          "plugin:db|session_list_deleted_participant_ids",
-          { sessionId },
-        ),
+        data: await TAURI_INVOKE("plugin:db|session_list_deleted_participant_ids", { sessionId }),
       };
     } catch (e) {
       if (e instanceof Error) throw e;
@@ -267,9 +243,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async sessionListParticipants(
-    sessionId: string,
-  ): Promise<Result<Human[], string>> {
+  async sessionListParticipants(sessionId: string): Promise<Result<Human[], string>> {
     try {
       return {
         status: "ok",
@@ -282,9 +256,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async sessionGetEvent(
-    sessionId: string,
-  ): Promise<Result<Event | null, string>> {
+  async sessionGetEvent(sessionId: string): Promise<Result<Event | null, string>> {
     try {
       return {
         status: "ok",
@@ -358,9 +330,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async listHumans(
-    filter: ListHumanFilter | null,
-  ): Promise<Result<Human[], string>> {
+  async listHumans(filter: ListHumanFilter | null): Promise<Result<Human[], string>> {
     try {
       return {
         status: "ok",
@@ -382,9 +352,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async getOrganization(
-    id: string,
-  ): Promise<Result<Organization | null, string>> {
+  async getOrganization(id: string): Promise<Result<Organization | null, string>> {
     try {
       return {
         status: "ok",
@@ -406,9 +374,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async getOrganizationByUserId(
-    userId: string,
-  ): Promise<Result<Organization | null, string>> {
+  async getOrganizationByUserId(userId: string): Promise<Result<Organization | null, string>> {
     try {
       return {
         status: "ok",
@@ -421,9 +387,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async upsertOrganization(
-    organization: Organization,
-  ): Promise<Result<Organization, string>> {
+  async upsertOrganization(organization: Organization): Promise<Result<Organization, string>> {
     try {
       return {
         status: "ok",
@@ -449,9 +413,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async listOrganizationMembers(
-    organizationId: string,
-  ): Promise<Result<Human[], string>> {
+  async listOrganizationMembers(organizationId: string): Promise<Result<Human[], string>> {
     try {
       return {
         status: "ok",
@@ -464,9 +426,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async listChatGroups(
-    sessionId: string,
-  ): Promise<Result<ChatGroup[], string>> {
+  async listChatGroups(sessionId: string): Promise<Result<ChatGroup[], string>> {
     try {
       return {
         status: "ok",
@@ -477,9 +437,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async listChatMessages(
-    groupId: string,
-  ): Promise<Result<ChatMessage[], string>> {
+  async listChatMessages(groupId: string): Promise<Result<ChatMessage[], string>> {
     try {
       return {
         status: "ok",
@@ -501,9 +459,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async upsertChatMessage(
-    message: ChatMessage,
-  ): Promise<Result<ChatMessage, string>> {
+  async upsertChatMessage(message: ChatMessage): Promise<Result<ChatMessage, string>> {
     try {
       return {
         status: "ok",
@@ -547,10 +503,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async assignTagToSession(
-    tagId: string,
-    sessionId: string,
-  ): Promise<Result<null, string>> {
+  async assignTagToSession(tagId: string, sessionId: string): Promise<Result<null, string>> {
     try {
       return {
         status: "ok",
@@ -564,10 +517,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async unassignTagFromSession(
-    tagId: string,
-    sessionId: string,
-  ): Promise<Result<null, string>> {
+  async unassignTagFromSession(tagId: string, sessionId: string): Promise<Result<null, string>> {
     try {
       return {
         status: "ok",
@@ -618,9 +568,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async listConversations(
-    sessionId: string,
-  ): Promise<Result<ChatConversation[], string>> {
+  async listConversations(sessionId: string): Promise<Result<ChatConversation[], string>> {
     try {
       return {
         status: "ok",
@@ -631,9 +579,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async createMessageV2(
-    message: ChatMessageV2,
-  ): Promise<Result<ChatMessageV2, string>> {
+  async createMessageV2(message: ChatMessageV2): Promise<Result<ChatMessageV2, string>> {
     try {
       return {
         status: "ok",
@@ -644,9 +590,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async listMessagesV2(
-    conversationId: string,
-  ): Promise<Result<ChatMessageV2[], string>> {
+  async listMessagesV2(conversationId: string): Promise<Result<ChatMessageV2[], string>> {
     try {
       return {
         status: "ok",
@@ -659,10 +603,7 @@ export const commands = {
       else return { status: "error", error: e as any };
     }
   },
-  async updateMessageV2Parts(
-    id: string,
-    parts: string,
-  ): Promise<Result<null, string>> {
+  async updateMessageV2Parts(id: string, parts: string): Promise<Result<null, string>> {
     try {
       return {
         status: "ok",
@@ -718,11 +659,7 @@ export type ChatMessage = {
   tool_details: string | null;
 };
 export type ChatMessageRole = "User" | "Assistant";
-export type ChatMessageType =
-  | "text-delta"
-  | "tool-start"
-  | "tool-result"
-  | "tool-error";
+export type ChatMessageType = "text-delta" | "tool-start" | "tool-result" | "tool-error";
 export type ChatMessageV2 = {
   id: string;
   conversation_id: string;
@@ -774,10 +711,7 @@ export type Event = {
   participants: string | null;
   is_recurring: boolean;
 };
-export type GetSessionFilter =
-  | { id: string }
-  | { calendarEventId: string }
-  | { tagId: string };
+export type GetSessionFilter = { id: string } | { calendarEventId: string } | { tagId: string };
 export type Human = {
   id: string;
   organization_id: string | null;
@@ -844,24 +778,16 @@ export type Word2 = {
 };
 
 type __EventObj__<T> = {
-  listen: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
-  once: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
+  listen: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
+  once: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
   emit: null extends T
     ? (payload?: T) => ReturnType<typeof TAURI_API_EVENT.emit>
     : (payload: T) => ReturnType<typeof TAURI_API_EVENT.emit>;
 };
 
-export type Result<T, E> =
-  | { status: "ok"; data: T }
-  | { status: "error"; error: E };
+export type Result<T, E> = { status: "ok"; data: T } | { status: "error"; error: E };
 
-function __makeEvents__<T extends Record<string, any>>(
-  mappings: Record<keyof T, string>,
-) {
+function __makeEvents__<T extends Record<string, any>>(mappings: Record<keyof T, string>) {
   return new Proxy(
     {} as unknown as {
       [K in keyof T]: __EventObj__<T[K]> & {

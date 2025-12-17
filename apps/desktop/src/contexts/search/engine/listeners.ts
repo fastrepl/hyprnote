@@ -39,7 +39,7 @@ export function createSessionListener(
           created_at: toNumber(row.created_at),
         };
 
-        update(index, rowId, data);
+        void update(index, rowId, data);
       }
     } catch (error) {
       console.error("Failed to update session in search index:", error);
@@ -68,7 +68,7 @@ export function createHumanListener(
           content: createHumanSearchableContent(row),
           created_at: toNumber(row.created_at),
         };
-        update(index, rowId, data);
+        void update(index, rowId, data);
       }
     } catch (error) {
       console.error("Failed to update human in search index:", error);
@@ -84,7 +84,7 @@ export function createOrganizationListener(
       const rowExists = store.getRow("organizations", rowId);
 
       if (!rowExists) {
-        remove(index, rowId);
+        void remove(index, rowId);
       } else {
         const fields = ["name", "created_at"];
         const row = collectCells(store, "organizations", rowId, fields);
@@ -98,7 +98,7 @@ export function createOrganizationListener(
           created_at: toNumber(row.created_at),
         };
 
-        update(index, rowId, data);
+        void update(index, rowId, data);
       }
     } catch (error) {
       console.error("Failed to update organization in search index:", error);

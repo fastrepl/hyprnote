@@ -25,7 +25,8 @@
   font-size: 0.9rem;
 }
 
-.mention-item:hover, .mention-item.is-selected {
+.mention-item:hover,
+.mention-item.is-selected {
   background-color: rgba(59, 130, 246, 0.06);
 }
 

@@ -1,27 +1,19 @@
 import { Icon } from "@iconify-icon/react";
+import { platform } from "@tauri-apps/plugin-os";
 
-import {
-  Divider,
-  IntegrationRow,
-  OnboardingContainer,
-  type OnboardingNext,
-} from "./shared";
+import { useAuth } from "../../auth";
+import { getNextAfterConfigureNotice, type StepProps } from "./config";
+import { Divider, IntegrationRow, OnboardingContainer } from "./shared";
 
-type CalendarsProps = {
-  local: boolean;
-  onNext: OnboardingNext;
-  onBack?: () => void;
-};
+export function Calendars({ onNavigate }: StepProps) {
+  const auth = useAuth();
+  const currentPlatform = platform();
+  const isLoggedIn = !!auth?.session;
 
-export function Calendars({ local, onNext, onBack }: CalendarsProps) {
   return (
-    <OnboardingContainer
-      title="Connect your calendars to be reminded every time"
-      action={{ kind: "skip", onClick: () => onNext() }}
-      onBack={onBack}
-    >
+    <OnboardingContainer title="Connect your calendars to be reminded every time">
       <div className="flex flex-col gap-4">
-        {local ? (
+        {!isLoggedIn ? (
           <>
             <IntegrationRow
               icon={<Icon icon="logos:google-calendar" size={24} />}
@@ -57,6 +49,13 @@ export function Calendars({ local, onNext, onBack }: CalendarsProps) {
           </>
         )}
       </div>
+
+      <button
+        onClick={() => onNavigate(getNextAfterConfigureNotice(currentPlatform))}
+        className="mt-4 text-sm text-neutral-400 transition-colors hover:text-neutral-600"
+      >
+        skip
+      </button>
     </OnboardingContainer>
   );
 }

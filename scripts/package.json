@@ -2,23 +2,23 @@
   "name": "hyprnote-changelog-generator",
   "version": "1.0.0",
   "description": "Local AI changelog generator for hyprnote",
+  "keywords": [
+    "ai",
+    "automation",
+    "changelog",
+    "github",
+    "openrouter"
+  ],
+  "author": "hyprnote",
+  "license": "MIT",
   "main": "generate-changelog-local.js",
-  "dependencies": {
-    "axios": "^1.6.0",
-    "@octokit/rest": "^20.0.0"
-  },
   "scripts": {
     "changelog": "node generate-changelog-local.js",
     "changelog:test": "node generate-changelog-local.js --test-mode",
     "help": "node generate-changelog-local.js --help"
   },
-  "keywords": [
-    "changelog",
-    "ai",
-    "openrouter",
-    "github",
-    "automation"
-  ],
-  "author": "hyprnote",
-  "license": "MIT"
+  "dependencies": {
+    "@octokit/rest": "^20.0.0",
+    "axios": "^1.6.0"
+  }
 }

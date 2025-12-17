@@ -30,7 +30,7 @@ export function AccountSettings() {
   }, [isAuthenticated]);
 
   const handleOpenAccount = useCallback(() => {
-    openUrl(`${WEB_APP_BASE_URL}/app/account`);
+    void openUrl(`${WEB_APP_BASE_URL}/app/account`);
   }, []);
 
   const handleSignIn = useCallback(async () => {
@@ -203,11 +203,11 @@ function BillingButton() {
   });
 
   const handleProUpgrade = useCallback(() => {
-    openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
+    void openUrl(`${WEB_APP_BASE_URL}/app/checkout?period=monthly`);
   }, []);
 
   const handleOpenAccount = useCallback(() => {
-    openUrl(`${WEB_APP_BASE_URL}/app/account`);
+    void openUrl(`${WEB_APP_BASE_URL}/app/account`);
   }, []);
 
   if (isPro) {

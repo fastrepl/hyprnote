@@ -21,8 +21,8 @@ import { cn } from "@hypr/utils";
 import { useBillingAccess } from "../../../../billing";
 import * as settings from "../../../../store/tinybase/settings";
 import {
-  getRequiredConfigFields,
   getProviderSelectionBlockers,
+  getRequiredConfigFields,
   type ProviderRequirement,
   requiresEntitlement,
 } from "./eligibility";
@@ -112,7 +112,7 @@ export function NonHyprProviderCard({
     listeners: {
       onChange: ({ formApi }) => {
         queueMicrotask(() => {
-          formApi.handleSubmit();
+          void formApi.handleSubmit();
         });
       },
     },

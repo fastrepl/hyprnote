@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { platform } from "@tauri-apps/plugin-os";
 import { useCallback, useEffect, useState } from "react";
 
 import { getRpcCanStartTrial, postBillingStartTrial } from "@hypr/api-client";
@@ -8,16 +9,12 @@ import { useAuth } from "../../auth";
 import { getEntitlementsFromToken } from "../../billing";
 import { env } from "../../env";
 import * as settings from "../../store/tinybase/settings";
-import { Divider, OnboardingContainer, type OnboardingNext } from "./shared";
+import { getNextAfterLogin, type StepProps } from "./config";
+import { Divider, OnboardingContainer } from "./shared";
 
-export function Login({
-  onNext,
-  onBack,
-}: {
-  onNext: OnboardingNext;
-  onBack?: () => void;
-}) {
+export function Login({ onNavigate }: StepProps) {
   const auth = useAuth();
+  const currentPlatform = platform();
   const [callbackUrl, setCallbackUrl] = useState("");
 
   const setLlmProvider = settings.UI.useSetValueCallback(
@@ -79,31 +76,33 @@ export function Login({
       if (isPro) {
         setTrialDefaults();
       }
-      onNext({ local: !isPro });
+      onNavigate(getNextAfterLogin(currentPlatform, isPro));
     },
     onError: (e) => {
       console.error(e);
-      onNext({ local: true });
+      onNavigate("configure-notice");
     },
   });
 
-  useEffect(() => {
-    if (auth?.session && processLoginMutation.isIdle) {
-      processLoginMutation.mutate();
-    }
-  }, [auth?.session, processLoginMutation]);
+  const { mutate, isIdle } = processLoginMutation;
 
   useEffect(() => {
-    if (processLoginMutation.isIdle && !auth?.session) {
-      auth?.signIn();
+    if (auth?.session && isIdle) {
+      mutate();
     }
-  }, [auth, processLoginMutation.isIdle]);
+  }, [auth?.session, isIdle, mutate]);
+
+  useEffect(() => {
+    if (isIdle && !auth?.session) {
+      void auth?.signIn();
+    }
+  }, [auth, isIdle]);
 
   return (
     <OnboardingContainer
       title="Waiting for sign in..."
       description="Complete the process in your browser"
-      onBack={onBack}
+      onBack={() => onNavigate("welcome")}
     >
       <button
         onClick={() => auth?.signIn()}

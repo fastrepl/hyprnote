@@ -14,6 +14,10 @@ import { useAuth } from "../../../../auth";
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
 import * as settings from "../../../../store/tinybase/settings";
+import {
+  getProviderSelectionBlockers,
+  requiresEntitlement,
+} from "../shared/eligibility";
 import { listAnthropicModels } from "../shared/list-anthropic";
 import {
   type InputModality,
@@ -25,10 +29,6 @@ import { listOllamaModels } from "../shared/list-ollama";
 import { listGenericModels, listOpenAIModels } from "../shared/list-openai";
 import { listOpenRouterModels } from "../shared/list-openrouter";
 import { ModelCombobox } from "../shared/model-combobox";
-import {
-  getProviderSelectionBlockers,
-  requiresEntitlement,
-} from "../shared/eligibility";
 import { HealthCheckForConnection } from "./health";
 import { PROVIDERS } from "./shared";
 
@@ -67,7 +67,7 @@ export function SelectProviderAndModel() {
           console.log(errors);
         }
 
-        formApi.handleSubmit();
+        void formApi.handleSubmit();
       },
     },
     onSubmit: ({ value }) => {

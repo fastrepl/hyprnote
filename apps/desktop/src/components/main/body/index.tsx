@@ -1,3 +1,4 @@
+import { platform } from "@tauri-apps/plugin-os";
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -13,7 +14,6 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import { useShell } from "../../../contexts/shell";
-import { useIsLinux } from "../../../hooks/usePlatform";
 import {
   type Tab,
   uniqueIdfromTab,
@@ -27,6 +27,7 @@ import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
+import { TabContentData, TabItemData } from "./data";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import { TabContentEvent, TabItemEvent } from "./events";
 import {
@@ -54,7 +55,7 @@ export function Body() {
   );
 
   useEffect(() => {
-    loadExtensionPanels();
+    void loadExtensionPanels();
   }, []);
 
   if (!currentTab) {
@@ -73,7 +74,7 @@ export function Body() {
 
 function Header({ tabs }: { tabs: Tab[] }) {
   const { leftsidebar } = useShell();
-  const isLinux = useIsLinux();
+  const isLinux = platform() === "linux";
   const {
     select,
     close,
@@ -442,6 +443,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "data") {
+    return (
+      <TabItemData
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -492,6 +505,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
   }
+  if (tab.type === "data") {
+    return <TabContentData tab={tab} />;
+  }
 
   return null;
 }
@@ -504,7 +520,11 @@ function TabChatButton() {
     return null;
   }
 
-  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
+  if (
+    currentTab?.type === "ai" ||
+    currentTab?.type === "settings" ||
+    currentTab?.type === "data"
+  ) {
     return null;
   }
 

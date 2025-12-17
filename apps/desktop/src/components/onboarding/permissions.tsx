@@ -2,16 +2,10 @@ import { AlertCircleIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 
 import { cn } from "@hypr/utils";
 
+import { useAuth } from "../../auth";
 import { usePermissions } from "../../hooks/use-permissions";
-import { OnboardingContainer, type OnboardingNext } from "./shared";
-
-type PermissionBlockProps = {
-  name: string;
-  status: string | undefined;
-  description: { authorized: string; unauthorized: string };
-  isPending: boolean;
-  onAction: () => void;
-};
+import type { StepProps } from "./config";
+import { OnboardingContainer } from "./shared";
 
 function PermissionBlock({
   name,
@@ -19,7 +13,13 @@ function PermissionBlock({
   description,
   isPending,
   onAction,
-}: PermissionBlockProps) {
+}: {
+  name: string;
+  status: string | undefined;
+  description: { authorized: string; unauthorized: string };
+  isPending: boolean;
+  onAction: () => void;
+}) {
   const isAuthorized = status === "authorized";
 
   return (
@@ -71,12 +71,8 @@ function PermissionBlock({
   );
 }
 
-type PermissionsProps = {
-  onNext: OnboardingNext;
-  onBack?: () => void;
-};
-
-export function Permissions({ onNext, onBack }: PermissionsProps) {
+export function Permissions({ onNavigate }: StepProps) {
+  const auth = useAuth();
   const {
     micPermissionStatus,
     systemAudioPermissionStatus,
@@ -94,10 +90,12 @@ export function Permissions({ onNext, onBack }: PermissionsProps) {
     systemAudioPermissionStatus.data === "authorized" &&
     accessibilityPermissionStatus.data === "authorized";
 
+  const backStep = auth?.session ? "welcome" : "configure-notice";
+
   return (
     <OnboardingContainer
       title="Permissions needed for best experience"
-      onBack={onBack}
+      onBack={() => onNavigate(backStep)}
     >
       <div className="flex flex-col gap-4">
         <PermissionBlock
@@ -135,7 +133,7 @@ export function Permissions({ onNext, onBack }: PermissionsProps) {
       </div>
 
       <button
-        onClick={() => onNext()}
+        onClick={() => onNavigate("done")}
         disabled={!allPermissionsGranted}
         className={cn([
           "w-full py-3 rounded-full text-sm font-medium duration-150",

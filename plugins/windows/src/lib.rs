@@ -81,6 +81,13 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             Ok(())
         })
+        .on_event(move |app, event| match event {
+            tauri::RunEvent::ExitRequested { .. } => {
+                use tauri_plugin_window_state::{AppHandleExt, StateFlags};
+                let _ = app.save_window_state(StateFlags::SIZE);
+            }
+            _ => {}
+        })
         .build()
 }
 
@@ -103,5 +110,10 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
+    }
+
+    #[test]
+    fn test_version() {
+        println!("version: {}", tauri_plugin_os::version());
     }
 }

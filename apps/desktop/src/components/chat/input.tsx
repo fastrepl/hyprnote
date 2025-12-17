@@ -44,7 +44,7 @@ export function ChatMessageInput({
       return;
     }
 
-    analyticsCommands.event({ event: "chat_message_sent" });
+    void analyticsCommands.event({ event: "chat_message_sent" });
     onSendMessage(text, [{ type: "text", text }]);
     editorRef.current?.editor?.commands.clearContent();
   }, [disabled, onSendMessage]);
@@ -198,6 +198,7 @@ function Container({ children }: { children: React.ReactNode }) {
 }
 
 const ChatPlaceholder: PlaceholderFunction = ({ node, pos }) => {
+  "use no memo";
   if (node.type.name === "paragraph" && pos === 0) {
     return (
       <p className="text-sm text-neutral-400">

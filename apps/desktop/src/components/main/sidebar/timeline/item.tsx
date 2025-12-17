@@ -85,7 +85,7 @@ export const TimelineItemComponent = memo(
           title: title,
           created_at: new Date().toISOString(),
         });
-        analyticsCommands.event({
+        void analyticsCommands.event({
           event: "note_created",
           has_event_id: true,
         });
@@ -109,7 +109,7 @@ export const TimelineItemComponent = memo(
         invalidateResource("sessions", item.id);
         store.delRow("sessions", item.id);
       }
-    }, [store, item.id, invalidateResource]);
+    }, [store, item.id, item.type, invalidateResource]);
 
     const contextMenu = (
       <>

@@ -1,3 +1,4 @@
+import { platform } from "@tauri-apps/plugin-os";
 import { AxeIcon, PanelLeftCloseIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -6,7 +7,6 @@ import { cn } from "@hypr/utils";
 
 import { useSearch } from "../../../contexts/search/ui";
 import { useShell } from "../../../contexts/shell";
-import { useIsLinux } from "../../../hooks/usePlatform";
 import { TrafficLights } from "../../window/traffic-lights";
 import { BannerArea } from "./banner";
 import { DevtoolView } from "./devtool";
@@ -18,7 +18,7 @@ export function LeftSidebar() {
   const { leftsidebar } = useShell();
   const { query } = useSearch();
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
-  const isLinux = useIsLinux();
+  const isLinux = platform() === "linux";
 
   const showSearchResults = query.trim() !== "";
 

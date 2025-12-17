@@ -95,7 +95,7 @@ export function TranscriptContainer({
 
   const handleSelectionAction = (action: string, selectedText: string) => {
     if (action === "copy") {
-      navigator.clipboard.writeText(selectedText);
+      void navigator.clipboard.writeText(selectedText);
     }
   };
 

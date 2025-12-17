@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./globals.css": "./dist/globals.css",
-    "./postcss.config": "./postcss.config.mjs",
-    "./tailwind.config": "./tailwind.config.ts",
-    "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.tsx",
     "./contexts/*": "./src/contexts/*.tsx",
-    "./docs": "./src/docs/index.tsx"
+    "./docs": "./src/docs/index.tsx",
+    "./globals.css": "./dist/globals.css",
+    "./hooks/*": "./src/hooks/*.tsx",
+    "./lib/*": "./src/lib/*.ts",
+    "./postcss.config": "./postcss.config.mjs",
+    "./tailwind.config": "./tailwind.config.ts"
   },
   "scripts": {
     "build": "tailwindcss -i ./src/styles/globals.css -o ./dist/globals.css --minify"
@@ -48,7 +48,7 @@
     "react-hotkeys-hook": "^4.6.2",
     "react-resizable-panels": "^2.1.9",
     "sonner": "^1.7.4",
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.90.12",
@@ -58,8 +58,8 @@
     "autoprefixer": "^10.4.22",
     "clsx": "^2.1.1",
     "postcss": "^8.5.6",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.18",
     "typescript": "~5.6.3"

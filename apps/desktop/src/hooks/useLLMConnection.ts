@@ -16,13 +16,13 @@ import type { AIProviderStorage } from "@hypr/store";
 import { useAuth } from "../auth";
 import { useBillingAccess } from "../billing";
 import {
-  getProviderSelectionBlockers,
-  type ProviderEligibilityContext,
-} from "../components/settings/ai/shared/eligibility";
-import {
   type ProviderId,
   PROVIDERS,
 } from "../components/settings/ai/llm/shared";
+import {
+  getProviderSelectionBlockers,
+  type ProviderEligibilityContext,
+} from "../components/settings/ai/shared/eligibility";
 import { env } from "../env";
 import * as settings from "../store/tinybase/settings";
 import { tracedFetch } from "../utils/traced-fetch";

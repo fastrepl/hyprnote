@@ -19,7 +19,6 @@ import type {
   WordStorage,
 } from "@hypr/store";
 
-import { DEFAULT_USER_ID, id } from "../../../../utils";
 import { createCalendar } from "./calendar";
 import { createChatGroup, createChatMessage } from "./chat";
 import { createChatShortcut } from "./chat-shortcut";
@@ -274,36 +273,19 @@ export const buildTranscriptsForSessions = (
   const words: Record<string, WordStorage> = {};
 
   sessionIds.forEach((sessionId) => {
-    const transcriptId = id();
-    const createdAt = faker.date.recent({ days: 30 });
-    const startedAt = createdAt.getTime();
+    const result = generateTranscript({ sessionId });
 
-    const transcript = generateTranscript();
-    let maxEndMs = 0;
+    if (!("transcript" in result)) {
+      throw new Error("Expected transcript metadata");
+    }
 
-    transcript.words.forEach((word) => {
-      if (word.end_ms !== undefined && word.end_ms > maxEndMs) {
-        maxEndMs = word.end_ms;
-      }
-      const wordId = id();
-      words[wordId] = {
-        user_id: DEFAULT_USER_ID,
-        transcript_id: transcriptId,
-        text: word.text,
-        start_ms: word.start_ms,
-        end_ms: word.end_ms,
-        channel: word.channel,
-        created_at: faker.date.recent({ days: 30 }).toISOString(),
-      };
+    const { transcriptId, transcript, words: transcriptWords } = result;
+
+    Object.entries(transcriptWords).forEach(([wordId, word]) => {
+      words[wordId] = word;
     });
 
-    transcripts[transcriptId] = {
-      user_id: DEFAULT_USER_ID,
-      session_id: sessionId,
-      created_at: createdAt.toISOString(),
-      started_at: startedAt,
-      ended_at: maxEndMs > 0 ? startedAt + maxEndMs : undefined,
-    };
+    transcripts[transcriptId] = transcript;
   });
 
   return { transcripts, words };

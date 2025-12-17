@@ -14,7 +14,9 @@ thread_local! {
 }
 
 static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+static ACCEPT_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+static TIMEOUT_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 
 pub fn setup_notification_dismiss_handler<F>(f: F)
 where
@@ -30,14 +32,40 @@ where
     *CONFIRM_CB.lock().unwrap() = Some(Box::new(f));
 }
 
+pub fn setup_notification_accept_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    *ACCEPT_CB.lock().unwrap() = Some(Box::new(f));
+}
+
+pub fn setup_notification_timeout_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    *TIMEOUT_CB.lock().unwrap() = Some(Box::new(f));
+}
+
 fn call_confirm_handler(id: String) {
     if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
         cb(id);
     }
 }
 
+fn call_accept_handler(id: String) {
+    if let Some(cb) = ACCEPT_CB.lock().unwrap().as_ref() {
+        cb(id);
+    }
+}
+
 fn call_dismiss_handler(id: String) {
     if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
+        cb(id);
+    }
+}
+
+fn call_timeout_handler(id: String) {
+    if let Some(cb) = TIMEOUT_CB.lock().unwrap().as_ref() {
         cb(id);
     }
 }
@@ -65,6 +93,7 @@ impl NotificationInstance {
         let id = self.id.clone();
         let window = self.window.clone();
         let source = glib::timeout_add_seconds_local_once(timeout_seconds as u32, move || {
+            call_timeout_handler(id.clone());
             Self::dismiss_window(&window, &id, false);
         });
         self.timeout_source = Some(source);

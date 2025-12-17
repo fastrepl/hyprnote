@@ -127,12 +127,12 @@ function ExtensionStateMonitor() {
 
 function NavigationList() {
   const handleShowMain = useCallback(() => {
-    windowsCommands.windowShow({ type: "main" });
+    void windowsCommands.windowShow({ type: "main" });
   }, []);
 
   const handleShowOnboarding = useCallback(() => {
-    windowsCommands.windowShow({ type: "onboarding" }).then(() => {
-      windowsCommands.windowEmitNavigate(
+    void windowsCommands.windowShow({ type: "onboarding" }).then(() => {
+      void windowsCommands.windowEmitNavigate(
         { type: "onboarding" },
         { path: "/app/onboarding", search: {} },
       );

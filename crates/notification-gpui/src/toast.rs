@@ -2,20 +2,13 @@ use std::rc::Rc;
 
 use gpui::{prelude::*, *};
 use gpui_squircle::{SquircleStyled, squircle};
+use hypr_notification_interface::NotificationEvent;
 
 use crate::constants::{
     NOTIFICATION_CORNER_RADIUS, NOTIFICATION_HEIGHT, NOTIFICATION_MARGIN_RIGHT,
     NOTIFICATION_MARGIN_TOP, NOTIFICATION_WIDTH,
 };
-use crate::event::NotificationEvent;
-
-#[derive(Clone, Copy, Default, PartialEq)]
-pub enum NotificationTheme {
-    #[default]
-    System,
-    Light,
-    Dark,
-}
+use crate::theme::NotificationTheme;
 
 pub struct StatusToast {
     title: SharedString,
@@ -89,35 +82,7 @@ impl EventEmitter<NotificationEvent> for StatusToast {}
 
 impl Render for StatusToast {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let is_light = match self.theme {
-            NotificationTheme::System | NotificationTheme::Light => true,
-            NotificationTheme::Dark => false,
-        };
-
-        let (bg, text_primary, text_secondary, border_color) = if is_light {
-            (
-                hsla(0., 0., 0.85, 0.95),
-                hsla(0., 0., 0., 1.),
-                hsla(0., 0., 0., 0.55),
-                hsla(0., 0., 1., 0.10),
-            )
-        } else {
-            (
-                hsla(0., 0., 0.24, 0.95),
-                hsla(0., 0., 1., 1.),
-                hsla(0., 0., 1., 0.6),
-                hsla(0., 0., 1., 0.10),
-            )
-        };
-
-        let close_button_bg = hsla(0., 0., 0., 0.5);
-        let close_button_bg_hover = hsla(0., 0., 0., 0.6);
-
-        let action_button_bg = hsla(0., 0., 0.95, 0.9);
-        let action_button_bg_hover = hsla(0., 0., 0.90, 0.9);
-        let action_button_border = hsla(0., 0., 0.7, 0.5);
-        let action_button_text = hsla(0., 0., 0.1, 1.);
-
+        let colors = self.theme.colors();
         let has_action = self.action_label.is_some();
 
         div()
@@ -132,9 +97,9 @@ impl Render for StatusToast {
                     .absolute()
                     .inset_0()
                     .rounded(NOTIFICATION_CORNER_RADIUS)
-                    .bg(bg)
+                    .bg(colors.bg)
                     .border(px(0.5))
-                    .border_color(border_color),
+                    .border_color(colors.border_color),
             )
             .child(
                 div()
@@ -144,8 +109,8 @@ impl Render for StatusToast {
                     .left(px(4.))
                     .size(px(15.))
                     .rounded_full()
-                    .bg(close_button_bg)
-                    .hover(|s| s.bg(close_button_bg_hover))
+                    .bg(colors.close_button_bg)
+                    .hover(|s| s.bg(colors.close_button_bg_hover))
                     .cursor_pointer()
                     .flex()
                     .items_center()
@@ -160,7 +125,7 @@ impl Render for StatusToast {
                             .child("×"),
                     )
                     .on_click(cx.listener(|_, _, _, cx| {
-                        cx.emit(NotificationEvent::Dismissed);
+                        cx.emit(NotificationEvent::Dismiss);
                     })),
             )
             .child(
@@ -173,14 +138,14 @@ impl Render for StatusToast {
                     .items_center()
                     .gap(px(8.))
                     .child(self.render_icon())
-                    .child(self.render_text_content(text_primary, text_secondary))
+                    .child(self.render_text_content(colors.text_primary, colors.text_secondary))
                     .when_some(self.action_label.clone(), |el, label| {
                         el.child(self.render_action_button(
                             label,
-                            action_button_bg,
-                            action_button_bg_hover,
-                            action_button_border,
-                            action_button_text,
+                            colors.action_button_bg,
+                            colors.action_button_bg_hover,
+                            colors.action_button_border,
+                            colors.action_button_text,
                             cx,
                         ))
                     })
@@ -266,7 +231,7 @@ impl StatusToast {
                     .child(label),
             )
             .on_click(cx.listener(|_, _, _, cx| {
-                cx.emit(NotificationEvent::Accepted);
+                cx.emit(NotificationEvent::Accept);
             }))
     }
 }

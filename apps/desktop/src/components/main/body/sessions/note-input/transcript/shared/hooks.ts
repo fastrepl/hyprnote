@@ -105,7 +105,7 @@ export function useFinalSpeakerHints(
     });
 
     return convertStorageHintsToRuntime(storageHints, wordIdToIndex);
-  }, [store, wordIds, speakerHintIds, transcriptId]);
+  }, [store, wordIds, speakerHintIds]);
 }
 
 export function useTranscriptOffset(transcriptId: string): number {

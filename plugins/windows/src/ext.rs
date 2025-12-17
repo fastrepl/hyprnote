@@ -75,17 +75,11 @@ impl AppWindow {
         #[cfg(target_os = "macos")]
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
-        if self.label() == "main" {
+        if matches!(self, Self::Main) {
             use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
 
             let e = AnalyticsPayload::builder("show_main_window").build();
-
-            let app_clone = app.clone();
-            tauri::async_runtime::spawn(async move {
-                if let Err(e) = app_clone.event(e).await {
-                    tracing::error!("failed_to_send_analytics: {:?}", e);
-                }
-            });
+            app.analytics().event_fire_and_forget(e);
         }
 
         if let Some(window) = self.get(app) {
@@ -96,8 +90,13 @@ impl AppWindow {
 
         let window = self.build_window(app)?;
 
-        window.set_focus()?;
+        if matches!(self, Self::Main) {
+            use tauri_plugin_window_state::{StateFlags, WindowExt};
+            let _ = window.restore_state(StateFlags::SIZE);
+        }
+
         window.show()?;
+        window.set_focus()?;
 
         Ok(window)
     }

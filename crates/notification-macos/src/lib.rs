@@ -15,7 +15,9 @@ swift!(fn _show_notification(
 swift!(fn _dismiss_all_notifications() -> Bool);
 
 static CONFIRM_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+static ACCEPT_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 static DISMISS_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
+static TIMEOUT_CB: Mutex<Option<Box<dyn Fn(String) + Send + Sync>>> = Mutex::new(None);
 
 pub fn setup_notification_dismiss_handler<F>(f: F)
 where
@@ -31,6 +33,20 @@ where
     *CONFIRM_CB.lock().unwrap() = Some(Box::new(f));
 }
 
+pub fn setup_notification_accept_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    *ACCEPT_CB.lock().unwrap() = Some(Box::new(f));
+}
+
+pub fn setup_notification_timeout_handler<F>(f: F)
+where
+    F: Fn(String) + Send + Sync + 'static,
+{
+    *TIMEOUT_CB.lock().unwrap() = Some(Box::new(f));
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rust_on_notification_confirm(id_ptr: *const c_char) {
     if let Some(cb) = CONFIRM_CB.lock().unwrap().as_ref() {
@@ -43,8 +59,30 @@ pub unsafe extern "C" fn rust_on_notification_confirm(id_ptr: *const c_char) {
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn rust_on_notification_accept(id_ptr: *const c_char) {
+    if let Some(cb) = ACCEPT_CB.lock().unwrap().as_ref() {
+        let id = unsafe { CStr::from_ptr(id_ptr) }
+            .to_str()
+            .unwrap()
+            .to_string();
+        cb(id);
+    }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn rust_on_notification_dismiss(id_ptr: *const c_char) {
     if let Some(cb) = DISMISS_CB.lock().unwrap().as_ref() {
+        let id = unsafe { CStr::from_ptr(id_ptr) }
+            .to_str()
+            .unwrap()
+            .to_string();
+        cb(id);
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rust_on_notification_timeout(id_ptr: *const c_char) {
+    if let Some(cb) = TIMEOUT_CB.lock().unwrap().as_ref() {
         let id = unsafe { CStr::from_ptr(id_ptr) }
             .to_str()
             .unwrap()

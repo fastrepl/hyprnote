@@ -1,15 +1,15 @@
-import { OnboardingContainer, type OnboardingNext } from "./shared";
+import { platform } from "@tauri-apps/plugin-os";
 
-type ConfigureNoticeProps = {
-  onNext: OnboardingNext;
-  onBack?: () => void;
-};
+import { getNextAfterConfigureNotice, type StepProps } from "./config";
+import { OnboardingContainer } from "./shared";
 
-export function ConfigureNotice({ onNext, onBack }: ConfigureNoticeProps) {
+export function ConfigureNotice({ onNavigate }: StepProps) {
+  const currentPlatform = platform();
+
   return (
     <OnboardingContainer
       title="AI models are needed for best experience"
-      onBack={onBack}
+      onBack={() => onNavigate("welcome")}
     >
       <div className="flex flex-col gap-4">
         <Requirement
@@ -25,7 +25,9 @@ export function ConfigureNotice({ onNext, onBack }: ConfigureNoticeProps) {
 
       <div className="flex flex-col gap-3 mt-4">
         <button
-          onClick={() => onNext()}
+          onClick={() =>
+            onNavigate(getNextAfterConfigureNotice(currentPlatform))
+          }
           className="w-full py-3 rounded-full bg-gradient-to-t from-stone-600 to-stone-500 text-white text-sm font-medium duration-150 hover:scale-[1.01] active:scale-[0.99]"
         >
           I will configure it later
@@ -35,7 +37,7 @@ export function ConfigureNotice({ onNext, onBack }: ConfigureNoticeProps) {
   );
 }
 
-export function Requirement({
+function Requirement({
   title,
   description,
   required,

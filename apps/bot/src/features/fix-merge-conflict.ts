@@ -59,7 +59,7 @@ export function registerFixMergeConflictHandler(app: Probot): void {
         }
       } catch (error) {
         context.log.error(
-          `Failed to handle merge conflict check for PR #${pr.number}: ${error}`,
+          `Failed to handle merge conflict check for PR #${pr.number}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }

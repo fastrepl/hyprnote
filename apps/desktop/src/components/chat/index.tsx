@@ -1,7 +1,5 @@
 import { useCallback } from "react";
 
-import { commands as windowsCommands } from "@hypr/plugin-windows";
-
 import { useShell } from "../../contexts/shell";
 import { useAutoCloser } from "../../hooks/useAutoCloser";
 import { InteractiveContainer } from "./interactive";
@@ -18,10 +16,6 @@ export function ChatFloatingButton() {
   });
 
   const handleClickTrigger = useCallback(async () => {
-    const isExists = await windowsCommands.windowIsExists({ type: "chat" });
-    if (isExists) {
-      windowsCommands.windowDestroy({ type: "chat" });
-    }
     chat.sendEvent({ type: "OPEN" });
   }, [chat]);
 

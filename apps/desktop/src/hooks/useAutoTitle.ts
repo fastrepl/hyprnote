@@ -48,7 +48,7 @@ export function useAutoTitle(tab: Extract<Tab, { type: "sessions" }>) {
       model,
       args: { sessionId },
     });
-  }, [title, model, titleTask.status, titleTask.start, sessionId]);
+  }, [title, model, titleTask, sessionId]);
 
   useAITaskTask(enhanceTaskId, "enhance", {
     onSuccess: attemptGenerateTitle,

@@ -15,7 +15,7 @@
   "dependencies": {
     "@t3-oss/env-core": "^0.13.8",
     "probot": "^13.4.7",
-    "zod": "^4.1.13"
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@octokit/plugin-rest-endpoint-methods": "^17.0.0",

@@ -317,12 +317,13 @@ function HyprProviderLocalRow({
     handleCancel,
   } = useLocalModelDownload(model, handleSelectModel);
 
-  const handleOpen = () =>
-    localSttCommands.modelsDir().then((result) => {
+  const handleOpen = () => {
+    void localSttCommands.modelsDir().then((result) => {
       if (result.status === "ok") {
-        openPath(result.data);
+        void openPath(result.data);
       }
     });
+  };
 
   return (
     <HyprProviderRow>
@@ -380,7 +381,7 @@ function useLocalModelDownload(
     });
 
     return () => {
-      unlisten.then((fn) => fn());
+      void unlisten.then((fn) => fn());
     };
   }, [model]);
 
@@ -398,7 +399,7 @@ function useLocalModelDownload(
     setHasError(false);
     setIsStarting(true);
     setProgress(0);
-    localSttCommands.downloadModel(model).then((result) => {
+    void localSttCommands.downloadModel(model).then((result) => {
       if (result.status === "error") {
         setHasError(true);
         setIsStarting(false);
@@ -407,7 +408,7 @@ function useLocalModelDownload(
   };
 
   const handleCancel = () => {
-    localSttCommands.cancelDownload(model);
+    void localSttCommands.cancelDownload(model);
     setIsStarting(false);
     setProgress(0);
   };

@@ -73,6 +73,10 @@ export const SETTINGS_MAPPING = {
       type: "string",
       path: ["ai", "current_stt_model"],
     },
+    auto_export: {
+      type: "boolean",
+      path: ["data", "auto_export"],
+    },
   },
   tables: {
     ai_providers: {
@@ -241,12 +245,15 @@ function migrateFromMainStore(mainStore: main.Store, settingsStore: Store) {
 
   const mainValues = mainStore.getValues();
   for (const key of SETTINGS_VALUE_KEYS) {
-    const value = mainValues[key];
+    if (!(key in mainValues)) {
+      continue;
+    }
+    const value = mainValues[key as keyof typeof mainValues];
     if (value !== undefined && !settingsStore.hasValue(key)) {
       settingsStore.setValue(key, value as any);
     }
     if (value !== undefined) {
-      mainStore.delValue(key);
+      mainStore.delValue(key as keyof typeof mainValues);
     }
   }
 }

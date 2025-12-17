@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_view/callback/auth")({
       const { error } = await supabase.auth.exchangeCodeForSession(search.code);
 
       if (!error) {
-        throw redirect({ to: search.redirect || "/app/account" });
+        throw redirect({ href: search.redirect || "/app/account" });
       } else {
         console.error(error);
       }
@@ -86,7 +86,7 @@ function Component() {
 
   useEffect(() => {
     if (search.flow === "web") {
-      throw redirect({ to: search.redirect || "/app/account" });
+      throw redirect({ href: search.redirect || "/app/account" });
     }
 
     if (

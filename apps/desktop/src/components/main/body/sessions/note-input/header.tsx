@@ -100,7 +100,7 @@ function HeaderTabEnhanced({
   const handleRegenerateClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      onRegenerate(null);
+      void onRegenerate(null);
     },
     [onRegenerate],
   );
@@ -251,7 +251,7 @@ function CreateOtherFormatButton({
         return;
       }
 
-      analyticsCommands.event({
+      void analyticsCommands.event({
         event: "template_summary_created",
         template_id: templateId,
       });
@@ -472,7 +472,7 @@ function useEnhanceLogic(sessionId: string, enhancedNoteId: string) {
 
       setMissingModelError(null);
 
-      analyticsCommands.event({
+      void analyticsCommands.event({
         event: "summary_generated",
         is_auto: false,
       });

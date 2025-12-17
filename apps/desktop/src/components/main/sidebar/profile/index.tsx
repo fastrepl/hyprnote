@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   CalendarIcon,
   ChevronUpIcon,
+  DatabaseIcon,
   FolderOpenIcon,
   SettingsIcon,
   SparklesIcon,
@@ -154,11 +155,17 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     closeMenu();
   }, [openNew, closeMenu]);
 
+  const handleClickData = useCallback(() => {
+    openNew({ type: "data" });
+    closeMenu();
+  }, [openNew, closeMenu]);
+
   const menuItems = [
     { icon: FolderOpenIcon, label: "Folders", onClick: handleClickFolders },
     { icon: UsersIcon, label: "Contacts", onClick: handleClickContacts },
     { icon: CalendarIcon, label: "Calendar", onClick: handleClickCalendar },
     { icon: SparklesIcon, label: "AI", onClick: handleClickAI },
+    { icon: DatabaseIcon, label: "Data", onClick: handleClickData },
     { icon: UserIcon, label: "My Profile", onClick: handleClickProfile },
     {
       icon: SettingsIcon,

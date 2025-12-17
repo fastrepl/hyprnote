@@ -135,4 +135,4 @@ const extractHashtags = (text: string): string[] =>
   );
 
 const stripMarkdownFormatting = (text: string): string =>
-  text.replace(/[#*_~`\[\]()]/g, " ");
+  text.replace(/[#*_~`[\]()]/g, " ");

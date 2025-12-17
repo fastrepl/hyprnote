@@ -15,7 +15,7 @@ export function ChangelogListener() {
     }
 
     let unlisten: null | UnlistenFn = null;
-    events.updatedEvent
+    void events.updatedEvent
       .listen(({ payload: { previous, current } }) => {
         openNew({
           type: "changelog",

@@ -53,7 +53,7 @@ function PromptDetails({ selectedTask }: { selectedTask: TaskType }) {
       typeof templateCommands.render
     >[0];
 
-    templateCommands
+    void templateCommands
       .render(templateName, {})
       .then((result) => {
         if (result.status === "ok") {

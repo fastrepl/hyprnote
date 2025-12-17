@@ -38,7 +38,7 @@ const useNavigationEvents = () => {
 
     const webview = getCurrentWebviewWindow();
 
-    windowsEvents
+    void windowsEvents
       .navigate(webview)
       .listen(({ payload }) => {
         if (payload.path === "/app/settings") {
@@ -59,7 +59,7 @@ const useNavigationEvents = () => {
             openNew({ type: "settings" });
           }
         } else {
-          navigate({
+          void navigate({
             to: payload.path,
             search: payload.search ?? undefined,
           });
@@ -69,7 +69,7 @@ const useNavigationEvents = () => {
         unlistenNavigate = fn;
       });
 
-    windowsEvents
+    void windowsEvents
       .openTab(webview)
       .listen(({ payload }) => {
         openNew(payload.tab);
@@ -78,9 +78,9 @@ const useNavigationEvents = () => {
         unlistenOpenTab = fn;
       });
 
-    deeplink2Events.deepLinkEvent
+    void deeplink2Events.deepLinkEvent
       .listen(({ payload }) => {
-        navigate({ to: payload.to, search: payload.search });
+        void navigate({ to: payload.to, search: payload.search });
       })
       .then((fn) => {
         unlistenDeepLink = fn;

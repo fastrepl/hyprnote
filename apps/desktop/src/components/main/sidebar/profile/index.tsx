@@ -10,13 +10,8 @@ import {
   UsersIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useResizeObserver } from "usehooks-ts";
 
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
 import { cn } from "@hypr/utils";
@@ -69,35 +64,22 @@ export function ProfileSection({ onExpandChange }: ProfileSectionProps = {}) {
     }
   }, [isExpanded]);
 
-  useLayoutEffect(() => {
-    if (!isExpanded || currentView !== "main") {
-      return;
-    }
-
-    const element = mainViewRef.current;
-    if (!element) {
-      return;
-    }
-
-    const updateHeight = () => {
-      const height = element.getBoundingClientRect().height;
-      if (height > 0) {
+  const handleMainViewResize = useCallback(
+    ({ height }: { width?: number; height?: number }) => {
+      if (!isExpanded || currentView !== "main") {
+        return;
+      }
+      if (height && height > 0) {
         setMainViewHeight(height);
       }
-    };
+    },
+    [isExpanded, currentView],
+  );
 
-    updateHeight();
-
-    const observer = new ResizeObserver(() => {
-      updateHeight();
-    });
-
-    observer.observe(element);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [isExpanded, currentView, isAuthenticated]);
+  useResizeObserver({
+    ref: mainViewRef as React.RefObject<HTMLDivElement>,
+    onResize: handleMainViewResize,
+  });
 
   const profileRef = useAutoCloser(closeMenu, {
     esc: isExpanded,

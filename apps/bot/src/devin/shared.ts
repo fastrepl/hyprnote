@@ -6,12 +6,12 @@ export async function fetchFromDevin(
   input: string | URL,
   init?: RequestInit,
 ): Promise<Response> {
+  const headers = new Headers(init?.headers);
+  headers.set("Authorization", `Bearer ${env.DEVIN_API_KEY}`);
+
   const response = await fetch(input, {
     ...init,
-    headers: {
-      Authorization: `Bearer ${env.DEVIN_API_KEY}`,
-      ...(init?.headers ?? {}),
-    },
+    headers,
   });
 
   if (!response.ok) {

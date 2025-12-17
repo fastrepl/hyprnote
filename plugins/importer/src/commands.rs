@@ -1,34 +1,28 @@
-use std::path::PathBuf;
-
-use crate::ImporterPluginExt;
-use crate::types::{ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript};
+use crate::types::{ImportSourceInfo, ImportSourceKind};
 
 #[tauri::command]
 #[specta::specta]
-pub fn list_import_sources<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Vec<ImportSourceInfo> {
-    app.list_import_sources()
+pub async fn list_available_sources<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+) -> Result<Vec<ImportSourceInfo>, String> {
+    let sources = crate::sources::list_available_sources();
+    Ok(sources)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn import_notes<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    source: ImportSourceKind,
-    supabase_path: Option<PathBuf>,
-) -> Result<Vec<ImportedNote>, String> {
-    app.import_notes(source, supabase_path)
-        .await
-        .map_err(|e: crate::Error| e.to_string())
+pub async fn run_import<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+    _source: ImportSourceKind,
+) -> Result<(), String> {
+    Ok(())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn import_transcripts<R: tauri::Runtime>(
-    app: tauri::AppHandle<R>,
-    source: ImportSourceKind,
-    cache_path: Option<PathBuf>,
-) -> Result<Vec<ImportedTranscript>, String> {
-    app.import_transcripts(source, cache_path)
-        .await
-        .map_err(|e: crate::Error| e.to_string())
+pub async fn run_import_dry<R: tauri::Runtime>(
+    _app: tauri::AppHandle<R>,
+    _source: ImportSourceKind,
+) -> Result<(), String> {
+    Ok(())
 }

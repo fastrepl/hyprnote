@@ -36,16 +36,6 @@ pub enum ImportSourceKind {
     HyprnoteV0Nightly,
 }
 
-impl std::fmt::Display for ImportSourceKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ImportSourceKind::Granola => write!(f, "granola"),
-            ImportSourceKind::HyprnoteV0Stable => write!(f, "hyprnote_v0_stable"),
-            ImportSourceKind::HyprnoteV0Nightly => write!(f, "hyprnote_v0_nightly"),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct ImportSourceInfo {
     pub kind: ImportSourceKind,

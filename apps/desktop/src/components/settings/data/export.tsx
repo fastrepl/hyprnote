@@ -1,6 +1,6 @@
 import { Switch } from "@hypr/ui/components/ui/switch";
 
-import * as settings from "../../../../store/tinybase/settings";
+import * as settings from "../../../store/tinybase/settings";
 
 export function Export() {
   const autoExport = settings.UI.useValue("auto_export", settings.STORE_ID);

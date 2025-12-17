@@ -1,40 +1,15 @@
+mod nightly;
+mod stable;
+
+pub use nightly::HyprnoteV0NightlySource;
+pub use stable::HyprnoteV0StableSource;
+
 use crate::error::Result;
-use crate::sources::{ImportConfig, ImportSource};
-use crate::types::{
-    ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript, ImportedTranscriptSegment,
-};
+use crate::types::{ImportedNote, ImportedTranscript, ImportedTranscriptSegment};
 use hypr_db_user::{Session, Tag, UserDatabase};
 use std::path::PathBuf;
 
-pub struct HyprnoteV0StableSource;
-pub struct HyprnoteV0NightlySource;
-
-pub fn default_stable_path() -> PathBuf {
-    dirs::data_dir()
-        .map(|data| data.join("com.hyprnote.stable"))
-        .unwrap_or_else(|| PathBuf::from("com.hyprnote.stable"))
-}
-
-pub fn default_nightly_path() -> PathBuf {
-    dirs::data_dir()
-        .map(|data| data.join("com.hyprnote.nightly"))
-        .unwrap_or_else(|| PathBuf::from("com.hyprnote.nightly"))
-}
-
-pub fn stable_exists() -> bool {
-    db_path(&default_stable_path()).exists()
-}
-
-pub fn nightly_exists() -> bool {
-    db_path(&default_nightly_path()).exists()
-}
-
-fn db_path(base_path: &PathBuf) -> PathBuf {
-    base_path.join("hyprnote").join("db.sqlite")
-}
-
-async fn open_database(base_path: &PathBuf) -> Result<UserDatabase> {
-    let path = db_path(base_path);
+pub(super) async fn open_database(path: &PathBuf) -> Result<UserDatabase> {
     let db = hypr_db_user::Database::from(
         hypr_db_core::DatabaseBuilder::default()
             .local(&path)
@@ -44,7 +19,7 @@ async fn open_database(base_path: &PathBuf) -> Result<UserDatabase> {
     Ok(UserDatabase::from(db))
 }
 
-async fn import_notes_from_db(db: &UserDatabase) -> Result<Vec<ImportedNote>> {
+pub(super) async fn import_notes_from_db(db: &UserDatabase) -> Result<Vec<ImportedNote>> {
     let sessions = db.list_sessions(None).await?;
     let mut notes = Vec::new();
 
@@ -61,7 +36,9 @@ async fn import_notes_from_db(db: &UserDatabase) -> Result<Vec<ImportedNote>> {
     Ok(notes)
 }
 
-async fn import_transcripts_from_db(db: &UserDatabase) -> Result<Vec<ImportedTranscript>> {
+pub(super) async fn import_transcripts_from_db(
+    db: &UserDatabase,
+) -> Result<Vec<ImportedTranscript>> {
     let sessions = db.list_sessions(None).await?;
     let mut transcripts = Vec::new();
 
@@ -174,44 +151,4 @@ fn format_timestamp(ms: u64) -> String {
     let millis = ms % 1000;
 
     format!("{:02}:{:02}:{:02}.{:03}", hours, minutes, seconds, millis)
-}
-
-impl ImportSource for HyprnoteV0StableSource {
-    fn info(&self) -> ImportSourceInfo {
-        ImportSourceInfo {
-            kind: ImportSourceKind::HyprnoteV0Stable,
-            name: "Hyprnote (Stable)".to_string(),
-            description: "Import notes and transcripts from Hyprnote stable version".to_string(),
-        }
-    }
-
-    async fn import_notes(&self, _config: ImportConfig) -> Result<Vec<ImportedNote>> {
-        let db = open_database(&default_stable_path()).await?;
-        import_notes_from_db(&db).await
-    }
-
-    async fn import_transcripts(&self, _config: ImportConfig) -> Result<Vec<ImportedTranscript>> {
-        let db = open_database(&default_stable_path()).await?;
-        import_transcripts_from_db(&db).await
-    }
-}
-
-impl ImportSource for HyprnoteV0NightlySource {
-    fn info(&self) -> ImportSourceInfo {
-        ImportSourceInfo {
-            kind: ImportSourceKind::HyprnoteV0Nightly,
-            name: "Hyprnote (Nightly)".to_string(),
-            description: "Import notes and transcripts from Hyprnote nightly version".to_string(),
-        }
-    }
-
-    async fn import_notes(&self, _config: ImportConfig) -> Result<Vec<ImportedNote>> {
-        let db = open_database(&default_nightly_path()).await?;
-        import_notes_from_db(&db).await
-    }
-
-    async fn import_transcripts(&self, _config: ImportConfig) -> Result<Vec<ImportedTranscript>> {
-        let db = open_database(&default_nightly_path()).await?;
-        import_transcripts_from_db(&db).await
-    }
 }

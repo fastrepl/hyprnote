@@ -1,43 +1,38 @@
-use std::{collections::HashMap, sync::LazyLock, sync::Mutex};
+use std::sync::Mutex;
 #[cfg(target_os = "macos")]
 use swift_rs::swift;
 
-static QUIT_HANDLERS: LazyLock<Mutex<HashMap<&'static str, Box<dyn Fn() -> bool + Send + Sync>>>> =
-    LazyLock::new(|| Mutex::new(HashMap::new()));
+static QUIT_CALLBACK: Mutex<Option<Box<dyn Fn() -> bool + Send + Sync>>> = Mutex::new(None);
 
 #[cfg(target_os = "macos")]
 swift!(fn _setup_quit_handler());
 
-#[cfg(target_os = "macos")]
-static SWIFT_HANDLER_INITIALIZED: std::sync::atomic::AtomicBool =
-    std::sync::atomic::AtomicBool::new(false);
-
-pub fn register_quit_handler<F>(id: &'static str, callback: F)
+pub fn setup_quit_handler<F>(_callback: F)
 where
     F: Fn() -> bool + Send + Sync + 'static,
 {
-    QUIT_HANDLERS.lock().unwrap().insert(id, Box::new(callback));
-
     #[cfg(target_os = "macos")]
     {
-        if !SWIFT_HANDLER_INITIALIZED.swap(true, std::sync::atomic::Ordering::SeqCst) {
-            unsafe {
-                _setup_quit_handler();
-            }
+        *QUIT_CALLBACK.lock().unwrap() = Some(Box::new(_callback));
+        unsafe {
+            _setup_quit_handler();
         }
     }
 }
 
-pub fn unregister_quit_handler(id: &'static str) {
-    QUIT_HANDLERS.lock().unwrap().remove(id);
+pub fn reset_quit_handler() {
+    #[cfg(target_os = "macos")]
+    {
+        *QUIT_CALLBACK.lock().unwrap() = None;
+    }
 }
 
 #[unsafe(no_mangle)]
 #[cfg(target_os = "macos")]
 pub extern "C" fn rust_should_quit() -> bool {
-    QUIT_HANDLERS
+    QUIT_CALLBACK
         .lock()
         .unwrap()
-        .values()
-        .all(|callback| callback())
+        .as_ref()
+        .map_or(true, |callback| callback())
 }

@@ -272,25 +272,25 @@ impl Whisper {
     }
 
     fn debug(&mut self, audio: &[f32]) {
-        if let Ok(v) = std::env::var("HYPR_WHISPER_DEBUG")
-            && v == "1"
-        {
-            let mut writer = hound::WavWriter::create(
-                format!("./whisper_{}_{}.wav", self.id, self.index),
-                hound::WavSpec {
-                    channels: 1,
-                    sample_rate: 16000,
-                    bits_per_sample: 32,
-                    sample_format: hound::SampleFormat::Float,
-                },
-            )
-            .unwrap();
-            self.index += 1;
+        if let Ok(v) = std::env::var("HYPR_WHISPER_DEBUG") {
+            if v == "1" {
+                let mut writer = hound::WavWriter::create(
+                    format!("./whisper_{}_{}.wav", self.id, self.index),
+                    hound::WavSpec {
+                        channels: 1,
+                        sample_rate: 16000,
+                        bits_per_sample: 32,
+                        sample_format: hound::SampleFormat::Float,
+                    },
+                )
+                .unwrap();
+                self.index += 1;
 
-            for sample in audio {
-                writer.write_sample(*sample).unwrap();
+                for sample in audio {
+                    writer.write_sample(*sample).unwrap();
+                }
+                writer.finalize().unwrap();
             }
-            writer.finalize().unwrap();
         }
     }
 }

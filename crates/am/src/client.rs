@@ -1,6 +1,4 @@
-use crate::{
-    AmModel, Error, ErrorResponse, GenericResponse, InitRequest, InitResponse, Secret, ServerStatus,
-};
+use crate::{Error, ErrorResponse, GenericResponse, InitRequest, InitResponse, ServerStatus};
 use reqwest::{Response, StatusCode};
 
 #[derive(Clone)]
@@ -62,12 +60,13 @@ impl Client {
     }
 
     pub async fn init(&self, request: InitRequest) -> Result<InitResponse, Error> {
-        if !request.api_key.expose().starts_with("ax_") {
+        if !request.api_key.starts_with("ax_") {
             return Err(Error::InvalidApiKey);
         }
 
         let url = format!("{}/init", self.base_url);
         let response = self.client.post(&url).json(&request).send().await?;
+        println!("{:?}", request);
 
         match response.status() {
             StatusCode::OK => Ok(response.json().await?),
@@ -126,7 +125,7 @@ impl Client {
 impl InitRequest {
     pub fn new(api_key: impl Into<String>) -> Self {
         Self {
-            api_key: Secret::new(api_key),
+            api_key: api_key.into(),
             model: None,
             model_token: None,
             download_base: None,
@@ -143,7 +142,11 @@ impl InitRequest {
         }
     }
 
-    pub fn with_model(mut self, model: AmModel, base_dir: impl AsRef<std::path::Path>) -> Self {
+    pub fn with_model(
+        mut self,
+        model: crate::AmModel,
+        base_dir: impl AsRef<std::path::Path>,
+    ) -> Self {
         self.model = Some(model.model_dir().to_string());
         self.model_repo = Some(model.repo_name().to_string());
         self.model_folder = Some(

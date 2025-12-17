@@ -18,7 +18,7 @@ use utils::*;
 #[derive(Debug, Clone)]
 pub enum DetectEvent {
     MicStarted(Vec<InstalledApp>),
-    MicStopped(Vec<InstalledApp>),
+    MicStopped,
     #[cfg(target_os = "macos")]
     ZoomMuteStateChanged {
         value: bool,

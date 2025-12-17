@@ -1,12 +1,14 @@
 use tauri::Manager;
 
+const QUIT_HANDLER_ID: &str = "detect";
+
 #[tauri::command]
 #[specta::specta]
 pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     really_quit: bool,
 ) -> Result<(), String> {
-    hypr_intercept::setup_quit_handler(move || {
+    hypr_intercept::register_quit_handler(QUIT_HANDLER_ID, move || {
         hypr_host::kill_processes_by_matcher(hypr_host::ProcessMatcher::Sidecar);
 
         for (_, window) in app.webview_windows() {
@@ -29,7 +31,7 @@ pub(crate) async fn set_quit_handler<R: tauri::Runtime>(
 pub(crate) async fn reset_quit_handler<R: tauri::Runtime>(
     _app: tauri::AppHandle<R>,
 ) -> Result<(), String> {
-    hypr_intercept::reset_quit_handler();
+    hypr_intercept::unregister_quit_handler(QUIT_HANDLER_ID);
     Ok(())
 }
 

@@ -363,7 +363,7 @@ function ParticipantChipInput({
   return (
     <div className="relative" ref={containerRef}>
       <div
-        className="min-h-[38px] w-full flex flex-wrap items-center gap-2 rounded-md border p-2 cursor-text bg-neutral-50"
+        className="min-h-[38px] w-full flex flex-wrap items-center gap-2 cursor-text"
         onClick={() => inputRef.current?.focus()}
       >
         {mappingIds.map((mappingId) => (

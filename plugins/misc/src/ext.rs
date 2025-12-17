@@ -30,10 +30,10 @@ impl<R: Runtime, T: Manager<R>> MiscPluginExt<R> for T {
         }
 
         let url_pattern = r"https?://[^\s]+";
-        if let Ok(regex) = regex::Regex::new(url_pattern)
-            && let Some(capture) = regex.find(text)
-        {
-            return Some(capture.as_str().to_string());
+        if let Ok(regex) = regex::Regex::new(url_pattern) {
+            if let Some(capture) = regex.find(text) {
+                return Some(capture.as_str().to_string());
+            }
         }
 
         None

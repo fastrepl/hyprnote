@@ -18,7 +18,7 @@ hypr-db-user = { workspace = true }
 hypr-detect = { workspace = true }
 hypr-host = { workspace = true }
 hypr-intercept = { workspace = true }
-hypr-notification = { workspace = true, features = ["legacy"] }
+hypr-notification = { workspace = true }
 
 tauri-plugin-analytics = { workspace = true }
 tauri-plugin-db = { workspace = true }

@@ -3,7 +3,6 @@ use std::str::FromStr;
 mod commands;
 mod error;
 mod ext;
-mod handler;
 
 pub use error::*;
 pub use ext::*;
@@ -25,10 +24,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
     tauri::plugin::Builder::new(PLUGIN_NAME)
         .invoke_handler(specta_builder.invoke_handler())
-        .setup(|app, _api| {
-            handler::init(app.clone());
-            Ok(())
-        })
+        .setup(|_app, _api| Ok(()))
         .on_event(|app, event| match event {
             tauri::RunEvent::MainEventsCleared => {}
             tauri::RunEvent::Ready => {}

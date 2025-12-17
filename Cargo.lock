@@ -16807,9 +16807,11 @@ dependencies = [
 name = "tauri-plugin-importer"
 version = "0.1.0"
 dependencies = [
+ "db-core",
  "db-user",
  "dirs 6.0.0",
  "granola",
+ "owhisper-interface",
  "serde",
  "specta",
  "specta-typescript",

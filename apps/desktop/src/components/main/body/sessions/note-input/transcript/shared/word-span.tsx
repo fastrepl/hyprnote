@@ -12,25 +12,115 @@ import { SegmentWord } from "../../../../../../../utils/segment";
 import { useTranscriptSearch } from "../search-context";
 import { Operations } from "./operations";
 
-export function WordSpan({
-  word,
-  highlightState,
-  audioExists,
-  operations,
-  onClickWord,
-}: {
+interface WordSpanProps {
   word: SegmentWord;
   highlightState: "current" | "buffer" | "none";
   audioExists: boolean;
   operations?: Operations;
   onClickWord: (word: SegmentWord) => void;
-}) {
-  const mode =
-    operations && Object.keys(operations).length > 0 ? "editor" : "viewer";
+}
+
+export function WordSpan(props: WordSpanProps) {
+  const hasOperations =
+    props.operations && Object.keys(props.operations).length > 0;
+
+  if (hasOperations && props.word.id) {
+    return <EditorWordSpan {...props} operations={props.operations!} />;
+  }
+
+  return <ViewerWordSpan {...props} />;
+}
+
+function ViewerWordSpan({
+  word,
+  highlightState,
+  audioExists,
+  onClickWord,
+}: Omit<WordSpanProps, "operations">) {
   const { segments, isActive } = useTranscriptSearchHighlights(word);
   const hasMatch = segments.some((segment) => segment.isMatch);
 
-  const content = useMemo(() => {
+  const content = useHighlightedContent(word, segments, isActive);
+
+  const className = useMemo(
+    () =>
+      cn([
+        audioExists && "cursor-pointer",
+        audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
+        !word.isFinal && ["opacity-60", "italic"],
+        highlightState === "current" && !hasMatch && "bg-blue-200/70",
+        highlightState === "buffer" && !hasMatch && "bg-blue-200/30",
+      ]),
+    [audioExists, highlightState, word.isFinal, hasMatch],
+  );
+
+  const handleClick = useCallback(() => {
+    onClickWord(word);
+  }, [word, onClickWord]);
+
+  return (
+    <span onClick={handleClick} className={className} data-word-id={word.id}>
+      {content}
+    </span>
+  );
+}
+
+function EditorWordSpan({
+  word,
+  highlightState,
+  audioExists,
+  operations,
+  onClickWord,
+}: Omit<WordSpanProps, "operations"> & { operations: Operations }) {
+  const { segments, isActive } = useTranscriptSearchHighlights(word);
+  const hasMatch = segments.some((segment) => segment.isMatch);
+
+  const content = useHighlightedContent(word, segments, isActive);
+
+  const className = useMemo(
+    () =>
+      cn([
+        audioExists && "cursor-pointer",
+        audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
+        !word.isFinal && ["opacity-60", "italic"],
+        highlightState === "current" && !hasMatch && "bg-blue-200/70",
+        highlightState === "buffer" && !hasMatch && "bg-blue-200/30",
+      ]),
+    [audioExists, highlightState, word.isFinal, hasMatch],
+  );
+
+  const handleClick = useCallback(() => {
+    onClickWord(word);
+  }, [word, onClickWord]);
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <span
+          onClick={handleClick}
+          className={className}
+          data-word-id={word.id}
+        >
+          {content}
+        </span>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={() => operations.onDeleteWord?.(word.id!)}>
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
+
+type HighlightSegment = { text: string; isMatch: boolean };
+
+function useHighlightedContent(
+  word: SegmentWord,
+  segments: HighlightSegment[],
+  isActive: boolean,
+) {
+  return useMemo(() => {
     const baseKey = word.id ?? word.text ?? "word";
 
     return segments.map((piece, index) =>
@@ -46,48 +136,7 @@ export function WordSpan({
       ),
     );
   }, [segments, isActive, word.id, word.text]);
-
-  const className = cn([
-    audioExists && "cursor-pointer",
-    audioExists && highlightState !== "none" && "hover:bg-neutral-200/60",
-    !word.isFinal && ["opacity-60", "italic"],
-    highlightState === "current" && !hasMatch && "bg-blue-200/70",
-    highlightState === "buffer" && !hasMatch && "bg-blue-200/30",
-  ]);
-
-  const handleClick = useCallback(() => {
-    onClickWord(word);
-  }, [word, onClickWord]);
-
-  if (mode === "editor" && word.id) {
-    return (
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <span
-            onClick={handleClick}
-            className={className}
-            data-word-id={word.id}
-          >
-            {content}
-          </span>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onClick={() => operations?.onDeleteWord?.(word.id!)}>
-            Delete
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
-    );
-  }
-
-  return (
-    <span onClick={handleClick} className={className} data-word-id={word.id}>
-      {content}
-    </span>
-  );
 }
-
-type HighlightSegment = { text: string; isMatch: boolean };
 
 function useTranscriptSearchHighlights(word: SegmentWord) {
   const search = useTranscriptSearch();

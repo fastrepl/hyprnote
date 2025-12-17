@@ -1,1 +1,1 @@
-export * from "./bindings.gen";
+export * from './bindings.gen';

@@ -14,7 +14,9 @@ tauri-plugin = { workspace = true, features = ["build"] }
 specta-typescript = { workspace = true }
 
 [dependencies]
-granola = { path = "../../crates/granola" }
+dirs = { workspace = true }
+hypr-db-user = { workspace = true }
+hypr-granola = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 specta = { workspace = true }
 tauri = { workspace = true, features = ["test"] }

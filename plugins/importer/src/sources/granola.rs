@@ -3,9 +3,9 @@ use crate::sources::{ImportConfig, ImportSource};
 use crate::types::{
     ImportSourceInfo, ImportSourceKind, ImportedNote, ImportedTranscript, ImportedTranscriptSegment,
 };
-use granola::api::Document;
-use granola::cache::{CacheData, CacheDocument, TranscriptSegment};
-use granola::prosemirror::convert_to_plain_text;
+use hypr_granola::api::Document;
+use hypr_granola::cache::{CacheData, CacheDocument, TranscriptSegment};
+use hypr_granola::prosemirror::convert_to_plain_text;
 use std::time::Duration;
 
 pub struct GranolaSource;
@@ -22,11 +22,12 @@ impl ImportSource for GranolaSource {
     async fn import_notes(&self, config: ImportConfig) -> Result<Vec<ImportedNote>> {
         let supabase_path = config
             .supabase_path
-            .unwrap_or_else(granola::default_supabase_path);
+            .unwrap_or_else(hypr_granola::default_supabase_path);
 
         let supabase_content = std::fs::read(&supabase_path)?;
 
-        let client = granola::api::GranolaClient::new(&supabase_content, Duration::from_secs(30))?;
+        let client =
+            hypr_granola::api::GranolaClient::new(&supabase_content, Duration::from_secs(30))?;
         let documents = client.get_documents().await?;
 
         Ok(documents
@@ -38,9 +39,9 @@ impl ImportSource for GranolaSource {
     async fn import_transcripts(&self, config: ImportConfig) -> Result<Vec<ImportedTranscript>> {
         let cache_path = config
             .cache_path
-            .unwrap_or_else(granola::cache::default_cache_path);
+            .unwrap_or_else(hypr_granola::cache::default_cache_path);
 
-        let cache_data = granola::cache::read_cache(&cache_path)?;
+        let cache_data = hypr_granola::cache::read_cache(&cache_path)?;
 
         Ok(cache_data_to_imported_transcripts(&cache_data))
     }

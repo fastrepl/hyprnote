@@ -38,7 +38,7 @@ async importTranscripts(source: ImportSourceKind, cachePath: string | null) : Pr
 /** user-defined types **/
 
 export type ImportSourceInfo = { kind: ImportSourceKind; name: string; description: string }
-export type ImportSourceKind = "granola"
+export type ImportSourceKind = "granola" | "hyprnote_v0_stable" | "hyprnote_v0_nightly"
 export type ImportedNote = { id: string; title: string; content: string; created_at: string; updated_at: string; tags: string[] }
 export type ImportedTranscript = { id: string; title: string; created_at: string; updated_at: string; segments: ImportedTranscriptSegment[] }
 export type ImportedTranscriptSegment = { id: string; start_timestamp: string; end_timestamp: string; text: string; speaker: string }

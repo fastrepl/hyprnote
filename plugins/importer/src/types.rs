@@ -32,12 +32,16 @@ pub struct ImportedTranscript {
 #[serde(rename_all = "snake_case")]
 pub enum ImportSourceKind {
     Granola,
+    HyprnoteV0Stable,
+    HyprnoteV0Nightly,
 }
 
 impl std::fmt::Display for ImportSourceKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ImportSourceKind::Granola => write!(f, "granola"),
+            ImportSourceKind::HyprnoteV0Stable => write!(f, "hyprnote_v0_stable"),
+            ImportSourceKind::HyprnoteV0Nightly => write!(f, "hyprnote_v0_nightly"),
         }
     }
 }

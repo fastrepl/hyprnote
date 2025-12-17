@@ -21,8 +21,15 @@ impl KeywordQueryStrategy for DeepgramKeywordStrategy {
             .unwrap_or(false);
 
         let param_name = if use_keyterms { "keyterm" } else { "keywords" };
+        let max_keywords = if use_keyterms {
+            // https://github.com/deepgram/deepgram-python-sdk/issues/503
+            50
+        } else {
+            // https://developers.deepgram.com/docs/keywords#keyword-limits
+            99
+        };
 
-        for keyword in &params.keywords {
+        for keyword in params.keywords.iter().take(max_keywords) {
             query_pairs.append_pair(param_name, keyword);
         }
     }

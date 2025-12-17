@@ -74,7 +74,7 @@ where
     builder
         .add_common_listen_params(params, channels)
         .add_bool("interim_results", true)
-        .add_bool("multichannel", true)
+        .add_bool("multichannel", channels > 1)
         .add_bool("vad_events", false)
         .add(
             "redemption_time_ms",

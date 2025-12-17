@@ -1,4 +1,4 @@
-const COMMANDS: &[&str] = &["list_available_sources", "run_import", "run_import_dry"];
+const COMMANDS: &[&str] = &["ping"];
 
 fn main() {
     tauri_plugin::Builder::new(COMMANDS).build();

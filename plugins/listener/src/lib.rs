@@ -68,21 +68,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             Ok(())
         })
-        .on_event(move |app, event| {
-            if let tauri::RunEvent::Ready { .. } = event {
-                let app_handle = app.clone();
-                hypr_intercept::register_quit_handler(PLUGIN_NAME, move || {
-                    let state = app_handle.state::<SharedState>();
-                    match state.try_lock() {
-                        Ok(guard) => guard.session_supervisor.is_none(),
-                        Err(_) => false,
-                    }
-                });
-            }
-        })
-        .on_drop(|_app| {
-            hypr_intercept::unregister_quit_handler(PLUGIN_NAME);
-        })
         .build()
 }
 

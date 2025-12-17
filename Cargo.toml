@@ -11,7 +11,6 @@ debug = false
 resolver = "2"
 members = [
   "apps/desktop/src-tauri",
-  "apps/granola",
   "crates/*",
   "owhisper/*",
   "plugins/*",
@@ -27,6 +26,7 @@ hypr-analytics = { path = "crates/analytics", package = "analytics" }
 hypr-audio = { path = "crates/audio", package = "audio" }
 hypr-audio-interface = { path = "crates/audio-interface", package = "audio-interface" }
 hypr-audio-utils = { path = "crates/audio-utils", package = "audio-utils" }
+hypr-auth-interface = { path = "plugins/auth-interface", package = "auth-interface" }
 hypr-buffer = { path = "crates/buffer", package = "buffer" }
 hypr-data = { path = "crates/data", package = "data" }
 hypr-db-admin = { path = "crates/db-admin", package = "db-admin" }
@@ -81,8 +81,6 @@ hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whi
 hypr-ws = { path = "crates/ws", package = "ws" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
-hypr-granola = { path = "crates/granola", package = "granola" }
-
 owhisper-client = { path = "owhisper/owhisper-client", package = "owhisper-client" }
 owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-config" }
 owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }
@@ -90,6 +88,7 @@ owhisper-model = { path = "owhisper/owhisper-model", package = "owhisper-model" 
 
 tauri = "2.9"
 tauri-build = "2.5"
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v2" }
 tauri-plugin = "2.5"
 tauri-plugin-autostart = "2.5"
 tauri-plugin-cli = "2.4"
@@ -107,11 +106,9 @@ tauri-plugin-shell = "2.3"
 tauri-plugin-single-instance = "2"
 tauri-plugin-store = "2.4"
 tauri-plugin-updater = "2.9"
-tauri-plugin-window-state = "2.4"
 
 tauri-plugin-analytics = { path = "plugins/analytics" }
 tauri-plugin-apple-calendar = { path = "plugins/apple-calendar" }
-tauri-plugin-auth = { path = "plugins/auth" }
 tauri-plugin-cli2 = { path = "plugins/cli2" }
 tauri-plugin-db = { path = "plugins/db" }
 tauri-plugin-db2 = { path = "plugins/db2" }
@@ -119,7 +116,6 @@ tauri-plugin-deeplink2 = { path = "plugins/deeplink2" }
 tauri-plugin-detect = { path = "plugins/detect" }
 tauri-plugin-extensions = { path = "plugins/extensions" }
 tauri-plugin-hooks = { path = "plugins/hooks" }
-tauri-plugin-icon = { path = "plugins/icon" }
 tauri-plugin-importer = { path = "plugins/importer" }
 tauri-plugin-listener = { path = "plugins/listener" }
 tauri-plugin-listener2 = { path = "plugins/listener2" }
@@ -129,13 +125,11 @@ tauri-plugin-misc = { path = "plugins/misc" }
 tauri-plugin-network = { path = "plugins/network" }
 tauri-plugin-notification = { path = "plugins/notification" }
 tauri-plugin-permissions = { path = "plugins/permissions" }
-tauri-plugin-settings = { path = "plugins/settings" }
 tauri-plugin-sfx = { path = "plugins/sfx" }
 tauri-plugin-store2 = { path = "plugins/store2" }
 tauri-plugin-template = { path = "plugins/template" }
 tauri-plugin-tracing = { path = "plugins/tracing" }
 tauri-plugin-tray = { path = "plugins/tray" }
-tauri-plugin-updater2 = { path = "plugins/updater2" }
 tauri-plugin-webhook = { path = "plugins/webhook" }
 tauri-plugin-windows = { path = "plugins/windows" }
 
@@ -246,6 +240,7 @@ objc2-application-services = "0.3"
 objc2-av-foundation = "0.3"
 objc2-contacts = "0.3"
 objc2-core-foundation = "0.3"
+objc2-core-graphics = "0.3"
 objc2-event-kit = "0.3"
 objc2-foundation = "0.3"
 objc2-user-notifications = "0.3"

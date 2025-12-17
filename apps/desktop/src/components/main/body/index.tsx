@@ -14,6 +14,7 @@ import { useShallow } from "zustand/shallow";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
+import { useListener } from "../../../contexts/listener";
 import { useShell } from "../../../contexts/shell";
 import {
   type Tab,
@@ -44,6 +45,7 @@ import { TabContentPrompt, TabItemPrompt } from "./prompts";
 import { Search } from "./search";
 import { TabContentNote, TabItemNote } from "./sessions";
 import { TabContentSettings, TabItemSettings } from "./settings";
+import { StopListeningPopover } from "./shared";
 import { TabContentTemplate, TabItemTemplate } from "./templates";
 import { Update } from "./update";
 
@@ -108,7 +110,27 @@ function Header({ tabs }: { tabs: Tab[] }) {
   const scrollState = useScrollState(tabsScrollContainerRef, [tabs]);
 
   const setTabRef = useScrollActiveTabIntoView(tabs);
-  useTabsShortcuts();
+  const {
+    showStopListeningPopover,
+    setShowStopListeningPopover,
+    handleStopListeningConfirm,
+    handleStopListeningCancel,
+    tabAnchorRef,
+    isCurrentTabListening,
+  } = useTabsShortcuts();
+
+  const currentTab = tabs.find((t) => t.active);
+  const setTabRefWithAnchor = useCallback(
+    (tab: Tab, el: HTMLDivElement | null) => {
+      setTabRef(tab, el);
+      if (tab.active && isCurrentTabListening && el) {
+        (
+          tabAnchorRef as React.MutableRefObject<HTMLDivElement | null>
+        ).current = el;
+      }
+    },
+    [setTabRef, tabAnchorRef, isCurrentTabListening],
+  );
 
   return (
     <div
@@ -176,7 +198,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
                   key={uniqueIdfromTab(tab)}
                   value={tab}
                   as="div"
-                  ref={(el) => setTabRef(tab, el)}
+                  ref={(el) => setTabRefWithAnchor(tab, el)}
                   style={{ position: "relative" }}
                   className="h-full z-10"
                   layoutScroll
@@ -226,6 +248,16 @@ function Header({ tabs }: { tabs: Tab[] }) {
           />
         </div>
       </div>
+
+      {isCurrentTabListening && (
+        <StopListeningPopover
+          open={showStopListeningPopover}
+          onOpenChange={setShowStopListeningPopover}
+          onCancel={handleStopListeningCancel}
+          onConfirm={handleStopListeningConfirm}
+          anchorRef={tabAnchorRef}
+        />
+      )}
     </div>
   );
 }
@@ -626,6 +658,37 @@ function useTabsShortcuts() {
   const newNoteCurrent = useNewNote({ behavior: "current" });
   const newEmptyTab = useNewEmptyTab();
 
+  const sessionId = currentTab?.type === "sessions" ? currentTab.id : undefined;
+  const { sessionMode, stop, status } = useListener((state) => ({
+    sessionMode: sessionId ? state.getSessionMode(sessionId) : "inactive",
+    stop: state.stop,
+    status: state.live.status,
+  }));
+  const isCurrentTabListening =
+    sessionMode === "running_active" || sessionMode === "finalizing";
+
+  const [showStopListeningPopover, setShowStopListeningPopover] =
+    useState(false);
+  const pendingCloseRef = useRef(false);
+  const tabAnchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (pendingCloseRef.current && status === "inactive" && currentTab) {
+      pendingCloseRef.current = false;
+      setShowStopListeningPopover(false);
+      close(currentTab);
+    }
+  }, [status, currentTab, close]);
+
+  const handleStopListeningConfirm = useCallback(() => {
+    pendingCloseRef.current = true;
+    stop();
+  }, [stop]);
+
+  const handleStopListeningCancel = useCallback(() => {
+    setShowStopListeningPopover(false);
+  }, []);
+
   useHotkeys(
     "mod+n",
     () => {
@@ -658,7 +721,11 @@ function useTabsShortcuts() {
     "mod+w",
     async () => {
       if (currentTab) {
-        close(currentTab);
+        if (isCurrentTabListening) {
+          setShowStopListeningPopover(true);
+        } else {
+          close(currentTab);
+        }
       }
     },
     {
@@ -666,7 +733,7 @@ function useTabsShortcuts() {
       enableOnFormTags: true,
       enableOnContentEditable: true,
     },
-    [currentTab, close],
+    [currentTab, close, isCurrentTabListening],
   );
 
   useHotkeys(
@@ -688,7 +755,14 @@ function useTabsShortcuts() {
     [tabs, select],
   );
 
-  return {};
+  return {
+    showStopListeningPopover,
+    setShowStopListeningPopover,
+    handleStopListeningConfirm,
+    handleStopListeningCancel,
+    tabAnchorRef,
+    isCurrentTabListening,
+  };
 }
 
 function useNewEmptyTab() {

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { StickyNoteIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { commands as miscCommands } from "@hypr/plugin-misc";
 
@@ -34,9 +35,29 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
     "title",
     main.STORE_ID,
   );
-  const sessionMode = useListener((state) => state.getSessionMode(tab.id));
+  const { sessionMode, stop, status } = useListener((state) => ({
+    sessionMode: state.getSessionMode(tab.id),
+    stop: state.stop,
+    status: state.live.status,
+  }));
   const isActive =
     sessionMode === "running_active" || sessionMode === "finalizing";
+
+  const [showStopListeningPopover, setShowStopListeningPopover] =
+    useState(false);
+  const pendingCloseRef = useRef(false);
+
+  useEffect(() => {
+    if (pendingCloseRef.current && status === "inactive") {
+      pendingCloseRef.current = false;
+      handleCloseThis(tab);
+    }
+  }, [status, tab, handleCloseThis]);
+
+  const handleStopListeningConfirm = useCallback(() => {
+    pendingCloseRef.current = true;
+    stop();
+  }, [stop]);
 
   return (
     <TabItemBase
@@ -49,6 +70,9 @@ export const TabItemNote: TabItem<Extract<Tab, { type: "sessions" }>> = ({
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      showStopListeningPopover={showStopListeningPopover}
+      onStopListeningPopoverChange={setShowStopListeningPopover}
+      onStopListeningConfirm={handleStopListeningConfirm}
     />
   );
 };

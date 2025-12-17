@@ -16839,6 +16839,7 @@ dependencies = [
  "futures-util",
  "hound",
  "insta",
+ "intercept",
  "language",
  "llm",
  "ordered-float",

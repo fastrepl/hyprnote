@@ -10,15 +10,6 @@ runs:
         echo "channel=$(grep 'channel' rust-toolchain.toml | cut -d'"' -f2)" >> $GITHUB_OUTPUT
         echo "components=$(grep 'components' rust-toolchain.toml | sed 's/.*\[//' | sed 's/\].*//' | tr -d '"' | tr -d ' ')" >> $GITHUB_OUTPUT
       shell: bash
-    - id: cache-key
-      run: |
-        if command -v ldd &> /dev/null; then
-          GLIBC_VER=$(ldd --version 2>/dev/null | head -n1 | awk '{print $NF}')
-          echo "suffix=-glibc-${GLIBC_VER}" >> $GITHUB_OUTPUT
-        else
-          echo "suffix=" >> $GITHUB_OUTPUT
-        fi
-      shell: bash
     - if: inputs.platform == 'macos'
       uses: dtolnay/rust-toolchain@master
       with:
@@ -67,4 +58,3 @@ runs:
     - uses: Swatinem/rust-cache@v2
       with:
         cache-targets: "true"
-        prefix-key: v0-rust${{ steps.cache-key.outputs.suffix }}

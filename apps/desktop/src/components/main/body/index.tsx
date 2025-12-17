@@ -8,6 +8,7 @@ import {
 import { Reorder } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useResizeObserver } from "usehooks-ts";
 import { useShallow } from "zustand/shallow";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -100,35 +101,11 @@ function Header({ tabs }: { tabs: Tab[] }) {
   );
   const tabsScrollContainerRef = useRef<HTMLDivElement>(null);
   const handleNewEmptyTab = useNewEmptyTab();
-  const [scrollState, setScrollState] = useState({
-    atStart: true,
-    atEnd: true,
-  });
-
-  const updateScrollState = useCallback(() => {
-    const container = tabsScrollContainerRef.current;
-    if (!container) return;
-
-    const { scrollLeft, scrollWidth, clientWidth } = container;
-    const atStart = scrollLeft <= 1;
-    const atEnd = scrollLeft + clientWidth >= scrollWidth - 1;
-    setScrollState({ atStart, atEnd });
-  }, []);
-
-  useEffect(() => {
-    const container = tabsScrollContainerRef.current;
-    if (!container) return;
-
-    updateScrollState();
-    container.addEventListener("scroll", updateScrollState);
-    const resizeObserver = new ResizeObserver(updateScrollState);
-    resizeObserver.observe(container);
-
-    return () => {
-      container.removeEventListener("scroll", updateScrollState);
-      resizeObserver.disconnect();
-    };
-  }, [updateScrollState, tabs]);
+  const [isSearchManuallyExpanded, setIsSearchManuallyExpanded] =
+    useState(false);
+  const { ref: rightContainerRef, hasSpace: hasSpaceForSearch } =
+    useHasSpaceForSearch();
+  const scrollState = useScrollState(tabsScrollContainerRef, [tabs]);
 
   const setTabRef = useScrollActiveTabIntoView(tabs);
   useTabsShortcuts();
@@ -146,6 +123,7 @@ function Header({ tabs }: { tabs: Tab[] }) {
         <Button
           size="icon"
           variant="ghost"
+          className="shrink-0"
           onClick={() => leftsidebar.setExpanded(true)}
         >
           <PanelLeftOpenIcon size={16} className="text-neutral-600" />
@@ -225,21 +203,27 @@ function Header({ tabs }: { tabs: Tab[] }) {
       </div>
 
       <div
+        ref={rightContainerRef}
         data-tauri-drag-region
         className="flex-1 flex h-full items-center justify-between"
       >
-        <Button
-          onClick={handleNewEmptyTab}
-          variant="ghost"
-          size="icon"
-          className="text-neutral-600"
-        >
-          <PlusIcon size={16} />
-        </Button>
+        {!(isSearchManuallyExpanded && !hasSpaceForSearch) && (
+          <Button
+            onClick={handleNewEmptyTab}
+            variant="ghost"
+            size="icon"
+            className="text-neutral-600"
+          >
+            <PlusIcon size={16} />
+          </Button>
+        )}
 
-        <div className="flex items-center gap-1 h-full">
+        <div className="flex items-center gap-1 h-full ml-auto">
           <Update />
-          <Search />
+          <Search
+            hasSpace={hasSpaceForSearch}
+            onManualExpandChange={setIsSearchManuallyExpanded}
+          />
         </div>
       </div>
     </div>
@@ -550,6 +534,52 @@ export function StandardTabWrapper({
       {afterBorder}
     </div>
   );
+}
+
+function useHasSpaceForSearch() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { width = 0 } = useResizeObserver({
+    ref: ref as React.RefObject<HTMLDivElement>,
+  });
+  return { ref, hasSpace: width >= 220 };
+}
+
+function useScrollState(
+  ref: React.RefObject<HTMLDivElement | null>,
+  deps: unknown[] = [],
+) {
+  const [scrollState, setScrollState] = useState({
+    atStart: true,
+    atEnd: true,
+  });
+
+  const updateScrollState = useCallback(() => {
+    const container = ref.current;
+    if (!container) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    setScrollState({
+      atStart: scrollLeft <= 1,
+      atEnd: scrollLeft + clientWidth >= scrollWidth - 1,
+    });
+  }, [ref]);
+
+  useEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+
+    updateScrollState();
+    container.addEventListener("scroll", updateScrollState);
+    const resizeObserver = new ResizeObserver(updateScrollState);
+    resizeObserver.observe(container);
+
+    return () => {
+      container.removeEventListener("scroll", updateScrollState);
+      resizeObserver.disconnect();
+    };
+  }, [updateScrollState, ...deps]);
+
+  return scrollState;
 }
 
 function useScrollActiveTabIntoView(tabs: Tab[]) {

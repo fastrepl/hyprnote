@@ -433,6 +433,9 @@ importers:
       unified:
         specifier: ^11.0.5
         version: 11.0.5
+      usehooks-ts:
+        specifier: ^3.1.1
+        version: 3.1.1(react@19.2.3)
       vfile:
         specifier: ^6.0.3
         version: 6.0.3

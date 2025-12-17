@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 
 export default defineConfig(
   {
-    ignores: ["**/target/**", "**/dist/**", "**/node_modules/**"],
+    ignores: ["**/target/**", "**/dist/**", "**/node_modules/**", "**/*.gen.*"],
   },
   {
     files: ["apps/web/**/*.{ts,tsx}", "apps/desktop/**/*.{ts,tsx}"],

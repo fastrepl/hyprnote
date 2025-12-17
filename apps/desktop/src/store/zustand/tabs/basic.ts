@@ -23,6 +23,8 @@ export type BasicActions = {
   reorder: (tabs: Tab[]) => void;
   closeOthers: (tab: Tab) => void;
   closeAll: () => void;
+  pin: (tab: Tab) => void;
+  unpin: (tab: Tab) => void;
 };
 
 export const createBasicSlice = <
@@ -35,6 +37,12 @@ export const createBasicSlice = <
   currentTab: null,
   openCurrent: (tab) => {
     const { tabs, history } = get();
+    const currentActiveTab = tabs.find((t) => t.active);
+    if (currentActiveTab?.pinned) {
+      set(openTab(tabs, tab, history, false));
+    } else {
+      set(openTab(tabs, tab, history, true));
+    }
     set(openTab(tabs, tab, history, true));
     void analyticsCommands.event({
       event: "tab_opened",
@@ -161,6 +169,34 @@ export const createBasicSlice = <
       canGoBack: false,
       canGoNext: false,
     } as unknown as Partial<T>);
+  },
+  pin: (tab) => {
+    const { tabs } = get();
+    const tabIndex = tabs.findIndex((t) => isSameTab(t, tab));
+    if (tabIndex === -1) return;
+
+    const pinnedTab = { ...tabs[tabIndex], pinned: true };
+    const pinnedCount = tabs.filter((t) => t.pinned).length;
+
+    const nextTabs = [...tabs.slice(0, tabIndex), ...tabs.slice(tabIndex + 1)];
+    nextTabs.splice(pinnedCount, 0, pinnedTab);
+
+    const currentTab = nextTabs.find((t) => t.active) || null;
+    set({ tabs: nextTabs, currentTab } as Partial<T>);
+  },
+  unpin: (tab) => {
+    const { tabs } = get();
+    const tabIndex = tabs.findIndex((t) => isSameTab(t, tab));
+    if (tabIndex === -1) return;
+
+    const unpinnedTab = { ...tabs[tabIndex], pinned: false };
+    const pinnedCount = tabs.filter((t) => t.pinned).length;
+
+    const nextTabs = [...tabs.slice(0, tabIndex), ...tabs.slice(tabIndex + 1)];
+    nextTabs.splice(pinnedCount - 1, 0, unpinnedTab);
+
+    const currentTab = nextTabs.find((t) => t.active) || null;
+    set({ tabs: nextTabs, currentTab } as Partial<T>);
   },
 });
 

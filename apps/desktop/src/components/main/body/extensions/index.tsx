@@ -1,13 +1,10 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { AlertTriangleIcon, BlocksIcon, PuzzleIcon, XIcon } from "lucide-react";
-import { Reorder, useDragControls } from "motion/react";
+import { AlertTriangleIcon, BlocksIcon, PuzzleIcon } from "lucide-react";
 import {
   Component,
-  type PointerEvent,
   type ReactNode,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -20,9 +17,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@hypr/ui/components/ui/resizable";
-import { cn } from "@hypr/utils";
 
-import { useNativeContextMenu } from "../../../../hooks/useNativeContextMenu";
 import { createIframeSynchronizer } from "../../../../store/tinybase/iframe-sync";
 import { type Store, STORE_ID } from "../../../../store/tinybase/main";
 import { type Tab, useTabs } from "../../../../store/zustand/tabs";
@@ -42,17 +37,22 @@ export const TabItemExtensions: TabItem<ExtensionsTab> = ({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }) => {
   return (
     <TabItemBase
       icon={<BlocksIcon className="w-4 h-4" />}
       title={"Extensions"}
       selected={tab.active}
+      pinned={tab.pinned}
       tabIndex={tabIndex}
       handleCloseThis={() => handleCloseThis(tab)}
       handleSelectThis={() => handleSelectThis(tab)}
       handleCloseOthers={handleCloseOthers}
       handleCloseAll={handleCloseAll}
+      handlePinThis={() => handlePinThis(tab)}
+      handleUnpinThis={() => handleUnpinThis(tab)}
     />
   );
 };
@@ -166,6 +166,8 @@ export function TabItemExtension({
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }: {
   tab: ExtensionTab;
   tabIndex?: number;
@@ -173,52 +175,23 @@ export function TabItemExtension({
   handleSelectThis: (tab: Tab) => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handlePinThis: () => void;
+  handleUnpinThis: () => void;
 }) {
-  const controls = useDragControls();
-
-  const contextMenu = useMemo(
-    () => [
-      { id: "close", text: "Close", action: () => handleCloseThis(tab) },
-      { id: "close-others", text: "Close Others", action: handleCloseOthers },
-      { id: "close-all", text: "Close All", action: handleCloseAll },
-    ],
-    [tab, handleCloseThis, handleCloseOthers, handleCloseAll],
-  );
-
-  const showMenu = useNativeContextMenu(contextMenu);
-
   return (
-    <Reorder.Item
-      value={tab}
-      dragListener={false}
-      dragControls={controls}
-      as="div"
-      className={cn([
-        "h-full flex items-center gap-1 px-2 rounded-lg cursor-pointer select-none",
-        "hover:bg-neutral-100",
-        tab.active && "bg-neutral-100",
-      ])}
-      onClick={() => handleSelectThis(tab)}
-      onPointerDown={(e: PointerEvent) => controls.start(e)}
-      onContextMenu={showMenu}
-    >
-      <PuzzleIcon size={14} className="text-neutral-500 shrink-0" />
-      <span className="text-sm truncate max-w-[120px]">{tab.extensionId}</span>
-      {tabIndex && (
-        <span className="text-xs text-neutral-400 shrink-0">{tabIndex}</span>
-      )}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-5 shrink-0"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleCloseThis(tab);
-        }}
-      >
-        <XIcon size={12} />
-      </Button>
-    </Reorder.Item>
+    <TabItemBase
+      icon={<PuzzleIcon className="w-4 h-4" />}
+      title={tab.extensionId}
+      selected={tab.active}
+      pinned={tab.pinned}
+      tabIndex={tabIndex}
+      handleCloseThis={() => handleCloseThis(tab)}
+      handleSelectThis={() => handleSelectThis(tab)}
+      handleCloseOthers={handleCloseOthers}
+      handleCloseAll={handleCloseAll}
+      handlePinThis={handlePinThis}
+      handleUnpinThis={handleUnpinThis}
+    />
   );
 }
 

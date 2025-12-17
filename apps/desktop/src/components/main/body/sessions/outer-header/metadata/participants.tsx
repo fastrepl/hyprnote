@@ -385,7 +385,7 @@ function ParticipantChipInput({
           ref={inputRef}
           type="text"
           className="flex-1 min-w-[120px] bg-transparent outline-none text-sm placeholder:text-neutral-400"
-          placeholder={mappingIds.length === 0 ? "Add participants..." : ""}
+          placeholder="Add participants..."
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}

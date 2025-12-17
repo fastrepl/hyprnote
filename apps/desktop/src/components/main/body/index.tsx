@@ -27,6 +27,7 @@ import { TabContentCalendar, TabItemCalendar } from "./calendar";
 import { TabContentChangelog, TabItemChangelog } from "./changelog";
 import { TabContentChatShortcut, TabItemChatShortcut } from "./chat-shortcuts";
 import { TabContentContact, TabItemContact } from "./contacts";
+import { TabContentData, TabItemData } from "./data";
 import { TabContentEmpty, TabItemEmpty } from "./empty";
 import { TabContentEvent, TabItemEvent } from "./events";
 import {
@@ -442,6 +443,18 @@ function TabItem({
       />
     );
   }
+  if (tab.type === "data") {
+    return (
+      <TabItemData
+        tab={tab}
+        tabIndex={tabIndex}
+        handleCloseThis={handleClose}
+        handleSelectThis={handleSelect}
+        handleCloseOthers={handleCloseOthers}
+        handleCloseAll={handleCloseAll}
+      />
+    );
+  }
 
   return null;
 }
@@ -492,6 +505,9 @@ function ContentWrapper({ tab }: { tab: Tab }) {
   if (tab.type === "ai") {
     return <TabContentAI tab={tab} />;
   }
+  if (tab.type === "data") {
+    return <TabContentData tab={tab} />;
+  }
 
   return null;
 }
@@ -504,7 +520,11 @@ function TabChatButton() {
     return null;
   }
 
-  if (currentTab?.type === "ai" || currentTab?.type === "settings") {
+  if (
+    currentTab?.type === "ai" ||
+    currentTab?.type === "settings" ||
+    currentTab?.type === "data"
+  ) {
     return null;
   }
 

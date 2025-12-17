@@ -156,7 +156,7 @@ async function generateTemplateIfNeeded(params: {
       });
 
       return template.object.sections as Array<TemplateSection>;
-    } catch (error) {
+    } catch {
       return undefined;
     }
   } else {

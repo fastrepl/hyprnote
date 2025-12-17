@@ -15,7 +15,6 @@ import { isExtHostPath } from "../utils/ext-host";
 const MainAppLayout = lazy(() => import("../components/main-app-layout"));
 
 // Compile-time check: DeepLink['to'] must match a valid route
-// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 0 as DeepLink["to"] extends NonNullable<LinkProps["to"]>
   ? 0
   : "DeepLink['to'] must match a valid route";

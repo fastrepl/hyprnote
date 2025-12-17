@@ -58,12 +58,27 @@ webhook.post(
           error instanceof Error &&
           error.message === "Unhandled webhook event"
         ) {
-          // stripe-sync-engine doesn't support this event type, skip silently
+          Sentry.captureMessage(
+            `Unhandled Stripe webhook event: ${stripeEvent.type}`,
+            {
+              level: "warning",
+              tags: {
+                webhook: "stripe",
+                event_type: stripeEvent.type,
+              },
+              extra: {
+                api_version: stripeEvent.api_version,
+              },
+            },
+          );
         } else {
           Sentry.captureException(error, {
             tags: {
               webhook: "stripe",
               event_type: stripeEvent.type,
+            },
+            extra: {
+              api_version: stripeEvent.api_version,
             },
           });
           return c.json({ error: "stripe_sync_failed" }, 500);

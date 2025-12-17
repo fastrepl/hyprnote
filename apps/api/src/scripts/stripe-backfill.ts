@@ -1,7 +1,7 @@
 import { StripeSync } from "@supabase/stripe-sync-engine";
 import { parseArgs } from "util";
 
-import { STRIPE_API_VERSION } from "../integration/stripe-sync";
+import { STRIPE_API_VERSION } from "../integration/stripe";
 
 const { DATABASE_URL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } = Bun.env;
 

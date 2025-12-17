@@ -16798,11 +16798,15 @@ dependencies = [
 name = "tauri-plugin-importer"
 version = "0.1.0"
 dependencies = [
+ "granola",
+ "serde",
  "specta",
  "specta-typescript",
  "tauri",
  "tauri-plugin",
  "tauri-specta",
+ "thiserror 2.0.17",
+ "tokio",
 ]
 
 [[package]]

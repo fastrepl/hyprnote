@@ -736,6 +736,21 @@ function useTabsShortcuts() {
   );
 
   useHotkeys(
+    "mod+q",
+    () => {
+      if (isCurrentTabListening) {
+        setShowStopListeningPopover(true);
+      }
+    },
+    {
+      preventDefault: isCurrentTabListening,
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+    [isCurrentTabListening],
+  );
+
+  useHotkeys(
     "mod+1, mod+2, mod+3, mod+4, mod+5, mod+6, mod+7, mod+8, mod+9",
     (event) => {
       const key = event.key;

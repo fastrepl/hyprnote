@@ -52,14 +52,18 @@ impl AppWindow {
         #[cfg(target_os = "macos")]
         {
             let traffic_light_y = {
-                let major = tauri_plugin_os::version()
-                    .to_string()
-                    .split('.')
-                    .next()
-                    .and_then(|v| v.parse::<u32>().ok())
-                    .unwrap_or(0);
+                use tauri_plugin_os::{Version, version};
+                let major = match version() {
+                    Version::Semantic(major, _, _) => major,
+                    Version::Custom(s) => s
+                        .split('.')
+                        .next()
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(0),
+                    _ => 0,
+                };
 
-                if major >= 26 { 18.0 } else { 18.0 }
+                if major >= 26 { 24.0 } else { 18.0 }
             };
 
             builder = builder

@@ -8,7 +8,7 @@ import {
 import { createMergeableStore } from "tinybase/with-schemas";
 
 import { getCurrentWebviewWindowLabel } from "@hypr/plugin-windows";
-import { SCHEMA, type Schemas } from "@hypr/store";
+import { SCHEMA } from "@hypr/store";
 
 import type { Store } from "./main";
 

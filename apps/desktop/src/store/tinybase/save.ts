@@ -9,7 +9,7 @@ export function registerSaveHandler(handler: () => Promise<void>) {
   };
 }
 
-async function save(): Promise<void> {
+export async function save(): Promise<void> {
   if (saveHandler) {
     await saveHandler();
   }

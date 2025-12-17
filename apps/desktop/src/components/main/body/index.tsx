@@ -119,7 +119,6 @@ function Header({ tabs }: { tabs: Tab[] }) {
     isCurrentTabListening,
   } = useTabsShortcuts();
 
-  const currentTab = tabs.find((t) => t.active);
   const setTabRefWithAnchor = useCallback(
     (tab: Tab, el: HTMLDivElement | null) => {
       setTabRef(tab, el);

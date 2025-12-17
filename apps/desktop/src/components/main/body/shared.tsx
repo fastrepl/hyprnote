@@ -1,5 +1,5 @@
 import { Square, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { Button } from "@hypr/ui/components/ui/button";
@@ -77,7 +77,11 @@ export function StopListeningPopover({
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverAnchor virtualRef={anchorRef} />
+      <PopoverAnchor
+        virtualRef={
+          anchorRef as React.RefObject<{ getBoundingClientRect: () => DOMRect }>
+        }
+      />
       <PopoverContent
         side="bottom"
         align="start"

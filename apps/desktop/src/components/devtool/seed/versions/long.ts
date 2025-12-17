@@ -19,7 +19,7 @@ const LONG_DATA = (() => {
   const session = createSession();
 
   const result = generateTranscript({
-    turnCount: { min: 800, max: 1200 },
+    turnCount: { min: 300, max: 300 },
     days: 7,
     sessionId: session.id,
   });

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { buildChatTools } from "../../../chat/tools";
 import { AITaskProvider } from "../../../contexts/ai-task";
+import { useListener } from "../../../contexts/listener";
 import { useSearchEngine } from "../../../contexts/search/engine";
 import { SearchEngineProvider } from "../../../contexts/search/engine";
 import { SearchUIProvider } from "../../../contexts/search/ui";
@@ -23,8 +24,9 @@ function Component() {
   const { persistedStore, aiTaskStore, toolRegistry } = useRouteContext({
     from: "__root__",
   });
-  const { registerOnEmpty, openNew, tabs } = useTabs();
+  const { registerOnEmpty, registerCanClose, openNew, tabs } = useTabs();
   const hasOpenedInitialTab = useRef(false);
+  const getSessionMode = useListener((state) => state.getSessionMode);
 
   const openDefaultEmptyTab = useCallback(() => {
     openNew({ type: "empty" });
@@ -39,6 +41,16 @@ function Component() {
 
     registerOnEmpty(openDefaultEmptyTab);
   }, [tabs.length, openDefaultEmptyTab, registerOnEmpty]);
+
+  useEffect(() => {
+    registerCanClose((tab) => {
+      if (tab.type !== "sessions") {
+        return true;
+      }
+      const mode = getSessionMode(tab.id);
+      return mode !== "running_active" && mode !== "finalizing";
+    });
+  }, [registerCanClose, getSessionMode]);
 
   if (!aiTaskStore) {
     return null;

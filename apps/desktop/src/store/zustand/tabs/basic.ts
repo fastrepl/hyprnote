@@ -44,10 +44,14 @@ export const createBasicSlice = <
     set({ tabs: nextTabs, currentTab } as Partial<T>);
   },
   close: (tab) => {
-    const { tabs, history } = get();
+    const { tabs, history, canClose } = get();
     const tabToClose = tabs.find((t) => isSameTab(t, tab));
 
     if (!tabToClose) {
+      return;
+    }
+
+    if (canClose && !canClose(tabToClose)) {
       return;
     }
 

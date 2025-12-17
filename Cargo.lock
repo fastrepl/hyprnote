@@ -7801,6 +7801,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "granola-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "granola",
+ "tokio",
+]
+
+[[package]]
 name = "grep-cli"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"

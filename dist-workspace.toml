@@ -7,6 +7,8 @@ members = ["cargo:."]
 cargo-dist-version = "0.30.3"
 # CI backends to support
 ci = "github"
+# Allow dprint formatting differences in CI file (dprint uses double quotes, cargo-dist uses single quotes)
+allow-dirty = ["ci"]
 # The installers to generate for each app
 installers = ["shell", "powershell", "npm"]
 # Target platforms to build apps for (Rust target-triple syntax)

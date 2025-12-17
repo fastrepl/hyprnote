@@ -59,7 +59,11 @@ impl AppWindow {
                     .and_then(|v| v.parse::<u32>().ok())
                     .unwrap_or(0);
 
-                if major >= 26 { 18.0 } else { 18.0 }
+                if major >= 26 {
+                    18.0
+                } else {
+                    18.0
+                }
             };
 
             builder = builder
@@ -85,20 +89,36 @@ impl AppWindow {
     }
 }
 
+const MAX_MAIN_WIDTH: f64 = 1600.0;
+const MAX_MAIN_HEIGHT: f64 = 1000.0;
+const MAX_ONBOARDING_WIDTH: f64 = 900.0;
+const MAX_ONBOARDING_HEIGHT: f64 = 700.0;
+
 fn window_size_with_ratio(
     monitor_width: f64,
     monitor_height: f64,
     aspect_ratio: f64,
     scale: f64,
+    max_width: f64,
+    max_height: f64,
 ) -> (f64, f64) {
     let monitor_ratio = monitor_width / monitor_height;
 
-    if aspect_ratio > monitor_ratio {
+    let (width, height) = if aspect_ratio > monitor_ratio {
         let width = monitor_width * scale;
         (width, width / aspect_ratio)
     } else {
         let height = monitor_height * scale;
         (height * aspect_ratio, height)
+    };
+
+    if width > max_width || height > max_height {
+        let scale_w = max_width / width;
+        let scale_h = max_height / height;
+        let scale = scale_w.min(scale_h);
+        (width * scale, height * scale)
+    } else {
+        (width, height)
     }
 }
 
@@ -121,16 +141,25 @@ impl WindowImpl for AppWindow {
 
         let (monitor_width, monitor_height) = monitor
             .map(|m| {
-                let size = m.size();
+                let work_area = m.work_area();
                 let scale = m.scale_factor();
-                (size.width as f64 / scale, size.height as f64 / scale)
+                (
+                    work_area.size.width as f64 / scale,
+                    work_area.size.height as f64 / scale,
+                )
             })
             .unwrap_or((1920.0, 1080.0));
 
         let window = match self {
             Self::Onboarding => {
-                let (width, height) =
-                    window_size_with_ratio(monitor_width, monitor_height, 2.0 / 3.0, 0.7);
+                let (width, height) = window_size_with_ratio(
+                    monitor_width,
+                    monitor_height,
+                    2.0 / 3.0,
+                    0.7,
+                    MAX_ONBOARDING_WIDTH,
+                    MAX_ONBOARDING_HEIGHT,
+                );
 
                 self.window_builder(app, "/app/onboarding")
                     .resizable(false)
@@ -140,10 +169,22 @@ impl WindowImpl for AppWindow {
                     .build()?
             }
             Self::Main => {
-                let (width, height) =
-                    window_size_with_ratio(monitor_width, monitor_height, 4.0 / 3.0, 0.8);
-                let (min_w, min_h) =
-                    window_size_with_ratio(monitor_width, monitor_height, 4.0 / 3.0, 0.4);
+                let (width, height) = window_size_with_ratio(
+                    monitor_width,
+                    monitor_height,
+                    4.0 / 3.0,
+                    0.8,
+                    MAX_MAIN_WIDTH,
+                    MAX_MAIN_HEIGHT,
+                );
+                let (min_w, min_h) = window_size_with_ratio(
+                    monitor_width,
+                    monitor_height,
+                    4.0 / 3.0,
+                    0.4,
+                    MAX_MAIN_WIDTH * 0.5,
+                    MAX_MAIN_HEIGHT * 0.5,
+                );
 
                 self.window_builder(app, "/app/main")
                     .maximizable(true)

@@ -8,6 +8,6 @@ name = "granola"
 path = "src/main.rs"
 
 [dependencies]
-hypr-granola = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
+hypr-granola = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

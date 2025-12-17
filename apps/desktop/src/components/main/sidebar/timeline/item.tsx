@@ -2,8 +2,11 @@ import { memo, useCallback, useMemo } from "react";
 
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
+import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/utils";
 
+import { useListener } from "../../../../contexts/listener";
+import { useIsSessionEnhancing } from "../../../../hooks/useEnhancedNotes";
 import * as main from "../../../../store/tinybase/main";
 import { type TabInput, useTabs } from "../../../../store/zustand/tabs";
 import { id } from "../../../../utils";
@@ -35,6 +38,14 @@ export const TimelineItemComponent = memo(
     const title = item.data.title || "Untitled";
     const timestamp =
       item.type === "event" ? item.data.started_at : item.data.created_at;
+
+    const sessionId = item.type === "session" ? item.id : null;
+    const sessionMode = useListener((state) =>
+      sessionId ? state.getSessionMode(sessionId) : "inactive",
+    );
+    const isEnhancing = useIsSessionEnhancing(sessionId ?? "");
+    const isFinalizing = sessionMode === "finalizing";
+    const showSpinner = isFinalizing || isEnhancing;
 
     const handleClick = () => {
       if (item.type === "event") {
@@ -171,11 +182,18 @@ export const TimelineItemComponent = memo(
           !selected && "hover:bg-neutral-100",
         ])}
       >
-        <div className="flex flex-col gap-0.5">
-          <div className="text-sm font-normal truncate">{title}</div>
-          {displayTime && (
-            <div className="text-xs text-neutral-500">{displayTime}</div>
+        <div className="flex items-start gap-2">
+          {showSpinner && (
+            <div className="flex-shrink-0 mt-0.5">
+              <Spinner size={14} />
+            </div>
           )}
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <div className="text-sm font-normal truncate">{title}</div>
+            {displayTime && (
+              <div className="text-xs text-neutral-500">{displayTime}</div>
+            )}
+          </div>
         </div>
       </InteractiveButton>
     );

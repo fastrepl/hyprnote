@@ -37,7 +37,13 @@ const binaryPath = path.join(
 
 if (!fs.existsSync(binaryPath)) {
   console.error(`Binary not found at: ${binaryPath}`);
-  console.error("Please run: npm install export-granola");
+  console.error(
+    "For development, build manually: cargo build --release -p granola-cli",
+  );
+  console.error(
+    "Then copy the binary to: " +
+      path.join(__dirname, "..", "binaries", `${platformStr}-${archStr}`, "/"),
+  );
   process.exit(1);
 }
 

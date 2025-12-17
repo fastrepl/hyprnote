@@ -68,6 +68,8 @@ function downloadFile(url, callback) {
         downloadFile(response.headers.location, callback);
       } else if (response.statusCode === 200) {
         callback(null, response);
+      } else if (response.statusCode === 404) {
+        callback(new Error("NOT_FOUND"));
       } else {
         callback(
           new Error(`Download failed with status: ${response.statusCode}`),
@@ -79,11 +81,20 @@ function downloadFile(url, callback) {
 
 downloadFile(downloadUrl, (err, response) => {
   if (err) {
+    if (err.message === "NOT_FOUND") {
+      console.log(
+        "Binary not yet published. For development, build manually: cargo build --release -p granola-cli",
+      );
+      console.log(
+        "Once published to npm, binaries will be downloaded automatically.",
+      );
+      process.exit(0);
+    }
     console.error("Download failed:", err.message);
     console.error(
       "You may need to build the binary manually: cargo build --release -p granola-cli",
     );
-    process.exit(1);
+    process.exit(0);
   }
 
   const tarPath = path.join(targetDir, "granola.tar.gz");

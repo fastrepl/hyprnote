@@ -13,12 +13,12 @@ import {
 export function GithubEmbed({
   code,
   fileName,
-  language = "bash",
+  language: _language = "bash",
 }: {
   code: string;
   fileName: string;
   language?: string;
-}) {
+}){
   const [copied, setCopied] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
 

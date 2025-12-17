@@ -116,4 +116,4 @@ async function main() {
   printGlobalsChecklist(uiModules);
 }
 
-void main();
+main();

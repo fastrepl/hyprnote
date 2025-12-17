@@ -323,6 +323,7 @@ function ParticipantChipInput({
       setInputValue("");
       setShowDropdown(false);
       setSelectedIndex(0);
+      inputRef.current?.focus();
     },
     [store, userId, sessionId],
   );

@@ -7,6 +7,7 @@ import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/utils";
 
 import * as main from "../../../../../../store/tinybase/main";
+import { useTabs } from "../../../../../../store/zustand/tabs/index";
 
 function createHuman(store: any, userId: string, name: string) {
   const humanId = crypto.randomUUID();
@@ -167,6 +168,7 @@ function useRemoveParticipant({
 
 function ParticipantChip({ mappingId }: { mappingId: string }) {
   const details = useParticipantDetails(mappingId);
+  const openCurrent = useTabs.getState().openCurrent;
 
   const assignedHumanId = details?.humanId;
   const sessionId = details?.sessionId;
@@ -177,6 +179,15 @@ function ParticipantChip({ mappingId }: { mappingId: string }) {
     sessionId,
   });
 
+  const handleClick = useCallback(() => {
+    if (assignedHumanId) {
+      openCurrent({
+        type: "contacts",
+        state: { selectedOrganization: null, selectedPerson: assignedHumanId },
+      });
+    }
+  }, [openCurrent, assignedHumanId]);
+
   if (!details) {
     return null;
   }
@@ -186,7 +197,8 @@ function ParticipantChip({ mappingId }: { mappingId: string }) {
   return (
     <Badge
       variant="secondary"
-      className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted"
+      className="flex items-center gap-1 px-2 py-0.5 text-xs bg-muted cursor-pointer hover:bg-muted/80"
+      onClick={handleClick}
     >
       {humanName || "Unknown"}
       <Button

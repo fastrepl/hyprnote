@@ -1,12 +1,52 @@
 import { defineCollection, defineConfig } from "@content-collections/core";
 import { compileMDX } from "@content-collections/mdx";
+import * as fs from "fs";
 import mdxMermaid from "mdx-mermaid";
+import * as path from "path";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 
 import { VersionPlatform } from "@/scripts/versioning";
+
+async function embedGithubCode(content: string): Promise<string> {
+  const githubCodeRegex = /<GithubCode\s+url="([^"]+)"\s*\/>/g;
+  let result = content;
+
+  const matches = [...content.matchAll(githubCodeRegex)];
+  for (const match of matches) {
+    const [fullMatch, url] = match;
+
+    // Check if it's a same-repo URL (fastrepl/hyprnote)
+    const repoMatch = url.match(
+      /github\.com\/fastrepl\/hyprnote\/blob\/[^/]+\/(.+)/,
+    );
+    if (repoMatch) {
+      const filePath = repoMatch[1];
+      // Use process.cwd() which is the apps/web directory during content-collections build
+      const localPath = path.resolve(process.cwd(), "..", "..", filePath);
+
+      try {
+        const fileContent = fs.readFileSync(localPath, "utf-8");
+
+        // Extract code block content if the file is markdown
+        const codeBlockMatch = fileContent.match(/```(\w+)\n([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          const [, lang, code] = codeBlockMatch;
+          result = result.replace(fullMatch, `\`\`\`${lang}\n${code}\`\`\``);
+        } else {
+          // If no code block, embed the whole file as plain text
+          result = result.replace(fullMatch, `\`\`\`\n${fileContent}\`\`\``);
+        }
+      } catch {
+        console.warn(`Failed to read local file: ${localPath}`);
+      }
+    }
+  }
+
+  return result;
+}
 
 function extractToc(
   content: string,
@@ -153,9 +193,13 @@ const docs = defineCollection({
     updated: z.string().optional(),
   }),
   transform: async (document, context) => {
-    const toc = extractToc(document.content);
+    // Preprocess content to embed GitHub code snippets at build time
+    const processedContent = await embedGithubCode(document.content);
+    const processedDocument = { ...document, content: processedContent };
 
-    const mdx = await compileMDX(context, document, {
+    const toc = extractToc(processedContent);
+
+    const mdx = await compileMDX(context, processedDocument, {
       remarkPlugins: [remarkGfm, mdxMermaid],
       rehypePlugins: [
         rehypeSlug,

@@ -3,11 +3,11 @@ use std::str::FromStr;
 use tauri::Manager;
 use tauri_specta::Event;
 
-use crate::AppWindow;
+use crate::{AppWindow, WindowsPluginExt};
 
 // TODO: https://github.com/fastrepl/hyprnote/commit/150c8a1 this not worked. webview_window not found.
 pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
-    let _app = window.app_handle();
+    let app = window.app_handle();
 
     match event {
         tauri::WindowEvent::CloseRequested { api, .. } => {
@@ -94,12 +94,6 @@ common_event_derives! {
     pub struct MainWindowState {
         pub left_sidebar_expanded: Option<bool>,
         pub right_panel_expanded: Option<bool>,
-    }
-}
-
-common_event_derives! {
-    pub struct OpenTab {
-        pub tab: crate::TabInput,
     }
 }
 

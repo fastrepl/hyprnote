@@ -3,13 +3,11 @@ mod errors;
 mod events;
 mod ext;
 mod overlay;
-mod tab;
 mod window;
 
 pub use errors::*;
 pub use events::*;
-pub use ext::{Windows, WindowsPluginExt};
-pub use tab::*;
+pub use ext::*;
 pub use window::*;
 
 pub use overlay::{FakeWindowBounds, OverlayBound};
@@ -47,7 +45,6 @@ fn make_specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             events::Navigate,
             events::WindowDestroyed,
             events::MainWindowState,
-            events::OpenTab,
         ])
         .commands(tauri_specta::collect_commands![
             commands::window_show,
@@ -81,13 +78,6 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 
             Ok(())
         })
-        .on_event(move |app, event| match event {
-            tauri::RunEvent::ExitRequested { .. } => {
-                use tauri_plugin_window_state::{AppHandleExt, StateFlags};
-                let _ = app.save_window_state(StateFlags::SIZE);
-            }
-            _ => {}
-        })
         .build()
 }
 
@@ -110,16 +100,5 @@ mod test {
 
         let content = std::fs::read_to_string(OUTPUT_FILE).unwrap();
         std::fs::write(OUTPUT_FILE, format!("// @ts-nocheck\n{content}")).unwrap();
-    }
-
-    #[test]
-    fn test_version() {
-        let version = tauri_plugin_os::version()
-            .to_string()
-            .split('.')
-            .next()
-            .and_then(|v| v.parse::<u32>().ok())
-            .unwrap_or(0);
-        println!("version: {}", version);
     }
 }

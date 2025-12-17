@@ -1,5 +1,6 @@
 use tauri::{AppHandle, Manager, WebviewWindow};
 use tauri_specta::Event;
+use uuid::Uuid;
 
 use crate::{AppWindow, WindowImpl, events};
 
@@ -75,11 +76,17 @@ impl AppWindow {
         #[cfg(target_os = "macos")]
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
-        if matches!(self, Self::Main) {
+        if self.label() == "main" {
             use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
 
             let e = AnalyticsPayload::builder("show_main_window").build();
-            app.analytics().event_fire_and_forget(e);
+
+            let app_clone = app.clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = app_clone.event(e).await {
+                    tracing::error!("failed_to_send_analytics: {:?}", e);
+                }
+            });
         }
 
         if let Some(window) = self.get(app) {
@@ -90,76 +97,81 @@ impl AppWindow {
 
         let window = self.build_window(app)?;
 
-        if matches!(self, Self::Main) {
-            use tauri_plugin_window_state::{StateFlags, WindowExt};
-            let _ = window.restore_state(StateFlags::SIZE);
-        }
-
-        window.show()?;
         window.set_focus()?;
+        window.show()?;
 
         Ok(window)
     }
 }
 
-pub struct Windows<'a> {
-    app: &'a AppHandle<tauri::Wry>,
-}
+pub trait WindowsPluginExt<R: tauri::Runtime> {
+    fn close_all_windows(&self) -> Result<(), crate::Error>;
 
-impl<'a> Windows<'a> {
-    pub fn show(&self, window: AppWindow) -> Result<WebviewWindow, crate::Error> {
-        window.show(self.app)
-    }
+    fn window_show(&self, window: AppWindow) -> Result<WebviewWindow, crate::Error>;
+    fn window_hide(&self, window: AppWindow) -> Result<(), crate::Error>;
+    fn window_close(&self, window: AppWindow) -> Result<(), crate::Error>;
+    fn window_destroy(&self, window: AppWindow) -> Result<(), crate::Error>;
+    fn window_is_focused(&self, window: AppWindow) -> Result<bool, crate::Error>;
+    fn window_is_exists(&self, window: AppWindow) -> Result<bool, crate::Error>;
 
-    pub fn hide(&self, window: AppWindow) -> Result<(), crate::Error> {
-        window.hide(self.app)
-    }
-
-    pub fn close(&self, window: AppWindow) -> Result<(), crate::Error> {
-        window.close(self.app)
-    }
-
-    pub fn destroy(&self, window: AppWindow) -> Result<(), crate::Error> {
-        window.destroy(self.app)
-    }
-
-    pub fn is_focused(&self, window: AppWindow) -> Result<bool, crate::Error> {
-        Ok(window
-            .get(self.app)
-            .and_then(|w| w.is_focused().ok())
-            .unwrap_or(false))
-    }
-
-    pub fn is_exists(&self, window: AppWindow) -> Result<bool, crate::Error> {
-        Ok(window.get(self.app).is_some())
-    }
-
-    pub fn emit_navigate(
+    fn window_emit_navigate(
         &self,
         window: AppWindow,
         event: events::Navigate,
-    ) -> Result<(), crate::Error> {
-        window.emit_navigate(self.app, event)
-    }
+    ) -> Result<(), crate::Error>;
 
-    pub fn navigate(&self, window: AppWindow, path: impl AsRef<str>) -> Result<(), crate::Error> {
-        window.navigate(self.app, path)
-    }
+    fn window_navigate(&self, window: AppWindow, path: impl AsRef<str>)
+    -> Result<(), crate::Error>;
+}
 
-    pub fn close_all(&self) -> Result<(), crate::Error> {
-        for (_, window) in self.app.webview_windows() {
+impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
+    fn close_all_windows(&self) -> Result<(), crate::Error> {
+        for (_, window) in self.webview_windows() {
             let _ = window.close();
         }
         Ok(())
     }
-}
 
-pub trait WindowsPluginExt {
-    fn windows(&self) -> Windows<'_>;
-}
+    fn window_show(&self, window: AppWindow) -> Result<WebviewWindow, crate::Error> {
+        window.show(self)
+    }
 
-impl WindowsPluginExt for AppHandle<tauri::Wry> {
-    fn windows(&self) -> Windows<'_> {
-        Windows { app: self }
+    fn window_close(&self, window: AppWindow) -> Result<(), crate::Error> {
+        window.close(self)
+    }
+
+    fn window_hide(&self, window: AppWindow) -> Result<(), crate::Error> {
+        window.hide(self)
+    }
+
+    fn window_destroy(&self, window: AppWindow) -> Result<(), crate::Error> {
+        window.destroy(self)
+    }
+
+    fn window_is_focused(&self, window: AppWindow) -> Result<bool, crate::Error> {
+        Ok(window
+            .get(self)
+            .and_then(|w| w.is_focused().ok())
+            .unwrap_or(false))
+    }
+
+    fn window_emit_navigate(
+        &self,
+        window: AppWindow,
+        event: events::Navigate,
+    ) -> Result<(), crate::Error> {
+        window.emit_navigate(self, event)
+    }
+
+    fn window_navigate(
+        &self,
+        window: AppWindow,
+        path: impl AsRef<str>,
+    ) -> Result<(), crate::Error> {
+        window.navigate(self, path)
+    }
+
+    fn window_is_exists(&self, window: AppWindow) -> Result<bool, crate::Error> {
+        Ok(window.get(self).is_some())
     }
 }

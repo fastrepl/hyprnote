@@ -23,10 +23,10 @@ static OVERLAY_JOIN_HANDLE: Lazy<Mutex<Option<tokio::task::JoinHandle<()>>>> =
     Lazy::new(|| Mutex::new(None));
 
 pub fn abort_overlay_join_handle() {
-    if let Ok(mut guard) = OVERLAY_JOIN_HANDLE.lock()
-        && let Some(handle) = guard.take()
-    {
-        handle.abort();
+    if let Ok(mut guard) = OVERLAY_JOIN_HANDLE.lock() {
+        if let Some(handle) = guard.take() {
+            handle.abort();
+        }
     }
 }
 

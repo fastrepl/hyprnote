@@ -15,7 +15,9 @@
   "paths": {
     "/api/webhooks": {
       "get": {
-        "tags": ["Webhooks"],
+        "tags": [
+          "Webhooks"
+        ],
         "operationId": "list_webhooks",
         "responses": {
           "200": {
@@ -36,7 +38,9 @@
         ]
       },
       "post": {
-        "tags": ["Webhooks"],
+        "tags": [
+          "Webhooks"
+        ],
         "operationId": "create_webhook",
         "requestBody": {
           "content": {
@@ -72,7 +76,9 @@
     },
     "/api/webhooks/{id}": {
       "delete": {
-        "tags": ["Webhooks"],
+        "tags": [
+          "Webhooks"
+        ],
         "operationId": "delete_webhook",
         "parameters": [
           {
@@ -102,7 +108,9 @@
     },
     "/api/webhooks/{id}/test": {
       "post": {
-        "tags": ["Webhooks"],
+        "tags": [
+          "Webhooks"
+        ],
         "operationId": "test_webhook",
         "parameters": [
           {
@@ -132,7 +140,9 @@
     },
     "/your-webhook-endpoint": {
       "post": {
-        "tags": ["Events"],
+        "tags": [
+          "Events"
+        ],
         "operationId": "webhook_receiver_example",
         "requestBody": {
           "content": {
@@ -167,7 +177,9 @@
     "schemas": {
       "CreateWebhookRequest": {
         "type": "object",
-        "required": ["config"],
+        "required": [
+          "config"
+        ],
         "properties": {
           "config": {
             "$ref": "#/components/schemas/WebhookConfig"
@@ -176,7 +188,11 @@
       },
       "NoteEvent": {
         "type": "object",
-        "required": ["note_id", "title", "content"],
+        "required": [
+          "note_id",
+          "title",
+          "content"
+        ],
         "properties": {
           "content": {
             "type": "string",
@@ -194,7 +210,11 @@
       },
       "RecordingEvent": {
         "type": "object",
-        "required": ["recording_id", "duration_seconds", "status"],
+        "required": [
+          "recording_id",
+          "duration_seconds",
+          "status"
+        ],
         "properties": {
           "duration_seconds": {
             "type": "integer",
@@ -214,7 +234,11 @@
       },
       "TranscriptionEvent": {
         "type": "object",
-        "required": ["recording_id", "transcription_id", "text"],
+        "required": [
+          "recording_id",
+          "transcription_id",
+          "text"
+        ],
         "properties": {
           "recording_id": {
             "type": "string",
@@ -232,7 +256,11 @@
       },
       "WebhookConfig": {
         "type": "object",
-        "required": ["url", "events", "active"],
+        "required": [
+          "url",
+          "events",
+          "active"
+        ],
         "properties": {
           "active": {
             "type": "boolean",
@@ -245,7 +273,11 @@
               "type": "string"
             },
             "description": "Events to subscribe to",
-            "example": ["note.created", "note.updated", "recording.completed"]
+            "example": [
+              "note.created",
+              "note.updated",
+              "recording.completed"
+            ]
           },
           "url": {
             "type": "string",
@@ -256,7 +288,12 @@
       },
       "WebhookEvent": {
         "type": "object",
-        "required": ["id", "event_type", "timestamp", "data"],
+        "required": [
+          "id",
+          "event_type",
+          "timestamp",
+          "data"
+        ],
         "properties": {
           "data": {
             "description": "Event payload"
@@ -280,7 +317,10 @@
       },
       "WebhookListResponse": {
         "type": "object",
-        "required": ["webhooks", "total"],
+        "required": [
+          "webhooks",
+          "total"
+        ],
         "properties": {
           "total": {
             "type": "integer",
@@ -296,7 +336,12 @@
       },
       "WebhookResponse": {
         "type": "object",
-        "required": ["id", "config", "secret", "created_at"],
+        "required": [
+          "id",
+          "config",
+          "secret",
+          "created_at"
+        ],
         "properties": {
           "config": {
             "$ref": "#/components/schemas/WebhookConfig"
@@ -318,7 +363,10 @@
       },
       "WebhookVerification": {
         "type": "object",
-        "required": ["signature", "timestamp"],
+        "required": [
+          "signature",
+          "timestamp"
+        ],
         "properties": {
           "signature": {
             "type": "string",

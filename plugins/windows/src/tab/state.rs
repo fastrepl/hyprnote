@@ -61,9 +61,9 @@ crate::common_derives! {
 crate::common_derives! {
     #[derive(Default)]
     pub enum AiTab {
+        #[default]
         #[serde(rename = "transcription")]
         Transcription,
-        #[default]
         #[serde(rename = "intelligence")]
         Intelligence,
     }

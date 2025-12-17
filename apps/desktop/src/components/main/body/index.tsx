@@ -564,18 +564,20 @@ function useScrollState(
     });
   }, [ref]);
 
+  useResizeObserver({
+    ref: ref as React.RefObject<HTMLDivElement>,
+    onResize: updateScrollState,
+  });
+
   useEffect(() => {
     const container = ref.current;
     if (!container) return;
 
     updateScrollState();
     container.addEventListener("scroll", updateScrollState);
-    const resizeObserver = new ResizeObserver(updateScrollState);
-    resizeObserver.observe(container);
 
     return () => {
       container.removeEventListener("scroll", updateScrollState);
-      resizeObserver.disconnect();
     };
   }, [updateScrollState, ...deps]);
 

@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Pin, X } from "lucide-react";
 import { useState } from "react";
 
 import { ContextMenuItem } from "@hypr/ui/components/ui/context-menu";
@@ -15,6 +15,8 @@ type TabItemProps<T extends Tab = Tab> = { tab: T; tabIndex?: number } & {
   handleCloseThis: (tab: T) => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handlePinThis: (tab: T) => void;
+  handleUnpinThis: (tab: T) => void;
 };
 
 type TabItemBaseProps = {
@@ -23,12 +25,16 @@ type TabItemBaseProps = {
   selected: boolean;
   active?: boolean;
   finalizing?: boolean;
+  pinned?: boolean;
+  allowPin?: boolean;
   tabIndex?: number;
 } & {
   handleCloseThis: () => void;
   handleSelectThis: () => void;
   handleCloseOthers: () => void;
   handleCloseAll: () => void;
+  handlePinThis: () => void;
+  handleUnpinThis: () => void;
 };
 
 export type TabItem<T extends Tab = Tab> = (
@@ -41,11 +47,15 @@ export function TabItemBase({
   selected,
   active = false,
   finalizing = false,
+  pinned = false,
+  allowPin = true,
   tabIndex,
   handleCloseThis,
   handleSelectThis,
   handleCloseOthers,
   handleCloseAll,
+  handlePinThis,
+  handleUnpinThis,
 }: TabItemBaseProps) {
   const isCmdPressed = useCmdKeyPressed();
   const [isHovered, setIsHovered] = useState(false);
@@ -60,6 +70,12 @@ export function TabItemBase({
 
   const contextMenu = !active ? (
     <>
+      {allowPin &&
+        (pinned ? (
+          <ContextMenuItem onClick={handleUnpinThis}>unpin tab</ContextMenuItem>
+        ) : (
+          <ContextMenuItem onClick={handlePinThis}>pin tab</ContextMenuItem>
+        ))}
       <ContextMenuItem onClick={handleCloseThis}>close tab</ContextMenuItem>
       <ContextMenuItem onClick={handleCloseOthers}>
         close others
@@ -114,6 +130,8 @@ export function TabItemBase({
                   <div className="absolute inset-0 rounded-full bg-red-600"></div>
                   <div className="absolute inset-0 rounded-full bg-red-300 animate-ping"></div>
                 </div>
+              ) : pinned ? (
+                <Pin size={14} className="text-neutral-500" />
               ) : (
                 icon
               )}

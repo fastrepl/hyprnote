@@ -18,7 +18,7 @@ export function GithubEmbed({
   code: string;
   fileName: string;
   language?: string;
-}){
+}) {
   const [copied, setCopied] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
 

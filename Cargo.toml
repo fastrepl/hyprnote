@@ -7,6 +7,11 @@ debug = true
 opt-level = 1
 debug = false
 
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
 [workspace]
 resolver = "2"
 members = [

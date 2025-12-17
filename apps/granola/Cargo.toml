@@ -2,6 +2,7 @@
 name = "granola-cli"
 version = "0.1.0"
 edition = "2024"
+homepage = "https://github.com/fastrepl/hyprnote/tree/main/apps/granola"
 license = "MIT"
 repository = "https://github.com/fastrepl/hyprnote"
 description = "Export your Granola notes and transcripts to local files"
@@ -14,3 +15,9 @@ path = "src/main.rs"
 clap = { workspace = true, features = ["derive"] }
 hypr-granola = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+# cargo-dist configuration - opt-in to distribution
+[package.metadata.dist]
+dist = true
+# npm package name for npx access
+npm-package = "export-granola"

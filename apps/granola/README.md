@@ -4,6 +4,10 @@ Export your Granola notes and transcripts to local files.
 
 ## Installation
 
+### Via npm/npx
+
+Run directly without installing:
+
 ```bash
 npx export-granola
 ```
@@ -12,6 +16,18 @@ Or install globally:
 
 ```bash
 npm install -g export-granola
+```
+
+### Via shell script (macOS/Linux)
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/fastrepl/hyprnote/releases/latest/download/granola-cli-installer.sh | sh
+```
+
+### Via PowerShell (Windows)
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/fastrepl/hyprnote/releases/latest/download/granola-cli-installer.ps1 | iex"
 ```
 
 ## Usage

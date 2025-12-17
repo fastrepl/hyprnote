@@ -15,9 +15,7 @@ common_event_derives! {
             apps: Vec<hypr_detect::InstalledApp>,
         },
         #[serde(rename = "micStopped")]
-        MicStopped {
-            apps: Vec<hypr_detect::InstalledApp>,
-        },
+        MicStopped {},
         #[serde(rename = "micMuted")]
         MicMuteStateChanged { value: bool },
     }
@@ -30,7 +28,7 @@ impl From<hypr_detect::DetectEvent> for DetectEvent {
                 key: uuid::Uuid::new_v4().to_string(),
                 apps,
             },
-            hypr_detect::DetectEvent::MicStopped(apps) => Self::MicStopped { apps },
+            hypr_detect::DetectEvent::MicStopped => Self::MicStopped {},
             #[cfg(target_os = "macos")]
             hypr_detect::DetectEvent::ZoomMuteStateChanged { value } => {
                 Self::MicMuteStateChanged { value }

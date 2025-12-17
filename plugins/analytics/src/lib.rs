@@ -87,7 +87,6 @@ mod test {
     async fn test_analytics() {
         let app = create_app(tauri::test::mock_builder());
         let result = app
-            .analytics()
             .event(hypr_analytics::AnalyticsPayload::builder("test_event").build())
             .await;
         assert!(result.is_ok());

@@ -6,10 +6,7 @@ pub(crate) async fn event<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     payload: hypr_analytics::AnalyticsPayload,
 ) -> Result<(), String> {
-    app.analytics()
-        .event(payload)
-        .await
-        .map_err(|e| e.to_string())
+    app.event(payload).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -18,10 +15,7 @@ pub(crate) async fn set_properties<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     payload: hypr_analytics::PropertiesPayload,
 ) -> Result<(), String> {
-    app.analytics()
-        .set_properties(payload)
-        .await
-        .map_err(|e| e.to_string())
+    app.set_properties(payload).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -30,9 +24,7 @@ pub(crate) async fn set_disabled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     disabled: bool,
 ) -> Result<(), String> {
-    app.analytics()
-        .set_disabled(disabled)
-        .map_err(|e| e.to_string())
+    app.set_disabled(disabled).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -40,5 +32,5 @@ pub(crate) async fn set_disabled<R: tauri::Runtime>(
 pub(crate) async fn is_disabled<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<bool, String> {
-    app.analytics().is_disabled().map_err(|e| e.to_string())
+    app.is_disabled().map_err(|e| e.to_string())
 }

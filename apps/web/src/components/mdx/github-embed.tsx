@@ -1,5 +1,3 @@
-"use client";
-
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 
@@ -23,7 +21,7 @@ export function GithubEmbed({
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const lines = code.split("\n");
-  // Remove trailing empty line if present
+
   if (lines[lines.length - 1] === "") {
     lines.pop();
   }

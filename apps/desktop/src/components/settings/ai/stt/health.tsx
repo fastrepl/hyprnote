@@ -1,4 +1,5 @@
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
 
 import { useBillingAccess } from "../../../../billing";
 import { useConfigValues } from "../../../../config/use-config";
@@ -12,11 +13,37 @@ import {
 } from "./shared";
 
 export function HealthCheckForConnection() {
-  const props = useConnectionHealth();
+  const health = useConnectionHealth();
+
+  const props = useMemo(() => {
+    if (health.status === "pending") {
+      return {
+        status: "pending",
+        tooltip: health.tooltip || "Checking connection...",
+      };
+    }
+
+    if (health.status === "error") {
+      return {
+        status: "error",
+        tooltip: health.tooltip || "Connection failed.",
+      };
+    }
+
+    if (health.status === "success") {
+      return { status: "success" };
+    }
+
+    return { status: null };
+  }, [health]) satisfies Parameters<typeof ConnectionHealth>[0];
+
   return <ConnectionHealth {...props} />;
 }
 
-function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
+function useConnectionHealth(): {
+  status: "pending" | "error" | "success" | null;
+  tooltip?: string;
+} {
   const { conn, local } = useSTTConnection();
   const { current_stt_provider, current_stt_model } = useConfigValues([
     "current_stt_provider",
@@ -27,10 +54,56 @@ function useConnectionHealth(): Parameters<typeof ConnectionHealth>[0] {
     (current_stt_provider === "hyprnote" && current_stt_model === "cloud") ||
     current_stt_provider !== "hyprnote";
 
+  const isDeepgram = current_stt_provider === "deepgram";
+
+  const deepgramHealth = useQuery({
+    enabled: isDeepgram && !!conn,
+    queryKey: ["stt-health-check", "deepgram", conn?.apiKey],
+    staleTime: 0,
+    retry: 3,
+    retryDelay: 200,
+    queryFn: async () => {
+      const response = await fetch("https://api.deepgram.com/v1/projects", {
+        headers: {
+          Authorization: `Token ${conn!.apiKey}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}`);
+      }
+      return response.status;
+    },
+  });
+
+  const { refetch } = deepgramHealth;
+  useEffect(() => {
+    if (isDeepgram && conn) {
+      void refetch();
+    }
+  }, [isDeepgram, conn, refetch]);
+
   if (isCloud) {
-    return conn
-      ? { status: "success" }
-      : { status: "error", tooltip: "Provider not configured." };
+    if (!conn) {
+      return { status: "error", tooltip: "Provider not configured." };
+    }
+
+    if (isDeepgram) {
+      if (deepgramHealth.isPending) {
+        return { status: "pending", tooltip: "Verifying API key..." };
+      }
+      if (deepgramHealth.isError) {
+        const error = deepgramHealth.error as Error;
+        return {
+          status: "error",
+          tooltip: `API key verification failed: ${error.message}`,
+        };
+      }
+      if (deepgramHealth.isSuccess) {
+        return { status: "success" };
+      }
+    }
+
+    return { status: "success" };
   }
 
   const serverStatus = local.data?.status ?? "unavailable";

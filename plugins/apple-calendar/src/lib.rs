@@ -42,6 +42,7 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
 
             #[cfg(target_os = "macos")]
             {
+                use tauri::Manager;
                 use tauri_specta::Event;
 
                 let app_handle = app.app_handle().clone();

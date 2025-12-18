@@ -142,8 +142,8 @@ pub async fn main() {
 
             {
                 use tauri_plugin_tray::TrayPluginExt;
-                app_handle.create_tray_menu().unwrap();
-                app_handle.create_app_menu().unwrap();
+                app_handle.tray().create_tray_menu().unwrap();
+                app_handle.tray().create_app_menu().unwrap();
             }
 
             tokio::spawn(async move {

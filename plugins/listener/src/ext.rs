@@ -95,7 +95,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             use tauri_plugin_tray::TrayPluginExt;
-            let _ = guard.app.set_start_disabled(true);
+            let _ = guard.app.tray().set_start_disabled(true);
         }
 
         let ctx = SessionContext {
@@ -125,7 +125,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
                 tracing::error!(error = ?e, "failed_to_start_session");
 
                 use tauri_plugin_tray::TrayPluginExt;
-                let _ = guard.app.set_start_disabled(false);
+                let _ = guard.app.tray().set_start_disabled(false);
             }
         }
     }
@@ -158,7 +158,7 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ListenerPluginExt<R> for T {
 
         {
             use tauri_plugin_tray::TrayPluginExt;
-            let _ = guard.app.set_start_disabled(false);
+            let _ = guard.app.tray().set_start_disabled(false);
         }
 
         if let Some(session_id) = session_id {

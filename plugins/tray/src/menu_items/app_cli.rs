@@ -29,7 +29,7 @@ impl MenuItemHandler for AppCliInstall {
         let app_clone = app.clone();
         match app.plugin_cli().install_cli_to_path() {
             Ok(_) => {
-                let _ = app.create_app_menu();
+                let _ = app.tray().create_app_menu();
                 app_clone
                     .dialog()
                     .message("CLI has been installed successfully.\n\nYou can now use 'hypr' command in your terminal.")
@@ -70,7 +70,7 @@ impl MenuItemHandler for AppCliUninstall {
         let app_clone = app.clone();
         match app.plugin_cli().uninstall_cli_from_path() {
             Ok(_) => {
-                let _ = app.create_app_menu();
+                let _ = app.tray().create_app_menu();
                 app_clone
                     .dialog()
                     .message("CLI has been uninstalled successfully.")

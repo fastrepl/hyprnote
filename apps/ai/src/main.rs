@@ -16,6 +16,7 @@ fn app() -> Router {
     let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys());
 
     Router::new()
+        .route("/health", axum::routing::get(|| async { "ok" }))
         .nest("/stt", hypr_transcribe_proxy::router(stt_config))
         .nest("/llm", hypr_llm_proxy::router(llm_config))
         .layer(

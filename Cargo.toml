@@ -14,7 +14,6 @@ members = [
   "apps/desktop/src-tauri",
   "apps/granola",
   "crates/*",
-  "owhisper/*",
   "plugins/*",
   "tools",
 ]
@@ -41,6 +40,7 @@ hypr-extensions-runtime = { path = "crates/extensions-runtime", package = "exten
 hypr-file = { path = "crates/file", package = "file" }
 hypr-gbnf = { path = "crates/gbnf", package = "gbnf" }
 hypr-gguf = { path = "crates/gguf", package = "gguf" }
+hypr-granola = { path = "crates/granola", package = "granola" }
 hypr-host = { path = "crates/host", package = "host" }
 hypr-intercept = { path = "crates/intercept", package = "intercept" }
 hypr-kyutai = { path = "crates/kyutai", package = "kyutai" }
@@ -84,12 +84,10 @@ hypr-whisper-local-model = { path = "crates/whisper-local-model", package = "whi
 hypr-ws-client = { path = "crates/ws-client", package = "ws-client" }
 hypr-ws-utils = { path = "crates/ws-utils", package = "ws-utils" }
 
-hypr-granola = { path = "crates/granola", package = "granola" }
-
-owhisper-client = { path = "owhisper/owhisper-client", package = "owhisper-client" }
-owhisper-config = { path = "owhisper/owhisper-config", package = "owhisper-config" }
-owhisper-interface = { path = "owhisper/owhisper-interface", package = "owhisper-interface" }
-owhisper-providers = { path = "owhisper/owhisper-providers", package = "owhisper-providers" }
+owhisper-client = { path = "crates/owhisper-client", package = "owhisper-client" }
+owhisper-config = { path = "crates/owhisper-config", package = "owhisper-config" }
+owhisper-interface = { path = "crates/owhisper-interface", package = "owhisper-interface" }
+owhisper-providers = { path = "crates/owhisper-providers", package = "owhisper-providers" }
 
 tauri = "2.9"
 tauri-build = "2.5"

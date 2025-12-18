@@ -38,8 +38,8 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             let handle = app.clone();
             tauri::async_runtime::spawn(async move {
                 loop {
-                    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
                     job::check_and_download_update(&handle).await;
+                    tokio::time::sleep(std::time::Duration::from_secs(60 * 60)).await;
                 }
             });
             Ok(())

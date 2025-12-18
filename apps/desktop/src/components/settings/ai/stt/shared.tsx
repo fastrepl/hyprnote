@@ -135,7 +135,7 @@ const _PROVIDERS = [
     requirements: [{ kind: "requires_config", fields: ["api_key"] }],
   },
   {
-    disabled: false,
+    disabled: true,
     id: "openai",
     displayName: "OpenAI",
     badge: "Beta",

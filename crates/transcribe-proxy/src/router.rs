@@ -29,7 +29,7 @@ pub fn router(config: SttProxyConfig) -> Router {
     };
 
     Router::new()
-        .route("/ws", any(ws_handler))
+        .route("/listen", any(ws_handler))
         .with_state(state)
 }
 

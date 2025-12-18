@@ -67,7 +67,7 @@ mod tests {
         tokio::time::sleep(Duration::from_millis(100)).await;
 
         let url = format!(
-            "ws://{}/ws?encoding=linear16&sample_rate=16000&channels=1",
+            "ws://{}/listen?encoding=linear16&sample_rate=16000&channels=1",
             addr
         );
         let (mut ws_stream, _) = connect_async(&url).await.expect("failed to connect");
@@ -104,5 +104,116 @@ mod tests {
         let event = &captured_events[0];
         assert_eq!(event.provider, "deepgram");
         assert!(event.duration.as_secs_f64() > 0.0);
+    }
+}
+
+#[cfg(test)]
+mod proxy_e2e {
+    use std::collections::HashMap;
+    use std::time::Duration;
+
+    use futures_util::StreamExt;
+    use hypr_audio_utils::AudioFormatExt;
+    use owhisper_client::{DeepgramAdapter, FinalizeHandle, ListenClient};
+    use owhisper_interface::ControlMessage;
+    use owhisper_interface::stream::StreamResponse;
+    use owhisper_providers::Provider;
+
+    use super::*;
+
+    type ListenClientInput = owhisper_interface::MixedMessage<bytes::Bytes, ControlMessage>;
+
+    async fn start_proxy_server(provider: Provider, api_key: String) -> std::net::SocketAddr {
+        let mut api_keys = HashMap::new();
+        api_keys.insert(provider, api_key);
+
+        let config = SttProxyConfig::new(api_keys).with_default_provider(provider);
+        let app = router(config);
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        addr
+    }
+
+    fn test_audio_stream()
+    -> impl futures_util::Stream<Item = ListenClientInput> + Send + Unpin + 'static {
+        let audio = rodio::Decoder::new(std::io::BufReader::new(
+            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
+        ))
+        .unwrap()
+        .to_i16_le_chunks(16000, 1600);
+
+        Box::pin(tokio_stream::StreamExt::throttle(
+            audio.map(|chunk| owhisper_interface::MixedMessage::Audio(chunk)),
+            Duration::from_millis(100),
+        ))
+    }
+
+    pub mod deepgram {
+        use super::*;
+
+        pub mod live {
+            use super::*;
+
+            #[ignore]
+            #[tokio::test]
+            async fn test_proxy_deepgram_live() {
+                let _ = tracing_subscriber::fmt::try_init();
+
+                let api_key =
+                    std::env::var("DEEPGRAM_API_KEY").expect("DEEPGRAM_API_KEY must be set");
+                let addr = start_proxy_server(Provider::Deepgram, api_key).await;
+
+                let client: ListenClient<DeepgramAdapter> = ListenClient::builder()
+                    .api_base(format!("http://{}", addr))
+                    .params(owhisper_interface::ListenParams {
+                        model: Some("nova-3".to_string()),
+                        languages: vec![hypr_language::ISO639::En.into()],
+                        ..Default::default()
+                    })
+                    .build_single()
+                    .await;
+
+                let input = test_audio_stream();
+                let (stream, handle) = client.from_realtime_audio(input).await.unwrap();
+                futures_util::pin_mut!(stream);
+
+                let mut saw_transcript = false;
+                let timeout = Duration::from_secs(30);
+
+                let test_future = async {
+                    while let Some(result) = stream.next().await {
+                        match result {
+                            Ok(StreamResponse::TranscriptResponse { channel, .. }) => {
+                                if let Some(alt) = channel.alternatives.first() {
+                                    if !alt.transcript.is_empty() {
+                                        println!("[proxy:deepgram] {}", alt.transcript);
+                                        saw_transcript = true;
+                                    }
+                                }
+                            }
+                            Ok(_) => {}
+                            Err(e) => {
+                                panic!("[proxy:deepgram] error: {:?}", e);
+                            }
+                        }
+                    }
+                };
+
+                let _ = tokio::time::timeout(timeout, test_future).await;
+                handle.finalize().await;
+
+                assert!(
+                    saw_transcript,
+                    "[proxy:deepgram] expected at least one non-empty transcript"
+                );
+            }
+        }
     }
 }

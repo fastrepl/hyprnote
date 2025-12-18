@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use axum::{
     Json, Router,
@@ -8,8 +8,14 @@ use axum::{
     response::{IntoResponse, Response},
     routing::post,
 };
+use bytes::Bytes;
+use futures_util::StreamExt;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+
+use crate::posthog::{
+    AiGenerationProperties, PostHogConfig, capture_ai_generation, fetch_generation_metadata,
+};
 
 const DEFAULT_TIMEOUT_MS: u64 = 120_000;
 const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
@@ -20,6 +26,7 @@ pub struct LlmProxyConfig {
     pub timeout: Duration,
     pub models_tool_calling: Vec<String>,
     pub models_default: Vec<String>,
+    pub posthog: Option<PostHogConfig>,
 }
 
 impl LlmProxyConfig {
@@ -36,6 +43,7 @@ impl LlmProxyConfig {
                 "moonshotai/kimi-k2-0905".into(),
                 "openai/gpt-5.1-chat".into(),
             ],
+            posthog: None,
         }
     }
 
@@ -51,6 +59,11 @@ impl LlmProxyConfig {
 
     pub fn with_models_default(mut self, models: Vec<String>) -> Self {
         self.models_default = models;
+        self
+    }
+
+    pub fn with_posthog(mut self, config: PostHogConfig) -> Self {
+        self.posthog = Some(config);
         self
     }
 }
@@ -163,10 +176,25 @@ impl Serialize for ChatMessage {
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct OpenRouterResponse {
+    id: String,
+    model: Option<String>,
+    usage: Option<UsageInfo>,
+}
+
+#[derive(Debug, Deserialize)]
+struct UsageInfo {
+    prompt_tokens: Option<u32>,
+    completion_tokens: Option<u32>,
+}
+
 async fn completions_handler(
     State(state): State<AppState>,
     Json(request): Json<ChatCompletionRequest>,
 ) -> Response {
+    let start_time = Instant::now();
+
     let needs_tool_calling = request.tools.as_ref().is_some_and(|t| !t.is_empty())
         && !matches!(&request.tool_choice, Some(ToolChoice::String(s)) if s == "none");
 
@@ -215,9 +243,110 @@ async fn completions_handler(
     };
 
     let status = response.status();
+    let http_status = status.as_u16();
 
     if stream {
-        let body = Body::from_stream(response.bytes_stream());
+        let posthog_config = state.config.posthog.clone();
+        let api_key = state.config.api_key.clone();
+        let client = state.client.clone();
+
+        let stream = response.bytes_stream();
+        let (tx, rx) = tokio::sync::mpsc::channel::<Result<Bytes, std::io::Error>>(32);
+
+        tokio::spawn(async move {
+            let mut collected = Vec::new();
+            let mut generation_id: Option<String> = None;
+            let mut model: Option<String> = None;
+            let mut input_tokens = 0u32;
+            let mut output_tokens = 0u32;
+
+            futures_util::pin_mut!(stream);
+
+            while let Some(chunk_result) = stream.next().await {
+                match chunk_result {
+                    Ok(chunk) => {
+                        collected.extend_from_slice(&chunk);
+
+                        if let Ok(text) = std::str::from_utf8(&chunk) {
+                            for line in text.lines() {
+                                if let Some(data) = line.strip_prefix("data: ") {
+                                    if data.trim() == "[DONE]" {
+                                        continue;
+                                    }
+                                    if let Ok(parsed) =
+                                        serde_json::from_str::<serde_json::Value>(data)
+                                    {
+                                        if generation_id.is_none() {
+                                            if let Some(id) =
+                                                parsed.get("id").and_then(|v| v.as_str())
+                                            {
+                                                generation_id = Some(id.to_string());
+                                            }
+                                        }
+                                        if model.is_none() {
+                                            if let Some(m) =
+                                                parsed.get("model").and_then(|v| v.as_str())
+                                            {
+                                                model = Some(m.to_string());
+                                            }
+                                        }
+                                        if let Some(usage) = parsed.get("usage") {
+                                            if let Some(pt) =
+                                                usage.get("prompt_tokens").and_then(|v| v.as_u64())
+                                            {
+                                                input_tokens = pt as u32;
+                                            }
+                                            if let Some(ct) = usage
+                                                .get("completion_tokens")
+                                                .and_then(|v| v.as_u64())
+                                            {
+                                                output_tokens = ct as u32;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if tx.send(Ok(chunk)).await.is_err() {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        let _ = tx
+                            .send(Err(std::io::Error::new(std::io::ErrorKind::Other, e)))
+                            .await;
+                        break;
+                    }
+                }
+            }
+
+            let latency = start_time.elapsed().as_secs_f64();
+
+            if let Some(posthog_config) = posthog_config {
+                if let Some(gen_id) = generation_id {
+                    let total_cost = fetch_generation_metadata(&client, &api_key, &gen_id)
+                        .await
+                        .map(|d| d.total_cost);
+
+                    let properties = AiGenerationProperties {
+                        provider: "openrouter".into(),
+                        model: model.unwrap_or_default(),
+                        input_tokens,
+                        output_tokens,
+                        total_cost_usd: total_cost,
+                        latency,
+                        trace_id: gen_id,
+                        http_status,
+                        base_url: OPENROUTER_URL.into(),
+                    };
+
+                    capture_ai_generation(&client, &posthog_config, properties).await;
+                }
+            }
+        });
+
+        let body = Body::from_stream(tokio_stream::wrappers::ReceiverStream::new(rx));
         Response::builder()
             .status(status)
             .header("Content-Type", "text/event-stream")
@@ -225,11 +354,61 @@ async fn completions_handler(
             .body(body)
             .unwrap()
     } else {
-        let body = Body::from_stream(response.bytes_stream());
+        let body_bytes = match response.bytes().await {
+            Ok(b) => b,
+            Err(e) => {
+                tracing::error!(error = %e, "failed to read response body");
+                return (StatusCode::BAD_GATEWAY, "Failed to read response").into_response();
+            }
+        };
+
+        let latency = start_time.elapsed().as_secs_f64();
+
+        if let Some(posthog_config) = &state.config.posthog {
+            if let Ok(parsed) = serde_json::from_slice::<OpenRouterResponse>(&body_bytes) {
+                let client = state.client.clone();
+                let api_key = state.config.api_key.clone();
+                let posthog_config = posthog_config.clone();
+                let generation_id = parsed.id.clone();
+
+                let input_tokens = parsed
+                    .usage
+                    .as_ref()
+                    .and_then(|u| u.prompt_tokens)
+                    .unwrap_or(0);
+                let output_tokens = parsed
+                    .usage
+                    .as_ref()
+                    .and_then(|u| u.completion_tokens)
+                    .unwrap_or(0);
+                let model = parsed.model.clone().unwrap_or_default();
+
+                tokio::spawn(async move {
+                    let total_cost = fetch_generation_metadata(&client, &api_key, &generation_id)
+                        .await
+                        .map(|d| d.total_cost);
+
+                    let properties = AiGenerationProperties {
+                        provider: "openrouter".into(),
+                        model,
+                        input_tokens,
+                        output_tokens,
+                        total_cost_usd: total_cost,
+                        latency,
+                        trace_id: generation_id,
+                        http_status,
+                        base_url: OPENROUTER_URL.into(),
+                    };
+
+                    capture_ai_generation(&client, &posthog_config, properties).await;
+                });
+            }
+        }
+
         Response::builder()
             .status(status)
             .header("Content-Type", "application/json")
-            .body(body)
+            .body(Body::from(body_bytes))
             .unwrap()
     }
 }

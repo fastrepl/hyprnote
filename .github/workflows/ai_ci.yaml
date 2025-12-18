@@ -1,0 +1,23 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/ai/**
+      - crates/llm-proxy/**
+      - crates/transcribe-proxy/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - apps/ai/**
+      - crates/llm-proxy/**
+      - crates/transcribe-proxy/**
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/rust_install
+      - run: cargo check -p ai

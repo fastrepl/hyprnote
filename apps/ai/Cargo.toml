@@ -1,11 +1,7 @@
 [package]
-name = "ai-server"
+name = "ai"
 version = "0.1.0"
 edition = "2024"
-
-[[bin]]
-name = "ai"
-path = "src/main.rs"
 
 [dependencies]
 hypr-llm-proxy = { workspace = true }
@@ -25,4 +21,5 @@ url = { workspace = true }
 
 dotenvy = { workspace = true }
 jsonwebtoken = { workspace = true }
-sentry = { workspace = true }
+sentry = { workspace = true, features = ["tower", "tower-axum-matched-path", "tracing"] }
+tower = { workspace = true }

@@ -4,12 +4,18 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-thiserror = { workspace = true }
+owhisper-providers = { workspace = true }
 
 axum = { workspace = true, features = ["ws"] }
-bytes = { workspace = true }
 futures-util = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "time", "sync", "macros"] }
 tokio-tungstenite = { workspace = true, features = ["native-tls-vendored"] }
 tower = { workspace = true }
 tracing = { workspace = true }
+
+bytes = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+url = { workspace = true }

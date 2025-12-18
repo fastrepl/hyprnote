@@ -33,6 +33,13 @@ struct QueuedPayload {
     size: usize,
 }
 
+#[derive(Clone)]
+struct PendingState {
+    control_messages: Arc<Mutex<Vec<QueuedPayload>>>,
+    data_messages: Arc<Mutex<Vec<QueuedPayload>>>,
+    bytes: Arc<Mutex<usize>>,
+}
+
 type ControlMessageMatcher = Arc<dyn Fn(&[u8]) -> bool + Send + Sync>;
 type FirstMessageTransformer = Arc<dyn Fn(String) -> String + Send + Sync>;
 type UpstreamSender = SplitSink<
@@ -357,11 +364,11 @@ impl WebSocketProxyConnection {
         let (upstream_sender, upstream_receiver) = upstream_stream.split();
         let (client_sender, client_receiver) = client_socket.split();
 
-        let pending_control_messages: Arc<Mutex<Vec<QueuedPayload>>> =
-            Arc::new(Mutex::new(Vec::new()));
-        let pending_data_messages: Arc<Mutex<Vec<QueuedPayload>>> =
-            Arc::new(Mutex::new(Vec::new()));
-        let pending_bytes: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
+        let pending_state = PendingState {
+            control_messages: Arc::new(Mutex::new(Vec::new())),
+            data_messages: Arc::new(Mutex::new(Vec::new())),
+            bytes: Arc::new(Mutex::new(0)),
+        };
 
         let (shutdown_tx, shutdown_rx) = tokio::sync::broadcast::channel::<(u16, String)>(1);
         let shutdown_rx2 = shutdown_tx.subscribe();
@@ -376,9 +383,7 @@ impl WebSocketProxyConnection {
             shutdown_rx,
             control_matcher,
             first_msg_transformer,
-            pending_control_messages,
-            pending_data_messages,
-            pending_bytes,
+            pending_state,
         );
 
         let upstream_to_client = Self::run_upstream_to_client(
@@ -401,11 +406,11 @@ impl WebSocketProxyConnection {
         let (upstream_sender, upstream_receiver) = upstream_stream.split();
         let (client_sender, client_receiver) = client_socket.split();
 
-        let pending_control_messages: Arc<Mutex<Vec<QueuedPayload>>> =
-            Arc::new(Mutex::new(Vec::new()));
-        let pending_data_messages: Arc<Mutex<Vec<QueuedPayload>>> =
-            Arc::new(Mutex::new(Vec::new()));
-        let pending_bytes: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
+        let pending_state = PendingState {
+            control_messages: Arc::new(Mutex::new(Vec::new())),
+            data_messages: Arc::new(Mutex::new(Vec::new())),
+            bytes: Arc::new(Mutex::new(0)),
+        };
 
         let (shutdown_tx, shutdown_rx) = tokio::sync::broadcast::channel::<(u16, String)>(1);
         let shutdown_rx2 = shutdown_tx.subscribe();
@@ -417,9 +422,7 @@ impl WebSocketProxyConnection {
             shutdown_rx,
             control_message_matcher,
             transform_first_message,
-            pending_control_messages,
-            pending_data_messages,
-            pending_bytes,
+            pending_state,
         );
 
         let upstream_to_client = Self::run_upstream_to_client(
@@ -440,10 +443,11 @@ impl WebSocketProxyConnection {
         mut shutdown_rx: tokio::sync::broadcast::Receiver<(u16, String)>,
         control_matcher: Option<ControlMessageMatcher>,
         first_msg_transformer: Option<FirstMessageTransformer>,
-        pending_control_messages: Arc<Mutex<Vec<QueuedPayload>>>,
-        pending_data_messages: Arc<Mutex<Vec<QueuedPayload>>>,
-        pending_bytes: Arc<Mutex<usize>>,
+        pending_state: PendingState,
     ) {
+        let pending_control_messages = pending_state.control_messages;
+        let pending_data_messages = pending_state.data_messages;
+        let pending_bytes = pending_state.bytes;
         let mut has_transformed_first = first_msg_transformer.is_none();
 
         loop {

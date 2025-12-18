@@ -1,26 +1,45 @@
 mod auth;
 mod env;
-mod handlers;
 
 use std::net::SocketAddr;
+use std::time::Duration;
 
-use axum::{Router, routing::any};
+use axum::{Router, body::Body, http::Request};
+use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
+use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 
 use env::env;
-use handlers::ws_handler;
 
 fn app() -> Router {
     let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key);
+    let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys());
 
     Router::new()
-        .route("/stt", any(ws_handler))
+        .nest("/stt", hypr_transcribe_proxy::router(stt_config))
         .nest("/llm", hypr_llm_proxy::router(llm_config))
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            ServiceBuilder::new()
+                .layer(NewSentryLayer::<Request<Body>>::new_from_top())
+                .layer(SentryHttpLayer::new().enable_transaction())
+                .layer(TraceLayer::new_for_http()),
+        )
 }
 
-#[tokio::main]
-async fn main() {
+fn main() -> std::io::Result<()> {
+    let env = env();
+
+    let _guard = sentry::init(sentry::ClientOptions {
+        dsn: env.sentry_dsn.as_ref().and_then(|s| s.parse().ok()),
+        release: sentry::release_name!(),
+        environment: env.sentry_environment.clone().map(Into::into),
+        traces_sample_rate: 1.0,
+        send_default_pii: true,
+        auto_session_tracking: true,
+        session_mode: sentry::SessionMode::Request,
+        ..Default::default()
+    });
+
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -28,21 +47,25 @@ async fn main() {
         )
         .init();
 
-    let env = env();
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?
+        .block_on(async {
+            let addr = SocketAddr::from(([0, 0, 0, 0], env.port));
+            tracing::info!("listening on {}", addr);
 
-    let _guard = sentry::init(sentry::ClientOptions {
-        dsn: env.sentry_dsn.as_ref().and_then(|s| s.parse().ok()),
-        ..Default::default()
-    });
+            let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+            axum::serve(listener, app())
+                .with_graceful_shutdown(shutdown_signal())
+                .await
+                .unwrap();
+        });
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], env.port));
-    tracing::info!("listening on {}", addr);
+    if let Some(client) = sentry::Hub::current().client() {
+        client.close(Some(Duration::from_secs(2)));
+    }
 
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app())
-        .with_graceful_shutdown(shutdown_signal())
-        .await
-        .unwrap();
+    Ok(())
 }
 
 async fn shutdown_signal() {

@@ -246,7 +246,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ai-server"
+name = "ai"
 version = "0.1.0"
 dependencies = [
  "axum 0.8.7",
@@ -259,6 +259,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "tower 0.5.2",
  "tower-http 0.6.8",
  "tracing",
  "tracing-subscriber",
@@ -9989,6 +9990,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.17",
  "tokio",
+ "tokio-stream",
  "tracing",
 ]
 
@@ -14822,6 +14824,7 @@ dependencies = [
  "sentry-core",
  "sentry-debug-images",
  "sentry-panic",
+ "sentry-tower",
  "sentry-tracing",
  "tokio",
  "ureq 3.1.4",
@@ -14907,6 +14910,21 @@ dependencies = [
  "minidumper-child",
  "sentry",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "sentry-tower"
+version = "0.42.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a303d0127d95ae928a937dcc0886931d28b4186e7338eea7d5786827b69b002"
+dependencies = [
+ "axum 0.8.7",
+ "http 1.4.0",
+ "pin-project",
+ "sentry-core",
+ "tower-layer",
+ "tower-service",
+ "url",
 ]
 
 [[package]]
@@ -19003,11 +19021,16 @@ dependencies = [
  "axum 0.8.7",
  "bytes",
  "futures-util",
+ "owhisper-providers",
+ "reqwest",
+ "serde",
+ "serde_json",
  "thiserror 2.0.17",
  "tokio",
  "tokio-tungstenite 0.26.2",
  "tower 0.5.2",
  "tracing",
+ "url",
 ]
 
 [[package]]

@@ -6,6 +6,7 @@ use owhisper_providers::Provider;
 pub struct Env {
     pub port: u16,
     pub sentry_dsn: Option<String>,
+    pub sentry_environment: Option<String>,
     pub supabase_url: String,
     pub openrouter_api_key: String,
     api_keys: HashMap<Provider, String>,
@@ -38,17 +39,15 @@ impl Env {
         Self {
             port: parse_or("PORT", 3000),
             sentry_dsn: optional("SENTRY_DSN"),
+            sentry_environment: optional("SENTRY_ENVIRONMENT"),
             supabase_url: required("SUPABASE_URL"),
             openrouter_api_key: required("OPENROUTER_API_KEY"),
             api_keys,
         }
     }
 
-    pub fn api_key_for(&self, provider: Provider) -> String {
-        self.api_keys
-            .get(&provider)
-            .cloned()
-            .unwrap_or_else(|| panic!("{} is not configured", provider.env_key_name()))
+    pub fn api_keys(&self) -> HashMap<Provider, String> {
+        self.api_keys.clone()
     }
 }
 

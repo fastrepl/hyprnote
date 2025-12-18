@@ -1,19 +1,39 @@
+# syntax=docker/dockerfile:1
+
 ARG RUST_VERSION=1.92.0
-FROM rust:${RUST_VERSION}-bookworm AS builder
 
-WORKDIR /build
-COPY . .
+FROM rust:${RUST_VERSION}-bookworm AS planner
+RUN cargo install cargo-chef --locked
+WORKDIR /app
+COPY Cargo.toml Cargo.lock ./
+COPY crates crates
+COPY apps/ai/Cargo.toml apps/ai/Cargo.toml
+RUN cargo chef prepare --recipe-path recipe.json
 
-RUN cargo build --release --locked -p ai && \
-    mkdir -p /runtime/usr/local/bin && \
-    mv ./target/release/ai /runtime/usr/local/bin
+FROM rust:${RUST_VERSION}-bookworm AS build
+RUN cargo install cargo-chef sccache --locked
+ENV RUSTC_WRAPPER=sccache \
+    SCCACHE_DIR=/sccache
+WORKDIR /app
+COPY --from=planner /app/recipe.json recipe.json
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
+    cargo chef cook --release --recipe-path recipe.json -p ai
+COPY Cargo.toml Cargo.lock ./
+COPY crates crates
+COPY apps/ai apps/ai
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,target=$SCCACHE_DIR,sharing=locked \
+    cargo build --release --locked -p ai
 
 FROM debian:bookworm-slim AS runtime
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN useradd -u 10001 -d /nonexistent -s /usr/sbin/nologin -M -c "" appuser && \
-    passwd -l appuser
-COPY --from=builder --chown=appuser:appuser /runtime /
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -d /nonexistent -s /usr/sbin/nologin -M appuser
+COPY --from=build --chown=appuser:appgroup /app/target/release/ai /usr/local/bin/ai
 USER appuser
 WORKDIR /app
 EXPOSE 3000
-CMD ["/usr/local/bin/ai"]
+ENTRYPOINT ["/usr/local/bin/ai"]

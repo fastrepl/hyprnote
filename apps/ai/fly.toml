@@ -9,7 +9,6 @@ strategy = "bluegreen"
 
 [env]
 PORT = "3000"
-SENTRY_ENVIRONMENT = "production"
 
 [http_service]
 processes = ['app']

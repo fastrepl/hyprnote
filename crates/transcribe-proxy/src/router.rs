@@ -47,8 +47,12 @@ async fn ws_handler(
     let api_key = match state.config.api_key_for(provider) {
         Some(key) => key.to_string(),
         None => {
-            tracing::error!(provider = ?provider, "api key not configured");
-            return (StatusCode::INTERNAL_SERVER_ERROR, "provider not configured").into_response();
+            tracing::warn!(provider = ?provider, "requested provider not configured");
+            return (
+                StatusCode::BAD_REQUEST,
+                "requested provider is not available",
+            )
+                .into_response();
         }
     };
 

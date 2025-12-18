@@ -4,21 +4,30 @@ mod env;
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use axum::{Router, body::Body, http::Request};
+use axum::{Router, body::Body, http::Request, middleware};
 use sentry::integrations::tower::{NewSentryLayer, SentryHttpLayer};
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 
+use auth::AuthState;
 use env::env;
 
 fn app() -> Router {
     let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key);
     let stt_config = hypr_transcribe_proxy::SttProxyConfig::new(env().api_keys());
+    let auth_state = AuthState::new(&env().supabase_url);
+
+    let protected_routes = Router::new()
+        .nest("/stt", hypr_transcribe_proxy::router(stt_config))
+        .nest("/llm", hypr_llm_proxy::router(llm_config))
+        .route_layer(middleware::from_fn_with_state(
+            auth_state,
+            auth::require_pro,
+        ));
 
     Router::new()
         .route("/health", axum::routing::get(|| async { "ok" }))
-        .nest("/stt", hypr_transcribe_proxy::router(stt_config))
-        .nest("/llm", hypr_llm_proxy::router(llm_config))
+        .merge(protected_routes)
         .layer(
             ServiceBuilder::new()
                 .layer(NewSentryLayer::<Request<Body>>::new_from_top())
@@ -33,7 +42,14 @@ fn main() -> std::io::Result<()> {
     let _guard = sentry::init(sentry::ClientOptions {
         dsn: env.sentry_dsn.as_ref().and_then(|s| s.parse().ok()),
         release: sentry::release_name!(),
-        environment: env.sentry_environment.clone().map(Into::into),
+        environment: Some(
+            if cfg!(debug_assertions) {
+                "development"
+            } else {
+                "production"
+            }
+            .into(),
+        ),
         traces_sample_rate: 1.0,
         send_default_pii: true,
         auto_session_tracking: true,
@@ -47,6 +63,8 @@ fn main() -> std::io::Result<()> {
                 .unwrap_or_else(|_| "info,tower_http=debug".into()),
         )
         .init();
+
+    env.log_configured_providers();
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()

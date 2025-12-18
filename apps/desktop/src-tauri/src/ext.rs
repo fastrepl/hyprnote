@@ -1,5 +1,5 @@
 use crate::StoreKey;
-use tauri_plugin_store2::{ScopedStore, StorePluginExt};
+use tauri_plugin_store2::{ScopedStore, Store2PluginExt};
 pub trait AppExt<R: tauri::Runtime> {
     fn desktop_store(&self) -> Result<ScopedStore<R, crate::StoreKey>, String>;
 
@@ -10,7 +10,9 @@ pub trait AppExt<R: tauri::Runtime> {
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
     #[tracing::instrument(skip_all)]
     fn desktop_store(&self) -> Result<ScopedStore<R, crate::StoreKey>, String> {
-        self.scoped_store("desktop").map_err(|e| e.to_string())
+        self.store2()
+            .scoped_store("desktop")
+            .map_err(|e| e.to_string())
     }
 
     #[tracing::instrument(skip_all)]

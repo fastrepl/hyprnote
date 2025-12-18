@@ -1,14 +1,8 @@
 mod batch;
 mod live;
 
-pub(crate) const DEFAULT_WS_HOST: &str = "api.openai.com";
-pub(crate) const WS_PATH: &str = "/v1/realtime";
+use owhisper_providers::Provider;
 
-// OpenAI STT Models:
-// - whisper-1: Legacy model, supports verbose_json with word timestamps (batch only)
-// - gpt-4o-transcribe: High quality, supports both batch (json only) and realtime
-// - gpt-4o-mini-transcribe: Cost-efficient, supports both batch (json only) and realtime
-// - gpt-4o-transcribe-diarize: Speaker diarization (batch only, not yet supported here)
 pub(crate) const DEFAULT_TRANSCRIPTION_MODEL: &str = "gpt-4o-transcribe";
 
 #[derive(Clone, Default)]
@@ -19,18 +13,11 @@ impl OpenAIAdapter {
         true
     }
 
-    pub fn is_host(base_url: &str) -> bool {
-        super::host_matches(base_url, Self::is_openai_host)
-    }
-
-    pub(crate) fn is_openai_host(host: &str) -> bool {
-        host.contains("openai.com")
-    }
-
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
         if api_base.is_empty() {
             return (
-                format!("wss://{}{}", DEFAULT_WS_HOST, WS_PATH)
+                Provider::OpenAI
+                    .default_ws_url()
                     .parse()
                     .expect("invalid_default_ws_url"),
                 vec![("intent".to_string(), "transcription".to_string())],
@@ -48,8 +35,10 @@ impl OpenAIAdapter {
             existing_params.push(("intent".to_string(), "transcription".to_string()));
         }
 
-        let host = parsed.host_str().unwrap_or(DEFAULT_WS_HOST);
-        let mut url: url::Url = format!("wss://{}{}", host, WS_PATH)
+        let host = parsed
+            .host_str()
+            .unwrap_or(Provider::OpenAI.default_ws_host());
+        let mut url: url::Url = format!("wss://{}{}", host, Provider::OpenAI.ws_path())
             .parse()
             .expect("invalid_ws_url");
 
@@ -91,8 +80,8 @@ mod tests {
 
     #[test]
     fn test_is_openai_host() {
-        assert!(OpenAIAdapter::is_openai_host("api.openai.com"));
-        assert!(OpenAIAdapter::is_openai_host("openai.com"));
-        assert!(!OpenAIAdapter::is_openai_host("api.deepgram.com"));
+        assert!(Provider::OpenAI.is_host("api.openai.com"));
+        assert!(Provider::OpenAI.is_host("openai.com"));
+        assert!(!Provider::OpenAI.is_host("api.deepgram.com"));
     }
 }

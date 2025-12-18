@@ -1,0 +1,209 @@
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Auth {
+    Header {
+        name: &'static str,
+        prefix: Option<&'static str>,
+    },
+    FirstMessage {
+        field_name: &'static str,
+    },
+    SessionInit {
+        header_name: &'static str,
+    },
+}
+
+impl Auth {
+    pub fn build_header(&self, api_key: &str) -> Option<(&'static str, String)> {
+        match self {
+            Auth::Header { name, prefix } => {
+                let value = match prefix {
+                    Some(p) => format!("{}{}", p, api_key),
+                    None => api_key.to_string(),
+                };
+                Some((name, value))
+            }
+            Auth::FirstMessage { .. } | Auth::SessionInit { .. } => None,
+        }
+    }
+
+    pub fn build_session_init_header(&self, api_key: &str) -> Option<(&'static str, String)> {
+        match self {
+            Auth::SessionInit { header_name } => Some((header_name, api_key.to_string())),
+            _ => None,
+        }
+    }
+
+    pub fn transform_first_message(&self, payload: String, api_key: &str) -> String {
+        match self {
+            Auth::FirstMessage { field_name } => {
+                match serde_json::from_str::<serde_json::Value>(&payload) {
+                    Ok(mut json) => {
+                        if let Some(obj) = json.as_object_mut() {
+                            obj.insert(
+                                (*field_name).to_string(),
+                                serde_json::Value::String(api_key.to_string()),
+                            );
+                        }
+                        serde_json::to_string(&json).unwrap_or(payload)
+                    }
+                    Err(_) => payload,
+                }
+            }
+            Auth::Header { .. } | Auth::SessionInit { .. } => payload,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumString, strum::Display)]
+#[strum(serialize_all = "lowercase")]
+pub enum Provider {
+    Deepgram,
+    #[strum(serialize = "assemblyai")]
+    AssemblyAI,
+    Soniox,
+    Fireworks,
+    #[strum(serialize = "openai")]
+    OpenAI,
+    Gladia,
+}
+
+impl Provider {
+    const ALL: [Provider; 6] = [
+        Self::Deepgram,
+        Self::AssemblyAI,
+        Self::Soniox,
+        Self::Fireworks,
+        Self::OpenAI,
+        Self::Gladia,
+    ];
+
+    pub fn from_host(host: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|p| p.is_host(host))
+    }
+
+    pub fn auth(&self) -> Auth {
+        match self {
+            Self::Deepgram => Auth::Header {
+                name: "Authorization",
+                prefix: Some("Token "),
+            },
+            Self::AssemblyAI => Auth::Header {
+                name: "Authorization",
+                prefix: None,
+            },
+            Self::Fireworks => Auth::Header {
+                name: "Authorization",
+                prefix: None,
+            },
+            Self::OpenAI => Auth::Header {
+                name: "Authorization",
+                prefix: Some("Bearer "),
+            },
+            Self::Gladia => Auth::SessionInit {
+                header_name: "x-gladia-key",
+            },
+            Self::Soniox => Auth::FirstMessage {
+                field_name: "api_key",
+            },
+        }
+    }
+
+    pub fn build_auth_header(&self, api_key: &str) -> Option<(&'static str, String)> {
+        self.auth().build_header(api_key)
+    }
+
+    pub fn default_ws_url(&self) -> String {
+        format!("wss://{}{}", self.default_ws_host(), self.ws_path())
+    }
+
+    pub fn default_api_host(&self) -> &'static str {
+        match self {
+            Self::Deepgram => "api.deepgram.com",
+            Self::AssemblyAI => "api.assemblyai.com",
+            Self::Soniox => "api.soniox.com",
+            Self::Fireworks => "api.fireworks.ai",
+            Self::OpenAI => "api.openai.com",
+            Self::Gladia => "api.gladia.io",
+        }
+    }
+
+    pub fn default_ws_host(&self) -> &'static str {
+        match self {
+            Self::Deepgram => "api.deepgram.com",
+            Self::AssemblyAI => "streaming.assemblyai.com",
+            Self::Soniox => "stt-rt.soniox.com",
+            Self::Fireworks => "audio-streaming-v2.api.fireworks.ai",
+            Self::OpenAI => "api.openai.com",
+            Self::Gladia => "api.gladia.io",
+        }
+    }
+
+    pub fn ws_path(&self) -> &'static str {
+        match self {
+            Self::Deepgram => "/v1/listen",
+            Self::AssemblyAI => "/v3/ws",
+            Self::Soniox => "/transcribe-websocket",
+            Self::Fireworks => "/v1/audio/transcriptions/streaming",
+            Self::OpenAI => "/v1/realtime",
+            Self::Gladia => "/v2/live",
+        }
+    }
+
+    pub fn default_api_url(&self) -> Option<&'static str> {
+        match self {
+            Self::Deepgram => None,
+            Self::AssemblyAI => Some("https://api.assemblyai.com/v2"),
+            Self::Soniox => None,
+            Self::Fireworks => None,
+            Self::OpenAI => None,
+            Self::Gladia => Some("https://api.gladia.io/v2"),
+        }
+    }
+
+    pub fn domain(&self) -> &'static str {
+        match self {
+            Self::Deepgram => "deepgram.com",
+            Self::AssemblyAI => "assemblyai.com",
+            Self::Soniox => "soniox.com",
+            Self::Fireworks => "fireworks.ai",
+            Self::OpenAI => "openai.com",
+            Self::Gladia => "gladia.io",
+        }
+    }
+
+    pub fn is_host(&self, host: &str) -> bool {
+        let domain = self.domain();
+        host == domain || host.ends_with(&format!(".{}", domain))
+    }
+
+    pub fn matches_url(&self, base_url: &str) -> bool {
+        url::Url::parse(base_url)
+            .ok()
+            .and_then(|u| u.host_str().map(|h| self.is_host(h)))
+            .unwrap_or(false)
+    }
+
+    pub fn from_url(base_url: &str) -> Option<Self> {
+        url::Url::parse(base_url)
+            .ok()
+            .and_then(|u| u.host_str().and_then(Self::from_host))
+    }
+
+    pub fn env_key_name(&self) -> &'static str {
+        match self {
+            Self::Deepgram => "DEEPGRAM_API_KEY",
+            Self::AssemblyAI => "ASSEMBLYAI_API_KEY",
+            Self::Soniox => "SONIOX_API_KEY",
+            Self::Fireworks => "FIREWORKS_API_KEY",
+            Self::OpenAI => "OPENAI_API_KEY",
+            Self::Gladia => "GLADIA_API_KEY",
+        }
+    }
+
+    pub fn default_query_params(&self) -> &'static [(&'static str, &'static str)] {
+        match self {
+            Self::Deepgram => &[("model", "nova-3-general"), ("mip_opt_out", "false")],
+            _ => &[],
+        }
+    }
+}

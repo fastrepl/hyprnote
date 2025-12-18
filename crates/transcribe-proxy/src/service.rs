@@ -34,6 +34,7 @@ struct QueuedPayload {
 }
 
 type ControlMessageMatcher = Arc<dyn Fn(&[u8]) -> bool + Send + Sync>;
+type FirstMessageTransformer = Arc<dyn Fn(String) -> String + Send + Sync>;
 type UpstreamSender = SplitSink<
     WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
     tokio_tungstenite::tungstenite::Message,
@@ -46,6 +47,7 @@ pub struct WebSocketProxyBuilder {
     upstream_url: Option<String>,
     headers: HashMap<String, String>,
     control_message_matcher: Option<ControlMessageMatcher>,
+    transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
 }
 
@@ -55,6 +57,7 @@ impl Default for WebSocketProxyBuilder {
             upstream_url: None,
             headers: HashMap::new(),
             control_message_matcher: None,
+            transform_first_message: None,
             connect_timeout: Duration::from_millis(UPSTREAM_CONNECT_TIMEOUT_MS),
         }
     }
@@ -83,6 +86,7 @@ impl WebSocketProxyBuilder {
         WebSocketProxyBuilderWithRequest {
             upstream_request: request,
             control_message_matcher: self.control_message_matcher,
+            transform_first_message: self.transform_first_message,
             connect_timeout: self.connect_timeout,
         }
     }
@@ -92,6 +96,14 @@ impl WebSocketProxyBuilder {
         F: Fn(&[u8]) -> bool + Send + Sync + 'static,
     {
         self.control_message_matcher = Some(Arc::new(matcher));
+        self
+    }
+
+    pub fn transform_first_message<F>(mut self, transformer: F) -> Self
+    where
+        F: Fn(String) -> String + Send + Sync + 'static,
+    {
+        self.transform_first_message = Some(Arc::new(transformer));
         self
     }
 
@@ -111,6 +123,7 @@ impl WebSocketProxyBuilder {
         WebSocketProxy {
             upstream_request: request,
             control_message_matcher: self.control_message_matcher,
+            transform_first_message: self.transform_first_message,
             connect_timeout: self.connect_timeout,
         }
     }
@@ -119,6 +132,7 @@ impl WebSocketProxyBuilder {
 pub struct WebSocketProxyBuilderWithRequest {
     upstream_request: ClientRequestBuilder,
     control_message_matcher: Option<ControlMessageMatcher>,
+    transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
 }
 
@@ -131,6 +145,14 @@ impl WebSocketProxyBuilderWithRequest {
         self
     }
 
+    pub fn transform_first_message<F>(mut self, transformer: F) -> Self
+    where
+        F: Fn(String) -> String + Send + Sync + 'static,
+    {
+        self.transform_first_message = Some(Arc::new(transformer));
+        self
+    }
+
     pub fn connect_timeout(mut self, timeout: Duration) -> Self {
         self.connect_timeout = timeout;
         self
@@ -140,6 +162,7 @@ impl WebSocketProxyBuilderWithRequest {
         WebSocketProxy {
             upstream_request: self.upstream_request,
             control_message_matcher: self.control_message_matcher,
+            transform_first_message: self.transform_first_message,
             connect_timeout: self.connect_timeout,
         }
     }
@@ -149,6 +172,7 @@ impl WebSocketProxyBuilderWithRequest {
 pub struct WebSocketProxy {
     upstream_request: ClientRequestBuilder,
     control_message_matcher: Option<ControlMessageMatcher>,
+    transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
 }
 
@@ -161,6 +185,7 @@ impl WebSocketProxy {
         let connection = WebSocketProxyConnection::new(
             self.upstream_request.clone(),
             self.control_message_matcher.clone(),
+            self.transform_first_message.clone(),
             self.connect_timeout,
         );
         connection.run(client_socket).await;
@@ -198,6 +223,7 @@ impl WebSocketProxy {
         Ok(PreconnectedProxy {
             upstream_stream: Some(upstream_stream),
             control_message_matcher: self.control_message_matcher.clone(),
+            transform_first_message: self.transform_first_message.clone(),
         })
     }
 }
@@ -239,6 +265,7 @@ impl Service<Request<Body>> for WebSocketProxy {
 pub struct PreconnectedProxy {
     upstream_stream: Option<WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>>,
     control_message_matcher: Option<ControlMessageMatcher>,
+    transform_first_message: Option<FirstMessageTransformer>,
 }
 
 impl PreconnectedProxy {
@@ -255,6 +282,7 @@ impl PreconnectedProxy {
             client_socket,
             upstream_stream,
             self.control_message_matcher,
+            self.transform_first_message,
         )
         .await;
     }
@@ -270,6 +298,7 @@ impl PreconnectedProxy {
 struct WebSocketProxyConnection {
     upstream_request: ClientRequestBuilder,
     control_message_matcher: Option<ControlMessageMatcher>,
+    transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
 }
 
@@ -277,11 +306,13 @@ impl WebSocketProxyConnection {
     fn new(
         upstream_request: ClientRequestBuilder,
         control_message_matcher: Option<ControlMessageMatcher>,
+        transform_first_message: Option<FirstMessageTransformer>,
         connect_timeout: Duration,
     ) -> Self {
         Self {
             upstream_request,
             control_message_matcher,
+            transform_first_message,
             connect_timeout,
         }
     }
@@ -336,6 +367,7 @@ impl WebSocketProxyConnection {
         let shutdown_rx2 = shutdown_tx.subscribe();
 
         let control_matcher = self.control_message_matcher.clone();
+        let first_msg_transformer = self.transform_first_message.clone();
 
         let client_to_upstream = Self::run_client_to_upstream(
             client_receiver,
@@ -343,6 +375,7 @@ impl WebSocketProxyConnection {
             shutdown_tx.clone(),
             shutdown_rx,
             control_matcher,
+            first_msg_transformer,
             pending_control_messages,
             pending_data_messages,
             pending_bytes,
@@ -363,6 +396,7 @@ impl WebSocketProxyConnection {
         client_socket: WebSocket,
         upstream_stream: WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
         control_message_matcher: Option<ControlMessageMatcher>,
+        transform_first_message: Option<FirstMessageTransformer>,
     ) {
         let (upstream_sender, upstream_receiver) = upstream_stream.split();
         let (client_sender, client_receiver) = client_socket.split();
@@ -382,6 +416,7 @@ impl WebSocketProxyConnection {
             shutdown_tx.clone(),
             shutdown_rx,
             control_message_matcher,
+            transform_first_message,
             pending_control_messages,
             pending_data_messages,
             pending_bytes,
@@ -404,10 +439,13 @@ impl WebSocketProxyConnection {
         shutdown_tx: tokio::sync::broadcast::Sender<(u16, String)>,
         mut shutdown_rx: tokio::sync::broadcast::Receiver<(u16, String)>,
         control_matcher: Option<ControlMessageMatcher>,
+        first_msg_transformer: Option<FirstMessageTransformer>,
         pending_control_messages: Arc<Mutex<Vec<QueuedPayload>>>,
         pending_data_messages: Arc<Mutex<Vec<QueuedPayload>>>,
         pending_bytes: Arc<Mutex<usize>>,
     ) {
+        let mut has_transformed_first = first_msg_transformer.is_none();
+
         loop {
             tokio::select! {
                 biased;
@@ -440,6 +478,16 @@ impl WebSocketProxyConnection {
 
                     match msg {
                         Message::Text(text) => {
+                            let text = if !has_transformed_first {
+                                has_transformed_first = true;
+                                if let Some(ref transformer) = first_msg_transformer {
+                                    transformer(text.to_string())
+                                } else {
+                                    text.to_string()
+                                }
+                            } else {
+                                text.to_string()
+                            };
                             let data = text.as_bytes().to_vec();
                             let size = Self::get_payload_size(&data);
 

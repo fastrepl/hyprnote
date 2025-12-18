@@ -1,9 +1,6 @@
 mod batch;
 mod live;
 
-pub(crate) const DEFAULT_API_HOST: &str = "api.soniox.com";
-pub(crate) const DEFAULT_WS_HOST: &str = "stt-rt.soniox.com";
-
 #[derive(Clone, Default)]
 pub struct SonioxAdapter;
 
@@ -12,39 +9,38 @@ impl SonioxAdapter {
         true
     }
 
-    pub fn is_host(base_url: &str) -> bool {
-        super::host_matches(base_url, Self::is_soniox_host)
-    }
-
     pub(crate) fn api_host(api_base: &str) -> String {
+        use owhisper_providers::Provider;
+
+        let default_host = Provider::Soniox.default_api_host();
+
         if api_base.is_empty() {
-            return DEFAULT_API_HOST.to_string();
+            return default_host.to_string();
         }
 
         let url: url::Url = api_base.parse().expect("invalid_api_base");
-        url.host_str().unwrap_or(DEFAULT_API_HOST).to_string()
-    }
-
-    pub(crate) fn is_soniox_host(host: &str) -> bool {
-        host.contains("soniox.com")
+        url.host_str().unwrap_or(default_host).to_string()
     }
 
     pub(crate) fn ws_host(api_base: &str) -> String {
+        use owhisper_providers::Provider;
+
         let api_host = Self::api_host(api_base);
 
         if let Some(rest) = api_host.strip_prefix("api.") {
             format!("stt-rt.{}", rest)
         } else {
-            DEFAULT_WS_HOST.to_string()
+            Provider::Soniox.default_ws_host().to_string()
         }
     }
 
     pub(crate) fn build_ws_url_from_base(api_base: &str) -> (url::Url, Vec<(String, String)>) {
-        const WS_PATH: &str = "/transcribe-websocket";
+        use owhisper_providers::Provider;
 
         if api_base.is_empty() {
             return (
-                format!("wss://{}{}", DEFAULT_WS_HOST, WS_PATH)
+                Provider::Soniox
+                    .default_ws_url()
                     .parse()
                     .expect("invalid_default_ws_url"),
                 Vec::new(),
@@ -58,9 +54,13 @@ impl SonioxAdapter {
         let parsed: url::Url = api_base.parse().expect("invalid_api_base");
         let existing_params = super::extract_query_params(&parsed);
 
-        let url: url::Url = format!("wss://{}{}", Self::ws_host(api_base), WS_PATH)
-            .parse()
-            .expect("invalid_ws_url");
+        let url: url::Url = format!(
+            "wss://{}{}",
+            Self::ws_host(api_base),
+            Provider::Soniox.ws_path()
+        )
+        .parse()
+        .expect("invalid_ws_url");
         (url, existing_params)
     }
 }

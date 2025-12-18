@@ -10,12 +10,9 @@ use axum::{
 };
 use bytes::Bytes;
 use futures_util::StreamExt;
+use hypr_analytics::{AnalyticsClient, AnalyticsPayload};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-
-use crate::posthog::{
-    AiGenerationProperties, PostHogConfig, capture_ai_generation, fetch_generation_metadata,
-};
 
 const DEFAULT_TIMEOUT_MS: u64 = 120_000;
 const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
@@ -26,7 +23,7 @@ pub struct LlmProxyConfig {
     pub timeout: Duration,
     pub models_tool_calling: Vec<String>,
     pub models_default: Vec<String>,
-    pub posthog: Option<PostHogConfig>,
+    pub analytics: Option<AnalyticsClient>,
 }
 
 impl LlmProxyConfig {
@@ -43,7 +40,7 @@ impl LlmProxyConfig {
                 "moonshotai/kimi-k2-0905".into(),
                 "openai/gpt-5.1-chat".into(),
             ],
-            posthog: None,
+            analytics: None,
         }
     }
 
@@ -62,8 +59,8 @@ impl LlmProxyConfig {
         self
     }
 
-    pub fn with_posthog(mut self, config: PostHogConfig) -> Self {
-        self.posthog = Some(config);
+    pub fn with_analytics(mut self, client: AnalyticsClient) -> Self {
+        self.analytics = Some(client);
         self
     }
 }
@@ -246,7 +243,7 @@ async fn completions_handler(
     let http_status = status.as_u16();
 
     if stream {
-        let posthog_config = state.config.posthog.clone();
+        let analytics = state.config.analytics.clone();
         let api_key = state.config.api_key.clone();
         let client = state.client.clone();
 
@@ -323,25 +320,27 @@ async fn completions_handler(
 
             let latency = start_time.elapsed().as_secs_f64();
 
-            if let Some(posthog_config) = posthog_config {
+            if let Some(analytics) = analytics {
                 if let Some(gen_id) = generation_id {
-                    let total_cost = fetch_generation_metadata(&client, &api_key, &gen_id)
-                        .await
-                        .map(|d| d.total_cost);
+                    let total_cost = fetch_generation_metadata(&client, &api_key, &gen_id).await;
 
-                    let properties = AiGenerationProperties {
-                        provider: "openrouter".into(),
-                        model: model.unwrap_or_default(),
-                        input_tokens,
-                        output_tokens,
-                        total_cost_usd: total_cost,
-                        latency,
-                        trace_id: gen_id,
-                        http_status,
-                        base_url: OPENROUTER_URL.into(),
+                    let payload = AnalyticsPayload::builder("$ai_generation")
+                        .with("$ai_provider", "openrouter")
+                        .with("$ai_model", model.unwrap_or_default())
+                        .with("$ai_input_tokens", input_tokens)
+                        .with("$ai_output_tokens", output_tokens)
+                        .with("$ai_latency", latency)
+                        .with("$ai_trace_id", gen_id.clone())
+                        .with("$ai_http_status", http_status)
+                        .with("$ai_base_url", OPENROUTER_URL);
+
+                    let payload = if let Some(cost) = total_cost {
+                        payload.with("$ai_total_cost_usd", cost)
+                    } else {
+                        payload
                     };
 
-                    capture_ai_generation(&client, &posthog_config, properties).await;
+                    let _ = analytics.event(gen_id, payload.build()).await;
                 }
             }
         });
@@ -364,11 +363,11 @@ async fn completions_handler(
 
         let latency = start_time.elapsed().as_secs_f64();
 
-        if let Some(posthog_config) = &state.config.posthog {
+        if let Some(analytics) = &state.config.analytics {
             if let Ok(parsed) = serde_json::from_slice::<OpenRouterResponse>(&body_bytes) {
                 let client = state.client.clone();
                 let api_key = state.config.api_key.clone();
-                let posthog_config = posthog_config.clone();
+                let analytics = analytics.clone();
                 let generation_id = parsed.id.clone();
 
                 let input_tokens = parsed
@@ -384,23 +383,26 @@ async fn completions_handler(
                 let model = parsed.model.clone().unwrap_or_default();
 
                 tokio::spawn(async move {
-                    let total_cost = fetch_generation_metadata(&client, &api_key, &generation_id)
-                        .await
-                        .map(|d| d.total_cost);
+                    let total_cost =
+                        fetch_generation_metadata(&client, &api_key, &generation_id).await;
 
-                    let properties = AiGenerationProperties {
-                        provider: "openrouter".into(),
-                        model,
-                        input_tokens,
-                        output_tokens,
-                        total_cost_usd: total_cost,
-                        latency,
-                        trace_id: generation_id,
-                        http_status,
-                        base_url: OPENROUTER_URL.into(),
+                    let payload = AnalyticsPayload::builder("$ai_generation")
+                        .with("$ai_provider", "openrouter")
+                        .with("$ai_model", model)
+                        .with("$ai_input_tokens", input_tokens)
+                        .with("$ai_output_tokens", output_tokens)
+                        .with("$ai_latency", latency)
+                        .with("$ai_trace_id", generation_id.clone())
+                        .with("$ai_http_status", http_status)
+                        .with("$ai_base_url", OPENROUTER_URL);
+
+                    let payload = if let Some(cost) = total_cost {
+                        payload.with("$ai_total_cost_usd", cost)
+                    } else {
+                        payload
                     };
 
-                    capture_ai_generation(&client, &posthog_config, properties).await;
+                    let _ = analytics.event(generation_id, payload.build()).await;
                 });
             }
         }
@@ -411,4 +413,43 @@ async fn completions_handler(
             .body(Body::from(body_bytes))
             .unwrap()
     }
+}
+
+async fn fetch_generation_metadata(
+    client: &Client,
+    api_key: &str,
+    generation_id: &str,
+) -> Option<f64> {
+    #[derive(Deserialize)]
+    struct OpenRouterGenerationResponse {
+        data: OpenRouterGenerationData,
+    }
+
+    #[derive(Deserialize)]
+    struct OpenRouterGenerationData {
+        total_cost: f64,
+    }
+
+    let url = format!(
+        "https://openrouter.ai/api/v1/generation?id={}",
+        generation_id
+    );
+
+    let response = client
+        .get(&url)
+        .header("Authorization", format!("Bearer {}", api_key))
+        .send()
+        .await
+        .ok()?;
+
+    if !response.status().is_success() {
+        tracing::warn!(
+            status = %response.status(),
+            "failed to fetch generation metadata"
+        );
+        return None;
+    }
+
+    let data: OpenRouterGenerationResponse = response.json().await.ok()?;
+    Some(data.data.total_cost)
 }

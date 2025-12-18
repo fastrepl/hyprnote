@@ -3,7 +3,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use axum::body::Body;
 use axum::extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade};
@@ -25,6 +25,8 @@ pub use tokio_tungstenite::tungstenite::ClientRequestBuilder;
 const DEFAULT_CLOSE_CODE: u16 = 1011;
 const UPSTREAM_CONNECT_TIMEOUT_MS: u64 = 5000;
 const MAX_PENDING_QUEUE_BYTES: usize = 5 * 1024 * 1024; // 5 MiB
+
+type OnCloseCallback = Arc<dyn Fn(Duration) + Send + Sync>;
 
 #[derive(Debug, Clone)]
 struct QueuedPayload {
@@ -56,6 +58,7 @@ pub struct WebSocketProxyBuilder {
     control_message_matcher: Option<ControlMessageMatcher>,
     transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
+    on_close: Option<OnCloseCallback>,
 }
 
 impl Default for WebSocketProxyBuilder {
@@ -66,6 +69,7 @@ impl Default for WebSocketProxyBuilder {
             control_message_matcher: None,
             transform_first_message: None,
             connect_timeout: Duration::from_millis(UPSTREAM_CONNECT_TIMEOUT_MS),
+            on_close: None,
         }
     }
 }
@@ -95,6 +99,7 @@ impl WebSocketProxyBuilder {
             control_message_matcher: self.control_message_matcher,
             transform_first_message: self.transform_first_message,
             connect_timeout: self.connect_timeout,
+            on_close: self.on_close,
         }
     }
 
@@ -119,6 +124,14 @@ impl WebSocketProxyBuilder {
         self
     }
 
+    pub fn on_close<F>(mut self, callback: F) -> Self
+    where
+        F: Fn(Duration) + Send + Sync + 'static,
+    {
+        self.on_close = Some(Arc::new(callback));
+        self
+    }
+
     pub fn build(self) -> WebSocketProxy {
         let url = self.upstream_url.expect("upstream_url is required");
         let mut request = ClientRequestBuilder::new(url.parse().expect("invalid upstream URL"));
@@ -132,6 +145,7 @@ impl WebSocketProxyBuilder {
             control_message_matcher: self.control_message_matcher,
             transform_first_message: self.transform_first_message,
             connect_timeout: self.connect_timeout,
+            on_close: self.on_close,
         }
     }
 }
@@ -141,6 +155,7 @@ pub struct WebSocketProxyBuilderWithRequest {
     control_message_matcher: Option<ControlMessageMatcher>,
     transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
+    on_close: Option<OnCloseCallback>,
 }
 
 impl WebSocketProxyBuilderWithRequest {
@@ -165,12 +180,21 @@ impl WebSocketProxyBuilderWithRequest {
         self
     }
 
+    pub fn on_close<F>(mut self, callback: F) -> Self
+    where
+        F: Fn(Duration) + Send + Sync + 'static,
+    {
+        self.on_close = Some(Arc::new(callback));
+        self
+    }
+
     pub fn build(self) -> WebSocketProxy {
         WebSocketProxy {
             upstream_request: self.upstream_request,
             control_message_matcher: self.control_message_matcher,
             transform_first_message: self.transform_first_message,
             connect_timeout: self.connect_timeout,
+            on_close: self.on_close,
         }
     }
 }
@@ -181,6 +205,7 @@ pub struct WebSocketProxy {
     control_message_matcher: Option<ControlMessageMatcher>,
     transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
+    on_close: Option<OnCloseCallback>,
 }
 
 impl WebSocketProxy {
@@ -194,6 +219,7 @@ impl WebSocketProxy {
             self.control_message_matcher.clone(),
             self.transform_first_message.clone(),
             self.connect_timeout,
+            self.on_close.clone(),
         );
         connection.run(client_socket).await;
     }
@@ -231,6 +257,7 @@ impl WebSocketProxy {
             upstream_stream: Some(upstream_stream),
             control_message_matcher: self.control_message_matcher.clone(),
             transform_first_message: self.transform_first_message.clone(),
+            on_close: self.on_close.clone(),
         })
     }
 }
@@ -273,6 +300,7 @@ pub struct PreconnectedProxy {
     upstream_stream: Option<WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>>,
     control_message_matcher: Option<ControlMessageMatcher>,
     transform_first_message: Option<FirstMessageTransformer>,
+    on_close: Option<OnCloseCallback>,
 }
 
 impl PreconnectedProxy {
@@ -290,6 +318,7 @@ impl PreconnectedProxy {
             upstream_stream,
             self.control_message_matcher,
             self.transform_first_message,
+            self.on_close,
         )
         .await;
     }
@@ -307,6 +336,7 @@ struct WebSocketProxyConnection {
     control_message_matcher: Option<ControlMessageMatcher>,
     transform_first_message: Option<FirstMessageTransformer>,
     connect_timeout: Duration,
+    on_close: Option<OnCloseCallback>,
 }
 
 impl WebSocketProxyConnection {
@@ -315,12 +345,14 @@ impl WebSocketProxyConnection {
         control_message_matcher: Option<ControlMessageMatcher>,
         transform_first_message: Option<FirstMessageTransformer>,
         connect_timeout: Duration,
+        on_close: Option<OnCloseCallback>,
     ) -> Self {
         Self {
             upstream_request,
             control_message_matcher,
             transform_first_message,
             connect_timeout,
+            on_close,
         }
     }
 
@@ -337,6 +369,8 @@ impl WebSocketProxyConnection {
     }
 
     async fn run(self, client_socket: WebSocket) {
+        let start_time = Instant::now();
+
         let req = match self.upstream_request.into_client_request() {
             Ok(r) => r,
             Err(e) => {
@@ -394,6 +428,11 @@ impl WebSocketProxyConnection {
         );
 
         let _ = tokio::join!(client_to_upstream, upstream_to_client);
+
+        if let Some(on_close) = self.on_close {
+            on_close(start_time.elapsed());
+        }
+
         tracing::info!("websocket_proxy_connection_closed");
     }
 
@@ -402,7 +441,10 @@ impl WebSocketProxyConnection {
         upstream_stream: WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
         control_message_matcher: Option<ControlMessageMatcher>,
         transform_first_message: Option<FirstMessageTransformer>,
+        on_close: Option<OnCloseCallback>,
     ) {
+        let start_time = Instant::now();
+
         let (upstream_sender, upstream_receiver) = upstream_stream.split();
         let (client_sender, client_receiver) = client_socket.split();
 
@@ -433,6 +475,11 @@ impl WebSocketProxyConnection {
         );
 
         let _ = tokio::join!(client_to_upstream, upstream_to_client);
+
+        if let Some(on_close) = on_close {
+            on_close(start_time.elapsed());
+        }
+
         tracing::info!("websocket_proxy_connection_closed");
     }
 

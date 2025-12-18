@@ -9982,6 +9982,7 @@ dependencies = [
 name = "llm-proxy"
 version = "0.1.0"
 dependencies = [
+ "analytics",
  "axum 0.8.7",
  "bytes",
  "futures-util",
@@ -19018,6 +19019,7 @@ dependencies = [
 name = "transcribe-proxy"
 version = "0.1.0"
 dependencies = [
+ "analytics",
  "axum 0.8.7",
  "bytes",
  "futures-util",
@@ -19031,6 +19033,7 @@ dependencies = [
  "tower 0.5.2",
  "tracing",
  "url",
+ "uuid",
 ]
 
 [[package]]

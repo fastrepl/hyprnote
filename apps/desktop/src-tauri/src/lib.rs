@@ -149,7 +149,7 @@ pub async fn main() {
             tokio::spawn(async move {
                 use tauri_plugin_db2::Database2PluginExt;
 
-                if let Err(e) = app_clone.init_local().await {
+                if let Err(e) = app_clone.db2().init_local().await {
                     tracing::error!("failed_to_init_local: {}", e);
                 }
             });

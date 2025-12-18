@@ -5,6 +5,7 @@ Default permissions for the plugin
 #### This default permission set includes the following:
 
 - `allow-get-pending-update`
+- `allow-install-from-cached`
 
 ## Permission Table
 

@@ -1,0 +1,19 @@
+[package]
+name = "stt-server"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "stt"
+path = "src/main.rs"
+
+[dependencies]
+hypr-transcribe-proxy = { workspace = true }
+
+axum = { workspace = true, features = ["ws"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal"] }
+tower-http = { workspace = true, features = ["trace"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+
+sentry = { workspace = true }

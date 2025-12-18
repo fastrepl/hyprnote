@@ -12,6 +12,7 @@ resolver = "2"
 members = [
   "apps/desktop/src-tauri",
   "apps/granola",
+  "apps/stt",
   "crates/*",
   "owhisper/*",
   "plugins/*",

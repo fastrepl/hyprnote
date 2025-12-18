@@ -146,14 +146,20 @@ webhook.post(
     const rawBody = c.get("slackRawBody");
     const span = c.get("sentrySpan");
 
+    console.log("[slack/events] Received request, rawBody:", rawBody);
+
     let payload: z.infer<typeof SlackEventSchema>;
     try {
       payload = SlackEventSchema.parse(JSON.parse(rawBody));
-    } catch {
+    } catch (e) {
+      console.log("[slack/events] Failed to parse payload:", e);
       return c.json({ error: "invalid_payload" }, 400);
     }
 
+    console.log("[slack/events] Parsed payload type:", payload.type);
+
     if (payload.type === "url_verification" && payload.challenge) {
+      console.log("[slack/events] URL verification, returning challenge");
       return c.json({ challenge: payload.challenge }, 200);
     }
 

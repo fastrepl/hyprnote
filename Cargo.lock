@@ -246,6 +246,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-server"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.7",
+ "dotenvy",
+ "jsonwebtoken",
+ "llm-proxy",
+ "owhisper-providers",
+ "reqwest",
+ "sentry",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http 0.6.8",
+ "tracing",
+ "tracing-subscriber",
+ "transcribe-proxy",
+ "url",
+]
+
+[[package]]
 name = "aide"
 version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9957,6 +9978,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "llm-proxy"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.7",
+ "bytes",
+ "futures-util",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "local-waker"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16029,26 +16065,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.111",
-]
-
-[[package]]
-name = "stt-server"
-version = "0.1.0"
-dependencies = [
- "axum 0.8.7",
- "dotenvy",
- "jsonwebtoken",
- "owhisper-providers",
- "reqwest",
- "sentry",
- "serde",
- "serde_json",
- "tokio",
- "tower-http 0.6.8",
- "tracing",
- "tracing-subscriber",
- "transcribe-proxy",
- "url",
 ]
 
 [[package]]

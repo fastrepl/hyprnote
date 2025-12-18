@@ -1,13 +1,14 @@
 [package]
-name = "stt-server"
+name = "ai-server"
 version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "stt"
+name = "ai"
 path = "src/main.rs"
 
 [dependencies]
+hypr-llm-proxy = { workspace = true }
 hypr-transcribe-proxy = { workspace = true }
 owhisper-providers = { workspace = true }
 

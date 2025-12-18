@@ -7,6 +7,7 @@ pub struct Env {
     pub port: u16,
     pub sentry_dsn: Option<String>,
     pub supabase_url: String,
+    pub openrouter_api_key: String,
     api_keys: HashMap<Provider, String>,
 }
 
@@ -38,6 +39,7 @@ impl Env {
             port: parse_or("PORT", 3000),
             sentry_dsn: optional("SENTRY_DSN"),
             supabase_url: required("SUPABASE_URL"),
+            openrouter_api_key: required("OPENROUTER_API_KEY"),
             api_keys,
         }
     }

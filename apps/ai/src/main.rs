@@ -11,8 +11,11 @@ use env::env;
 use handlers::ws_handler;
 
 fn app() -> Router {
+    let llm_config = hypr_llm_proxy::LlmProxyConfig::new(&env().openrouter_api_key);
+
     Router::new()
-        .route("/listen", any(ws_handler))
+        .route("/stt", any(ws_handler))
+        .nest("/llm", hypr_llm_proxy::router(llm_config))
         .layer(TraceLayer::new_for_http())
 }
 

@@ -37,7 +37,7 @@ pub fn init() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                     tauri_plugin_windows::AppWindow::from_str(label.as_ref())
                 {
                     if let tauri::WindowEvent::Focused(true) = event {
-                        app.clear_notifications().unwrap();
+                        app.notification().clear().unwrap();
                     }
                 }
             }

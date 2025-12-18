@@ -91,14 +91,21 @@ impl AppWindow {
 
 const MAX_MAIN_WIDTH: f64 = 1600.0;
 const MAX_MAIN_HEIGHT: f64 = 1000.0;
+const MIN_MAIN_WIDTH: f64 = 620.0;
+const MIN_MAIN_HEIGHT: f64 = 500.0;
+
 const MAX_ONBOARDING_WIDTH: f64 = 900.0;
 const MAX_ONBOARDING_HEIGHT: f64 = 700.0;
+const MIN_ONBOARDING_WIDTH: f64 = 400.0;
+const MIN_ONBOARDING_HEIGHT: f64 = 600.0;
 
 fn window_size_with_ratio(
     monitor_width: f64,
     monitor_height: f64,
     aspect_ratio: f64,
     scale: f64,
+    min_width: f64,
+    min_height: f64,
     max_width: f64,
     max_height: f64,
 ) -> (f64, f64) {
@@ -112,14 +119,16 @@ fn window_size_with_ratio(
         (height * aspect_ratio, height)
     };
 
-    if width > max_width || height > max_height {
+    let (width, height) = if width > max_width || height > max_height {
         let scale_w = max_width / width;
         let scale_h = max_height / height;
         let scale = scale_w.min(scale_h);
         (width * scale, height * scale)
     } else {
         (width, height)
-    }
+    };
+
+    (width.max(min_width), height.max(min_height))
 }
 
 impl WindowImpl for AppWindow {
@@ -157,6 +166,8 @@ impl WindowImpl for AppWindow {
                     monitor_height,
                     2.0 / 3.0,
                     0.7,
+                    MIN_ONBOARDING_WIDTH,
+                    MIN_ONBOARDING_HEIGHT,
                     MAX_ONBOARDING_WIDTH,
                     MAX_ONBOARDING_HEIGHT,
                 );
@@ -164,6 +175,7 @@ impl WindowImpl for AppWindow {
                 self.window_builder(app, "/app/onboarding")
                     .resizable(false)
                     .inner_size(width, height)
+                    .min_inner_size(MIN_ONBOARDING_WIDTH, MIN_ONBOARDING_HEIGHT)
                     .prevent_overflow_with_margin(margin)
                     .center()
                     .build()?
@@ -174,23 +186,17 @@ impl WindowImpl for AppWindow {
                     monitor_height,
                     4.0 / 3.0,
                     0.8,
+                    MIN_MAIN_WIDTH,
+                    MIN_MAIN_HEIGHT,
                     MAX_MAIN_WIDTH,
                     MAX_MAIN_HEIGHT,
-                );
-                let (min_w, min_h) = window_size_with_ratio(
-                    monitor_width,
-                    monitor_height,
-                    4.0 / 3.0,
-                    0.4,
-                    MAX_MAIN_WIDTH * 0.5,
-                    MAX_MAIN_HEIGHT * 0.5,
                 );
 
                 self.window_builder(app, "/app/main")
                     .maximizable(true)
                     .minimizable(true)
                     .inner_size(width, height)
-                    .min_inner_size(min_w, min_h)
+                    .min_inner_size(MIN_MAIN_WIDTH, MIN_MAIN_HEIGHT)
                     .prevent_overflow_with_margin(margin)
                     .center()
                     .build()?

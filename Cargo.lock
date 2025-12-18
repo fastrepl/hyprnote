@@ -20918,6 +20918,7 @@ name = "ws"
 version = "0.1.0"
 dependencies = [
  "async-stream",
+ "axum 0.8.7",
  "backon",
  "bytes",
  "futures-util",
@@ -20926,6 +20927,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tokio-tungstenite 0.26.2",
+ "tower 0.5.2",
  "tracing",
 ]
 

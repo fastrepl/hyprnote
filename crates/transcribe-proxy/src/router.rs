@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use axum::{
     Router,
@@ -7,10 +8,10 @@ use axum::{
     response::{IntoResponse, Response},
     routing::any,
 };
-use hypr_analytics::AnalyticsPayload;
 use owhisper_providers::{Auth, Provider};
 use serde::{Deserialize, Serialize};
 
+use crate::analytics::{SttAnalyticsReporter, SttEvent};
 use crate::config::SttProxyConfig;
 use crate::service::WebSocketProxy;
 
@@ -177,16 +178,14 @@ fn build_proxy(
     if let Some(analytics) = config.analytics.clone() {
         let provider_name = format!("{:?}", provider).to_lowercase();
         builder = builder.on_close(move |duration| {
-            let analytics = analytics.clone();
+            let analytics: Arc<dyn SttAnalyticsReporter> = analytics.clone();
             let provider_name = provider_name.clone();
             tokio::spawn(async move {
-                let payload = AnalyticsPayload::builder("$stt_request")
-                    .with("$stt_provider", provider_name)
-                    .with("$stt_duration", duration.as_secs_f64())
-                    .build();
-                let _ = analytics
-                    .event(uuid::Uuid::new_v4().to_string(), payload)
-                    .await;
+                let event = SttEvent {
+                    provider: provider_name,
+                    duration,
+                };
+                analytics.report_stt(event).await;
             });
         });
     }

@@ -9992,6 +9992,7 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tokio-stream",
+ "tower 0.5.2",
  "tracing",
 ]
 

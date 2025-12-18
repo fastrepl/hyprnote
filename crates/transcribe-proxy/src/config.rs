@@ -1,8 +1,10 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::Duration;
 
-use hypr_analytics::AnalyticsClient;
 use owhisper_providers::Provider;
+
+use crate::analytics::SttAnalyticsReporter;
 
 const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 5000;
 
@@ -11,7 +13,7 @@ pub struct SttProxyConfig {
     pub api_keys: HashMap<Provider, String>,
     pub default_provider: Provider,
     pub connect_timeout: Duration,
-    pub analytics: Option<AnalyticsClient>,
+    pub analytics: Option<Arc<dyn SttAnalyticsReporter>>,
 }
 
 impl SttProxyConfig {
@@ -34,8 +36,8 @@ impl SttProxyConfig {
         self
     }
 
-    pub fn with_analytics(mut self, client: AnalyticsClient) -> Self {
-        self.analytics = Some(client);
+    pub fn with_analytics(mut self, analytics: Arc<dyn SttAnalyticsReporter>) -> Self {
+        self.analytics = Some(analytics);
         self
     }
 

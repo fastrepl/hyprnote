@@ -119,13 +119,23 @@ where
 
         let jwks = match jwks_state {
             JwksState::Empty => {
-                tracing::warn!("JWKS empty, skipping auth (local dev)");
-                let claims = decode_claims_insecure(token)
-                    .map_err(|_| (StatusCode::UNAUTHORIZED, "invalid token"))?;
-                return Ok(AuthUser {
-                    user_id: claims.sub,
-                    entitlements: claims.entitlements,
-                });
+                if cfg!(debug_assertions) {
+                    tracing::warn!(
+                        target: "security",
+                        "JWKS empty in debug build: accepting unsigned token"
+                    );
+                    let claims = decode_claims_insecure(token)
+                        .map_err(|_| (StatusCode::UNAUTHORIZED, "invalid token"))?;
+                    return Ok(AuthUser {
+                        user_id: claims.sub,
+                        entitlements: claims.entitlements,
+                    });
+                }
+                tracing::error!(
+                    target: "security",
+                    "JWKS empty in release build: rejecting request"
+                );
+                return Err((StatusCode::UNAUTHORIZED, "authentication unavailable"));
             }
             JwksState::Available(jwks) => jwks,
         };

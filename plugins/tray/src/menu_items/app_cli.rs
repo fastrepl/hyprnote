@@ -2,7 +2,7 @@ use tauri::{
     AppHandle, Result,
     menu::{IconMenuItem, MenuItemKind, NativeIcon},
 };
-use tauri_plugin_cli2::CliPluginExt;
+use tauri_plugin_cli2::Cli2PluginExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 
 use super::MenuItemHandler;
@@ -27,9 +27,9 @@ impl MenuItemHandler for AppCliInstall {
 
     fn handle(app: &AppHandle<tauri::Wry>) {
         let app_clone = app.clone();
-        match app.plugin_cli().install_cli_to_path() {
+        match app.cli2().install_cli_to_path() {
             Ok(_) => {
-                let _ = app.create_app_menu();
+                let _ = app.tray().create_app_menu();
                 app_clone
                     .dialog()
                     .message("CLI has been installed successfully.\n\nYou can now use 'hypr' command in your terminal.")
@@ -68,9 +68,9 @@ impl MenuItemHandler for AppCliUninstall {
 
     fn handle(app: &AppHandle<tauri::Wry>) {
         let app_clone = app.clone();
-        match app.plugin_cli().uninstall_cli_from_path() {
+        match app.cli2().uninstall_cli_from_path() {
             Ok(_) => {
-                let _ = app.create_app_menu();
+                let _ = app.tray().create_app_menu();
                 app_clone
                     .dialog()
                     .message("CLI has been uninstalled successfully.")
@@ -92,7 +92,7 @@ impl MenuItemHandler for AppCliUninstall {
 
 pub fn app_cli_menu(app: &AppHandle<tauri::Wry>) -> Result<MenuItemKind<tauri::Wry>> {
     let is_installed = app
-        .plugin_cli()
+        .cli2()
         .check_cli_status()
         .map(|status| status.is_installed)
         .unwrap_or(false);

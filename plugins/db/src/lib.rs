@@ -6,7 +6,7 @@ mod error;
 mod ext;
 
 pub use error::{Error, Result};
-pub use ext::DatabasePluginExt;
+pub use ext::{Database, DatabasePluginExt};
 pub use hypr_db_user::UserDatabase;
 
 pub type ManagedState = Mutex<State>;

@@ -7,7 +7,7 @@ mod sources;
 mod types;
 
 pub use error::*;
-pub use ext::ImporterPluginExt;
+pub use ext::*;
 pub use sources::{ImportSource, ImportSourceDyn, all_sources, get_source, list_available_sources};
 pub use types::*;
 

@@ -61,17 +61,37 @@ impl AppSounds {
     }
 }
 
-pub trait SfxPluginExt<R: tauri::Runtime> {
-    fn play(&self, sfx: AppSounds);
-    fn stop(&self, sfx: AppSounds);
+pub struct Sfx<'a, R: tauri::Runtime, M: tauri::Manager<R>> {
+    manager: &'a M,
+    _runtime: std::marker::PhantomData<fn() -> R>,
 }
 
-impl<R: tauri::Runtime, T: tauri::Manager<R>> SfxPluginExt<R> for T {
-    fn play(&self, sfx: AppSounds) {
+impl<'a, R: tauri::Runtime, M: tauri::Manager<R>> Sfx<'a, R, M> {
+    pub fn play(&self, sfx: AppSounds) {
+        let _ = self.manager;
         sfx.play();
     }
 
-    fn stop(&self, sfx: AppSounds) {
+    pub fn stop(&self, sfx: AppSounds) {
+        let _ = self.manager;
         sfx.stop();
+    }
+}
+
+pub trait SfxPluginExt<R: tauri::Runtime> {
+    fn sfx(&self) -> Sfx<'_, R, Self>
+    where
+        Self: tauri::Manager<R> + Sized;
+}
+
+impl<R: tauri::Runtime, T: tauri::Manager<R>> SfxPluginExt<R> for T {
+    fn sfx(&self) -> Sfx<'_, R, Self>
+    where
+        Self: Sized,
+    {
+        Sfx {
+            manager: self,
+            _runtime: std::marker::PhantomData,
+        }
     }
 }

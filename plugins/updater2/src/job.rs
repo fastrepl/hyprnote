@@ -28,7 +28,10 @@ pub async fn check_and_download_update<R: tauri::Runtime>(app: &tauri::AppHandle
     let version = update.version.clone();
     let _bytes = update.download(|_, _| {}, || {}).await;
 
-    if let Err(e) = app.set_pending_update_version(Some(version.clone())) {
+    if let Err(e) = app
+        .updater2()
+        .set_pending_update_version(Some(version.clone()))
+    {
         tracing::error!("failed_to_set_pending_update_version: {}", e);
     }
 

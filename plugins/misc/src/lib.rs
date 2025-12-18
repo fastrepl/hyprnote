@@ -200,7 +200,7 @@ mod test {
         ];
 
         for test_case in test_cases {
-            let result = app.parse_meeting_link(test_case.input);
+            let result = app.misc().parse_meeting_link(test_case.input);
             assert_eq!(
                 result,
                 Some(test_case.expected.to_string()),

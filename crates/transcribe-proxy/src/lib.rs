@@ -1,14 +1,14 @@
 mod analytics;
 mod config;
 mod error;
+mod proxy;
 mod router;
-mod service;
 
 pub use analytics::{SttAnalyticsReporter, SttEvent};
 pub use config::*;
 pub use error::*;
+pub use proxy::{ClientRequestBuilder, WebSocketProxy};
 pub use router::router;
-pub use service::WebSocketProxy;
 
 #[cfg(test)]
 mod tests {

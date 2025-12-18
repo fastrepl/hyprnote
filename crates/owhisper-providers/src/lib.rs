@@ -206,4 +206,34 @@ impl Provider {
             _ => &[],
         }
     }
+
+    pub fn control_message_types(&self) -> &'static [&'static str] {
+        match self {
+            Self::Deepgram => &["KeepAlive", "CloseStream", "Finalize"],
+            Self::AssemblyAI => &["Terminate"],
+            Self::Soniox => &["keepalive", "finalize"],
+            Self::Fireworks => &[],
+            Self::OpenAI => &[],
+            Self::Gladia => &[],
+        }
+    }
+
+    pub fn session_init_config(&self, sample_rate: u32, channels: u8) -> Option<serde_json::Value> {
+        match self {
+            Self::Gladia => Some(serde_json::json!({
+                "encoding": "wav/pcm",
+                "sample_rate": sample_rate,
+                "bit_depth": 16,
+                "channels": channels,
+                "messages_config": {
+                    "receive_partial_transcripts": true,
+                    "receive_final_transcripts": true
+                },
+                "realtime_processing": {
+                    "words_accurate_timestamps": true
+                }
+            })),
+            _ => None,
+        }
+    }
 }

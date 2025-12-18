@@ -9,11 +9,10 @@ use axum::{
     routing::any,
 };
 use owhisper_providers::{Auth, Provider};
-use serde::{Deserialize, Serialize};
 
 use crate::analytics::{SttAnalyticsReporter, SttEvent};
 use crate::config::SttProxyConfig;
-use crate::service::WebSocketProxy;
+use crate::proxy::WebSocketProxy;
 
 const IGNORED_PARAMS: &[&str] = &["provider", "keywords", "keyterm", "keyterms"];
 
@@ -114,19 +113,9 @@ async fn init_session(
         .and_then(|s| s.parse().ok())
         .unwrap_or(1);
 
-    let config = GladiaConfig {
-        encoding: "wav/pcm",
-        sample_rate,
-        bit_depth: 16,
-        channels,
-        messages_config: MessagesConfig {
-            receive_partial_transcripts: true,
-            receive_final_transcripts: true,
-        },
-        realtime_processing: RealtimeProcessing {
-            words_accurate_timestamps: true,
-        },
-    };
+    let config = provider
+        .session_init_config(sample_rate, channels)
+        .ok_or_else(|| format!("{:?} does not support session init config", provider))?;
 
     let resp = state
         .client
@@ -162,7 +151,8 @@ fn build_proxy(
 ) -> WebSocketProxy {
     let mut builder = WebSocketProxy::builder()
         .upstream_url(upstream_url)
-        .connect_timeout(config.connect_timeout);
+        .connect_timeout(config.connect_timeout)
+        .control_message_types(provider.control_message_types());
 
     match provider.auth() {
         Auth::Header { .. } => {
@@ -197,28 +187,7 @@ fn build_proxy(
     builder.build()
 }
 
-#[derive(Serialize)]
-struct GladiaConfig<'a> {
-    encoding: &'a str,
-    sample_rate: u32,
-    bit_depth: u8,
-    channels: u8,
-    messages_config: MessagesConfig,
-    realtime_processing: RealtimeProcessing,
-}
-
-#[derive(Serialize)]
-struct MessagesConfig {
-    receive_partial_transcripts: bool,
-    receive_final_transcripts: bool,
-}
-
-#[derive(Serialize)]
-struct RealtimeProcessing {
-    words_accurate_timestamps: bool,
-}
-
-#[derive(Deserialize)]
+#[derive(serde::Deserialize)]
 struct InitResponse {
     id: String,
     url: String,

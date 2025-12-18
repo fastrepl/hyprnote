@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::Duration;
 
 mod error;
 pub use error::*;
@@ -7,6 +8,39 @@ pub use error::*;
 pub struct AnalyticsClient {
     client: reqwest::Client,
     api_key: Option<String>,
+}
+
+// LLM Generation Event Types
+#[derive(Debug, Clone)]
+pub struct GenerationEvent {
+    pub generation_id: String,
+    pub model: String,
+    pub input_tokens: u32,
+    pub output_tokens: u32,
+    pub latency: f64,
+    pub http_status: u16,
+    pub total_cost: Option<f64>,
+}
+
+pub trait GenerationReporter: Send + Sync {
+    fn report_generation(
+        &self,
+        event: GenerationEvent,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>>;
+}
+
+// STT Event Types
+#[derive(Debug, Clone)]
+pub struct SttEvent {
+    pub provider: String,
+    pub duration: Duration,
+}
+
+pub trait SttReporter: Send + Sync {
+    fn report_stt(
+        &self,
+        event: SttEvent,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>>;
 }
 
 impl AnalyticsClient {
@@ -86,22 +120,53 @@ impl AnalyticsClient {
 
         Ok(())
     }
+}
 
-    pub async fn event2(&self, user_id: impl Into<String>) -> Result<(), Error> {
-        let payload = serde_json::json!({ "user_id": user_id.into() });
-        if let Some(_api_key) = &self.api_key {
-            let _ = self
-                .client
-                .post("https://us.i.posthog.com/i/v0/e/")
-                .query(&payload)
-                .send()
-                .await?
-                .error_for_status()?;
-        } else {
-            tracing::info!("event2: {}", serde_json::to_string(&payload).unwrap());
-        }
+const OPENROUTER_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
 
-        Ok(())
+impl GenerationReporter for AnalyticsClient {
+    fn report_generation(
+        &self,
+        event: GenerationEvent,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>> {
+        Box::pin(async move {
+            let payload = AnalyticsPayload::builder("$ai_generation")
+                .with("$ai_provider", "openrouter")
+                .with("$ai_model", event.model.clone())
+                .with("$ai_input_tokens", event.input_tokens)
+                .with("$ai_output_tokens", event.output_tokens)
+                .with("$ai_latency", event.latency)
+                .with("$ai_trace_id", event.generation_id.clone())
+                .with("$ai_http_status", event.http_status)
+                .with("$ai_base_url", OPENROUTER_URL);
+
+            let payload = if let Some(cost) = event.total_cost {
+                payload.with("$ai_total_cost_usd", cost)
+            } else {
+                payload
+            };
+
+            if let Err(e) = self.event(event.generation_id, payload.build()).await {
+                tracing::debug!("analytics generation event failed: {}", e);
+            }
+        })
+    }
+}
+
+impl SttReporter for AnalyticsClient {
+    fn report_stt(
+        &self,
+        event: SttEvent,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>> {
+        Box::pin(async move {
+            let payload = AnalyticsPayload::builder("$stt_request")
+                .with("$stt_provider", event.provider.clone())
+                .with("$stt_duration", event.duration.as_secs_f64())
+                .build();
+            if let Err(e) = self.event(uuid::Uuid::new_v4().to_string(), payload).await {
+                tracing::debug!("analytics stt event failed: {}", e);
+            }
+        })
     }
 }
 

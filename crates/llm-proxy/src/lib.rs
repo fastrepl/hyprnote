@@ -4,10 +4,10 @@ mod error;
 mod handler;
 mod types;
 
-pub use analytics::{AnalyticsReporter, GenerationEvent};
 pub use config::*;
 pub use error::*;
 pub use handler::router;
+pub use hypr_analytics::{GenerationEvent, GenerationReporter};
 
 #[cfg(test)]
 mod tests {
@@ -24,7 +24,7 @@ mod tests {
         events: Arc<Mutex<Vec<GenerationEvent>>>,
     }
 
-    impl AnalyticsReporter for MockAnalytics {
+    impl GenerationReporter for MockAnalytics {
         fn report_generation(
             &self,
             event: GenerationEvent,

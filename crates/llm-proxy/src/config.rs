@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::analytics::AnalyticsReporter;
+use hypr_analytics::GenerationReporter;
 
 const DEFAULT_TIMEOUT_MS: u64 = 120_000;
 
@@ -11,7 +11,7 @@ pub struct LlmProxyConfig {
     pub timeout: Duration,
     pub models_tool_calling: Vec<String>,
     pub models_default: Vec<String>,
-    pub analytics: Option<Arc<dyn AnalyticsReporter>>,
+    pub analytics: Option<Arc<dyn GenerationReporter>>,
 }
 
 impl LlmProxyConfig {
@@ -47,7 +47,7 @@ impl LlmProxyConfig {
         self
     }
 
-    pub fn with_analytics(mut self, reporter: Arc<dyn AnalyticsReporter>) -> Self {
+    pub fn with_analytics(mut self, reporter: Arc<dyn GenerationReporter>) -> Self {
         self.analytics = Some(reporter);
         self
     }

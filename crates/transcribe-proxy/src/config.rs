@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use owhisper_providers::Provider;
 
-use crate::analytics::SttAnalyticsReporter;
+use hypr_analytics::SttReporter;
 
 const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 5000;
 
@@ -13,7 +13,7 @@ pub struct SttProxyConfig {
     pub api_keys: HashMap<Provider, String>,
     pub default_provider: Provider,
     pub connect_timeout: Duration,
-    pub analytics: Option<Arc<dyn SttAnalyticsReporter>>,
+    pub analytics: Option<Arc<dyn SttReporter>>,
 }
 
 impl SttProxyConfig {
@@ -36,7 +36,7 @@ impl SttProxyConfig {
         self
     }
 
-    pub fn with_analytics(mut self, analytics: Arc<dyn SttAnalyticsReporter>) -> Self {
+    pub fn with_analytics(mut self, analytics: Arc<dyn SttReporter>) -> Self {
         self.analytics = Some(analytics);
         self
     }

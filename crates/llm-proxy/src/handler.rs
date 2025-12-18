@@ -13,12 +13,13 @@ use bytes::Bytes;
 use futures_util::StreamExt;
 use reqwest::Client;
 
-use crate::analytics::{AnalyticsReporter, fetch_generation_metadata, send_generation_event};
+use crate::analytics::fetch_generation_metadata;
 use crate::config::LlmProxyConfig;
 use crate::types::{
     ChatCompletionRequest, OPENROUTER_URL, OpenRouterRequest, OpenRouterResponse, Provider,
     ToolChoice,
 };
+use hypr_analytics::{GenerationEvent, GenerationReporter};
 
 #[derive(Clone)]
 struct AppState {
@@ -155,7 +156,7 @@ async fn handle_stream_response(
     http_status: u16,
 ) -> Response {
     let status = response.status();
-    let analytics: Option<Arc<dyn AnalyticsReporter>> = state.config.analytics.clone();
+    let analytics: Option<Arc<dyn GenerationReporter>> = state.config.analytics.clone();
     let api_key = state.config.api_key.clone();
     let client = state.client.clone();
 
@@ -193,17 +194,16 @@ async fn handle_stream_response(
             if let Some(gen_id) = metadata.generation_id {
                 let total_cost = fetch_generation_metadata(&client, &api_key, &gen_id).await;
 
-                send_generation_event(
-                    &analytics,
-                    gen_id,
-                    metadata.model.unwrap_or_default(),
-                    metadata.input_tokens,
-                    metadata.output_tokens,
+                let event = GenerationEvent {
+                    generation_id: gen_id,
+                    model: metadata.model.unwrap_or_default(),
+                    input_tokens: metadata.input_tokens,
+                    output_tokens: metadata.output_tokens,
                     latency,
                     http_status,
                     total_cost,
-                )
-                .await;
+                };
+                analytics.report_generation(event).await;
             }
         }
     });
@@ -257,8 +257,7 @@ async fn handle_non_stream_response(
             tokio::spawn(async move {
                 let total_cost = fetch_generation_metadata(&client, &api_key, &generation_id).await;
 
-                send_generation_event(
-                    &analytics,
+                let event = GenerationEvent {
                     generation_id,
                     model,
                     input_tokens,
@@ -266,8 +265,8 @@ async fn handle_non_stream_response(
                     latency,
                     http_status,
                     total_cost,
-                )
-                .await;
+                };
+                analytics.report_generation(event).await;
             });
         }
     }

@@ -4,9 +4,9 @@ mod error;
 mod proxy;
 mod router;
 
-pub use analytics::{SttAnalyticsReporter, SttEvent};
 pub use config::*;
 pub use error::*;
+pub use hypr_analytics::{SttEvent, SttReporter};
 pub use proxy::{ClientRequestBuilder, WebSocketProxy};
 pub use router::router;
 
@@ -28,7 +28,7 @@ mod tests {
         events: Arc<Mutex<Vec<SttEvent>>>,
     }
 
-    impl SttAnalyticsReporter for MockAnalytics {
+    impl SttReporter for MockAnalytics {
         fn report_stt(
             &self,
             event: SttEvent,
